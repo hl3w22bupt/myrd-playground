@@ -10,3 +10,4 @@ MyRD AI Agent 的测试项目，用于验证以下功能：
 
 **⚠️ 这是一个自动化测试项目，请勿依赖代码质量**
 
+Hello from MyAgent Git Workflow!
