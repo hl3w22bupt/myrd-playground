@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sandbox 规格配置模板 · 隔离沙盒运行</title>
+<style>
+  :root {
+    --bg: #0b0f1a;
+    --bg-gradient-1: #111827;
+    --bg-gradient-2: #0b0f1a;
+    --card: rgba(255, 255, 255, 0.04);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --card-border-active: rgba(52, 211, 153, 0.55);
+    --text: #e5e7eb;
+    --text-dim: #9ca3af;
+    --text-faint: #6b7280;
+    --accent: #6366f1;
+    --accent-hover: #818cf8;
+    --success: #34d399;
+    --success-bg: rgba(52, 211, 153, 0.12);
+    --radius: 14px;
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(99, 102, 241, 0.16), transparent 60%),
+      radial-gradient(900px 500px at 10% 10%, rgba(52, 211, 153, 0.08), transparent 55%),
+      linear-gradient(160deg, var(--bg-gradient-1), var(--bg-gradient-2));
+    min-height: 100vh;
+    padding: 32px 24px 56px;
+  }
+
+  /* ---------- 顶部导航 ---------- */
+  .topbar {
+    max-width: 1120px;
+    margin: 0 auto 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--text-faint);
+  }
+  .topbar .crumb { color: var(--text-dim); }
+  .topbar .crumb.current { color: var(--text); font-weight: 600; }
+  .topbar .sep { opacity: 0.5; }
+
+  /* ---------- 页面头 ---------- */
+  .page-head {
+    max-width: 1120px;
+    margin: 0 auto 24px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .page-head h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .page-head .subtitle {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .page-head .subtitle .badge-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+    margin-right: 6px;
+    box-shadow: 0 0 8px var(--success);
+  }
+
+  /* ---------- 工具栏 ---------- */
+  .toolbar {
+    max-width: 1120px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .filter-group {
+    display: flex;
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    padding: 4px;
+    border-radius: 10px;
+  }
+  .filter-group button {
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+  }
+  .filter-group button.active {
+    background: var(--accent);
+    color: #fff;
+  }
+  .filter-group button:hover:not(.active) { color: var(--text); }
+
+  .applied-count {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .applied-count b { color: var(--success); font-weight: 700; }
+
+  /* ---------- 模板卡片网格 ---------- */
+  .grid {
+    max-width: 1120px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+  }
+
+  .card {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 22px 22px 18px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(12px);
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255, 255, 255, 0.16);
+  }
+  .card.applied {
+    border-color: var(--card-border-active);
+    background: linear-gradient(180deg, rgba(52, 211, 153, 0.06), var(--card));
+    box-shadow: 0 8px 28px rgba(52, 211, 153, 0.10), var(--shadow);
+  }
+
+  /* ---------- 打勾角标（右上角） ---------- */
+  .checkmark-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px 4px 6px;
+    border-radius: 999px;
+    background: var(--success-bg);
+    border: 1px solid rgba(52, 211, 153, 0.5);
+    color: var(--success);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    opacity: 0;
+    transform: translateY(-4px) scale(0.9);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .checkmark-badge.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  .checkmark-badge .tick {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--success);
+    color: #06231a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+  }
+  .checkmark-badge .pulse {
+    position: absolute;
+    top: 50%; left: 14px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--success);
+    animation: pulse-ring 1.8s ease-out infinite;
+    z-index: -1;
+  }
+  @keyframes pulse-ring {
+    0%   { opacity: 0.5; transform: translate(-50%, -50%) scale(0.6); }
+    70%  { opacity: 0;   transform: translate(-50%, -50%) scale(2.2); }
+    100% { opacity: 0;   transform: translate(-50%, -50%) scale(2.2); }
+  }
+
+  /* ---------- 卡片内容 ---------- */
+  .card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding-right: 72px; /* 为右上角角标留出空间 */
+  }
+  .card-avatar {
+    flex: 0 0 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 16px;
+    color: #fff;
+  }
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.4;
+    word-break: break-all;
+  }
+  .card-desc {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* 规格字段 */
+  .spec-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .spec-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .spec-item .label {
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .spec-item .value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .meta-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .meta-line .kv { display: inline-flex; align-items: center; gap: 6px; }
+  .meta-line .kv + .kv::before {
+    content: "";
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--text-faint);
+  }
+  .meta-line .k { color: var(--text-faint); }
+  .meta-line .v { color: var(--text); font-weight: 500; }
+  .meta-line .model-chip {
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    color: var(--accent-hover);
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+  }
+
+  /* 操作按钮 */
+  .card-actions {
+    margin-top: auto;
+    display: flex;
+    gap: 10px;
+    padding-top: 4px;
+  }
+  .btn {
+    flex: 1;
+    border: none;
+    border-radius: 9px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+  }
+  .btn-apply {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-apply:hover:not(:disabled) { background: var(--accent-hover); }
+  .btn-apply:disabled {
+    background: var(--success);
+    cursor: default;
+    opacity: 1;
+  }
+  .btn-ghost {
+    flex: 0 0 auto;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--card-border);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: rgba(255, 255, 255, 0.2); }
+
+  /* ---------- 底部说明 ---------- */
+  .footnote {
+    max-width: 1120px;
+    margin: 28px auto 0;
+    font-size: 12px;
+    color: var(--text-faint);
+    line-height: 1.7;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 16px;
+  }
+  .footnote code {
+    background: rgba(255, 255, 255, 0.06);
+    padding: 1px 6px;
+    border-radius: 5px;
+    color: var(--text-dim);
+  }
+
+  /* 空状态 */
+  .empty {
+    max-width: 1120px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 60px 0;
+    color: var(--text-faint);
+    font-size: 14px;
+    display: none;
+  }
+  .empty.visible { display: block; }
+</style>
+</head>
+<body>
+
+  <!-- 顶部导航（面包屑） -->
+  <div class="topbar">
+    <span>Agent 运行环境</span>
+    <span class="sep">/</span>
+    <span class="crumb">Sandbox</span>
+    <span class="sep">/</span>
+    <span class="crumb current">隔离沙盒运行</span>
+  </div>
+
+  <!-- 页面头 -->
+  <header class="page-head">
+    <div>
+      <h1>Sandbox 规格配置模板</h1>
+      <p class="subtitle">
+        <span class="badge-dot"></span>
+        已生效（应用）的模板卡片将显示 <b style="color:var(--success)">打勾角标</b>，
+        用于与未生效模板快速区分。点击「应用」即可将模板设为当前生效模板。
+      </p>
+    </div>
+  </header>
+
+  <!-- 工具栏 -->
+  <div class="toolbar">
+    <div class="filter-group" id="filterGroup">
+      <button class="active" data-filter="all">全部</button>
+      <button data-filter="applied">仅看已生效</button>
+      <button data-filter="pending">仅看未生效</button>
+    </div>
+    <div class="applied-count">
+      当前生效：<b id="appliedCount">0</b> 个模板
+    </div>
+  </div>
+
+  <!-- 模板卡片网格 -->
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty">
+    当前筛选下没有模板。<br>
+    <span style="font-size:12px;color:var(--text-faint)">试试切换上方的筛选条件。</span>
+  </div>
+
+  <!-- 底部说明 -->
+  <div class="footnote">
+    <b>实现说明</b>：本页面模拟「Agent 运行环境 → Sandbox 隔离沙盒运行」中的规格配置模板卡片。
+    生效状态由运行时配置（<code>AgentModePreference.cloudConfig.templateId</code>）驱动，
+    卡片右上角的 <b style="color:var(--success)">✓ 已生效</b> 角标用于标识当前应用生效的模板，
+    未生效模板不显示该角标。点击「应用」会切换生效模板。
+  </div>
+
+<script>
+  // ---------- 模板数据 ----------
+  // 结构对应真实项目中的 Sandbox 规格配置模板：
+  // DevboxTemplate { id, name, spec, image, agentType, modelConfig, ... }
+  const TEMPLATES = [
+    {
+      id: "tpl_standard",
+      name: "标准开发沙盒",
+      desc: "均衡型规格，适合日常代码编写、调试与小型服务运行。",
+      avatar: "标",
+      avatarColor: "linear-gradient(135deg,#6366f1,#8b5cf6)",
+      spec: { cpu: "4 vCPU", mem: "8 GiB", gpu: "无" },
+      image: "myrd-dev:node20",
+      agentType: "standard",
+      model: "claude-opus-5",
+    },
+    {
+      id: "tpl_heavy",
+      name: "重型构建沙盒",
+      desc: "高配规格，适合大型构建、前端编译与多任务并行。",
+      avatar: "重",
+      avatarColor: "linear-gradient(135deg,#f59e0b,#ef4444)",
+      spec: { cpu: "16 vCPU", mem: "32 GiB", gpu: "无" },
+      image: "myrd-dev:node20",
+      agentType: "heavy",
+      model: "claude-opus-5",
+    },
+    {
+      id: "tpl_gpu",
+      name: "GPU 推理沙盒",
+      desc: "配备 NVIDIA A10，适合模型推理、训练与批量推理任务。",
+      avatar: "G",
+      avatarColor: "linear-gradient(135deg,#10b981,#059669)",
+      spec: { cpu: "8 vCPU", mem: "32 GiB", gpu: "A10 · 24GB" },
+      image: "myrd-dev:cuda12",
+      agentType: "gpu",
+      model: "claude-opus-5",
+    },
+    {
+      id: "tpl_lite",
+      name: "轻量工具沙盒",
+      desc: "最小规格，适合脚本执行、CLI 工具与快速验证。",
+      avatar: "轻",
+      avatarColor: "linear-gradient(135deg,#38bdf8,#6366f1)",
+      spec: { cpu: "1 vCPU", mem: "2 GiB", gpu: "无" },
+      image: "myrd-dev:alpine",
+      agentType: "lite",
+      model: "claude-haiku-4-5",
+    },
+  ];
+
+  // 当前生效模板 id —— 真实项目中来自 AgentModePreference.cloudConfig.templateId
+  let appliedTemplateId = "tpl_standard";
+
+  // 当前筛选：all | applied | pending
+  let currentFilter = "all";
+
+  const grid = document.getElementById("grid");
+  const empty = document.getElementById("empty");
+  const appliedCount = document.getElementById("appliedCount");
+
+  // ---------- 渲染 ----------
+  function render() {
+    grid.innerHTML = "";
+    const visible = TEMPLATES.filter((t) => {
+      if (currentFilter === "applied") return t.id === appliedTemplateId;
+      if (currentFilter === "pending") return t.id !== appliedTemplateId;
+      return true;
+    });
+
+    if (visible.length === 0) {
+      empty.classList.add("visible");
+    } else {
+      empty.classList.remove("visible");
+    }
+
+    visible.forEach((tpl) => {
+      const isApplied = tpl.id === appliedTemplateId;
+      const card = document.createElement("div");
+      card.className = "card" + (isApplied ? " applied" : "");
+      card.dataset.id = tpl.id;
+      card.innerHTML = `
+        <div class="checkmark-badge ${isApplied ? "visible" : ""}" role="status" aria-label="已生效">
+          <span class="tick">✓</span>已生效
+          ${isApplied ? '<span class="pulse"></span>' : ""}
+        </div>
+        <div class="card-head">
+          <div class="card-avatar" style="background:${tpl.avatarColor}">${tpl.avatar}</div>
+          <div>
+            <div class="card-title">${tpl.name}</div>
+            <div class="card-desc">${tpl.desc}</div>
+          </div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-item"><div class="label">vCPU</div><div class="value">${tpl.spec.cpu}</div></div>
+          <div class="spec-item"><div class="label">内存</div><div class="value">${tpl.spec.mem}</div></div>
+          <div class="spec-item"><div class="label">GPU</div><div class="value">${tpl.spec.gpu}</div></div>
+        </div>
+        <div class="meta-line">
+          <span class="kv"><span class="k">镜像</span><span class="v">${tpl.image}</span></span>
+          <span class="kv"><span class="k">Agent</span><span class="v">${tpl.agentType}</span></span>
+          <span class="kv"><span class="k">模型</span><span class="v model-chip">${tpl.model}</span></span>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-apply" data-apply="${tpl.id}" ${isApplied ? "disabled" : ""}>
+            ${isApplied ? "✓ 已应用" : "应用"}
+          </button>
+          <button class="btn btn-ghost" data-edit="${tpl.id}">编辑</button>
+          <button class="btn btn-ghost" data-delete="${tpl.id}">删除</button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    appliedCount.textContent = TEMPLATES.filter((t) => t.id === appliedTemplateId).length;
+
+    // 更新筛选按钮高亮
+    document.querySelectorAll("#filterGroup button").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.filter === currentFilter);
+    });
+  }
+
+  // ---------- 事件 ----------
+  document.getElementById("filterGroup").addEventListener("click", (e) => {
+    if (e.target.tagName !== "BUTTON") return;
+    currentFilter = e.target.dataset.filter;
+    render();
+  });
+
+  grid.addEventListener("click", (e) => {
+    const applyBtn = e.target.closest("[data-apply]");
+    if (applyBtn) {
+      appliedTemplateId = applyBtn.dataset.apply;
+      render();
+      return;
+    }
+    // 编辑 / 删除仅作演示提示
+    const editBtn = e.target.closest("[data-edit]");
+    if (editBtn) {
+      flashToast(`「编辑」演示按钮：此处在真实项目中会打开模板编辑弹窗。`);
+      return;
+    }
+    const delBtn = e.target.closest("[data-delete]");
+    if (delBtn) {
+      flashToast(`「删除」演示按钮：此处在真实项目中需二次确认后删除模板。`);
+    }
+  });
+
+  // ---------- 轻提示 ----------
+  function flashToast(msg) {
+    const old = document.querySelector(".toast");
+    if (old) old.remove();
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.textContent = msg;
+    toast.style.cssText = `
+      position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%);
+      background: rgba(17,24,39,0.92); border: 1px solid rgba(255,255,255,0.14);
+      color: var(--text); padding: 10px 18px; border-radius: 10px;
+      font-size: 13px; box-shadow: var(--shadow); z-index: 999;
+      opacity: 0; transition: opacity 0.2s ease;
+    `;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => (toast.style.opacity = "1"));
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      setTimeout(() => toast.remove(), 250);
+    }, 2200);
+  }
+
+  // ---------- 初始化 ----------
+  render();
+</script>
+</body>
+</html>
