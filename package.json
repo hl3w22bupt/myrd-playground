@@ -1,0 +1,28 @@
+{
+  "name": "pubg-web-core",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "「和平精英Web版」pubg-web-core 功能线：纯浏览器端战术竞技生存玩法（跳伞/拾取/射击/缩圈/AI 对抗）",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "0.185.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@types/three": "^0.180.0",
+    "eslint": "^9.36.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.44.0",
+    "vite": "^7.1.7",
+    "vitest": "^3.2.4"
+  }
+}
