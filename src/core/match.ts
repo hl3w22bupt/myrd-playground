@@ -6,6 +6,7 @@
 import { DEFAULT_CONTENT_PACK, TICK_MS } from '../content';
 import type { ContentPack } from '../content';
 import { Rng } from './rng';
+import { dist2D } from './geom';
 import {
   createEntity,
   pushEvent,
@@ -30,6 +31,7 @@ import type {
   MatchHandle,
   MatchResult,
   MatchStatus,
+  NearbyLoot,
   PlayerIntent,
   PlayerViewSnapshot,
   Vec3,
@@ -253,6 +255,8 @@ export function buildSnapshot(w: World): WorldSnapshot {
     kills: p.kills,
     aliveCount: w.entities.reduce((n, e) => n + (e.alive ? 1 : 0), 0),
     medkitChannelMsLeft: p.medkitUntilMs !== null ? Math.max(0, p.medkitUntilMs - w.elapsedMs) : 0,
+    nearbyLoot: findNearbyLoot(w, p),
+    outsideZone: isPlayerOutsideZone(w, p),
   };
 
   return {
@@ -304,6 +308,26 @@ export function createMatch(config: MatchConfig): MatchHandle & { world: World }
       return w.elapsedMs;
     },
   };
+}
+
+/** 拾取提示（AC3）：玩家拾取半径内最近的可拾取物资（仅落地后有效） */
+function findNearbyLoot(w: World, p: Entity): NearbyLoot | null {
+  if (p.state !== 'ground' || !p.alive) return null;
+  let best: NearbyLoot | null = null;
+  for (const l of w.loots) {
+    if (l.taken) continue;
+    const d = dist2D(p.pos.x, p.pos.z, l.pos.x, l.pos.z);
+    if (d <= w.pack.constants.PICKUP_RADIUS_M && (best === null || d < best.dist)) {
+      best = { id: l.id, item: l.item, dist: d };
+    }
+  }
+  return best;
+}
+
+/** 毒圈警示（AC5）：玩家存活且处于安全区外 */
+function isPlayerOutsideZone(w: World, p: Entity): boolean {
+  if (!p.alive || p.state === 'dead') return false;
+  return dist2D(p.pos.x, p.pos.z, w.zone.center.x, w.zone.center.z) > w.zone.radius;
 }
 
 export type { LootItem };

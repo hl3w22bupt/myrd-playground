@@ -31,6 +31,8 @@ export class Hud {
   private medkitBar: HTMLDivElement;
   private debugText: HTMLDivElement;
   private vignette: HTMLDivElement;
+  private pickupHint: HTMLDivElement;
+  private zoneWarn: HTMLDivElement;
 
   constructor(container: HTMLElement) {
     this.root = document.createElement('div');
@@ -44,6 +46,8 @@ export class Hud {
         <div class="stat"><span class="stat-label">缩圈</span><span data-ref="zone">-</span></div>
       </div>
       <div class="hud-state" data-ref="state"></div>
+      <div class="pickup-hint" data-ref="pickup"></div>
+      <div class="zone-warn" data-ref="zonewarn"></div>
       <div class="killfeed" data-ref="killfeed"></div>
       <div class="hud-bottom-left">
         <div class="hpbar"><div class="hpbar-fill" data-ref="hp"></div></div>
@@ -73,6 +77,8 @@ export class Hud {
     this.stateText = ref('state');
     this.killFeed = ref('killfeed');
     this.medkitBar = ref('medkit');
+    this.pickupHint = ref('pickup');
+    this.zoneWarn = ref('zonewarn');
     this.debugText = ref('debug');
   }
 
@@ -125,6 +131,26 @@ export class Hud {
       if (fill) fill.style.width = `${(100 - (p.medkitChannelMsLeft / total) * 100).toFixed(0)}%`;
     } else {
       this.medkitBar.style.display = 'none';
+    }
+
+    // 拾取提示（AC3）：范围内最近物资 → 「按 E 拾取 xx」
+    const near = p.nearbyLoot;
+    if (near) {
+      const def = ITEMS[near.item as keyof typeof ITEMS];
+      this.pickupHint.textContent = `按 E 拾取 ${def?.name ?? near.item}`;
+      this.pickupHint.style.display = 'block';
+    } else {
+      this.pickupHint.style.display = 'none';
+    }
+
+    // 毒圈警示（AC5）：处于安全区外 → 提示当前掉血速率
+    if (p.outsideZone) {
+      this.zoneWarn.textContent = `⚠ 已在安全区外 —— 每秒 ${zone.dps.toFixed(1)} 点伤害，立即进圈！`;
+      this.zoneWarn.style.display = 'block';
+      this.vignette.classList.add('poison');
+    } else {
+      this.zoneWarn.style.display = 'none';
+      this.vignette.classList.remove('poison');
     }
   }
 

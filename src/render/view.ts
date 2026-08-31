@@ -49,8 +49,7 @@ export class GameView {
   private zoneWall: THREE.Mesh;
   private zoneRing: THREE.LineLoop;
   private planeMesh: THREE.Group;
-  private canopy: THREE.Mesh;
-  private canopyFor: string | null = null;
+  private canopyMat: THREE.MeshLambertMaterial;
 
   private tmpMat4 = new THREE.Matrix4();
   private tmpQuat = new THREE.Quaternion();
@@ -166,13 +165,11 @@ export class GameView {
     this.planeMesh = this.buildPlane();
     this.scene.add(this.planeMesh);
 
-    // —— 降落伞 ——
-    this.canopy = new THREE.Mesh(
-      new THREE.SphereGeometry(2.2, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2),
-      new THREE.MeshLambertMaterial({ map: makeCanopyTexture(), side: THREE.DoubleSide }),
-    );
-    this.canopy.visible = false;
-    this.scene.add(this.canopy);
+    // —— 降落伞（每实体一把，空中单位可多个同时滑翔）——
+    this.canopyMat = new THREE.MeshLambertMaterial({
+      map: makeCanopyTexture(),
+      side: THREE.DoubleSide,
+    });
 
     this.effects = new EffectLayer(this.scene);
   }
@@ -331,15 +328,10 @@ export class GameView {
         (view.body.material as THREE.MeshLambertMaterial).emissive.setScalar(Math.max(0, view.hurtT) * 2);
       }
 
-      // 降落伞挂载
-      if (e.state === 'parachute') {
-        this.canopy.visible = true;
-        this.canopy.position.set(ix, iy + 3.4, iz);
-        this.canopyFor = e.id;
-      } else if (this.canopyFor === e.id) {
-        this.canopy.visible = false;
-        this.canopyFor = null;
-      }
+      // 降落伞挂载（每实体独立，多单位空中互不干扰）
+      const chuteVisible = e.state === 'parachute';
+      if (view.canopy.visible !== chuteVisible) view.canopy.visible = chuteVisible;
+      if (chuteVisible) view.canopy.position.set(0, 3.4, 0);
     }
     for (const [id, view] of this.entityViews) {
       if (!seen.has(id)) {
@@ -372,8 +364,15 @@ export class GameView {
     );
     gun.position.set(0.22, 1.25, 0.5);
     group.add(gun);
+    // 降落伞（挂在实体组内，随实体位置移动）
+    const canopy = new THREE.Mesh(
+      new THREE.SphereGeometry(2.2, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+      this.canopyMat,
+    );
+    canopy.visible = false;
+    group.add(canopy);
     this.scene.add(group);
-    return { group, body, prevPos: null, hurtT: 0 };
+    return { group, body, canopy, prevPos: null, hurtT: 0 };
   }
 
   private syncLoot(snap: WorldSnapshot): void {
@@ -475,6 +474,7 @@ export class GameView {
 interface EntityView {
   group: THREE.Group;
   body: THREE.Mesh;
+  canopy: THREE.Mesh;
   prevPos: Vec3 | null;
   hurtT: number;
 }
