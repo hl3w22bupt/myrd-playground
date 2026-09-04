@@ -91,7 +91,7 @@ export function startGame(container: HTMLElement, opts: StartOptions): GameHandl
     // 渲染（快照只读；view 为 null 时仅降级为 HUD）
     const snap = match.snapshot();
     if (view) view.render(snap, events, alpha, dt / 1000);
-    hud.update(snap);
+    hud.update(snap, t);
     hud.consumeEvents(events, match);
     minimap.update(snap);
     if (inventory.visible) inventory.render();
