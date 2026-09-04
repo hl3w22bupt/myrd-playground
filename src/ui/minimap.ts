@@ -4,7 +4,9 @@
  */
 
 import type { WorldSnapshot } from '../core/types';
+import { MINIMAP_UPDATE_HZ } from '../content/render';
 import type { ContentPack } from '../content';
+import { hzToIntervalMs, RateLimiter } from '../perf/rate';
 
 const SIZE = 190;
 
@@ -12,6 +14,8 @@ export class Minimap {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private staticLayer: HTMLCanvasElement;
+  /** 重绘节流：画布内容一致，仅降低频率（同一主循环内，无独立定时器） */
+  private readonly throttle = new RateLimiter(hzToIntervalMs(MINIMAP_UPDATE_HZ));
 
   constructor(container: HTMLElement, pack: ContentPack, buildings: Array<{ minX: number; maxX: number; minZ: number; maxZ: number }>) {
     this.canvas = document.createElement('canvas');
@@ -43,7 +47,12 @@ export class Minimap {
     }
   }
 
-  update(snap: WorldSnapshot): void {
+  /**
+   * 按 MINIMAP_UPDATE_HZ 节流重绘。
+   * @returns 本帧是否真正重绘（基准/测试观测用）
+   */
+  update(snap: WorldSnapshot, nowMs: number): boolean {
+    if (!this.throttle.due(nowMs)) return false;
     const k = SIZE / 1600;
     this.ctx.clearRect(0, 0, SIZE, SIZE);
     this.ctx.drawImage(this.staticLayer, 0, 0);
@@ -87,6 +96,7 @@ export class Minimap {
       this.ctx.fill();
       this.ctx.restore();
     }
+    return true;
   }
 
   dispose(): void {

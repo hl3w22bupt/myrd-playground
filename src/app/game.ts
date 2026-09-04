@@ -13,6 +13,8 @@ import { Hud } from '../ui/hud';
 import { Minimap } from '../ui/minimap';
 import { InventoryPanel, ResultScreen } from '../ui/panels';
 import { PerfSampler } from '../perf/sampler';
+import { hzToIntervalMs, RateLimiter } from '../perf/rate';
+import { DEBUG_TEXT_HZ } from '../content/render';
 import type { StartOptions } from '../ui/panels';
 
 export interface GameHandle {
@@ -67,6 +69,7 @@ export function startGame(container: HTMLElement, opts: StartOptions): GameHandl
   // 5) 双循环：rAF 可变渲染 + 50Hz 固定逻辑（渲染层唯一 rAF 循环，见 FrameDriver/主循环纪律）
   const loop = new FixedLoop((intents: PlayerIntent[]) => match.tick(intents));
   const sampler = new PerfSampler();
+  const debugLimiter = new RateLimiter(hzToIntervalMs(DEBUG_TEXT_HZ));
   const pendingIntents: PlayerIntent[] = [];
   const frameIntents: PlayerIntent[] = [];
   let lastT = performance.now();
@@ -99,20 +102,22 @@ export function startGame(container: HTMLElement, opts: StartOptions): GameHandl
     if (view) view.render(snap, events, alpha, dt / 1000);
     hud.update(snap);
     hud.consumeEvents(events, match);
-    minimap.update(snap);
+    minimap.update(snap, t);
     if (inventory.visible) inventory.render();
 
-    // 性能采样 + 画质自适应
+    // 性能采样 + 画质自适应（统计计算与调试文案降频，见 PERF_SAMPLE_HZ / DEBUG_TEXT_HZ）
     const sample = sampler.sample();
     if (view) {
       const changed = view.autoTune(sample.fps, t);
       if (changed) hud.setDebug(`画质自动调整为 ${changed}`);
-      hud.setDebug(
-        `FPS ${sample.fps.toFixed(0)} · 1%低 ${sample.low1Fps.toFixed(0)} · p95 ${sample.p95FrameMs.toFixed(1)}ms · ` +
-        `draw ${view.drawCalls} · 画质 ${view.qualityLevel}` +
-        (sample.heapMb !== null ? ` · heap ${sample.heapMb.toFixed(0)}MB` : '') +
-        (loop.dropped > 0 ? ` · 丢帧tick ${loop.dropped}` : ''),
-      );
+      else if (debugLimiter.due(t)) {
+        hud.setDebug(
+          `FPS ${sample.fps.toFixed(0)} · 1%低 ${sample.low1Fps.toFixed(0)} · p95 ${sample.p95FrameMs.toFixed(1)}ms · ` +
+          `draw ${view.drawCalls} · 画质 ${view.qualityLevel}` +
+          (sample.heapMb !== null ? ` · heap ${sample.heapMb.toFixed(0)}MB` : '') +
+          (loop.dropped > 0 ? ` · 丢帧tick ${loop.dropped}` : ''),
+        );
+      }
     }
 
     // 结算

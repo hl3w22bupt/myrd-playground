@@ -4,16 +4,7 @@
  */
 
 import type { GameEvent, MatchHandle, WorldSnapshot } from '../core/types';
-import { ITEMS, WEAPONS } from '../content';
-import type { MedkitItemDef } from '../content';
-
-const STATE_LABEL: Record<string, string> = {
-  plane: '✈ 运输机上 —— 按 F 跳伞',
-  freefall: '🪂 自由落体 —— WASD 控制方向，Shift 俯冲，空格开伞',
-  parachute: '🪂 滑翔中 —— WASD 微调落点',
-  ground: '',
-  dead: '☠ 已淘汰',
-};
+import { HudState } from './hudState';
 
 export class Hud {
   private root: HTMLDivElement;
@@ -31,6 +22,9 @@ export class Hud {
   private medkitBar: HTMLDivElement;
   private debugText: HTMLDivElement;
   private vignette: HTMLDivElement;
+  /** 字段级脏检查器（纯逻辑，Node 可测） */
+  private readonly hudState = new HudState();
+  private lastDebug: string | null = null;
 
   constructor(container: HTMLElement) {
     this.root = document.createElement('div');
@@ -77,55 +71,29 @@ export class Hud {
   }
 
   update(snap: WorldSnapshot): void {
-    const p = snap.player;
-    if (!p) return;
+    // 纯逻辑计算 + 字段级脏检查：值不变的字段不产生任何 DOM 写入（消除强制布局）
+    const { state, dirty } = this.hudState.compute(snap);
 
-    // 血量
-    const hpRatio = Math.max(0, Math.min(1, p.hp / p.maxHp));
-    this.hpBar.style.width = `${(hpRatio * 100).toFixed(1)}%`;
-    this.hpBar.style.background = hpRatio > 0.55 ? '#59c159' : hpRatio > 0.25 ? '#e0b23a' : '#d8564a';
-    this.hpText.textContent = `${Math.ceil(p.hp)}`;
-    this.armorTag.textContent =
-      `${p.armorReduction > 0 ? '🛡' + Math.round(p.armorReduction * 100) + '%' : ''}` +
-      `${p.helmetReduction > 0 ? ' ⛑' + Math.round(p.helmetReduction * 100) + '%' : ''}`;
+    if (dirty.hpWidth) this.hpBar.style.width = state.hpWidth;
+    if (dirty.hpColor) this.hpBar.style.background = state.hpColor;
+    if (dirty.hpText) this.hpText.textContent = state.hpText;
+    if (dirty.armorText) this.armorTag.textContent = state.armorText;
+    if (dirty.weaponText) this.weaponText.textContent = state.weaponText;
+    if (dirty.ammoText) this.ammoText.textContent = state.ammoText;
+    if (dirty.reloadText) this.reloadTag.textContent = state.reloadText;
+    if (dirty.aliveText) this.aliveText.textContent = state.aliveText;
+    if (dirty.killsText) this.killsText.textContent = state.killsText;
+    if (dirty.zoneText) this.zoneText.textContent = state.zoneText;
+    if (dirty.stateText) this.stateText.textContent = state.stateText;
+    if (dirty.vignetteDanger) this.vignette.classList.toggle('danger', state.vignetteDanger);
 
-    // 武器与弹药
-    const weaponId = p.weapon;
-    if (weaponId) {
-      const def = WEAPONS[weaponId as keyof typeof WEAPONS];
-      this.weaponText.textContent = def ? def.name : weaponId;
-      this.ammoText.textContent = p.reloading ? '--' : `${p.magazine} / ${p.reserve ?? 0}`;
-      this.reloadTag.textContent = p.reloading ? '换弹中…' : '';
-    } else {
-      this.weaponText.textContent = '空手（E 拾取）';
-      this.ammoText.textContent = '-';
-    }
-
-    // 局势
-    this.aliveText.textContent = `${p.aliveCount}`;
-    this.killsText.textContent = `${p.kills}`;
-    const zone = snap.zone;
-    const zoneLabel =
-      zone.mode === 'wait'
-        ? `${zone.phase + 1}/${zone.phaseCount} 缩圈 ${Math.ceil(zone.timeLeftMs / 1000)}s`
-        : zone.mode === 'shrink'
-          ? `${zone.phase + 1}/${zone.phaseCount} 收缩中 ${Math.ceil(zone.timeLeftMs / 1000)}s`
-          : '终局';
-    this.zoneText.textContent = zoneLabel;
-
-    // 状态横幅
-    this.stateText.textContent = STATE_LABEL[p.state] ?? '';
-    this.vignette.classList.toggle('danger', hpRatio < 0.35);
-
-    // 医疗引导
-    if (p.medkitChannelMsLeft > 0) {
-      this.medkitBar.style.display = 'block';
-      const total = (ITEMS.medkit_large as MedkitItemDef).useMs;
+    if (dirty.medkitVisible) this.medkitBar.style.display = state.medkitVisible ? 'block' : 'none';
+    if (state.medkitVisible && dirty.medkitFillWidth) {
       const fill = this.medkitBar.firstElementChild as HTMLElement | null;
-      if (fill) fill.style.width = `${(100 - (p.medkitChannelMsLeft / total) * 100).toFixed(0)}%`;
-    } else {
-      this.medkitBar.style.display = 'none';
+      if (fill) fill.style.width = state.medkitFillWidth;
     }
+
+    this.hudState.commit();
   }
 
   consumeEvents(events: GameEvent[], match: MatchHandle): void {
@@ -145,6 +113,9 @@ export class Hud {
   }
 
   setDebug(text: string): void {
+    // 文案未变化不写 DOM（调用方按 DEBUG_TEXT_HZ 节流，这里兜底拦截相同字符串）
+    if (this.lastDebug === text) return;
+    this.lastDebug = text;
     this.debugText.textContent = text;
   }
 

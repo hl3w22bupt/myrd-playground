@@ -64,6 +64,8 @@ export class InventoryPanel {
   private grid: HTMLDivElement;
   private match: MatchHandle | null = null;
   visible = false;
+  /** 背包内容签名：内容不变不重建 DOM */
+  private lastSignature: string | null = null;
 
   constructor(container: HTMLElement) {
     this.root = document.createElement('div');
@@ -87,13 +89,21 @@ export class InventoryPanel {
   toggle(): void {
     this.visible = !this.visible;
     this.root.style.display = this.visible ? 'flex' : 'none';
+    this.lastSignature = null; // 打开时强制重绘一次
     if (this.visible) this.render();
   }
 
   render(): void {
     if (!this.match) return;
-    const p = this.match.snapshot().player;
+    // 背包内容未变化时不重建 DOM（此前每帧 innerHTML 重建 + 20 个节点重建，是主循环最大强制布局源）
+    const snap = this.match.snapshotReusable
+      ? this.match.snapshotReusable()
+      : this.match.snapshot();
+    const p = snap.player;
     if (!p) return;
+    const signature = inventorySignature(p.usedGrids, p.inventory);
+    if (signature === this.lastSignature) return;
+    this.lastSignature = signature;
     this.grid.innerHTML = '';
     p.inventory.forEach((slot, i) => {
       const cell = document.createElement('div');
@@ -126,6 +136,19 @@ export class InventoryPanel {
   dispose(): void {
     this.root.remove();
   }
+}
+
+/** 背包内容签名（格子占用 + 物品与数量）：纯函数，供脏检查 */
+export function inventorySignature(
+  usedGrids: number,
+  inventory: Array<{ item: string; count: number } | null>,
+): string {
+  let sig = `${usedGrids}|`;
+  for (let i = 0; i < inventory.length; i++) {
+    const s = inventory[i];
+    sig += s ? `${s.item}x${s.count};` : '-;';
+  }
+  return sig;
 }
 
 export class ResultScreen {
