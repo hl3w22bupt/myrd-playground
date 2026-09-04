@@ -7,6 +7,7 @@ export { Rng, createRng } from './rng';
 export * from './types';
 export { createMatch, createWorldForTest, tickWorld, buildSnapshot, applyIntent, MATCH_DEFAULTS } from './match';
 export type { MatchConfig } from './match';
+export { SnapshotWriter } from './snapshot';
 export { FixedLoop } from './loop';
 export * from './geom';
 export {

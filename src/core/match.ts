@@ -3,7 +3,7 @@
  * tick 内禁止 Math.random / Date.now / DOM 访问（确定性红线，CI lint 强制）。
  */
 
-import { DEFAULT_CONTENT_PACK, TICK_MS } from '../content';
+import { DEFAULT_CONTENT_PACK, ENTITY_CAP, TICK_MS } from '../content';
 import type { ContentPack } from '../content';
 import { Rng } from './rng';
 import {
@@ -23,6 +23,7 @@ import { generateLoot, updateLoot } from './systems/loot';
 import { initZone, updateZone } from './systems/zone';
 import { initAi, updateAi } from './systems/ai';
 import { updateLifecycle, checkMatchEnd } from './systems/lifecycle';
+import { SnapshotWriter } from './snapshot';
 import type {
   EntitySnapshot,
   GameEvent,
@@ -262,6 +263,7 @@ export function buildSnapshot(w: World): WorldSnapshot {
     entities,
     player,
     loots,
+    playerEntity: entities.length > 0 && entities[0].id === w.player.id ? entities[0] : null,
     zone: {
       center: { ...w.zone.center },
       radius: w.zone.radius,
@@ -281,6 +283,10 @@ export function buildSnapshot(w: World): WorldSnapshot {
 
 export function createMatch(config: MatchConfig): MatchHandle & { world: World } {
   const w = createWorldForTest(config);
+  // 零分配快照通道：预分配对象图，每帧只覆写（渲染/UI 每帧消费，避免 GC 抖动）
+  const snapshotWriter = new SnapshotWriter(Math.max(ENTITY_CAP, w.entities.length));
+  // 事件缓冲复用：上一帧事件已在本帧内被 UI/特效消费完，下一帧 drain 时回收该数组
+  let reclaimedEvents: GameEvent[] = [];
   return {
     world: w,
     tick(intents: PlayerIntent[] = []): void {
@@ -289,9 +295,15 @@ export function createMatch(config: MatchConfig): MatchHandle & { world: World }
     snapshot(): WorldSnapshot {
       return buildSnapshot(w);
     },
+    snapshotReusable(): WorldSnapshot {
+      return snapshotWriter.write(w);
+    },
     drainEvents(): GameEvent[] {
+      const spare = reclaimedEvents;
+      spare.length = 0;
       const out = w.events;
-      w.events = [];
+      w.events = spare;
+      reclaimedEvents = out;
       return out;
     },
     status(): MatchStatus {

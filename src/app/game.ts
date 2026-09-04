@@ -64,10 +64,11 @@ export function startGame(container: HTMLElement, opts: StartOptions): GameHandl
     startGame(container, opts);
   });
 
-  // 5) 双循环：rAF 可变渲染 + 50Hz 固定逻辑
+  // 5) 双循环：rAF 可变渲染 + 50Hz 固定逻辑（渲染层唯一 rAF 循环，见 FrameDriver/主循环纪律）
   const loop = new FixedLoop((intents: PlayerIntent[]) => match.tick(intents));
   const sampler = new PerfSampler();
-  let pendingIntents: PlayerIntent[] = [];
+  const pendingIntents: PlayerIntent[] = [];
+  const frameIntents: PlayerIntent[] = [];
   let lastT = performance.now();
   let rafId = 0;
   let ended = false;
@@ -78,9 +79,12 @@ export function startGame(container: HTMLElement, opts: StartOptions): GameHandl
     lastT = t;
     sampler.frame(t);
 
-    // 输入 → 意图
-    const frameIntents = [...pendingIntents, ...input.consume()];
-    pendingIntents = [];
+    // 输入 → 意图（复用数组，逐帧零分配；事件缓冲由 drainEvents 内部复用）
+    frameIntents.length = 0;
+    for (let i = 0; i < pendingIntents.length; i++) frameIntents.push(pendingIntents[i]);
+    pendingIntents.length = 0;
+    const consumed = input.consume();
+    for (let i = 0; i < consumed.length; i++) frameIntents.push(consumed[i]);
 
     // 固定步进推进仿真（意图只在第一个逻辑 tick 消费）
     const alpha = loop.advance(dt, frameIntents);
@@ -88,8 +92,10 @@ export function startGame(container: HTMLElement, opts: StartOptions): GameHandl
     // 事件：UI 与特效各取一份
     const events = match.drainEvents();
 
-    // 渲染（快照只读；view 为 null 时仅降级为 HUD）
-    const snap = match.snapshot();
+    // 渲染（零分配快照通道：快照对象恒定，仅本帧内有效；view 为 null 时仅降级为 HUD）
+    const snap = match.snapshotReusable
+      ? match.snapshotReusable()
+      : match.snapshot();
     if (view) view.render(snap, events, alpha, dt / 1000);
     hud.update(snap);
     hud.consumeEvents(events, match);
