@@ -4,12 +4,15 @@
  */
 
 import * as THREE from 'three';
-import type { GameEvent, MatchHandle, Vec3, WorldSnapshot } from '../core/types';
+import type { GameEvent, MatchHandle, WorldSnapshot } from '../core/types';
 import type { World } from '../core/world';
 import { terrainHeightAt } from '../core/mapgen';
-import { MAP_SIZE } from '../content/constants';
+import { ENTITY_CAP, MAP_SIZE } from '../content/constants';
+import { MAX_VISIBLE_ENTITIES } from '../content/render';
 import type { ContentPack } from '../content';
 import { EffectLayer } from './effects';
+import type { EntityView } from './entityPool';
+import { EntityViewPool } from './entityPool';
 import { makeBuildingTexture, makeCanopyTexture, makeGroundTexture } from './textures';
 import { AutoQuality, QUALITY_PRESETS, type QualityLevel, type QualityPreset } from './quality';
 
@@ -42,10 +45,15 @@ export class GameView {
   private buildingMesh: THREE.InstancedMesh;
   private dirLight: THREE.DirectionalLight;
 
-  // 动态对象池
-  private entityViews = new Map<string, EntityView>();
+  // 动态对象池（实体视图走池：运行期零创建/零销毁）
+  private entityPool: EntityViewPool;
+  /** 实体下标 → 视图（实体在 core 内下标稳定，免 Map/Set 与字符串哈希） */
+  private entityViews: Array<EntityView | null> = [];
   private lootInst: THREE.InstancedMesh;
   private lootShown = 0;
+  /** 物资实例颜色脏检查：槽位 → 上次写入的物品种类（'' = 未写入） */
+  private lootColorItems: Array<string> = [];
+  private lootColorDirty = true;
   private zoneWall: THREE.Mesh;
   private zoneRing: THREE.LineLoop;
   private planeMesh: THREE.Group;
@@ -59,6 +67,12 @@ export class GameView {
   private tmpColor = new THREE.Color();
   private oneScale = new THREE.Vector3(1, 1, 1);
   private disposed = false;
+
+  // 同屏实体裁剪用的可复用缓冲（零分配：容量只按实体数峰值增长一次）
+  private orderIdx = new Int32Array(ENTITY_CAP);
+  private orderDist = new Float64Array(ENTITY_CAP);
+  private visibleFlag = new Uint8Array(ENTITY_CAP);
+  private readonly maxVisibleEntities = MAX_VISIBLE_ENTITIES;
 
   constructor(
     private container: HTMLElement,
@@ -173,6 +187,9 @@ export class GameView {
     );
     this.canopy.visible = false;
     this.scene.add(this.canopy);
+
+    // —— 实体视图对象池（预建，容量 = ENTITY_CAP；运行期零创建/零销毁）——
+    this.entityPool = new EntityViewPool(this.scene);
 
     this.effects = new EffectLayer(this.scene);
   }
@@ -298,32 +315,78 @@ export class GameView {
   }
 
   private syncEntities(snap: WorldSnapshot, alpha: number): void {
-    const seen = new Set<string>();
-    for (const e of snap.entities) {
-      seen.add(e.id);
-      let view = this.entityViews.get(e.id);
-      if (!view) {
-        view = this.createEntityView(e.kind);
-        this.entityViews.set(e.id, view);
+    const ents = snap.entities;
+    const count = ents.length;
+    const player = snap.playerEntity;
+
+    // 复用缓冲按需扩容（仅当实体数超历史峰值时分配一次，常态零分配）
+    if (this.orderIdx.length < count) {
+      this.orderIdx = new Int32Array(count);
+      this.orderDist = new Float64Array(count);
+      this.visibleFlag = new Uint8Array(count);
+    }
+    const orderIdx = this.orderIdx;
+    const orderDist = this.orderDist;
+    const visibleFlag = this.visibleFlag;
+
+    // 1) 收集候选（存活且已离机）并按与玩家距离升序插入排序（零分配，≤20 个元素）
+    const px = player ? player.pos.x : MAP_SIZE / 2;
+    const pz = player ? player.pos.z : MAP_SIZE / 2;
+    let n = 0;
+    for (let i = 0; i < count; i++) {
+      const e = ents[i];
+      if (!e.alive || e.state === 'plane') continue;
+      const dx = e.pos.x - px;
+      const dz = e.pos.z - pz;
+      const d2 = dx * dx + dz * dz;
+      let j = n;
+      while (j > 0 && orderDist[j - 1] > d2) {
+        orderDist[j] = orderDist[j - 1];
+        orderIdx[j] = orderIdx[j - 1];
+        j -= 1;
       }
-      const active = e.alive && e.state !== 'plane';
+      orderDist[j] = d2;
+      orderIdx[j] = i;
+      n += 1;
+    }
+
+    // 2) 同屏实体上限：只渲染距玩家最近的 maxVisibleEntities 个（玩家自身强制可见）
+    visibleFlag.fill(0, 0, count);
+    const limit = Math.min(n, this.maxVisibleEntities);
+    for (let k = 0; k < limit; k++) visibleFlag[orderIdx[k]] = 1;
+    if (player) {
+      for (let i = 0; i < count; i++) if (ents[i] === player) visibleFlag[i] = 1;
+    }
+
+    // 3) 同步视图（实体下标稳定 → 视图按池复用，死亡/登机/超上限仅隐藏不销毁）
+    for (let i = 0; i < count; i++) {
+      const e = ents[i];
+      const active = e.alive && e.state !== 'plane' && visibleFlag[i] === 1;
+      let view = this.entityViews[i];
+      if (active && !view) {
+        view = this.entityPool.acquire();
+        if (view) {
+          this.entityPool.tint(view, ENTITY_COLORS[e.kind]);
+          this.entityViews[i] = view;
+        }
+      }
+      if (!view) continue;
       view.group.visible = active;
-      if (!active) continue;
+      if (!active) {
+        view.hasPrev = false;
+        continue;
+      }
 
       // 位置插值（只做渲染插值，不回写逻辑状态）
-      const prev = view.prevPos;
-      const ix = prev ? prev.x + (e.pos.x - prev.x) * alpha : e.pos.x;
-      const iy = prev ? prev.y + (e.pos.y - prev.y) * alpha : e.pos.y;
-      const iz = prev ? prev.z + (e.pos.z - prev.z) * alpha : e.pos.z;
+      const ix = view.hasPrev ? view.prevX + (e.pos.x - view.prevX) * alpha : e.pos.x;
+      const iy = view.hasPrev ? view.prevY + (e.pos.y - view.prevY) * alpha : e.pos.y;
+      const iz = view.hasPrev ? view.prevZ + (e.pos.z - view.prevZ) * alpha : e.pos.z;
       view.group.position.set(ix, iy, iz);
       view.group.rotation.y = -e.yaw;
-      if (prev) {
-        prev.x = e.pos.x;
-        prev.y = e.pos.y;
-        prev.z = e.pos.z;
-      } else {
-        view.prevPos = { x: e.pos.x, y: e.pos.y, z: e.pos.z };
-      }
+      view.prevX = e.pos.x;
+      view.prevY = e.pos.y;
+      view.prevZ = e.pos.z;
+      view.hasPrev = true;
 
       // 受击闪白
       if (view.hurtT > 0) {
@@ -341,46 +404,41 @@ export class GameView {
         this.canopyFor = null;
       }
     }
-    for (const [id, view] of this.entityViews) {
-      if (!seen.has(id)) {
-        this.scene.remove(view.group);
-        disposeGroup(view.group);
-        this.entityViews.delete(id);
+
+    // 4) 实体数量收缩时归还多余视图（正常对局内实体数恒定，防御性处理）
+    if (this.entityViews.length > count) {
+      for (let i = count; i < this.entityViews.length; i++) {
+        this.entityViews[i] = null;
       }
+      this.entityViews.length = count;
     }
   }
 
-  private createEntityView(kind: 'player' | 'ai'): EntityView {
-    const group = new THREE.Group();
-    const color = ENTITY_COLORS[kind];
-    const bodyMat = new THREE.MeshLambertMaterial({ color });
-    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.36, 0.9, 3, 8), bodyMat);
-    body.position.y = 0.95;
-    body.castShadow = true;
-    group.add(body);
-    const head = new THREE.Mesh(
-      new THREE.SphereGeometry(0.24, 10, 8),
-      new THREE.MeshLambertMaterial({ color: 0xd9b38c }),
-    );
-    head.position.y = 1.62;
-    head.castShadow = true;
-    group.add(head);
-    // 朝向指示（枪）
-    const gun = new THREE.Mesh(
-      new THREE.BoxGeometry(0.08, 0.08, 0.9),
-      new THREE.MeshLambertMaterial({ color: 0x33383d }),
-    );
-    gun.position.set(0.22, 1.25, 0.5);
-    group.add(gun);
-    this.scene.add(group);
-    return { group, body, prevPos: null, hurtT: 0 };
+  /** 当前可见实体数（调试 HUD / 基准断言用） */
+  get visibleEntityCount(): number {
+    let n = 0;
+    for (let i = 0; i < this.entityViews.length; i++) {
+      const v = this.entityViews[i];
+      if (v && v.group.visible) n += 1;
+    }
+    return n;
   }
 
   private syncLoot(snap: WorldSnapshot): void {
     const count = Math.min(snap.loots.length, Math.floor(this.lootInst.instanceMatrix.count * this.preset.lootDensity));
     const t = performance.now() / 1000;
+    let colorDirty = false;
     for (let i = 0; i < count; i++) {
       const l = snap.loots[i];
+
+      // 物品颜色只随槽位内容变化写入（消除逐帧 instanceColor GPU 上传）
+      if (this.lootColorDirty || this.lootColorItems[i] !== l.item) {
+        const color = LOOT_COLORS[l.item] ?? 0xcccccc;
+        this.lootInst.setColorAt(i, this.tmpColor.setHex(color));
+        this.lootColorItems[i] = l.item;
+        colorDirty = true;
+      }
+
       const bob = Math.sin(t * 2 + i) * 0.08;
       this.tmpEuler.set(0, t * 0.8 + i, 0);
       this.tmpQuat.setFromEuler(this.tmpEuler);
@@ -390,13 +448,12 @@ export class GameView {
         this.oneScale,
       );
       this.lootInst.setMatrixAt(i, this.tmpMat4);
-      const color = LOOT_COLORS[l.item] ?? 0xcccccc;
-      this.lootInst.setColorAt(i, this.tmpColor.setHex(color));
     }
     this.lootShown = count;
     this.lootInst.count = count;
     this.lootInst.instanceMatrix.needsUpdate = true;
-    if (this.lootInst.instanceColor) this.lootInst.instanceColor.needsUpdate = true;
+    if (colorDirty && this.lootInst.instanceColor) this.lootInst.instanceColor.needsUpdate = true;
+    this.lootColorDirty = false;
     void this.lootShown;
   }
 
@@ -418,7 +475,8 @@ export class GameView {
   }
 
   private updateCamera(snap: WorldSnapshot, _alpha: number): void {
-    const p = snap.entities.find((e) => e.id === 'player');
+    // 玩家实体直引（快照已带 playerEntity，避免每帧 entities.find 分配闭包与线性扫描）
+    const p = snap.playerEntity ?? null;
     if (!p) return;
     const aimHeight = p.state === 'plane' ? 4 : 1.62;
     // 第三人称：沿视线反方向偏移
@@ -435,7 +493,7 @@ export class GameView {
   }
 
   private updateSun(snap: WorldSnapshot): void {
-    const p = snap.entities.find((e) => e.id === 'player');
+    const p = snap.playerEntity ?? null;
     if (!p) return;
     this.dirLight.target.position.set(p.pos.x, p.pos.y, p.pos.z);
     this.dirLight.position.set(p.pos.x + 160, p.pos.y + 260, p.pos.z + 110);
@@ -458,8 +516,9 @@ export class GameView {
   dispose(): void {
     this.disposed = true;
     this.effects.dispose();
-    for (const [, view] of this.entityViews) disposeGroup(view.group);
-    this.entityViews.clear();
+    // 实体视图统一交还对象池销毁（共享几何只释放一次）
+    this.entityViews.length = 0;
+    this.entityPool.dispose();
     this.scene.traverse((obj) => {
       const mesh = obj as THREE.Mesh;
       if (mesh.geometry) mesh.geometry.dispose();
@@ -472,19 +531,3 @@ export class GameView {
   }
 }
 
-interface EntityView {
-  group: THREE.Group;
-  body: THREE.Mesh;
-  prevPos: Vec3 | null;
-  hurtT: number;
-}
-
-function disposeGroup(group: THREE.Group): void {
-  group.traverse((obj) => {
-    const mesh = obj as THREE.Mesh;
-    if (mesh.geometry) mesh.geometry.dispose();
-    const mat = (mesh as unknown as { material?: THREE.Material | THREE.Material[] }).material;
-    if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
-    else if (mat) mat.dispose();
-  });
-}

@@ -5,6 +5,7 @@
 
 import * as THREE from 'three';
 import type { GameEvent, Vec3 } from '../core/types';
+import { FLASH_POOL_SIZE, HIT_PARTICLE_COUNT, TRACER_POOL_SIZE } from '../content/render';
 import { makeGlowTexture } from './textures';
 
 interface Tracer {
@@ -17,9 +18,10 @@ interface Flash {
   life: number;
 }
 
-const TRACER_POOL = 24;
-const FLASH_POOL = 8;
-const HIT_PARTICLES = 240;
+/** 池容量来自 content/render 配置表（数值与历史实现一致，仅收敛到配置） */
+const TRACER_POOL = TRACER_POOL_SIZE;
+const FLASH_POOL = FLASH_POOL_SIZE;
+const HIT_PARTICLES = HIT_PARTICLE_COUNT;
 const PARTICLE_LIFE = 0.45;
 
 export class EffectLayer {
