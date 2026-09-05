@@ -168,7 +168,11 @@ export interface MatchHandle {
    * 渲染/UI 每帧消费必须走此通道，避免每帧重建快照对象图造成 GC 抖动。
    */
   snapshotReusable?(): WorldSnapshot;
-  /** 取走本 tick 事件（UI/特效消费） */
+  /**
+   * 取走本 tick 事件（UI/特效在**本帧内**消费）。
+   * 所有权契约：返回数组由 core 回收复用——下一帧 drainEvents() 会清空并覆写上一帧返回的数组，
+   * 调用方不得跨帧持有（需跨帧保留时自行拷贝）；与 snapshotReusable() 的帧内有效语义一致。
+   */
   drainEvents(): GameEvent[];
   status(): MatchStatus;
   /** ended 时非空：排名/淘汰数/用时 */

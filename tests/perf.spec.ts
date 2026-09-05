@@ -39,6 +39,7 @@ describe('零分配快照通道（core/snapshot）', () => {
 
     const s1 = match.snapshotReusable!();
     const tickBefore = s1.tick;
+    const elapsedBefore = s1.elapsedMs;
     const playerBefore = s1.playerEntity;
 
     tickWorld(match.world, []);
@@ -50,9 +51,9 @@ describe('零分配快照通道（core/snapshot）', () => {
     expect(s2.loots).toBe(s1.loots);
     expect(s2.zone).toBe(s1.zone);
     expect(s2.player).toBe(s1.player);
-    // 字段已更新
+    // 字段已更新（s1/s2 是同一对象，必须在 tick 前先取值再比较，否则读到的是 tick 后的新值）
     expect(s2.tick).toBe(tickBefore + 1);
-    expect(s2.elapsedMs).toBe(s1.elapsedMs);
+    expect(s2.elapsedMs).toBeGreaterThan(elapsedBefore);
     // 玩家实体直引稳定（渲染层免逐帧 find）
     expect(playerBefore).not.toBeNull();
     expect(s2.playerEntity).toBe(playerBefore);
@@ -393,8 +394,11 @@ describe('背包签名与性能配置表约束', () => {
     expect(a).not.toBe(c);
   });
 
-  it('同屏实体上限与池容量关系：≤ 实体上限，且 ≥ 标准场景实体数（画面不变）', () => {
-    expect(MAX_VISIBLE_ENTITIES).toBeLessThanOrEqual(ENTITY_CAP);
+  it('同屏实体上限与池容量关系：= 实体上限（覆盖 aiCount 全可选区间，画面不变），且 ≥ 标准场景实体数', () => {
+    // 开始画面允许 aiCount ∈ [10, 19]（panels.ts 钳制），实体总数最多 1 + 19 = 20 = ENTITY_CAP；
+    // 同屏上限必须等于实体上限，保证任何用户可选 aiCount 下都不隐藏实体（画面不变）。
+    expect(MAX_VISIBLE_ENTITIES).toBe(ENTITY_CAP);
+    expect(MAX_VISIBLE_ENTITIES).toBeGreaterThanOrEqual(1 + 19);
     expect(MAX_VISIBLE_ENTITIES).toBeGreaterThanOrEqual(1 + AI_COUNT_DEFAULT);
     expect(ENTITY_VIEW_POOL_SIZE).toBe(ENTITY_CAP);
     expect(MINIMAP_UPDATE_HZ).toBeGreaterThan(0);

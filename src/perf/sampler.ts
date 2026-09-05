@@ -86,16 +86,9 @@ export class PerfSampler {
       buf[i] = v;
       sum += v;
     }
-    // 插入排序（窗口 ≤ 数百个样本，且逐帧增量有序性好，常优于快速排序的分配开销）
-    for (let i = 1; i < n; i++) {
-      const v = buf[i];
-      let j = i - 1;
-      while (j >= 0 && buf[j] > v) {
-        buf[j + 1] = buf[j];
-        j -= 1;
-      }
-      buf[j + 1] = v;
-    }
+    // TypedArray.sort() 无比较器 = 数值升序、原地、零分配（帧时长输入并非近似有序，
+    // 插入排序的「增量有序」前提不成立，O(n²) 在 300 样本 × 4Hz 下反成开销）
+    buf.subarray(0, n).sort();
 
     const avg = sum / n;
     const p95 = buf[Math.min(n - 1, Math.floor(n * 0.95))];

@@ -203,9 +203,16 @@ export class SnapshotWriter {
     d.kills = p.kills;
     d.medkitChannelMsLeft = p.medkitUntilMs !== null ? Math.max(0, p.medkitUntilMs - w.elapsedMs) : 0;
 
-    // 武器槽（复用槽对象，零分配）
+    // 武器槽（复用槽对象，零分配）：槽位数跟随 p.weapons.length 原地扩缩，
+    // 与分配版 buildSnapshot 的 weapons.map(...) 通道在任何槽数下保持一致（默认 2 槽不变）
     const weapons = this.playerWeaponSlots;
-    for (let i = 0; i < weapons.length; i++) {
+    const slotCount = p.weapons.length;
+    while (weapons.length < slotCount) {
+      // 扩容仅在槽位配置变化时发生一次；稳态循环内零分配。引用数组原地 push，恒定引用不变
+      if (this.playerSlotObjs.length < slotCount) this.playerSlotObjs.push({ weapon: '', magazine: 0 });
+      weapons.push(null);
+    }
+    for (let i = 0; i < slotCount; i++) {
       const s = p.weapons[i];
       if (s) {
         const o = this.playerSlotObjs[i];
@@ -216,6 +223,8 @@ export class SnapshotWriter {
         weapons[i] = null;
       }
     }
+    // 收缩：仅截断引用数组（槽对象保留在 playerSlotObjs，回升时直接复用，不重新分配）
+    if (weapons.length > slotCount) weapons.length = slotCount;
 
     // 背包格子（复用格子对象，零分配）
     const inv = this.playerInvSlots;

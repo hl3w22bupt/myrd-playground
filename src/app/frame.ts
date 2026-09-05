@@ -146,7 +146,8 @@ export class FrameDriver {
         d.hud.setDebug(
           `FPS ${sample.fps.toFixed(0)} · 1%低 ${sample.low1Fps.toFixed(0)} · p95 ${sample.p95FrameMs.toFixed(1)}ms · ` +
           `draw ${d.view.drawCalls} · 画质 ${d.view.qualityLevel}` +
-          (sample.heapMb !== null ? ` · heap ${sample.heapMb.toFixed(0)}MB` : ''),
+          (sample.heapMb !== null ? ` · heap ${sample.heapMb.toFixed(0)}MB` : '') +
+          (d.loop.dropped > 0 ? ` · 丢帧tick ${d.loop.dropped}` : ''),
         );
       }
     }
@@ -168,6 +169,8 @@ export class FrameDriver {
   private onFrame = (t: number): void => {
     if (!this.running) return;
     this.stepFrame(t);
-    this.schedule();
+    // 仅在仍处于运行态时续帧：onEnded 内同步 stop() 不会遗留一帧空转的 rAF，
+    // 并保持「frameCount === rafSubscriptionCount - 1」的单注册不变量
+    if (this.running) this.schedule();
   };
 }

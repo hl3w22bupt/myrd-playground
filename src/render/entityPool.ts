@@ -67,6 +67,8 @@ export class EntityViewPool {
     v.prevY = 0;
     v.prevZ = 0;
     v.hurtT = 0;
+    // 取用侧自洽重置：即使视图未经过 releaseAll（如未来加单视图 release），也不会带上一实体的受击残光
+    (v.body.material as THREE.MeshLambertMaterial).emissive.setScalar(0);
     this.acquired.push(v);
     return v;
   }

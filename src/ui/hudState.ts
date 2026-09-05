@@ -96,6 +96,7 @@ function createFalseFlags(): HudDirtyFlags {
  * 有状态 HUD 计算器：compute(snap) 得到目标状态 + 与上次写入值的差集（脏标记）。
  * 首次调用全部字段视为脏（保证初始渲染完整）。
  */
+const NO_DIRTY_FLAGS: HudDirtyFlags = createFalseFlags();
 export class HudState {
   /** 上一次实际写入 DOM 的值 */
   private readonly written: HudFrameState = createEmptyHudState();
@@ -110,8 +111,8 @@ export class HudState {
     const p = snap.player;
 
     if (!p) {
-      // 无玩家数据（尚未开始）：不改动任何字段
-      return { state: this.written, dirty: this.flags, changed: false };
+      // 无玩家数据（尚未开始）：不改动任何字段，且不返回 this.flags（避免调用方拿到上一帧残留脏标记重复写 DOM）
+      return { state: this.written, dirty: NO_DIRTY_FLAGS, changed: false };
     }
 
     const hpRatio = Math.max(0, Math.min(1, p.hp / p.maxHp));
