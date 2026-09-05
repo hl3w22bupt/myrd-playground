@@ -97,12 +97,16 @@ export class InputManager {
     return this.pointerLocked;
   }
 
-  /** 每帧收集：返回本帧玩家意图（fire 为按住语义，每帧都发）。数组轮换复用，零分配 */
+  /**
+   * 每帧收集：返回本帧玩家意图（fire 为按住语义，每帧都发）。数组轮换复用，零分配。
+   * 轮换不变量：`queued` 恒为「自上次 consume 起键盘事件预排队的意图」，必须原样返回；
+   * 需要清空的是换入服务的另一块缓冲（上一帧返回、已被消费方当帧拷走的陈旧缓冲）。
+   */
   consume(): PlayerIntent[] {
     const intents = this.queued;
     this.queued = this.queuedSpare;
     this.queuedSpare = intents;
-    intents.length = 0;
+    this.queued.length = 0;
 
     let dx = 0;
     let dz = 0;
