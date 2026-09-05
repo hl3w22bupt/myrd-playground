@@ -5,7 +5,7 @@
 
 import { MAP_HALF } from '../../content/constants';
 import { ZONE_DAMAGE_TICK_SEC } from '../../content/zone';
-import type { World } from '../world';
+import type { Entity, World } from '../world';
 import type { Vec3 } from '../types';
 import { clamp, dist2D } from '../geom';
 import { pushEvent } from '../world';
@@ -119,21 +119,25 @@ function applyZoneDamage(w: World): void {
   }
 }
 
-/** 毒圈伤害：不触发护甲减伤，归因 zone */
-function zoneDamage(w: World, target: { id: string; hp: number; alive: boolean }, amount: number): void {
-  const e = w.entities.find((x) => x.id === target.id)!;
-  if (!e.alive) return;
-  e.hp -= amount;
-  if (e.hp <= 0) {
-    const aliveCount = w.entities.reduce((n, x) => n + (x.alive ? 1 : 0), 0);
-    e.alive = false;
-    e.state = 'dead';
-    e.rank = aliveCount;
-    e.eliminatedAtMs = w.elapsedMs;
-    e.eliminatedBy = 'zone';
-    e.firing = false;
-    e.aiState = 'dead';
-    pushEvent(w, { type: 'entityEliminated', entityId: e.id, byId: 'zone', cause: 'zone' });
+/** 毒圈伤害：不触发护甲减伤，归因 zone（直引实体：此前每秒对每受害实体做一次 find 闭包查找） */
+function zoneDamage(w: World, target: Entity, amount: number): void {
+  if (!target.alive) return;
+  target.hp -= amount;
+  if (target.hp <= 0) {
+    // 存活数普通循环（去 reduce 闭包分配；与 eliminate 一致：先计数后置亡）
+    let aliveCount = 0;
+    const ents = w.entities;
+    for (let i = 0; i < ents.length; i++) {
+      if (ents[i].alive) aliveCount += 1;
+    }
+    target.alive = false;
+    target.state = 'dead';
+    target.rank = aliveCount;
+    target.eliminatedAtMs = w.elapsedMs;
+    target.eliminatedBy = 'zone';
+    target.firing = false;
+    target.aiState = 'dead';
+    pushEvent(w, { type: 'entityEliminated', entityId: target.id, byId: 'zone', cause: 'zone' });
   }
 }
 
