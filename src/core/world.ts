@@ -208,6 +208,48 @@ export function pushEvent(w: World, ev: GameEvent): void {
   w.events.push(ev);
 }
 
+/**
+ * 可复用意图槽：PlayerIntent 全字段并集（各字段由写入方按 kind 约定填写，
+ * applyIntent 只读取当前 kind 声明的字段）。仅 core 内部经自由列表回收复用，
+ * 避免 AI 决策热路径逐意图分配对象。
+ */
+export interface IntentSlot {
+  kind: PlayerIntent['kind'];
+  dirX: number;
+  dirZ: number;
+  sprint: boolean;
+  yaw: number;
+  pitch: number;
+  slot: number;
+  dive: number;
+}
+
+function createIntentSlot(): IntentSlot {
+  return { kind: 'move', dirX: 0, dirZ: 0, sprint: false, yaw: 0, pitch: 0, slot: 0, dive: 0 };
+}
+
+/** 意图槽自由列表上限：覆盖稳态单 tick 全部 AI 意图（≤ ENTITY_CAP × 3），超出部分交还 GC */
+const INTENT_FREE_LIST_MAX = 64;
+const intentFreeList: IntentSlot[] = [];
+
+/** 取一个可复用意图槽（自由列表为空时新建） */
+export function acquireIntentSlot(): IntentSlot {
+  return intentFreeList.pop() ?? createIntentSlot();
+}
+
+/** 意图对象按位宽转回 PlayerIntent（槽位字段由写入方按 kind 保证一致，applyIntent 只读所需字段） */
+export function slotAsIntent(s: IntentSlot): PlayerIntent {
+  return s as unknown as PlayerIntent;
+}
+
+/** AI 意图应用完成后回收槽位（上限内复用；意图生命周期 = 写入一次 → 应用一次） */
+export function recycleIntentSlots(list: PlayerIntent[]): void {
+  for (let i = 0; i < list.length; i++) {
+    if (intentFreeList.length >= INTENT_FREE_LIST_MAX) return;
+    intentFreeList.push(list[i] as unknown as IntentSlot);
+  }
+}
+
 /** 背包剩余格子 */
 export function freeGrids(e: Entity): number {
   return e.inventory.length - e.usedGrids;

@@ -6,7 +6,7 @@
 
 import { EYE_HEIGHT, PICKUP_RADIUS_M } from '../../content/constants';
 import { MAP_HALF } from '../../content/constants';
-import type { World, Entity, LootItem } from '../world';
+import { acquireIntentSlot, slotAsIntent, type World, type Entity, type LootItem } from '../world';
 import type { PlayerIntent } from '../types';
 import { dist2D } from '../geom';
 import { hasLineOfSight, activeWeapon, weaponDef } from './combat';
@@ -52,7 +52,7 @@ function decide(w: World, e: Entity): void {
   // —— 空中阶段：跳伞时机与落点控制 ——
   if (e.state === 'plane') {
     if (e.aiJumpAtMs !== null && w.elapsedMs >= e.aiJumpAtMs) {
-      beginIntents(e).push({ kind: 'jumpFromPlane' });
+      putKind(beginIntents(e), 'jumpFromPlane');
     }
     return;
   }
@@ -64,10 +64,10 @@ function decide(w: World, e: Entity): void {
     const d = Math.hypot(dx, dz) || 1;
     const intents = beginIntents(e);
     if (e.state === 'freefall') {
-      if (d < 140) intents.push({ kind: 'deployParachute' });
-      else intents.push({ kind: 'freefallControl', dirX: dx / d, dirZ: dz / d, dive: clamp01(d / 320) });
+      if (d < 140) putKind(intents, 'deployParachute');
+      else putFreefall(intents, dx / d, dz / d, clamp01(d / 320));
     } else {
-      intents.push({ kind: 'freefallControl', dirX: dx / d, dirZ: dz / d, dive: 0 });
+      putFreefall(intents, dx / d, dz / d, 0);
     }
     return;
   }
@@ -85,8 +85,8 @@ function decide(w: World, e: Entity): void {
     const dx = zone.center.x - e.pos.x;
     const dz = zone.center.z - e.pos.z;
     const d = Math.hypot(dx, dz) || 1;
-    intents.push({ kind: 'aim', yaw: Math.atan2(dz, dx), pitch: 0 });
-    intents.push({ kind: 'move', dirX: dx / d, dirZ: dz / d, sprint: true });
+    putAim(intents, Math.atan2(dz, dx), 0);
+    putMove(intents, dx / d, dz / d, true);
     return;
   }
 
@@ -100,10 +100,10 @@ function decide(w: World, e: Entity): void {
       e.aiLootId = loot.id;
       const d = dist2D(e.pos.x, e.pos.z, loot.pos.x, loot.pos.z);
       if (d <= PICKUP_RADIUS_M * 0.9) {
-        intents.push({ kind: 'interact' });
+        putKind(intents, 'interact');
       } else {
-        intents.push(aimAtPos(e, loot.pos.x, loot.pos.z));
-        intents.push({ kind: 'move', dirX: norm(e.pos.x, loot.pos.x), dirZ: norm(e.pos.z, loot.pos.z) });
+        putAimAt(intents, e, loot.pos.x, loot.pos.z);
+        putMove(intents, norm(e.pos.x, loot.pos.x), norm(e.pos.z, loot.pos.z), false);
       }
       return;
     }
@@ -120,13 +120,13 @@ function decide(w: World, e: Entity): void {
     }
     e.aiLastSeenMs = w.elapsedMs;
     e.aiState = 'fire';
-    intents.push(aimIntent(w, e, target));
+    putAimIntent(w, e, target, intents);
 
     const slot = activeWeapon(e);
     const d = dist2D(e.pos.x, e.pos.z, target.pos.x, target.pos.z);
     if (slot && slot.magazine <= 0) {
       e.firing = false;
-      intents.push({ kind: 'reload' });
+      putKind(intents, 'reload');
     } else {
       const canFire =
         slot !== null &&
@@ -140,7 +140,7 @@ function decide(w: World, e: Entity): void {
         const pz = target.pos.x - e.pos.x;
         const l = Math.hypot(px, pz) || 1;
         const sway = Math.sin(w.elapsedMs / 700 + e.index) * 0.6;
-        intents.push({ kind: 'move', dirX: (px / l) * sway, dirZ: (pz / l) * sway });
+        putMove(intents, (px / l) * sway, (pz / l) * sway, false);
       }
     }
     return;
@@ -156,10 +156,10 @@ function decide(w: World, e: Entity): void {
       e.aiLootId = loot.id;
       const d = dist2D(e.pos.x, e.pos.z, loot.pos.x, loot.pos.z);
       if (d <= PICKUP_RADIUS_M * 0.9) {
-        intents.push({ kind: 'interact' });
+        putKind(intents, 'interact');
       } else {
-        intents.push(aimAtPos(e, loot.pos.x, loot.pos.z));
-        intents.push({ kind: 'move', dirX: norm(e.pos.x, loot.pos.x), dirZ: norm(e.pos.z, loot.pos.z) });
+        putAimAt(intents, e, loot.pos.x, loot.pos.z);
+        putMove(intents, norm(e.pos.x, loot.pos.x), norm(e.pos.z, loot.pos.z), false);
       }
       return;
     }
@@ -167,11 +167,11 @@ function decide(w: World, e: Entity): void {
 
   // 5) 失去目标 → 短暂追搜
   if (e.aiTargetId && w.elapsedMs - e.aiLastSeenMs < 6000) {
-    const last = w.entities.find((x) => x.id === e.aiTargetId);
+    const last = findById(w, e.aiTargetId);
     if (last) {
       e.aiState = 'seek';
-      intents.push(aimAtPos(e, last.pos.x, last.pos.z));
-      intents.push({ kind: 'move', dirX: norm(e.pos.x, last.pos.x), dirZ: norm(e.pos.z, last.pos.z) });
+      putAimAt(intents, e, last.pos.x, last.pos.z);
+      putMove(intents, norm(e.pos.x, last.pos.x), norm(e.pos.z, last.pos.z), false);
       return;
     }
     e.aiTargetId = null;
@@ -187,21 +187,38 @@ function decide(w: World, e: Entity): void {
     e.aiWaypoint = pickWaypoint(w, e);
   }
   e.aiState = 'patrol';
-  intents.push(aimAtPos(e, e.aiWaypoint.x, e.aiWaypoint.z));
-  intents.push({
-    kind: 'move',
-    dirX: norm(e.pos.x, e.aiWaypoint.x),
-    dirZ: norm(e.pos.z, e.aiWaypoint.z),
-  });
+  putAimAt(intents, e, e.aiWaypoint.x, e.aiWaypoint.z);
+  putMove(intents, norm(e.pos.x, e.aiWaypoint.x), norm(e.pos.z, e.aiWaypoint.z), false);
 }
 
-function aimAtPos(e: Entity, x: number, z: number): PlayerIntent {
+/** 按 id 查实体（普通循环，去 find 闭包分配；id 唯一，取首个命中） */
+function findById(w: World, id: string): Entity | null {
+  const ents = w.entities;
+  for (let i = 0; i < ents.length; i++) {
+    if (ents[i].id === id) return ents[i];
+  }
+  return null;
+}
+
+// —— 意图槽位写入器（复用 acquireIntentSlot 自由列表，决策热路径零对象分配）——
+
+function putAim(intents: PlayerIntent[], yaw: number, pitch: number): void {
+  const s = acquireIntentSlot();
+  s.kind = 'aim';
+  s.yaw = yaw;
+  s.pitch = pitch;
+  intents.push(slotAsIntent(s));
+}
+
+/** 朝平面坐标瞄准（yaw 朝向目标，pitch 归零） */
+function putAimAt(intents: PlayerIntent[], e: Entity, x: number, z: number): void {
   const dx = x - e.pos.x;
   const dz = z - e.pos.z;
-  return { kind: 'aim', yaw: Math.atan2(dz, dx), pitch: 0 };
+  putAim(intents, Math.atan2(dz, dx), 0);
 }
 
-function aimIntent(w: World, e: Entity, target: Entity): PlayerIntent {
+/** 带散布误差的战斗瞄准（数值与旧 aimIntent 完全一致，仅改为槽位写入） */
+function putAimIntent(w: World, e: Entity, target: Entity, intents: PlayerIntent[]): void {
   const aimY = target.pos.y + EYE_HEIGHT * 0.75;
   const dx = target.pos.x - e.pos.x;
   const dy = aimY - (e.pos.y + EYE_HEIGHT);
@@ -209,11 +226,31 @@ function aimIntent(w: World, e: Entity, target: Entity): PlayerIntent {
   const flat = Math.hypot(dx, dz) || 1;
   const errYaw = w.rng.ai.gaussian() * 0.006 * w.pack.ai.spreadMultiplier;
   const errPitch = w.rng.ai.gaussian() * 0.004 * w.pack.ai.spreadMultiplier;
-  return {
-    kind: 'aim',
-    yaw: Math.atan2(dz, dx) + errYaw,
-    pitch: Math.atan2(dy, flat) + errPitch,
-  };
+  putAim(intents, Math.atan2(dz, dx) + errYaw, Math.atan2(dy, flat) + errPitch);
+}
+
+function putMove(intents: PlayerIntent[], dirX: number, dirZ: number, sprint: boolean): void {
+  const s = acquireIntentSlot();
+  s.kind = 'move';
+  s.dirX = dirX;
+  s.dirZ = dirZ;
+  s.sprint = sprint;
+  intents.push(slotAsIntent(s));
+}
+
+function putFreefall(intents: PlayerIntent[], dirX: number, dirZ: number, dive: number): void {
+  const s = acquireIntentSlot();
+  s.kind = 'freefallControl';
+  s.dirX = dirX;
+  s.dirZ = dirZ;
+  s.dive = dive;
+  intents.push(slotAsIntent(s));
+}
+
+function putKind(intents: PlayerIntent[], kind: PlayerIntent['kind']): void {
+  const s = acquireIntentSlot();
+  s.kind = kind;
+  intents.push(slotAsIntent(s));
 }
 
 function norm(from: number, to: number): number {
