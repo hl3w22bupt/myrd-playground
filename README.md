@@ -39,7 +39,7 @@ src/
 ├── core/      # 确定性仿真核心（纯 TS，零 DOM/three；Node 可直接运行）
 │   ├── rng.ts loop.ts world.ts match.ts mapgen.ts geom.ts types.ts
 │   └── systems/  # lifecycle / parachute / movement / combat / loot / zone / ai
-├── render/    # Three.js（three 只允许在此 import；材质纹理/光照雾效/粒子/画质三档+自动降档/对象池）
+├── render/    # Three.js（three 只允许在此 import；材质纹理/光照雾效/Bloom 后处理/实体三级 LOD/实例合批/画质三档+自动降档/对象池）
 ├── input/     # 键鼠 → PlayerIntent
 ├── ui/        # HUD（DOM 高频直写）+ Canvas2D 小地图 + 背包/结算/开始屏
 ├── app/       # 组装根（rAF 可变渲染 + 50Hz 固定逻辑双循环）
@@ -57,6 +57,12 @@ src/
 | AC3 物资生效 | 区域密度生成、武器上膛即可射击、护甲/头盔减伤、医疗回血 +60、弹药计数、背包容量上限与丢弃 | loot.spec.ts |
 | AC4 射击命中 | 双武器参数可区分且与配置一致、620rpm 射速节流、100m 静止目标命中率 ≥90%（1000 发蒙特卡洛）、距离衰减、部位倍率、换弹时长、淘汰计数 | combat.spec.ts |
 | AC5 缩圈与 AI | ≥3 阶段收缩且 dps 递增、圈外按秒掉血、毒圈淘汰归因、AI ≥10 且具备巡图/拾取/索敌/开火/避毒、AI 可被淘汰 | zone.spec.ts / ai.spec.ts |
+| 画面升级步 | Bloom 后处理链（low 直通零开销）、实体三级 LOD、实例合批（3 draw call 不变量）、槽位对象池、画质档位联动配置表 | renderfx.spec.ts / perf.spec.ts |
+
+## 性能验收（稳定 60FPS）
+
+- 本地基准：`npm run bench`（标准场景 600s 逻辑时长：帧 JS 成本 avg 0.044ms / capableFps >20k；活堆 5min 增长 1.1% 且无单调递增；实体合批+LOD 同步路径 0.0026ms/帧，预算 16.67ms）。
+- 浏览器内：`FrameDriver` 每帧采样 FPS/1%低帧/p95/heap → `AutoQuality` 连续 2 窗 <45FPS 自动降档（Bloom/阴影/视距/像素比联动），连续 5 窗 >58FPS 且距上次升级 60s 才升档，保证「先稳 60FPS，再上画质」。
 
 ## 操作
 

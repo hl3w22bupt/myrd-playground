@@ -32,6 +32,14 @@ import {
 } from '../src/content/render';
 import * as THREE from 'three';
 
+/** 槽位是否处于隐藏态（基向量全零 = 零缩放实例，不产生片元；decompose 对零矩阵返回 1 不可用） */
+function isHiddenInstance(pool: EntityViewPool, slot: number): boolean {
+  const m = new THREE.Matrix4();
+  pool.partMeshes[0]!.getMatrixAt(slot, m);
+  const e = m.elements;
+  return e[0] === 0 && e[1] === 0 && e[2] === 0 && e[4] === 0 && e[5] === 0 && e[6] === 0 && e[8] === 0 && e[9] === 0 && e[10] === 0;
+}
+
 describe('零分配快照通道（core/snapshot）', () => {
   it('snapshotReusable() 返回恒定对象且字段随仿真推进更新', () => {
     const match = createMatch({ seed: 20260831, playerCount: 1, aiCount: AI_COUNT_DEFAULT });
@@ -234,8 +242,9 @@ describe('实体视图对象池（render/entityPool）', () => {
     expect(pool.acquiredCount).toBe(0);
     const again = pool.acquire()!;
     expect(again).toBe(first);
-    // 归还后几何/材质已被重置为不可见
-    expect(first.group.visible).toBe(false);
+    // 归还后槽位已被重置为不可见（实例矩阵置零，防残影）
+    expect(first.visible).toBe(false);
+    expect(isHiddenInstance(pool, first.slot)).toBe(true);
     pool.dispose();
   });
 });

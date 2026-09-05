@@ -43,3 +43,43 @@ export const PULSE_POOL_SIZE = 4;
 
 /** 毒圈边缘粒子带固定缓冲容量（Float32Array 预分配，循环覆写） */
 export const ZONE_PARTICLE_COUNT = 200;
+
+// ———————————————————— 画面升级步：后处理 / LOD / 合批 / 地形段数 ————————————————————
+
+/** 画质档位（与 render/quality 的 QualityLevel 字面量保持一致；content 不依赖 render，故在此重复字面量） */
+export type RenderQualityLevel = 'low' | 'medium' | 'high';
+
+/**
+ * Bloom 后处理参数（按画质档位）。
+ * low 档关闭：最低档以帧预算优先（稳定 60FPS 红线），后处理 pass 不进入渲染循环。
+ * strength：泛光强度；radius：泛光扩散半径；threshold：亮度提取阈值（0..1，越高越只有高光泛光）。
+ */
+export const BLOOM_BY_QUALITY: Record<RenderQualityLevel, { enabled: boolean; strength: number; radius: number; threshold: number }> = {
+  low: { enabled: false, strength: 0, radius: 0, threshold: 1 },
+  medium: { enabled: true, strength: 0.42, radius: 0.55, threshold: 0.8 },
+  high: { enabled: true, strength: 0.68, radius: 0.7, threshold: 0.72 },
+};
+
+/**
+ * 实体 LOD 距离阈值（按画质档位，单位 m，与玩家距离）。
+ * 距离 < nearDist → 完整模型（躯干+头+枪）；< midDist → 中等（躯干+头）；≥ midDist → 极简（仅躯干）。
+ * low 档阈值更激进（更早降级），把顶点预算留给帧时间。
+ */
+export const ENTITY_LOD_BY_QUALITY: Record<RenderQualityLevel, { enabled: boolean; nearDist: number; midDist: number }> = {
+  low: { enabled: true, nearDist: 46, midDist: 120 },
+  medium: { enabled: true, nearDist: 70, midDist: 180 },
+  high: { enabled: true, nearDist: 92, midDist: 240 },
+};
+
+/**
+ * 实体合批后的部件 mesh 数（躯干 / 头 / 枪 各 1 个 InstancedMesh）。
+ * 合批不变量：同屏全部实体的绘制固定为该数量 draw call，与实体数无关（池容量 ≤ ENTITY_CAP）。
+ */
+export const ENTITY_BATCH_MESH_COUNT = 3;
+
+/** 地形网格段数（按画质档位）：段数越大越贴合高度场，三角形数 ≈ 段数² × 2 */
+export const TERRAIN_SEGMENTS_BY_QUALITY: Record<RenderQualityLevel, number> = {
+  low: 84,
+  medium: 112,
+  high: 140,
+};

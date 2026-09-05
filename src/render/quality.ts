@@ -4,8 +4,31 @@
  */
 
 import type { PerfSample } from '../perf/sampler';
+import {
+  BLOOM_BY_QUALITY,
+  ENTITY_LOD_BY_QUALITY,
+  TERRAIN_SEGMENTS_BY_QUALITY,
+  type RenderQualityLevel,
+} from '../content/render';
 
-export type QualityLevel = 'low' | 'medium' | 'high';
+export type QualityLevel = RenderQualityLevel;
+
+/** Bloom 后处理参数（数值唯一来源：content/render BLOOM_BY_QUALITY） */
+export interface BloomParams {
+  enabled: boolean;
+  strength: number;
+  radius: number;
+  threshold: number;
+}
+
+/** 实体 LOD 配置（数值唯一来源：content/render ENTITY_LOD_BY_QUALITY） */
+export interface LodParams {
+  enabled: boolean;
+  /** 近景阈值（m）：完整模型（躯干+头+枪） */
+  nearDist: number;
+  /** 中景阈值（m）：中等模型（躯干+头）；≥ 此距离走极简（仅躯干） */
+  midDist: number;
+}
 
 export interface QualityPreset {
   level: QualityLevel;
@@ -19,12 +42,48 @@ export interface QualityPreset {
   viewDistance: number;
   /** 物资实例显示密度 0..1 */
   lootDensity: number;
+  /** Bloom 后处理参数（本步新增） */
+  bloom: BloomParams;
+  /** 实体 LOD 配置（本步新增） */
+  lod: LodParams;
+  /** 地形网格段数（构建期一次性生效，自动升降档不重建地形） */
+  terrainSegments: number;
 }
 
 export const QUALITY_PRESETS: Record<QualityLevel, QualityPreset> = {
-  low: { level: 'low', pixelRatio: 0.75, shadows: false, shadowMapSize: 512, viewDistance: 320, lootDensity: 0.4 },
-  medium: { level: 'medium', pixelRatio: 1, shadows: true, shadowMapSize: 1024, viewDistance: 620, lootDensity: 1 },
-  high: { level: 'high', pixelRatio: 2, shadows: true, shadowMapSize: 2048, viewDistance: 1200, lootDensity: 1 },
+  low: {
+    level: 'low',
+    pixelRatio: 0.75,
+    shadows: false,
+    shadowMapSize: 512,
+    viewDistance: 320,
+    lootDensity: 0.4,
+    bloom: BLOOM_BY_QUALITY.low,
+    lod: ENTITY_LOD_BY_QUALITY.low,
+    terrainSegments: TERRAIN_SEGMENTS_BY_QUALITY.low,
+  },
+  medium: {
+    level: 'medium',
+    pixelRatio: 1,
+    shadows: true,
+    shadowMapSize: 1024,
+    viewDistance: 620,
+    lootDensity: 1,
+    bloom: BLOOM_BY_QUALITY.medium,
+    lod: ENTITY_LOD_BY_QUALITY.medium,
+    terrainSegments: TERRAIN_SEGMENTS_BY_QUALITY.medium,
+  },
+  high: {
+    level: 'high',
+    pixelRatio: 2,
+    shadows: true,
+    shadowMapSize: 2048,
+    viewDistance: 1200,
+    lootDensity: 1,
+    bloom: BLOOM_BY_QUALITY.high,
+    lod: ENTITY_LOD_BY_QUALITY.high,
+    terrainSegments: TERRAIN_SEGMENTS_BY_QUALITY.high,
+  },
 };
 
 /** 默认档位：按设备粗分（移动 → Low，桌面 → Medium） */

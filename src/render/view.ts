@@ -15,6 +15,8 @@ import { SkyDome } from './sky';
 import { PropsLayer } from './props';
 import type { EntityView } from './entityPool';
 import { EntityViewPool } from './entityPool';
+import { BloomPostFx } from './postfx';
+import { pickEntityDetail } from './lod';
 import { makeBuildingTexture, makeCanopyTexture, makeGroundTexture } from './textures';
 import { AutoQuality, QUALITY_PRESETS, type QualityLevel, type QualityPreset } from './quality';
 
@@ -46,6 +48,8 @@ export class GameView {
   private props: PropsLayer | null = null;
   private autoQuality: AutoQuality;
   private preset: QualityPreset;
+  /** Bloom 光照后处理链（画面升级步：按画质档位开关，low 直通零开销） */
+  private postfx: BloomPostFx;
 
   // 静态场景
   private terrainMesh: THREE.Mesh;
@@ -79,6 +83,7 @@ export class GameView {
   private orderIdx = new Int32Array(ENTITY_CAP);
   private orderDist = new Float64Array(ENTITY_CAP);
   private visibleFlag = new Uint8Array(ENTITY_CAP);
+  private entityDist2 = new Float64Array(ENTITY_CAP);
   private readonly maxVisibleEntities = MAX_VISIBLE_ENTITIES;
 
   constructor(
@@ -206,13 +211,17 @@ export class GameView {
     // —— 天空穹顶 + 植被点缀（AC2①②：远景层次与场景细节）——
     this.sky = new SkyDome(this.scene);
     this.props = new PropsLayer(this.scene, pack, match.world.buildings, this.autoQuality.current);
+
+    // —— Bloom 光照后处理（画面升级步：阴影/雾效之上的第三层光照；low 档直通零开销）——
+    this.postfx = new BloomPostFx(this.renderer, this.scene, this.camera, this.preset.bloom);
+    this.postfx.setSize(container.clientWidth, container.clientHeight);
   }
 
   get qualityLevel(): QualityLevel {
     return this.autoQuality.current;
   }
 
-  /** 帧率驱动的画质自适应（架构 01 §3.2） */
+  /** 帧率驱动的画质自适应（架构 01 §3.2）；本步联动 Bloom 后处理与实体 LOD 阈值 */
   autoTune(fps: number, nowMs: number): QualityLevel | null {
     const before = this.autoQuality.current;
     const after = this.autoQuality.update({ fps, low1Fps: 0, p95FrameMs: 0, avgFrameMs: 0, heapMb: null }, nowMs);
@@ -222,9 +231,16 @@ export class GameView {
       this.renderer.shadowMap.enabled = this.preset.shadows;
       this.dirLight.castShadow = this.preset.shadows;
       this.applyFog();
+      // 后处理随档位联动（low 关闭直通；升/降档只切换 pass 开关与强度，不重建场景）
+      this.postfx.setParams(this.preset.bloom);
       return after;
     }
     return null;
+  }
+
+  /** Bloom 后处理链（调试 HUD / 测试可见性） */
+  get bloomEnabled(): boolean {
+    return this.postfx.enabled;
   }
 
   /** 分层雾：近景全清晰 → 中景渐雾 → 远景完全融入地平线色（AC2②距离层次） */
@@ -236,7 +252,9 @@ export class GameView {
   // ———————————————————— 场景构建 ————————————————————
 
   private buildTerrain(): THREE.Mesh {
-    const seg = 140;
+    // 段数按画质档位（content/render TERRAIN_SEGMENTS_BY_QUALITY）：构建期一次性生效，
+    // 自动升降档不重建地形（重建会制造帧尖峰，违背稳定 60FPS 红线）
+    const seg = this.preset.terrainSegments;
     const geo = new THREE.PlaneGeometry(MAP_SIZE, MAP_SIZE, seg, seg);
     geo.rotateX(-Math.PI / 2);
     const pos = geo.getAttribute('position') as THREE.BufferAttribute;
@@ -318,8 +336,9 @@ export class GameView {
   /** 渲染一帧：snapshot 只读 + 事件消费 */
   render(snap: WorldSnapshot, events: GameEvent[], alpha: number, dtSec: number): void {
     if (this.disposed) return;
+    this.applyHitFlash(events, snap);
     this.effects.consumeEvents(events, (id) => this.entityWorldPos(snap, id));
-    this.syncEntities(snap, alpha);
+    this.syncEntities(snap, alpha, dtSec);
     this.syncLoot(snap);
     this.syncZone(snap);
     this.syncPlane(snap);
@@ -329,7 +348,23 @@ export class GameView {
     this.updateSun(snap);
     if (this.sky) this.sky.update(this.camera.position, dtSec);
 
-    this.renderer.render(this.scene, this.camera);
+    // 后处理路径（Bloom 开启 → composer；关闭 → 直通 renderer.render，零额外开销）
+    this.postfx.render(dtSec);
+  }
+
+  /** 受击闪白：命中事件 → 目标实体视图 hurtT（画面与游戏事件同步，AC2③） */
+  private applyHitFlash(events: GameEvent[], snap: WorldSnapshot): void {
+    for (let i = 0; i < events.length; i++) {
+      const ev = events[i];
+      if (ev.type !== 'damageDealt') continue;
+      const ents = snap.entities;
+      for (let j = 0; j < ents.length; j++) {
+        if (ents[j].id !== ev.target) continue;
+        const view = this.entityViews[j];
+        if (view) view.hurtT = 1;
+        break;
+      }
+    }
   }
 
   /** 实体当前渲染位置（特效事件定位用；按 id 查快照下标 → 对象池视图，只读不回写仿真） */
@@ -338,13 +373,13 @@ export class GameView {
     for (let i = 0; i < ents.length; i++) {
       if (ents[i].id !== id) continue;
       const view = this.entityViews[i];
-      if (!view || !view.group.visible) return null;
-      return { x: view.group.position.x, y: view.group.position.y + 1, z: view.group.position.z };
+      if (!view || !view.visible) return null;
+      return { x: view.x, y: view.y + 1, z: view.z };
     }
     return null;
   }
 
-  private syncEntities(snap: WorldSnapshot, alpha: number): void {
+  private syncEntities(snap: WorldSnapshot, alpha: number, dtSec: number): void {
     const ents = snap.entities;
     const count = ents.length;
     const player = snap.playerEntity;
@@ -354,10 +389,12 @@ export class GameView {
       this.orderIdx = new Int32Array(count);
       this.orderDist = new Float64Array(count);
       this.visibleFlag = new Uint8Array(count);
+      this.entityDist2 = new Float64Array(count);
     }
     const orderIdx = this.orderIdx;
     const orderDist = this.orderDist;
     const visibleFlag = this.visibleFlag;
+    const entityDist2 = this.entityDist2;
 
     // 1) 收集候选（存活且已离机）并按与玩家距离升序插入排序（零分配，≤20 个元素）
     const px = player ? player.pos.x : MAP_SIZE / 2;
@@ -369,6 +406,7 @@ export class GameView {
       const dx = e.pos.x - px;
       const dz = e.pos.z - pz;
       const d2 = dx * dx + dz * dz;
+      entityDist2[i] = d2;
       let j = n;
       while (j > 0 && orderDist[j - 1] > d2) {
         orderDist[j] = orderDist[j - 1];
@@ -388,7 +426,9 @@ export class GameView {
       for (let i = 0; i < count; i++) if (ents[i] === player) visibleFlag[i] = 1;
     }
 
-    // 3) 同步视图（实体下标稳定 → 视图按池复用，死亡/登机/超上限仅隐藏不销毁）
+    // 3) 同步视图（实例合批槽位池：死亡/登机/超上限只置 invisible，槽位不销毁；
+    //    LOD 按与玩家距离判定，只影响部件矩阵写入，不改变 draw call 数）
+    const lod = this.preset.lod;
     for (let i = 0; i < count; i++) {
       const e = ents[i];
       const active = e.alive && e.state !== 'plane' && visibleFlag[i] === 1;
@@ -401,7 +441,7 @@ export class GameView {
         }
       }
       if (!view) continue;
-      view.group.visible = active;
+      view.visible = active;
       if (!active) {
         view.hasPrev = false;
         continue;
@@ -411,18 +451,18 @@ export class GameView {
       const ix = view.hasPrev ? view.prevX + (e.pos.x - view.prevX) * alpha : e.pos.x;
       const iy = view.hasPrev ? view.prevY + (e.pos.y - view.prevY) * alpha : e.pos.y;
       const iz = view.hasPrev ? view.prevZ + (e.pos.z - view.prevZ) * alpha : e.pos.z;
-      view.group.position.set(ix, iy, iz);
-      view.group.rotation.y = -e.yaw;
+      view.x = ix;
+      view.y = iy;
+      view.z = iz;
+      view.yaw = -e.yaw;
+      view.detail = pickEntityDetail(Math.sqrt(entityDist2[i]), lod);
       view.prevX = e.pos.x;
       view.prevY = e.pos.y;
       view.prevZ = e.pos.z;
       view.hasPrev = true;
 
-      // 受击闪白
-      if (view.hurtT > 0) {
-        view.hurtT -= 1 / 60;
-        (view.body.material as THREE.MeshLambertMaterial).emissive.setScalar(Math.max(0, view.hurtT) * 2);
-      }
+      // 受击闪白衰减（按帧时长，事件侧置 1）
+      if (view.hurtT > 0) view.hurtT = Math.max(0, view.hurtT - dtSec);
 
       // 降落伞挂载
       if (e.state === 'parachute') {
@@ -435,13 +475,18 @@ export class GameView {
       }
     }
 
-    // 4) 实体数量收缩时归还多余视图（正常对局内实体数恒定，防御性处理）
+    // 4) 实体数量收缩时归还多余槽位（正常对局内实体数恒定，防御性处理；归还即置零矩阵防残影）
     if (this.entityViews.length > count) {
       for (let i = count; i < this.entityViews.length; i++) {
+        const stale = this.entityViews[i];
+        if (stale) this.entityPool.release(stale);
         this.entityViews[i] = null;
       }
       this.entityViews.length = count;
     }
+
+    // 5) 每帧一次：槽位状态 → 实例矩阵/颜色（合批唯一上传点，逐槽位零分配）
+    this.entityPool.sync();
   }
 
   /** 当前可见实体数（调试 HUD / 基准断言用） */
@@ -449,7 +494,7 @@ export class GameView {
     let n = 0;
     for (let i = 0; i < this.entityViews.length; i++) {
       const v = this.entityViews[i];
-      if (v && v.group.visible) n += 1;
+      if (v && v.visible) n += 1;
     }
     return n;
   }
@@ -537,6 +582,7 @@ export class GameView {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
+    this.postfx.setSize(w, h);
   }
 
   get drawCalls(): number {
@@ -545,10 +591,11 @@ export class GameView {
 
   dispose(): void {
     this.disposed = true;
+    this.postfx.dispose();
     this.effects.dispose();
     this.sky?.dispose();
     this.props?.dispose();
-    // 实体视图统一交还对象池销毁（共享几何只释放一次）
+    // 实体视图统一交还对象池销毁（实例几何/材质只释放一次）
     this.entityViews.length = 0;
     this.entityPool.dispose();
     this.scene.traverse((obj) => {

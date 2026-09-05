@@ -19,11 +19,13 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import * as THREE from 'three';
 import { createMatch, createWorldForTest, tickWorld } from '../../src/core';
 import type { MatchHandle, PlayerIntent, World } from '../../src/core';
 import { FixedLoop } from '../../src/core/loop';
 import { terrainHeightAt } from '../../src/core/mapgen';
 import { HudState } from '../../src/ui/hudState';
+import { EntityViewPool, type EntityView } from '../../src/render/entityPool';
 import { AI_COUNT_DEFAULT, ENTITY_CAP } from '../../src/content/constants';
 
 const SEED = 20260831;
@@ -306,5 +308,56 @@ describe('标准场景性能基准（本地 60FPS 验收）', () => {
     const perTickMs = (performance.now() - t0) / n;
     console.log(`[bench] 纯仿真 tick 成本 ${perTickMs.toFixed(4)}ms（50Hz 预算 20ms）`);
     expect(perTickMs).toBeLessThan(20);
+  });
+
+  it('画面升级步：实体合批 + LOD 同步路径（每帧 JS 成本）远低于 60FPS 帧预算', () => {
+    // 场景：实体池满载（ENTITY_CAP 个槽位全部可见），近/中/远三级 LOD 混布 + 少量受击闪白，
+    // 度量「视图写状态 + 实例矩阵/颜色批量上传」的每帧 JS 成本（GPU 提交在浏览器端由画质自适应兜底）。
+    const scene = new THREE.Scene();
+    const pool = new EntityViewPool(scene, ENTITY_CAP);
+    const views: EntityView[] = [];
+    for (let i = 0; i < ENTITY_CAP; i++) {
+      const v = pool.acquire();
+      expect(v).not.toBeNull();
+      views.push(v!);
+      v!.visible = true;
+      v!.tintR = i % 2 ? 0.85 : 0.3;
+      v!.detail = (i % 3) as 0 | 1 | 2; // 三级 LOD 混布
+    }
+
+    const n = 20_000;
+    // 预热（JIT）
+    for (let i = 0; i < 2_000; i++) {
+      for (let k = 0; k < views.length; k++) {
+        const v = views[k]!;
+        v.x = (i % 7) + k * 0.5;
+        v.y = 2;
+        v.z = k * 1.5;
+        v.yaw = i * 0.001;
+        v.hurtT = k % 4 === 0 ? 0.5 : 0;
+      }
+      pool.sync();
+    }
+
+    const t0 = performance.now();
+    for (let i = 0; i < n; i++) {
+      for (let k = 0; k < views.length; k++) {
+        const v = views[k]!;
+        v.x = (i % 7) + k * 0.5;
+        v.y = 2;
+        v.z = k * 1.5;
+        v.yaw = i * 0.001;
+        v.hurtT = k % 4 === 0 ? 0.5 : 0;
+      }
+      pool.sync();
+    }
+    const perFrameMs = (performance.now() - t0) / n;
+    console.log(
+      `[bench] 实体合批同步（${ENTITY_CAP} 槽位全可见 + 三级 LOD）每帧 JS 成本 ${perFrameMs.toFixed(4)}ms（60FPS 预算 ${FRAME_MS.toFixed(2)}ms）· ` +
+      `draw call 不变量 ${pool.drawCalls}`,
+    );
+    expect(perFrameMs).toBeLessThan(FRAME_MS);
+    expect(pool.drawCalls).toBe(3);
+    pool.dispose();
   });
 });
