@@ -151,18 +151,20 @@ export function bodyPartAt(target: Entity, point: Vec3): BodyPart {
   return 'limb';
 }
 
-/** 弹道射线：先地形/建筑遮挡，再实体包围盒，取最近命中 */
+/**
+ * 弹道射线：先地形/建筑遮挡，再实体包围盒，取最近命中。
+ * 性能：以标量（bestT/bestEntity）追踪最近命中，只对最终命中构造一次 HitResult + point。
+ * 此前每个「更近命中」都分配一个 HitResult + 命中点对象，每发子弹最多可产生 ~10 次分配。
+ */
 export function castShot(w: World, shooter: Entity, origin: Vec3, dir: Vec3, maxRange: number): HitResult | null {
-  let best: HitResult | null = null;
+  let bestT = -1;
+  let bestEntity: Entity | null = null;
 
   for (const b of w.buildings) {
     const t = rayAABB(origin, dir, b, maxRange);
-    if (t >= 0 && (!best || t < best.dist)) {
-      best = {
-        dist: t,
-        entity: null,
-        point: { x: origin.x + dir.x * t, y: origin.y + dir.y * t, z: origin.z + dir.z * t },
-      };
+    if (t >= 0 && (bestT < 0 || t < bestT)) {
+      bestT = t;
+      bestEntity = null;
     }
   }
 
@@ -187,12 +189,9 @@ export function castShot(w: World, shooter: Entity, origin: Vec3, dir: Vec3, max
         else hi = mid;
       }
       const tHit = (lo + hi) / 2;
-      if (!best || tHit < best.dist) {
-        best = {
-          dist: tHit,
-          entity: null,
-          point: { x: origin.x + dir.x * tHit, y: origin.y + dir.y * tHit, z: origin.z + dir.z * tHit },
-        };
+      if (bestT < 0 || tHit < bestT) {
+        bestT = tHit;
+        bestEntity = null;
       }
       break;
     }
@@ -205,16 +204,18 @@ export function castShot(w: World, shooter: Entity, origin: Vec3, dir: Vec3, max
     if (!target.alive || target === shooter) continue;
     if (target.state === 'plane') continue;
     const t = rayVerticalBox(origin, dir, target.pos, TARGET_HALF_WIDTH, TARGET_HEIGHT, maxRange);
-    if (t >= 0 && (!best || t < best.dist)) {
-      best = {
-        dist: t,
-        entity: target,
-        point: { x: origin.x + dir.x * t, y: origin.y + dir.y * t, z: origin.z + dir.z * t },
-      };
+    if (t >= 0 && (bestT < 0 || t < bestT)) {
+      bestT = t;
+      bestEntity = target;
     }
   }
 
-  return best && best.dist <= maxRange ? best : null;
+  if (bestT < 0 || bestT > maxRange) return null;
+  return {
+    dist: bestT,
+    entity: bestEntity,
+    point: { x: origin.x + dir.x * bestT, y: origin.y + dir.y * bestT, z: origin.z + dir.z * bestT },
+  };
 }
 
 /** 视线是否被建筑/地形遮挡（AI 感知用） */
@@ -287,7 +288,15 @@ export function applyDamage(
 
 export function eliminate(w: World, target: Entity, byId: string, cause: 'shot' | 'zone'): void {
   if (!target.alive) return;
-  const aliveCount = w.entities.reduce((n, e) => n + (e.alive ? 1 : 0), 0);
+  // 存活数与击杀者一次遍历同时求出（去 reduce/find 闭包分配；顺序与旧实现一致：先计数后置亡）
+  let aliveCount = 0;
+  let killer: Entity | null = null;
+  const ents = w.entities;
+  for (let i = 0; i < ents.length; i++) {
+    const e = ents[i];
+    if (e.alive) aliveCount += 1;
+    if (byId !== '' && killer === null && e.id === byId) killer = e;
+  }
   target.alive = false;
   target.state = 'dead';
   target.rank = aliveCount;
@@ -295,7 +304,6 @@ export function eliminate(w: World, target: Entity, byId: string, cause: 'shot' 
   target.eliminatedBy = byId;
   target.firing = false;
   target.aiState = 'dead';
-  const killer = byId ? w.entities.find((e) => e.id === byId) : null;
   if (killer && killer !== target) killer.kills += 1;
   pushEvent(w, { type: 'entityEliminated', entityId: target.id, byId, cause });
   void dist3D;
