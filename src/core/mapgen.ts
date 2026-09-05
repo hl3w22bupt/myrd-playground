@@ -142,9 +142,16 @@ function findClearSpot(pack: ContentPack, buildings: AABB[], x: number, z: numbe
   return { x, y: terrainHeightAt(pack, x, z), z };
 }
 
+/** 平面坐标（值类型） */
+export interface XZ {
+  x: number;
+  z: number;
+}
+
 /**
  * 地面移动的 AABB 碰撞：先 X 后 Z 分离轴 + 速度钳制（架构 ADR-002）。
  * 返回修正后的位置。
+ * 性能：out 复用调用方缓冲（movement 每实体每 tick 调用 2 次，此前每次返回新对象）。
  */
 export function resolveBuildingCollision(
   x: number,
@@ -152,7 +159,8 @@ export function resolveBuildingCollision(
   radius: number,
   groundY: number,
   buildings: AABB[],
-): { x: number; z: number } {
+  out: XZ = { x: 0, z: 0 },
+): XZ {
   let nx = x;
   let nz = z;
   for (const b of buildings) {
@@ -180,5 +188,7 @@ export function resolveBuildingCollision(
       else nz = b.maxZ + radius;
     }
   }
-  return { x: nx, z: nz };
+  out.x = nx;
+  out.z = nz;
+  return out;
 }
