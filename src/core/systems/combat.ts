@@ -218,24 +218,44 @@ export function castShot(w: World, shooter: Entity, origin: Vec3, dir: Vec3, max
   };
 }
 
-/** 视线是否被建筑/地形遮挡（AI 感知用） */
-export function hasLineOfSight(w: World, from: Vec3, to: Vec3): boolean {
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  const dz = to.z - from.z;
+/** 视线检测 scratch（同步调用链内复用，无重入；避免感知热路径逐候选分配端点对象） */
+const losOrigin: Vec3 = { x: 0, y: 0, z: 0 };
+const losDir: Vec3 = { x: 0, y: 0, z: 0 };
+
+/**
+ * 视线是否被建筑/地形遮挡（AI 感知用）。
+ * 性能：端点以标量传入（调用方无需构造 eye/tgt 对象），内部复用 scratch 向量参与 rayAABB。
+ */
+export function hasLineOfSight(
+  w: World,
+  fromX: number,
+  fromY: number,
+  fromZ: number,
+  toX: number,
+  toY: number,
+  toZ: number,
+): boolean {
+  const dx = toX - fromX;
+  const dy = toY - fromY;
+  const dz = toZ - fromZ;
   const len = Math.sqrt(dx * dx + dy * dy + dz * dz);
   if (len < 1e-4) return true;
-  const dir = { x: dx / len, y: dy / len, z: dz / len };
+  losOrigin.x = fromX;
+  losOrigin.y = fromY;
+  losOrigin.z = fromZ;
+  losDir.x = dx / len;
+  losDir.y = dy / len;
+  losDir.z = dz / len;
   for (const b of w.buildings) {
-    const t = rayAABB(from, dir, b, len);
+    const t = rayAABB(losOrigin, losDir, b, len);
     if (t >= 0 && t < len - 0.5) return false;
   }
   const steps = 8;
   for (let i = 1; i <= steps; i++) {
     const t = (i / steps) * len;
-    const px = from.x + dir.x * t;
-    const py = from.y + dir.y * t;
-    const pz = from.z + dir.z * t;
+    const px = fromX + losDir.x * t;
+    const py = fromY + losDir.y * t;
+    const pz = fromZ + losDir.z * t;
     if (py < terrainHeightAt(w.pack, px, pz)) return false;
   }
   return true;

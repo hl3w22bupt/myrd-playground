@@ -6,7 +6,7 @@
 
 import { EYE_HEIGHT, PICKUP_RADIUS_M } from '../../content/constants';
 import { MAP_HALF } from '../../content/constants';
-import type { World, Entity } from '../world';
+import type { World, Entity, LootItem } from '../world';
 import type { PlayerIntent } from '../types';
 import { dist2D } from '../geom';
 import { hasLineOfSight, activeWeapon, weaponDef } from './combat';
@@ -36,13 +36,23 @@ export function updateAi(w: World): void {
   }
 }
 
+/**
+ * 复用实体意图缓冲：原地清空并返回同一数组（避免每次决策分配新数组）。
+ * 写入时序安全：意图在本 tick 末写入、下一 tick 开头由 tickWorld 应用后才可能被再次清空重写。
+ */
+function beginIntents(e: Entity): PlayerIntent[] {
+  const intents = e.pendingIntents;
+  intents.length = 0;
+  return intents;
+}
+
 function decide(w: World, e: Entity): void {
   const cfg = w.pack.ai;
 
   // —— 空中阶段：跳伞时机与落点控制 ——
   if (e.state === 'plane') {
     if (e.aiJumpAtMs !== null && w.elapsedMs >= e.aiJumpAtMs) {
-      e.pendingIntents = [{ kind: 'jumpFromPlane' }];
+      beginIntents(e).push({ kind: 'jumpFromPlane' });
     }
     return;
   }
@@ -52,19 +62,18 @@ function decide(w: World, e: Entity): void {
     const dx = target.x - e.pos.x;
     const dz = target.z - e.pos.z;
     const d = Math.hypot(dx, dz) || 1;
-    const intents: PlayerIntent[] = [];
+    const intents = beginIntents(e);
     if (e.state === 'freefall') {
       if (d < 140) intents.push({ kind: 'deployParachute' });
       else intents.push({ kind: 'freefallControl', dirX: dx / d, dirZ: dz / d, dive: clamp01(d / 320) });
     } else {
       intents.push({ kind: 'freefallControl', dirX: dx / d, dirZ: dz / d, dive: 0 });
     }
-    e.pendingIntents = intents;
     return;
   }
 
   // —— 地面阶段 ——
-  const intents: PlayerIntent[] = [];
+  const intents = beginIntents(e);
   const zone = w.zone;
   const zoneDist = dist2D(e.pos.x, e.pos.z, zone.center.x, zone.center.z);
 
@@ -78,7 +87,6 @@ function decide(w: World, e: Entity): void {
     const d = Math.hypot(dx, dz) || 1;
     intents.push({ kind: 'aim', yaw: Math.atan2(dz, dx), pitch: 0 });
     intents.push({ kind: 'move', dirX: dx / d, dirZ: dz / d, sprint: true });
-    e.pendingIntents = intents;
     return;
   }
 
@@ -97,7 +105,6 @@ function decide(w: World, e: Entity): void {
         intents.push(aimAtPos(e, loot.pos.x, loot.pos.z));
         intents.push({ kind: 'move', dirX: norm(e.pos.x, loot.pos.x), dirZ: norm(e.pos.z, loot.pos.z) });
       }
-      e.pendingIntents = intents;
       return;
     }
   } else if (e.aiState === 'loot') {
@@ -136,7 +143,6 @@ function decide(w: World, e: Entity): void {
         intents.push({ kind: 'move', dirX: (px / l) * sway, dirZ: (pz / l) * sway });
       }
     }
-    e.pendingIntents = intents;
     return;
   }
 
@@ -155,7 +161,6 @@ function decide(w: World, e: Entity): void {
         intents.push(aimAtPos(e, loot.pos.x, loot.pos.z));
         intents.push({ kind: 'move', dirX: norm(e.pos.x, loot.pos.x), dirZ: norm(e.pos.z, loot.pos.z) });
       }
-      e.pendingIntents = intents;
       return;
     }
   }
@@ -167,7 +172,6 @@ function decide(w: World, e: Entity): void {
       e.aiState = 'seek';
       intents.push(aimAtPos(e, last.pos.x, last.pos.z));
       intents.push({ kind: 'move', dirX: norm(e.pos.x, last.pos.x), dirZ: norm(e.pos.z, last.pos.z) });
-      e.pendingIntents = intents;
       return;
     }
     e.aiTargetId = null;
@@ -189,7 +193,6 @@ function decide(w: World, e: Entity): void {
     dirX: norm(e.pos.x, e.aiWaypoint.x),
     dirZ: norm(e.pos.z, e.aiWaypoint.z),
   });
-  e.pendingIntents = intents;
 }
 
 function aimAtPos(e: Entity, x: number, z: number): PlayerIntent {
@@ -222,14 +225,16 @@ function findVisibleEnemy(w: World, e: Entity): Entity | null {
   const cfg = w.pack.ai;
   let best: Entity | null = null;
   let bestD = Infinity;
+  // 视点高度只计算一次（此前每候选分配 eye/tgt 两个对象，交火时是稳定分配源）
+  const eyeX = e.pos.x;
+  const eyeY = e.pos.y + EYE_HEIGHT;
+  const eyeZ = e.pos.z;
   for (const other of w.entities) {
     if (other === e || !other.alive) continue;
     if (other.state !== 'ground') continue;
     const d = dist2D(e.pos.x, e.pos.z, other.pos.x, other.pos.z);
     if (d > cfg.visionRange || d >= bestD) continue;
-    const eye = { x: e.pos.x, y: e.pos.y + EYE_HEIGHT, z: e.pos.z };
-    const tgt = { x: other.pos.x, y: other.pos.y + EYE_HEIGHT, z: other.pos.z };
-    if (!hasLineOfSight(w, eye, tgt)) continue;
+    if (!hasLineOfSight(w, eyeX, eyeY, eyeZ, other.pos.x, other.pos.y + EYE_HEIGHT, other.pos.z)) continue;
     best = other;
     bestD = d;
   }
@@ -265,9 +270,10 @@ function weaponDefOf(id: string): { ammoType: string } {
   return id === 'ar_m4' ? { ammoType: 'ammo_556' } : { ammoType: 'ammo_45' };
 }
 
-function findNearbyLoot(w: World, e: Entity): { id: string; pos: { x: number; z: number } } | null {
+/** 最近可拾取物资（直引 LootItem，避免每决策分配结果包装对象） */
+function findNearbyLoot(w: World, e: Entity): LootItem | null {
   const range = w.pack.ai.lootSearchRange;
-  let best: { id: string; pos: { x: number; z: number } } | null = null;
+  let best: LootItem | null = null;
   let bestD = Infinity;
   for (const l of w.loots) {
     if (l.taken) continue;
@@ -275,7 +281,7 @@ function findNearbyLoot(w: World, e: Entity): { id: string; pos: { x: number; z:
     const d = dist2D(e.pos.x, e.pos.z, l.pos.x, l.pos.z);
     if (d < range && d < bestD) {
       bestD = d;
-      best = { id: l.id, pos: { x: l.pos.x, z: l.pos.z } };
+      best = l;
     }
   }
   return best;
