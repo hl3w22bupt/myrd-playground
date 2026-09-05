@@ -85,3 +85,50 @@
 ## 五、浏览器实测建议（后续收口步）
 
 Node 基准覆盖「逻辑 + 快照 + HUD」的 CPU 成本与内存行为；GPU 侧（draw call、填充率、阴影）需在浏览器以 `PerfSampler` + 调试 HUD（FPS / 1% 低 / p95 / draw / heap）按收敛需求 AC1 的参考机型口径采样 5–10 分钟复核。渲染侧已具备的条件：画质三档自动降档、实体池封顶、同屏上限、物资颜色脏检查、小地图/HUD 降频。
+
+---
+
+# 叠加步：画质光照后处理 + LOD 合批对象池优化（目标：稳定 60FPS · 画面够看）
+
+> 功能线：`pubg-web-core`（同分支串行叠加，基于性能小步 + 画面升级已合入成果）
+> 数值来源：`src/content/render.ts`（新增 LOD/后处理/降频 12 个常量，配 `tests/render.spec.ts` 断言）
+> 约束：仿真核心 systems 未动，确定性不受影响；新数值全部落配置表，禁止硬编码
+
+## 一、改动清单
+
+### 1. 轻量单 pass 后处理（`render/postfx.ts` 新增）
+
+- 一次额外全屏 pass 把 **轻量 AA（十字 luma 混合，4 tap）+ 暗角 + 饱和度/对比度色彩分级** 合并到同一个 shader，不引入 bloom 等多 pass 重效果。
+- 渲染目标（WebGLRenderTarget）构造时创建一次，运行期复用（resize 仅 `setSize`）——渲染目标层面的「对象池」：零重建、零逐帧分配。
+- 按档位门控：`low` 关闭 → 内部直通 `renderer.render`（零额外成本）；`medium` 开启 + 0.75x RT 降采样；`high` 全分辨率 + 4x MSAA（`QualityPreset` 扩展 `postFx/postFxScale/postFxMsaa`）。
+
+### 2. 植被分块 LOD（`render/vegLod.ts` 新增 + `render/props.ts` 改造）
+
+- 问题：1.6km 地图上数百树/近千草丛全量常驻提交，远处植被在雾中已不可辨却仍占 GPU。
+- 方案：全图按 `VEG_CHUNK_SIZE=160m` 划分 10×10=100 块（`buildChunks`），块中心到相机水平距离超出剔除半径（LOD 距离 + 块外接半径）的块整块 `visible=false`——不产生 draw call，GPU 成本随视距自适应。
+- 剔除决策按 `VEG_LOD_UPDATE_HZ=10Hz` 降频（帧计数取模，无时钟依赖）；标志搬运与计数零分配（`updateVisibility` 原地写标志）。
+- 纯逻辑与 three 解耦：`vegLod.ts` 零 three 依赖，Node 可直接断言（`tests/render.spec.ts`）。
+
+### 3. 树干+树冠合批（`render/props.ts`）
+
+- 每棵树原先树干/树冠两个 InstancedMesh（2 draw call / 组）；合并为单一 geometry（`buildTreeGeometry`：圆柱+球体 `toNonIndexed` 后自写 `mergeSimple` 合并，顶点色承载棕/绿与顶部受光提亮），每块 1 个 InstancedMesh——**每块 2 → 1 draw call**。
+- `instanceColor` 保留逐树明度微变（中性灰 tint），树干棕/树冠绿不被串色。
+- 植被按块两段式构建：先确定性 hash 采样并按块分桶，再按桶精确容量建 InstancedMesh（无空槽浪费）。
+
+### 4. 阴影与物资动画降频（`render/view.ts`）
+
+- 阴影贴图：`shadow.autoUpdate=false`，按 `SHADOW_UPDATE_HZ=20Hz` 置 `needsUpdate`——静态场景 + 少量动态实体下省 2/3 阴影 pass，20Hz 重绘不可感知。
+- 物资浮动/旋转动画矩阵：按 `LOOT_ANIM_HZ=20Hz` 降频上传（消除每帧 256 实例矩阵全量 GPU 上传）；拾取引起的**颜色/数量变化仍当帧生效**（槽位脏检查不受降频影响）。
+- 受击闪白计时改按真实 `dtSec` 扣减（消除隐式 60FPS 假设，任意帧率下闪烁时长一致）。
+
+## 二、测试与门禁
+
+| 命令 | 内容 | 结果 |
+|---|---|---|
+| `npm run lint` | eslint（含依赖方向/确定性红线） | 通过 |
+| `npm run test` | 53 既有断言 + 12 新增（`tests/render.spec.ts`：配置表约束 / vegLod 分块剔除 / postfx 分辨率纯函数 / preset 门控） | 65/65 通过 |
+| `npm run build` | `tsc --noEmit && vite build` | 通过（gzip 164.55 kB） |
+
+## 三、浏览器复核建议
+
+后处理与 LOD 的收益体现在 GPU 侧（draw call / 填充率），仍以调试 HUD `draw` 字段按 AC1 参考机型口径采样复核：`low` 档后处理直通、植被按块消失于视距外；`medium/high` 档画面具暗角与色彩分级、远处草丛剔除不掉帧。

@@ -39,7 +39,7 @@ src/
 ├── core/      # 确定性仿真核心（纯 TS，零 DOM/three；Node 可直接运行）
 │   ├── rng.ts loop.ts world.ts match.ts mapgen.ts geom.ts types.ts
 │   └── systems/  # lifecycle / parachute / movement / combat / loot / zone / ai
-├── render/    # Three.js（three 只允许在此 import；材质纹理/光照雾效/粒子/画质三档+自动降档/对象池）
+├── render/    # Three.js（three 只允许在此 import；材质纹理/光照雾效/粒子/后处理/植被分块LOD/画质三档+自动降档/对象池）
 ├── input/     # 键鼠 → PlayerIntent
 ├── ui/        # HUD（DOM 高频直写）+ Canvas2D 小地图 + 背包/结算/开始屏
 ├── app/       # 组装根（rAF 可变渲染 + 50Hz 固定逻辑双循环）

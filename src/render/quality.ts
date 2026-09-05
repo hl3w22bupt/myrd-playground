@@ -4,6 +4,7 @@
  */
 
 import type { PerfSample } from '../perf/sampler';
+import { POSTFX_MSAA_HIGH, POSTFX_SCALE_MEDIUM } from '../content/render';
 
 export type QualityLevel = 'low' | 'medium' | 'high';
 
@@ -19,12 +20,27 @@ export interface QualityPreset {
   viewDistance: number;
   /** 物资实例显示密度 0..1 */
   lootDensity: number;
+  /** 是否启用后处理（单 pass 合成；low 关闭直通，零额外成本） */
+  postFx: boolean;
+  /** 后处理 RT 分辨率缩放（1 = 全分辨率） */
+  postFxScale: number;
+  /** 后处理 RT MSAA 采样数（0 = 关闭） */
+  postFxMsaa: number;
 }
 
 export const QUALITY_PRESETS: Record<QualityLevel, QualityPreset> = {
-  low: { level: 'low', pixelRatio: 0.75, shadows: false, shadowMapSize: 512, viewDistance: 320, lootDensity: 0.4 },
-  medium: { level: 'medium', pixelRatio: 1, shadows: true, shadowMapSize: 1024, viewDistance: 620, lootDensity: 1 },
-  high: { level: 'high', pixelRatio: 2, shadows: true, shadowMapSize: 2048, viewDistance: 1200, lootDensity: 1 },
+  low: {
+    level: 'low', pixelRatio: 0.75, shadows: false, shadowMapSize: 512, viewDistance: 320, lootDensity: 0.4,
+    postFx: false, postFxScale: 0.75, postFxMsaa: 0,
+  },
+  medium: {
+    level: 'medium', pixelRatio: 1, shadows: true, shadowMapSize: 1024, viewDistance: 620, lootDensity: 1,
+    postFx: true, postFxScale: POSTFX_SCALE_MEDIUM, postFxMsaa: 0,
+  },
+  high: {
+    level: 'high', pixelRatio: 2, shadows: true, shadowMapSize: 2048, viewDistance: 1200, lootDensity: 1,
+    postFx: true, postFxScale: 1, postFxMsaa: POSTFX_MSAA_HIGH,
+  },
 };
 
 /** 默认档位：按设备粗分（移动 → Low，桌面 → Medium） */

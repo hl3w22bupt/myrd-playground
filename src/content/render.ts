@@ -43,3 +43,38 @@ export const PULSE_POOL_SIZE = 4;
 
 /** 毒圈边缘粒子带固定缓冲容量（Float32Array 预分配，循环覆写） */
 export const ZONE_PARTICLE_COUNT = 200;
+
+// ———————————————————— LOD / 后处理 / 降频（本次叠加：画质光照后处理 + LOD 合批对象池优化） ————————————————————
+
+/** 植被分块边长（m）：地形 1600m / 160 = 10×10 = 100 块；分块是距离 LOD 剔除的最小单位 */
+export const VEG_CHUNK_SIZE = 160;
+
+/** 草丛可见距离（m）：超过即整块隐藏（远草无视觉贡献，纯粹省 GPU） */
+export const GRASS_LOD_DISTANCE = 170;
+
+/** 树可见距离（m）：超过即整块隐藏（树冠在雾中已不可辨） */
+export const TREE_LOD_DISTANCE = 560;
+
+/** 植被块可见性刷新频率（Hz）：块开关无需逐帧决策，降频消除每帧距离计算 */
+export const VEG_LOD_UPDATE_HZ = 10;
+
+/** 物资浮动动画与矩阵上传频率（Hz）：60→20Hz，消除每帧 256 实例矩阵全量 GPU 上传 */
+export const LOOT_ANIM_HZ = 20;
+
+/** 阴影贴图更新频率（Hz）：静态场景 + 少量动态实体，60→20Hz 重绘阴影不可感知，省 2/3 阴影 pass */
+export const SHADOW_UPDATE_HZ = 20;
+
+/** 后处理渲染目标分辨率缩放（medium 档降采样，high 档 1.0 全分辨率） */
+export const POSTFX_SCALE_MEDIUM = 0.75;
+
+/** 后处理 MSAA 采样数（high 档 4x；medium/low 0=关闭，由后处理 shader 的轻量 AA 兜底） */
+export const POSTFX_MSAA_HIGH = 4;
+
+/** 后处理暗角强度 0..1（画面质感：边缘压暗聚焦视线） */
+export const POSTFX_VIGNETTE = 0.32;
+
+/** 后处理饱和度增益（1 = 原样；>1 轻微提饱和，画面更通透） */
+export const POSTFX_SATURATION = 1.08;
+
+/** 后处理对比度增益（1 = 原样；>1 轻微提对比，明暗层次更强） */
+export const POSTFX_CONTRAST = 1.05;

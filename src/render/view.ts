@@ -17,6 +17,8 @@ import type { EntityView } from './entityPool';
 import { EntityViewPool } from './entityPool';
 import { makeBuildingTexture, makeCanopyTexture, makeGroundTexture } from './textures';
 import { AutoQuality, QUALITY_PRESETS, type QualityLevel, type QualityPreset } from './quality';
+import { PostFxPass } from './postfx';
+import { LOOT_ANIM_HZ, SHADOW_UPDATE_HZ } from '../content/render';
 
 /** 雾/天空地平线色（与 makeSkyTexture 渐变底色一致，形成连贯远景层次） */
 const HORIZON_COLOR = 0xc3d6e6;
@@ -66,6 +68,12 @@ export class GameView {
   private planeMesh: THREE.Group;
   private canopy: THREE.Mesh;
   private canopyFor: string | null = null;
+  private postfx: PostFxPass;
+  /** 阴影/物资动画的帧计数降频器（60/N Hz，帧驱动下无时钟依赖） */
+  private shadowFrame = 0;
+  private lootFrame = 0;
+  private readonly shadowEveryFrames: number;
+  private readonly lootEveryFrames: number;
 
   private tmpMat4 = new THREE.Matrix4();
   private tmpQuat = new THREE.Quaternion();
@@ -91,6 +99,8 @@ export class GameView {
     this.pack = pack;
     this.autoQuality = new AutoQuality(quality);
     this.preset = QUALITY_PRESETS[this.autoQuality.current];
+    this.shadowEveryFrames = Math.max(1, Math.round(60 / SHADOW_UPDATE_HZ));
+    this.lootEveryFrames = Math.max(1, Math.round(60 / LOOT_ANIM_HZ));
 
     this.renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.preset.pixelRatio));
@@ -133,6 +143,9 @@ export class GameView {
     this.dirLight.shadow.bias = -0.0004;
     this.scene.add(this.dirLight);
     this.scene.add(this.dirLight.target);
+    // 阴影贴图降频重绘（静态场景 + 少量动态实体，20Hz 不可感知）：省 2/3 阴影 pass
+    this.dirLight.shadow.autoUpdate = false;
+    this.dirLight.shadow.needsUpdate = true;
     this.applyFog();
 
     // —— 地形 ——
@@ -203,9 +216,25 @@ export class GameView {
 
     this.effects = new EffectLayer(this.scene);
 
-    // —— 天空穹顶 + 植被点缀（AC2①②：远景层次与场景细节）——
+    // —— 天空穹顶 + 植被点缀（AC2①②：远景层次与场景细节；分块 LOD 见 props/vegLod）——
     this.sky = new SkyDome(this.scene);
     this.props = new PropsLayer(this.scene, pack, match.world.buildings, this.autoQuality.current);
+
+    // —— 后处理（单 pass：轻量 AA + 暗角 + 色彩分级；low 档直通，RT 复用零重建）——
+    this.postfx = this.buildPostFx();
+  }
+
+  /** 按当前 preset 构建后处理（档位切换时重建，频率 ≤ 每分钟一次，非逐帧路径） */
+  private buildPostFx(): PostFxPass {
+    const p = this.preset;
+    return new PostFxPass(
+      p.postFx,
+      p.postFxMsaa,
+      p.postFxScale,
+      this.container.clientWidth,
+      Math.max(1, this.container.clientHeight),
+      Math.min(window.devicePixelRatio, p.pixelRatio),
+    );
   }
 
   get qualityLevel(): QualityLevel {
@@ -222,6 +251,10 @@ export class GameView {
       this.renderer.shadowMap.enabled = this.preset.shadows;
       this.dirLight.castShadow = this.preset.shadows;
       this.applyFog();
+      // 后处理随档位重建（low 关闭直通 / medium 降采样 / high 全分辨率+MSAA），并同步 RT 尺寸
+      this.postfx.dispose();
+      this.postfx = this.buildPostFx();
+      this.postfx.setSize(this.container.clientWidth, Math.max(1, this.container.clientHeight), this.renderer.getPixelRatio());
       return after;
     }
     return null;
@@ -319,7 +352,7 @@ export class GameView {
   render(snap: WorldSnapshot, events: GameEvent[], alpha: number, dtSec: number): void {
     if (this.disposed) return;
     this.effects.consumeEvents(events, (id) => this.entityWorldPos(snap, id));
-    this.syncEntities(snap, alpha);
+    this.syncEntities(snap, alpha, dtSec);
     this.syncLoot(snap);
     this.syncZone(snap);
     this.syncPlane(snap);
@@ -329,7 +362,17 @@ export class GameView {
     this.updateSun(snap);
     if (this.sky) this.sky.update(this.camera.position, dtSec);
 
-    this.renderer.render(this.scene, this.camera);
+    // 植被分块 LOD（内部按 VEG_LOD_UPDATE_HZ 降频决策）
+    this.props?.update(this.camera.position.x, this.camera.position.z);
+
+    // 阴影贴图按 SHADOW_UPDATE_HZ 降频重绘（light 每帧跟玩家移动，贴图内容定时刷新）
+    this.shadowFrame += 1;
+    if (this.preset.shadows && this.shadowFrame % this.shadowEveryFrames === 1) {
+      this.dirLight.shadow.needsUpdate = true;
+    }
+
+    // 后处理主路径：场景→复用 RT→单 pass 合成（关闭时内部直通 renderer.render）
+    this.postfx.render(this.renderer, this.scene, this.camera);
   }
 
   /** 实体当前渲染位置（特效事件定位用；按 id 查快照下标 → 对象池视图，只读不回写仿真） */
@@ -344,7 +387,7 @@ export class GameView {
     return null;
   }
 
-  private syncEntities(snap: WorldSnapshot, alpha: number): void {
+  private syncEntities(snap: WorldSnapshot, alpha: number, dtSec: number): void {
     const ents = snap.entities;
     const count = ents.length;
     const player = snap.playerEntity;
@@ -418,9 +461,9 @@ export class GameView {
       view.prevZ = e.pos.z;
       view.hasPrev = true;
 
-      // 受击闪白
+      // 受击闪白（按真实帧时长扣减，帧率无关）
       if (view.hurtT > 0) {
-        view.hurtT -= 1 / 60;
+        view.hurtT -= dtSec;
         (view.body.material as THREE.MeshLambertMaterial).emissive.setScalar(Math.max(0, view.hurtT) * 2);
       }
 
@@ -455,6 +498,10 @@ export class GameView {
   }
 
   private syncLoot(snap: WorldSnapshot): void {
+    // 拾取立即生效（新槽位内容必须当帧写入），但浮动/旋转动画矩阵按 LOOT_ANIM_HZ 降频上传：
+    // 60→20Hz 消除每帧 256 实例矩阵全量 GPU 上传，20Hz 下动画依旧顺滑。
+    const animate = this.lootFrame % this.lootEveryFrames === 0;
+    this.lootFrame += 1;
     const count = Math.min(snap.loots.length, Math.floor(this.lootInst.instanceMatrix.count * this.preset.lootDensity));
     const t = performance.now() / 1000;
     let colorDirty = false;
@@ -469,6 +516,7 @@ export class GameView {
         colorDirty = true;
       }
 
+      if (!animate) continue;
       const bob = Math.sin(t * 2 + i) * 0.08;
       this.tmpEuler.set(0, t * 0.8 + i, 0);
       this.tmpQuat.setFromEuler(this.tmpEuler);
@@ -481,7 +529,7 @@ export class GameView {
     }
     this.lootShown = count;
     this.lootInst.count = count;
-    this.lootInst.instanceMatrix.needsUpdate = true;
+    if (animate || colorDirty || this.lootColorDirty) this.lootInst.instanceMatrix.needsUpdate = true;
     if (colorDirty && this.lootInst.instanceColor) this.lootInst.instanceColor.needsUpdate = true;
     this.lootColorDirty = false;
     void this.lootShown;
@@ -537,6 +585,8 @@ export class GameView {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
+    // 后处理 RT 复用同一对象仅 setSize（渲染目标对象池：运行期零重建）
+    this.postfx.setSize(w, h, this.renderer.getPixelRatio());
   }
 
   get drawCalls(): number {
@@ -548,6 +598,7 @@ export class GameView {
     this.effects.dispose();
     this.sky?.dispose();
     this.props?.dispose();
+    this.postfx.dispose();
     // 实体视图统一交还对象池销毁（共享几何只释放一次）
     this.entityViews.length = 0;
     this.entityPool.dispose();
