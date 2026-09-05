@@ -47,37 +47,71 @@ export function aimDir(yaw: number, pitch: number): Vec3 {
   return { x: Math.cos(yaw) * c, y: Math.sin(pitch), z: Math.sin(yaw) * c };
 }
 
-/** 射线 vs AABB（slab 法），返回 t（>=0）或 -1 */
+/**
+ * 射线 vs AABB（slab 法），返回 t（>=0）或 -1。
+ * 性能：三轴 slab 手工展开（调用点在每发子弹 × 每栋建筑、AI 视线 × 每栋建筑的热路径上，
+ * 展开前的「轴元组数组」实现每次调用分配 4 个短命数组，交火时可达数万对象/秒）。
+ */
 export function rayAABB(origin: Vec3, dir: Vec3, box: AABB, maxDist: number): number {
   let tmin = 0;
   let tmax = maxDist;
 
-  const axes: Array<[number, number, number, number]> = [
-    [origin.x, dir.x, box.minX, box.maxX],
-    [origin.y, dir.y, box.minY, box.maxY],
-    [origin.z, dir.z, box.minZ, box.maxZ],
-  ];
-
-  for (const [o, d, lo, hi] of axes) {
-    if (Math.abs(d) < 1e-9) {
-      if (o < lo || o > hi) return -1;
-    } else {
-      let t1 = (lo - o) / d;
-      let t2 = (hi - o) / d;
-      if (t1 > t2) {
-        const tmp = t1;
-        t1 = t2;
-        t2 = tmp;
-      }
-      tmin = Math.max(tmin, t1);
-      tmax = Math.min(tmax, t2);
-      if (tmin > tmax) return -1;
+  // X slab
+  if (dir.x > -1e-9 && dir.x < 1e-9) {
+    if (origin.x < box.minX || origin.x > box.maxX) return -1;
+  } else {
+    let t1 = (box.minX - origin.x) / dir.x;
+    let t2 = (box.maxX - origin.x) / dir.x;
+    if (t1 > t2) {
+      const tmp = t1;
+      t1 = t2;
+      t2 = tmp;
     }
+    if (t1 > tmin) tmin = t1;
+    if (t2 < tmax) tmax = t2;
+    if (tmin > tmax) return -1;
   }
+
+  // Y slab
+  if (dir.y > -1e-9 && dir.y < 1e-9) {
+    if (origin.y < box.minY || origin.y > box.maxY) return -1;
+  } else {
+    let t1 = (box.minY - origin.y) / dir.y;
+    let t2 = (box.maxY - origin.y) / dir.y;
+    if (t1 > t2) {
+      const tmp = t1;
+      t1 = t2;
+      t2 = tmp;
+    }
+    if (t1 > tmin) tmin = t1;
+    if (t2 < tmax) tmax = t2;
+    if (tmin > tmax) return -1;
+  }
+
+  // Z slab
+  if (dir.z > -1e-9 && dir.z < 1e-9) {
+    if (origin.z < box.minZ || origin.z > box.maxZ) return -1;
+  } else {
+    let t1 = (box.minZ - origin.z) / dir.z;
+    let t2 = (box.maxZ - origin.z) / dir.z;
+    if (t1 > t2) {
+      const tmp = t1;
+      t1 = t2;
+      t2 = tmp;
+    }
+    if (t1 > tmin) tmin = t1;
+    if (t2 < tmax) tmax = t2;
+    if (tmin > tmax) return -1;
+  }
+
   return tmin;
 }
 
-/** 射线 vs 竖直圆柱近似包围盒（用于人体命中判定），返回 t 或 -1 */
+/**
+ * 射线 vs 竖直圆柱近似包围盒（用于人体命中判定），返回 t 或 -1。
+ * 性能：包围盒边界直接以标量参与 slab 测试，不再构造临时 AABB 对象
+ * （调用点 = 每发子弹 × 每个实体，弹匣连射下是稳定的高频分配源）。
+ */
 export function rayVerticalBox(
   origin: Vec3,
   dir: Vec3,
@@ -86,15 +120,58 @@ export function rayVerticalBox(
   height: number,
   maxDist: number,
 ): number {
-  const box: AABB = {
-    minX: center.x - halfWidth,
-    maxX: center.x + halfWidth,
-    minZ: center.z - halfWidth,
-    maxZ: center.z + halfWidth,
-    minY: center.y,
-    maxY: center.y + height,
-  };
-  return rayAABB(origin, dir, box, maxDist);
+  let tmin = 0;
+  let tmax = maxDist;
+
+  // X slab（center ± halfWidth）
+  if (dir.x > -1e-9 && dir.x < 1e-9) {
+    if (origin.x < center.x - halfWidth || origin.x > center.x + halfWidth) return -1;
+  } else {
+    let t1 = (center.x - halfWidth - origin.x) / dir.x;
+    let t2 = (center.x + halfWidth - origin.x) / dir.x;
+    if (t1 > t2) {
+      const tmp = t1;
+      t1 = t2;
+      t2 = tmp;
+    }
+    if (t1 > tmin) tmin = t1;
+    if (t2 < tmax) tmax = t2;
+    if (tmin > tmax) return -1;
+  }
+
+  // Y slab（center.y .. center.y + height）
+  if (dir.y > -1e-9 && dir.y < 1e-9) {
+    if (origin.y < center.y || origin.y > center.y + height) return -1;
+  } else {
+    let t1 = (center.y - origin.y) / dir.y;
+    let t2 = (center.y + height - origin.y) / dir.y;
+    if (t1 > t2) {
+      const tmp = t1;
+      t1 = t2;
+      t2 = tmp;
+    }
+    if (t1 > tmin) tmin = t1;
+    if (t2 < tmax) tmax = t2;
+    if (tmin > tmax) return -1;
+  }
+
+  // Z slab（center ± halfWidth）
+  if (dir.z > -1e-9 && dir.z < 1e-9) {
+    if (origin.z < center.z - halfWidth || origin.z > center.z + halfWidth) return -1;
+  } else {
+    let t1 = (center.z - halfWidth - origin.z) / dir.z;
+    let t2 = (center.z + halfWidth - origin.z) / dir.z;
+    if (t1 > t2) {
+      const tmp = t1;
+      t1 = t2;
+      t2 = tmp;
+    }
+    if (t1 > tmin) tmin = t1;
+    if (t2 < tmax) tmax = t2;
+    if (tmin > tmax) return -1;
+  }
+
+  return tmin;
 }
 
 /** 平面圆 vs AABB 相交（用于建筑占位判定） */
