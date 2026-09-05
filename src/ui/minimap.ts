@@ -148,8 +148,8 @@ export class Minimap {
       ctx.fill();
     }
 
-    // 玩家箭头 + 视野扇形
-    const p = snap.entities.find((e) => e.id === 'player');
+    // 玩家箭头 + 视野扇形（直引快照 playerEntity，去逐次重绘的 find 闭包分配）
+    const p = snap.playerEntity ?? null;
     if (p) {
       ctx.save();
       ctx.translate(p.pos.x * k, p.pos.z * k);

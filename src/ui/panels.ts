@@ -65,7 +65,7 @@ export class InventoryPanel {
   private match: MatchHandle | null = null;
   visible = false;
   /** 背包内容签名：内容不变不重建 DOM */
-  private lastSignature: string | null = null;
+  private lastSignature: number | null = null;
 
   constructor(container: HTMLElement) {
     this.root = document.createElement('div');
@@ -138,17 +138,41 @@ export class InventoryPanel {
   }
 }
 
-/** 背包内容签名（格子占用 + 物品与数量）：纯函数，供脏检查 */
+/**
+ * 背包内容签名（格子占用 + 物品与数量的 FNV-1a 数值哈希）：纯函数零分配，供脏检查。
+ * 性能：背包面板打开期间 render() 每帧调用一次，此前每次拼接 ~20 段字符串产生垃圾。
+ */
 export function inventorySignature(
   usedGrids: number,
   inventory: Array<{ item: string; count: number } | null>,
-): string {
-  let sig = `${usedGrids}|`;
+): number {
+  let hash = 0x811c9dc5;
+  const mixByte = (v: number): void => {
+    hash ^= v & 0xff;
+    hash = Math.imul(hash, 0x01000193);
+  };
+  const mixInt = (v: number): void => {
+    mixByte(v);
+    mixByte(v >> 8);
+    mixByte(v >> 16);
+    mixByte(v >> 24);
+  };
+  const mixStr = (s: string): void => {
+    for (let i = 0; i < s.length; i++) mixByte(s.charCodeAt(i));
+    mixByte(0);
+  };
+  mixInt(usedGrids);
   for (let i = 0; i < inventory.length; i++) {
     const s = inventory[i];
-    sig += s ? `${s.item}x${s.count};` : '-;';
+    if (s) {
+      mixByte(1);
+      mixStr(s.item);
+      mixInt(s.count);
+    } else {
+      mixByte(0);
+    }
   }
-  return sig;
+  return hash >>> 0;
 }
 
 export class ResultScreen {

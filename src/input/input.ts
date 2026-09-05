@@ -20,7 +20,9 @@ export class InputManager {
   private yaw = 0;
   private pitch = 0;
   private fireHeld = false;
+  /** 意图收集双缓冲（轮换复用，免每帧新建数组；元素由消费方在当帧内拷走） */
   private queued: PlayerIntent[] = [];
+  private queuedSpare: PlayerIntent[] = [];
   private onceActions = new Set<string>();
   private pointerLocked = false;
 
@@ -95,10 +97,12 @@ export class InputManager {
     return this.pointerLocked;
   }
 
-  /** 每帧收集：返回本帧玩家意图（fire 为按住语义，每帧都发） */
+  /** 每帧收集：返回本帧玩家意图（fire 为按住语义，每帧都发）。数组轮换复用，零分配 */
   consume(): PlayerIntent[] {
-    const intents: PlayerIntent[] = this.queued;
-    this.queued = [];
+    const intents = this.queued;
+    this.queued = this.queuedSpare;
+    this.queuedSpare = intents;
+    intents.length = 0;
 
     let dx = 0;
     let dz = 0;

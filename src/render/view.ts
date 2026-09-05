@@ -332,6 +332,9 @@ export class GameView {
     this.renderer.render(this.scene, this.camera);
   }
 
+  /** 事件定位读出缓冲（consumeEvents 内同步消费即拷入粒子缓冲，无跨帧持有） */
+  private readonly resolvedPos: Vec3 = { x: 0, y: 0, z: 0 };
+
   /** 实体当前渲染位置（特效事件定位用；按 id 查快照下标 → 对象池视图，只读不回写仿真） */
   private entityWorldPos(snap: WorldSnapshot, id: string): Vec3 | null {
     const ents = snap.entities;
@@ -339,7 +342,11 @@ export class GameView {
       if (ents[i].id !== id) continue;
       const view = this.entityViews[i];
       if (!view || !view.group.visible) return null;
-      return { x: view.group.position.x, y: view.group.position.y + 1, z: view.group.position.z };
+      const out = this.resolvedPos;
+      out.x = view.group.position.x;
+      out.y = view.group.position.y + 1;
+      out.z = view.group.position.z;
+      return out;
     }
     return null;
   }
