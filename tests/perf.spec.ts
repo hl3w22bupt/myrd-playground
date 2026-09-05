@@ -11,10 +11,11 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { buildSnapshot, createMatch, tickWorld } from '../src/core';
+import { buildSnapshot, createMatch, createWorldForTest, tickWorld } from '../src/core';
 import type { MatchHandle, PlayerIntent, World, WorldSnapshot } from '../src/core';
 import { FixedLoop } from '../src/core/loop';
 import { SnapshotWriter } from '../src/core/snapshot';
+import { acquireIntentSlot, recycleIntentSlots, slotAsIntent } from '../src/core/world';
 import { FrameDriver } from '../src/app/frame';
 import type { FrameDriverDeps } from '../src/app/frame';
 import { PerfSampler } from '../src/perf/sampler';
@@ -356,6 +357,40 @@ describe('节流器与采样器（perf/rate、perf/sampler）', () => {
     expect(c).not.toBe(a);
     expect(c.fps).toBeGreaterThan(0);
     expect(c.avgFrameMs).toBeCloseTo(frameMs, 1);
+  });
+});
+
+describe('AI 意图对象池（core/world 槽位回收）', () => {
+  it('acquire → recycle → acquire 复用同一槽位对象（零新建）', () => {
+    const a = acquireIntentSlot();
+    recycleIntentSlots([slotAsIntent(a)]);
+    const b = acquireIntentSlot();
+    expect(b).toBe(a);
+  });
+
+  it('AI 意图应用一次即回收清空（tickWorld 契约）', () => {
+    const w = createWorldForTest({ seed: 7, playerCount: 1, aiCount: 3 });
+    const ai = w.entities[1]!;
+    const s = acquireIntentSlot();
+    s.kind = 'move';
+    s.dirX = 1;
+    s.dirZ = 0;
+    s.sprint = true;
+    ai.pendingIntents.push(slotAsIntent(s));
+    tickWorld(w, []);
+    // 意图字段已生效，且缓冲在应用后被清空（槽位回收）
+    expect(ai.moveDirX).toBe(1);
+    expect(ai.pendingIntents.length).toBe(0);
+  });
+
+  it('连跑对局：意图缓冲处于「已应用清空或本 tick 新写」的合法状态（≤3 条/实体）', () => {
+    const match = createMatch({ seed: 20260831, playerCount: 1, aiCount: 10 });
+    const w = match.world;
+    for (let i = 0; i < 1200 && w.status !== 'ended'; i++) tickWorld(w, []);
+    for (const e of w.entities) {
+      if (e.kind !== 'ai') continue;
+      expect(e.pendingIntents.length).toBeLessThanOrEqual(3);
+    }
   });
 });
 
