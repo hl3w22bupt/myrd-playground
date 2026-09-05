@@ -4,6 +4,39 @@
 > 数值来源：`src/content/render.ts`（渲染性能配置表，禁止在 render/app 层硬编码同类数值）
 > 约束：本步只做性能一件事；不改画面表现与玩法逻辑（仿真核心 systems 未动，确定性不受影响）
 
+## 〇、第二轮：主循环残余分配清理（本文档新增，2026-09-06）
+
+第一轮已消除「每帧对象图重建」级别的大头；本轮针对**交火/移动/AI 决策热路径上的残余逐帧分配**做系统清理，全部为等价重构（数值、RNG 消费次序、判定语义不变），不动画面与玩法。
+
+### 改动清单（7 个小步提交）
+
+| 提交 | 位置 | 消除的分配 |
+|---|---|---|
+| `perf(geom)` | `core/geom.ts` | `rayAABB` 每次调用的轴元组嵌套数组（4 个/次）；`rayVerticalBox` 的临时 AABB 对象。调用点 = 每发子弹 × 48 栋建筑 + AI 视线 × 每候选 × 48 建筑，是全库最大分配源 |
+| `perf(movement)` | `core/mapgen.ts`、`systems/movement.ts` | `resolveBuildingCollision` 每次返回新 `{x,z}`（每实体每 tick 2 次），改 out 复用缓冲 |
+| `perf(combat)` | `systems/combat.ts` | `castShot` 中间命中逐次分配 HitResult+命中点（每发最多 ~10 对 → 恒定 2 对）；`eliminate` 的 reduce/find 闭包 |
+| `perf(ai)` | `systems/ai.ts`、`combat.ts` | `hasLineOfSight` 每候选 eye/tgt+方向向量（改标量入参+scratch）；`findNearbyLoot` 结果包装对象（改直引 LootItem）；`decide` 每决策新建意图数组（改原地复用 `pendingIntents`） |
+| `perf(ai)` | `core/world.ts`、`match.ts`、`ai.ts` | AI 意图对象池：`IntentSlot` 自由列表（上限 64），tickWorld「应用即回收」，决策热路径意图对象零分配 |
+| `perf(zone)` | `systems/zone.ts` | 毒圈伤害对已持有引用实体再 `find` 的闭包查找 + reduce 计数 |
+| `perf(ui/render/input)` | `minimap.ts`、`view.ts`、`input.ts`、`panels.ts` | 小地图 `find` 闭包（改 `playerEntity` 直引）；淘汰事件定位新对象（改复用缓冲）；输入意图每帧新数组（改双缓冲轮换）；背包打开期间每帧签名字符串（改 FNV-1a 数值哈希）——此项即第一轮审查记录在案的「本步不修」余项 |
+
+### 确定性与行为守恒
+
+- 所有数值公式与 RNG 消费次序逐一保持（`putAimIntent` 与旧 `aimIntent` 完全一致）；
+- 意图缓冲复用的时序安全性：意图在 tick 末写入、下一 tick 开头应用后才可能被清空重写，`applyIntent` 为纯字段赋值（幂等），「stale 意图重复应用」与「应用一次」不可区分；
+- 新增 3 项回归断言（`tests/perf.spec.ts` 14 → 17）：槽位复用恒等、应用即回收、长跑后意图缓冲合法状态。
+
+### 本轮实测（Node v26 / 2026-09-06，`npm run bench`）
+
+```
+[bench] 帧 JS 成本：avg 0.044ms · p95 0.076ms · max 0.207ms（预算 16.67ms）
+[bench] capableFps = 22883
+[bench] 活堆：基线 12.9MB → 末 13.1MB · 增长 0.2MB（1.4%）· 窗口单调递增 false
+[bench] 纯仿真 tick 成本 0.0632ms（50Hz 预算 20ms；改造前 0.0638ms）
+```
+
+结论：标准场景 600s 逻辑时长活堆增长 1.4%（≤5% 红线）且窗口不单调递增，**无内存持续增长**；帧 JS 成本约为 60FPS 帧预算的 0.26%，**≥60FPS 能力余量约 380 倍**。本轮收益主要体现在**垃圾产生率下降**（交火稳态估算：rayAABB 数组 ~数万 obj/s + 碰撞 ~1300 obj/s + AI 感知/决策 ~1500 obj/s + 意图 ~500 obj/s → 接近 0），对应真实浏览器中 minor-GC 触发频率与 GC 停顿概率下降（Node 强制 GC 基准口径无法直接呈现该收益，故以解析估算列示）。
+
 ## 一、改动清单（4 个小步提交 + 审查修复提交）
 
 ### 1. 零分配快照通道（`core/snapshot.ts`）
