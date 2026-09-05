@@ -6,16 +6,7 @@
  */
 
 import type { GameEvent, MatchHandle, WorldSnapshot } from '../core/types';
-import { ITEMS, WEAPONS } from '../content';
-import type { MedkitItemDef } from '../content';
-
-const STATE_LABEL: Record<string, string> = {
-  plane: '✈ 运输机上 —— 按 F 跳伞',
-  freefall: '🪂 自由落体 —— WASD 控制方向，Shift 俯冲，空格开伞',
-  parachute: '🪂 滑翔中 —— WASD 微调落点',
-  ground: '',
-  dead: '☠ 已淘汰',
-};
+import { HudState } from './hudState';
 
 const HITMARKER_MS = 140;
 const CROSSHAIR_KICK_MS = 90;
@@ -43,10 +34,14 @@ export class Hud {
   private hitmarker: HTMLDivElement;
   private crosshair: HTMLDivElement;
 
-  // 脏检查缓存（避免每帧 textContent 写入）
-  private cache = new Map<HTMLDivElement, string>();
+  /** 字段级脏检查器（纯逻辑，Node 可测） */
+  private readonly hudState = new HudState();
+  private lastDebug: string | null = null;
   private hitmarkerUntil = 0;
   private crosshairKickUntil = 0;
+  // 计时型视觉（hitmarker/准星后座）按布尔状态翻转时才写 class，避免每帧 DOM 写入
+  private hitmarkerShown = false;
+  private crosshairKicked = false;
 
   constructor(container: HTMLElement) {
     this.root = document.createElement('div');
@@ -104,77 +99,47 @@ export class Hud {
     this.debugText = ref('debug');
   }
 
-  /** 值变化才写 DOM（textContent / width / class） */
-  private set(el: HTMLDivElement, value: string): void {
-    if (this.cache.get(el) === value) return;
-    this.cache.set(el, value);
-    el.textContent = value;
-  }
+  update(snap: WorldSnapshot): void {
+    // 纯逻辑计算 + 字段级脏检查：值不变的字段不产生任何 DOM 写入（消除强制布局）
+    const { state, dirty } = this.hudState.compute(snap);
 
-  update(snap: WorldSnapshot, nowMs: number): void {
-    const p = snap.player;
-    if (!p) return;
+    if (dirty.hpWidth) this.hpBar.style.width = state.hpWidth;
+    if (dirty.hpTier) this.root.dataset.hp = state.hpTier;
+    if (dirty.hpText) this.hpText.textContent = state.hpText;
+    if (dirty.armorText) this.armorTag.textContent = state.armorText;
+    if (dirty.weaponText) this.weaponText.textContent = state.weaponText;
+    if (dirty.ammoText) this.ammoText.textContent = state.ammoText;
+    if (dirty.reserveText) this.reserveText.textContent = state.reserveText;
+    if (dirty.ammoLow) this.ammoBox.classList.toggle('low', state.ammoLow);
+    if (dirty.reloadText) this.reloadTag.textContent = state.reloadText;
+    if (dirty.aliveText) this.aliveText.textContent = state.aliveText;
+    if (dirty.killsText) this.killsText.textContent = state.killsText;
+    if (dirty.zoneText) this.zoneText.textContent = state.zoneText;
+    if (dirty.zoneBadgeMode) this.zoneBadge.dataset.mode = state.zoneBadgeMode;
+    if (dirty.zoneFillWidth) this.zoneFill.style.width = state.zoneFillWidth;
+    if (dirty.stateText) this.stateText.textContent = state.stateText;
+    if (dirty.vignetteDanger) this.vignette.classList.toggle('danger', state.vignetteDanger);
 
-    // 血量：宽度 + 档位色 + 低血量脉冲
-    const hpRatio = Math.max(0, Math.min(1, p.hp / p.maxHp));
-    this.hpBar.style.width = `${(hpRatio * 100).toFixed(1)}%`;
-    const hpTier = hpRatio > 0.55 ? 'ok' : hpRatio > 0.25 ? 'warn' : 'crit';
-    this.root.dataset.hp = hpTier;
-    this.set(this.hpText, `${Math.ceil(p.hp)}`);
-    const armor =
-      `${p.armorReduction > 0 ? '🛡' + Math.round(p.armorReduction * 100) + '%' : ''}` +
-      `${p.helmetReduction > 0 ? ' ⛑' + Math.round(p.helmetReduction * 100) + '%' : ''}`;
-    this.set(this.armorTag, armor);
-
-    // 武器与弹药（低弹药警示）
-    const weaponId = p.weapon;
-    if (weaponId) {
-      const def = WEAPONS[weaponId as keyof typeof WEAPONS];
-      this.set(this.weaponText, def ? def.name : weaponId);
-      this.set(this.ammoText, p.reloading ? '--' : `${p.magazine}`);
-      this.set(this.reserveText, p.reloading ? '' : `/ ${p.reserve ?? 0}`);
-      this.set(this.reloadTag, p.reloading ? '换弹中…' : '');
-      this.ammoBox.classList.toggle('low', !p.reloading && (p.magazine ?? 0) <= 5);
-    } else {
-      this.set(this.weaponText, '空手（E 拾取）');
-      this.set(this.ammoText, '-');
-      this.set(this.reloadTag, '');
-      this.ammoBox.classList.remove('low');
-    }
-
-    // 局势
-    this.set(this.aliveText, `${p.aliveCount}`);
-    this.set(this.killsText, `${p.kills}`);
-    const zone = snap.zone;
-    const zoneLabel =
-      zone.mode === 'wait'
-        ? `第 ${zone.phase + 1}/${zone.phaseCount} 阶段 ${Math.ceil(zone.timeLeftMs / 1000)}s`
-        : zone.mode === 'shrink'
-          ? `收缩中 ${Math.ceil(zone.timeLeftMs / 1000)}s`
-          : '终局圈';
-    this.set(this.zoneText, zoneLabel);
-    this.zoneBadge.dataset.mode = zone.mode;
-    // 阶段进度条：wait 递减警示 / shrink 全速
-    const pct = zone.mode === 'done' ? 0 : Math.max(0, Math.min(1, zone.timeLeftMs / 1000 / 30));
-    this.zoneFill.style.width = `${(pct * 100).toFixed(1)}%`;
-
-    // 状态横幅
-    this.set(this.stateText, STATE_LABEL[p.state] ?? '');
-    this.vignette.classList.toggle('danger', hpRatio < 0.35);
-
-    // 命中标记 / 开火准星扩散（计时自动消退）
-    this.hitmarker.classList.toggle('show', nowMs < this.hitmarkerUntil);
-    this.crosshair.classList.toggle('kick', nowMs < this.crosshairKickUntil);
-
-    // 医疗引导
-    if (p.medkitChannelMsLeft > 0) {
-      this.medkitBar.style.display = 'block';
-      const total = (ITEMS.medkit_large as MedkitItemDef).useMs;
+    if (dirty.medkitVisible) this.medkitBar.style.display = state.medkitVisible ? 'block' : 'none';
+    if (state.medkitVisible && dirty.medkitFillWidth) {
       const fill = this.medkitBar.firstElementChild as HTMLElement | null;
-      if (fill) fill.style.width = `${(100 - (p.medkitChannelMsLeft / total) * 100).toFixed(0)}%`;
-    } else {
-      this.medkitBar.style.display = 'none';
+      if (fill) fill.style.width = state.medkitFillWidth;
     }
+
+    // 命中标记 / 开火准星扩散（计时自动消退；仅状态翻转时写 class）
+    const nowMs = performance.now();
+    const hmShow = nowMs < this.hitmarkerUntil;
+    if (hmShow !== this.hitmarkerShown) {
+      this.hitmarkerShown = hmShow;
+      this.hitmarker.classList.toggle('show', hmShow);
+    }
+    const chKick = nowMs < this.crosshairKickUntil;
+    if (chKick !== this.crosshairKicked) {
+      this.crosshairKicked = chKick;
+      this.crosshair.classList.toggle('kick', chKick);
+    }
+
+    this.hudState.commit();
   }
 
   consumeEvents(events: GameEvent[], match: MatchHandle): void {
@@ -200,7 +165,10 @@ export class Hud {
   }
 
   setDebug(text: string): void {
-    this.set(this.debugText, text);
+    // 文案未变化不写 DOM（调用方按 DEBUG_TEXT_HZ 节流，这里兜底拦截相同字符串）
+    if (this.lastDebug === text) return;
+    this.lastDebug = text;
+    this.debugText.textContent = text;
   }
 
   dispose(): void {

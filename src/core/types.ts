@@ -126,6 +126,8 @@ export interface WorldSnapshot {
   loots: LootSnapshot[];
   zone: ZoneSnapshot;
   plane: PlaneSnapshot | null;
+  /** 玩家实体快照（entities 中 kind==='player' 的同一对象；渲染层免于逐帧 find 查找） */
+  playerEntity?: EntitySnapshot | null;
 }
 
 export interface ResultRow {
@@ -159,9 +161,18 @@ export interface AABB {
 export interface MatchHandle {
   /** 推进一个 20ms 逻辑 tick（intents 为玩家本 tick 意图） */
   tick(intents?: PlayerIntent[]): void;
-  /** 渲染层唯一只读数据源 */
+  /** 渲染层唯一只读数据源（分配版：需要跨帧保留时使用） */
   snapshot(): WorldSnapshot;
-  /** 取走本 tick 事件（UI/特效消费） */
+  /**
+   * 零分配快照通道：返回复用对象（对象恒定、仅覆写字段），仅在本帧内有效。
+   * 渲染/UI 每帧消费必须走此通道，避免每帧重建快照对象图造成 GC 抖动。
+   */
+  snapshotReusable?(): WorldSnapshot;
+  /**
+   * 取走本 tick 事件（UI/特效在**本帧内**消费）。
+   * 所有权契约：返回数组由 core 回收复用——下一帧 drainEvents() 会清空并覆写上一帧返回的数组，
+   * 调用方不得跨帧持有（需跨帧保留时自行拷贝）；与 snapshotReusable() 的帧内有效语义一致。
+   */
   drainEvents(): GameEvent[];
   status(): MatchStatus;
   /** ended 时非空：排名/淘汰数/用时 */

@@ -6,6 +6,13 @@
 
 import * as THREE from 'three';
 import type { GameEvent, Vec3 } from '../core/types';
+import {
+  FLASH_POOL_SIZE,
+  HIT_PARTICLE_COUNT,
+  PULSE_POOL_SIZE,
+  TRACER_POOL_SIZE,
+  ZONE_PARTICLE_COUNT,
+} from '../content/render';
 import { makeGlowTexture } from './textures';
 
 interface Tracer {
@@ -25,12 +32,13 @@ interface Pulse {
   life: number;
 }
 
-const TRACER_POOL = 24;
-const FLASH_POOL = 12;
-const PULSE_POOL = 4;
-const HIT_PARTICLES = 320;
-const ZONE_PARTICLES = 200;
-const PARTICLE_LIFE = 0.5;
+/** 池容量来自 content/render 配置表（数值与历史实现一致，仅收敛到配置） */
+const TRACER_POOL = TRACER_POOL_SIZE;
+const FLASH_POOL = FLASH_POOL_SIZE;
+const PULSE_POOL = PULSE_POOL_SIZE;
+const HIT_PARTICLES = HIT_PARTICLE_COUNT;
+const ZONE_PARTICLES = ZONE_PARTICLE_COUNT;
+const PARTICLE_LIFE = 0.45;
 const FLASH_LIFE = 0.09;
 const PULSE_LIFE = 1.1;
 

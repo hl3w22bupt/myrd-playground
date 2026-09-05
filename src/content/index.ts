@@ -9,6 +9,7 @@ import { LOOT_TABLE } from './lootTable';
 import { ZONE } from './zone';
 import { MAP } from './map';
 import { AI } from './ai';
+import * as RENDER from './render';
 import * as CONSTANTS from './constants';
 
 export interface ContentPack {
@@ -20,6 +21,8 @@ export interface ContentPack {
   zone: typeof ZONE;
   map: typeof MAP;
   ai: typeof AI;
+  /** 渲染性能配置（表现层专用，不影响仿真确定性） */
+  render: typeof RENDER;
   physics: { parachute: typeof PARACHUTE; movement: typeof MOVEMENT };
 }
 
@@ -32,6 +35,7 @@ export const DEFAULT_CONTENT_PACK: ContentPack = {
   zone: ZONE,
   map: MAP,
   ai: AI,
+  render: RENDER,
   physics: { parachute: PARACHUTE, movement: MOVEMENT },
 };
 
@@ -48,3 +52,4 @@ export * from './zone';
 export * from './map';
 export * from './physics';
 export * from './ai';
+export * from './render';
