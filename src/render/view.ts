@@ -4,17 +4,22 @@
  */
 
 import * as THREE from 'three';
-import type { GameEvent, MatchHandle, WorldSnapshot } from '../core/types';
+import type { GameEvent, MatchHandle, Vec3, WorldSnapshot } from '../core/types';
 import type { World } from '../core/world';
 import { terrainHeightAt } from '../core/mapgen';
 import { ENTITY_CAP, MAP_SIZE } from '../content/constants';
 import { MAX_VISIBLE_ENTITIES } from '../content/render';
 import type { ContentPack } from '../content';
 import { EffectLayer } from './effects';
+import { SkyDome } from './sky';
+import { PropsLayer } from './props';
 import type { EntityView } from './entityPool';
 import { EntityViewPool } from './entityPool';
 import { makeBuildingTexture, makeCanopyTexture, makeGroundTexture } from './textures';
 import { AutoQuality, QUALITY_PRESETS, type QualityLevel, type QualityPreset } from './quality';
+
+/** 雾/天空地平线色（与 makeSkyTexture 渐变底色一致，形成连贯远景层次） */
+const HORIZON_COLOR = 0xc3d6e6;
 
 type MatchLike = MatchHandle & { world: World };
 
@@ -37,6 +42,8 @@ export class GameView {
   private pack: ContentPack;
   private match: MatchHandle;
   private effects: EffectLayer;
+  private sky: SkyDome | null = null;
+  private props: PropsLayer | null = null;
   private autoQuality: AutoQuality;
   private preset: QualityPreset;
 
@@ -90,13 +97,16 @@ export class GameView {
     this.renderer.setSize(container.clientWidth, container.clientHeight);
     this.renderer.shadowMap.enabled = this.preset.shadows;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    // ACES 电影级色调映射 + 曝光补偿：纯 GPU 侧改动，不增加 draw call（AC2 画面质感）
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.18;
     container.appendChild(this.renderer.domElement);
     this.renderer.domElement.style.display = 'block';
     this.renderer.domElement.style.width = '100%';
     this.renderer.domElement.style.height = '100%';
 
     this.scene = new THREE.Scene();
-    const sky = new THREE.Color(0x9fb8cf);
+    const sky = new THREE.Color(HORIZON_COLOR);
     this.scene.background = sky;
 
     this.camera = new THREE.PerspectiveCamera(
@@ -106,10 +116,10 @@ export class GameView {
       3000,
     );
 
-    // —— 光照（AC2②：方向光 + 雾效明暗层次）——
-    const hemi = new THREE.HemisphereLight(0xcfe5ff, 0x54503c, 0.85);
+    // —— 光照（AC2②：方向光 + 雾效明暗层次；强度按 ACES 曝光补偿调校）——
+    const hemi = new THREE.HemisphereLight(0xcfe5ff, 0x54503c, 1.05);
     this.scene.add(hemi);
-    this.dirLight = new THREE.DirectionalLight(0xfff2d8, 1.35);
+    this.dirLight = new THREE.DirectionalLight(0xfff2d8, 1.6);
     this.dirLight.position.set(160, 260, 110);
     this.dirLight.castShadow = this.preset.shadows;
     this.dirLight.shadow.mapSize.set(this.preset.shadowMapSize, this.preset.shadowMapSize);
@@ -192,6 +202,10 @@ export class GameView {
     this.entityPool = new EntityViewPool(this.scene);
 
     this.effects = new EffectLayer(this.scene);
+
+    // —— 天空穹顶 + 植被点缀（AC2①②：远景层次与场景细节）——
+    this.sky = new SkyDome(this.scene);
+    this.props = new PropsLayer(this.scene, pack, match.world.buildings, this.autoQuality.current);
   }
 
   get qualityLevel(): QualityLevel {
@@ -213,8 +227,10 @@ export class GameView {
     return null;
   }
 
+  /** 分层雾：近景全清晰 → 中景渐雾 → 远景完全融入地平线色（AC2②距离层次） */
   private applyFog(): void {
-    this.scene.fog = new THREE.Fog(0x9fb8cf, this.preset.viewDistance * 0.45, this.preset.viewDistance);
+    const d = this.preset.viewDistance;
+    this.scene.fog = new THREE.Fog(HORIZON_COLOR, d * 0.28, d * 0.96);
   }
 
   // ———————————————————— 场景构建 ————————————————————
@@ -302,16 +318,30 @@ export class GameView {
   /** 渲染一帧：snapshot 只读 + 事件消费 */
   render(snap: WorldSnapshot, events: GameEvent[], alpha: number, dtSec: number): void {
     if (this.disposed) return;
-    this.effects.consumeEvents(events);
+    this.effects.consumeEvents(events, (id) => this.entityWorldPos(snap, id));
     this.syncEntities(snap, alpha);
     this.syncLoot(snap);
     this.syncZone(snap);
     this.syncPlane(snap);
+    this.effects.updateZoneDrift(snap.zone.center, snap.zone.radius, dtSec);
     this.effects.update(dtSec);
     this.updateCamera(snap, alpha);
     this.updateSun(snap);
+    if (this.sky) this.sky.update(this.camera.position, dtSec);
 
     this.renderer.render(this.scene, this.camera);
+  }
+
+  /** 实体当前渲染位置（特效事件定位用；按 id 查快照下标 → 对象池视图，只读不回写仿真） */
+  private entityWorldPos(snap: WorldSnapshot, id: string): Vec3 | null {
+    const ents = snap.entities;
+    for (let i = 0; i < ents.length; i++) {
+      if (ents[i].id !== id) continue;
+      const view = this.entityViews[i];
+      if (!view || !view.group.visible) return null;
+      return { x: view.group.position.x, y: view.group.position.y + 1, z: view.group.position.z };
+    }
+    return null;
   }
 
   private syncEntities(snap: WorldSnapshot, alpha: number): void {
@@ -516,6 +546,8 @@ export class GameView {
   dispose(): void {
     this.disposed = true;
     this.effects.dispose();
+    this.sky?.dispose();
+    this.props?.dispose();
     // 实体视图统一交还对象池销毁（共享几何只释放一次）
     this.entityViews.length = 0;
     this.entityPool.dispose();

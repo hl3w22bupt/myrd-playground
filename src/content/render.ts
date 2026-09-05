@@ -37,3 +37,9 @@ export const FLASH_POOL_SIZE = 8;
 
 /** 命中粒子固定缓冲容量（Float32Array 预分配，循环覆写） */
 export const HIT_PARTICLE_COUNT = 240;
+
+/** 缩圈脉冲冲击波对象池容量 */
+export const PULSE_POOL_SIZE = 4;
+
+/** 毒圈边缘粒子带固定缓冲容量（Float32Array 预分配，循环覆写） */
+export const ZONE_PARTICLE_COUNT = 200;

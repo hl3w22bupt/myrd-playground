@@ -21,15 +21,19 @@ const STATE_LABEL: Record<string, string> = {
 /** HUD 各字段的一次快照值（脏检查的比对单元） */
 export interface HudFrameState {
   hpWidth: string;
-  hpColor: string;
+  hpTier: string;
   hpText: string;
   armorText: string;
   weaponText: string;
   ammoText: string;
+  reserveText: string;
+  ammoLow: boolean;
   reloadText: string;
   aliveText: string;
   killsText: string;
   zoneText: string;
+  zoneBadgeMode: string;
+  zoneFillWidth: string;
   stateText: string;
   vignetteDanger: boolean;
   medkitVisible: boolean;
@@ -39,15 +43,19 @@ export interface HudFrameState {
 export function createEmptyHudState(): HudFrameState {
   return {
     hpWidth: '',
-    hpColor: '',
+    hpTier: '',
     hpText: '',
     armorText: '',
     weaponText: '',
     ammoText: '',
+    reserveText: '',
+    ammoLow: false,
     reloadText: '',
     aliveText: '',
     killsText: '',
     zoneText: '',
+    zoneBadgeMode: '',
+    zoneFillWidth: '',
     stateText: '',
     vignetteDanger: false,
     medkitVisible: false,
@@ -58,15 +66,19 @@ export function createEmptyHudState(): HudFrameState {
 /** 字段级脏标记：true = 该字段需要写 DOM */
 export interface HudDirtyFlags {
   hpWidth: boolean;
-  hpColor: boolean;
+  hpTier: boolean;
   hpText: boolean;
   armorText: boolean;
   weaponText: boolean;
   ammoText: boolean;
+  reserveText: boolean;
+  ammoLow: boolean;
   reloadText: boolean;
   aliveText: boolean;
   killsText: boolean;
   zoneText: boolean;
+  zoneBadgeMode: boolean;
+  zoneFillWidth: boolean;
   stateText: boolean;
   vignetteDanger: boolean;
   medkitVisible: boolean;
@@ -76,15 +88,19 @@ export interface HudDirtyFlags {
 function createFalseFlags(): HudDirtyFlags {
   return {
     hpWidth: false,
-    hpColor: false,
+    hpTier: false,
     hpText: false,
     armorText: false,
     weaponText: false,
     ammoText: false,
+    reserveText: false,
+    ammoLow: false,
     reloadText: false,
     aliveText: false,
     killsText: false,
     zoneText: false,
+    zoneBadgeMode: false,
+    zoneFillWidth: false,
     stateText: false,
     vignetteDanger: false,
     medkitVisible: false,
@@ -117,7 +133,7 @@ export class HudState {
 
     const hpRatio = Math.max(0, Math.min(1, p.hp / p.maxHp));
     c.hpWidth = `${(hpRatio * 100).toFixed(1)}%`;
-    c.hpColor = hpRatio > 0.55 ? '#59c159' : hpRatio > 0.25 ? '#e0b23a' : '#d8564a';
+    c.hpTier = hpRatio > 0.55 ? 'ok' : hpRatio > 0.25 ? 'warn' : 'crit';
     c.hpText = `${Math.ceil(p.hp)}`;
     c.armorText =
       `${p.armorReduction > 0 ? '🛡' + Math.round(p.armorReduction * 100) + '%' : ''}` +
@@ -127,11 +143,15 @@ export class HudState {
     if (weaponId) {
       const def = WEAPONS[weaponId as keyof typeof WEAPONS];
       c.weaponText = def ? def.name : weaponId;
-      c.ammoText = p.reloading ? '--' : `${p.magazine} / ${p.reserve ?? 0}`;
+      c.ammoText = p.reloading ? '--' : `${p.magazine}`;
+      c.reserveText = p.reloading ? '' : `/ ${p.reserve ?? 0}`;
+      c.ammoLow = !p.reloading && (p.magazine ?? 0) <= 5;
       c.reloadText = p.reloading ? '换弹中…' : '';
     } else {
       c.weaponText = '空手（E 拾取）';
       c.ammoText = '-';
+      c.reserveText = '';
+      c.ammoLow = false;
       c.reloadText = '';
     }
 
@@ -144,6 +164,10 @@ export class HudState {
         : zone.mode === 'shrink'
           ? `${zone.phase + 1}/${zone.phaseCount} 收缩中 ${Math.ceil(zone.timeLeftMs / 1000)}s`
           : '终局';
+    c.zoneBadgeMode = zone.mode;
+    // 阶段进度条：wait 递减警示 / shrink 全速 / done 归零
+    const zonePct = zone.mode === 'done' ? 0 : Math.max(0, Math.min(1, zone.timeLeftMs / 1000 / 30));
+    c.zoneFillWidth = `${(zonePct * 100).toFixed(1)}%`;
     c.stateText = STATE_LABEL[p.state] ?? '';
     c.vignetteDanger = hpRatio < 0.35;
 
@@ -159,15 +183,19 @@ export class HudState {
     // 差集：只标记真正变化的字段
     let changed = this.firstRun;
     f.hpWidth = this.firstRun || c.hpWidth !== this.written.hpWidth;
-    f.hpColor = this.firstRun || c.hpColor !== this.written.hpColor;
+    f.hpTier = this.firstRun || c.hpTier !== this.written.hpTier;
     f.hpText = this.firstRun || c.hpText !== this.written.hpText;
     f.armorText = this.firstRun || c.armorText !== this.written.armorText;
     f.weaponText = this.firstRun || c.weaponText !== this.written.weaponText;
     f.ammoText = this.firstRun || c.ammoText !== this.written.ammoText;
+    f.reserveText = this.firstRun || c.reserveText !== this.written.reserveText;
+    f.ammoLow = this.firstRun || c.ammoLow !== this.written.ammoLow;
     f.reloadText = this.firstRun || c.reloadText !== this.written.reloadText;
     f.aliveText = this.firstRun || c.aliveText !== this.written.aliveText;
     f.killsText = this.firstRun || c.killsText !== this.written.killsText;
     f.zoneText = this.firstRun || c.zoneText !== this.written.zoneText;
+    f.zoneBadgeMode = this.firstRun || c.zoneBadgeMode !== this.written.zoneBadgeMode;
+    f.zoneFillWidth = this.firstRun || c.zoneFillWidth !== this.written.zoneFillWidth;
     f.stateText = this.firstRun || c.stateText !== this.written.stateText;
     f.vignetteDanger = this.firstRun || c.vignetteDanger !== this.written.vignetteDanger;
     f.medkitVisible = this.firstRun || c.medkitVisible !== this.written.medkitVisible;
@@ -175,8 +203,9 @@ export class HudState {
 
     if (!changed) {
       changed =
-        f.hpWidth || f.hpColor || f.hpText || f.armorText || f.weaponText || f.ammoText ||
-        f.reloadText || f.aliveText || f.killsText || f.zoneText || f.stateText ||
+        f.hpWidth || f.hpTier || f.hpText || f.armorText || f.weaponText || f.ammoText ||
+        f.reserveText || f.ammoLow || f.reloadText || f.aliveText || f.killsText ||
+        f.zoneText || f.zoneBadgeMode || f.zoneFillWidth || f.stateText ||
         f.vignetteDanger || f.medkitVisible || f.medkitFillWidth;
     }
     this.firstRun = false;
@@ -188,15 +217,19 @@ export class HudState {
     const c = this.computed;
     const w = this.written;
     w.hpWidth = c.hpWidth;
-    w.hpColor = c.hpColor;
+    w.hpTier = c.hpTier;
     w.hpText = c.hpText;
     w.armorText = c.armorText;
     w.weaponText = c.weaponText;
     w.ammoText = c.ammoText;
+    w.reserveText = c.reserveText;
+    w.ammoLow = c.ammoLow;
     w.reloadText = c.reloadText;
     w.aliveText = c.aliveText;
     w.killsText = c.killsText;
     w.zoneText = c.zoneText;
+    w.zoneBadgeMode = c.zoneBadgeMode;
+    w.zoneFillWidth = c.zoneFillWidth;
     w.stateText = c.stateText;
     w.vignetteDanger = c.vignetteDanger;
     w.medkitVisible = c.medkitVisible;
