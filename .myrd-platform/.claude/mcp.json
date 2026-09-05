@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "myrd-knowledge": {
+      "command": "npx",
+      "args": [
+        "tsx",
+        "/Users/leo/workspace/myrd/src/mcp-knowledge/server.ts"
+      ],
+      "env": {
+        "DATABASE_URL": "postgresql://leo:password@localhost:5432/myrd?schema=public",
+        "PROJECT_ID": "proj-playground"
+      }
+    }
+  }
+}
