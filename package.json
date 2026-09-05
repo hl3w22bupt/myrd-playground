@@ -9,6 +9,7 @@
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "bench": "node --expose-gc ./node_modules/vitest/vitest.mjs run --config vitest.bench.config.ts",
     "test:watch": "vitest",
     "lint": "eslint .",
     "preview": "vite preview"
