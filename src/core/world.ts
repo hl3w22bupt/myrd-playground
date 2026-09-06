@@ -3,7 +3,7 @@
  */
 
 import type { ContentPack } from '../content';
-import { INVENTORY_GRIDS, MAX_HP } from '../content/constants';
+import { ENTITY_CAP, INVENTORY_GRIDS, MAX_HP } from '../content/constants';
 import type {
   EntityKind,
   GameEvent,
@@ -228,8 +228,11 @@ function createIntentSlot(): IntentSlot {
   return { kind: 'move', dirX: 0, dirZ: 0, sprint: false, yaw: 0, pitch: 0, slot: 0, dive: 0 };
 }
 
-/** 意图槽自由列表上限：覆盖稳态单 tick 全部 AI 意图（≤ ENTITY_CAP × 3），超出部分交还 GC */
-const INTENT_FREE_LIST_MAX = 64;
+/**
+ * 意图槽自由列表上限：按实体上限派生（每实体单次决策最多 3 条意图，
+ * 稳态在线槽位 ≤ (ENTITY_CAP-1) × 3），超出上限的槽位交还 GC，不参与复用。
+ */
+const INTENT_FREE_LIST_MAX = ENTITY_CAP * 3;
 const intentFreeList: IntentSlot[] = [];
 
 /** 取一个可复用意图槽（自由列表为空时新建） */

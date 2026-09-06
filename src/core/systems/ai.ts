@@ -290,7 +290,7 @@ function criticalLoot(e: Entity): boolean {
   return false;
 }
 
-/** 次级拾取：缺弹药储备或缺医疗 */
+/** 次级拾取：缺弹药储备或缺医疗（索引循环去 some 闭包分配；决策帧热路径） */
 function needsLoot(e: Entity): boolean {
   const slot = e.weapons[e.activeWeapon];
   if (slot) {
@@ -299,12 +299,25 @@ function needsLoot(e: Entity): boolean {
   } else {
     return true;
   }
-  if (e.hp < 55 && !e.inventory.some((s) => s !== null && s.item === 'medkit_large')) return true;
+  if (e.hp < 55) {
+    const inv = e.inventory;
+    for (let i = 0; i < inv.length; i++) {
+      const s = inv[i];
+      if (s !== null && s.item === 'medkit_large') return false;
+    }
+    return true;
+  }
   return false;
 }
 
+/** 武器 → 弹药类型常量表（模块级只读：决策热路径每次调用不再新建对象） */
+const AMMO_OF = {
+  ar_m4: { ammoType: 'ammo_556' },
+  smg_ump: { ammoType: 'ammo_45' },
+} as const;
+
 function weaponDefOf(id: string): { ammoType: string } {
-  return id === 'ar_m4' ? { ammoType: 'ammo_556' } : { ammoType: 'ammo_45' };
+  return id === 'ar_m4' ? AMMO_OF.ar_m4 : AMMO_OF.smg_ump;
 }
 
 /** 最近可拾取物资（直引 LootItem，避免每决策分配结果包装对象） */

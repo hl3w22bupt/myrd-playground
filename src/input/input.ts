@@ -20,7 +20,11 @@ export class InputManager {
   private yaw = 0;
   private pitch = 0;
   private fireHeld = false;
-  /** 意图收集双缓冲（轮换复用，免每帧新建数组；元素由消费方在当帧内拷走） */
+  /**
+   * 意图收集双缓冲（轮换复用，免每帧新建数组）。
+   * 所有权契约：返回数组归 InputManager 所有，仅当帧有效；调用方必须当帧取出元素，
+   * 不得持有数组本身（下一帧该缓冲会换入服务并被清空重写）。
+   */
   private queued: PlayerIntent[] = [];
   private queuedSpare: PlayerIntent[] = [];
   private onceActions = new Set<string>();
