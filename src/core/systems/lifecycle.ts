@@ -19,9 +19,19 @@ export function updateLifecycle(w: World): void {
 
 export function checkMatchEnd(w: World): void {
   if (w.status === 'ended') return;
-  const alive = w.entities.filter((e) => e.alive);
+  // 性能：本函数每 tick（50Hz）调用一次，先标量计数，仅在终局时才物化存活数组
+  //（此前 filter 每 tick 分配 1 数组 + 1 闭包，与 eliminate/zoneDamage 的同类写法不一致）
+  const ents = w.entities;
+  let aliveCount = 0;
+  for (let i = 0; i < ents.length; i++) {
+    if (ents[i].alive) aliveCount += 1;
+  }
   const timeout = w.elapsedMs >= MAX_MATCH_MS;
-  if (alive.length <= 1 || timeout) {
+  if (aliveCount <= 1 || timeout) {
+    const alive: World['entities'] = [];
+    for (let i = 0; i < ents.length; i++) {
+      if (ents[i].alive) alive.push(ents[i]);
+    }
     endMatch(w, alive, timeout);
   }
 }
