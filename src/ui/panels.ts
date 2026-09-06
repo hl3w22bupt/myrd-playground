@@ -138,38 +138,49 @@ export class InventoryPanel {
   }
 }
 
+/** FNV-1a 常量（背包内容签名用） */
+const FNV_OFFSET_BASIS = 0x811c9dc5;
+const FNV_PRIME = 0x01000193;
+
+/** 单字节混入（纯函数：传入当前哈希，返回混入后的哈希） */
+function fnvMixByte(hash: number, v: number): number {
+  return Math.imul(hash ^ (v & 0xff), FNV_PRIME);
+}
+
+/** 32 位整数按小端逐字节混入 */
+function fnvMixInt(hash: number, v: number): number {
+  let h = fnvMixByte(hash, v);
+  h = fnvMixByte(h, v >> 8);
+  h = fnvMixByte(h, v >> 16);
+  return fnvMixByte(h, v >> 24);
+}
+
+/** 字符串逐字符混入，以 0 结尾作分隔（避免 "ab"+"c" 与 "a"+"bc" 同哈希） */
+function fnvMixString(hash: number, s: string): number {
+  let h = hash;
+  for (let i = 0; i < s.length; i++) h = fnvMixByte(h, s.charCodeAt(i));
+  return fnvMixByte(h, 0);
+}
+
 /**
  * 背包内容签名（格子占用 + 物品与数量的 FNV-1a 数值哈希）：纯函数零分配，供脏检查。
- * 性能：背包面板打开期间 render() 每帧调用一次，此前每次拼接 ~20 段字符串产生垃圾。
+ * 性能：背包面板打开期间 render() 每帧调用一次，此前每次拼接 ~20 段字符串产生垃圾；
+ * 混入逻辑全部为模块级纯函数，不在调用路径上新建闭包。
  */
 export function inventorySignature(
   usedGrids: number,
   inventory: Array<{ item: string; count: number } | null>,
 ): number {
-  let hash = 0x811c9dc5;
-  const mixByte = (v: number): void => {
-    hash ^= v & 0xff;
-    hash = Math.imul(hash, 0x01000193);
-  };
-  const mixInt = (v: number): void => {
-    mixByte(v);
-    mixByte(v >> 8);
-    mixByte(v >> 16);
-    mixByte(v >> 24);
-  };
-  const mixStr = (s: string): void => {
-    for (let i = 0; i < s.length; i++) mixByte(s.charCodeAt(i));
-    mixByte(0);
-  };
-  mixInt(usedGrids);
+  let hash = FNV_OFFSET_BASIS;
+  hash = fnvMixInt(hash, usedGrids);
   for (let i = 0; i < inventory.length; i++) {
     const s = inventory[i];
     if (s) {
-      mixByte(1);
-      mixStr(s.item);
-      mixInt(s.count);
+      hash = fnvMixByte(hash, 1);
+      hash = fnvMixString(hash, s.item);
+      hash = fnvMixInt(hash, s.count);
     } else {
-      mixByte(0);
+      hash = fnvMixByte(hash, 0);
     }
   }
   return hash >>> 0;
