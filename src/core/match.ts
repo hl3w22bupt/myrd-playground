@@ -9,7 +9,6 @@ import { Rng } from './rng';
 import {
   createEntity,
   pushEvent,
-  recycleIntentSlots,
   type Entity,
   type LootItem,
   type PlaneState,
@@ -138,13 +137,10 @@ export function tickWorld(w: World, intents: PlayerIntent[]): void {
   for (const intent of intents) applyIntent(w.player, intent);
   for (const e of w.entities) {
     if (e.kind !== 'ai') continue;
-    const pending = e.pendingIntents;
-    for (const intent of pending) applyIntent(e, intent);
-    // AI 意图槽应用即回收（写入一次 → 应用一次；玩家意图归输入层所有，不在此回收）
-    if (pending.length > 0) {
-      recycleIntentSlots(pending);
-      pending.length = 0;
-    }
+    // 粘性语义（与字段契约一致）：意图缓冲每 tick 全量应用、应用后保留，
+    // 直到该 AI 下一次决策整体重写时才回收复用槽位（见 ai.ts beginIntents）。
+    // 玩家意图归输入层所有，不在此回收。
+    for (const intent of e.pendingIntents) applyIntent(e, intent);
   }
 
   // 2) lifecycle（状态机推进）

@@ -245,7 +245,7 @@ export function slotAsIntent(s: IntentSlot): PlayerIntent {
   return s as unknown as PlayerIntent;
 }
 
-/** AI 意图应用完成后回收槽位（上限内复用；意图生命周期 = 写入一次 → 应用一次） */
+/** 回收意图槽（上限内复用）。回收时机 = AI 下一次决策整体重写缓冲前（见 ai.ts beginIntents） */
 export function recycleIntentSlots(list: PlayerIntent[]): void {
   for (let i = 0; i < list.length; i++) {
     if (intentFreeList.length >= INTENT_FREE_LIST_MAX) return;

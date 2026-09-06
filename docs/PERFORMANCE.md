@@ -16,15 +16,16 @@
 | `perf(movement)` | `core/mapgen.ts`、`systems/movement.ts` | `resolveBuildingCollision` 每次返回新 `{x,z}`（每实体每 tick 2 次），改 out 复用缓冲 |
 | `perf(combat)` | `systems/combat.ts` | `castShot` 中间命中逐次分配 HitResult+命中点（每发最多 ~10 对 → 恒定 2 对）；`eliminate` 的 reduce/find 闭包 |
 | `perf(ai)` | `systems/ai.ts`、`combat.ts` | `hasLineOfSight` 每候选 eye/tgt+方向向量（改标量入参+scratch）；`findNearbyLoot` 结果包装对象（改直引 LootItem）；`decide` 每决策新建意图数组（改原地复用 `pendingIntents`） |
-| `perf(ai)` | `core/world.ts`、`match.ts`、`ai.ts` | AI 意图对象池：`IntentSlot` 自由列表（上限 64），tickWorld「应用即回收」，决策热路径意图对象零分配 |
+| `perf(ai)` | `core/world.ts`、`match.ts`、`ai.ts` | AI 意图对象池：`IntentSlot` 自由列表（上限派生自 `ENTITY_CAP × 3`），决策重写时回收（`beginIntents`），决策热路径意图对象零分配 |
 | `perf(zone)` | `systems/zone.ts` | 毒圈伤害对已持有引用实体再 `find` 的闭包查找 + reduce 计数 |
 | `perf(ui/render/input)` | `minimap.ts`、`view.ts`、`input.ts`、`panels.ts` | 小地图 `find` 闭包（改 `playerEntity` 直引）；淘汰事件定位新对象（改复用缓冲）；输入意图每帧新数组（改双缓冲轮换）；背包打开期间每帧签名字符串（改 FNV-1a 数值哈希）——此项即第一轮审查记录在案的「本步不修」余项 |
 
 ### 确定性与行为守恒
 
 - 所有数值公式与 RNG 消费次序逐一保持（`putAimIntent` 与旧 `aimIntent` 完全一致）；
-- 意图缓冲复用的时序安全性：意图在 tick 末写入、下一 tick 开头应用后才可能被清空重写，`applyIntent` 为纯字段赋值（幂等），「stale 意图重复应用」与「应用一次」不可区分；
-- 新增 3 项回归断言（`tests/perf.spec.ts` 14 → 17）：槽位复用恒等、应用即回收、长跑后意图缓冲合法状态。
+- **AI 意图通道语义保持「粘性」**：意图缓冲每 tick 全量应用、应用后保留，直至该 AI 下一次决策整体重写时才回收复用槽位（`pendingIntents` 字段契约即如此约定）。⚠️ 本轮中途曾误改为「应用一次即清空」——审查以 main/HEAD 双包对局比对证伪了当时的等价性声明（9/9 对局分歧，首分歧点 seed=991 tick 5872，pitch 差恰为 `recoil×0.006`；`interact`/`reload` 应用次数降为 1/4），已恢复粘性语义。恢复后与 main **逐 tick 逐位一致**（seed 991/20260831/7 × 6000 tick 实测）；
+- 对象池回收时机因此从「应用后」改为「决策重写前」（`ai.ts beginIntents`），零分配收益不变；
+- 新增回归断言：`tests/perf.spec.ts` 槽位复用恒等、粘性应用语义、长跑后意图缓冲合法状态与无跨实体槽位别名；`tests/determinism.spec.ts` 同 seed 同意图序列逐 200 tick 状态完全一致（此前仅跳伞段有逐 tick 复现断言）。
 
 ### 本轮实测（Node v26 / 2026-09-06，`npm run bench`）
 

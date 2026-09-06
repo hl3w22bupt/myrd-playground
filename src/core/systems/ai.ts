@@ -6,7 +6,7 @@
 
 import { EYE_HEIGHT, PICKUP_RADIUS_M } from '../../content/constants';
 import { MAP_HALF } from '../../content/constants';
-import { acquireIntentSlot, slotAsIntent, type World, type Entity, type LootItem } from '../world';
+import { acquireIntentSlot, recycleIntentSlots, slotAsIntent, type World, type Entity, type LootItem } from '../world';
 import type { PlayerIntent } from '../types';
 import { dist2D } from '../geom';
 import { hasLineOfSight, activeWeapon, weaponDef } from './combat';
@@ -37,11 +37,14 @@ export function updateAi(w: World): void {
 }
 
 /**
- * 复用实体意图缓冲：原地清空并返回同一数组（避免每次决策分配新数组）。
- * 写入时序安全：意图在本 tick 末写入、下一 tick 开头由 tickWorld 应用后才可能被再次清空重写。
+ * 复用实体意图缓冲：整体重写前回收上一拍意图槽并原地清空（避免每次决策分配新数组）。
+ * 语义守恒：意图缓冲为「粘性」——每 tick 全量应用、应用后保留，直至下次决策重写
+ * （与 pendingIntents 字段契约及 main 行为一致）；本函数是槽位回收的唯一时机。
+ * 写入时序安全：意图在本 tick 末写入，下一 tick 开头由 tickWorld 应用后才可能被再次重写。
  */
 function beginIntents(e: Entity): PlayerIntent[] {
   const intents = e.pendingIntents;
+  recycleIntentSlots(intents);
   intents.length = 0;
   return intents;
 }

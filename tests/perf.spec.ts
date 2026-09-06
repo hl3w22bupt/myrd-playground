@@ -368,7 +368,7 @@ describe('AI 意图对象池（core/world 槽位回收）', () => {
     expect(b).toBe(a);
   });
 
-  it('AI 意图应用一次即回收清空（tickWorld 契约）', () => {
+  it('AI 意图粘性语义：应用后保留至下次决策重写；重写不产生跨实体槽位别名', () => {
     const w = createWorldForTest({ seed: 7, playerCount: 1, aiCount: 3 });
     const ai = w.entities[1]!;
     const s = acquireIntentSlot();
@@ -378,12 +378,26 @@ describe('AI 意图对象池（core/world 槽位回收）', () => {
     s.sprint = true;
     ai.pendingIntents.push(slotAsIntent(s));
     tickWorld(w, []);
-    // 意图字段已生效，且缓冲在应用后被清空（槽位回收）
+    // 粘性契约：意图字段已生效，且缓冲保留（每 tick 全量应用直至该 AI 下次决策整体重写）
     expect(ai.moveDirX).toBe(1);
-    expect(ai.pendingIntents.length).toBe(0);
+    expect(ai.pendingIntents.length).toBe(1);
+    // 跑过跳伞窗口后 AI 进入地面决策，缓冲被整体重写且条数受决策产物约束
+    for (let i = 0; i < 400 && w.status !== 'ended'; i++) tickWorld(w, []);
+    expect(ai.pendingIntents.length).toBeLessThanOrEqual(3);
+    // 无别名：所有实体缓冲中的槽位对象互不相同（无同一槽位被两个缓冲同时持有）
+    const seen = new Set<PlayerIntent>();
+    let total = 0;
+    for (const e of w.entities) {
+      if (e.kind !== 'ai') continue;
+      for (const it of e.pendingIntents) {
+        seen.add(it);
+        total += 1;
+      }
+    }
+    expect(seen.size).toBe(total);
   });
 
-  it('连跑对局：意图缓冲处于「已应用清空或本 tick 新写」的合法状态（≤3 条/实体）', () => {
+  it('连跑对局：意图缓冲处于「上次决策写入」的合法状态（≤3 条/实体）', () => {
     const match = createMatch({ seed: 20260831, playerCount: 1, aiCount: 10 });
     const w = match.world;
     for (let i = 0; i < 1200 && w.status !== 'ended'; i++) tickWorld(w, []);
