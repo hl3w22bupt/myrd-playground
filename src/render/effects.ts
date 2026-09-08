@@ -69,7 +69,11 @@ export class EffectLayer {
   private zoneCx = 0;
   private zoneCz = 0;
 
-  constructor(scene: THREE.Scene) {
+  /** 毒圈粒子带预算（低档 0 = 关闭，省 draw call）；上限 = 配置表固定缓冲容量 */
+  private zoneBudget: number = ZONE_PARTICLE_COUNT;
+
+  constructor(scene: THREE.Scene, zoneParticleBudget: number = ZONE_PARTICLE_COUNT) {
+    this.zoneBudget = Math.max(0, Math.min(ZONE_PARTICLE_COUNT, zoneParticleBudget));
     const glow = makeGlowTexture();
 
     // —— 弹道拖尾池 ——
@@ -245,8 +249,13 @@ export class EffectLayer {
   }
 
   /** 毒圈粒子带：随当前圈参数收拢/上升（每帧由 view 喂入圈状态） */
+  /** 档位联动开关：降档时隐藏毒圈粒子带（缩圈脉冲/命中粒子保留，AC2③ 不受影响） */
+  setZoneBandVisible(on: boolean): void {
+    this.zoneBudget = on ? ZONE_PARTICLE_COUNT : 0;
+  }
+
   updateZoneDrift(center: Vec3, radius: number, dtSec: number): void {
-    if (radius <= 0) {
+    if (radius <= 0 || this.zoneBudget === 0) {
       this.zonePoints.visible = false;
       return;
     }
@@ -254,7 +263,7 @@ export class EffectLayer {
     this.zoneCz = center.z;
     this.zoneRadius = radius;
     const rise = 3.2 * dtSec;
-    for (let i = 0; i < ZONE_PARTICLES; i++) {
+    for (let i = 0; i < this.zoneBudget; i++) {
       const seed = this.zoneSeed[i];
       const angle = seed * Math.PI * 2 + this.zoneRadius * 0.02;
       const jitter = (hashF(seed * 91.7) - 0.5) * radius * 0.04;

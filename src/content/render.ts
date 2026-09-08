@@ -43,3 +43,34 @@ export const PULSE_POOL_SIZE = 4;
 
 /** 毒圈边缘粒子带固定缓冲容量（Float32Array 预分配，循环覆写） */
 export const ZONE_PARTICLE_COUNT = 200;
+
+/**
+ * 画质档 → 画面细节档位（AC2 观感与 60FPS 红线的平衡点，数值唯一来源）。
+ * 背景：本地帧率基准复测发现，天空穹顶/云层/太阳光晕/植被/毒圈粒子带是
+ * 「按档位无关」的固定 draw call，在低档（软光栅/低端集显）上每 draw 开销被放大，
+ * 且与已有场景叠加后超出 60FPS 预算 → 必须按档位门控：
+ * - low：只保留 AC2 必需项（地形/建筑纹理、方向光+雾、战斗/缩圈粒子、HUD），
+ *   天空用地平线纯色背景 + 雾过渡（不损失 AC2②距离层次）。
+ * - medium/high：完整天空穹顶 + 云层 + 太阳光晕 + 植被点缀。
+ * 本表只影响表现层，不触碰仿真核心（确定性不受影响）。
+ */
+export interface VisualDetailPreset {
+  /** 天空穹顶（渐变 + 太阳方位层次） */
+  skyDome: boolean;
+  /** 云层 sprite */
+  clouds: boolean;
+  /** 太阳光晕 sprite */
+  sunGlow: boolean;
+  /** 树木实例数 */
+  trees: number;
+  /** 草丛实例数 */
+  grass: number;
+  /** 毒圈边缘粒子带预算（0 = 关闭；上限 ZONE_PARTICLE_COUNT） */
+  zoneParticles: number;
+}
+
+export const VISUAL_DETAIL: Record<'low' | 'medium' | 'high', VisualDetailPreset> = {
+  low: { skyDome: false, clouds: false, sunGlow: false, trees: 80, grass: 140, zoneParticles: 0 },
+  medium: { skyDome: true, clouds: true, sunGlow: true, trees: 220, grass: 620, zoneParticles: ZONE_PARTICLE_COUNT },
+  high: { skyDome: true, clouds: true, sunGlow: true, trees: 300, grass: 900, zoneParticles: ZONE_PARTICLE_COUNT },
+};

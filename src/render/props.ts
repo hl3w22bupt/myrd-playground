@@ -6,10 +6,10 @@
 
 import * as THREE from 'three';
 import type { ContentPack } from '../content';
+import type { VisualDetailPreset } from '../content/render';
 import { MAP_SIZE } from '../content/constants';
 import { terrainHeightAt } from '../core/mapgen';
 import { makeFoliageTexture } from './textures';
-import type { QualityLevel } from './quality';
 
 /** 确定性 0..1 hash（视觉分布专用，与玩法 RNG 无关） */
 function hash01(n: number): number {
@@ -26,9 +26,6 @@ interface BuildingBox {
   maxZ: number;
 }
 
-const TREE_COUNT_BY_QUALITY: Record<QualityLevel, number> = { low: 90, medium: 220, high: 300 };
-const GRASS_COUNT_BY_QUALITY: Record<QualityLevel, number> = { low: 220, medium: 620, high: 900 };
-
 export class PropsLayer {
   private trunkInst: THREE.InstancedMesh;
   private canopyInst: THREE.InstancedMesh;
@@ -40,10 +37,10 @@ export class PropsLayer {
     scene: THREE.Scene,
     pack: ContentPack,
     buildings: BuildingBox[],
-    quality: QualityLevel,
+    detail: VisualDetailPreset,
   ) {
-    this.treeCount = TREE_COUNT_BY_QUALITY[quality];
-    this.grassCount = GRASS_COUNT_BY_QUALITY[quality];
+    this.treeCount = detail.trees;
+    this.grassCount = detail.grass;
 
     // —— 树干 + 树冠（共享分布矩阵）——
     const trunkMat = new THREE.MeshLambertMaterial({ color: 0x6b4f34 });
@@ -117,6 +114,13 @@ export class PropsLayer {
     this.grassInst.receiveShadow = true;
 
     scene.add(this.trunkInst, this.canopyInst, this.grassInst);
+  }
+
+  /** 档位联动开关：降档时隐藏植被（3 个 instanced draw call → 0） */
+  setDetailVisible(on: boolean): void {
+    this.trunkInst.visible = on;
+    this.canopyInst.visible = on;
+    this.grassInst.visible = on;
   }
 
   dispose(): void {

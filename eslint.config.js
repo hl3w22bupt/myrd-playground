@@ -20,6 +20,26 @@ export default tseslint.config(
     },
   },
   {
+    // scripts 下的 Node 工具脚本（性能基准等）：声明 Node 运行时全局
+    files: ['scripts/**/*.mjs', 'scripts/**/*.js'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        URL: 'readonly',
+        WebSocket: 'readonly',
+        fetch: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        performance: 'readonly',
+        Buffer: 'readonly',
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-unused-expressions': 'off',
+    },
+  },
+  {
     // content 不得依赖任何其他模块
     files: ['src/content/**/*.ts'],
     rules: {

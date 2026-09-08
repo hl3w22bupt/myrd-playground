@@ -8,7 +8,7 @@ import type { GameEvent, MatchHandle, Vec3, WorldSnapshot } from '../core/types'
 import type { World } from '../core/world';
 import { terrainHeightAt } from '../core/mapgen';
 import { ENTITY_CAP, MAP_SIZE } from '../content/constants';
-import { MAX_VISIBLE_ENTITIES } from '../content/render';
+import { MAX_VISIBLE_ENTITIES, VISUAL_DETAIL, type VisualDetailPreset } from '../content/render';
 import type { ContentPack } from '../content';
 import { EffectLayer } from './effects';
 import { SkyDome } from './sky';
@@ -122,7 +122,7 @@ export class GameView {
     this.dirLight = new THREE.DirectionalLight(0xfff2d8, 1.6);
     this.dirLight.position.set(160, 260, 110);
     this.dirLight.castShadow = this.preset.shadows;
-    this.dirLight.shadow.mapSize.set(this.preset.shadowMapSize, this.preset.shadowMapSize);
+    this.applyShadowMapSize();
     this.dirLight.shadow.camera.near = 40;
     this.dirLight.shadow.camera.far = 900;
     const shadowSpan = 170;
@@ -201,11 +201,20 @@ export class GameView {
     // —— 实体视图对象池（预建，容量 = ENTITY_CAP；运行期零创建/零销毁）——
     this.entityPool = new EntityViewPool(this.scene);
 
-    this.effects = new EffectLayer(this.scene);
+    const detail = VISUAL_DETAIL[this.autoQuality.current];
+    this.effects = new EffectLayer(this.scene, detail.zoneParticles);
+    // 性能基准探针（scripts/fps-bench.mjs --probe）：仅在 URL 带 ?probe=1 时
+    // 暴露只读 renderer 引用，供基准脚本采样 programs/draw/triangles 等（无运行时成本）。
+    if (typeof window !== 'undefined' && new URLSearchParams(location.search).get('probe') === '1') {
+      (window as unknown as { __view: GameView }).__view = this;
+    }
 
     // —— 天空穹顶 + 植被点缀（AC2①②：远景层次与场景细节）——
-    this.sky = new SkyDome(this.scene);
-    this.props = new PropsLayer(this.scene, pack, match.world.buildings, this.autoQuality.current);
+    // 天空/植被/粒子带按初始画质档构建（帧率自适应降档只调像素比/阴影贴图/视距，
+    // 不重建场景对象、不切换 shadowMap.enabled —— 避免 three.js 全量着色器重编译造成的秒级卡顿）
+    this.sky = new SkyDome(this.scene, detail);
+    this.props = new PropsLayer(this.scene, pack, match.world.buildings, detail);
+    this.applyDetailVisibility(detail);
   }
 
   get qualityLevel(): QualityLevel {
@@ -219,12 +228,32 @@ export class GameView {
     if (after !== before) {
       this.preset = QUALITY_PRESETS[after];
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.preset.pixelRatio));
-      this.renderer.shadowMap.enabled = this.preset.shadows;
-      this.dirLight.castShadow = this.preset.shadows;
+      // 阴影只调贴图尺寸（uniform 层面），不切换 enabled/castShadow：
+      // 切换会改变「投影光源数」这一 shader define，导致全部材质程序重编译（实测秒级停顿）。
+      this.applyShadowMapSize();
       this.applyFog();
+      // draw call 联动：降档关闭天空/植被/粒子带（固定开销项），升档恢复
+      this.applyDetailVisibility(VISUAL_DETAIL[after]);
       return after;
     }
     return null;
+  }
+
+  /** 按 VISUAL_DETAIL 配置开关「档位性 extras」（0 draw call 化，可逆） */
+  private applyDetailVisibility(detail: VisualDetailPreset): void {
+    this.sky?.setDetailVisible(detail.skyDome);
+    this.props?.setDetailVisible(detail.trees > 0 || detail.grass > 0);
+    this.effects.setZoneBandVisible(detail.zoneParticles > 0);
+  }
+
+  /** 阴影贴图尺寸（uniform 级调整，不触发着色器重编译） */
+  private applyShadowMapSize(): void {
+    const size = this.preset.shadowMapSize;
+    if (this.dirLight.shadow.mapSize.width !== size) {
+      this.dirLight.shadow.mapSize.set(size, size);
+      this.dirLight.shadow.map?.dispose();
+      this.dirLight.shadow.map = null;
+    }
   }
 
   /** 分层雾：近景全清晰 → 中景渐雾 → 远景完全融入地平线色（AC2②距离层次） */

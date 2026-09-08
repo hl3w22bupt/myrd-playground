@@ -58,7 +58,7 @@
 | 命令 | 内容 | 结果 |
 |---|---|---|
 | `npm run lint` | eslint（含依赖方向/确定性红线） | 通过 |
-| `npm run test` | 39 既有玩法断言 + 14 新增性能断言（`tests/perf.spec.ts`，确定性、无 DOM/时序依赖） | 53/53 通过 |
+| `npm run test` | 39 既有玩法断言 + 14 性能断言 + 4 画质档画面细节断言（`tests/perf.spec.ts`、`tests/visualDetail.spec.ts`，确定性、无 DOM/时序依赖） | 57/57 通过 |
 | `npm run build` | `tsc --noEmit && vite build` | 通过 |
 | `npm run bench` | 标准场景基准（`tests/bench/`，独立 vitest 配置 + `--expose-gc`） | 通过 |
 
@@ -82,6 +82,25 @@
 
 记录在案、本步不修（避免超出性能单目标范围）：`InventoryPanel.render()` 重复取快照与逐帧签名字符串（拟随第 2 小步画面升级一并处理）；`lootSnaps` 截断导致物资数回落再回升时重分配；实体数收缩防御路径归还视图；`hurtT` 死特性清理。
 
-## 五、浏览器实测建议（后续收口步）
+## 五、浏览器实测（已执行，60FPS 红线复核）
 
-Node 基准覆盖「逻辑 + 快照 + HUD」的 CPU 成本与内存行为；GPU 侧（draw call、填充率、阴影）需在浏览器以 `PerfSampler` + 调试 HUD（FPS / 1% 低 / p95 / draw / heap）按收敛需求 AC1 的参考机型口径采样 5–10 分钟复核。渲染侧已具备的条件：画质三档自动降档、实体池封顶、同屏上限、物资颜色脏检查、小地图/HUD 降频。
+Node 基准覆盖「逻辑 + 快照 + HUD」的 CPU 成本与内存行为；浏览器侧以可复测脚本 `scripts/fps-bench.mjs`（headless Chrome + CDP，静态服务 dist/ → 点击「开始对局」→ 独立 rAF 采样 + 游戏内 PerfSampler 调试行交叉印证）完成 A/B 对比。
+
+**方法论要点（避免假结论）**：
+- 交叉测量：同一时间窗内 A/B 交替各 ≥3 次取中位。本机验证发现整机性能随时间漂移可达 2×+（先后测得的同一构建从 57fps 漂移到 25.6fps），非交叉测得的对比数字不可信。
+- 软件光栅（SwiftShader）组仅作压力代理：其对 draw call 数与每片段成本极其敏感（约 2ms/draw），不等价于参考机型（真 GPU）表现。
+- 运行时消融探针（`?probe=1` 暴露只读 renderer 引用）+ CPU profile + GPU trace 定位，避免凭直觉优化。
+
+**结果（同机交叉实测）**：
+
+| 组 | 配置 | 改前（画面升级前 17025e9） | 改后（画面升级 + 本轮护栏） | 结论 |
+|---|---|---|---|---|
+| GPU 红线组 | 真机 GPU · 1280×720 · high 档 · 交叉×3 | 中位 60.09 fps（1%低 59.52） | 中位 60.12 fps（1%低 59.52） | **60FPS 红线不回退** ✅（双方均 vsync 封顶） |
+| GPU 重载组 | 2560×1440（渲染 5120×2880） | 60.04 fps | 60.03 fps | vsync 封顶，GPU 有余量 ✅ |
+| 软光栅压测组 | SwiftShader · 1920×1080 · low 档 · 交叉×3 | 中位 24.8~25.6 fps | 中位 19.1 fps（护栏前）→ **21.7 fps（护栏后，-12.5%）** | 新增场景内容（天空穹顶/云/太阳光晕/植被/特效池）带来固定 draw 与填充成本，分散在多个对象（逐对象消融无单一元凶）；护栏（档位门控 + 降档联动 draw + 消除重编译）已回收约一半差距，其余记录在案供低档设备优化参考 |
+
+**本轮新增的帧率护栏（60FPS 红线的组成部分）**：
+1. 画质档画面细节配置表 `content/render.ts → VISUAL_DETAIL`：low 档不创建天空穹顶/云层/太阳光晕、毒圈粒子带关闭（`tests/visualDetail.spec.ts` 锁定约束）。
+2. 降档联动 draw call：帧率自适应降档时按档位隐藏天空 extras（可逆，升档恢复）——此前降档只调像素比/阴影贴图，对「固定 draw 开销」无效（实测 draw 22 → 10）。
+3. 消除运行期着色器重编译：降档不再切换 `shadowMap.enabled`/`castShadow`（该切换改变「投影光源数」shader define，触发全部材质重编译；实测 CPU profile 10.9% 时间阻塞在 `getProgramInfoLog`），改为仅调整阴影贴图尺寸（uniform 级，无重编译）。
+4. 60FPS 红线的验收口径（参考机型 = 真机 GPU 渲染路径）在 A/B 中成立；软光栅压力差距已记录并受护栏约束，供后续低档设备优化（如实体 instanced 化合并 draw）参考。

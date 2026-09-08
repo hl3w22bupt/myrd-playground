@@ -17,7 +17,7 @@ function finish(tex: THREE.Texture, anisotropy = 4): THREE.Texture {
 
 /** 地面纹理：干湿草地区块 + 草叶簇 + 碎石土斑，多层叠加（AC2① 主纹理） */
 export function makeGroundTexture(): THREE.Texture {
-  const size = 512;
+  const size = 256;
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
@@ -85,7 +85,7 @@ export function makeGroundTexture(): THREE.Texture {
 
 /** 建筑立面纹理：楼层分隔 + 双样式窗格 + 檐口 + 墙脚污渍（InstancedMesh 单纹理全楼铺满） */
 export function makeBuildingTexture(): THREE.Texture {
-  const size = 512;
+  const size = 256;
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
