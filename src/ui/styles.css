@@ -110,6 +110,17 @@ html, body {
   backdrop-filter: blur(2px);
 }
 
+/* —— 空投横幅（降落/落地提示，位置见小地图红箱标记） —— */
+.airdrop-banner {
+  position: absolute; top: calc(16% + 58px); left: 50%; transform: translateX(-50%);
+  display: none;
+  background: linear-gradient(180deg, rgba(64,26,22,0.82), rgba(30,12,10,0.7));
+  border: 1px solid rgba(255,140,110,0.4); border-radius: 10px;
+  padding: 6px 18px; font-size: 13px; letter-spacing: 1px; font-weight: 600; color: #ffd9cf;
+  animation: airdropPulse 1.6s ease-in-out infinite;
+}
+@keyframes airdropPulse { 0%, 100% { opacity: 0.95; } 50% { opacity: 0.6; } }
+
 /* —— 右上：击杀播报 —— */
 .killfeed { position: absolute; top: 14px; right: 224px; width: 250px; display: flex; flex-direction: column; gap: 4px; }
 .killfeed-row {

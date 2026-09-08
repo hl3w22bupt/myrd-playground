@@ -22,8 +22,10 @@ import { updateCombat } from './systems/combat';
 import { generateLoot, updateLoot } from './systems/loot';
 import { initZone, updateZone } from './systems/zone';
 import { initAi, updateAi } from './systems/ai';
+import { initAirdrops, updateAirdrops } from './systems/airdrop';
 import { updateLifecycle, checkMatchEnd } from './systems/lifecycle';
 import { SnapshotWriter } from './snapshot';
+import { clamp } from './geom';
 import type {
   EntitySnapshot,
   GameEvent,
@@ -64,6 +66,7 @@ export function createWorldForTest(config: MatchConfig): World {
     ai: root.fork('ai'),
     combat: root.fork('combat'),
     zone: root.fork('zone'),
+    airdrop: root.fork('airdrop'),
   };
 
   const generated = generateMap(pack, rng.map);
@@ -115,14 +118,18 @@ export function createWorldForTest(config: MatchConfig): World {
     zone,
     buildings: generated.buildings,
     dropHints: generated.dropHints,
+    airdrops: [],
     events: [],
     result: null,
+    lootSeq: 0,
+    airdropSeq: 0,
     rng,
   };
 
   generateLoot(w);
   initZone(w);
   initAi(w);
+  initAirdrops(w);
   return w;
 }
 
@@ -157,13 +164,16 @@ export function tickWorld(w: World, intents: PlayerIntent[]): void {
   // 6) loot（拾取/丢弃/使用）
   updateLoot(w);
 
-  // 7) zone（缩圈 + 毒圈伤害）
+  // 7) airdrop（定时空投：投放 → 降落 → 落地生成高价值物资）
+  updateAirdrops(w);
+
+  // 8) zone（缩圈 + 毒圈伤害）
   updateZone(w);
 
-  // 8) ai（分帧决策，产出下一拍意图）
+  // 9) ai（分帧决策，产出下一拍意图）
   updateAi(w);
 
-  // 9) 胜负判定
+  // 10) 胜负判定
   checkMatchEnd(w);
 }
 
@@ -178,6 +188,13 @@ export function applyIntent(e: Entity, intent: PlayerIntent): void {
       e.yaw = intent.yaw;
       e.pitch = intent.pitch;
       break;
+    case 'aimDelta': {
+      // 相对瞄准增量：不覆盖仿真侧后坐力偏移（后坐力可感知的前提）
+      const limit = Math.PI / 2 - 0.05;
+      e.yaw += intent.dYaw;
+      e.pitch = clamp(e.pitch + intent.dPitch, -limit, limit);
+      break;
+    }
     case 'fire':
       e.firing = true;
       break;
@@ -219,8 +236,8 @@ export function buildSnapshot(w: World): WorldSnapshot {
     kind: e.kind,
     alive: e.alive,
     pos: { ...e.pos },
-    yaw: e.yaw,
-    pitch: e.pitch,
+    yaw: e.yaw + e.recoilYaw,
+    pitch: e.pitch + e.recoilPitch,
     state: e.state,
     weapon: e.weapons[e.activeWeapon]?.weapon ?? null,
     hp: e.hp,
@@ -254,6 +271,10 @@ export function buildSnapshot(w: World): WorldSnapshot {
     kills: p.kills,
     aliveCount: w.entities.reduce((n, e) => n + (e.alive ? 1 : 0), 0),
     medkitChannelMsLeft: p.medkitUntilMs !== null ? Math.max(0, p.medkitUntilMs - w.elapsedMs) : 0,
+    medkitItem:
+      p.medkitUntilMs !== null && p.medkitItemSlot !== null
+        ? (p.inventory[p.medkitItemSlot]?.item ?? null)
+        : null,
   };
 
   return {
@@ -278,6 +299,12 @@ export function buildSnapshot(w: World): WorldSnapshot {
     plane: w.plane.active
       ? { active: true, pos: { ...w.plane.pos }, dir: { ...w.plane.dir } }
       : null,
+    airdrops: w.airdrops.map((a) => ({
+      id: a.id,
+      pos: { ...a.pos },
+      y: a.pos.y,
+      phase: a.phase,
+    })),
   };
 }
 

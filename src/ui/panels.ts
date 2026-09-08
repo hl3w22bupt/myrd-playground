@@ -75,7 +75,7 @@ export class InventoryPanel {
       <div class="panel small">
         <h2>背包</h2>
         <div class="inv-grid" data-ref="grid"></div>
-        <p class="hint">点击物品丢弃 · Q 使用医疗包 · Tab 关闭</p>
+        <p class="hint">点击物品丢弃（整叠） · Q 使用医疗包（自动选择） · Tab 关闭</p>
       </div>
     `;
     container.appendChild(this.root);
@@ -110,8 +110,10 @@ export class InventoryPanel {
       cell.className = 'inv-cell' + (slot ? ' filled' : '');
       if (slot) {
         const def = ITEMS[slot.item as keyof typeof ITEMS];
-        cell.innerHTML = `<b>${def?.name ?? slot.item}</b><span>×${slot.count}</span>`;
-        cell.title = '点击丢弃';
+        const kindLabel = def?.kind === 'medkit' ? '可用' : def?.kind === 'ammo' ? '弹药' : '';
+        cell.dataset.kind = def?.kind ?? '';
+        cell.innerHTML = `<b>${def?.name ?? slot.item}</b><span>×${slot.count}</span>${kindLabel ? `<i>${kindLabel}</i>` : ''}`;
+        cell.title = def?.kind === 'medkit' ? '点击丢弃 · Q 使用' : '点击丢弃（整叠）';
         cell.addEventListener('click', () => {
           this.onDrop(i);
           this.render();

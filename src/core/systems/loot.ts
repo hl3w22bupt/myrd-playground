@@ -12,8 +12,6 @@ import { isUrbanArea, terrainHeightAt } from '../mapgen';
 import { pushEvent } from '../world';
 import { startReload } from './combat';
 
-let lootSeq = 0;
-
 /** 对局开局生成物资（确定性：rng.loot 子流） */
 export function generateLoot(w: World): void {
   const areas = w.pack.map.urbanAreas;
@@ -57,34 +55,39 @@ export function generateLoot(w: World): void {
 
 function spawnLoot(w: World, x: number, z: number, zone: { pool: Array<{ item: ItemId; weight: number }> }): void {
   const item = w.rng.loot.weighted(zone.pool);
+  spawnLootAt(w, x, z, item);
+}
+
+/** 在指定位置生成一件物资（airdrop 等系统复用；序列号取 world.lootSeq，多局互不污染） */
+export function spawnLootAt(w: World, x: number, z: number, item: ItemId, count?: number): LootItem {
   const pos: Vec3 = { x, y: terrainHeightAt(w.pack, x, z) + 0.25, z };
-  const loot: LootItem = { id: `loot_${lootSeq++}`, item, pos, taken: false };
+  const loot: LootItem = { id: `loot_${w.lootSeq++}`, item, pos, taken: false, count };
   w.loots.push(loot);
   pushEvent(w, { type: 'lootSpawned', id: loot.id, pos, item });
+  return loot;
 }
 
 function lootDef(w: World, item: ItemId) {
   return w.pack.items[item as keyof typeof w.pack.items];
 }
 
-/** 拾取最近的可拾取物资；返回是否成功 */
+/** 拾取最近的可拾取物资；最近的装不下时自动尝试下一件（不因单件背包不足而空手） */
 export function tryPickup(w: World, e: Entity): boolean {
   if (e.state !== 'ground') return false;
-  let best: LootItem | null = null;
-  let bestD = Infinity;
+  const candidates: Array<{ loot: LootItem; d: number }> = [];
   for (const l of w.loots) {
     if (l.taken) continue;
     const d = dist2D(e.pos.x, e.pos.z, l.pos.x, l.pos.z);
-    if (d <= PICKUP_RADIUS_M && d < bestD) {
-      bestD = d;
-      best = l;
-    }
+    if (d <= PICKUP_RADIUS_M) candidates.push({ loot: l, d });
   }
-  if (!best) return false;
-  if (!addItem(w, e, best.item)) return false;
-  best.taken = true;
-  pushEvent(w, { type: 'lootPickedUp', entityId: e.id, item: best.item, pos: best.pos });
-  return true;
+  candidates.sort((a, b) => a.d - b.d);
+  for (const { loot } of candidates) {
+    if (!addItem(w, e, loot.item, loot.count)) continue;
+    loot.taken = true;
+    pushEvent(w, { type: 'lootPickedUp', entityId: e.id, item: loot.item, pos: loot.pos });
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -94,7 +97,7 @@ export function tryPickup(w: World, e: Entity): boolean {
  * - 护甲/头盔 → 立即装备（不占格子）
  * - 医疗包 → 入背包（占格子），按键使用
  */
-export function addItem(w: World, e: Entity, itemId: ItemId): boolean {
+export function addItem(w: World, e: Entity, itemId: ItemId, countOverride?: number): boolean {
   const def = lootDef(w, itemId);
 
   if (def.kind === 'weapon') {
@@ -119,16 +122,17 @@ export function addItem(w: World, e: Entity, itemId: ItemId): boolean {
   if (e.usedGrids + def.gridCost > INVENTORY_GRIDS) return false;
 
   if (def.kind === 'ammo') {
+    const count = countOverride ?? def.count;
     const idx = e.inventory.findIndex((s) => s !== null && s.item === itemId);
     if (idx >= 0) {
-      e.inventory[idx]!.count += def.count;
+      e.inventory[idx]!.count += count;
     } else {
       const free = e.inventory.findIndex((s) => s === null);
       if (free < 0) return false;
-      e.inventory[free] = { item: itemId, count: def.count };
+      e.inventory[free] = { item: itemId, count };
       e.usedGrids += def.gridCost;
     }
-    e.ammoReserve[def.ammoType] = (e.ammoReserve[def.ammoType] ?? 0) + def.count;
+    e.ammoReserve[def.ammoType] = (e.ammoReserve[def.ammoType] ?? 0) + count;
     return true;
   }
 
@@ -140,32 +144,38 @@ export function addItem(w: World, e: Entity, itemId: ItemId): boolean {
   return true;
 }
 
-/** 丢弃背包格（在脚下重新生成物资） */
+/** 丢弃背包格整叠物资（在脚下重新生成，堆叠数量随物资保留；弹药同步扣减射击储备） */
 export function dropItem(w: World, e: Entity, slot: number): boolean {
   const s = e.inventory[slot];
   if (!s || s.count <= 0) return false;
   const def = lootDef(w, s.item);
-  s.count -= 1;
-  if (s.count <= 0) {
-    e.inventory[slot] = null;
-  }
+  const dropped = s.count;
+  e.inventory[slot] = null;
   e.usedGrids = Math.max(0, e.usedGrids - def.gridCost);
-  const pos: Vec3 = { x: e.pos.x, y: e.pos.y + 0.25, z: e.pos.z };
-  const loot: LootItem = { id: `loot_${lootSeq++}`, item: s.item, pos, taken: false };
-  w.loots.push(loot);
-  pushEvent(w, { type: 'lootSpawned', id: loot.id, pos, item: s.item });
+  if (def.kind === 'ammo') {
+    e.ammoReserve[def.ammoType] = Math.max(0, (e.ammoReserve[def.ammoType] ?? 0) - dropped);
+  }
+  spawnLootAt(w, e.pos.x, e.pos.z, s.item, dropped);
   return true;
 }
 
-/** 使用医疗包：开始引导（useMs），完成时回血 */
+/** 解析背包格：负数 = 第一个非空格（drop 意图语义） */
+export function resolveDropSlot(e: Entity, slot: number): number {
+  if (slot >= 0) return slot;
+  return e.inventory.findIndex((s) => s !== null);
+}
+
+/** 使用医疗物品：开始引导（useMs），完成时回血。slot < 0 = 使用第一个可用的医疗物品 */
 export function useMedkit(w: World, e: Entity, slot: number): boolean {
-  const s = e.inventory[slot];
+  const target = slot >= 0 ? slot : e.inventory.findIndex((s) => s !== null && lootDef(w, s.item).kind === 'medkit');
+  if (target < 0 || target >= e.inventory.length) return false;
+  const s = e.inventory[target];
   if (!s) return false;
   const def = lootDef(w, s.item);
   if (def.kind !== 'medkit') return false;
   if (e.hp >= e.maxHp || e.medkitUntilMs !== null) return false;
   e.medkitUntilMs = w.elapsedMs + def.useMs;
-  e.medkitItemSlot = slot;
+  e.medkitItemSlot = target;
   return true;
 }
 
@@ -178,7 +188,7 @@ export function updateLoot(w: World): void {
       tryPickup(w, e);
     }
     if (e.wantDrop !== null) {
-      dropItem(w, e, e.wantDrop);
+      dropItem(w, e, resolveDropSlot(e, e.wantDrop));
       e.wantDrop = null;
     }
     if (e.wantUse !== null) {

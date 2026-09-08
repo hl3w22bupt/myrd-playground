@@ -32,6 +32,8 @@ export const LOOT_TABLE: LootTableConfig = {
         { item: 'armor_vest', weight: 12 },
         { item: 'helmet_mk2', weight: 10 },
         { item: 'medkit_large', weight: 12 },
+        { item: 'firstaid_kit', weight: 8 },
+        { item: 'bandage', weight: 12 },
       ],
     },
     {
@@ -45,6 +47,8 @@ export const LOOT_TABLE: LootTableConfig = {
         { item: 'armor_vest', weight: 8 },
         { item: 'helmet_mk2', weight: 7 },
         { item: 'medkit_large', weight: 27 },
+        { item: 'firstaid_kit', weight: 6 },
+        { item: 'bandage', weight: 14 },
       ],
     },
   ],

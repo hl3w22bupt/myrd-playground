@@ -13,6 +13,7 @@
 
 import { ENTITY_CAP, INVENTORY_GRIDS } from '../content/constants';
 import type {
+  AirDropSnapshot,
   EntityKind,
   EntitySnapshot,
   InvItem,
@@ -53,6 +54,7 @@ export class SnapshotWriter {
   private readonly lootSnaps: LootSnapshot[];
   private readonly zoneSnap: ZoneSnapshot;
   private readonly planeSnap: PlaneSnapshot;
+  private readonly airdropSnaps: AirDropSnapshot[] = [];
   private readonly playerSnap: PlayerViewSnapshot;
   private readonly playerWeaponSlots: Array<WeaponSlotState | null>;
   private readonly playerSlotObjs: WeaponSlotState[];
@@ -103,6 +105,7 @@ export class SnapshotWriter {
       kills: 0,
       aliveCount: 0,
       medkitChannelMsLeft: 0,
+      medkitItem: null,
     };
 
     this.snapshot = {
@@ -114,6 +117,7 @@ export class SnapshotWriter {
       loots: this.lootSnaps,
       zone: this.zoneSnap,
       plane: null,
+      airdrops: this.airdropSnaps,
       playerEntity: null,
     };
   }
@@ -125,6 +129,7 @@ export class SnapshotWriter {
     this.writePlayer(w);
     this.writeZone(w);
     this.writePlane(w);
+    this.writeAirdrops(w);
 
     const s = this.snapshot;
     s.tick = w.tick;
@@ -150,8 +155,8 @@ export class SnapshotWriter {
       d.pos.x = e.pos.x;
       d.pos.y = e.pos.y;
       d.pos.z = e.pos.z;
-      d.yaw = e.yaw;
-      d.pitch = e.pitch;
+      d.yaw = e.yaw + e.recoilYaw;
+      d.pitch = e.pitch + e.recoilPitch;
       d.state = e.state;
       d.weapon = e.weapons[e.activeWeapon]?.weapon ?? null;
       d.hp = e.hp;
@@ -202,6 +207,10 @@ export class SnapshotWriter {
     d.helmetReduction = p.helmetReduction;
     d.kills = p.kills;
     d.medkitChannelMsLeft = p.medkitUntilMs !== null ? Math.max(0, p.medkitUntilMs - w.elapsedMs) : 0;
+    d.medkitItem =
+      p.medkitUntilMs !== null && p.medkitItemSlot !== null
+        ? (p.inventory[p.medkitItemSlot]?.item ?? null)
+        : null;
 
     // 武器槽（复用槽对象，零分配）：槽位数跟随 p.weapons.length 原地扩缩，
     // 与分配版 buildSnapshot 的 weapons.map(...) 通道在任何槽数下保持一致（默认 2 槽不变）
@@ -285,5 +294,24 @@ export class SnapshotWriter {
     d.dir.y = p.dir.y;
     d.dir.z = p.dir.z;
     this.snapshot.plane = d;
+  }
+
+  private writeAirdrops(w: World): void {
+    const src = w.airdrops;
+    const dst = this.airdropSnaps;
+    while (dst.length < src.length) {
+      dst.push({ id: '', pos: { x: 0, y: 0, z: 0 }, y: 0, phase: 'falling' });
+    }
+    dst.length = src.length;
+    for (let i = 0; i < src.length; i++) {
+      const a = src[i];
+      const d = dst[i];
+      d.id = a.id;
+      d.pos.x = a.pos.x;
+      d.pos.y = a.pos.y;
+      d.pos.z = a.pos.z;
+      d.y = a.pos.y;
+      d.phase = a.phase;
+    }
   }
 }

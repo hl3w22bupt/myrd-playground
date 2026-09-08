@@ -27,11 +27,17 @@ const ENTITY_COLORS = { player: 0x4da3ff, ai: 0xd8564a } as const;
 const LOOT_COLORS: Record<string, number> = {
   weapon_ar_m4: 0xffd54a,
   weapon_smg_ump: 0xffb03a,
+  weapon_sr_awm: 0xff5f9e,
   ammo_556: 0x9ad06a,
   ammo_45: 0x6fae4f,
+  ammo_300: 0x4fae8f,
   armor_vest: 0x5aa7d6,
+  armor_vest_lv3: 0x2f7fb9,
   helmet_mk2: 0x7fbfe0,
+  helmet_mk3: 0x4f9fd0,
   medkit_large: 0xe8ecf2,
+  firstaid_kit: 0xff9a8f,
+  bandage: 0xd9c9a8,
 };
 
 export class GameView {
@@ -66,6 +72,8 @@ export class GameView {
   private planeMesh: THREE.Group;
   private canopy: THREE.Mesh;
   private canopyFor: string | null = null;
+  /** 空投箱视图（单局 ≤ maxDrops 个，按需创建；id → 视图） */
+  private airdropViews = new Map<string, { group: THREE.Group; canopy: THREE.Mesh }>();
 
   private tmpMat4 = new THREE.Matrix4();
   private tmpQuat = new THREE.Quaternion();
@@ -202,7 +210,6 @@ export class GameView {
     this.entityPool = new EntityViewPool(this.scene);
 
     this.effects = new EffectLayer(this.scene);
-
     // —— 天空穹顶 + 植被点缀（AC2①②：远景层次与场景细节）——
     this.sky = new SkyDome(this.scene);
     this.props = new PropsLayer(this.scene, pack, match.world.buildings, this.autoQuality.current);
@@ -323,6 +330,7 @@ export class GameView {
     this.syncLoot(snap);
     this.syncZone(snap);
     this.syncPlane(snap);
+    this.syncAirdrops(snap);
     this.effects.updateZoneDrift(snap.zone.center, snap.zone.radius, dtSec);
     this.effects.update(dtSec);
     this.updateCamera(snap, alpha);
@@ -501,6 +509,49 @@ export class GameView {
     if (p) {
       this.planeMesh.position.set(p.pos.x, p.pos.y, p.pos.z);
       this.planeMesh.rotation.y = Math.atan2(p.dir.x, p.dir.z) + Math.PI / 2;
+    }
+  }
+
+  /** 空投箱：降落中显示伞盖，落地后仅箱体（视图按 id 缓存，单局最多 maxDrops 个） */
+  private syncAirdrops(snap: WorldSnapshot): void {
+    const seen = new Set<string>();
+    for (const a of snap.airdrops) {
+      seen.add(a.id);
+      let view = this.airdropViews.get(a.id);
+      if (!view) {
+        const group = new THREE.Group();
+        const box = new THREE.Mesh(
+          new THREE.BoxGeometry(1.8, 1.5, 1.8),
+          new THREE.MeshLambertMaterial({ color: 0xd73a26, emissive: 0x3a0d08 }),
+        );
+        box.position.y = 0.75;
+        group.add(box);
+        const band = new THREE.Mesh(
+          new THREE.BoxGeometry(1.86, 0.3, 1.86),
+          new THREE.MeshLambertMaterial({ color: 0xf2f2f2 }),
+        );
+        band.position.y = 0.75;
+        group.add(band);
+        const canopy = new THREE.Mesh(
+          new THREE.SphereGeometry(2.6, 14, 7, 0, Math.PI * 2, 0, Math.PI / 2),
+          new THREE.MeshLambertMaterial({ color: 0xe8eff6, side: THREE.DoubleSide }),
+        );
+        canopy.position.y = 4.2;
+        group.add(canopy);
+        this.scene.add(group);
+        view = { group, canopy };
+        this.airdropViews.set(a.id, view);
+      }
+      view.group.visible = true;
+      view.group.position.set(a.pos.x, a.pos.y, a.pos.z);
+      view.canopy.visible = a.phase === 'falling';
+    }
+    for (const view of this.airdropViews.values()) {
+      view.group.visible = false;
+    }
+    for (const id of seen) {
+      const view = this.airdropViews.get(id);
+      if (view) view.group.visible = true;
     }
   }
 
