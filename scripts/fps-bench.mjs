@@ -1,8 +1,12 @@
 /**
  * scripts/fps-bench —— 本地帧率基准（60FPS 红线的可复测依据，docs/PERFORMANCE.md §五 的浏览器侧复核）。
  *
- * 用法：node scripts/fps-bench.mjs [--dist <dir>] [--gpu] [--window WxH] [--sample-ms 12000] [--out f.json]
+ * 用法：node scripts/fps-bench.mjs [--dist <dir>] [--gpu] [--window WxH] [--quality low|medium|high]
+ *                                   [--sample-ms N] [--out f.json] [--query '?k=v']
+ *                                   [--profile f.json] [--trace f.json --trace-ms N] [--probe] [--shot f.png]
  *   默认 SwiftShader（CPU 光栅）+ 1280x720；--gpu 走真 GPU（受 vsync 60 封顶）。
+ *   --quality 设开始画面画质下拉；--probe 采样 renderer.info（依赖 app 的 ?probe=1 只读探针）；
+ *   --shot 输出同 seed 落地截图（画面观感对比证据）。
  *
  * 协议：起静态服务 → headless Chrome + CDP → 点击「开始对局」（默认画质档，走产品内画质自适应）
  *      → 预热 3s → 独立 rAF 采样 N ms → 读取游戏内调试 HUD（FPS/1%低/p95/draw/画质）→ 输出 JSON。
