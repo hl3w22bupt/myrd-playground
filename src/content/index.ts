@@ -2,13 +2,14 @@
  * content —— 内容配置包（数值唯一来源）。core 可依赖 content，content 不依赖任何模块。
  */
 
-import { MOVEMENT, PARACHUTE } from './physics';
+import { MOVEMENT, PARACHUTE, BALLISTIC } from './physics';
 import { ITEMS } from './items';
 import { WEAPONS } from './weapons';
 import { LOOT_TABLE } from './lootTable';
 import { ZONE } from './zone';
 import { MAP } from './map';
 import { AI } from './ai';
+import { AIRDROP } from './airdrop';
 import * as CONSTANTS from './constants';
 
 export interface ContentPack {
@@ -20,7 +21,8 @@ export interface ContentPack {
   zone: typeof ZONE;
   map: typeof MAP;
   ai: typeof AI;
-  physics: { parachute: typeof PARACHUTE; movement: typeof MOVEMENT };
+  airdrop: typeof AIRDROP;
+  physics: { parachute: typeof PARACHUTE; movement: typeof MOVEMENT; ballistic: typeof BALLISTIC };
 }
 
 export const DEFAULT_CONTENT_PACK: ContentPack = {
@@ -32,7 +34,8 @@ export const DEFAULT_CONTENT_PACK: ContentPack = {
   zone: ZONE,
   map: MAP,
   ai: AI,
-  physics: { parachute: PARACHUTE, movement: MOVEMENT },
+  airdrop: AIRDROP,
+  physics: { parachute: PARACHUTE, movement: MOVEMENT, ballistic: BALLISTIC },
 };
 
 /** 测试/调参用：派生内容包（浅覆盖） */
@@ -48,3 +51,4 @@ export * from './zone';
 export * from './map';
 export * from './physics';
 export * from './ai';
+export * from './airdrop';

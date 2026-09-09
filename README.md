@@ -35,10 +35,10 @@ npm run lint       # eslint：依赖方向 + 确定性红线（core 内禁 Math.
 
 ```
 src/
-├── content/   # 配置表（武器/物资/缩圈/地图/物理/AI 参数）——AC 数值唯一来源，禁止硬编码
+├── content/   # 配置表（武器/物资/缩圈/地图/物理·弹道/AI·人格/空投 参数）——AC 数值唯一来源，禁止硬编码
 ├── core/      # 确定性仿真核心（纯 TS，零 DOM/three；Node 可直接运行）
 │   ├── rng.ts loop.ts world.ts match.ts mapgen.ts geom.ts types.ts
-│   └── systems/  # lifecycle / parachute / movement / combat / loot / zone / ai
+│   └── systems/  # lifecycle / parachute / movement / combat / loot / zone / ai / airdrop
 ├── render/    # Three.js（three 只允许在此 import；材质纹理/光照雾效/粒子/画质三档+自动降档/对象池）
 ├── input/     # 键鼠 → PlayerIntent
 ├── ui/        # HUD（DOM 高频直写）+ Canvas2D 小地图 + 背包/结算/开始屏
@@ -54,9 +54,10 @@ src/
 |---|---|---|
 | AC1 全流程闭环 ≤10min | 固定 seed 跑满局：唯一存活者、结算含排名/淘汰数/用时、AI 胜与玩家胜两分支、快照完整性、核心吞吐 | match.spec.ts |
 | AC2 跳伞落地 | 同 seed 同意图序列落点逐 tick 复现（偏差 0）、四阶段完整、落点偏差 ≤80m（地图 5%）、落地 1s 内进入地面移动、自选跳伞时机 | parachute.spec.ts |
-| AC3 物资生效 | 区域密度生成、武器上膛即可射击、护甲/头盔减伤、医疗回血 +60、弹药计数、背包容量上限与丢弃 | loot.spec.ts |
-| AC4 射击命中 | 双武器参数可区分且与配置一致、620rpm 射速节流、100m 静止目标命中率 ≥90%（1000 发蒙特卡洛）、距离衰减、部位倍率、换弹时长、淘汰计数 | combat.spec.ts |
-| AC5 缩圈与 AI | ≥3 阶段收缩且 dps 递增、圈外按秒掉血、毒圈淘汰归因、AI ≥10 且具备巡图/拾取/索敌/开火/避毒、AI 可被淘汰 | zone.spec.ts / ai.spec.ts |
+| AC3 物资生效 | 区域密度生成、武器上膛即可射击、护甲/头盔减伤、医疗回血 +60、医疗引导被开火打断、弹药计数、背包容量上限与丢弃 | loot.spec.ts / medkit.spec.ts |
+| AC4 射击命中 | 双武器参数可区分且与配置一致、620rpm 射速节流、100m 静止目标命中率 ≥90%（1000 发蒙特卡洛）、距离衰减、部位倍率、换弹时长、淘汰计数；弹道下坠（0.5·g·t²）与补偿、后坐力踢枪/恢复/命中率惩罚 | combat.spec.ts / ballistics.spec.ts / recoil.spec.ts |
+| AC5 缩圈与 AI | ≥3 阶段收缩且 dps 递增、圈外按秒掉血、毒圈淘汰归因、AI ≥10 且具备巡图/拾取/索敌/开火/避毒/低血治疗、AI 可被淘汰、AI 人格多样化（狙击/突击/游击/搜刮） | zone.spec.ts / ai.spec.ts / aiPersona.spec.ts |
+| 玩法补齐·空投 | 定时空投（content/airdrop）：投放→下落→落地→内容物经标准 loot 通道散布，落点/散布同 seed 确定性复现 | airdrop.spec.ts |
 
 ## 操作
 

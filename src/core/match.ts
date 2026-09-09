@@ -23,6 +23,7 @@ import { updateCombat } from './systems/combat';
 import { generateLoot, updateLoot } from './systems/loot';
 import { initZone, updateZone } from './systems/zone';
 import { initAi, updateAi } from './systems/ai';
+import { initAirdrops, updateAirdrops } from './systems/airdrop';
 import { updateLifecycle, checkMatchEnd } from './systems/lifecycle';
 import type {
   EntitySnapshot,
@@ -65,6 +66,7 @@ export function createWorldForTest(config: MatchConfig): World {
     ai: root.fork('ai'),
     combat: root.fork('combat'),
     zone: root.fork('zone'),
+    airdrop: root.fork('airdrop'),
   };
 
   const generated = generateMap(pack, rng.map);
@@ -116,6 +118,8 @@ export function createWorldForTest(config: MatchConfig): World {
     zone,
     buildings: generated.buildings,
     dropHints: generated.dropHints,
+    airdrops: [],
+    airdropSeq: 0,
     events: [],
     result: null,
     rng,
@@ -124,6 +128,7 @@ export function createWorldForTest(config: MatchConfig): World {
   generateLoot(w);
   initZone(w);
   initAi(w);
+  initAirdrops(w);
   return w;
 }
 
@@ -161,10 +166,13 @@ export function tickWorld(w: World, intents: PlayerIntent[]): void {
   // 7) zone（缩圈 + 毒圈伤害）
   updateZone(w);
 
-  // 8) ai（分帧决策，产出下一拍意图）
+  // 8) airdrop（定时空投投放/下落/落地散布，纯内容投放）
+  updateAirdrops(w);
+
+  // 9) ai（分帧决策，产出下一拍意图）
   updateAi(w);
 
-  // 9) 胜负判定
+  // 10) 胜负判定
   checkMatchEnd(w);
 }
 
@@ -234,6 +242,8 @@ export function buildSnapshot(w: World): WorldSnapshot {
     loots.push({ id: l.id, item: l.item, pos: l.pos });
   }
 
+  const airdrops = w.airdrops.map((c) => ({ id: c.id, pos: { ...c.pos }, phase: c.phase }));
+
   let player: PlayerViewSnapshot | null = null;
   const p = w.player;
   const slot = p.weapons[p.activeWeapon];
@@ -266,6 +276,7 @@ export function buildSnapshot(w: World): WorldSnapshot {
     entities,
     player,
     loots,
+    airdrops,
     zone: {
       center: { ...w.zone.center },
       radius: w.zone.radius,

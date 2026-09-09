@@ -1,14 +1,15 @@
 /**
- * core/systems/combat —— 射击节流、弹道射线、命中判定（包围盒 + 部位 + 距离衰减）、
- * 换弹/切枪、后坐力 bloom。AC4 数值全部来自 content/weapons。
+ * core/systems/combat —— 射击节流、弹道扫描（抛物线下坠）、命中判定（包围盒 + 部位 + 距离衰减）、
+ * 换弹/切枪、后坐力（bloom + 踢枪偏移 + 恢复）。AC4 数值全部来自 content/weapons / content/physics。
  */
 
 import { EYE_HEIGHT, PART_MULTIPLIERS, TARGET_HALF_WIDTH, TARGET_HEIGHT } from '../../content/constants';
+import { RECOIL_TUNING } from '../../content/weapons';
 import type { World, Entity, WeaponSlot } from '../world';
 import type { BodyPart, Vec3, WeaponId } from '../types';
-import { aimDir, clamp, rayAABB, rayVerticalBox, dist3D } from '../geom';
+import { aimDir, clamp, rayAABB, rayVerticalBox } from '../geom';
 import { terrainHeightAt } from '../mapgen';
-import { pushEvent } from '../world';
+import { pushEvent, cancelMedkitChannel } from '../world';
 
 /** 切枪耗时（ms） */
 export const SWITCH_WEAPON_MS = 350;
@@ -68,6 +69,13 @@ export function updateCombat(w: World): void {
 
     // 后坐力 bloom 衰减
     e.bloom = Math.max(0, e.bloom - BLOOM_DECAY_PER_SEC * dtSec);
+
+    // 后坐力恢复：停火后踢枪偏移按配置速率回落（AC4 后坐力可感知且可压枪）
+    if (!e.firing && (e.recoilPitch !== 0 || e.recoilYaw !== 0)) {
+      const rec = RECOIL_TUNING.recoverPerSec * dtSec;
+      e.recoilPitch = e.recoilPitch > 0 ? Math.max(0, e.recoilPitch - rec) : Math.min(0, e.recoilPitch + rec);
+      e.recoilYaw = e.recoilYaw > 0 ? Math.max(0, e.recoilYaw - rec) : Math.min(0, e.recoilYaw + rec);
+    }
   }
 }
 
@@ -84,23 +92,32 @@ export function tryFire(w: World, e: Entity): boolean {
 
   slot.magazine -= 1;
   e.fireReadyAtMs = w.elapsedMs + 60_000 / def.rpm;
+  // 开火打断医疗引导（急救语义：持枪射击即中断包扎）
+  cancelMedkitChannel(e);
 
   const origin: Vec3 = { x: e.pos.x, y: e.pos.y + EYE_HEIGHT, z: e.pos.z };
   const sigma = def.spread * (1 + e.bloom);
   const gx = w.rng.combat.gaussian() * sigma;
   const gy = w.rng.combat.gaussian() * sigma;
-  const base = aimDir(e.yaw, e.pitch);
+  // 实际弹道方向 = 瞄准方向 + 后坐力偏移（垂直上抬 + 水平漂移，弹道含重力下坠）
+  const base = aimDir(e.yaw + e.recoilYaw, e.pitch + e.recoilPitch);
   // 在视线的垂直平面内施加高斯散布
   const dir = perturb(base, gx, gy);
 
-  const hit = castShot(w, e, origin, dir, def.maxRange);
+  const hit = castShot(w, e, origin, dir, def.maxRange, def.projectileSpeed);
   const end: Vec3 = hit
     ? hit.point
-    : { x: origin.x + dir.x * def.maxRange, y: origin.y + dir.y * def.maxRange, z: origin.z + dir.z * def.maxRange };
+    : {
+        x: origin.x + dir.x * def.maxRange,
+        y: origin.y + dir.y * def.maxRange - ballisticDropAt(w, def.maxRange, def.projectileSpeed),
+        z: origin.z + dir.z * def.maxRange,
+      };
 
-  // 后坐力：散布扩张 + 瞄准上抬（数值来自武器 recoil）
+  // 后坐力：散布扩张 + 踢枪（垂直上抬 + 水平漂移，数值来自 RECOIL_TUNING × 武器 recoil）
   e.bloom = Math.min(MAX_BLOOM, e.bloom + def.recoil * 0.9);
-  e.pitch += def.recoil * 0.006;
+  e.recoilPitch = Math.min(RECOIL_TUNING.maxPitchOffset, e.recoilPitch + def.recoil * RECOIL_TUNING.pitchKickPerRecoil);
+  const yawKick = w.rng.combat.gaussian() * def.recoil * RECOIL_TUNING.yawKickPerRecoil;
+  e.recoilYaw = clamp(e.recoilYaw + yawKick, -RECOIL_TUNING.maxYawOffset, RECOIL_TUNING.maxYawOffset);
 
   pushEvent(w, {
     type: 'shotFired',
@@ -114,9 +131,10 @@ export function tryFire(w: World, e: Entity): boolean {
 
   if (hit?.entity) {
     const t = hit.dist;
-    const falloff = t <= def.effectiveRange
-      ? 1
-      : clamp(1 - 0.5 * ((t - def.effectiveRange) / def.effectiveRange), 0.5, 1);
+    const falloff =
+      t <= def.effectiveRange
+        ? 1
+        : clamp(1 - 0.5 * ((t - def.effectiveRange) / def.effectiveRange), 0.5, 1);
     const part = bodyPartAt(hit.entity, hit.point);
     const dmg = def.damage * PART_MULTIPLIERS[part] * falloff;
     applyDamage(w, hit.entity, dmg, part, e);
@@ -151,8 +169,135 @@ export function bodyPartAt(target: Entity, point: Vec3): BodyPart {
   return 'limb';
 }
 
-/** 弹道射线：先地形/建筑遮挡，再实体包围盒，取最近命中 */
-export function castShot(w: World, shooter: Entity, origin: Vec3, dir: Vec3, maxRange: number): HitResult | null {
+/** 弹道下坠量（m）：抛物线近似 drop = 0.5 × g × t²，t = 距离 / 弹速（content/physics.ballistic） */
+export function ballisticDropAt(w: World, dist: number, projectileSpeed: number): number {
+  if (!Number.isFinite(projectileSpeed) || projectileSpeed <= 0) return 0;
+  const t = dist / projectileSpeed;
+  return 0.5 * w.pack.physics.ballistic.gravityMps2 * t * t;
+}
+
+/**
+ * 弹道扫描：先地形/建筑遮挡，再实体包围盒，取最近命中。
+ * 传入 projectileSpeed 时按抛物线弹道分段扫描（重力下坠，分段长度 content/physics.ballistic.segmentM）；
+ * 不传（或非有限值）时退化为直线射线（测试基建与视线检测复用）。
+ */
+export function castShot(
+  w: World,
+  shooter: Entity,
+  origin: Vec3,
+  dir: Vec3,
+  maxRange: number,
+  projectileSpeed: number = Number.POSITIVE_INFINITY,
+): HitResult | null {
+  if (!Number.isFinite(projectileSpeed)) return castStraight(w, shooter, origin, dir, maxRange);
+
+  let best: HitResult | null = null;
+  let bestDist = Infinity;
+  let prev: Vec3 = origin;
+  let prevD = 0;
+  const seg = w.pack.physics.ballistic.segmentM;
+
+  for (;;) {
+    const d = Math.min(prevD + seg, maxRange);
+    const drop = ballisticDropAt(w, d, projectileSpeed);
+    const point: Vec3 = {
+      x: origin.x + dir.x * d,
+      y: origin.y + dir.y * d - drop,
+      z: origin.z + dir.z * d,
+    };
+    const segLen = Math.hypot(point.x - prev.x, point.y - prev.y, point.z - prev.z);
+    if (segLen > 1e-6) {
+      const sdir: Vec3 = {
+        x: (point.x - prev.x) / segLen,
+        y: (point.y - prev.y) / segLen,
+        z: (point.z - prev.z) / segLen,
+      };
+      const found = nearestInSegment(w, shooter, prev, sdir, segLen, prevD);
+      if (found && found.dist < bestDist) {
+        best = found;
+        bestDist = found.dist;
+      }
+      if (best) return best;
+    }
+    // 地形：段末低于地形 → 沿段二分求交点
+    if (point.y - terrainHeightAt(w.pack, point.x, point.z) <= 0) {
+      const tHit = bisectTerrain(w, prev, point, prevD, d);
+      if (tHit >= 0 && tHit < bestDist) {
+        const f = (tHit - prevD) / Math.max(1e-6, d - prevD);
+        best = {
+          dist: tHit,
+          entity: null,
+          point: {
+            x: prev.x + (point.x - prev.x) * f,
+            y: prev.y + (point.y - prev.y) * f,
+            z: prev.z + (point.z - prev.z) * f,
+          },
+        };
+        bestDist = tHit;
+      }
+      if (best) return best;
+    }
+    prev = point;
+    prevD = d;
+    if (d >= maxRange) break;
+  }
+  return best;
+}
+
+/** 对一段弹道弦做建筑/实体命中检测，返回段内最近命中（距离以弹道全程里程计） */
+function nearestInSegment(
+  w: World,
+  shooter: Entity,
+  from: Vec3,
+  sdir: Vec3,
+  segLen: number,
+  baseD: number,
+): HitResult | null {
+  let best: HitResult | null = null;
+  for (const b of w.buildings) {
+    const t = rayAABB(from, sdir, b, segLen);
+    if (t >= 0 && (!best || baseD + t < best.dist)) {
+      best = {
+        dist: baseD + t,
+        entity: null,
+        point: { x: from.x + sdir.x * t, y: from.y + sdir.y * t, z: from.z + sdir.z * t },
+      };
+    }
+  }
+  for (const target of w.entities) {
+    if (!target.alive || target === shooter) continue;
+    if (target.state === 'plane') continue;
+    const t = rayVerticalBox(from, sdir, target.pos, TARGET_HALF_WIDTH, TARGET_HEIGHT, segLen);
+    if (t >= 0 && (!best || baseD + t < best.dist)) {
+      best = {
+        dist: baseD + t,
+        entity: target,
+        point: { x: from.x + sdir.x * t, y: from.y + sdir.y * t, z: from.z + sdir.z * t },
+      };
+    }
+  }
+  return best;
+}
+
+/** 段内地形交点二分（返回弹道全程里程；无交点返回 -1） */
+function bisectTerrain(w: World, from: Vec3, to: Vec3, baseD: number, d: number): number {
+  let lo = 0;
+  let hi = 1;
+  if (from.y - terrainHeightAt(w.pack, from.x, from.z) <= 0) return baseD;
+  for (let i = 0; i < 6; i++) {
+    const mid = (lo + hi) / 2;
+    const mx = from.x + (to.x - from.x) * mid;
+    const my = from.y + (to.y - from.y) * mid;
+    const mz = from.z + (to.z - from.z) * mid;
+    if (my - terrainHeightAt(w.pack, mx, mz) > 0) lo = mid;
+    else hi = mid;
+  }
+  const f = (lo + hi) / 2;
+  return baseD + (d - baseD) * f;
+}
+
+/** 直线射线（无重力下坠退化路径）：视线检测与测试基建复用 */
+function castStraight(w: World, shooter: Entity, origin: Vec3, dir: Vec3, maxRange: number): HitResult | null {
   let best: HitResult | null = null;
 
   for (const b of w.buildings) {
@@ -169,7 +314,6 @@ export function castShot(w: World, shooter: Entity, origin: Vec3, dir: Vec3, max
   // 地形粗采样 + 一次二分细化
   const step = 6;
   let prevT = 0;
-  let prevAbove = origin.y - terrainHeightAt(w.pack, origin.x, origin.z) > 0;
   for (let t = step; t <= maxRange; t += step) {
     const px = origin.x + dir.x * t;
     const py = origin.y + dir.y * t;
@@ -197,9 +341,7 @@ export function castShot(w: World, shooter: Entity, origin: Vec3, dir: Vec3, max
       break;
     }
     prevT = t;
-    prevAbove = above;
   }
-  void prevAbove;
 
   for (const target of w.entities) {
     if (!target.alive || target === shooter) continue;
@@ -298,5 +440,4 @@ export function eliminate(w: World, target: Entity, byId: string, cause: 'shot' 
   const killer = byId ? w.entities.find((e) => e.id === byId) : null;
   if (killer && killer !== target) killer.kills += 1;
   pushEvent(w, { type: 'entityEliminated', entityId: target.id, byId, cause });
-  void dist3D;
 }

@@ -67,3 +67,16 @@ export const MOVEMENT: MovementConfig = {
   sprintSpeed: 8.6,
   turnSpeed: 6,
 };
+
+/** 弹道（ballistics）物理参数 —— AC4「命中判定基于弹道与目标包围盒」的数值来源（玩法缺口补齐项） */
+export interface BallisticConfig {
+  /** 弹道下坠重力加速度（m/s²），下坠量 = 0.5 × g × t²，t = 距离 / 弹速 */
+  gravityMps2: number;
+  /** 弹道扫描分段长度（m）：抛物线弹道按该步长折线扫描命中（射线扫描判定，架构 §3.1） */
+  segmentM: number;
+}
+
+export const BALLISTIC: BallisticConfig = {
+  gravityMps2: 9.81,
+  segmentM: 25,
+};

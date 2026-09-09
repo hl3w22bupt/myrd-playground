@@ -32,6 +32,28 @@ export interface WeaponDef {
   ammoType: string;
 }
 
+/** 后坐力调参（全武器共用系数，实际踢枪量 = 武器 recoil × 系数；数值唯一来源，禁止在 core 硬编码） */
+export interface RecoilTuning {
+  /** 每发垂直踢枪（rad，向上）= recoil × 该系数 */
+  pitchKickPerRecoil: number;
+  /** 每发水平踢枪（rad，随机方向）= recoil × 该系数 */
+  yawKickPerRecoil: number;
+  /** 停火后坐力恢复速率（rad/s，垂直与水平同率衰减到 0） */
+  recoverPerSec: number;
+  /** 后坐力垂直偏移上限（rad） */
+  maxPitchOffset: number;
+  /** 后坐力水平偏移上限（rad） */
+  maxYawOffset: number;
+}
+
+export const RECOIL_TUNING: RecoilTuning = {
+  pitchKickPerRecoil: 0.012,
+  yawKickPerRecoil: 0.005,
+  recoverPerSec: 20,
+  maxPitchOffset: 0.35,
+  maxYawOffset: 0.12,
+};
+
 export const WEAPONS: Record<WeaponId, WeaponDef> = {
   ar_m4: {
     id: 'ar_m4',

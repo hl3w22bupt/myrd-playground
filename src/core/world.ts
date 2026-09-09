@@ -3,6 +3,7 @@
  */
 
 import type { ContentPack } from '../content';
+import type { AiPersonaId } from '../content/ai';
 import { INVENTORY_GRIDS, MAX_HP } from '../content/constants';
 import type {
   EntityKind,
@@ -61,6 +62,12 @@ export interface Entity {
   firing: boolean;
   /** 连射散布扩张（后坐力 bloom） */
   bloom: number;
+  /** 后坐力垂直偏移（rad，踢枪累积，独立于瞄准，弹道方向 = pitch + recoilPitch） */
+  recoilPitch: number;
+  /** 后坐力水平偏移（rad，随机方向踢枪） */
+  recoilYaw: number;
+  /** AI 行为人格（多样化，见 content/ai.AI_PERSONALITIES） */
+  aiPersona: AiPersonaId;
   /** 本 tick 解析后的意图状态（由 applyIntent 写入，各系统消费） */
   moveDirX: number;
   moveDirZ: number;
@@ -103,6 +110,13 @@ export interface PlaneState {
   start: Vec3;
 }
 
+export interface AirdropCrate {
+  id: string;
+  pos: Vec3;
+  phase: 'falling' | 'landed';
+  landedAtMs: number | null;
+}
+
 export interface ZoneState {
   phase: number;
   mode: 'wait' | 'shrink' | 'done';
@@ -130,6 +144,9 @@ export interface World {
   zone: ZoneState;
   buildings: AABB[];
   dropHints: Vec3[];
+  /** 空投箱（含下落中与已落地） */
+  airdrops: AirdropCrate[];
+  airdropSeq: number;
   events: GameEvent[];
   result: MatchResult | null;
   rng: {
@@ -139,6 +156,7 @@ export interface World {
     combat: Rng;
     plane: Rng;
     zone: Rng;
+    airdrop: Rng;
   };
 }
 
@@ -178,6 +196,9 @@ export function createEntity(
     medkitItemSlot: null,
     firing: false,
     bloom: 0,
+    recoilPitch: 0,
+    recoilYaw: 0,
+    aiPersona: 'assault',
     moveDirX: 0,
     moveDirZ: 0,
     moveSprint: false,
@@ -211,4 +232,10 @@ export function pushEvent(w: World, ev: GameEvent): void {
 /** 背包剩余格子 */
 export function freeGrids(e: Entity): number {
   return e.inventory.length - e.usedGrids;
+}
+
+/** 取消医疗引导（开火/被打断时调用，急救语义：持枪射击即中断包扎） */
+export function cancelMedkitChannel(e: Entity): void {
+  e.medkitUntilMs = null;
+  e.medkitItemSlot = null;
 }

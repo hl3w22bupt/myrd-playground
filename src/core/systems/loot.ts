@@ -57,10 +57,16 @@ export function generateLoot(w: World): void {
 
 function spawnLoot(w: World, x: number, z: number, zone: { pool: Array<{ item: ItemId; weight: number }> }): void {
   const item = w.rng.loot.weighted(zone.pool);
+  spawnLootAt(w, x, z, item);
+}
+
+/** 在指定位置直接生成一份物资（空投落地散布/丢弃用；确定性由调用方 rng 子流决定） */
+export function spawnLootAt(w: World, x: number, z: number, item: ItemId): LootItem {
   const pos: Vec3 = { x, y: terrainHeightAt(w.pack, x, z) + 0.25, z };
   const loot: LootItem = { id: `loot_${lootSeq++}`, item, pos, taken: false };
   w.loots.push(loot);
   pushEvent(w, { type: 'lootSpawned', id: loot.id, pos, item });
+  return loot;
 }
 
 function lootDef(w: World, item: ItemId) {

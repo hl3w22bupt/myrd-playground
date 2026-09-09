@@ -6,18 +6,53 @@
 
 import { EYE_HEIGHT, PICKUP_RADIUS_M } from '../../content/constants';
 import { MAP_HALF } from '../../content/constants';
+import { AI_PERSONALITIES, AI_HEAL_HP_RATIO } from '../../content/ai';
+import type { AiPersonaId } from '../../content/ai';
 import type { World, Entity } from '../world';
 import type { PlayerIntent } from '../types';
 import { dist2D } from '../geom';
 import { hasLineOfSight, activeWeapon, weaponDef } from './combat';
 import { terrainHeightAt } from '../mapgen';
 
-/** AI 初始化：跳伞时机 + 落点偏好（随机城区 + 确定性抖动） */
+/** 该实体人格命中的 AiPersonaDef（未知 id 回落突击手，防御性兜底） */
+function personaDefOf(e: Entity) {
+  return AI_PERSONALITIES[e.aiPersona] ?? AI_PERSONALITIES.assault;
+}
+
+/**
+ * 该 AI 的生效行为参数（人格 × 全局 AI 配置的乘数，数值来源 content/ai）。
+ * 供 AI 决策系统内部与 aiPersona.spec 断言使用。
+ */
+export function aiPersonaParams(w: World, e: Entity): {
+  personaId: AiPersonaId;
+  visionRange: number;
+  fireRange: number;
+  reactionMs: number;
+  aimErrMul: number;
+  lootRange: number;
+} {
+  const cfg = w.pack.ai;
+  const p = personaDefOf(e);
+  return {
+    personaId: p.id,
+    visionRange: cfg.visionRange * p.visionMul,
+    fireRange: cfg.fireRange * p.fireRangeMul,
+    reactionMs: cfg.reactionMs * p.reactionMsMul,
+    aimErrMul: p.aimErrMul,
+    lootRange: cfg.lootSearchRange * p.lootRangeMul,
+  };
+}
+
+/** AI 初始化：跳伞时机 + 落点偏好（随机城区 + 确定性抖动）+ 行为人格（按权重抽取，确定性） */
 export function initAi(w: World): void {
   const cfg = w.pack.ai;
   const urbanList = w.pack.map.urbanAreas;
+  const personaIds = Object.keys(AI_PERSONALITIES) as AiPersonaId[];
+  const personaEntries = personaIds.map((id) => ({ item: id, weight: AI_PERSONALITIES[id].weight }));
   for (const e of w.entities) {
     if (e.kind !== 'ai') continue;
+    // 人格先行抽取：决定后续各决策分支的瞄准误差/反应/视野/交火距离等（同一 rng 流，确定性）
+    e.aiPersona = w.rng.ai.weighted(personaEntries);
     const [lo, hi] = cfg.jumpWindowSec;
     e.aiJumpAtMs = w.rng.ai.range(lo, hi) * 1000;
     const urban = urbanList[w.rng.ai.int(0, urbanList.length - 1)];
@@ -117,14 +152,15 @@ function decide(w: World, e: Entity): void {
 
     const slot = activeWeapon(e);
     const d = dist2D(e.pos.x, e.pos.z, target.pos.x, target.pos.z);
+    const pp = aiPersonaParams(w, e);
     if (slot && slot.magazine <= 0) {
       e.firing = false;
       intents.push({ kind: 'reload' });
     } else {
       const canFire =
         slot !== null &&
-        d <= Math.min(cfg.fireRange, weaponDef(w, slot.weapon).maxRange * 0.9) &&
-        w.elapsedMs - e.aiFirstSeenMs >= cfg.reactionMs &&
+        d <= Math.min(pp.fireRange, weaponDef(w, slot.weapon).maxRange * 0.9) &&
+        w.elapsedMs - e.aiFirstSeenMs >= pp.reactionMs &&
         e.reloadUntilMs === null;
       e.firing = canFire;
       if (canFire) {
@@ -142,7 +178,19 @@ function decide(w: World, e: Entity): void {
 
   e.firing = false;
 
-  // 4) 次级拾取（缺医疗/护甲），仅无目标可见时
+  // 4) 低血治疗（仅无目标可见时）：hp 低于 AI_HEAL_HP_RATIO 且有医疗包 → 使用（与玩家同急救通道）
+  if (e.hp < e.maxHp * AI_HEAL_HP_RATIO && e.medkitUntilMs === null) {
+    const med = e.inventory.findIndex((s) => s !== null && s.item === 'medkit_large');
+    if (med >= 0) {
+      e.aiState = 'loot';
+      e.aiTargetId = null;
+      intents.push({ kind: 'useItem', slot: med });
+      e.pendingIntents = intents;
+      return;
+    }
+  }
+
+  // 5) 次级拾取（缺医疗/护甲），仅无目标可见时
   if (needsLoot(e)) {
     const loot = findNearbyLoot(w, e);
     if (loot) {
@@ -204,8 +252,10 @@ function aimIntent(w: World, e: Entity, target: Entity): PlayerIntent {
   const dy = aimY - (e.pos.y + EYE_HEIGHT);
   const dz = target.pos.z - e.pos.z;
   const flat = Math.hypot(dx, dz) || 1;
-  const errYaw = w.rng.ai.gaussian() * 0.006 * w.pack.ai.spreadMultiplier;
-  const errPitch = w.rng.ai.gaussian() * 0.004 * w.pack.ai.spreadMultiplier;
+  // 瞄准误差基准 × 人格 aimErrMul（狙击手更准，游击兵更散）
+  const pp = aiPersonaParams(w, e);
+  const errYaw = w.rng.ai.gaussian() * 0.006 * w.pack.ai.spreadMultiplier * pp.aimErrMul;
+  const errPitch = w.rng.ai.gaussian() * 0.004 * w.pack.ai.spreadMultiplier * pp.aimErrMul;
   return {
     kind: 'aim',
     yaw: Math.atan2(dz, dx) + errYaw,
@@ -219,14 +269,14 @@ function norm(from: number, to: number): number {
 }
 
 function findVisibleEnemy(w: World, e: Entity): Entity | null {
-  const cfg = w.pack.ai;
+  const visionRange = aiPersonaParams(w, e).visionRange;
   let best: Entity | null = null;
   let bestD = Infinity;
   for (const other of w.entities) {
     if (other === e || !other.alive) continue;
     if (other.state !== 'ground') continue;
     const d = dist2D(e.pos.x, e.pos.z, other.pos.x, other.pos.z);
-    if (d > cfg.visionRange || d >= bestD) continue;
+    if (d > visionRange || d >= bestD) continue;
     const eye = { x: e.pos.x, y: e.pos.y + EYE_HEIGHT, z: e.pos.z };
     const tgt = { x: other.pos.x, y: other.pos.y + EYE_HEIGHT, z: other.pos.z };
     if (!hasLineOfSight(w, eye, tgt)) continue;
@@ -266,7 +316,7 @@ function weaponDefOf(id: string): { ammoType: string } {
 }
 
 function findNearbyLoot(w: World, e: Entity): { id: string; pos: { x: number; z: number } } | null {
-  const range = w.pack.ai.lootSearchRange;
+  const range = aiPersonaParams(w, e).lootRange;
   let best: { id: string; pos: { x: number; z: number } } | null = null;
   let bestD = Infinity;
   for (const l of w.loots) {

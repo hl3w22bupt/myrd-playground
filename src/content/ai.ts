@@ -34,3 +34,49 @@ export const AI: AiConfig = {
   jumpWindowSec: [12, 42],
   waypointReachDist: 8,
 };
+
+/** AI 行为人格（行为多样化，玩法缺口补齐项）：所有数值均为对 AI 全局参数的乘数，避免第二套魔数 */
+export type AiPersonaId = 'assault' | 'sniper' | 'skirmisher' | 'looter';
+
+export interface AiPersonaDef {
+  id: AiPersonaId;
+  name: string;
+  /** 分配权重（initAi 按权重从 rng.ai 抽取，确定性） */
+  weight: number;
+  /** 视野半径乘数 */
+  visionMul: number;
+  /** 交火距离乘数 */
+  fireRangeMul: number;
+  /** 开火反应时间乘数 */
+  reactionMsMul: number;
+  /** 瞄准误差乘数（越大越不准） */
+  aimErrMul: number;
+  /** 拾取搜索半径乘数 */
+  lootRangeMul: number;
+}
+
+export const AI_PERSONALITIES: Record<AiPersonaId, AiPersonaDef> = {
+  assault: {
+    id: 'assault', name: '突击手', weight: 4,
+    visionMul: 1.0, fireRangeMul: 1.0, reactionMsMul: 0.8, aimErrMul: 1.0,
+    lootRangeMul: 0.9,
+  },
+  sniper: {
+    id: 'sniper', name: '狙击手', weight: 2,
+    visionMul: 1.6, fireRangeMul: 2.0, reactionMsMul: 1.6, aimErrMul: 0.7,
+    lootRangeMul: 0.8,
+  },
+  skirmisher: {
+    id: 'skirmisher', name: '游击兵', weight: 3,
+    visionMul: 1.1, fireRangeMul: 0.7, reactionMsMul: 0.6, aimErrMul: 1.25,
+    lootRangeMul: 1.0,
+  },
+  looter: {
+    id: 'looter', name: '搜刮者', weight: 3,
+    visionMul: 0.8, fireRangeMul: 0.6, reactionMsMul: 1.4, aimErrMul: 1.1,
+    lootRangeMul: 1.6,
+  },
+};
+
+/** AI 低血治疗阈值（无可见敌人且 hp 低于 maxHp × 该值时使用医疗包） */
+export const AI_HEAL_HP_RATIO = 0.7;

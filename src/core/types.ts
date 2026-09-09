@@ -59,6 +59,8 @@ export type GameEvent =
   | { type: 'zonePhaseChanged'; phase: number; center: Vec3; radius: number; nextCenter: Vec3; nextRadius: number; dps: number }
   | { type: 'playerStateChanged'; entityId: string; state: PlayerState }
   | { type: 'itemUsed'; entityId: string; item: ItemId }
+  | { type: 'airdropIncoming'; id: string; pos: Vec3 }
+  | { type: 'airdropLanded'; id: string; pos: Vec3 }
   | { type: 'matchEnded'; result: MatchResult };
 
 export interface EntitySnapshot {
@@ -111,6 +113,13 @@ export interface LootSnapshot {
   pos: Vec3;
 }
 
+/** 空投箱快照（渲染层只读数据源） */
+export interface AirdropSnapshot {
+  id: string;
+  pos: Vec3;
+  phase: 'falling' | 'landed';
+}
+
 export interface ZoneSnapshot {
   center: Vec3;
   radius: number;
@@ -136,6 +145,7 @@ export interface WorldSnapshot {
   entities: EntitySnapshot[];
   player: PlayerViewSnapshot | null;
   loots: LootSnapshot[];
+  airdrops: AirdropSnapshot[];
   zone: ZoneSnapshot;
   plane: PlaneSnapshot | null;
 }
