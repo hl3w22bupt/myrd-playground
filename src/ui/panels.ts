@@ -35,7 +35,7 @@ export class StartScreen {
         <button class="primary" data-ref="start">开始对局</button>
         <div class="controls">
           <b>操作</b>：点击画面锁定鼠标 · WASD 移动 · Shift 疾跑/俯冲 · 左键射击 · R 换弹 · 1/2 切枪 ·
-          E 拾取 · Q 使用医疗包 · F 跳伞 · 空格 开伞 · Tab 背包 · Esc 释放鼠标
+          E 拾取 · Q 使用医疗物资 · G 丢弃当前武器 · F 跳伞 · 空格 开伞 · Tab 背包 · Esc 释放鼠标
         </div>
       </div>
     `;
@@ -62,6 +62,7 @@ export class StartScreen {
 export class InventoryPanel {
   private root: HTMLDivElement;
   private grid: HTMLDivElement;
+  private weaponsBox: HTMLDivElement;
   private match: MatchHandle | null = null;
   visible = false;
   /** 背包内容签名：内容不变不重建 DOM */
@@ -74,12 +75,14 @@ export class InventoryPanel {
     this.root.innerHTML = `
       <div class="panel small">
         <h2>背包</h2>
+        <div class="inv-weapons" data-ref="weapons"></div>
         <div class="inv-grid" data-ref="grid"></div>
-        <p class="hint">点击物品丢弃 · Q 使用医疗包 · Tab 关闭</p>
+        <p class="hint">医疗物资可「使用」 · 点击「丢弃」移除 · Q 快捷用药 · G 丢当前武器 · Tab 关闭</p>
       </div>
     `;
     container.appendChild(this.root);
     this.grid = this.root.querySelector('[data-ref="grid"]') as HTMLDivElement;
+    this.weaponsBox = this.root.querySelector('[data-ref="weapons"]') as HTMLDivElement;
   }
 
   bind(match: MatchHandle): void {
@@ -101,21 +104,64 @@ export class InventoryPanel {
       : this.match.snapshot();
     const p = snap.player;
     if (!p) return;
-    const signature = inventorySignature(p.usedGrids, p.inventory);
+    const weaponSig = p.weapons.map((s) => (s ? `${s.weapon}:${s.magazine}` : '-')).join('|');
+    const signature = inventorySignature(p.usedGrids, p.inventory) + '#' + weaponSig;
     if (signature === this.lastSignature) return;
     this.lastSignature = signature;
+
+    // 武器槽（可丢弃腾槽）
+    this.weaponsBox.innerHTML = '';
+    p.weapons.forEach((s, i) => {
+      const row = document.createElement('div');
+      row.className = 'inv-weapon' + (s ? ' filled' : '');
+      if (s) {
+        const def = ITEMS[`weapon_${s.weapon}` as keyof typeof ITEMS];
+        row.innerHTML = `<b>${i + 1}. ${def?.name ?? s.weapon}</b><span>弹 ${s.magazine}</span>`;
+        const btn = document.createElement('button');
+        btn.className = 'inv-btn';
+        btn.textContent = '丢弃';
+        btn.addEventListener('click', () => {
+          this.onDropWeapon(i);
+          this.lastSignature = null;
+          this.render();
+        });
+        row.appendChild(btn);
+      } else {
+        row.innerHTML = `<b>${i + 1}.</b><span class="inv-empty">空武器槽</span>`;
+      }
+      this.weaponsBox.appendChild(row);
+    });
+
+    // 背包格子（医疗物资带使用按钮，其余丢弃按钮）
     this.grid.innerHTML = '';
     p.inventory.forEach((slot, i) => {
       const cell = document.createElement('div');
       cell.className = 'inv-cell' + (slot ? ' filled' : '');
       if (slot) {
         const def = ITEMS[slot.item as keyof typeof ITEMS];
-        cell.innerHTML = `<b>${def?.name ?? slot.item}</b><span>×${slot.count}</span>`;
-        cell.title = '点击丢弃';
-        cell.addEventListener('click', () => {
+        const label = document.createElement('div');
+        label.innerHTML = `<b>${def?.name ?? slot.item}</b><span>×${slot.count}</span>`;
+        cell.appendChild(label);
+        if (def?.kind === 'medkit') {
+          const useBtn = document.createElement('button');
+          useBtn.className = 'inv-btn use';
+          useBtn.textContent = '使用';
+          useBtn.addEventListener('click', () => {
+            this.onUse(i);
+            this.lastSignature = null;
+            this.render();
+          });
+          cell.appendChild(useBtn);
+        }
+        const dropBtn = document.createElement('button');
+        dropBtn.className = 'inv-btn';
+        dropBtn.textContent = '丢弃';
+        dropBtn.addEventListener('click', () => {
           this.onDrop(i);
+          this.lastSignature = null;
           this.render();
         });
+        cell.appendChild(dropBtn);
       }
       this.grid.appendChild(cell);
     });
@@ -128,9 +174,19 @@ export class InventoryPanel {
   }
 
   private onDrop: (slot: number) => void = () => {};
+  private onUse: (slot: number) => void = () => {};
+  private onDropWeapon: (slot: number) => void = () => {};
 
   onDropAction(fn: (slot: number) => void): void {
     this.onDrop = fn;
+  }
+
+  onUseAction(fn: (slot: number) => void): void {
+    this.onUse = fn;
+  }
+
+  onDropWeaponAction(fn: (slot: number) => void): void {
+    this.onDropWeapon = fn;
   }
 
   dispose(): void {

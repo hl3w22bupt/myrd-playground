@@ -279,8 +279,12 @@ describe('HUD 字段级脏检查（ui/hudState）', () => {
         kills: 0,
         aliveCount,
         medkitChannelMsLeft: 0,
+        recoilPitch: 0,
+        recoilYaw: 0,
       },
       loots: [],
+      projectiles: [],
+      airdrops: [],
       zone: {
         center: { x: 800, y: 0, z: 800 },
         radius: 600,

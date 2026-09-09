@@ -158,6 +158,27 @@ export class Hud {
         this.hitmarkerUntil = performance.now() + HITMARKER_MS;
       } else if (ev.type === 'shotFired' && ev.entityId === 'player') {
         this.crosshairKickUntil = performance.now() + CROSSHAIR_KICK_MS;
+      } else if (ev.type === 'airdropIncoming') {
+        const row = document.createElement('div');
+        row.className = 'killfeed-row airdrop';
+        row.textContent = '📦 空投正在投下，注意小地图标记';
+        this.killFeed.prepend(row);
+        setTimeout(() => row.remove(), 8000);
+        while (this.killFeed.children.length > 6) this.killFeed.lastChild?.remove();
+      } else if (ev.type === 'airdropLanded') {
+        const row = document.createElement('div');
+        row.className = 'killfeed-row airdrop';
+        row.textContent = '📦 空投已落地：高级物资可拾取';
+        this.killFeed.prepend(row);
+        setTimeout(() => row.remove(), 8000);
+        while (this.killFeed.children.length > 6) this.killFeed.lastChild?.remove();
+      } else if (ev.type === 'medkitInterrupted' && ev.entityId === 'player') {
+        const row = document.createElement('div');
+        row.className = 'killfeed-row warn';
+        row.textContent = '⚠ 治疗被打断';
+        this.killFeed.prepend(row);
+        setTimeout(() => row.remove(), 3000);
+        while (this.killFeed.children.length > 6) this.killFeed.lastChild?.remove();
       } else if (ev.type === 'matchEnded') {
         void match;
       }

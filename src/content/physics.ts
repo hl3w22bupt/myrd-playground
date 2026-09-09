@@ -67,3 +67,25 @@ export const MOVEMENT: MovementConfig = {
   sprintSpeed: 8.6,
   turnSpeed: 6,
 };
+
+/** 弹道与后坐力参数（弹道下坠线：投射物重力 / 后坐力偏移与恢复） */
+export interface BallisticConfig {
+  /** 投射物重力加速度（m/s²，作用于弹丸垂直速度 → 弹道下坠） */
+  projectileGravity: number;
+  /** 单发后坐力垂直上抬系数（rad × recoil） */
+  recoilPitchK: number;
+  /** 单发后坐力水平抖动标准差系数（rad × recoil，高斯） */
+  recoilYawK: number;
+  /** 后坐力恢复速率（指数衰减 /s）：停火后瞄准偏移回零 */
+  recoilRecoverPerSec: number;
+  /** 引导（医疗）中移动速度倍率 */
+  channelMoveSpeedMul: number;
+}
+
+export const BALLISTIC: BallisticConfig = {
+  projectileGravity: 9.8,
+  recoilPitchK: 0.0075,
+  recoilYawK: 0.0032,
+  recoilRecoverPerSec: 11,
+  channelMoveSpeedMul: 0.5,
+};

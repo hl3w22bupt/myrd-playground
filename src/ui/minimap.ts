@@ -148,6 +148,25 @@ export class Minimap {
       ctx.fill();
     }
 
+    // 空投标记（红色方箱：下落中闪烁边框，已落地实心）
+    for (const a of snap.airdrops) {
+      const ax = a.pos.x * k;
+      const az = a.pos.z * k;
+      if (a.state === 'falling') {
+        ctx.strokeStyle = '#ff5a4a';
+        ctx.lineWidth = 1.4;
+        ctx.strokeRect(ax - 3.5, az - 3.5, 7, 7);
+        ctx.fillStyle = 'rgba(255,90,74,0.45)';
+        ctx.fillRect(ax - 3.5, az - 3.5, 7, 7);
+      } else {
+        ctx.fillStyle = '#ff5a4a';
+        ctx.fillRect(ax - 3, az - 3, 6, 6);
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(ax - 3, az - 3, 6, 6);
+      }
+    }
+
     // 玩家箭头 + 视野扇形
     const p = snap.entities.find((e) => e.id === 'player');
     if (p) {

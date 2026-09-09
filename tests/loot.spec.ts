@@ -127,13 +127,14 @@ describe('AC3 物资拾取与生效', () => {
     const w = makeWorld(104);
     const p = placeOnGround(w, 500, 500);
 
-    // 背包塞满医疗包（每个占 2 格）
-    const medGrids = Math.floor(INVENTORY_GRIDS / MEDKIT.gridCost);
-    for (let i = 0; i < medGrids; i++) {
+    // 背包塞满医疗箱（每堆叠格 2 个占 2 格，堆叠上限 stackMax）
+    const stacks = Math.floor(INVENTORY_GRIDS / MEDKIT.gridCost);
+    const total = stacks * MEDKIT.stackMax;
+    for (let i = 0; i < total; i++) {
       w.loots.push({ id: `t_m${i}`, item: 'medkit_large', pos: vec3(500.5, 0, 500.5), taken: false });
       tickWorld(w, [{ kind: 'interact' }]);
     }
-    expect(p.usedGrids).toBe(medGrids * ITEMS.medkit_large.gridCost);
+    expect(p.usedGrids).toBe(stacks * MEDKIT.gridCost);
 
     // 再拾取一个弹药（占 2 格）应失败（容量满）
     const before = w.loots.length;
@@ -143,10 +144,13 @@ describe('AC3 物资拾取与生效', () => {
     const over = w.loots.find((l) => l.id === 't_over');
     expect(over?.taken).toBe(false);
 
-    // 丢弃：背包清出格子，物资出现在脚下
+    // 丢弃：清空一个堆叠格（stackMax 个全部丢完），物资出现在脚下
     const slot = p.inventory.findIndex((s) => s?.item === 'medkit_large');
-    tickWorld(w, [{ kind: 'drop', slot }]);
+    for (let i = 0; i < MEDKIT.stackMax; i++) {
+      tickWorld(w, [{ kind: 'drop', slot }]);
+    }
     expect(p.inventory[slot]).toBeNull();
-    expect(w.loots.length).toBe(before + 2); // 拒绝拾取的那份 + 丢弃的那份
+    expect(p.usedGrids).toBe((stacks - 1) * MEDKIT.gridCost);
+    expect(w.loots.length).toBe(before + 1 + MEDKIT.stackMax); // 拒绝拾取的那份 + 丢弃的 stackMax 份
   });
 });

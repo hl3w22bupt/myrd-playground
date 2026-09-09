@@ -16,7 +16,9 @@ export function updateMovement(w: World): void {
     if (!e.alive || e.state !== 'ground') continue;
     const mag = Math.hypot(e.moveDirX, e.moveDirZ);
     if (mag > 1e-4) {
-      const speed = (e.moveSprint ? cfg.sprintSpeed : cfg.walkSpeed);
+      // 医疗引导中：禁疾跑且移速减半（血包急救线，数值来自 ballistic.channelMoveSpeedMul）
+      const channelMul = e.medkitUntilMs !== null ? w.pack.physics.ballistic.channelMoveSpeedMul : 1;
+      const speed = (e.moveSprint && channelMul === 1 ? cfg.sprintSpeed : cfg.walkSpeed) * channelMul;
       const dx = (e.moveDirX / mag) * speed * dtSec;
       const dz = (e.moveDirZ / mag) * speed * dtSec;
 

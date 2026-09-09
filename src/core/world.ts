@@ -61,6 +61,9 @@ export interface Entity {
   firing: boolean;
   /** 连射散布扩张（后坐力 bloom） */
   bloom: number;
+  /** 后坐力瞄准偏移（rad，射击时生效，停火后按恢复速率回零） */
+  recoilPitch: number;
+  recoilYaw: number;
   /** 本 tick 解析后的意图状态（由 applyIntent 写入，各系统消费） */
   moveDirX: number;
   moveDirZ: number;
@@ -76,14 +79,18 @@ export interface Entity {
   wantSwitch: number | null;
   wantDrop: number | null;
   wantUse: number | null;
+  wantDropWeapon: number | null;
   /** AI */
-  aiState: 'patrol' | 'loot' | 'seek' | 'fire' | 'fleeZone' | 'dead';
+  aiState: 'patrol' | 'loot' | 'seek' | 'fire' | 'fleeZone' | 'heal' | 'retreat' | 'airdrop' | 'dead';
+  /** AI 人格（initAi 时按权重抽选，驱动交火/撤退/治疗/抢空投倾向） */
+  aiPersonality: 'aggressive' | 'balanced' | 'cautious';
   aiWaypoint: Vec3 | null;
   aiTargetId: string | null;
   aiLastSeenMs: number;
   aiFirstSeenMs: number;
   aiJumpAtMs: number | null;
   aiLootId: string | null;
+  aiAirdropId: string | null;
   aiDecisionOffset: number;
   /** 意图缓存：AI 每次决策重写整表，各 tick 全量应用（与玩家意图同通道） */
   pendingIntents: PlayerIntent[];
@@ -101,6 +108,25 @@ export interface PlaneState {
   pos: Vec3;
   dir: Vec3;
   start: Vec3;
+}
+
+/** 在飞投射物（弹道下坠线：重力积分 + 线段 ray-march 命中） */
+export interface Projectile {
+  id: number;
+  shooterId: string;
+  weapon: WeaponId;
+  pos: Vec3;
+  prev: Vec3;
+  vel: Vec3;
+  /** 已飞行距离（m，用于射程上限与伤害距离衰减） */
+  traveled: number;
+}
+
+/** 空投（falling 下落中 → landed 已落地，落地时物资包已生成在箱周） */
+export interface Airdrop {
+  id: string;
+  pos: Vec3;
+  state: 'falling' | 'landed';
 }
 
 export interface ZoneState {
@@ -132,6 +158,10 @@ export interface World {
   dropHints: Vec3[];
   events: GameEvent[];
   result: MatchResult | null;
+  projectiles: Projectile[];
+  airdrops: Airdrop[];
+  /** 已触发过空投的缩圈阶段（防空投重复投放） */
+  airdropTriggeredPhases: number[];
   rng: {
     map: Rng;
     loot: Rng;
@@ -139,6 +169,7 @@ export interface World {
     combat: Rng;
     plane: Rng;
     zone: Rng;
+    airdrop: Rng;
   };
 }
 
@@ -178,6 +209,8 @@ export function createEntity(
     medkitItemSlot: null,
     firing: false,
     bloom: 0,
+    recoilPitch: 0,
+    recoilYaw: 0,
     moveDirX: 0,
     moveDirZ: 0,
     moveSprint: false,
@@ -192,13 +225,16 @@ export function createEntity(
     wantSwitch: null,
     wantDrop: null,
     wantUse: null,
+    wantDropWeapon: null,
     aiState: 'patrol',
+    aiPersonality: 'balanced',
     aiWaypoint: null,
     aiTargetId: null,
     aiLastSeenMs: -1e9,
     aiFirstSeenMs: -1e9,
     aiJumpAtMs: null,
     aiLootId: null,
+    aiAirdropId: null,
     aiDecisionOffset: index % 4,
     pendingIntents: [],
   };

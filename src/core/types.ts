@@ -42,7 +42,10 @@ export type PlayerIntent =
   | { kind: 'switchWeapon'; slot: number }
   | { kind: 'interact' }
   | { kind: 'drop'; slot: number }
+  /** slot=-1 表示自动选用最合适的医疗物资（血包急救线） */
   | { kind: 'useItem'; slot: number }
+  /** 丢弃武器槽中的武器（空投换枪/背包管理） */
+  | { kind: 'dropWeapon'; slot: number }
   | { kind: 'jumpFromPlane' }
   | { kind: 'freefallControl'; dirX: number; dirZ: number; dive: number }
   | { kind: 'deployParachute' };
@@ -54,11 +57,19 @@ export type GameEvent =
   | { type: 'lootPickedUp'; entityId: string; item: ItemId; pos: Vec3 }
   | { type: 'weaponEquipped'; entityId: string; weapon: WeaponId }
   | { type: 'shotFired'; entityId: string; weapon: WeaponId; origin: Vec3; dir: Vec3; end: Vec3; hitEntity: boolean }
+  /** 投射物命中/落地（弹道下坠线）：hitEntity 时伴随 damageDealt */
+  | { type: 'projectileImpact'; shooterId: string; pos: Vec3; hitEntity: boolean }
   | { type: 'damageDealt'; target: string; byId: string; amount: number; bodyPart: BodyPart; lethal: boolean }
   | { type: 'entityEliminated'; entityId: string; byId: string; cause: EliminationCause }
   | { type: 'zonePhaseChanged'; phase: number; center: Vec3; radius: number; nextCenter: Vec3; nextRadius: number; dps: number }
   | { type: 'playerStateChanged'; entityId: string; state: PlayerState }
   | { type: 'itemUsed'; entityId: string; item: ItemId }
+  /** 医疗引导被打断（血包急救线：受击/开火打断） */
+  | { type: 'medkitInterrupted'; entityId: string; item: ItemId }
+  /** 空投投下（开始下落） */
+  | { type: 'airdropIncoming'; id: string; pos: Vec3 }
+  /** 空投落地 */
+  | { type: 'airdropLanded'; id: string; pos: Vec3 }
   | { type: 'matchEnded'; result: MatchResult };
 
 export interface EntitySnapshot {
@@ -91,6 +102,9 @@ export interface PlayerViewSnapshot {
   kills: number;
   aliveCount: number;
   medkitChannelMsLeft: number;
+  /** 后坐力瞄准偏移（rad，渲染相机叠加表现；仿真内射击已生效） */
+  recoilPitch: number;
+  recoilYaw: number;
 }
 
 export interface LootSnapshot {
@@ -117,6 +131,20 @@ export interface PlaneSnapshot {
   dir: Vec3;
 }
 
+/** 在飞投射物快照（弹道拖尾渲染用：prev→pos 短线段） */
+export interface ProjectileSnapshot {
+  id: number;
+  pos: Vec3;
+  prev: Vec3;
+}
+
+/** 空投快照（state: falling 下落中 / landed 已落地待拾取） */
+export interface AirdropSnapshot {
+  id: string;
+  pos: Vec3;
+  state: 'falling' | 'landed';
+}
+
 export interface WorldSnapshot {
   tick: number;
   elapsedMs: number;
@@ -126,6 +154,8 @@ export interface WorldSnapshot {
   loots: LootSnapshot[];
   zone: ZoneSnapshot;
   plane: PlaneSnapshot | null;
+  projectiles: ProjectileSnapshot[];
+  airdrops: AirdropSnapshot[];
   /** 玩家实体快照（entities 中 kind==='player' 的同一对象；渲染层免于逐帧 find 查找） */
   playerEntity?: EntitySnapshot | null;
 }

@@ -21,8 +21,10 @@ import { updateMovement } from './systems/movement';
 import { updateCombat } from './systems/combat';
 import { generateLoot, updateLoot } from './systems/loot';
 import { initZone, updateZone } from './systems/zone';
+import { updateAirdrops } from './systems/airdrop';
 import { initAi, updateAi } from './systems/ai';
 import { updateLifecycle, checkMatchEnd } from './systems/lifecycle';
+import { cancelMedkitChannel } from './systems/combat';
 import { SnapshotWriter } from './snapshot';
 import type {
   EntitySnapshot,
@@ -64,6 +66,7 @@ export function createWorldForTest(config: MatchConfig): World {
     ai: root.fork('ai'),
     combat: root.fork('combat'),
     zone: root.fork('zone'),
+    airdrop: root.fork('airdrop'),
   };
 
   const generated = generateMap(pack, rng.map);
@@ -117,6 +120,9 @@ export function createWorldForTest(config: MatchConfig): World {
     dropHints: generated.dropHints,
     events: [],
     result: null,
+    projectiles: [],
+    airdrops: [],
+    airdropTriggeredPhases: [],
     rng,
   };
 
@@ -134,10 +140,10 @@ export function tickWorld(w: World, intents: PlayerIntent[]): void {
   if (w.status === 'ended') return;
 
   // 1) 应用意图（玩家意图直通，AI 意图与玩家同通道消费）
-  for (const intent of intents) applyIntent(w.player, intent);
+  for (const intent of intents) applyIntent(w, w.player, intent);
   for (const e of w.entities) {
     if (e.kind !== 'ai') continue;
-    for (const intent of e.pendingIntents) applyIntent(e, intent);
+    for (const intent of e.pendingIntents) applyIntent(w, e, intent);
   }
 
   // 2) lifecycle（状态机推进）
@@ -160,14 +166,17 @@ export function tickWorld(w: World, intents: PlayerIntent[]): void {
   // 7) zone（缩圈 + 毒圈伤害）
   updateZone(w);
 
-  // 8) ai（分帧决策，产出下一拍意图）
+  // 8) airdrop（空投投放/下落/落地物资生成）
+  updateAirdrops(w);
+
+  // 9) ai（分帧决策，产出下一拍意图）
   updateAi(w);
 
-  // 9) 胜负判定
+  // 10) 胜负判定
   checkMatchEnd(w);
 }
 
-export function applyIntent(e: Entity, intent: PlayerIntent): void {
+export function applyIntent(w: World, e: Entity, intent: PlayerIntent): void {
   switch (intent.kind) {
     case 'move':
       e.moveDirX = intent.dirX;
@@ -179,6 +188,8 @@ export function applyIntent(e: Entity, intent: PlayerIntent): void {
       e.pitch = intent.pitch;
       break;
     case 'fire':
+      // 血包急救线：开火打断医疗引导
+      if (e.medkitUntilMs !== null) cancelMedkitChannel(w, e);
       e.firing = true;
       break;
     case 'stopFire':
@@ -198,6 +209,9 @@ export function applyIntent(e: Entity, intent: PlayerIntent): void {
       break;
     case 'useItem':
       e.wantUse = intent.slot;
+      break;
+    case 'dropWeapon':
+      e.wantDropWeapon = intent.slot;
       break;
     case 'jumpFromPlane':
       e.wantJump = true;
@@ -254,7 +268,16 @@ export function buildSnapshot(w: World): WorldSnapshot {
     kills: p.kills,
     aliveCount: w.entities.reduce((n, e) => n + (e.alive ? 1 : 0), 0),
     medkitChannelMsLeft: p.medkitUntilMs !== null ? Math.max(0, p.medkitUntilMs - w.elapsedMs) : 0,
+    recoilPitch: p.recoilPitch,
+    recoilYaw: p.recoilYaw,
   };
+
+  const projectiles = w.projectiles.map((p) => ({
+    id: p.id,
+    pos: { ...p.pos },
+    prev: { ...p.prev },
+  }));
+  const airdrops = w.airdrops.map((a) => ({ id: a.id, pos: { ...a.pos }, state: a.state }));
 
   return {
     tick: w.tick,
@@ -263,6 +286,8 @@ export function buildSnapshot(w: World): WorldSnapshot {
     entities,
     player,
     loots,
+    projectiles,
+    airdrops,
     playerEntity: entities.length > 0 && entities[0].id === w.player.id ? entities[0] : null,
     zone: {
       center: { ...w.zone.center },

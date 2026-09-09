@@ -27,12 +27,20 @@ const ENTITY_COLORS = { player: 0x4da3ff, ai: 0xd8564a } as const;
 const LOOT_COLORS: Record<string, number> = {
   weapon_ar_m4: 0xffd54a,
   weapon_smg_ump: 0xffb03a,
+  weapon_ar_groza: 0xffe08a,
   ammo_556: 0x9ad06a,
   ammo_45: 0x6fae4f,
   armor_vest: 0x5aa7d6,
+  armor_vest_l3: 0x3a7fb8,
   helmet_mk2: 0x7fbfe0,
+  helmet_l3: 0x4a9ed8,
+  bandage: 0xf2e8d8,
+  first_aid: 0xff8a80,
   medkit_large: 0xe8ecf2,
 };
+
+/** 空投箱渲染池上限（配置触发阶段数 + 余量） */
+const AIRDROP_POOL = 4;
 
 export class GameView {
   readonly renderer: THREE.WebGLRenderer;
@@ -66,6 +74,8 @@ export class GameView {
   private planeMesh: THREE.Group;
   private canopy: THREE.Mesh;
   private canopyFor: string | null = null;
+  /** 空投箱视图池（箱 + 伞盖；下落挂伞、落地收伞） */
+  private airdropViews: Array<{ group: THREE.Group; chute: THREE.Mesh; id: string | null }> = [];
 
   private tmpMat4 = new THREE.Matrix4();
   private tmpQuat = new THREE.Quaternion();
@@ -189,6 +199,26 @@ export class GameView {
     // —— 运输机 ——
     this.planeMesh = this.buildPlane();
     this.scene.add(this.planeMesh);
+
+    // —— 空投箱池（红箱 + 降落伞；下落可见、落地常驻标记） ——
+    for (let i = 0; i < AIRDROP_POOL; i++) {
+      const group = new THREE.Group();
+      const crate = new THREE.Mesh(
+        new THREE.BoxGeometry(1.3, 1.3, 1.3),
+        new THREE.MeshLambertMaterial({ color: 0xc23a2e }),
+      );
+      crate.castShadow = true;
+      group.add(crate);
+      const chute = new THREE.Mesh(
+        new THREE.SphereGeometry(2.6, 14, 7, 0, Math.PI * 2, 0, Math.PI / 2),
+        new THREE.MeshLambertMaterial({ color: 0xd8453a, side: THREE.DoubleSide }),
+      );
+      chute.position.y = 3.6;
+      group.add(chute);
+      group.visible = false;
+      this.scene.add(group);
+      this.airdropViews.push({ group, chute, id: null });
+    }
 
     // —— 降落伞 ——
     this.canopy = new THREE.Mesh(
@@ -323,6 +353,8 @@ export class GameView {
     this.syncLoot(snap);
     this.syncZone(snap);
     this.syncPlane(snap);
+    this.syncAirdrops(snap);
+    this.effects.updateProjectiles(snap.projectiles);
     this.effects.updateZoneDrift(snap.zone.center, snap.zone.radius, dtSec);
     this.effects.update(dtSec);
     this.updateCamera(snap, alpha);
@@ -504,14 +536,32 @@ export class GameView {
     }
   }
 
+  /** 空投箱同步：按快照 id 绑定视图池槽位；下落挂伞、落地收伞 */
+  private syncAirdrops(snap: WorldSnapshot): void {
+    const drops = snap.airdrops;
+    for (const v of this.airdropViews) {
+      v.group.visible = false;
+      v.id = null;
+    }
+    const n = Math.min(drops.length, this.airdropViews.length);
+    for (let i = 0; i < n; i++) {
+      const a = drops[i];
+      const v = this.airdropViews[i];
+      v.group.visible = true;
+      v.group.position.set(a.pos.x, a.pos.y, a.pos.z);
+      v.chute.visible = a.state === 'falling';
+      v.id = a.id;
+    }
+  }
+
   private updateCamera(snap: WorldSnapshot, _alpha: number): void {
     // 玩家实体直引（快照已带 playerEntity，避免每帧 entities.find 分配闭包与线性扫描）
     const p = snap.playerEntity ?? null;
     if (!p) return;
     const aimHeight = p.state === 'plane' ? 4 : 1.62;
-    // 第三人称：沿视线反方向偏移
-    const yaw = p.yaw;
-    const pitch = Math.max(-0.5, Math.min(0.9, p.pitch));
+    // 第三人称：沿视线反方向偏移；后坐力偏移叠加到相机 pitch（连射上抬的真实手感）
+    const yaw = p.yaw + (snap.player?.recoilYaw ?? 0);
+    const pitch = Math.max(-0.5, Math.min(0.9, p.pitch + (snap.player?.recoilPitch ?? 0)));
     const dist = p.state === 'plane' ? 26 : p.state === 'ground' ? 5.2 : 7.5;
     const cx = p.pos.x - Math.cos(yaw) * Math.cos(pitch) * dist;
     const cz = p.pos.z - Math.sin(yaw) * Math.cos(pitch) * dist;

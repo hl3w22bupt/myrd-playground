@@ -9,6 +9,7 @@ import type { World } from '../world';
 import type { Vec3 } from '../types';
 import { clamp, dist2D } from '../geom';
 import { pushEvent } from '../world';
+import { cancelMedkitChannel } from './combat';
 
 /** 初始化首圈与次圈（对局创建时调用） */
 export function initZone(w: World): void {
@@ -119,11 +120,14 @@ function applyZoneDamage(w: World): void {
   }
 }
 
-/** 毒圈伤害：不触发护甲减伤，归因 zone */
+/** 毒圈伤害：不触发护甲减伤，归因 zone；受击打断医疗引导（与枪击同规则） */
 function zoneDamage(w: World, target: { id: string; hp: number; alive: boolean }, amount: number): void {
   const e = w.entities.find((x) => x.id === target.id)!;
   if (!e.alive) return;
   e.hp -= amount;
+  if (e.medkitUntilMs !== null) {
+    cancelMedkitChannel(w, e);
+  }
   if (e.hp <= 0) {
     const aliveCount = w.entities.reduce((n, x) => n + (x.alive ? 1 : 0), 0);
     e.alive = false;

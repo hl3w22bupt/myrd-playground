@@ -3,7 +3,7 @@
  * 术语与数值以《Web大逃杀技术方案与性能红线》为准。
  */
 
-export type WeaponId = 'ar_m4' | 'smg_ump';
+export type WeaponId = 'ar_m4' | 'smg_ump' | 'ar_groza';
 export type WeaponCategory = 'ar' | 'smg';
 
 export interface WeaponDef {
@@ -62,6 +62,22 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     spread: 0.0022,
     projectileSpeed: 620,
     ammoType: 'ammo_45',
+  },
+  /** 空投专属步枪：高伤害高射速，仅空投产出（数值为本功能线新增，落配置表） */
+  ar_groza: {
+    id: 'ar_groza',
+    name: '步枪 Groza',
+    category: 'ar',
+    damage: 30,
+    rpm: 700,
+    magazine: 30,
+    reloadMs: 2400,
+    recoil: 0.5,
+    effectiveRange: 380,
+    maxRange: 520,
+    spread: 0.0021,
+    projectileSpeed: 880,
+    ammoType: 'ammo_556',
   },
 };
 

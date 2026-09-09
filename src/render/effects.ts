@@ -5,7 +5,7 @@
  */
 
 import * as THREE from 'three';
-import type { GameEvent, Vec3 } from '../core/types';
+import type { GameEvent, ProjectileSnapshot, Vec3 } from '../core/types';
 import {
   FLASH_POOL_SIZE,
   HIT_PARTICLE_COUNT,
@@ -176,15 +176,32 @@ export class EffectLayer {
   consumeEvents(events: GameEvent[], resolve: EntityPosResolver): void {
     for (const ev of events) {
       if (ev.type === 'shotFired') {
-        this.spawnTracer(ev.origin, ev.end);
+        // 枪口火焰即时表现；弹道拖尾由 updateProjectiles 跟随投射物（弹道下坠线）
         this.spawnFlash(ev.origin, ev.dir);
-        if (ev.hitEntity) this.burstAt(ev.end, ev.dir, 12, 0xff8a5a);
+      } else if (ev.type === 'projectileImpact') {
+        // 弹着点火花（命中实体时 damageDealt 事件并行驱动命中标记）
+        this.burstAt(ev.pos, { x: 0, y: 0.6, z: 0 }, ev.hitEntity ? 12 : 6, ev.hitEntity ? 0xff8a5a : 0xd8c9a0);
+      } else if (ev.type === 'airdropLanded') {
+        // 空投落地红色信号烟尘
+        this.burstAt(ev.pos, { x: 0, y: 1, z: 0 }, 26, 0xff5a4a, true);
       } else if (ev.type === 'entityEliminated') {
         const p = resolve(ev.entityId);
         if (p) this.burstAt(p, { x: 0, y: 0.4, z: 0 }, 34, 0xffd0a0, true);
       } else if (ev.type === 'zonePhaseChanged') {
         this.spawnPulse(ev.center, ev.radius);
       }
+    }
+  }
+
+  /** 投射物拖尾：每帧为每个在飞弹丸生成 prev→pos 短拖尾（跟随重力弧线） */
+  updateProjectiles(projectiles: readonly ProjectileSnapshot[]): void {
+    for (const p of projectiles) {
+      // 首 tick（prev===pos）不画，避免原点闪线
+      const dx = p.pos.x - p.prev.x;
+      const dy = p.pos.y - p.prev.y;
+      const dz = p.pos.z - p.prev.z;
+      if (dx * dx + dy * dy + dz * dz < 1e-6) continue;
+      this.spawnTracer(p.prev, p.pos);
     }
   }
 

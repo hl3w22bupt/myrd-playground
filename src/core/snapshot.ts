@@ -13,6 +13,7 @@
 
 import { ENTITY_CAP, INVENTORY_GRIDS } from '../content/constants';
 import type {
+  AirdropSnapshot,
   EntityKind,
   EntitySnapshot,
   InvItem,
@@ -20,6 +21,7 @@ import type {
   PlayerState,
   PlayerViewSnapshot,
   PlaneSnapshot,
+  ProjectileSnapshot,
   WeaponSlotState,
   WorldSnapshot,
   ZoneSnapshot,
@@ -51,6 +53,8 @@ export class SnapshotWriter {
 
   private readonly entitySnaps: EntitySnapshot[];
   private readonly lootSnaps: LootSnapshot[];
+  private readonly projectileSnaps: ProjectileSnapshot[];
+  private readonly airdropSnaps: AirdropSnapshot[];
   private readonly zoneSnap: ZoneSnapshot;
   private readonly planeSnap: PlaneSnapshot;
   private readonly playerSnap: PlayerViewSnapshot;
@@ -63,6 +67,8 @@ export class SnapshotWriter {
     this.entitySnaps = [];
     for (let i = 0; i < Math.max(1, capacity); i++) this.entitySnaps.push(makeEntitySnapshot());
     this.lootSnaps = [];
+    this.projectileSnaps = [];
+    this.airdropSnaps = [];
 
     this.zoneSnap = {
       center: { x: 0, y: 0, z: 0 },
@@ -103,6 +109,8 @@ export class SnapshotWriter {
       kills: 0,
       aliveCount: 0,
       medkitChannelMsLeft: 0,
+      recoilPitch: 0,
+      recoilYaw: 0,
     };
 
     this.snapshot = {
@@ -114,6 +122,8 @@ export class SnapshotWriter {
       loots: this.lootSnaps,
       zone: this.zoneSnap,
       plane: null,
+      projectiles: this.projectileSnaps,
+      airdrops: this.airdropSnaps,
       playerEntity: null,
     };
   }
@@ -125,6 +135,8 @@ export class SnapshotWriter {
     this.writePlayer(w);
     this.writeZone(w);
     this.writePlane(w);
+    this.writeProjectiles(w);
+    this.writeAirdrops(w);
 
     const s = this.snapshot;
     s.tick = w.tick;
@@ -202,6 +214,8 @@ export class SnapshotWriter {
     d.helmetReduction = p.helmetReduction;
     d.kills = p.kills;
     d.medkitChannelMsLeft = p.medkitUntilMs !== null ? Math.max(0, p.medkitUntilMs - w.elapsedMs) : 0;
+    d.recoilPitch = p.recoilPitch;
+    d.recoilYaw = p.recoilYaw;
 
     // 武器槽（复用槽对象，零分配）：槽位数跟随 p.weapons.length 原地扩缩，
     // 与分配版 buildSnapshot 的 weapons.map(...) 通道在任何槽数下保持一致（默认 2 槽不变）
@@ -285,5 +299,49 @@ export class SnapshotWriter {
     d.dir.y = p.dir.y;
     d.dir.z = p.dir.z;
     this.snapshot.plane = d;
+  }
+
+  private writeProjectiles(w: World): void {
+    const src = w.projectiles;
+    const dst = this.projectileSnaps;
+    let n = 0;
+    for (let i = 0; i < src.length; i++) {
+      const p = src[i];
+      let d = dst[n];
+      if (d === undefined) {
+        d = { id: 0, pos: { x: 0, y: 0, z: 0 }, prev: { x: 0, y: 0, z: 0 } };
+        dst.push(d);
+      }
+      d.id = p.id;
+      d.pos.x = p.pos.x;
+      d.pos.y = p.pos.y;
+      d.pos.z = p.pos.z;
+      d.prev.x = p.prev.x;
+      d.prev.y = p.prev.y;
+      d.prev.z = p.prev.z;
+      n += 1;
+    }
+    dst.length = n;
+  }
+
+  private writeAirdrops(w: World): void {
+    const src = w.airdrops;
+    const dst = this.airdropSnaps;
+    let n = 0;
+    for (let i = 0; i < src.length; i++) {
+      const a = src[i];
+      let d = dst[n];
+      if (d === undefined) {
+        d = { id: '', pos: { x: 0, y: 0, z: 0 }, state: 'falling' as const };
+        dst.push(d);
+      }
+      d.id = a.id;
+      d.pos.x = a.pos.x;
+      d.pos.y = a.pos.y;
+      d.pos.z = a.pos.z;
+      d.state = a.state;
+      n += 1;
+    }
+    dst.length = n;
   }
 }

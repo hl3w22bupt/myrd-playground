@@ -60,6 +60,12 @@ export function startGame(container: HTMLElement, opts: StartOptions): GameHandl
   inventory.onDropAction((slot) => {
     pendingIntents.push({ kind: 'drop', slot });
   });
+  inventory.onUseAction((slot) => {
+    pendingIntents.push({ kind: 'useItem', slot });
+  });
+  inventory.onDropWeaponAction((slot) => {
+    pendingIntents.push({ kind: 'dropWeapon', slot });
+  });
   const resultScreen = new ResultScreen(container, () => {
     // 重建对局（同页面刷新整体状态）
     handle.dispose();
