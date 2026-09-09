@@ -36,12 +36,16 @@ export interface WeaponSlotState {
 export type PlayerIntent =
   | { kind: 'move'; dirX: number; dirZ: number; sprint?: boolean }
   | { kind: 'aim'; yaw: number; pitch: number }
+  /** 相对瞄准增量（鼠标类输入）：叠在当前朝向上，避免覆盖仿真侧后坐力偏移 */
+  | { kind: 'aimDelta'; dYaw: number; dPitch: number }
   | { kind: 'fire' }
   | { kind: 'stopFire' }
   | { kind: 'reload' }
   | { kind: 'switchWeapon'; slot: number }
   | { kind: 'interact' }
+  /** slot -1 语义：丢弃第一个非空背包格 */
   | { kind: 'drop'; slot: number }
+  /** slot -1 语义：使用第一个可用的医疗物品 */
   | { kind: 'useItem'; slot: number }
   | { kind: 'jumpFromPlane' }
   | { kind: 'freefallControl'; dirX: number; dirZ: number; dive: number }
@@ -59,6 +63,8 @@ export type GameEvent =
   | { type: 'zonePhaseChanged'; phase: number; center: Vec3; radius: number; nextCenter: Vec3; nextRadius: number; dps: number }
   | { type: 'playerStateChanged'; entityId: string; state: PlayerState }
   | { type: 'itemUsed'; entityId: string; item: ItemId }
+  | { type: 'airdropIncoming'; id: string; pos: Vec3 }
+  | { type: 'airdropLanded'; id: string; pos: Vec3 }
   | { type: 'matchEnded'; result: MatchResult };
 
 export interface EntitySnapshot {
@@ -91,6 +97,8 @@ export interface PlayerViewSnapshot {
   kills: number;
   aliveCount: number;
   medkitChannelMsLeft: number;
+  /** 正在使用中的医疗物品 id（引导进度条用；null = 未在使用） */
+  medkitItem: ItemId | null;
 }
 
 export interface LootSnapshot {
@@ -117,6 +125,14 @@ export interface PlaneSnapshot {
   dir: Vec3;
 }
 
+/** 空投箱快照（phase: falling 降落中 / landed 已落地待拾取） */
+export interface AirDropSnapshot {
+  id: string;
+  pos: Vec3;
+  y: number;
+  phase: 'falling' | 'landed';
+}
+
 export interface WorldSnapshot {
   tick: number;
   elapsedMs: number;
@@ -126,6 +142,7 @@ export interface WorldSnapshot {
   loots: LootSnapshot[];
   zone: ZoneSnapshot;
   plane: PlaneSnapshot | null;
+  airdrops: AirDropSnapshot[];
   /** 玩家实体快照（entities 中 kind==='player' 的同一对象；渲染层免于逐帧 find 查找） */
   playerEntity?: EntitySnapshot | null;
 }

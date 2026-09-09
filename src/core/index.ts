@@ -24,6 +24,17 @@ export * from './systems/combat';
 export { updateZone, initZone } from './systems/zone';
 export { updateAi, initAi } from './systems/ai';
 export { updateLifecycle, checkMatchEnd } from './systems/lifecycle';
-export { generateLoot, tryPickup, addItem, dropItem, useMedkit, updateLoot } from './systems/loot';
+export {
+  generateLoot,
+  tryPickup,
+  addItem,
+  dropItem,
+  useMedkit,
+  updateLoot,
+  spawnLootAt,
+  resolveDropSlot,
+} from './systems/loot';
 export { updatePlane, simulateFalling, jumpFromPlane } from './systems/parachute';
 export { updateMovement } from './systems/movement';
+export { initAirdrops, updateAirdrops, nextDropAtMs } from './systems/airdrop';
+export type { AirDropCrate } from './world';

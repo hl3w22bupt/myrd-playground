@@ -38,6 +38,7 @@ export interface HudFrameState {
   vignetteDanger: boolean;
   medkitVisible: boolean;
   medkitFillWidth: string;
+  airdropText: string;
 }
 
 export function createEmptyHudState(): HudFrameState {
@@ -60,6 +61,7 @@ export function createEmptyHudState(): HudFrameState {
     vignetteDanger: false,
     medkitVisible: false,
     medkitFillWidth: '',
+    airdropText: '',
   };
 }
 
@@ -83,6 +85,7 @@ export interface HudDirtyFlags {
   vignetteDanger: boolean;
   medkitVisible: boolean;
   medkitFillWidth: boolean;
+  airdropText: boolean;
 }
 
 function createFalseFlags(): HudDirtyFlags {
@@ -105,6 +108,7 @@ function createFalseFlags(): HudDirtyFlags {
     vignetteDanger: false,
     medkitVisible: false,
     medkitFillWidth: false,
+    airdropText: false,
   };
 }
 
@@ -172,13 +176,20 @@ export class HudState {
     c.vignetteDanger = hpRatio < 0.35;
 
     if (p.medkitChannelMsLeft > 0) {
-      const total = (ITEMS.medkit_large as MedkitItemDef).useMs;
+      // 引导总时长按实际使用的医疗物品取（medkitItem 为空时兜底医疗包）
+      const itemDef = p.medkitItem ? (ITEMS[p.medkitItem as keyof typeof ITEMS] as MedkitItemDef | undefined) : undefined;
+      const total = itemDef && typeof itemDef.useMs === 'number' ? itemDef.useMs : (ITEMS.medkit_large as MedkitItemDef).useMs;
       c.medkitVisible = true;
       c.medkitFillWidth = `${(100 - (p.medkitChannelMsLeft / total) * 100).toFixed(0)}%`;
     } else {
       c.medkitVisible = false;
       c.medkitFillWidth = '';
     }
+
+    // 空投状态横幅（AC 空投可见性：降落/落地均提示，位置见小地图）
+    const falling = snap.airdrops.some((a) => a.phase === 'falling');
+    const landed = snap.airdrops.some((a) => a.phase === 'landed');
+    c.airdropText = falling ? '🎁 空投正在降落' : landed ? '🎁 空投已落地 · 见小地图标记' : '';
 
     // 差集：只标记真正变化的字段
     let changed = this.firstRun;
@@ -200,13 +211,14 @@ export class HudState {
     f.vignetteDanger = this.firstRun || c.vignetteDanger !== this.written.vignetteDanger;
     f.medkitVisible = this.firstRun || c.medkitVisible !== this.written.medkitVisible;
     f.medkitFillWidth = this.firstRun || c.medkitFillWidth !== this.written.medkitFillWidth;
+    f.airdropText = this.firstRun || c.airdropText !== this.written.airdropText;
 
     if (!changed) {
       changed =
         f.hpWidth || f.hpTier || f.hpText || f.armorText || f.weaponText || f.ammoText ||
         f.reserveText || f.ammoLow || f.reloadText || f.aliveText || f.killsText ||
         f.zoneText || f.zoneBadgeMode || f.zoneFillWidth || f.stateText ||
-        f.vignetteDanger || f.medkitVisible || f.medkitFillWidth;
+        f.vignetteDanger || f.medkitVisible || f.medkitFillWidth || f.airdropText;
     }
     this.firstRun = false;
     return { state: c, dirty: f, changed };
@@ -234,6 +246,7 @@ export class HudState {
     w.vignetteDanger = c.vignetteDanger;
     w.medkitVisible = c.medkitVisible;
     w.medkitFillWidth = c.medkitFillWidth;
+    w.airdropText = c.airdropText;
   }
 
   /** 重开对局时强制下一帧全量重绘 */

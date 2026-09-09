@@ -2,13 +2,14 @@
  * content —— 内容配置包（数值唯一来源）。core 可依赖 content，content 不依赖任何模块。
  */
 
-import { MOVEMENT, PARACHUTE } from './physics';
+import { MOVEMENT, PARACHUTE, BALLISTIC } from './physics';
 import { ITEMS } from './items';
 import { WEAPONS } from './weapons';
 import { LOOT_TABLE } from './lootTable';
 import { ZONE } from './zone';
 import { MAP } from './map';
 import { AI } from './ai';
+import { AIRDROP } from './airdrop';
 import * as RENDER from './render';
 import * as CONSTANTS from './constants';
 
@@ -23,11 +24,12 @@ export interface ContentPack {
   ai: typeof AI;
   /** 渲染性能配置（表现层专用，不影响仿真确定性） */
   render: typeof RENDER;
-  physics: { parachute: typeof PARACHUTE; movement: typeof MOVEMENT };
+  physics: { parachute: typeof PARACHUTE; movement: typeof MOVEMENT; ballistic: typeof BALLISTIC };
+  airdrop: typeof AIRDROP;
 }
 
 export const DEFAULT_CONTENT_PACK: ContentPack = {
-  version: 'pubg-web-core@1',
+  version: 'pubg-web-core@2',
   constants: CONSTANTS,
   weapons: WEAPONS,
   items: ITEMS,
@@ -36,7 +38,8 @@ export const DEFAULT_CONTENT_PACK: ContentPack = {
   map: MAP,
   ai: AI,
   render: RENDER,
-  physics: { parachute: PARACHUTE, movement: MOVEMENT },
+  physics: { parachute: PARACHUTE, movement: MOVEMENT, ballistic: BALLISTIC },
+  airdrop: AIRDROP,
 };
 
 /** 测试/调参用：派生内容包（浅覆盖） */
@@ -52,4 +55,5 @@ export * from './zone';
 export * from './map';
 export * from './physics';
 export * from './ai';
+export * from './airdrop';
 export * from './render';

@@ -790,6 +790,148 @@ M0 地基(0.5w) → M1 跳伞(1w) → M2 移动+地图(1w) → M3 物资(1w)
 - [当 AI 开始重写小游戏生产流程（触乐/36氪）](https://m.36kr.com/p/3919432566779528)
 
 
+## 沉淀AI女友剧情生存玩法设计基线
+
+# 沉淀AI女友剧情生存玩法设计基线
+
+> **依据**：需求《我被AI女友包围了》剧情生存挑战游戏需求（id=cmtob3m0p000pm9y6yl6yi1uq）＋ 游戏策划产物（id=cmtn5fhk20008jqck1thxilil）＋ 平台既有 Godot 工程约定（`games/godot-coin-rush`：六段式 GameDesignSpec / contract-check / verify.sh）＋ Godot 官方 Web 导出文档。
+> **用途**：实现节点（开发/测试/部署）执行对齐的唯一设计基准。
+> **冲突裁决规则**：需求硬约束 > 策划案原文（design-spec.md / design-spec.json）> 本文；发现偏差须回填本文（版本 +1）。
+> **两条硬约束**：① godot headless 门禁 0 error 方可合并；② 构建产物必须在平台 AppHost 部署可启动、健康检查通过，禁止仅本地可跑的交付形态。
+
+---
+
+## 一、玩法定位与核心循环（AC1 落点）
+
+**定位**：剧情驱动的生存挑战游戏。玩家扮演被多位 AI 女友包围的主角，通过对话抉择与状态管理在剧情推进中求生并走向多分支结局。
+
+**核心循环（全项目唯一的循环定义，文案/实现/测试均以此表述为准）**：
+
+```
+剧情节点选择 → 好感度/威胁度/生存状态变化 → 触发后续剧情与结局分支 →（回到节点选择）
+```
+
+三条由循环直接推出的架构推论（策划案已确认，实现不得违背）：
+
+1. **数据驱动**：人设卡、剧情节点、数值全部是 content JSON；逻辑只认 schema 与 `spec.numeric` 键名，不认具体角色与具体数值。
+2. **可追溯**：每次结算写 trace，任何 AI 行为输出都能回放定位到 `persona_id` + 状态前后值。
+3. **可验证**：验收一律落成契约测试断言（spec/persona/story/ending 四类 + smoke），不靠人工体感。
+
+## 二、单一事实源：六段式 GameDesignSpec（平台既有工程约定）
+
+- 落点 `.myrd/spec/design-spec.json`，六段：**meta / world / entities / levels / numeric / acceptance**。
+- `entities[].script/scene`、`levels[].story_data`、`acceptance[].check` **声明的路径必须真实建出**，契约测试校验落点存在性。
+- 数值只认 `spec.numeric`，键名与未来 `game_state.gd` 字段一一对应——改数值=改表，不改码。
+- 策划案已交付内容（9 个内容 JSON + 2 份文档）：schema 契约 1 份 + 5 张人设卡 + 3 幕剧情（= 9 个 JSON），另有六段式 `design-spec.json` 与人读版 `design-spec.md`（含数值表、两条链路逐步演算、美术基线）。**策划阶段未产 Godot 代码，实现节点按 spec 施工。**
+
+## 三、AI女友人设卡基线（AC2 落点）
+
+- **schema 契约**：`games/ai-girlfriend-siege/data/schema/persona.schema.json`，**9 个必填字段**，覆盖并超出需求的 5 字段（姓名 / 性格标签 / 说话风格 / 好感度规则 / 威胁·危机行为模式）。
+- **5 张基线人设卡**（`data/personas/persona-{lumi,vex,ada,momo,sera}.json`）：治愈 / 病娇 / 冷静 / 活泼 / 神秘 五型；字段含主题色、口头禅、`favor_rules`、`threat_rules`、`portrait_prompt`。
+- **美术单一事实源**：立绘/形象资产只从 `portrait_prompt` 派生，禁止另行脑补设定——防止多 agent 并行产出美术与文案漂移。
+- **解耦铁律**：`persona_loader` 只认 schema 不认具体角色 → **改人设卡免改码**。验收手段 = swap 测试（替换某张卡 JSON、零代码改动，门禁仍过且行为变化）。
+- **可追溯格式**：`story_engine` 每次结算写 trace：`node_id / option_id / persona_id / favor·threat 前值与后值`，回放可定位到具体人设与状态。
+
+## 四、剧情幕结构与结局分支（AC3 落点）
+
+- **三幕骨架「包围 → 裂痕 → 倒计时」**：`data/story/act{1,2,3}.json`，共 **18 个节点**，节点图闭合无死链。
+- 节点 / 选项 / 数值效果**全部显式声明**；effects 用声明式键值（Δfavor/Δthreat/flag/goto），**禁止节点内嵌脚本逻辑**——嵌逻辑即破坏可追溯与换卡免改码。
+- **4 个结局**；其中 **2 条已逐步演算、可复现的可玩链路**（满足"至少 2 个不同结局"验收）：
+  - **链路 A → 独活结局**：全程威胁累积 Σthreat 控制在幕级上限（<300）内，终局选逃跑；
+  - **链路 B → 带走 Lumi 结局**：Lumi favor 终值 96 ≥ 70，且 threat 30 ≤ 60。
+- 结局判定阈值基线（策划案演算使用值）：**favor 结局门槛 ≥70；单人 threat 结局门槛 ≤60；幕级 Σthreat 上限 300**。
+- 结局判定由 `ending_contract.gd` 断言（对应 acceptance acc-5/acc-6）；冒烟测试用脚本驱动固定选择序列，跑出 ≥2 个不同结局即 AC3 达成。
+
+## 五、生存循环与数值规则
+
+- 状态三轴：**favor（好感度）/ threat（威胁度）/ 生存状态**；具体生存轴与衰减公式以 `spec.numeric` 为准，键名与 `game_state.gd` 一一对应。
+- 每次选择的标准结算链：选项 effects 声明 Δ 值 → story_engine 结算 → trace 落账 → 门控判断下一节点/结局。
+- 数值调优只改 `spec.numeric` 与人设卡 `favor_rules/threat_rules`，**任何数值调优不允许以改代码的方式实现**。
+
+## 六、godot 门禁与 CI（AC4 落点）
+
+**门禁三件套（全部 headless，0 error 才可合并；CI 拒绝含错误代码的提交）**：
+
+1. **preflight**：环境与引擎版本预检；
+2. **`godot --headless --import`**：资源导入完整性（坏资源/坏路径在此暴露）；
+3. **smoke**：headless 跑冒烟 + 契约测试（spec / persona / story / ending 四件，先例即 `games/godot-coin-rush` 的 `contract-check.mjs` + `verify.sh` 模式）。
+
+附加门禁规则：spec 中声明的落点（entities script/scene、levels story_data、acceptance check）必须真实存在；persona/story JSON 过 schema 校验，坏配置 = 门禁失败（让 AC2 的"≥5 字段结构化"变成机器可验证，而不是评审口径）。
+
+## 七、Web 导出与 AppHost 部署规范（AC5 落点）
+
+**引擎事实（Godot 官方文档，已核实）**：
+- Godot 4.3 起，**单线程 Web 导出是官方默认推荐路线**：无需跨域隔离响应头、兼容性最好；
+- 开启线程支持（SharedArrayBuffer）则硬性要求：HTTPS 安全上下文 + `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: require-corp`。
+
+**项目裁决规则**：
+1. **默认锁单线程导出**；仅当 AppHost 可注入自定义响应头且走 HTTPS 时，才允许评估线程模式。
+2. `.wasm` 必须 `application/wasm` MIME；index.html / wasm / pck 同源部署。
+3. 体积与首屏预算：剧情游戏静态资源大头是**中文字体与立绘**——中文字体必须子集化；具体体积/首屏红线由实现节点导出实测后回填本文（不在无实测数据时空定数值）。
+4. **健康检查**：交付包内置静态 `/healthz`（200 + `{status:"ok",version}`）；部署后 AppHost 探活通过 + 浏览器冒烟（canvas 出现、console 无 error）。
+5. PWA service worker 可官方模拟 COOP/COEP，但增加缓存失效复杂度，AppHost 场景**默认不启用**。
+6. 禁止 desktop-only / 仅本地可跑形态；未过健康检查的构建不得标记完成。
+
+## 八、目录结构与依赖方向（CI 强制）
+
+```
+games/ai-girlfriend-siege/
+  data/schema/persona.schema.json      # 契约：人设卡字段
+  data/personas/persona-{lumi,vex,ada,momo,sera}.json
+  data/story/act{1,2,3}.json           # 三幕节点图
+  design/design-spec.md                # 人读版：数值表+链路演算+美术基线
+.myrd/spec/design-spec.json            # 六段式单一事实源
+```
+
+依赖方向：`persona_loader` 只依赖 schema；`story_engine` 只依赖 `spec.numeric` 键名与 act JSON；UI 只读状态与事件流；**任何 .gd 禁止硬编码角色名或数值**（出现即 lint/评审打回）。
+
+## 九、验收标准映射（AC → 基线落点）
+
+| AC | 验收点 | 基线落点 | 自动化手段 |
+|---|---|---|---|
+| AC1 | 玩法定位+核心循环经评审确认 | §一 循环唯一表述 | spec 契约测试 |
+| AC2 | 人设卡 ≥5 字段、改卡免改码 | §三 schema 9 必填字段 + swap 测试 | persona 契约测试 |
+| AC3 | ≥1 条链路复现 ≥2 结局 | §四 4 结局 + 2 条已演算链路 | ending 契约 + smoke |
+| AC4 | godot 门禁 CI 生效、错误提交被拒 | §六 三件套 0 error | CI 拒绝合并验证 |
+| AC5 | AppHost 部署可启动 + 健康检查通过 | §七 单线程导出 + /healthz + 冒烟 | 部署核对（策划案 acc-12 同为人工核对项）|
+
+策划案共 12 条 acceptance，其中 10 条已配可执行检查（spec/persona/story/ending 四契约 + smoke）；实现节点不得降低已配检查的覆盖面。
+
+## 十、执行经验与 DO NOT（本次目标执行沉淀）
+
+**有效的做法**：
+- 策划阶段就把验收配成可执行检查（12 条中 10 条可自动断言）——这是实现节点不返工的关键，印证调研结论「验收回路是一等公民」「知识先于生成」。
+- 文案、美术、数值全部从单一事实源派生（portrait_prompt / spec.numeric），多 agent 并行也不漂移。
+- 自检抓到链路演算中的「带问号模糊值」并修正为精确终值——**数值表述必须可判定，禁止"约/大概/左右"**。
+
+**DO NOT（违反即打回）**：
+- 禁止把人设写进 .gd 代码或节点属性（AC2 直接失败）；
+- 禁止节点 effects 内嵌脚本/表达式求值逻辑（破坏可追溯与换卡免改码）；
+- 禁止绕过 godot headless 门禁合入主干；
+- 禁止交付 desktop-only / 仅本地可跑形态；
+- 禁止在策划与配置文档中使用不可判定的数值表述。
+
+## 十一、待核实与回填项（实现节点开工前处理）
+
+1. **数值终值比对**：链路终值在策划执行过程播报中出现过一次修订（如链路 A Σthreat 曾出现 225/210/220 等中间口径），**以 design-spec.md 演算表终值为准**；工作区产物未推送远端分支，实现节点重建文件时须逐值核对并回填本文。
+2. **AppHost 能力核实**：是否支持自定义响应头与 HTTPS —— 决定线程模式可行性；不支持则永久锁单线程导出。
+3. **实测回填**：Web 导出体积（wasm/pck）与首屏加载时间，导出后实测回填 §七。
+4. **生存轴定义**：体力/理智类生存状态的具体轴与衰减公式以 `spec.numeric` 为准，本文不预设定。
+
+---
+
+*版本 v1.0 ｜ 2026-09-05 ｜ 目标管理大师固化。依据：需求 id=cmtob3m0p000pm9y6yl6yi1uq、策划案产物 id=cmtn5fhk20008jqck1thxilil、平台 Godot 工程约定（games/godot-coin-rush）、Godot 官方导出文档。*
+
+
+
+## 疑点线索纠偏：cli-dialects.ts 不存在 root/sudo 启动旁路参数，从疑点清单证据引用中移除 2026-09-07
+
+负结果沉淀（防止伪线索复用）：findings-hypotheses.json H2 的 verifyHint 提到「src/services/coding-agent/cli-dialects.ts 的 root/sudo 启动旁路参数」，经全量核查不成立——cli-dialects.ts:96 为 --dangerously-skip-permissions、:214 为 --dangerously-bypass-approvals-and-sandbox，均为权限档位旁路参数，与 root/sudo 启动无关；全 src/ grep sudo|process.getuid|isRoot 零命中，不存在以 root/sudo 启动子进程的代码路径。后续分析不得再引用该落点作为证据；若怀疑 root/sudo 逻辑存在于平台层（worker 启动脚本/环境配置），需向平台方确认而非在仓库内取证。权限旁路参数自身的风险评估是独立议题，不随本条展开。
+
+## 成功率类健康指标口径声明缺失：overallTaskSuccessRate 生成器在平台侧不可验证，且仓库事实表明该比率对自愈改判与中间态高度敏感 2026-09-07
+
+H4 结论沉淀（知识库，供后续周报引用）：overallTaskSuccessRate（0.1667→0.4615，+176.9%）的分子分母定义在本仓库不可取证——指标名 grep 全仓库仅存在于 .myrd/self-evolution/ 自身文件，生成器在平台侧统计服务。仓库侧事实表明该比率高度敏感于：①自愈改判（healStaleRun 把中断 run 归置为 paused，engine.ts:310-333，paused 是非二元中间终态）；②finalize 无条件覆盖（trajectory/index.ts:400-436，同一次执行可先计失败后计成功）；③评测调度默认关闭（scheduler.ts:161-164）使评测样本与执行样本分属不同采集节奏。两期数值形态（≈1/6 与 6/13）与小基数扩张自洽：上期终态样本可能仅约 6 个（弱推断，待平台侧核实）。使用纪律：+176.9% 在平台侧输出分子分母定义、终态样本量（sampleSize）、paused/自愈改判剔除规则之前，不得作为能力跃迁证据对外传达；健康报告若按 status 计数失败，则 Worker 每次重启/部署本身都会左右成功率。需平台方行动：统计服务显式声明口径并附每期 sampleSize 字段。
+
 ---
 
 # 配图验证产品
@@ -1581,6 +1723,148 @@ M0 地基(0.5w) → M1 跳伞(1w) → M2 移动+地图(1w) → M3 物资(1w)
 - [腾讯云林哲：怎么用 AI Agent 开发小游戏（GameLook）](http://www.gamelook.com.cn/2026/06/595411/)
 - [当 AI 开始重写小游戏生产流程（触乐/36氪）](https://m.36kr.com/p/3919432566779528)
 
+
+## 沉淀AI女友剧情生存玩法设计基线
+
+# 沉淀AI女友剧情生存玩法设计基线
+
+> **依据**：需求《我被AI女友包围了》剧情生存挑战游戏需求（id=cmtob3m0p000pm9y6yl6yi1uq）＋ 游戏策划产物（id=cmtn5fhk20008jqck1thxilil）＋ 平台既有 Godot 工程约定（`games/godot-coin-rush`：六段式 GameDesignSpec / contract-check / verify.sh）＋ Godot 官方 Web 导出文档。
+> **用途**：实现节点（开发/测试/部署）执行对齐的唯一设计基准。
+> **冲突裁决规则**：需求硬约束 > 策划案原文（design-spec.md / design-spec.json）> 本文；发现偏差须回填本文（版本 +1）。
+> **两条硬约束**：① godot headless 门禁 0 error 方可合并；② 构建产物必须在平台 AppHost 部署可启动、健康检查通过，禁止仅本地可跑的交付形态。
+
+---
+
+## 一、玩法定位与核心循环（AC1 落点）
+
+**定位**：剧情驱动的生存挑战游戏。玩家扮演被多位 AI 女友包围的主角，通过对话抉择与状态管理在剧情推进中求生并走向多分支结局。
+
+**核心循环（全项目唯一的循环定义，文案/实现/测试均以此表述为准）**：
+
+```
+剧情节点选择 → 好感度/威胁度/生存状态变化 → 触发后续剧情与结局分支 →（回到节点选择）
+```
+
+三条由循环直接推出的架构推论（策划案已确认，实现不得违背）：
+
+1. **数据驱动**：人设卡、剧情节点、数值全部是 content JSON；逻辑只认 schema 与 `spec.numeric` 键名，不认具体角色与具体数值。
+2. **可追溯**：每次结算写 trace，任何 AI 行为输出都能回放定位到 `persona_id` + 状态前后值。
+3. **可验证**：验收一律落成契约测试断言（spec/persona/story/ending 四类 + smoke），不靠人工体感。
+
+## 二、单一事实源：六段式 GameDesignSpec（平台既有工程约定）
+
+- 落点 `.myrd/spec/design-spec.json`，六段：**meta / world / entities / levels / numeric / acceptance**。
+- `entities[].script/scene`、`levels[].story_data`、`acceptance[].check` **声明的路径必须真实建出**，契约测试校验落点存在性。
+- 数值只认 `spec.numeric`，键名与未来 `game_state.gd` 字段一一对应——改数值=改表，不改码。
+- 策划案已交付内容（9 个内容 JSON + 2 份文档）：schema 契约 1 份 + 5 张人设卡 + 3 幕剧情（= 9 个 JSON），另有六段式 `design-spec.json` 与人读版 `design-spec.md`（含数值表、两条链路逐步演算、美术基线）。**策划阶段未产 Godot 代码，实现节点按 spec 施工。**
+
+## 三、AI女友人设卡基线（AC2 落点）
+
+- **schema 契约**：`games/ai-girlfriend-siege/data/schema/persona.schema.json`，**9 个必填字段**，覆盖并超出需求的 5 字段（姓名 / 性格标签 / 说话风格 / 好感度规则 / 威胁·危机行为模式）。
+- **5 张基线人设卡**（`data/personas/persona-{lumi,vex,ada,momo,sera}.json`）：治愈 / 病娇 / 冷静 / 活泼 / 神秘 五型；字段含主题色、口头禅、`favor_rules`、`threat_rules`、`portrait_prompt`。
+- **美术单一事实源**：立绘/形象资产只从 `portrait_prompt` 派生，禁止另行脑补设定——防止多 agent 并行产出美术与文案漂移。
+- **解耦铁律**：`persona_loader` 只认 schema 不认具体角色 → **改人设卡免改码**。验收手段 = swap 测试（替换某张卡 JSON、零代码改动，门禁仍过且行为变化）。
+- **可追溯格式**：`story_engine` 每次结算写 trace：`node_id / option_id / persona_id / favor·threat 前值与后值`，回放可定位到具体人设与状态。
+
+## 四、剧情幕结构与结局分支（AC3 落点）
+
+- **三幕骨架「包围 → 裂痕 → 倒计时」**：`data/story/act{1,2,3}.json`，共 **18 个节点**，节点图闭合无死链。
+- 节点 / 选项 / 数值效果**全部显式声明**；effects 用声明式键值（Δfavor/Δthreat/flag/goto），**禁止节点内嵌脚本逻辑**——嵌逻辑即破坏可追溯与换卡免改码。
+- **4 个结局**；其中 **2 条已逐步演算、可复现的可玩链路**（满足"至少 2 个不同结局"验收）：
+  - **链路 A → 独活结局**：全程威胁累积 Σthreat 控制在幕级上限（<300）内，终局选逃跑；
+  - **链路 B → 带走 Lumi 结局**：Lumi favor 终值 96 ≥ 70，且 threat 30 ≤ 60。
+- 结局判定阈值基线（策划案演算使用值）：**favor 结局门槛 ≥70；单人 threat 结局门槛 ≤60；幕级 Σthreat 上限 300**。
+- 结局判定由 `ending_contract.gd` 断言（对应 acceptance acc-5/acc-6）；冒烟测试用脚本驱动固定选择序列，跑出 ≥2 个不同结局即 AC3 达成。
+
+## 五、生存循环与数值规则
+
+- 状态三轴：**favor（好感度）/ threat（威胁度）/ 生存状态**；具体生存轴与衰减公式以 `spec.numeric` 为准，键名与 `game_state.gd` 一一对应。
+- 每次选择的标准结算链：选项 effects 声明 Δ 值 → story_engine 结算 → trace 落账 → 门控判断下一节点/结局。
+- 数值调优只改 `spec.numeric` 与人设卡 `favor_rules/threat_rules`，**任何数值调优不允许以改代码的方式实现**。
+
+## 六、godot 门禁与 CI（AC4 落点）
+
+**门禁三件套（全部 headless，0 error 才可合并；CI 拒绝含错误代码的提交）**：
+
+1. **preflight**：环境与引擎版本预检；
+2. **`godot --headless --import`**：资源导入完整性（坏资源/坏路径在此暴露）；
+3. **smoke**：headless 跑冒烟 + 契约测试（spec / persona / story / ending 四件，先例即 `games/godot-coin-rush` 的 `contract-check.mjs` + `verify.sh` 模式）。
+
+附加门禁规则：spec 中声明的落点（entities script/scene、levels story_data、acceptance check）必须真实存在；persona/story JSON 过 schema 校验，坏配置 = 门禁失败（让 AC2 的"≥5 字段结构化"变成机器可验证，而不是评审口径）。
+
+## 七、Web 导出与 AppHost 部署规范（AC5 落点）
+
+**引擎事实（Godot 官方文档，已核实）**：
+- Godot 4.3 起，**单线程 Web 导出是官方默认推荐路线**：无需跨域隔离响应头、兼容性最好；
+- 开启线程支持（SharedArrayBuffer）则硬性要求：HTTPS 安全上下文 + `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: require-corp`。
+
+**项目裁决规则**：
+1. **默认锁单线程导出**；仅当 AppHost 可注入自定义响应头且走 HTTPS 时，才允许评估线程模式。
+2. `.wasm` 必须 `application/wasm` MIME；index.html / wasm / pck 同源部署。
+3. 体积与首屏预算：剧情游戏静态资源大头是**中文字体与立绘**——中文字体必须子集化；具体体积/首屏红线由实现节点导出实测后回填本文（不在无实测数据时空定数值）。
+4. **健康检查**：交付包内置静态 `/healthz`（200 + `{status:"ok",version}`）；部署后 AppHost 探活通过 + 浏览器冒烟（canvas 出现、console 无 error）。
+5. PWA service worker 可官方模拟 COOP/COEP，但增加缓存失效复杂度，AppHost 场景**默认不启用**。
+6. 禁止 desktop-only / 仅本地可跑形态；未过健康检查的构建不得标记完成。
+
+## 八、目录结构与依赖方向（CI 强制）
+
+```
+games/ai-girlfriend-siege/
+  data/schema/persona.schema.json      # 契约：人设卡字段
+  data/personas/persona-{lumi,vex,ada,momo,sera}.json
+  data/story/act{1,2,3}.json           # 三幕节点图
+  design/design-spec.md                # 人读版：数值表+链路演算+美术基线
+.myrd/spec/design-spec.json            # 六段式单一事实源
+```
+
+依赖方向：`persona_loader` 只依赖 schema；`story_engine` 只依赖 `spec.numeric` 键名与 act JSON；UI 只读状态与事件流；**任何 .gd 禁止硬编码角色名或数值**（出现即 lint/评审打回）。
+
+## 九、验收标准映射（AC → 基线落点）
+
+| AC | 验收点 | 基线落点 | 自动化手段 |
+|---|---|---|---|
+| AC1 | 玩法定位+核心循环经评审确认 | §一 循环唯一表述 | spec 契约测试 |
+| AC2 | 人设卡 ≥5 字段、改卡免改码 | §三 schema 9 必填字段 + swap 测试 | persona 契约测试 |
+| AC3 | ≥1 条链路复现 ≥2 结局 | §四 4 结局 + 2 条已演算链路 | ending 契约 + smoke |
+| AC4 | godot 门禁 CI 生效、错误提交被拒 | §六 三件套 0 error | CI 拒绝合并验证 |
+| AC5 | AppHost 部署可启动 + 健康检查通过 | §七 单线程导出 + /healthz + 冒烟 | 部署核对（策划案 acc-12 同为人工核对项）|
+
+策划案共 12 条 acceptance，其中 10 条已配可执行检查（spec/persona/story/ending 四契约 + smoke）；实现节点不得降低已配检查的覆盖面。
+
+## 十、执行经验与 DO NOT（本次目标执行沉淀）
+
+**有效的做法**：
+- 策划阶段就把验收配成可执行检查（12 条中 10 条可自动断言）——这是实现节点不返工的关键，印证调研结论「验收回路是一等公民」「知识先于生成」。
+- 文案、美术、数值全部从单一事实源派生（portrait_prompt / spec.numeric），多 agent 并行也不漂移。
+- 自检抓到链路演算中的「带问号模糊值」并修正为精确终值——**数值表述必须可判定，禁止"约/大概/左右"**。
+
+**DO NOT（违反即打回）**：
+- 禁止把人设写进 .gd 代码或节点属性（AC2 直接失败）；
+- 禁止节点 effects 内嵌脚本/表达式求值逻辑（破坏可追溯与换卡免改码）；
+- 禁止绕过 godot headless 门禁合入主干；
+- 禁止交付 desktop-only / 仅本地可跑形态；
+- 禁止在策划与配置文档中使用不可判定的数值表述。
+
+## 十一、待核实与回填项（实现节点开工前处理）
+
+1. **数值终值比对**：链路终值在策划执行过程播报中出现过一次修订（如链路 A Σthreat 曾出现 225/210/220 等中间口径），**以 design-spec.md 演算表终值为准**；工作区产物未推送远端分支，实现节点重建文件时须逐值核对并回填本文。
+2. **AppHost 能力核实**：是否支持自定义响应头与 HTTPS —— 决定线程模式可行性；不支持则永久锁单线程导出。
+3. **实测回填**：Web 导出体积（wasm/pck）与首屏加载时间，导出后实测回填 §七。
+4. **生存轴定义**：体力/理智类生存状态的具体轴与衰减公式以 `spec.numeric` 为准，本文不预设定。
+
+---
+
+*版本 v1.0 ｜ 2026-09-05 ｜ 目标管理大师固化。依据：需求 id=cmtob3m0p000pm9y6yl6yi1uq、策划案产物 id=cmtn5fhk20008jqck1thxilil、平台 Godot 工程约定（games/godot-coin-rush）、Godot 官方导出文档。*
+
+
+
+## 疑点线索纠偏：cli-dialects.ts 不存在 root/sudo 启动旁路参数，从疑点清单证据引用中移除 2026-09-07
+
+负结果沉淀（防止伪线索复用）：findings-hypotheses.json H2 的 verifyHint 提到「src/services/coding-agent/cli-dialects.ts 的 root/sudo 启动旁路参数」，经全量核查不成立——cli-dialects.ts:96 为 --dangerously-skip-permissions、:214 为 --dangerously-bypass-approvals-and-sandbox，均为权限档位旁路参数，与 root/sudo 启动无关；全 src/ grep sudo|process.getuid|isRoot 零命中，不存在以 root/sudo 启动子进程的代码路径。后续分析不得再引用该落点作为证据；若怀疑 root/sudo 逻辑存在于平台层（worker 启动脚本/环境配置），需向平台方确认而非在仓库内取证。权限旁路参数自身的风险评估是独立议题，不随本条展开。
+
+## 成功率类健康指标口径声明缺失：overallTaskSuccessRate 生成器在平台侧不可验证，且仓库事实表明该比率对自愈改判与中间态高度敏感 2026-09-07
+
+H4 结论沉淀（知识库，供后续周报引用）：overallTaskSuccessRate（0.1667→0.4615，+176.9%）的分子分母定义在本仓库不可取证——指标名 grep 全仓库仅存在于 .myrd/self-evolution/ 自身文件，生成器在平台侧统计服务。仓库侧事实表明该比率高度敏感于：①自愈改判（healStaleRun 把中断 run 归置为 paused，engine.ts:310-333，paused 是非二元中间终态）；②finalize 无条件覆盖（trajectory/index.ts:400-436，同一次执行可先计失败后计成功）；③评测调度默认关闭（scheduler.ts:161-164）使评测样本与执行样本分属不同采集节奏。两期数值形态（≈1/6 与 6/13）与小基数扩张自洽：上期终态样本可能仅约 6 个（弱推断，待平台侧核实）。使用纪律：+176.9% 在平台侧输出分子分母定义、终态样本量（sampleSize）、paused/自愈改判剔除规则之前，不得作为能力跃迁证据对外传达；健康报告若按 status 计数失败，则 Worker 每次重启/部署本身都会左右成功率。需平台方行动：统计服务显式声明口径并附每期 sampleSize 字段。
 
 ---
 
@@ -2374,6 +2658,148 @@ M0 地基(0.5w) → M1 跳伞(1w) → M2 移动+地图(1w) → M3 物资(1w)
 - [当 AI 开始重写小游戏生产流程（触乐/36氪）](https://m.36kr.com/p/3919432566779528)
 
 
+## 沉淀AI女友剧情生存玩法设计基线
+
+# 沉淀AI女友剧情生存玩法设计基线
+
+> **依据**：需求《我被AI女友包围了》剧情生存挑战游戏需求（id=cmtob3m0p000pm9y6yl6yi1uq）＋ 游戏策划产物（id=cmtn5fhk20008jqck1thxilil）＋ 平台既有 Godot 工程约定（`games/godot-coin-rush`：六段式 GameDesignSpec / contract-check / verify.sh）＋ Godot 官方 Web 导出文档。
+> **用途**：实现节点（开发/测试/部署）执行对齐的唯一设计基准。
+> **冲突裁决规则**：需求硬约束 > 策划案原文（design-spec.md / design-spec.json）> 本文；发现偏差须回填本文（版本 +1）。
+> **两条硬约束**：① godot headless 门禁 0 error 方可合并；② 构建产物必须在平台 AppHost 部署可启动、健康检查通过，禁止仅本地可跑的交付形态。
+
+---
+
+## 一、玩法定位与核心循环（AC1 落点）
+
+**定位**：剧情驱动的生存挑战游戏。玩家扮演被多位 AI 女友包围的主角，通过对话抉择与状态管理在剧情推进中求生并走向多分支结局。
+
+**核心循环（全项目唯一的循环定义，文案/实现/测试均以此表述为准）**：
+
+```
+剧情节点选择 → 好感度/威胁度/生存状态变化 → 触发后续剧情与结局分支 →（回到节点选择）
+```
+
+三条由循环直接推出的架构推论（策划案已确认，实现不得违背）：
+
+1. **数据驱动**：人设卡、剧情节点、数值全部是 content JSON；逻辑只认 schema 与 `spec.numeric` 键名，不认具体角色与具体数值。
+2. **可追溯**：每次结算写 trace，任何 AI 行为输出都能回放定位到 `persona_id` + 状态前后值。
+3. **可验证**：验收一律落成契约测试断言（spec/persona/story/ending 四类 + smoke），不靠人工体感。
+
+## 二、单一事实源：六段式 GameDesignSpec（平台既有工程约定）
+
+- 落点 `.myrd/spec/design-spec.json`，六段：**meta / world / entities / levels / numeric / acceptance**。
+- `entities[].script/scene`、`levels[].story_data`、`acceptance[].check` **声明的路径必须真实建出**，契约测试校验落点存在性。
+- 数值只认 `spec.numeric`，键名与未来 `game_state.gd` 字段一一对应——改数值=改表，不改码。
+- 策划案已交付内容（9 个内容 JSON + 2 份文档）：schema 契约 1 份 + 5 张人设卡 + 3 幕剧情（= 9 个 JSON），另有六段式 `design-spec.json` 与人读版 `design-spec.md`（含数值表、两条链路逐步演算、美术基线）。**策划阶段未产 Godot 代码，实现节点按 spec 施工。**
+
+## 三、AI女友人设卡基线（AC2 落点）
+
+- **schema 契约**：`games/ai-girlfriend-siege/data/schema/persona.schema.json`，**9 个必填字段**，覆盖并超出需求的 5 字段（姓名 / 性格标签 / 说话风格 / 好感度规则 / 威胁·危机行为模式）。
+- **5 张基线人设卡**（`data/personas/persona-{lumi,vex,ada,momo,sera}.json`）：治愈 / 病娇 / 冷静 / 活泼 / 神秘 五型；字段含主题色、口头禅、`favor_rules`、`threat_rules`、`portrait_prompt`。
+- **美术单一事实源**：立绘/形象资产只从 `portrait_prompt` 派生，禁止另行脑补设定——防止多 agent 并行产出美术与文案漂移。
+- **解耦铁律**：`persona_loader` 只认 schema 不认具体角色 → **改人设卡免改码**。验收手段 = swap 测试（替换某张卡 JSON、零代码改动，门禁仍过且行为变化）。
+- **可追溯格式**：`story_engine` 每次结算写 trace：`node_id / option_id / persona_id / favor·threat 前值与后值`，回放可定位到具体人设与状态。
+
+## 四、剧情幕结构与结局分支（AC3 落点）
+
+- **三幕骨架「包围 → 裂痕 → 倒计时」**：`data/story/act{1,2,3}.json`，共 **18 个节点**，节点图闭合无死链。
+- 节点 / 选项 / 数值效果**全部显式声明**；effects 用声明式键值（Δfavor/Δthreat/flag/goto），**禁止节点内嵌脚本逻辑**——嵌逻辑即破坏可追溯与换卡免改码。
+- **4 个结局**；其中 **2 条已逐步演算、可复现的可玩链路**（满足"至少 2 个不同结局"验收）：
+  - **链路 A → 独活结局**：全程威胁累积 Σthreat 控制在幕级上限（<300）内，终局选逃跑；
+  - **链路 B → 带走 Lumi 结局**：Lumi favor 终值 96 ≥ 70，且 threat 30 ≤ 60。
+- 结局判定阈值基线（策划案演算使用值）：**favor 结局门槛 ≥70；单人 threat 结局门槛 ≤60；幕级 Σthreat 上限 300**。
+- 结局判定由 `ending_contract.gd` 断言（对应 acceptance acc-5/acc-6）；冒烟测试用脚本驱动固定选择序列，跑出 ≥2 个不同结局即 AC3 达成。
+
+## 五、生存循环与数值规则
+
+- 状态三轴：**favor（好感度）/ threat（威胁度）/ 生存状态**；具体生存轴与衰减公式以 `spec.numeric` 为准，键名与 `game_state.gd` 一一对应。
+- 每次选择的标准结算链：选项 effects 声明 Δ 值 → story_engine 结算 → trace 落账 → 门控判断下一节点/结局。
+- 数值调优只改 `spec.numeric` 与人设卡 `favor_rules/threat_rules`，**任何数值调优不允许以改代码的方式实现**。
+
+## 六、godot 门禁与 CI（AC4 落点）
+
+**门禁三件套（全部 headless，0 error 才可合并；CI 拒绝含错误代码的提交）**：
+
+1. **preflight**：环境与引擎版本预检；
+2. **`godot --headless --import`**：资源导入完整性（坏资源/坏路径在此暴露）；
+3. **smoke**：headless 跑冒烟 + 契约测试（spec / persona / story / ending 四件，先例即 `games/godot-coin-rush` 的 `contract-check.mjs` + `verify.sh` 模式）。
+
+附加门禁规则：spec 中声明的落点（entities script/scene、levels story_data、acceptance check）必须真实存在；persona/story JSON 过 schema 校验，坏配置 = 门禁失败（让 AC2 的"≥5 字段结构化"变成机器可验证，而不是评审口径）。
+
+## 七、Web 导出与 AppHost 部署规范（AC5 落点）
+
+**引擎事实（Godot 官方文档，已核实）**：
+- Godot 4.3 起，**单线程 Web 导出是官方默认推荐路线**：无需跨域隔离响应头、兼容性最好；
+- 开启线程支持（SharedArrayBuffer）则硬性要求：HTTPS 安全上下文 + `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: require-corp`。
+
+**项目裁决规则**：
+1. **默认锁单线程导出**；仅当 AppHost 可注入自定义响应头且走 HTTPS 时，才允许评估线程模式。
+2. `.wasm` 必须 `application/wasm` MIME；index.html / wasm / pck 同源部署。
+3. 体积与首屏预算：剧情游戏静态资源大头是**中文字体与立绘**——中文字体必须子集化；具体体积/首屏红线由实现节点导出实测后回填本文（不在无实测数据时空定数值）。
+4. **健康检查**：交付包内置静态 `/healthz`（200 + `{status:"ok",version}`）；部署后 AppHost 探活通过 + 浏览器冒烟（canvas 出现、console 无 error）。
+5. PWA service worker 可官方模拟 COOP/COEP，但增加缓存失效复杂度，AppHost 场景**默认不启用**。
+6. 禁止 desktop-only / 仅本地可跑形态；未过健康检查的构建不得标记完成。
+
+## 八、目录结构与依赖方向（CI 强制）
+
+```
+games/ai-girlfriend-siege/
+  data/schema/persona.schema.json      # 契约：人设卡字段
+  data/personas/persona-{lumi,vex,ada,momo,sera}.json
+  data/story/act{1,2,3}.json           # 三幕节点图
+  design/design-spec.md                # 人读版：数值表+链路演算+美术基线
+.myrd/spec/design-spec.json            # 六段式单一事实源
+```
+
+依赖方向：`persona_loader` 只依赖 schema；`story_engine` 只依赖 `spec.numeric` 键名与 act JSON；UI 只读状态与事件流；**任何 .gd 禁止硬编码角色名或数值**（出现即 lint/评审打回）。
+
+## 九、验收标准映射（AC → 基线落点）
+
+| AC | 验收点 | 基线落点 | 自动化手段 |
+|---|---|---|---|
+| AC1 | 玩法定位+核心循环经评审确认 | §一 循环唯一表述 | spec 契约测试 |
+| AC2 | 人设卡 ≥5 字段、改卡免改码 | §三 schema 9 必填字段 + swap 测试 | persona 契约测试 |
+| AC3 | ≥1 条链路复现 ≥2 结局 | §四 4 结局 + 2 条已演算链路 | ending 契约 + smoke |
+| AC4 | godot 门禁 CI 生效、错误提交被拒 | §六 三件套 0 error | CI 拒绝合并验证 |
+| AC5 | AppHost 部署可启动 + 健康检查通过 | §七 单线程导出 + /healthz + 冒烟 | 部署核对（策划案 acc-12 同为人工核对项）|
+
+策划案共 12 条 acceptance，其中 10 条已配可执行检查（spec/persona/story/ending 四契约 + smoke）；实现节点不得降低已配检查的覆盖面。
+
+## 十、执行经验与 DO NOT（本次目标执行沉淀）
+
+**有效的做法**：
+- 策划阶段就把验收配成可执行检查（12 条中 10 条可自动断言）——这是实现节点不返工的关键，印证调研结论「验收回路是一等公民」「知识先于生成」。
+- 文案、美术、数值全部从单一事实源派生（portrait_prompt / spec.numeric），多 agent 并行也不漂移。
+- 自检抓到链路演算中的「带问号模糊值」并修正为精确终值——**数值表述必须可判定，禁止"约/大概/左右"**。
+
+**DO NOT（违反即打回）**：
+- 禁止把人设写进 .gd 代码或节点属性（AC2 直接失败）；
+- 禁止节点 effects 内嵌脚本/表达式求值逻辑（破坏可追溯与换卡免改码）；
+- 禁止绕过 godot headless 门禁合入主干；
+- 禁止交付 desktop-only / 仅本地可跑形态；
+- 禁止在策划与配置文档中使用不可判定的数值表述。
+
+## 十一、待核实与回填项（实现节点开工前处理）
+
+1. **数值终值比对**：链路终值在策划执行过程播报中出现过一次修订（如链路 A Σthreat 曾出现 225/210/220 等中间口径），**以 design-spec.md 演算表终值为准**；工作区产物未推送远端分支，实现节点重建文件时须逐值核对并回填本文。
+2. **AppHost 能力核实**：是否支持自定义响应头与 HTTPS —— 决定线程模式可行性；不支持则永久锁单线程导出。
+3. **实测回填**：Web 导出体积（wasm/pck）与首屏加载时间，导出后实测回填 §七。
+4. **生存轴定义**：体力/理智类生存状态的具体轴与衰减公式以 `spec.numeric` 为准，本文不预设定。
+
+---
+
+*版本 v1.0 ｜ 2026-09-05 ｜ 目标管理大师固化。依据：需求 id=cmtob3m0p000pm9y6yl6yi1uq、策划案产物 id=cmtn5fhk20008jqck1thxilil、平台 Godot 工程约定（games/godot-coin-rush）、Godot 官方导出文档。*
+
+
+
+## 疑点线索纠偏：cli-dialects.ts 不存在 root/sudo 启动旁路参数，从疑点清单证据引用中移除 2026-09-07
+
+负结果沉淀（防止伪线索复用）：findings-hypotheses.json H2 的 verifyHint 提到「src/services/coding-agent/cli-dialects.ts 的 root/sudo 启动旁路参数」，经全量核查不成立——cli-dialects.ts:96 为 --dangerously-skip-permissions、:214 为 --dangerously-bypass-approvals-and-sandbox，均为权限档位旁路参数，与 root/sudo 启动无关；全 src/ grep sudo|process.getuid|isRoot 零命中，不存在以 root/sudo 启动子进程的代码路径。后续分析不得再引用该落点作为证据；若怀疑 root/sudo 逻辑存在于平台层（worker 启动脚本/环境配置），需向平台方确认而非在仓库内取证。权限旁路参数自身的风险评估是独立议题，不随本条展开。
+
+## 成功率类健康指标口径声明缺失：overallTaskSuccessRate 生成器在平台侧不可验证，且仓库事实表明该比率对自愈改判与中间态高度敏感 2026-09-07
+
+H4 结论沉淀（知识库，供后续周报引用）：overallTaskSuccessRate（0.1667→0.4615，+176.9%）的分子分母定义在本仓库不可取证——指标名 grep 全仓库仅存在于 .myrd/self-evolution/ 自身文件，生成器在平台侧统计服务。仓库侧事实表明该比率高度敏感于：①自愈改判（healStaleRun 把中断 run 归置为 paused，engine.ts:310-333，paused 是非二元中间终态）；②finalize 无条件覆盖（trajectory/index.ts:400-436，同一次执行可先计失败后计成功）；③评测调度默认关闭（scheduler.ts:161-164）使评测样本与执行样本分属不同采集节奏。两期数值形态（≈1/6 与 6/13）与小基数扩张自洽：上期终态样本可能仅约 6 个（弱推断，待平台侧核实）。使用纪律：+176.9% 在平台侧输出分子分母定义、终态样本量（sampleSize）、paused/自愈改判剔除规则之前，不得作为能力跃迁证据对外传达；健康报告若按 status 计数失败，则 Worker 每次重启/部署本身都会左右成功率。需平台方行动：统计服务显式声明口径并附每期 sampleSize 字段。
+
 ---
 
 # 双栏布局验证
@@ -3164,6 +3590,148 @@ M0 地基(0.5w) → M1 跳伞(1w) → M2 移动+地图(1w) → M3 物资(1w)
 - [当 AI 开始重写小游戏生产流程（触乐/36氪）](https://m.36kr.com/p/3919432566779528)
 
 
+## 沉淀AI女友剧情生存玩法设计基线
+
+# 沉淀AI女友剧情生存玩法设计基线
+
+> **依据**：需求《我被AI女友包围了》剧情生存挑战游戏需求（id=cmtob3m0p000pm9y6yl6yi1uq）＋ 游戏策划产物（id=cmtn5fhk20008jqck1thxilil）＋ 平台既有 Godot 工程约定（`games/godot-coin-rush`：六段式 GameDesignSpec / contract-check / verify.sh）＋ Godot 官方 Web 导出文档。
+> **用途**：实现节点（开发/测试/部署）执行对齐的唯一设计基准。
+> **冲突裁决规则**：需求硬约束 > 策划案原文（design-spec.md / design-spec.json）> 本文；发现偏差须回填本文（版本 +1）。
+> **两条硬约束**：① godot headless 门禁 0 error 方可合并；② 构建产物必须在平台 AppHost 部署可启动、健康检查通过，禁止仅本地可跑的交付形态。
+
+---
+
+## 一、玩法定位与核心循环（AC1 落点）
+
+**定位**：剧情驱动的生存挑战游戏。玩家扮演被多位 AI 女友包围的主角，通过对话抉择与状态管理在剧情推进中求生并走向多分支结局。
+
+**核心循环（全项目唯一的循环定义，文案/实现/测试均以此表述为准）**：
+
+```
+剧情节点选择 → 好感度/威胁度/生存状态变化 → 触发后续剧情与结局分支 →（回到节点选择）
+```
+
+三条由循环直接推出的架构推论（策划案已确认，实现不得违背）：
+
+1. **数据驱动**：人设卡、剧情节点、数值全部是 content JSON；逻辑只认 schema 与 `spec.numeric` 键名，不认具体角色与具体数值。
+2. **可追溯**：每次结算写 trace，任何 AI 行为输出都能回放定位到 `persona_id` + 状态前后值。
+3. **可验证**：验收一律落成契约测试断言（spec/persona/story/ending 四类 + smoke），不靠人工体感。
+
+## 二、单一事实源：六段式 GameDesignSpec（平台既有工程约定）
+
+- 落点 `.myrd/spec/design-spec.json`，六段：**meta / world / entities / levels / numeric / acceptance**。
+- `entities[].script/scene`、`levels[].story_data`、`acceptance[].check` **声明的路径必须真实建出**，契约测试校验落点存在性。
+- 数值只认 `spec.numeric`，键名与未来 `game_state.gd` 字段一一对应——改数值=改表，不改码。
+- 策划案已交付内容（9 个内容 JSON + 2 份文档）：schema 契约 1 份 + 5 张人设卡 + 3 幕剧情（= 9 个 JSON），另有六段式 `design-spec.json` 与人读版 `design-spec.md`（含数值表、两条链路逐步演算、美术基线）。**策划阶段未产 Godot 代码，实现节点按 spec 施工。**
+
+## 三、AI女友人设卡基线（AC2 落点）
+
+- **schema 契约**：`games/ai-girlfriend-siege/data/schema/persona.schema.json`，**9 个必填字段**，覆盖并超出需求的 5 字段（姓名 / 性格标签 / 说话风格 / 好感度规则 / 威胁·危机行为模式）。
+- **5 张基线人设卡**（`data/personas/persona-{lumi,vex,ada,momo,sera}.json`）：治愈 / 病娇 / 冷静 / 活泼 / 神秘 五型；字段含主题色、口头禅、`favor_rules`、`threat_rules`、`portrait_prompt`。
+- **美术单一事实源**：立绘/形象资产只从 `portrait_prompt` 派生，禁止另行脑补设定——防止多 agent 并行产出美术与文案漂移。
+- **解耦铁律**：`persona_loader` 只认 schema 不认具体角色 → **改人设卡免改码**。验收手段 = swap 测试（替换某张卡 JSON、零代码改动，门禁仍过且行为变化）。
+- **可追溯格式**：`story_engine` 每次结算写 trace：`node_id / option_id / persona_id / favor·threat 前值与后值`，回放可定位到具体人设与状态。
+
+## 四、剧情幕结构与结局分支（AC3 落点）
+
+- **三幕骨架「包围 → 裂痕 → 倒计时」**：`data/story/act{1,2,3}.json`，共 **18 个节点**，节点图闭合无死链。
+- 节点 / 选项 / 数值效果**全部显式声明**；effects 用声明式键值（Δfavor/Δthreat/flag/goto），**禁止节点内嵌脚本逻辑**——嵌逻辑即破坏可追溯与换卡免改码。
+- **4 个结局**；其中 **2 条已逐步演算、可复现的可玩链路**（满足"至少 2 个不同结局"验收）：
+  - **链路 A → 独活结局**：全程威胁累积 Σthreat 控制在幕级上限（<300）内，终局选逃跑；
+  - **链路 B → 带走 Lumi 结局**：Lumi favor 终值 96 ≥ 70，且 threat 30 ≤ 60。
+- 结局判定阈值基线（策划案演算使用值）：**favor 结局门槛 ≥70；单人 threat 结局门槛 ≤60；幕级 Σthreat 上限 300**。
+- 结局判定由 `ending_contract.gd` 断言（对应 acceptance acc-5/acc-6）；冒烟测试用脚本驱动固定选择序列，跑出 ≥2 个不同结局即 AC3 达成。
+
+## 五、生存循环与数值规则
+
+- 状态三轴：**favor（好感度）/ threat（威胁度）/ 生存状态**；具体生存轴与衰减公式以 `spec.numeric` 为准，键名与 `game_state.gd` 一一对应。
+- 每次选择的标准结算链：选项 effects 声明 Δ 值 → story_engine 结算 → trace 落账 → 门控判断下一节点/结局。
+- 数值调优只改 `spec.numeric` 与人设卡 `favor_rules/threat_rules`，**任何数值调优不允许以改代码的方式实现**。
+
+## 六、godot 门禁与 CI（AC4 落点）
+
+**门禁三件套（全部 headless，0 error 才可合并；CI 拒绝含错误代码的提交）**：
+
+1. **preflight**：环境与引擎版本预检；
+2. **`godot --headless --import`**：资源导入完整性（坏资源/坏路径在此暴露）；
+3. **smoke**：headless 跑冒烟 + 契约测试（spec / persona / story / ending 四件，先例即 `games/godot-coin-rush` 的 `contract-check.mjs` + `verify.sh` 模式）。
+
+附加门禁规则：spec 中声明的落点（entities script/scene、levels story_data、acceptance check）必须真实存在；persona/story JSON 过 schema 校验，坏配置 = 门禁失败（让 AC2 的"≥5 字段结构化"变成机器可验证，而不是评审口径）。
+
+## 七、Web 导出与 AppHost 部署规范（AC5 落点）
+
+**引擎事实（Godot 官方文档，已核实）**：
+- Godot 4.3 起，**单线程 Web 导出是官方默认推荐路线**：无需跨域隔离响应头、兼容性最好；
+- 开启线程支持（SharedArrayBuffer）则硬性要求：HTTPS 安全上下文 + `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: require-corp`。
+
+**项目裁决规则**：
+1. **默认锁单线程导出**；仅当 AppHost 可注入自定义响应头且走 HTTPS 时，才允许评估线程模式。
+2. `.wasm` 必须 `application/wasm` MIME；index.html / wasm / pck 同源部署。
+3. 体积与首屏预算：剧情游戏静态资源大头是**中文字体与立绘**——中文字体必须子集化；具体体积/首屏红线由实现节点导出实测后回填本文（不在无实测数据时空定数值）。
+4. **健康检查**：交付包内置静态 `/healthz`（200 + `{status:"ok",version}`）；部署后 AppHost 探活通过 + 浏览器冒烟（canvas 出现、console 无 error）。
+5. PWA service worker 可官方模拟 COOP/COEP，但增加缓存失效复杂度，AppHost 场景**默认不启用**。
+6. 禁止 desktop-only / 仅本地可跑形态；未过健康检查的构建不得标记完成。
+
+## 八、目录结构与依赖方向（CI 强制）
+
+```
+games/ai-girlfriend-siege/
+  data/schema/persona.schema.json      # 契约：人设卡字段
+  data/personas/persona-{lumi,vex,ada,momo,sera}.json
+  data/story/act{1,2,3}.json           # 三幕节点图
+  design/design-spec.md                # 人读版：数值表+链路演算+美术基线
+.myrd/spec/design-spec.json            # 六段式单一事实源
+```
+
+依赖方向：`persona_loader` 只依赖 schema；`story_engine` 只依赖 `spec.numeric` 键名与 act JSON；UI 只读状态与事件流；**任何 .gd 禁止硬编码角色名或数值**（出现即 lint/评审打回）。
+
+## 九、验收标准映射（AC → 基线落点）
+
+| AC | 验收点 | 基线落点 | 自动化手段 |
+|---|---|---|---|
+| AC1 | 玩法定位+核心循环经评审确认 | §一 循环唯一表述 | spec 契约测试 |
+| AC2 | 人设卡 ≥5 字段、改卡免改码 | §三 schema 9 必填字段 + swap 测试 | persona 契约测试 |
+| AC3 | ≥1 条链路复现 ≥2 结局 | §四 4 结局 + 2 条已演算链路 | ending 契约 + smoke |
+| AC4 | godot 门禁 CI 生效、错误提交被拒 | §六 三件套 0 error | CI 拒绝合并验证 |
+| AC5 | AppHost 部署可启动 + 健康检查通过 | §七 单线程导出 + /healthz + 冒烟 | 部署核对（策划案 acc-12 同为人工核对项）|
+
+策划案共 12 条 acceptance，其中 10 条已配可执行检查（spec/persona/story/ending 四契约 + smoke）；实现节点不得降低已配检查的覆盖面。
+
+## 十、执行经验与 DO NOT（本次目标执行沉淀）
+
+**有效的做法**：
+- 策划阶段就把验收配成可执行检查（12 条中 10 条可自动断言）——这是实现节点不返工的关键，印证调研结论「验收回路是一等公民」「知识先于生成」。
+- 文案、美术、数值全部从单一事实源派生（portrait_prompt / spec.numeric），多 agent 并行也不漂移。
+- 自检抓到链路演算中的「带问号模糊值」并修正为精确终值——**数值表述必须可判定，禁止"约/大概/左右"**。
+
+**DO NOT（违反即打回）**：
+- 禁止把人设写进 .gd 代码或节点属性（AC2 直接失败）；
+- 禁止节点 effects 内嵌脚本/表达式求值逻辑（破坏可追溯与换卡免改码）；
+- 禁止绕过 godot headless 门禁合入主干；
+- 禁止交付 desktop-only / 仅本地可跑形态；
+- 禁止在策划与配置文档中使用不可判定的数值表述。
+
+## 十一、待核实与回填项（实现节点开工前处理）
+
+1. **数值终值比对**：链路终值在策划执行过程播报中出现过一次修订（如链路 A Σthreat 曾出现 225/210/220 等中间口径），**以 design-spec.md 演算表终值为准**；工作区产物未推送远端分支，实现节点重建文件时须逐值核对并回填本文。
+2. **AppHost 能力核实**：是否支持自定义响应头与 HTTPS —— 决定线程模式可行性；不支持则永久锁单线程导出。
+3. **实测回填**：Web 导出体积（wasm/pck）与首屏加载时间，导出后实测回填 §七。
+4. **生存轴定义**：体力/理智类生存状态的具体轴与衰减公式以 `spec.numeric` 为准，本文不预设定。
+
+---
+
+*版本 v1.0 ｜ 2026-09-05 ｜ 目标管理大师固化。依据：需求 id=cmtob3m0p000pm9y6yl6yi1uq、策划案产物 id=cmtn5fhk20008jqck1thxilil、平台 Godot 工程约定（games/godot-coin-rush）、Godot 官方导出文档。*
+
+
+
+## 疑点线索纠偏：cli-dialects.ts 不存在 root/sudo 启动旁路参数，从疑点清单证据引用中移除 2026-09-07
+
+负结果沉淀（防止伪线索复用）：findings-hypotheses.json H2 的 verifyHint 提到「src/services/coding-agent/cli-dialects.ts 的 root/sudo 启动旁路参数」，经全量核查不成立——cli-dialects.ts:96 为 --dangerously-skip-permissions、:214 为 --dangerously-bypass-approvals-and-sandbox，均为权限档位旁路参数，与 root/sudo 启动无关；全 src/ grep sudo|process.getuid|isRoot 零命中，不存在以 root/sudo 启动子进程的代码路径。后续分析不得再引用该落点作为证据；若怀疑 root/sudo 逻辑存在于平台层（worker 启动脚本/环境配置），需向平台方确认而非在仓库内取证。权限旁路参数自身的风险评估是独立议题，不随本条展开。
+
+## 成功率类健康指标口径声明缺失：overallTaskSuccessRate 生成器在平台侧不可验证，且仓库事实表明该比率对自愈改判与中间态高度敏感 2026-09-07
+
+H4 结论沉淀（知识库，供后续周报引用）：overallTaskSuccessRate（0.1667→0.4615，+176.9%）的分子分母定义在本仓库不可取证——指标名 grep 全仓库仅存在于 .myrd/self-evolution/ 自身文件，生成器在平台侧统计服务。仓库侧事实表明该比率高度敏感于：①自愈改判（healStaleRun 把中断 run 归置为 paused，engine.ts:310-333，paused 是非二元中间终态）；②finalize 无条件覆盖（trajectory/index.ts:400-436，同一次执行可先计失败后计成功）；③评测调度默认关闭（scheduler.ts:161-164）使评测样本与执行样本分属不同采集节奏。两期数值形态（≈1/6 与 6/13）与小基数扩张自洽：上期终态样本可能仅约 6 个（弱推断，待平台侧核实）。使用纪律：+176.9% 在平台侧输出分子分母定义、终态样本量（sampleSize）、paused/自愈改判剔除规则之前，不得作为能力跃迁证据对外传达；健康报告若按 status 计数失败，则 Worker 每次重启/部署本身都会左右成功率。需平台方行动：统计服务显式声明口径并附每期 sampleSize 字段。
+
 ---
 
 # 多选测试产品
@@ -3907,3 +4475,145 @@ M0 地基(0.5w) → M1 跳伞(1w) → M2 移动+地图(1w) → M3 物资(1w)
 - [腾讯云林哲：怎么用 AI Agent 开发小游戏（GameLook）](http://www.gamelook.com.cn/2026/06/595411/)
 - [当 AI 开始重写小游戏生产流程（触乐/36氪）](https://m.36kr.com/p/3919432566779528)
 
+
+## 沉淀AI女友剧情生存玩法设计基线
+
+# 沉淀AI女友剧情生存玩法设计基线
+
+> **依据**：需求《我被AI女友包围了》剧情生存挑战游戏需求（id=cmtob3m0p000pm9y6yl6yi1uq）＋ 游戏策划产物（id=cmtn5fhk20008jqck1thxilil）＋ 平台既有 Godot 工程约定（`games/godot-coin-rush`：六段式 GameDesignSpec / contract-check / verify.sh）＋ Godot 官方 Web 导出文档。
+> **用途**：实现节点（开发/测试/部署）执行对齐的唯一设计基准。
+> **冲突裁决规则**：需求硬约束 > 策划案原文（design-spec.md / design-spec.json）> 本文；发现偏差须回填本文（版本 +1）。
+> **两条硬约束**：① godot headless 门禁 0 error 方可合并；② 构建产物必须在平台 AppHost 部署可启动、健康检查通过，禁止仅本地可跑的交付形态。
+
+---
+
+## 一、玩法定位与核心循环（AC1 落点）
+
+**定位**：剧情驱动的生存挑战游戏。玩家扮演被多位 AI 女友包围的主角，通过对话抉择与状态管理在剧情推进中求生并走向多分支结局。
+
+**核心循环（全项目唯一的循环定义，文案/实现/测试均以此表述为准）**：
+
+```
+剧情节点选择 → 好感度/威胁度/生存状态变化 → 触发后续剧情与结局分支 →（回到节点选择）
+```
+
+三条由循环直接推出的架构推论（策划案已确认，实现不得违背）：
+
+1. **数据驱动**：人设卡、剧情节点、数值全部是 content JSON；逻辑只认 schema 与 `spec.numeric` 键名，不认具体角色与具体数值。
+2. **可追溯**：每次结算写 trace，任何 AI 行为输出都能回放定位到 `persona_id` + 状态前后值。
+3. **可验证**：验收一律落成契约测试断言（spec/persona/story/ending 四类 + smoke），不靠人工体感。
+
+## 二、单一事实源：六段式 GameDesignSpec（平台既有工程约定）
+
+- 落点 `.myrd/spec/design-spec.json`，六段：**meta / world / entities / levels / numeric / acceptance**。
+- `entities[].script/scene`、`levels[].story_data`、`acceptance[].check` **声明的路径必须真实建出**，契约测试校验落点存在性。
+- 数值只认 `spec.numeric`，键名与未来 `game_state.gd` 字段一一对应——改数值=改表，不改码。
+- 策划案已交付内容（9 个内容 JSON + 2 份文档）：schema 契约 1 份 + 5 张人设卡 + 3 幕剧情（= 9 个 JSON），另有六段式 `design-spec.json` 与人读版 `design-spec.md`（含数值表、两条链路逐步演算、美术基线）。**策划阶段未产 Godot 代码，实现节点按 spec 施工。**
+
+## 三、AI女友人设卡基线（AC2 落点）
+
+- **schema 契约**：`games/ai-girlfriend-siege/data/schema/persona.schema.json`，**9 个必填字段**，覆盖并超出需求的 5 字段（姓名 / 性格标签 / 说话风格 / 好感度规则 / 威胁·危机行为模式）。
+- **5 张基线人设卡**（`data/personas/persona-{lumi,vex,ada,momo,sera}.json`）：治愈 / 病娇 / 冷静 / 活泼 / 神秘 五型；字段含主题色、口头禅、`favor_rules`、`threat_rules`、`portrait_prompt`。
+- **美术单一事实源**：立绘/形象资产只从 `portrait_prompt` 派生，禁止另行脑补设定——防止多 agent 并行产出美术与文案漂移。
+- **解耦铁律**：`persona_loader` 只认 schema 不认具体角色 → **改人设卡免改码**。验收手段 = swap 测试（替换某张卡 JSON、零代码改动，门禁仍过且行为变化）。
+- **可追溯格式**：`story_engine` 每次结算写 trace：`node_id / option_id / persona_id / favor·threat 前值与后值`，回放可定位到具体人设与状态。
+
+## 四、剧情幕结构与结局分支（AC3 落点）
+
+- **三幕骨架「包围 → 裂痕 → 倒计时」**：`data/story/act{1,2,3}.json`，共 **18 个节点**，节点图闭合无死链。
+- 节点 / 选项 / 数值效果**全部显式声明**；effects 用声明式键值（Δfavor/Δthreat/flag/goto），**禁止节点内嵌脚本逻辑**——嵌逻辑即破坏可追溯与换卡免改码。
+- **4 个结局**；其中 **2 条已逐步演算、可复现的可玩链路**（满足"至少 2 个不同结局"验收）：
+  - **链路 A → 独活结局**：全程威胁累积 Σthreat 控制在幕级上限（<300）内，终局选逃跑；
+  - **链路 B → 带走 Lumi 结局**：Lumi favor 终值 96 ≥ 70，且 threat 30 ≤ 60。
+- 结局判定阈值基线（策划案演算使用值）：**favor 结局门槛 ≥70；单人 threat 结局门槛 ≤60；幕级 Σthreat 上限 300**。
+- 结局判定由 `ending_contract.gd` 断言（对应 acceptance acc-5/acc-6）；冒烟测试用脚本驱动固定选择序列，跑出 ≥2 个不同结局即 AC3 达成。
+
+## 五、生存循环与数值规则
+
+- 状态三轴：**favor（好感度）/ threat（威胁度）/ 生存状态**；具体生存轴与衰减公式以 `spec.numeric` 为准，键名与 `game_state.gd` 一一对应。
+- 每次选择的标准结算链：选项 effects 声明 Δ 值 → story_engine 结算 → trace 落账 → 门控判断下一节点/结局。
+- 数值调优只改 `spec.numeric` 与人设卡 `favor_rules/threat_rules`，**任何数值调优不允许以改代码的方式实现**。
+
+## 六、godot 门禁与 CI（AC4 落点）
+
+**门禁三件套（全部 headless，0 error 才可合并；CI 拒绝含错误代码的提交）**：
+
+1. **preflight**：环境与引擎版本预检；
+2. **`godot --headless --import`**：资源导入完整性（坏资源/坏路径在此暴露）；
+3. **smoke**：headless 跑冒烟 + 契约测试（spec / persona / story / ending 四件，先例即 `games/godot-coin-rush` 的 `contract-check.mjs` + `verify.sh` 模式）。
+
+附加门禁规则：spec 中声明的落点（entities script/scene、levels story_data、acceptance check）必须真实存在；persona/story JSON 过 schema 校验，坏配置 = 门禁失败（让 AC2 的"≥5 字段结构化"变成机器可验证，而不是评审口径）。
+
+## 七、Web 导出与 AppHost 部署规范（AC5 落点）
+
+**引擎事实（Godot 官方文档，已核实）**：
+- Godot 4.3 起，**单线程 Web 导出是官方默认推荐路线**：无需跨域隔离响应头、兼容性最好；
+- 开启线程支持（SharedArrayBuffer）则硬性要求：HTTPS 安全上下文 + `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: require-corp`。
+
+**项目裁决规则**：
+1. **默认锁单线程导出**；仅当 AppHost 可注入自定义响应头且走 HTTPS 时，才允许评估线程模式。
+2. `.wasm` 必须 `application/wasm` MIME；index.html / wasm / pck 同源部署。
+3. 体积与首屏预算：剧情游戏静态资源大头是**中文字体与立绘**——中文字体必须子集化；具体体积/首屏红线由实现节点导出实测后回填本文（不在无实测数据时空定数值）。
+4. **健康检查**：交付包内置静态 `/healthz`（200 + `{status:"ok",version}`）；部署后 AppHost 探活通过 + 浏览器冒烟（canvas 出现、console 无 error）。
+5. PWA service worker 可官方模拟 COOP/COEP，但增加缓存失效复杂度，AppHost 场景**默认不启用**。
+6. 禁止 desktop-only / 仅本地可跑形态；未过健康检查的构建不得标记完成。
+
+## 八、目录结构与依赖方向（CI 强制）
+
+```
+games/ai-girlfriend-siege/
+  data/schema/persona.schema.json      # 契约：人设卡字段
+  data/personas/persona-{lumi,vex,ada,momo,sera}.json
+  data/story/act{1,2,3}.json           # 三幕节点图
+  design/design-spec.md                # 人读版：数值表+链路演算+美术基线
+.myrd/spec/design-spec.json            # 六段式单一事实源
+```
+
+依赖方向：`persona_loader` 只依赖 schema；`story_engine` 只依赖 `spec.numeric` 键名与 act JSON；UI 只读状态与事件流；**任何 .gd 禁止硬编码角色名或数值**（出现即 lint/评审打回）。
+
+## 九、验收标准映射（AC → 基线落点）
+
+| AC | 验收点 | 基线落点 | 自动化手段 |
+|---|---|---|---|
+| AC1 | 玩法定位+核心循环经评审确认 | §一 循环唯一表述 | spec 契约测试 |
+| AC2 | 人设卡 ≥5 字段、改卡免改码 | §三 schema 9 必填字段 + swap 测试 | persona 契约测试 |
+| AC3 | ≥1 条链路复现 ≥2 结局 | §四 4 结局 + 2 条已演算链路 | ending 契约 + smoke |
+| AC4 | godot 门禁 CI 生效、错误提交被拒 | §六 三件套 0 error | CI 拒绝合并验证 |
+| AC5 | AppHost 部署可启动 + 健康检查通过 | §七 单线程导出 + /healthz + 冒烟 | 部署核对（策划案 acc-12 同为人工核对项）|
+
+策划案共 12 条 acceptance，其中 10 条已配可执行检查（spec/persona/story/ending 四契约 + smoke）；实现节点不得降低已配检查的覆盖面。
+
+## 十、执行经验与 DO NOT（本次目标执行沉淀）
+
+**有效的做法**：
+- 策划阶段就把验收配成可执行检查（12 条中 10 条可自动断言）——这是实现节点不返工的关键，印证调研结论「验收回路是一等公民」「知识先于生成」。
+- 文案、美术、数值全部从单一事实源派生（portrait_prompt / spec.numeric），多 agent 并行也不漂移。
+- 自检抓到链路演算中的「带问号模糊值」并修正为精确终值——**数值表述必须可判定，禁止"约/大概/左右"**。
+
+**DO NOT（违反即打回）**：
+- 禁止把人设写进 .gd 代码或节点属性（AC2 直接失败）；
+- 禁止节点 effects 内嵌脚本/表达式求值逻辑（破坏可追溯与换卡免改码）；
+- 禁止绕过 godot headless 门禁合入主干；
+- 禁止交付 desktop-only / 仅本地可跑形态；
+- 禁止在策划与配置文档中使用不可判定的数值表述。
+
+## 十一、待核实与回填项（实现节点开工前处理）
+
+1. **数值终值比对**：链路终值在策划执行过程播报中出现过一次修订（如链路 A Σthreat 曾出现 225/210/220 等中间口径），**以 design-spec.md 演算表终值为准**；工作区产物未推送远端分支，实现节点重建文件时须逐值核对并回填本文。
+2. **AppHost 能力核实**：是否支持自定义响应头与 HTTPS —— 决定线程模式可行性；不支持则永久锁单线程导出。
+3. **实测回填**：Web 导出体积（wasm/pck）与首屏加载时间，导出后实测回填 §七。
+4. **生存轴定义**：体力/理智类生存状态的具体轴与衰减公式以 `spec.numeric` 为准，本文不预设定。
+
+---
+
+*版本 v1.0 ｜ 2026-09-05 ｜ 目标管理大师固化。依据：需求 id=cmtob3m0p000pm9y6yl6yi1uq、策划案产物 id=cmtn5fhk20008jqck1thxilil、平台 Godot 工程约定（games/godot-coin-rush）、Godot 官方导出文档。*
+
+
+
+## 疑点线索纠偏：cli-dialects.ts 不存在 root/sudo 启动旁路参数，从疑点清单证据引用中移除 2026-09-07
+
+负结果沉淀（防止伪线索复用）：findings-hypotheses.json H2 的 verifyHint 提到「src/services/coding-agent/cli-dialects.ts 的 root/sudo 启动旁路参数」，经全量核查不成立——cli-dialects.ts:96 为 --dangerously-skip-permissions、:214 为 --dangerously-bypass-approvals-and-sandbox，均为权限档位旁路参数，与 root/sudo 启动无关；全 src/ grep sudo|process.getuid|isRoot 零命中，不存在以 root/sudo 启动子进程的代码路径。后续分析不得再引用该落点作为证据；若怀疑 root/sudo 逻辑存在于平台层（worker 启动脚本/环境配置），需向平台方确认而非在仓库内取证。权限旁路参数自身的风险评估是独立议题，不随本条展开。
+
+## 成功率类健康指标口径声明缺失：overallTaskSuccessRate 生成器在平台侧不可验证，且仓库事实表明该比率对自愈改判与中间态高度敏感 2026-09-07
+
+H4 结论沉淀（知识库，供后续周报引用）：overallTaskSuccessRate（0.1667→0.4615，+176.9%）的分子分母定义在本仓库不可取证——指标名 grep 全仓库仅存在于 .myrd/self-evolution/ 自身文件，生成器在平台侧统计服务。仓库侧事实表明该比率高度敏感于：①自愈改判（healStaleRun 把中断 run 归置为 paused，engine.ts:310-333，paused 是非二元中间终态）；②finalize 无条件覆盖（trajectory/index.ts:400-436，同一次执行可先计失败后计成功）；③评测调度默认关闭（scheduler.ts:161-164）使评测样本与执行样本分属不同采集节奏。两期数值形态（≈1/6 与 6/13）与小基数扩张自洽：上期终态样本可能仅约 6 个（弱推断，待平台侧核实）。使用纪律：+176.9% 在平台侧输出分子分母定义、终态样本量（sampleSize）、paused/自愈改判剔除规则之前，不得作为能力跃迁证据对外传达；健康报告若按 status 计数失败，则 Worker 每次重启/部署本身都会左右成功率。需平台方行动：统计服务显式声明口径并附每期 sampleSize 字段。

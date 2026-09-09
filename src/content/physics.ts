@@ -67,3 +67,15 @@ export const MOVEMENT: MovementConfig = {
   sprintSpeed: 8.6,
   turnSpeed: 6,
 };
+
+export interface BallisticConfig {
+  /** 弹道下坠重力加速度（m/s²），下坠量 = 0.5 × g × t²，t = 距离 / 弹速 */
+  gravityMps2: number;
+  /** 弹道扫描分段长度（m）：抛物线弹道按该步长折线扫描命中（射线扫描判定，架构 §3.1） */
+  segmentM: number;
+}
+
+export const BALLISTIC: BallisticConfig = {
+  gravityMps2: 9.81,
+  segmentM: 25,
+};

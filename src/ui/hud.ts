@@ -27,6 +27,7 @@ export class Hud {
   private zoneFill: HTMLDivElement;
   private zoneBadge: HTMLDivElement;
   private stateText: HTMLDivElement;
+  private airdropBanner: HTMLDivElement;
   private killFeed: HTMLDivElement;
   private medkitBar: HTMLDivElement;
   private debugText: HTMLDivElement;
@@ -59,6 +60,7 @@ export class Hud {
         </div>
       </div>
       <div class="hud-state" data-ref="state"></div>
+      <div class="airdrop-banner" data-ref="airdrop"></div>
       <div class="killfeed" data-ref="killfeed"></div>
       <div class="hud-bottom-left">
         <div class="hpwrap">
@@ -94,6 +96,7 @@ export class Hud {
     this.zoneFill = ref('zonefill');
     this.zoneBadge = ref('zonebadge');
     this.stateText = ref('state');
+    this.airdropBanner = ref('airdrop');
     this.killFeed = ref('killfeed');
     this.medkitBar = ref('medkit');
     this.debugText = ref('debug');
@@ -118,6 +121,10 @@ export class Hud {
     if (dirty.zoneBadgeMode) this.zoneBadge.dataset.mode = state.zoneBadgeMode;
     if (dirty.zoneFillWidth) this.zoneFill.style.width = state.zoneFillWidth;
     if (dirty.stateText) this.stateText.textContent = state.stateText;
+    if (dirty.airdropText) {
+      this.airdropBanner.textContent = state.airdropText;
+      this.airdropBanner.style.display = state.airdropText ? 'block' : 'none';
+    }
     if (dirty.vignetteDanger) this.vignette.classList.toggle('danger', state.vignetteDanger);
 
     if (dirty.medkitVisible) this.medkitBar.style.display = state.medkitVisible ? 'block' : 'none';

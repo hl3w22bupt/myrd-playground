@@ -121,8 +121,10 @@ export class InputManager {
 
     if (this.onceActions.delete('reload')) intents.push({ kind: 'reload' });
     if (this.onceActions.delete('interact')) intents.push({ kind: 'interact' });
-    if (this.onceActions.delete('medkit')) intents.push({ kind: 'useItem', slot: this.firstMedkitSlot() });
-    if (this.onceActions.delete('drop')) intents.push({ kind: 'drop', slot: 0 });
+    // Q 使用医疗包：slot -1 = 仿真侧自动选择第一个可用医疗物品（背包物资管理语义）
+    if (this.onceActions.delete('medkit')) intents.push({ kind: 'useItem', slot: -1 });
+    // G 丢弃：slot -1 = 丢弃第一个非空背包格（具体丢弃在背包面板中点选）
+    if (this.onceActions.delete('drop')) intents.push({ kind: 'drop', slot: -1 });
     if (this.onceActions.delete('jump')) intents.push({ kind: 'jumpFromPlane' });
     if (this.onceActions.delete('chute')) {
       intents.push({ kind: 'deployParachute' });
@@ -139,10 +141,6 @@ export class InputManager {
     }
 
     return intents;
-  }
-
-  private firstMedkitSlot(): number {
-    return 0; // 使用第一个格子（useMedkit 内部校验是否为医疗包）
   }
 
   dispose(): void {

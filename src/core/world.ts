@@ -2,7 +2,7 @@
  * core/world —— World 状态容器（ECS-lite）与实体/物资/运输机/缩圈状态。
  */
 
-import type { ContentPack } from '../content';
+import type { ContentPack, AiPersonaId } from '../content';
 import { INVENTORY_GRIDS, MAX_HP } from '../content/constants';
 import type {
   EntityKind,
@@ -61,6 +61,15 @@ export interface Entity {
   firing: boolean;
   /** 连射散布扩张（后坐力 bloom） */
   bloom: number;
+  /** 后坐力垂直偏移（rad，向上为正）：射击时累积，停火后按 RECOIL_TUNING 恢复 */
+  recoilPitch: number;
+  /** 后坐力水平偏移（rad）：射击时随机方向累积，停火后恢复 */
+  recoilYaw: number;
+  /** 行为人格（AI 行为多样化；玩家为 'assault' 占位不参与决策） */
+  persona: AiPersonaId;
+  /** 点射计数与冷却（AI burst fire 节流） */
+  burstCount: number;
+  burstReadyAtMs: number;
   /** 本 tick 解析后的意图状态（由 applyIntent 写入，各系统消费） */
   moveDirX: number;
   moveDirZ: number;
@@ -77,7 +86,7 @@ export interface Entity {
   wantDrop: number | null;
   wantUse: number | null;
   /** AI */
-  aiState: 'patrol' | 'loot' | 'seek' | 'fire' | 'fleeZone' | 'dead';
+  aiState: 'patrol' | 'loot' | 'seek' | 'fire' | 'fleeZone' | 'heal' | 'dead';
   aiWaypoint: Vec3 | null;
   aiTargetId: string | null;
   aiLastSeenMs: number;
@@ -94,6 +103,17 @@ export interface LootItem {
   item: ItemId;
   pos: Vec3;
   taken: boolean;
+  /** 堆叠数量（弹药丢弃再拾取语义；undefined = 按物品配置默认数量） */
+  count?: number;
+}
+
+/** 空投箱：falling 下落中 → landed 落地（落地时按内容物散布生成高价值物资） */
+export interface AirDropCrate {
+  id: string;
+  /** 落点（水平位置固定，y 为当前箱体高度） */
+  pos: Vec3;
+  phase: 'falling' | 'landed';
+  landedAtMs: number | null;
 }
 
 export interface PlaneState {
@@ -130,8 +150,13 @@ export interface World {
   zone: ZoneState;
   buildings: AABB[];
   dropHints: Vec3[];
+  airdrops: AirDropCrate[];
   events: GameEvent[];
   result: MatchResult | null;
+  /** 物资 id 序列（world 级而非模块级：同进程多局之间互不污染，确定性红线） */
+  lootSeq: number;
+  /** 空投 id 序列（world 级，同上） */
+  airdropSeq: number;
   rng: {
     map: Rng;
     loot: Rng;
@@ -139,6 +164,7 @@ export interface World {
     combat: Rng;
     plane: Rng;
     zone: Rng;
+    airdrop: Rng;
   };
 }
 
@@ -178,6 +204,11 @@ export function createEntity(
     medkitItemSlot: null,
     firing: false,
     bloom: 0,
+    recoilPitch: 0,
+    recoilYaw: 0,
+    persona: 'assault',
+    burstCount: 0,
+    burstReadyAtMs: 0,
     moveDirX: 0,
     moveDirZ: 0,
     moveSprint: false,
@@ -211,4 +242,12 @@ export function pushEvent(w: World, ev: GameEvent): void {
 /** 背包剩余格子 */
 export function freeGrids(e: Entity): number {
   return e.inventory.length - e.usedGrids;
+}
+
+/** 取消进行中的医疗引导（受伤/开火打断，AC3 急救语义） */
+export function cancelMedkitChannel(e: Entity): boolean {
+  if (e.medkitUntilMs === null) return false;
+  e.medkitUntilMs = null;
+  e.medkitItemSlot = null;
+  return true;
 }

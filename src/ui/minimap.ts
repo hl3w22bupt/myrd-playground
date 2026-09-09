@@ -148,6 +148,34 @@ export class Minimap {
       ctx.fill();
     }
 
+    // 空投标记（降落中 = 带伞落点；已落地 = 红箱高亮）
+    for (const a of snap.airdrops) {
+      const ax = a.pos.x * k;
+      const az = a.pos.z * k;
+      ctx.save();
+      ctx.translate(ax, az);
+      if (a.phase === 'falling') {
+        // 降落伞：伞盖 + 吊索
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(0, -2, 3.4, Math.PI, 0);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-3.2, -2);
+        ctx.lineTo(0, 2);
+        ctx.lineTo(3.2, -2);
+        ctx.stroke();
+      }
+      // 箱体（红底白边，落地后加呼吸光圈）
+      ctx.fillStyle = '#d73a26';
+      ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+      ctx.lineWidth = 1;
+      ctx.fillRect(-2.4, -0.4, 4.8, 4);
+      ctx.strokeRect(-2.4, -0.4, 4.8, 4);
+      ctx.restore();
+    }
+
     // 玩家箭头 + 视野扇形
     const p = snap.entities.find((e) => e.id === 'player');
     if (p) {
