@@ -126,7 +126,9 @@ export class Hud {
     // 医疗引导
     if (p.medkitChannelMsLeft > 0) {
       this.medkitBar.style.display = 'block';
-      const total = (ITEMS.medkit_large as MedkitItemDef).useMs;
+      const medDef = p.medkitItem ? ITEMS[p.medkitItem as keyof typeof ITEMS] : null;
+      const total =
+        medDef && medDef.kind === 'medkit' ? medDef.useMs : (ITEMS.medkit_large as MedkitItemDef).useMs;
       const fill = this.medkitBar.firstElementChild as HTMLElement | null;
       if (fill) fill.style.width = `${(100 - (p.medkitChannelMsLeft / total) * 100).toFixed(0)}%`;
     } else {

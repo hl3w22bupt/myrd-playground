@@ -11,6 +11,8 @@ export type ItemId =
   | 'ammo_45'
   | 'armor_vest'
   | 'helmet_mk2'
+  | 'medkit_bandage'
+  | 'medkit_first'
   | 'medkit_large';
 
 export type ItemKind = 'weapon' | 'ammo' | 'armor' | 'helmet' | 'medkit';
@@ -76,6 +78,13 @@ export const ITEMS: Record<ItemId, ItemDef> = {
   ammo_45: { id: 'ammo_45', name: '.45 弹药', kind: 'ammo', ammoType: 'ammo_45', count: 50, gridCost: 2 },
   armor_vest: { id: 'armor_vest', name: '防弹衣', kind: 'armor', damageReduction: 0.35, gridCost: 0 },
   helmet_mk2: { id: 'helmet_mk2', name: '头盔', kind: 'helmet', headshotReduction: 0.5, gridCost: 0 },
+  // 三档血包（玩法缺口补齐项）：绷带 < 急救包 < 医疗包，heal/useMs/grid 彼此可区分
+  medkit_bandage: {
+    id: 'medkit_bandage', name: '绷带', kind: 'medkit', healAmount: 10, useMs: 800, gridCost: 1,
+  },
+  medkit_first: {
+    id: 'medkit_first', name: '急救包', kind: 'medkit', healAmount: 30, useMs: 1600, gridCost: 2,
+  },
   medkit_large: { id: 'medkit_large', name: '医疗包', kind: 'medkit', healAmount: 60, useMs: 3000, gridCost: 2 },
 };
 

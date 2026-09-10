@@ -55,11 +55,14 @@ src/
 |---|---|---|
 | AC1 全流程闭环 ≤10min | 固定 seed 跑满局：唯一存活者、结算含排名/淘汰数/用时、AI 胜与玩家胜两分支、快照完整性、核心吞吐 | match.spec.ts |
 | AC2 跳伞落地 | 同 seed 同意图序列落点逐 tick 复现（偏差 0）、四阶段完整、落点偏差 ≤80m（地图 5%）、落地 1s 内进入地面移动、自选跳伞时机 | parachute.spec.ts |
-| AC3 物资生效 | 区域密度生成、武器上膛即可射击、护甲/头盔减伤、医疗回血 +60、医疗引导被开火打断、弹药计数、背包容量上限与丢弃 | loot.spec.ts / medkit.spec.ts |
+| AC3 物资生效 | 区域密度生成、武器上膛即可射击、护甲/头盔减伤、三档血包（绷带/急救包/医疗包 heal/useMs 可区分）、Q 自动选择最强血包、医疗引导被开火/受击打断、弹药计数、背包容量上限与丢弃 | loot.spec.ts / medkit.spec.ts |
 | AC4 射击命中 | 双武器参数可区分且与配置一致、620rpm 射速节流、100m 静止目标命中率 ≥90%（1000 发蒙特卡洛）、距离衰减、部位倍率、换弹时长、淘汰计数；弹道下坠（0.5·g·t²）与补偿、后坐力踢枪/恢复/命中率惩罚 | combat.spec.ts / ballistics.spec.ts / recoil.spec.ts |
-| AC5 缩圈与 AI | ≥3 阶段收缩且 dps 递增、圈外按秒掉血、毒圈淘汰归因、AI ≥10 且具备巡图/拾取/索敌/开火/避毒/低血治疗、AI 可被淘汰、AI 人格多样化（狙击/突击/游击/搜刮） | zone.spec.ts / ai.spec.ts / aiPersona.spec.ts |
+| AC5 缩圈与 AI | ≥3 阶段收缩且 dps 递增、圈外按秒掉血、毒圈淘汰归因、AI ≥10 且具备巡图/拾取/索敌/开火/避毒/低血治疗/受击撤退、AI 可被淘汰、AI 人格多样化（狙击/突击/游击/搜刮）、远距弹道下坠补偿 | zone.spec.ts / ai.spec.ts / aiPersona.spec.ts / aiBehavior.spec.ts |
 | 玩法补齐·空投 | 定时空投（content/airdrop）：投放→下落→落地→内容物经标准 loot 通道散布，落点/散布同 seed 确定性复现 | airdrop.spec.ts |
 | 表现层补充单测 | 画质三档成本单调 + 后处理启用条件 + AutoQuality 降/升档（60s 冷却）；实体 LOD 分级边界/部件显隐/画质联动/玩家不剔除 | quality.spec.ts / lod.spec.ts |
+
+门禁（`.myrd/routines.yaml`）：`full-e2e` routine = deps → lint → Node 闭环断言（`npm run test`）→ 构建（`npm run build`）；
+挂到标准工作流 create-pr 节点的 `preHook: full-e2e` 作为放行卡点（fail-closed 阻塞解除）。
 
 ## 操作
 

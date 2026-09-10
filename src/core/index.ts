@@ -24,6 +24,17 @@ export { updateZone, initZone } from './systems/zone';
 export { updateAi, initAi, aiPersonaParams } from './systems/ai';
 export { initAirdrops, updateAirdrops, nextDropAtMs } from './systems/airdrop';
 export { updateLifecycle, checkMatchEnd } from './systems/lifecycle';
-export { generateLoot, tryPickup, addItem, dropItem, useMedkit, updateLoot, spawnLootAt } from './systems/loot';
+export {
+  generateLoot,
+  tryPickup,
+  addItem,
+  dropItem,
+  useMedkit,
+  updateLoot,
+  spawnLootAt,
+  itemDef,
+  isMedkitItem,
+  findBestMedkitSlot,
+} from './systems/loot';
 export { updatePlane, simulateFalling, jumpFromPlane } from './systems/parachute';
 export { updateMovement } from './systems/movement';

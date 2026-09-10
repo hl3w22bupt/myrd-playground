@@ -69,8 +69,32 @@ export function spawnLootAt(w: World, x: number, z: number, item: ItemId): LootI
   return loot;
 }
 
-function lootDef(w: World, item: ItemId) {
+/** 取物品配置定义（core 通过内容包读表，禁止在 core 硬编码 item 语义） */
+export function itemDef(w: World, item: ItemId) {
   return w.pack.items[item as keyof typeof w.pack.items];
+}
+
+/** item 是否为血包（kind === 'medkit'，数值/语义唯一来源 content/items） */
+export function isMedkitItem(w: World, item: ItemId): boolean {
+  const d = itemDef(w, item);
+  return !!d && d.kind === 'medkit';
+}
+
+/** 背包内最强血包槽位（healAmount 最大，相同时槽位靠前）；无可用血包返回 -1 */
+export function findBestMedkitSlot(w: World, e: Entity): number {
+  let best = -1;
+  let bestHeal = -1;
+  for (let i = 0; i < e.inventory.length; i++) {
+    const s = e.inventory[i];
+    if (!s || s.count <= 0) continue;
+    const d = itemDef(w, s.item);
+    if (!d || d.kind !== 'medkit') continue;
+    if (d.healAmount > bestHeal) {
+      bestHeal = d.healAmount;
+      best = i;
+    }
+  }
+  return best;
 }
 
 /** 拾取最近的可拾取物资；返回是否成功 */
@@ -101,7 +125,7 @@ export function tryPickup(w: World, e: Entity): boolean {
  * - 医疗包 → 入背包（占格子），按键使用
  */
 export function addItem(w: World, e: Entity, itemId: ItemId): boolean {
-  const def = lootDef(w, itemId);
+  const def = itemDef(w, itemId);
 
   if (def.kind === 'weapon') {
     const slotIdx = e.weapons[0] === null ? 0 : e.weapons[1] === null ? 1 : -1;
@@ -150,7 +174,7 @@ export function addItem(w: World, e: Entity, itemId: ItemId): boolean {
 export function dropItem(w: World, e: Entity, slot: number): boolean {
   const s = e.inventory[slot];
   if (!s || s.count <= 0) return false;
-  const def = lootDef(w, s.item);
+  const def = itemDef(w, s.item);
   s.count -= 1;
   if (s.count <= 0) {
     e.inventory[slot] = null;
@@ -167,7 +191,7 @@ export function dropItem(w: World, e: Entity, slot: number): boolean {
 export function useMedkit(w: World, e: Entity, slot: number): boolean {
   const s = e.inventory[slot];
   if (!s) return false;
-  const def = lootDef(w, s.item);
+  const def = itemDef(w, s.item);
   if (def.kind !== 'medkit') return false;
   if (e.hp >= e.maxHp || e.medkitUntilMs !== null) return false;
   e.medkitUntilMs = w.elapsedMs + def.useMs;
@@ -187,6 +211,11 @@ export function updateLoot(w: World): void {
       dropItem(w, e, e.wantDrop);
       e.wantDrop = null;
     }
+    if (e.wantUseBest) {
+      e.wantUseBest = false;
+      const best = findBestMedkitSlot(w, e);
+      if (best >= 0) useMedkit(w, e, best);
+    }
     if (e.wantUse !== null) {
       useMedkit(w, e, e.wantUse);
       e.wantUse = null;
@@ -199,7 +228,7 @@ export function updateLoot(w: World): void {
       e.medkitUntilMs = null;
       e.medkitItemSlot = null;
       if (s) {
-        const def = lootDef(w, s.item);
+        const def = itemDef(w, s.item);
         if (def.kind === 'medkit') {
           e.hp = Math.min(e.maxHp, e.hp + def.healAmount);
           s.count -= 1;

@@ -31,6 +31,8 @@ const LOOT_COLORS: Record<string, number> = {
   armor_vest: 0x5aa7d6,
   helmet_mk2: 0x7fbfe0,
   medkit_large: 0xe8ecf2,
+  medkit_first: 0xcfe0f0,
+  medkit_bandage: 0xf2ead6,
 };
 
 export class GameView {

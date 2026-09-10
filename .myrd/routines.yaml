@@ -1,0 +1,35 @@
+# pubg-web-core 例行门禁 — 供 e2e-gate pre-hook / preHook: full-e2e / Routines Tab 使用
+# 位置：仓库根目录 .myrd/routines.yaml
+# 触发时机：
+#   - 标准工作流 create-pr 节点挂 preHook: full-e2e → 只跑 id=full-e2e 这一个 routine
+#   - e2e-gate pre-hook（挂 preHook: e2e-gate 的节点）→ 自动运行全部 gate 未关闭的 routine
+# gate 标记：默认 true = 必检；gate: false = 可选（不参与 e2e-gate 默认门禁，可被 preHook 直接引用）
+version: 1
+routines:
+  - id: full-e2e
+    name: 完整 E2E 闭环门禁（跳伞→拾取→战斗→缩圈→存活判定）
+    description: >
+      「和平精英Web版」收口门禁：依赖就绪 → lint（依赖方向+确定性红线）→
+      Node AC1–AC5 全流程闭环自动化断言（跳伞落地/物资拾取/射击命中/缩圈毒圈/AI 存活判定，
+      固定 seed 跑满局至唯一存活者）→ 生产构建（tsc 类型检查 + vite build）。
+      全部通过才允许 create-pr 放行（解除 fail-closed 阻塞）。
+    gate: true
+    steps:
+      - name: deps
+        command: "npm install --no-audit --no-fund --silent"
+        target: host
+        timeout: 600
+      - name: lint
+        command: "npm run lint"
+        target: host
+        timeout: 300
+      - name: closed-loop-node-tests
+        # AC1–AC5 Node 闭环断言：单局从登机跳伞→落地拾取→遭遇射击→缩圈→唯一存活者结算全部在 Node 内跑通
+        command: "npm run test"
+        target: host
+        timeout: 600
+      - name: typecheck-build
+        # tsc --noEmit + vite build（含依赖方向 lint 静态保证外的类型红线）
+        command: "npm run build"
+        target: host
+        timeout: 600

@@ -21,6 +21,10 @@ export interface AiConfig {
   jumpWindowSec: [number, number];
   /** 巡逻点到达距离（m） */
   waypointReachDist: number;
+  /** 脱离交火撤退：hp < maxHp × 该值且近期受击时停止交火并后撤（玩法缺口补齐项） */
+  retreatHpRatio: number;
+  /** 受击后进入撤退判定的事件窗（ms） */
+  retreatRecentDamageMs: number;
 }
 
 export const AI: AiConfig = {
@@ -33,6 +37,8 @@ export const AI: AiConfig = {
   fleeZoneRatio: 0.82,
   jumpWindowSec: [12, 42],
   waypointReachDist: 8,
+  retreatHpRatio: 0.45,
+  retreatRecentDamageMs: 5000,
 };
 
 /** AI 行为人格（行为多样化，玩法缺口补齐项）：所有数值均为对 AI 全局参数的乘数，避免第二套魔数 */

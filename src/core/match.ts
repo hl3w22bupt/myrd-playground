@@ -208,6 +208,9 @@ export function applyIntent(e: Entity, intent: PlayerIntent): void {
     case 'useItem':
       e.wantUse = intent.slot;
       break;
+    case 'useBestMedkit':
+      e.wantUseBest = true;
+      break;
     case 'jumpFromPlane':
       e.wantJump = true;
       break;
@@ -265,6 +268,10 @@ export function buildSnapshot(w: World): WorldSnapshot {
     kills: p.kills,
     aliveCount: w.entities.reduce((n, e) => n + (e.alive ? 1 : 0), 0),
     medkitChannelMsLeft: p.medkitUntilMs !== null ? Math.max(0, p.medkitUntilMs - w.elapsedMs) : 0,
+    medkitItem:
+      p.medkitUntilMs !== null && p.medkitItemSlot !== null
+        ? (p.inventory[p.medkitItemSlot]?.item ?? null)
+        : null,
     nearbyLoot: findNearbyLoot(w, p),
     outsideZone: isPlayerOutsideZone(w, p),
   };

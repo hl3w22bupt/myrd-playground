@@ -43,6 +43,7 @@ export type PlayerIntent =
   | { kind: 'interact' }
   | { kind: 'drop'; slot: number }
   | { kind: 'useItem'; slot: number }
+  | { kind: 'useBestMedkit' }
   | { kind: 'jumpFromPlane' }
   | { kind: 'freefallControl'; dirX: number; dirZ: number; dive: number }
   | { kind: 'deployParachute' };
@@ -93,6 +94,8 @@ export interface PlayerViewSnapshot {
   kills: number;
   aliveCount: number;
   medkitChannelMsLeft: number;
+  /** 医疗引导中的血包 id（HUD 据此取对应 useMs 渲染进度条） */
+  medkitItem: ItemId | null;
   /** 拾取提示（AC3）：范围内最近的可拾取物资；null 表示范围内无物资 */
   nearbyLoot: NearbyLoot | null;
   /** 毒圈警示（AC5）：true 表示玩家当前处于安全区外（正在按秒掉血） */

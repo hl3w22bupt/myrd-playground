@@ -8,7 +8,7 @@ import { ZONE_DAMAGE_TICK_SEC } from '../../content/zone';
 import type { World } from '../world';
 import type { Vec3 } from '../types';
 import { clamp, dist2D } from '../geom';
-import { pushEvent } from '../world';
+import { pushEvent, cancelMedkitChannel } from '../world';
 
 /** 初始化首圈与次圈（对局创建时调用） */
 export function initZone(w: World): void {
@@ -123,6 +123,9 @@ function applyZoneDamage(w: World): void {
 function zoneDamage(w: World, target: { id: string; hp: number; alive: boolean }, amount: number): void {
   const e = w.entities.find((x) => x.id === target.id)!;
   if (!e.alive) return;
+  // 毒圈同样视为受击：打断医疗引导 + 记录受击时刻
+  e.lastDamagedAtMs = w.elapsedMs;
+  cancelMedkitChannel(e);
   e.hp -= amount;
   if (e.hp <= 0) {
     const aliveCount = w.entities.reduce((n, x) => n + (x.alive ? 1 : 0), 0);

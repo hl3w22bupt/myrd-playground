@@ -11,7 +11,8 @@ import type { AiPersonaId } from '../../content/ai';
 import type { World, Entity } from '../world';
 import type { PlayerIntent } from '../types';
 import { dist2D } from '../geom';
-import { hasLineOfSight, activeWeapon, weaponDef } from './combat';
+import { hasLineOfSight, activeWeapon, weaponDef, ballisticCompensationRad } from './combat';
+import { isMedkitItem, findBestMedkitSlot } from './loot';
 import { terrainHeightAt } from '../mapgen';
 
 /** 该实体人格命中的 AiPersonaDef（未知 id 回落突击手，防御性兜底） */
@@ -142,6 +143,20 @@ function decide(w: World, e: Entity): void {
   // 3) 索敌与开火（感知在决策帧执行，成本摊平）
   const target = findVisibleEnemy(w, e);
   if (target) {
+    // 3a) 脱离交火撤退：低血 + 近期受击 → 停止交火、远离目标后撤（数值来自 content/ai.retreat*）
+    if (e.hp < e.maxHp * cfg.retreatHpRatio && w.elapsedMs - e.lastDamagedAtMs < cfg.retreatRecentDamageMs) {
+      e.aiState = 'retreat';
+      e.aiTargetId = null;
+      e.aiFirstSeenMs = -1e9;
+      e.firing = false;
+      const awayX = e.pos.x - target.pos.x;
+      const awayZ = e.pos.z - target.pos.z;
+      const awayD = Math.hypot(awayX, awayZ) || 1;
+      intents.push({ kind: 'move', dirX: awayX / awayD, dirZ: awayZ / awayD, sprint: true });
+      e.pendingIntents = intents;
+      return;
+    }
+
     if (e.aiTargetId !== target.id) {
       e.aiTargetId = target.id;
       e.aiFirstSeenMs = w.elapsedMs;
@@ -180,7 +195,7 @@ function decide(w: World, e: Entity): void {
 
   // 4) 低血治疗（仅无目标可见时）：hp 低于 AI_HEAL_HP_RATIO 且有医疗包 → 使用（与玩家同急救通道）
   if (e.hp < e.maxHp * AI_HEAL_HP_RATIO && e.medkitUntilMs === null) {
-    const med = e.inventory.findIndex((s) => s !== null && s.item === 'medkit_large');
+    const med = findBestMedkitSlot(w, e);
     if (med >= 0) {
       e.aiState = 'loot';
       e.aiTargetId = null;
@@ -191,7 +206,7 @@ function decide(w: World, e: Entity): void {
   }
 
   // 5) 次级拾取（缺医疗/护甲），仅无目标可见时
-  if (needsLoot(e)) {
+  if (needsLoot(w, e)) {
     const loot = findNearbyLoot(w, e);
     if (loot) {
       e.aiState = 'loot';
@@ -252,6 +267,15 @@ function aimIntent(w: World, e: Entity, target: Entity): PlayerIntent {
   const dy = aimY - (e.pos.y + EYE_HEIGHT);
   const dz = target.pos.z - e.pos.z;
   const flat = Math.hypot(dx, dz) || 1;
+  // 弹道下坠补偿：按当前武器弹速与目标距离抬高瞄准角（数值来自 content/physics.ballistic/weapons）
+  let dropCompRad = 0;
+  const slot = activeWeapon(e);
+  if (slot) {
+    const def = weaponDef(w, slot.weapon);
+    if (def && Number.isFinite(def.projectileSpeed) && def.projectileSpeed > 0) {
+      dropCompRad = ballisticCompensationRad(w, def.projectileSpeed, flat);
+    }
+  }
   // 瞄准误差基准 × 人格 aimErrMul（狙击手更准，游击兵更散）
   const pp = aiPersonaParams(w, e);
   const errYaw = w.rng.ai.gaussian() * 0.006 * w.pack.ai.spreadMultiplier * pp.aimErrMul;
@@ -259,7 +283,7 @@ function aimIntent(w: World, e: Entity, target: Entity): PlayerIntent {
   return {
     kind: 'aim',
     yaw: Math.atan2(dz, dx) + errYaw,
-    pitch: Math.atan2(dy, flat) + errPitch,
+    pitch: Math.atan2(dy, flat) + dropCompRad + errPitch,
   };
 }
 
@@ -299,7 +323,7 @@ function criticalLoot(e: Entity): boolean {
 }
 
 /** 次级拾取：缺弹药储备或缺医疗 */
-function needsLoot(e: Entity): boolean {
+function needsLoot(w: World, e: Entity): boolean {
   const slot = e.weapons[e.activeWeapon];
   if (slot) {
     const def = weaponDefOf(slot.weapon);
@@ -307,7 +331,7 @@ function needsLoot(e: Entity): boolean {
   } else {
     return true;
   }
-  if (e.hp < 55 && !e.inventory.some((s) => s !== null && s.item === 'medkit_large')) return true;
+  if (e.hp < 55 && !e.inventory.some((s) => s !== null && isMedkitItem(w, s.item))) return true;
   return false;
 }
 
@@ -321,7 +345,7 @@ function findNearbyLoot(w: World, e: Entity): { id: string; pos: { x: number; z:
   let bestD = Infinity;
   for (const l of w.loots) {
     if (l.taken) continue;
-    if (!lootWanted(e, l.item)) continue;
+    if (!lootWanted(w, e, l.item)) continue;
     const d = dist2D(e.pos.x, e.pos.z, l.pos.x, l.pos.z);
     if (d < range && d < bestD) {
       bestD = d;
@@ -331,11 +355,11 @@ function findNearbyLoot(w: World, e: Entity): { id: string; pos: { x: number; z:
   return best;
 }
 
-function lootWanted(e: Entity, item: string): boolean {
+function lootWanted(w: World, e: Entity, item: string): boolean {
   if (item === 'weapon_ar_m4' || item === 'weapon_smg_ump') return e.weapons[0] === null || e.weapons[1] === null;
   if (item === 'ammo_556') return (e.ammoReserve['ammo_556'] ?? 0) < 90;
   if (item === 'ammo_45') return (e.ammoReserve['ammo_45'] ?? 0) < 75;
-  if (item === 'medkit_large') return e.hp < 90;
+  if (isMedkitItem(w, item)) return e.hp < 90;
   if (item === 'armor_vest') return e.armorReduction < 0.3;
   if (item === 'helmet_mk2') return e.helmetReduction < 0.4;
   return false;

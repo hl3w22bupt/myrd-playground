@@ -83,8 +83,12 @@ export interface Entity {
   wantSwitch: number | null;
   wantDrop: number | null;
   wantUse: number | null;
+  /** 是否请求使用最强血包（Q 自动选择；updateLoot 解析为具体槽位） */
+  wantUseBest: boolean;
+  /** 最近一次受击的逻辑时间（ms；急救「受击打断」与 AI 撤退判定共用） */
+  lastDamagedAtMs: number;
   /** AI */
-  aiState: 'patrol' | 'loot' | 'seek' | 'fire' | 'fleeZone' | 'dead';
+  aiState: 'patrol' | 'loot' | 'seek' | 'fire' | 'fleeZone' | 'retreat' | 'dead';
   aiWaypoint: Vec3 | null;
   aiTargetId: string | null;
   aiLastSeenMs: number;
@@ -213,6 +217,8 @@ export function createEntity(
     wantSwitch: null,
     wantDrop: null,
     wantUse: null,
+    wantUseBest: false,
+    lastDamagedAtMs: -1e9,
     aiState: 'patrol',
     aiWaypoint: null,
     aiTargetId: null,

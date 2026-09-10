@@ -7,7 +7,7 @@
 import { describe, expect, it } from 'vitest';
 import { ITEMS } from '../src/content';
 import type { MedkitItemDef } from '../src/content';
-import { tickWorld, vec3 } from '../src/core';
+import { tickWorld, vec3, applyDamage, findBestMedkitSlot } from '../src/core';
 import { makeWorld, runTicks } from './helpers';
 
 const MEDKIT = ITEMS.medkit_large as MedkitItemDef;
@@ -61,5 +61,59 @@ describe('医疗包急救语义（AC3）', () => {
     expect(p.medkitUntilMs).toBeNull();
     expect(p.hp).toBe(100); // 40 + 60，不超上限
     expect(p.inventory[slot]).toBeNull(); // 已消耗
+  });
+});
+
+describe('三档血包 + Q 自动选择 + 受击打断（玩法缺口补齐项）', () => {
+  const BANDAGE = ITEMS.medkit_bandage as MedkitItemDef;
+  const FIRST = ITEMS.medkit_first as MedkitItemDef;
+
+  it('content/items 提供绷带/急救包/医疗包三档，healAmount/useMs 递增可区分', () => {
+    expect(BANDAGE.kind).toBe('medkit');
+    expect(FIRST.kind).toBe('medkit');
+    expect(MEDKIT.kind).toBe('medkit');
+    expect(BANDAGE.healAmount).toBeLessThan(FIRST.healAmount);
+    expect(FIRST.healAmount).toBeLessThan(MEDKIT.healAmount);
+    expect(BANDAGE.useMs).toBeLessThan(FIRST.useMs);
+    expect(FIRST.useMs).toBeLessThan(MEDKIT.useMs);
+  });
+
+  it('Q 自动选择（useBestMedkit）用最强血包而非首个格子', () => {
+    const w = makeWorld(312, 1);
+    const p = w.player;
+    p.state = 'ground';
+    p.pos = vec3(500, 0, 500);
+    p.hp = 25;
+    // 弱血包（绷带）在前、强血包（医疗包）在后
+    p.inventory[0] = { item: 'medkit_bandage', count: 1 };
+    p.inventory[1] = { item: 'medkit_large', count: 1 };
+    p.usedGrids = BANDAGE.gridCost + MEDKIT.gridCost;
+
+    tickWorld(w, [{ kind: 'useBestMedkit' }]);
+    expect(p.medkitItemSlot).toBe(1); // 应选中医疗包
+    runTicks(w, [], 200); // 4s > 3s useMs
+    expect(p.hp).toBe(25 + MEDKIT.healAmount);
+    expect(p.inventory[1]).toBeNull(); // 医疗包已消耗
+    expect(p.inventory[0]).toEqual({ item: 'medkit_bandage', count: 1 }); // 绷带未动
+  });
+
+  it('医疗引导中受击（非开火）→ 立即打断且不回血', () => {
+    const { w, p, slot } = rigPlayer();
+    p.hp = 40;
+    tickWorld(w, [{ kind: 'useItem', slot }]);
+    expect(p.medkitUntilMs).not.toBeNull();
+    applyDamage(w, p, 25, 'torso', null);
+    expect(p.medkitUntilMs).toBeNull();
+    runTicks(w, [], 250);
+    expect(p.hp).toBe(15); // 40 - 25，无回血
+  });
+
+  it('findBestMedkitSlot 数值来自 content：跨档返回最强档位', () => {
+    const w = makeWorld(313, 1);
+    const p = w.player;
+    p.inventory[0] = { item: 'medkit_first', count: 1 };
+    p.inventory[1] = { item: 'medkit_large', count: 2 };
+    p.inventory[2] = { item: 'medkit_bandage', count: 1 };
+    expect(findBestMedkitSlot(w, p)).toBe(1);
   });
 });

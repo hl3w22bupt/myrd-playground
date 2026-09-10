@@ -26,7 +26,7 @@ export interface ContentPack {
 }
 
 export const DEFAULT_CONTENT_PACK: ContentPack = {
-  version: 'pubg-web-core@1',
+  version: 'pubg-web-core@2',
   constants: CONSTANTS,
   weapons: WEAPONS,
   items: ITEMS,

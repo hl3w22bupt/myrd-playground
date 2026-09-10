@@ -176,6 +176,12 @@ export function ballisticDropAt(w: World, dist: number, projectileSpeed: number)
   return 0.5 * w.pack.physics.ballistic.gravityMps2 * t * t;
 }
 
+/** 弹道下坠的瞄准补偿角（rad）：atan(drop / 水平距离)，供 AI/玩家远距抬枪使用（数值来自 content） */
+export function ballisticCompensationRad(w: World, projectileSpeed: number, flatDist: number): number {
+  if (!Number.isFinite(projectileSpeed) || projectileSpeed <= 0 || flatDist <= 0) return 0;
+  return Math.atan2(ballisticDropAt(w, flatDist, projectileSpeed), flatDist);
+}
+
 /**
  * 弹道扫描：先地形/建筑遮挡，再实体包围盒，取最近命中。
  * 传入 projectileSpeed 时按抛物线弹道分段扫描（重力下坠，分段长度 content/physics.ballistic.segmentM）；
@@ -412,6 +418,9 @@ export function applyDamage(
   by: Entity | null,
 ): void {
   if (!target.alive) return;
+  // 受击打断医疗引导（急救语义：战斗中无法继续包扎）+ 记录受击时刻（AI 撤退判定）
+  target.lastDamagedAtMs = w.elapsedMs;
+  cancelMedkitChannel(target);
   const reduction = part === 'head' ? target.helmetReduction : part === 'torso' ? target.armorReduction : 0;
   const dmg = amount * (1 - reduction);
   target.hp -= dmg;
