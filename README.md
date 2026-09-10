@@ -39,7 +39,8 @@ src/
 ├── core/      # 确定性仿真核心（纯 TS，零 DOM/three；Node 可直接运行）
 │   ├── rng.ts loop.ts world.ts match.ts mapgen.ts geom.ts types.ts
 │   └── systems/  # lifecycle / parachute / movement / combat / loot / zone / ai / airdrop
-├── render/    # Three.js（three 只允许在此 import；材质纹理/光照雾效/粒子/画质三档+自动降档/对象池）
+├── render/    # Three.js（three 只允许在此 import；PBR 材质/光照雾效/粒子/后处理(Bloom+色调映射)/画质三档+自动降档/实体 LOD/对象池）
+│   │          #   quality.ts 三档配置+AutoQuality · lod.ts 实体 LOD 分级 · postfx.ts Bloom 合成器
 ├── input/     # 键鼠 → PlayerIntent
 ├── ui/        # HUD（DOM 高频直写）+ Canvas2D 小地图 + 背包/结算/开始屏
 ├── app/       # 组装根（rAF 可变渲染 + 50Hz 固定逻辑双循环）
@@ -58,6 +59,7 @@ src/
 | AC4 射击命中 | 双武器参数可区分且与配置一致、620rpm 射速节流、100m 静止目标命中率 ≥90%（1000 发蒙特卡洛）、距离衰减、部位倍率、换弹时长、淘汰计数；弹道下坠（0.5·g·t²）与补偿、后坐力踢枪/恢复/命中率惩罚 | combat.spec.ts / ballistics.spec.ts / recoil.spec.ts |
 | AC5 缩圈与 AI | ≥3 阶段收缩且 dps 递增、圈外按秒掉血、毒圈淘汰归因、AI ≥10 且具备巡图/拾取/索敌/开火/避毒/低血治疗、AI 可被淘汰、AI 人格多样化（狙击/突击/游击/搜刮） | zone.spec.ts / ai.spec.ts / aiPersona.spec.ts |
 | 玩法补齐·空投 | 定时空投（content/airdrop）：投放→下落→落地→内容物经标准 loot 通道散布，落点/散布同 seed 确定性复现 | airdrop.spec.ts |
+| 表现层补充单测 | 画质三档成本单调 + 后处理启用条件 + AutoQuality 降/升档（60s 冷却）；实体 LOD 分级边界/部件显隐/画质联动/玩家不剔除 | quality.spec.ts / lod.spec.ts |
 
 ## 操作
 
