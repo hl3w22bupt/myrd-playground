@@ -90,8 +90,74 @@ body {
 	z-index: 1;
 }
 		</style>
-		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
+<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
 <link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+
+<!-- 移动端音频手势解锁器（必须先于引擎脚本安装）：
+     iOS/Android WebKit 的 AudioContext 创建即 suspended、打断后 interrupted（引擎状态机不识别），
+     引擎只在自己的输入回调里 resume —— 缺兜底 = 移动端无声而桌面正常。
+     实现：包 AudioContext 构造器捕获引擎实例 + document 级手势监听内同步 resume
+     （capture+passive 不消费事件）+ window.__audioDebug() 真机取证出口。
+     与 AppHost 壳页（server/src/game-page.ts）同源同语义，静态导出页独立成站时同样有解锁兜底。 -->
+<script>
+(function () {
+	var audioCtx = null;
+	var audioLog = [];
+	var audioAddModules = 0;
+	// ① 包一层 AudioContext 构造器捕获引擎实例：引擎用 new (AudioContext||webkitAudioContext)
+	//    创建上下文，补丁透明；捕获后才能在手势层做解锁与真机取证。
+	var NativeAudioContext = window.AudioContext || window.webkitAudioContext;
+	if (NativeAudioContext) {
+		var WrappedAudioContext = function (options) {
+			var ctx = new NativeAudioContext(options);
+			audioCtx = ctx;
+			try {
+				ctx.addEventListener('statechange', function () {
+					audioLog.push({ t: Date.now(), state: ctx.state });
+				});
+			} catch (e) { /* 老内核无 statechange 事件：只损失观测，不影响解锁 */ }
+			return ctx;
+		};
+		WrappedAudioContext.prototype = NativeAudioContext.prototype;
+		window.AudioContext = WrappedAudioContext;
+	}
+	// ② 手势内同步 resume：只在非 running 时调（覆盖 suspended 与 interrupted），幂等可重复。
+	//    必须在手势调用栈内同步执行 WebKit 才认；resume 的 Promise 落空不进控制台（无噪声）。
+	function unlockAudio() {
+		if (!audioCtx || audioCtx.state === 'running') return;
+		try {
+			var pending = audioCtx.resume();
+			if (pending && typeof pending.catch === 'function') pending.catch(function () {});
+		} catch (e) { /* resume 抛异常按无操作处理，绝不影响游戏输入 */ }
+	}
+	['touchstart', 'touchend', 'pointerdown', 'keydown', 'click'].forEach(function (type) {
+		// capture + passive：先于引擎输入管线触发，且不消费事件（游戏触摸交互零感知）。
+		document.addEventListener(type, unlockAudio, { capture: true, passive: true });
+	});
+	// 打断再解锁：WebKit 在锁屏/来电后即使回前台也可能停在 interrupted，多给一次恢复机会
+	//（非手势路径可能被拒，被拒即无操作；真正兜底仍是用户下一次点按）。
+	document.addEventListener('visibilitychange', function () {
+		if (!document.hidden) unlockAudio();
+	}, { passive: true });
+	// 音频 worklet 计数（仅观测；静态导出下 worklet 与页面同目录，走浏览器原生加载通道）。
+	if (window.AudioWorkletNode && window.AudioWorklet && AudioWorklet.prototype.addModule) {
+		var origAddModule = AudioWorklet.prototype.addModule;
+		AudioWorklet.prototype.addModule = function (url, options) {
+			var file = '';
+			try { file = String(url).split('/').pop().split('?')[0]; } catch (e) { /* 仅计数 */ }
+			if (/\.worklet\.js$/.test(file)) {
+				audioAddModules += 1;
+				audioLog.push({ t: Date.now(), state: 'worklet:' + file });
+			}
+			return origAddModule.call(this, url, options);
+		};
+	}
+	// ③ 真机取证出口：手机上打开控制台不便，全部观测收敛到一个函数。
+	window.__audioDebug = function () {
+		return { state: audioCtx ? audioCtx.state : 'no-ctx', addModules: audioAddModules, log: audioLog };
+	};
+}());
+</script>
 
 	</head>
 	<body>
@@ -111,7 +177,7 @@ body {
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":2604788,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":3843608,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
