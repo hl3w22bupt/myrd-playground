@@ -1,0 +1,170 @@
+{
+  "video": "67e1d72fc5a6f6dcb5028b99567f2025.webm",
+  "fps": 10.0,
+  "baseline": "f_0078.png",
+  "cell": {
+    "grid": [
+      1,
+      4
+    ],
+    "rect": [
+      96,
+      413,
+      144,
+      461
+    ]
+  },
+  "hudBand": [
+    10,
+    498,
+    380,
+    555
+  ],
+  "rows": [
+    {
+      "file": "f_0078.png",
+      "dt": -0.23,
+      "changedPx": 0,
+      "centroidDx": 0.0,
+      "centroidDy": 0.0,
+      "hudPx": 0,
+      "hudPct": 0.0
+    },
+    {
+      "file": "f_0081.png",
+      "dt": 0.07,
+      "changedPx": 1016,
+      "centroidDx": -0.81,
+      "centroidDy": -0.62,
+      "hudPx": 781,
+      "hudPct": 3.7
+    },
+    {
+      "file": "f_0082.png",
+      "dt": 0.17,
+      "changedPx": 859,
+      "centroidDx": 1.16,
+      "centroidDy": -0.53,
+      "hudPx": 781,
+      "hudPct": 3.7
+    },
+    {
+      "file": "f_0083.png",
+      "dt": 0.27,
+      "changedPx": 328,
+      "centroidDx": -0.63,
+      "centroidDy": -3.25,
+      "hudPx": 781,
+      "hudPct": 3.7
+    },
+    {
+      "file": "f_0084.png",
+      "dt": 0.37,
+      "changedPx": 328,
+      "centroidDx": -0.63,
+      "centroidDy": -3.25,
+      "hudPx": 781,
+      "hudPct": 3.7
+    },
+    {
+      "file": "f_0085.png",
+      "dt": 0.47,
+      "changedPx": 328,
+      "centroidDx": -0.63,
+      "centroidDy": -3.25,
+      "hudPx": 779,
+      "hudPct": 3.69
+    },
+    {
+      "file": "f_0086.png",
+      "dt": 0.57,
+      "changedPx": 328,
+      "centroidDx": -0.63,
+      "centroidDy": -3.25,
+      "hudPx": 779,
+      "hudPct": 3.69
+    },
+    {
+      "file": "f_0087.png",
+      "dt": 0.67,
+      "changedPx": 328,
+      "centroidDx": -0.63,
+      "centroidDy": -3.25,
+      "hudPx": 779,
+      "hudPct": 3.69
+    },
+    {
+      "file": "f_0089.png",
+      "dt": 0.87,
+      "changedPx": 328,
+      "centroidDx": -0.63,
+      "centroidDy": -3.25,
+      "hudPx": 779,
+      "hudPct": 3.69
+    },
+    {
+      "file": "f_0091.png",
+      "dt": 1.07,
+      "changedPx": 328,
+      "centroidDx": -0.63,
+      "centroidDy": -3.25,
+      "hudPx": 779,
+      "hudPct": 3.69
+    },
+    {
+      "file": "f_0095.png",
+      "dt": 1.47,
+      "changedPx": 328,
+      "centroidDx": -0.63,
+      "centroidDy": -3.25,
+      "hudPx": 779,
+      "hudPct": 3.69
+    },
+    {
+      "file": "f_0100.png",
+      "dt": 1.97,
+      "changedPx": 328,
+      "centroidDx": -0.63,
+      "centroidDy": -3.25,
+      "hudPx": 779,
+      "hudPct": 3.69
+    },
+    {
+      "file": "f_0106.png",
+      "dt": 2.57,
+      "changedPx": 328,
+      "centroidDx": -0.63,
+      "centroidDy": -3.25,
+      "hudPx": 0,
+      "hudPct": 0.0
+    },
+    {
+      "file": "f_0112.png",
+      "dt": 3.17,
+      "changedPx": 328,
+      "centroidDx": -0.63,
+      "centroidDy": -3.25,
+      "hudPx": 0,
+      "hudPct": 0.0
+    }
+  ],
+  "baselineArea": 0,
+  "peakOffsetFrame": {
+    "file": "f_0082.png",
+    "dt": 0.17,
+    "changedPx": 859,
+    "centroidDx": 1.16,
+    "centroidDy": -0.53,
+    "hudPx": 781,
+    "hudPct": 3.7
+  },
+  "settleRow": {
+    "file": "f_0112.png",
+    "dt": 3.17,
+    "changedPx": 328,
+    "centroidDx": -0.63,
+    "centroidDy": -3.25,
+    "hudPx": 0,
+    "hudPct": 0.0
+  }
+}
