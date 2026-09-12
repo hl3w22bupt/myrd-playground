@@ -15,13 +15,18 @@ config/icon="res://icon.svg"
 [autoload]
 
 GameState="*res://autoload/game_state.gd"
+GameAudio="*res://autoload/audio_manager.gd"
 
 [display]
 
-window/size/viewport_width=880
-window/size/viewport_height=600
+; 竖屏设计分辨率（窄屏手机为主力目标）；stretch aspect=expand：窗口比设计更高/更宽时
+; 视口向外扩展（不裁切不留黑边），棋盘由 main.gd _layout() 居中重排，HUD/按钮锚定四边。
+window/size/viewport_width=720
+window/size/viewport_height=1280
 window/stretch/mode="canvas_items"
-window/stretch/aspect="keep"
+window/stretch/aspect="expand"
+; 手持设备锁定竖屏（iOS/Android 导出与部分移动浏览器遵循）。
+window/handheld/orientation="portrait"
 
 [input]
 

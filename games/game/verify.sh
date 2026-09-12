@@ -20,7 +20,12 @@ set -uo pipefail
 
 GAME_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${GAME_DIR}/../.." && pwd)"
-SKILL_DIR="${REPO_ROOT}/docs/skills/godot-game-dev"
+# 技能包目录解析：仓库内实际落点优先（std-skills/，.myrd/routines.yaml 同源引用），
+# 兼容文档约定的 docs/skills/ 落点 —— 两处都没有才报「环境不可用」。
+SKILL_DIR="${REPO_ROOT}/std-skills/godot-game-dev"
+if [ ! -f "${SKILL_DIR}/scripts/smoke.sh" ] && [ -f "${REPO_ROOT}/docs/skills/godot-game-dev/scripts/smoke.sh" ]; then
+  SKILL_DIR="${REPO_ROOT}/docs/skills/godot-game-dev"
+fi
 
 # 技能包门禁脚本的存在性守卫：缺任何一个都属「环境不可用」，必须以退出码 2 报告，
 # 不能让它掉进下游的非零退出码里被误判成 3（静态不一致 → 诱导修复节点去改游戏代码）。

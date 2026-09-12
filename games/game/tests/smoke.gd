@@ -1,29 +1,30 @@
 extends Node
 ## 无头冒烟自检（headless smoke）—— 机器可判定的「游戏能不能跑」。
 ##
-## 运行方式（由 docs/skills/godot-game-dev/scripts/smoke.sh 封装）：
+## 运行方式（由 std-skills/godot-game-dev/scripts/smoke.sh 封装）：
 ##   godot --headless --path <工程目录> tests/smoke.tscn
 ##
 ## 判定协议（smoke.sh 按此断言退出码与日志）：
 ##   通过 → stdout 打印 `GODOT_SMOKE: PASS ...`，进程退出码 0
 ##   失败 → stderr 打印 `GODOT_SMOKE: FAIL <原因>`（每条一行），进程退出码 1
 ##
-## 覆盖面（对应本目标验收标准的七项）：
-##   1. 玩家能移动：注入 move_right → 光标 grid_pos / 节点位置真的变了，cell_changed 送达
-##   2. 核心交互生效：选中 → 相邻交换 → 三消收集 → 加分 + 扣步（Board.candies_collected 送达）
-##   3. 死局守卫生效：构造模 5 交错死局 → ensure_solvable 洗出「无现成三连 + 必有可行交换」的盘，
-##      Board.shuffled 送达（玩家永不卡死）
-##   4. 计分规则回归：score_for_wave 纯函数锁具体数值（四连/五连加成、连锁倍率）；强制四连盘走
-##      真实结算管线，last_max_run / last_wave_count / 分数下界三重核对
-##   5. 难度梯度：target/moves 阶梯纯函数单调性（L1→L6 目标分严格递增、步数非增）
-##   6. 胜负可达且反馈明确：胜利遮罩 → confirm 过关进下一关（level/target/moves 按阶梯重算，
-##      level_changed 送达、HUD 刷新）；第 3 关步数耗尽判负，GAME OVER + 结算分数如实呈现
-##   7. 重开可用：注入 restart → 分数/步数/关卡/棋盘/光标/遮罩全部复位，game_restarted 送达
-##   外加模板五项：场景可实例化、autoload 注册、InputMap + 键位契约、信号到达、可读失败原因
+## 覆盖面（对应「移动端触摸 + 音效」目标的验收标准）：
+##   0. 竖屏适配：portrait 设计分辨率 + expand 拉伸设置；棋盘在视口内水平居中（_layout 生效）
+##   1. 开始门控：未点「开始游戏」前光标输入冻结（点开始按钮才开局，兼作 Web 音频解锁手势）
+##   2. 键盘仍可用：move_right 移动光标（cell_changed 送达）；点按选中 → 相邻交换 → 三消收集
+##   3. 触摸·点按-点按：ScreenTouch 按下/抬起 A 格 → 选中；再点相邻 B 格 → 交换生效（加分+扣步）
+##   4. 触摸·滑动：ScreenTouch 按下 C 格 → ScreenDrag 越过阈值 → 抬起 → 交换生效
+##   5. 静音开关：MuteButton 切换 → GameAudio.muted 与 AudioServer 主总线哑音同步
+##   6. 音效资产：GameAudio autoload 注册、SFX 表全部流非空、首个输入后 unlocked=true（解锁链路）
+##   7. 死局守卫：模 5 交错盘 → ensure_solvable 洗出可解盘（Board.shuffled 送达）
+##   8. 计分规则回归：score_for_wave 纯函数锁数值；强制四连走真实结算管线；难度梯度单调
+##   9. 胜负可达且可点按推进：胜利遮罩 → OverlayActionButton 过关；败遮罩按钮文案切换；
+##      RestartButton（+键盘 restart 动作）重开全复位
+##   外加：场景可实例化、autoload 注册、InputMap + 键位契约、信号到达、可读失败原因
 ##
-## ⚠️ 输入注入全走 Input.parse_input_event（InputEventAction），并按帧分段（error-signatures E-08）：
+## ⚠️ 输入注入全走 Input.parse_input_event 并按帧分段（error-signatures E-08）：
 ##   headless 下 parse_input_event 的缓冲冲刷会清掉 Input.action_press 的状态，
-##   本场景从不用 action_press，所有注入间隔 ≥4 帧，互不重叠。
+##   本场景从不用 action_press，所有注入间隔 ≥2 帧，互不重叠。
 
 ## 键位契约之外还需注册的动作（与 project.godot [input] 对应）。
 const REQUIRED_ACTIONS: Array[StringName] = [
@@ -40,28 +41,46 @@ const KEY_CONTRACT: Dictionary = {
 	&"restart": [KEY_R],
 }
 
-## 帧阶段表（Engine.max_fps = 60 下 process : 物理 ≈ 1:1；--quit-after 兜底 240 帧）。
-const FRAME_MOVE: int = 1
-const FRAME_MOVE_CHECK: int = 5
-const FRAME_SELECT: int = 7
-const FRAME_SELECT_CHECK: int = 11
-const FRAME_SWAP: int = 15
-const FRAME_SWAP_CHECK: int = 19
-const FRAME_DEADLOCK: int = 21
-const FRAME_DEADLOCK_CHECK: int = 23
-const FRAME_SCORING: int = 25
-const FRAME_SCORING_CHECK: int = 27
-const FRAME_WIN: int = 29
-const FRAME_ADVANCE: int = 31
-const FRAME_ADVANCE_CHECK: int = 33
-const FRAME_LOSE: int = 35
-const FRAME_LOSE_CHECK: int = 37
-const FRAME_RESTART: int = 39
-const FRAME_RESTART_CHECK: int = 44
+## 帧阶段表（Engine.max_fps = 60 下 process : 物理 ≈ 1:1；门禁 --quit-after 240 帧兜底）。
+const FRAME_FROZEN: int = 3
+const FRAME_FROZEN_CHECK: int = 7
+const FRAME_START: int = 9
+const FRAME_START_CHECK: int = 13
+const FRAME_MOVE: int = 15
+const FRAME_MOVE_CHECK: int = 19
+const FRAME_SELECT: int = 21
+const FRAME_SELECT_CHECK: int = 25
+const FRAME_SWAP: int = 27
+const FRAME_SWAP_CHECK: int = 31
+const FRAME_TAP_A: int = 33
+const FRAME_TAP_A_CHECK: int = 37
+const FRAME_TAP_B: int = 39
+const FRAME_TAP_CHECK: int = 43
+const FRAME_SWIPE_BEGIN: int = 45
+const FRAME_SWIPE_DRAG: int = 47
+const FRAME_SWIPE_END: int = 49
+const FRAME_SWIPE_CHECK: int = 53
+const FRAME_MUTE: int = 55
+const FRAME_MUTE_CHECK: int = 59
+const FRAME_UNMUTE_CHECK: int = 61
+const FRAME_DEADLOCK: int = 63
+const FRAME_DEADLOCK_CHECK: int = 65
+const FRAME_SCORING: int = 67
+const FRAME_SCORING_CHECK: int = 69
+const FRAME_WIN: int = 71
+const FRAME_ADVANCE: int = 73
+const FRAME_ADVANCE_CHECK: int = 77
+const FRAME_LOSE: int = 79
+const FRAME_LOSE_CHECK: int = 81
+const FRAME_RESTART: int = 83
+const FRAME_RESTART_BTN: int = 85
+const FRAME_RESTART_CHECK: int = 89
 ## 总帧数上限（超过即出报告，防止死循环；smoke.sh 另有 --quit-after 兜底）。
-const TOTAL_FRAMES: int = 90
+const TOTAL_FRAMES: int = 110
 ## 强制四连结算用的固定种子（重力补充由此确定，断言只取下界仍需可复现的运行环境）。
-const SCORING_RNG_SEED: int = 20260905
+const SCORING_RNG_SEED: int = 20260912
+## 滑动手势注入的位移长度（设计像素；须超过 Player.SWIPE_TRIGGER_DISTANCE = 42）。
+const SWIPE_INJECT_DISTANCE: float = 96.0
 
 var _failures: PackedStringArray = []
 var _frames: int = 0
@@ -71,6 +90,11 @@ var _main: Node
 var _board: Board
 var _cursor: Player
 var _overlay: ColorRect
+var _start_overlay: ColorRect
+var _start_button: Button
+var _restart_button: Button
+var _mute_button: Button
+var _overlay_action_button: Button
 
 var _origin_pos: Vector2 = Vector2.ZERO
 var _origin_cell: Vector2i = Vector2i.ZERO
@@ -87,16 +111,24 @@ var _level_changed_seen: bool = false
 
 var _swap_a: Vector2i = Vector2i.ZERO
 var _swap_b: Vector2i = Vector2i.ZERO
-var _swap_dir_action: StringName = &"move_right"
 var _score_before: int = 0
 var _moves_before: int = 0
 var _score_before_scoring: int = 0
+var _score_before_tap: int = 0
+var _moves_before_tap: int = 0
+var _score_before_swipe: int = 0
+var _moves_before_swipe: int = 0
+## 点按/滑动阶段注入用的格子（每段开始前重算，保证与实时棋盘一致）。
+var _tap_a: Vector2i = Vector2i.ZERO
+var _tap_b: Vector2i = Vector2i.ZERO
 
 
 func _ready() -> void:
 	# headless 没有垂直同步，process 帧率可跑到几百上千 FPS，而物理固定 60Hz。
 	# 限到 60 FPS 让 --quit-after 的帧数兜底有意义（协程跑得完再退出）。
 	Engine.max_fps = 60
+
+	_check_project_settings()
 
 	for action in REQUIRED_ACTIONS:
 		if not InputMap.has_action(action):
@@ -116,6 +148,8 @@ func _ready() -> void:
 		game_state_node.game_restarted.connect(_on_game_restarted)
 		game_state_node.level_changed.connect(_on_level_changed)
 
+	_check_audio_autoload()
+
 	_main = get_tree().root.find_child("Main", true, false)
 	if _main == null:
 		_failures.append("场景树找不到 Main（tests/smoke.tscn 未实例化 scenes/main.tscn）")
@@ -126,6 +160,7 @@ func _ready() -> void:
 	else:
 		_board.candies_collected.connect(_on_candies_collected)
 		_board.shuffled.connect(_on_board_shuffled)
+		_check_board_layout()
 	_cursor = _main.find_child("Player", true, false) as Player
 	if _cursor == null:
 		_failures.append("主场景找不到 Player 光标（Board 下未实例化 player.tscn，或 player.gd 未挂载）")
@@ -137,6 +172,76 @@ func _ready() -> void:
 	_overlay = _main.find_child("Overlay", true, false) as ColorRect
 	if _overlay == null:
 		_failures.append("主场景找不到 Overlay 胜负遮罩（scenes/main.tscn 缺少 %Overlay）")
+	_start_overlay = _main.find_child("StartOverlay", true, false) as ColorRect
+	if _start_overlay == null:
+		_failures.append("主场景找不到 StartOverlay 开始遮罩（scenes/main.tscn 缺少 %StartOverlay）")
+	elif not _start_overlay.visible:
+		_failures.append("开始遮罩初始不可见：未点开始按钮前对局应处于待开始态")
+	_check_touch_buttons()
+
+
+## 阶段 0 静态断言：竖屏设计分辨率 + expand 拉伸 + 手持竖屏朝向（窄屏适配的工程接线）。
+func _check_project_settings() -> void:
+	if String(ProjectSettings.get_setting("display/window/stretch/mode")) != "canvas_items":
+		_failures.append("竖屏适配缺失：display/window/stretch/mode != canvas_items（拉伸渲染未启用）")
+	if String(ProjectSettings.get_setting("display/window/stretch/aspect")) != "expand":
+		_failures.append("窄屏适配缺失：display/window/stretch/aspect != expand（视口不会随窗口扩展）")
+	if String(ProjectSettings.get_setting("display/window/handheld/orientation")) != "portrait":
+		_failures.append("移动端适配缺失：display/window/handheld/orientation != portrait（手持设备未锁竖屏）")
+	var base_width: int = int(ProjectSettings.get_setting("display/window/size/viewport_width"))
+	var base_height: int = int(ProjectSettings.get_setting("display/window/size/viewport_height"))
+	if base_height <= base_width:
+		_failures.append("竖屏设计分辨率缺失：viewport %dx%d 不是竖屏（height 应大于 width）" % [base_width, base_height])
+
+
+## 阶段 0 静态断言：棋盘在视口内水平居中（main.gd _layout 对 expand 拉伸的响应）。
+func _check_board_layout() -> void:
+	if _board == null:
+		return
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	var board_center_x: float = _board.position.x + Board.COLS * Board.CELL * 0.5
+	if absf(board_center_x - viewport_size.x * 0.5) > 1.0:
+		_failures.append("棋盘未随视口居中：board_center_x=%.1f 视口宽=%.1f（main.gd _layout 未生效）" % [
+			board_center_x, viewport_size.x,
+		])
+	if _board.position.y < 260.0 or _board.position.y + Board.ROWS * Board.CELL > viewport_size.y:
+		_failures.append("棋盘纵向越界：top=%.1f bottom=%.1f 视口高=%.1f（与 HUD/按钮区带重叠）" % [
+			_board.position.y, _board.position.y + Board.ROWS * Board.CELL, viewport_size.y,
+		])
+
+
+## 阶段 0 静态断言：GameAudio autoload 注册、SFX 表全量非空（音效资产接线完整）。
+func _check_audio_autoload() -> void:
+	if get_tree().root.get_node_or_null("GameAudio") == null:
+		_failures.append("autoload GameAudio 未注册（project.godot [autoload] 缺失，音效系统不可用）")
+		return
+	if GameAudio.SFX.is_empty():
+		_failures.append("音效表为空：GameAudio.SFX 无任何事件映射（swap/match/win/lose 等缺失）")
+		return
+	for event: StringName in GameAudio.SFX:
+		if GameAudio.SFX[event] == null:
+			_failures.append("音效流缺失：GameAudio.SFX[%s] 为空（assets/audio 资源没接上）" % event)
+
+
+## 阶段 0 静态断言：四个触摸可点按控件存在且不抢键盘焦点（focus_mode = NONE），
+## 同时抓取成员引用供后续帧阶段驱动（pressed 信号注入）。
+func _check_touch_buttons() -> void:
+	_start_button = _main.find_child("StartButton", true, false) as Button
+	_restart_button = _main.find_child("RestartButton", true, false) as Button
+	_mute_button = _main.find_child("MuteButton", true, false) as Button
+	_overlay_action_button = _main.find_child("OverlayActionButton", true, false) as Button
+	var buttons: Dictionary = {
+		"StartButton": [_start_button, "开始按钮"],
+		"RestartButton": [_restart_button, "重开按钮"],
+		"MuteButton": [_mute_button, "静音按钮"],
+		"OverlayActionButton": [_overlay_action_button, "胜负遮罩动作按钮"],
+	}
+	for button_name: String in buttons:
+		var button: Button = buttons[button_name][0]
+		if button == null:
+			_failures.append("可点按控件缺失：主场景找不到 %s（%s 未创建）" % [button_name, buttons[button_name][1]])
+		elif button.focus_mode != Control.FOCUS_NONE:
+			_failures.append("触摸控件会抢焦点：%s focus_mode != NONE（键盘 Space 会误触按钮而非对局）" % button_name)
 
 
 func _physics_process(_delta: float) -> void:
@@ -148,6 +253,14 @@ func _physics_process(_delta: float) -> void:
 		_finish()
 		return
 	match _frames:
+		FRAME_FROZEN:
+			_inject_action(&"move_right")
+		FRAME_FROZEN_CHECK:
+			_check_frozen_before_start()
+		FRAME_START:
+			_tap_control(_start_button)
+		FRAME_START_CHECK:
+			_check_started()
 		FRAME_MOVE:
 			_inject_action(&"move_right")
 		FRAME_MOVE_CHECK:
@@ -160,6 +273,33 @@ func _physics_process(_delta: float) -> void:
 			_inject_action(&"confirm")
 		FRAME_SWAP_CHECK:
 			_check_swap_resolved()
+		FRAME_TAP_A:
+			_prepare_tap_pair()
+			_touch_at(_tap_a, true)
+			_touch_at(_tap_a, false)
+		FRAME_TAP_A_CHECK:
+			_check_tap_selected_a()
+		FRAME_TAP_B:
+			_touch_at(_tap_b, true)
+			_touch_at(_tap_b, false)
+		FRAME_TAP_CHECK:
+			_check_tap_swapped()
+		FRAME_SWIPE_BEGIN:
+			_prepare_swipe_pair()
+			_touch_at(_tap_a, true)
+		FRAME_SWIPE_DRAG:
+			_drag_to(_tap_b)
+		FRAME_SWIPE_END:
+			_touch_at(_tap_b, false)
+		FRAME_SWIPE_CHECK:
+			_check_swipe_swapped()
+		FRAME_MUTE:
+			_tap_control(_mute_button)
+		FRAME_MUTE_CHECK:
+			_check_muted()
+		FRAME_UNMUTE_CHECK:
+			_tap_control(_mute_button)
+			_check_unmuted()
 		FRAME_DEADLOCK:
 			_run_deadlock_scenario()
 		FRAME_DEADLOCK_CHECK:
@@ -171,7 +311,7 @@ func _physics_process(_delta: float) -> void:
 		FRAME_WIN:
 			_run_win_scenario()
 		FRAME_ADVANCE:
-			_inject_action(&"confirm")
+			_overlay_action_button.pressed.emit()
 		FRAME_ADVANCE_CHECK:
 			_check_advanced()
 		FRAME_LOSE:
@@ -180,6 +320,8 @@ func _physics_process(_delta: float) -> void:
 			_check_lose()
 		FRAME_RESTART:
 			_inject_action(&"restart")
+		FRAME_RESTART_BTN:
+			_restart_button.pressed.emit()
 		FRAME_RESTART_CHECK:
 			_check_restarted()
 			_finish()
@@ -188,8 +330,46 @@ func _physics_process(_delta: float) -> void:
 		_finish()
 
 
-## 阶段 1 断言：注入 move_right 后光标真的动了（网格坐标 + 节点位置 + 信号三重核对），
-## 随后把光标瞬移到一组「必定三消」的交换对起点，为交互阶段做准备。
+## 阶段 1 断言：未点开始前对局输入必须冻结（move_right 不产生任何位移）。
+func _check_frozen_before_start() -> void:
+	if _cursor == null:
+		return
+	if GameState.started:
+		_failures.append("开始门控失效：未点开始按钮 GameState.started 已为真")
+	if _cursor.grid_pos != _origin_cell:
+		_failures.append("开始门控失效：未点开始按钮注入 move_right 就能移动光标（is_playing 未拦住）")
+	if _start_overlay != null and not _start_overlay.visible:
+		_failures.append("开始遮罩提前消失：待开始态应保持 StartOverlay 可见")
+	if not GameAudio.unlocked:
+		_failures.append("音频解锁链路断裂：首个输入事件后 GameAudio.unlocked 仍为假（Web 自动播放限制未处理）")
+
+
+## 阶段 1 断言：点开始按钮 → 对局真正开始，开始遮罩关闭，棋盘可用。
+func _check_started() -> void:
+	if not GameState.started:
+		_failures.append("开始交互失效：StartButton.pressed 后 GameState.started 仍为假（main.gd _on_start_pressed 未接线）")
+	if not GameState.is_playing():
+		_failures.append("开始交互失效：开始后 outcome 未进入对局态（is_playing=false）")
+	if _start_overlay != null and _start_overlay.visible:
+		_failures.append("开始交互失效：开始后 StartOverlay 仍显示")
+	if GameState.moves_left != GameState.moves_for_level(1):
+		_failures.append("开始交互失效：开局步数未按第 1 关初始化（moves_left=%d）" % GameState.moves_left)
+	# 情景隔离（实测根因修复）：本情景会连续打出多次真实三消，随机棋盘的连锁波次
+	# 可能提前把分数推过目标分 → 对局中途判胜 → is_playing 门控冻结后续输入，
+	# 滑动/点按阶段的事件再也到不了 Player（探针实测：45/47/49 帧注入零到达），
+	# 断言以「触摸滑动交换失效」间歇性失败。把目标分抬到情景内不可达即可隔离；
+	# 胜利可达性由阶段 9（start_game 复位目标分后 score=target）专项验证，不受影响。
+	GameState.target_score = GameState.TARGET_SCORE * 100
+	if _board != null:
+		for column in _board.types:
+			for value in column:
+				if value == Board.EMPTY:
+					_failures.append("开始交互失效：开局棋盘存在空格（board.new_game 未生效）")
+					return
+
+
+## 阶段 2 断言：注入 move_right 后光标真的动了（网格坐标 + 节点位置 + 信号三重核对），
+## 随后把光标瞬移到一组「必定三消」的交换对起点，为键盘交互阶段做准备。
 func _check_cursor_moved() -> void:
 	if _cursor == null:
 		return
@@ -219,18 +399,17 @@ func _check_selected_and_step_to_b() -> void:
 	if not _selection_seen:
 		_failures.append("信号 Player.selection_changed 未到达订阅方")
 	var direction: Vector2i = _swap_b - _swap_a
-	if direction == Vector2i.RIGHT:
-		_swap_dir_action = &"move_right"
-	elif direction == Vector2i.DOWN:
-		_swap_dir_action = &"move_down"
+	var dir_action: StringName = &"move_right"
+	if direction == Vector2i.DOWN:
+		dir_action = &"move_down"
 	elif direction == Vector2i.LEFT:
-		_swap_dir_action = &"move_left"
-	else:
-		_swap_dir_action = &"move_up"
-	_inject_action(_swap_dir_action)
+		dir_action = &"move_left"
+	elif direction == Vector2i.UP:
+		dir_action = &"move_up"
+	_inject_action(dir_action)
 
 
-## 阶段 3 断言：第二次 confirm 完成交换 → 三消收集 → 加分 + 扣步。
+## 阶段 2 断言：第二次 confirm 完成交换 → 三消收集 → 加分 + 扣步。
 func _check_swap_resolved() -> void:
 	if GameState.score <= _score_before:
 		_failures.append("核心交互失效：交换后分数未增加（%d → %d），Board.try_swap 三消结算或 GameState.add_score 断裂" % [
@@ -250,7 +429,86 @@ func _check_swap_resolved() -> void:
 		_failures.append("信号 GameState.moves_changed 未到达订阅方：扣步链路断裂")
 
 
-## 阶段 4：死局守卫 —— 构造「模 5 交错盘」（types[x][y] = (x + 2y) mod 5，行列均无相邻同色，
+## 阶段 3（触摸·点按-点按）准备：找一组实时可行交换对 [A, B]。
+func _prepare_tap_pair() -> void:
+	var pair := _board.find_valid_swap()
+	if pair.size() < 2:
+		_failures.append("点按交互准备失败：棋盘上找不到可行三消交换（find_valid_swap 为空）")
+		return
+	_tap_a = pair[0]
+	_tap_b = pair[1]
+	_score_before_tap = GameState.score
+	_moves_before_tap = GameState.moves_left
+
+
+## 阶段 3 断言：点按 A（按下+抬起）后 A 格进入选中态。
+func _check_tap_selected_a() -> void:
+	if not _cursor.has_selection:
+		_failures.append("触摸点按失效：点按糖果后未进入选中态（Player._pointer_end → _tap_at 链路断裂）")
+	if _cursor.selected_cell != _tap_a:
+		_failures.append("触摸点按失效：选中的是 %s，期望点按格 %s（事件坐标 → 棋盘格换算错误）" % [
+			_cursor.selected_cell, _tap_a,
+		])
+	if _cursor.grid_pos != _tap_a:
+		_failures.append("触摸点按反馈缺失：光标未随点按移动到 %s（grid_pos=%s）" % [_tap_a, _cursor.grid_pos])
+
+
+## 阶段 3 断言：点按相邻 B 格 → 交换生效（加分 + 扣步）。
+func _check_tap_swapped() -> void:
+	if GameState.score <= _score_before_tap:
+		_failures.append("触摸点按交换失效：点按 B 后分数未增加（%d → %d），Board.try_swap 未被触发" % [
+			_score_before_tap, GameState.score,
+		])
+	if GameState.moves_left != _moves_before_tap - 1:
+		_failures.append("触摸点按交换失效：未扣步（%d → %d，期望 %d）" % [
+			_moves_before_tap, GameState.moves_left, _moves_before_tap - 1,
+		])
+	if _cursor.has_selection:
+		_failures.append("触摸点按交换残留：交换后选中态未清除")
+
+
+## 阶段 4（触摸·滑动）准备：再找一组可行交换对 [C, D]。
+func _prepare_swipe_pair() -> void:
+	var pair := _board.find_valid_swap()
+	if pair.size() < 2:
+		_failures.append("滑动交互准备失败：棋盘上找不到可行三消交换")
+		return
+	_tap_a = pair[0]
+	_tap_b = pair[1]
+	_score_before_swipe = GameState.score
+	_moves_before_swipe = GameState.moves_left
+
+
+## 阶段 4 断言：按住 C 拖到 D 越过阈值 → 交换生效（加分 + 扣步）。
+func _check_swipe_swapped() -> void:
+	if GameState.score <= _score_before_swipe:
+		_failures.append("触摸滑动交换失效：拖动后分数未增加（%d → %d），InputEventScreenDrag 手势链路断裂" % [
+			_score_before_swipe, GameState.score,
+		])
+	if GameState.moves_left != _moves_before_swipe - 1:
+		_failures.append("触摸滑动交换失效：未扣步（%d → %d，期望 %d）" % [
+			_moves_before_swipe, GameState.moves_left, _moves_before_swipe - 1,
+		])
+	if _cursor._pointer_active:
+		_failures.append("触摸手势状态残留：抬起后 _pointer_active 仍为真（_pointer_reset 未生效）")
+
+
+## 阶段 5 断言：点静音按钮 → GameAudio.muted 与主总线哑音同步打开；再点恢复。
+func _check_muted() -> void:
+	if not GameAudio.muted:
+		_failures.append("静音开关失效：MuteButton 点击后 GameAudio.muted 仍为假（_on_mute_pressed 未接线）")
+	if not AudioServer.is_bus_mute(AudioServer.get_bus_index("Master")):
+		_failures.append("静音开关失效：muted=true 但主总线未置哑（AudioServer.set_bus_mute 未同步）")
+
+
+func _check_unmuted() -> void:
+	if GameAudio.muted:
+		_failures.append("静音开关失效：再次点击后未解除静音（toggle_muted 往返断裂）")
+	if AudioServer.is_bus_mute(AudioServer.get_bus_index("Master")):
+		_failures.append("静音开关失效：muted=false 但主总线仍哑音")
+
+
+## 阶段 7：死局守卫 —— 构造「模 5 交错盘」（types[x][y] = (x + 2y) mod 5，行列均无相邻同色，
 ## 数学上任何相邻交换都无法形成三连）强制触发死局，ensure_solvable 必须洗出一手可解棋盘。
 func _run_deadlock_scenario() -> void:
 	for x in Board.COLS:
@@ -259,13 +517,13 @@ func _run_deadlock_scenario() -> void:
 	if not _board.find_valid_swap().is_empty():
 		_failures.append("死局构造失效：模 5 交错盘被判定存在可行交换，死局守卫断言覆盖不到真实死局")
 		return
-	if _board.find_matches().is_empty() == false:
+	if not _board.find_matches().is_empty():
 		_failures.append("死局构造失效：交错盘存在现成三连，未构成真正的无解盘面")
 		return
 	_board.ensure_solvable()
 
 
-## 阶段 4 断言：洗牌后必须「有可行交换 + 无现成三连」，且 shuffled 信号到达订阅方。
+## 阶段 7 断言：洗牌后必须「有可行交换 + 无现成三连」，且 shuffled 信号到达订阅方。
 func _check_deadlock_resolved() -> void:
 	if not _shuffled_seen:
 		_failures.append("死局守卫失效：死局盘调用 ensure_solvable 后未发出 Board.shuffled 信号（洗牌链路断裂）")
@@ -275,7 +533,7 @@ func _check_deadlock_resolved() -> void:
 		_failures.append("死局洗牌质量缺陷：洗出了现成三连（应为无现成三连的可解盘）")
 
 
-## 阶段 5：计分与难度梯度的纯函数断言（无随机，锁具体数值）+ 强制四连走真实结算管线。
+## 阶段 8：计分与难度梯度的纯函数断言（无随机，锁具体数值）+ 强制四连走真实结算管线。
 func _run_scoring_scenario() -> void:
 	# 计分公式：基础分、四连/五连加成、连锁波次倍率（回归锁：改规则必须改断言）。
 	var cases: Array = [
@@ -310,9 +568,8 @@ func _run_scoring_scenario() -> void:
 				stage, stage + 1, GameState.moves_for_level(stage), GameState.moves_for_level(stage + 1),
 			])
 	# 强制四连结算：种子固定 → 重力补充确定；先铺交错盘隔离干扰，再改出唯一的一处四连。
-	# 前置复位到对局态：若阶段 3 的交换恰好大连锁直接获胜（合法游戏行为），
-	# outcome 会停在 WIN，add_score 的对局态守卫会把本阶段结算拦成 0 分 ——
-	# 计分断言必须与「前序阶段是否恰好获胜」解耦。
+	# 前置复位到对局态：若前序阶段恰好获胜（合法游戏行为），outcome 会停在 WIN，
+	# add_score 的对局态守卫会把本阶段结算拦成 0 分 —— 计分断言必须与之解耦。
 	GameState.start_game()
 	_score_before_scoring = GameState.score
 	_board.rng.seed = SCORING_RNG_SEED
@@ -324,7 +581,7 @@ func _run_scoring_scenario() -> void:
 	_board._resolve_cascades()
 
 
-## 阶段 5 断言：四连盘走真实结算管线后，长连被识别、分数走计分公式（连锁只增不减，取下界）。
+## 阶段 8 断言：四连盘走真实结算管线后，长连被识别、分数走计分公式（连锁只增不减，取下界）。
 func _check_scoring() -> void:
 	var gained: int = GameState.score - _score_before_scoring
 	if _board.last_max_run < 4:
@@ -342,10 +599,8 @@ func _check_scoring() -> void:
 		])
 
 
-## 阶段 6：胜利可达 —— 直接调用加分函数把分数推到目标（SKILL.md 第 7 节的合法姿势），
-## check_end 必须判胜且遮罩显示。
-## 阶段 6：胜利可达 —— 复位到对局态后直接把分数推到目标（SKILL.md 第 7 节的合法姿势），
-## check_end 必须判胜且遮罩显示。先复位保证阶段确定性：不依赖前序阶段是否恰好已获胜。
+## 阶段 9：胜利可达 —— 复位到对局态后直接把分数推到目标（SKILL.md 第 7 节的合法姿势），
+## check_end 必须判胜且遮罩显示、动作按钮切到「下一关」。
 func _run_win_scenario() -> void:
 	GameState.start_game()
 	GameState.score = GameState.target_score
@@ -356,12 +611,15 @@ func _run_win_scenario() -> void:
 		_failures.append("信号 GameState.game_ended(\"win\") 未到达订阅方：胜利判定链路断裂")
 	if _overlay != null and not _overlay.visible:
 		_failures.append("胜利后遮罩未显示（main.gd _on_game_ended 未生效）")
+	var action_button := _main.find_child("OverlayActionButton", true, false) as Button
+	if action_button != null and action_button.text != "下一关 NEXT":
+		_failures.append("胜利遮罩按钮文案未切换：OverlayActionButton.text=%s（期望 下一关 NEXT）" % action_button.text)
 
 
-## 阶段 7 断言：胜利遮罩上注入 confirm → 过关推进（新交互必须有专属断言拦截回归）。
+## 阶段 9 断言：胜利遮罩上点动作按钮 → 过关推进（level/target/moves 按阶梯重算）。
 func _check_advanced() -> void:
 	if GameState.level != 2:
-		_failures.append("过关交互失效：胜利后注入 confirm，level = %d（期望 2，main.gd _advance_level 未生效）" % GameState.level)
+		_failures.append("过关交互失效：胜利后点动作按钮，level = %d（期望 2，main.gd _advance_level 未生效）" % GameState.level)
 	if GameState.outcome != GameState.Outcome.PLAYING:
 		_failures.append("过关交互失效：过关后 outcome = %s（期望 PLAYING，可直接继续对局）" % GameState.outcome)
 	if GameState.score != 0:
@@ -389,8 +647,8 @@ func _check_advanced() -> void:
 					return
 
 
-## 阶段 8：失败可达 —— 切到第 3 关后把步数清零，check_end 必须判负
-## （故意把 level 抬到 3，让阶段 9 的「重开回第 1 关」断言有真实区分度）。
+## 阶段 10：失败可达 —— 切到第 3 关后把步数清零，check_end 必须判负
+## （故意把 level 抬到 3，让重开断言「回第 1 关」有真实区分度）。
 func _run_lose_scenario() -> void:
 	GameState.start_game()
 	GameState.level = 3
@@ -404,7 +662,7 @@ func _run_lose_scenario() -> void:
 		_failures.append("信号 GameState.game_ended(\"lose\") 未到达订阅方：失败判定链路断裂")
 
 
-## 阶段 8 断言：失败态的遮罩文案与结算分数要如实呈现。
+## 阶段 10 断言：失败态的遮罩文案、结算分数与动作按钮（切到 RETRY）要如实呈现。
 func _check_lose() -> void:
 	if _overlay != null and not _overlay.visible:
 		_failures.append("失败后遮罩未显示（main.gd _on_game_ended 未覆盖 lose 分支）")
@@ -414,9 +672,12 @@ func _check_lose() -> void:
 	var overlay_score := _main.find_child("OverlayScore", true, false) as Label
 	if overlay_score != null and overlay_score.text != "SCORE %d" % GameState.score:
 		_failures.append("结算分数缺失：OverlayScore.text=%s（期望 SCORE %d）" % [overlay_score.text, GameState.score])
+	var action_button := _main.find_child("OverlayActionButton", true, false) as Button
+	if action_button != null and action_button.text != "再来一局 RETRY":
+		_failures.append("失败遮罩按钮文案未切换：OverlayActionButton.text=%s（期望 再来一局 RETRY）" % action_button.text)
 
 
-## 阶段 9 断言：注入 restart 后全部复位（状态/分数/步数/关卡/棋盘/光标/遮罩）。
+## 阶段 11 断言：键盘 restart 动作 + 重开按钮双通道后全部复位（状态/分数/关卡/棋盘/光标/遮罩）。
 func _check_restarted() -> void:
 	if GameState.outcome != GameState.Outcome.PLAYING:
 		_failures.append("重开不可用：对局状态未复位（outcome=%s，期望 PLAYING）" % GameState.outcome)
@@ -434,6 +695,8 @@ func _check_restarted() -> void:
 		_failures.append("重开不可用：光标未归位（grid_pos=%s）" % _cursor.grid_pos)
 	if _overlay != null and _overlay.visible:
 		_failures.append("重开不可用：胜负遮罩仍显示")
+	if _start_overlay != null and _start_overlay.visible:
+		_failures.append("重开不可用：开始遮罩不应在重开后再现")
 	var level_label := _main.find_child("LevelLabel", true, false) as Label
 	if level_label != null and level_label.text != "LEVEL 1":
 		_failures.append("重开不可用：关卡 HUD 未复位（LevelLabel.text=%s，期望 LEVEL 1）" % level_label.text)
@@ -452,7 +715,7 @@ func _finish() -> void:
 		return
 	_finished = true
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/键位契约/光标移动/选中交换收集/死局洗牌/计分加成/难度梯度/过关推进/胜负判定/重开复位 全部通过")
+		print("GODOT_SMOKE: PASS 竖屏适配/开始门控/音频解锁/键位契约/光标移动/点按-点按交换/滑动交换/静音开关/死局洗牌/计分加成/难度梯度/按钮过关/胜负判定/按钮重开 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:
@@ -470,6 +733,58 @@ func _inject_action(action: StringName) -> void:
 	event.action = action
 	event.pressed = true
 	Input.parse_input_event(event)
+	Input.flush_buffered_events()
+
+
+## 模拟触摸屏「按下 / 抬起」：位置取目标格中心。
+## ⚠️ 实测（error-signatures 新签名）：Input.parse_input_event 的坐标按「窗口像素」解释，
+## 投递给场景前会乘 1/stretch_scale —— 所以必须先乘 final_transform（窗口 = 视口 × scale），
+## 与真实触摸屏上报窗口坐标的行为一致；直接给视口坐标会被二次放大导致格子换算错位。
+func _touch_at(cell: Vector2i, pressed: bool) -> void:
+	var event := InputEventScreenTouch.new()
+	event.index = 0
+	event.position = _cell_event_pos(cell)
+	event.pressed = pressed
+	Input.parse_input_event(event)
+	Input.flush_buffered_events()
+
+
+## 模拟触摸屏「拖动」：把触点拖到目标格中心（位移 = CELL 级别，远超滑动阈值 42px）。
+func _drag_to(cell: Vector2i) -> void:
+	var event := InputEventScreenDrag.new()
+	event.index = 0
+	event.position = _cell_event_pos(cell)
+	event.relative = Vector2(Board.CELL, 0.0)
+	Input.parse_input_event(event)
+	Input.flush_buffered_events()
+
+
+## 格子 → 注入事件用的窗口坐标：视口坐标（棋盘全局位置 + 格子中心）× final_transform。
+func _cell_event_pos(cell: Vector2i) -> Vector2:
+	var viewport_pos: Vector2 = _board.global_position + _board.cell_to_position(cell)
+	return get_viewport().get_final_transform() * viewport_pos
+
+
+## 视口控件中心（如按钮）→ 注入事件用的窗口坐标（CanvasLayer 控件坐标即视口坐标）。
+func _control_event_pos(control: Control) -> Vector2:
+	return get_viewport().get_final_transform() * control.get_global_rect().get_center()
+
+
+## 模拟真实触摸「点按」一个可点按控件（走完整触摸→鼠标镜像→Button 派发链路，
+## 能拦住「镜像事件导致按钮触发两次」这类回归）。
+func _tap_control(control: Control) -> void:
+	var pos: Vector2 = _control_event_pos(control)
+	var press := InputEventScreenTouch.new()
+	press.index = 0
+	press.position = pos
+	press.pressed = true
+	Input.parse_input_event(press)
+	Input.flush_buffered_events()
+	var release := InputEventScreenTouch.new()
+	release.index = 0
+	release.position = pos
+	release.pressed = false
+	Input.parse_input_event(release)
 	Input.flush_buffered_events()
 
 

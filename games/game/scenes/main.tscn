@@ -17,12 +17,15 @@ fill_to = Vector2(0, 1)
 script = ExtResource("1_main")
 
 [node name="Background" type="TextureRect" parent="."]
-offset_right = 880.0
-offset_bottom = 600.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 texture = SubResource("GradientTexture2D_bg")
 
 [node name="Board" type="Node2D" parent="."]
-position = Vector2(64, 120)
+position = Vector2(72, 512)
 script = ExtResource("2_board")
 
 [node name="Player" parent="Board" instance=ExtResource("3_player")]
@@ -31,121 +34,173 @@ script = ExtResource("2_board")
 
 [node name="TitleLabel" type="Label" parent="UI"]
 offset_left = 24.0
-offset_top = 16.0
-offset_right = 520.0
-offset_bottom = 60.0
+offset_top = 24.0
+offset_right = 460.0
+offset_bottom = 76.0
 theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 40
 text = "糖果粉碎传奇"
 
 [node name="SubtitleLabel" type="Label" parent="UI"]
 offset_left = 26.0
-offset_top = 60.0
-offset_right = 520.0
-offset_bottom = 84.0
+offset_top = 80.0
+offset_right = 460.0
+offset_bottom = 104.0
 theme_override_colors/font_color = Color(1, 1, 1, 0.55)
 theme_override_font_sizes/font_size = 15
 text = "CANDY CRUSH LEGEND"
 
 [node name="LevelLabel" type="Label" parent="UI"]
 unique_name_in_owner = true
-offset_left = 528.0
-offset_top = 88.0
-offset_right = 856.0
-offset_bottom = 116.0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -360.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 56.0
+grow_horizontal = 0
 theme_override_colors/font_color = Color(0.65, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 22
 text = "LEVEL 1"
 
 [node name="ScoreCaption" type="Label" parent="UI"]
-offset_left = 528.0
-offset_top = 120.0
-offset_right = 856.0
-offset_bottom = 144.0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -360.0
+offset_top = 60.0
+offset_right = -24.0
+offset_bottom = 86.0
+grow_horizontal = 0
 theme_override_colors/font_color = Color(1, 1, 1, 0.6)
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 16
 text = "SCORE 分数 / 目标"
 
 [node name="ScoreLabel" type="Label" parent="UI"]
 unique_name_in_owner = true
-offset_left = 528.0
-offset_top = 146.0
-offset_right = 856.0
-offset_bottom = 202.0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -360.0
+offset_top = 88.0
+offset_right = -24.0
+offset_bottom = 148.0
+grow_horizontal = 0
 theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
-theme_override_font_sizes/font_size = 40
+theme_override_font_sizes/font_size = 44
 text = "0 / 600"
 
 [node name="MovesCaption" type="Label" parent="UI"]
-offset_left = 528.0
-offset_top = 236.0
-offset_right = 856.0
-offset_bottom = 260.0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -360.0
+offset_top = 164.0
+offset_right = -24.0
+offset_bottom = 190.0
+grow_horizontal = 0
 theme_override_colors/font_color = Color(1, 1, 1, 0.6)
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 16
 text = "MOVES 剩余步数"
 
 [node name="MovesLabel" type="Label" parent="UI"]
 unique_name_in_owner = true
-offset_left = 528.0
-offset_top = 262.0
-offset_right = 856.0
-offset_bottom = 318.0
-theme_override_font_sizes/font_size = 40
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -360.0
+offset_top = 192.0
+offset_right = -24.0
+offset_bottom = 252.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 44
 text = "20"
-
-[node name="HowToLabel" type="Label" parent="UI"]
-offset_left = 528.0
-offset_top = 340.0
-offset_right = 856.0
-offset_bottom = 392.0
-theme_override_colors/font_color = Color(1, 1, 1, 0.45)
-theme_override_font_sizes/font_size = 15
-text = "WASD 移动光标 · 空格选中
-再选相邻格交换 · 三连收集"
 
 [node name="HudMessage" type="Label" parent="UI"]
 unique_name_in_owner = true
-offset_left = 528.0
-offset_top = 424.0
-offset_right = 856.0
-offset_bottom = 500.0
+anchor_top = 1.0
+anchor_bottom = 1.0
+anchor_right = 1.0
+offset_left = 24.0
+offset_top = -286.0
+offset_right = -24.0
+offset_bottom = -216.0
+grow_horizontal = 2
+grow_vertical = 0
 theme_override_colors/font_color = Color(1, 0.62, 0.35, 1)
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 18
 autowrap_mode = 3
 
-[node name="RestartHint" type="Label" parent="UI"]
-offset_left = 528.0
-offset_top = 544.0
-offset_right = 856.0
-offset_bottom = 568.0
-theme_override_colors/font_color = Color(1, 1, 1, 0.4)
-theme_override_font_sizes/font_size = 14
-text = "按 R 重新开始 · PRESS R TO RESTART"
+[node name="HowToLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -206.0
+offset_right = -24.0
+offset_bottom = -152.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 1, 0.45)
+theme_override_font_sizes/font_size = 15
+text = "点按选中糖果 · 再点相邻糖果交换
+或按住糖果滑动 · 三连即可收集"
+
+[node name="RestartButton" type="Button" parent="UI"]
+unique_name_in_owner = true
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 48.0
+offset_top = -136.0
+offset_right = 344.0
+offset_bottom = -40.0
+grow_vertical = 0
+focus_mode = 0
+theme_override_font_sizes/font_size = 24
+text = "重新开始 RESTART"
+
+[node name="MuteButton" type="Button" parent="UI"]
+unique_name_in_owner = true
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -344.0
+offset_top = -136.0
+offset_right = -48.0
+offset_bottom = -40.0
+grow_horizontal = 0
+grow_vertical = 0
+focus_mode = 0
+theme_override_font_sizes/font_size = 24
+text = "音效 ON"
 
 [node name="Overlay" type="ColorRect" parent="UI"]
 unique_name_in_owner = true
 visible = false
-offset_right = 880.0
-offset_bottom = 600.0
-color = Color(0.04, 0.03, 0.1, 0.8)
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.04, 0.03, 0.1, 0.82)
 
 [node name="OverlayTitle" type="Label" parent="UI/Overlay"]
 unique_name_in_owner = true
-offset_top = 220.0
-offset_right = 880.0
-offset_bottom = 320.0
+anchor_top = 0.34
+anchor_right = 1.0
+anchor_bottom = 0.34
+offset_bottom = 120.0
+grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
-theme_override_font_sizes/font_size = 64
+theme_override_font_sizes/font_size = 60
 horizontal_alignment = 1
 vertical_alignment = 1
 text = "YOU WIN!"
 
 [node name="OverlayScore" type="Label" parent="UI/Overlay"]
 unique_name_in_owner = true
-offset_top = 328.0
-offset_right = 880.0
-offset_bottom = 372.0
+anchor_top = 0.455
+anchor_right = 1.0
+anchor_bottom = 0.455
+offset_bottom = 44.0
+grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_font_sizes/font_size = 26
 horizontal_alignment = 1
@@ -153,10 +208,73 @@ text = "SCORE 0"
 
 [node name="OverlayHint" type="Label" parent="UI/Overlay"]
 unique_name_in_owner = true
-offset_top = 384.0
-offset_right = 880.0
-offset_bottom = 420.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_bottom = 40.0
+grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.75)
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 19
 horizontal_alignment = 1
-text = "PRESS R TO RESTART"
+text = "TAP THE BUTTON TO CONTINUE"
+
+[node name="OverlayActionButton" type="Button" parent="UI/Overlay"]
+unique_name_in_owner = true
+anchor_left = 0.5
+anchor_top = 0.55
+anchor_right = 0.5
+anchor_bottom = 0.55
+offset_left = -160.0
+offset_right = 160.0
+offset_bottom = 104.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 26
+text = "下一关 NEXT"
+
+[node name="StartOverlay" type="ColorRect" parent="UI"]
+unique_name_in_owner = true
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.04, 0.03, 0.1, 0.86)
+
+[node name="StartTitle" type="Label" parent="UI/StartOverlay"]
+anchor_top = 0.33
+anchor_right = 1.0
+anchor_bottom = 0.33
+offset_bottom = 100.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
+theme_override_font_sizes/font_size = 56
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "糖果粉碎传奇"
+
+[node name="StartSubtitle" type="Label" parent="UI/StartOverlay"]
+anchor_top = 0.42
+anchor_right = 1.0
+anchor_bottom = 0.42
+offset_bottom = 36.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.7)
+theme_override_font_sizes/font_size = 17
+horizontal_alignment = 1
+text = "CANDY CRUSH LEGEND · 触摸版"
+
+[node name="StartButton" type="Button" parent="UI/StartOverlay"]
+unique_name_in_owner = true
+anchor_left = 0.5
+anchor_top = 0.52
+anchor_right = 0.5
+anchor_bottom = 0.52
+offset_left = -160.0
+offset_right = 160.0
+offset_bottom = 110.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 30
+text = "开始游戏 START"

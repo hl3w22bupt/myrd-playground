@@ -15,7 +15,9 @@ signal shuffled()
 
 const COLS: int = 6
 const ROWS: int = 6
-const CELL: float = 72.0
+## 竖屏设计分辨率（720×1280，aspect=expand）下的格子边长：棋盘 6×96=576px，
+## 居中后两侧余 72px；390pt 宽的窄屏上单格触点 ≈52pt，高于 44pt 触摸热区下限。
+const CELL: float = 96.0
 ## 糖果种类数（Candy.Kind 共 5 种）。
 const CANDY_KINDS: int = 5
 ## 每颗糖果基础分（连锁波次 ×1/×2/×3 递增）。
@@ -312,9 +314,9 @@ func _rebuild_candy_nodes() -> void:
 ## Board 自绘（_draw），不引入额外脚本/场景：headless 冒烟与 preflight 接线检查零风险。
 
 const FX_LIFE_SEC: float = 0.5
-const FX_PARTICLES: int = 10
-const FX_RING_RADIUS: float = 34.0
-const FX_TEXT_RISE: float = 46.0
+const FX_PARTICLES: int = 12
+const FX_RING_RADIUS: float = 46.0
+const FX_TEXT_RISE: float = 56.0
 const FX_COLOR_GOLD: Color = Color(1.0, 0.85, 0.35, 1.0)
 const SPAWN_TWEEN_SEC: float = 0.16
 
@@ -400,4 +402,4 @@ func _draw_fx() -> void:
 		var t_text: float = clampf(age_text * progress_scale, 0.0, 1.0)
 		var pos_text: Vector2 = text["pos"] - Vector2(0.0, FX_TEXT_RISE * t_text)
 		draw_string(font, pos_text + Vector2(-24.0, 0.0), text["text"],
-			HORIZONTAL_ALIGNMENT_CENTER, 48.0, 22, Color(FX_COLOR_GOLD, 1.0 - t_text))
+			HORIZONTAL_ALIGNMENT_CENTER, 48.0, 26, Color(FX_COLOR_GOLD, 1.0 - t_text))

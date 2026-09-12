@@ -30,12 +30,17 @@ const MAX_LEVEL: int = 99
 ## 对局状态。
 enum Outcome { PLAYING, WIN, LOSE }
 
+## 「开始游戏」前的门控：开始按钮点按前光标/触摸输入全部冻结（棋盘只作背景预览）。
+signal game_started()
+
 var score: int = 0
 var moves_left: int = START_MOVES
 var target_score: int = TARGET_SCORE
 var outcome: int = Outcome.PLAYING
 ## 当前关卡（1 起）。难度梯度唯一入参。
 var level: int = 1
+## 是否已开始对局（start 按钮置真；重开/过关不清除）。对局输入总开关的一部分。
+var started: bool = false
 
 
 ## 关卡难度阶梯（纯函数，冒烟可确定性断言单调性）：
@@ -50,16 +55,20 @@ static func moves_for_level(stage: int) -> int:
 
 
 func is_playing() -> bool:
-	return outcome == Outcome.PLAYING
+	return started and outcome == Outcome.PLAYING
 
 
-## 开新一局：复位全部状态（棋盘清场由 Board.new_game 负责，本单例不持有节点）。
+## 开新一局：置开始标记并复位全部状态（棋盘清场由 Board.new_game 负责，本单例不持有节点）。
 func start_game() -> void:
+	var first_start: bool = not started
+	started = true
 	score = 0
 	level = 1
 	moves_left = moves_for_level(level)
 	target_score = target_for_level(level)
 	outcome = Outcome.PLAYING
+	if first_start:
+		game_started.emit()
 
 
 ## 收集糖果加分；对局结束后不再变化。
