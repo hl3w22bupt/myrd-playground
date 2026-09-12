@@ -1,0 +1,138 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/pitch.gd" id="2_pitch"]
+[ext_resource type="PackedScene" path="res://scenes/ball.tscn" id="3_ball"]
+[ext_resource type="PackedScene" path="res://scenes/touch_controls.tscn" id="4_touch"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Pitch" type="Node2D" parent="."]
+script = ExtResource("2_pitch")
+
+[node name="Ball" parent="." instance=ExtResource("3_ball")]
+position = Vector2(640, 360)
+
+[node name="HomeTeam" type="Node2D" parent="."]
+
+[node name="AwayTeam" type="Node2D" parent="."]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="ScoreLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 10.0
+offset_right = 300.0
+offset_bottom = 48.0
+theme_override_font_sizes/font_size = 26
+text = "主 0 : 0 客"
+
+[node name="TitleLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 480.0
+offset_top = 10.0
+offset_right = 800.0
+offset_bottom = 44.0
+theme_override_font_sizes/font_size = 22
+text = "《Soccer》11 人足球"
+horizontal_alignment = 1
+
+[node name="ClockLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 1000.0
+offset_top = 10.0
+offset_right = 1264.0
+offset_bottom = 48.0
+theme_override_font_sizes/font_size = 26
+text = "上半场 0'"
+horizontal_alignment = 2
+
+[node name="HelpLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 0.0
+offset_top = 678.0
+offset_right = 1280.0
+offset_bottom = 708.0
+theme_override_font_sizes/font_size = 17
+text = "WASD / 方向键 移动 · J 传球 · K 射门 · Q / Tab 切换球员 · R 重开一场"
+horizontal_alignment = 1
+
+[node name="MessageLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 0.0
+offset_top = 300.0
+offset_right = 1280.0
+offset_bottom = 356.0
+theme_override_font_sizes/font_size = 34
+text = ""
+horizontal_alignment = 1
+
+[node name="UnlockHint" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 0.0
+offset_top = 372.0
+offset_right = 1280.0
+offset_bottom = 404.0
+theme_override_colors/font_color = Color(1, 0.886, 0.486, 1)
+theme_override_font_sizes/font_size = 18
+text = "点按任意处 / 按任意键 开启音效"
+horizontal_alignment = 1
+
+[node name="DifficultyLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 52.0
+offset_right = 620.0
+offset_bottom = 80.0
+theme_override_font_sizes/font_size = 16
+text = "难度：普通 · 时长：标准 4 分钟"
+
+[node name="MuteButton" type="Button" parent="UI"]
+unique_name_in_owner = true
+offset_left = 1104.0
+offset_top = 52.0
+offset_right = 1264.0
+offset_bottom = 92.0
+focus_mode = 0
+theme_override_font_sizes/font_size = 17
+text = "音效：开"
+
+[node name="ResultPanel" type="PanelContainer" parent="UI"]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -104.0
+offset_right = 250.0
+offset_bottom = 104.0
+
+[node name="ResultBox" type="VBoxContainer" parent="UI/ResultPanel"]
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="ResultTitle" type="Label" parent="UI/ResultPanel/ResultBox"]
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 30
+text = "全场结束"
+horizontal_alignment = 1
+
+[node name="ResultScore" type="Label" parent="UI/ResultPanel/ResultBox"]
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 46
+text = "主 0 : 0 客"
+horizontal_alignment = 1
+
+[node name="ResultHint" type="Label" parent="UI/ResultPanel/ResultBox"]
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 18
+text = "按 Enter / 空格 再来一场"
+horizontal_alignment = 1
+[node name="TouchControls" parent="." instance=ExtResource("4_touch")]
+
+[connection signal="pressed" from="UI/MuteButton" to="." method="_on_mute_button_pressed"]

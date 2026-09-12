@@ -1,0 +1,18 @@
+# Godot 本机导入缓存：由 `godot --headless --path . --import` 重新生成，不进版本库
+.godot/
+
+# 导出产物：仅 Web（HTML5）产物随仓库分发（AppHost 部署侧从 assets_dir 读取上传对象存储），
+# 其它导出目标与安装包不入库
+/export/*
+!/export/web/
+# export/web 内的 .png.import 是本机导入扫描生成的编辑器元数据（部署与运行都不消费），
+# 不入库；九个 Web 产物文件（html/wasm/pck/js/三张 png）保持跟踪
+/export/web/*.import
+# qa/evidence 截图旁的 .import 同理：门禁 --import 扫描生成的编辑器元数据，不入库
+# （证据 PNG 本体保持跟踪；一旦入库，all_resources 导出会把截图打进 pck 平白增重）
+/qa/evidence/*.import
+*.exe
+*.zip
+
+# 系统
+.DS_Store

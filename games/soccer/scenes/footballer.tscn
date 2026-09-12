@@ -1,0 +1,64 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/footballer.gd" id="1_footballer"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 9.0
+
+[node name="Footballer" type="CharacterBody2D"]
+collision_layer = 0
+collision_mask = 0
+motion_mode = 1
+script = ExtResource("1_footballer")
+
+[node name="Shadow" type="Polygon2D" parent="."]
+color = Color(0, 0, 0, 0.18)
+polygon = PackedVector2Array(10, 12, 7, 17, 0, 19, -7, 17, -10, 12, -7, 7, 0, 5, 7, 7)
+
+[node name="LegL" type="Node2D" parent="."]
+position = Vector2(-3, 0)
+
+[node name="LegLPoly" type="Polygon2D" parent="LegL"]
+unique_name_in_owner = true
+color = Color(0.92, 0.92, 0.95, 1)
+polygon = PackedVector2Array(-2, -1, 2, -1, 2, 11, -2, 11)
+
+[node name="LegR" type="Node2D" parent="."]
+position = Vector2(3, 0)
+
+[node name="LegRPoly" type="Polygon2D" parent="LegR"]
+unique_name_in_owner = true
+color = Color(0.92, 0.92, 0.95, 1)
+polygon = PackedVector2Array(-2, -1, 2, -1, 2, 11, -2, 11)
+
+[node name="Body" type="Polygon2D" parent="."]
+color = Color(0.85, 0.2, 0.2, 1)
+polygon = PackedVector2Array(-7, -14, 7, -14, 7, 2, -7, 2)
+
+[node name="ArmL" type="Node2D" parent="."]
+position = Vector2(-6, -11)
+
+[node name="ArmLPoly" type="Polygon2D" parent="ArmL"]
+unique_name_in_owner = true
+color = Color(0.85, 0.2, 0.2, 1)
+polygon = PackedVector2Array(-2, -2, 2, -2, 2, 8, -2, 8)
+
+[node name="ArmR" type="Node2D" parent="."]
+position = Vector2(6, -11)
+
+[node name="ArmRPoly" type="Polygon2D" parent="ArmR"]
+unique_name_in_owner = true
+color = Color(0.85, 0.2, 0.2, 1)
+polygon = PackedVector2Array(-2, -2, 2, -2, 2, 8, -2, 8)
+
+[node name="Head" type="Polygon2D" parent="."]
+color = Color(0.96, 0.78, 0.62, 1)
+polygon = PackedVector2Array(5.5, -20, 3.9, -16.1, 0, -14.5, -3.9, -16.1, -5.5, -20, -3.9, -23.9, 0, -25.5, 3.9, -23.9)
+
+[node name="Indicator" type="Polygon2D" parent="."]
+visible = false
+color = Color(1, 0.85, 0.1, 1)
+polygon = PackedVector2Array(-5, -38, 5, -38, 0, -30)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_body")

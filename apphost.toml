@@ -1,0 +1,7 @@
+# apphost 应用清单 —— 《Soccer》11 人制足球（AppHost 托管壳）
+# M1 仅支持顶层字符串键值；assets_dir 出 bundle：游戏 Web 导出产物不上进 bundle，
+# 部署时由平台上传对象存储，运行实例经 server/src/lib/asset-store.ts 懒加载。
+name = "soccer"
+runtime = "node20"
+health = "/health"
+assets_dir = "games/soccer/export/web"
