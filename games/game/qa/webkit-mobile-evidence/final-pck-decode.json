@@ -1,0 +1,43 @@
+{
+  "liveUrl": "https://leomac-studio.tail49399e.ts.net/apps/game",
+  "markers": {
+    "play_invalid_swap_fx": [
+      "tests/smoke.gdc"
+    ],
+    "Board.play_invalid_swap_fx": [
+      "tests/smoke.gdc"
+    ],
+    "_flash_invalid_swap_message": [
+      "tests/smoke.gdc"
+    ],
+    "Invalid swap - needs a match of 3": [
+      "scripts/main.gdc"
+    ]
+  },
+  "verdict": {
+    "marker_found": true,
+    "sha256_identical": true,
+    "pass": true
+  },
+  "live_pck": {
+    "endpoint": "https://leomac-studio.tail49399e.ts.net/apps/game/api/public/assets/index.pck.gz.b64",
+    "gz_b64_bytes": 3434244,
+    "pck_bytes": 2604788,
+    "magic": "GDPC",
+    "sha256": "8c2841be78426bc35b6a96d440f1f3c6f2f6078a8bf13d8a56f1147025c1c7f3"
+  },
+  "pck_header": {
+    "format_version": 3,
+    "godot": [
+      4,
+      6,
+      1
+    ],
+    "entries": 52
+  },
+  "local_pck": {
+    "path": "games/game/export/web/index.pck",
+    "bytes": 2604788,
+    "sha256": "8c2841be78426bc35b6a96d440f1f3c6f2f6078a8bf13d8a56f1147025c1c7f3"
+  }
+}
