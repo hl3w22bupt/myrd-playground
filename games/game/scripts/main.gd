@@ -15,6 +15,8 @@ const TEXT_WIN_HINT: String = "TAP NEXT OR PRESS SPACE"
 const TEXT_LOSE_HINT: String = "TAP RETRY OR PRESS R"
 const TEXT_SHUFFLED: String = "No moves left - board reshuffled!"
 const TEXT_ADVANCED: String = "Level %d - target %d in %d moves"
+## 无效交换提示（加大字号 + 停留数秒，见 INVALID_MSG_* 常量）。
+const TEXT_INVALID_SWAP: String = "Invalid swap - needs a match of 3"
 ## 触屏 / 桌面两套操作提示（按输入设备切换，见 _update_hints）。
 const HINT_TOUCH: String = "点按选中糖果 · 再点相邻糖果交换
 或按住糖果滑动 · 三连即可收集"
@@ -28,6 +30,11 @@ const BTN_RETRY: String = "再来一局 RETRY"
 ## 响应式布局：HUD 底边（设计像素）与底部按钮区高度；棋盘在两者间居中（_layout）。
 const HUD_ZONE_BOTTOM: float = 260.0
 const CONTROL_ZONE_TOP: float = 140.0
+## 无效交换反馈：HUD 行内提示字号加大（基准 18 → 30，触摸屏上一眼可见），
+## 停留 2.5 秒后自动清除；与糖果抖动动画（Board.play_invalid_swap_fx）同帧触发。
+const HUD_MSG_FONT_SIZE: int = 18
+const INVALID_MSG_FONT_SIZE: int = 30
+const INVALID_MSG_HOLD_SEC: float = 2.5
 
 @onready var board: Board = $Board
 @onready var cursor: Player = $Board/Player
@@ -45,6 +52,10 @@ const CONTROL_ZONE_TOP: float = 140.0
 @onready var start_button: Button = %StartButton
 @onready var restart_button: Button = %RestartButton
 @onready var mute_button: Button = %MuteButton
+
+## 无效交换提示的显示令牌：停留期内出现任何新消息即 +1，
+## 到期的放大定时器只在令牌未变时回写（旧定时器永远抢不过新消息）。
+var _invalid_msg_seq: int = 0
 
 
 func _ready() -> void:
@@ -87,7 +98,7 @@ func _ready() -> void:
 	board.new_game()
 	overlay.visible = false
 	start_overlay.visible = true
-	hud_message.text = ""
+	_set_hud_message("")
 	mute_button.text = BTN_MUTE_OFF if GameAudio.muted else BTN_MUTE_ON
 	_update_hints()
 	_layout()
@@ -128,7 +139,7 @@ func _start_game() -> void:
 	GameState.start_game()
 	board.new_game()
 	cursor.reset_position()
-	hud_message.text = ""
+	_set_hud_message("")
 	_refresh_hud()
 
 
@@ -147,7 +158,7 @@ func _advance_level() -> void:
 	board.new_game()
 	cursor.reset_position()
 	overlay.visible = false
-	hud_message.text = TEXT_ADVANCED % [GameState.level, GameState.target_score, GameState.moves_left]
+	_set_hud_message(TEXT_ADVANCED % [GameState.level, GameState.target_score, GameState.moves_left])
 	_refresh_hud()
 
 
@@ -182,16 +193,18 @@ func _on_mute_changed(muted: bool) -> void:
 
 ## ---- 游戏信号 → UI / 音效 ----
 
-## 光标发起的交换：交 Board 裁决；有效播音效，无效给红闪 + 行内提示（不耗步数）。
+## 光标发起的交换：交 Board 裁决；有效播音效，无效给「红闪 + 糖果抖动回弹 +
+## 加大字号行内提示（停留 2.5 秒）」三重反馈（不耗步数，输入状态机不动）。
 func _on_cursor_swap_requested(from_cell: Vector2i, to_cell: Vector2i) -> void:
 	var swapped: bool = board.try_swap(from_cell, to_cell)
 	if swapped:
 		GameAudio.play(&"swap")
-		hud_message.text = ""
+		_set_hud_message("")
 	else:
 		GameAudio.play(&"invalid")
 		cursor.flash_error()
-		hud_message.text = "Invalid swap - needs a match of 3"
+		board.play_invalid_swap_fx(from_cell, to_cell)
+		_flash_invalid_swap_message()
 
 
 ## 点按选中反馈音。
@@ -205,7 +218,7 @@ func _on_board_candies_collected(_count: int) -> void:
 
 
 func _on_board_shuffled() -> void:
-	hud_message.text = TEXT_SHUFFLED
+	_set_hud_message(TEXT_SHUFFLED)
 
 
 func _on_state_refresh(_value: int) -> void:
@@ -232,8 +245,32 @@ func _on_game_ended(outcome: String) -> void:
 
 func _on_game_restarted() -> void:
 	overlay.visible = false
-	hud_message.text = ""
+	_set_hud_message("")
 	_refresh_hud()
+
+
+## ---- HUD 行内消息（统一出口 + 无效交换放大提示）----
+
+## 普通行内消息统一走这里：字号回到基准，并让任何未到期的无效交换放大定时器失效
+##（新消息立即接管显示权，旧定时器不许再回写旧文案）。
+func _set_hud_message(text: String) -> void:
+	_invalid_msg_seq += 1
+	hud_message.add_theme_font_size_override("font_size", HUD_MSG_FONT_SIZE)
+	hud_message.text = text
+
+
+## 无效交换提示：加大字号 + 停留 INVALID_MSG_HOLD_SEC 后自动清除。
+## seq 守卫：停留期内出现的新消息（有效交换清屏 / 洗牌 / 过关）会推进令牌，
+## 到期回写只在令牌未变时执行 —— 提示既「留得住」也「让得路」。
+func _flash_invalid_swap_message() -> void:
+	_invalid_msg_seq += 1
+	var seq: int = _invalid_msg_seq
+	hud_message.add_theme_font_size_override("font_size", INVALID_MSG_FONT_SIZE)
+	hud_message.text = TEXT_INVALID_SWAP
+	get_tree().create_timer(INVALID_MSG_HOLD_SEC).timeout.connect(func() -> void:
+		if seq == _invalid_msg_seq and is_inside_tree():
+			_set_hud_message("")
+	)
 
 
 func _refresh_hud() -> void:

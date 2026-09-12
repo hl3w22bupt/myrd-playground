@@ -20,6 +20,8 @@ extends Node
 ##   8. 计分规则回归：score_for_wave 纯函数锁数值；强制四连走真实结算管线；难度梯度单调
 ##   9. 胜负可达且可点按推进：胜利遮罩 → OverlayActionButton 过关；败遮罩按钮文案切换；
 ##      RestartButton（+键盘 restart 动作）重开全复位
+##  10. 无效交换反馈：交错盘上发起交换必无效 → 涉事两颗糖果进入抖动回弹动画
+##      （Board.invalid_fx_playing_count == 2）+ HUD 提示加大字号且文案到位；不加分不扣步
 ##   外加：场景可实例化、autoload 注册、InputMap + 键位契约、信号到达、可读失败原因
 ##
 ## ⚠️ 输入注入全走 Input.parse_input_event 并按帧分段（error-signatures E-08）：
@@ -75,6 +77,11 @@ const FRAME_LOSE_CHECK: int = 81
 const FRAME_RESTART: int = 83
 const FRAME_RESTART_BTN: int = 85
 const FRAME_RESTART_CHECK: int = 89
+## 无效交换反馈阶段：91 铺交错盘+选中 → 95 移到相邻格 → 101 发起（必无效）交换并断言。
+## 91→101 间隔 10 帧 ≈0.167s，让重建糖果的 0.16s 入场 tween 先播完，不与抖动动画抢 scale。
+const FRAME_INVALID: int = 91
+const FRAME_INVALID_MOVE: int = 95
+const FRAME_INVALID_CHECK: int = 101
 ## 总帧数上限（超过即出报告，防止死循环；smoke.sh 另有 --quit-after 兜底）。
 const TOTAL_FRAMES: int = 110
 ## 强制四连结算用的固定种子（重力补充由此确定，断言只取下界仍需可复现的运行环境）。
@@ -118,6 +125,8 @@ var _score_before_tap: int = 0
 var _moves_before_tap: int = 0
 var _score_before_swipe: int = 0
 var _moves_before_swipe: int = 0
+var _score_before_invalid: int = 0
+var _moves_before_invalid: int = 0
 ## 点按/滑动阶段注入用的格子（每段开始前重算，保证与实时棋盘一致）。
 var _tap_a: Vector2i = Vector2i.ZERO
 var _tap_b: Vector2i = Vector2i.ZERO
@@ -324,6 +333,12 @@ func _physics_process(_delta: float) -> void:
 			_restart_button.pressed.emit()
 		FRAME_RESTART_CHECK:
 			_check_restarted()
+		FRAME_INVALID:
+			_prepare_invalid_swap_scenario()
+		FRAME_INVALID_MOVE:
+			_inject_action(&"move_right")
+		FRAME_INVALID_CHECK:
+			_check_invalid_swap_feedback()
 			_finish()
 			return
 	if _frames >= TOTAL_FRAMES:
@@ -710,12 +725,55 @@ func _check_restarted() -> void:
 			_failures.append("重开不可用：棋盘存在 %d 个空格（Board.new_game 未重填）" % empty_cells)
 
 
+## 阶段 12 准备：铺「模 5 交错盘」（types[x][y] = (x + 2y) mod 5 —— 阶段 7 已证明其上
+## 任何相邻交换都不形成三连，即任意交换必无效），重建糖果节点并驱动光标选中 (0,0)。
+func _prepare_invalid_swap_scenario() -> void:
+	if _board == null or _cursor == null:
+		return
+	for x in Board.COLS:
+		for y in Board.ROWS:
+			_board.types[x][y] = (x + 2 * y) % Board.CANDY_KINDS
+	_board._rebuild_candy_nodes()
+	_score_before_invalid = GameState.score
+	_moves_before_invalid = GameState.moves_left
+	_cursor.set_cell(Vector2i.ZERO)
+	_inject_action(&"confirm")
+
+
+## 阶段 12 断言：第二次 confirm 发起（必无效）交换后 ——
+## 涉事两颗糖果都进入抖动回弹动画、HUD 提示加大字号且文案到位、不加分不扣步。
+## （提示「停留 2.5 秒后清除」需要 ~150 帧，超出本场景帧预算，不在此覆盖；
+##  清除由 seq 令牌守卫保证正确性，逻辑与 _set_hud_message 同源。）
+func _check_invalid_swap_feedback() -> void:
+	if _cursor == null or _board == null:
+		return
+	_inject_action(&"confirm")
+	if _board.invalid_fx_playing_count() != 2:
+		_failures.append("无效交换动画缺失：涉事糖果抖动动画播放数 = %d（期望 2，Board.play_invalid_swap_fx 未接线或未覆盖两颗糖果）" % _board.invalid_fx_playing_count())
+	var hud := _main.find_child("HudMessage", true, false) as Label
+	if hud == null:
+		_failures.append("无效交换提示缺失：主场景找不到 HudMessage")
+	else:
+		if hud.text != _main.TEXT_INVALID_SWAP:
+			_failures.append("无效交换提示缺失：HudMessage.text = %s（期望 %s，main.gd _flash_invalid_swap_message 未生效）" % [hud.text, _main.TEXT_INVALID_SWAP])
+		if hud.get_theme_font_size("font_size") != _main.INVALID_MSG_FONT_SIZE:
+			_failures.append("无效交换提示未加大字号：font_size = %d（期望 %d，基准 %d）" % [
+				hud.get_theme_font_size("font_size"), _main.INVALID_MSG_FONT_SIZE, _main.HUD_MSG_FONT_SIZE,
+			])
+	if GameState.score != _score_before_invalid:
+		_failures.append("无效交换误加分：score %d → %d（无效交换不得消耗玩家资源）" % [_score_before_invalid, GameState.score])
+	if GameState.moves_left != _moves_before_invalid:
+		_failures.append("无效交换误扣步：moves %d → %d（不形成三连的交换不耗步）" % [_moves_before_invalid, GameState.moves_left])
+	if _cursor.has_selection:
+		_failures.append("无效交换后选中态残留：has_selection 仍为真（_handle_confirm 未收口）")
+
+
 func _finish() -> void:
 	if _finished:
 		return
 	_finished = true
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 竖屏适配/开始门控/音频解锁/键位契约/光标移动/点按-点按交换/滑动交换/静音开关/死局洗牌/计分加成/难度梯度/按钮过关/胜负判定/按钮重开 全部通过")
+		print("GODOT_SMOKE: PASS 竖屏适配/开始门控/音频解锁/键位契约/光标移动/点按-点按交换/滑动交换/静音开关/死局洗牌/计分加成/难度梯度/按钮过关/胜负判定/按钮重开/无效交换反馈 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

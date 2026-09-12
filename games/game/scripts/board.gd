@@ -54,6 +54,7 @@ func new_game() -> void:
 	rng.randomize()
 	_fx_bursts.clear()
 	_fx_texts.clear()
+	_invalid_fx_tweens.clear()
 	_fill_grid()
 	ensure_solvable()
 	_rebuild_candy_nodes()
@@ -320,6 +321,20 @@ const FX_TEXT_RISE: float = 56.0
 const FX_COLOR_GOLD: Color = Color(1.0, 0.85, 0.35, 1.0)
 const SPAWN_TWEEN_SEC: float = 0.16
 
+## ---- 无效交换反馈（涉事糖果抖动/缩小回弹动画）----
+## 时长分解：缩小 0.08 + 抖动 4 步 ×0.07 + 回弹归位 0.14 = 0.5 秒（明显可感知的失败反馈）。
+const INVALID_FX_SEC: float = 0.5
+const INVALID_FX_SHRINK_SEC: float = 0.08
+const INVALID_FX_SHAKE_STEP_SEC: float = 0.07
+const INVALID_FX_SETTLE_SEC: float = 0.14
+## 抖动振幅序列（设计像素，逐段衰减）：-8 → +6 → -4 → +2，最后一吻回到格心。
+const INVALID_SHAKE_AMPS: Array[float] = [8.0, 6.0, 4.0, 2.0]
+## 抖动时的缩小倍率（回弹由 settle 段 TRANS_BACK 完成）。
+const INVALID_SHRINK_SCALE: float = 0.72
+
+## 正在播放无效交换动画的糖果 → tween（实例 ID 索引；同颗糖果连击时杀旧动画防叠加）。
+var _invalid_fx_tweens: Dictionary = {}
+
 ## 粒子爆发与飘分：age 由 _process 推进，超龄即剔除；非空期间每帧 queue_redraw。
 var _fx_bursts: Array[Dictionary] = []
 var _fx_texts: Array[Dictionary] = []
@@ -403,3 +418,80 @@ func _draw_fx() -> void:
 		var pos_text: Vector2 = text["pos"] - Vector2(0.0, FX_TEXT_RISE * t_text)
 		draw_string(font, pos_text + Vector2(-24.0, 0.0), text["text"],
 			HORIZONTAL_ALIGNMENT_CENTER, 48.0, 26, Color(FX_COLOR_GOLD, 1.0 - t_text))
+
+
+## ---- 无效交换反馈 ----
+## 涉事两颗糖果做约 0.5 秒「缩小 → 左右抖动 → 回弹归位」动画。只动视觉节点：
+## 类型矩阵、输入状态机、GameAudio 的 unlocked 逻辑一概不碰 —— 玩家可立即再次发起交换。
+
+## 无效交换入口（Main 在 try_swap 失败分支调用）：给 a/b 两格的糖果各播一段动画。
+func play_invalid_swap_fx(a: Vector2i, b: Vector2i) -> void:
+	_prune_invalid_fx_tweens()
+	for cell in [a, b]:
+		var candy := _candy_at(cell)
+		if candy != null:
+			_animate_invalid_swap(candy, cell)
+
+
+## 正在播放无效交换动画的糖果数（冒烟断言用；按有效 tween 实时统计，
+## 动画播完或糖果被重建释放即不计入 —— 不需要 signal 记账，天然无泄漏）。
+func invalid_fx_playing_count() -> int:
+	var count: int = 0
+	for tween: Tween in _invalid_fx_tweens.values():
+		if tween != null and tween.is_valid() and tween.is_running():
+			count += 1
+	return count
+
+
+## 按格心位置找糖果节点：糖果节点与类型矩阵一一对应（位置即身份），找不到返回 null。
+func _candy_at(cell: Vector2i) -> Candy:
+	if not _in_bounds(cell) or types[cell.x][cell.y] == EMPTY:
+		return null
+	var home := cell_to_position(cell)
+	for child in candies_root.get_children():
+		var candy := child as Candy
+		if candy != null and candy.position.distance_squared_to(home) < 1.0:
+			return candy
+	return null
+
+
+## 单颗糖果的动画序列：先复位到格心（清掉上次残留偏移），再缩小 → 衰减抖动 →
+## 位置/缩放并行走回弹归位。tween 绑定在糖果节点上，节点被释放时自动失效；
+## 同一颗糖果短时间内再次无效交换时先杀旧 tween（_invalid_fx_tweens 索引），不叠加打架。
+func _animate_invalid_swap(candy: Candy, cell: Vector2i) -> void:
+	var key: int = candy.get_instance_id()
+	var previous: Variant = _invalid_fx_tweens.get(key)
+	if previous is Tween:
+		var old_tween: Tween = previous
+		if old_tween.is_valid():
+			old_tween.kill()
+	candy.position = cell_to_position(cell)
+	candy.scale = Vector2.ONE
+	var origin := candy.position
+	var tween := candy.create_tween()
+	# ① 缩小（失败感的第一拍）
+	tween.tween_property(candy, "scale", Vector2.ONE * INVALID_SHRINK_SCALE, INVALID_FX_SHRINK_SEC) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	# ② 左右抖动，振幅逐段衰减（-8 → +6 → -4 → +2）
+	for i in INVALID_SHAKE_AMPS.size():
+		var sign_x: float = -1.0 if i % 2 == 0 else 1.0
+		tween.tween_property(candy, "position:x", origin.x + sign_x * INVALID_SHAKE_AMPS[i],
+			INVALID_FX_SHAKE_STEP_SEC)
+	# ③ 回弹归位：位置回格心 + 缩放 TRANS_BACK 回到 1.0（并行）
+	tween.set_parallel(true)
+	tween.tween_property(candy, "position", origin, INVALID_FX_SETTLE_SEC)
+	tween.tween_property(candy, "scale", Vector2.ONE, INVALID_FX_SETTLE_SEC) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.set_parallel(false)
+	_invalid_fx_tweens[key] = tween
+
+
+## 清理字典里已失效的条目（糖果节点被重建释放时绑定 tween 被 kill → is_valid 为假）。
+func _prune_invalid_fx_tweens() -> void:
+	var stale: Array[int] = []
+	for key: int in _invalid_fx_tweens:
+		var tween: Tween = _invalid_fx_tweens[key]
+		if tween == null or not tween.is_valid():
+			stale.append(key)
+	for key: int in stale:
+		_invalid_fx_tweens.erase(key)
