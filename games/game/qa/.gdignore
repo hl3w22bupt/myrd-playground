@@ -1,0 +1,1 @@
+# qa 取证产物不是游戏资源：.gdignore 让 Godot 跳过本目录（不生成 .import、不打进 pck）
