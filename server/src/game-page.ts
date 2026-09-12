@@ -10,6 +10,13 @@
  *
  * 注意：页面里拉资源的路径一律不带前导斜杠（相对路径），
  * 经公网入口 /apps/game 访问时才能解析到网关子路径。
+ *
+ * 移动端音频手势解锁器（脚本最前段，必须先于引擎加载安装）：
+ * iOS/Android WebKit 的 AudioContext 创建即 suspended、打断后 interrupted（引擎不识别），
+ * 引擎只在自身输入回调里 resume —— 缺壳页兜底 = 移动端无声而桌面正常。
+ * 实现：包 AudioContext 构造器捕获实例 + document 级手势监听内同步 resume
+ * （capture+passive 不消费事件）+ window.__audioDebug() 真机取证出口。
+ * 根因取证与修复方案：games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md（F1 手势解锁 / F2 worklet 防御）。
  */
 export const GAME_PAGE_HTML = `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -52,6 +59,54 @@ body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; f
 <!-- 引擎引导脚本由启动脚本按 BASE_PATH 动态注入（静态 src 在无尾斜杠入口下会 404） -->
 <script>
 (function () {
+  // ---- 移动端音频手势解锁器（必须在引擎加载前安装，见文件尾注释）----
+  // 根因（games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md F1/F2 取证）：
+  // iOS/Android WebKit 下 AudioContext 创建即 suspended，锁屏/来电/切后台/静音键
+  // 会打成 interrupted（引擎状态机不识别 interrupted，落入 default 被丢弃），
+  // 引擎只在自己的输入回调里 resume —— 壳页没有第二次兜底 = 移动端无声而桌面正常。
+  var audioCtx = null;
+  var audioLog = [];
+  var audioAddModules = 0;
+  // ① 包一层 AudioContext 构造器捕获引擎实例：引擎用 new (AudioContext||webkitAudioContext)
+  //    创建上下文，补丁透明；捕获后才能在壳页层做手势解锁与真机取证。
+  var NativeAudioContext = window.AudioContext || window.webkitAudioContext;
+  if (NativeAudioContext) {
+    var WrappedAudioContext = function (options) {
+      var ctx = new NativeAudioContext(options);
+      audioCtx = ctx;
+      try {
+        ctx.addEventListener('statechange', function () {
+          audioLog.push({ t: Date.now(), state: ctx.state });
+        });
+      } catch (e) { /* 老内核无 statechange 事件：只损失观测，不影响解锁 */ }
+      return ctx;
+    };
+    WrappedAudioContext.prototype = NativeAudioContext.prototype;
+    window.AudioContext = WrappedAudioContext;
+  }
+  // ② 手势内同步 resume：只在非 running 时调（覆盖 suspended 与 interrupted），幂等可重复。
+  //    必须在手势调用栈内同步执行 WebKit 才认；resume 的 Promise 落空不进控制台（无噪声）。
+  function unlockAudio() {
+    if (!audioCtx || audioCtx.state === 'running') return;
+    try {
+      var pending = audioCtx.resume();
+      if (pending && typeof pending.catch === 'function') pending.catch(function () {});
+    } catch (e) { /* resume 抛异常按无操作处理，绝不影响游戏输入 */ }
+  }
+  ['touchstart', 'touchend', 'pointerdown', 'keydown', 'click'].forEach(function (type) {
+    // capture + passive：先于引擎输入管线触发，且不消费事件（游戏触摸交互零感知）。
+    document.addEventListener(type, unlockAudio, { capture: true, passive: true });
+  });
+  // 打断再解锁：Webkit 在锁屏/来电后即使回前台也可能停在 interrupted，多给一次恢复机会
+  //（非手势路径可能被拒，被拒即无操作；真正兜底仍是用户下一次点按）。
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) unlockAudio();
+  }, { passive: true });
+  // ③ 真机取证出口：手机上打开控制台不便，全部观测收敛到一个函数。
+  window.__audioDebug = function () {
+    return { state: audioCtx ? audioCtx.state : 'no-ctx', addModules: audioAddModules, log: audioLog };
+  };
+
   // 资产基路径：公网入口 /apps/game（无尾斜杠）下，裸相对路径会解析到 /apps/*（网关 404）。
   // 以页面路径推导：/apps/game → /apps/game/ → /apps/game/api/public/assets/*。
   var BASE_PATH = (function () {
@@ -87,16 +142,29 @@ body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; f
   }
 
   // 音频 worklet 由浏览器内部加载（不经 window.fetch），单独补丁改写到相对资产端点。
+  // F2 防御（MOBILE_AUDIO_ROOT_CAUSE.md）：worklet 是音频单一故障点 —— Godot 4.6 的
+  // position worklet 起播被 await 门控、addModule 的 promise 无 .catch，失败即全部事件音
+  // 静默且几乎无报错。故：真实 URL 优先，失败降级原路径重试一次，仍失败显式 console.error。
   if (window.AudioWorkletNode && window.AudioWorklet && AudioWorklet.prototype.addModule) {
     var origAddModule = AudioWorklet.prototype.addModule;
     AudioWorklet.prototype.addModule = function (url, options) {
-      try {
-        var file = String(url).split('/').pop().split('?')[0];
-        if (/\\.worklet\\.js$/.test(file)) {
-          return origAddModule.call(this, BASE_PATH + 'api/public/assets/' + file, options);
-        }
-      } catch (e) { /* 保持原路径 */ }
-      return origAddModule.call(this, url, options);
+      var self = this;
+      var file = '';
+      try { file = String(url).split('/').pop().split('?')[0]; } catch (e) { /* 保原路径 */ }
+      if (/\\.worklet\\.js$/.test(file)) {
+        audioAddModules += 1;
+        var realUrl = BASE_PATH + 'api/public/assets/' + file;
+        return origAddModule.call(self, realUrl, options).catch(function (err) {
+          console.error('[candy-shell] audio worklet 资产通道加载失败，降级原路径重试', file, err);
+          audioLog.push({ t: Date.now(), state: 'worklet-fallback:' + file });
+          return origAddModule.call(self, url, options).catch(function (err2) {
+            console.error('[candy-shell] audio worklet 兜底加载也失败（移动端将无声）', file, err2);
+            audioLog.push({ t: Date.now(), state: 'worklet-dead:' + file });
+            throw err2;
+          });
+        });
+      }
+      return origAddModule.call(self, url, options);
     };
   }
 
