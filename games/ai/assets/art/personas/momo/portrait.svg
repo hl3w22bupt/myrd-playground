@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="260" viewBox="0 0 200 260">
+  <!-- 桃桃 · 立绘（派生自 persona-momo.json portrait_prompt：橘色双马尾/卫衣运动鞋/剪刀手/明亮高饱和） -->
+  <defs>
+    <radialGradient id="mg" cx="50%" cy="30%" r="85%">
+      <stop offset="0%" stop-color="#5c3a14" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#1c1206" stop-opacity="0.97"/>
+    </radialGradient>
+    <linearGradient id="mhair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffb35c"/>
+      <stop offset="100%" stop-color="#e07f2a"/>
+    </linearGradient>
+    <linearGradient id="mhood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffe9c9"/>
+      <stop offset="100%" stop-color="#f7cf94"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="260" fill="url(#mg)"/>
+  <!-- 高饱和镜头光斑 -->
+  <circle cx="40" cy="46" r="10" fill="#ffd23e" opacity="0.35"/>
+  <circle cx="164" cy="70" r="6" fill="#ff9fb0" opacity="0.4"/>
+  <circle cx="150" cy="30" r="4" fill="#7ee8a2" opacity="0.4"/>
+  <!-- 双马尾 -->
+  <path d="M52 78 C28 84 20 118 26 148 C30 168 24 190 36 200 C48 208 60 198 56 184 C50 164 56 140 58 118 Z" fill="url(#mhair)"/>
+  <path d="M148 78 C172 84 180 118 174 148 C170 168 176 190 164 200 C152 208 140 198 144 184 C150 164 144 140 142 118 Z" fill="url(#mhair)"/>
+  <circle cx="52" cy="80" r="9" fill="#ff5d6c"/>
+  <circle cx="148" cy="80" r="9" fill="#ff5d6c"/>
+  <circle cx="52" cy="80" r="3.6" fill="#ffe3e8"/>
+  <circle cx="148" cy="80" r="3.6" fill="#ffe3e8"/>
+  <!-- 颈与身体 -->
+  <rect x="92" y="116" width="16" height="18" fill="#f6d7c4"/>
+  <!-- 卫衣 -->
+  <path d="M60 260 C60 200 76 170 100 170 C124 170 140 200 140 260 Z" fill="url(#mhood)"/>
+  <path d="M74 176 C82 190 118 190 126 176 C120 170 80 170 74 176 Z" fill="#e8b97c"/>
+  <path d="M96 190 L96 216 M104 190 L104 216" stroke="#d9a35e" stroke-width="3" stroke-linecap="round"/>
+  <!-- 卫衣印花：桃子 -->
+  <circle cx="100" cy="226" r="14" fill="#ff8fa5"/>
+  <path d="M100 212 C102 206 108 206 108 211" fill="none" stroke="#5c8b3a" stroke-width="3" stroke-linecap="round"/>
+  <!-- 剪刀手双手 -->
+  <path d="M62 192 C54 198 50 210 56 218 L74 208 Z" fill="#f6d7c4"/>
+  <path d="M138 192 C146 198 150 210 144 218 L126 208 Z" fill="#f6d7c4"/>
+  <path d="M66 200 L58 190 M70 204 L60 196" stroke="#f6d7c4" stroke-width="6" stroke-linecap="round"/>
+  <path d="M134 200 L142 190 M130 204 L140 196" stroke="#f6d7c4" stroke-width="6" stroke-linecap="round"/>
+  <!-- 头部 -->
+  <ellipse cx="100" cy="90" rx="40" ry="44" fill="#ffdfc8"/>
+  <!-- 刘海 -->
+  <path d="M58 92 C54 50 74 32 100 32 C126 32 146 50 142 92 C138 74 130 66 122 70 C126 56 112 50 106 56 C108 44 92 42 88 52 C82 44 70 50 74 62 C64 60 60 74 58 92 Z" fill="url(#mhair)"/>
+  <!-- 亮橙大眼（星光） -->
+  <ellipse cx="84" cy="96" rx="8.4" ry="10" fill="#a85a1a"/>
+  <ellipse cx="116" cy="96" rx="8.4" ry="10" fill="#a85a1a"/>
+  <circle cx="84" cy="96" r="3.4" fill="#3d2004"/>
+  <circle cx="116" cy="96" r="3.4" fill="#3d2004"/>
+  <circle cx="86" cy="92" r="2.8" fill="#ffffff"/>
+  <circle cx="118" cy="92" r="2.8" fill="#ffffff"/>
+  <circle cx="81" cy="99" r="1.4" fill="#ffe9b0"/>
+  <circle cx="113" cy="99" r="1.4" fill="#ffe9b0"/>
+  <path d="M74 88 C79 84 88 85 93 88" fill="none" stroke="#a85a1a" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M107 88 C112 85 121 84 126 88" fill="none" stroke="#a85a1a" stroke-width="2.8" stroke-linecap="round"/>
+  <!-- 开口大笑 -->
+  <path d="M88 112 C94 122 106 122 112 112 Z" fill="#b34a2a"/>
+  <path d="M92 114 C96 117 104 117 108 114" fill="#ff9f8e"/>
+  <ellipse cx="70" cy="108" rx="7" ry="4" fill="#ffb3a0" opacity="0.85"/>
+  <ellipse cx="130" cy="108" rx="7" ry="4" fill="#ffb3a0" opacity="0.85"/>
+</svg>

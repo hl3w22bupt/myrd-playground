@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="12" viewBox="0 0 120 12">
+  <!-- 状态条槽体：体力/饱食/理智与好感·威胁共用（填充条由代码按 ratio 画在槽内） -->
+  <rect x="1" y="1" width="118" height="10" rx="5" fill="#120e22" opacity="0.92"/>
+  <rect x="1" y="1" width="118" height="10" rx="5" fill="none" stroke="#5a4d92" stroke-width="1.4"/>
+  <line x1="7" y1="3" x2="7" y2="9" stroke="#5a4d92" stroke-width="1" opacity="0.5"/>
+</svg>

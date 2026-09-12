@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="44" height="52" viewBox="0 0 44 52">
+  <!-- 小李 · 玩家立绘（单身小伙程序员：连帽衫 + 挂颈耳机） -->
+  <ellipse cx="22" cy="49" rx="13" ry="3" fill="#000000" opacity="0.3"/>
+  <!-- 身体：连帽衫 -->
+  <path d="M8 48 C8 34 13 27 22 27 C31 27 36 34 36 48 Z" fill="#5d7bd5"/>
+  <path d="M16 30 C19 34 25 34 28 30 L26 27 L18 27 Z" fill="#3d55a3"/>
+  <path d="M20 32 L20 40 M24 32 L24 40" stroke="#3d55a3" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- 挂颈耳机 -->
+  <path d="M14 30 C14 36 30 36 30 30" fill="none" stroke="#20242e" stroke-width="2.4"/>
+  <rect x="12" y="28.6" width="4" height="5" rx="1.6" fill="#20242e"/>
+  <rect x="28" y="28.6" width="4" height="5" rx="1.6" fill="#20242e"/>
+  <!-- 头 -->
+  <ellipse cx="22" cy="16" rx="12" ry="12.6" fill="#ffdfc4"/>
+  <!-- 头发 -->
+  <path d="M10 16 C9 6 16 2 22 2 C28 2 35 6 34 16 C32 11 29 9 26 10 C27 5 21 4 19 8 C16 5 11 8 13 13 C11.6 12.6 10.6 13.6 10 16 Z" fill="#2b2b33"/>
+  <!-- 眼睛（疲惫程序员） -->
+  <ellipse cx="17.4" cy="17" rx="2.2" ry="2.8" fill="#26303f"/>
+  <ellipse cx="26.6" cy="17" rx="2.2" ry="2.8" fill="#26303f"/>
+  <circle cx="18" cy="16.2" r="0.8" fill="#ffffff"/>
+  <circle cx="27.2" cy="16.2" r="0.8" fill="#ffffff"/>
+  <path d="M19 24 C20.5 25.4 23.5 25.4 25 24" fill="none" stroke="#b06a55" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- 手机 -->
+  <rect x="30" y="38" width="7" height="11" rx="1.6" fill="#20242e" transform="rotate(8 33 43)"/>
+  <rect x="31.2" y="39.6" width="4.6" height="7" rx="0.8" fill="#7fd0ff" transform="rotate(8 33 43)"/>
+</svg>

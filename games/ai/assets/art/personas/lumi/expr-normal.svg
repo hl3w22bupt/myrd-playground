@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- 林小暖 · 表情差分 normal（温柔） -->
+  <rect width="120" height="120" rx="14" fill="#fff0f2"/>
+  <path d="M60 16 C34 16 26 38 28 58 L34 74 L86 74 L92 58 C94 38 86 16 60 16 Z" fill="#8a5a52"/>
+  <ellipse cx="60" cy="60" rx="33" ry="36" fill="#ffe9dc"/>
+  <path d="M27 58 C24 30 42 16 60 16 C78 16 96 30 93 58 C89 44 82 38 75 41 C78 31 68 26 62 31 C56 25 46 30 49 40 C40 38 32 46 27 58 Z" fill="#8a5a52"/>
+  <path d="M45 38 C48 34 54 33 57 36" fill="none" stroke="#5f3230" stroke-width="2" opacity="0.4"/>
+  <ellipse cx="47" cy="62" rx="6" ry="7.4" fill="#8c4a48"/>
+  <ellipse cx="73" cy="62" rx="6" ry="7.4" fill="#8c4a48"/>
+  <circle cx="49" cy="59.4" r="2.1" fill="#ffffff"/>
+  <circle cx="75" cy="59.4" r="2.1" fill="#ffffff"/>
+  <path d="M40 54 C44 50 51 50 54 54" fill="none" stroke="#5f3230" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M66 54 C69 50 76 50 80 54" fill="none" stroke="#5f3230" stroke-width="2.2" stroke-linecap="round"/>
+  <ellipse cx="38" cy="72" rx="5.4" ry="3.2" fill="#ffb9c0" opacity="0.75"/>
+  <ellipse cx="82" cy="72" rx="5.4" ry="3.2" fill="#ffb9c0" opacity="0.75"/>
+  <path d="M54 80 C57 83 63 83 66 80" fill="none" stroke="#c26a66" stroke-width="2.4" stroke-linecap="round"/>
+</svg>

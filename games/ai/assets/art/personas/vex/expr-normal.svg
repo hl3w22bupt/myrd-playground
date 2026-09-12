@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- 薇 · 表情差分 normal（甜腻带刺的笑） -->
+  <rect width="120" height="120" rx="14" fill="#efe6ff"/>
+  <path d="M60 14 C32 14 24 38 27 60 L33 76 L87 76 L93 60 C96 38 88 14 60 14 Z" fill="#221a2c"/>
+  <ellipse cx="60" cy="60" rx="33" ry="36" fill="#fde9de"/>
+  <path d="M27 60 C24 28 42 14 60 14 C78 14 96 28 93 60 C89 44 82 38 75 41 C78 29 67 25 62 30 C55 24 45 29 49 40 C40 37 31 46 27 60 Z" fill="#221a2c"/>
+  <path d="M30 62 L29 84" stroke="#221a2c" stroke-width="7" stroke-linecap="round"/>
+  <path d="M90 62 L91 84" stroke="#221a2c" stroke-width="7" stroke-linecap="round"/>
+  <ellipse cx="47" cy="61" rx="7" ry="8.4" fill="#d8203e"/>
+  <ellipse cx="73" cy="61" rx="7" ry="8.4" fill="#d8203e"/>
+  <circle cx="47" cy="61" r="2.6" fill="#5c0a1c"/>
+  <circle cx="73" cy="61" r="2.6" fill="#5c0a1c"/>
+  <circle cx="48.8" cy="58" r="2" fill="#ffffff"/>
+  <circle cx="74.8" cy="58" r="2" fill="#ffffff"/>
+  <path d="M38 54 C43 50 52 51 56 54" fill="none" stroke="#141018" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M64 54 C68 51 77 50 82 54" fill="none" stroke="#141018" stroke-width="2.6" stroke-linecap="round"/>
+  <ellipse cx="37" cy="72" rx="5.4" ry="3" fill="#ff9fae" opacity="0.55"/>
+  <ellipse cx="83" cy="72" rx="5.4" ry="3" fill="#ff9fae" opacity="0.55"/>
+  <path d="M52 79 C57 84 63 84 68 79" fill="none" stroke="#b03652" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M56 80 L57 83 M64 80 L63 83" stroke="#ffffff" stroke-width="1.5"/>
+</svg>

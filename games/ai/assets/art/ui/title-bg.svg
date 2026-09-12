@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <!-- 标题画面底图：2036 雨夜都市 + 五色霓虹剪影（取五人主题色） -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#141024"/>
+      <stop offset="55%" stop-color="#241d44"/>
+      <stop offset="100%" stop-color="#3a2a5c"/>
+    </linearGradient>
+    <linearGradient id="rain" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8fa8ff" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#8fa8ff" stop-opacity="0.28"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#sky)"/>
+  <!-- 远景楼群 -->
+  <g fill="#191430">
+    <rect x="20" y="150" width="60" height="210"/>
+    <rect x="95" y="110" width="48" height="250"/>
+    <rect x="160" y="180" width="70" height="180"/>
+    <rect x="250" y="130" width="54" height="230"/>
+    <rect x="320" y="90" width="66" height="270"/>
+    <rect x="405" y="160" width="52" height="200"/>
+    <rect x="475" y="120" width="62" height="240"/>
+    <rect x="555" y="170" width="60" height="190"/>
+  </g>
+  <!-- 霓虹窗格：五人主题色 -->
+  <g opacity="0.9">
+    <rect x="104" y="128" width="6" height="8" fill="#ff9e9e"/><rect x="118" y="146" width="6" height="8" fill="#ff9e9e"/>
+    <rect x="330" y="108" width="6" height="8" fill="#b28dff"/><rect x="346" y="130" width="6" height="8" fill="#b28dff"/>
+    <rect x="264" y="150" width="6" height="8" fill="#7ad0c9"/><rect x="282" y="168" width="6" height="8" fill="#7ad0c9"/>
+    <rect x="488" y="140" width="6" height="8" fill="#ffb35c"/><rect x="506" y="162" width="6" height="8" fill="#ffb35c"/>
+    <rect x="36" y="170" width="6" height="8" fill="#8fa8ff"/><rect x="54" y="192" width="6" height="8" fill="#8fa8ff"/>
+  </g>
+  <!-- 无人机探照灯 -->
+  <circle cx="590" cy="46" r="7" fill="#3d3568" stroke="#5a4d92" stroke-width="2"/>
+  <path d="M590 52 L548 130 L632 130 Z" fill="#cfc4ff" opacity="0.12"/>
+  <circle cx="590" cy="46" r="2.4" fill="#ff5d6c"/>
+  <!-- 雨幕 -->
+  <rect y="0" width="640" height="360" fill="url(#rain)"/>
+  <g stroke="#aebcff" stroke-width="1" opacity="0.35">
+    <path d="M60 0 L52 46 M140 20 L132 66 M240 0 L232 40 M340 30 L332 76 M440 10 L432 56 M540 40 L532 86"/>
+    <path d="M90 200 L82 246 M200 220 L192 266 M300 210 L292 256 M420 230 L412 276 M540 210 L532 256"/>
+  </g>
+  <!-- 前景公寓轮廓 -->
+  <path d="M0 360 L0 250 L90 250 L90 226 L210 226 L210 250 L330 250 L330 238 L470 238 L470 250 L640 250 L640 360 Z" fill="#0d0a1a"/>
+  <rect x="60" y="264" width="10" height="12" fill="#ffb35c" opacity="0.85"/>
+  <rect x="150" y="282" width="10" height="12" fill="#ff9e9e" opacity="0.85"/>
+  <rect x="286" y="268" width="10" height="12" fill="#b28dff" opacity="0.85"/>
+  <rect x="404" y="284" width="10" height="12" fill="#7ad0c9" opacity="0.85"/>
+  <rect x="540" y="270" width="10" height="12" fill="#8fa8ff" opacity="0.85"/>
+</svg>

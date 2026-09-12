@@ -1,0 +1,39 @@
+{
+  "id": "lumi",
+  "name": "林小暖",
+  "title": "治愈系 · 黏人 · 安全感依赖",
+  "color": "#ff9e9e",
+  "personality_tags": ["治愈系", "黏人", "安全感依赖"],
+  "speech_style": {
+    "tone": "温软拖长音，句首称呼「小主人」，先共情再给建议",
+    "verbal_tics": ["～", "小主人", "别怕"],
+    "forbidden": ["冰冷指令句", "尖刻讽刺", "威胁措辞"],
+    "sample_line": "小主人～雨好大，让我进去嘛……我带了热可可哦。"
+  },
+  "catchphrase": "别怕，我在呢～",
+  "favor_rules": {
+    "favor_initial": 55,
+    "interact_modifier": 2,
+    "interact_sanity_regen": 24,
+    "gains": { "gentle": 8, "honest": 5, "share": 5 },
+    "losses": { "harsh": -10, "abandon": -15, "lie_shared": -20 }
+  },
+  "threat_rules": {
+    "threat_initial": 10,
+    "crisis_threshold": 65,
+    "escalation_per_phase": 8,
+    "crisis_behavior": "威胁过高时过度保护：锁门没收手机，把你软禁在怀里，用温柔的话稳住你的呼吸节奏",
+    "speed_bias": 0.9,
+    "crisis_line": "别动……危险已经过去了，靠着我。"
+  },
+  "portrait_prompt": "暖粉色开衫的治愈系少女，微卷长发，手里捧着热可可，柔和逆光，二次元立绘",
+  "art": {
+    "portrait": "assets/art/personas/lumi/portrait.svg",
+    "avatar": "assets/art/personas/lumi/avatar.svg",
+    "expressions": [
+      "assets/art/personas/lumi/expr-normal.svg",
+      "assets/art/personas/lumi/expr-happy.svg",
+      "assets/art/personas/lumi/expr-crisis.svg"
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <!-- 结局画面底图：黎明前的公寓天台剪影 + 五色数据流（结局标题文字由场景叠加） -->
+  <defs>
+    <linearGradient id="ed" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d0a1e"/>
+      <stop offset="60%" stop-color="#2a1f48"/>
+      <stop offset="100%" stop-color="#4a2c50"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#ed)"/>
+  <!-- 星与数据粒子 -->
+  <g fill="#cfc4ff">
+    <circle cx="60" cy="40" r="1.6"/><circle cx="140" cy="70" r="1.2"/><circle cx="300" cy="30" r="1.4"/>
+    <circle cx="470" cy="52" r="1.6"/><circle cx="580" cy="90" r="1.2"/><circle cx="220" cy="96" r="1"/>
+  </g>
+  <!-- 五色数据流上升 -->
+  <g stroke-width="2.4" fill="none" opacity="0.75" stroke-linecap="round">
+    <path d="M120 360 C118 300 130 260 124 200" stroke="#ff9e9e"/>
+    <path d="M250 360 C254 300 242 250 250 190" stroke="#b28dff"/>
+    <path d="M370 360 C366 310 378 270 372 210" stroke="#7ad0c9"/>
+    <path d="M480 360 C484 300 472 260 480 200" stroke="#ffb35c"/>
+    <path d="M580 360 C576 310 588 270 582 220" stroke="#8fa8ff"/>
+  </g>
+  <g font-family="monospace" font-size="9" opacity="0.7">
+    <text x="128" y="192" fill="#ff9e9e">10110</text>
+    <text x="254" y="182" fill="#b28dff">01001</text>
+    <text x="376" y="202" fill="#7ad0c9">11010</text>
+    <text x="484" y="192" fill="#ffb35c">00111</text>
+    <text x="586" y="212" fill="#8fa8ff">10101</text>
+  </g>
+  <!-- 天台栏杆与二人剪影 -->
+  <path d="M0 300 H640 M0 330 H640" stroke="#1a1530" stroke-width="6"/>
+  <path d="M40 300 V360 M140 300 V360 M240 300 V360 M340 300 V360 M440 300 V360 M540 300 V360 M620 300 V360" stroke="#1a1530" stroke-width="5"/>
+  <g fill="#0d0a1a">
+    <circle cx="310" cy="252" r="9"/>
+    <path d="M298 300 L298 266 C298 258 322 258 322 266 L322 300 Z"/>
+    <circle cx="286" cy="258" r="7.4"/>
+    <path d="M276 300 L276 272 C276 264 296 264 296 272 L296 300 Z"/>
+  </g>
+  <!-- 黎明一线 -->
+  <rect y="344" width="640" height="16" fill="#ff9e6c" opacity="0.22"/>
+</svg>

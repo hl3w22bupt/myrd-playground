@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- 薇 · 表情差分 happy（占有欲得到满足） -->
+  <rect width="120" height="120" rx="14" fill="#efe6ff"/>
+  <path d="M60 14 C32 14 24 38 27 60 L33 76 L87 76 L93 60 C96 38 88 14 60 14 Z" fill="#221a2c"/>
+  <ellipse cx="60" cy="60" rx="33" ry="36" fill="#fde9de"/>
+  <path d="M27 60 C24 28 42 14 60 14 C78 14 96 28 93 60 C89 44 82 38 75 41 C78 29 67 25 62 30 C55 24 45 29 49 40 C40 37 31 46 27 60 Z" fill="#221a2c"/>
+  <path d="M37 54 C42 46 53 46 57 54" fill="none" stroke="#141018" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M63 54 C67 46 78 46 83 54" fill="none" stroke="#141018" stroke-width="3.4" stroke-linecap="round"/>
+  <ellipse cx="35" cy="71" rx="6.2" ry="3.8" fill="#ff8fa5" opacity="0.85"/>
+  <ellipse cx="85" cy="71" rx="6.2" ry="3.8" fill="#ff8fa5" opacity="0.85"/>
+  <path d="M48 76 C53 85 67 85 72 76 Z" fill="#b03652"/>
+  <path d="M51 79 C55 82 65 82 69 79" fill="#ff9fae"/>
+  <!-- 锁与心（占有欲符号） -->
+  <rect x="94" y="24" width="16" height="13" rx="2.5" fill="#d8203e"/>
+  <path d="M98 24 C98 17 106 17 106 24" fill="none" stroke="#d8203e" stroke-width="3"/>
+  <circle cx="102" cy="29" r="2" fill="#ffd7de"/>
+  <path d="M22 26 C20 22 14 23 14 28 C14 32 19 35 22 37 C25 35 30 32 30 28 C30 23 24 22 22 26 Z" fill="#b28dff"/>
+</svg>

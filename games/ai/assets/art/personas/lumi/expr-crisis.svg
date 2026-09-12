@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- 林小暖 · 表情差分 crisis（危机时：含泪的坚决，同时用作危机游走体贴图） -->
+  <rect width="120" height="120" rx="14" fill="#fff0f2"/>
+  <rect width="120" height="120" rx="14" fill="#ff5d6c" opacity="0.12"/>
+  <path d="M60 16 C34 16 26 38 28 58 L34 74 L86 74 L92 58 C94 38 86 16 60 16 Z" fill="#8a5a52"/>
+  <ellipse cx="60" cy="60" rx="33" ry="36" fill="#ffe9dc"/>
+  <path d="M27 58 C24 30 42 16 60 16 C78 16 96 30 93 58 C89 44 82 38 75 41 C78 31 68 26 62 31 C56 25 46 30 49 40 C40 38 32 46 27 58 Z" fill="#8a5a52"/>
+  <path d="M38 52 L56 56" stroke="#5f3230" stroke-width="3" stroke-linecap="round"/>
+  <path d="M82 52 L64 56" stroke="#5f3230" stroke-width="3" stroke-linecap="round"/>
+  <ellipse cx="47" cy="63" rx="6" ry="7" fill="#8c4a48"/>
+  <ellipse cx="73" cy="63" rx="6" ry="7" fill="#8c4a48"/>
+  <circle cx="48.6" cy="60.6" r="1.9" fill="#ffffff"/>
+  <circle cx="74.6" cy="60.6" r="1.9" fill="#ffffff"/>
+  <path d="M41 70 C43 73 45 74 46 77" fill="none" stroke="#8fd6ff" stroke-width="3.2" stroke-linecap="round" opacity="0.9"/>
+  <path d="M79 70 C77 73 75 74 74 77" fill="none" stroke="#8fd6ff" stroke-width="3.2" stroke-linecap="round" opacity="0.9"/>
+  <ellipse cx="38" cy="74" rx="5" ry="3" fill="#ff9fb0" opacity="0.7"/>
+  <ellipse cx="82" cy="74" rx="5" ry="3" fill="#ff9fb0" opacity="0.7"/>
+  <ellipse cx="60" cy="83" rx="4.6" ry="4" fill="#c26a66"/>
+  <!-- 警示环 -->
+  <circle cx="60" cy="60" r="54" fill="none" stroke="#ff5d6c" stroke-width="4" stroke-dasharray="10 8" opacity="0.85"/>
+</svg>

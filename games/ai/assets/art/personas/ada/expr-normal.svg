@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- 艾达 · 表情差分 normal（结论先行，平静） -->
+  <rect width="120" height="120" rx="14" fill="#e2f4f2"/>
+  <path d="M12 20 H108 M12 44 H108 M12 68 H108 M12 92 H108" stroke="#2ba9a0" stroke-width="0.8" opacity="0.2"/>
+  <path d="M26 60 C26 32 40 16 60 16 C80 16 94 32 94 60 L88 78 L32 78 Z" fill="#aebcc4"/>
+  <ellipse cx="60" cy="60" rx="33" ry="36" fill="#ffe6d6"/>
+  <path d="M27 60 C26 30 40 16 60 16 C80 16 94 30 93 60 C90 46 84 40 77 44 C79 34 68 30 63 35 C57 29 47 34 50 44 C41 41 32 47 27 60 Z" fill="#aebcc4"/>
+  <rect x="36" y="50" width="20" height="15" rx="4" fill="none" stroke="#2ba9a0" stroke-width="2"/>
+  <rect x="64" y="50" width="20" height="15" rx="4" fill="none" stroke="#2ba9a0" stroke-width="2"/>
+  <path d="M56 57 L64 57" stroke="#2ba9a0" stroke-width="2"/>
+  <ellipse cx="46" cy="57" rx="5.4" ry="6.4" fill="#2f6bd8"/>
+  <ellipse cx="74" cy="57" rx="5.4" ry="6.4" fill="#2f6bd8"/>
+  <circle cx="47.4" cy="55" r="1.9" fill="#ffffff"/>
+  <circle cx="75.4" cy="55" r="1.9" fill="#ffffff"/>
+  <path d="M38 46 C42 43 50 43 54 46" fill="none" stroke="#5d6b73" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M66 46 C70 43 78 43 82 46" fill="none" stroke="#5d6b73" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M53 80 L67 80" stroke="#c07a6a" stroke-width="2.6" stroke-linecap="round"/>
+  <ellipse cx="36" cy="74" rx="5" ry="2.8" fill="#f2b3a2" opacity="0.5"/>
+  <ellipse cx="84" cy="74" rx="5" ry="2.8" fill="#f2b3a2" opacity="0.5"/>
+</svg>

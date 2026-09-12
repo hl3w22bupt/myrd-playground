@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+  <!-- 林小暖 · 头像（主题色 #ff9e9e） -->
+  <defs>
+    <clipPath id="c"><circle cx="48" cy="48" r="46"/></clipPath>
+  </defs>
+  <circle cx="48" cy="48" r="46" fill="#fff0f2"/>
+  <circle cx="48" cy="48" r="46" fill="none" stroke="#ff9e9e" stroke-width="4"/>
+  <g clip-path="url(#c)">
+    <circle cx="48" cy="86" r="30" fill="#ffb7bc"/>
+    <path d="M48 18 C30 18 24 34 26 50 L70 50 C72 34 66 18 48 18 Z" fill="#8a5a52"/>
+    <rect x="41" y="46" width="14" height="12" fill="#f6d5c6"/>
+    <ellipse cx="48" cy="46" rx="21" ry="23" fill="#ffe9dc"/>
+    <path d="M27 46 C25 26 36 18 48 18 C60 18 71 26 69 46 C66 36 61 32 56 34 C58 27 52 23 48 27 C44 23 38 27 40 34 C35 32 30 36 27 46 Z" fill="#8a5a52"/>
+    <ellipse cx="40" cy="48" rx="4" ry="4.8" fill="#8c4a48"/>
+    <ellipse cx="56" cy="48" rx="4" ry="4.8" fill="#8c4a48"/>
+    <circle cx="41.2" cy="46.6" r="1.4" fill="#ffffff"/>
+    <circle cx="57.2" cy="46.6" r="1.4" fill="#ffffff"/>
+    <path d="M43 57 C45.5 59.4 50.5 59.4 53 57" fill="none" stroke="#c26a66" stroke-width="2" stroke-linecap="round"/>
+    <ellipse cx="34" cy="53" rx="3.6" ry="2.2" fill="#ffb9c0" opacity="0.8"/>
+    <ellipse cx="62" cy="53" rx="3.6" ry="2.2" fill="#ffb9c0" opacity="0.8"/>
+  </g>
+</svg>

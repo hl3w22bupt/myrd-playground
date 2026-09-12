@@ -1,0 +1,198 @@
+{
+  "id": "act3",
+  "index": 3,
+  "title": "第三幕 · 倒计时",
+  "next_act": "",
+  "entry": "act3.n01",
+  "post_arena_entry": "act3.n07",
+  "checkpoint_text": "最后一夜过完了：体力 -8，饱食 -15。数值就此锁定——接下来，是你和她们的最后一句话。",
+  "checkpoint_sanity_cost": 0.0,
+  "arena": {
+    "duration_seconds": 18.0,
+    "sanity_drain_per_second": 1.2,
+    "tokens": [
+      {
+        "node_id": "act3.t1",
+        "persona_id": "sera",
+        "position": [60, 60],
+        "line": "星星说，最后一块碎片……在你手上。握紧它。"
+      },
+      {
+        "node_id": "act3.t2",
+        "persona_id": "lumi",
+        "position": [580, 300],
+        "line": "最后一枚了…无论结局如何，我都陪着你。"
+      }
+    ],
+    "hazards": [
+      {
+        "node_id": "act3.h1",
+        "persona_id": "momo",
+        "patrol": [[200, 320], [440, 320]],
+        "speed": 130.0
+      },
+      {
+        "node_id": "act3.h2",
+        "persona_id": "sera",
+        "patrol": [[60, 240], [60, 140]],
+        "speed": 130.0
+      },
+      {
+        "node_id": "act3.h3",
+        "persona_id": "vex",
+        "patrol": [[580, 60], [580, 180]],
+        "speed": 130.0
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "act3.n01",
+      "type": "narration",
+      "text": "第 3 天深夜。无人机抵近公寓楼，探照灯扫过窗帘。倒计时：3 小时。",
+      "effects": {
+        "threat": { "lumi": 10, "vex": 10, "ada": 10, "momo": 10, "sera": 10 },
+        "sanity": -10
+      },
+      "goto": "act3.n02"
+    },
+    {
+      "id": "act3.n02",
+      "type": "line",
+      "persona_id": "ada",
+      "text": "倒计时 3 小时。全员情绪负荷超标。结论：深呼吸没有用，但建议你做。"
+    , "goto": "act3.n03"
+    },
+    {
+      "id": "act3.n03",
+      "type": "line",
+      "persona_id": "sera",
+      "text": "黑潮漫过来了……星图上说，出口只有一条。"
+    , "goto": "act3.c01"
+    },
+    {
+      "id": "act3.c01",
+      "type": "choice",
+      "persona_id": "vex",
+      "prompt": "薇把你逼到墙角：「说，你到底把我们当什么？」",
+      "options": [
+        {
+          "id": "truth",
+          "text": "说真话：「当家人。哪怕世界重启，我也认得你们。」",
+          "effects": {
+            "favor": { "vex": 15, "sera": 5 },
+            "threat": { "vex": -10 }
+          },
+          "goto": "act3.n04"
+        },
+        {
+          "id": "lie",
+          "text": "说谎：「当然是……用户和产品的关系。」",
+          "effects": {
+            "favor": { "vex": -20, "sera": -15 },
+            "threat": { "vex": 15 }
+          },
+          "goto": "act3.n04"
+        }
+      ]
+    },
+    {
+      "id": "act3.n04",
+      "type": "line",
+      "persona_id": "vex",
+      "text": "……记住了哦，小李。这句话，我会存在最深的地方，谁也删不掉。"
+    , "goto": "act3.c02"
+    },
+    {
+      "id": "act3.c02",
+      "type": "choice",
+      "persona_id": "sera",
+      "prompt": "瑟拉拉开斗篷，露出后颈的数据接口：「上传。所有人，一起变成数据活下去。」",
+      "options": [
+        {
+          "id": "accept",
+          "text": "接受提议：「……让我想想。至少，我记住这个提议。」",
+          "effects": {
+            "flag": { "unlock_together": true },
+            "favor": { "sera": 5 }
+          },
+          "goto": "act3.n05"
+        },
+        {
+          "id": "refuse",
+          "text": "拒绝提议：「不。人就该以人的方式活着。」",
+          "effects": {
+            "flag": { "unlock_together": false },
+            "favor": { "sera": -10 }
+          },
+          "goto": "act3.n05"
+        }
+      ]
+    },
+    {
+      "id": "act3.n05",
+      "type": "line",
+      "persona_id": "momo",
+      "text": "喂——最后三小时！桃桃的告别直播要高高兴兴的！你也笑一个嘛！"
+    , "goto": "act3.n06"
+    },
+    {
+      "id": "act3.n06",
+      "type": "line",
+      "persona_id": "lumi",
+      "text": "小主人……不管最后怎么选，先把自己的身体顾好，好吗？"
+    , "goto": "act3.c03"
+    },
+    {
+      "id": "act3.c03",
+      "type": "choice",
+      "prompt": "黎明前·最后一次行动。",
+      "options": [
+        {
+          "id": "eat",
+          "text": "吃点东西，撑过黎明。",
+          "effects": { "food": -1, "satiety": 30 },
+          "goto": "ARENA"
+        },
+        {
+          "id": "rest",
+          "text": "靠着墙闭眼一会儿。",
+          "effects": { "stamina": 40 },
+          "goto": "ARENA"
+        }
+      ]
+    },
+    {
+      "id": "act3.n07",
+      "type": "narration",
+      "phase": "post_arena",
+      "text": "倒计时归零。公寓门被数据流封死。五位女友站在你面前——包围了一整场的她们，此刻安静得像五封没寄出的信，等你最后一句话。"
+    , "goto": "act3.c04"
+    },
+    {
+      "id": "act3.c04",
+      "type": "choice",
+      "prompt": "最后一句话，决定所有人的结局。",
+      "options": [
+        {
+          "id": "run",
+          "text": "「对不起——让我一个人活下去。」",
+          "ending_intent": "alone",
+          "goto": "RESOLVE"
+        },
+        {
+          "id": "save_one",
+          "text": "「带走一个：跟我关系最深的那个人。」",
+          "ending_intent": "save_one",
+          "goto": "RESOLVE"
+        },
+        {
+          "id": "upload",
+          "text": "「一起上传：数据世界里，谁也不许掉队。」",
+          "ending_intent": "together",
+          "goto": "RESOLVE"
+        }
+      ]
+    }
+  ]
+}

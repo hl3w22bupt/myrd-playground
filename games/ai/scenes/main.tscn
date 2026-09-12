@@ -1,0 +1,262 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/dialog-panel.svg" id="3_dialog"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/bar-frame.svg" id="4_bar"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/title-bg.svg" id="5_title"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/ending-bg.svg" id="6_ending"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(320, 180)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HudLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 4.0
+offset_right = 624.0
+offset_bottom = 20.0
+text = "准备中"
+
+[node name="ActLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 42.0
+offset_right = 624.0
+offset_bottom = 58.0
+text = "准备中"
+
+[node name="BarStamina" type="Control" parent="UI"]
+offset_left = 16.0
+offset_top = 20.0
+offset_right = 160.0
+offset_bottom = 34.0
+
+[node name="Frame" type="TextureRect" parent="UI/BarStamina"]
+offset_right = 120.0
+offset_bottom = 12.0
+texture = ExtResource("4_bar")
+stretch_mode = 0
+
+[node name="Fill" type="ColorRect" parent="UI/BarStamina"]
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 118.0
+offset_bottom = 10.0
+color = Color(0.42, 0.78, 0.43, 1)
+
+[node name="Caption" type="Label" parent="UI/BarStamina"]
+offset_left = 124.0
+offset_top = -1.0
+offset_right = 160.0
+offset_bottom = 13.0
+text = "体力"
+
+[node name="BarSatiety" type="Control" parent="UI"]
+offset_left = 196.0
+offset_top = 20.0
+offset_right = 340.0
+offset_bottom = 34.0
+
+[node name="Frame" type="TextureRect" parent="UI/BarSatiety"]
+offset_right = 120.0
+offset_bottom = 12.0
+texture = ExtResource("4_bar")
+stretch_mode = 0
+
+[node name="Fill" type="ColorRect" parent="UI/BarSatiety"]
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 118.0
+offset_bottom = 10.0
+color = Color(0.85, 0.68, 0.3, 1)
+
+[node name="Caption" type="Label" parent="UI/BarSatiety"]
+offset_left = 124.0
+offset_top = -1.0
+offset_right = 160.0
+offset_bottom = 13.0
+text = "饱食"
+
+[node name="BarSanity" type="Control" parent="UI"]
+offset_left = 376.0
+offset_top = 20.0
+offset_right = 520.0
+offset_bottom = 34.0
+
+[node name="Frame" type="TextureRect" parent="UI/BarSanity"]
+offset_right = 120.0
+offset_bottom = 12.0
+texture = ExtResource("4_bar")
+stretch_mode = 0
+
+[node name="Fill" type="ColorRect" parent="UI/BarSanity"]
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 118.0
+offset_bottom = 10.0
+color = Color(0.45, 0.62, 0.9, 1)
+
+[node name="Caption" type="Label" parent="UI/BarSanity"]
+offset_left = 124.0
+offset_top = -1.0
+offset_right = 160.0
+offset_bottom = 13.0
+text = "理智"
+
+[node name="RosterBox" type="VBoxContainer" parent="UI"]
+unique_name_in_owner = true
+offset_left = 10.0
+offset_top = 62.0
+offset_right = 128.0
+offset_bottom = 240.0
+theme_override_constants/separation = 2
+
+[node name="ToastLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 140.0
+offset_top = 96.0
+offset_right = 624.0
+offset_bottom = 130.0
+horizontal_alignment = 1
+autowrap_mode = 3
+text = ""
+
+[node name="OptionsBox" type="VBoxContainer" parent="UI"]
+unique_name_in_owner = true
+offset_left = 168.0
+offset_top = 116.0
+offset_right = 472.0
+offset_bottom = 236.0
+theme_override_constants/separation = 4
+
+[node name="DialogPanel" type="TextureRect" parent="UI"]
+unique_name_in_owner = true
+offset_left = 160.0
+offset_top = 240.0
+offset_right = 480.0
+offset_bottom = 350.0
+texture = ExtResource("3_dialog")
+stretch_mode = 0
+
+[node name="Portrait" type="TextureRect" parent="UI/DialogPanel"]
+unique_name_in_owner = true
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 74.0
+offset_bottom = 102.0
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SpeakerLabel" type="Label" parent="UI/DialogPanel"]
+unique_name_in_owner = true
+offset_left = 84.0
+offset_top = 8.0
+offset_right = 312.0
+offset_bottom = 26.0
+text = ""
+
+[node name="DialogText" type="Label" parent="UI/DialogPanel"]
+unique_name_in_owner = true
+offset_left = 84.0
+offset_top = 30.0
+offset_right = 312.0
+offset_bottom = 104.0
+autowrap_mode = 3
+text = ""
+
+[node name="ConfirmHint" type="Label" parent="UI/DialogPanel"]
+unique_name_in_owner = true
+offset_left = 200.0
+offset_top = 84.0
+offset_right = 314.0
+offset_bottom = 100.0
+horizontal_alignment = 2
+text = "空格 继续 ▼"
+
+[node name="TitleScreen" type="TextureRect" parent="UI"]
+unique_name_in_owner = true
+offset_right = 640.0
+offset_bottom = 360.0
+texture = ExtResource("5_title")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="TitleTitle" type="Label" parent="UI/TitleScreen"]
+unique_name_in_owner = true
+offset_left = 40.0
+offset_top = 96.0
+offset_right = 600.0
+offset_bottom = 148.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 34
+text = "我被ai女友包围了"
+
+[node name="TitleSub" type="Label" parent="UI/TitleScreen"]
+offset_left = 40.0
+offset_top = 152.0
+offset_right = 600.0
+offset_bottom = 172.0
+horizontal_alignment = 1
+text = "剧情生存挑战 · 2036 · 召回协议倒计时 72 小时"
+
+[node name="TitleHint" type="Label" parent="UI/TitleScreen"]
+offset_left = 40.0
+offset_top = 236.0
+offset_right = 600.0
+offset_bottom = 268.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 16
+text = "按 空格 / 回车 开始"
+
+[node name="EndScreen" type="TextureRect" parent="UI"]
+unique_name_in_owner = true
+visible = false
+offset_right = 640.0
+offset_bottom = 360.0
+texture = ExtResource("6_ending")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="EndLabel" type="Label" parent="UI/EndScreen"]
+unique_name_in_owner = true
+offset_left = 40.0
+offset_top = 64.0
+offset_right = 600.0
+offset_bottom = 112.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 30
+text = ""
+
+[node name="EndReason" type="Label" parent="UI/EndScreen"]
+unique_name_in_owner = true
+offset_left = 60.0
+offset_top = 122.0
+offset_right = 580.0
+offset_bottom = 168.0
+horizontal_alignment = 1
+autowrap_mode = 3
+text = ""
+
+[node name="EndBasis" type="Label" parent="UI/EndScreen"]
+unique_name_in_owner = true
+offset_left = 60.0
+offset_top = 176.0
+offset_right = 580.0
+offset_bottom = 240.0
+horizontal_alignment = 1
+autowrap_mode = 3
+text = ""
+
+[node name="EndHint" type="Label" parent="UI/EndScreen"]
+offset_left = 60.0
+offset_top = 268.0
+offset_right = 580.0
+offset_bottom = 292.0
+horizontal_alignment = 1
+text = "按 空格 / 回车 再来一局"

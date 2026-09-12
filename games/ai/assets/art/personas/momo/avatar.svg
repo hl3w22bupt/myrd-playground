@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+  <!-- 桃桃 · 头像（主题色 #ffb35c） -->
+  <defs><clipPath id="mc"><circle cx="48" cy="48" r="46"/></clipPath></defs>
+  <circle cx="48" cy="48" r="46" fill="#fff3e0"/>
+  <circle cx="48" cy="48" r="46" fill="none" stroke="#ffb35c" stroke-width="4"/>
+  <g clip-path="url(#mc)">
+    <circle cx="48" cy="86" r="30" fill="#ffe9c9"/>
+    <path d="M22 40 C14 48 14 66 20 74 L26 70 L24 44 Z" fill="#f09a3e"/>
+    <path d="M74 40 C82 48 82 66 76 74 L70 70 L72 44 Z" fill="#f09a3e"/>
+    <circle cx="24" cy="42" r="5.6" fill="#ff5d6c"/>
+    <circle cx="72" cy="42" r="5.6" fill="#ff5d6c"/>
+    <path d="M48 16 C30 16 24 32 26 50 L70 50 C72 32 66 16 48 16 Z" fill="#f09a3e"/>
+    <rect x="41" y="46" width="14" height="12" fill="#f6d7c4"/>
+    <ellipse cx="48" cy="46" rx="21" ry="23" fill="#ffdfc8"/>
+    <path d="M27 46 C25 26 36 18 48 18 C60 18 71 26 69 46 C66 36 60 32 55 35 C57 25 49 22 45 27 C40 23 33 28 36 37 C31 35 29 39 27 46 Z" fill="#f09a3e"/>
+    <ellipse cx="40" cy="47" rx="4.4" ry="5.2" fill="#a85a1a"/>
+    <ellipse cx="56" cy="47" rx="4.4" ry="5.2" fill="#a85a1a"/>
+    <circle cx="41.2" cy="45.4" r="1.6" fill="#ffffff"/>
+    <circle cx="57.2" cy="45.4" r="1.6" fill="#ffffff"/>
+    <path d="M42 56 C44.5 60 51.5 60 54 56 Z" fill="#b34a2a"/>
+    <ellipse cx="33" cy="53" rx="3.6" ry="2.2" fill="#ffb3a0" opacity="0.85"/>
+    <ellipse cx="63" cy="53" rx="3.6" ry="2.2" fill="#ffb3a0" opacity="0.85"/>
+  </g>
+</svg>

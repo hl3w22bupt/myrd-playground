@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- 桃桃 · 表情差分 happy（剪刀手 + 星星眼） -->
+  <rect width="120" height="120" rx="14" fill="#fff3e0"/>
+  <path d="M60 14 C32 14 24 38 27 60 L33 78 L87 78 L93 60 C96 38 88 14 60 14 Z" fill="#f09a3e"/>
+  <ellipse cx="60" cy="60" rx="33" ry="36" fill="#ffdfc8"/>
+  <path d="M27 60 C24 28 42 14 60 14 C78 14 96 28 93 60 C89 44 82 38 75 41 C78 29 66 25 61 31 C55 25 45 29 49 40 C40 37 31 46 27 60 Z" fill="#f09a3e"/>
+  <!-- 星星眼 -->
+  <path d="M47 52 L50 58 L57 59 L52 64 L53 71 L47 68 L41 71 L42 64 L37 59 L44 58 Z" fill="#ffb020"/>
+  <path d="M73 52 L76 58 L83 59 L78 64 L79 71 L73 68 L67 71 L68 64 L63 59 L70 58 Z" fill="#ffb020"/>
+  <ellipse cx="33" cy="73" rx="6.4" ry="4" fill="#ffb3a0"/>
+  <ellipse cx="87" cy="73" rx="6.4" ry="4" fill="#ffb3a0"/>
+  <path d="M48 77 C53 87 67 87 72 77 Z" fill="#b34a2a"/>
+  <path d="M52 80 C56 83 64 83 68 80" fill="#ff9f8e"/>
+  <!-- 剪刀手 -->
+  <path d="M8 92 L28 78 M14 100 L30 88" stroke="#ffdfc8" stroke-width="7" stroke-linecap="round"/>
+  <path d="M112 92 L92 78 M106 100 L90 88" stroke="#ffdfc8" stroke-width="7" stroke-linecap="round"/>
+  <!-- 弹幕 -->
+  <g font-family="monospace" font-size="10" fill="#e07f2a">
+    <text x="82" y="18">666</text>
+    <text x="8" y="112">冲鸭!</text>
+  </g>
+</svg>

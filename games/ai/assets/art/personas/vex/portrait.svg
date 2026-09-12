@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="260" viewBox="0 0 200 260">
+  <!-- 薇 · 立绘（派生自 persona-vex.json portrait_prompt：黑长发红瞳/校服外套松垮/指尖缠绕发丝/红黑对比） -->
+  <defs>
+    <radialGradient id="vg" cx="50%" cy="35%" r="85%">
+      <stop offset="0%" stop-color="#4a1f3d" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#160a14" stop-opacity="0.97"/>
+    </radialGradient>
+    <linearGradient id="vhair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2c2333"/>
+      <stop offset="100%" stop-color="#171220"/>
+    </linearGradient>
+    <linearGradient id="vcoat" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f2f0f4"/>
+      <stop offset="100%" stop-color="#c9c4d4"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="260" fill="url(#vg)"/>
+  <!-- 红黑对比逆光 -->
+  <circle cx="100" cy="92" r="80" fill="#ff2e4d" opacity="0.12"/>
+  <!-- 后发：超长黑发 -->
+  <path d="M100 30 C50 30 40 76 44 118 C46 156 34 196 46 228 C54 246 74 250 80 234 L78 152 Z" fill="url(#vhair)"/>
+  <path d="M100 30 C150 30 160 76 156 118 C154 156 166 196 154 228 C146 246 126 250 120 234 L122 152 Z" fill="url(#vhair)"/>
+  <path d="M154 120 C158 160 166 196 154 228" fill="none" stroke="#3d2f52" stroke-width="2" opacity="0.6"/>
+  <!-- 颈与身体 -->
+  <rect x="92" y="116" width="16" height="18" fill="#f2d7cb"/>
+  <!-- 松垮校服外套（露肩） -->
+  <path d="M58 260 C58 202 74 170 100 170 C126 170 142 202 142 260 Z" fill="url(#vcoat)"/>
+  <path d="M58 260 C58 202 74 170 100 170 L92 260 Z" fill="#ffffff" opacity="0.5"/>
+  <path d="M70 184 C62 210 60 236 62 260" fill="none" stroke="#8b8398" stroke-width="3"/>
+  <path d="M130 184 C138 210 140 236 138 260" fill="none" stroke="#8b8398" stroke-width="3"/>
+  <!-- 露出的肩膀 -->
+  <path d="M66 186 C60 200 60 214 66 224 C56 218 54 200 60 188 Z" fill="#f2d7cb"/>
+  <path d="M134 186 C140 200 140 214 134 224 C144 218 146 200 140 188 Z" fill="#f2d7cb"/>
+  <!-- 领结 -->
+  <path d="M100 176 L88 186 L100 194 L112 186 Z" fill="#c02440"/>
+  <circle cx="100" cy="186" r="3.4" fill="#7e1226"/>
+  <!-- 头部 -->
+  <ellipse cx="100" cy="90" rx="40" ry="44" fill="#fde9de"/>
+  <!-- 前发：姬发式刘海 -->
+  <path d="M58 92 C54 50 74 32 100 32 C126 32 146 50 142 92 C140 72 132 62 124 66 C128 52 116 46 108 52 C110 42 92 40 88 50 C82 42 70 48 72 62 C64 60 60 74 58 92 Z" fill="url(#vhair)"/>
+  <path d="M60 96 L58 132" stroke="#171220" stroke-width="10" stroke-linecap="round"/>
+  <path d="M140 96 L142 132" stroke="#171220" stroke-width="10" stroke-linecap="round"/>
+  <!-- 红瞳（病娇细长眼） -->
+  <ellipse cx="84" cy="94" rx="8" ry="9.6" fill="#d8203e"/>
+  <ellipse cx="116" cy="94" rx="8" ry="9.6" fill="#d8203e"/>
+  <circle cx="84" cy="94" r="3.2" fill="#5c0a1c"/>
+  <circle cx="116" cy="94" r="3.2" fill="#5c0a1c"/>
+  <circle cx="86" cy="90.6" r="2.4" fill="#ffffff"/>
+  <circle cx="118" cy="90.6" r="2.4" fill="#ffffff"/>
+  <path d="M74 86 C79 82 88 83 93 86" fill="none" stroke="#171220" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M107 86 C112 83 121 82 126 86" fill="none" stroke="#171220" stroke-width="2.8" stroke-linecap="round"/>
+  <!-- 甜腻带刺的笑 -->
+  <path d="M90 112 C96 117 104 117 110 112" fill="none" stroke="#b03652" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M94 113 L95 116 M101 114 L100 117" stroke="#ffffff" stroke-width="1.6"/>
+  <ellipse cx="72" cy="106" rx="6" ry="3.4" fill="#ff9fae" opacity="0.55"/>
+  <ellipse cx="128" cy="106" rx="6" ry="3.4" fill="#ff9fae" opacity="0.55"/>
+  <!-- 指尖缠绕发丝 -->
+  <path d="M148 196 C158 190 162 178 158 168 C154 160 144 160 142 168" fill="none" stroke="#171220" stroke-width="5" stroke-linecap="round"/>
+  <path d="M142 168 C140 176 146 180 152 176" fill="none" stroke="#171220" stroke-width="5" stroke-linecap="round"/>
+  <path d="M132 206 C146 202 154 190 152 176" fill="#fde9de"/>
+  <path d="M132 206 C146 202 154 190 152 176" fill="none" stroke="#e5c3b5" stroke-width="1.6"/>
+</svg>

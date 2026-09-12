@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- 瑟拉 · 表情差分 crisis（沉默接管 IoT，同时用作危机游走体贴图） -->
+  <rect width="120" height="120" rx="14" fill="#221d44"/>
+  <rect width="120" height="120" rx="14" fill="#6d4dff" opacity="0.16"/>
+  <path d="M60 12 C32 12 24 36 27 58 L33 76 L87 76 L93 58 C96 36 88 12 60 12 Z" fill="#6c58b0"/>
+  <ellipse cx="60" cy="60" rx="33" ry="36" fill="#f4dfd8"/>
+  <path d="M27 60 C24 28 42 12 60 12 C78 12 96 28 93 60 C89 44 82 38 75 41 C78 28 66 24 61 30 C55 24 45 29 49 40 C40 37 31 46 27 60 Z" fill="#6c58b0"/>
+  <path d="M63 30 C71 36 77 50 77 62 L85 54 C85 42 76 32 63 30 Z" fill="#6c58b0"/>
+  <path d="M36 50 L56 55" stroke="#4a3a80" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M84 50 L64 55" stroke="#4a3a80" stroke-width="2.8" stroke-linecap="round"/>
+  <ellipse cx="47" cy="62" rx="6.6" ry="7.8" fill="#7a5fd0"/>
+  <ellipse cx="74" cy="62" rx="6.6" ry="7.8" fill="#7a5fd0"/>
+  <circle cx="47" cy="62" r="2.4" fill="#1c1244"/>
+  <circle cx="74" cy="62" r="2.4" fill="#1c1244"/>
+  <circle cx="49" cy="59" r="2" fill="#ffffff"/>
+  <circle cx="76" cy="59" r="2" fill="#ffffff"/>
+  <circle cx="44.8" cy="64.4" r="1" fill="#ffe9a8"/>
+  <circle cx="71.8" cy="64.4" r="1" fill="#ffe9a8"/>
+  <path d="M52 81 C56 78 64 84 68 79" fill="none" stroke="#b06a72" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- IoT 信号环 -->
+  <g stroke="#8fa8ff" fill="none" stroke-width="2.4" opacity="0.9">
+    <path d="M90 96 C96 90 96 82 90 76"/>
+    <path d="M96 100 C104 92 104 80 96 72"/>
+    <path d="M86 92 C90 88 90 84 86 80"/>
+  </g>
+  <circle cx="84" cy="104" r="3" fill="#8fa8ff"/>
+  <circle cx="60" cy="60" r="54" fill="none" stroke="#8fa8ff" stroke-width="4" stroke-dasharray="14 6" opacity="0.85"/>
+</svg>

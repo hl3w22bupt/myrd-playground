@@ -1,0 +1,5 @@
+# 《我被ai女友包围了》AppHost 应用清单（平台构建管线步骤 1 读取；M1 仅支持顶层字符串键值）
+# 壳位于仓库根：server/ 内是 Node20 + Hono 应用，游戏 Web 导出产物经 gzip+base64 内联进 bundle
+name = "ai-girlfriend-siege"
+runtime = "node20"
+health = "/health"

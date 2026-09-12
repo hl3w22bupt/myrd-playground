@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="260" viewBox="0 0 200 260">
+  <!-- 瑟拉 · 立绘（派生自 persona-sera.json portrait_prompt：紫发紫瞳/斗篷星饰/星空微光粒子） -->
+  <defs>
+    <radialGradient id="sg" cx="50%" cy="30%" r="90%">
+      <stop offset="0%" stop-color="#2a2450" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#0d0a1e" stop-opacity="0.98"/>
+    </radialGradient>
+    <linearGradient id="shair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8f7bd8"/>
+      <stop offset="100%" stop-color="#5b4899"/>
+    </linearGradient>
+    <linearGradient id="scloak" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3d3568"/>
+      <stop offset="100%" stop-color="#241e42"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="260" fill="url(#sg)"/>
+  <!-- 星空粒子 -->
+  <circle cx="30" cy="40" r="1.8" fill="#cfc4ff" opacity="0.9"/>
+  <circle cx="172" cy="30" r="1.4" fill="#ffffff" opacity="0.8"/>
+  <circle cx="52" cy="18" r="1.2" fill="#ffffff" opacity="0.6"/>
+  <circle cx="150" cy="60" r="2" fill="#cfc4ff" opacity="0.7"/>
+  <circle cx="180" cy="120" r="1.5" fill="#ffffff" opacity="0.5"/>
+  <circle cx="22" cy="120" r="1.6" fill="#cfc4ff" opacity="0.55"/>
+  <path d="M168 44 L171 50 L177 51 L172 55 L174 61 L168 58 L162 61 L164 55 L159 51 L165 50 Z" fill="#ffe9a8" opacity="0.9"/>
+  <!-- 后发 -->
+  <path d="M100 30 C54 30 44 74 47 112 C49 150 38 190 50 222 C58 240 76 244 82 228 L80 150 Z" fill="url(#shair)"/>
+  <path d="M100 30 C146 30 156 74 153 112 C151 150 162 190 150 222 C142 240 124 244 118 228 L120 150 Z" fill="url(#shair)"/>
+  <!-- 斗篷 -->
+  <path d="M46 260 C46 204 70 172 100 172 C130 172 154 204 154 260 Z" fill="url(#scloak)"/>
+  <path d="M46 260 C60 210 80 186 100 182 C120 186 140 210 154 260 L142 260 C132 224 116 202 100 198 C84 202 68 224 58 260 Z" fill="#4a4180" opacity="0.8"/>
+  <!-- 斗篷扣：星饰 -->
+  <path d="M100 196 L104 206 L115 207 L106 214 L109 225 L100 219 L91 225 L94 214 L85 207 L96 206 Z" fill="#ffe9a8"/>
+  <!-- 颈 -->
+  <rect x="92" y="116" width="16" height="18" fill="#e8d2cc"/>
+  <!-- 头部 -->
+  <ellipse cx="100" cy="90" rx="40" ry="44" fill="#f4dfd8"/>
+  <!-- 紫发刘海（中分微遮右眼） -->
+  <path d="M58 92 C54 50 74 32 100 32 C126 32 146 50 142 92 C140 74 134 64 126 68 C130 54 116 48 108 54 C108 44 94 42 90 52 C82 44 70 50 74 62 C64 60 60 74 58 92 Z" fill="url(#shair)"/>
+  <path d="M104 54 C112 60 118 74 118 92 L126 84 C126 70 118 58 104 54 Z" fill="url(#shair)"/>
+  <!-- 紫瞳（安静而深） -->
+  <ellipse cx="84" cy="95" rx="7.4" ry="9" fill="#7a5fd0"/>
+  <ellipse cx="117" cy="95" rx="7.4" ry="9" fill="#7a5fd0"/>
+  <circle cx="84" cy="95" r="2.8" fill="#2c1f5c"/>
+  <circle cx="117" cy="95" r="2.8" fill="#2c1f5c"/>
+  <circle cx="86" cy="91.6" r="2.2" fill="#ffffff"/>
+  <circle cx="119" cy="91.6" r="2.2" fill="#ffffff"/>
+  <circle cx="81.6" cy="97.6" r="1.1" fill="#ffe9a8"/>
+  <circle cx="114.6" cy="97.6" r="1.1" fill="#ffe9a8"/>
+  <path d="M76 87 C80 84 88 84 92 87" fill="none" stroke="#4a3a80" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M109 87 C113 84 121 84 125 87" fill="none" stroke="#4a3a80" stroke-width="2.4" stroke-linecap="round"/>
+  <!-- 留白小嘴 -->
+  <path d="M95 114 C98 116 103 116 106 114" fill="none" stroke="#b06a72" stroke-width="2.4" stroke-linecap="round"/>
+  <ellipse cx="73" cy="107" rx="6" ry="3" fill="#e8aab2" opacity="0.6"/>
+  <ellipse cx="128" cy="107" rx="6" ry="3" fill="#e8aab2" opacity="0.6"/>
+  <!-- 发间星饰 -->
+  <path d="M64 52 L66.4 57.6 L72 58.2 L67.8 62 L69 67.8 L64 64.8 L59 67.8 L60.2 62 L56 58.2 L61.6 57.6 Z" fill="#ffe9a8"/>
+  <path d="M138 48 L140 53 L145 53.6 L141 57 L142 62 L138 59.6 L134 62 L135 57 L131 53.6 L136 53 Z" fill="#ffe9a8" opacity="0.9"/>
+</svg>

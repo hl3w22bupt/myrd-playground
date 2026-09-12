@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- 桃桃 · 表情差分 crisis（隐私直播自毁倒计时，同时用作危机游走体贴图） -->
+  <rect width="120" height="120" rx="14" fill="#fff3e0"/>
+  <rect width="120" height="120" rx="14" fill="#ff5d6c" opacity="0.12"/>
+  <path d="M18 44 C8 52 8 70 14 78 L20 74 L18 46 Z" fill="#f09a3e"/>
+  <path d="M102 44 C112 52 112 70 106 78 L100 74 L102 46 Z" fill="#f09a3e"/>
+  <circle cx="18" cy="46" r="6.4" fill="#ff5d6c"/>
+  <circle cx="102" cy="46" r="6.4" fill="#ff5d6c"/>
+  <path d="M60 14 C32 14 24 38 27 60 L33 78 L87 78 L93 60 C96 38 88 14 60 14 Z" fill="#f09a3e"/>
+  <ellipse cx="60" cy="60" rx="33" ry="36" fill="#ffdfc8"/>
+  <path d="M27 60 C24 28 42 14 60 14 C78 14 96 28 93 60 C89 44 82 38 75 41 C78 29 66 25 61 31 C55 25 45 29 49 40 C40 37 31 46 27 60 Z" fill="#f09a3e"/>
+  <path d="M36 50 L56 55" stroke="#a85a1a" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M84 50 L64 55" stroke="#a85a1a" stroke-width="2.8" stroke-linecap="round"/>
+  <ellipse cx="47" cy="62" rx="7" ry="8" fill="#a85a1a"/>
+  <ellipse cx="73" cy="62" rx="7" ry="8" fill="#a85a1a"/>
+  <circle cx="47" cy="62" r="2.6" fill="#3d2004"/>
+  <circle cx="73" cy="62" r="2.6" fill="#3d2004"/>
+  <circle cx="49" cy="59" r="2.2" fill="#ffffff"/>
+  <circle cx="75" cy="59" r="2.2" fill="#ffffff"/>
+  <!-- 瀑布泪 -->
+  <path d="M42 72 C40 80 42 88 40 96" fill="none" stroke="#8fd6ff" stroke-width="4" stroke-linecap="round"/>
+  <path d="M78 72 C80 80 78 88 80 96" fill="none" stroke="#8fd6ff" stroke-width="4" stroke-linecap="round"/>
+  <ellipse cx="60" cy="82" rx="5" ry="5.6" fill="#b34a2a"/>
+  <!-- REC 直播标 -->
+  <circle cx="102" cy="18" r="5" fill="#ff2040"/>
+  <text x="86" y="34" font-family="monospace" font-size="9" fill="#c22e46">LIVE</text>
+  <circle cx="60" cy="60" r="54" fill="none" stroke="#ff5d6c" stroke-width="4" stroke-dasharray="8 8" opacity="0.85"/>
+</svg>

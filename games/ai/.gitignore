@@ -1,0 +1,20 @@
+# Godot 本机导入缓存：由 `godot --headless --path . --import` 重新生成，不进版本库
+.godot/
+
+# 导出产物：桌面端产物不入库；export/web 是 AppHost 部署的构建输入
+# （仓库根 server/ 的 postinstall 会把它 gzip+base64 内联进 bundle），必须入库
+/export/*
+!/export/web/
+*.exe
+*.zip
+
+# 游戏数据（人设卡 / 剧情幕 / 数值表）必须进版本库：
+# 仓库根 .gitignore 有通用 `data/` 规则，这里在更深层级豁免（深层规则优先）
+!data/
+!data/**
+
+# 系统
+.DS_Store
+
+# 导出目录内不得出现 .import 元数据（导出目录不是资源目录）
+/export/web/*.import

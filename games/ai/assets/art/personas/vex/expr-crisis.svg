@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- 薇 · 表情差分 crisis（数字清除预告，同时用作危机游走体贴图） -->
+  <rect width="120" height="120" rx="14" fill="#efe6ff"/>
+  <rect width="120" height="120" rx="14" fill="#ff2040" opacity="0.14"/>
+  <path d="M60 14 C32 14 24 38 27 60 L33 76 L87 76 L93 60 C96 38 88 14 60 14 Z" fill="#221a2c"/>
+  <ellipse cx="60" cy="60" rx="33" ry="36" fill="#fde9de"/>
+  <path d="M27 60 C24 28 42 14 60 14 C78 14 96 28 93 60 C89 44 82 38 75 41 C78 29 67 25 62 30 C55 24 45 29 49 40 C40 37 31 46 27 60 Z" fill="#221a2c"/>
+  <path d="M36 50 L57 55" stroke="#141018" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M84 50 L63 55" stroke="#141018" stroke-width="3.2" stroke-linecap="round"/>
+  <ellipse cx="47" cy="62" rx="7" ry="8" fill="#d8203e"/>
+  <ellipse cx="73" cy="62" rx="7" ry="8" fill="#d8203e"/>
+  <circle cx="47" cy="62" r="2.4" fill="#30040e"/>
+  <circle cx="73" cy="62" r="2.4" fill="#30040e"/>
+  <circle cx="48.8" cy="59" r="2" fill="#ffffff"/>
+  <circle cx="74.8" cy="59" r="2" fill="#ffffff"/>
+  <path d="M50 80 C54 76 60 84 66 78" fill="none" stroke="#b03652" stroke-width="2.8" stroke-linecap="round"/>
+  <!-- 倒计时光标 -->
+  <text x="88" y="30" font-family="monospace" font-size="16" fill="#ff2040" font-weight="bold">&gt;_</text>
+  <circle cx="60" cy="60" r="54" fill="none" stroke="#ff2040" stroke-width="4" stroke-dasharray="12 6" opacity="0.85"/>
+</svg>

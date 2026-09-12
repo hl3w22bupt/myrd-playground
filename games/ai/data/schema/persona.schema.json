@@ -1,0 +1,131 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AI女友人设卡契约（persona card schema v2）",
+  "description": "《我被ai女友包围了》AI 女友结构化人设卡的唯一字段契约（v2：统一知识基线 §三 与策划案 §3.1 的字段口径，修复上轮 QA BUG-5 契约漂移）。persona_loader 只认本 schema 声明的必填字段与类型，不认任何具体角色名；修改人设卡 JSON 无需改动任何 .gd 即可生效（换卡免改码）。",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "title",
+    "color",
+    "personality_tags",
+    "speech_style",
+    "catchphrase",
+    "favor_rules",
+    "threat_rules",
+    "portrait_prompt",
+    "art"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*$",
+      "description": "人设唯一 id（小写），trace 用它定位到具体人设"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "姓名（策划案定名：林小暖/薇/艾达/桃桃/瑟拉；HUD 与对话气泡展示名）"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "称号（一句话人设定位，花名册/立绘说明用）"
+    },
+    "color": {
+      "type": "string",
+      "pattern": "^#[0-9a-fA-F]{6}$",
+      "description": "主题色（#RRGGBB）：全部 UI 取色与美术底色的唯一来源，禁止在代码里另配调色板"
+    },
+    "personality_tags": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 },
+      "description": "性格标签（≥1 个）"
+    },
+    "speech_style": {
+      "type": "object",
+      "description": "说话风格（剧情文案的语气基线，四子字段）",
+      "required": ["tone", "verbal_tics", "forbidden", "sample_line"],
+      "additionalProperties": true,
+      "properties": {
+        "tone": { "type": "string", "minLength": 1, "description": "语气基调" },
+        "verbal_tics": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "口头禅/语气词清单"
+        },
+        "forbidden": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "禁用表达（人设一致性红线）"
+        },
+        "sample_line": { "type": "string", "minLength": 1, "description": "示例台词" }
+      }
+    },
+    "catchphrase": {
+      "type": "string",
+      "minLength": 1,
+      "description": "口头禅（单句，标题画面/花名册展示）"
+    },
+    "favor_rules": {
+      "type": "object",
+      "description": "好感度规则：初值 + 互动结算参数 + 文案增益/减益口径（choices 的具体数值仍在剧情 JSON 里显式声明，本表供策划与回放对照）",
+      "required": ["favor_initial", "interact_modifier", "interact_sanity_regen", "gains", "losses"],
+      "additionalProperties": true,
+      "properties": {
+        "favor_initial": { "type": "number", "minimum": 0, "description": "该人设的好感度初值" },
+        "interact_modifier": { "type": "number", "description": "互动行动的好感修正：互动增益 = numeric.interact_favor_gain + 本值" },
+        "interact_sanity_regen": { "type": "number", "minimum": 0, "description": "每次互动回复的理智值" },
+        "gains": {
+          "type": "object",
+          "description": "增益口径：剧情选项标签 → 该人设好感增量（如 gentle/honest/playful）",
+          "additionalProperties": { "type": "number" }
+        },
+        "losses": {
+          "type": "object",
+          "description": "减益口径：剧情选项标签 → 该人设好感减量（如 harsh/lie/abandon）",
+          "additionalProperties": { "type": "number" }
+        }
+      }
+    },
+    "threat_rules": {
+      "type": "object",
+      "description": "威胁/危机行为模式：初值 + 幕间升级机制 + 危机游走参数",
+      "required": ["threat_initial", "crisis_threshold", "escalation_per_phase", "crisis_behavior", "speed_bias", "crisis_line"],
+      "additionalProperties": true,
+      "properties": {
+        "threat_initial": { "type": "number", "minimum": 0, "description": "该人设的威胁度初值" },
+        "crisis_threshold": { "type": "number", "minimum": 0, "description": "危机阈值：幕间结算时威胁 ≥ 本值触发升级" },
+        "escalation_per_phase": { "type": "number", "description": "幕间升级幅度：触发升级时威胁 += 本值" },
+        "crisis_behavior": { "type": "string", "minLength": 1, "description": "危机行为模式（供文案/美术/回放定位）" },
+        "speed_bias": { "type": "number", "minimum": 0.1, "description": "危机游走速度倍率（乘在幕声明的基准速度上）" },
+        "crisis_line": { "type": "string", "minLength": 1, "description": "命中玩家时的危机台词（可追溯到人设）" }
+      }
+    },
+    "portrait_prompt": {
+      "type": "string",
+      "minLength": 1,
+      "description": "立绘派生单一事实源：全部形象资产只能从本字段派生，禁止另行脑补设定"
+    },
+    "art": {
+      "type": "object",
+      "description": "美术资产清单（相对工程根的 res:// 路径）：立绘 1 + 头像 1 + 表情差分 ≥2，全部由 portrait_prompt 派生",
+      "required": ["portrait", "avatar", "expressions"],
+      "additionalProperties": true,
+      "properties": {
+        "portrait": { "type": "string", "minLength": 1, "description": "立绘（对话框左侧展示）" },
+        "avatar": { "type": "string", "minLength": 1, "description": "头像（花名册 + 心动信物）" },
+        "expressions": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "表情差分（≥2）：约定 [normal, happy, crisis]，crisis 同时用作危机游走体贴图"
+        }
+      }
+    }
+  }
+}

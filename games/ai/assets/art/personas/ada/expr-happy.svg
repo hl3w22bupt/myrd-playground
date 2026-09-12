@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- 艾达 · 表情差分 happy（置信度提升：罕见微笑 + 表情包弹幕） -->
+  <rect width="120" height="120" rx="14" fill="#e2f4f2"/>
+  <path d="M26 60 C26 32 40 16 60 16 C80 16 94 32 94 60 L88 78 L32 78 Z" fill="#aebcc4"/>
+  <ellipse cx="60" cy="60" rx="33" ry="36" fill="#ffe6d6"/>
+  <path d="M27 60 C26 30 40 16 60 16 C80 16 94 30 93 60 C90 46 84 40 77 44 C79 34 68 30 63 35 C57 29 47 34 50 44 C41 41 32 47 27 60 Z" fill="#aebcc4"/>
+  <path d="M36 54 C41 46 51 46 55 54" fill="none" stroke="#5d6b73" stroke-width="3" stroke-linecap="round"/>
+  <path d="M65 54 C69 46 79 46 84 54" fill="none" stroke="#5d6b73" stroke-width="3" stroke-linecap="round"/>
+  <ellipse cx="34" cy="72" rx="5.6" ry="3.4" fill="#ffc2ae" opacity="0.8"/>
+  <ellipse cx="86" cy="72" rx="5.6" ry="3.4" fill="#ffc2ae" opacity="0.8"/>
+  <path d="M51 77 C55 84 65 84 69 77 Z" fill="#c07a6a"/>
+  <!-- 数据弹幕 -->
+  <g font-family="monospace" font-size="10" fill="#1e8d86">
+    <text x="6" y="20">99.2%</text>
+    <text x="76" y="14">OK</text>
+    <text x="92" y="104">[✓]</text>
+  </g>
+  <path d="M14 108 C12 104 7 105 7 109 C7 112 11 115 14 117 C17 115 21 112 21 109 C21 105 16 104 14 108 Z" fill="#7ad0c9"/>
+</svg>

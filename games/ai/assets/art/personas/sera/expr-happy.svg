@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- 瑟拉 · 表情差分 happy（星图亮起：罕见的笑） -->
+  <rect width="120" height="120" rx="14" fill="#221d44"/>
+  <circle cx="18" cy="22" r="1.6" fill="#cfc4ff"/>
+  <circle cx="102" cy="16" r="1.2" fill="#ffffff"/>
+  <circle cx="106" cy="54" r="1.5" fill="#cfc4ff"/>
+  <path d="M60 12 C32 12 24 36 27 58 L33 76 L87 76 L93 58 C96 36 88 12 60 12 Z" fill="#6c58b0"/>
+  <ellipse cx="60" cy="60" rx="33" ry="36" fill="#f4dfd8"/>
+  <path d="M27 60 C24 28 42 12 60 12 C78 12 96 28 93 60 C89 44 82 38 75 41 C78 28 66 24 61 30 C55 24 45 29 49 40 C40 37 31 46 27 60 Z" fill="#6c58b0"/>
+  <!-- 弯月笑眼 -->
+  <path d="M39 58 C43 50 52 50 55 58" fill="none" stroke="#4a3a80" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M65 58 C68 50 77 50 81 58" fill="none" stroke="#4a3a80" stroke-width="3.2" stroke-linecap="round"/>
+  <ellipse cx="34" cy="72" rx="5.8" ry="3.4" fill="#e8aab2" opacity="0.85"/>
+  <ellipse cx="86" cy="72" rx="5.8" ry="3.4" fill="#e8aab2" opacity="0.85"/>
+  <path d="M51 77 C55 84 65 84 69 77 Z" fill="#b06a72"/>
+  <!-- 星星环绕 -->
+  <path d="M96 62 L98.4 67.4 L104 68 L100 71.6 L101 77 L96 74.4 L91 77 L92 71.6 L88 68 L93.6 67.4 Z" fill="#ffe9a8"/>
+  <path d="M22 84 L24 88.6 L28.6 89.2 L25 92.4 L26 97 L22 94.6 L18 97 L19 92.4 L15.4 89.2 L20 88.6 Z" fill="#ffe9a8" opacity="0.85"/>
+  <path d="M98 34 L99.6 38 L103.6 38.4 L100.6 41.2 L101.4 45.2 L98 43.2 L94.6 45.2 L95.4 41.2 L92.4 38.4 L96.4 38 Z" fill="#ffe9a8" opacity="0.75"/>
+</svg>

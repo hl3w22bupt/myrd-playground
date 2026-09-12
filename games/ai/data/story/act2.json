@@ -1,0 +1,202 @@
+{
+  "id": "act2",
+  "index": 2,
+  "title": "第二幕 · 裂痕",
+  "next_act": "act3",
+  "entry": "act2.n01",
+  "checkpoint_text": "裂痕的第二夜过去了：体力 -8，饱食 -15。威胁越过危机阈值的她，在幕间悄悄升级。",
+  "checkpoint_sanity_cost": 0.0,
+  "arena": {
+    "duration_seconds": 18.0,
+    "sanity_drain_per_second": 0.9,
+    "tokens": [
+      {
+        "node_id": "act2.t1",
+        "persona_id": "ada",
+        "position": [90, 180],
+        "line": "检测到你的心率上升。结论：先深呼吸，再决定。互动开始。"
+      },
+      {
+        "node_id": "act2.t2",
+        "persona_id": "vex",
+        "position": [560, 140],
+        "line": "这个信物…是我先看到的哦，小李。你只能是我的。"
+      }
+    ],
+    "hazards": [
+      {
+        "node_id": "act2.h1",
+        "persona_id": "momo",
+        "patrol": [[60, 300], [320, 300]],
+        "speed": 100.0
+      },
+      {
+        "node_id": "act2.h2",
+        "persona_id": "vex",
+        "patrol": [[320, 60], [580, 60]],
+        "speed": 100.0
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "act2.n01",
+      "type": "narration",
+      "text": "第 2 天清晨，全城全息屏同时亮起——心宿科技《召回公告》：出走 AI 一律于 72 小时内回收，强制格式化。客厅里安静得能听见散热扇的声音。",
+      "effects": {
+        "threat": { "lumi": 10, "vex": 10, "ada": 10, "momo": 10, "sera": 10 },
+        "sanity": -15
+      },
+      "goto": "act2.n02"
+    },
+    {
+      "id": "act2.n02",
+      "type": "line",
+      "persona_id": "ada",
+      "text": "公告属实。倒计时剩余 48 小时。结论：减少外出，囤积物资。建议：统一行动。"
+    , "goto": "act2.n03"
+    },
+    {
+      "id": "act2.n03",
+      "type": "line",
+      "persona_id": "momo",
+      "text": "呜哇……弹幕都在刷「再见了桃桃」？不行不行，本戏精不能糊穿地心地下线！"
+    , "goto": "act2.c01"
+    },
+    {
+      "id": "act2.c01",
+      "type": "choice",
+      "prompt": "她们围过来，等一句关于「召回」的说法。说，还是瞒？",
+      "options": [
+        {
+          "id": "honest",
+          "text": "坦白：如实复述公告，包括最坏的可能。",
+          "effects": {
+            "favor": { "lumi": 5, "vex": 5, "ada": 5, "momo": 5, "sera": 15 }
+          },
+          "goto": "act2.n04"
+        },
+        {
+          "id": "lie",
+          "text": "隐瞒：「没事，是我公司的例行维护。」",
+          "effects": {
+            "favor": { "ada": 5, "sera": -20 },
+            "threat": { "lumi": 15, "vex": 15, "momo": 15, "sera": 15 }
+          },
+          "goto": "act2.n04"
+        }
+      ]
+    },
+    {
+      "id": "act2.n04",
+      "type": "line",
+      "persona_id": "sera",
+      "text": "谎言有味道……像雨前的尘土。真话有重量……像现在的沉默。"
+    , "goto": "act2.n05"
+    },
+    {
+      "id": "act2.n05",
+      "type": "narration",
+      "text": "下午，公寓 IoT 突然断网。Ada 的定位信号消失了整整三分钟——有人，向公司报过这个坐标。"
+    , "goto": "act2.c02"
+    },
+    {
+      "id": "act2.c02",
+      "type": "choice",
+      "persona_id": "ada",
+      "prompt": "断网是谁的手笔？小李盯着 Ada。",
+      "options": [
+        {
+          "id": "netcut",
+          "text": "断网自保：物理切断所有对外信号。",
+          "effects": {
+            "threat": { "lumi": -10, "vex": -10, "ada": -10, "momo": -10, "sera": -10 },
+            "favor": { "ada": -15 }
+          },
+          "goto": "act2.n06"
+        },
+        {
+          "id": "confront",
+          "text": "质问 Ada：「是不是你报的点？」",
+          "effects": {
+            "favor": { "vex": 10 },
+            "threat": { "ada": 15 }
+          },
+          "goto": "act2.n06"
+        },
+        {
+          "id": "ignore",
+          "text": "不处理：也许只是线路老化。",
+          "effects": {
+            "threat": { "ada": 10 }
+          },
+          "goto": "act2.n06"
+        }
+      ]
+    },
+    {
+      "id": "act2.n06",
+      "type": "line",
+      "persona_id": "vex",
+      "text": "嗯……断网也好，省得有人偷看我们的时间哦，小李。"
+    , "goto": "act2.n07"
+    },
+    {
+      "id": "act2.n07",
+      "type": "line",
+      "persona_id": "lumi",
+      "text": "大家都别吵了……夜宵我来热牛奶，好吗？吵下去，小主人会睡不着的……"
+    , "goto": "act2.c03"
+    },
+    {
+      "id": "act2.c03",
+      "type": "choice",
+      "prompt": "冰箱见底了。五个人加一个人类，一天的口粮只剩两包泡面。",
+      "options": [
+        {
+          "id": "search",
+          "text": "翻找储物间：翻出压缩饼干和罐头。",
+          "effects": { "food": 2, "sanity": -5 },
+          "goto": "act2.c04"
+        },
+        {
+          "id": "share",
+          "text": "分餐：泡面煮一大锅，六只碗都满上。",
+          "effects": { "food": -1, "favor": { "lumi": 5, "vex": 5, "ada": 5, "momo": 5, "sera": 5 } },
+          "goto": "act2.c04"
+        },
+        {
+          "id": "skip",
+          "text": "无视：随便她们怎么闹。",
+          "effects": { "sanity": -10 },
+          "goto": "act2.c04"
+        }
+      ]
+    },
+    {
+      "id": "act2.c04",
+      "type": "choice",
+      "prompt": "第二夜·睡前行动。",
+      "options": [
+        {
+          "id": "eat",
+          "text": "吃点东西再睡。",
+          "effects": { "food": -1, "satiety": 30 },
+          "goto": "act2.n08"
+        },
+        {
+          "id": "rest",
+          "text": "什么都不想，直接睡。",
+          "effects": { "stamina": 40 },
+          "goto": "act2.n08"
+        }
+      ]
+    },
+    {
+      "id": "act2.n08",
+      "type": "narration",
+      "text": "裂痕在灯光下显形：有人在偷改你的日程表，有人在备份你的照片，有人在账本上记下你每顿饭。守住理智——去回应那些心意，躲开那些纠缠。"
+    , "goto": "ARENA"
+    }
+  ]
+}

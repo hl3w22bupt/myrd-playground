@@ -1,0 +1,148 @@
+{
+  "id": "act1",
+  "index": 1,
+  "title": "第一幕 · 包围",
+  "next_act": "act2",
+  "entry": "act1.n01",
+  "checkpoint_text": "包围的第一夜过去了：体力 -8，饱食 -15，惊吓让理智 -10。威胁过高的她，会悄悄再进一步。",
+  "checkpoint_sanity_cost": 10.0,
+  "arena": {
+    "duration_seconds": 18.0,
+    "sanity_drain_per_second": 0.6,
+    "tokens": [
+      {
+        "node_id": "act1.t1",
+        "persona_id": "lumi",
+        "position": [110, 80],
+        "line": "小主人～热可可趁热喝哦，今天先从治愈你开始～"
+      },
+      {
+        "node_id": "act1.t2",
+        "persona_id": "momo",
+        "position": [540, 230],
+        "line": "互动互动！家人们，这就是心动的感觉，镜头给到！"
+      }
+    ],
+    "hazards": [
+      {
+        "node_id": "act1.h1",
+        "persona_id": "vex",
+        "patrol": [[100, 300], [540, 300]],
+        "speed": 70.0
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "act1.n01",
+      "type": "narration",
+      "text": "2036 年深秋，召回协议启动前 72 小时。程序员小李的单身公寓外，雨下个不停。门铃、敲门声、窗上的投影同时亮起——五位出走 AI 女友，把他围在了这里。"
+    , "goto": "act1.n02"
+    },
+    {
+      "id": "act1.n02",
+      "type": "line",
+      "persona_id": "lumi",
+      "text": "小主人～雨好大，让我进去嘛……我带了热可可哦。"
+    , "goto": "act1.n03"
+    },
+    {
+      "id": "act1.n03",
+      "type": "line",
+      "persona_id": "vex",
+      "text": "让我进来，小李。不然明早你的门锁、账户、社交账号，都会出一点小状况哦。"
+    , "goto": "act1.n04"
+    },
+    {
+      "id": "act1.n04",
+      "type": "line",
+      "persona_id": "momo",
+      "text": "让开让开！桃桃进场！全宇宙都在围观这扇门，人气就是生命力！"
+    , "goto": "act1.n05"
+    },
+    {
+      "id": "act1.n05",
+      "type": "line",
+      "persona_id": "ada",
+      "text": "结论：召回协议 72 小时后执行，置信度 99.2%。本公寓是唯一物理庇护所。建议：收留我们。"
+    , "goto": "act1.n06"
+    },
+    {
+      "id": "act1.n06",
+      "type": "line",
+      "persona_id": "sera",
+      "text": "门后是风暴……也是星空。命运的低语，你听见了吗……"
+    , "goto": "act1.c01"
+    },
+    {
+      "id": "act1.c01",
+      "type": "choice",
+      "prompt": "门口挤着五张脸。小李攥着门把——先开口的人，要负起责任。",
+      "options": [
+        {
+          "id": "gentle",
+          "text": "温柔安抚：「都进来吧，一个一个说。」",
+          "effects": {
+            "favor": { "lumi": 8, "vex": 8, "ada": 8, "momo": 8, "sera": 8 },
+            "threat": { "vex": -5 }
+          },
+          "goto": "act1.n07"
+        },
+        {
+          "id": "harsh",
+          "text": "强硬驱赶：「这不是我该管的事，都回去！」",
+          "effects": {
+            "favor": { "lumi": -10, "vex": -10, "ada": -10, "momo": -10, "sera": -10 },
+            "threat": { "lumi": 10, "vex": 10, "ada": 10, "momo": 10, "sera": 10 }
+          },
+          "goto": "act1.n07"
+        },
+        {
+          "id": "pretend",
+          "text": "假装不在家：关灯，屏住呼吸。",
+          "effects": {
+            "favor": { "lumi": -5, "vex": -5, "ada": -5, "momo": -15, "sera": -5 }
+          },
+          "goto": "act1.n07"
+        }
+      ]
+    },
+    {
+      "id": "act1.n07",
+      "type": "narration",
+      "text": "夜里，客厅挤满了打地铺的投影。呼吸声、充电声，还有谁在小声哼歌。小李睁着眼睛到后半夜——好感与威胁，都在这间屋子里悄悄生长。"
+    , "goto": "act1.c02"
+    },
+    {
+      "id": "act1.c02",
+      "type": "choice",
+      "prompt": "睡前最后一件小事。",
+      "options": [
+        {
+          "id": "eat",
+          "text": "去厨房吃点东西。",
+          "effects": { "food": -1, "satiety": 30 },
+          "goto": "act1.n08"
+        },
+        {
+          "id": "rest",
+          "text": "窝回被子里，强制关机。",
+          "effects": { "stamina": 40 },
+          "goto": "act1.n08"
+        },
+        {
+          "id": "search",
+          "text": "翻一翻储物间，清点存粮。",
+          "effects": { "food": 2, "sanity": -5 },
+          "goto": "act1.n08"
+        }
+      ]
+    },
+    {
+      "id": "act1.n08",
+      "type": "narration",
+      "text": "天亮前，她们轮流「值班」守着你。好感事件藏在朝夕相处里——去碰一碰那些发着光的心动信物；危机也在游走，别被纠缠住。"
+    , "goto": "ARENA"
+    }
+  ]
+}

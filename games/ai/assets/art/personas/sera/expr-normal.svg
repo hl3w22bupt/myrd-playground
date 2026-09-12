@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- 瑟拉 · 表情差分 normal（寡言留白） -->
+  <rect width="120" height="120" rx="14" fill="#221d44"/>
+  <circle cx="18" cy="22" r="1.6" fill="#cfc4ff"/>
+  <circle cx="100" cy="18" r="1.2" fill="#ffffff"/>
+  <circle cx="106" cy="52" r="1.5" fill="#cfc4ff"/>
+  <path d="M92 26 L94.4 31 L99.4 31.6 L95.6 35 L96.6 40 L92 37.4 L87.4 40 L88.4 35 L84.6 31.6 L89.6 31 Z" fill="#ffe9a8" opacity="0.9"/>
+  <path d="M60 12 C32 12 24 36 27 58 L33 76 L87 76 L93 58 C96 36 88 12 60 12 Z" fill="#6c58b0"/>
+  <ellipse cx="60" cy="60" rx="33" ry="36" fill="#f4dfd8"/>
+  <path d="M27 60 C24 28 42 12 60 12 C78 12 96 28 93 60 C89 44 82 38 75 41 C78 28 66 24 61 30 C55 24 45 29 49 40 C40 37 31 46 27 60 Z" fill="#6c58b0"/>
+  <path d="M63 30 C71 36 77 50 77 62 L85 54 C85 42 76 32 63 30 Z" fill="#6c58b0"/>
+  <ellipse cx="47" cy="61" rx="6.6" ry="8.2" fill="#7a5fd0"/>
+  <ellipse cx="74" cy="61" rx="6.6" ry="8.2" fill="#7a5fd0"/>
+  <circle cx="47" cy="61" r="2.5" fill="#2c1f5c"/>
+  <circle cx="74" cy="61" r="2.5" fill="#2c1f5c"/>
+  <circle cx="49" cy="58" r="2" fill="#ffffff"/>
+  <circle cx="76" cy="58" r="2" fill="#ffffff"/>
+  <circle cx="44.8" cy="63.4" r="1" fill="#ffe9a8"/>
+  <circle cx="71.8" cy="63.4" r="1" fill="#ffe9a8"/>
+  <path d="M38 54 C42 51 50 51 54 54" fill="none" stroke="#4a3a80" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M66 54 C70 51 78 51 82 54" fill="none" stroke="#4a3a80" stroke-width="2.2" stroke-linecap="round"/>
+  <ellipse cx="36" cy="73" rx="5.2" ry="2.9" fill="#e8aab2" opacity="0.6"/>
+  <ellipse cx="84" cy="73" rx="5.2" ry="2.9" fill="#e8aab2" opacity="0.6"/>
+  <path d="M54 80 C57 82 63 82 66 80" fill="none" stroke="#b06a72" stroke-width="2.3" stroke-linecap="round"/>
+</svg>

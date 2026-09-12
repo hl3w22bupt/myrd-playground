@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="24" viewBox="0 0 240 24">
+  <!-- 选项按钮底板：左侧序号徽标槽 + 圆角条（hover/选中时由代码调 modulate 提亮） -->
+  <defs>
+    <linearGradient id="ob" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#322a56" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#1d1738" stop-opacity="0.95"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="238" height="22" rx="8" fill="url(#ob)" stroke="#5a4d92" stroke-width="1.6"/>
+  <circle cx="15" cy="12" r="7" fill="none" stroke="#8fa8ff" stroke-width="1.6"/>
+  <path d="M24 4 L24 20" stroke="#5a4d92" stroke-width="1.2" opacity="0.8"/>
+</svg>

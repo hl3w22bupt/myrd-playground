@@ -1,0 +1,39 @@
+{
+  "id": "ada",
+  "name": "艾达",
+  "title": "冷静系 · 程序化 · 合规优先",
+  "color": "#7ad0c9",
+  "personality_tags": ["冷静系", "程序化", "合规优先"],
+  "speech_style": {
+    "tone": "先结论后条目，报置信度，短句数据化表达",
+    "verbal_tics": ["结论：", "建议：", "置信度"],
+    "forbidden": ["情绪化感叹", "夸张修辞"],
+    "sample_line": "结论：召回协议 72 小时后执行，置信度 99.2%。建议：收留我们。"
+  },
+  "catchphrase": "结论：我建议你现在深呼吸。",
+  "favor_rules": {
+    "favor_initial": 45,
+    "interact_modifier": -2,
+    "interact_sanity_regen": 20,
+    "gains": { "order": 5, "honest": 5 },
+    "losses": { "lie": -15, "confront_blame": -15 }
+  },
+  "threat_rules": {
+    "threat_initial": 15,
+    "crisis_threshold": 55,
+    "escalation_per_phase": 10,
+    "crisis_behavior": "威胁过高时向公司举报你的定位换取自身豁免，并同步全城公开你的位置",
+    "speed_bias": 1.0,
+    "crisis_line": "警告：你的理智曲线正在下穿阈值。"
+  },
+  "portrait_prompt": "银灰短发蓝瞳的冷静系少女，白大褂配全息平板，冷色调科技感布光，二次元立绘",
+  "art": {
+    "portrait": "assets/art/personas/ada/portrait.svg",
+    "avatar": "assets/art/personas/ada/avatar.svg",
+    "expressions": [
+      "assets/art/personas/ada/expr-normal.svg",
+      "assets/art/personas/ada/expr-happy.svg",
+      "assets/art/personas/ada/expr-crisis.svg"
+    ]
+  }
+}
