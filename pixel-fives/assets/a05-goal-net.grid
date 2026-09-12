@@ -1,0 +1,38 @@
+# pixel-fives grid asset v1
+# id: A05
+# name: goal-net
+# kind: sprite
+# frame: 32x24
+# frames: 1
+# facing: 左向球门（开口朝右）；右向 = 水平镜像，禁止旋转
+# style: 引用 docs/art/style-card-v1.md（20色锁 / 框e亮p暗 / 网4px方格 / 交点p / 网底行特例§2）
+# 网区行模式：N=竖线行 "v..."x7 ；H=横线行(含交点p) "pvvv"x7 ；均在 c2-29
+legend:
+e #E8E4D8
+p #A8A394
+v #C9C4B4
+grid:
+eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+pppppppppppppppppppppppppppppppp
+epv...v...v...v...v...v...v...pe
+epv...v...v...v...v...v...v...pe
+eppvvvpvvvpvvvpvvvpvvvpvvvpvvvpe
+epv...v...v...v...v...v...v...pe
+epv...v...v...v...v...v...v...pe
+epv...v...v...v...v...v...v...pe
+eppvvvpvvvpvvvpvvvpvvvpvvvpvvvpe
+epv...v...v...v...v...v...v...pe
+epv...v...v...v...v...v...v...pe
+epv...v...v...v...v...v...v...pe
+eppvvvpvvvpvvvpvvvpvvvpvvvpvvvpe
+epv...v...v...v...v...v...v...pe
+epv...v...v...v...v...v...v...pe
+epv...v...v...v...v...v...v...pe
+eppvvvpvvvpvvvpvvvpvvvpvvvpvvvpe
+epv...v...v...v...v...v...v...pe
+epv...v...v...v...v...v...v...pe
+epv...v...v...v...v...v...v...pe
+eppvvvpvvvpvvvpvvvpvvvpvvvpvvvpe
+epv...v...v...v...v...v...v...pe
+epvvvvvvvvvvvvvvvvvvvvvvvvvvvpe
+epppppppppppppppppppppppppppppe

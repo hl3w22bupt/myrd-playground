@@ -1,0 +1,36 @@
+# pixel-fives grid asset v1
+# id: A07
+# name: ui-hud
+# kind: ui-panel
+# frame: 48x16
+# frames: 1
+# nine-slice: L=col0-3 M=col4-43 R=col44-47 / T=row0-2 M=row3-12 B=row13-15
+# slots: 左=赤焰队标(c4-7,row5-10) 右=霜蓝队标(c40-43) 中=计时槽(c18-29,row6-9,金色o为秒针点)
+# note: 比分数字不占美术位图预算，用系统像素字体渲染（风格卡§5 范围纪律）
+# style: 引用 docs/art/style-card-v1.md（20色锁 / 1px内描边S / 2px阶梯圆角 / 16px公度）
+legend:
+S #2E2A44
+n #12101E
+r #D93A2B
+R #A8281C
+b #2B6BD9
+B #1E4DA8
+o #E8B23A
+v #C9C4B4
+grid:
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+SnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnS
+SnnnnnnnnnnnSnnnnnnnnnnnnnnnnnnnnnnSnnnnnnnnnnnS
+SnnnnnnnnnnnSnnnnnnnnnnnnnnnnnnnnnnSnnnnnnnnnnnS
+SnnnnnnnnnnnSnnnnnnnnnnnnnnnnnnnnnnSnnnnnnnnnnnS
+SnnnrrrRnnnnSnnnnnnnnnnnnnnnnnnnnnnSnnnnbbbBnnnS
+SnnnrrrrnnnnSnnnnnvvvvvvvvvvvvnnnnnSnnnnbbbbnnnS
+SnnnrrrrnnnnSnnnnnvnnnnoonnnnvnnnnnSnnnnbbbbnnnS
+SnnnrrrrnnnnSnnnnnvnnnnoonnnnvnnnnnSnnnnbbbbnnnS
+SnnnrrrrnnnnSnnnnnvvvvvvvvvvvvnnnnnSnnnnbbbbnnnS
+SnnnrrrRnnnnSnnnnnnnnnnnnnnnnnnnnnnSnnnnbbbBnnnS
+SnnnnnnnnnnnSnnnnnnnnnnnnnnnnnnnnnnSnnnnnnnnnnnS
+SnnnnnnnnnnnSnnnnnnnnnnnnnnnnnnnnnnSnnnnnnnnnnnS
+SnnnnnnnnnnnSnnnnnnnnnnnnnnnnnnnnnnSnnnnnnnnnnnS
+SnnnnnnnnnnnSnnnnnnnnnnnnnnnnnnnnnnSnnnnnnnnnnnS
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
