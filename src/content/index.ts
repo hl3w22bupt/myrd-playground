@@ -10,6 +10,7 @@ import { ZONE } from './zone';
 import { MAP } from './map';
 import { AI } from './ai';
 import { AIRDROP } from './airdrop';
+import * as RENDER from './render';
 import * as CONSTANTS from './constants';
 
 export interface ContentPack {
@@ -21,8 +22,10 @@ export interface ContentPack {
   zone: typeof ZONE;
   map: typeof MAP;
   ai: typeof AI;
-  airdrop: typeof AIRDROP;
+  /** 渲染性能配置（表现层专用，不影响仿真确定性） */
+  render: typeof RENDER;
   physics: { parachute: typeof PARACHUTE; movement: typeof MOVEMENT; ballistic: typeof BALLISTIC };
+  airdrop: typeof AIRDROP;
 }
 
 export const DEFAULT_CONTENT_PACK: ContentPack = {
@@ -34,8 +37,9 @@ export const DEFAULT_CONTENT_PACK: ContentPack = {
   zone: ZONE,
   map: MAP,
   ai: AI,
-  airdrop: AIRDROP,
+  render: RENDER,
   physics: { parachute: PARACHUTE, movement: MOVEMENT, ballistic: BALLISTIC },
+  airdrop: AIRDROP,
 };
 
 /** 测试/调参用：派生内容包（浅覆盖） */
@@ -52,3 +56,4 @@ export * from './map';
 export * from './physics';
 export * from './ai';
 export * from './airdrop';
+export * from './render';

@@ -3,7 +3,8 @@
  * tick 内禁止 Math.random / Date.now / DOM 访问（确定性红线，CI lint 强制）。
  */
 
-import { DEFAULT_CONTENT_PACK, TICK_MS } from '../content';
+import { DEFAULT_CONTENT_PACK, ENTITY_CAP, TICK_MS } from '../content';
+import { PICKUP_RADIUS_M } from '../content/constants';
 import type { ContentPack } from '../content';
 import { Rng } from './rng';
 import { dist2D } from './geom';
@@ -25,6 +26,8 @@ import { initZone, updateZone } from './systems/zone';
 import { initAi, updateAi } from './systems/ai';
 import { initAirdrops, updateAirdrops } from './systems/airdrop';
 import { updateLifecycle, checkMatchEnd } from './systems/lifecycle';
+import { SnapshotWriter } from './snapshot';
+import { clamp } from './geom';
 import type {
   EntitySnapshot,
   GameEvent,
@@ -119,9 +122,10 @@ export function createWorldForTest(config: MatchConfig): World {
     buildings: generated.buildings,
     dropHints: generated.dropHints,
     airdrops: [],
-    airdropSeq: 0,
     events: [],
     result: null,
+    lootSeq: 0,
+    airdropSeq: 0,
     rng,
   };
 
@@ -163,11 +167,11 @@ export function tickWorld(w: World, intents: PlayerIntent[]): void {
   // 6) loot（拾取/丢弃/使用）
   updateLoot(w);
 
-  // 7) zone（缩圈 + 毒圈伤害）
-  updateZone(w);
-
-  // 8) airdrop（定时空投投放/下落/落地散布，纯内容投放）
+  // 7) airdrop（定时空投：投放 → 降落 → 落地生成高价值物资）
   updateAirdrops(w);
+
+  // 8) zone（缩圈 + 毒圈伤害）
+  updateZone(w);
 
   // 9) ai（分帧决策，产出下一拍意图）
   updateAi(w);
@@ -187,6 +191,13 @@ export function applyIntent(e: Entity, intent: PlayerIntent): void {
       e.yaw = intent.yaw;
       e.pitch = intent.pitch;
       break;
+    case 'aimDelta': {
+      // 相对瞄准增量：不覆盖仿真侧后坐力偏移（后坐力可感知的前提）
+      const limit = Math.PI / 2 - 0.05;
+      e.yaw += intent.dYaw;
+      e.pitch = clamp(e.pitch + intent.dPitch, -limit, limit);
+      break;
+    }
     case 'fire':
       e.firing = true;
       break;
@@ -208,9 +219,6 @@ export function applyIntent(e: Entity, intent: PlayerIntent): void {
     case 'useItem':
       e.wantUse = intent.slot;
       break;
-    case 'useBestMedkit':
-      e.wantUseBest = true;
-      break;
     case 'jumpFromPlane':
       e.wantJump = true;
       break;
@@ -231,8 +239,8 @@ export function buildSnapshot(w: World): WorldSnapshot {
     kind: e.kind,
     alive: e.alive,
     pos: { ...e.pos },
-    yaw: e.yaw,
-    pitch: e.pitch,
+    yaw: e.yaw + e.recoilYaw,
+    pitch: e.pitch + e.recoilPitch,
     state: e.state,
     weapon: e.weapons[e.activeWeapon]?.weapon ?? null,
     hp: e.hp,
@@ -244,8 +252,6 @@ export function buildSnapshot(w: World): WorldSnapshot {
     if (l.taken) continue;
     loots.push({ id: l.id, item: l.item, pos: l.pos });
   }
-
-  const airdrops = w.airdrops.map((c) => ({ id: c.id, pos: { ...c.pos }, phase: c.phase }));
 
   let player: PlayerViewSnapshot | null = null;
   const p = w.player;
@@ -283,7 +289,7 @@ export function buildSnapshot(w: World): WorldSnapshot {
     entities,
     player,
     loots,
-    airdrops,
+    playerEntity: entities.length > 0 && entities[0].id === w.player.id ? entities[0] : null,
     zone: {
       center: { ...w.zone.center },
       radius: w.zone.radius,
@@ -298,11 +304,21 @@ export function buildSnapshot(w: World): WorldSnapshot {
     plane: w.plane.active
       ? { active: true, pos: { ...w.plane.pos }, dir: { ...w.plane.dir } }
       : null,
+    airdrops: w.airdrops.map((a) => ({
+      id: a.id,
+      pos: { ...a.pos },
+      y: a.pos.y,
+      phase: a.phase,
+    })),
   };
 }
 
 export function createMatch(config: MatchConfig): MatchHandle & { world: World } {
   const w = createWorldForTest(config);
+  // 零分配快照通道：预分配对象图，每帧只覆写（渲染/UI 每帧消费，避免 GC 抖动）
+  const snapshotWriter = new SnapshotWriter(Math.max(ENTITY_CAP, w.entities.length));
+  // 事件缓冲复用：上一帧事件已在本帧内被 UI/特效消费完，下一帧 drain 时回收该数组
+  let reclaimedEvents: GameEvent[] = [];
   return {
     world: w,
     tick(intents: PlayerIntent[] = []): void {
@@ -311,9 +327,15 @@ export function createMatch(config: MatchConfig): MatchHandle & { world: World }
     snapshot(): WorldSnapshot {
       return buildSnapshot(w);
     },
+    snapshotReusable(): WorldSnapshot {
+      return snapshotWriter.write(w);
+    },
     drainEvents(): GameEvent[] {
+      const spare = reclaimedEvents;
+      spare.length = 0;
       const out = w.events;
-      w.events = [];
+      w.events = spare;
+      reclaimedEvents = out;
       return out;
     },
     status(): MatchStatus {
@@ -328,25 +350,23 @@ export function createMatch(config: MatchConfig): MatchHandle & { world: World }
   };
 }
 
-/** 拾取提示（AC3）：玩家拾取半径内最近的可拾取物资（仅落地后有效） */
+export type { LootItem };
+export { pushEvent, TICK_MS };
+
 function findNearbyLoot(w: World, p: Entity): NearbyLoot | null {
   if (p.state !== 'ground' || !p.alive) return null;
   let best: NearbyLoot | null = null;
   for (const l of w.loots) {
     if (l.taken) continue;
     const d = dist2D(p.pos.x, p.pos.z, l.pos.x, l.pos.z);
-    if (d <= w.pack.constants.PICKUP_RADIUS_M && (best === null || d < best.dist)) {
+    if (d <= PICKUP_RADIUS_M && (best === null || d < best.dist)) {
       best = { id: l.id, item: l.item, dist: d };
     }
   }
   return best;
 }
 
-/** 毒圈警示（AC5）：玩家存活且处于安全区外 */
 function isPlayerOutsideZone(w: World, p: Entity): boolean {
   if (!p.alive || p.state === 'dead') return false;
   return dist2D(p.pos.x, p.pos.z, w.zone.center.x, w.zone.center.z) > w.zone.radius;
 }
-
-export type { LootItem };
-export { pushEvent, TICK_MS };

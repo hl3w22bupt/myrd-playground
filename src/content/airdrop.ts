@@ -1,7 +1,6 @@
 /**
- * content/airdrop —— 空投系统数值基准（对局中期高价值物资集中投放，玩法缺口补齐项）。
- * 定时与投放规则参照既有权威实现（PR #14）取值；内容物使用本功能线 content/items
- * 已定义的高价值物资（含武器/弹药/护甲/头盔/医疗包），保证落地物走标准 loot 通道。
+ * content/airdrop —— 空投系统数值基准（对局中期高价值物资投放，玩法缺口补齐项）。
+ * 空投专属物资（sr_awm / ammo_300 / 三级甲 / 三级盔）不出现在常规物资池。
  */
 
 import type { ItemId } from './items';
@@ -17,7 +16,7 @@ export interface AirdropConfig {
   fallSpeedMps: number;
   /** 空投箱出现高度（m） */
   spawnAltitude: number;
-  /** 落点在安全区内的归一化半径（× 当前圈半径，0..1） */
+  /** 落点在安全区内的归一化半径（× 当前圈半径，0..1，含少量圈外漂移余量另加） */
   landRadiusFactor: number;
   /** 落点距圈心最小距离（× 当前圈半径，避免总是砸圈心） */
   landMinRadiusFactor: number;
@@ -37,10 +36,10 @@ export const AIRDROP: AirdropConfig = {
   landMinRadiusFactor: 0.1,
   scatterRadiusM: 4,
   contents: [
-    { item: 'weapon_ar_m4', count: 1 },
-    { item: 'ammo_556', count: 2 },
-    { item: 'armor_vest', count: 1 },
-    { item: 'helmet_mk2', count: 1 },
+    { item: 'weapon_sr_awm', count: 1 },
+    { item: 'ammo_300', count: 2 },
+    { item: 'armor_vest_lv3', count: 1 },
+    { item: 'helmet_mk3', count: 1 },
     { item: 'medkit_large', count: 1 },
   ],
 };

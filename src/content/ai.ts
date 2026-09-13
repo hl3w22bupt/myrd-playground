@@ -21,10 +21,6 @@ export interface AiConfig {
   jumpWindowSec: [number, number];
   /** 巡逻点到达距离（m） */
   waypointReachDist: number;
-  /** 脱离交火撤退：hp < maxHp × 该值且近期受击时停止交火并后撤（玩法缺口补齐项） */
-  retreatHpRatio: number;
-  /** 受击后进入撤退判定的事件窗（ms） */
-  retreatRecentDamageMs: number;
 }
 
 export const AI: AiConfig = {
@@ -37,11 +33,9 @@ export const AI: AiConfig = {
   fleeZoneRatio: 0.82,
   jumpWindowSec: [12, 42],
   waypointReachDist: 8,
-  retreatHpRatio: 0.45,
-  retreatRecentDamageMs: 5000,
 };
 
-/** AI 行为人格（行为多样化，玩法缺口补齐项）：所有数值均为对 AI 全局参数的乘数，避免第二套魔数 */
+/** AI 行为人格（行为多样化）：所有数值均为对 AI 全局参数的乘数，避免第二套魔数 */
 export type AiPersonaId = 'assault' | 'sniper' | 'skirmisher' | 'looter';
 
 export interface AiPersonaDef {
@@ -55,32 +49,46 @@ export interface AiPersonaDef {
   fireRangeMul: number;
   /** 开火反应时间乘数 */
   reactionMsMul: number;
-  /** 瞄准误差乘数（越大越不准） */
+  /** 瞄准误差乘数 */
   aimErrMul: number;
   /** 拾取搜索半径乘数 */
   lootRangeMul: number;
+  /** 期望交战距离（m）：狙击保持距离，突击逼近 */
+  engageDist: number;
+  /** 低血撤退阈值（hp/maxHp 低于该值时脱离战斗治疗） */
+  retreatHpRatio: number;
+  /** 交火侧移幅度乘数 */
+  strafeMul: number;
+  /** 点射长度（发，0 = 不限） */
+  burstShots: number;
+  /** 点射间冷却（ms） */
+  burstCooldownMs: number;
 }
 
 export const AI_PERSONALITIES: Record<AiPersonaId, AiPersonaDef> = {
   assault: {
     id: 'assault', name: '突击手', weight: 4,
     visionMul: 1.0, fireRangeMul: 1.0, reactionMsMul: 0.8, aimErrMul: 1.0,
-    lootRangeMul: 0.9,
+    lootRangeMul: 0.9, engageDist: 45, retreatHpRatio: 0.25, strafeMul: 1.2,
+    burstShots: 5, burstCooldownMs: 500,
   },
   sniper: {
     id: 'sniper', name: '狙击手', weight: 2,
     visionMul: 1.6, fireRangeMul: 2.0, reactionMsMul: 1.6, aimErrMul: 0.7,
-    lootRangeMul: 0.8,
+    lootRangeMul: 0.8, engageDist: 130, retreatHpRatio: 0.35, strafeMul: 0.4,
+    burstShots: 2, burstCooldownMs: 1100,
   },
   skirmisher: {
     id: 'skirmisher', name: '游击兵', weight: 3,
     visionMul: 1.1, fireRangeMul: 0.7, reactionMsMul: 0.6, aimErrMul: 1.25,
-    lootRangeMul: 1.0,
+    lootRangeMul: 1.0, engageDist: 28, retreatHpRatio: 0.4, strafeMul: 1.8,
+    burstShots: 4, burstCooldownMs: 350,
   },
   looter: {
     id: 'looter', name: '搜刮者', weight: 3,
     visionMul: 0.8, fireRangeMul: 0.6, reactionMsMul: 1.4, aimErrMul: 1.1,
-    lootRangeMul: 1.6,
+    lootRangeMul: 1.6, engageDist: 30, retreatHpRatio: 0.5, strafeMul: 0.7,
+    burstShots: 3, burstCooldownMs: 700,
   },
 };
 

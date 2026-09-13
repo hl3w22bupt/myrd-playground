@@ -1,5 +1,6 @@
 /**
- * app/game —— 组装根：创建 match + render + input + ui 并接线（双循环 rAF 驱动）。
+ * app/game —— 组装根：创建 match + render + input + ui 并接线。
+ * 逐帧工作统一交给 FrameDriver（渲染单循环）；本文件只负责装配与生命周期。
  */
 
 import { createMatch } from '../core/match';
@@ -13,6 +14,7 @@ import { Hud } from '../ui/hud';
 import { Minimap } from '../ui/minimap';
 import { InventoryPanel, ResultScreen } from '../ui/panels';
 import { PerfSampler } from '../perf/sampler';
+import { FrameDriver } from './frame';
 import type { StartOptions } from '../ui/panels';
 
 export interface GameHandle {
@@ -64,67 +66,44 @@ export function startGame(container: HTMLElement, opts: StartOptions): GameHandl
     startGame(container, opts);
   });
 
-  // 5) 双循环：rAF 可变渲染 + 50Hz 固定逻辑
-  const loop = new FixedLoop((intents: PlayerIntent[]) => match.tick(intents));
+  // 5) 渲染单循环：rAF 可变渲染 + 50Hz 固定逻辑，全部逐帧工作收敛到 FrameDriver
+  const loop = new FixedLoop((intents) => match.tick(intents));
   const sampler = new PerfSampler();
-  let pendingIntents: PlayerIntent[] = [];
-  let lastT = performance.now();
-  let rafId = 0;
-  let ended = false;
-
-  const frame = (t: number): void => {
-    rafId = requestAnimationFrame(frame);
-    const dt = Math.min(100, t - lastT);
-    lastT = t;
-    sampler.frame(t);
-
-    // 输入 → 意图
-    const frameIntents = [...pendingIntents, ...input.consume()];
-    pendingIntents = [];
-
-    // 固定步进推进仿真（意图只在第一个逻辑 tick 消费）
-    const alpha = loop.advance(dt, frameIntents);
-
-    // 事件：UI 与特效各取一份
-    const events = match.drainEvents();
-
-    // 渲染（快照只读；view 为 null 时仅降级为 HUD）
-    const snap = match.snapshot();
-    if (view) view.render(snap, events, alpha, dt / 1000);
-    hud.update(snap);
-    hud.consumeEvents(events, match);
-    minimap.update(snap);
-    if (inventory.visible) inventory.render();
-
-    // 性能采样 + 画质自适应
-    const sample = sampler.sample();
-    if (view) {
-      const changed = view.autoTune(sample.fps, t);
-      if (changed) hud.setDebug(`画质自动调整为 ${changed}`);
-      hud.setDebug(
-        `FPS ${sample.fps.toFixed(0)} · 1%低 ${sample.low1Fps.toFixed(0)} · p95 ${sample.p95FrameMs.toFixed(1)}ms · ` +
-        `draw ${view.drawCalls} · 画质 ${view.qualityLevel}` +
-        (sample.heapMb !== null ? ` · heap ${sample.heapMb.toFixed(0)}MB` : '') +
-        (loop.dropped > 0 ? ` · 丢帧tick ${loop.dropped}` : ''),
-      );
-    }
-
-    // 结算
-    if (!ended && match.status() === 'ended') {
-      ended = true;
+  const pendingIntents: PlayerIntent[] = [];
+  const driver = new FrameDriver({
+    match,
+    loop,
+    sampler,
+    input: {
+      consume: () => {
+        const out = input.consume();
+        if (pendingIntents.length > 0) {
+          for (let i = 0; i < pendingIntents.length; i++) out.push(pendingIntents[i]);
+          pendingIntents.length = 0;
+        }
+        return out;
+      },
+    },
+    hud,
+    minimap,
+    inventory,
+    view,
+    onEnded: (m) => {
       input.exitPointerLock();
-      const result = match.result();
+      const result = m.result();
       if (result) resultScreen.show(result);
-    }
-  };
-  rafId = requestAnimationFrame(frame);
+    },
+    raf: (cb) => requestAnimationFrame(cb),
+    caf: (id) => cancelAnimationFrame(id),
+  });
+  driver.start();
 
   const onResize = () => view?.resize();
   window.addEventListener('resize', onResize);
 
   const handle: GameHandle = {
     dispose(): void {
-      cancelAnimationFrame(rafId);
+      driver.stop();
       window.removeEventListener('resize', onResize);
       input.dispose();
       hud.dispose();

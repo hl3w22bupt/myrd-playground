@@ -7,6 +7,7 @@ export { Rng, createRng } from './rng';
 export * from './types';
 export { createMatch, createWorldForTest, tickWorld, buildSnapshot, applyIntent, MATCH_DEFAULTS } from './match';
 export type { MatchConfig } from './match';
+export { SnapshotWriter } from './snapshot';
 export { FixedLoop } from './loop';
 export * from './geom';
 export {
@@ -17,12 +18,11 @@ export {
   resolveBuildingCollision,
 } from './mapgen';
 export type { GeneratedMap } from './mapgen';
-export type { World, Entity, LootItem, PlaneState, ZoneState, WeaponSlot, AirdropCrate } from './world';
-export { pushEvent, createEntity, freeGrids, cancelMedkitChannel } from './world';
+export type { World, Entity, LootItem, PlaneState, ZoneState, WeaponSlot } from './world';
+export { pushEvent, createEntity, freeGrids } from './world';
 export * from './systems/combat';
 export { updateZone, initZone } from './systems/zone';
-export { updateAi, initAi, aiPersonaParams } from './systems/ai';
-export { initAirdrops, updateAirdrops, nextDropAtMs } from './systems/airdrop';
+export { updateAi, initAi } from './systems/ai';
 export { updateLifecycle, checkMatchEnd } from './systems/lifecycle';
 export {
   generateLoot,
@@ -32,9 +32,9 @@ export {
   useMedkit,
   updateLoot,
   spawnLootAt,
-  itemDef,
-  isMedkitItem,
-  findBestMedkitSlot,
+  resolveDropSlot,
 } from './systems/loot';
 export { updatePlane, simulateFalling, jumpFromPlane } from './systems/parachute';
 export { updateMovement } from './systems/movement';
+export { initAirdrops, updateAirdrops, nextDropAtMs } from './systems/airdrop';
+export type { AirDropCrate } from './world';

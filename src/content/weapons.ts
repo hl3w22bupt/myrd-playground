@@ -3,8 +3,8 @@
  * 术语与数值以《Web大逃杀技术方案与性能红线》为准。
  */
 
-export type WeaponId = 'ar_m4' | 'smg_ump';
-export type WeaponCategory = 'ar' | 'smg';
+export type WeaponId = 'ar_m4' | 'smg_ump' | 'sr_awm';
+export type WeaponCategory = 'ar' | 'smg' | 'sr';
 
 export interface WeaponDef {
   id: WeaponId;
@@ -84,6 +84,22 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     spread: 0.0022,
     projectileSpeed: 620,
     ammoType: 'ammo_45',
+  },
+  /** 空投专属栓动狙击：仅从空投箱获取（content/airdrop.contents），常规物资池不产出 */
+  sr_awm: {
+    id: 'sr_awm',
+    name: '栓动狙击 AWM',
+    category: 'sr',
+    damage: 95,
+    rpm: 40,
+    magazine: 5,
+    reloadMs: 3200,
+    recoil: 0.85,
+    effectiveRange: 600,
+    maxRange: 900,
+    spread: 0.0012,
+    projectileSpeed: 945,
+    ammoType: 'ammo_300',
   },
 };
 

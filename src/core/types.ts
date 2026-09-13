@@ -36,14 +36,17 @@ export interface WeaponSlotState {
 export type PlayerIntent =
   | { kind: 'move'; dirX: number; dirZ: number; sprint?: boolean }
   | { kind: 'aim'; yaw: number; pitch: number }
+  /** 相对瞄准增量（鼠标类输入）：叠在当前朝向上，避免覆盖仿真侧后坐力偏移 */
+  | { kind: 'aimDelta'; dYaw: number; dPitch: number }
   | { kind: 'fire' }
   | { kind: 'stopFire' }
   | { kind: 'reload' }
   | { kind: 'switchWeapon'; slot: number }
   | { kind: 'interact' }
+  /** slot -1 语义：丢弃第一个非空背包格 */
   | { kind: 'drop'; slot: number }
+  /** slot -1 语义：使用第一个可用的医疗物品 */
   | { kind: 'useItem'; slot: number }
-  | { kind: 'useBestMedkit' }
   | { kind: 'jumpFromPlane' }
   | { kind: 'freefallControl'; dirX: number; dirZ: number; dive: number }
   | { kind: 'deployParachute' };
@@ -94,7 +97,7 @@ export interface PlayerViewSnapshot {
   kills: number;
   aliveCount: number;
   medkitChannelMsLeft: number;
-  /** 医疗引导中的血包 id（HUD 据此取对应 useMs 渲染进度条） */
+  /** 正在使用中的医疗物品 id（引导进度条用；null = 未在使用） */
   medkitItem: ItemId | null;
   /** 拾取提示（AC3）：范围内最近的可拾取物资；null 表示范围内无物资 */
   nearbyLoot: NearbyLoot | null;
@@ -116,13 +119,6 @@ export interface LootSnapshot {
   pos: Vec3;
 }
 
-/** 空投箱快照（渲染层只读数据源） */
-export interface AirdropSnapshot {
-  id: string;
-  pos: Vec3;
-  phase: 'falling' | 'landed';
-}
-
 export interface ZoneSnapshot {
   center: Vec3;
   radius: number;
@@ -141,6 +137,14 @@ export interface PlaneSnapshot {
   dir: Vec3;
 }
 
+/** 空投箱快照（phase: falling 降落中 / landed 已落地待拾取） */
+export interface AirDropSnapshot {
+  id: string;
+  pos: Vec3;
+  y: number;
+  phase: 'falling' | 'landed';
+}
+
 export interface WorldSnapshot {
   tick: number;
   elapsedMs: number;
@@ -148,9 +152,11 @@ export interface WorldSnapshot {
   entities: EntitySnapshot[];
   player: PlayerViewSnapshot | null;
   loots: LootSnapshot[];
-  airdrops: AirdropSnapshot[];
   zone: ZoneSnapshot;
   plane: PlaneSnapshot | null;
+  airdrops: AirDropSnapshot[];
+  /** 玩家实体快照（entities 中 kind==='player' 的同一对象；渲染层免于逐帧 find 查找） */
+  playerEntity?: EntitySnapshot | null;
 }
 
 export interface ResultRow {
@@ -184,9 +190,18 @@ export interface AABB {
 export interface MatchHandle {
   /** 推进一个 20ms 逻辑 tick（intents 为玩家本 tick 意图） */
   tick(intents?: PlayerIntent[]): void;
-  /** 渲染层唯一只读数据源 */
+  /** 渲染层唯一只读数据源（分配版：需要跨帧保留时使用） */
   snapshot(): WorldSnapshot;
-  /** 取走本 tick 事件（UI/特效消费） */
+  /**
+   * 零分配快照通道：返回复用对象（对象恒定、仅覆写字段），仅在本帧内有效。
+   * 渲染/UI 每帧消费必须走此通道，避免每帧重建快照对象图造成 GC 抖动。
+   */
+  snapshotReusable?(): WorldSnapshot;
+  /**
+   * 取走本 tick 事件（UI/特效在**本帧内**消费）。
+   * 所有权契约：返回数组由 core 回收复用——下一帧 drainEvents() 会清空并覆写上一帧返回的数组，
+   * 调用方不得跨帧持有（需跨帧保留时自行拷贝）；与 snapshotReusable() 的帧内有效语义一致。
+   */
   drainEvents(): GameEvent[];
   status(): MatchStatus;
   /** ended 时非空：排名/淘汰数/用时 */

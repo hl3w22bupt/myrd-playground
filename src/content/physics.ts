@@ -68,7 +68,6 @@ export const MOVEMENT: MovementConfig = {
   turnSpeed: 6,
 };
 
-/** 弹道（ballistics）物理参数 —— AC4「命中判定基于弹道与目标包围盒」的数值来源（玩法缺口补齐项） */
 export interface BallisticConfig {
   /** 弹道下坠重力加速度（m/s²），下坠量 = 0.5 × g × t²，t = 距离 / 弹速 */
   gravityMps2: number;

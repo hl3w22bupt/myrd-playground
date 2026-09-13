@@ -1,0 +1,4 @@
+# apphost 应用清单（平台构建管线步骤 1 读取；M1 仅支持顶层字符串键值）
+name = "myrd-app"
+runtime = "node20"
+health = "/health"

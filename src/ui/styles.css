@@ -22,17 +22,47 @@ html, body {
 #app canvas { display: block; }
 
 /* ————— HUD ————— */
-.hud { position: absolute; inset: 0; pointer-events: none; }
+.hud {
+  position: absolute; inset: 0; pointer-events: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+}
 
+/* 准星：四线 + 中心点，开火扩散（kick） */
 .crosshair {
   position: absolute; left: 50%; top: 50%;
-  width: 22px; height: 22px; margin: -11px 0 0 -11px;
+  width: 26px; height: 26px; margin: -13px 0 0 -13px;
+  transition: transform 70ms ease-out;
 }
-.crosshair::before, .crosshair::after {
-  content: ''; position: absolute; background: rgba(255,255,255,0.85);
+.crosshair i {
+  position: absolute; background: rgba(255,255,255,0.92);
+  box-shadow: 0 0 3px rgba(0,0,0,0.8);
 }
-.crosshair::before { left: 50%; top: 0; width: 2px; height: 100%; margin-left: -1px; }
-.crosshair::after { top: 50%; left: 0; height: 2px; width: 100%; margin-top: -1px; }
+.crosshair i:nth-child(1) { left: 50%; top: 0; width: 2px; height: 7px; margin-left: -1px; }
+.crosshair i:nth-child(2) { left: 50%; bottom: 0; width: 2px; height: 7px; margin-left: -1px; }
+.crosshair i:nth-child(3) { top: 50%; left: 0; height: 2px; width: 7px; margin-top: -1px; }
+.crosshair i:nth-child(4) { top: 50%; right: 0; height: 2px; width: 7px; margin-top: -1px; }
+.crosshair b {
+  position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; margin: -1.5px 0 0 -1.5px;
+  border-radius: 50%; background: rgba(255,255,255,0.95); box-shadow: 0 0 3px rgba(0,0,0,0.8);
+}
+.crosshair.kick { transform: scale(1.35); }
+
+/* 命中标记 ×（爆头更亮更红） */
+.hitmarker {
+  position: absolute; left: 50%; top: 50%;
+  width: 34px; height: 34px; margin: -17px 0 0 -17px;
+  opacity: 0; transform: scale(1.5) rotate(45deg);
+}
+.hitmarker.show { opacity: 1; transform: scale(1) rotate(45deg); transition: opacity 60ms, transform 60ms; }
+.hitmarker i {
+  position: absolute; width: 2.5px; height: 10px; background: #fff;
+  box-shadow: 0 0 4px rgba(255,80,60,0.9);
+}
+.hitmarker[data-part="head"] i { background: #ff6a55; box-shadow: 0 0 6px rgba(255,90,60,1); }
+.hitmarker i:nth-child(1) { left: 6px; top: 4px; transform: rotate(0deg); }
+.hitmarker i:nth-child(2) { right: 6px; top: 4px; transform: rotate(90deg); }
+.hitmarker i:nth-child(3) { left: 6px; bottom: 4px; transform: rotate(90deg); }
+.hitmarker i:nth-child(4) { right: 6px; bottom: 4px; transform: rotate(0deg); }
 
 .vignette {
   position: absolute; inset: 0; opacity: 0; transition: opacity .35s;
@@ -61,47 +91,123 @@ html, body {
   padding: 9px 20px; font-size: 15px; font-weight: 700; color: #f2d9ff; letter-spacing: 1px;
 }
 
+/* —— 左上：局势面板 + 缩圈徽章 —— */
 .hud-top-left {
-  position: absolute; top: 14px; left: 14px; display: flex; gap: 10px;
+  position: absolute; top: 14px; left: 14px; display: flex; gap: 10px; align-items: stretch;
 }
 .stat {
-  background: var(--hud-bg); border: 1px solid var(--hud-line); border-radius: 8px;
-  padding: 6px 12px; font-size: 14px; display: flex; gap: 6px; align-items: baseline;
+  background: linear-gradient(180deg, rgba(22,30,38,0.78), rgba(10,14,18,0.66));
+  border: 1px solid var(--hud-line); border-radius: 10px;
+  padding: 6px 13px; font-size: 14px; display: flex; gap: 6px; align-items: baseline;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 2px 8px rgba(0,0,0,0.35);
+  backdrop-filter: blur(2px);
 }
 .stat-label { color: #9fb0c0; font-size: 12px; }
-.stat span:last-child { font-weight: 700; font-size: 16px; }
+.stat span:last-child { font-weight: 800; font-size: 17px; font-variant-numeric: tabular-nums; }
+.stat-accent span:last-child { color: #ffca5f; }
+
+.zone-badge {
+  background: linear-gradient(180deg, rgba(22,30,38,0.78), rgba(10,14,18,0.66));
+  border: 1px solid var(--hud-line); border-radius: 10px; padding: 6px 12px;
+  display: flex; gap: 8px; align-items: center;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 2px 8px rgba(0,0,0,0.35);
+  backdrop-filter: blur(2px);
+}
+.zone-icon { color: #6fd0ff; font-size: 16px; line-height: 1; }
+.zone-badge[data-mode="shrink"] .zone-icon { color: #ff7a5c; animation: zonePulse 1s ease-in-out infinite; }
+.zone-info { display: flex; flex-direction: column; gap: 3px; }
+.zone-info em { font-style: normal; font-size: 12.5px; font-weight: 700; color: #dfe9f2; white-space: nowrap; }
+.zone-track { display: block; width: 86px; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.14); overflow: hidden; }
+.zone-fill { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #6fd0ff, #3d8fd6); }
+.zone-badge[data-mode="shrink"] .zone-fill { background: linear-gradient(90deg, #ff9a70, #ff5c3a); }
+@keyframes zonePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
 
 .hud-state {
   position: absolute; top: 16%; left: 50%; transform: translateX(-50%);
-  background: var(--hud-bg); border: 1px solid var(--hud-line); border-radius: 10px;
-  padding: 10px 22px; font-size: 16px; letter-spacing: 1px;
+  background: linear-gradient(180deg, rgba(22,30,38,0.8), rgba(10,14,18,0.68));
+  border: 1px solid var(--hud-line); border-radius: 12px;
+  padding: 11px 26px; font-size: 16px; letter-spacing: 1.5px; font-weight: 600;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 4px 14px rgba(0,0,0,0.4);
+  backdrop-filter: blur(2px);
 }
 
-.killfeed { position: absolute; top: 14px; right: 14px; width: 240px; display: flex; flex-direction: column; gap: 4px; }
+/* —— 空投横幅（降落/落地提示，位置见小地图红箱标记） —— */
+.airdrop-banner {
+  position: absolute; top: calc(16% + 58px); left: 50%; transform: translateX(-50%);
+  display: none;
+  background: linear-gradient(180deg, rgba(64,26,22,0.82), rgba(30,12,10,0.7));
+  border: 1px solid rgba(255,140,110,0.4); border-radius: 10px;
+  padding: 6px 18px; font-size: 13px; letter-spacing: 1px; font-weight: 600; color: #ffd9cf;
+  animation: airdropPulse 1.6s ease-in-out infinite;
+}
+@keyframes airdropPulse { 0%, 100% { opacity: 0.95; } 50% { opacity: 0.6; } }
+
+/* —— 右上：击杀播报 —— */
+.killfeed { position: absolute; top: 14px; right: 224px; width: 250px; display: flex; flex-direction: column; gap: 4px; }
 .killfeed-row {
-  background: var(--hud-bg); border: 1px solid var(--hud-line); border-radius: 6px;
-  padding: 5px 10px; font-size: 12px; color: #d7e0e8;
+  background: linear-gradient(90deg, rgba(28,24,22,0.8), rgba(14,12,11,0.66));
+  border: 1px solid rgba(255,170,120,0.22); border-left: 3px solid #ff7a5c;
+  border-radius: 7px; padding: 5px 10px; font-size: 12px; color: #f0ded6;
+  animation: feedIn 160ms ease-out;
 }
+@keyframes feedIn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
 
-.hud-bottom-left { position: absolute; left: 16px; bottom: 16px; width: 260px; }
+/* —— 左下：血量 —— */
+.hud-bottom-left { position: absolute; left: 16px; bottom: 16px; width: 280px; }
+.hpwrap {
+  background: linear-gradient(180deg, rgba(22,30,38,0.78), rgba(10,14,18,0.66));
+  border: 1px solid var(--hud-line); border-radius: 12px; padding: 9px 11px 7px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 2px 8px rgba(0,0,0,0.35);
+  backdrop-filter: blur(2px);
+}
 .hpbar {
-  height: 12px; border-radius: 6px; background: rgba(255,255,255,0.14);
-  overflow: hidden; border: 1px solid var(--hud-line);
+  position: relative; height: 13px; border-radius: 7px; background: rgba(255,255,255,0.12);
+  overflow: hidden; border: 1px solid rgba(255,255,255,0.2);
 }
-.hpbar-fill { height: 100%; width: 100%; background: #59c159; transition: width .18s; }
-.hprow { display: flex; justify-content: space-between; margin-top: 4px; font-size: 13px; color: #d7e0e8; }
-.gear { color: #9fd4ff; }
+.hpbar-fill {
+  height: 100%; width: 100%; border-radius: 6px;
+  background: linear-gradient(90deg, #4fbf52, #79d97b);
+  box-shadow: 0 0 8px rgba(90, 210, 100, 0.45);
+  transition: width .18s, background .25s;
+}
+.hud[data-hp="warn"] .hpbar-fill { background: linear-gradient(90deg, #d9a232, #eec15c); box-shadow: 0 0 8px rgba(230,180,70,0.45); }
+.hud[data-hp="crit"] .hpbar-fill { background: linear-gradient(90deg, #c94036, #ef6a55); box-shadow: 0 0 10px rgba(230,80,60,0.55); animation: hpFlash 0.9s ease-in-out infinite; }
+@keyframes hpFlash { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.45); } }
+.hpbar-ticks {
+  position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(90deg, transparent 0, transparent calc(25% - 1px), rgba(0,0,0,0.4) calc(25% - 1px), rgba(0,0,0,0.4) 25%);
+}
+.hprow { display: flex; justify-content: space-between; margin-top: 5px; font-size: 13px; color: #d7e0e8; }
+.hpnum { font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; }
+.gear { color: #9fd4ff; font-weight: 600; }
 .medkit { display: none; margin-top: 6px; height: 6px; background: rgba(255,255,255,0.12); border-radius: 3px; overflow: hidden; }
-.medkit-fill { height: 100%; width: 0; background: #6fd66f; }
+.medkit-fill { height: 100%; width: 0; background: linear-gradient(90deg, #57c557, #8ce68c); }
 
-.hud-bottom-right { position: absolute; right: 16px; bottom: 16px; text-align: right; }
-.weapon { font-size: 18px; font-weight: 700; }
-.ammo { font-size: 30px; font-weight: 800; line-height: 1.1; }
-.ammo .reserve { font-size: 15px; color: #9fb0c0; font-weight: 500; margin-left: 4px; }
-.reload { font-size: 13px; color: #ffd54a; min-height: 18px; }
+/* —— 右下：武器弹药 —— */
+.hud-bottom-right {
+  position: absolute; right: 16px; bottom: 16px; text-align: right;
+  background: linear-gradient(180deg, rgba(22,30,38,0.78), rgba(10,14,18,0.66));
+  border: 1px solid var(--hud-line); border-radius: 12px; padding: 10px 15px 8px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 2px 8px rgba(0,0,0,0.35);
+  backdrop-filter: blur(2px);
+}
+.weapon { font-size: 14px; font-weight: 700; color: #cfe0ee; letter-spacing: 1px; }
+.ammo { font-size: 34px; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; color: #f2f7fb; }
+.ammo .reserve { font-size: 16px; color: #9fb0c0; font-weight: 600; margin-left: 5px; }
+.ammo.low span:first-child { color: #ff6a55; animation: hpFlash 0.8s ease-in-out infinite; }
+.reload { font-size: 13px; color: #ffd54a; min-height: 18px; font-weight: 600; }
 
-.hud-debug { position: absolute; left: 14px; top: 64px; font-size: 11px; color: #9fb0c0; white-space: pre; }
-.minimap { position: absolute; right: 14px; top: 14px; border-radius: 10px; border: 1px solid var(--hud-line); }
+.hud-debug {
+  position: absolute; left: 14px; top: 64px; font-size: 11px; color: #9fb0c0; white-space: pre;
+  background: rgba(8,12,16,0.45); padding: 4px 8px; border-radius: 6px;
+}
+
+/* —— 小地图（含缩圈倒计时角标由 minimap 自绘）—— */
+.minimap {
+  position: absolute; right: 14px; top: 14px; border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.28);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12);
+}
 
 /* ————— 覆盖层 ————— */
 .overlay {

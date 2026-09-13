@@ -9,7 +9,12 @@ import type { PlayerIntent } from './types';
 export class FixedLoop {
   private accumulator = 0;
   private droppedTicks = 0;
+  /** 尚未被任何逻辑 tick 消费的意图（跨帧保留） */
   private pending: PlayerIntent[] = [];
+  /** 合并缓冲：复用同一数组，避免每帧 [...] 展开 造成分配 */
+  private merged: PlayerIntent[] = [];
+  /** 空意图数组（传给 tickFn 的常量，避免每 tick 新建） */
+  private static readonly EMPTY: PlayerIntent[] = [];
 
   constructor(
     private readonly tickFn: (intents: PlayerIntent[]) => void,
@@ -22,8 +27,13 @@ export class FixedLoop {
    */
   advance(dtMs: number, frameIntents: PlayerIntent[] = []): number {
     this.accumulator += Math.min(Math.max(dtMs, 0), 250);
-    const intents = [...this.pending, ...frameIntents];
-    this.pending = [];
+
+    // 合并「上帧未消费 + 本帧」到复用缓冲（零分配）
+    const merged = this.merged;
+    const pending = this.pending;
+    for (let i = 0; i < pending.length; i++) merged.push(pending[i]);
+    for (let i = 0; i < frameIntents.length; i++) merged.push(frameIntents[i]);
+    pending.length = 0;
 
     let steps = 0;
     while (this.accumulator >= this.tickMs) {
@@ -32,12 +42,18 @@ export class FixedLoop {
         this.accumulator = 0;
         break;
       }
-      this.tickFn(steps === 0 ? intents : []);
+      this.tickFn(steps === 0 ? merged : FixedLoop.EMPTY);
       this.accumulator -= this.tickMs;
       steps += 1;
     }
 
-    if (steps === 0) this.pending = intents;
+    if (steps === 0) {
+      // 本帧没有任何逻辑 tick：意图留待下帧（交换缓冲，零分配）
+      this.pending = merged;
+      this.merged = pending;
+    } else {
+      merged.length = 0;
+    }
     return Math.min(0.999, Math.max(0, this.accumulator / this.tickMs));
   }
 
@@ -48,7 +64,8 @@ export class FixedLoop {
 
   reset(): void {
     this.accumulator = 0;
-    this.pending = [];
+    this.pending.length = 0;
+    this.merged.length = 0;
   }
 }
 

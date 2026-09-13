@@ -1,6 +1,6 @@
 /**
  * core/systems/combat —— 射击节流、弹道扫描（抛物线下坠）、命中判定（包围盒 + 部位 + 距离衰减）、
- * 换弹/切枪、后坐力（bloom + 踢枪偏移 + 恢复）。AC4 数值全部来自 content/weapons / content/physics。
+ * 换弹/切枪、后坐力（bloom + 踢枪 + 恢复）。AC4 数值全部来自 content/weapons / content/physics。
  */
 
 import { EYE_HEIGHT, PART_MULTIPLIERS, TARGET_HALF_WIDTH, TARGET_HEIGHT } from '../../content/constants';
@@ -115,7 +115,10 @@ export function tryFire(w: World, e: Entity): boolean {
 
   // 后坐力：散布扩张 + 踢枪（垂直上抬 + 水平漂移，数值来自 RECOIL_TUNING × 武器 recoil）
   e.bloom = Math.min(MAX_BLOOM, e.bloom + def.recoil * 0.9);
-  e.recoilPitch = Math.min(RECOIL_TUNING.maxPitchOffset, e.recoilPitch + def.recoil * RECOIL_TUNING.pitchKickPerRecoil);
+  e.recoilPitch = Math.min(
+    RECOIL_TUNING.maxPitchOffset,
+    e.recoilPitch + def.recoil * RECOIL_TUNING.pitchKickPerRecoil,
+  );
   const yawKick = w.rng.combat.gaussian() * def.recoil * RECOIL_TUNING.yawKickPerRecoil;
   e.recoilYaw = clamp(e.recoilYaw + yawKick, -RECOIL_TUNING.maxYawOffset, RECOIL_TUNING.maxYawOffset);
 
@@ -131,10 +134,9 @@ export function tryFire(w: World, e: Entity): boolean {
 
   if (hit?.entity) {
     const t = hit.dist;
-    const falloff =
-      t <= def.effectiveRange
-        ? 1
-        : clamp(1 - 0.5 * ((t - def.effectiveRange) / def.effectiveRange), 0.5, 1);
+    const falloff = t <= def.effectiveRange
+      ? 1
+      : clamp(1 - 0.5 * ((t - def.effectiveRange) / def.effectiveRange), 0.5, 1);
     const part = bodyPartAt(hit.entity, hit.point);
     const dmg = def.damage * PART_MULTIPLIERS[part] * falloff;
     applyDamage(w, hit.entity, dmg, part, e);
@@ -174,12 +176,6 @@ export function ballisticDropAt(w: World, dist: number, projectileSpeed: number)
   if (!Number.isFinite(projectileSpeed) || projectileSpeed <= 0) return 0;
   const t = dist / projectileSpeed;
   return 0.5 * w.pack.physics.ballistic.gravityMps2 * t * t;
-}
-
-/** 弹道下坠的瞄准补偿角（rad）：atan(drop / 水平距离)，供 AI/玩家远距抬枪使用（数值来自 content） */
-export function ballisticCompensationRad(w: World, projectileSpeed: number, flatDist: number): number {
-  if (!Number.isFinite(projectileSpeed) || projectileSpeed <= 0 || flatDist <= 0) return 0;
-  return Math.atan2(ballisticDropAt(w, flatDist, projectileSpeed), flatDist);
 }
 
 /**
@@ -418,12 +414,11 @@ export function applyDamage(
   by: Entity | null,
 ): void {
   if (!target.alive) return;
-  // 受击打断医疗引导（急救语义：战斗中无法继续包扎）+ 记录受击时刻（AI 撤退判定）
-  target.lastDamagedAtMs = w.elapsedMs;
-  cancelMedkitChannel(target);
   const reduction = part === 'head' ? target.helmetReduction : part === 'torso' ? target.armorReduction : 0;
   const dmg = amount * (1 - reduction);
   target.hp -= dmg;
+  // 受击打断医疗引导（急救语义）
+  cancelMedkitChannel(target);
   const lethal = target.hp <= 0;
   pushEvent(w, {
     type: 'damageDealt',

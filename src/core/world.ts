@@ -2,8 +2,7 @@
  * core/world —— World 状态容器（ECS-lite）与实体/物资/运输机/缩圈状态。
  */
 
-import type { ContentPack } from '../content';
-import type { AiPersonaId } from '../content/ai';
+import type { ContentPack, AiPersonaId } from '../content';
 import { INVENTORY_GRIDS, MAX_HP } from '../content/constants';
 import type {
   EntityKind,
@@ -62,12 +61,15 @@ export interface Entity {
   firing: boolean;
   /** 连射散布扩张（后坐力 bloom） */
   bloom: number;
-  /** 后坐力垂直偏移（rad，踢枪累积，独立于瞄准，弹道方向 = pitch + recoilPitch） */
+  /** 后坐力垂直偏移（rad，向上为正）：射击时累积，停火后按 RECOIL_TUNING 恢复 */
   recoilPitch: number;
-  /** 后坐力水平偏移（rad，随机方向踢枪） */
+  /** 后坐力水平偏移（rad）：射击时随机方向累积，停火后恢复 */
   recoilYaw: number;
-  /** AI 行为人格（多样化，见 content/ai.AI_PERSONALITIES） */
-  aiPersona: AiPersonaId;
+  /** 行为人格（AI 行为多样化；玩家为 'assault' 占位不参与决策） */
+  persona: AiPersonaId;
+  /** 点射计数与冷却（AI burst fire 节流） */
+  burstCount: number;
+  burstReadyAtMs: number;
   /** 本 tick 解析后的意图状态（由 applyIntent 写入，各系统消费） */
   moveDirX: number;
   moveDirZ: number;
@@ -83,12 +85,8 @@ export interface Entity {
   wantSwitch: number | null;
   wantDrop: number | null;
   wantUse: number | null;
-  /** 是否请求使用最强血包（Q 自动选择；updateLoot 解析为具体槽位） */
-  wantUseBest: boolean;
-  /** 最近一次受击的逻辑时间（ms；急救「受击打断」与 AI 撤退判定共用） */
-  lastDamagedAtMs: number;
   /** AI */
-  aiState: 'patrol' | 'loot' | 'seek' | 'fire' | 'fleeZone' | 'retreat' | 'dead';
+  aiState: 'patrol' | 'loot' | 'seek' | 'fire' | 'fleeZone' | 'heal' | 'dead';
   aiWaypoint: Vec3 | null;
   aiTargetId: string | null;
   aiLastSeenMs: number;
@@ -105,6 +103,17 @@ export interface LootItem {
   item: ItemId;
   pos: Vec3;
   taken: boolean;
+  /** 堆叠数量（弹药丢弃再拾取语义；undefined = 按物品配置默认数量） */
+  count?: number;
+}
+
+/** 空投箱：falling 下落中 → landed 落地（落地时按内容物散布生成高价值物资） */
+export interface AirDropCrate {
+  id: string;
+  /** 落点（水平位置固定，y 为当前箱体高度） */
+  pos: Vec3;
+  phase: 'falling' | 'landed';
+  landedAtMs: number | null;
 }
 
 export interface PlaneState {
@@ -112,13 +121,6 @@ export interface PlaneState {
   pos: Vec3;
   dir: Vec3;
   start: Vec3;
-}
-
-export interface AirdropCrate {
-  id: string;
-  pos: Vec3;
-  phase: 'falling' | 'landed';
-  landedAtMs: number | null;
 }
 
 export interface ZoneState {
@@ -148,11 +150,13 @@ export interface World {
   zone: ZoneState;
   buildings: AABB[];
   dropHints: Vec3[];
-  /** 空投箱（含下落中与已落地） */
-  airdrops: AirdropCrate[];
-  airdropSeq: number;
+  airdrops: AirDropCrate[];
   events: GameEvent[];
   result: MatchResult | null;
+  /** 物资 id 序列（world 级而非模块级：同进程多局之间互不污染，确定性红线） */
+  lootSeq: number;
+  /** 空投 id 序列（world 级，同上） */
+  airdropSeq: number;
   rng: {
     map: Rng;
     loot: Rng;
@@ -202,7 +206,9 @@ export function createEntity(
     bloom: 0,
     recoilPitch: 0,
     recoilYaw: 0,
-    aiPersona: 'assault',
+    persona: 'assault',
+    burstCount: 0,
+    burstReadyAtMs: 0,
     moveDirX: 0,
     moveDirZ: 0,
     moveSprint: false,
@@ -217,8 +223,6 @@ export function createEntity(
     wantSwitch: null,
     wantDrop: null,
     wantUse: null,
-    wantUseBest: false,
-    lastDamagedAtMs: -1e9,
     aiState: 'patrol',
     aiWaypoint: null,
     aiTargetId: null,
@@ -240,8 +244,10 @@ export function freeGrids(e: Entity): number {
   return e.inventory.length - e.usedGrids;
 }
 
-/** 取消医疗引导（开火/被打断时调用，急救语义：持枪射击即中断包扎） */
-export function cancelMedkitChannel(e: Entity): void {
+/** 取消进行中的医疗引导（受伤/开火打断，AC3 急救语义） */
+export function cancelMedkitChannel(e: Entity): boolean {
+  if (e.medkitUntilMs === null) return false;
   e.medkitUntilMs = null;
   e.medkitItemSlot = null;
+  return true;
 }
