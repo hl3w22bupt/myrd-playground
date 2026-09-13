@@ -40,6 +40,13 @@
         command: "GODOT_SMOKE_FRAMES={{smokeFrames}} GODOT_BIN=\"$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)\" bash std-skills/godot-game-dev/scripts/smoke.sh {{gamePath}}"
         target: host
         timeout: 300
+      # 输入鲁棒性 fuzz —— 确定种子随机事件序（动作/触摸/鼠标 + 悬挂手势/孤儿释放/双指抢控）
+      # 下的存活判定：不崩溃、无脚本错误、主循环不挂死。玩法语义不变式（如「任意输入序后
+      # 标准滑动必须生效」）由各工程 tests/smoke.gd 的噪声相位覆盖（模板内置），与本层互补。
+      - name: input-fuzz
+        command: "GODOT_BIN=\"$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)\" bash std-skills/godot-game-dev/scripts/input-fuzz.sh {{gamePath}}"
+        target: host
+        timeout: 180
 ```
 
 要点：
@@ -54,7 +61,10 @@
    smoke 却退出码 2」的自相矛盾——不要再往 step 里写第二份候选清单。
 4. 门禁 fail 之后由目标执行引擎 `reject` 打回修复循环；修复预算就是工作流的 `maxLoops`
    （对应 OpenGame 的 maxIterations）。修复动作查 `error-signatures.md`。
-5. `[CHECKPOINT]` 里回写：preflight 结论、smoke 退出码、`GODOT_SMOKE` 日志摘录。
+5. `[CHECKPOINT]` 里回写：preflight 结论、smoke 退出码、`GODOT_SMOKE` 日志摘录、fuzz 结论（种子 + 是否触发脚本错误）。
+6. `input-fuzz` 是确定种子的随机事件序鲁棒性门禁（scripts/input-fuzz.sh）：拦「崩溃 / 脚本错误 /
+   主循环挂死」。「噪声后玩法断言仍通过」的语义不变式在 tests/smoke.gd 的噪声相位里（模板内置）——
+   两层合起来才覆盖「输入状态残留」类缺陷（实例：跨关卡指针状态泄露导致下一关首手势被吞）。
 
 ## 目标描述模板（配合本门禁使用）
 

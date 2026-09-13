@@ -19,12 +19,19 @@ extends Node
 ##   headless 下 `Input.parse_input_event()` 的缓冲冲刷会清掉 `Input.action_press()`
 ##   设置的按下状态，两者同帧混用会让「移动断言」假失败。
 
+## ── 噪声相位（输入鲁棒性门禁的逐游戏语义层）──
+## 正式断言前注入一段确定种子的对抗输入：悬挂手势（按下不抬起）、孤儿释放（抬起无按下）、
+## 双指抢控、乱键。随后照常执行移动/收集断言 —— 断言仍全过 = 噪声没有楔死输入管线。
+## 「输入状态残留」类缺陷（实例：手势中致胜 → release 被丢弃 → 下一关首手势被吞）在这一层拦。
+## 只注入原始事件（Key/Mouse/Touch），不注入 InputEventAction —— 动作级投递断言的判定不被噪声污染。
+const NOISE_FRAMES: int = 30
+
 ## 阶段一：按住 move_right 让玩家移动的帧数。
 const MOVE_FRAMES: int = 10
 ## 阶段二：注入 confirm 事件后等待信号送达的帧数。
 const SCORE_FRAMES: int = 4
 ## 总帧数上限（超过即出报告，防止死循环；smoke.sh 另有 --quit-after 兜底）。
-const TOTAL_FRAMES: int = MOVE_FRAMES + SCORE_FRAMES + 2
+const TOTAL_FRAMES: int = NOISE_FRAMES + MOVE_FRAMES + SCORE_FRAMES + 2
 ## 判定「真的移动了」的最小位移（像素）。
 const MIN_MOVE_DISTANCE: float = 1.0
 
@@ -91,9 +98,11 @@ func _physics_process(_delta: float) -> void:
 	_frames += 1
 
 	if _failures.is_empty():
-		if _frames == 1:
+		if _frames <= NOISE_FRAMES:
+			_inject_noise_frame()
+		elif _frames == NOISE_FRAMES + 1:
 			Input.action_press(&"move_right")
-		elif _frames == MOVE_FRAMES:
+		elif _frames == NOISE_FRAMES + MOVE_FRAMES:
 			Input.action_release(&"move_right")
 			_assert_player_moved()
 			_press_action(&"confirm")
@@ -103,6 +112,48 @@ func _physics_process(_delta: float) -> void:
 	if _frames >= TOTAL_FRAMES or not _failures.is_empty():
 		_finished = true
 		_report()
+
+
+## 噪声相位：确定种子随机事件（原始事件，不含 InputEventAction）。
+var _noise_rng := RandomNumberGenerator.new()
+
+
+func _inject_noise_frame() -> void:
+	if _frames == 1:
+		_noise_rng.seed = 20260913  # 门禁要求可复现：同种子同事件序
+	var roll := _noise_rng.randf()
+	var pos := Vector2(_noise_rng.randf_range(0, 720), _noise_rng.randf_range(0, 1280))
+	if roll < 0.30:
+		# 悬挂手势：按下不抬起
+		var t := InputEventScreenTouch.new()
+		t.index = _noise_rng.randi_range(0, 1)
+		t.position = pos
+		t.pressed = true
+		Input.parse_input_event(t)
+	elif roll < 0.45:
+		# 孤儿释放：抬起无按下
+		var t2 := InputEventScreenTouch.new()
+		t2.index = _noise_rng.randi_range(0, 1)
+		t2.position = pos
+		t2.pressed = false
+		Input.parse_input_event(t2)
+	elif roll < 0.60:
+		var d := InputEventScreenDrag.new()
+		d.index = _noise_rng.randi_range(0, 1)
+		d.position = pos
+		d.relative = Vector2(_noise_rng.randf_range(-40, 40), _noise_rng.randf_range(-40, 40))
+		Input.parse_input_event(d)
+	elif roll < 0.80:
+		var mb := InputEventMouseButton.new()
+		mb.button_index = MOUSE_BUTTON_LEFT
+		mb.position = pos
+		mb.pressed = _noise_rng.randf() < 0.5
+		Input.parse_input_event(mb)
+	else:
+		var k := InputEventKey.new()
+		k.physical_keycode = [KEY_A, KEY_D, KEY_W, KEY_S, KEY_SPACE, KEY_ENTER][_noise_rng.randi_range(0, 5)]
+		k.pressed = _noise_rng.randf() < 0.5
+		Input.parse_input_event(k)
 
 
 ## 无显示设备时模拟「玩家按键」：注入真实 InputEvent，让 _unhandled_input 收得到。

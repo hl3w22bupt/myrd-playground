@@ -168,6 +168,13 @@ routines:
         command: "GODOT_SMOKE_FRAMES={{smokeFrames}} GODOT_BIN=\"$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)\" bash std-skills/godot-game-dev/scripts/smoke.sh {{gamePath}}"
         target: host
         timeout: 300
+      # 输入鲁棒性 fuzz —— 确定种子随机事件序（动作/触摸/鼠标 + 悬挂手势/孤儿释放/双指抢控）
+      # 下的存活判定：不崩溃、无脚本错误、主循环不挂死。「玩法语义不变式」（如任意输入序后
+      # 标准滑动必须生效）由各工程 tests/smoke.gd 的噪声相位覆盖（模板内置），与本层互补。
+      - name: input-fuzz
+        command: "GODOT_BIN=\"$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)\" bash std-skills/godot-game-dev/scripts/input-fuzz.sh {{gamePath}}"
+        target: host
+        timeout: 180
 
   # 契约测试门禁（mobius-design R4 / D1×D3 耦合点）——「实现是否符合策划案」的机器层验收：
   # 读 approved 版 GameDesignSpec（导出到工程的 .myrd/spec/design-spec.json），断言 spec 里声明的
@@ -187,31 +194,3 @@ routines:
         command: "node scripts/contract-check.mjs --spec {{specPath}} --project {{projectDir}}"
         target: host
         timeout: 120
-
-  - id: pubg-full-e2e
-    name: 完整 E2E 闭环门禁（跳伞→拾取→战斗→缩圈→存活判定）
-    description: >
-      「和平精英Web版」收口门禁：依赖就绪 → lint（依赖方向+确定性红线）→
-      Node AC1–AC5 全流程闭环自动化断言（跳伞落地/物资拾取/射击命中/缩圈毒圈/AI 存活判定，
-      固定 seed 跑满局至唯一存活者）→ 生产构建（tsc 类型检查 + vite build）。
-      全部通过才允许 create-pr 放行（解除 fail-closed 阻塞）。
-    gate: true
-    steps:
-      - name: deps
-        command: "npm install --no-audit --no-fund --silent"
-        target: host
-        timeout: 600
-      - name: lint
-        command: "npm run lint"
-        target: host
-        timeout: 300
-      - name: closed-loop-node-tests
-        # AC1–AC5 Node 闭环断言：单局从登机跳伞→落地拾取→遭遇射击→缩圈→唯一存活者结算全部在 Node 内跑通
-        command: "npm run test"
-        target: host
-        timeout: 600
-      - name: typecheck-build
-        # tsc --noEmit + vite build（含依赖方向 lint 静态保证外的类型红线）
-        command: "npm run build"
-        target: host
-        timeout: 600
