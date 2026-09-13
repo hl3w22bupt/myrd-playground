@@ -75,6 +75,7 @@ var _gk_hold: float = 0.0
 @onready var mute_button: Button = %MuteButton
 @onready var unlock_hint: Label = %UnlockHint
 @onready var touch_controls: TouchControls = $TouchControls
+@onready var result_controls: ResultControls = $ResultControls
 
 
 func _ready() -> void:
@@ -159,6 +160,8 @@ func restart_match() -> void:
 	home_defends_left = true
 	_refresh_anchors()
 	result_panel.visible = false
+	# v3：结算「再来一局」按钮随之收起（比赛进行中整层隐藏、不可交互）。
+	result_controls.set_active(false)
 	kickoff(0)
 	_show_message("新的一场比赛开始 —— %s 先开球" % _team_name(0))
 
@@ -657,6 +660,8 @@ func _on_match_finished(home_score: int, away_score: int) -> void:
 	# 终场结算面板：胜负反馈明确（比分 + 胜/平/负 + 重开入口提示）。
 	result_score.text = "主 %d : %d 客 · %s" % [home_score, away_score, GameState.result_for_home()]
 	result_panel.visible = true
+	# v3：终场结算显示触摸/鼠标可点的「再来一局」按钮（注入 restart 动作，与键盘 R 同路径）。
+	result_controls.set_active(true)
 
 
 ## 难度切换：刷新设置行（客队 AI 下一帧即按新梯度行动）。

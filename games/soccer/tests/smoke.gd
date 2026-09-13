@@ -25,6 +25,10 @@ extends Node
 ##  12. 触摸操作（v2）：触屏层存在且无触屏环境默认隐藏；射门/切换按钮触摸与键盘同路径
 ##      生效（射门按钮直接驱动「射门→进球」断言）；虚拟摇杆拖动真实驱动受控球员位移；
 ##      双指同时按压（摇杆 + 传球按钮）无事件丢失
+##  13. 结算「再来一局」按钮（v3）：终场可见且触达区域 ≥44x44、不遮挡结算面板；
+##      鼠标点击按钮触发重开（比分/计时/球位复位、面板收起）；重开回到终场后触摸点击
+##      同样触发重开（注入 restart 动作，与键盘 R 同路径）；比赛进行中按钮隐藏且
+##      点击无效（可见性纪律）
 ##
 ## ⚠️ 帧预算纪律：v1 行为断言已用 ~223/240 帧，v2 断言必须「寄生」在既有等待窗口
 ##   （音频解锁塞进 OOB 冻结窗、触摸按钮合并进射门/传球流程），并把
@@ -84,7 +88,9 @@ enum Stage {
 	GOAL_SETUP, GOAL_WAIT, OOB_WAIT_PLAYING, OOB_INJECT, OOB_ASSERT,
 	CORNER_PREP, CORNER_INJECT, CORNER_ASSERT,
 	GOALKICK_PREP, GOALKICK_INJECT, GOALKICK_ASSERT,
-	FINISH_PREP, STEAL_WAIT, FINISH_WAIT, RESTART_INJECT, RESTART_ASSERT, DONE,
+	FINISH_PREP, STEAL_WAIT, FINISH_WAIT,
+	BTN_FINISH_ASSERT, BTN_MOUSE_PRESS, BTN_MOUSE_ASSERT, BTN_RECYCLE_WAIT, BTN_HIDDEN_PROBE,
+	BTN_RECYCLE_FINISH, BTN_TOUCH_PRESS, RESTART_ASSERT, DONE,
 }
 
 var _failures: PackedStringArray = []
@@ -107,6 +113,7 @@ var _joy_origin: Vector2 = Vector2.ZERO
 var _mute_seen: bool = false
 var _joy_checked: bool = false
 var _unmute_seen: bool = false
+var _result: ResultControls = null
 
 
 func _ready() -> void:
@@ -200,6 +207,21 @@ func _static_checks() -> void:
 			_failures.append("无触屏环境（headless）TouchControls 默认可见（桌面键盘环境被触摸层干扰）")
 	if _main.get("mute_button") == null:
 		_failures.append("HUD MuteButton 缺失（静音开关没有入口）")
+
+	# ---- v3：终场结算「再来一局」按钮接线（触摸 + 鼠标同一入口）----
+	_result = _main.get("result_controls") as ResultControls
+	if _result == null:
+		_failures.append("Main.result_controls 缺失（main.tscn 未实例化 scenes/result_controls.tscn）")
+	else:
+		if _result.ACTION != &"restart" or not InputMap.has_action(&"restart"):
+			_failures.append("「再来一局」按钮未对准既有重开动作 restart（应与键盘 R 走同一 InputMap 动作）")
+		var btn_size := _result.button_size()
+		if btn_size.x < _result.MIN_TOUCH_SIZE or btn_size.y < _result.MIN_TOUCH_SIZE:
+			_failures.append("「再来一局」触达区域 %s < %.0fx%.0f（触控最小触达标准）" % [
+				str(btn_size), _result.MIN_TOUCH_SIZE, _result.MIN_TOUCH_SIZE,
+			])
+		if _result.visible:
+			_failures.append("比赛进行中「再来一局」按钮即已可见（可见性纪律：仅终场结算出现）")
 
 
 ## AudioManager.mute_changed 的冒烟侧记录器：断言「静音往返都真的发生了」。
@@ -503,14 +525,72 @@ func _physics_process(_delta: float) -> void:
 						])
 					if not String(_main.get("result_hint").text).contains("Enter"):
 						_failures.append("结算面板缺少重开入口提示（ResultHint 未接线）")
-				_next(Stage.RESTART_INJECT)
+				_next(Stage.BTN_FINISH_ASSERT)
 			elif _stage_frames > SHORT_CAP:
 				_failures.append("计时打满后未进入 FINISHED 或 match_finished 信号未达（终场流程断裂）")
 				_report()
-		Stage.RESTART_INJECT:
-			_press_action(&"restart")
+		Stage.BTN_FINISH_ASSERT:
+			# v3：终场结算画面按钮断言（可见性 / 触达面积 / 不遮挡结算面板 / 入口提示）。
+			if not _result.visible:
+				_failures.append("终场结算「再来一局」按钮未显示（match_finished 未置 result_controls.set_active(true)）")
+			if _result.button_size().x < _result.MIN_TOUCH_SIZE or _result.button_size().y < _result.MIN_TOUCH_SIZE:
+				_failures.append("「再来一局」触达区域不足 44x44（结算画面实测 %s）" % str(_result.button_size()))
+			var panel := _main.get("result_panel") as Control
+			if panel != null and panel.visible and panel.get_global_rect().intersects(_result.button_rect()):
+				_failures.append("「再来一局」按钮遮挡结算面板（button=%s panel=%s）" % [
+					str(_result.button_rect()), str(panel.get_global_rect()),
+				])
+			if not String(_main.get("result_hint").text).contains("再来一局"):
+				_failures.append("结算面板未提示「再来一局」按钮入口（ResultHint 文案缺失）")
+			_next(Stage.BTN_MOUSE_PRESS)
+		Stage.BTN_MOUSE_PRESS:
+			# 桌面鼠标点击同一按钮：InputEventMouseButton 与触摸走同一 _press_at 入口。
+			_mouse_button(_result.button_center(), true)
+			_next(Stage.BTN_MOUSE_ASSERT)
+		Stage.BTN_MOUSE_ASSERT:
+			if _stage_frames >= 2:
+				if GameState.phase != GameState.Phase.KICKOFF:
+					_failures.append("鼠标点击「再来一局」未触发重开（phase=%d，应为 KICKOFF）" % GameState.phase)
+				elif GameState.home_score != 0 or GameState.away_score != 0:
+					_failures.append("鼠标重开后比分未清零（主 %d : %d 客）" % [GameState.home_score, GameState.away_score])
+				elif _result.visible:
+					_failures.append("鼠标重开后「再来一局」按钮仍可见（set_active(false) 未随 restart_match 执行）")
+				_next(Stage.BTN_RECYCLE_WAIT)
+		Stage.BTN_RECYCLE_WAIT:
+			if GameState.phase == GameState.Phase.PLAYING:
+				# 惰性探针：按钮已随重开隐藏，点原按钮位置（鼠标 + 触摸）必须无效。
+				_mouse_button(_result.button_center(), true)
+				_touch_press(BTN_TOUCH_BASE + 4, _result.button_center())
+				_next(Stage.BTN_HIDDEN_PROBE)
+			elif _stage_frames > WAIT_PLAYING_CAP:
+				_failures.append("鼠标重开后 %d 帧未恢复 PLAYING，无法断言触摸重开" % WAIT_PLAYING_CAP)
+				_report()
+		Stage.BTN_HIDDEN_PROBE:
+			if _stage_frames >= 3:
+				if GameState.phase != GameState.Phase.PLAYING:
+					_failures.append("隐藏态点击原按钮位置触发了重开（可见性纪律失效，phase=%d）" % GameState.phase)
+				if GameState.elapsed <= 0.0:
+					_failures.append("隐藏态点击疑似触发重开（计时被清零，elapsed=%.2f）" % GameState.elapsed)
+				_mouse_button(_result.button_center(), false)
+				_touch_release(BTN_TOUCH_BASE + 4)
+				# 再拨表打满一次全场，为「触摸点击重开」再造终场结算窗口。
+				GameState.elapsed = GameState.match_real_seconds() + 0.5
+				_next(Stage.BTN_RECYCLE_FINISH)
+		Stage.BTN_RECYCLE_FINISH:
+			if GameState.phase == GameState.Phase.FINISHED:
+				if not _result.visible:
+					_failures.append("第二次终场「再来一局」按钮未重新显示（可见性未随终场恢复）")
+				_next(Stage.BTN_TOUCH_PRESS)
+			elif _stage_frames > SHORT_CAP:
+				_failures.append("拨表后未再次进入 FINISHED（phase=%d，终场流程断裂）" % GameState.phase)
+				_report()
+		Stage.BTN_TOUCH_PRESS:
+			# 触摸点击同一按钮：ScreenTouch 与鼠标同一入口，注入 restart 动作与键盘 R 同路径。
+			_touch_press(BTN_TOUCH_BASE + 3, _result.button_center())
 			_next(Stage.RESTART_ASSERT)
 		Stage.RESTART_ASSERT:
+			if _stage_frames == 1:
+				_touch_release(BTN_TOUCH_BASE + 3)
 			if _stage_frames >= 3:
 				if GameState.home_score != 0 or GameState.away_score != 0:
 					_failures.append("重开后比分未清零（主 %d : %d 客）" % [GameState.home_score, GameState.away_score])
@@ -523,6 +603,8 @@ func _physics_process(_delta: float) -> void:
 				var panel := _main.get("result_panel") as Control
 				if panel != null and panel.visible:
 					_failures.append("重开后结算面板未收起（ResultPanel 仍可见）")
+				if _result != null and _result.visible:
+					_failures.append("触摸重开后「再来一局」按钮仍可见（可见性纪律失效）")
 				_next(Stage.DONE)
 		Stage.DONE:
 			pass
@@ -566,6 +648,15 @@ func _touch_release(index: int) -> void:
 func _touch_drag(index: int, pos: Vector2) -> void:
 	var event := InputEventScreenDrag.new()
 	event.index = index
+	event.position = _to_window(pos)
+	Input.parse_input_event(event)
+
+
+## 模拟鼠标左键按下/抬起（桌面入口）：与触摸走 ResultControls._press_at 同一命中判定。
+func _mouse_button(pos: Vector2, pressed: bool) -> void:
+	var event := InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_LEFT
+	event.pressed = pressed
 	event.position = _to_window(pos)
 	Input.parse_input_event(event)
 
@@ -621,7 +712,7 @@ func _report_stage_progress() -> void:
 
 func _report() -> void:
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/autoload/键位契约/移动/传球/射门进球/界外球/角球/球门球/难度梯度/时长配置/终场结算面板/重开/音效门控与事件音/解锁提示指引/触摸摇杆与按钮与多点触控 全部通过")
+		print("GODOT_SMOKE: PASS 场景实例化/autoload/键位契约/移动/传球/射门进球/界外球/角球/球门球/难度梯度/时长配置/终场结算面板/重开/音效门控与事件音/解锁提示指引/触摸摇杆与按钮与多点触控/结算再来一局按钮触达与触摸鼠标重开 全部通过")
 		print("GODOT_SMOKE: 帧消耗 %d（预算 GODOT_SMOKE_FRAMES，余量需为正）" % Engine.get_physics_frames())
 		get_tree().quit(0)
 	else:

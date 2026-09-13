@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/pitch.gd" id="2_pitch"]
 [ext_resource type="PackedScene" path="res://scenes/ball.tscn" id="3_ball"]
 [ext_resource type="PackedScene" path="res://scenes/touch_controls.tscn" id="4_touch"]
+[ext_resource type="PackedScene" path="res://scenes/result_controls.tscn" id="5_result"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -131,8 +132,10 @@ horizontal_alignment = 1
 [node name="ResultHint" type="Label" parent="UI/ResultPanel/ResultBox"]
 unique_name_in_owner = true
 theme_override_font_sizes/font_size = 18
-text = "按 Enter / 空格 再来一场"
+text = "点「再来一局」按钮，或按 Enter / 空格 / R 再来一场"
 horizontal_alignment = 1
 [node name="TouchControls" parent="." instance=ExtResource("4_touch")]
+
+[node name="ResultControls" parent="." instance=ExtResource("5_result")]
 
 [connection signal="pressed" from="UI/MuteButton" to="." method="_on_mute_button_pressed"]

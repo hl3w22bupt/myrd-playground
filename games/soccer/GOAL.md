@@ -47,6 +47,19 @@ AudioContext 挂起/interrupted 无法在 headless 模拟 —— 真机与 WebKi
 `qa/MOBILE_AUDIO_ROOT_CAUSE.md` §四.验证方案执行。F5 明确不做项（不转码音频格式、
 不动导出预设/隔离头、不动触摸层）见取证报告。
 
+## v3 迭代验收 → 冒烟断言映射（需求 cmtz8v2yz000om93dungmq5yw：结算「再来一局」触摸按钮）
+
+| 编号 | 验收标准（无头可判定项） | 冒烟断言 |
+|---|---|---|
+| D1 | 终场/结算画面提供触摸可点「再来一局」按钮，触达区域 ≥ 44x44，不遮挡比分/结果文字 | 静态断言：`Main.result_controls` 接线存在、进行中默认隐藏；终场断言：按钮可见、`button_size()` 两维 ≥44、按钮矩形与结算面板矩形不相交、ResultHint 含「再来一局」入口提示 |
+| D2 | 点击按钮立即开新局：比分归零、计时重置、回开球状态，效果与键盘重开一致 | 鼠标点击（InputEventMouseButton）与触摸点击（InputEventScreenTouch）各驱动一轮完整重开断言：比分清零、phase 回 KICKOFF、球回中圈、计时清零、结算面板与按钮收起 —— 与键盘 R 重开共用同一 `restart` 动作路径 |
+| D3 | 鼠标与触摸走同一入口；键盘快捷键（R / Enter / 空格）全部保留 | `ResultControls` 是 InputMap 生产者：命中即注入 `InputEventAction(&"restart")`，与键盘 R 同一条 `Main._unhandled_input` 路径；键位契约断言（restart→R、confirm→Enter/Space）零改动照旧核对 |
+| D4 | 按钮仅终场结算出现/可交互，不干扰比赛进行中触摸控件 | 隐藏态探针：重开回 PLAYING 后点原按钮位置（鼠标 + 触摸双注入），断言不触发重开（phase 保持 PLAYING、计时不清零）；比赛进行中按钮 `visible=false` 静态断言 |
+
+负例探针实测（断言有效性两头验证）：① `_press_at` 置空（按钮失灵）→ 冒烟 FAIL
+`鼠标点击「再来一局」未触发重开`（exit 1）；② 删除 `if not visible` 门卫（可见性纪律失效）→
+冒烟 FAIL `隐藏态点击原按钮位置触发了重开`（exit 1）。还原后复绿 PASS（208/240 帧）。
+
 ## 非无头判定项（人工试玩清单，不冒充已验收）
 
 - 跑步动画步频/摆幅的手感（`scripts/footballer.gd` 调参区 `RUN_CYCLE_RATE` / `RUN_SWING`）。
