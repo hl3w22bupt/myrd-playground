@@ -1,0 +1,128 @@
+{
+  "session": "desktop",
+  "viewport": "1280x720",
+  "mappedButtonRect": {
+    "s": 1,
+    "offX": 0,
+    "offY": 0,
+    "x": 510,
+    "y": 508,
+    "w": 260,
+    "h": 64,
+    "center": {
+      "x": 640,
+      "y": 540
+    }
+  },
+  "buttonScanRect": {
+    "s": 1,
+    "offX": 0,
+    "offY": 0,
+    "x": 502,
+    "y": 500,
+    "w": 276,
+    "h": 80,
+    "center": {
+      "x": 640,
+      "y": 540
+    }
+  },
+  "checks": [
+    {
+      "id": "loaded",
+      "ok": true,
+      "detail": {
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15",
+        "maxTouchPoints": 0,
+        "viewport": "1280x720"
+      }
+    },
+    {
+      "id": "shortfield-set",
+      "ok": true,
+      "detail": {
+        "bandDiff": 355,
+        "limit": 150
+      }
+    },
+    {
+      "id": "desktop-R-midmatch-alive",
+      "ok": true,
+      "detail": {
+        "diff": 6469
+      }
+    },
+    {
+      "id": "desktop-R-midmatch-state-reset",
+      "ok": true,
+      "detail": {
+        "diff": 18620
+      }
+    },
+    {
+      "id": "desktop-no-button-midmatch",
+      "ok": true,
+      "detail": {
+        "whiteCount": 192,
+        "diffRatio": 0
+      }
+    },
+    {
+      "id": "result-button-appears",
+      "ok": true,
+      "detail": {
+        "diffRatio": 0.1106,
+        "whiteCount": 1704,
+        "bbox": [
+          509,
+          500,
+          777,
+          572
+        ],
+        "mappedCss": "260x64@(510,508)",
+        "polls": 30
+      }
+    },
+    {
+      "id": "touch-target-size",
+      "ok": true,
+      "detail": {
+        "basis": "canvas units（门禁同源 BTN_RECT，冒烟断言 ≥44x44 + 负例探针）",
+        "canvasUnits": "260x64",
+        "cssPxAtViewport": "260x64 (scale 1.0000)"
+      }
+    },
+    {
+      "id": "restarted-state-changed",
+      "ok": true,
+      "detail": {
+        "diff": 117895,
+        "limit": 5000
+      }
+    },
+    {
+      "id": "button-gone-after-tap",
+      "ok": true,
+      "detail": {
+        "maxWhite": 311,
+        "limit": 480
+      }
+    },
+    {
+      "id": "new-match-alive",
+      "ok": true,
+      "detail": {
+        "diff": 4462,
+        "limit": 500
+      }
+    },
+    {
+      "id": "zero-console-errors",
+      "ok": true,
+      "detail": {
+        "errors": []
+      }
+    }
+  ],
+  "pass": true
+}

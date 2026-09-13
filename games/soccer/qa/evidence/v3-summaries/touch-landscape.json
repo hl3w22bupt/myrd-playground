@@ -1,0 +1,106 @@
+{
+  "session": "touch-landscape",
+  "viewport": "1280x720",
+  "mappedButtonRect": {
+    "s": 1,
+    "offX": 0,
+    "offY": 0,
+    "x": 510,
+    "y": 508,
+    "w": 260,
+    "h": 64,
+    "center": {
+      "x": 640,
+      "y": 540
+    }
+  },
+  "buttonScanRect": {
+    "s": 1,
+    "offX": 0,
+    "offY": 0,
+    "x": 502,
+    "y": 500,
+    "w": 276,
+    "h": 80,
+    "center": {
+      "x": 640,
+      "y": 540
+    }
+  },
+  "checks": [
+    {
+      "id": "loaded",
+      "ok": true,
+      "detail": {
+        "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like",
+        "maxTouchPoints": 1,
+        "viewport": "1280x720"
+      }
+    },
+    {
+      "id": "shortfield-set",
+      "ok": true,
+      "detail": {
+        "bandDiff": 355,
+        "limit": 150
+      }
+    },
+    {
+      "id": "result-button-appears",
+      "ok": true,
+      "detail": {
+        "diffRatio": 0.1101,
+        "whiteCount": 1704,
+        "bbox": [
+          509,
+          500,
+          770,
+          572
+        ],
+        "mappedCss": "260x64@(510,508)",
+        "polls": 30
+      }
+    },
+    {
+      "id": "touch-target-size",
+      "ok": true,
+      "detail": {
+        "basis": "canvas units（门禁同源 BTN_RECT，冒烟断言 ≥44x44 + 负例探针）",
+        "canvasUnits": "260x64",
+        "cssPxAtViewport": "260x64 (scale 1.0000)"
+      }
+    },
+    {
+      "id": "restarted-state-changed",
+      "ok": true,
+      "detail": {
+        "diff": 117958,
+        "limit": 5000
+      }
+    },
+    {
+      "id": "button-gone-after-tap",
+      "ok": true,
+      "detail": {
+        "maxWhite": 320,
+        "limit": 480
+      }
+    },
+    {
+      "id": "new-match-alive",
+      "ok": true,
+      "detail": {
+        "diff": 2224,
+        "limit": 500
+      }
+    },
+    {
+      "id": "zero-console-errors",
+      "ok": true,
+      "detail": {
+        "errors": []
+      }
+    }
+  ],
+  "pass": true
+}

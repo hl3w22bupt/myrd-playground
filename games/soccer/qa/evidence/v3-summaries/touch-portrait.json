@@ -1,0 +1,106 @@
+{
+  "session": "touch-portrait",
+  "viewport": "375x667",
+  "mappedButtonRect": {
+    "s": 0.29296875,
+    "offX": 0,
+    "offY": 228.03125,
+    "x": 149,
+    "y": 377,
+    "w": 76,
+    "h": 19,
+    "center": {
+      "x": 187.5,
+      "y": 386.234375
+    }
+  },
+  "buttonScanRect": {
+    "s": 0.29296875,
+    "offX": 0,
+    "offY": 228.03125,
+    "x": 147,
+    "y": 375,
+    "w": 81,
+    "h": 23,
+    "center": {
+      "x": 187.5,
+      "y": 386.234375
+    }
+  },
+  "checks": [
+    {
+      "id": "loaded",
+      "ok": true,
+      "detail": {
+        "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like",
+        "maxTouchPoints": 0,
+        "viewport": "375x667"
+      }
+    },
+    {
+      "id": "shortfield-set",
+      "ok": true,
+      "detail": {
+        "bandDiff": 6,
+        "limit": 3
+      }
+    },
+    {
+      "id": "result-button-appears",
+      "ok": true,
+      "detail": {
+        "diffRatio": 0.183,
+        "whiteCount": 191,
+        "bbox": [
+          149,
+          375,
+          225,
+          394
+        ],
+        "mappedCss": "76x19@(149,377)",
+        "polls": 31
+      }
+    },
+    {
+      "id": "touch-target-size",
+      "ok": true,
+      "detail": {
+        "basis": "canvas units（门禁同源 BTN_RECT，冒烟断言 ≥44x44 + 负例探针）",
+        "canvasUnits": "260x64",
+        "cssPxAtViewport": "76x19 (scale 0.2930)"
+      }
+    },
+    {
+      "id": "restarted-state-changed",
+      "ok": true,
+      "detail": {
+        "diff": 9646,
+        "limit": 800
+      }
+    },
+    {
+      "id": "button-gone-after-tap",
+      "ok": true,
+      "detail": {
+        "maxWhite": 27,
+        "limit": 40
+      }
+    },
+    {
+      "id": "new-match-alive",
+      "ok": true,
+      "detail": {
+        "diff": 233,
+        "limit": 120
+      }
+    },
+    {
+      "id": "zero-console-errors",
+      "ok": true,
+      "detail": {
+        "errors": []
+      }
+    }
+  ],
+  "pass": true
+}
