@@ -280,6 +280,8 @@ describe('HUD 字段级脏检查（ui/hudState）', () => {
         aliveCount,
         medkitChannelMsLeft: 0,
         medkitItem: null,
+        nearbyLoot: null,
+        outsideZone: false,
       },
       loots: [],
       airdrops: [],

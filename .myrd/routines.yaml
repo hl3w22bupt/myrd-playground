@@ -168,6 +168,13 @@ routines:
         command: "GODOT_SMOKE_FRAMES={{smokeFrames}} GODOT_BIN=\"$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)\" bash std-skills/godot-game-dev/scripts/smoke.sh {{gamePath}}"
         target: host
         timeout: 300
+      # 输入鲁棒性 fuzz —— 确定种子随机事件序（动作/触摸/鼠标 + 悬挂手势/孤儿释放/双指抢控）
+      # 下的存活判定：不崩溃、无脚本错误、主循环不挂死。「玩法语义不变式」（如任意输入序后
+      # 标准滑动必须生效）由各工程 tests/smoke.gd 的噪声相位覆盖（模板内置），与本层互补。
+      - name: input-fuzz
+        command: "GODOT_BIN=\"$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)\" bash std-skills/godot-game-dev/scripts/input-fuzz.sh {{gamePath}}"
+        target: host
+        timeout: 180
 
   # 契约测试门禁（mobius-design R4 / D1×D3 耦合点）——「实现是否符合策划案」的机器层验收：
   # 读 approved 版 GameDesignSpec（导出到工程的 .myrd/spec/design-spec.json），断言 spec 里声明的

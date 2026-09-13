@@ -11,7 +11,7 @@
  * 确定性红线：只读 World、不写任何仿真状态、不使用 Math.random/Date.now。
  */
 
-import { ENTITY_CAP, INVENTORY_GRIDS } from '../content/constants';
+import { ENTITY_CAP, INVENTORY_GRIDS, PICKUP_RADIUS_M } from '../content/constants';
 import type {
   AirDropSnapshot,
   EntityKind,
@@ -25,6 +25,7 @@ import type {
   WorldSnapshot,
   ZoneSnapshot,
 } from './types';
+import { dist2D } from './geom';
 import type { World } from './world';
 
 function makeEntitySnapshot(): EntitySnapshot {
@@ -56,6 +57,8 @@ export class SnapshotWriter {
   private readonly planeSnap: PlaneSnapshot;
   private readonly airdropSnaps: AirDropSnapshot[] = [];
   private readonly playerSnap: PlayerViewSnapshot;
+  /** 拾取提示复用对象（零分配：仅引用在 obj/null 间切换） */
+  private readonly nearbyLootObj = { id: '', item: '', dist: 0 };
   private readonly playerWeaponSlots: Array<WeaponSlotState | null>;
   private readonly playerSlotObjs: WeaponSlotState[];
   private readonly playerInvSlots: Array<InvItem | null>;
@@ -106,6 +109,8 @@ export class SnapshotWriter {
       aliveCount: 0,
       medkitChannelMsLeft: 0,
       medkitItem: null,
+      nearbyLoot: null,
+      outsideZone: false,
     };
 
     this.snapshot = {
@@ -211,6 +216,10 @@ export class SnapshotWriter {
       p.medkitUntilMs !== null && p.medkitItemSlot !== null
         ? (p.inventory[p.medkitItemSlot]?.item ?? null)
         : null;
+    this.writeNearbyLoot(w, p);
+    d.outsideZone = p.alive && p.state !== 'dead'
+      ? dist2D(p.pos.x, p.pos.z, w.zone.center.x, w.zone.center.z) > w.zone.radius
+      : false;
 
     // 武器槽（复用槽对象，零分配）：槽位数跟随 p.weapons.length 原地扩缩，
     // 与分配版 buildSnapshot 的 weapons.map(...) 通道在任何槽数下保持一致（默认 2 槽不变）
@@ -259,6 +268,33 @@ export class SnapshotWriter {
     const ents = w.entities;
     for (let i = 0; i < ents.length; i++) if (ents[i].alive) alive += 1;
     d.aliveCount = alive;
+  }
+
+  /** 拾取提示：范围内最近物资（语义与 buildSnapshot 的 findNearbyLoot 一致） */
+  private writeNearbyLoot(w: World, p: World['player']): void {
+    const d = this.playerSnap;
+    if (p.state !== 'ground' || !p.alive) {
+      d.nearbyLoot = null;
+      return;
+    }
+    let best: World['loots'][number] | null = null;
+    let bestDist = 0;
+    for (const l of w.loots) {
+      if (l.taken) continue;
+      const dist = dist2D(p.pos.x, p.pos.z, l.pos.x, l.pos.z);
+      if (dist <= PICKUP_RADIUS_M && (best === null || dist < bestDist)) {
+        best = l;
+        bestDist = dist;
+      }
+    }
+    if (best === null) {
+      d.nearbyLoot = null;
+      return;
+    }
+    this.nearbyLootObj.id = best.id;
+    this.nearbyLootObj.item = best.item;
+    this.nearbyLootObj.dist = bestDist;
+    d.nearbyLoot = this.nearbyLootObj;
   }
 
   private writeZone(w: World): void {
