@@ -187,3 +187,31 @@ routines:
         command: "node scripts/contract-check.mjs --spec {{specPath}} --project {{projectDir}}"
         target: host
         timeout: 120
+
+  - id: pubg-full-e2e
+    name: 完整 E2E 闭环门禁（跳伞→拾取→战斗→缩圈→存活判定）
+    description: >
+      「和平精英Web版」收口门禁：依赖就绪 → lint（依赖方向+确定性红线）→
+      Node AC1–AC5 全流程闭环自动化断言（跳伞落地/物资拾取/射击命中/缩圈毒圈/AI 存活判定，
+      固定 seed 跑满局至唯一存活者）→ 生产构建（tsc 类型检查 + vite build）。
+      全部通过才允许 create-pr 放行（解除 fail-closed 阻塞）。
+    gate: true
+    steps:
+      - name: deps
+        command: "npm install --no-audit --no-fund --silent"
+        target: host
+        timeout: 600
+      - name: lint
+        command: "npm run lint"
+        target: host
+        timeout: 300
+      - name: closed-loop-node-tests
+        # AC1–AC5 Node 闭环断言：单局从登机跳伞→落地拾取→遭遇射击→缩圈→唯一存活者结算全部在 Node 内跑通
+        command: "npm run test"
+        target: host
+        timeout: 600
+      - name: typecheck-build
+        # tsc --noEmit + vite build（含依赖方向 lint 静态保证外的类型红线）
+        command: "npm run build"
+        target: host
+        timeout: 600

@@ -15,6 +15,7 @@ import { SkyDome } from './sky';
 import { PropsLayer } from './props';
 import type { EntityView } from './entityPool';
 import { EntityViewPool } from './entityPool';
+import { PostFX } from './postfx';
 import { makeBuildingTexture, makeCanopyTexture, makeGroundTexture } from './textures';
 import { AutoQuality, QUALITY_PRESETS, type QualityLevel, type QualityPreset } from './quality';
 
@@ -60,6 +61,8 @@ export class GameView {
 
   // 动态对象池（实体视图走池：运行期零创建/零销毁）
   private entityPool: EntityViewPool;
+  // 后处理（Bloom + 色调映射收口）；构造失败/低档时走直渲降级
+  private postFX: PostFX | null = null;
   /** 实体下标 → 视图（实体在 core 内下标稳定，免 Map/Set 与字符串哈希） */
   private entityViews: Array<EntityView | null> = [];
   private lootInst: THREE.InstancedMesh;
@@ -105,9 +108,11 @@ export class GameView {
     this.renderer.setSize(container.clientWidth, container.clientHeight);
     this.renderer.shadowMap.enabled = this.preset.shadows;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
-    // ACES 电影级色调映射 + 曝光补偿：纯 GPU 侧改动，不增加 draw call（AC2 画面质感）
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.18;
+    // 色调映射按画质档位取用（高/中 ACES + 曝光补偿；低档关闭省片元开销，AC2 画面质感）
+    this.renderer.toneMapping = this.preset.toneMapping === 'aces'
+      ? THREE.ACESFilmicToneMapping
+      : THREE.NoToneMapping;
+    this.renderer.toneMappingExposure = this.preset.exposure;
     container.appendChild(this.renderer.domElement);
     this.renderer.domElement.style.display = 'block';
     this.renderer.domElement.style.width = '100%';
@@ -210,6 +215,17 @@ export class GameView {
     this.entityPool = new EntityViewPool(this.scene);
 
     this.effects = new EffectLayer(this.scene);
+
+    // —— 后处理（Bloom + 色调映射收口）；构造失败则整体置 null → 直渲降级 ——
+    try {
+      const w = container.clientWidth;
+      const h = Math.max(1, container.clientHeight);
+      this.postFX = new PostFX(this.renderer, this.scene, this.camera, w, h);
+      this.postFX.configure(this.preset);
+    } catch (err) {
+      this.postFX = null;
+      void err;
+    }
     // —— 天空穹顶 + 植被点缀（AC2①②：远景层次与场景细节）——
     this.sky = new SkyDome(this.scene);
     this.props = new PropsLayer(this.scene, pack, match.world.buildings, this.autoQuality.current);
@@ -229,6 +245,9 @@ export class GameView {
       this.renderer.shadowMap.enabled = this.preset.shadows;
       this.dirLight.castShadow = this.preset.shadows;
       this.applyFog();
+      // 像素比/Bloom 参数变化后重设合成器，避免后处理内部分辨率失真
+      this.postFX?.configure(this.preset);
+      this.postFX?.setSize(this.container.clientWidth, Math.max(1, this.container.clientHeight));
       return after;
     }
     return null;
@@ -337,7 +356,12 @@ export class GameView {
     this.updateSun(snap);
     if (this.sky) this.sky.update(this.camera.position, dtSec);
 
-    this.renderer.render(this.scene, this.camera);
+    // 中/高档走合成器（Bloom + 色调映射收口）；低档/降级直渲省合成开销
+    if (this.postFX && this.postFX.enabled) {
+      this.postFX.render();
+    } else {
+      this.renderer.render(this.scene, this.camera);
+    }
   }
 
   /** 实体当前渲染位置（特效事件定位用；按 id 查快照下标 → 对象池视图，只读不回写仿真） */
@@ -588,6 +612,7 @@ export class GameView {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
+    this.postFX?.setSize(w, h);
   }
 
   get drawCalls(): number {
@@ -596,6 +621,7 @@ export class GameView {
 
   dispose(): void {
     this.disposed = true;
+    this.postFX?.dispose();
     this.effects.dispose();
     this.sky?.dispose();
     this.props?.dispose();

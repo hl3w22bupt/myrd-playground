@@ -1,11 +1,15 @@
 /**
  * render/quality —— 画质三档 + 自动降档（架构文档 01 §3）。
- * 与仿真无关：只影响渲染参数（像素比/阴影/视距/雾/抗锯齿提示）。
+ * 与仿真无关：只影响渲染参数（像素比/阴影/视距/雾/色调映射/Bloom/实体 LOD/地形分段）。
+ * 纯 TS，不依赖 three —— 可在 Node 下直接断言（tests/quality.spec.ts）。
  */
 
 import type { PerfSample } from '../perf/sampler';
 
 export type QualityLevel = 'low' | 'medium' | 'high';
+
+/** 色调映射：高/中档用 ACES（Filmic），低档关闭以省片元开销 */
+export type ToneMapMode = 'aces' | 'none';
 
 export interface QualityPreset {
   level: QualityLevel;
@@ -19,13 +23,89 @@ export interface QualityPreset {
   viewDistance: number;
   /** 物资实例显示密度 0..1 */
   lootDensity: number;
+  /** 色调映射模式（'none' = 无后期色调映射） */
+  toneMapping: ToneMapMode;
+  /** 色调映射曝光（低档无用） */
+  exposure: number;
+  /** 是否启用 Bloom（UnrealBloomPass） */
+  bloom: boolean;
+  /** Bloom 强度 */
+  bloomStrength: number;
+  /** Bloom 扩散半径（像素，相对内部分辨率） */
+  bloomRadius: number;
+  /** Bloom 亮度阈值（仅高于该亮度的像素参与泛光） */
+  bloomThreshold: number;
+  /** 实体 LOD：与相机距离超过该值（m）→ 隐藏头/枪等高频部件（simple） */
+  lodDetailFar: number;
+  /** 实体 LOD：与相机距离超过该值（m）→ 整体剔除（off） */
+  lodCullFar: number;
+  /** 地形网格分段数（越高越精细；构建期生效） */
+  terrainSegments: number;
 }
 
 export const QUALITY_PRESETS: Record<QualityLevel, QualityPreset> = {
-  low: { level: 'low', pixelRatio: 0.75, shadows: false, shadowMapSize: 512, viewDistance: 320, lootDensity: 0.4 },
-  medium: { level: 'medium', pixelRatio: 1, shadows: true, shadowMapSize: 1024, viewDistance: 620, lootDensity: 1 },
-  high: { level: 'high', pixelRatio: 2, shadows: true, shadowMapSize: 2048, viewDistance: 1200, lootDensity: 1 },
+  low: {
+    level: 'low',
+    pixelRatio: 0.75,
+    shadows: false,
+    shadowMapSize: 512,
+    viewDistance: 320,
+    lootDensity: 0.4,
+    toneMapping: 'none',
+    exposure: 1,
+    bloom: false,
+    bloomStrength: 0,
+    bloomRadius: 0.4,
+    bloomThreshold: 0.85,
+    lodDetailFar: 70,
+    lodCullFar: 320,
+    terrainSegments: 96,
+  },
+  medium: {
+    level: 'medium',
+    pixelRatio: 1,
+    shadows: true,
+    shadowMapSize: 1024,
+    viewDistance: 620,
+    lootDensity: 1,
+    toneMapping: 'aces',
+    exposure: 1.05,
+    bloom: true,
+    bloomStrength: 0.5,
+    bloomRadius: 0.45,
+    bloomThreshold: 0.8,
+    lodDetailFar: 150,
+    lodCullFar: 620,
+    terrainSegments: 140,
+  },
+  high: {
+    level: 'high',
+    pixelRatio: 2,
+    shadows: true,
+    shadowMapSize: 2048,
+    viewDistance: 1200,
+    lootDensity: 1,
+    toneMapping: 'aces',
+    exposure: 1.12,
+    bloom: true,
+    bloomStrength: 0.85,
+    bloomRadius: 0.55,
+    bloomThreshold: 0.75,
+    lodDetailFar: 260,
+    lodCullFar: 1200,
+    terrainSegments: 180,
+  },
 };
+
+/** 档位序号：low=0 / medium=1 / high=2（供单调断言与降/升档比较） */
+export function qualityRank(level: QualityLevel): number {
+  return level === 'low' ? 0 : level === 'medium' ? 1 : 2;
+}
+
+/** 后处理是否启用（合成器路径） */
+export function usesPostFx(preset: QualityPreset): boolean {
+  return preset.bloom && preset.toneMapping !== 'none';
+}
 
 /** 默认档位：按设备粗分（移动 → Low，桌面 → Medium） */
 export function detectDefaultQuality(): QualityLevel {
