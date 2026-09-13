@@ -81,13 +81,17 @@ func setup(cols: int, rows: int) -> void:
 	reset_position()
 
 
-## 重开时复位：回原点、清选中态。
+## 重开时复位：回原点、清选中态、清指针手势状态。
+## ⚠️ 实测回归（第二关第一次滑动被吞）：光标复位若不清指针状态机，上一关「手势中致胜」
+## 留下的 _pointer_active/_pointer_swiped 会跨关存活 —— 新关第一根手指 begin 抢不到、
+## move 被 _pointer_swiped 短路，整个手势被吞。过关/重开/开局都走本函数，一处收口。
 func reset_position() -> void:
 	grid_pos = Vector2i.ZERO
 	has_selection = false
 	selected_cell = Vector2i(-1, -1)
 	_sync_position()
 	queue_redraw()
+	_pointer_reset()
 
 
 ## 程序化移到某格（冒烟场景驱动用，等价一次瞬移）。
@@ -97,12 +101,19 @@ func set_cell(cell: Vector2i) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	# 未开始（开始按钮前）或胜负已分后冻结对局输入（开始/重开/过关由 Main 处理）。
-	if not GameState.is_playing():
-		return
+	# 指针事件先做手势状态簿记（begin/move/end），再谈输入门控：
+	# 致胜滑动会在交换结算管线（try_swap → add_score → check_end）内同步把 outcome
+	# 变成 WIN —— 同一次手势的抬起事件带着「胜负已分」到达。若这里按 is_playing
+	# 提前丢弃事件，release 整条被吞，指针状态机（_pointer_active/_pointer_swiped/
+	# _pointer_press_cell）带脏状态跨关，下一关第一次按住滑动从此失灵。
+	# 状态簿记永远执行；「能否产生游戏动作」由各动作入口（_swipe_swap/_tap_at/
+	# 方向键/confirm）用 is_playing 门控，胜负已分后不再产生新交换/选中。
 	if _handle_pointer(event):
 		# 指针事件就地消费（含触摸派生的鼠标镜像事件），不再上抛给 Main。
 		get_viewport().set_input_as_handled()
+		return
+	# 未开始（开始按钮前）或胜负已分后冻结对局输入（开始/重开/过关由 Main 处理）。
+	if not GameState.is_playing():
 		return
 	if event.is_action_pressed("move_left"):
 		_try_move(Vector2i.LEFT)
@@ -234,6 +245,10 @@ func _pointer_end(event: InputEvent) -> void:
 
 ## 点按-点按交换：光标随点按格移动，再走 confirm 的两段语义。
 func _tap_at(cell: Vector2i) -> void:
+	# 游戏动作入口门控：胜负已分后的点按只做手势簿记收口，不再移动光标/改选中
+	#（遮罩上的按钮走 GUI 输入，到不了这里，开始/重开/过关交互不受影响）。
+	if not GameState.is_playing():
+		return
 	if not _in_bounds(cell):
 		return
 	grid_pos = cell
@@ -244,6 +259,11 @@ func _tap_at(cell: Vector2i) -> void:
 
 ## 滑动交换：光标移到起手格并请求与主轴方向相邻格交换（无效交换由 Main 反馈红闪）。
 func _swipe_swap(from_cell: Vector2i, to_cell: Vector2i) -> void:
+	# 游戏动作入口门控：胜负已分后拖动只推进手势簿记（_pointer_swiped 已置位，
+	# 抬起按滑动收口），不再发起新交换 —— 事件派发中途判胜时（致胜滑动），
+	# 交换结算在 is_playing 仍为真时已执行完毕，这里拦的是其后的重复动作。
+	if not GameState.is_playing():
+		return
 	grid_pos = from_cell
 	_sync_position()
 	cell_changed.emit(grid_pos)

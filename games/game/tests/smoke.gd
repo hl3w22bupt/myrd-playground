@@ -22,6 +22,10 @@ extends Node
 ##      RestartButton（+键盘 restart 动作）重开全复位
 ##  10. 无效交换反馈：交错盘上发起交换必无效 → 涉事两颗糖果进入抖动回弹动画
 ##      （Board.invalid_fx_playing_count == 2）+ HUD 提示加大字号且文案到位；不加分不扣步
+##  11. 手势中致胜回归：分数抬到目标分后按住滑动 → 拖过阈值触发交换（结算内同步判胜，
+##      outcome 变 WIN）→ 抬起只做手势簿记收口、不派发任何游戏动作
+##  12. 跨关首次手势回归：手势中致胜 → 过关进第 2 关 → 第一次按住滑动必须产生可见效果
+##      （加分 + 扣步）—— 修复前上一关致胜手势的脏指针状态把新手势整体吞掉
 ##   外加：场景可实例化、autoload 注册、InputMap + 键位契约、信号到达、可读失败原因
 ##
 ## ⚠️ 输入注入全走 Input.parse_input_event 并按帧分段（error-signatures E-08）：
@@ -82,8 +86,20 @@ const FRAME_RESTART_CHECK: int = 89
 const FRAME_INVALID: int = 91
 const FRAME_INVALID_MOVE: int = 95
 const FRAME_INVALID_CHECK: int = 101
+## 手势中致胜回归阶段：103 分数抬到目标分 + 按下 → 105 拖过阈值（交换结算内同步判胜，
+## outcome 变 WIN）→ 107 抬起（release 只做簿记收口，不派发游戏动作）→ 111 断言。
+const FRAME_WIN_SWIPE_PREP: int = 103
+const FRAME_WIN_SWIPE_DRAG: int = 105
+const FRAME_WIN_SWIPE_END: int = 107
+const FRAME_WIN_SWIPE_CHECK: int = 111
+## 跨关首次手势回归阶段：113 点「下一关」过关 + 按下 → 115 拖过阈值 → 117 抬起 →
+## 121 断言「第 2 关第一次按住滑动产生可见效果」（修复前被脏指针状态整体吞掉）。
+const FRAME_NEXT_GESTURE_PREP: int = 113
+const FRAME_NEXT_GESTURE_DRAG: int = 115
+const FRAME_NEXT_GESTURE_END: int = 117
+const FRAME_NEXT_GESTURE_CHECK: int = 121
 ## 总帧数上限（超过即出报告，防止死循环；smoke.sh 另有 --quit-after 兜底）。
-const TOTAL_FRAMES: int = 110
+const TOTAL_FRAMES: int = 125
 ## 强制四连结算用的固定种子（重力补充由此确定，断言只取下界仍需可复现的运行环境）。
 const SCORING_RNG_SEED: int = 20260912
 ## 滑动手势注入的位移长度（设计像素；须超过 Player.SWIPE_TRIGGER_DISTANCE = 42）。
@@ -127,6 +143,10 @@ var _score_before_swipe: int = 0
 var _moves_before_swipe: int = 0
 var _score_before_invalid: int = 0
 var _moves_before_invalid: int = 0
+## 手势中致胜 / 跨关首次手势两阶段注入前的基准值（断言「恰好只扣滑动那一步」用）。
+var _moves_before_win_swipe: int = 0
+var _score_before_next_gesture: int = 0
+var _moves_before_next_gesture: int = 0
 ## 点按/滑动阶段注入用的格子（每段开始前重算，保证与实时棋盘一致）。
 var _tap_a: Vector2i = Vector2i.ZERO
 var _tap_b: Vector2i = Vector2i.ZERO
@@ -339,6 +359,22 @@ func _physics_process(_delta: float) -> void:
 			_inject_action(&"move_right")
 		FRAME_INVALID_CHECK:
 			_check_invalid_swap_feedback()
+		FRAME_WIN_SWIPE_PREP:
+			_prepare_win_mid_gesture_scenario()
+		FRAME_WIN_SWIPE_DRAG:
+			_drag_to(_tap_b)
+		FRAME_WIN_SWIPE_END:
+			_touch_at(_tap_b, false)
+		FRAME_WIN_SWIPE_CHECK:
+			_check_win_mid_gesture()
+		FRAME_NEXT_GESTURE_PREP:
+			_prepare_next_level_first_gesture()
+		FRAME_NEXT_GESTURE_DRAG:
+			_drag_to(_tap_b)
+		FRAME_NEXT_GESTURE_END:
+			_touch_at(_tap_b, false)
+		FRAME_NEXT_GESTURE_CHECK:
+			_check_next_level_first_gesture_works()
 			_finish()
 			return
 	if _frames >= TOTAL_FRAMES:
@@ -768,12 +804,98 @@ func _check_invalid_swap_feedback() -> void:
 		_failures.append("无效交换后选中态残留：has_selection 仍为真（_handle_confirm 未收口）")
 
 
+## 阶段 11 准备：构造「手势中致胜」——分数抬到恰好等于目标分，随后任何一次有效交换
+## 都会在交换结算管线（try_swap → add_score → check_end）内同步判胜：outcome 在拖动
+## 事件派发中途变 WIN，同一次手势的抬起必然带着「胜负已分」到达（与真机致胜滑动同构）。
+func _prepare_win_mid_gesture_scenario() -> void:
+	if _board == null or _cursor == null:
+		return
+	GameState.start_game()
+	# 情景隔离：上一阶段故意铺了「模 5 交错盘」死局盘，先恢复可解盘面再找交换对。
+	_board.ensure_solvable()
+	var pair := _board.find_valid_swap()
+	if pair.size() < 2:
+		_failures.append("手势中致胜准备失败：棋盘上找不到可行三消交换（find_valid_swap 为空）")
+		return
+	_tap_a = pair[0]
+	_tap_b = pair[1]
+	_moves_before_win_swipe = GameState.moves_left
+	_win_seen = false
+	GameState.score = GameState.target_score
+	_touch_at(_tap_a, true)
+
+
+## 阶段 11 断言：致胜滑动的抬起（release）虽在 outcome==WIN 之后到达 ——
+## 手势簿记必须收口（_pointer_active 复位），且不派发任何游戏动作（无新增选中、
+## 步数恰好只扣滑动那一次）。修复前 release 被 is_playing 整条丢弃，状态机带脏跨关。
+func _check_win_mid_gesture() -> void:
+	if _cursor == null:
+		return
+	if GameState.outcome != GameState.Outcome.WIN:
+		_failures.append("手势中致胜失效：致胜滑动结算后 outcome=%s（期望 WIN，check_end 未在交换管线内判胜）" % GameState.outcome)
+		return
+	if not _win_seen:
+		_failures.append("手势中致胜失效：拖动事件派发中途未收到 game_ended(\"win\")（胜负判定链路断裂）")
+	if _cursor._pointer_active:
+		_failures.append("手势状态残留：outcome 变 WIN 后抬起未收口（_pointer_active 仍为真）——指针簿记被输入门控提前丢弃，脏状态将吞掉下一关第一次滑动")
+	if _cursor.has_selection:
+		_failures.append("手势动作越权：胜负已分后抬起仍派发了点按/选中（_tap_at 未被 is_playing 门控）")
+	if GameState.moves_left != _moves_before_win_swipe - 1:
+		_failures.append("手势动作越权：致胜滑动后步数 %d（期望 %d）——抬起多派发了动作或滑动未扣步" % [
+			GameState.moves_left, _moves_before_win_swipe - 1,
+		])
+
+
+## 阶段 12 准备：过关进入第 2 关（真实用户路径：胜利遮罩动作按钮 → _advance_level →
+## reset_position + board.new_game），在新棋盘上找一组可行交换对并立刻按下第一根手指 ——
+## 精确复现「第二关第一次按住滑动」。
+func _prepare_next_level_first_gesture() -> void:
+	if _board == null or _cursor == null:
+		return
+	_overlay_action_button.pressed.emit()
+	if GameState.level != 2 or GameState.outcome != GameState.Outcome.PLAYING:
+		_failures.append("过关推进失效：手势中致胜后点动作按钮 level=%d outcome=%s（期望 2 / PLAYING）" % [
+			GameState.level, GameState.outcome,
+		])
+		return
+	var pair := _board.find_valid_swap()
+	if pair.size() < 2:
+		_failures.append("第 2 关首次手势准备失败：新棋盘上找不到可行三消交换（find_valid_swap 为空）")
+		return
+	_tap_a = pair[0]
+	_tap_b = pair[1]
+	_score_before_next_gesture = GameState.score
+	_moves_before_next_gesture = GameState.moves_left
+	_touch_at(_tap_a, true)
+
+
+## 阶段 12 断言（回归核心）：第 2 关第一次按住滑动必须产生可见效果 ——
+## 拖过阈值即发起交换（加分 + 恰好扣一步）、手势收口干净。
+## 修复前：上一关致胜手势的 release 被丢弃 → _pointer_active/_pointer_swiped 带脏跨关，
+## 本关第一次按下抢不到新手势、拖动被 _pointer_swiped 短路，分数纹丝不动。
+func _check_next_level_first_gesture_works() -> void:
+	if _cursor == null:
+		return
+	if GameState.score <= _score_before_next_gesture:
+		_failures.append("跨关手势回归：第 2 关第一次按住滑动未产生可见效果（分数 %d → %d）——上一关致胜手势的脏指针状态（_pointer_active/_pointer_swiped）吞掉了新手势" % [
+			_score_before_next_gesture, GameState.score,
+		])
+	if GameState.moves_left != _moves_before_next_gesture - 1:
+		_failures.append("跨关手势回归：第 2 关第一次滑动后步数 %d（期望 %d）——手势未走滑动交换链路" % [
+			GameState.moves_left, _moves_before_next_gesture - 1,
+		])
+	if _cursor._pointer_active:
+		_failures.append("手势状态残留：第 2 关第一次滑动抬起后 _pointer_active 仍为真（_pointer_reset 未生效）")
+	if _cursor.has_selection:
+		_failures.append("手势状态残留：第 2 关第一次滑动后选中态未清（_swipe_swap 未收口选中）")
+
+
 func _finish() -> void:
 	if _finished:
 		return
 	_finished = true
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 竖屏适配/开始门控/音频解锁/键位契约/光标移动/点按-点按交换/滑动交换/静音开关/死局洗牌/计分加成/难度梯度/按钮过关/胜负判定/按钮重开/无效交换反馈 全部通过")
+		print("GODOT_SMOKE: PASS 竖屏适配/开始门控/音频解锁/键位契约/光标移动/点按-点按交换/滑动交换/静音开关/死局洗牌/计分加成/难度梯度/按钮过关/胜负判定/按钮重开/无效交换反馈/手势中致胜收口/跨关首次手势 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

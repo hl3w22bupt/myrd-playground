@@ -5,6 +5,9 @@
 # （仓库根 server/ 的 postinstall 会把它 gzip+base64 内联进 bundle），必须入库
 /export/*
 !/export/web/
+# 自定义导出壳：export_presets.cfg 的 html/custom_html_shell 指向它，
+# 是重导出的构建输入（内嵌移动端音频手势解锁器），必须随仓库走，否则换工作区导出必失败
+!/export/web-shell.html
 *.exe
 *.zip
 
