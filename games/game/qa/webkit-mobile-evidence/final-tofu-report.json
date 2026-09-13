@@ -1,0 +1,139 @@
+{
+  "source": "final3x_hud-chinese.png",
+  "size": [
+    1170,
+    1992
+  ],
+  "threshold": 110,
+  "corr_tofu_threshold": 0.9,
+  "regions": {
+    "title": {
+      "expect_text": "糖果粉碎传奇",
+      "cells": 3,
+      "cell_boxes_3x": [
+        [
+          19,
+          0,
+          172,
+          93
+        ],
+        [
+          172,
+          0,
+          326,
+          93
+        ],
+        [
+          332,
+          0,
+          388,
+          56
+        ]
+      ],
+      "ink_ratios": [
+        0.3659,
+        0.27,
+        0.4531
+      ],
+      "ink_mean": 0.363,
+      "pairwise_corr_max": 0.2326,
+      "pairwise_corr_mean": 0.1023,
+      "verdict": "distinct_glyphs"
+    },
+    "score_label": {
+      "expect_text": "SCORE 分数 / 目标",
+      "cells": 8,
+      "cell_boxes_3x": [
+        [
+          20,
+          14,
+          43,
+          33
+        ],
+        [
+          43,
+          14,
+          66,
+          33
+        ],
+        [
+          70,
+          15,
+          97,
+          33
+        ],
+        [
+          105,
+          13,
+          129,
+          35
+        ],
+        [
+          129,
+          12,
+          153,
+          35
+        ],
+        [
+          159,
+          13,
+          168,
+          38
+        ],
+        [
+          178,
+          14,
+          195,
+          35
+        ],
+        [
+          200,
+          12,
+          223,
+          35
+        ]
+      ],
+      "ink_ratios": [
+        0.3676,
+        0.3364,
+        0.4596,
+        0.3342,
+        0.4909,
+        0.2201,
+        0.5946,
+        0.3945
+      ],
+      "ink_mean": 0.3997,
+      "pairwise_corr_max": 0.3144,
+      "pairwise_corr_mean": -0.022,
+      "verdict": "distinct_glyphs"
+    },
+    "moves_label": {
+      "expect_text": "MOVES 剩余步数",
+      "cells": 2,
+      "cell_boxes_3x": [
+        [
+          21,
+          16,
+          101,
+          35
+        ],
+        [
+          108,
+          14,
+          206,
+          37
+        ]
+      ],
+      "ink_ratios": [
+        0.408,
+        0.4301
+      ],
+      "ink_mean": 0.419,
+      "pairwise_corr_max": -0.0316,
+      "pairwise_corr_mean": -0.0316,
+      "verdict": "distinct_glyphs"
+    }
+  },
+  "pass": true
+}

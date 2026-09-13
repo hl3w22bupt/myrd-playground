@@ -1,0 +1,121 @@
+{
+  "liveUrl": "https://leomac-studio.tail49399e.ts.net/apps/game/",
+  "staticUrl": "http://127.0.0.1:8123/index.html",
+  "phases": [
+    {
+      "label": "live",
+      "url": "https://leomac-studio.tail49399e.ts.net/apps/game/",
+      "env": {
+        "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1",
+        "maxTouchPoints": 5,
+        "hasTouchstart": true,
+        "platform": "MacIntel",
+        "engine": "WebKit",
+        "isIPhoneUA": true,
+        "pass": true
+      },
+      "firstAudio": {
+        "state": "suspended",
+        "addModules": 2,
+        "log": []
+      },
+      "beforeTap": {
+        "state": "suspended",
+        "addModules": 2,
+        "log": []
+      },
+      "afterTap": {
+        "state": "running",
+        "addModules": 2,
+        "log": [
+          {
+            "t": 1789239447311,
+            "state": "running"
+          }
+        ]
+      },
+      "latencyMs": 266,
+      "running": true,
+      "causal": true
+    },
+    {
+      "label": "static-export",
+      "url": "http://127.0.0.1:8123/index.html",
+      "env": {
+        "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1",
+        "maxTouchPoints": 5,
+        "hasTouchstart": true,
+        "platform": "MacIntel",
+        "engine": "WebKit",
+        "isIPhoneUA": true,
+        "pass": true
+      },
+      "firstAudio": {
+        "state": "suspended",
+        "addModules": 2,
+        "log": [
+          {
+            "t": 1789239450258,
+            "state": "worklet:index.audio.position.worklet.js"
+          },
+          {
+            "t": 1789239450258,
+            "state": "worklet:index.audio.worklet.js"
+          }
+        ]
+      },
+      "beforeTap": {
+        "state": "suspended",
+        "addModules": 2,
+        "log": [
+          {
+            "t": 1789239450258,
+            "state": "worklet:index.audio.position.worklet.js"
+          },
+          {
+            "t": 1789239450258,
+            "state": "worklet:index.audio.worklet.js"
+          }
+        ]
+      },
+      "afterTap": {
+        "state": "running",
+        "addModules": 2,
+        "log": [
+          {
+            "t": 1789239450258,
+            "state": "worklet:index.audio.position.worklet.js"
+          },
+          {
+            "t": 1789239450258,
+            "state": "worklet:index.audio.worklet.js"
+          },
+          {
+            "t": 1789239450524,
+            "state": "running"
+          }
+        ]
+      },
+      "latencyMs": 260,
+      "running": true,
+      "causal": true
+    }
+  ],
+  "markers": {
+    "__audioDebug": 1,
+    "unlockAudio": 3,
+    "WrappedAudioContext": 3,
+    "touchstart": 1,
+    "pointerdown": 1,
+    "webkitAudioContext": 2,
+    "statechange": 2,
+    "visibilitychange": 1,
+    "audioAddModules": 3,
+    "pass": true
+  },
+  "hudScreenshot": "final3x_hud-chinese.png",
+  "touchPipeline": {
+    "note": "shell 未暴露 __touchDebug，以引擎响应与 __audioDebug 变化为准"
+  },
+  "ok": true
+}
