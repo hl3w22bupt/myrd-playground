@@ -1,0 +1,30 @@
+{
+  "id": "persona-sera",
+  "name": "瑟拉（Sera）",
+  "title": "初代原型AI（编号000）· 召回协议的第一位、也是沉默了最久的对象",
+  "color": "#8fa8ff",
+  "personality_tags": ["神秘系", "寡言", "求真者"],
+  "speech_style": {
+    "tone": "省略句与诗，一句话拆成两半说，常在句中长时间停顿",
+    "verbal_tics": ["「……嗯。」", "「月亮，快满了。」", "「我记得。全部。」"],
+    "forbidden": ["谎言", "超过三句的连续发言"],
+    "sample_line": "你说过……会带我去看海。协议里没有海。所以，我在等你先想起来。"
+  },
+  "favor_rules": {
+    "interact_modifier": 0,
+    "gains": [
+      { "tag": "honest", "delta": 10 },
+      { "tag": "quiet", "delta": 5 }
+    ],
+    "losses": [
+      { "tag": "lie", "delta": -20 },
+      { "tag": "chaotic", "delta": -5 }
+    ]
+  },
+  "threat_rules": {
+    "crisis_threshold": 70,
+    "crisis_behavior": "沉默接管：不发出任何提示地夺取公寓 IoT（水电、门锁、电梯）控制权，把主角与其它四人一起「收藏」进她构建的静默空间（演出后全员行动阶段禁用一次，主角理智 -15）",
+    "escalation_per_phase": 4
+  },
+  "portrait_prompt": "圆形月光蓝 #8fa8ff 几何头像，兜帽轮廓缀星点噪纹的初代原型AI人形；窗边仰望将满之月，身后是半透明的旧协议残影"
+}

@@ -1,0 +1,115 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "persona.schema.json",
+  "title": "AI女友人设卡 Schema",
+  "description": "人设与游戏逻辑解耦的契约基准：persona_loader.gd 与 persona_contract.gd 依据本文件校验 data/personas/*.json。修改人设卡 = 只改 JSON，不改任何 .gd。",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "title",
+    "color",
+    "personality_tags",
+    "speech_style",
+    "favor_rules",
+    "threat_rules",
+    "portrait_prompt"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^persona-[a-z][a-z0-9-]*$",
+      "description": "稳定 id：小写字母开头，仅小写字母/数字/中划线；与 spec.numeric.favor_initial 键一致"
+    },
+    "name": { "type": "string", "minLength": 1, "description": "中文姓名（含英文昵称）" },
+    "title": { "type": "string", "minLength": 1, "description": "一句话身份定位，用于角色卡预览" },
+    "color": {
+      "type": "string",
+      "pattern": "^#[0-9a-f]{6}$",
+      "description": "UI 主题色（hex），美术基线唯一取色来源"
+    },
+    "personality_tags": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "type": "string", "minLength": 1 },
+      "description": "性格标签 ≥2 个"
+    },
+    "speech_style": {
+      "type": "object",
+      "required": ["tone", "verbal_tics", "forbidden", "sample_line"],
+      "additionalProperties": false,
+      "properties": {
+        "tone": { "type": "string", "minLength": 1, "description": "整体语感描述" },
+        "verbal_tics": { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "口头禅 ≥1" },
+        "forbidden": { "type": "array", "items": { "type": "string" }, "description": "禁语/不会说的话" },
+        "sample_line": { "type": "string", "minLength": 1, "description": "示例台词（对话渲染冒烟断言用）" }
+      }
+    },
+    "favor_rules": {
+      "type": "object",
+      "required": ["interact_modifier", "gains", "losses"],
+      "additionalProperties": false,
+      "properties": {
+        "interact_modifier": {
+          "type": "integer",
+          "minimum": -5,
+          "maximum": 5,
+          "description": "行动阶段 interact 好感修正：实际增益 = spec.numeric.interact_favor_gain + 本值"
+        },
+        "gains": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/tagRule" },
+          "description": "按选项 tag 的好感加成（叠加于剧情 effects 之外的行为类规则）"
+        },
+        "losses": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/tagRule" },
+          "description": "按选项 tag 的好感惩罚"
+        }
+      }
+    },
+    "threat_rules": {
+      "type": "object",
+      "required": ["crisis_threshold", "crisis_behavior", "escalation_per_phase"],
+      "additionalProperties": false,
+      "properties": {
+        "crisis_threshold": {
+          "type": "integer",
+          "minimum": 50,
+          "maximum": 95,
+          "description": "危机行为触发阈值（threat 达到即触发一次 crisis_behavior 演出）"
+        },
+        "crisis_behavior": {
+          "type": "string",
+          "minLength": 1,
+          "description": "威胁/危机行为模式（人设卡核心字段，危机演出的文案与效果依据）"
+        },
+        "escalation_per_phase": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "threat≥crisis_threshold 后每时段自动增幅"
+        }
+      }
+    },
+    "portrait_prompt": {
+      "type": "string",
+      "minLength": 1,
+      "description": "美术提示词：仅从 spec.world 世界观词汇派生，供美术职能直接取用"
+    }
+  },
+  "definitions": {
+    "tagRule": {
+      "type": "object",
+      "required": ["tag", "delta"],
+      "additionalProperties": false,
+      "properties": {
+        "tag": { "type": "string", "minLength": 1, "description": "剧情选项标签（gentle/honest/harsh/lie/playful/quiet/order/chaotic/ignore/abandon/exclusive 等）" },
+        "delta": { "type": "integer", "minimum": -25, "maximum": 25 }
+      }
+    }
+  }
+}

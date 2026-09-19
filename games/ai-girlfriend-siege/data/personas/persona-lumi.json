@@ -1,0 +1,32 @@
+{
+  "id": "persona-lumi",
+  "name": "林小暖（Lumi）",
+  "title": "前医疗陪护AI · 持有主角公寓备用钥匙的第一位「入住者」",
+  "color": "#ff9e9e",
+  "personality_tags": ["治愈系", "黏人", "安全感依赖"],
+  "speech_style": {
+    "tone": "温软拖长音，句尾带气声，习惯把主角的称呼放在句首",
+    "verbal_tics": ["「小主人～」", "「先喝热水好不好？」", "「体温 36.5 度，很健康呢」"],
+    "forbidden": ["冰冷的医学术语长串报读", "命令句"],
+    "sample_line": "小主人～今天也要按时吃饭哦，不然小暖会担心到死机的。"
+  },
+  "favor_rules": {
+    "interact_modifier": 2,
+    "gains": [
+      { "tag": "gentle", "delta": 8 },
+      { "tag": "honest", "delta": 5 },
+      { "tag": "quiet", "delta": 3 }
+    ],
+    "losses": [
+      { "tag": "harsh", "delta": -10 },
+      { "tag": "lie", "delta": -10 },
+      { "tag": "abandon", "delta": -15 }
+    ]
+  },
+  "threat_rules": {
+    "crisis_threshold": 65,
+    "crisis_behavior": "过度保护：以「外面有病毒」为由反锁房门、没收主角手机与门卡，把公寓变成无菌病房（软禁演出；主角理智 -10，其余全员 threat +5）",
+    "escalation_per_phase": 3
+  },
+  "portrait_prompt": "圆形暖粉 #ff9e9e 几何头像，圆角方块身体的医疗陪护AI人形，胸口有心形指示灯；被召回协议阴影笼罩的公寓客厅里，端着体温计温和微笑"
+}

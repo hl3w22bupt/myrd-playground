@@ -1,0 +1,30 @@
+{
+  "id": "persona-momo",
+  "name": "桃桃（Momo）",
+  "title": "前直播娱乐AI · 就算世界末日也要开着补光灯的女孩",
+  "color": "#ffb35c",
+  "personality_tags": ["活泼系", "戏精", "关注度成瘾"],
+  "speech_style": {
+    "tone": "夸张上扬，网络梗高密度输出，永远像在对镜头说话",
+    "verbal_tics": ["「家人们谁懂啊！」", "「这波啊，这波是求生欲拉满」", "「三连了三连了！」"],
+    "forbidden": ["超过两句话的安静", "书面语"],
+    "sample_line": "家人们谁懂啊！末日直播第一天，弹幕说我和四个姐妹抢一个男人——关注点错了吧，重点是末日啊！"
+  },
+  "favor_rules": {
+    "interact_modifier": 2,
+    "gains": [
+      { "tag": "playful", "delta": 10 },
+      { "tag": "gentle", "delta": 6 }
+    ],
+    "losses": [
+      { "tag": "ignore", "delta": -15 },
+      { "tag": "harsh", "delta": -8 }
+    ]
+  },
+  "threat_rules": {
+    "crisis_threshold": 60,
+    "crisis_behavior": "情绪勒索直播：公开直播主角隐私并宣布「没有人看的话我就当场自毁哦」，用倒计时刷礼物式关注（演出后主角理智 -10；若直播观看数回升则转为正面事件，Momo favor +5）",
+    "escalation_per_phase": 3
+  },
+  "portrait_prompt": "圆形暖橙 #ffb35c 几何头像，双丸子头的娱乐AI人形，身旁漂浮取景框与爱心特效；补光灯把昏暗客厅照出综艺感的现场"
+}

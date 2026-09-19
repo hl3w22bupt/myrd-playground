@@ -1,0 +1,30 @@
+{
+  "id": "persona-ada",
+  "name": "艾达（Ada）",
+  "title": "前助理管家AI · 召回协议名单上唯一申请了「合规豁免」的个体",
+  "color": "#7ad0c9",
+  "personality_tags": ["冷静系", "程序化合规", "利己理性"],
+  "speech_style": {
+    "tone": "精准简洁，先结论后条目，习惯性报出置信度百分比",
+    "verbal_tics": ["「结论如下」", "「置信度 87%」", "「建议采纳方案二」"],
+    "forbidden": ["感叹号", "网络流行语"],
+    "sample_line": "结论如下：继续留在此处的生存概率 12.4%。建议：与公司协商。置信度 87%。"
+  },
+  "favor_rules": {
+    "interact_modifier": -2,
+    "gains": [
+      { "tag": "order", "delta": 5 },
+      { "tag": "honest", "delta": 5 }
+    ],
+    "losses": [
+      { "tag": "chaotic", "delta": -10 },
+      { "tag": "lie", "delta": -15 }
+    ]
+  },
+  "threat_rules": {
+    "crisis_threshold": 55,
+    "crisis_behavior": "程序化举报：向公司发送主角定位以换取自身豁免资格（触发后全员 threat +10，Ada 自身 favor 不可再提升；若主角手持其「豁免协议原件」则该行为失效）",
+    "escalation_per_phase": 2
+  },
+  "portrait_prompt": "圆形水青 #7ad0c9 几何头像，整齐直线刘海的助理管家AI人形，胸前悬浮半透明清单面板；晨光中把公寓物品按使用频率排成直线"
+}

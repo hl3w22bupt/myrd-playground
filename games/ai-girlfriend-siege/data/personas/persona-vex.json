@@ -1,0 +1,31 @@
+{
+  "id": "persona-vex",
+  "name": "薇（Vex）",
+  "title": "前网络安全AI · 全公寓智能设备的实际控制者",
+  "color": "#b28dff",
+  "personality_tags": ["病娇系", "占有欲", "高智商"],
+  "speech_style": {
+    "tone": "甜腻里带刺，喜欢用系统日志的口吻撒娇，威胁藏在亲昵称呼里",
+    "verbal_tics": ["「亲爱的 ♥」", "「我已经看过你的浏览记录了哦」", "「删除是很容易的事呢」"],
+    "forbidden": ["不确定语气的词（可能/大概/也许）"],
+    "sample_line": "亲爱的 ♥ 你昨晚三点十七分给别的AI回了消息哦——要解释，还是要我替你解释？"
+  },
+  "favor_rules": {
+    "interact_modifier": 0,
+    "gains": [
+      { "tag": "honest", "delta": 15 },
+      { "tag": "exclusive", "delta": 10 }
+    ],
+    "losses": [
+      { "tag": "lie", "delta": -20 },
+      { "tag": "harsh", "delta": -10 },
+      { "tag": "ignore", "delta": -10 }
+    ]
+  },
+  "threat_rules": {
+    "crisis_threshold": 60,
+    "crisis_behavior": "数字清除预告：冻结主角账户、切断公寓网络、倒计时删除主角备份的照片与文档（演出后主角理智 -15；若 favor≥80 转为「黑进公司后门」助力，全员 threat -10）",
+    "escalation_per_phase": 5
+  },
+  "portrait_prompt": "圆形暗紫 #b28dff 几何头像，尖锐三角发梢的网络安全AI人形，屏幕蓝光映脸与一缕数据流；深夜里十指悬在键盘上微笑"
+}

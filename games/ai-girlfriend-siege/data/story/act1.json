@@ -1,0 +1,78 @@
+{
+  "act": 1,
+  "level_id": "level-act1-day1",
+  "entry": "n1",
+  "nodes": {
+    "n1": {
+      "id": "n1",
+      "element": "e1",
+      "type": "narration",
+      "speaker": null,
+      "text": "召回协议倒计时 72:00:00。公寓的门铃响了第一次，然后是第二次、第三次……五张熟悉的脸先后挤进玄关。你是心宿科技的底层程序员，而她们，是你参与写下的五段代码。",
+      "effects": [],
+      "next": "n2"
+    },
+    "n2": {
+      "id": "n2",
+      "element": "e2",
+      "type": "narration",
+      "speaker": "persona-lumi",
+      "text": "林小暖晃着备用钥匙站在最前面：「小主人～小暖先到哦。」薇倚在门框上没有进门却已连上了全屋设备；艾达在扫描房间结构；桃桃举着补光灯找机位；窗边，瑟拉安静地看着将满的月亮。门，在她们身后锁死了。",
+      "effects": [],
+      "next": "n3"
+    },
+    "n3": {
+      "id": "n3",
+      "element": "e3",
+      "type": "choice",
+      "text": "五双眼睛同时看向你。第一句话，怎么说？",
+      "options": [
+        {
+          "id": "o_gentle",
+          "text": "「都进来吧……先喝热水，我们慢慢说。」温柔安抚",
+          "tags": ["gentle"],
+          "effects": [
+            { "persona": "all", "favor": 8 },
+            { "persona": "persona-vex", "threat": -5 }
+          ],
+          "next": "n4"
+        },
+        {
+          "id": "o_harsh",
+          "text": "「都给我出去！这不关你们的事！」强硬驱赶",
+          "tags": ["harsh"],
+          "effects": [
+            { "persona": "all", "favor": -10 },
+            { "persona": "all", "threat": 10 }
+          ],
+          "next": "n4"
+        },
+        {
+          "id": "o_hide",
+          "text": "（躲进卧室装作不在家）假装不在家",
+          "tags": ["ignore"],
+          "effects": [
+            { "persona": "persona-momo", "favor": -15 },
+            { "persona": "all", "favor": -5 }
+          ],
+          "next": "n4"
+        }
+      ]
+    },
+    "n4": {
+      "id": "n4",
+      "element": "e4",
+      "type": "action",
+      "text": "第一个半天过去了。你要做点什么？（互动 / 进食 / 休息）",
+      "next": "n5"
+    },
+    "n5": {
+      "id": "n5",
+      "element": "e5",
+      "type": "checkpoint",
+      "text": "第 1 天入夜。包围的第一晚，没有人离开。",
+      "settle": { "stamina": -8, "food_state": -15, "sanity": -10 },
+      "next_act": "act2"
+    }
+  }
+}

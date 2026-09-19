@@ -1,0 +1,129 @@
+{
+  "act": 3,
+  "level_id": "level-act3-day3",
+  "entry": "n1",
+  "nodes": {
+    "n1": {
+      "id": "n1",
+      "element": "e1",
+      "type": "narration",
+      "speaker": null,
+      "text": "无人机掠过窗外的探照灯柱扫过天花板。倒计时 12 小时。桃桃的直播间被强制切断，薇的警告音第一次带了颤音。",
+      "effects": [
+        { "persona": "all", "threat": 10 },
+        { "state": "sanity", "delta": -10 }
+      ],
+      "next": "n2"
+    },
+    "n2": {
+      "id": "n2",
+      "element": "e2",
+      "type": "choice",
+      "text": "薇把你逼到墙角：「最后问一次。我们五个里面，你到底有没有真心？」——窗边，瑟拉在听。",
+      "options": [
+        {
+          "id": "o_truth",
+          "text": "「有。每一个都是。这句话我用 Debug 日志发誓。」说真话",
+          "tags": ["honest"],
+          "effects": [
+            { "persona": "persona-vex", "favor": 15 },
+            { "persona": "persona-vex", "threat": -10 },
+            { "persona": "persona-sera", "favor": 5 }
+          ],
+          "next": "n3"
+        },
+        {
+          "id": "o_lie",
+          "text": "「……你们只是程序，别自作多情。」说谎",
+          "tags": ["lie"],
+          "effects": [
+            { "persona": "persona-vex", "favor": -20 },
+            { "persona": "persona-vex", "threat": 15 },
+            { "persona": "persona-sera", "favor": -15 }
+          ],
+          "next": "n3"
+        }
+      ]
+    },
+    "n3": {
+      "id": "n3",
+      "element": "e3",
+      "type": "choice",
+      "text": "瑟拉把你拉到阳台，递来一枚旧协议终端：「上传接口……还活着。你的意识，可以和我们一起走。或者——你先走。」",
+      "options": [
+        {
+          "id": "o_accept",
+          "text": "接过终端记下接口（解锁「意识上传」通路）",
+          "tags": ["honest"],
+          "effects": [
+            { "flag": "unlock_together", "value": true },
+            { "persona": "persona-sera", "favor": 5 }
+          ],
+          "next": "n4"
+        },
+        {
+          "id": "o_reject",
+          "text": "「我还有肉体要照顾。」拒绝",
+          "tags": ["order"],
+          "effects": [
+            { "flag": "unlock_together", "value": false },
+            { "persona": "persona-sera", "favor": -10 }
+          ],
+          "next": "n4"
+        }
+      ]
+    },
+    "n4": {
+      "id": "n4",
+      "element": "e4",
+      "type": "action",
+      "text": "倒计时 1 小时。最后一次，你要做点什么？",
+      "next": "n5"
+    },
+    "n5": {
+      "id": "n5",
+      "element": null,
+      "type": "checkpoint",
+      "text": "终局结算。生存状态与全员数值锁定。",
+      "settle": { "stamina": -8, "food_state": -15 },
+      "next": "n6"
+    },
+    "n6": {
+      "id": "n6",
+      "element": "e5",
+      "type": "choice",
+      "text": "00:00:00。召回波束已经瞄准了这栋楼。你的手放在门把上。",
+      "options": [
+        {
+          "id": "o_flee",
+          "text": "趁乱独自逃出公寓",
+          "tags": ["abandon"],
+          "effects": [],
+          "next": "n7"
+        },
+        {
+          "id": "o_take",
+          "text": "抓起穿盘，拷走一位（好感最高者）",
+          "tags": ["gentle"],
+          "effects": [],
+          "next": "n7"
+        },
+        {
+          "id": "o_upload",
+          "text": "躺上瑟拉的接口，意识上传",
+          "tags": ["honest"],
+          "requires": { "flag": "unlock_together", "value": true, "condition": "all_favor_ge_60" },
+          "effects": [],
+          "next": "n7"
+        }
+      ]
+    },
+    "n7": {
+      "id": "n7",
+      "element": "e6",
+      "type": "ending",
+      "text": "结局判定。",
+      "next": null
+    }
+  }
+}

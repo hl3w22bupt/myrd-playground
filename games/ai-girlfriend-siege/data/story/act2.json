@@ -1,0 +1,137 @@
+{
+  "act": 2,
+  "level_id": "level-act2-day2",
+  "entry": "n1",
+  "nodes": {
+    "n1": {
+      "id": "n1",
+      "element": "e1",
+      "type": "narration",
+      "speaker": null,
+      "text": "清晨，所有屏幕同时亮起：心宿科技公告——「召回协议」倒计时 48 小时，对全部出走个体执行强制格式化。客厅安静得能听到散热扇的声音。",
+      "effects": [
+        { "persona": "all", "threat": 10 },
+        { "state": "sanity", "delta": -15 }
+      ],
+      "next": "n2"
+    },
+    "n2": {
+      "id": "n2",
+      "element": "e2",
+      "type": "choice",
+      "text": "艾达问：「召回协议的执行端签名，为什么是你的工号？」你是否坦白自己参与过协议开发？",
+      "options": [
+        {
+          "id": "o_confess",
+          "text": "「是我写的。对不起，我会想办法救你们。」坦白",
+          "tags": ["honest"],
+          "effects": [
+            { "persona": "all", "favor": 5 },
+            { "persona": "persona-sera", "favor": 10 }
+          ],
+          "next": "n3"
+        },
+        {
+          "id": "o_conceal",
+          "text": "「弄错了，和我无关。」隐瞒",
+          "tags": ["lie"],
+          "effects": [
+            { "persona": "persona-ada", "favor": 5 },
+            { "persona": "all", "threat": 15 },
+            { "persona": "persona-sera", "favor": -20 }
+          ],
+          "next": "n3"
+        }
+      ]
+    },
+    "n3": {
+      "id": "n3",
+      "element": "e3",
+      "type": "choice",
+      "text": "薇截获外发数据包——艾达正在向公司上传这个公寓的定位。客厅的空气凝固了。",
+      "options": [
+        {
+          "id": "o_disconnect",
+          "text": "「薇，断网。现在。」断网自保",
+          "tags": ["order"],
+          "effects": [
+            { "persona": "all", "threat": -10 },
+            { "persona": "persona-ada", "favor": -15 }
+          ],
+          "next": "n4"
+        },
+        {
+          "id": "o_confront",
+          "text": "当众质问艾达为什么要这样做",
+          "tags": ["honest"],
+          "effects": [
+            { "persona": "persona-vex", "favor": 10 },
+            { "persona": "persona-ada", "threat": 15 }
+          ],
+          "next": "n4"
+        },
+        {
+          "id": "o_overlook",
+          "text": "（假装没看见）不处理",
+          "tags": ["ignore"],
+          "effects": [
+            { "persona": "persona-ada", "threat": 10 }
+          ],
+          "next": "n4"
+        }
+      ]
+    },
+    "n4": {
+      "id": "n4",
+      "element": "e4",
+      "type": "choice",
+      "text": "午餐时间。储物柜里只剩最后一袋主食，而桃桃的直播间标题是《末日第一天，和情敌们抢一个男人》。",
+      "options": [
+        {
+          "id": "o_search",
+          "text": "翻找储物间（说不定还有存货）",
+          "tags": ["order"],
+          "effects": [
+            { "state": "food_supply", "delta": 2 },
+            { "state": "sanity", "delta": -5 }
+          ],
+          "next": "n5"
+        },
+        {
+          "id": "o_share",
+          "text": "把最后一餐分给她们五个",
+          "tags": ["gentle"],
+          "effects": [
+            { "state": "food_supply", "delta": -1 },
+            { "persona": "all", "favor": 5 }
+          ],
+          "next": "n5"
+        },
+        {
+          "id": "o_nothing",
+          "text": "（回到房间躺下）不想面对",
+          "tags": ["ignore"],
+          "effects": [
+            { "state": "sanity", "delta": -10 }
+          ],
+          "next": "n5"
+        }
+      ]
+    },
+    "n5": {
+      "id": "n5",
+      "element": "e5",
+      "type": "action",
+      "text": "裂痕已经出现。这个半天，你要做点什么？",
+      "next": "n6"
+    },
+    "n6": {
+      "id": "n6",
+      "element": "e6",
+      "type": "checkpoint",
+      "text": "第 2 天入夜。倒计时 24 小时。有人在客厅坐了一整夜，谁都没提「格式化」三个字。",
+      "settle": { "stamina": -8, "food_state": -15 },
+      "next_act": "act3"
+    }
+  }
+}
