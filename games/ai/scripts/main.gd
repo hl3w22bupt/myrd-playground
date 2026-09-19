@@ -20,6 +20,18 @@ const TOKEN_SCENE: PackedScene = preload("res://scenes/bond_token.tscn")
 const HAZARD_SCENE: PackedScene = preload("res://scenes/crisis_hazard.tscn")
 ## 选项按钮底板：StyleBoxTexture 共用一张，选中/hover 用 modulate 提亮。
 const OPTION_TEXTURE: Texture2D = preload("res://assets/art/ui/option-button.svg")
+## 触控参数默认值：键名与 data/spec/touch.json 一一对应（加载失败/缺键时回落到这里）。
+## 改触控手感 = 改 JSON，不改代码（触控参数作为可配置内容管理）。
+const TOUCH_DEFAULTS: Dictionary = {
+	"joystick_base_radius": 56.0,
+	"joystick_stick_radius": 26.0,
+	"joystick_deadzone_ratio": 0.25,
+	"min_touch_px": 44.0,
+	"option_button_max_height": 96.0,
+	"confirm_button_size": 128.0,
+}
+## 触控参数内容文件落点。
+const TOUCH_CONFIG_PATH: String = "res://data/spec/touch.json"
 
 ## 相位枚举。
 enum Phase { TITLE, STORY, ARENA, CHECKPOINT, ENDING }
@@ -50,6 +62,9 @@ const ROSTER_ROW_HEIGHT: float = 32.0
 @onready var end_label: Label = %EndLabel
 @onready var end_reason_label: Label = %EndReason
 @onready var end_basis_label: Label = %EndBasis
+@onready var touch_ui: CanvasLayer = $TouchUI
+@onready var joystick: VirtualJoystick = $TouchUI/JoystickAnchor
+@onready var confirm_button: TouchConfirmButton = $TouchUI/ConfirmAnchor/ConfirmButton
 
 ## 人设卡目录（只认 schema，不认角色名）。
 var personas: PersonaLoader = PersonaLoader.new()
@@ -78,6 +93,10 @@ var _spawn_failed: bool = false
 var _ending_intent: String = ""
 ## 花名册行缓存：persona_id → {favor_label, threat_label, panel}。
 var _roster_rows: Dictionary = {}
+## 生效中的触控参数（TOUCH_DEFAULTS ∪ touch.json 覆盖值）。
+var _touch: Dictionary = TOUCH_DEFAULTS.duplicate()
+## 推进提示文案：按输入设备切换（触屏 = 点按画面；桌面 = 空格）。
+var _advance_hint: String = "空格 继续 ▼"
 
 
 func _ready() -> void:
@@ -87,10 +106,15 @@ func _ready() -> void:
 	options_box.visible = false
 	toast_label.visible = false
 	personas.load_catalog()
-	story.load_story(get_viewport_rect().size)
+	story.load_story(GameState.play_area_size())
+	# 横竖屏旋转 / 窗口尺寸变化时刷新玩法边界（玩家由 player.gd 每帧钳制，落点下一幕重生）。
+	if not get_viewport().size_changed.is_connected(_on_viewport_size_changed):
+		get_viewport().size_changed.connect(_on_viewport_size_changed)
 	_validate_content()
 	_connect_signals()
 	_build_roster()
+	_setup_touch()
+	_apply_safe_area()
 	_show_title()
 
 
@@ -178,8 +202,10 @@ func _build_roster() -> void:
 	for persona_id: String in personas.persona_ids():
 		var row := PanelContainer.new()
 		row.custom_minimum_size = Vector2(118.0, ROSTER_ROW_HEIGHT)
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var hbox := HBoxContainer.new()
 		hbox.add_theme_constant_override("separation", 4)
+		hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(hbox)
 		var avatar := TextureRect.new()
 		avatar.custom_minimum_size = Vector2(26.0, 26.0)
@@ -272,7 +298,7 @@ func _enter_node(node: Dictionary) -> void:
 			_show_portrait(speaker_id, ExpressionKind.NORMAL)
 			speaker_label.text = _speaker_prefix(speaker_id)
 			dialog_text.text = String(node.get("prompt", ""))
-			confirm_hint.text = "W/S 或 ↑/↓ 选择 · 1-4 直选 · 空格 确认"
+			confirm_hint.text = "点按选项卡 选择" if _touch_enabled() else "W/S 或 ↑/↓ 选择 · 1-4 直选 · 空格 确认"
 			_rebuild_options(node)
 			options_box.visible = true
 			_highlight_option()
@@ -282,14 +308,14 @@ func _enter_node(node: Dictionary) -> void:
 			_show_portrait(speaker_id, _mood_for(speaker_id))
 			speaker_label.text = _speaker_prefix(speaker_id)
 			dialog_text.text = String(node.get("text", ""))
-			confirm_hint.text = "空格 继续 ▼"
+			confirm_hint.text = _advance_hint
 		_:
 			dialog_panel.visible = true
 			options_box.visible = false
 			_show_portrait("", ExpressionKind.NORMAL)
 			speaker_label.text = ""
 			dialog_text.text = String(node.get("text", ""))
-			confirm_hint.text = "空格 继续 ▼"
+			confirm_hint.text = _advance_hint
 	# 旁白 / 台词节点的幕首事件数值（如召回公告、无人机夜）：进入节点即结算。
 	if String(node.get("type", "")) != StoryEngine.TYPE_CHOICE and node.has("effects"):
 		GameState.apply_effects(node.get("effects", {}), String(node.get("id", "")), "node", speaker_id)
@@ -339,7 +365,10 @@ func _rebuild_options(node: Dictionary) -> void:
 		var button := Button.new()
 		button.text = "%d. %s" % [i + 1, String(option.get("text", ""))]
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.custom_minimum_size = Vector2(304.0, 25.0)
+		# 触控热区契约：高度 ≥ min_touch_px 个物理像素（窗口/画布缩放换算），宽度铺满选项列。
+		button.custom_minimum_size = Vector2(0.0, _min_option_height())
+		button.size_flags_horizontal = Control.SIZE_FILL
+		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.focus_mode = Control.FOCUS_NONE
 		var style := StyleBoxTexture.new()
 		style.texture = OPTION_TEXTURE
@@ -636,6 +665,16 @@ func _on_game_ended(_outcome_name: String) -> void:
 
 ## —— 输入 ——
 func _unhandled_input(event: InputEvent) -> void:
+	# 画面内点按：触屏的「推进」主路径。只认 InputEventScreenTouch（emulate_mouse_from_touch
+	# 合成出的鼠标事件在此忽略，避免一次点按双触发）；落在选项按钮/摇杆/确认按钮上的触摸
+	# 已被 gui 命中或摇杆消费，不会到达这里。
+	if event.is_action_pressed("tap_advance", false):
+		_handle_screen_tap()
+		return
+	if event is InputEventScreenTouch and event.pressed:
+		# 兜底路径：未被 gui 命中体系消费的裸触摸（不同平台分发差异下的第二通道）。
+		_handle_screen_tap()
+		return
 	# allow_echo 显式传 false：长按会产生一串 echo 事件。
 	match _phase:
 		Phase.TITLE:
@@ -679,7 +718,124 @@ func _handle_story_input(event: InputEvent) -> void:
 				return
 
 
+## 视口尺寸变化（旋转 / 分屏 / 桌面拖拽窗口）：刷新玩法边界。
+func _on_viewport_size_changed() -> void:
+	story.play_bounds = GameState.play_area_size()
+
+
+## 画面内点按的相位语义（与 confirm 一致，唯独 choice 相位例外）：
+## choice 相位点按空白处不结算 —— 必须点选项按钮（热区 ≥44 物理像素），防止误触选错。
+func _handle_screen_tap() -> void:
+	match _phase:
+		Phase.TITLE:
+			_start_run()
+		Phase.STORY:
+			if _current_node.is_empty() or String(_current_node.get("type", "")) != StoryEngine.TYPE_CHOICE:
+				_advance(String(_current_node.get("goto", "")))
+		Phase.CHECKPOINT:
+			_after_checkpoint()
+		Phase.ENDING:
+			restart()
+		_:
+			pass
+
+
 ## 重开一局（结局界面 confirm 触发）：状态归零、玩家回起点、第一幕重生。
 ## 顺序硬约束：先 reset 状态与玩家，再重生物件 —— 否则上一局接触点上的新物件会立刻被结算。
 func restart() -> void:
 	_start_run()
+
+
+## —— 移动端触摸装配 ——
+## 触屏环境才显示 TouchUI（摇杆 + 确认按钮）；用 is_touchscreen_available 判定，
+## 不用平台特征：触屏笔记本键盘 UI 也在，无触屏设备不显示。桌面环境整体不可见（零回归）。
+func _setup_touch() -> void:
+	_load_touch_config()
+	touch_ui.visible = _touch_enabled()
+	joystick.base_radius = float(_touch.get("joystick_base_radius", 56.0))
+	joystick.stick_radius = float(_touch.get("joystick_stick_radius", 26.0))
+	joystick.deadzone_ratio = float(_touch.get("joystick_deadzone_ratio", 0.25))
+	joystick.custom_minimum_size = Vector2(joystick.base_radius, joystick.base_radius) * 2.0
+	joystick.queue_redraw()
+	var confirm_size := maxf(float(_touch.get("confirm_button_size", 128.0)),
+			float(_touch.get("min_touch_px", 44.0)))
+	confirm_button.apply_hotspot(Vector2(confirm_size, confirm_size))
+	if _touch_enabled():
+		_advance_hint = "点按画面 继续 ▼"
+		var title_hint := get_node_or_null("UI/TitleScreen/TitleHint") as Label
+		if title_hint != null:
+			title_hint.text = "点按画面 开始"
+		var end_hint := get_node_or_null("UI/EndScreen/EndHint") as Label
+		if end_hint != null:
+			end_hint.text = "点按画面 再来一局"
+
+
+func _touch_enabled() -> bool:
+	return DisplayServer.is_touchscreen_available()
+
+
+## 读取触控参数内容文件：JSON 缺失/格式错/缺键都回落默认值，不让坏配置崩掉游戏。
+func _load_touch_config() -> void:
+	var text: String = FileAccess.get_file_as_string(TOUCH_CONFIG_PATH)
+	if text.is_empty():
+		return
+	var parsed: Variant = JSON.parse_string(text)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		push_warning("触控参数文件格式不正确，使用默认值：%s" % TOUCH_CONFIG_PATH)
+		return
+	for key: String in TOUCH_DEFAULTS:
+		if parsed.has(key):
+			_touch[key] = parsed[key]
+
+
+## 选项按钮的最小高度（逻辑像素）：把「≥ min_touch_px 物理像素」按窗口/画布缩放换算，
+## 并用可配置上限钳制 —— 桌面缩放 ≥1 时回到紧凑尺寸（视觉不变），小屏手机换算出大热区。
+func _min_option_height() -> float:
+	var window_size := Vector2(DisplayServer.window_get_size())
+	var canvas_size := get_viewport_rect().size
+	var min_touch_px: float = float(_touch.get("min_touch_px", 44.0))
+	var max_height: float = float(_touch.get("option_button_max_height", 96.0))
+	if window_size.x <= 0.0 or window_size.y <= 0.0 or canvas_size.x <= 0.0 or canvas_size.y <= 0.0:
+		return min_touch_px
+	var scale := minf(window_size.x / canvas_size.x, window_size.y / canvas_size.y)
+	if scale <= 0.0:
+		return min_touch_px
+	return clampf(ceilf(min_touch_px / scale), 20.0, max_height)
+
+
+## 刘海/打孔屏安全区避让：把安全区内缩量换算成画布逻辑像素，分别推移
+## 顶部信息簇（下移右移）与底部/右侧触控与对话控件（上收左收）。
+## 无安全区 API 的环境（headless/Web 返回零矩形）自然退化为零位移。
+func _apply_safe_area() -> void:
+	var window_size := Vector2(DisplayServer.window_get_size())
+	var safe := Rect2(DisplayServer.get_display_safe_area())
+	var canvas_size := get_viewport_rect().size
+	if window_size.x <= 0.0 or window_size.y <= 0.0 or safe.size.x <= 0.0 or safe.size.y <= 0.0:
+		return
+	var sx := canvas_size.x / window_size.x
+	var sy := canvas_size.y / window_size.y
+	var left := safe.position.x * sx
+	var top := safe.position.y * sy
+	var right := (window_size.x - safe.end.x) * sx
+	var bottom := (window_size.y - safe.end.y) * sy
+	for node_path in ["UI/HudLabel", "UI/ActLabel", "UI/BarStamina", "UI/BarSatiety", "UI/BarSanity"]:
+		var node := get_node_or_null(NodePath(node_path)) as Control
+		if node != null:
+			node.offset_left += left
+			node.offset_top += top
+			node.offset_right += left
+			node.offset_bottom += top
+	_nudge_control(get_node_or_null("UI/DialogPanel") as Control, left, 0.0, -right, -bottom)
+	_nudge_control(get_node_or_null("UI/OptionsBox") as Control, 0.0, 0.0, -right, -bottom)
+	_nudge_control(get_node_or_null("TouchUI/JoystickAnchor") as Control, left, 0.0, 0.0, -bottom)
+	_nudge_control(get_node_or_null("TouchUI/ConfirmAnchor") as Control, 0.0, 0.0, -right, -bottom)
+
+
+## 安全区推移助手：对 Control 的四边 offsets 追加增量（节点缺失时静默跳过）。
+func _nudge_control(control: Control, dl: float, dt: float, dr: float, db: float) -> void:
+	if control == null:
+		return
+	control.offset_left += dl
+	control.offset_top += dt
+	control.offset_right += dr
+	control.offset_bottom += db

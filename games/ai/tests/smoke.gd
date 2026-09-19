@@ -100,7 +100,7 @@ func _ready() -> void:
 	if persona_ids.size() >= 4:
 		_id_heal = persona_ids[0]
 		_id_energetic = persona_ids[3]
-	_story.load_story(get_viewport().get_visible_rect().size)
+	_story.load_story(GameState.play_area_size())
 	_check_static_contracts()
 	_check_ending_resolver()
 	_check_replay_chains()
@@ -766,7 +766,7 @@ func _run() -> void:
 		_failures.append("素材契约：危机游走体仍是占位方块（Body 不是带贴图的 Sprite2D）")
 
 	# 阶段 8：边界钳制 + 占位方块残留清点。
-	var bounds := get_viewport().get_visible_rect().size
+	var bounds := GameState.play_area_size()
 	var lower := Vector2(Player.HALF_SIZE, Player.HALF_SIZE)
 	await _teleport_and_wait(Vector2(-500.0, -500.0))
 	if _player.global_position.x < lower.x - 0.01 or _player.global_position.y < lower.y - 0.01:
@@ -834,6 +834,48 @@ func _run() -> void:
 	if end_screen != null and end_screen.visible:
 		_failures.append("阶段 12：重开后结局画面仍可见")
 
+	# 阶段 13：移动端触摸 —— 触屏控件就位、画面内点按推进、选项热区契约。
+	# 13a TouchUI 接线与可见性协议：可见性只由 is_touchscreen_available 决定
+	#（headless 无触屏 → 必须隐藏；触屏设备上摇杆/确认按钮可见）。
+	var touch_ui := _main.get_node_or_null("TouchUI") as CanvasLayer
+	if touch_ui == null:
+		_failures.append("阶段 13：TouchUI 缺失（虚拟摇杆/触屏确认按钮未接线）")
+	elif touch_ui.visible != DisplayServer.is_touchscreen_available():
+		_failures.append("阶段 13：TouchUI 可见性 %s ≠ 触屏能力 %s（可见性必须由 is_touchscreen_available 决定）" % [
+			touch_ui.visible, DisplayServer.is_touchscreen_available(),
+		])
+	# 13b 画面内点按（真实 InputEventScreenTouch）推进台词：阶段 12 重开后停在第一幕
+	# 首个剧情节点（旁白/台词，非抉择），一次点按应推进到下一节点。
+	var node_before: Dictionary = _main.get("_current_node")
+	await _inject_screen_tap()
+	var node_after: Dictionary = _main.get("_current_node")
+	if String(node_after.get("id", "")) == String(node_before.get("id", "")) and _main.get("_phase") == 1:
+		_failures.append("阶段 13：画面内点按（InputEventScreenTouch）没有推进剧情节点（%s 未变化； TapLayer/ScreenTouch 分支断了）" % String(node_before.get("id", "?")))
+	# 13c 选项按钮触控热区契约：用合成抉择节点重建按钮，断言高度换算 ≥44 物理像素
+	# 且两两热区不重叠（VBox 布局天然不相交，这里机器复核）。
+	var synthetic_node: Dictionary = {"id": "smoke-choice", "type": "choice", "prompt": "冒烟热区断言",
+			"options": [{"id": "o1", "text": "甲"}, {"id": "o2", "text": "乙"}, {"id": "o3", "text": "丙"}]}
+	_main.call("_rebuild_options", synthetic_node)
+	await get_tree().process_frame
+	await get_tree().process_frame  # 容器布局在 process 帧完成，等两帧让按钮 size 生效
+	var choice_box: VBoxContainer = _main.get_node_or_null("UI/OptionsBox") as VBoxContainer
+	var buttons: Array[Button] = []
+	if choice_box != null:
+		for child in choice_box.get_children():
+			var button := child as Button
+			if button != null:
+				buttons.append(button)
+	if buttons.size() < 2:
+		_failures.append("阶段 13：选项按钮 %d 个 < 2（触控热区契约无从断言）" % buttons.size())
+	for button in buttons:
+		if button.size.y < 44.0:
+			_failures.append("阶段 13：选项按钮热区高度 %.1f < 44 物理像素（min_touch_px 契约被破坏）" % button.size.y)
+	for i in buttons.size():
+		for j in range(i + 1, buttons.size()):
+			if buttons[i].get_global_rect().intersects(buttons[j].get_global_rect()):
+				_failures.append("阶段 13：选项按钮热区重叠（会引发误触）")
+	options_box.visible = false
+
 	_report()
 
 
@@ -899,6 +941,26 @@ func _inject_confirm() -> void:
 	event.action = &"confirm"
 	event.pressed = true
 	Input.parse_input_event(event)
+	if _player != null:
+		await _teleport_and_wait(_player.global_position, INPUT_FRAMES)
+
+
+## 画面内点按：向画布中心的 TapLayer/未命中区注入真实 InputEventScreenTouch（按下+抬起）。
+## 合成事件走窗口坐标：用视口 stretch 终变换把画布点映射回窗口点，headless 窗口尺寸
+## 与设计分辨率不一致时也能准确落点（实测：直接给画布坐标会被甩出画布外、命不中任何控件）。
+func _inject_screen_tap() -> void:
+	var canvas_point: Vector2 = get_viewport().get_visible_rect().size * 0.5
+	var window_point: Vector2 = get_viewport().get_final_transform() * canvas_point
+	var press := InputEventScreenTouch.new()
+	press.index = 0
+	press.position = window_point
+	press.pressed = true
+	Input.parse_input_event(press)
+	var release := InputEventScreenTouch.new()
+	release.index = 0
+	release.position = window_point
+	release.pressed = false
+	Input.parse_input_event(release)
 	if _player != null:
 		await _teleport_and_wait(_player.global_position, INPUT_FRAMES)
 

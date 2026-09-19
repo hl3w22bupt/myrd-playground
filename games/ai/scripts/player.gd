@@ -32,7 +32,7 @@ func _physics_process(_delta: float) -> void:
 ## 边界钳制：以视口为玩法边界，内缩玩家半边长。
 ## 钳制在 move_and_slide 之后做，玩家永远不会卡在画面外/死角里（越界即被推回可视区）。
 func _clamp_to_play_area() -> void:
-	var bounds := get_viewport_rect().size
+	var bounds := GameState.play_area_size()
 	global_position = global_position.clamp(
 		Vector2(HALF_SIZE, HALF_SIZE),
 		bounds - Vector2(HALF_SIZE, HALF_SIZE),

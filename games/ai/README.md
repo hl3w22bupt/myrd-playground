@@ -20,7 +20,23 @@
 - **结局（优先级链）**：清除 GAMEOVER（任一生存轴归零 / Σthreat≥300 / 单人≥95）→
   数据永生 TOGETHER（接瑟拉上传 + 全员 favor≥60 + 选上传）→
   带走一个 SAVE_ONE（最高 favor≥70 且其 threat≤60 + 选带走）→ 独活 ALONE（兜底）
-- **重开**：结局后按 空格 / 回车 → 人设卡初值复位、玩家回出生点、trace 清空
+- **重开**：结局后按 空格 / 回车（触屏点按画面）→ 人设卡初值复位、玩家回出生点、trace 清空
+
+## 移动端触摸交互（竖屏 / 横屏双方向）
+
+- **触屏操作**：左下虚拟摇杆移动（拖拽），画面内**点按**推进台词 / 开始 / 跳过幕间 / 重开，
+  右下「推进」按钮等价于键盘确认；抉择相位必须点选项卡，点空白不结算（防误触）
+- **桌面零回归**：触屏控件只在 `DisplayServer.is_touchscreen_available()` 时显示，
+  键盘路径（WASD / 空格 / 1-4）与原布局完全不变（expand 拉伸下 16:9 窗口像素级一致）
+- **触控参数可配置**：摇杆半径/死区、选项按钮热区（≥44 物理像素）等集中在
+  `data/spec/touch.json`，改 JSON 即调手感，不改代码
+- **视口自适应**：`stretch/aspect="expand"` 双方向占满无黑边；玩法边界 =
+  max(可视画布, 640×360 设计分辨率)，旋转 / 拖拽窗口实时刷新
+- **安全区避让**：刘海/打孔屏内缩量（`get_display_safe_area`）自动推移顶部信息簇与
+  底部对话框、摇杆、按钮；无安全区 API 的环境（Web）退化为零位移
+- **浏览器行为**：导出壳经 `html/head_include` 注入 viewport meta 与
+  `touch-action:none / user-select:none / overscroll-behavior:none`，
+  画布内禁双击缩放、长按菜单、文字选中与页面滚动回弹
 
 ## 操作按键（InputMap，全部注册在 project.godot [input]）
 

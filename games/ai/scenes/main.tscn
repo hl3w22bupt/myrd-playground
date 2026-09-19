@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
@@ -6,6 +6,9 @@
 [ext_resource type="Texture2D" path="res://assets/art/ui/bar-frame.svg" id="4_bar"]
 [ext_resource type="Texture2D" path="res://assets/art/ui/title-bg.svg" id="5_title"]
 [ext_resource type="Texture2D" path="res://assets/art/ui/ending-bg.svg" id="6_ending"]
+[ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="7_joystick"]
+[ext_resource type="Script" path="res://scripts/touch_confirm_button.gd" id="8_confirm"]
+[ext_resource type="Script" path="res://scripts/tap_advance.gd" id="9_tap"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -14,6 +17,15 @@ script = ExtResource("1_main")
 position = Vector2(320, 180)
 
 [node name="UI" type="CanvasLayer" parent="."]
+
+[node name="TapLayer" type="Control" parent="UI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+script = ExtResource("9_tap")
 
 [node name="HudLabel" type="Label" parent="UI"]
 unique_name_in_owner = true
@@ -32,18 +44,21 @@ offset_bottom = 58.0
 text = "准备中"
 
 [node name="BarStamina" type="Control" parent="UI"]
+mouse_filter = 2
 offset_left = 16.0
 offset_top = 20.0
 offset_right = 160.0
 offset_bottom = 34.0
 
 [node name="Frame" type="TextureRect" parent="UI/BarStamina"]
+mouse_filter = 2
 offset_right = 120.0
 offset_bottom = 12.0
 texture = ExtResource("4_bar")
 stretch_mode = 0
 
 [node name="Fill" type="ColorRect" parent="UI/BarStamina"]
+mouse_filter = 2
 offset_left = 2.0
 offset_top = 2.0
 offset_right = 118.0
@@ -58,18 +73,21 @@ offset_bottom = 13.0
 text = "体力"
 
 [node name="BarSatiety" type="Control" parent="UI"]
+mouse_filter = 2
 offset_left = 196.0
 offset_top = 20.0
 offset_right = 340.0
 offset_bottom = 34.0
 
 [node name="Frame" type="TextureRect" parent="UI/BarSatiety"]
+mouse_filter = 2
 offset_right = 120.0
 offset_bottom = 12.0
 texture = ExtResource("4_bar")
 stretch_mode = 0
 
 [node name="Fill" type="ColorRect" parent="UI/BarSatiety"]
+mouse_filter = 2
 offset_left = 2.0
 offset_top = 2.0
 offset_right = 118.0
@@ -84,18 +102,21 @@ offset_bottom = 13.0
 text = "饱食"
 
 [node name="BarSanity" type="Control" parent="UI"]
+mouse_filter = 2
 offset_left = 376.0
 offset_top = 20.0
 offset_right = 520.0
 offset_bottom = 34.0
 
 [node name="Frame" type="TextureRect" parent="UI/BarSanity"]
+mouse_filter = 2
 offset_right = 120.0
 offset_bottom = 12.0
 texture = ExtResource("4_bar")
 stretch_mode = 0
 
 [node name="Fill" type="ColorRect" parent="UI/BarSanity"]
+mouse_filter = 2
 offset_left = 2.0
 offset_top = 2.0
 offset_right = 118.0
@@ -111,6 +132,7 @@ text = "理智"
 
 [node name="RosterBox" type="VBoxContainer" parent="UI"]
 unique_name_in_owner = true
+mouse_filter = 2
 offset_left = 10.0
 offset_top = 62.0
 offset_right = 128.0
@@ -129,23 +151,40 @@ text = ""
 
 [node name="OptionsBox" type="VBoxContainer" parent="UI"]
 unique_name_in_owner = true
-offset_left = 168.0
-offset_top = 116.0
-offset_right = 472.0
-offset_bottom = 236.0
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -248.0
+offset_top = -244.0
+offset_right = 248.0
+offset_bottom = -130.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
 theme_override_constants/separation = 4
 
 [node name="DialogPanel" type="TextureRect" parent="UI"]
 unique_name_in_owner = true
-offset_left = 160.0
-offset_top = 240.0
-offset_right = 480.0
-offset_bottom = 350.0
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -120.0
+offset_right = 160.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
 texture = ExtResource("3_dialog")
 stretch_mode = 0
 
 [node name="Portrait" type="TextureRect" parent="UI/DialogPanel"]
 unique_name_in_owner = true
+mouse_filter = 2
 offset_left = 6.0
 offset_top = 6.0
 offset_right = 74.0
@@ -181,8 +220,12 @@ text = "空格 继续 ▼"
 
 [node name="TitleScreen" type="TextureRect" parent="UI"]
 unique_name_in_owner = true
-offset_right = 640.0
-offset_bottom = 360.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 texture = ExtResource("5_title")
 expand_mode = 1
 stretch_mode = 6
@@ -217,8 +260,12 @@ text = "按 空格 / 回车 开始"
 [node name="EndScreen" type="TextureRect" parent="UI"]
 unique_name_in_owner = true
 visible = false
-offset_right = 640.0
-offset_bottom = 360.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 texture = ExtResource("6_ending")
 expand_mode = 1
 stretch_mode = 6
@@ -260,3 +307,39 @@ offset_right = 580.0
 offset_bottom = 292.0
 horizontal_alignment = 1
 text = "按 空格 / 回车 再来一局"
+
+[node name="TouchUI" type="CanvasLayer" parent="."]
+layer = 10
+visible = false
+
+[node name="JoystickAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -184.0
+offset_right = 184.0
+offset_bottom = -24.0
+grow_vertical = 0
+mouse_filter = 0
+script = ExtResource("7_joystick")
+
+[node name="ConfirmAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -176.0
+offset_top = -176.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="ConfirmButton" type="Button" parent="TouchUI/ConfirmAnchor"]
+offset_right = 152.0
+offset_bottom = 152.0
+theme_override_font_sizes/font_size = 22
+text = "推进"
+script = ExtResource("8_confirm")

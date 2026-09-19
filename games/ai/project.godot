@@ -20,8 +20,12 @@ GameState="*res://autoload/game_state.gd"
 
 window/size/viewport_width=640
 window/size/viewport_height=360
-window/stretch/mode="canvas_items"
-window/stretch/aspect="keep"
+; expand = 横竖屏双方向都占满屏幕（无黑边、无页面滚动），画布在长边方向自动扩展；
+; UI 已按锚点布局（标题/结局全屏、对话框底部、摇杆左下、按钮右下），桌面默认窗口 16:9
+; 恰好等于设计分辨率 640x360，桌面显示像素级不变（零回归）。
+window/stretch/aspect="expand"
+; 移动端跟随设备方向（Web 导出忽略此项）。
+window/handheld/orientation="sensor"
 
 [gui]
 
@@ -55,6 +59,10 @@ move_down={
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":83,"key_label":0,"unicode":115,"location":0,"echo":false,"script":null)
 , Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194322,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
 ]
+}
+tap_advance={
+"deadzone": 0.5,
+"events": []
 }
 confirm={
 "deadzone": 0.5,

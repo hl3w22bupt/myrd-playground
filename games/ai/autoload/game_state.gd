@@ -130,6 +130,22 @@ var _act_remaining: float = 0.0
 var _act_expired: bool = false
 
 
+## 设计分辨率（640x360，内容坐标的创作基准）：玩法边界的下限。
+## expand 拉伸下，真实设备的画布每轴都 ≥ 设计分辨率；headless/零尺寸窗口则回落到该下限。
+const DESIGN_PLAY_AREA: Vector2 = Vector2(640.0, 360.0)
+
+
+## 玩法边界 = max(可视画布, 设计分辨率)。玩家钳制、信物/危机落点校验统一用它，
+## 保证 headless（可视画布塌缩为最小值）与真机（横竖屏双方向）行为一致。
+func play_area_size() -> Vector2:
+	var visible_size: Vector2 = get_viewport().get_visible_rect().size if is_inside_tree() \
+			else DESIGN_PLAY_AREA
+	return Vector2(
+		maxf(visible_size.x, DESIGN_PLAY_AREA.x),
+		maxf(visible_size.y, DESIGN_PLAY_AREA.y),
+	)
+
+
 func _ready() -> void:
 	_load_numeric()
 	_stamina = stamina_max

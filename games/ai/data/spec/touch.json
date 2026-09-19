@@ -1,0 +1,9 @@
+{
+  "_comment": "移动端触控参数（可配置内容）：改本文件即调触控手感，不需要改任何 .gd。键名与 scripts/main.gd 的 TOUCH_DEFAULTS 一一对应；main._load_touch_config 读取并按范围钳制。",
+  "joystick_base_radius": 56.0,
+  "joystick_stick_radius": 26.0,
+  "joystick_deadzone_ratio": 0.25,
+  "min_touch_px": 44.0,
+  "option_button_max_height": 96.0,
+  "confirm_button_size": 128.0
+}
