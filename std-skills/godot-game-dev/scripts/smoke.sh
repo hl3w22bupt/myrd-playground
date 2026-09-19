@@ -6,7 +6,11 @@
 #
 # 环境变量：
 #   GODOT_BIN          Godot 可执行文件（默认 godot；本机装在别处时用 GODOT_BIN=/path/to/Godot）
-#   GODOT_SMOKE_FRAMES --quit-after 的帧数兜底（默认 120，防止冒烟场景死循环）
+#   GODOT_SMOKE_FRAMES --quit-after 的帧数兜底（默认 240，防止冒烟场景死循环；
+#                      与 .myrd/routines.yaml godot-smoke 的 smokeFrames 默认值同源 ——
+#                      120 帧只够单屏小游戏的冒烟（如 Coin Rush ≈132 物理帧），剧情/多链路工程
+#                      冒烟在 Engine.max_fps=60 限速下需要 ≈200+ process 帧才跑得完，
+#                      裸跑（不带该变量）会在协程结束前被杀 → 既无 PASS 也无 FAIL → 误判 FAIL）。
 #   GODOT_SMOKE_SCENE  冒烟场景（默认自动：有 tests/smoke.tscn 就跑它，否则跑 run/main_scene）
 #   GODOT_SMOKE_ALLOW_WEAK=1  找不到断言场景时不判 FAIL，退回「能启动即通过」的宽松判定（勿用于门禁）
 #   GODOT_SMOKE_IGNORE_RUNTIME_ERRORS=1  冒烟断言通过但日志里有 SCRIPT ERROR/Parse Error 时不判 FAIL
@@ -28,7 +32,7 @@ set -uo pipefail
 
 PROJECT_DIR="${1:-.}"
 SCENE_ARG="${2:-${GODOT_SMOKE_SCENE:-}}"
-FRAMES="${GODOT_SMOKE_FRAMES:-120}"
+FRAMES="${GODOT_SMOKE_FRAMES:-240}"
 GODOT_BIN="${GODOT_BIN:-godot}"
 
 say_fail() { echo "godot-smoke: FAIL $*"; }
