@@ -1,0 +1,64 @@
+
+===== iPhone 13 (iphone) → https://leomac-studio.tail49399e.ts.net/apps/ai/ =====
+[metric] firstScreenMs_iphone = 1520 ms（导航→引擎启动完成，仿真环境实测）
+viewport info: {"dpr":3,"canvasBacking":{"w":1170,"h":1992},"canvasCss":{"w":390,"h":664},"inner":{"w":390,"h":664},"vvScale":1,"scrollY":0,"scrollH":664,"bodyOverflow":"hidden","bodyTouchAction":"none","canvasTouchAction":"auto","metaViewport":"width=device-width, user-scalable=no, initial-scale=1.0","selection":""}
+[ok] A1-boot 移动端 UA 可加载且引擎启动（canvas 出现、boot 隐藏） — firstScreen=1520ms
+[ok] A2-viewport viewport meta 禁用缩放 — width=device-width, user-scalable=no, initial-scale=1.0
+[ok] A3-overflow body overflow hidden（无页面滚动） — overflow=hidden
+[ok] A4-touch-action 页面 touch-action:none（禁浏览器手势接管画布交互） — body=none, canvas=auto（canvas 未显式声明，靠祖先链 none 生效；建议补 #canvas{touch-action:none}）
+[ok] A5-no-scrollable 文档高度不超过视口（无滚动/回弹空间） — scrollH=664 innerH=664
+[metric] assetTransferKB_iphone = 10636.7 KB（index.js:82.8KB, index.pck.gz.b64:2709.8KB, index.wasm.gz.b64:7844.1KB）
+[ok] B1-no-scroll-programmatic 编程滚动无页面滚动（文档不可滚动） — scrollTo→y=0, x=0
+audio before touch: {"created":1,"states":[{"at":950,"state":"running"},{"at":1519,"state":"running"}],"resumed":0,"errors":[]}
+[ok] C1-no-autoplay-error-before-touch 首次触摸前无自动播放相关报错 — consoleErrors=0, audioErrors=0
+[ok] D1-tap-start 画面内点按可从标题启动一局 — diff=0.901
+[metric] tapAdvanceLatencyMs = 14 ms（点按→对话面板首个变化帧，rAF 帧级精度）
+[ok] D2-tap-response 点按推进响应 ≤100ms（帧级实测，允许 1 帧量化误差） — 14ms
+  advance#1 dialogPanelDiff=0.1051
+  advance#2 dialogPanelDiff=0.1067
+  advance#3 dialogPanelDiff=0.1227
+  advance#4 dialogPanelDiff=0.1759
+  advance#5 dialogPanelDiff=0.1223
+  advance#6 dialogPanelDiff=0.0000
+[ok] D3-tap-advance 点按可推进剧情（至首个选择节点，共 6 次点按） — choice=true
+[ok] B2-longpress 长按无系统菜单、无文字选中 — contextmenu=0, selection=""
+[ok] D4-choice-blank-noop 选择节点空白点按不误触结算 — diff=0.0000
+  option plates(choice1): [{"cssY":594.8333333333334,"heightCss":10.333333333333334,"widthShotPx":496},{"cssY":613.1666666666666,"heightCss":6.333333333333333,"widthShotPx":496}]
+[metric] uiScaleCssPerDesignPx = 0.333 CSS px / 设计视口 px（DPR 换算比）
+[metric] optionHotzoneCssComputed = 14.7 CSS pt（44 设计视口 px × DPR 换算比，Apple HIG 口径要求 ≥44）
+[metric] optionPlateHeightCssMeasured = 6.3 CSS px（像素法实测，受提示条遮挡干扰仅供参考）
+[NG] A6-hotzone44 选项触控热区 ≥44×44 CSS pt（Apple HIG 点距口径） — 44 视口px × 0.333 = 14.7 CSS pt，仅为标准的 33%（DPR 换算在 Web 导出下失效，见报告 P1-1）
+[ok] D5-option-tap 点选选项 1 可结算并推进到下一节点 — diff=0.1076
+  advance#1 dialogPanelDiff=0.0987
+  advance#2 dialogPanelDiff=0.0000
+[ok] E1-joystick-visible 行动段虚拟摇杆出现（左下角半透明圆环） — ringPx(lum>90)=10182
+[metric] joystickDiameterCss = 37.7 CSS px（摇杆底环渲染直径，摇杆设计 112 视口 px 内环）
+[metric] playfieldExtent = 0.547x0.181 行动段 640×360 世界占竖屏视口比例（宽x高，余下为空白）
+  knobChange=0.75 dragDiff=0.0301 controlDiff=0.0190 dlgDrag=0.00 scrollY=0
+[metric] joystickKnobChangeRatio = 0.75 拖拽期间摇杆区域帧变化占比
+[metric] playerMoveDragVsControl = 0.030 vs 0.019 拖拽期 vs 静置期的玩法区变化占比（A/B）
+[ok] E2-joystick-drag 摇杆可拖动（触摸被摇杆接管，knob 跟手） — knobChangeRatio=0.75
+[ok] E3-drag-moves-player 拖动摇杆驱动玩家实际位移（拖拽期玩法区变化高于静置基线；截图前后对照见 e3crop_*.png） — drag=0.030 vs control=0.019
+[ok] E3b-drag-no-advance 拖拽中不误触推进（对话面板无推进变化） — dlgChangeRatio=0.00
+[ok] E4-drag-no-page-scroll 拖拽手势不引发页面滚动 — scrollY=0
+[ok] B3-no-doubletap-zoom 双击不触发页面缩放/滚动 — vvScale=1, innerW=390, scrollY=0
+[metric] fps_iphone = 47.1 fps（rAF 采样，SwiftShader 软渲染仿真环境）
+[ok] F1-fps 帧率 ≥30fps（仿真环境实测） — 47.1fps over 4.0s
+hint overlap: {"hidden":false,"hint":{"w":195,"h":65,"bottom":654},"overlapPx":3200}
+[metric] hintOverlapDialogPx = 3200 px²（DOM 提示条与对话面板重叠面积）
+[NG] G3-hint-overlap DOM 提示条不遮挡对话面板 — hint=195x65@bottom654, overlap=3200px²
+[ok] G1-landscape 横屏后画布铺满、无滚动、摇杆仍锚定左下角 — canvas=664x390, scrollY=0, joyRingPx=10182
+[ok] G2-portrait-restore 回竖屏后画布恢复且无滚动 — canvas=390x664, scrollY=0
+audio after touch: {"created":1,"states":[{"at":950,"state":"running"},{"at":1519,"state":"running"}],"resumed":0,"errors":[]}
+[ok] C2-audio-unlock 首次触摸后音频上下文解锁为 running、无自动播放报错 — created=1, finalState=running, autoplayWarn=0
+[ok] H1-console-clean 全程 console 无 error — errors=[]
+
+===== Pixel 7 (pixel) → https://leomac-studio.tail49399e.ts.net/apps/ai/ =====
+[metric] firstScreenMs_pixel = 1303 ms（导航→引擎启动完成，仿真环境实测）
+viewport info: {"dpr":2.625,"canvasBacking":{"w":1081,"h":2202},"canvasCss":{"w":412,"h":839},"inner":{"w":412,"h":839},"vvScale":1,"scrollY":0,"scrollH":839,"bodyOverflow":"hidden","bodyTouchAction":"none","canvasTouchAction":"auto","metaViewport":"width=device-width, user-scalable=no, initial-scale=1.0","selection":""}
+audio before touch: {"created":1,"states":[{"at":778,"state":"running"},{"at":1303,"state":"running"}],"resumed":0,"errors":[]}
+[ok] P1-android-smoke Android Chrome(UA+触屏仿真) 可启动并点按推进 — diff=0.182
+[ok] P2-android-console Android 冒烟 console 无 error — errors=0, audioCreated=1
+
+===== 结果：26/28 通过 =====
+失败项: A6-hotzone44(44 视口px × 0.333 = 14.7 CSS pt，仅为标准的 33%（DPR 换算在 Web 导出下失效，见报告 P1-1）) | G3-hint-overlap(hint=195x65@bottom654, overlap=3200px²)

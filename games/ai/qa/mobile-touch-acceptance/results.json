@@ -1,0 +1,245 @@
+{
+  "startedAt": "2026-09-19T08:38:35.151Z",
+  "liveUrl": "https://leomac-studio.tail49399e.ts.net/apps/ai/",
+  "hostedAppId": "cmtoavt8p0006m9y6kzy2u14w",
+  "deploymentId": "cmu836iw00027m9x5uv3snds0",
+  "checks": [
+    {
+      "id": "A1-boot",
+      "name": "移动端 UA 可加载且引擎启动（canvas 出现、boot 隐藏）",
+      "pass": true,
+      "detail": "firstScreen=1520ms"
+    },
+    {
+      "id": "A2-viewport",
+      "name": "viewport meta 禁用缩放",
+      "pass": true,
+      "detail": "width=device-width, user-scalable=no, initial-scale=1.0"
+    },
+    {
+      "id": "A3-overflow",
+      "name": "body overflow hidden（无页面滚动）",
+      "pass": true,
+      "detail": "overflow=hidden"
+    },
+    {
+      "id": "A4-touch-action",
+      "name": "页面 touch-action:none（禁浏览器手势接管画布交互）",
+      "pass": true,
+      "detail": "body=none, canvas=auto（canvas 未显式声明，靠祖先链 none 生效；建议补 #canvas{touch-action:none}）"
+    },
+    {
+      "id": "A5-no-scrollable",
+      "name": "文档高度不超过视口（无滚动/回弹空间）",
+      "pass": true,
+      "detail": "scrollH=664 innerH=664"
+    },
+    {
+      "id": "B1-no-scroll-programmatic",
+      "name": "编程滚动无页面滚动（文档不可滚动）",
+      "pass": true,
+      "detail": "scrollTo→y=0, x=0"
+    },
+    {
+      "id": "C1-no-autoplay-error-before-touch",
+      "name": "首次触摸前无自动播放相关报错",
+      "pass": true,
+      "detail": "consoleErrors=0, audioErrors=0"
+    },
+    {
+      "id": "D1-tap-start",
+      "name": "画面内点按可从标题启动一局",
+      "pass": true,
+      "detail": "diff=0.901"
+    },
+    {
+      "id": "D2-tap-response",
+      "name": "点按推进响应 ≤100ms（帧级实测，允许 1 帧量化误差）",
+      "pass": true,
+      "detail": "14ms"
+    },
+    {
+      "id": "D3-tap-advance",
+      "name": "点按可推进剧情（至首个选择节点，共 6 次点按）",
+      "pass": true,
+      "detail": "choice=true"
+    },
+    {
+      "id": "B2-longpress",
+      "name": "长按无系统菜单、无文字选中",
+      "pass": true,
+      "detail": "contextmenu=0, selection=\"\""
+    },
+    {
+      "id": "D4-choice-blank-noop",
+      "name": "选择节点空白点按不误触结算",
+      "pass": true,
+      "detail": "diff=0.0000"
+    },
+    {
+      "id": "A6-hotzone44",
+      "name": "选项触控热区 ≥44×44 CSS pt（Apple HIG 点距口径）",
+      "pass": false,
+      "detail": "44 视口px × 0.333 = 14.7 CSS pt，仅为标准的 33%（DPR 换算在 Web 导出下失效，见报告 P1-1）"
+    },
+    {
+      "id": "D5-option-tap",
+      "name": "点选选项 1 可结算并推进到下一节点",
+      "pass": true,
+      "detail": "diff=0.1076"
+    },
+    {
+      "id": "E1-joystick-visible",
+      "name": "行动段虚拟摇杆出现（左下角半透明圆环）",
+      "pass": true,
+      "detail": "ringPx(lum>90)=10182"
+    },
+    {
+      "id": "E2-joystick-drag",
+      "name": "摇杆可拖动（触摸被摇杆接管，knob 跟手）",
+      "pass": true,
+      "detail": "knobChangeRatio=0.75"
+    },
+    {
+      "id": "E3-drag-moves-player",
+      "name": "拖动摇杆驱动玩家实际位移（拖拽期玩法区变化高于静置基线；截图前后对照见 e3crop_*.png）",
+      "pass": true,
+      "detail": "drag=0.030 vs control=0.019"
+    },
+    {
+      "id": "E3b-drag-no-advance",
+      "name": "拖拽中不误触推进（对话面板无推进变化）",
+      "pass": true,
+      "detail": "dlgChangeRatio=0.00"
+    },
+    {
+      "id": "E4-drag-no-page-scroll",
+      "name": "拖拽手势不引发页面滚动",
+      "pass": true,
+      "detail": "scrollY=0"
+    },
+    {
+      "id": "B3-no-doubletap-zoom",
+      "name": "双击不触发页面缩放/滚动",
+      "pass": true,
+      "detail": "vvScale=1, innerW=390, scrollY=0"
+    },
+    {
+      "id": "F1-fps",
+      "name": "帧率 ≥30fps（仿真环境实测）",
+      "pass": true,
+      "detail": "47.1fps over 4.0s"
+    },
+    {
+      "id": "G3-hint-overlap",
+      "name": "DOM 提示条不遮挡对话面板",
+      "pass": false,
+      "detail": "hint=195x65@bottom654, overlap=3200px²"
+    },
+    {
+      "id": "G1-landscape",
+      "name": "横屏后画布铺满、无滚动、摇杆仍锚定左下角",
+      "pass": true,
+      "detail": "canvas=664x390, scrollY=0, joyRingPx=10182"
+    },
+    {
+      "id": "G2-portrait-restore",
+      "name": "回竖屏后画布恢复且无滚动",
+      "pass": true,
+      "detail": "canvas=390x664, scrollY=0"
+    },
+    {
+      "id": "C2-audio-unlock",
+      "name": "首次触摸后音频上下文解锁为 running、无自动播放报错",
+      "pass": true,
+      "detail": "created=1, finalState=running, autoplayWarn=0"
+    },
+    {
+      "id": "H1-console-clean",
+      "name": "全程 console 无 error",
+      "pass": true,
+      "detail": "errors=[]"
+    },
+    {
+      "id": "P1-android-smoke",
+      "name": "Android Chrome(UA+触屏仿真) 可启动并点按推进",
+      "pass": true,
+      "detail": "diff=0.182"
+    },
+    {
+      "id": "P2-android-console",
+      "name": "Android 冒烟 console 无 error",
+      "pass": true,
+      "detail": "errors=0, audioCreated=1"
+    }
+  ],
+  "metrics": {
+    "firstScreenMs_iphone": {
+      "value": 1520,
+      "unit": "ms（导航→引擎启动完成，仿真环境实测）"
+    },
+    "assetTransferKB_iphone": {
+      "value": 10636.7,
+      "unit": "KB（index.js:82.8KB, index.pck.gz.b64:2709.8KB, index.wasm.gz.b64:7844.1KB）"
+    },
+    "tapAdvanceLatencyMs": {
+      "value": 14,
+      "unit": "ms（点按→对话面板首个变化帧，rAF 帧级精度）"
+    },
+    "uiScaleCssPerDesignPx": {
+      "value": 0.333,
+      "unit": "CSS px / 设计视口 px（DPR 换算比）"
+    },
+    "optionHotzoneCssComputed": {
+      "value": 14.7,
+      "unit": "CSS pt（44 设计视口 px × DPR 换算比，Apple HIG 口径要求 ≥44）"
+    },
+    "optionPlateHeightCssMeasured": {
+      "value": 6.3,
+      "unit": "CSS px（像素法实测，受提示条遮挡干扰仅供参考）"
+    },
+    "joystickDiameterCss": {
+      "value": 37.7,
+      "unit": "CSS px（摇杆底环渲染直径，摇杆设计 112 视口 px 内环）"
+    },
+    "playfieldExtent": {
+      "value": "0.547x0.181",
+      "unit": "行动段 640×360 世界占竖屏视口比例（宽x高，余下为空白）"
+    },
+    "joystickKnobChangeRatio": {
+      "value": 0.75,
+      "unit": "拖拽期间摇杆区域帧变化占比"
+    },
+    "playerMoveDragVsControl": {
+      "value": "0.030 vs 0.019",
+      "unit": "拖拽期 vs 静置期的玩法区变化占比（A/B）"
+    },
+    "fps_iphone": {
+      "value": 47.1,
+      "unit": "fps（rAF 采样，SwiftShader 软渲染仿真环境）"
+    },
+    "hintOverlapDialogPx": {
+      "value": 3200,
+      "unit": "px²（DOM 提示条与对话面板重叠面积）"
+    },
+    "firstScreenMs_pixel": {
+      "value": 1303,
+      "unit": "ms（导航→引擎启动完成，仿真环境实测）"
+    }
+  },
+  "consoleErrors": [],
+  "consoleAutoplaySuspects": [],
+  "notes": [
+    "第 2 次推进使用长按 900ms（验证无 contextmenu/选中）"
+  ],
+  "_contextMenuFired": 0,
+  "finishedAt": "2026-09-19T08:39:11.558Z",
+  "summary": {
+    "total": 28,
+    "failed": 2,
+    "failedIds": [
+      "A6-hotzone44",
+      "G3-hint-overlap"
+    ]
+  }
+}
