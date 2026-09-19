@@ -23,9 +23,8 @@ signal encountered(girlfriend: AIGirlfriend)
 ## 本体颜色（每人设一色，从主场景按实例覆盖）。
 @export var body_color: Color = Color(1.0, 0.62, 0.75, 1.0)
 
-## 游走速度（px/s）：比玩家慢一个量级，玩家是主动追的一方。
-const WANDER_SPEED: float = 40.0
-## 游走/重生活动范围（留出 HUD 与边框的安全带，与 Main.ARENA_RECT 一致）。
+## 游走速度（px/s）：GameState.girlfriend_speed（可调参基础值）× 章节追逐系数 ——
+## 章节越深女友游走越快（难度梯度，见 game_state.gd CHAPTER_CHASE_SCALE），玩家仍主动追。
 const WANDER_MARGIN: float = 48.0
 ## 重生点与玩家的最小距离：换位后不会立刻又被碰到（冒烟断言也依赖这一条）。
 const RELOCATE_MIN_DISTANCE: float = 140.0
@@ -76,7 +75,8 @@ func _physics_process(delta: float) -> void:
 	if to_target.length() <= 8.0:
 		_pick_wander_target()
 		return
-	global_position += to_target.normalized() * WANDER_SPEED * delta
+	var speed: float = GameState.girlfriend_speed * GameState.chase_scale_for(GameState.chapter)
+	global_position += to_target.normalized() * speed * delta
 
 
 ## 遇到玩家：对局态下才算收集；同一次接触只触发一次（换位前忽略重入）；

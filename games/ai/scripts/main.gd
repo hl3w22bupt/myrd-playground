@@ -1,11 +1,13 @@
 extends Node2D
 ## 主场景控制器：装配小李、AI 女友、HUD、剧情对话与胜负遮罩。
 ##
-## 规范要点（见 SKILL.md「场景规范」「移动端触摸规范」）：
+## 规范要点（见 SKILL.md「场景规范」「移动端触摸规范」「反馈完备性（Juice）」「调参工作台」）：
 ## - 场景内信号连接统一写在 _ready()，集中可见、可被 preflight 静态核对；
 ## - 节点引用用 @onready + 类型标注，路径用 %唯一名 代替长路径字符串；
 ## - 触摸 UI（摇杆/确认按钮）只在有触摸屏时显示，桌面键盘环境完全不可见；
-## - 剧情对话状态归本场景，数值归 GameState —— 双向只走信号/方法，不互相持节点。
+## - 剧情对话状态归本场景，数值归 GameState —— 双向只走信号/方法，不互相持节点；
+## - 结果性事件的反馈挂在结果处理函数上（_on_affection_changed 等），不挂在输入处理上；
+## - 调参面板只在网页 + ?tuning 参数时创建（TuningPanel.is_enabled()），桌面/无头零成本。
 
 ## 文案常量（冒烟按这里断言，改文案必须同步冒烟）。
 const TEXT_WIN_TITLE: String = "告白成功 WIN"
@@ -68,6 +70,9 @@ func _ready() -> void:
 	overlay_action_button.text = TEXT_RETRY_BUTTON
 	hint_label.text = _move_hint
 	_refresh_hud()
+	# 调参工作台（SKILL.md §3C）：网页 + URL 带 ?tuning 参数才创建，其余环境零成本。
+	if TuningPanel.is_enabled():
+		add_child(TuningPanel.new())
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -115,30 +120,40 @@ func _close_dialogue() -> void:
 	dialogue_box.visible = false
 
 
+## 好感变化（收集与 confirm 回应的共同结果处理函数 —— 反馈只写这一处）：
+## HUD 刷新 + 弹跳 + 音效（SFX_BANK 已注册 score，实出声）。
 func _on_affection_changed(_affection: int) -> void:
 	_refresh_hud()
+	Juice.pop(affection_label)
+	Juice.sfx(&"score")
 
 
 func _on_time_changed(seconds_left: int) -> void:
 	time_label.text = "心动时间 %d" % seconds_left
 
 
+## 进章（升级类结果）：章节标题闪白强调 + 音效，让「难度升级」被感知到。
 func _on_chapter_changed(_chapter: int) -> void:
 	_close_dialogue()
 	_refresh_hud()
+	Juice.flash(chapter_label)
+	Juice.sfx(&"confirm")
 
 
-## 胜负呈现：标题/结算/按钮文案切换 + 遮罩显示（win / lose 两分支都要覆盖）。
+## 胜负呈现：标题/结算/按钮文案切换 + 遮罩显示 + 震动/音效（win / lose 两分支都要覆盖）。
 func _on_game_ended(outcome: String) -> void:
 	if outcome == "win":
 		overlay_title.text = TEXT_WIN_TITLE
+		Juice.sfx(&"confirm")
 	else:
 		overlay_title.text = TEXT_LOSE_TITLE
+		Juice.sfx(&"fail")
 	overlay_score.text = "最终好感 %d · %s" % [
 		GameState.affection, GameState.title_for_chapter(GameState.chapter),
 	]
 	overlay_action_button.text = TEXT_RETRY_BUTTON
 	overlay.visible = true
+	Juice.shake(4.0)
 	_close_dialogue()
 
 

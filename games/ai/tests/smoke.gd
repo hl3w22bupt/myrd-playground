@@ -18,6 +18,9 @@ extends Node
 ##   7. 章节推进可达：好感达章目标 → 进第 2 章、好感清零、时间重置、HUD 刷新
 ##   8. 胜负可达：最终章好感达标 → WIN（遮罩+标题+按钮文案）；倒计时归零 → LOSE
 ##   9. 重开可用：键盘 restart 动作与遮罩 RETRY 按钮双通道，全部状态复位
+##  10. 反馈接线：收集这一结果性事件必须触发 Juice 反馈（events 非空 —— 哑巴游戏拦截，§3B）
+##  11. 调参协议：TUNING_META 非空、apply_tuning 应用已声明键/拒绝未声明键/max 钳制（§3C）
+##  12. 难度梯度：章目标单调递增、心动时间预算单调递减、女友追逐系数单调递增
 ##   外加：噪声相位（确定种子对抗输入）打在前、行为断言在后 —— 输入管线不被噪声楔死。
 ##
 ## ⚠️ 输入注入分阶段、互不重叠（error-signatures E-08）：
@@ -92,6 +95,8 @@ var _chapter_label: Label
 
 var _origin_pos: Vector2 = Vector2.ZERO
 var _affection_before_encounter: int = 0
+## 收集前的 Juice 事件数（反馈断言取「增量非零」，比只判非空更严 —— 不被早期偶发反馈蒙混）。
+var _feedback_events_before_encounter: int = 0
 var _moved_seen: bool = false
 var _affection_changed_seen: bool = false
 var _chapter_changed_seen: bool = false
@@ -123,6 +128,9 @@ func _ready() -> void:
 		game_state.chapter_changed.connect(_on_chapter_changed)
 		game_state.game_ended.connect(_on_game_ended)
 		game_state.game_restarted.connect(_on_game_restarted)
+		# 纯逻辑断言（无帧依赖，_ready 一次判完）：调参协议 + 难度梯度。
+		_check_tuning_protocol()
+		_check_difficulty_gradient()
 
 	_main = get_tree().root.find_child("Main", true, false)
 	if _main == null:
@@ -208,6 +216,64 @@ func _check_ui_nodes() -> void:
 			_failures.append("触摸控件会抢焦点：%s focus_mode != NONE（键盘 Space 会误触按钮而非回应心动）" % button_name)
 
 
+## 第 11 项断言：调参协议可判（SKILL.md §3C）—— TUNING_META 非空；apply_tuning 应用已声明键、
+## 拒绝未声明键、按 max 钳制。纯逻辑无头可判；应用后恢复现场，不污染后续行为断言。
+func _check_tuning_protocol() -> void:
+	var meta: Variant = GameState.get("TUNING_META")
+	if not (meta is Dictionary) or (meta as Dictionary).is_empty():
+		_failures.append("调参协议：GameState.TUNING_META 为空或不可读（数值调参区必须声明至少一个可调键，见 SKILL.md §3C）")
+		return
+	var snapshot: Dictionary = {
+		"player_speed": GameState.player_speed,
+		"girlfriend_speed": GameState.girlfriend_speed,
+		"time_per_chapter": GameState.time_per_chapter,
+	}
+	var applied: PackedStringArray = GameState.apply_tuning({
+		"player_speed": 99999.0,
+		"girlfriend_speed": 99999.0,
+		"tuning_bogus_key": 1,
+	})
+	if not (applied.has("player_speed") and applied.has("girlfriend_speed")):
+		_failures.append("调参协议：apply_tuning 未应用已声明键 player_speed/girlfriend_speed（应用逻辑断裂）")
+	if applied.has("tuning_bogus_key"):
+		_failures.append("调参协议：apply_tuning 应用了未声明键 tuning_bogus_key（必须只认 TUNING_META 声明的键）")
+	var max_speed: float = float(GameState.TUNING_META[&"player_speed"]["max"])
+	if GameState.player_speed > max_speed:
+		_failures.append("调参协议：player_speed=%.1f 超出 TUNING_META.max=%.1f（钳制缺失，调参 URL 可注入非法数值）" % [
+			GameState.player_speed, max_speed,
+		])
+	GameState.player_speed = snapshot["player_speed"]
+	GameState.girlfriend_speed = snapshot["girlfriend_speed"]
+	GameState.time_per_chapter = snapshot["time_per_chapter"]
+
+
+## 第 12 项断言：难度梯度可判（纯函数，确定性）—— 章目标单调递增、心动时间预算单调递减、
+## 女友追逐系数单调递增。「难度有梯度」从口号落成可机判的曲线。
+func _check_difficulty_gradient() -> void:
+	var last_target: int = 0
+	var last_budget: float = INF
+	var last_scale: float = 0.0
+	for stage: int in range(1, GameState.FINAL_CHAPTER + 1):
+		var target: int = GameState.target_for_chapter(stage)
+		var budget: float = GameState.time_budget_for(stage)
+		var scale: float = GameState.chase_scale_for(stage)
+		if target <= last_target:
+			_failures.append("难度梯度：第 %d 章目标好感 %d 未高于前章 %d（章目标必须单调递增）" % [
+				stage, target, last_target,
+			])
+		if budget >= last_budget:
+			_failures.append("难度梯度：第 %d 章心动预算 %.1fs 未低于前章 %.1fs（时间压力必须逐章收紧）" % [
+				stage, budget, last_budget,
+			])
+		if scale <= last_scale:
+			_failures.append("难度梯度：第 %d 章追逐系数 %.2f 未高于前章 %.2f（追逐难度必须逐章上升）" % [
+				stage, scale, last_scale,
+			])
+		last_target = target
+		last_budget = budget
+		last_scale = scale
+
+
 func _physics_process(_delta: float) -> void:
 	if _finished:
 		return
@@ -283,6 +349,7 @@ func _start_encounter() -> void:
 		_failures.append("核心交互准备失败：Player 或 GfSweet 缺失，收集链路无法验证")
 		return
 	_affection_before_encounter = GameState.affection
+	_feedback_events_before_encounter = Juice.events.size()
 	_player.global_position = _gf_sweet.global_position
 
 
@@ -309,6 +376,10 @@ func _assert_encounter() -> void:
 			_failures.append("收集后未换位重生：糖糖距小李 %.1fpx < %.1fpx（_pending_relocate 换位链路断裂，会被反复收集）" % [
 				distance, MIN_RELOCATE_DISTANCE,
 			])
+	## 第 10 项断言（SKILL.md §3B）：收集这一结果性事件必须触发 Juice 反馈（取增量非零 ——
+	## 反馈接线断了 = 信号全通但游戏是哑的，既有断言拦不住这类「能跑但不可玩」）。
+	if Juice.events.size() <= _feedback_events_before_encounter:
+		_failures.append("反馈断言：收集 AI 女友的结果事件没有触发任何 Juice 反馈（main.gd _on_affection_changed 未挂 Juice.pop/sfx）")
 
 
 ## ── 阶段 3 断言：对话在场按 confirm → 好感再 +1、对话关闭。
@@ -334,8 +405,11 @@ func _assert_chapter_advanced() -> void:
 		_failures.append("章节推进失效：好感达标后 chapter = %d（期望 2，GameState.check_end → advance_chapter 链路断裂）" % GameState.chapter)
 	if GameState.affection != 0:
 		_failures.append("章节推进失效：进章后好感未清零（affection=%d）" % GameState.affection)
-	if GameState.time_left < GameState.TIME_PER_CHAPTER - TIME_TOLERANCE:
-		_failures.append("章节推进失效：进章后心动时间未重置（time_left=%.1f）" % GameState.time_left)
+	# 进章后时间重置到「该章预算」（难度梯度：第 2 章起预算比第 1 章紧），不是全局基础值。
+	if GameState.time_left < GameState.time_budget_for(GameState.chapter) - TIME_TOLERANCE:
+		_failures.append("章节推进失效：进章后心动时间未重置到该章预算（time_left=%.1f，预算=%.1f）" % [
+			GameState.time_left, GameState.time_budget_for(GameState.chapter),
+		])
 	if not _chapter_changed_seen:
 		_failures.append("信号 GameState.chapter_changed 未到达订阅方：章节推进链路断裂")
 	if _chapter_label != null and _chapter_label.text != GameState.title_for_chapter(2):
@@ -398,8 +472,8 @@ func _assert_restarted(channel: String) -> void:
 		_failures.append("重开不可用（%s）：好感未清零（affection=%d）" % [channel, GameState.affection])
 	if GameState.chapter != 1:
 		_failures.append("重开不可用（%s）：章节未回到第 1 章（chapter=%d）" % [channel, GameState.chapter])
-	if GameState.time_left < GameState.TIME_PER_CHAPTER - TIME_TOLERANCE:
-		_failures.append("重开不可用（%s）：心动时间未重置（time_left=%.1f）" % [channel, GameState.time_left])
+	if GameState.time_left < GameState.time_budget_for(GameState.chapter) - TIME_TOLERANCE:
+		_failures.append("重开不可用（%s）：心动时间未重置到该章预算（time_left=%.1f）" % [channel, GameState.time_left])
 	if _restart_count < 1:
 		_failures.append("信号 GameState.game_restarted 未到达订阅方：%s 重开链路断裂" % channel)
 	if _overlay != null and _overlay.visible:
@@ -417,7 +491,7 @@ func _finish() -> void:
 		return
 	_finished = true
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/autoload/键位契约/物理移动/收集交互/剧情对话/换位重生/confirm回应/章节推进/胜负判定/键盘重开/遮罩重开/噪声相位 全部通过")
+		print("GODOT_SMOKE: PASS 场景实例化/autoload/键位契约/物理移动/收集交互/剧情对话/换位重生/confirm回应/Juice反馈接线/调参协议/难度梯度/章节推进/胜负判定/键盘重开/遮罩重开/噪声相位 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

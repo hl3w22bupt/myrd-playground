@@ -64,7 +64,8 @@ echo ""
 
 echo "==> [2/2] smoke（godot --headless 无头冒烟门禁）"
 # 帧预算 240：冒烟要跑「噪声相位 → 移动 → 收集对话 → 换位重生 → confirm 回应 →
-# 章节推进 → 胜利/失败判定 → 键盘重开 → 遮罩重开」约 92 个物理帧阶段，
+# 章节推进 → 胜利/失败判定 → 键盘重开 → 遮罩重开」约 92 个物理帧阶段
+# （调参协议/难度梯度/反馈接线三组断言无帧依赖，_ready 与既有阶段内判定），
 # 默认 120 兜底虽够，但 headless 下 process:physics 不严格 1:1；预算对齐
 # .myrd/routines.yaml godot-smoke 的 smokeFrames 默认值（240），两边同值不各说各话。
 # 预算只放宽兜底，不改变判定语义。
@@ -77,4 +78,4 @@ if [ "${SMOKE_EXIT}" -ne 0 ]; then
 fi
 
 echo ""
-echo "verify: PASS preflight + smoke 全部通过（可玩验收：移动/收集对话/换位重生/回应加成/章节推进/胜负可达/重开双通道）"
+echo "verify: PASS preflight + smoke 全部通过（可玩验收：移动/收集对话/换位重生/回应加成/反馈接线/调参协议/难度梯度/章节推进/胜负可达/重开双通道）"
