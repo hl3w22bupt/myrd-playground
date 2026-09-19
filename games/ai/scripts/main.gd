@@ -249,6 +249,7 @@ func _show_title() -> void:
 	toast_label.visible = false
 	hud_label.text = ""
 	act_label.text = ""
+	_update_touch_controls()
 
 
 ## 开一局（标题开始 / 重开共用）。
@@ -291,6 +292,7 @@ func _enter_node(node: Dictionary) -> void:
 	_phase = Phase.STORY
 	_current_node = node
 	_selected_option = 0
+	_update_touch_controls()
 	var speaker_id := String(node.get("persona_id", ""))
 	match String(node.get("type", "")):
 		StoryEngine.TYPE_CHOICE:
@@ -431,6 +433,7 @@ func _start_arena() -> void:
 	_spawn_hazards(_current_act)
 	_show_dialogue("行动段：追上心动信物与她互动，躲开游走的危机！")
 	_refresh_hud()
+	_update_touch_controls()
 
 
 func _clear_spawned() -> void:
@@ -495,6 +498,7 @@ func _on_act_timer_expired() -> void:
 	if _phase != Phase.ARENA or GameState.outcome != GameState.Outcome.NONE:
 		return
 	_phase = Phase.CHECKPOINT
+	_update_touch_controls()
 	_clear_spawned()
 	GameState.apply_checkpoint(story.checkpoint_sanity_cost(_current_act))
 	if GameState.outcome == GameState.Outcome.GAMEOVER:
@@ -646,6 +650,7 @@ func _on_hazard_triggered(hazard: CrisisHazard) -> void:
 
 func _on_game_ended(_outcome_name: String) -> void:
 	_phase = Phase.ENDING
+	_update_touch_controls()
 	_clear_spawned()
 	dialog_panel.visible = false
 	options_box.visible = false
@@ -768,6 +773,16 @@ func _setup_touch() -> void:
 		var end_hint := get_node_or_null("UI/EndScreen/EndHint") as Label
 		if end_hint != null:
 			end_hint.text = "点按画面 再来一局"
+	_update_touch_controls()
+
+
+## 摇杆按相位显隐：只有行动段（ARENA）需要拖拽移动，其余相位隐藏 ——
+## ① 剧情浏览时给「点按画面」让出全屏热区；② 抉择相位选项按钮的热区不会被
+## 摇杆矩形压住（竖屏画布 640 宽时选项列左缘 72px 与摇杆矩形 24..184px 重叠）；
+## ③ 标题/结局的「点按画面 开始/再来一局」在左下角同样可用。
+## TouchUI 层自身的可见性仍只由 is_touchscreen_available 决定（移动端触摸规范不变式）。
+func _update_touch_controls() -> void:
+	joystick.visible = _touch_enabled() and _phase == Phase.ARENA
 
 
 func _touch_enabled() -> bool:

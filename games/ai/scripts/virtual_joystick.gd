@@ -1,11 +1,22 @@
 class_name VirtualJoystick
 extends Control
-## 虚拟摇杆：把手指拖动向量合成为 InputEventAction（带 strength）注入引擎。
+## 虚拟摇杆：把手指拖动向量分解为四个移动动作的模拟强度（0..1）注入引擎。
 ##
 ## 规范要点（见 SKILL.md「移动端触摸规范」）：
-## - 触摸控件是动作的「生产者」，经 Input.parse_input_event 注入 InputMap 动作；
-## - 游戏逻辑（如 player.gd）仍然只用 Input.get_vector 读动作，二者互不感知；
+## - 触摸控件是动作的「生产者」：把强度写入 InputMap 动作状态（Input.action_press），
+##   游戏逻辑（如 player.gd）仍然只用 Input.get_vector 读动作，二者互不感知；
 ## - 纯代码 _draw 绘制，不依赖图片素材，模板复制即用。
+##
+## ⚠️ 输入阶段选择（headless 探针实测，Godot 4.3）：触摸事件先过 Viewport 的 GUI 命中，
+## 本工程 UI 层有全屏 STOP 的 TapLayer（点按推进层），若摇杆在 _unhandled_input 里等事件，
+## 落在摇杆矩形内的触摸会被 GUI 命中体系（更高层的 STOP 控件 / TapLayer）提前消费，
+## 摇杆永远收不到自己的触摸，且该触摸会漏成 tap_advance 误推进剧情。
+## 因此在 _input 阶段接管（引擎里唯一保证先于 GUI 命中的阶段）：
+## - 初始按下仍必须落在摇杆矩形内才接管该触点（touch_index 跟踪，第二根手指不抢控）；
+## - 接管后即 set_input_as_handled：TapLayer/兜底分支不会再看到这次触摸（防误触推进）；
+## - 拖动/抬起按 index 续跟，手指滑出控件矩形后依然生效（_input 全事件可达，不丢轨迹）；
+## - 保留 mouse_filter=STOP：emulate_mouse_from_touch 合成的鼠标事件由本控件在 GUI 层吃掉，
+##   不会漏成 TapLayer 的第二次推进。
 
 const BASE_RADIUS: float = 56.0
 const STICK_RADIUS: float = 26.0
@@ -38,9 +49,29 @@ func _ready() -> void:
 	queue_redraw()
 
 
-## 用 _unhandled_input 而非 _gui_input：拖动事件在手指滑出控件矩形后仍需持续接收，
-## _gui_input 只在指针位于控件内时投递，会丢拖动轨迹。
-func _unhandled_input(event: InputEvent) -> void:
+## 拖拽期间逐物理帧重申非零方向强度：对冲其它 InputEventAction（tap_advance / confirm）
+## 被 parse 时引擎对 API 强度状态的清场（见 _emit_action 注释）——
+## 真机上拖拽中第二根手指点按画面，移动不会掉帧。
+func _physics_process(_delta: float) -> void:
+	if _touch_index != -1:
+		_reassert_pressed_actions()
+
+
+func _reassert_pressed_actions() -> void:
+	if _output.x < 0.0:
+		Input.action_press(MOVE_ACTIONS.left, -_output.x)
+	elif _output.x > 0.0:
+		Input.action_press(MOVE_ACTIONS.right, _output.x)
+	if _output.y < 0.0:
+		Input.action_press(MOVE_ACTIONS.up, -_output.y)
+	elif _output.y > 0.0:
+		Input.action_press(MOVE_ACTIONS.down, _output.y)
+
+
+## 摇杆不可见（桌面无触屏 / 非行动段相位）时不接管任何触摸 —— 桌面零回归的关键守卫。
+func _input(event: InputEvent) -> void:
+	if not is_visible_in_tree():
+		return
 	if event is InputEventScreenTouch:
 		if event.pressed and _touch_index == -1:
 			# 初始按下必须落在摇杆区域内才接管该触点。
@@ -98,12 +129,23 @@ func _emit_move_actions() -> void:
 	_emit_action(MOVE_ACTIONS.down, _output.y if _output.y > 0.0 else 0.0)
 
 
+## 把摇杆向量分解为 4 个方向动作的 strength 注入引擎；
+## Input.get_vector 会读取 strength，游戏侧拿到的是模拟量方向。
+##
+## ⚠️ 注入通道选择（Godot 4.3 实测 + 源码核对 core/input/input.cpp）：
+## 必须用 Input.action_press/action_release（API 路径，按动作独立的 api_pressed/api_strength），
+## 不能用 Input.parse_input_event(InputEventAction)。后者在引擎里按「每动作一槽位」记状态：
+## 任何 InputEventAction 被 parse 时都会在「所有动作」的槽位上写入自己的状态——同帧先后的
+## 多个 InputEventAction（四方向同时非零 / 点按事件随后到达）会互相把对方清零，斜向拖拽
+## 只剩最后一个轴有效（headless 探针实测复现）。API 路径按动作独立并入 cache，可四轴并行。
+## 已知边界：其它 InputEventAction（tap_advance / confirm）被 parse 的那一帧会清掉 API 状态，
+## 拖拽中的下一帧 drag 事件会立刻重新写入（真机连续拖拽下无感知）。
 func _emit_action(action: StringName, strength: float) -> void:
-	var ev := InputEventAction.new()
-	ev.action = action
-	ev.pressed = strength > 0.0
-	ev.strength = clampf(strength, 0.0, 1.0)
-	Input.parse_input_event(ev)
+	var clamped := clampf(strength, 0.0, 1.0)
+	if clamped > 0.0:
+		Input.action_press(action, clamped)
+	else:
+		Input.action_release(action)
 
 
 func _draw() -> void:

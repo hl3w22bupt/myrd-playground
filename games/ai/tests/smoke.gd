@@ -27,6 +27,9 @@ extends Node
 ##   [行为] 7 全程到结局：剧情→行动→幕间→终局抉择 → 独活结局 + 结局画面
 ##   [行为] 8 冻结不变量：结局后一切写入被丢弃
 ##   [行为] 9 重开可用：confirm → 初值复位、玩家回出生点、trace 清空、横幅隐藏
+##   [行为] 10 触摸（移动端）：TouchUI 可见性协议（is_touchscreen_available）、画面内点按推进、
+##          选项热区 ≥44 物理像素且不重叠、虚拟摇杆全链路（真实 ScreenTouch/ScreenDrag →
+##          多轴动作强度并行 → 玩家位移；死区/滑出续跟/松手归零/二指不抢控/点按零泄漏）
 ##
 ## ⚠️ 输入注入分阶段、互不重叠（references/error-signatures.md E-08）。
 
@@ -876,6 +879,65 @@ func _run() -> void:
 				_failures.append("阶段 13：选项按钮热区重叠（会引发误触）")
 	options_box.visible = false
 
+	# 13d 虚拟摇杆全链路：真实 ScreenTouch/ScreenDrag → 动作强度（多轴并行）→ 玩家位移。
+	# headless 无触屏能力、TouchUI 隐藏，这里临时强制可见以还原真机输入路径
+	#（摇杆只在可见时于 _input 阶段接管触点），结束时恢复 —— 桌面回归面由 13a 的
+	# 可见性协议断言兜住。
+	var joystick := _main.get_node_or_null("TouchUI/JoystickAnchor") as VirtualJoystick
+	if joystick == null:
+		_failures.append("阶段 13：TouchUI/JoystickAnchor 缺失（虚拟摇杆未接线）")
+	elif touch_ui != null:
+		var touch_ui_was_visible: bool = touch_ui.visible
+		var joystick_was_visible: bool = joystick.visible
+		touch_ui.visible = true
+		joystick.visible = true
+		await get_tree().process_frame
+		await get_tree().process_frame
+		var node_before_joystick: Dictionary = _main.get("_current_node")
+		# 摇杆中心按下：落在死区内，四轴强度必须全 0（按下本身不产生位移指令）。
+		var center_window: Vector2 = _window_point_of_control(joystick, joystick.size * 0.5)
+		_inject_screen_touch(0, center_window, true)
+		await _wait_physics_frames(INPUT_FRAMES)
+		if _move_strengths_nonzero():
+			_failures.append("阶段 13：摇杆中心按下不应产生移动强度（死区契约被破坏）")
+		if String((_main.get("_current_node") as Dictionary).get("id", "")) \
+				!= String(node_before_joystick.get("id", "")):
+			_failures.append("阶段 13：点按摇杆泄漏成 tap_advance（推进了剧情节点，触点未被摇杆接管）")
+		# 斜向拖出控件矩形（左下方向）：左/下两轴强度必须同时有效 —— 拦两个已实测缺陷：
+		# ① 同帧多个 InputEventAction 互相清零（修复前只剩最后一个轴有效）；
+		# ② _gui_input/_unhandled_input 通道在手指滑出控件矩形后丢拖动轨迹。
+		var out_point_window: Vector2 = _window_point_of_control(
+				joystick, joystick.size * 0.5 + Vector2(-160.0, 160.0))
+		_inject_screen_drag(0, out_point_window)
+		await _wait_physics_frames(INPUT_FRAMES)
+		if Input.get_action_strength(&"move_left") < 0.5 or Input.get_action_strength(&"move_down") < 0.5:
+			_failures.append("阶段 13：斜向拖拽后 move_left=%.2f / move_down=%.2f 未同时有效（摇杆强度注入失效或槽位互踩）" % [
+				Input.get_action_strength(&"move_left"), Input.get_action_strength(&"move_down"),
+			])
+		if Input.get_action_strength(&"move_right") > 0.0 or Input.get_action_strength(&"move_up") > 0.0:
+			_failures.append("阶段 13：向左下拖拽后反向轴仍有强度（摇杆向量未跟随手指）")
+		# 强度真的驱动玩家位移（生产者 → InputMap → player 全链路）。
+		var pos_before_drag: Vector2 = _player.global_position
+		await _wait_physics_frames(12)
+		var drag_displacement: Vector2 = _player.global_position - pos_before_drag
+		if drag_displacement.length() < 24.0:
+			_failures.append("阶段 13：摇杆拖拽 12 物理帧内玩家位移 %.1fpx < 24px（动作强度未驱动移动）" % drag_displacement.length())
+		# 13e 第二根手指不抢控：index=3 按下/抬起，第一触点的强度不受影响。
+		var second_finger_window: Vector2 = _window_point_of_canvas_center()
+		_inject_screen_touch(3, second_finger_window, true)
+		await _wait_physics_frames(INPUT_FRAMES)
+		if Input.get_action_strength(&"move_left") < 0.5:
+			_failures.append("阶段 13：第二根手指按下后第一触点强度丢失（touch_index 被抢控）")
+		_inject_screen_touch(3, second_finger_window, false)
+		await _wait_physics_frames(INPUT_FRAMES)
+		# 松开第一触点：强度归零（否则玩家会原地漂移）。
+		_inject_screen_touch(0, out_point_window, false)
+		await _wait_physics_frames(INPUT_FRAMES)
+		if _move_strengths_nonzero():
+			_failures.append("阶段 13：松开摇杆后移动强度未归零（会原地漂移）")
+		touch_ui.visible = touch_ui_was_visible
+		joystick.visible = joystick_was_visible
+
 	_report()
 
 
@@ -974,6 +1036,47 @@ func _inject_action(action: StringName) -> void:
 		await _teleport_and_wait(_player.global_position, INPUT_FRAMES)
 
 
+## 控件局部点 → 窗口点：先经控件的 canvas 变换映射到画布，再经视口 stretch 终变换
+## 映射回窗口坐标（合成触摸事件吃窗口坐标，与 _inject_screen_tap 同一约定）。
+func _window_point_of_control(control: Control, local_point: Vector2) -> Vector2:
+	var canvas_point: Vector2 = control.get_global_transform_with_canvas() * local_point
+	return get_viewport().get_final_transform() * canvas_point
+
+
+func _window_point_of_canvas_center() -> Vector2:
+	var canvas_point: Vector2 = get_viewport().get_visible_rect().size * 0.5
+	return get_viewport().get_final_transform() * canvas_point
+
+
+## 注入真实 ScreenTouch（按下/抬起）——摇杆 _input 阶段与 TapLayer/兜底分支的共同输入源。
+func _inject_screen_touch(touch_index: int, window_point: Vector2, pressed: bool) -> void:
+	var touch := InputEventScreenTouch.new()
+	touch.index = touch_index
+	touch.position = window_point
+	touch.pressed = pressed
+	Input.parse_input_event(touch)
+
+
+func _inject_screen_drag(touch_index: int, window_point: Vector2) -> void:
+	var drag := InputEventScreenDrag.new()
+	drag.index = touch_index
+	drag.position = window_point
+	drag.relative = Vector2(16.0, 16.0)
+	Input.parse_input_event(drag)
+
+
+func _move_strengths_nonzero() -> bool:
+	return Input.get_action_strength(&"move_left") > 0.0 \
+			or Input.get_action_strength(&"move_right") > 0.0 \
+			or Input.get_action_strength(&"move_up") > 0.0 \
+			or Input.get_action_strength(&"move_down") > 0.0
+
+
+func _wait_physics_frames(frames: int) -> void:
+	for frame in frames:
+		await get_tree().physics_frame
+
+
 ## 连续注入 confirm 推进旁白/台词节点 count 次。
 func _advance_story_by_confirm(count: int) -> void:
 	for i in count:
@@ -1023,7 +1126,7 @@ func _count_valid(group_name: String) -> int:
 
 func _report() -> void:
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 契约五件（数值/人设/剧情/结局/素材）+ 演算三链（独活/带走一个/清除）+ 行为九组全部通过")
+		print("GODOT_SMOKE: PASS 契约五件（数值/人设/剧情/结局/素材）+ 演算三链（独活/带走一个/清除）+ 行为十组（含移动端触摸与虚拟摇杆）全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

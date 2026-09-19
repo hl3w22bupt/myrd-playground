@@ -184,6 +184,37 @@ GODOT_SMOKE: FAIL A5 胜利：分数 4 != WIN_SCORE 5（有金币没被收掉）
   coin-rush MVP 的 `_spawn_fatal()` 即此口径，并额外把「可收集数 < WIN_SCORE」也纳入同判）。
   判别力负例见 `scripts/gate-selftest.sh` D7（摘脚本绑定 → 必须进程退出码非零且根因可读）。
 
+### E-18（**隐蔽坑**）虚拟摇杆在真机整体失效：`_unhandled_input` 收不到落在自己矩形内的触摸
+
+- **现象**：headless 冒烟全绿（冒烟不注入触摸就发现不了），真机上摇杆**完全推不动角色**，
+  且点按摇杆会顺带「点按推进」——剧情被误翻页 / 标题被误开局。
+- **根因**：触摸事件先过 Viewport 的 **GUI 命中**（顺序固定 `_input → GUI → _unhandled`）。
+  摇杆 Control 自身 `mouse_filter=STOP`，GUI 命中它后事件即被消费（无论是否 `accept_event()`），
+  永远到不了它自己的 `_unhandled_input`；就算摇杆改 `IGNORE`，低层全屏 STOP 的点按推进层
+  （TapLayer）也会先吃掉。4.3 实测探针：STOP 模式 `unhandled_touch=false`，IGNORE 模式被 TapLayer 消费。
+- **修复动作**：摇杆改在 **`_input` 阶段**接管（引擎里唯一保证先于 GUI 命中的阶段）：
+  初始按下必须落在摇杆矩形内才接管（`touch_index` 跟踪、二指不抢控），接管后立即
+  `set_input_as_handled()`（TapLayer/兜底分支不再看到这次触摸）；`_input` 全事件可达，
+  手指滑出控件矩形后拖拽照常续跟。保留 `mouse_filter=STOP`，让 `emulate_mouse_from_touch`
+  合成出的鼠标事件在 GUI 层被摇杆吃掉、不漏成第二次推进。可见性守卫
+  （`is_visible_in_tree()`）保留：隐藏的摇杆不得抢按任何触摸。
+
+### E-19（**隐蔽坑**）同帧多个 `InputEventAction` 互踩清零：斜向拖拽只剩一个轴有效
+
+- **现象**：摇杆斜向拖拽时角色只沿一个轴移动（冒烟断言 `move_left`/`move_down` 应同时 >0.5，
+  实测一个为 0）；点按推进（tap_advance）到达的帧，摇杆保持中的移动强度也会掉一拍。
+- **根因**：4.3 `Input._parse_input_event_impl` 对**每个** `InputEventAction` 事件，都会遍历
+  **所有**动作、在该动作的 `event_index` 槽位写入本事件的按下状态（非匹配动作写
+  `pressed=false/strength=0`）。默认 `event_index=-1` → 槽位 = 各动作的绑定事件数，四方向事件
+  共享同一槽位 → 后 parse 的把先 parse 的清零；显式设大槽位（如 28..31）则落在
+  `_update_action_cache` 的扫描范围（`inputs.size()+1`）之外 → 根本不被统计（恒 0）。
+- **修复动作**：模拟量动作注入走 **`Input.action_press(action, strength)` / `action_release`**
+  （API 路径，`api_pressed/api_strength` 按动作独立并入 cache，可四轴并行）；
+  并在拖拽期间每物理帧重申非零强度（`_physics_process` + `_touch_index != -1` 判定），
+  对冲其它 `InputEventAction`（tap_advance/confirm）parse 那一帧的 API 清场。
+  冒烟断言口径：「斜向拖拽后两个轴的 `Input.get_action_strength` 同时 ≥0.5」——
+  能同时拦住「注入通道失效」与「槽位互踩」两类回归。
+
 ---
 
 ## E. 门禁自身（验证器缺陷 —— 门禁说谎比游戏挂了更危险）
