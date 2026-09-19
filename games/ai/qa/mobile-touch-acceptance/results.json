@@ -1,6 +1,6 @@
 {
-  "startedAt": "2026-09-19T11:55:39.237Z",
-  "liveUrl": "http://127.0.0.1:8791/",
+  "startedAt": "2026-09-19T12:12:33.924Z",
+  "liveUrl": "https://leomac-studio.tail49399e.ts.net/apps/ai/",
   "hostedAppId": "cmtoavt8p0006m9y6kzy2u14w",
   "deploymentId": "cmu836iw00027m9x5uv3snds0",
   "checks": [
@@ -8,7 +8,7 @@
       "id": "A1-boot",
       "name": "移动端 UA 可加载且引擎启动（canvas 出现、boot 隐藏）",
       "pass": true,
-      "detail": "firstScreen=1169ms"
+      "detail": "firstScreen=1559ms"
     },
     {
       "id": "A2-viewport",
@@ -56,7 +56,7 @@
       "id": "D2-tap-response",
       "name": "点按推进响应 ≤100ms（帧级实测，允许 1 帧量化误差）",
       "pass": true,
-      "detail": "12ms"
+      "detail": "17ms"
     },
     {
       "id": "D3-tap-advance",
@@ -98,13 +98,13 @@
       "id": "E2-joystick-drag",
       "name": "摇杆可拖动（触摸被摇杆接管，knob 跟手）",
       "pass": true,
-      "detail": "knobChangeRatio=0.77"
+      "detail": "knobChangeRatio=0.76"
     },
     {
       "id": "E3-drag-moves-player",
       "name": "拖动摇杆驱动玩家实际位移（拖拽期玩法区变化高于静置基线；截图前后对照见 e3crop_*.png）",
       "pass": true,
-      "detail": "drag=0.028 vs control=0.000"
+      "detail": "drag=0.027 vs control=0.000"
     },
     {
       "id": "E3b-drag-no-advance",
@@ -128,7 +128,7 @@
       "id": "F1-fps",
       "name": "帧率 ≥30fps（仿真环境实测）",
       "pass": true,
-      "detail": "46.1fps over 4.0s"
+      "detail": "46.3fps over 4.0s"
     },
     {
       "id": "G3-hint-overlap",
@@ -175,15 +175,15 @@
   ],
   "metrics": {
     "firstScreenMs_iphone": {
-      "value": 1169,
+      "value": 1559,
       "unit": "ms（导航→引擎启动完成，仿真环境实测）"
     },
     "assetTransferKB_iphone": {
-      "value": 15942.800000000001,
-      "unit": "KB（index.js:324KB, index.wasm.gz.b64:10385.7KB, index.pck.gz.b64:5233.1KB）"
+      "value": 11888.1,
+      "unit": "KB（index.js:82.8KB, index.wasm.gz.b64:7844.1KB, index.pck.gz.b64:3961.2KB）"
     },
     "tapAdvanceLatencyMs": {
-      "value": 12,
+      "value": 17,
       "unit": "ms（点按→对话面板首个变化帧，rAF 帧级精度）"
     },
     "uiScaleCssPerDesignPx": {
@@ -211,19 +211,19 @@
       "unit": "行动段 640×360 世界占逻辑视口比例（宽x高；canvas_items 下基准贴满、长边扩展）"
     },
     "joystickKnobChangeRatio": {
-      "value": 0.77,
+      "value": 0.76,
       "unit": "拖拽期间摇杆区域帧变化占比"
     },
     "playerMoveDragVsControl": {
-      "value": "0.028 vs 0.000",
+      "value": "0.027 vs 0.000",
       "unit": "拖拽期 vs 静置期的玩法区变化占比（A/B）"
     },
     "fps_iphone": {
-      "value": 46.1,
+      "value": 46.3,
       "unit": "fps（rAF 采样，SwiftShader 软渲染仿真环境）"
     },
     "firstScreenMs_pixel": {
-      "value": 911,
+      "value": 1320,
       "unit": "ms（导航→引擎启动完成，仿真环境实测）"
     }
   },
@@ -233,7 +233,7 @@
     "第 2 次推进使用长按 900ms（验证无 contextmenu/选中）"
   ],
   "_contextMenuFired": 0,
-  "finishedAt": "2026-09-19T11:56:15.479Z",
+  "finishedAt": "2026-09-19T12:13:10.887Z",
   "summary": {
     "total": 28,
     "failed": 0,
