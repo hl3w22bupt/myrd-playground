@@ -22,6 +22,13 @@
   带走一个 SAVE_ONE（最高 favor≥70 且其 threat≤60 + 选带走）→ 独活 ALONE（兜底）
 - **重开**：结局后按 空格 / 回车（触屏点按画面）→ 人设卡初值复位、玩家回出生点、trace 清空
 
+## 本地门禁环境
+
+- Godot **4.3**（与 `project.godot` 的 `config/features` 一致），解析顺序见
+  `std-skills/godot-game-dev/scripts/resolve-godot.sh`：`GODOT_BIN` > PATH > 常见安装位置；
+- 复跑入口：`bash games/ai/verify.sh`（无 Godot 时以退出码 2 报「环境不可用」，装环境而非改判定脚本）；
+- 首次运行自动生成 `.godot/` 导入缓存（不入库），冷启动全链路约 6s（M 系列）。
+
 ## 移动端触摸交互（竖屏 / 横屏双方向）
 
 - **触屏操作**：左下虚拟摇杆移动（拖拽），画面内**点按**推进台词 / 开始 / 跳过幕间 / 重开，
