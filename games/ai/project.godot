@@ -20,9 +20,14 @@ GameState="*res://autoload/game_state.gd"
 
 window/size/viewport_width=640
 window/size/viewport_height=360
-; expand = 横竖屏双方向都占满屏幕（无黑边、无页面滚动），画布在长边方向自动扩展；
+; canvas_items = 内容按引擎 contentScale 缩放绘制：视口逻辑坐标回到设计基准（640×360），
+; 高 DPR 屏（如 iPhone 13 DPR=3，canvas backing = CSS×DPR）上 UI 物理尺寸随之放大，
+; 「1 逻辑 px」不再等价「1 物理 px」——这是触控热区按 CSS pt 换算生效的前提
+; （disabled 下逻辑=物理，min_touch_px 换算在 Web 导出原理性失效，见知识库 649e691d §二）。
+; aspect=expand = 横竖屏双方向都占满屏幕（无黑边、无页面滚动），画布在长边方向自动扩展；
 ; UI 已按锚点布局（标题/结局全屏、对话框底部、摇杆左下、按钮右下），桌面默认窗口 16:9
 ; 恰好等于设计分辨率 640x360，桌面显示像素级不变（零回归）。
+window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 ; 移动端跟随设备方向（Web 导出忽略此项）。
 window/handheld/orientation="sensor"

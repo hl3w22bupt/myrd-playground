@@ -297,21 +297,36 @@ async function runDevice(browser, deviceName, opts) {
   return { context, page, cdp, info, tag, full };
 }
 
-// ---- 坐标/区域工具：设计视口 px（Godot anchors 空间）→ CSS px → 截图 px ----
+// ---- 坐标/区域工具：设计视口 px（Godot 逻辑坐标）→ CSS px → 截图 px ----
+// 拉伸事实（project.godot：canvas_items + aspect=expand）：引擎把内容按
+// contentScale = min(backingW/640, backingH/360) 放大绘制，视口逻辑尺寸 =
+// backing/contentScale（宽贴满基准 640，长边扩展）。旧「逻辑=物理」口径只对
+// stretch=disabled 成立——DPR 热区缺陷（P1-1）的根因即该口径，坐标工具随之升级。
 function scaleK(info) {
   return info.canvasBacking && info.canvasCss && info.canvasCss.w > 0 ? info.canvasBacking.w / info.canvasCss.w : 1;
+}
+/** 引擎内容缩放（逻辑 px → backing 物理 px）：canvas_items+expand 口径。 */
+function contentScaleK(info) {
+  const bw = info.canvasBacking?.w, bh = info.canvasBacking?.h;
+  return bw > 0 && bh > 0 ? Math.min(bw / 640, bh / 360) : 1;
+}
+/** 视口逻辑尺寸（Godot anchors 空间）。 */
+function viewportVp(info) {
+  const k = contentScaleK(info);
+  const bw = info.canvasBacking?.w || info.inner.w, bh = info.canvasBacking?.h || info.inner.h;
+  return { w: bw / k, h: bh / k };
 }
 function dprOf(info) {
   return info.dpr || 1;
 }
-/** 视口 px 矩形 → 截图像素矩形。 */
+/** 视口逻辑 px 矩形 → 截图像素矩形（截图 = canvas backing 物理 px：×contentScale）。 */
 function vpRect2Shot(info, r) {
-  const k = scaleK(info), dpr = dprOf(info);
-  return { x: Math.round((r.x / k) * dpr), y: Math.round((r.y / k) * dpr), w: Math.round((r.w / k) * dpr), h: Math.round((r.h / k) * dpr) };
+  const k = contentScaleK(info);
+  return { x: Math.round(r.x * k), y: Math.round(r.y * k), w: Math.round(r.w * k), h: Math.round(r.h * k) };
 }
 function cssOfVp(info, x, y) {
-  const k = scaleK(info);
-  return { x: x / k, y: y / k };
+  const k = contentScaleK(info) / dprOf(info);
+  return { x: x * k, y: y * k };
 }
 function shotRectFull(info) {
   const dpr = dprOf(info);
@@ -320,33 +335,36 @@ function shotRectFull(info) {
 function dialogZoneShot(info) {
   return vpRect2Shot(info, dialogPanelVp(info));
 }
-/** 对话面板（main.tscn DialogPanel：底边中心 320×110，底距 10）—— 剧情文本变化判定区。 */
+/** 对话面板（main.tscn DialogPanel：底边中心 320×110，底距 10，逻辑坐标）—— 剧情文本变化判定区。 */
 function dialogPanelVp(info) {
-  const Wv = info.canvasBacking?.w || info.inner.w;
-  const Hv = info.canvasBacking?.h || info.inner.h;
-  return { x: Wv / 2 - 160, y: Hv - 120, w: 320, h: 110 };
+  const V = viewportVp(info);
+  return { x: V.w / 2 - 160, y: V.h - 120, w: 320, h: 110 };
 }
-/** 选项区扫描框（OptionsBox 底边中心 496×114，底距 130）—— 严格限制在对话框面板上沿之上，
+/** 选项区扫描框（OptionsBox 底边中心 496×114，底距 130，逻辑坐标）—— 严格限制在对话框面板上沿之上，
  * 避免面板暗色底混入底板测量。 */
 function optionsZoneVp(info) {
-  const Wv = info.canvasBacking?.w || info.inner.w;
-  const Hv = info.canvasBacking?.h || info.inner.h;
-  return { x: Wv / 2 - 248, y: Hv - 244, w: 496, h: 116 };
+  const V = viewportVp(info);
+  return { x: V.w / 2 - 248, y: V.h - 244, w: 496, h: 116 };
 }
-/** 选项按钮 i 的中心（CSS 坐标）：VBox 自 OptionsBox 顶(Yv-244)逐个下排，最小高 44（视口 px）。 */
+/** 选项按钮 i 的中心（CSS 坐标）：VBox 自 OptionsBox 顶(Yv-244)逐个下排，节距 = 逻辑高 + separation(4)。 */
 function optionButtonCenterCss(info, i) {
-  const Hv = info.canvasBacking?.h || info.inner.h;
-  const k = scaleK(info);
-  return cssOfVp(info, (info.canvasBacking?.w || info.inner.w) / 2, Hv - 244 + 22 + i * 44);
+  const V = viewportVp(info);
+  return cssOfVp(info, V.w / 2, V.h - 244 + 22 + i * (optionLogicHeight(info) + 4));
 }
-/** 摇杆（JoystickAnchor：左下 160×160，左距 24，底距 24）。 */
+/** 选项按钮逻辑高（main.gd _min_option_height 代码事实：
+ * clamp(ceil(min_touch_px(44 CSS pt) × dpr / contentScale), 20, option_button_max_height(96))）。 */
+function optionLogicHeight(info) {
+  const k = contentScaleK(info), dpr = dprOf(info);
+  return Math.min(Math.max(Math.ceil((44 * dpr) / k), 20), 96);
+}
+/** 摇杆（JoystickAnchor：左下 160×160，左距 24，底距 24，逻辑坐标）。 */
 function joystickZoneVp(info) {
-  const Hv = info.canvasBacking?.h || info.inner.h;
-  return { x: 16, y: Hv - 200, w: 200, h: 184 };
+  const V = viewportVp(info);
+  return { x: 16, y: V.h - 200, w: 200, h: 184 };
 }
 function joystickCenterCss(info) {
-  const Hv = info.canvasBacking?.h || info.inner.h;
-  return cssOfVp(info, 24 + 80, Hv - 184 + 80);
+  const V = viewportVp(info);
+  return cssOfVp(info, 24 + 80, V.h - 184 + 80);
 }
 async function diffRect(page, a, b, rect) {
   return page.evaluate(({ a, b, r }) => window.__qa.diff(a, b, r), { a, b, r: rect });
@@ -419,9 +437,8 @@ async function iphoneFlow(ctx) {
   check('D1-tap-start', startDiff > 0.02, '画面内点按可从标题启动一局', `diff=${startDiff.toFixed(3)}`);
 
   // 2) 点按推进响应时延：rAF 采样对话面板区域，点按后首个变化帧即生效
-  const Wv = info.canvasBacking?.w || W;
-  const Hv = info.canvasBacking?.h || H;
-  const respZone = vpRect2Shot(info, { x: Wv / 2 - 120, y: Hv - 100, w: 240, h: 70 });
+  const V = viewportVp(info);
+  const respZone = vpRect2Shot(info, { x: V.w / 2 - 120, y: V.h - 100, w: 240, h: 70 });
   const smpP = page.evaluate(({ r, ms }) => window.__qa.sampler(r, ms), { r: respZone, ms: 2200 });
   await sleep(400);
   const tapAt = await page.evaluate(() => performance.now());
@@ -444,7 +461,7 @@ async function iphoneFlow(ctx) {
 
   // 4) 选择节点 1：空白点按不结算；量化选项热区；点选选项推进
   const beforeChoice1 = r1.lastShot;
-  await saveCrop(page, beforeChoice1, vpRect2Shot(info, { x: 0, y: Hv - 320, w: Wv, h: 320 }), 's02_choice_bottom_crop');
+  await saveCrop(page, beforeChoice1, vpRect2Shot(info, { x: 0, y: V.h - 320, w: V.w, h: 320 }), 's02_choice_bottom_crop');
   await touchTap(cdp, W / 2, H * 0.15); // 选项区外的空白点按
   await sleep(700);
   const afterBlank = await shot(page, 's02_choice_blank_tap');
@@ -454,14 +471,22 @@ async function iphoneFlow(ctx) {
   console.log('  option plates(choice1):', JSON.stringify(plates));
   const uiScale = 1 / scaleK(info);
   metric('uiScaleCssPerDesignPx', Math.round(uiScale * 1000) / 1000, 'CSS px / 设计视口 px（DPR 换算比）');
-  // 热区判定用几何推算（代码事实：custom_minimum_size 高 44 视口px；VBox 节距实测 ~48 视口px）；
-  // 像素级测量被 #hint 提示条遮挡干扰（见 G3），只作补充 metric 记录。
-  const hotzoneCss = 44 * uiScale;
-  metric('optionHotzoneCssComputed', Math.round(hotzoneCss * 10) / 10, 'CSS pt（44 设计视口 px × DPR 换算比，Apple HIG 口径要求 ≥44）');
+  // 热区判定（知识库 649e691d §2.3 权威口径）：热区物理 px ≥ 44 × DPR（等价 ≥44 CSS pt）。
+  // 推算按 main.gd 代码事实：逻辑高 = clamp(ceil(44×DPR/contentScale), 20, 96)，物理 = 逻辑×contentScale。
+  // 模型前提 = 本断言面向修复版构建（canvas_items 拉伸 + DPR 感知换算）复核；旧 disabled
+  // 构建的像素法实测见 optionPlateHeightCssMeasured（受提示条遮挡干扰，仅供参考）。
+  const dpr = dprOf(info);
+  const k = contentScaleK(info);
+  const hotzoneLogic = optionLogicHeight(info);
+  const hotzonePhysical = hotzoneLogic * k;
+  const hotzoneCss = hotzonePhysical / dpr;
+  metric('optionHotzoneLogicPx', hotzoneLogic, '逻辑 px（main.gd _min_option_height 代码事实推算）');
+  metric('optionHotzoneCssComputed', Math.round(hotzoneCss * 10) / 10, 'CSS pt（热区物理/DPR，Apple HIG 口径要求 ≥44）');
   if (plates.length > 0) {
     metric('optionPlateHeightCssMeasured', Math.round(Math.min(...plates.map((p) => p.heightCss)) * 10) / 10, 'CSS px（像素法实测，受提示条遮挡干扰仅供参考）');
   }
-  check('A6-hotzone44', hotzoneCss >= 44, '选项触控热区 ≥44×44 CSS pt（Apple HIG 点距口径）', `44 视口px × ${uiScale.toFixed(3)} = ${hotzoneCss.toFixed(1)} CSS pt，仅为标准的 ${(hotzoneCss / 44 * 100).toFixed(0)}%（DPR 换算在 Web 导出下失效，见报告 P1-1）`);
+  const needPhysical = 44 * dpr;
+  check('A6-hotzone44', hotzonePhysical >= needPhysical, '选项触控热区 ≥44×44 CSS pt（Apple HIG 点距口径）', `${hotzoneLogic} 逻辑px × contentScale${k.toFixed(3)} = ${Math.round(hotzonePhysical)} 物理px，需 ≥ 44×DPR${dpr.toFixed(0)}=${Math.round(needPhysical)}（=${hotzoneCss.toFixed(1)} CSS pt）`);
   await touchTap(cdp, W / 2, optionButtonCenterCss(info, 0).y);
   await sleep(800);
   const afterOpt = await shot(page, 's03_after_option1');
@@ -471,7 +496,7 @@ async function iphoneFlow(ctx) {
   // 5) 推进至选择节点 2 → 点选 → 行动段（ARENA，摇杆出现）
   const r2 = await tapUntilChoice(page, cdp, info, 8);
   if (r2.choice) {
-    await saveCrop(page, r2.lastShot, vpRect2Shot(info, { x: 0, y: Hv - 320, w: Wv, h: 320 }), 's03b_choice2_bottom_crop');
+    await saveCrop(page, r2.lastShot, vpRect2Shot(info, { x: 0, y: V.h - 320, w: V.w, h: 320 }), 's03b_choice2_bottom_crop');
     await touchTap(cdp, W / 2, optionButtonCenterCss(info, 0).y);
   } else {
     await touchTap(cdp, W / 2, H * 0.5);
@@ -491,13 +516,13 @@ async function iphoneFlow(ctx) {
     const dCss = (ringRows.at(-1) - ringRows[0]) / dprOf(info);
     metric('joystickDiameterCss', Math.round(dCss * 10) / 10, 'CSS px（摇杆底环渲染直径，摇杆设计 112 视口 px 内环）');
   }
-  metric('playfieldExtent', Math.round((640 / (info.canvasBacking?.w || Wv)) * 1000) / 1000 + 'x' + Math.round((360 / (info.canvasBacking?.h || Hv)) * 1000) / 1000, '行动段 640×360 世界占竖屏视口比例（宽x高，余下为空白）');
+  metric('playfieldExtent', Math.round((640 / V.w) * 1000) / 1000 + 'x' + Math.round((360 / V.h) * 1000) / 1000, '行动段 640×360 世界占逻辑视口比例（宽x高；canvas_items 下基准贴满、长边扩展）');
 
   // 6) 摇杆拖动：knob 跟手 + 玩家实际位移（A/B 对照）+ 不误触推进 + 不引发页面滚动。
   //    玩法实体（玩家/信物/危机）渲染在左上角 640×360 世界坐标内（约占竖屏顶部 18%）。
   //    玩家位移判定用 A/B：静置 1.4s 的区域变化（环境动画基线） vs 拖拽 1.4s 的区域变化。
   const jc = joystickCenterCss(info);
-  const reach = (56 * 0.95) / scaleK(info);
+  const reach = (56 * 0.95) * contentScaleK(info) / dprOf(info); // 摇杆半径 56 逻辑 px → 物理 → CSS
   const playZone = { x: Math.round(W * 0.05 * info.dpr), y: Math.round(H * 0.03 * info.dpr), w: Math.round(W * 0.8 * info.dpr), h: Math.round(H * 0.2 * info.dpr) };
   const ctlA = await shot(page, 'e3_ctl_before');
   await sleep(1400);
@@ -559,20 +584,19 @@ async function orientationAndAudio(ctx) {
   const W = info.inner.w, H = info.inner.h;
 
   // DOM 提示条（#hint，pointer-events:none）与游戏对话面板的重叠检测：遮挡即关键 UI 被盖
-  const overlap = await page.evaluate(() => {
+  // 对话面板为 Godot 画布内 UI，按 main.tscn 锚点（底边中心 320×110，底距 10，逻辑坐标）
+  // 经「逻辑视口 → CSS」换算后传入页面上下文（evaluate 内访问不到 Node 侧工具函数）。
+  const Vp = viewportVp(info);
+  const kk = contentScaleK(info) / dprOf(info);
+  const panelCss = { pl: (Vp.w / 2 - 160) * kk, pr: (Vp.w / 2 + 160) * kk, pt: (Vp.h - 120) * kk, pb: (Vp.h - 10) * kk };
+  const overlap = await page.evaluate(({ pl, pr, pt, pb }) => {
     const hint = document.getElementById('hint');
     if (!hint || hint.style.display === 'none') return { hidden: true };
     const hr = hint.getBoundingClientRect();
-    // 对话面板为 Godot 画布内 UI，按部署源码 main.tscn 换算：底边中心 320×110（视口 px）
-    const k = (document.getElementById('canvas').width / document.getElementById('canvas').clientWidth) || 1;
-    const Wv = document.getElementById('canvas').width;
-    const Hv = document.getElementById('canvas').height;
-    const panel = { left: Wv / 2 - 160, right: Wv / 2 + 160, top: Hv - 120, bottom: Hv - 10 };
-    const pl = panel.left / k, pr = panel.right / k, pt = panel.top / k, pb = panel.bottom / k;
     const ox = Math.max(0, Math.min(pr, hr.right) - Math.max(pl, hr.left));
     const oy = Math.max(0, Math.min(pb, hr.bottom) - Math.max(pt, hr.top));
     return { hidden: false, hint: { w: Math.round(hr.width), h: Math.round(hr.height), bottom: Math.round(hr.bottom) }, overlapPx: Math.round(ox * oy) };
-  });
+  }, panelCss);
   console.log('hint overlap:', JSON.stringify(overlap));
   if (!overlap.hidden) {
     metric('hintOverlapDialogPx', overlap.overlapPx, 'px²（DOM 提示条与对话面板重叠面积）');

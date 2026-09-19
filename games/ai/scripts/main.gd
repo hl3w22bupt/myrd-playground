@@ -100,6 +100,7 @@ var _advance_hint: String = "空格 继续 ▼"
 
 
 func _ready() -> void:
+	_setup_display_mode()
 	end_screen.visible = false
 	title_screen.visible = false
 	dialog_panel.visible = false
@@ -803,19 +804,71 @@ func _load_touch_config() -> void:
 			_touch[key] = parsed[key]
 
 
-## 选项按钮的最小高度（逻辑像素）：把「≥ min_touch_px 物理像素」按窗口/画布缩放换算，
-## 并用可配置上限钳制 —— 桌面缩放 ≥1 时回到紧凑尺寸（视觉不变），小屏手机换算出大热区。
+## headless 门禁环境把显示模式钉回 disabled：headless 无真实窗口/无 DPR/无触屏，
+## canvas_items 拉伸在该环境下的视口语义不稳定（headless 探针实测：vrect 变 640×640
+## 正方形、final_transform 缩放 0.1），会改变玩法实体布局坐标并连锁改变冒烟时序
+## （点按泄漏 → 相位跳变 → 摇杆提前隐藏）。门禁要的是与桌面基线一致的逻辑环境。
+## 真实平台（Web / 桌面 / 移动）不走此分支，canvas_items + DPR 感知热区照常生效。
+func _setup_display_mode() -> void:
+	if DisplayServer.get_name() == "headless":
+		var window := get_window()
+		window.content_scale_mode = Window.CONTENT_SCALE_MODE_DISABLED
+		window.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
+
+
+## 选项按钮的最小高度（视口逻辑像素）：语义 = 「≥ min_touch_px CSS pt」（Apple HIG 点距口径）。
+## 换算链：CSS pt → 物理 px（× 显示 DPR）→ 视口逻辑 px（÷ 引擎 contentScale）。
+## 例：iPhone 13（DPR=3，物理 1170×1992，canvas_items+expand contentScale=1.828）
+## → ceil(44×3/1.828)=73 逻辑 px → 物理 133 px ≥ 44×3=132 → CSS 44.5 pt，达标。
+## 前提：project.godot 拉伸为 canvas_items（引擎把内容按 contentScale 放大绘制）；
+## 拉伸 disabled 下逻辑=物理，min_touch_px 在高 DPR 屏原理性缩水（知识库 649e691d §二）。
 func _min_option_height() -> float:
-	var window_size := Vector2(DisplayServer.window_get_size())
-	var canvas_size := get_viewport_rect().size
 	var min_touch_px: float = float(_touch.get("min_touch_px", 44.0))
 	var max_height: float = float(_touch.get("option_button_max_height", 96.0))
+	var dpr := _display_dpr()
+	var content_scale := _engine_content_scale()
+	if dpr <= 0.0 or content_scale <= 0.0:
+		return min_touch_px
+	return clampf(ceilf(min_touch_px * dpr / content_scale), 20.0, max_height)
+
+
+## 显示 DPR（CSS px → 物理 px）：Web 从 window.devicePixelRatio 直读。
+## Web 导出下 window_get_size 与视口 rect 同为物理像素口径，二者相除恒 1，
+## 推不出 DPR（「两个引擎尺寸相除」这条路原理性走不通，不是参数没调对）。
+## 非 Web（桌面/headless）退回窗口/画布比值：headless 与桌面默认窗口比值=1，行为与旧版一致。
+func _display_dpr() -> float:
+	if OS.has_feature("web"):
+		# JavaScriptBridge 单例在非 Web 构建不编译，静态引用会让桌面/headless 解析报错，
+		# 必须运行时经 Engine.get_singleton 获取。
+		var js_bridge: Object = Engine.get_singleton("JavaScriptBridge")
+		if js_bridge != null:
+			var value: Variant = js_bridge.eval("window.devicePixelRatio")
+			if typeof(value) == TYPE_FLOAT or typeof(value) == TYPE_INT:
+				if float(value) > 0.0:
+					return float(value)
+	return _window_to_canvas_ratio()
+
+
+## 引擎内容缩放（视口逻辑 px → 物理 px）：canvas_items 拉伸下由引擎维护
+## （content_scale_factor 是 Window 的属性——根视口运行时即 Window，但静态类型
+## 是 Viewport，必须 is 判断后取，否则 GDScript 解析期找不到方法直接编译失败）；
+## 未生效（拉伸 disabled / headless）时窗口/画布比值即真实缩放（=1），与旧行为一致。
+func _engine_content_scale() -> float:
+	var vp := get_viewport()
+	if vp is Window:
+		var scale := (vp as Window).content_scale_factor
+		if scale > 0.0:
+			return scale
+	return _window_to_canvas_ratio()
+
+
+## 窗口物理尺寸 / 视口逻辑尺寸 的保守比值（取两维较小者），口径退化时的兜底。
+func _window_to_canvas_ratio() -> float:
+	var window_size := Vector2(DisplayServer.window_get_size())
+	var canvas_size := get_viewport_rect().size
 	if window_size.x <= 0.0 or window_size.y <= 0.0 or canvas_size.x <= 0.0 or canvas_size.y <= 0.0:
-		return min_touch_px
-	var scale := minf(window_size.x / canvas_size.x, window_size.y / canvas_size.y)
-	if scale <= 0.0:
-		return min_touch_px
-	return clampf(ceilf(min_touch_px / scale), 20.0, max_height)
+		return 1.0
+	return minf(window_size.x / canvas_size.x, window_size.y / canvas_size.y)
 
 
 ## 刘海/打孔屏安全区避让：把安全区内缩量换算成画布逻辑像素，分别推移

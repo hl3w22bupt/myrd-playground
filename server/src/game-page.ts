@@ -144,7 +144,12 @@ body { color: #fff; background: #0b0e1a; overflow: hidden; touch-action: none; f
       var boot = document.getElementById('boot');
       var hint = document.getElementById('hint');
       if (boot) boot.classList.add('hidden');
-      if (hint) hint.style.display = 'block';
+      // 壳层 DOM 遮挡契约（知识库 649e691d §三）：#hint 是布局的参与者，不是旁观者。
+      // 触屏设备没有键盘，按键提示无意义；移动端窄视口下常显会换行到 3 行、
+      // 压住对话选项文字（QA 复核实测重叠 3200px²）——触屏直接不显示；
+      // 桌面（maxTouchPoints<=1）保留提示，宽视口一行放下、不与选项区重叠。
+      var isTouch = (navigator.maxTouchPoints || 0) > 1;
+      if (hint) hint.style.display = isTouch ? 'none' : 'block';
     }, fail);
   }).catch(fail);
 })();
