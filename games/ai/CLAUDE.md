@@ -29,22 +29,7 @@
 - 节点引用优先 `%唯一名`（`unique_name_in_owner = true`），不要写长路径 `$UI/HudLabel` ——
   重构时路径引用会悄悄断，唯一名不会。
 
-## 数值调参纪律（见 SKILL.md §3C）
-
-- 可调数值只放 `autoload/game_state.gd` 调参区：变量 + `TUNING_META`（min/max/step）成对声明，
-  键名与 `spec.numeric` 对应；消费方读变量，禁止散落魔数（模板示例：`move_speed`）。
-- 数值默认值 = spec.numeric 定稿；试玩调参走 URL `?tuning=`（壳页面桥 → `apply_tuning`）
-  或游戏内调参面板，**定稿必须回写 spec（revisions API）再改默认值**，禁止两头各改各的。
-
 ## 本工程的固定接线（破坏 = 黑屏）
 
-`project.godot` 的 `run/main_scene`、`[autoload] GameState`、`[autoload] Juice`、`[input]` 动作映射，
+`project.godot` 的 `run/main_scene`、`[autoload] GameState`、`[input]` 动作映射，
 以及 `tests/smoke.tscn|gd` 冒烟场景 —— 移植新玩法时逐项保留。
-
-## 反馈完备性（Juice，见 SKILL.md §3B）
-
-- 结果性事件（得分/收集/命中/失败/确认/升级）至少挂 1 条 `Juice` 反馈
-  （`pop`/`flash`/`shake`/`hit_stop`/`sfx`），挂在**结果事件的处理函数**上，
-  不挂在输入处理上 —— 冒烟第 6 项断言会拦「反馈接线断了」。
-- `Juice.sfx(&"名")` 的调用点先钉住，音效资产后补（SFX_BANK 注册一行即出声）。
-- 删除 Juice 单例必须同步删全部调用点（preflight P14 拦「引用了但没注册」）。

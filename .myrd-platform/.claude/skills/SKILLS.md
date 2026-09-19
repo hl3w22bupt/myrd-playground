@@ -6,5 +6,6 @@
 - **Verification** — `.myrd-platform/.claude/skills/Verification.md`
 - **myrd-platform-skill** — `.myrd-platform/.claude/skills/myrd-platform-skill.md`
 - **godot-game-dev** — `.myrd-platform/.claude/skills/godot-game-dev/SKILL.md`
+- **lark** — `.myrd-platform/.claude/skills/lark/SKILL.md`
 - **verification** — `.myrd-platform/.claude/skills/verification/SKILL.md`
 - **webgame-prototype** — `.myrd-platform/.claude/skills/webgame-prototype/SKILL.md`

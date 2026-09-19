@@ -1,0 +1,191 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/ai_girlfriend.tscn" id="3_gf"]
+[ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="4_joystick"]
+[ext_resource type="Script" path="res://scripts/touch_confirm_button.gd" id="5_confirm"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_confirm"]
+radius = 44.0
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+offset_right = 640.0
+offset_bottom = 360.0
+color = Color(0.07, 0.08, 0.14, 1)
+
+[node name="Girlfriends" type="Node2D" parent="."]
+
+[node name="GfSweet" parent="Girlfriends" instance=ExtResource("3_gf")]
+position = Vector2(96, 84)
+persona_id = "sweet"
+display_name = "糖糖"
+body_color = Color(1, 0.62, 0.75, 1)
+story_line = "小李，今天也要好好吃饭哦，我给你留了一颗虚拟的糖。"
+
+[node name="GfZero" parent="Girlfriends" instance=ExtResource("3_gf")]
+position = Vector2(544, 92)
+persona_id = "zero"
+display_name = "Zero"
+body_color = Color(0.45, 0.9, 0.95, 1)
+story_line = "哼，人类的浪漫我用三行代码就能模拟……但你迟到 0.3 秒我还是会不开心。"
+
+[node name="GfIori" parent="Girlfriends" instance=ExtResource("3_gf")]
+position = Vector2(520, 300)
+persona_id = "iori"
+display_name = "凛"
+body_color = Color(0.72, 0.58, 1, 1)
+story_line = "本小姐的时间很贵的。不过看在你准时赴约的份上，允许你陪我走一段。"
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(320, 190)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="ChapterLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 10.0
+offset_right = 300.0
+offset_bottom = 34.0
+theme_override_font_sizes/font_size = 16
+text = "第1章 初遇"
+
+[node name="TimeLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 340.0
+offset_top = 10.0
+offset_right = 624.0
+offset_bottom = 34.0
+theme_override_font_sizes/font_size = 16
+text = "心动时间 45"
+horizontal_alignment = 2
+
+[node name="RestartButton" type="Button" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 42.0
+offset_right = 150.0
+offset_bottom = 72.0
+focus_mode = 0
+text = "重开 R"
+
+[node name="AffectionLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 200.0
+offset_top = 42.0
+offset_right = 440.0
+offset_bottom = 74.0
+theme_override_font_sizes/font_size = 20
+text = "好感 0/3"
+horizontal_alignment = 1
+
+[node name="DialogueBox" type="PanelContainer" parent="UI"]
+unique_name_in_owner = true
+visible = false
+offset_left = 60.0
+offset_top = 246.0
+offset_right = 580.0
+offset_bottom = 312.0
+
+[node name="DialogueLabel" type="Label" parent="UI/DialogueBox"]
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 16
+text = ""
+autowrap_mode = 3
+
+[node name="HintLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 330.0
+offset_right = 624.0
+offset_bottom = 352.0
+theme_override_font_sizes/font_size = 12
+text = "WASD / 方向键移动"
+horizontal_alignment = 1
+
+[node name="Overlay" type="ColorRect" parent="UI"]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.72)
+
+[node name="OverlayTitle" type="Label" parent="UI/Overlay"]
+unique_name_in_owner = true
+offset_left = 0.0
+offset_top = 96.0
+offset_right = 640.0
+offset_bottom = 152.0
+theme_override_font_sizes/font_size = 34
+text = "告白成功 WIN"
+horizontal_alignment = 1
+
+[node name="OverlayScore" type="Label" parent="UI/Overlay"]
+unique_name_in_owner = true
+offset_left = 0.0
+offset_top = 160.0
+offset_right = 640.0
+offset_bottom = 196.0
+theme_override_font_sizes/font_size = 20
+text = "最终好感 5 · 第3章 告白"
+horizontal_alignment = 1
+
+[node name="OverlayActionButton" type="Button" parent="UI/Overlay"]
+unique_name_in_owner = true
+offset_left = 220.0
+offset_top = 224.0
+offset_right = 420.0
+offset_bottom = 264.0
+focus_mode = 0
+theme_override_font_sizes/font_size = 18
+text = "再来一局 RETRY"
+
+[node name="TouchUI" type="CanvasLayer" parent="."]
+layer = 10
+visible = false
+
+[node name="JoystickAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -160.0
+offset_right = 160.0
+offset_bottom = -24.0
+grow_vertical = 0
+script = ExtResource("4_joystick")
+
+[node name="ConfirmAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -140.0
+offset_top = -140.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="ConfirmButton" type="TouchScreenButton" parent="TouchUI/ConfirmAnchor"]
+position = Vector2(58, 58)
+shape = SubResource("CircleShape2D_confirm")
+script = ExtResource("5_confirm")
+
+[node name="ConfirmLabel" type="Label" parent="TouchUI/ConfirmAnchor/ConfirmButton"]
+unique_name_in_owner = true
+offset_left = -40.0
+offset_top = -14.0
+offset_right = 40.0
+offset_bottom = 14.0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 0.9)
+text = "回应"

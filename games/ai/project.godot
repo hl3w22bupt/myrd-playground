@@ -1,13 +1,13 @@
 ; Engine configuration file.
-; Godot 4.x 最小可运行工程骨架（2D）。
-; 本文件演示三类必接线：主场景（run/main_scene）、自动加载单例（[autoload]）、输入映射（[input]）。
+; 《我被ai女友包围了》—— 生存挑战 + 剧情驱动收集工程。
+; 三类必接线：主场景（run/main_scene）、自动加载单例（[autoload]）、输入映射（[input]）。
 ; 任何一项缺失都会让游戏「黑屏 / 无响应」，因此它们也是 scripts/preflight.py 的静态检查对象。
 
 config_version=5
 
 [application]
 
-config/name="minimal-2d"
+config/name="我被ai女友包围了"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.3")
 config/icon="res://icon.svg"
@@ -15,7 +15,6 @@ config/icon="res://icon.svg"
 [autoload]
 
 GameState="*res://autoload/game_state.gd"
-Juice="*res://autoload/juice.gd"
 
 [display]
 
@@ -61,6 +60,11 @@ confirm={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194309,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
 , Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":32,"key_label":0,"unicode":32,"location":0,"echo":false,"script":null)
+]
+}
+restart={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":82,"key_label":0,"unicode":114,"location":0,"echo":false,"script":null)
 ]
 }
 
