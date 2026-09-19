@@ -5,3 +5,5 @@ coverage
 .DS_Store
 .gstack/
 .myrd-platform/
+# 壳构建期生成物（postinstall inline-assets.mjs 再生，不入库）
+server/src/generated/
