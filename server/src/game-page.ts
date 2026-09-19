@@ -147,8 +147,14 @@ body { color: #fff; background: #0b0e1a; overflow: hidden; touch-action: none; f
       // 壳层 DOM 遮挡契约（知识库 649e691d §三）：#hint 是布局的参与者，不是旁观者。
       // 触屏设备没有键盘，按键提示无意义；移动端窄视口下常显会换行到 3 行、
       // 压住对话选项文字（QA 复核实测重叠 3200px²）——触屏直接不显示；
-      // 桌面（maxTouchPoints<=1）保留提示，宽视口一行放下、不与选项区重叠。
-      var isTouch = (navigator.maxTouchPoints || 0) > 1;
+      // 桌面（指针精细、无触摸会话）保留提示，宽视口一行放下、不与选项区重叠。
+      // 判定三信号并集：maxTouchPoints>1（多数手机）∪ ontouchstart（触屏会话已建立；
+      // Playwright iPhone 仿真与部分单点触控设备该指标 maxTouchPoints=1，实测探针）
+      // ∪ pointer:coarse（触屏为主的标准媒体查询）。桌面 Chrome（pointer:fine、
+      // 无 ontouchstart）三者皆假 → 提示保留，桌面零回归。
+      var isTouch = (navigator.maxTouchPoints || 0) > 1
+        || 'ontouchstart' in window
+        || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
       if (hint) hint.style.display = isTouch ? 'none' : 'block';
     }, fail);
   }).catch(fail);

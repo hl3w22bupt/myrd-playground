@@ -8,7 +8,7 @@ const app = new Hono();
 // 基线 §七 契约：健康自检 → 200 + {status:"ok",version}（QA BUG-7 修复项）。
 // 基线路径为静态 /healthz，但平台部署护栏强制业务路由必须位于 /api/*（仅 /health 豁免），
 // 故落位 /api/healthz —— 语义不变（200 + {status,version}），基线文档偏差待回填。
-const APP_VERSION = "2.2.0-touch-viewport";
+const APP_VERSION = "2.2.1-hotzone-hint-fix";
 app.get("/api/healthz", (c) => c.json({ status: "ok", version: APP_VERSION }));
 
 // 平台契约：健康检查（编排健康探针依据，部署后 30s 内必须 200）

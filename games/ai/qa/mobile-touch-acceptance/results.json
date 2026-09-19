@@ -1,6 +1,6 @@
 {
-  "startedAt": "2026-09-19T08:38:35.151Z",
-  "liveUrl": "https://leomac-studio.tail49399e.ts.net/apps/ai/",
+  "startedAt": "2026-09-19T11:55:39.237Z",
+  "liveUrl": "http://127.0.0.1:8791/",
   "hostedAppId": "cmtoavt8p0006m9y6kzy2u14w",
   "deploymentId": "cmu836iw00027m9x5uv3snds0",
   "checks": [
@@ -8,7 +8,7 @@
       "id": "A1-boot",
       "name": "移动端 UA 可加载且引擎启动（canvas 出现、boot 隐藏）",
       "pass": true,
-      "detail": "firstScreen=1520ms"
+      "detail": "firstScreen=1169ms"
     },
     {
       "id": "A2-viewport",
@@ -50,13 +50,13 @@
       "id": "D1-tap-start",
       "name": "画面内点按可从标题启动一局",
       "pass": true,
-      "detail": "diff=0.901"
+      "detail": "diff=0.889"
     },
     {
       "id": "D2-tap-response",
       "name": "点按推进响应 ≤100ms（帧级实测，允许 1 帧量化误差）",
       "pass": true,
-      "detail": "14ms"
+      "detail": "12ms"
     },
     {
       "id": "D3-tap-advance",
@@ -79,32 +79,32 @@
     {
       "id": "A6-hotzone44",
       "name": "选项触控热区 ≥44×44 CSS pt（Apple HIG 点距口径）",
-      "pass": false,
-      "detail": "44 视口px × 0.333 = 14.7 CSS pt，仅为标准的 33%（DPR 换算在 Web 导出下失效，见报告 P1-1）"
+      "pass": true,
+      "detail": "73 逻辑px × contentScale1.828 = 133 物理px，需 ≥ 44×DPR3=132（=44.5 CSS pt）"
     },
     {
       "id": "D5-option-tap",
       "name": "点选选项 1 可结算并推进到下一节点",
       "pass": true,
-      "detail": "diff=0.1076"
+      "detail": "diff=0.1828"
     },
     {
       "id": "E1-joystick-visible",
       "name": "行动段虚拟摇杆出现（左下角半透明圆环）",
       "pass": true,
-      "detail": "ringPx(lum>90)=10182"
+      "detail": "ringPx(lum>90)=34041"
     },
     {
       "id": "E2-joystick-drag",
       "name": "摇杆可拖动（触摸被摇杆接管，knob 跟手）",
       "pass": true,
-      "detail": "knobChangeRatio=0.75"
+      "detail": "knobChangeRatio=0.77"
     },
     {
       "id": "E3-drag-moves-player",
       "name": "拖动摇杆驱动玩家实际位移（拖拽期玩法区变化高于静置基线；截图前后对照见 e3crop_*.png）",
       "pass": true,
-      "detail": "drag=0.030 vs control=0.019"
+      "detail": "drag=0.028 vs control=0.000"
     },
     {
       "id": "E3b-drag-no-advance",
@@ -128,19 +128,19 @@
       "id": "F1-fps",
       "name": "帧率 ≥30fps（仿真环境实测）",
       "pass": true,
-      "detail": "47.1fps over 4.0s"
+      "detail": "46.1fps over 4.0s"
     },
     {
       "id": "G3-hint-overlap",
       "name": "DOM 提示条不遮挡对话面板",
-      "pass": false,
-      "detail": "hint=195x65@bottom654, overlap=3200px²"
+      "pass": true,
+      "detail": "提示条未显示"
     },
     {
       "id": "G1-landscape",
       "name": "横屏后画布铺满、无滚动、摇杆仍锚定左下角",
       "pass": true,
-      "detail": "canvas=664x390, scrollY=0, joyRingPx=10182"
+      "detail": "canvas=664x390, scrollY=0, joyRingPx=103382"
     },
     {
       "id": "G2-portrait-restore",
@@ -164,7 +164,7 @@
       "id": "P1-android-smoke",
       "name": "Android Chrome(UA+触屏仿真) 可启动并点按推进",
       "pass": true,
-      "detail": "diff=0.182"
+      "detail": "diff=0.276"
     },
     {
       "id": "P2-android-console",
@@ -175,55 +175,55 @@
   ],
   "metrics": {
     "firstScreenMs_iphone": {
-      "value": 1520,
+      "value": 1169,
       "unit": "ms（导航→引擎启动完成，仿真环境实测）"
     },
     "assetTransferKB_iphone": {
-      "value": 10636.7,
-      "unit": "KB（index.js:82.8KB, index.pck.gz.b64:2709.8KB, index.wasm.gz.b64:7844.1KB）"
+      "value": 15942.800000000001,
+      "unit": "KB（index.js:324KB, index.wasm.gz.b64:10385.7KB, index.pck.gz.b64:5233.1KB）"
     },
     "tapAdvanceLatencyMs": {
-      "value": 14,
+      "value": 12,
       "unit": "ms（点按→对话面板首个变化帧，rAF 帧级精度）"
     },
     "uiScaleCssPerDesignPx": {
       "value": 0.333,
       "unit": "CSS px / 设计视口 px（DPR 换算比）"
     },
+    "optionHotzoneLogicPx": {
+      "value": 73,
+      "unit": "逻辑 px（main.gd _min_option_height 代码事实推算）"
+    },
     "optionHotzoneCssComputed": {
-      "value": 14.7,
-      "unit": "CSS pt（44 设计视口 px × DPR 换算比，Apple HIG 口径要求 ≥44）"
+      "value": 44.5,
+      "unit": "CSS pt（热区物理/DPR，Apple HIG 口径要求 ≥44）"
     },
     "optionPlateHeightCssMeasured": {
-      "value": 6.3,
+      "value": 15.7,
       "unit": "CSS px（像素法实测，受提示条遮挡干扰仅供参考）"
     },
     "joystickDiameterCss": {
-      "value": 37.7,
+      "value": 69,
       "unit": "CSS px（摇杆底环渲染直径，摇杆设计 112 视口 px 内环）"
     },
     "playfieldExtent": {
-      "value": "0.547x0.181",
-      "unit": "行动段 640×360 世界占竖屏视口比例（宽x高，余下为空白）"
+      "value": "1x0.33",
+      "unit": "行动段 640×360 世界占逻辑视口比例（宽x高；canvas_items 下基准贴满、长边扩展）"
     },
     "joystickKnobChangeRatio": {
-      "value": 0.75,
+      "value": 0.77,
       "unit": "拖拽期间摇杆区域帧变化占比"
     },
     "playerMoveDragVsControl": {
-      "value": "0.030 vs 0.019",
+      "value": "0.028 vs 0.000",
       "unit": "拖拽期 vs 静置期的玩法区变化占比（A/B）"
     },
     "fps_iphone": {
-      "value": 47.1,
+      "value": 46.1,
       "unit": "fps（rAF 采样，SwiftShader 软渲染仿真环境）"
     },
-    "hintOverlapDialogPx": {
-      "value": 3200,
-      "unit": "px²（DOM 提示条与对话面板重叠面积）"
-    },
     "firstScreenMs_pixel": {
-      "value": 1303,
+      "value": 911,
       "unit": "ms（导航→引擎启动完成，仿真环境实测）"
     }
   },
@@ -233,13 +233,10 @@
     "第 2 次推进使用长按 900ms（验证无 contextmenu/选中）"
   ],
   "_contextMenuFired": 0,
-  "finishedAt": "2026-09-19T08:39:11.558Z",
+  "finishedAt": "2026-09-19T11:56:15.479Z",
   "summary": {
     "total": 28,
-    "failed": 2,
-    "failedIds": [
-      "A6-hotzone44",
-      "G3-hint-overlap"
-    ]
+    "failed": 0,
+    "failedIds": []
   }
 }

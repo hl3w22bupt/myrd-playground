@@ -854,7 +854,10 @@ func _run() -> void:
 	var node_after: Dictionary = _main.get("_current_node")
 	if String(node_after.get("id", "")) == String(node_before.get("id", "")) and _main.get("_phase") == 1:
 		_failures.append("阶段 13：画面内点按（InputEventScreenTouch）没有推进剧情节点（%s 未变化； TapLayer/ScreenTouch 分支断了）" % String(node_before.get("id", "?")))
-	# 13c 选项按钮触控热区契约：用合成抉择节点重建按钮，断言高度换算 ≥44 物理像素
+	# 13c 选项按钮触控热区契约：用合成抉择节点重建按钮，断言高度换算 ≥44 物理像素、
+	# ≤ option_button_max_height 上限（布局炸弹防线：web 实测 Button 自带 autowrap 在容器
+	# resize 时序下会把 combined min 缓存成 504 逻辑 px 的巨卡，吞掉整屏点按热区并诱发
+	# 中央点按误选——选项文案必须走子 Label，按钮 min 高度恒等于契约值）、
 	# 且两两热区不重叠（VBox 布局天然不相交，这里机器复核）。
 	var synthetic_node: Dictionary = {"id": "smoke-choice", "type": "choice", "prompt": "冒烟热区断言",
 			"options": [{"id": "o1", "text": "甲"}, {"id": "o2", "text": "乙"}, {"id": "o3", "text": "丙"}]}
@@ -870,9 +873,15 @@ func _run() -> void:
 				buttons.append(button)
 	if buttons.size() < 2:
 		_failures.append("阶段 13：选项按钮 %d 个 < 2（触控热区契约无从断言）" % buttons.size())
+	var max_option_height: float = float(_main.get("_touch").get("option_button_max_height", 96.0))
 	for button in buttons:
 		if button.size.y < 44.0:
 			_failures.append("阶段 13：选项按钮热区高度 %.1f < 44 物理像素（min_touch_px 契约被破坏）" % button.size.y)
+		if button.size.y > max_option_height + 0.5:
+			_failures.append("阶段 13：选项按钮高度 %.1f > %.0f 上限（选项卡巨型化，autowrap 最小高度泄漏进 Button）" % [
+				button.size.y, max_option_height])
+		if button.text != "":
+			_failures.append("阶段 13：选项按钮携带自带文本（文案必须走子 Label，防止 autowrap 撑爆最小高度）")
 	for i in buttons.size():
 		for j in range(i + 1, buttons.size()):
 			if buttons[i].get_global_rect().intersects(buttons[j].get_global_rect()):

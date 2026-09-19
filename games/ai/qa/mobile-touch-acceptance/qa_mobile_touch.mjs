@@ -335,10 +335,14 @@ function shotRectFull(info) {
 function dialogZoneShot(info) {
   return vpRect2Shot(info, dialogPanelVp(info));
 }
-/** 对话面板（main.tscn DialogPanel：底边中心 320×110，底距 10，逻辑坐标）—— 剧情文本变化判定区。 */
+/** 对话面板（main.tscn DialogPanel：底边中心 320×110，底距 10，逻辑坐标）—— 剧情文本变化判定区。
+ * 左边界右移到摇杆拖拽包络之外：joystick 锚左距24+锚宽160（中心104）+底环半径56+钮半径26
+ * = 右缘 186 逻辑 px，+4px 余量 → 190。否则 ARENA 拖拽时钮右缘扫进裁剪框，E3b「拖拽不误触
+ * 推进」把摇杆自己的动画误报成对话推进（正例误报，canvas_items 设计空间缩小 3× 后暴露）。 */
 function dialogPanelVp(info) {
   const V = viewportVp(info);
-  return { x: V.w / 2 - 160, y: V.h - 120, w: 320, h: 110 };
+  const left = Math.max(V.w / 2 - 160, 24 + 80 + 56 + 26 + 4);
+  return { x: left, y: V.h - 120, w: V.w / 2 + 160 - left, h: 110 };
 }
 /** 选项区扫描框（OptionsBox 底边中心 496×114，底距 130，逻辑坐标）—— 严格限制在对话框面板上沿之上，
  * 避免面板暗色底混入底板测量。 */

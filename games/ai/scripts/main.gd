@@ -366,18 +366,33 @@ func _rebuild_options(node: Dictionary) -> void:
 	for i in options.size():
 		var option: Dictionary = options[i]
 		var button := Button.new()
-		button.text = "%d. %s" % [i + 1, String(option.get("text", ""))]
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		# 触控热区契约：高度 ≥ min_touch_px 个物理像素（窗口/画布缩放换算），宽度铺满选项列。
 		button.custom_minimum_size = Vector2(0.0, _min_option_height())
 		button.size_flags_horizontal = Control.SIZE_FILL
-		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		button.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		button.focus_mode = Control.FOCUS_NONE
 		var style := StyleBoxTexture.new()
 		style.texture = OPTION_TEXTURE
 		button.add_theme_stylebox_override("normal", style)
 		button.add_theme_stylebox_override("hover", style)
 		button.add_theme_stylebox_override("pressed", style)
+		# 选项文案走「全幅子 Label」而不是 Button.text + autowrap：
+		# Button 的 autowrap 最小高度按「最窄换行宽度」估算，容器 resize 时序下会把
+		# combined_minimum_size 缓存成十几行文本的高度（web 探针实测首卡 504 逻辑 px），
+		# 巨卡吞掉整屏点按热区、还会让中央点按误选选项。Button 自身无文本 → 最小高度
+		# 恒等于热区契约值；Label 由 Button（非容器）直接按实际矩形铺排，换行不回流 min-size。
+		var label := Label.new()
+		label.text = "%d. %s" % [i + 1, String(option.get("text", ""))]
+		label.set_anchors_preset(Control.PRESET_FULL_RECT)
+		label.offset_left = 16.0
+		label.offset_right = -16.0
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.clip_contents = true
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		button.add_child(label)
 		button.pressed.connect(_on_option_pressed.bind(i))
 		options_box.add_child(button)
 		_option_buttons.append(button)
@@ -849,17 +864,22 @@ func _display_dpr() -> float:
 	return _window_to_canvas_ratio()
 
 
-## 引擎内容缩放（视口逻辑 px → 物理 px）：canvas_items 拉伸下由引擎维护
-## （content_scale_factor 是 Window 的属性——根视口运行时即 Window，但静态类型
-## 是 Viewport，必须 is 判断后取，否则 GDScript 解析期找不到方法直接编译失败）；
-## 未生效（拉伸 disabled / headless）时窗口/画布比值即真实缩放（=1），与旧行为一致。
+## 引擎内容缩放（视口逻辑 px → 物理 px）：canvas_items 拉伸下的「实际生效值」。
+## ⚠️ content_scale_factor 属性返回的是设定值（默认恒 1.0），不是 expand 拉伸推导出的
+## 生效缩放（web 探针实测：iPhone 13 DPR3 下属性=1、实际=窗口 1170 / 视口 640=1.828）。
+## 因此显式设定值 ≠1 时才采信属性；否则按「窗口物理尺寸 / 视口逻辑尺寸」推导
+## （canvas_items+expand 下该比值即引擎实际绘制缩放）。拉伸 disabled / headless 下
+## 两套口径同源（窗口=视口，比值=1），与旧行为一致，冒烟零回归。
 func _engine_content_scale() -> float:
 	var vp := get_viewport()
 	if vp is Window:
 		var scale := (vp as Window).content_scale_factor
-		if scale > 0.0:
+		if scale > 0.0 and not is_equal_approx(scale, 1.0):
 			return scale
-	return _window_to_canvas_ratio()
+	var ratio := _window_to_canvas_ratio()
+	if ratio > 0.0:
+		return ratio
+	return 1.0
 
 
 ## 窗口物理尺寸 / 视口逻辑尺寸 的保守比值（取两维较小者），口径退化时的兜底。
