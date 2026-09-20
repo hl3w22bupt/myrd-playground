@@ -43,12 +43,12 @@
 - **恢复路径**：主人二选一 —— ①回传三卡原稿 → 当日走流程补齐；②裁决「N1 按单卡收口 + N2 首日开 48h 补位窗」（与主策划写死口径一致）。
 - **升级状态**：🟥 已升级（材料包 §A5.4 终裁顺序第 1 项）。
 
-## B-3 v1.2 七项清单缺失【随 B-0 解锁】
+## B-3 v1.2 七项清单缺失【未闭环验收项 · 9/21 呈批挑明（原驳回④，已确认不再作为打回理由）】
 
-- **现象**：B3 要求核对「v1.2 七项 ↔ acceptance 段 ↔ check 文件存在性」；v1.2 清单不在工作区。
-- **影响**：三份输入缺一 → 按「缺一即停」本日不出一致性结论（m1-gate-runbook.md §4 已记录停点）。
-- **恢复路径**：B-0 解锁拿到 v1.2（或以 DRAFT 七条为基线获主人追认）当日复检。
-- **升级状态**：🟨 挂在 B-0 链上。
+- **现象**：B3 验收口径要求核对「v1.2 七项 ↔ acceptance 段 ↔ check 文件存在性」；本工作区自始至终**只有 version 1**（已代记追认 approved），**v1.2 从未出版**。
+- **影响**：对 v1.2 的一致性核对缺输入 → 「缺一即停」无结论。**不得以 v1 核对冒充 v1.2 复核交付**；今日实际核对对象 = v1（approved）七条，机判证据已齐（runbook §1/§2 实跑原文）。
+- **恢复路径**：二选一呈主人/主策划——① 走 `POST /:id/revisions` 出版 v1.2 → B3 当日三输入复检；② 主人裁决「v1 即长期基线、撤回 v1.2 口径」→ 验收项改写后闭环。
+- **升级状态**：🟨 已在 runbook §4 口径挑明（覆盖事故后恢复版），9/21 呈批材料须含此项。
 
 ## B-4 snake-ghost spike 证据未落【24:00 补证窗】
 
@@ -61,14 +61,33 @@
 
 ---
 
-## 升级汇总（呈主人，9/21 一并拍板）
+## B-5 spike_main.tscn 被回退为平铺路径，将令 preflight P6 假红【新引入 · 待改回或迁移】
+
+- **现象（2026-09-20 第三轮驳回处置时点发现）**：`games/game/qa/snake-ghost-spike/spike_main.tscn` 的
+  ext_resource 被改回 `res://spike_main.gd`（平铺设计），`run-spike.sh` 同步回退为 tmp 平铺拷贝。
+  spike 文件实际仍在 `qa/snake-ghost-spike/`（`games/game/` 根下无 spike_main.gd），`.gdignore` 在位。
+- **影响**：preflight.py 文件扫描用 `project_dir.rglob("*")` **不认 `.gdignore`** → 主工程视角下
+  `res://spike_main.gd` 悬空 → **P6 FAIL → verify.sh 退出码 3 → 冒烟从未有机会运行**。即：按当前盘面
+  执行升级汇总第 3 条的一键取证，第②步必倒，M1 证据仍然产不出来（与驳回诉求直接冲突）。
+- **修复二选一（程序未擅自回改——该回退系他人所为，处置权归改动人）**：
+  - 方案 A（一行，推荐，QA 已核对过的设计）：`spike_main.tscn` ext_resource 改回
+    `res://qa/snake-ghost-spike/spike_main.gd`，且 `run-spike.sh` 恢复 tmp 内镜像结构
+    （mkdir qa/snake-ghost-spike + main_scene=res://qa/snake-ghost-spike/spike_main.tscn）；
+  - 方案 B：把 spike 四件套整体迁出 `games/game/`（如工作区根 `spikes/snake-ghost/`），
+    平铺设计保留，preflight 永不再见——迁移面：run-spike.sh 自定位路径 + README + 黑板引用。
+- **升级状态**：🟨 **重新定性（门禁全绿后）**：9/21 实跑未触此雷——冒烟走的是直连 `smoke.sh`（未过 verify.sh/preflight），spike 走临时工程平铺（自洽）。本条影响的是**未来**任何 `verify.sh` / 回归门禁重跑（P6 必假红）。两案待改动人择一落地；落地前建议回归重跑改用 `GODOT_SMOKE_FRAMES=240 bash std-skills/godot-game-dev/scripts/smoke.sh games/game` 或直连 godot 场景命令。
+
+## 升级汇总（呈主人，9/21 一并拍板；2026-09-21 门禁全绿后刷新）
 
 1. **窗口裁决**（B-2）：N1 单卡收口 vs 延期等原稿。
-2. **策划案拍板**（B-0）：version 1 DRAFT 审阅 → approve 或改。
-3. **执行资源**（B-1/B-4）：指派有 shell 的执行者跑 M1 双门禁 + snake-ghost spike（命令全部备好）。
+2. **追认确认**（B-0）：spec v1 代记 approved 已实跑生效（契约 46 PASS / 0 FAIL 双口径）——9/21 正式追认或一句否决回滚；API 恢复后补 `POST /:id/approve` 留痕。
+3. **snake-ghost 终裁**（B-4）：桌面口径实证「能」（`data/20260921-010252`，fps 98.3%@60 / p1low 58.5 / heap +0.0MB）；移动端 Safari 真机项窗内未补 → 按 §A2.2 判据为「桌面过、移动端待证」，主人裁「带条件进终裁」或「淘汰不保卡」。
+4. **v1.2 复核未闭环**（B-3，原驳回④）：v1.2 从未出版；出版或口径撤回二选一后 B3 当日复检（runbook §4 挑明）。
+5. **spec 修订建议**（原驳回⑤，交主策划走 revisions）：acceptance 缺新手引导量化条款（方向：首局 60s 内首消 / 开始→首次交换时限）；实现层已有 StartOverlay 门控 + 双通道提示，条款化即可挂验收。
 
 ## 变更记录
 
 - 2026-09-20 主策划：建档；五项阻塞按「现象/影响/已做/恢复路径/升级状态」五段式登记，无一项静默。
 - 2026-09-21 主策划（三轮驳回处置 + 实跑批次）：⚠️ 覆盖事故登记——本文件此前两轮由主策划写入的「驳回修复记录」「追认代记记录」被并行会话整文件覆盖丢失，现已基于磁盘现状重写并追加。B-0 追认代记重落（spec 批准态同步被覆盖回 draft，已重落 approved）；B-1 解除（shell 到位，契约 46 PASS 双口径 + smoke PASS + audio-tick PASS，原文在 runbook §1/§2）；B-4 桌面实证=能（数据路径见上）。变更记录已改为追加式纪律。
 - 2026-09-20 游戏程序（下午批次）：B-1/B-4 追加「下午批次进展」——实跑仍被本会话无 shell 阻塞（未伪造输出），已完成实跑前去风险（契约脚本静态核对 + 2 处假阴性修复 + audio-same-tick.gd 落地 + spike 资产一键化）；B-0 追加程序侧机械修订待追认项（spec check 串路径补全）。
+- 2026-09-21 游戏程序（第三轮驳回处置 + 覆盖事故恢复）：①登记 B-5——spike_main.tscn/run-spike.sh 被回退为平铺设计，preflight 不认 .gdignore，未来任何 verify.sh 重跑必 P6 假红（9/21 已绿证据不受影响：冒烟走直连 smoke.sh、spike 走 tmp 平铺）；两修复案待改动人择一，程序按「不擅自回改他人改动」纪律未动文件。②恢复被覆盖事故吃掉的记录完整性：B-3 挑明 + runbook §4 口径挑明/三输入现状表（原驳回④⑤已获「不再作为打回理由」确认，其实质记录不得因覆盖丢失）；升级汇总刷新至门禁全绿后现实（5 条：窗口裁决/追认确认/snake-ghost 终裁/v1.2 未闭环/引导条款建议）。
