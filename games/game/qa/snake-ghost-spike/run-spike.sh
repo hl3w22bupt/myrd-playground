@@ -31,16 +31,19 @@ fi
 echo "[spike] GODOT_BIN=$GODOT_BIN"
 
 # 临时独立工程（零主线侵入：不写入 games/game 的 project.godot / 场景树）。
+# ⚠️ 目录结构必须镜像主工程 qa/snake-ghost-spike/：spike_main.tscn 的 ext_resource 按该路径引用
+#    （preflight P5/P6 会扫 qa/ —— 不认 .gdignore；2026-09-21 修复：平铺写法曾致 P5/P6 假红）。
 TMP="$(mktemp -d /tmp/snake-ghost-spike.XXXXXX)"
 trap 'rm -rf "$TMP"' EXIT
-cp "$DIR/spike_main.gd" "$DIR/spike_main.tscn" "$TMP/"
+mkdir -p "$TMP/qa/snake-ghost-spike"
+cp "$DIR/spike_main.gd" "$DIR/spike_main.tscn" "$TMP/qa/snake-ghost-spike/"
 cat > "$TMP/project.godot" <<EOF
 ; snake-ghost spike throwaway project (ASCII comment only - CJK in cfg caused error 43 on load)
 config_version=5
 
 [application]
 config/name="snake-ghost-spike"
-run/main_scene="res://spike_main.tscn"
+run/main_scene="res://qa/snake-ghost-spike/spike_main.tscn"
 config/features=PackedStringArray("4.3")
 
 [display]

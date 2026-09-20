@@ -23,9 +23,11 @@ bash games/game/qa/snake-ghost-spike/run-spike.sh
 #    SPIKE: verdict_desktop fps=能 mem=能 => 桌面口径 能
 
 # ② 桌面窗口录屏（对照录屏用，同时可肉眼核残影规格）
+#    ⚠️ 必须保留 qa/snake-ghost-spike/ 目录结构（场景 ext_resource 按该路径引用，与 run-spike.sh 同理）
 GODOT_BIN=/path/to/godot
-TMP=$(mktemp -d); cp games/game/qa/snake-ghost-spike/spike_main.* "$TMP/"
-printf 'config_version=5\n[application]\nconfig/name="snake-ghost-spike"\nrun/main_scene="res://spike_main.tscn"\nconfig/features=PackedStringArray("4.3")\n[rendering]\nrenderer/rendering_method="gl_compatibility"\n' > "$TMP/project.godot"
+TMP=$(mktemp -d); mkdir -p "$TMP/qa/snake-ghost-spike"
+cp games/game/qa/snake-ghost-spike/spike_main.* "$TMP/qa/snake-ghost-spike/"
+printf 'config_version=5\n[application]\nconfig/name="snake-ghost-spike"\nrun/main_scene="res://qa/snake-ghost-spike/spike_main.tscn"\nconfig/features=PackedStringArray("4.3")\n[rendering]\nrenderer/rendering_method="gl_compatibility"\n' > "$TMP/project.godot"
 "$GODOT_BIN" --path "$TMP"   # 录屏 ≥60s
 
 # ③ 移动端 Safari 真机（§A2.1 要求 iOS Safari ≥15 实测）

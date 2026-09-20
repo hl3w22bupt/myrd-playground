@@ -61,7 +61,7 @@
 
 ---
 
-## B-5 spike_main.tscn 被回退为平铺路径，将令 preflight P6 假红【新引入 · 待改回或迁移】
+## B-5 spike_main.tscn 平铺路径致 preflight P5/P6 假红【✅ 已修复（方案 A）· 待重跑出新证据目录】
 
 - **现象（2026-09-20 第三轮驳回处置时点发现）**：`games/game/qa/snake-ghost-spike/spike_main.tscn` 的
   ext_resource 被改回 `res://spike_main.gd`（平铺设计），`run-spike.sh` 同步回退为 tmp 平铺拷贝。
@@ -75,7 +75,13 @@
     （mkdir qa/snake-ghost-spike + main_scene=res://qa/snake-ghost-spike/spike_main.tscn）；
   - 方案 B：把 spike 四件套整体迁出 `games/game/`（如工作区根 `spikes/snake-ghost/`），
     平铺设计保留，preflight 永不再见——迁移面：run-spike.sh 自定位路径 + README + 黑板引用。
-- **升级状态**：🟨 **重新定性（门禁全绿后）**：9/21 实跑未触此雷——冒烟走的是直连 `smoke.sh`（未过 verify.sh/preflight），spike 走临时工程平铺（自洽）。本条影响的是**未来**任何 `verify.sh` / 回归门禁重跑（P6 必假红）。两案待改动人择一落地；落地前建议回归重跑改用 `GODOT_SMOKE_FRAMES=240 bash std-skills/godot-game-dev/scripts/smoke.sh games/game` 或直连 godot 场景命令。
+- **升级状态**：✅ **已修复（2026-09-21，驳回附实跑失败原文后执行方案 A）**——失败实据已归档
+  `.myrd/blackboard/gate-logs/contract-gate-20260921-012610.log`（P5+P6 两条 FAIL，退出码 1）。
+  修复内容：① `spike_main.tscn` ext_resource → `res://qa/snake-ghost-spike/spike_main.gd`（主工程 P5/P6 通过）；
+  ② `run-spike.sh` 临时工程镜像 `qa/snake-ghost-spike/` 结构 + main_scene 同步（保留实跑批次修复的
+  ASCII heredoc，防 error 43 复发）；③ README §2② 手工指引同步。
+  **待办**：重跑 `bash scripts/run-m1-gates.sh`（或至少 `bash games/game/verify.sh`）产出**新的证据目录**
+  （gate-logs/<新时间戳>/ 或 verify 输出原文），预期 PREFLIGHT: PASS → 冒烟 PASS；原文回填 runbook。
 
 ## 升级汇总（呈主人，9/21 一并拍板；2026-09-21 门禁全绿后刷新）
 
