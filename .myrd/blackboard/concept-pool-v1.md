@@ -98,7 +98,8 @@ SPIKE: verdict_desktop fps_pct_at60=98.3%(阈值≥95%) p1_low_fps=58.5(阈值�
 SPIKE: verdict_desktop fps=能 mem=能 => 桌面口径 能
 ```
 
-- 数据落盘：`games/game/qa/snake-ghost-spike/data/20260921-010252/`（fps.csv 逐秒采样 / mem.json / run-headless.log 原文）。
+- 数据落盘：`games/game/qa/snake-ghost-spike/data/20260921-010743/`（fps.csv 逐秒采样 / mem.json / run-headless.log 原文）。
+  （**美术勘误 2026-09-21**：原引路径 `010252` 目录仅含 run-headless.log 且无 verdict 行，三件套实证在 `010743`；本节 verdict 原文与 010743 的 log 逐字一致，据实更正，结论零改动。）
 - 判据对照（§A2.2）：帧率 ✅（98.3% ≥95%，1% 低帧 58.5 ≥45）；内存 ✅（0.0MB <50MB）；pool_exhausted=19 记录在案
   （30 节点池在满速场景耗尽 19 次，属池回收节奏观测项，不入门槛）。
 - **剩余缺口**：iOS Safari 真机录屏项（README §2③）需真机，本窗口内无真机 → 未补。按 §A2.2 判据表，
