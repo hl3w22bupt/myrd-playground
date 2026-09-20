@@ -1,0 +1,147 @@
+{
+  "meta": {
+    "name": "糖果粉碎传奇（代号 Pixel Fives）",
+    "engine": "godot-4.3",
+    "genre": "休闲三消收集",
+    "version": 1,
+    "status": "draft",
+    "approval": {
+      "approved": false,
+      "note": "本导出件由主策划于 2026-09-20 依工程实况起草，为 spec 版本链起点稿。执行会话无平台 API 访问能力（无 shell；HTTP 网关不可达），未能走 POST /api/v1/game-design-specs 建版与 /:id/approve 拍板。契约测试（game-contract）按设计只认 approved 版：本文件在手，门禁必须输出 SPEC_NOT_APPROVED 拒绝。恢复路径见 ../../blackboard/blockers.md B-0。"
+    },
+    "date": "2026-09-20",
+    "author": "主策划（代四职能）"
+  },
+  "world": {
+    "logline": "6×6 糖果棋盘上交换相邻糖果凑三连收集得分，在步数耗尽前达到目标分过关，关卡阶梯无限推进。",
+    "art_style": "极简几何（Polygon2D 色块 + 金色反馈 FX），无外部贴图依赖",
+    "platform_first": "移动 Web（竖屏 720×1280，触屏优先，键鼠并存）",
+    "session_target": "单关 1–3 分钟，无限关卡推进"
+  },
+  "entities": [
+    {
+      "id": "e1",
+      "name": "Main 主场景控制器",
+      "script": "games/game/scripts/main.gd",
+      "scene": "games/game/scenes/main.tscn",
+      "role": "装配 UI、订阅 cursor/Board/GameState 信号、处理开始/重开/过关/静音/音效接线"
+    },
+    {
+      "id": "e2",
+      "name": "Board 棋盘",
+      "script": "games/game/scripts/board.gd",
+      "scene": "games/game/scenes/main.tscn",
+      "role": "逻辑真源 types 矩阵 + 三连匹配 + 波次结算 + 重力补充 + 死局洗牌 + 消除 FX 自绘"
+    },
+    {
+      "id": "e3",
+      "name": "Player 光标",
+      "script": "games/game/scripts/player.gd",
+      "scene": "games/game/scenes/player.tscn",
+      "role": "键盘/触摸输入 → 选中与交换意图（swap_requested / selection_changed / cell_changed）"
+    },
+    {
+      "id": "e4",
+      "name": "Candy 糖果",
+      "script": "games/game/scripts/candy.gd",
+      "scene": "games/game/scenes/candy.tscn",
+      "role": "矩阵格子的可视节点（5 种 kind），位置即身份"
+    },
+    {
+      "id": "e5",
+      "name": "GameState 全局状态（autoload）",
+      "script": "games/game/autoload/game_state.gd",
+      "role": "分数/步数/关卡/胜负唯一真源，信号对外广播"
+    },
+    {
+      "id": "e6",
+      "name": "GameAudio 音效单例（autoload）",
+      "script": "games/game/autoload/audio_manager.gd",
+      "role": "全游戏音效统一出入口：播放池/静音持久化/Web 自动播放解锁"
+    }
+  ],
+  "levels": [
+    {
+      "id": "l1",
+      "name": "第 1 关（阶梯起点）",
+      "scene": "games/game/scenes/main.tscn",
+      "target_score": 600,
+      "moves": 20,
+      "elements": [
+        { "id": "l1/e1", "name": "6×6 棋盘", "kind": "grid" },
+        { "id": "l1/e2", "name": "5 色糖果", "kind": "piece" },
+        { "id": "l1/e3", "name": "开始遮罩 StartOverlay（开始门控 + Web 音频解锁手势）", "kind": "ui" },
+        { "id": "l1/e4", "name": "HUD（LEVEL/SCORE/MOVES/行内消息）", "kind": "ui" },
+        { "id": "l1/e5", "name": "胜负遮罩 Overlay（NEXT/RETRY 双态按钮）", "kind": "ui" },
+        { "id": "l1/e6", "name": "静音按钮 MuteButton", "kind": "ui" },
+        { "id": "l1/e7", "name": "触屏操作提示 / 桌面操作提示（按设备切换）", "kind": "ui" },
+        { "id": "l1/e8", "name": "死局自动洗牌守卫", "kind": "rule" }
+      ]
+    },
+    {
+      "id": "l2",
+      "name": "第 2 关起（阶梯关卡，同场景参数化）",
+      "scene": "games/game/scenes/main.tscn",
+      "target_score_formula": "600 + (level-1)*300",
+      "moves_formula": "max(20 - (level-1)*2, 12)",
+      "elements": [
+        { "id": "l2/e1", "name": "阶梯重算（advance_level 后 target/moves/score 复位）", "kind": "rule" }
+      ]
+    }
+  ],
+  "numeric": {
+    "COLS": 6,
+    "ROWS": 6,
+    "CELL": 96.0,
+    "CANDY_KINDS": 5,
+    "START_MOVES": 20,
+    "TARGET_SCORE": 600,
+    "MAX_LEVEL": 99,
+    "POINTS_PER_CANDY": 20,
+    "FOUR_RUN_BONUS": 40,
+    "FIVE_RUN_BONUS": 100,
+    "SPAWN_TWEEN_SEC": 0.16,
+    "FX_LIFE_SEC": 0.5,
+    "INVALID_MSG_HOLD_SEC": 2.5,
+    "COMBO_PITCH_STEP": 1.12,
+    "COMBO_MAX_PITCH": 2.0,
+    "SWIPE_TRIGGER_DISTANCE": 42.0
+  },
+  "acceptance": [
+    {
+      "id": "ac-smoke-pass",
+      "criteria": "游戏无头运行退出码 0 且日志含 GODOT_SMOKE: PASS（tests/smoke.gd 0–12 阶段断言全过）",
+      "check": "bash std-skills/godot-game-dev/scripts/smoke.sh games/game"
+    },
+    {
+      "id": "ac-core-loop",
+      "criteria": "开始→选中→交换→三消收集→加分扣步，全链路信号可达（cell_changed/selection_changed/candies_collected/score_changed/moves_changed）",
+      "check": "games/game/tests/smoke.gd 阶段 1–4"
+    },
+    {
+      "id": "ac-win-lose",
+      "criteria": "分数达标判胜、步数耗尽判负，遮罩文案与动作按钮双态正确，重开全复位",
+      "check": "games/game/tests/smoke.gd 阶段 9–11"
+    },
+    {
+      "id": "ac-difficulty",
+      "criteria": "难度阶梯单调：目标分逐关递增、步数逐关收紧（下限 12）",
+      "check": "games/game/tests/smoke.gd 阶段 8"
+    },
+    {
+      "id": "ac-audio-tick",
+      "criteria": "音画同 tick：交换/消除/胜负音效与对应逻辑结算在同一物理帧内触发（结算栈内信号同步派发，不允许延迟到后续帧或动画结束才出声）；消除 FX 与结算同帧入队",
+      "check": "games/game/tests/smoke.gd 阶段 6（音效链路）；逐 tick 断言见 games/game/tests/contracts/audio-same-tick.gd"
+    },
+    {
+      "id": "ac-deadlock",
+      "criteria": "死局盘（模 5 交错盘）触发自动洗牌后必有可行交换且无现成三连",
+      "check": "games/game/tests/smoke.gd 阶段 7"
+    },
+    {
+      "id": "ac-invalid-swap",
+      "criteria": "无效交换三重反馈（红闪/抖动/放大提示），不加分不扣步",
+      "check": "games/game/tests/smoke.gd 阶段 12"
+    }
+  ]
+}
