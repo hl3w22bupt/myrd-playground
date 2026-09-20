@@ -196,9 +196,10 @@ func _tick_ghosts(delta: float) -> void:
 
 ## 颜色偏移（§A3.1）：色相 −24°、明度 +10%（逐秒换本体色，覆盖色板全部 5 色）。
 func _shifted(base: Color) -> Color:
-	var h: float = fposmod(base.get_h() - 24.0 / 360.0, 1.0)
-	var s: float = base.get_s()
-	var v: float = minf(base.get_v() * 1.1, 1.0)
+	# Godot 4 Color 的 HSV 读取是 .h/.s/.v 属性（不存在 get_h()/get_s()/get_v() 方法，实测解析错误）。
+	var h: float = fposmod(base.h - 24.0 / 360.0, 1.0)
+	var s: float = base.s
+	var v: float = minf(base.v * 1.1, 1.0)
 	return Color.from_hsv(h, s, v)
 
 

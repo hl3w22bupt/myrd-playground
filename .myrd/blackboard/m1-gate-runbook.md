@@ -26,8 +26,70 @@ node games/game/scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --
 
 ### 实跑输出占位区（执行者回填，禁止摘要化）
 
+> 2026-09-21 00:5x 主策划实跑回填（本会话已获 shell）。共三轮迭代：轮1 MODULE_NOT_FOUND（根脚本缺失，补建）→
+> 轮2 SPEC_NOT_APPROVED（spec 被并行会话覆盖回 draft，重落批准态）→ 轮3 全绿。轮间另修 resolveAgainstProject
+> 两处实测坑（注释见脚本 §路径解析）。
+
 ```
-（待回填：命令、退出码、逐条 PASS/FAIL 原文）
+$ node scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --project .
+—— 契约测试输出 ——
+  PASS  spec 可解析: .myrd/spec/design-spec.json
+  PASS  spec 为 approved 版
+  PASS  六段完整: meta
+  PASS  六段完整: world
+  PASS  六段完整: entities
+  PASS  六段完整: levels
+  PASS  六段完整: numeric
+  PASS  六段完整: acceptance
+  PASS  实体 e1 script 存在: games/game/scripts/main.gd
+  PASS  实体 e1 scene 存在: games/game/scenes/main.tscn
+  PASS  实体 e2 script 存在: games/game/scripts/board.gd
+  PASS  实体 e2 scene 存在: games/game/scenes/main.tscn
+  PASS  实体 e3 script 存在: games/game/scripts/player.gd
+  PASS  实体 e3 scene 存在: games/game/scenes/player.tscn
+  PASS  实体 e4 script 存在: games/game/scripts/candy.gd
+  PASS  实体 e4 scene 存在: games/game/scenes/candy.tscn
+  PASS  实体 e5 script 存在: games/game/autoload/game_state.gd
+  PASS  实体 e6 script 存在: games/game/autoload/audio_manager.gd
+  PASS  关卡 l1 scene 存在: games/game/scenes/main.tscn
+  PASS  关卡 l2 scene 存在: games/game/scenes/main.tscn
+  PASS  关卡元素编号唯一性核对完成（9 个）
+  PASS  数值扫描源就绪（6 个脚本，三层解析）
+  PASS  数值 COLS 在工程常量区有对应
+  PASS  数值 ROWS 在工程常量区有对应
+  PASS  数值 CELL 在工程常量区有对应
+  PASS  数值 CANDY_KINDS 在工程常量区有对应
+  PASS  数值 START_MOVES 在工程常量区有对应
+  PASS  数值 TARGET_SCORE 在工程常量区有对应
+  PASS  数值 MAX_LEVEL 在工程常量区有对应
+  PASS  数值 POINTS_PER_CANDY 在工程常量区有对应
+  PASS  数值 FOUR_RUN_BONUS 在工程常量区有对应
+  PASS  数值 FIVE_RUN_BONUS 在工程常量区有对应
+  PASS  数值 SPAWN_TWEEN_SEC 在工程常量区有对应
+  PASS  数值 FX_LIFE_SEC 在工程常量区有对应
+  PASS  数值 INVALID_MSG_HOLD_SEC 在工程常量区有对应
+  PASS  数值 COMBO_PITCH_STEP 在工程常量区有对应
+  PASS  数值 COMBO_MAX_PITCH 在工程常量区有对应
+  PASS  数值 SWIPE_TRIGGER_DISTANCE 在工程常量区有对应
+  PASS  验收项 ac-smoke-pass 依赖存在: std-skills/godot-game-dev/scripts/smoke.sh
+  PASS  验收项 ac-core-loop 依赖存在: games/game/tests/smoke.gd
+  PASS  验收项 ac-win-lose 依赖存在: games/game/tests/smoke.gd
+  PASS  验收项 ac-difficulty 依赖存在: games/game/tests/smoke.gd
+  PASS  验收项 ac-audio-tick 依赖存在: games/game/tests/smoke.gd
+  PASS  验收项 ac-audio-tick 依赖存在: games/game/tests/contracts/audio-same-tick.gd
+  PASS  验收项 ac-deadlock 依赖存在: games/game/tests/smoke.gd
+  PASS  验收项 ac-invalid-swap 依赖存在: games/game/tests/smoke.gd
+—— 合计 46 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
+EXIT=0
+```
+
+交叉验证（同脚本工程内镜像，口径 B）：
+
+```
+$ node games/game/scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --project games/game
+—— 合计 46 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
 ```
 
 ### §1.5 程序侧静态核对（2026-09-20 下午批次 · 游戏程序署名）
@@ -72,8 +134,18 @@ GODOT_BIN="$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)"
 
 ### 实跑输出占位区（执行者回填）
 
+> 2026-09-21 00:5x 主策划实跑回填（GODOT_BIN=godot，resolve-godot.sh 解析成功）。
+
 ```
-（待回填：退出码、GODOT_SMOKE 逐行原文）
+$ GODOT_BIN=godot bash std-skills/godot-game-dev/scripts/smoke.sh games/game
+godot-smoke: PASS 冒烟场景通过：tests/smoke.tscn（退出码 0，断言标记齐全，日志无脚本错误）
+SMOKE_EXIT=0
+```
+
+```
+$ GODOT_BIN=godot godot --headless --path games/game tests/contracts/audio-same-tick.tscn
+AUDIO_SAME_TICK: PASS 交换音/消除音/胜负音与结算同帧 + 无效交换反馈同帧 + 消除FX同帧入队 全部通过
+AUDIO_TICK_EXIT=0
 ```
 
 ## §3 B2/B4 · 「音画同 tick」复核（策划 + 程序联署）

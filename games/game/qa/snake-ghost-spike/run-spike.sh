@@ -35,7 +35,7 @@ TMP="$(mktemp -d /tmp/snake-ghost-spike.XXXXXX)"
 trap 'rm -rf "$TMP"' EXIT
 cp "$DIR/spike_main.gd" "$DIR/spike_main.tscn" "$TMP/"
 cat > "$TMP/project.godot" <<EOF
-; snake-ghost spike throwaway project（由 run-spike.sh 生成，与主工程同渲染/竖屏配置）
+; snake-ghost spike throwaway project (ASCII comment only - CJK in cfg caused error 43 on load)
 config_version=5
 
 [application]
@@ -46,7 +46,7 @@ config/features=PackedStringArray("4.3")
 [display]
 window/size/viewport_width=720
 window/size/viewport_height=1280
-window/handheld/orientation=portrait
+window/handheld/orientation="portrait"
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
@@ -55,7 +55,7 @@ renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 EOF
 
-echo "[spike] 无头采样 ${SEC}s，输出目录 $OUT（可能需要一段时间，逐秒有 sample 行输出）"
+echo "[spike] headless sampling ${SEC}s, output dir ${OUT} (one sample line per second)"
 SPIKE_OUT_DIR="$OUT" SPIKE_SEC="$SEC" \
   "$GODOT_BIN" --headless --path "$TMP" 2>&1 | tee "$OUT/run-headless.log"
 CODE=${PIPESTATUS[0]}

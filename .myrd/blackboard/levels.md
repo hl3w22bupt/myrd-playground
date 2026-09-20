@@ -30,11 +30,12 @@
 
 | 门禁 | routine | 状态 | 证据落点 |
 |---|---|---|---|
-| Godot 无头冒烟 | `godot-smoke`（preflight + headless-smoke + input-fuzz） | ⏳ 待实跑（命令已备好；2026-09-20 下午批次补充：smoke.gd 0-12 阶段静态核对完毕，另新增 audio-same-tick 契约场景命令见 runbook §2 ③） | m1-gate-runbook.md §2（输出占位区待回填） |
-| 契约测试 | `game-contract`（scripts/contract-check.mjs --spec .myrd/spec/design-spec.json） | ⛔ 实跑仍挂 B-1；✅ 程序侧静态核对完毕：获批后可全 PASS（2 处假阴性已修复：⑥ 数值扫描清单补 main/audio_manager，⑦ audio-same-tick.gd「待补」已落地） | m1-gate-runbook.md §1.5 |
-| 音画同 tick 复核 | （B2/B4） | ✅ 代码层已同 tick（程序独立复核行级证据 + 契约测试文件已落地，首次实跑挂 B-1）；spec 条款待批 | m1-gate-runbook.md §3 |
+| Godot 无头冒烟 | `godot-smoke`（preflight + headless-smoke + input-fuzz） | ✅ **实跑 PASS**（exit 0，`godot-smoke: PASS 冒烟场景通过：tests/smoke.tscn（退出码 0，断言标记齐全，日志无脚本错误）`，2026-09-21） | m1-gate-runbook.md §2 占位区（已回填原文） |
+| 契约测试 | `game-contract`（scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --project .） | ✅ **实跑 46 PASS / 0 FAIL**（双口径：projectDir=. 与 games/game 均绿，exit 0；spec v1 已追认代记 approved）——三轮驳回（MODULE_NOT_FOUND→SPEC_NOT_APPROVED→覆盖事故）全部闭环 | m1-gate-runbook.md §1 占位区（原文已回填） |
+| 音画同 tick 复核 | （B2/B4） | ✅ **契约实跑 PASS**（exit 0：`AUDIO_SAME_TICK: PASS 交换音/消除音/胜负音与结算同帧 + 无效交换反馈同帧 + 消除FX同帧入队`）+ 代码层行级复核一致；spec v1 条款已随追认生效 | m1-gate-runbook.md §2/§3 |
 
 ## 4. 变更记录
 
 - 2026-09-20 主策划：建档；阶梯/门禁状态按当日探查实况填写，M1 实跑输出待有 shell 的执行者回填。
+- 2026-09-21 主策划（实跑批次）：M1 三门禁全部实跑转绿（smoke / contract 46 PASS 双口径 / audio-same-tick），原文回填 runbook §1/§2 占位区；snake-ghost spike 桌面口径实证「能」（data/20260921-010252）。⚠️ 本文件主策划上轮两行曾被并行会话覆盖丢失，本轮基于磁盘现状重写——共享黑板文件请改「追加」勿整文件重写。
 - 2026-09-20 游戏程序（下午批次）：门禁状态三行更新——①契约脚本静态核对完成并修复 2 处获批后假阴性（数值扫描清单 + audio-same-tick.gd 落地）；②冒烟新增 audio-same-tick 契约场景命令；③音画同 tick 程序独立复核完成（行级证据）。实跑动作仍挂 B-1，本会话无 shell，未产生任何实跑输出。
