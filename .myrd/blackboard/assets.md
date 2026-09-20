@@ -30,10 +30,16 @@
 
 | 关联卡 | 需求 | 成本项 | 状态 |
 |---|---|---|---|
-| snake-ghost（残影） | 残影视觉规格见 concept-pool-v1.md §A3 附注（帧数/透明度梯度/颜色偏移，锁 3s） | 新风格线成本：糖果运动残影需要 Candy 节点拖尾渲染层；预算未实证前不计入 | ⏳ 终裁待拍板（spike 证据未落 → 默认淘汰不保卡）；spike 工具资产已落盘 `games/game/qa/snake-ghost-spike/`（模拟器+运行脚本，非素材、不进主线，qa/ 区 .gdignore 隔离） |
+| snake-ghost（残影） | 残影视觉规格见 concept-pool-v1.md §A3 附注（帧数/透明度梯度/颜色偏移，锁 3s） | 新风格线成本：糖果运动残影需要 Candy 节点拖尾渲染层；预算未实证前不计入 | ⏳ 终裁待拍板（spike 证据未落 → 默认淘汰不保卡）；spike 工具资产已落盘 `games/game/qa/snake-ghost-spike/`（模拟器+运行脚本，非素材、不进主线，qa/ 区 .gdignore 隔离）。**美术复核（9/20 下午）**：spike_main.gd 与 §A3.1 规格逐项对齐（10Hz/3.0s/30 池/α 0.35→0 线性/H−24°/V+10%），无规格漂移；§A3.2 参考卡已补全四要素（光照/比例按 candy.gd 现行参数落字） |
 | 其余三卡 | 原始征集文案缺失，视觉需求无法登记 | — | ⛔ 待主人回传原稿（blockers.md B-2） |
 
 ## 3. 变更记录
 
 - 2026-09-20 主策划：建档；风格卡与清单按当日工程实况（代码常量 + LICENSE.md）整理，未新增任何素材。
 - 2026-09-20 游戏程序（下午批次）：候选资产区 snake-ghost 行补注 spike 工具资产落盘（`games/game/qa/snake-ghost-spike/` 四件：spike_main.gd/.tscn/run-spike.sh/README.md；模拟器色板仅 spike 自用演示，非游戏素材，主游戏零新资产）。
+- 2026-09-20 游戏美术（下午批次，A3 复核 + 接线核查）：
+  ① **§A3.2 参考卡补全**——初版缺「光照/比例」明示行，已按工程实况补齐（光照=candy.gd 程序化假光照现行参数 vs 残影平面色块；比例=格 96px/半径 38），共 7 行仍 ≤10 行；见 concept-pool-v1.md §A3.2。
+  ② **spike 实现规格核对**——spike_main.gd 与 §A3.1 逐项对齐（10Hz 采样/3.0s 存活/30 节点池/α 0.35→0 线性/H−24°/V+10% 封顶 1.0），**无规格漂移**；其 CELL×0.8 色块为 spike 自用简化，不作为主线比例依据（主线口径=半径 38）。
+  ③ **素材接线核查（零缺口）**——audio ×8（SFX 表 preload，audio_manager.gd）、字体（project.godot [gui] theme/custom_font + .import）、图标（config/icon）三项接线完好，与 §1 清单一一对应，无待补缺口。
+  ④ **「本次无可产新素材」判定**——执行要求「按 approved 版策划案产出素材」前提当前不成立：spec 为 DRAFT 未 approved（B-0，禁止动码红线）；world.art_style 写死「无外部贴图依赖」，sprites/tileset 落盘与 spec 直接冲突；候选资产区主策划口径「只登记不产出」。为产而产即破风格统一（美术红线），故本批次落盘物为零，判定依据如上可核对。
+  ⑤ **门禁实况（如实登记，不伪造）**——本美术会话无 shell 工具，`bash games/game/verify.sh` 与 `node games/game/scripts/contract-check.mjs` 物理不可执行；脚本存在性已确认（games/game/verify.sh 两段门禁：preflight+smoke）。实跑输出按 blockers.md B-1 恢复路径由有 shell 执行者回填，本会话不代产出「全绿」结论。
