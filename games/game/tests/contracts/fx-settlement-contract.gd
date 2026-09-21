@@ -355,4 +355,3 @@ func _report() -> void:
 		for failure in _failures:
 			printerr("FX_SETTLE_PERSIST: FAIL %s" % failure)
 		get_tree().quit(1)
-

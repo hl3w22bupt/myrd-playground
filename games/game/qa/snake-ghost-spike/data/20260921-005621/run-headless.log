@@ -3,4 +3,3 @@
 [1;31mERROR:[0;91m Couldn't load file '/private/tmp/snake-ghost-spike.AOeBoJ/project.godot', error code 43.
 [0;90m   at: _load_settings_text_or_binary (core/config/project_settings.cpp:811)[0m
 Godot Engine v4.3.stable.official.77dcf97d8 - https://godotengine.org
-
