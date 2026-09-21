@@ -122,6 +122,16 @@
   ①autoload `SaveState._ready` → `_load_from_disk()` 先把残留 `run` 快照读进内存；
   ②子先父后的 `_ready` 顺序使 `main.gd setup_resume_offer` **先于**契约 `wipe()` 消费快照
   （`consume_resume_offer`）。契约的擦除只来得及删盘上文件，拦不住已在内存里的续玩路径。
+- **✅ 已修复（9/21 程序批次，whitespace-fix 附带）**：契约 `_ready` 在 `SaveState.wipe()` 后
+  **重跑 `main.setup_resume_offer()`**（与 smoke 同款「擦档→重探测」双清：盘上文件 + 内存窥视值）；
+  另加 `_report()` 收尾自净 `SaveState.wipe()`，测试不再给下一个进程留测试态。
+  **隔离证据**：连续两次实跑均 PASS——第 1 次跑在残留档（moves_left=17）在场时、第 2 次吃第 1 次
+  留下的测试态，PERF avg 61.0 / 稳态最差 53.4–53.7，原文
+  `gate-logs/m1-recap-20260921-whitespace-fix/b8-isolation-recheck.log`。smoke / audio-tick / 契约
+  双口径同步复跑全绿（同目录 recheck.log / smoke-audio-recheck.log）。
+  **残留风险提示**：`audio-same-tick` 契约未做同款隔离，但其断言全部是增量口径
+  （score/moves 前后差值）+ 铺盘覆盖，续玩路径不影响判定——按「无假红实证」暂不动，
+  下次触碰该文件时一并加同款双清。
 - **复现顺序（本机两组实证）**：`verify.sh`（冒烟结束留局中档，level 2/moves 17）→ fx 契约 = **FAIL**；
   fx 契约（E 组 RESUME 路径自留档 score 60/moves 20）→ 再跑 fx 契约 = 第二次必 **FAIL**（门禁非幂等）。
 - **影响**：该门禁对执行顺序敏感，单独跑才是可信口径；任何人按「先冒烟后契约」顺序复跑会拿到假红，
@@ -166,3 +176,4 @@
 - 2026-09-21 主策划（M1 门禁收口冲刺整合批次）：①基线区刷新——开工前置两项复核成立（黑板继承确认 + spec v1 approved 六段完整在位，spec 零改动、版本链零越线）；②B-5 待办完成（verify.sh 复跑 PREFLIGHT PASS + smoke PASS，新证据目录 gate-logs/m1-recap-20260921-094116/ 五份原文）；③新增 B-6（收口冲刺三项程序阻塞逐项处置：#1 结算三态占位接线 / #2 消除连击反馈默认参数接通 / #3 分数持久化落地，机判 FX_SETTLE_PERSIST PASS）与 B-7（残影证据归档索引，QA 台账「待证」解除至桌面口径）；④升级汇总按终裁后现实刷新（B-2/B-4 收口，N1 立项令已发）；⑤逐项三态结论落 m1-rejection-ledger-v2.md。
 - 2026-09-21 游戏程序（独立复跑批次）：B-6 追加程序侧独立复验——六门禁本会话亲自复跑全绿（业务代码零改动，纯复验），实现层逐文件核实三阻塞接线真实在盘、契约断言非空转；独立证据目录 `gate-logs/m1-recap-20260921-095257-prog/`；三态结论维持不变（占位项转核销仍待美术稿/真机二次复验）。spec 零改动、版本链零越线。
 - 2026-09-21 游戏美术（结算三态 UI 稿批次）：登记 B-8（fx-settlement 契约测试隔离缺陷——`SaveState.wipe()` 晚于 autoload 读档与 Main 消费快照，user:// 残留档使前置必红，门禁非幂等；两组复现顺序 + 根因时序 + 修复建议已写入条目，归属程序）。本批同时落盘三态 UI 稿与场景呈现值接线，详见 assets.md §1.6 与 ledger 变更记录；门禁三份原文归档 gate-logs/m1-recap-20260921-art-settlement/（全 exit 0）。
+- 2026-09-21 游戏程序（whitespace-fix + B-8 修复批次）：①驳回处置——git-hygiene whitespace-check 3 处 EOF 多余空行（2 份 spike 证据 log + fx-settlement 契约）统一为单结尾换行，内容零改动，复检 exit 0（commit 86e7ec2）；②B-8 修复——fx-settlement 契约擦档后重跑主场景续玩探测 + 收尾自净，连续两轮实跑隔离成立；③复跑记录归档 gate-logs/m1-recap-20260921-whitespace-fix/（4 份原文：recheck / b8-isolation / smoke-audio）。

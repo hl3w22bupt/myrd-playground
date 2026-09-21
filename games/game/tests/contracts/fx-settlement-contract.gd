@@ -51,6 +51,11 @@ func _ready() -> void:
 	SaveState.wipe()
 	_locate_nodes()
 	if _failures.is_empty():
+		# 存档隔离（同 smoke 纪律，B-8 修复）：Main._ready 早于本测试执行，已经把上次进程
+		# 遗留的「可续局」快照窥视进 _resume_offer —— 只擦盘不清窥视值，「开始」会落进
+		# 续玩分支（残留档污染：moves_left=17 假红）。擦档后重跑主场景的续玩探测即两清。
+		if _main.has_method("setup_resume_offer"):
+			_main.call("setup_resume_offer")
 		await _run_contract()
 	_report()
 
@@ -348,6 +353,9 @@ func _settle(frames: int) -> void:
 
 
 func _report() -> void:
+	# 收尾自净：本契约会写 user:// 存档（D/E 组），不清会把测试态留给下一个进程
+	#（对真实玩家无影响——正式流程同样由 start_game 清档；这是测试间隔离纪律）。
+	SaveState.wipe()
 	if _failures.is_empty():
 		print("FX_SETTLE_PERSIST: PASS 消除反馈同帧 + 连击阈值/封顶 + 屏震有界归零 + 刷新后分数仍在 + 结算三态(WIN/LOSE/RESUME)接线 + 帧成本达标 全部通过")
 		get_tree().quit(0)
