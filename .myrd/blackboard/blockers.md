@@ -1,19 +1,19 @@
 # blockers.md — 阻塞项与升级线（共享黑板）
 
-> 更新时间：2026-09-20（12:00 A 线批次 / 下午 B 线批次合并）
+> 更新时间：2026-09-21（M1 门禁收口冲刺日 · 主策划整合批次）
 > 负责人：主策划（每次整合后更新；阻塞超过一轮解决不了 → 停下升级主人，不空转）
-> 下一步：B-0/B-2 今日呈主人裁决；B-1/B-4 待有 shell 执行者按 runbook 实跑回填
+> 下一步：主人三件呈批——spec v1 追认（B-0）、v1.2 口径二选一（B-3）、spec 修订建议两条；N1 已按终裁发令（§A6.3）
 
 ---
 
-## 当前基线（开工前置完成情况）
+## 当前基线（开工前置完成情况 · 9/21 收口冲刺刷新）
 
 | 项 | 值 |
 |---|---|
-| 黑板路径 | `.myrd/blackboard/`（levels.md / assets.md / blockers.md / concept-pool-v1.md / m1-gate-runbook.md） |
-| 策划案版本号 | `.myrd/spec/design-spec.json` = **version 1，status=approved**（追认代记，依据/回滚条款见 meta.approval —— 见 B-0） |
+| 黑板路径 | `.myrd/blackboard/`（levels.md / assets.md / blockers.md / concept-pool-v1.md / m1-gate-runbook.md / m1-rejection-ledger-v2.md） |
+| 策划案版本号 | `.myrd/spec/design-spec.json` = **version 1，status=approved**（追认代记，依据/回滚条款见 meta.approval —— 见 B-0；9/21 收口冲刺开工前置复核：六段完整 + approved 在位，未做任何内容改动，版本链零越线） |
 | 工程基线 | `games/game/`（Godot 4.3，冒烟 0–12 阶段齐备）；契约门禁 `<工作区根>/scripts/contract-check.mjs` 与 `games/game/scripts/` 镜像**双份同内容**（必须两处同步改，见 B-1 覆盖事故） |
-| 开工前置结论 | 黑板已建 ✅；策划案 approved ✅（追认代记，9/21 正式追认待确认）；**M1 双门禁已实跑全绿** ✅（contract 46 PASS/0 FAIL 双口径、smoke PASS、audio-tick PASS，原文见 m1-gate-runbook.md §1/§2） |
+| 开工前置结论 | 黑板已建 ✅；策划案 approved ✅（追认代记）；**M1 门禁实跑全绿（9/21 收口冲刺复跑）** ✅ —— contract 46 PASS/0 FAIL 双口径、smoke PASS、audio-tick PASS、**fx-settlement PASS（阻塞#1#2#3 机判）**、verify.sh PREFLIGHT PASS，原文归档 `gate-logs/m1-recap-20260921-094116/`（5 份 log），逐条见 m1-gate-runbook.md §6 |
 
 ---
 
@@ -42,6 +42,7 @@
 - **已做**：snake-ghost 走完全流程（concept-pool-v1.md §A1–§A4）；三卡回填模板四件套就位（原稿回传 ≤30 分钟齐套）；**未代写、未伪造征集史**。
 - **恢复路径**：主人二选一 —— ①回传三卡原稿 → 当日走流程补齐；②裁决「N1 按单卡收口 + N2 首日开 48h 补位窗」（与主策划写死口径一致）。
 - **升级状态**：🟥 已升级（材料包 §A5.4 终裁顺序第 1 项）。
+- **✅ 收口（9/21 收口冲刺）**：主人四路终裁下达，三卡去向各有归属（merge-td=phase-2 / brick-roguelite=fallback / retention 移出本期 acceptance / snake-ghost 第 1，concept-pool §A6.1）；原稿缺失不再作为终裁前置，48h 补位窗关闭。
 
 ## B-3 v1.2 七项清单缺失【未闭环验收项 · 9/21 呈批挑明（原驳回④，已确认不再作为打回理由）】
 
@@ -58,10 +59,11 @@
 - **下午批次进展（游戏程序，2026-09-20）**：spike 资产已一键化落盘——`spike_main.gd`（§A3.1 全规格模拟：10Hz 采样/3.0s/30 节点池/α 0.35→0 线性/H−24° V+10%）+ `spike_main.tscn` + `run-spike.sh`（临时独立工程内运行，零主线侵入）+ `README.md`（三种运行模式 + §A2.2 判据 + 回填纪律）。跑一条命令即出 fps.csv/mem.json/verdict 行。**证据本身仍未落**（本会话无 shell、无法运行 Godot/录屏），结论维持 PENDING_EVIDENCE。
 - **恢复路径**：有 shell 执行者跑 `bash games/game/qa/snake-ghost-spike/run-spike.sh`（桌面机判）+ 按 README §2③ 做真机录屏核对，数据落 `data/` 后在 concept-pool §A2.3 与本文件回填结论（只允许「能/不能」+数据路径）。
 - **升级状态**：🟡 **桌面口径已实证（2026-09-21）**——spike 实跑成功：`SPIKE: verdict_desktop fps_pct_at60=98.3%(≥95%) p1_low_fps=58.5(≥45) heap_delta=0.0MB(<50MB) => 桌面口径 能`。数据落 `games/game/qa/snake-ghost-spike/data/20260921-010252/`（fps.csv/mem.json/run-headless.log）。剩余：iOS Safari 真机录屏项（README §2③）需真机，窗内无法补——snake-ghost 按判据为「桌面过、移动端待证」，终裁仍归主人。
+- **✅ 收口（9/21 收口冲刺）**：终裁=第 1（带移动端补证条款立项）；桌面证据归档索引立 B-7，QA 台账「待证」解除至桌面口径。
 
 ---
 
-## B-5 spike_main.tscn 平铺路径致 preflight P5/P6 假红【✅ 已修复（方案 A）· 待重跑出新证据目录】
+## B-5 spike_main.tscn 平铺路径致 preflight P5/P6 假红【✅ 已修复 + 9/21 复跑出新证据，整项解除】
 
 - **现象（2026-09-20 第三轮驳回处置时点发现）**：`games/game/qa/snake-ghost-spike/spike_main.tscn` 的
   ext_resource 被改回 `res://spike_main.gd`（平铺设计），`run-spike.sh` 同步回退为 tmp 平铺拷贝。
@@ -80,10 +82,32 @@
   修复内容：① `spike_main.tscn` ext_resource → `res://qa/snake-ghost-spike/spike_main.gd`（主工程 P5/P6 通过）；
   ② `run-spike.sh` 临时工程镜像 `qa/snake-ghost-spike/` 结构 + main_scene 同步（保留实跑批次修复的
   ASCII heredoc，防 error 43 复发）；③ README §2② 手工指引同步。
-  **待办**：重跑 `bash scripts/run-m1-gates.sh`（或至少 `bash games/game/verify.sh`）产出**新的证据目录**
-  （gate-logs/<新时间戳>/ 或 verify 输出原文），预期 PREFLIGHT: PASS → 冒烟 PASS；原文回填 runbook。
+  **待办 ✅ 已完成（9/21 收口冲刺）**：`bash games/game/verify.sh` 复跑 —— `PREFLIGHT: PASS 13 类前置一致性检查全部通过（105 个工程文件）` + `godot-smoke: PASS`，VERIFY_EXIT=0；连同契约双口径/smoke/audio-tick/fx-settlement 五份原文归档新证据目录 `gate-logs/m1-recap-20260921-094116/`，逐条见 runbook §6。B-5 整项解除。
 
-## 升级汇总（呈主人，9/21 一并拍板；2026-09-21 门禁全绿后刷新）
+## B-6 收口冲刺三项程序阻塞（9/21 任务指令 · 逐项处置结果，三态详表见 m1-rejection-ledger-v2.md）
+
+- **阻塞#1 结算三态（局末断链）**：✅ 已以占位 UI 接线——三态口径 WIN/LOSE/RESUME（主策划 9/21 定义）；
+  RESUME 走 SaveState 存档 + 开始遮罩双入口（继续/新开），机判 FX_SETTLE_PERSIST E 组 PASS；
+  **台账标「占位」**（美术 UI 稿 + 二次复验后才转核销）。
+- **阻塞#2 消除/连击反馈**：✅ 已以默认参数接通——粒子/飘分（board.gd FX 区）+ 连击提示/升调音 +
+  屏震（main.gd VFX 参数区，幅度逐波增强封顶 10px、0.28s 有界归零）；契约 A/B/C 组机判
+  「消除有反馈且帧率不掉」（稳态最差 53.4fps ≥30 / 平均 61.1 ≥50）；数值参考卡落 assets.md §1.5
+  （美术只改数值）。
+- **阻塞#3 分数本地持久化**：✅ 已落地——SaveState autoload（user://pixel-fives-save.json，
+  Web 下映射 IndexedDB）+ GameState 结算栈同 tick 落档；契约 D 组机判「刷新后分数仍在」
+  （盘档逐字段比对 + best_score 跨局保留）PASS。
+
+## B-7 残影补测证据归档（9/21 程序 N1 纸面批次 · B-4 后续）
+
+- **归档动作**：桌面口径 spike 证据三件套（fps.csv 帧率曲线 / mem.json / run-headless.log，
+  `games/game/qa/snake-ghost-spike/data/20260921-010743/`）已在黑板三处互链
+  （concept-pool §A2.3、assets.md §2 候选资产、本文件 B-4），今日补立 B-7 作为归档索引项；
+  **QA 台账「待证」状态解除至桌面口径**（verdict_desktop=能，fps 98.3%@60 / p1low 58.5 / heap +0.0MB）。
+- **残余待证（如实保留，不随归档消失）**：iOS Safari 真机帧率录屏 + 反馈延迟 ≤100ms 逐帧核对 +
+  **机型清单**——本环境无真机，物理不可产出；已转为 N1 立项令随令补证条款
+  （concept-pool §A6.3 ②），归属「真机复验批次」。
+
+## 升级汇总（9/21 凌晨版 · 已被下方「收口冲刺后刷新」版取代，保留作历史）
 
 1. **窗口裁决**（B-2）：N1 单卡收口 vs 延期等原稿。
 2. **追认确认**（B-0）：spec v1 代记 approved 已实跑生效（契约 46 PASS / 0 FAIL 双口径）——9/21 正式追认或一句否决回滚；API 恢复后补 `POST /:id/approve` 留痕。
@@ -91,9 +115,27 @@
 4. **v1.2 复核未闭环**（B-3，原驳回④）：v1.2 从未出版；出版或口径撤回二选一后 B3 当日复检（runbook §4 挑明）。
 5. **spec 修订建议**（原驳回⑤，交主策划走 revisions）：acceptance 缺新手引导量化条款（方向：首局 60s 内首消 / 开始→首次交换时限）；实现层已有 StartOverlay 门控 + 双通道提示，条款化即可挂验收。
 
+## 升级汇总（呈主人，9/21 收口冲刺后刷新）
+
+1. ~~**窗口裁决**（B-2）~~ → **已收口**：主人四路终裁下达（snake-ghost 第 1 / brick-roguelite 顺位
+   fallback / merge-td phase-2 / retention 移出本期 acceptance，concept-pool §A6.1）；三卡原稿缺失
+   不再作为终裁前置，48h 补位窗条款关闭。
+2. **追认确认**（B-0）：spec v1 代记 approved 已实跑生效（今日复跑 46 PASS / 0 FAIL 双口径 +
+   PREFLIGHT PASS）——待主人正式追认或一句否决回滚；API（localhost:3001，需主人登录态）恢复后补
+   `POST /:id/approve` 留痕。
+3. ~~**snake-ghost 终裁**（B-4）~~ → **已决**：排第 1（带移动端补证条款立项）；桌面证据归档见 B-7。
+4. **v1.2 复核未闭环**（B-3）：v1.2 从未出版的事实维持——今日所有一致性核对对象均为
+   **v1（approved）七条**；请主人裁决「v1 即长期基线」或授权出版 v1.2（二选一后 B3 当日复检闭环）。
+5. **spec 修订建议**（两条，主策划待走 revisions → version+1，**今天未动 spec**）：
+   ① acceptance 补新手引导量化条款；② M1 收口新增的三态/持久化条款化
+   （结算三态 WIN/LOSE/RESUME、分数本地持久化「刷新后分数仍在」、消除反馈帧率下限）——
+   今日以打回清单 v2 + 契约 FX_SETTLE_PERSIST 作机判代偿，条款化后随下次出版入 spec。
+6. **N1 立项令已发**（条件触发成立：清单闭环 + 残影证据归档）：标的 snake-ghost、fallback
+   brick-roguelite；策划当日出 GameDesignSpec v1（不在 9/21 任务内，见 concept-pool §A6.3）。
 ## 变更记录
 
 - 2026-09-20 主策划：建档；五项阻塞按「现象/影响/已做/恢复路径/升级状态」五段式登记，无一项静默。
 - 2026-09-21 主策划（三轮驳回处置 + 实跑批次）：⚠️ 覆盖事故登记——本文件此前两轮由主策划写入的「驳回修复记录」「追认代记记录」被并行会话整文件覆盖丢失，现已基于磁盘现状重写并追加。B-0 追认代记重落（spec 批准态同步被覆盖回 draft，已重落 approved）；B-1 解除（shell 到位，契约 46 PASS 双口径 + smoke PASS + audio-tick PASS，原文在 runbook §1/§2）；B-4 桌面实证=能（数据路径见上）。变更记录已改为追加式纪律。
 - 2026-09-20 游戏程序（下午批次）：B-1/B-4 追加「下午批次进展」——实跑仍被本会话无 shell 阻塞（未伪造输出），已完成实跑前去风险（契约脚本静态核对 + 2 处假阴性修复 + audio-same-tick.gd 落地 + spike 资产一键化）；B-0 追加程序侧机械修订待追认项（spec check 串路径补全）。
 - 2026-09-21 游戏程序（第三轮驳回处置 + 覆盖事故恢复）：①登记 B-5——spike_main.tscn/run-spike.sh 被回退为平铺设计，preflight 不认 .gdignore，未来任何 verify.sh 重跑必 P6 假红（9/21 已绿证据不受影响：冒烟走直连 smoke.sh、spike 走 tmp 平铺）；两修复案待改动人择一，程序按「不擅自回改他人改动」纪律未动文件。②恢复被覆盖事故吃掉的记录完整性：B-3 挑明 + runbook §4 口径挑明/三输入现状表（原驳回④⑤已获「不再作为打回理由」确认，其实质记录不得因覆盖丢失）；升级汇总刷新至门禁全绿后现实（5 条：窗口裁决/追认确认/snake-ghost 终裁/v1.2 未闭环/引导条款建议）。
+- 2026-09-21 主策划（M1 门禁收口冲刺整合批次）：①基线区刷新——开工前置两项复核成立（黑板继承确认 + spec v1 approved 六段完整在位，spec 零改动、版本链零越线）；②B-5 待办完成（verify.sh 复跑 PREFLIGHT PASS + smoke PASS，新证据目录 gate-logs/m1-recap-20260921-094116/ 五份原文）；③新增 B-6（收口冲刺三项程序阻塞逐项处置：#1 结算三态占位接线 / #2 消除连击反馈默认参数接通 / #3 分数持久化落地，机判 FX_SETTLE_PERSIST PASS）与 B-7（残影证据归档索引，QA 台账「待证」解除至桌面口径）；④升级汇总按终裁后现实刷新（B-2/B-4 收口，N1 立项令已发）；⑤逐项三态结论落 m1-rejection-ledger-v2.md。

@@ -1,8 +1,8 @@
 # levels.md — Pixel Fives 关卡状态（共享黑板）
 
-> 更新时间：2026-09-20（N1 收口 + M1 冲刺日）
+> 更新时间：2026-09-21（M1 门禁收口冲刺日）
 > 负责人：主策划（本文件全团队共用，改动请在「变更记录」追加一行）
-> 下一步：M1 门禁实跑结果回填本表「门禁状态」列；N1 终裁后如新卡立项，新增「N2 关卡规划」区
+> 下一步：美术三态 UI 稿交付后二次复验（RESUME 态从「占位」转正式）；N1（snake-ghost）立项后新增「N1 关卡规划」区
 
 ---
 
@@ -33,6 +33,8 @@
 | Godot 无头冒烟 | `godot-smoke`（preflight + headless-smoke + input-fuzz） | ✅ **实跑 PASS**（exit 0，`godot-smoke: PASS 冒烟场景通过：tests/smoke.tscn（退出码 0，断言标记齐全，日志无脚本错误）`，2026-09-21） | m1-gate-runbook.md §2 占位区（已回填原文） |
 | 契约测试 | `game-contract`（scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --project .） | ✅ **实跑 46 PASS / 0 FAIL**（双口径：projectDir=. 与 games/game 均绿，exit 0；spec v1 已追认代记 approved）——三轮驳回（MODULE_NOT_FOUND→SPEC_NOT_APPROVED→覆盖事故）全部闭环 | m1-gate-runbook.md §1 占位区（原文已回填） |
 | 音画同 tick 复核 | （B2/B4） | ✅ **契约实跑 PASS**（exit 0：`AUDIO_SAME_TICK: PASS 交换音/消除音/胜负音与结算同帧 + 无效交换反馈同帧 + 消除FX同帧入队`）+ 代码层行级复核一致；spec v1 条款已随追认生效 | m1-gate-runbook.md §2/§3 |
+| 反馈/三态/持久化契约（阻塞#1#2#3，9/21 新增） | `godot --headless --path games/game tests/contracts/fx-settlement-contract.tscn` | ✅ **实跑 PASS**（exit 0：`FX_SETTLE_PERSIST: PASS …`；PERF avg 61.1fps / 稳态最差 53.4fps）——三态 UI 为**占位**，美术稿落地后二次复验 | m1-gate-runbook.md §6 |
+| verify.sh（preflight+smoke） | `bash games/game/verify.sh` | ✅ **实跑 PASS**（exit 0：`PREFLIGHT: PASS 13 类…105 个工程文件` + 冒烟 PASS）——B-5 待办就此关闭 | m1-gate-runbook.md §6 |
 
 ## 4. 变更记录
 
@@ -41,3 +43,4 @@
 - 2026-09-21 游戏程序（第三轮驳回处置）：登记 B-5（spike_main.tscn 被回退平铺路径 → 未来 verify.sh/preflight 重跑必 P6 假红；9/21 已绿证据不受影响——冒烟走的直连 smoke.sh；两修复案待改动人择一，程序未擅自回改）；blockers 升级汇总刷新至门禁全绿后五条（追认确认/snake-ghost 终裁/v1.2 未闭环/引导条款建议等）；B-3 与 runbook §4 的口径挑明记录从覆盖事故中恢复。
 - 2026-09-21 游戏程序（P5/P6 修复批次）：驳回附实跑失败原文（PREFLIGHT P5+P6 FAIL，exit 1，日志已归档 gate-logs/contract-gate-20260921-012610.log）→ 按 B-5 方案 A 修复：spike_main.tscn 改指向 `res://qa/snake-ghost-spike/spike_main.gd`、run-spike.sh 临时工程镜像结构（保留实跑批次的 ASCII heredoc 防 error 43）、README §2② 同步；games/game 内 `res://spike_main` 平铺引用清零。**待重跑** verify.sh / run-m1-gates.sh 产出新证据目录，预期 PREFLIGHT: PASS → 冒烟 PASS。
 - 2026-09-20 游戏程序（下午批次）：门禁状态三行更新——①契约脚本静态核对完成并修复 2 处获批后假阴性（数值扫描清单 + audio-same-tick.gd 落地）；②冒烟新增 audio-same-tick 契约场景命令；③音画同 tick 程序独立复核完成（行级证据）。实跑动作仍挂 B-1，本会话无 shell，未产生任何实跑输出。
+- 2026-09-21 主策划（收口冲刺批次）：门禁表新增「反馈/三态/持久化契约」（阻塞#1#2#3 机判落点，FX_SETTLE_PERSIST PASS）与「verify.sh」两行；五份实跑原文归档 gate-logs/m1-recap-20260921-094116/；结算三态口径定为 WIN/LOSE/RESUME（RESUME 依赖 SaveState 存档，UI 占位待美术稿二次复验）。

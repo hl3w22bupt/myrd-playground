@@ -242,6 +242,7 @@ grow_vertical = 2
 color = Color(0.04, 0.03, 0.1, 0.86)
 
 [node name="StartTitle" type="Label" parent="UI/StartOverlay"]
+unique_name_in_owner = true
 anchor_top = 0.33
 anchor_right = 1.0
 anchor_bottom = 0.33
@@ -254,6 +255,7 @@ vertical_alignment = 1
 text = "糖果粉碎传奇"
 
 [node name="StartSubtitle" type="Label" parent="UI/StartOverlay"]
+unique_name_in_owner = true
 anchor_top = 0.42
 anchor_right = 1.0
 anchor_bottom = 0.42
@@ -278,3 +280,20 @@ grow_vertical = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 30
 text = "开始游戏 START"
+
+[node name="NewGameButton" type="Button" parent="UI/StartOverlay"]
+unique_name_in_owner = true
+visible = false
+anchor_left = 0.5
+anchor_top = 0.52
+anchor_right = 0.5
+anchor_bottom = 0.52
+offset_left = -160.0
+offset_top = 122.0
+offset_right = 160.0
+offset_bottom = 182.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 22
+text = "新的一局 NEW GAME"

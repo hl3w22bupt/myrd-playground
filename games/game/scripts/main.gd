@@ -36,6 +36,30 @@ const HUD_MSG_FONT_SIZE: int = 18
 const INVALID_MSG_FONT_SIZE: int = 30
 const INVALID_MSG_HOLD_SEC: float = 2.5
 
+## ---- 结算三态（M1 打回项「阻塞#1」占位接线；美术 UI 稿落地前全部为占位文案/布局）----
+## 三态口径（主策划 9/21 定义）：WIN 达标过关 / LOSE 步尽判负 / RESUME 局中离开后续玩。
+## 占位实现 = 复用现有遮罩控件与文案常量，不新增美术资源；「占位」标注见打回清单 v2。
+const TEXT_RESUME_TITLE: String = "RESUME LEVEL %d"
+const TEXT_RESUME_HINT: String = "TAP CONTINUE OR NEW"
+const TEXT_START_TITLE: String = "糖果粉碎传奇"
+const TEXT_START_SUBTITLE: String = "CANDY CRUSH LEGEND · 触摸版"
+const BTN_CONTINUE: String = "继续游戏 CONTINUE"
+const BTN_NEW_GAME: String = "新的一局 NEW GAME"
+const BTN_START_DEFAULT: String = "开始游戏 START"
+
+## ---- 消除 / 连击反馈默认参数（M1 打回项「阻塞#2」接线；调参区，美术只改数值）----
+## 口径：消除必有屏震 + 粒子（粒子在 board.gd FX 区）；第 2 波起算连击，连击有升调音 +
+## HUD 连击提示 + 屏震逐波增强。结构固定，数值改动不触碰任何接线代码。
+const SHAKE_AMP_BASE_PX: float = 3.0          ## 第 1 波消除的屏震幅度（设计像素）
+const SHAKE_AMP_PER_WAVE_PX: float = 2.0      ## 每深一波连击追加幅度（线性叠加）
+const SHAKE_AMP_MAX_PX: float = 10.0          ## 屏震幅度上限（防高连锁时失控）
+const SHAKE_DECAY_SEC: float = 0.28           ## 屏震从当前幅度衰减到 0 的时长
+const SHAKE_FREQ_HZ: float = 34.0             ## 屏震抖动频率（每秒相位周期数）
+const COMBO_MSG_MIN_WAVE: int = 2             ## 从第几波起显示连击提示（第 1 波只有常规消除反馈）
+const COMBO_MSG_FONT_SIZE: int = 30           ## 连击提示字号（与无效交换提示同级，一眼可见）
+const COMBO_MSG_HOLD_SEC: float = 1.2         ## 连击提示停留时长（比无效提示短，让路给下一条消息）
+const COMBO_MSG_TEXT: String = "COMBO x%d"
+
 @onready var board: Board = $Board
 @onready var cursor: Player = $Board/Player
 @onready var score_label: Label = %ScoreLabel
@@ -49,13 +73,26 @@ const INVALID_MSG_HOLD_SEC: float = 2.5
 @onready var overlay_hint: Label = %OverlayHint
 @onready var overlay_action_button: Button = %OverlayActionButton
 @onready var start_overlay: ColorRect = %StartOverlay
+@onready var start_title: Label = %StartTitle
+@onready var start_subtitle: Label = %StartSubtitle
 @onready var start_button: Button = %StartButton
+@onready var new_game_button: Button = %NewGameButton
 @onready var restart_button: Button = %RestartButton
 @onready var mute_button: Button = %MuteButton
 
 ## 无效交换提示的显示令牌：停留期内出现任何新消息即 +1，
 ## 到期的放大定时器只在令牌未变时回写（旧定时器永远抢不过新消息）。
 var _invalid_msg_seq: int = 0
+## 启动时探到的「可续局」快照（结算三态之 RESUME 的数据源；空 = 无局可续）。
+## 只窥视不取走：真正的取走发生在「继续 / 新开」二选一的回调里（SaveState 侧清档）。
+var _resume_offer: Dictionary = {}
+## 屏震当前幅度（px）与触发时的初始幅度（线性衰减基准）；0 = 静止。
+var _shake_amp: float = 0.0
+var _shake_amp0: float = 0.0
+## 屏震相位（按 SHAKE_FREQ_HZ 推进，x/y 用不同倍频制造无序感）。
+var _shake_phase: float = 0.0
+## 棋盘布局基准位（_layout 写入；屏震只在它上面加偏移，衰减完精确归位）。
+var _board_base: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
@@ -89,6 +126,8 @@ func _ready() -> void:
 		mute_button.pressed.connect(_on_mute_pressed)
 	if not overlay_action_button.pressed.is_connected(_on_overlay_action_pressed):
 		overlay_action_button.pressed.connect(_on_overlay_action_pressed)
+	if not new_game_button.pressed.is_connected(_on_new_game_pressed):
+		new_game_button.pressed.connect(_on_new_game_pressed)
 	# 视口拉伸（aspect=expand）时棋盘居中重排；锚定控件随锚点自适应无需处理。
 	if not get_viewport().size_changed.is_connected(_layout):
 		get_viewport().size_changed.connect(_layout)
@@ -101,8 +140,25 @@ func _ready() -> void:
 	_set_hud_message("")
 	mute_button.text = BTN_MUTE_OFF if GameAudio.muted else BTN_MUTE_ON
 	_update_hints()
+	setup_resume_offer()
 	_layout()
 	_refresh_hud()
+
+
+func _process(delta: float) -> void:
+	# 屏震推进：幅度线性衰减到 0 后精确复位到布局基准位（不留永久偏移，帧率与布局稳定）。
+	if _shake_amp <= 0.0:
+		return
+	_shake_phase += SHAKE_FREQ_HZ * TAU * delta
+	_shake_amp = maxf(_shake_amp - (_shake_amp0 / SHAKE_DECAY_SEC) * delta, 0.0)
+	if _shake_amp <= 0.01:
+		_shake_amp = 0.0
+		board.position = _board_base
+	else:
+		board.position = _board_base + Vector2(
+			sin(_shake_phase) * _shake_amp,
+			cos(_shake_phase * 1.31) * _shake_amp * 0.6
+		)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -124,7 +180,8 @@ func _layout() -> void:
 	var zone_top := minf(HUD_ZONE_BOTTOM, view.size.y * 0.22)
 	var zone_bottom := view.size.y - CONTROL_ZONE_TOP
 	var center_y := (zone_top + zone_bottom) * 0.5
-	board.position = Vector2((view.size.x - board_size.x) * 0.5, center_y - board_size.y * 0.5)
+	_board_base = Vector2((view.size.x - board_size.x) * 0.5, center_y - board_size.y * 0.5)
+	board.position = _board_base
 
 
 ## 按输入设备切换操作提示：触屏设备展示手势提示，桌面提示键盘与鼠标皆可。
@@ -163,10 +220,6 @@ func _advance_level() -> void:
 
 
 ## ---- 可点按控件回调 ----
-
-func _on_start_pressed() -> void:
-	_start_game()
-
 
 func _on_restart_pressed() -> void:
 	GameAudio.play(&"click")
@@ -212,9 +265,79 @@ func _on_cursor_selection_changed(_selected_cell: Vector2i) -> void:
 	GameAudio.play(&"select")
 
 
-## 消除音：第 1 波 = 单次消除音；第 2 波起走连锁音并逐波升调（play_combo 内部处理）。
+## 消除反馈总入口：与结算同 tick（信号同步派发）——
+## 音效（第 1 波消除音 / 第 2 波起连锁升调）+ 屏震（幅度逐波增强、上限封顶）
+## + 连击提示（第 COMBO_MSG_MIN_WAVE 波起）。数值全部在本文件 VFX 默认参数区。
 func _on_board_candies_collected(_count: int) -> void:
 	GameAudio.play_combo(board.last_wave_count)
+	_trigger_elimination_shake(board.last_wave_count)
+	if board.last_wave_count >= COMBO_MSG_MIN_WAVE:
+		_flash_combo_message(board.last_wave_count)
+
+
+## 屏震触发：幅度 = 基础 + 每波增量 ×（波数-1），封顶 SHAKE_AMP_MAX_PX；
+## 只改状态量，位移由 _process 推进（同一帧内多次触发取更响的那次）。
+func _trigger_elimination_shake(wave_count: int) -> void:
+	var amp: float = SHAKE_AMP_BASE_PX + SHAKE_AMP_PER_WAVE_PX * float(wave_count - 1)
+	amp = minf(amp, SHAKE_AMP_MAX_PX)
+	if amp <= _shake_amp:
+		return
+	_shake_amp = amp
+	_shake_amp0 = amp
+	_shake_phase = 0.0
+
+
+## 连击提示：加大字号行内消息，停留 COMBO_MSG_HOLD_SEC 后自动清除
+##（与无效交换提示共用令牌守卫，新消息永远能接管显示权）。
+func _flash_combo_message(wave_count: int) -> void:
+	_invalid_msg_seq += 1
+	var seq: int = _invalid_msg_seq
+	hud_message.add_theme_font_size_override("font_size", COMBO_MSG_FONT_SIZE)
+	hud_message.text = COMBO_MSG_TEXT % wave_count
+	get_tree().create_timer(COMBO_MSG_HOLD_SEC).timeout.connect(func() -> void:
+		if seq == _invalid_msg_seq and is_inside_tree():
+			_set_hud_message("")
+	)
+
+
+## ---- 结算三态之 RESUME（局中离开后续玩；占位 UI，美术稿落地前仅文案级占位）----
+
+## 启动时探测存档：有可续局 → 开始遮罩转「继续 / 新开」双入口（占位文案），否则维持新局单入口。
+## 公开给测试侧：冒烟擦档后重跑本探测，保证「开始」永远从全新开局起步（无跨进程残留）。
+func setup_resume_offer() -> void:
+	_resume_offer = SaveState.run_snapshot.duplicate(true)
+	if _resume_offer.is_empty():
+		new_game_button.visible = false
+		start_button.text = BTN_START_DEFAULT
+		start_title.text = TEXT_START_TITLE
+		start_subtitle.text = TEXT_START_SUBTITLE
+		return
+	start_button.text = BTN_CONTINUE
+	new_game_button.visible = true
+	start_title.text = TEXT_RESUME_TITLE % int(_resume_offer.get("level", 1))
+	start_subtitle.text = "SCORE %d · %s" % [int(_resume_offer.get("score", 0)), TEXT_RESUME_HINT]
+
+
+## 「继续游戏」：把存档快照装回 GameState（数值进度全恢复；盘面重铺为 M1 占位语义）。
+func _on_start_pressed() -> void:
+	if _resume_offer.is_empty():
+		_start_game()
+		return
+	GameAudio.play(&"click")
+	start_overlay.visible = false
+	GameState.resume_from_snapshot(_resume_offer)
+	_resume_offer = {}
+	board.new_game()
+	cursor.reset_position()
+	_set_hud_message("")
+	_refresh_hud()
+
+
+## 「新的一局」：显式放弃续玩，走全新开局（SaveState 快照在 start_game 内清档）。
+func _on_new_game_pressed() -> void:
+	GameAudio.play(&"click")
+	_resume_offer = {}
+	_start_game()
 
 
 func _on_board_shuffled() -> void:

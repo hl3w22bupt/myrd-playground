@@ -59,6 +59,7 @@ func is_playing() -> bool:
 
 
 ## 开新一局：置开始标记并复位全部状态（棋盘清场由 Board.new_game 负责，本单例不持有节点）。
+## 新局开始即作废任何「续玩」快照（续玩入口只提供一次，见 SaveState.consume_resume_offer）。
 func start_game() -> void:
 	var first_start: bool = not started
 	started = true
@@ -67,6 +68,7 @@ func start_game() -> void:
 	moves_left = moves_for_level(level)
 	target_score = target_for_level(level)
 	outcome = Outcome.PLAYING
+	SaveState.clear_run()
 	if first_start:
 		game_started.emit()
 
@@ -77,6 +79,7 @@ func add_score(amount: int) -> void:
 		return
 	score += amount
 	score_changed.emit(score)
+	SaveState.record_progress(level, score, moves_left, target_score)
 
 
 ## 一次有效交换消耗一步；无效交换不消耗（与原版一致）。
@@ -85,18 +88,23 @@ func use_move() -> void:
 		return
 	moves_left = maxi(moves_left - 1, 0)
 	moves_changed.emit(moves_left)
+	SaveState.record_progress(level, score, moves_left, target_score)
 
 
 ## 胜负判定（棋盘在每次交换结算完、步数扣完后调用）：
 ## 先判胜利（分数优先），再判失败（步数耗尽）。
+## 局末即结算落档（SaveState.record_settlement 与判定同 tick）：best_score 在此刷新；
+## 胜/败局都关闭「续玩」——续玩只服务「局中离开」的局（占位语义，N1 立项后可调）。
 func check_end() -> void:
 	if not is_playing():
 		return
 	if score >= target_score:
 		outcome = Outcome.WIN
+		SaveState.record_settlement(score, true)
 		game_ended.emit("win")
 	elif moves_left <= 0:
 		outcome = Outcome.LOSE
+		SaveState.record_settlement(score, false)
 		game_ended.emit("lose")
 
 
@@ -114,6 +122,23 @@ func advance_level() -> void:
 	moves_left = moves_for_level(level)
 	target_score = target_for_level(level)
 	outcome = Outcome.PLAYING
+	SaveState.record_progress(level, score, moves_left, target_score)
+	score_changed.emit(score)
+	moves_changed.emit(moves_left)
+	level_changed.emit(level)
+
+
+## 续玩恢复（结算三态之 RESUME 的状态侧）：把存档快照原样装回本单例并广播刷新。
+## 快照字段以 SaveState 存档格式为准（写入侧见 SaveState.record_progress）；
+## 入口只由主场景的「继续游戏」按钮调用，与「新的一局」（start_game）二选一。
+func resume_from_snapshot(snapshot: Dictionary) -> void:
+	started = true
+	level = clampi(int(snapshot.get("level", 1)), 1, MAX_LEVEL)
+	score = maxi(int(snapshot.get("score", 0)), 0)
+	target_score = maxi(int(snapshot.get("target_score", target_for_level(level))), 1)
+	moves_left = clampi(int(snapshot.get("moves_left", moves_for_level(level))), 0, moves_for_level(level))
+	outcome = Outcome.PLAYING
+	SaveState.clear_run()
 	score_changed.emit(score)
 	moves_changed.emit(moves_left)
 	level_changed.emit(level)
