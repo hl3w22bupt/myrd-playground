@@ -106,3 +106,9 @@
   verify PREFLIGHT(110 文件)+smoke，全部 exit 0，原文归档 `gate-logs/m1-recap-20260921-110550-prog-signoff/`（7 份）。
   **B-#1 三态维持 🟡**：程序侧动作已清，唯一剩余动作=真机触摸复跑三态（本环境无真机，归真机复验批次），
   不以「桌面机判全绿」代偿。业务代码本批零改动。
+- 2026-09-21 游戏程序（新 HEAD 无回归核实批次）：任务重发批次对当前 HEAD（92bdbb8，含 B-9 CI 修复与
+  美术 16:00 检查点两新提交）复跑六门禁全绿——契约双口径 46 PASS/0 FAIL（两副本 diff 空）、smoke、
+  audio-tick、fx-settlement（PERF avg 61.0/稳态最差 53.6）、verify PREFLIGHT 110 文件，全 exit 0，
+  原文 `gate-logs/m1-recap-20260921-124403-prog-noRegression/`（6 份）。**三态结论零变更、本批零新增程序侧
+  待办**：B-#1/B-#3/C 区真机项物理不可产出（无真机，不伪造）、§D 三件待主人拍板；游戏侧文件自签字批次
+  （05f48e1）以来零触碰（git diff 实证）。不重跑结论、不新造证据名目，仅认证新 HEAD 无回归。
