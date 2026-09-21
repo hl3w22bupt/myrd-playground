@@ -34,7 +34,7 @@
 | 契约测试 | `game-contract`（scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --project .） | ✅ **实跑 46 PASS / 0 FAIL**（双口径：projectDir=. 与 games/game 均绿，exit 0；spec v1 已追认代记 approved）——三轮驳回（MODULE_NOT_FOUND→SPEC_NOT_APPROVED→覆盖事故）全部闭环 | m1-gate-runbook.md §1 占位区（原文已回填） |
 | 音画同 tick 复核 | （B2/B4） | ✅ **契约实跑 PASS**（exit 0：`AUDIO_SAME_TICK: PASS 交换音/消除音/胜负音与结算同帧 + 无效交换反馈同帧 + 消除FX同帧入队`）+ 代码层行级复核一致；spec v1 条款已随追认生效 | m1-gate-runbook.md §2/§3 |
 | 反馈/三态/持久化契约（阻塞#1#2#3，9/21 新增） | `godot --headless --path games/game tests/contracts/fx-settlement-contract.tscn` | ✅ **实跑 PASS**（exit 0：`FX_SETTLE_PERSIST: PASS …`；PERF avg 61.1fps / 稳态最差 53.4fps）——三态 UI 为**占位**，美术稿落地后二次复验 | m1-gate-runbook.md §6 |
-| verify.sh（preflight+smoke） | `bash games/game/verify.sh` | ✅ **实跑 PASS**（exit 0：`PREFLIGHT: PASS 13 类…105 个工程文件` + 冒烟 PASS）——B-5 待办就此关闭 | m1-gate-runbook.md §6 |
+| verify.sh（preflight+smoke） | `bash games/game/verify.sh` | ✅ **实跑 PASS**（exit 0：`PREFLIGHT: PASS 13 类…` + 冒烟 PASS；文件数随资产入库 105→110，美术稿接线后批次的最新证据见 gate-logs/m1-recap-20260921-110550-prog-signoff/）——B-5 待办就此关闭 | m1-gate-runbook.md §6/§6.3 |
 
 ## 4. 变更记录
 
@@ -45,3 +45,4 @@
 - 2026-09-20 游戏程序（下午批次）：门禁状态三行更新——①契约脚本静态核对完成并修复 2 处获批后假阴性（数值扫描清单 + audio-same-tick.gd 落地）；②冒烟新增 audio-same-tick 契约场景命令；③音画同 tick 程序独立复核完成（行级证据）。实跑动作仍挂 B-1，本会话无 shell，未产生任何实跑输出。
 - 2026-09-21 主策划（收口冲刺批次）：门禁表新增「反馈/三态/持久化契约」（阻塞#1#2#3 机判落点，FX_SETTLE_PERSIST PASS）与「verify.sh」两行；五份实跑原文归档 gate-logs/m1-recap-20260921-094116/；结算三态口径定为 WIN/LOSE/RESUME（RESUME 依赖 SaveState 存档，UI 占位待美术稿二次复验）。
 - 2026-09-21 游戏程序（收口冲刺 · 独立复跑批次）：六门禁全部**本会话亲自复跑**并归档独立证据 `gate-logs/m1-recap-20260921-095257-prog/`（5 份原文）——契约双口径 46 PASS/0 FAIL（两副本 `diff` 为空）、godot-smoke PASS、audio-same-tick PASS、fx-settlement PASS（PERF avg 61.0 / 稳态最差 53.5）、verify.sh PREFLIGHT PASS + smoke PASS，全部 exit 0。实现层核实：SaveState 已注册 project.godot [autoload]、结算栈同 tick 落档（game_state.gd add_score/use_move/advance_level/check_end）、三态 RESUME 双入口（NewGameButton 在 main.tscn + main.gd setup_resume_offer）、VFX 参数区在 main.gd（屏震封顶 10px/0.28s 归零）；fx-settlement 契约断言非空转（逐字段盘档比对 + best_score 跨局 + 阈值守卫）。§1 基线 autoload 行补 SaveState（上轮遗漏，本批修正）。业务代码本批零改动，纯复验批次。
+- 2026-09-21 游戏程序（B-#1 程序确认签字批次）：美术 536fc0d「只改数值/换资源、不改结构」签字落账（main.tscn 机核：节点树/信号连接/文案三 diff 为空、新增行 100% 呈现值、.gd 零触碰，明细见 assets.md §1.6.1）；当前 HEAD（含 B-8 修复）七项复跑全绿——契约双口径 46 PASS/0 FAIL、smoke、audio-tick、fx-settlement 连续两跑（第 2 跑吃第 1 跑测试态仍 PASS，B-8 幂等关闭）、verify PREFLIGHT 110 文件 + smoke，原文 gate-logs/m1-recap-20260921-110550-prog-signoff/（7 份）。§3 门禁表 verify 行文件数口径更新（105→110，美术资产入库）。业务代码本批零改动；B-#1 三态维持占位待核销，剩真机触摸复跑一项。

@@ -91,6 +91,15 @@
 >   原文归档 `gate-logs/m1-recap-20260921-art-settlement/`（3 份 exit 0）
 > - **转核销剩余动作**（归程序侧二次复验，不挤占本批）：程序确认签字 + 真机触摸复跑三态
 >   （可选：LOSE 标题暖橙差异化值在 README §5，程序自决是否接）。
+> - **✅ 程序确认签字（9/21 程序签字批次，B-#1 复验动作第二环完成）**：对 536fc0d 的 main.tscn
+>   逐项机核通过——节点树（node name/parent）、[connection] 信号连接、text= 文案三处 diff 均为空，
+>   unique_name_in_owner 数量一致，新增行 100% 为 StyleBoxFlat/主题呈现值（corner_radius/
+>   content_margin/bg_color/border_*/color + NewGameButton offset_bottom=218=热区 96px），
+>   .gd 零触碰——**「只改数值/换资源、不改结构」成立**；后续美术调参/换稿照此接缝改数值即可，
+>   程序侧无结构改动风险。签字批次在当前 HEAD（含 B-8 修复）复跑七项全绿（契约双口径
+>   46 PASS/0 FAIL + smoke + audio-tick + fx-settlement 连续两跑含 B-8 幂等性实测 +
+>   verify PREFLIGHT 110 文件），原文 `gate-logs/m1-recap-20260921-110550-prog-signoff/`（7 份）。
+>   **B-#1 剩真机触摸复跑一项**（归真机复验批次，本环境无真机不代出）。
 
 ## 3. 变更记录
 

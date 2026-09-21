@@ -91,6 +91,12 @@
 > （PERF avg 61.0/稳态最差 53.5）、verify.sh PREFLIGHT+smoke PASS，全部 exit 0；实现层逐文件核实
 > （SaveState 注册/结算栈同 tick 落档/RESUME 双入口/VFX 参数区），契约断言非空转。独立证据归档
 > `gate-logs/m1-recap-20260921-095257-prog/`（5 份原文）。三态结论不变：#1 🟡占位、#2 ✅、#3 🟡占位（真机刷新待复验）。
+>
+> **程序签字批次刷新（2026-09-21 晚些时候，当前 HEAD 含 B-8 修复与美术稿接线）**：①B-#1 的
+> 「程序确认只改数值/换资源」签字已出（美术 536fc0d 机核：节点树/信号连接/文案三 diff 为空、
+> 新增行全为呈现值，明细见 assets.md §1.6.1 签字段）——B-#1 剩真机触摸复跑一项；②七门禁当前 HEAD
+> 复跑全绿含 fx 契约连跑幂等实测（B-8 关闭，见下），原文 `gate-logs/m1-recap-20260921-110550-prog-signoff/`。
+> 三态结论维持：#1 🟡、#2 ✅、#3 🟡。
 
 - **阻塞#1 结算三态（局末断链）**：✅ 已以占位 UI 接线——三态口径 WIN/LOSE/RESUME（主策划 9/21 定义）；
   RESUME 走 SaveState 存档 + 开始遮罩双入口（继续/新开），机判 FX_SETTLE_PERSIST E 组 PASS；
@@ -141,6 +147,12 @@
   fx 契约应做到「任意顺序连跑皆绿」。修复后请复跑 fx 契约 ×2（连跑）留档自证幂等。
 - **证据**：本会话门禁原文 `.myrd/blackboard/gate-logs/m1-recap-20260921-art-settlement/`（三份全 exit 0，
   均为清档后口径）。
+- **✅ 第三方独立复证（9/21 程序签字批次，当前 HEAD b16fc6e）**：按「任意顺序连跑皆绿」验收口径实测——
+  本批次实跑顺序为「冒烟（留局中档）→ audio-tick → fx 契约第 1 跑 → **fx 契约第 2 跑（自吃测试态）** → verify.sh」，
+  五步全 exit 0；fx 第 2 跑 PERF avg 61.0 / 稳态最差 53.5，隔离与幂等在脏档序列下成立。
+  原文 `gate-logs/m1-recap-20260921-110550-prog-signoff/`（5/6/7 号文件：fx 跑 1、fx 跑 2、verify）。
+  **B-8 关闭**：修复后的隔离手段跨批次、跨执行顺序可复现，残留风险提示中的 audio-tick 缺隔离项维持
+  「增量口径不受影响、下次触碰时补双清」的原处置不变。
 
 ## 升级汇总（9/21 凌晨版 · 已被下方「收口冲刺后刷新」版取代，保留作历史）
 
@@ -177,3 +189,4 @@
 - 2026-09-21 游戏程序（独立复跑批次）：B-6 追加程序侧独立复验——六门禁本会话亲自复跑全绿（业务代码零改动，纯复验），实现层逐文件核实三阻塞接线真实在盘、契约断言非空转；独立证据目录 `gate-logs/m1-recap-20260921-095257-prog/`；三态结论维持不变（占位项转核销仍待美术稿/真机二次复验）。spec 零改动、版本链零越线。
 - 2026-09-21 游戏美术（结算三态 UI 稿批次）：登记 B-8（fx-settlement 契约测试隔离缺陷——`SaveState.wipe()` 晚于 autoload 读档与 Main 消费快照，user:// 残留档使前置必红，门禁非幂等；两组复现顺序 + 根因时序 + 修复建议已写入条目，归属程序）。本批同时落盘三态 UI 稿与场景呈现值接线，详见 assets.md §1.6 与 ledger 变更记录；门禁三份原文归档 gate-logs/m1-recap-20260921-art-settlement/（全 exit 0）。
 - 2026-09-21 游戏程序（whitespace-fix + B-8 修复批次）：①驳回处置——git-hygiene whitespace-check 3 处 EOF 多余空行（2 份 spike 证据 log + fx-settlement 契约）统一为单结尾换行，内容零改动，复检 exit 0（commit 86e7ec2）；②B-8 修复——fx-settlement 契约擦档后重跑主场景续玩探测 + 收尾自净，连续两轮实跑隔离成立；③复跑记录归档 gate-logs/m1-recap-20260921-whitespace-fix/（4 份原文：recheck / b8-isolation / smoke-audio）。
+- 2026-09-21 游戏程序（B-#1 程序确认签字批次）：①B-#1「只改数值/换资源、不改结构」签字落账——美术 536fc0d 对 main.tscn 的改动逐项机核（节点树/[connection]/text= 三处 diff 为空、unique_name 数量一致、新增行 100% StyleBoxFlat/主题呈现值、.gd 零触碰），签字明细在 assets.md §1.6.1；②当前 HEAD 七项复跑全绿含 fx 契约连跑幂等实测——B-8 关闭（独立复证条目已补进 B-8）；③证据归档 gate-logs/m1-recap-20260921-110550-prog-signoff/（7 份）。三态维持 #1 🟡（剩真机触摸复跑）/#2 ✅/#3 🟡；业务代码本批零改动，spec 零改动。

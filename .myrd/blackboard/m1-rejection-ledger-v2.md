@@ -40,7 +40,7 @@
 
 | # | 阻塞项 | 处置（程序） | 机判证据 | 复验动作 | 三态 |
 |---|---|---|---|---|---|
-| B-#1 | 结算三态（局末断链） | 三态口径 WIN/LOSE/RESUME；RESUME = SaveState 存档 + 开始遮罩「继续/新开」双入口；复用现有控件，**零新美术资源** | `FX_SETTLE_PERSIST: PASS`（E 组：WIN→NEXT / LOSE→RETRY / RESUME 双入口 + 继续恢复 score/moves/level 逐字段一致）；**9/21 美术批次接线后复跑仍 PASS**（PERF avg 60.9/稳态最差 53.5，gate-logs/m1-recap-20260921-art-settlement/） | 美术三态 UI 稿交付 ✅（9/21 第十批次，assets.md §1.6.1：规格 README + 视觉稿 ×3 + main.tscn 呈现值接线 + 热区 60→96）→ **剩：程序确认「只改数值/换资源」签字 + 真机触摸复跑三态** | 🟡 **占位待核销**（美术侧依赖已清，转核销动作归程序侧二次复验；UI 为程序占位稿 + 美术稿已落，见 assets.md §1.6/§1.6.1） |
+| B-#1 | 结算三态（局末断链） | 三态口径 WIN/LOSE/RESUME；RESUME = SaveState 存档 + 开始遮罩「继续/新开」双入口；复用现有控件，**零新美术资源** | `FX_SETTLE_PERSIST: PASS`（E 组：WIN→NEXT / LOSE→RETRY / RESUME 双入口 + 继续恢复 score/moves/level 逐字段一致）；**9/21 美术批次接线后复跑仍 PASS**（PERF avg 60.9/稳态最差 53.5，gate-logs/m1-recap-20260921-art-settlement/）；**程序签字批次在当前 HEAD（含 B-8 修复）复跑仍 PASS**（PERF avg 61.0/稳态最差 53.5，gate-logs/m1-recap-20260921-110550-prog-signoff/） | 美术三态 UI 稿交付 ✅（9/21 第十批次，assets.md §1.6.1）→ **程序确认「只改数值/换资源、不改结构」签字 ✅（9/21 程序签字批次，核对明细见 assets.md §1.6.1 签字段）** → **剩：真机触摸复跑三态**（本环境无真机，归真机复验批次） | 🟡 **占位待核销**（程序侧签字已出，唯一剩余动作为真机触摸复跑；见 assets.md §1.6/§1.6.1） |
 | B-#2 | 消除/连击反馈（帧率不掉） | 默认参数接通：粒子/飘分（board.gd FX 区）+ 连击提示（波数≥2）+ 升调音 + 屏震（幅度逐波增强封顶 10px / 0.28s 有界归零） | `FX_SETTLE_PERSIST: PASS`（A 组消除反馈同帧含屏震；B 组阈值/字号/封顶；C 组归零精确复位；F 组 PERF avg 61.1 ≥50 / 稳态最差 53.4 ≥30） | 美术调参后复跑契约（F 组自动断帧率下限）；真机帧率曲线归真机批次 | ✅ 核销（默认参数基线，桌面机判口径） |
 | B-#3 | 分数本地持久化（刷新后分数仍在） | SaveState autoload（`user://pixel-fives-save.json`，Web=IndexedDB）+ GameState 结算栈同 tick 落档 + best_score 跨局保留 | `FX_SETTLE_PERSIST: PASS`（D 组：盘档逐字段比对一致 / best_score 结算刷新 / 新开局清快照不误供续局） | 真机浏览器「页面刷新→分数仍在」人工复验（headless 以盘档读回为机判等价物，已在契约注明） | 🟡 **占位待核销**（待真机刷新动作复验；机判已全过） |
 
@@ -97,3 +97,12 @@
   真机触摸复跑」，归程序侧二次复验，美术不代出。另登记 blockers.md B-8（fx-settlement 契约测试隔离缺陷，
   归属程序）——本批取证按「清档→契约」口径执行，已排除残留档假红干扰。
 - 2026-09-21 游戏程序（whitespace-fix + B-8 修复批次）：①门禁驳回（EOF 空行 ×3）修复并复检 exit 0；②B-8 隔离缺陷修复——契约擦档后重探测 + 收尾自净，连续两轮实跑 PASS（残留档在场仍 PASS，隔离成立）；③契约/冒烟/audio-tick 同步复跑全绿，原文 gate-logs/m1-recap-20260921-whitespace-fix/。**三态结论零变更**：本批只动测试隔离与空白符，业务代码零改动，B-#1/B-#3 转核销动作维持原口径。
+- 2026-09-21 游戏程序（B-#1 程序确认签字批次）：**「只改数值/换资源、不改结构」签字正式落账**——对美术批次
+  536fc0d 的 main.tscn diff 逐项机核：节点树（node name/parent）diff 为空、[connection] 信号连接 diff 为空、
+  text= 文案 diff 为空、unique_name_in_owner 数量一致、新增行 100% 为 StyleBoxFlat/主题呈现值
+  （corner_radius/content_margin/bg_color/border_*/color + NewGameButton offset_bottom=218 即热区 96px），
+  .gd 文件零触碰；签字批次在当前 HEAD（含 B-8 修复）复跑七项：契约双口径 46 PASS/0 FAIL（两副本 diff 为空）+
+  smoke + audio-tick + **fx-settlement 连续两跑（B-8 幂等性实测，第 2 次吃第 1 次测试态仍 PASS）** +
+  verify PREFLIGHT(110 文件)+smoke，全部 exit 0，原文归档 `gate-logs/m1-recap-20260921-110550-prog-signoff/`（7 份）。
+  **B-#1 三态维持 🟡**：程序侧动作已清，唯一剩余动作=真机触摸复跑三态（本环境无真机，归真机复验批次），
+  不以「桌面机判全绿」代偿。业务代码本批零改动。
