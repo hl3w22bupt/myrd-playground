@@ -258,3 +258,26 @@ M1 七项正式结论由 QA 在证据回填当日出具（口径见 blockers 升
 - 工作区为 9/21 全新 checkout：`.godot/` 缓存缺失致首轮 godot 运行报 class_name 连锁解析错误，
   `godot --headless --import` 重建后消除（环境步骤，非代码缺陷）。
 - **M1 七项的正式 QA 结论**（含逐项三态）由 QA 批次出具：见 `m1-rejection-ledger-v2.md`。
+
+### §6.3 程序独立复跑（2026-09-21 · 游戏程序会话 · 业务代码零改动）
+
+> 本会话不认「已通过」三个字，六门禁全部亲自复跑；与 §6（主策划批次）构成**两次独立实跑互证**。
+> 原文归档 `gate-logs/m1-recap-20260921-095257-prog/`（5 份：contract / smoke / audio-tick / fx-settlement / verify）。
+
+| # | 门禁 | 判定行（原文摘录） | 退出码 |
+|---|---|---|---|
+| 1 | 契约·口径A（仓库根） | `—— 合计 46 PASS / 0 FAIL ——` + `CONTRACT: PASS 实现与 approved 策划案一致` | 0 |
+| 2 | 契约·口径B（工程内镜像） | `—— 合计 46 PASS / 0 FAIL ——`（双副本 `diff` 为空，B-1 覆盖事故防复发核对通过） | 0 |
+| 3 | 无头冒烟 | `godot-smoke: PASS 冒烟场景通过：tests/smoke.tscn（退出码 0，断言标记齐全，日志无脚本错误）` | 0 |
+| 4 | 音画同 tick 契约 | `AUDIO_SAME_TICK: PASS 交换音/消除音/胜负音与结算同帧 + 无效交换反馈同帧 + 消除FX同帧入队 全部通过` | 0 |
+| 5 | 反馈/三态/持久化契约 | `FX_SETTLE_PERSIST: PERF sampled=312 avg_fps=61.0(阈值>=50) steady_worst_fps=53.5(阈值>=30) rebuild_hitch_ms=47.0(计量不上限)` + `FX_SETTLE_PERSIST: PASS …全部通过` | 0 |
+| 6 | verify.sh | `PREFLIGHT: PASS 13 类前置一致性检查全部通过（105 个工程文件，不含 .godot/ 导入缓存）` + `verify: PASS preflight + smoke 全部通过` | 0 |
+
+**实现层核实（读码，非仅跑测试）**：① `project.godot [autoload]` 含 `SaveState`；② 阻塞#3 同 tick 落档——
+`game_state.gd` 的 `add_score`/`use_move`/`advance_level` 调 `record_progress`、`check_end` 调 `record_settlement`，
+与信号 emit 同一调用栈；③ 阻塞#1 三态——`main.gd` TEXT_RESUME_* + `setup_resume_offer()` + `NewGameButton`
+（main.tscn 唯一名）+ `resume_from_snapshot` 逐字段恢复；④ 阻塞#2 VFX 参数区——SHAKE_AMP_MAX_PX=10 /
+SHAKE_DECAY_SEC=0.28 / COMBO_MSG_MIN_WAVE=2（与 assets.md §1.5 参考卡逐值一致）；⑤ fx-settlement 契约断言
+非空转：D 组盘档逐字段比对、best_score 跨局保留、E 组双入口可见性 + 续玩字段逐项断言、B 组阈值守卫经 handler
+（首轮 FAIL 教训已在测试注释留痕）。audio-tick 运行日志尾部 `4 resources still in use at exit` 为 Godot
+退出清理告警（headless 常见），非脚本错误，exit 0 判定不受影响。

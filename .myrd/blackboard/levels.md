@@ -13,7 +13,7 @@
 | 工程路径 | `games/game/`（project.godot config/name = 「糖果粉碎传奇」，任务代号 Pixel Fives） |
 | 引擎 | Godot 4.3（`config/features=PackedStringArray("4.3")`），gl_compatibility，竖屏 720×1280 aspect=expand |
 | 主场景 | `res://scenes/main.tscn`（scenes: main / player / candy 三件套） |
-| autoload | `GameState`（autoload/game_state.gd）、`GameAudio`（autoload/audio_manager.gd） |
+| autoload | `GameState`（autoload/game_state.gd）、`GameAudio`（autoload/audio_manager.gd）、`SaveState`（autoload/save_state.gd，9/21 阻塞#3 新增：`user://pixel-fives-save.json` 本地持久化 + RESUME 续玩快照） |
 | 冒烟 | `tests/smoke.gd` + `tests/smoke.tscn`，0–12 阶段断言，`GODOT_SMOKE: PASS` + exit 0 为过 |
 
 ## 2. 关卡阶梯（实现状态：已落地，冒烟阶段 8 锁数值）
@@ -44,3 +44,4 @@
 - 2026-09-21 游戏程序（P5/P6 修复批次）：驳回附实跑失败原文（PREFLIGHT P5+P6 FAIL，exit 1，日志已归档 gate-logs/contract-gate-20260921-012610.log）→ 按 B-5 方案 A 修复：spike_main.tscn 改指向 `res://qa/snake-ghost-spike/spike_main.gd`、run-spike.sh 临时工程镜像结构（保留实跑批次的 ASCII heredoc 防 error 43）、README §2② 同步；games/game 内 `res://spike_main` 平铺引用清零。**待重跑** verify.sh / run-m1-gates.sh 产出新证据目录，预期 PREFLIGHT: PASS → 冒烟 PASS。
 - 2026-09-20 游戏程序（下午批次）：门禁状态三行更新——①契约脚本静态核对完成并修复 2 处获批后假阴性（数值扫描清单 + audio-same-tick.gd 落地）；②冒烟新增 audio-same-tick 契约场景命令；③音画同 tick 程序独立复核完成（行级证据）。实跑动作仍挂 B-1，本会话无 shell，未产生任何实跑输出。
 - 2026-09-21 主策划（收口冲刺批次）：门禁表新增「反馈/三态/持久化契约」（阻塞#1#2#3 机判落点，FX_SETTLE_PERSIST PASS）与「verify.sh」两行；五份实跑原文归档 gate-logs/m1-recap-20260921-094116/；结算三态口径定为 WIN/LOSE/RESUME（RESUME 依赖 SaveState 存档，UI 占位待美术稿二次复验）。
+- 2026-09-21 游戏程序（收口冲刺 · 独立复跑批次）：六门禁全部**本会话亲自复跑**并归档独立证据 `gate-logs/m1-recap-20260921-095257-prog/`（5 份原文）——契约双口径 46 PASS/0 FAIL（两副本 `diff` 为空）、godot-smoke PASS、audio-same-tick PASS、fx-settlement PASS（PERF avg 61.0 / 稳态最差 53.5）、verify.sh PREFLIGHT PASS + smoke PASS，全部 exit 0。实现层核实：SaveState 已注册 project.godot [autoload]、结算栈同 tick 落档（game_state.gd add_score/use_move/advance_level/check_end）、三态 RESUME 双入口（NewGameButton 在 main.tscn + main.gd setup_resume_offer）、VFX 参数区在 main.gd（屏震封顶 10px/0.28s 归零）；fx-settlement 契约断言非空转（逐字段盘档比对 + best_score 跨局 + 阈值守卫）。§1 基线 autoload 行补 SaveState（上轮遗漏，本批修正）。业务代码本批零改动，纯复验批次。
