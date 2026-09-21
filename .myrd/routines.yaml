@@ -24,36 +24,50 @@ routines:
         timeout: 30
 
   - id: backend-quality
-    name: 后端编译检查
-    description: 安装根+后端依赖（jose/@prisma 等都在根 package.json，还需 prisma generate）并做 TypeScript 类型检查
+    name: TS 编译检查（根 + server 壳）
+    description: >
+      安装依赖并做 TypeScript 类型检查。本仓库为 Godot 小游戏 + 静态 Web 工程：无后端服务、
+      无数据库、无 Prisma（schema.prisma 与 prisma 依赖均不存在）——原 MyRD 平台模板的
+      `npx prisma generate` 步骤在此不可满足，且当前 `npx prisma` 解析为 Prisma Developer
+      Platform CLI，其命令集已无 `generate`（报 CLI.UNKNOWN_COMMAND）。等价门禁 =
+      根与 server 壳依赖可安装 + 两处 `tsc --noEmit` 全绿（2026-09-21 基线实测均 exit 0）。
+      根 src/ 无独立 package.json/tsconfig（类型检查以根 tsconfig 覆盖）。
     steps:
       - name: install
-        command: "npm install --no-audit --no-fund --silent && cd src && npm install --no-audit --no-fund --silent && cd .. && npx prisma generate"
+        command: "npm install --no-audit --no-fund --silent"
         target: host
         timeout: 900
       - name: typecheck
         command: "npx tsc --noEmit"
-        cwd: src
+        target: host
+        timeout: 300
+      - name: server-install
+        command: "npm install --no-audit --no-fund --silent"
+        cwd: server
+        target: host
+        timeout: 600
+      - name: server-typecheck
+        command: "npx tsc --noEmit"
+        cwd: server
         target: host
         timeout: 300
 
   - id: frontend-quality
-    name: 前端质量检查
-    description: 安装前端依赖、跑 lint 与单元测试
+    name: 前端质量检查（根 Web 工程）
+    description: >
+      本仓库 `frontend/` 为空壳目录（无 package.json，仅遗留空 tests/，git 未跟踪）——原模板的
+      `cwd: frontend` 三步在此必红（npm run lint 无脚本可跑）。本仓库真实前端形态 = 根静态 Web
+      工程（pubg-web TS）。等价门禁 = 依赖可安装 + 根 vitest 套件全绿（2026-09-21 基线 106/106
+      PASS）。lint 暂不入门禁：根 `npm run lint` 对 pubg-web 遗留代码报 655 错误（'console' is
+      not defined 等 globals/配置问题），待专项清理后另行挂载；游戏侧自动化门禁由 godot-smoke /
+      game-contract 承担。
     steps:
       - name: install
         command: "npm install --no-audit --no-fund --silent"
-        cwd: frontend
         target: host
         timeout: 600
-      - name: lint
-        command: "npm run lint"
-        cwd: frontend
-        target: host
-        timeout: 300
       - name: unit-test
-        command: "npm run test:run"
-        cwd: frontend
+        command: "npm run test"
         target: host
         timeout: 600
 

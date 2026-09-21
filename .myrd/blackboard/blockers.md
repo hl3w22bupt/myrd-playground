@@ -154,6 +154,29 @@
   **B-8 关闭**：修复后的隔离手段跨批次、跨执行顺序可复现，残留风险提示中的 audio-tick 缺隔离项维持
   「增量口径不受影响、下次触碰时补双清」的原处置不变。
 
+## B-9 平台门禁例行检查模板错配（backend-quality / frontend-quality）【✅ 已修复 · 9/21 第二轮驳回处置】
+
+- **现象（驳回诊断）**：routine「后端编译检查」install 步 exit=2——`npx prisma generate` 报
+  `CLI.UNKNOWN_COMMAND: No command registered for 'generate'`。
+- **根因（本机复现实证）**：①本仓库**无后端/无数据库/无 Prisma**（无 schema.prisma，根与 server 的
+  package.json 均无 prisma 依赖，src/ 无独立 package.json/tsconfig）——该 routine 是 MyRD 平台模板
+  随 8700d08 迁入，不适配本仓库；②`npx prisma` 现解析为 **Prisma Developer Platform CLI**，
+  其命令集已无 `generate`（本机 `npx prisma --help` 全量命令清单核对，generate 不在册）——
+  即使补 schema 也不可能通过。
+- **修复（改为本仓库的等价真门禁，step 名保留兼容引用）**：
+  - `backend-quality` → 「TS 编译检查（根 + server 壳）」：根 install + 根 `tsc --noEmit`
+    + server install + server `tsc --noEmit`（基线实测四步全 exit 0）。
+  - `frontend-quality` → 「前端质量检查（根 Web 工程）」：根 install + 根 `npm run test`
+    （vitest 基线 106/106 PASS）。frontend/ 为空壳目录（无 package.json，git 未跟踪），
+    原 `cwd: frontend` 三步必红；根 lint 对 pubg-web 遗留代码报 655 错误（globals/配置类），
+    **待专项清理后再挂载**，本批不硬塞进门禁、如实登记。
+  - 改动对象是仓库自有配置 `.myrd/routines.yaml`（文件头自述 dogfood 用途）；游戏侧真门禁
+    godot-smoke / game-contract 未动。
+- **证据**：改后两条 routine 端到端复跑 `FINAL_EXIT=0`（install/typecheck/server-install/
+  server-typecheck 逐个 OK + vitest 106/106）；YAML 结构校验通过。
+- **教训（防复发）**：迁入门禁资产时逐 routine 对照本仓库形态；「模板检查在本仓库无对象」时
+  改写为等价检查并在 description 写明依据，不留「必然红」的默认门禁。
+
 ## 升级汇总（9/21 凌晨版 · 已被下方「收口冲刺后刷新」版取代，保留作历史）
 
 1. **窗口裁决**（B-2）：N1 单卡收口 vs 延期等原稿。
@@ -190,3 +213,4 @@
 - 2026-09-21 游戏美术（结算三态 UI 稿批次）：登记 B-8（fx-settlement 契约测试隔离缺陷——`SaveState.wipe()` 晚于 autoload 读档与 Main 消费快照，user:// 残留档使前置必红，门禁非幂等；两组复现顺序 + 根因时序 + 修复建议已写入条目，归属程序）。本批同时落盘三态 UI 稿与场景呈现值接线，详见 assets.md §1.6 与 ledger 变更记录；门禁三份原文归档 gate-logs/m1-recap-20260921-art-settlement/（全 exit 0）。
 - 2026-09-21 游戏程序（whitespace-fix + B-8 修复批次）：①驳回处置——git-hygiene whitespace-check 3 处 EOF 多余空行（2 份 spike 证据 log + fx-settlement 契约）统一为单结尾换行，内容零改动，复检 exit 0（commit 86e7ec2）；②B-8 修复——fx-settlement 契约擦档后重跑主场景续玩探测 + 收尾自净，连续两轮实跑隔离成立；③复跑记录归档 gate-logs/m1-recap-20260921-whitespace-fix/（4 份原文：recheck / b8-isolation / smoke-audio）。
 - 2026-09-21 游戏程序（B-#1 程序确认签字批次）：①B-#1「只改数值/换资源、不改结构」签字落账——美术 536fc0d 对 main.tscn 的改动逐项机核（节点树/[connection]/text= 三处 diff 为空、unique_name 数量一致、新增行 100% StyleBoxFlat/主题呈现值、.gd 零触碰），签字明细在 assets.md §1.6.1；②当前 HEAD 七项复跑全绿含 fx 契约连跑幂等实测——B-8 关闭（独立复证条目已补进 B-8）；③证据归档 gate-logs/m1-recap-20260921-110550-prog-signoff/（7 份）。三态维持 #1 🟡（剩真机触摸复跑）/#2 ✅/#3 🟡；业务代码本批零改动，spec 零改动。
+- 2026-09-21 主策划（第二轮驳回处置批次）：登记并修复 B-9——平台门禁 backend-quality（prisma generate 不存在）与 frontend-quality（frontend 空壳目录）模板错配，按「等价真门禁」改写 .myrd/routines.yaml（TS 编译检查×2 + 根 vitest），基线与端到端复跑全绿；lint 655 遗留错误如实登记待专项清理，不入门禁。
