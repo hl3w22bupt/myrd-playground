@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>像素街机足球 Pixel Fives · M1 核心循环</title>
+<style>
+  :root { --bg:#12101E; --panel:#1A1626; --ink:#F4F1E8; --dim:#C9C4B4; --edge:#2E2A44; --gold:#E8B23A; --red:#D93A2B; --blue:#2B6BD9; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--ink); font:13px/1.6 ui-monospace,Menlo,Consolas,monospace;
+         display:flex; flex-direction:column; align-items:center; padding:20px; min-height:100vh; }
+  h1 { font-size:15px; font-weight:normal; letter-spacing:1px; }
+  h1 b.r { color:var(--red); } h1 b.b { color:var(--blue); }
+  .stage { margin-top:14px; border:1px solid var(--edge); background:#0d0b16; line-height:0; }
+  canvas#game { width:768px; height:480px; image-rendering:pixelated; }
+  .bar { margin-top:10px; color:var(--dim); font-size:12px; text-align:center; max-width:768px; }
+  .bar kbd { border:1px solid var(--edge); padding:0 5px; color:var(--ink); background:var(--panel); }
+  .bar .note { color:#7d7796; }
+</style>
+</head>
+<body>
+  <h1>像素街机足球 <b class="r">Pixel</b> <b class="b">Fives</b> · M1 核心循环 <span style="color:var(--gold)">1v1</span></h1>
+  <div class="stage"><canvas id="game" width="256" height="160"></canvas></div>
+  <div class="bar">
+    移动 <kbd>WASD</kbd>/<kbd>方向键</kbd> · 射门 <kbd>空格</kbd>/<kbd>J</kbd> ·
+    模式 <kbd>1</kbd>双人 <kbd>2</kbd>人机 <kbd>3</kbd>机机 · <kbd>R</kbd>再来一局 · <kbd>F</kbd>FPS<br>
+    <span class="note">占位精灵先行：assets/*.grid 可用时自动采用美术资产，否则内建占位精灵（file:// 直开亦纯占位可玩）。
+    资产管线：node pixel-fives/tools/gen-assets.mjs · 体验服务：python3 -m http.server（或任意静态服务器）后访问本页。</span>
+  </div>
+  <script type="module" src="./src/app/main.js"></script>
+</body>
+</html>
