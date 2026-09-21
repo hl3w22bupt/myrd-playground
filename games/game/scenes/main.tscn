@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/board.gd" id="2_board"]
@@ -12,6 +12,86 @@ colors = PackedColorArray(0.17, 0.13, 0.32, 1, 0.05, 0.07, 0.18, 1)
 gradient = SubResource("Gradient_bg")
 fill_from = Vector2(0, 0)
 fill_to = Vector2(0, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_primary_normal"]
+content_margin_left = 18.0
+content_margin_top = 14.0
+content_margin_right = 18.0
+content_margin_bottom = 14.0
+bg_color = Color(1, 0.85, 0.35, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_primary_hover"]
+content_margin_left = 18.0
+content_margin_top = 14.0
+content_margin_right = 18.0
+content_margin_bottom = 14.0
+bg_color = Color(1, 0.9, 0.52, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_primary_pressed"]
+content_margin_left = 18.0
+content_margin_top = 14.0
+content_margin_right = 18.0
+content_margin_bottom = 14.0
+bg_color = Color(0.85, 0.72, 0.28, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_ghost_normal"]
+content_margin_left = 18.0
+content_margin_top = 14.0
+content_margin_right = 18.0
+content_margin_bottom = 14.0
+bg_color = Color(1, 1, 1, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.85, 0.35, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_ghost_hover"]
+content_margin_left = 18.0
+content_margin_top = 14.0
+content_margin_right = 18.0
+content_margin_bottom = 14.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.85, 0.35, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_ghost_pressed"]
+content_margin_left = 18.0
+content_margin_top = 14.0
+content_margin_right = 18.0
+content_margin_bottom = 14.0
+bg_color = Color(1, 1, 1, 0.1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.85, 0.35, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -179,7 +259,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.04, 0.03, 0.1, 0.82)
+color = Color(0.065, 0.055, 0.12, 0.9)
 
 [node name="OverlayTitle" type="Label" parent="UI/Overlay"]
 unique_name_in_owner = true
@@ -230,7 +310,14 @@ offset_bottom = 104.0
 grow_horizontal = 2
 grow_vertical = 2
 focus_mode = 0
+theme_override_colors/font_color = Color(0.13, 0.11, 0.24, 1)
+theme_override_colors/font_hover_color = Color(0.13, 0.11, 0.24, 1)
+theme_override_colors/font_pressed_color = Color(0.13, 0.11, 0.24, 1)
+theme_override_colors/font_focus_color = Color(0.13, 0.11, 0.24, 1)
 theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_primary_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_primary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_primary_pressed")
 text = "下一关 NEXT"
 
 [node name="StartOverlay" type="ColorRect" parent="UI"]
@@ -239,7 +326,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.04, 0.03, 0.1, 0.86)
+color = Color(0.065, 0.055, 0.12, 0.9)
 
 [node name="StartTitle" type="Label" parent="UI/StartOverlay"]
 unique_name_in_owner = true
@@ -278,7 +365,14 @@ offset_bottom = 110.0
 grow_horizontal = 2
 grow_vertical = 2
 focus_mode = 0
+theme_override_colors/font_color = Color(0.13, 0.11, 0.24, 1)
+theme_override_colors/font_hover_color = Color(0.13, 0.11, 0.24, 1)
+theme_override_colors/font_pressed_color = Color(0.13, 0.11, 0.24, 1)
+theme_override_colors/font_focus_color = Color(0.13, 0.11, 0.24, 1)
 theme_override_font_sizes/font_size = 30
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_primary_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_primary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_primary_pressed")
 text = "开始游戏 START"
 
 [node name="NewGameButton" type="Button" parent="UI/StartOverlay"]
@@ -291,9 +385,16 @@ anchor_bottom = 0.52
 offset_left = -160.0
 offset_top = 122.0
 offset_right = 160.0
-offset_bottom = 182.0
+offset_bottom = 218.0
 grow_horizontal = 2
 grow_vertical = 2
 focus_mode = 0
+theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
+theme_override_colors/font_hover_color = Color(1, 0.85, 0.35, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.85, 0.35, 1)
+theme_override_colors/font_focus_color = Color(1, 0.85, 0.35, 1)
 theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_ghost_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_ghost_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_ghost_pressed")
 text = "新的一局 NEW GAME"

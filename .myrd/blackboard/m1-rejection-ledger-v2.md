@@ -40,7 +40,7 @@
 
 | # | 阻塞项 | 处置（程序） | 机判证据 | 复验动作 | 三态 |
 |---|---|---|---|---|---|
-| B-#1 | 结算三态（局末断链） | 三态口径 WIN/LOSE/RESUME；RESUME = SaveState 存档 + 开始遮罩「继续/新开」双入口；复用现有控件，**零新美术资源** | `FX_SETTLE_PERSIST: PASS`（E 组：WIN→NEXT / LOSE→RETRY / RESUME 双入口 + 继续恢复 score/moves/level 逐字段一致） | 美术三态 UI 稿交付 → 程序确认「只改数值/换资源」 → 复跑 fx-settlement 契约 + 真机触摸复跑三态 | 🟡 **占位待核销**（UI 为程序占位稿，见 assets.md §1.6） |
+| B-#1 | 结算三态（局末断链） | 三态口径 WIN/LOSE/RESUME；RESUME = SaveState 存档 + 开始遮罩「继续/新开」双入口；复用现有控件，**零新美术资源** | `FX_SETTLE_PERSIST: PASS`（E 组：WIN→NEXT / LOSE→RETRY / RESUME 双入口 + 继续恢复 score/moves/level 逐字段一致）；**9/21 美术批次接线后复跑仍 PASS**（PERF avg 60.9/稳态最差 53.5，gate-logs/m1-recap-20260921-art-settlement/） | 美术三态 UI 稿交付 ✅（9/21 第十批次，assets.md §1.6.1：规格 README + 视觉稿 ×3 + main.tscn 呈现值接线 + 热区 60→96）→ **剩：程序确认「只改数值/换资源」签字 + 真机触摸复跑三态** | 🟡 **占位待核销**（美术侧依赖已清，转核销动作归程序侧二次复验；UI 为程序占位稿 + 美术稿已落，见 assets.md §1.6/§1.6.1） |
 | B-#2 | 消除/连击反馈（帧率不掉） | 默认参数接通：粒子/飘分（board.gd FX 区）+ 连击提示（波数≥2）+ 升调音 + 屏震（幅度逐波增强封顶 10px / 0.28s 有界归零） | `FX_SETTLE_PERSIST: PASS`（A 组消除反馈同帧含屏震；B 组阈值/字号/封顶；C 组归零精确复位；F 组 PERF avg 61.1 ≥50 / 稳态最差 53.4 ≥30） | 美术调参后复跑契约（F 组自动断帧率下限）；真机帧率曲线归真机批次 | ✅ 核销（默认参数基线，桌面机判口径） |
 | B-#3 | 分数本地持久化（刷新后分数仍在） | SaveState autoload（`user://pixel-fives-save.json`，Web=IndexedDB）+ GameState 结算栈同 tick 落档 + best_score 跨局保留 | `FX_SETTLE_PERSIST: PASS`（D 组：盘档逐字段比对一致 / best_score 结算刷新 / 新开局清快照不误供续局） | 真机浏览器「页面刷新→分数仍在」人工复验（headless 以盘档读回为机判等价物，已在契约注明） | 🟡 **占位待核销**（待真机刷新动作复验；机判已全过） |
 
@@ -90,3 +90,9 @@
   verify PREFLIGHT），原文归档 `gate-logs/m1-recap-20260921-095257-prog/`，与 094116 目录构成两次独立实跑；
   实现层读码核实三阻塞接线真实在盘、契约断言非空转（runbook §6.3）。**三态结论零变更**：占位项
   （B-#1 三态 UI、B-#3 真机刷新、C 区真机两项）转核销仍须各自复验动作完成，不以「复跑全绿」冒充二次复验。
+- 2026-09-21 游戏美术（结算三态 UI 稿交付批次）：B-#1 复验动作第一环完成——美术三态 UI 稿落盘并接线
+  （assets.md §1.6.1：规格 README + 视觉稿 ×3 + main.tscn 仅呈现值 + 次按钮热区 60→96）；接线后三门禁
+  复跑全绿（契约 46 PASS / verify preflight 110 文件+smoke / FX_SETTLE_PERSIST PASS，原文
+  gate-logs/m1-recap-20260921-art-settlement/）。**三态不翻**：仍 🟡 占位待核销，转核销剩「程序确认签字 +
+  真机触摸复跑」，归程序侧二次复验，美术不代出。另登记 blockers.md B-8（fx-settlement 契约测试隔离缺陷，
+  归属程序）——本批取证按「清档→契约」口径执行，已排除残留档假红干扰。

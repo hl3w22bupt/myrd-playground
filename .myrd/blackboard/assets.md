@@ -73,6 +73,25 @@
 ③文案进子集字体覆盖范围；④交付后程序确认「只改数值/换资源」成立 + 复跑 FX_SETTLE_PERSIST 契约通过，
   三态方可从「占位待核销」转「核销」。
 
+### 1.6.1 美术 UI 稿交付登记（9/21 · 第十批次，美术稿已落盘接线）
+
+> **交付物**（4+3 件，全部在盘）：
+> - 稿面规格：`games/game/assets/ui/settlement-three-state/README.md`（层级/间距/色值/字号/热区 +
+>   6 个 StyleBoxFlat 槽位数值 + 换资源接缝口径，§1–§8）
+> - 视觉稿 ×3：`preview/l1-e5-overlay-win.svg` / `preview/l1-e5-overlay-lose.svg` /
+>   `preview/l1-e3-startoverlay-resume.svg`（720×1280，文件名 = spec 元素 `l1/e5`、`l1/e3` 派生；
+>   目录含 `.gdignore`，引擎零扫描零导入，运行时「无外部贴图依赖」保持为真）
+> - 场景接线：`games/game/scenes/main.tscn` **仅呈现值**（diff +105/−4）——遮罩底色统一为
+>   底板同源 `Color(0.065,0.055,0.12,0.9)` ×2；三按钮接 primary（金底深紫字）/ghost（金描边金字）
+>   样式槽；NewGameButton 热区 **60→96px**（验收口径②达标，主按钮 104/110 原已达标）
+> - 验收口径逐条：①三态层级/间距/按钮设计=README §1 两表 + 视觉稿 ×3 ✅；②热区 ≥96 ✅（本批修正）；
+>   ③文案零改动（契约锁 BTN_*/TEXT_*，子集覆盖不变）✅；④「只改数值」成立性=本批接线即证明
+>   （节点树/控件名/unique name/文案常量/.gd 全部零改动）+ **接线后复跑全绿**：契约 46 PASS/0 FAIL、
+>   verify.sh preflight(110 文件)+smoke PASS、FX_SETTLE_PERSIST PASS（PERF avg 60.9/稳态最差 53.5 ≥ 阈值），
+>   原文归档 `gate-logs/m1-recap-20260921-art-settlement/`（3 份 exit 0）
+> - **转核销剩余动作**（归程序侧二次复验，不挤占本批）：程序确认签字 + 真机触摸复跑三态
+>   （可选：LOSE 标题暖橙差异化值在 README §5，程序自决是否接）。
+
 ## 3. 变更记录
 
 - 2026-09-20 主策划：建档；风格卡与清单按当日工程实况（代码常量 + LICENSE.md）整理，未新增任何素材。
@@ -88,3 +107,12 @@
 - 2026-09-21 游戏美术（spike 证据响应批次）：**snake-ghost spike 证据于补证窗内落盘**（`qa/snake-ghost-spike/data/20260921-010743/` 三件套，verdict=桌面口径 能）→ §A3.1 规格状态改为**桌面条件冻结、随卡进终裁**；判定与三条完整性挑明落 concept-pool-v1.md §A3.1a（移动端两项无数据待真机核 / pool_exhausted=19 临界池缺陷由美术规格认领、修订建议池容 31 / 色板轮换未生效待录屏补验）；候选资产区状态同步更新；§A2.3/B-4/run.md 综合结论回填仍归跑者，美术不代出。本批次另发现本文件变更记录区曾被并发覆盖（第三/四批次条目丢失），已恢复；请各职能写黑板前先重读最新版。
 - 2026-09-21 游戏美术（第八批次，证据可核对性勘误）：① §A2.3 数据路径笔误就地更正（`010252`→`010743`，结论零改动，联署文本仅动路径一行并留痕）——R4「黑板有证据路径」要求路径指向真实三件套；② **gate log 历史性挑明**：`gate-logs/contract-gate-20260921-012610.log` 的 preflight P5/P6 FAIL 系修复前历史记录——当前 `spike_main.tscn`（`res://qa/snake-ghost-spike/spike_main.gd`）与 `run-spike.sh`（镜像目录 cp）已自洽（时序：01:07 spike 旧组合跑通 → 01:26 gate 报旧版悬空 → 之后完成镜像修复）；**修复后 verify.sh/contract-check 复跑尚未发生**（gate-logs 无新 log），全绿确认仍待有 shell 执行者复跑回填，9/21 呈批请以复跑输出为准、勿以该 FAIL 断言当前态。
 - 2026-09-21 游戏美术（第九批次，M1 收口冲刺）：§1.5 消除/连击反馈 VFX 参考卡 + §1.6 结算三态 UI 占位稿落黑板——本批「零新素材」判定维持（三态占位复用现有控件、粒子/屏震全程序化），交付物为**可调参数参考卡 + 占位稿**；程序已按默认参数接线并过契约（FX_SETTLE_PERSIST PASS，证据 gate-logs/m1-recap-20260921-094116/），「只改数值/换资源、不改结构」的交付标准经程序侧确认成立；三态美术稿落地 + 二次复验后，打回清单 v2 的「占位待核销」方可转「核销」。
+- 2026-09-21 游戏美术（第十批次，结算三态 UI 稿交付 + 接线）：§1.6.1 登记本批交付——UI 稿规格
+  （assets/ui/settlement-three-state/README.md）+ 视觉稿 ×3（spec 元素 id 派生命名，.gdignore 引擎零导入）
+  + main.tscn 仅呈现值接线（遮罩底统一 + 三按钮 primary/ghost 样式 + 次按钮热区 60→96）；
+  §1.6 验收口径①②③④全部落地面（④的「程序确认签字 + 真机触摸复跑」仍归程序侧二次复验）。
+  接线后复跑三门禁全绿（契约 46 PASS / verify preflight 110 文件+smoke / FX_SETTLE_PERSIST PASS，
+  PERF avg 60.9/稳态最差 53.5），原文归档 gate-logs/m1-recap-20260921-art-settlement/。
+  本批另发现并登记 blockers.md **B-8**：fx-settlement 契约测试隔离缺陷（user:// 残留档使前置必红、
+  门禁非幂等，`SaveState.wipe()` 晚于 Main 消费快照；美术会话已按「清档→契约」口径取证，未误判回归），
+  归属程序。风格卡零改动（本批全部取值从 §0 派生，无新色无新风格语言）。

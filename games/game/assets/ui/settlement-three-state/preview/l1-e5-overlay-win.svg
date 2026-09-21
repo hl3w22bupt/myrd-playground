@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="1280" viewBox="0 0 720 1280">
+  <!-- l1/e5 胜负遮罩 · WIN 态 · 结算三态 UI 稿（mockup，非运行时资产） -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2B2152"/>
+      <stop offset="1" stop-color="#0D122E"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 背景（Gradient_bg 同值） -->
+  <rect width="720" height="1280" fill="url(#bg)"/>
+
+  <!-- 棋盘残影（Board 72,512 · 6×6 × 96px，白 4% 几何，仅示意层级） -->
+  <g fill="#FFFFFF" fill-opacity="0.04">
+    <rect x="72"  y="512" width="88" height="88" rx="14"/><rect x="168" y="512" width="88" height="88" rx="14"/><rect x="264" y="512" width="88" height="88" rx="14"/><rect x="360" y="512" width="88" height="88" rx="14"/><rect x="456" y="512" width="88" height="88" rx="14"/><rect x="552" y="512" width="88" height="88" rx="14"/>
+    <rect x="72"  y="608" width="88" height="88" rx="14"/><rect x="168" y="608" width="88" height="88" rx="14"/><rect x="264" y="608" width="88" height="88" rx="14"/><rect x="360" y="608" width="88" height="88" rx="14"/><rect x="456" y="608" width="88" height="88" rx="14"/><rect x="552" y="608" width="88" height="88" rx="14"/>
+    <rect x="72"  y="704" width="88" height="88" rx="14"/><rect x="168" y="704" width="88" height="88" rx="14"/><rect x="264" y="704" width="88" height="88" rx="14"/><rect x="360" y="704" width="88" height="88" rx="14"/><rect x="456" y="704" width="88" height="88" rx="14"/><rect x="552" y="704" width="88" height="88" rx="14"/>
+    <rect x="72"  y="800" width="88" height="88" rx="14"/><rect x="168" y="800" width="88" height="88" rx="14"/><rect x="264" y="800" width="88" height="88" rx="14"/><rect x="360" y="800" width="88" height="88" rx="14"/><rect x="456" y="800" width="88" height="88" rx="14"/><rect x="552" y="800" width="88" height="88" rx="14"/>
+  </g>
+
+  <!-- 遮罩底 scrim = Color(0.065,0.055,0.12,0.9)，底板色对半压暗 -->
+  <rect width="720" height="1280" fill="#110E1F" fill-opacity="0.9"/>
+
+  <!-- L1 标题 · 金 Color(1,0.85,0.35) · 60px · anchor_y 0.34 -->
+  <text x="360" y="456" text-anchor="middle" font-family="Noto Sans SC, PingFang SC, sans-serif"
+        font-size="60" font-weight="700" fill="#FFD759">LEVEL 3 CLEAR!</text>
+
+  <!-- L2 分数 · 白 90% · 26px · anchor_y 0.455 -->
+  <text x="360" y="591" text-anchor="middle" font-family="Noto Sans SC, PingFang SC, sans-serif"
+        font-size="26" fill="#FFFFFF" fill-opacity="0.9">SCORE 620 / 1200</text>
+
+  <!-- L3 提示 · 白 75% · 19px · anchor_y 0.50 -->
+  <text x="360" y="649" text-anchor="middle" font-family="Noto Sans SC, PingFang SC, sans-serif"
+        font-size="19" fill="#FFFFFF" fill-opacity="0.75">TAP NEXT OR PRESS SPACE</text>
+
+  <!-- L4 主按钮 · 320×104（热区 ≥96）· 金底深紫字 · 圆角 14 · anchor_y 0.55 -->
+  <g>
+    <rect x="200" y="704" width="320" height="104" rx="14" fill="#FFD759"/>
+    <text x="360" y="768" text-anchor="middle" font-family="Noto Sans SC, PingFang SC, sans-serif"
+          font-size="26" font-weight="700" fill="#211D3D">下一关 NEXT</text>
+  </g>
+
+  <!-- 稿面标注（不入运行时） -->
+  <text x="360" y="1244" text-anchor="middle" font-family="Noto Sans SC, monospace"
+        font-size="13" fill="#FFFFFF" fill-opacity="0.35">settlement-three-state · l1-e5 WIN · mockup 720×1280 · not a runtime asset</text>
+</svg>
