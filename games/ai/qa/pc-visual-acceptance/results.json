@@ -1,0 +1,234 @@
+{
+ "runs": {
+  "wide": {
+   "label": "宽窗 1920×1080",
+   "viewport": {
+    "w": 1920,
+    "h": 1080,
+    "dpr": 1
+   },
+   "checks": [
+    {
+     "id": "A-boot",
+     "name": "引擎启动、canvas 渲染（boot 隐藏）",
+     "pass": true,
+     "detail": "1306ms，backing=1920x1080"
+    },
+    {
+     "id": "A-panel-in-anim",
+     "name": "面板出入场动效（0.16s 淡入含 ≥4 个中间亮度帧）",
+     "pass": true,
+     "detail": "samples=37 distinct=8 序列=[22.5,22.4,70.1,63.2,63,63,63,63,63,63,63,63,63]"
+    },
+    {
+     "id": "Z-console",
+     "name": "全程 console 零 error（视觉走查期间）",
+     "pass": true,
+     "detail": "0 条"
+    }
+   ],
+   "metrics": {
+    "bootMs": {
+     "value": 1306,
+     "unit": "ms（导航→引擎启动）"
+    },
+    "contentScale": {
+     "value": 3,
+     "unit": "逻辑px→物理px"
+    },
+    "viewportLogical": {
+     "value": "640x360",
+     "unit": "逻辑视口（expand）"
+    },
+    "titleDistinctColors": {
+     "value": 429,
+     "unit": "5bit 色彩数（色彩丰富度）"
+    },
+    "panelInDistinctLumFrames": {
+     "value": 8,
+     "unit": "淡入过程不同亮度帧数"
+    }
+   },
+   "nodeRows": [],
+   "consoleErrors": [],
+   "notes": [
+    "seg1: 35s 内未出现对话框（终局或异常）",
+    "未进入 ARENA（剧情推进异常），运动/精灵取证缺失"
+   ],
+   "ranAt": "2026-09-22T09:31:31.325Z",
+   "info": {
+    "dpr": 1,
+    "canvasBacking": {
+     "w": 1920,
+     "h": 1080
+    },
+    "canvasCss": {
+     "w": 1920,
+     "h": 1080
+    },
+    "inner": {
+     "w": 1920,
+     "h": 1080
+    }
+   },
+   "titleColors": 429,
+   "panelInSamples": [
+    {
+     "t": -6,
+     "lum": 22.5
+    },
+    {
+     "t": 11,
+     "lum": 22.4
+    },
+    {
+     "t": 44,
+     "lum": 22.4
+    },
+    {
+     "t": 61,
+     "lum": 22.4
+    },
+    {
+     "t": 94,
+     "lum": 22.4
+    },
+    {
+     "t": 111,
+     "lum": 22.4
+    },
+    {
+     "t": 128,
+     "lum": 70.1
+    },
+    {
+     "t": 178,
+     "lum": 65.7
+    },
+    {
+     "t": 194,
+     "lum": 64
+    },
+    {
+     "t": 228,
+     "lum": 63.2
+    },
+    {
+     "t": 261,
+     "lum": 62.9
+    },
+    {
+     "t": 278,
+     "lum": 63
+    },
+    {
+     "t": 311,
+     "lum": 63
+    },
+    {
+     "t": 328,
+     "lum": 63
+    },
+    {
+     "t": 361,
+     "lum": 63
+    },
+    {
+     "t": 378,
+     "lum": 63
+    },
+    {
+     "t": 411,
+     "lum": 63
+    },
+    {
+     "t": 428,
+     "lum": 63
+    },
+    {
+     "t": 461,
+     "lum": 63
+    },
+    {
+     "t": 478,
+     "lum": 63
+    },
+    {
+     "t": 511,
+     "lum": 63
+    },
+    {
+     "t": 527,
+     "lum": 63
+    },
+    {
+     "t": 561,
+     "lum": 63
+    },
+    {
+     "t": 578,
+     "lum": 63
+    },
+    {
+     "t": 611,
+     "lum": 63
+    },
+    {
+     "t": 644,
+     "lum": 63
+    },
+    {
+     "t": 661,
+     "lum": 63
+    },
+    {
+     "t": 694,
+     "lum": 63
+    },
+    {
+     "t": 711,
+     "lum": 63
+    },
+    {
+     "t": 744,
+     "lum": 63
+    },
+    {
+     "t": 761,
+     "lum": 63
+    },
+    {
+     "t": 794,
+     "lum": 63
+    },
+    {
+     "t": 811,
+     "lum": 63
+    },
+    {
+     "t": 844,
+     "lum": 63
+    },
+    {
+     "t": 878,
+     "lum": 63
+    },
+    {
+     "t": 894,
+     "lum": 63
+    },
+    {
+     "t": 911,
+     "lum": 63
+    }
+   ],
+   "passed": 3,
+   "total": 3
+  }
+ },
+ "notes": [],
+ "startedAt": "2026-09-22T09:31:30.933Z",
+ "liveUrl": "https://leomac-studio.tail49399e.ts.net/apps/ai/",
+ "hostedAppId": "cmtoavt8p0006m9y6kzy2u14w",
+ "deploymentId": "cmucd0la0002jm956a3lt30lu"
+}
