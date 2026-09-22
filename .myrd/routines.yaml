@@ -1,210 +1,63 @@
-# MyRD 项目自身的例行检查 — 供 e2e-gate pre-hook 与项目详情页 Routines Tab 使用（dogfood）
+# 游戏仓库例行检查 — 供 e2e-gate pre-hook 与项目详情页 Routines Tab 使用
 # 位置：仓库根目录 .myrd/routines.yaml
-# 触发时机：
-#   - e2e-gate pre-hook（工作流中挂了 preHook 的节点执行前）会自动运行所有 gate 未关闭的 routine
-#   - 项目详情页 Routines Tab 可手动运行任意 routine
-# gate 标记：默认 true = 必检（随 e2e-gate 默认门禁运行）；gate: false = 可选（不参与默认门禁，可手动运行或由工作流 preHook 直接引用）
+# 口径（重要）：只保留本仓库（游戏工程）能自洽执行的检查。不要把平台主仓（myrd）的
+# backend/frontend/E2E routine 复制进来——本仓库无 Node 后端与 Prisma，npx 会拉到全局
+# 缓存的 prisma@8 RC（无 generate 命令）必然失败（2026-09-21 run cmuajxsyy 事故实证）。
+# gate 标记：默认 true = 必检（随 e2e-gate 门禁运行）；gate: false = 可选（手动运行或工作流 preHook 引用）。
 version: 1
 routines:
-  - id: git-hygiene
-    name: Git 卫生检查
-    description: 提交前的仓库卫生检查 — 空白错误、冲突标记、未提交内容（秒级，无需依赖）
-    steps:
-      - name: whitespace-check
-        command: "git diff --check origin/main...HEAD"
-        target: host
-        timeout: 30
-      - name: conflict-marker-check
-        command: "! grep -rnE '^(<<<<<<<|>>>>>>>)' src frontend prisma .myrd --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=dist --exclude-dir=.next 2>/dev/null"
-        target: host
-        timeout: 30
-      - name: committed-check
-        command: "test -z \"$(git status --porcelain)\" || (echo '存在未提交的修改，请先 git commit'; git status --short; exit 1)"
-        target: host
-        timeout: 30
-
-  - id: backend-quality
-    name: TS 编译检查（根 + server 壳）
-    description: >
-      安装依赖并做 TypeScript 类型检查。本仓库为 Godot 小游戏 + 静态 Web 工程：无后端服务、
-      无数据库、无 Prisma（schema.prisma 与 prisma 依赖均不存在）——原 MyRD 平台模板的
-      `npx prisma generate` 步骤在此不可满足，且当前 `npx prisma` 解析为 Prisma Developer
-      Platform CLI，其命令集已无 `generate`（报 CLI.UNKNOWN_COMMAND）。等价门禁 =
-      根与 server 壳依赖可安装 + 两处 `tsc --noEmit` 全绿（2026-09-21 基线实测均 exit 0）。
-      根 src/ 无独立 package.json/tsconfig（类型检查以根 tsconfig 覆盖）。
-    steps:
-      - name: install
-        command: "npm install --no-audit --no-fund --silent"
-        target: host
-        timeout: 900
-      - name: typecheck
-        command: "npx tsc --noEmit"
-        target: host
-        timeout: 300
-      - name: server-install
-        command: "npm install --no-audit --no-fund --silent"
-        cwd: server
-        target: host
-        timeout: 600
-      - name: server-typecheck
-        command: "npx tsc --noEmit"
-        cwd: server
-        target: host
-        timeout: 300
-
-  - id: frontend-quality
-    name: 前端质量检查（根 Web 工程）
-    description: >
-      本仓库 `frontend/` 为空壳目录（无 package.json，仅遗留空 tests/，git 未跟踪）——原模板的
-      `cwd: frontend` 三步在此必红（npm run lint 无脚本可跑）。本仓库真实前端形态 = 根静态 Web
-      工程（pubg-web TS）。等价门禁 = 依赖可安装 + 根 vitest 套件全绿（2026-09-21 基线 106/106
-      PASS）。lint 暂不入门禁：根 `npm run lint` 对 pubg-web 遗留代码报 655 错误（'console' is
-      not defined 等 globals/配置问题），待专项清理后另行挂载；游戏侧自动化门禁由 godot-smoke /
-      game-contract 承担。
-    steps:
-      - name: install
-        command: "npm install --no-audit --no-fund --silent"
-        target: host
-        timeout: 600
-      - name: unit-test
-        command: "npm run test"
-        target: host
-        timeout: 600
-
-  - id: local-env-e2e
-    name: 本地环境端到端验证
-    description: 用随机端口拉起 docker-compose.e2e.yml 本地环境（多 worktree 并发安全），对最新代码跑 Playwright E2E，随后清理
-    gate: false   # 重型检查：仅从 Routines Tab 手动运行，不参与自动门禁
-    steps:
-      - name: env-up
-        command: "bash scripts/e2e-env.sh up"
-        target: host
-        timeout: 600
-      - name: e2e-prep
-        command: "npm install --no-audit --no-fund --silent && npx playwright install --with-deps chromium"
-        cwd: frontend
-        target: host
-        timeout: 600
-      - name: e2e-seed
-        command: "bash -c '. .myrd/.e2e-env && PGPASSWORD=myrd_password psql -h localhost -p \"$MYRD_E2E_PG_PORT\" -U myrd -d myrd -f scripts/e2e-seed.sql'"
-        target: host
-        timeout: 60
-      - name: e2e-run
-        command: "export API_URL=$(bash ../scripts/e2e-env.sh api-url); export E2E_BASE_URL=$(bash ../scripts/e2e-env.sh base-url); npm run test:e2e"
-        cwd: frontend
-        target: host
-        timeout: 900
-      - name: env-down
-        command: "bash scripts/e2e-env.sh down"
-        target: host
-        timeout: 120
-        always: true
-
-  - id: full-e2e
-    name: 完整 E2E 验证
-    description: 按需求/bug 描述生成针对性 Playwright 用例 → 部署当前 worktree 环境 → 跑用例 → 清理（需求与 bug 修复均适用）
-    gate: false   # 不参与默认门禁；工作流通过 preHook: full-e2e 直接引用它作为门禁
-    steps:
-      - name: generate-tests
-        type: agent
-        command: |
-          根据任务/需求描述，为本次代码变更生成针对性的 Playwright E2E 测试用例，写入 frontend/tests/e2e/generated/<本次 runId>/ 目录（参考已有用例的命名与模式）。
-
-          ⚠️ 关键背景（必须遵守，否则会产生误判失败）：
-          - E2E 运行在「全新空数据库 + 随机隔离端口」：除 global-setup 注册的 e2e@myrd.dev 账号外，没有任何预置业务数据（无项目/任务/需求/工作流/原型等）。
-          - 被测前端 dev server 会真实请求后端 API；「查不到就抛错」的接口（task-detail / workflows/runs/:runId / workflow 详情等 findUniqueOrThrow 型）在空库必然 500 失败——这「不代表被测功能有 bug」，是测试环境缺数据。
-
-          用例必须满足以下之一（禁止依赖环境已有数据）：
-          1. 【优先】全量 route mock：用 page.route() 拦截页面/流程会触发的「所有」API 请求并返回确定性 mock 数据。
-             - 一个页面加载会触发多个 API（详情、列表、状态、workflow 运行、版本等），必须逐一覆盖全部，不能只 mock 主接口。
-             - 用 page.on('request') 记录实际请求，断言关键 API 都已被 mock，避免漏网请求打到空库。
-          2. 真实端到端：若需走真实后端，先通过 API（request 上下文 + e2e 登录 token，参照 global-setup.ts）创建测试所需数据（项目/需求/任务/工作流等）再访问页面，测试结束清理。
-
-          禁止事项：
-          - 禁止直接访问依赖预置记录才能渲染的详情页（workflow run 详情、任务详情等），除非已同步 mock 全部相关 API 或造好数据。
-          - 禁止写「假设环境里已存在某条记录」的断言。
-        target: host
-        timeout: 1800
-      - name: env-up
-        command: "bash scripts/e2e-env.sh up"
-        target: host
-        timeout: 600
-      - name: e2e-prep
-        command: "npm install --no-audit --no-fund --silent && npx playwright install --with-deps chromium"
-        cwd: frontend
-        target: host
-        timeout: 600
-      - name: e2e-seed
-        command: "bash -c '. .myrd/.e2e-env && PGPASSWORD=myrd_password psql -h localhost -p \"$MYRD_E2E_PG_PORT\" -U myrd -d myrd -f scripts/e2e-seed.sql'"
-        target: host
-        timeout: 60
-      - name: e2e-run
-        command: "export API_URL=$(bash ../scripts/e2e-env.sh api-url); export E2E_BASE_URL=$(bash ../scripts/e2e-env.sh base-url); npm run test:e2e"
-        cwd: frontend
-        target: host
-        timeout: 900
-      - name: env-down
-        command: "bash scripts/e2e-env.sh down"
-        target: host
-        timeout: 120
-        always: true
-
-  - id: godot-smoke
-    name: Godot 无头冒烟
-    description: 对 Godot 工程跑前置一致性检查 + 无头运行冒烟，断言退出码与 GODOT_SMOKE 标记 —— 「游戏能不能跑且玩得动」的机判门禁
-    gate: false   # 只该挂在 Godot 目标的工作流上（preHook: godot-smoke 显式引用），不参与非游戏目标的默认门禁
-    # 工程路径已参数化（{{gamePath}} / {{smokeFrames}}），同一条 routine 可服务仓库里的多个游戏工程：
-    #   - params 里是默认值（本仓 dogfood = Coin Rush）；
-    #   - 工作流节点用 preHookParams 按工程覆盖，例如 { gamePath: "games/my-game", smokeFrames: "240" }；
-    #   - 引用了未提供的入参时该 step 直接失败（错误信息里列出可用入参），不会静默跑错工程。
-    params:
-      gamePath: games/godot-coin-rush   # 默认被测工程（相对仓库根）
-      smokeFrames: 240                  # --quit-after 帧数兜底，必须与该工程 verify.sh 同值
-    steps:
-      # 环境前置 —— 没有 Godot 直接给明确失败原因（退出码 2 = 环境不可用，装环境而不是改代码）
-      # GODOT_BIN 解析唯一实现在 scripts/resolve-godot.sh，与 headless-smoke 同源，不会各说各话
-      - name: godot-availability
-        command: "bash std-skills/godot-game-dev/scripts/resolve-godot.sh >/dev/null"
-        target: host
-        timeout: 30
-      # 12 类前置一致性静态检查（无需 Godot，秒级，先拦「必然黑屏」的接线缺陷）
-      - name: preflight
-        command: "python3 std-skills/godot-game-dev/scripts/preflight.py {{gamePath}}"
-        target: host
-        timeout: 120
-      # 无头导入 + 冒烟场景运行，断言退出码 0 且日志含 GODOT_SMOKE: PASS
-      # ⚠️ GODOT_SMOKE_FRAMES={{smokeFrames}} 必须与被测工程 verify.sh 的预算同值：
-      #    冒烟场景要跑完「移动 + 探测 + 收集 + 胜利 + 重开」全部协程，smoke.sh 默认 120 帧兜底
-      #    会在协程跑完前杀进程 → 既无 PASS 也无 FAIL → 健康游戏被误判失败
-      #    （实测：Coin Rush 需约 132 物理帧，不带该变量时本 step 退出码 1，原因正是「120 帧内没有打出标记」）。
-      #    预算只放宽兜底，不改变判定语义；新工程接入时按该工程 verify.sh 的预算同步 preHookParams。
-      - name: headless-smoke
-        command: "GODOT_SMOKE_FRAMES={{smokeFrames}} GODOT_BIN=\"$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)\" bash std-skills/godot-game-dev/scripts/smoke.sh {{gamePath}}"
-        target: host
-        timeout: 300
-      # 输入鲁棒性 fuzz —— 确定种子随机事件序（动作/触摸/鼠标 + 悬挂手势/孤儿释放/双指抢控）
-      # 下的存活判定：不崩溃、无脚本错误、主循环不挂死。「玩法语义不变式」（如任意输入序后
-      # 标准滑动必须生效）由各工程 tests/smoke.gd 的噪声相位覆盖（模板内置），与本层互补。
-      - name: input-fuzz
-        command: "GODOT_BIN=\"$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)\" bash std-skills/godot-game-dev/scripts/input-fuzz.sh {{gamePath}}"
-        target: host
-        timeout: 180
-
-  # 契约测试门禁（mobius-design R4 / D1×D3 耦合点）——「实现是否符合策划案」的机器层验收：
-  # 读 approved 版 GameDesignSpec（导出到工程的 .myrd/spec/design-spec.json），断言 spec 里声明的
-  # 实体/关卡/数值/验收检查在工程里真实存在、关卡元素编号稳定唯一（关卡编辑页的落点契约）。
-  # 与 godot-smoke 分工：smoke 管「能不能跑」，contract 管「跑的是不是策划案里那个游戏」。
-  - id: game-contract
-    name: 游戏契约测试
-    description: 断言工程实现与 approved 版策划案（GameDesignSpec）一致 —— 实体/关卡落点文件存在、验收项有可执行检查、关卡元素编号稳定唯一
-    gate: false   # 只该挂在游戏目标的工作流上（preHook: game-contract 显式引用）；没有策划案的目标不参与
-    # 脚本来源：scripts/contract-check.mjs（MyRD 仓内）。第三方工程使用时先把它复制进本工程 scripts/
-    # （零依赖 Node 脚本，无安装成本），或把 routine 的 specPath/projectDir 按工程路径覆盖。
-    params:
-      specPath: .myrd/spec/design-spec.json   # approved 版策划案导出路径（相对 worktree 根）
-      projectDir: .                            # 被测项目根（相对 worktree 根）
-    steps:
-      - name: contract-check
-        command: "node scripts/contract-check.mjs --spec {{specPath}} --project {{projectDir}}"
-        target: host
-        timeout: 120
+- id: git-hygiene
+  name: Git 卫生检查
+  description: 提交前的仓库卫生检查 — 空白错误、冲突标记、未提交内容（秒级，无需依赖）
+  steps:
+  - name: whitespace-check
+    command: git diff --check origin/main...HEAD
+    target: host
+    timeout: 30
+  - name: conflict-marker-check
+    command: '! grep -rnE ''^(<<<<<<<|>>>>>>>)'' games scripts .myrd --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.godot
+      2>/dev/null'
+    target: host
+    timeout: 30
+  - name: committed-check
+    command: test -z "$(git status --porcelain)" || (echo '存在未提交的修改，请先 git commit'; git status --short; exit 1)
+    target: host
+    timeout: 30
+- id: godot-smoke
+  name: Godot 无头冒烟
+  description: 对 Godot 工程跑前置一致性检查 + 无头运行冒烟，断言退出码与 GODOT_SMOKE 标记 —— 「游戏能不能跑且玩得动」的机判门禁
+  gate: false
+  params:
+    gamePath: games/godot-coin-rush
+    smokeFrames: 240
+  steps:
+  - name: godot-availability
+    command: bash std-skills/godot-game-dev/scripts/resolve-godot.sh >/dev/null
+    target: host
+    timeout: 30
+  - name: preflight
+    command: python3 std-skills/godot-game-dev/scripts/preflight.py {{gamePath}}
+    target: host
+    timeout: 120
+  - name: headless-smoke
+    command: GODOT_SMOKE_FRAMES={{smokeFrames}} GODOT_BIN="$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)" bash
+      std-skills/godot-game-dev/scripts/smoke.sh {{gamePath}}
+    target: host
+    timeout: 300
+  - name: input-fuzz
+    command: GODOT_BIN="$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)" bash std-skills/godot-game-dev/scripts/input-fuzz.sh
+      {{gamePath}}
+    target: host
+    timeout: 180
+- id: game-contract
+  name: 游戏契约测试
+  description: 断言工程实现与 approved 版策划案（GameDesignSpec）一致 —— 实体/关卡落点文件存在、验收项有可执行检查、关卡元素编号稳定唯一
+  gate: false
+  params:
+    specPath: .myrd/spec/design-spec.json
+    projectDir: .
+  steps:
+  - name: contract-check
+    command: node scripts/contract-check.mjs --spec {{specPath}} --project {{projectDir}}
+    target: host
+    timeout: 120
