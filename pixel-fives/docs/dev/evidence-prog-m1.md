@@ -95,3 +95,50 @@ python3 -m http.server 8000 --directory . && curl -sI http://localhost:8000/pixe
 | bot-sim 门禁未实跑 | 风险（中） | goal_range [1,12] 对全部 100 seed 的满足度需一次实跑确认；出现越界 seed 时按 R-08 逐 seed 修复 bot 策略（杠杆见 DR-P4），禁止放宽区间 | 跑 §6 第 5 条命令，越界按 per_game.seed 定位 |
 | spec 未 approved | 流程 | 契约槽位按指示保持 pending-approved；contract-check 自动降级警示模式 | 主策划批准后翻转（acc-09） |
 | 黑板/OD daemon 不可达 | 环境升级项 | 与 Team Lead 升级口径一致 | 证据已落 repo（本文件），不阻塞他线 |
+
+## 9. M1 复验三件套（2026-09-22 游戏程序批次 · M1 收口验证冲刺）
+
+> 衔接 9/21 16:00 三态清单。本批为纯复验 + 缺口补测：业务代码零改动，spec 零改动。
+
+### 9.1 三件套与复跑命令（可整段粘贴复现）
+
+```bash
+# 一键三件套（契约测试 + 局末→结算→重开冒烟 + bot-sim 100 场逐场比分，日志自动归档）
+bash pixel-fives/tools/m1-reverify.sh
+
+# 单件等价命令
+node pixel-fives/tools/contract-check.mjs                        # ① 契约测试（acc-07）
+node pixel-fives/tests/smoke/full-match.test.mjs                 # ② 冒烟：开球→90s 局末→终局比分（acc-01）
+node pixel-fives/tests/smoke/fulltime-restart.test.mjs           # ② 冒烟：局末→结算→重开全链路（本批新增）
+node pixel-fives/tools/bot-sim.mjs --seeds 42..141 --json        # ③ bot-sim 100 场逐场比分（acc-03/04）
+```
+
+### 9.2 本批实跑结果（2026-09-22 10:37，归档 `gate-logs/m1-reverify-20260922-103720-prog/`）
+
+| 件 | 命令 | 结果 |
+|---|---|---|
+| ① 契约测试 | `node pixel-fives/tools/contract-check.mjs` | exit 0，43 PASS / 1 WARN / 0 FAIL |
+| ② 冒烟·完整对局 | `node pixel-fives/tests/smoke/full-match.test.mjs` | exit 0，9/9 PASS（seed 42，比分 5:2，fps_min 81554，p95 0.0022ms） |
+| ② 冒烟·局末→结算→重开 | `node pixel-fives/tests/smoke/fulltime-restart.test.mjs` | exit 0，**27/27 PASS**（本批新增测试） |
+| ③ bot-sim 100 场 | `node pixel-fives/tools/bot-sim.mjs --seeds 42..141 --json` | exit 0，goal_range_ratio=1.0，duration_in_range_ratio=1.0，games_with_errors=0；同 seed 复跑 `diff` 为空（逐字节一致） |
+
+### 9.3 缺口补测：fulltime-restart.test.mjs（27 断言）
+
+spec §levels.pitch.match_flow.fulltime 的「再来一局重开（比分清零）」此前**零测试覆盖**
+（`Match.restart()` 全工程仅 match.js 一处定义，无任何断言）。本批补齐：
+
+- **局末（A1–A6）**：踢满 90s 到 fulltime、终局比分可读且落在门禁区间、进球留痕齐备；
+- **结算冻结（B1–B5）**：fulltime 后 step() 不再推进（比分/计时/球位/球员全冻结）、HUD timeLeftS=0；
+- **重开（C1–C9）**：`Match.restart()` 比分清零、计时归零、阶段回 playing、庆祝/音效/触球痕迹清空、
+  el-05/06/07 复位（速度清零）、onboarding 提示重新可见；
+- **重开可玩（D1–D4）**：restart() 后换新控制器再踢完整一局到 fulltime（零报错、有射门有触球）；
+- **重开复现性（E1–E3）**：web 层 setup() 语义（全新 Match + 新 BotController）同 seed 从头再踢，
+  逐 tick 采样与首局一致、终局比分一致（R-08 确定性纪律在重开场景的体现）。
+
+### 9.4 本批待办与偏差
+
+- 首跑归档目录 `m1-reverify-20260922-103701-prog` 因脚本缺陷（`$STAMP` 后接全角括号被 bash
+  解析为变量名，中断于汇总块、无 00-summary）已删除，四件门禁结果由 19 秒后的完整复跑
+  `m1-reverify-20260922-103720-prog` 等价覆盖；脚本缺陷已修复（`${STAMP}`）。
+- `fulltime-restart.test.mjs` 尚未登记进 spec acceptance（spec v1.2 冻结，不加条目）；
+  建议随 v1.3 出版时作为 acc-01 的补充 check 落点收编（主策划走 revisions 决定）。

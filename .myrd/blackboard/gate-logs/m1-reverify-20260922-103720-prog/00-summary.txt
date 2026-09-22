@@ -1,0 +1,10 @@
+M1 复验三件套 @ 20260922-103720（足球线 pixel-fives）
+复现命令：bash pixel-fives/tools/m1-reverify.sh
+
+1-contract-check         exit=0
+2-full-match-smoke       exit=0
+3-fulltime-restart       exit=0
+4-bot-sim-100            exit=0
+
+判定：ALL-GREEN
+归档目录：/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmubzbj99000um95l7row2f00/.myrd/blackboard/gate-logs/m1-reverify-20260922-103720-prog

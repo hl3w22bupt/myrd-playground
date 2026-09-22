@@ -135,3 +135,4 @@
 ## 变更记录（追加式）
 
 - 2026-09-22 主策划（M2 立项冲刺）：足球线资产 A05 边框两行断宽修复（gen-assets 16 项 FAIL → 0，15,532B ≤1.5MB）；A08 音频 52,964B 生成落盘；M2 反馈表现力候选资产清单 v1 落文（pixel-fives/docs/art/asset-list-m2-feedback-v1.md，批准前零落盘）。糖果线资产零改动。
+- 2026-09-22 游戏程序（复验三件套批次 · 足球线）：**本批资产零改动**（清单/manifest/产物三处零 diff）——批次为纯复验 + 缺口补测（tests/smoke/fulltime-restart.test.mjs + tools/m1-reverify.sh），资产预算维持 9/22 早间口径（15,532B ≤ 1,572,864B，acc-08 原文 gate-logs/m1-recap-20260922-pixel-fives/7-gen-assets.log；本批三件套复跑未触资产管线）。
