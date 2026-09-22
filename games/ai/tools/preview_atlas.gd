@@ -55,6 +55,6 @@ func _init() -> void:
 		var scaled: Image = tex.get_image()
 		scaled.resize(CELL.x, CELL.y, Image.INTERPOLATE_LANCZOS)
 		img.blend_rect(scaled, Rect2i(Vector2i.ZERO, CELL), Vector2i(ox, oy))
-	img.save_png("res://tools/sprite-preview.png")
-	print("sprite-preview.png written: %d×%d (%d 帧)" % [img.get_width(), img.get_height(), ROWS.size()])
+	img.save_png("user://sprite-preview.png")
+	print("user://sprite-preview.png written: %d×%d (%d 帧)" % [img.get_width(), img.get_height(), ROWS.size()])
 	quit(0)

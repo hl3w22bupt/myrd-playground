@@ -6,7 +6,9 @@ const SHOT_DIR: String = "user://shots"
 
 
 func _ready() -> void:
-	DirAccess.make_dir_recursive_absolute(SHOT_DIR.trim_prefix("user://"))
+	var user_dir := DirAccess.open("user://")
+	if user_dir != null:
+		user_dir.make_dir_recursive("shots")
 	var main: Node2D = load("res://scenes/main.tscn").instantiate()
 	add_child(main)
 	await _wait(18)
@@ -51,6 +53,12 @@ func _dump_dialog_state(main: Node2D) -> void:
 			" offsets=", options.offset_left, ",", options.offset_top, ",", options.offset_right, ",", options.offset_bottom)
 	print("[dump] canvas=", main.get_viewport_rect().size, " window=", DisplayServer.window_get_size(),
 			" safe=", DisplayServer.get_display_safe_area(), " play=", GameState.play_area_size())
+	print("[dump] safe_inset=", main.get("_safe_inset"), " fit=", main.get("last_dialog_fit"))
+	print("[dump] panel anchors=", panel.anchor_left, ",", panel.anchor_top, ",", panel.anchor_right, ",", panel.anchor_bottom,
+			" offsets=", panel.offset_left, ",", panel.offset_top, ",", panel.offset_right, ",", panel.offset_bottom)
+	print("[dump] panel size=", panel.size, " pos=", panel.position, " scale=", panel.scale,
+			" pivot=", panel.pivot_offset, " parent=", panel.get_parent().get_class(),
+			" parent_size=", panel.get_parent_area_size())
 	for child in options.get_children():
 		var button := child as Button
 		print("[dump]   btn rect=", button.get_global_rect(), " modulate=", button.modulate,
