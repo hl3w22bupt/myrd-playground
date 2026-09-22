@@ -101,6 +101,33 @@
 >   verify PREFLIGHT 110 文件），原文 `gate-logs/m1-recap-20260921-110550-prog-signoff/`（7 份）。
 >   **B-#1 剩真机触摸复跑一项**（归真机复验批次，本环境无真机不代出）。
 
+## 1.7 足球线资产清单（Pixel Fives · A01–A08 · 9/22 美术归位批次）
+
+> 状态：**approved（2026-09-12 主策划盖章）且全部已接线**；风格真源 = `pixel-fives/docs/art/style-card-v1.md`
+> （v1-APPROVED，20 色锁 + 光照/线条/比例四要素）；台账 = `pixel-fives/docs/art/asset-registry-v1.md`
+> （头部状态 9/22 美术批次刷新为 approved，接线实况见其 §3.1）。本区为归位登记：路径 + 接线点 + 回退。
+
+| 资产 | 源（.grid 真源） | 规格 | 接线点（加载 → 渲染/播放） | 失败回退 |
+|---|---|---|---|---|
+| A01 pitch-tileset | `pixel-fives/assets/a01-pitch-tileset.grid` | 16×16 ×4 | gridSprites → renderer.renderPitch 铺 tile | 占位平涂条纹 |
+| A02 player-red | `pixel-fives/assets/a02-player-red.grid` | 16×16 ×6 | loadGrid(swap) → renderPlayers kit=red | 队色块 + 朝向白点 |
+| A03 player-blue | 派生 = A02 换色 r/R/x→b/B/y | 16×16 ×6 | 同上 swapped → kit=blue（构建期另出 a03 PNG） | 同上 |
+| A04 ball | `pixel-fives/assets/a04-ball.grid` | 8×8 ×4 @12fps | → renderBall roll 采样 | 白圆 + 暗描边 |
+| A05 goal-net | `pixel-fives/assets/a05-goal-net.grid` | 32×24 ×1 | → renderGoals 左门/右门镜像 | 门柱 1px + 网格 |
+| A06 kick-shot | `pixel-fives/assets/a06-kick-shot.grid` | 16×16 ×9 @12fps=0.75s | loadGrid(swap) → kickAnimT 九帧链 | 占位白描边闪烁 |
+| A07 ui-hud | `pixel-fives/assets/a07-ui-hud.grid` | 48×16 九宫格 | → renderHud 面板（比分=系统字体，不占位图预算） | PAL.panel 矩形 |
+| A08 sfx-goal-hit | `pixel-fives/assets/a08-sfx-goal-hit.spec.json` → `assets/out/*.wav` | 0.6s/44.1kHz/seed=20260912 | main.js fetch WAV → 进球即播（偏移 0.0s） | WebAudio 同 seed 合成 |
+
+- **预算**：68,496B / 1,572,864B（4.4%，acc-08 闸门 `node pixel-fives/tools/gen-assets.mjs` 强校验超线 exit 1；
+  9/22 本批复跑 [OK] 且产物与盘上字节级一致——确定性成立）。
+- **接线纪律**：资产加载失败一律返回 null → 程序内建占位精灵，游戏不被美术阻塞；占位色全部取
+  manifest.style_lock 调色板（零卡外色）。
+- **门禁证据（9/22 美术会话独立复跑，资产零改动）**：足球三件套 4/4 exit 0（契约 approved v1.2 强制模式 +
+  full-match + fulltime-restart + bot-sim 100 场两比率=1.0）+ 糖果线 verify.sh / 契约 46 PASS / fx 契约
+  PASS（PERF avg 61.0 / 稳态最差 53.7）——原文归档 `gate-logs/m1-reverify-20260922-104610-art/`。
+- **后续**：M2 反馈资产 A09–A14 按 `pixel-fives/docs/art/asset-list-m2-feedback-v1.md` 量产，
+  前置 = 主人批准 v1.3（批准前零落盘）。
+
 ## 3. 变更记录
 
 - 2026-09-20 主策划：建档；风格卡与清单按当日工程实况（代码常量 + LICENSE.md）整理，未新增任何素材。
@@ -136,3 +163,13 @@
 
 - 2026-09-22 主策划（M2 立项冲刺）：足球线资产 A05 边框两行断宽修复（gen-assets 16 项 FAIL → 0，15,532B ≤1.5MB）；A08 音频 52,964B 生成落盘；M2 反馈表现力候选资产清单 v1 落文（pixel-fives/docs/art/asset-list-m2-feedback-v1.md，批准前零落盘）。糖果线资产零改动。
 - 2026-09-22 游戏程序（复验三件套批次 · 足球线）：**本批资产零改动**（清单/manifest/产物三处零 diff）——批次为纯复验 + 缺口补测（tests/smoke/fulltime-restart.test.mjs + tools/m1-reverify.sh），资产预算维持 9/22 早间口径（15,532B ≤ 1,572,864B，acc-08 原文 gate-logs/m1-recap-20260922-pixel-fives/7-gen-assets.log；本批三件套复跑未触资产管线）。
+- 2026-09-22 游戏美术（归位 + 独立复验批次，资产零改动 · 零新素材）：① **台账归位**——§1.7 足球线
+  资产清单落黑板（A01–A08 路径/接线点/回退逐项登记，兑现 asset-registry-v1.md §5 待归位第 1/2 项）；
+  ② **登记册状态刷新**——`pixel-fives/docs/art/asset-registry-v1.md` 头部与主表 draft-pending-approval →
+  approved（依据 = docs/spec/v1.2-approval-record.md 2026-09-12 盖章，规格内容零改动）+ 新增 §3.1 接线实况
+  （A01–A08 全接线、回退全成立，零缺口）+ §6 变更记录；③ **独立复跑全绿**（当前 HEAD 9152e4b）——
+  足球三件套 4/4 exit 0 + 糖果 verify.sh（preflight 110 文件 + smoke）+ 契约 46 PASS/0 FAIL +
+  FX_SETTLE_PERSIST PASS（PERF avg 61.0/稳态最差 53.7）+ gen-assets 预算闸门 68,496B/1.5MB
+  且全部产物字节级一致，原文 `gate-logs/m1-reverify-20260922-104610-art/`；④ 风格锁复检——.grid 色号
+  ⊆ 20 色锁、palette_used 登记一致、A03 换色派生三条映射封闭（gen-assets 校验 0 FAIL）。M2 A09–A14
+  与 N1 snake-ghost 维持批准前零落盘纪律，本批未产出。
