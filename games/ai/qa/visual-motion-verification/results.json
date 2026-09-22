@@ -1,0 +1,42 @@
+{
+  "round": "v2.3.0-visual-motion",
+  "requirementId": "cmuc6ynmq001rm956r3szlnyd",
+  "verifiedAt": "2026-09-22T15:30:00+08:00",
+  "commit": "df0c3c9adbaec57f36ac302aa4c4b0c151a435d3",
+  "branch": "myrd/games-goal-cmtoavt8w0008m9y6kclb4s19",
+  "gates": {
+    "godot": "4.3.stable.official.77dcf97d8",
+    "preflight": { "pass": true, "checks": 13, "files": 257, "exitCode": 0 },
+    "smoke": {
+      "pass": true,
+      "frames": 240,
+      "exitCode": 0,
+      "marker": "GODOT_SMOKE: PASS 契约五件 + 演算三链（独活/带走一个/清除）+ 行为十组（含移动端触摸与虚拟摇杆）全部通过",
+      "scriptErrors": 0
+    }
+  },
+  "scopes": {
+    "fontOverflow": { "pass": true, "assertCombos": 18, "pixelChecks": ["panel_encloses_text", "render_height<=box", "dialog_options_overlap_zero"] },
+    "spriteQuality": { "pass": true, "characters": ["lumi", "vex", "ada", "momo", "sera", "player"], "framesEach": 6, "totalFrames": 36, "placeholderResidue": 0 },
+    "motionSmooth": { "pass": true, "numericKeys": ["move_speed", "move_accel", "move_decel", "turn_speed", "walk_anim_fps", "walk_frame_threshold"] },
+    "uiPolish": { "pass": true, "paletteLevels": 4, "animParamsIn": "data/spec/ui.json" }
+  },
+  "deployment": {
+    "deploymentId": "cmucc2c9q002dm956u5vk2axz",
+    "version": 16,
+    "status": "running",
+    "mode": "bundle",
+    "liveUrl": "https://leomac-studio.tail49399e.ts.net/apps/ai/",
+    "health": { "http": 200, "ok": true, "gameVersion": "2.3.0-visual-motion" },
+    "pageCanvas": true,
+    "fingerprints": {
+      "index.pck": { "md5": "8c536022be96cc43fde3a9f4dcd77610", "bytes": 4470544, "liveLocalMatch": true },
+      "index.wasm": { "md5": "af4a8fc2925d992348eb30deeeb54360", "bytes": 35376909, "liveLocalMatch": true }
+    }
+  },
+  "nonBlockingObservations": [
+    "headless 冒烟强制快进相位触发 Tween 目标提前释放 warning（正常游玩节奏不出现；判定协议只拦 SCRIPT ERROR/Parse Error）",
+    "退出时 ObjectDB instances leaked warning（Godot 场景树退出顺序固有提示）"
+  ],
+  "verdict": "PASS"
+}
