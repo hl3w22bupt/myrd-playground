@@ -3,11 +3,22 @@
   "name": "桃桃",
   "title": "活泼系 · 戏精 · 关注度成瘾",
   "color": "#ffb35c",
-  "personality_tags": ["活泼系", "戏精", "关注度成瘾"],
+  "personality_tags": [
+    "活泼系",
+    "戏精",
+    "关注度成瘾"
+  ],
   "speech_style": {
     "tone": "网络梗高密度，语速快，永远对着不存在的镜头说话",
-    "verbal_tics": ["冲鸭", "呜哇", "家人们"],
-    "forbidden": ["长时间沉默", "低沉阴郁独白"],
+    "verbal_tics": [
+      "冲鸭",
+      "呜哇",
+      "家人们"
+    ],
+    "forbidden": [
+      "长时间沉默",
+      "低沉阴郁独白"
+    ],
     "sample_line": "让开让开！桃桃进场！全宇宙都在围观这扇门，人气就是生命力！"
   },
   "catchphrase": "冲鸭冲鸭！今天也要元气满满！",
@@ -15,8 +26,15 @@
     "favor_initial": 50,
     "interact_modifier": 2,
     "interact_sanity_regen": 22,
-    "gains": { "playful": 10, "gentle": 8, "share": 5 },
-    "losses": { "pretend": -15, "ignore": -15 }
+    "gains": {
+      "playful": 10,
+      "gentle": 8,
+      "share": 5
+    },
+    "losses": {
+      "pretend": -15,
+      "ignore": -15
+    }
   },
   "threat_rules": {
     "threat_initial": 20,
@@ -28,12 +46,14 @@
   },
   "portrait_prompt": "橘色双马尾的元气少女，卫衣配运动鞋，比着剪刀手，明亮高饱和打光，二次元立绘",
   "art": {
-    "portrait": "assets/art/personas/momo/portrait.svg",
-    "avatar": "assets/art/personas/momo/avatar.svg",
+    "portrait": "assets/art/personas/momo/portrait.png",
+    "avatar": "assets/art/personas/momo/avatar.png",
     "expressions": [
-      "assets/art/personas/momo/expr-normal.svg",
-      "assets/art/personas/momo/expr-happy.svg",
-      "assets/art/personas/momo/expr-crisis.svg"
-    ]
+      "assets/art/personas/momo/expr-normal.png",
+      "assets/art/personas/momo/expr-happy.png",
+      "assets/art/personas/momo/expr-crisis.png"
+    ],
+    "idle_sheet": "assets/art/personas/momo/sheet-idle.png",
+    "walk_sheet": "assets/art/personas/momo/sheet-walk.png"
   }
 }
