@@ -1,8 +1,8 @@
 # blockers.md — 阻塞项与升级线（共享黑板）
 
-> 更新时间：2026-09-21（M1 门禁收口冲刺日 · 主策划整合批次）
+> 更新时间：2026-09-22（M1 收口验证 + M2 立项冲刺 · 主策划整合批次）
 > 负责人：主策划（每次整合后更新；阻塞超过一轮解决不了 → 停下升级主人，不空转）
-> 下一步：主人三件呈批——spec v1 追认（B-0）、v1.2 口径二选一（B-3）、spec 修订建议两条；N1 已按终裁发令（§A6.3）
+> 下一步：完成确认单呈主人拍板（M1 宣告 / spec 追认 / v1.3 出版 / N1 立项点头，见文末「升级汇总」）
 
 ---
 
@@ -10,10 +10,11 @@
 
 | 项 | 值 |
 |---|---|
-| 黑板路径 | `.myrd/blackboard/`（levels.md / assets.md / blockers.md / concept-pool-v1.md / m1-gate-runbook.md / m1-rejection-ledger-v2.md） |
-| 策划案版本号 | `.myrd/spec/design-spec.json` = **version 1，status=approved**（追认代记，依据/回滚条款见 meta.approval —— 见 B-0；9/21 收口冲刺开工前置复核：六段完整 + approved 在位，未做任何内容改动，版本链零越线） |
-| 工程基线 | `games/game/`（Godot 4.3，冒烟 0–12 阶段齐备）；契约门禁 `<工作区根>/scripts/contract-check.mjs` 与 `games/game/scripts/` 镜像**双份同内容**（必须两处同步改，见 B-1 覆盖事故） |
-| 开工前置结论 | 黑板已建 ✅；策划案 approved ✅（追认代记）；**M1 门禁实跑全绿（9/21 收口冲刺复跑）** ✅ —— contract 46 PASS/0 FAIL 双口径、smoke PASS、audio-tick PASS、**fx-settlement PASS（阻塞#1#2#3 机判）**、verify.sh PREFLIGHT PASS，原文归档 `gate-logs/m1-recap-20260921-094116/`（5 份 log），逐条见 m1-gate-runbook.md §6 |
+| 黑板路径 | `.myrd/blackboard/`（levels.md / assets.md / blockers.md / concept-pool-v1.md / m1-gate-runbook.md / m1-rejection-ledger-v2.md / **m1-gate-verdict.json+md / m2-kickoff-review.md / n1-verdict.md**） |
+| 策划案版本号（糖果线） | `.myrd/spec/design-spec.json` = **version 1，status=approved**（追认代记，依据/回滚条款见 meta.approval —— 见 B-0；9/22 复验零改动，版本链零越线） |
+| 策划案版本号（足球线） | `.myrd/spec/design-spec-pixel-fives.json` = **v1.2，status=approved**（2026-09-12 盖章；9/21 合并撞车丢失后 9/22 自 d9f2f13 **字节级还原**，sha256 见 B-10）；`.myrd/spec/design-spec-pixel-fives-v1.3-draft.json` = **v1.3 draft**（M2 段，挂 draft 不走 approve，契约测试不认它）；spec 目录索引 `.myrd/spec/README.md` |
+| 工程基线 | 糖果线 `games/game/`（Godot 4.3）；契约门禁 `<工作区根>/scripts/contract-check.mjs` 与 `games/game/scripts/` 镜像双份同内容。足球线 `pixel-fives/`（零依赖 node）；契约门禁 `pixel-fives/tools/contract-check.mjs`（acc-07 重建版，读足球导出件） |
+| 开工前置结论（9/22 刷新） | 黑板继承 ✅（本工作区经 git reset 对齐远端 tip d0487cf 恢复）；策划案 approved ✅（双线）；**双线 M1 门禁复验全绿** ✅ —— 糖果六门禁 + 足球七门禁（首次实跑，原文 `gate-logs/m1-recap-20260922-{candy,pixel-fives}/` 共 14 份），M1 终态判定 `pass`（m1-gate-verdict.json，**待主人拍板**） |
 
 ---
 
@@ -185,6 +186,22 @@
 4. **v1.2 复核未闭环**（B-3，原驳回④）：v1.2 从未出版；出版或口径撤回二选一后 B3 当日复检（runbook §4 挑明）。
 5. **spec 修订建议**（原驳回⑤，交主策划走 revisions）：acceptance 缺新手引导量化条款（方向：首局 60s 内首消 / 开始→首次交换时限）；实现层已有 StartOverlay 门控 + 双通道提示，条款化即可挂验收。
 
+## B-10 合并撞车事故：足球线 spec 导出件与契约门禁丢失【✅ 已修复 · 9/22 冲刺发现并处置】
+
+- **现象（9/22 开工盘点发现）**：9/21 晚合并 d0487cf（「整合 9/12 M1 冲刺产出与 9/21 QA 互查轮产出」，
+  两段历史无共同祖先）时，糖果线与足球线把 GameDesignSpec 机器可读导出件写在**同一路径**
+  `.myrd/spec/design-spec.json`——糖果版胜出入库，足球 v1.2 导出件被覆盖丢失；足球线
+  `contract-check.mjs`（acc-07 落点）同批丢失（从未入库，其 9/12 交付清单仅存于 evidence-prog-m1 §5 文字）。
+- **影响**：足球线契约测试物理不可执行；足球 spec 的 approved 依据只剩 docs/spec/ 下的 md 真源。
+- **处置（9/22，零内容改动）**：① 足球 v1.2 导出件自合并父提交 d9f2f13 **字节级还原**至
+  `.myrd/spec/design-spec-pixel-fives.json`（sha256 = 232bf49c80f001c6a7e3a480696b8a4b9cadd3af9288ab33208ab43b08faacb2，
+  与父提交原文件一致；六段零改动，非新版本，版本链零越线）；② `pixel-fives/tools/contract-check.mjs`
+  按 evidence-prog-m1 §2 规格**重建**（双模式；重建声明写死在文件头，不冒充原稿）；③ 两游戏导出件
+  分路径并存，索引与红线落 `.myrd/spec/README.md`。
+- **教训（防复发）**：同仓多游戏线各自导出 spec 必须用带 game_id 的文件名；合并不相干历史前先盘点
+  路径冲突清单（本仓库 `.myrd/` 与 `scripts/` 均为共享高危路径）。
+- **升级状态**：✅ 已解除（足球线七门禁当日全绿：m1-recap-20260922-pixel-fives/）。
+
 ## 升级汇总（呈主人，9/21 收口冲刺后刷新）
 
 1. ~~**窗口裁决**（B-2）~~ → **已收口**：主人四路终裁下达（snake-ghost 第 1 / brick-roguelite 顺位
@@ -214,3 +231,21 @@
 - 2026-09-21 游戏程序（whitespace-fix + B-8 修复批次）：①驳回处置——git-hygiene whitespace-check 3 处 EOF 多余空行（2 份 spike 证据 log + fx-settlement 契约）统一为单结尾换行，内容零改动，复检 exit 0（commit 86e7ec2）；②B-8 修复——fx-settlement 契约擦档后重跑主场景续玩探测 + 收尾自净，连续两轮实跑隔离成立；③复跑记录归档 gate-logs/m1-recap-20260921-whitespace-fix/（4 份原文：recheck / b8-isolation / smoke-audio）。
 - 2026-09-21 游戏程序（B-#1 程序确认签字批次）：①B-#1「只改数值/换资源、不改结构」签字落账——美术 536fc0d 对 main.tscn 的改动逐项机核（节点树/[connection]/text= 三处 diff 为空、unique_name 数量一致、新增行 100% StyleBoxFlat/主题呈现值、.gd 零触碰），签字明细在 assets.md §1.6.1；②当前 HEAD 七项复跑全绿含 fx 契约连跑幂等实测——B-8 关闭（独立复证条目已补进 B-8）；③证据归档 gate-logs/m1-recap-20260921-110550-prog-signoff/（7 份）。三态维持 #1 🟡（剩真机触摸复跑）/#2 ✅/#3 🟡；业务代码本批零改动，spec 零改动。
 - 2026-09-21 主策划（第二轮驳回处置批次）：登记并修复 B-9——平台门禁 backend-quality（prisma generate 不存在）与 frontend-quality（frontend 空壳目录）模板错配，按「等价真门禁」改写 .myrd/routines.yaml（TS 编译检查×2 + 根 vitest），基线与端到端复跑全绿；lint 655 遗留错误如实登记待专项清理，不入门禁。
+
+## 升级汇总（呈主人 · 9/22 M1 收口验证 + M2 立项冲刺 —— 完成确认单）
+
+> 双步冲刺三项全部交付；以下 5 件提请主人拍板（机器层已到头，人工裁决不代行）。
+
+| # | 呈批件 | 状态 | 主人需要做的 |
+|---|---|---|---|
+| 1 | **M1 门禁宣告**：终态判定 `pass`（m1-gate-verdict.json）——糖果线 7/7 核销维持 + 足球线 acc-01..09 全闭环，再打回 0 项，占位 4 项挂带日期台账（9/26 真机窗口） | 待拍板 | 一句「宣告 M1」或否决；全绿是必要条件非充分，好不好玩由主人最终裁决 |
+| 2 | **糖果 spec v1 正式追认**（D-1 沿袭，代记 approved 已实跑生效两日） | 待拍板 | 正式追认（API 恢复后补 POST /:id/approve 留痕）或一句否决回滚 draft |
+| 3 | **足球 v1.3 出版批准**：M2 段草案（反馈表现力 + bot 曲线 + onboarding，指标全量化）；scope 决策已记录：9/12 微信/抖音平台化预排移列 M3 候选 | 待批 | 批准后走 game-design-specs 接口 revisions 出版 v1.3（version+1）；或打回修订 |
+| 4 | **N1 snake-ghost 立项点头**：2 号产品终裁（四票 3:1）+ 纸面排期 + 最小可玩原型 gate（固定种子可复现 / 5 分钟可上手 / 连玩重开信号 / 几何简洁视觉条款） | 待点头 | 点头后 W0 原型冲刺开工令生效；不点头则零投入不启动 |
+| 5 | **真机复验环境协调**：糖果 B-#1/B-#3/C 区两项占位的唯一剩余动作（9/26 台账日期） | 待安排 | 提供真机/浏览器环境窗口（本环境物理不可产出，不伪造） |
+
+**本冲刺零新增未决阻塞**；B-10（合并撞车丢失）当日发现当日解除；「三件套无处落盘」未发生（双线门禁全部落盘 14 份原文）。
+
+## 变更记录（追加式，接上文）
+
+- 2026-09-22 主策划（M1 收口验证 + M2 立项冲刺整合批次）：①工作区经 git reset 对齐远端 tip d0487cf 衔接 9/21 底账（平台从 main 重建了同名分支，底账不在 main 上）；②双线 M1 门禁复验全绿（糖果 6 门 + 足球 7 门；足球线 9/12 以来首次实跑，4 项基线 FAIL 当日修复当日复验——harness 推进语义对齐 DR-P3、bot 策略重调（门前纪律/大脚解围/终末保底，R-08 no_relax 纪律零放宽区间）、A05 资产边框两行修复、acc-05 测试当日交付 8/8、acc-09 槽位翻转完成），原文 14 份归档 gate-logs/m1-recap-20260922-{candy,pixel-fives}/；③登记并解除 B-10（合并撞车：足球 spec 导出件字节级还原 + contract-check 重建）；④M1 终态判定 pass + 判定表落黑板（m1-gate-verdict.json/md）；⑤M2 立项包四件套（v1.3 draft / 提案 / 美术清单 / 程序批注）+ QA 复审通过送审（m2-kickoff-review.md）；⑥N1 snake-ghost 终裁 + 纸面排期 + 原型 gate 落黑板（n1-verdict.md）；⑦本完成确认单呈批 5 件。糖果 spec v1 内容零改动；足球 spec v1.2 为字节级还原（sha256 见 B-10）；版本链零越线。

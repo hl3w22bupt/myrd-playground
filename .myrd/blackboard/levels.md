@@ -1,8 +1,8 @@
 # levels.md — Pixel Fives 关卡状态（共享黑板）
 
-> 更新时间：2026-09-21（M1 门禁收口冲刺日）
+> 更新时间：2026-09-22（M1 收口验证 + M2 立项冲刺）
 > 负责人：主策划（本文件全团队共用，改动请在「变更记录」追加一行）
-> 下一步：美术三态 UI 稿交付后二次复验（RESUME 态从「占位」转正式）；N1（snake-ghost）立项后新增「N1 关卡规划」区
+> 下一步：糖果线占位项 9/26 真机窗口复验；足球线 M2（W1）按 v1.3 批准后开工；N1 snake-ghost 待主人点头
 
 ---
 
@@ -47,3 +47,7 @@
 - 2026-09-21 游戏程序（收口冲刺 · 独立复跑批次）：六门禁全部**本会话亲自复跑**并归档独立证据 `gate-logs/m1-recap-20260921-095257-prog/`（5 份原文）——契约双口径 46 PASS/0 FAIL（两副本 `diff` 为空）、godot-smoke PASS、audio-same-tick PASS、fx-settlement PASS（PERF avg 61.0 / 稳态最差 53.5）、verify.sh PREFLIGHT PASS + smoke PASS，全部 exit 0。实现层核实：SaveState 已注册 project.godot [autoload]、结算栈同 tick 落档（game_state.gd add_score/use_move/advance_level/check_end）、三态 RESUME 双入口（NewGameButton 在 main.tscn + main.gd setup_resume_offer）、VFX 参数区在 main.gd（屏震封顶 10px/0.28s 归零）；fx-settlement 契约断言非空转（逐字段盘档比对 + best_score 跨局 + 阈值守卫）。§1 基线 autoload 行补 SaveState（上轮遗漏，本批修正）。业务代码本批零改动，纯复验批次。
 - 2026-09-21 游戏程序（B-#1 程序确认签字批次）：美术 536fc0d「只改数值/换资源、不改结构」签字落账（main.tscn 机核：节点树/信号连接/文案三 diff 为空、新增行 100% 呈现值、.gd 零触碰，明细见 assets.md §1.6.1）；当前 HEAD（含 B-8 修复）七项复跑全绿——契约双口径 46 PASS/0 FAIL、smoke、audio-tick、fx-settlement 连续两跑（第 2 跑吃第 1 跑测试态仍 PASS，B-8 幂等关闭）、verify PREFLIGHT 110 文件 + smoke，原文 gate-logs/m1-recap-20260921-110550-prog-signoff/（7 份）。§3 门禁表 verify 行文件数口径更新（105→110，美术资产入库）。业务代码本批零改动；B-#1 三态维持占位待核销，剩真机触摸复跑一项。
 - 2026-09-21 游戏程序（新 HEAD 无回归核实批次）：当前 HEAD（92bdbb8）六门禁复跑全绿（契约双口径 46 PASS/0 FAIL + smoke + audio-tick + fx-settlement PERF 61.0/53.6 + verify PREFLIGHT 110 文件），原文 gate-logs/m1-recap-20260921-124403-prog-noRegression/；§3 门禁表各行结论维持，无新待办（程序侧动作已全清，剩余项均归真机批次/主人拍板）。
+
+## 变更记录（追加式）
+
+- 2026-09-22 主策划（M1 收口验证 + M2 立项冲刺）：双线 M1 门禁复验全绿（糖果六门禁 + 足球七门禁首次实跑即收口，原文 gate-logs/m1-recap-20260922-*）；足球线 acc-05 当日交付闭环（tests/ui/onboarding-hint.test.mjs 8/8）；acc-09 槽位翻转完成。关卡内容零改动。M1 终态判定 = pass（m1-gate-verdict.json，待主人拍板）。

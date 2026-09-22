@@ -14,7 +14,9 @@
  */
 
 /** 契约槽位登记：{ 槽位id: 默认值 }。approved spec 落位后逐条翻转状态。 */
-export const PENDING_APPROVED_SLOTS = {
+/** acc-09 槽位（2026-09-22 翻转）：spec v1.2 已 approved（2026-09-12 主策划盖章），
+ *  以下数值即 numeric.values 的程序侧覆盖副本（别名：bot.* ⇔ spec bot_sim.*，同值）。 */
+export const APPROVED_SLOTS = {
   'pitch.logical_size': '256x160 (16px 公度 16x10 tile)',
   'match.duration_s': 90,
   'goal.mouth_h_px': 44,

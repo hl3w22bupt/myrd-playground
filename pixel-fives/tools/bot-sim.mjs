@@ -86,12 +86,20 @@ export function runOneGame(seed) {
   const botRed = new BotController('red', seed, match.level);
   const botBlue = new BotController('blue', seed, match.level);
   const totalTicks = Math.round(MATCH_DURATION_S / TICK_DT_S);
+  // DR-P3 语义对齐（2026-09-22 复验修复）：庆祝期比赛钟双冻结（match.js timeS 只在 playing 累加），
+  // 满场所需墙钟 tick 必然 > 90s 预算（90 - 庆祝总时长）。推进以 fulltime 为准；
+  // 硬上限仅防异常挂死：超限 = harness 异常态，记入 errors 由退出码规则兜底，不静默吞。
+  const hardCapTicks = totalTicks * 2 + 60;
   try {
-    for (let t = 0; t < totalTicks; t++) {
+    const errors = [];
+    for (let t = 0; t < hardCapTicks; t++) {
       if (match.phase === 'fulltime') break;
       const iRed = botRed.decide(match.world);
       const iBlue = botBlue.decide(match.world);
       match.step(TICK_DT_S, iRed, iBlue);
+    }
+    if (match.phase !== 'fulltime') {
+      errors.push(`hardcap: ${hardCapTicks} tick 内未到 fulltime（phase=${match.phase} timeS=${match.timeS}）`);
     }
     const goalsRed = match.scores.red;
     const goalsBlue = match.scores.blue;
@@ -103,7 +111,7 @@ export function runOneGame(seed) {
       duration_s: match.timeS,
       shots: match.world.totalShots(),
       touches: match.world.totalTouches(),
-      errors: [],
+      errors,
     };
   } catch (err) {
     // 单场异常不中断整套：按 seed 定位（R-08 no_relax 纪律），exit 规则兜底

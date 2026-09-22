@@ -20,6 +20,9 @@ const BUDGET_BYTES = 1572864 // 1.5MB（风格卡§7 / manifest.budget）
 // 格式：'# key: value' 头；'legend:' 段（字符 HEX）；'grid:' 段像素行；仅'+'的行分隔帧
 export function parseGrid(text, fileLabel) {
   const lines = text.split(/\r?\n/)
+  // 文件末尾换行容错（2026-09-22 复验修复）：split 后的末尾空串不是像素行，
+  // 不剔除会让末帧多出一行「行宽=0」的伪影校验失败（A01/A02/A03/A04/A06/A07 同型）。
+  while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop()
   const header = {}
   const legend = {}
   const gridRows = []

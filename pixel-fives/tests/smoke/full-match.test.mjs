@@ -30,18 +30,27 @@ const match = new Match({ seed: SEED });
 const botRed = new BotController('red', SEED, match.level);
 const botBlue = new BotController('blue', SEED, match.level);
 
-const totalTicks = Math.round(MATCH_DURATION_S / TICK_DT_S); // 5400
-const tickMs = new Array(totalTicks);
+const totalTicks = Math.round(MATCH_DURATION_S / TICK_DT_S); // 5400（90s 比赛钟预算）
+// DR-P3 语义对齐（2026-09-22 复验修复）：庆祝期比赛钟双冻结，满场所需墙钟 tick > 90s 预算，
+// 推进以 fulltime 为准（与 bot-sim runner 同口径）；硬上限仅防异常挂死，超限记 errors。
+const hardCapTicks = totalTicks * 2 + 60;
+const tickMs = [];
 const errors = [];
+let ticksDone = 0;
 
 try {
-  for (let t = 0; t < totalTicks; t++) {
+  for (let t = 0; t < hardCapTicks; t++) {
+    if (match.phase === 'fulltime') break;
     const t0 = performance.now();
     const iRed = botRed.decide(match.world);
     const iBlue = botBlue.decide(match.world);
     match.step(TICK_DT_S, iRed, iBlue);
     const t1 = performance.now();
-    tickMs[t] = t1 - t0;
+    tickMs.push(t1 - t0);
+    ticksDone = t + 1;
+  }
+  if (match.phase !== 'fulltime') {
+    errors.push(`hardcap: ${hardCapTicks} tick 内未到 fulltime（phase=${match.phase} timeS=${match.timeS}）`);
   }
 } catch (err) {
   errors.push(`${err && err.stack ? err.stack : String(err)}`);
@@ -87,7 +96,7 @@ check('S9 有触球发生（touches > 0）', match.world.totalTouches() > 0, Str
 const summary = {
   test: 'smoke/full-match',
   seed: SEED,
-  ticks: totalTicks,
+  ticks: ticksDone,
   score: { red: match.scores.red, blue: match.scores.blue },
   goals_total: goalsTotal,
   duration_s: match.timeS,
