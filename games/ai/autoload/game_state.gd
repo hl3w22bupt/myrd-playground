@@ -60,6 +60,12 @@ const NUMERIC_FILE: String = "numeric.json"
 ## 数值默认值（键名 ↔ 字段名一一对应；数值表缺失/不可读时兜底）。
 const NUMERIC_DEFAULTS: Dictionary = {
 	"move_speed": 240.0,
+	"move_accel": 1500.0,
+	"move_decel": 1900.0,
+	"turn_speed": 7.5,
+	"walk_anim_fps": 9.0,
+	"idle_anim_fps": 2.2,
+	"walk_frame_threshold": 0.08,
 	"stamina_max": 100.0,
 	"satiety_max": 100.0,
 	"sanity_max": 100.0,
@@ -85,6 +91,13 @@ const NUMERIC_DEFAULTS: Dictionary = {
 
 ## —— 运行时数值（从 data/spec/numeric.json 载入，改表即生效，不改码）——
 var move_speed: float = NUMERIC_DEFAULTS["move_speed"]
+## 移动手感（第四轮需求：位移缓动 + 帧动画 + 平滑转身），改表即调不改码。
+var move_accel: float = NUMERIC_DEFAULTS["move_accel"]
+var move_decel: float = NUMERIC_DEFAULTS["move_decel"]
+var turn_speed: float = NUMERIC_DEFAULTS["turn_speed"]
+var walk_anim_fps: float = NUMERIC_DEFAULTS["walk_anim_fps"]
+var idle_anim_fps: float = NUMERIC_DEFAULTS["idle_anim_fps"]
+var walk_frame_threshold: float = NUMERIC_DEFAULTS["walk_frame_threshold"]
 var stamina_max: float = NUMERIC_DEFAULTS["stamina_max"]
 var satiety_max: float = NUMERIC_DEFAULTS["satiety_max"]
 var sanity_max: float = NUMERIC_DEFAULTS["sanity_max"]

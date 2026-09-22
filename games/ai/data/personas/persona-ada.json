@@ -3,11 +3,22 @@
   "name": "艾达",
   "title": "冷静系 · 程序化 · 合规优先",
   "color": "#7ad0c9",
-  "personality_tags": ["冷静系", "程序化", "合规优先"],
+  "personality_tags": [
+    "冷静系",
+    "程序化",
+    "合规优先"
+  ],
   "speech_style": {
     "tone": "先结论后条目，报置信度，短句数据化表达",
-    "verbal_tics": ["结论：", "建议：", "置信度"],
-    "forbidden": ["情绪化感叹", "夸张修辞"],
+    "verbal_tics": [
+      "结论：",
+      "建议：",
+      "置信度"
+    ],
+    "forbidden": [
+      "情绪化感叹",
+      "夸张修辞"
+    ],
     "sample_line": "结论：召回协议 72 小时后执行，置信度 99.2%。建议：收留我们。"
   },
   "catchphrase": "结论：我建议你现在深呼吸。",
@@ -15,8 +26,14 @@
     "favor_initial": 45,
     "interact_modifier": -2,
     "interact_sanity_regen": 20,
-    "gains": { "order": 5, "honest": 5 },
-    "losses": { "lie": -15, "confront_blame": -15 }
+    "gains": {
+      "order": 5,
+      "honest": 5
+    },
+    "losses": {
+      "lie": -15,
+      "confront_blame": -15
+    }
   },
   "threat_rules": {
     "threat_initial": 15,
@@ -34,6 +51,16 @@
       "assets/art/personas/ada/expr-normal.svg",
       "assets/art/personas/ada/expr-happy.svg",
       "assets/art/personas/ada/expr-crisis.svg"
+    ],
+    "arena_idle": [
+      "assets/art/sprites/ada/idle-0.svg",
+      "assets/art/sprites/ada/idle-1.svg"
+    ],
+    "arena_walk": [
+      "assets/art/sprites/ada/walk-0.svg",
+      "assets/art/sprites/ada/walk-1.svg",
+      "assets/art/sprites/ada/walk-2.svg",
+      "assets/art/sprites/ada/walk-3.svg"
     ]
   }
 }

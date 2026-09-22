@@ -15,7 +15,8 @@ extends Node
 ##   [契约] 剧情契约：3 幕、幕链与节点图闭合无死链、无孤儿节点、每幕 ≥1 抉择、
 ##          effects 全为声明式键值、5 位女友每幕都有台词、落点在玩法边界内、出生净空
 ##   [契约] 结局契约：4 结局齐全 + resolver 优先级链四判（清除/永生/带走/独活）
-##   [契约] 素材契约：场景内占位方块（Polygon2D）残留 = 0，玩家/信物/危机全部贴图化
+##   [契约] 素材契约：场景内占位方块（Polygon2D）残留 = 0，玩家/信物/危机全部为
+##          AnimatedSprite2D 多帧动画（玩家 idle+walk，信物 idle 呼吸，危机 walk 巡逻）
 ##   [演算] 链路A（逃跑）→ ALONE、链路B（带走林小暖）→ SAVE_ONE（favor 96 / threat 30）、
 ##          链路C（全线强硬）→ GAMEOVER —— 脚本驱动固定选择序列，≥2 个不同结局可复现
 ##   [行为] 1 场景接线：主场景/玩家/UI(CanvasLayer)/对话框/花名册/标题/结局
@@ -30,6 +31,11 @@ extends Node
 ##   [行为] 10 触摸（移动端）：TouchUI 可见性协议（is_touchscreen_available）、画面内点按推进、
 ##          选项热区 ≥44 物理像素且不重叠、虚拟摇杆全链路（真实 ScreenTouch/ScreenDrag →
 ##          多轴动作强度并行 → 玩家位移；死区/滑出续跟/松手归零/二指不抢控/点按零泄漏）
+##   [行为] 14 移动平滑（四轮·范围三）：位移 ≤ move_speed×时间上限、起步加速/松杆减速缓动、
+##          idle/walk 帧动画随速度切换且帧前进、转身 facing 连续过渡（单帧无硬跳、必过 0）
+##   [行为] 15 排版自适应（四轮·范围一）：3 档画布 × 3 档 DPR × 最长剧情文本 →
+##          fits（零裁字）、字号在内容化区间内、choice 面板不侵入选项热区、
+##          真实场景字号/文本框/面板几何一致（resize 重排同源代码路径）
 ##
 ## ⚠️ 输入注入分阶段、互不重叠（references/error-signatures.md E-08）。
 
@@ -87,10 +93,11 @@ var _ended_name: String = ""
 var _act_expired_seen: bool = false
 ## 终局抉择的意向（链路重放时由脚本写入）。
 var _ending_intent: String = ""
-## 行动段物件的贴图体（素材契约检查用；信物在收集前判定，收集后节点会被销毁）。
-var _last_hazard_sprite: Sprite2D = null
-var _last_token_sprite: Sprite2D = null
-var _last_token_had_texture: bool = false
+## 行动段物件的多帧动画体（素材契约检查用；信物在收集前判定，收集后节点会被销毁）。
+var _last_hazard_multiframe: bool = false
+var _last_token_multiframe: bool = false
+## 多帧动画的最少帧数（需求：idle/walk ≥2 类多帧动画，逐类帧数 ≥2）。
+const MULTIFRAME_MIN_FRAMES: int = 2
 ## 人设 id（按 manifest 声明序取位，冒烟脚本不写死任何角色名 —— 基线 §八铁律）。
 var _id_heal: String = ""        # 治愈系（manifest 第 1 张卡）
 var _id_energetic: String = ""   # 活泼系（manifest 第 4 张卡）
@@ -365,9 +372,18 @@ func _check_scene_wiring() -> void:
 		_failures.append("出生点不一致：main.tscn 的 Player position %s ≠ Player.START_POSITION %s" % [
 			_player.global_position, Player.START_POSITION,
 		])
-	var player_body := _player.get_node_or_null("Body") as Sprite2D
-	if player_body == null or player_body.texture == null:
-		_failures.append("素材契约：玩家仍是占位方块（Body 不是带贴图的 Sprite2D）")
+	var player_body := _player.get_node_or_null("Body") as AnimatedSprite2D
+	if player_body == null or player_body.sprite_frames == null \
+			or not player_body.sprite_frames.has_animation(&"idle") \
+			or not player_body.sprite_frames.has_animation(&"walk"):
+		_failures.append("素材契约：玩家 Body 不是含 idle/walk 两段动画的 AnimatedSprite2D")
+	else:
+		var frames: SpriteFrames = player_body.sprite_frames
+		if frames.get_frame_count(&"idle") < MULTIFRAME_MIN_FRAMES \
+				or frames.get_frame_count(&"walk") < MULTIFRAME_MIN_FRAMES:
+			_failures.append("素材契约：玩家帧动画帧数不足（idle %d / walk %d，各需 ≥%d）" % [
+				frames.get_frame_count(&"idle"), frames.get_frame_count(&"walk"), MULTIFRAME_MIN_FRAMES,
+			])
 	# 行动段物件在 _start_run 后才生成：数量与出生净空断言在行为阶段 4 做。
 
 
@@ -744,8 +760,8 @@ func _run() -> void:
 	var expected_line: String = _token_line_of_act(1, heal)
 	if toast == null or not toast.visible or not toast.text.contains(expected_line):
 		_failures.append("阶段 6：互动后台词气泡未展示幕数据台词（期望含「%s」）" % expected_line)
-	if not _last_token_had_texture:
-		_failures.append("素材契约：心动信物仍是占位方块（Body 不是带贴图的 Sprite2D）")
+	if not _last_token_multiframe:
+		_failures.append("素材契约：心动信物 Body 不是含待机多帧动画的 AnimatedSprite2D（占位残留）")
 
 	# 阶段 7：危机 —— 两次穿越危机区 → 该人设 threat +2。
 	var target_hazard := _first_valid_hazard()
@@ -765,8 +781,8 @@ func _run() -> void:
 			break
 		if pass_index == 0:
 			await _teleport_and_wait(Player.START_POSITION)
-	if _last_hazard_sprite == null or _last_hazard_sprite.texture == null:
-		_failures.append("素材契约：危机游走体仍是占位方块（Body 不是带贴图的 Sprite2D）")
+	if not _last_hazard_multiframe:
+		_failures.append("素材契约：危机游走体 Body 不是含行走多帧动画的 AnimatedSprite2D（占位残留）")
 
 	# 阶段 8：边界钳制 + 占位方块残留清点。
 	var bounds := GameState.play_area_size()
@@ -849,9 +865,17 @@ func _run() -> void:
 		])
 	# 13b 画面内点按（真实 InputEventScreenTouch）推进台词：阶段 12 重开后停在第一幕
 	# 首个剧情节点（旁白/台词，非抉择），一次点按应推进到下一节点。
+	# 点按链路 = ScreenTouch → TapLayer._gui_input → 合成 tap_advance 事件（80ms 防抖）
+	# → 引擎下一轮 flush → main 相位机：跨 2 次 process 帧事件 flush，等待窗按「结果」轮询
+	# （process/physics 帧率比在 headless 下随负载浮动，固定 3 物理帧会偶发误判）。
 	var node_before: Dictionary = _main.get("_current_node")
 	await _inject_screen_tap()
 	var node_after: Dictionary = _main.get("_current_node")
+	for _poll in 20:
+		if String(node_after.get("id", "")) != String(node_before.get("id", "")) or _main.get("_phase") != 1:
+			break
+		await get_tree().physics_frame
+		node_after = _main.get("_current_node")
 	if String(node_after.get("id", "")) == String(node_before.get("id", "")) and _main.get("_phase") == 1:
 		_failures.append("阶段 13：画面内点按（InputEventScreenTouch）没有推进剧情节点（%s 未变化； TapLayer/ScreenTouch 分支断了）" % String(node_before.get("id", "?")))
 	# 13c 选项按钮触控热区契约：用合成抉择节点重建按钮，断言高度换算 ≥44 物理像素、
@@ -947,7 +971,183 @@ func _run() -> void:
 		touch_ui.visible = touch_ui_was_visible
 		joystick.visible = joystick_was_visible
 
+	# 阶段 14：移动平滑（四轮需求范围三）—— 缓动加减速 / 帧动画切换 / 转身连续过渡。
+	await _check_motion_smoothness()
+	# 阶段 15：排版自适应（四轮需求范围一）—— 三档画布 × 三档 DPR 文字零溢出。
+	_check_dialog_typography()
+
 	_report()
+
+
+## —— 阶段 14：移动平滑 ——
+## 用 Input.action_press/release 注入持续移动（模拟量动作走 API 通道，见 E-19），
+## 断言：位移上限（≤ move_speed × 时间）、起步加速、松杆减速、
+## idle/walk 帧动画随速度切换且 walk 帧前进、转身 facing 连续过渡不硬跳。
+func _check_motion_smoothness() -> void:
+	var body := _player.get_node_or_null("Body") as AnimatedSprite2D
+	if body == null:
+		_failures.append("阶段 14：玩家 Body 缺失，移动平滑断言无从执行")
+		return
+	# 前序阶段（摇杆拖拽）刚松手：等减速缓动走完，玩家真正停稳后再断言待机态。
+	await _wait_physics_frames(14)
+	# 14a 静止 → idle 动画。
+	if _player.animation_name() != &"idle":
+		_failures.append("阶段 14：静止时动画 %s ≠ idle（待机呼吸未生效）" % _player.animation_name())
+	# 14b 注入向右移动：起步加速缓动（头 2 帧位移应远小于满速位移）+ 帧动画切到 walk。
+	var accel_origin: Vector2 = _player.global_position
+	Input.action_press(&"move_right")
+	await _wait_physics_frames(2)
+	var accel_displacement: float = (_player.global_position - accel_origin).length()
+	# 阈值口径：满速直赋的 2 帧位移 = move_speed×2/60 ≈ 8px；缓动起步应明显低于它（≤6 折）。
+	# 与 move_speed 挂钩（而非 accel）——「把 velocity 直赋」类突变在任一 accel 取值下都超限。
+	var accel_limit: float = GameState.move_speed * (2.0 / 60.0) * 0.6 + 1.0
+	if accel_displacement > accel_limit:
+		_failures.append("阶段 14：起步 2 帧位移 %.2fpx > %.2fpx（无加速缓动，位移瞬移）" % [
+			accel_displacement, accel_limit,
+		])
+	await _wait_physics_frames(INPUT_FRAMES)
+	if _player.animation_name() != &"walk":
+		_failures.append("阶段 14：移动中动画 %s ≠ walk（行走帧动画未切换）" % _player.animation_name())
+	var walk_frame_advanced := false
+	var last_walk_frame: int = body.frame
+	for _frame in 14:
+		await get_tree().physics_frame
+		if body.frame != last_walk_frame:
+			walk_frame_advanced = true
+		last_walk_frame = body.frame
+	# walk 动画在动（帧序列前进，非静止贴图滑行）
+	if not walk_frame_advanced:
+		_failures.append("阶段 14：walk 动画帧未前进（静止贴图滑行回归）")
+	# 14c 位移上限：10 物理帧位移 ≤ move_speed × (10/60) + 容差（满速时贴图不瞬移）。
+	var cap_origin: Vector2 = _player.global_position
+	await _wait_physics_frames(10)
+	var cap_displacement: float = (_player.global_position - cap_origin).length()
+	var cap_limit: float = GameState.move_speed * (10.0 / 60.0) + 2.0
+	if cap_displacement > cap_limit:
+		_failures.append("阶段 14：10 帧位移 %.1fpx > 上限 %.1fpx（move_speed=%.0f，位移超速）" % [
+			cap_displacement, cap_limit, GameState.move_speed,
+		])
+	# 14d 转身朝向：右转左，facing 连续过渡（每帧变化 ≤ turn_speed×dt+ε，终点 -1，无硬跳）。
+	# 先松右再按左：同帧双键会让 get_vector 相互抵消（x=0），转身意图消失。
+	var turn_speed: float = GameState.turn_speed
+	var epsilon: float = 0.35
+	Input.action_release(&"move_right")
+	await _wait_physics_frames(2)
+	Input.action_press(&"move_left")
+	var facing_values: Array[float] = [_player.facing()]
+	for _frame in 30:
+		await get_tree().physics_frame
+		facing_values.append(_player.facing())
+	Input.action_release(&"move_left")
+	var facing_final: float = facing_values[facing_values.size() - 1]
+	if absf(facing_final + 1.0) > 0.05:
+		_failures.append("阶段 14：向左转身后 facing %.2f ≠ -1（朝向未到位）" % facing_final)
+	var crossed_zero := false
+	for i in range(1, facing_values.size()):
+		var delta: float = facing_values[i] - facing_values[i - 1]
+		if delta < -(turn_speed / 60.0) - epsilon:
+			_failures.append("阶段 14：facing 单帧跳变 %.2f（%.2f→%.2f，转身硬跳）" % [
+				delta, facing_values[i - 1], facing_values[i],
+			])
+			break
+		if facing_values[i] < 0.0:
+			crossed_zero = true
+	if not crossed_zero:
+		_failures.append("阶段 14：facing 未连续穿过 0（转身没有平滑过渡）")
+	if absf(body.scale.x + float(Player.BODY_SCALE)) > 0.05:
+		_failures.append("阶段 14：Body.scale.x %.2f 未跟随朝向（贴图翻转未生效）" % body.scale.x)
+	# 14e 松杆减速：全部输入已释放 → 速度应衰减到接近 0。
+	await _wait_physics_frames(12)
+	if _player.speed_ratio() > 0.12:
+		_failures.append("阶段 14：松杆后速度比 %.2f 仍 > 0.12（减速缓动未生效）" % _player.speed_ratio())
+	if _player.animation_name() != &"idle":
+		_failures.append("阶段 14：停稳后动画 %s ≠ idle（应回到待机）" % _player.animation_name())
+
+
+## —— 阶段 15：排版自适应 ——
+## 三档画布（16:9 / 1080p / 竖长窄屏）× 三档 DPR：fit 结果必须 fits（零裁字）；
+## 再以「全剧情最长文本」进真实场景断言：字号生效、文本区不越界面板、与选项热区零重叠。
+func _check_dialog_typography() -> void:
+	var canvases: Array[Vector2] = [
+		Vector2(640, 360), Vector2(1280, 720), Vector2(390, 844),
+	]
+	var longest_text := ""
+	for act in _story.acts:
+		for node: Variant in _story.nodes_of(act):
+			for key in ["prompt", "text"]:
+				var text := String(node.get(key, ""))
+				if text.length() > longest_text.length():
+					longest_text = text
+	if longest_text.is_empty():
+		_failures.append("阶段 15：剧情文本为空，排版断言无从执行")
+		return
+	for canvas: Vector2 in canvases:
+		for dpr: float in [1.0, 2.0, 3.0]:
+			for options_visible: bool in [true, false]:
+				# DPR 经内容缩放系数进入换算：min_touch_px 热区随 DPR 抬高 → 选项列更高 →
+				# 面板可用高度收窄，字号相应自适应 —— 同一份文本在任一组合下都必须装得下。
+				var sweep: Dictionary = _main.call("fit_dialog_text", longest_text, canvas * dpr, options_visible, 4)
+				if bool(sweep.get("fits", false)) == false:
+					_failures.append("阶段 15：画布 %s×DPR%.0f（options=%s）最长文本溢出：需 %.1fpx > 可用 %.1fpx" % [
+						canvas, dpr, options_visible,
+						float(sweep.get("text_height", -1.0)), float(sweep.get("text_height_max", -1.0)),
+					])
+				var font_size := int(sweep.get("font_size", 0))
+				var min_size := int(_main.get("_ui")["dialog_min_font_size"])
+				var max_size := int(_main.get("_ui")["dialog_max_font_size"])
+				if font_size < min_size or font_size > max_size:
+					_failures.append("阶段 15：自适应字号 %d 越界 [%d, %d]（画布 %s×DPR%.0f）" % [
+						font_size, min_size, max_size, canvas, dpr,
+					])
+				if options_visible and float(sweep.get("panel_height", 0.0)) > float(sweep.get("panel_height_max", 0.0)) + 0.01:
+					_failures.append("阶段 15：choice 面板高 %.1f 超上限 %.1f（会侵入选项热区）" % [
+						float(sweep.get("panel_height", 0.0)), float(sweep.get("panel_height_max", 0.0)),
+					])
+	# 真实场景：让 Main 进入「最长 prompt 的 choice 节点」，断言排版已实际生效。
+	var longest_choice := {}
+	for act in _story.acts:
+		for node: Variant in _story.nodes_of(act):
+			if String(node.get("type", "")) != StoryEngine.TYPE_CHOICE:
+				continue
+			if String(node.get("prompt", "")).length() >= String(longest_choice.get("prompt", "")).length():
+				longest_choice = node
+	if longest_choice.is_empty():
+		_failures.append("阶段 15：找不到 choice 节点（剧情契约异常）")
+		return
+	_main.call("_enter_node", longest_choice)
+	await _wait_physics_frames(INPUT_FRAMES)
+	var dialog_text: Label = _main.get("dialog_text")
+	var panel: Control = _main.get("dialog_panel")
+	var options_box: VBoxContainer = _main.get("options_box")
+	if dialog_text == null or panel == null:
+		_failures.append("阶段 15：对话框节点缺失（场景接线断裂）")
+		return
+	var live_fit: Dictionary = _main.get("last_dialog_fit")
+	if live_fit.is_empty() or not bool(live_fit.get("fits", false)):
+		_failures.append("阶段 15：last_dialog_fit 未落地或溢出（%s）" % str(live_fit))
+	if dialog_text.get_theme_font_size("font_size") != int(live_fit.get("font_size", -1)):
+		_failures.append("阶段 15：实际字号 %d ≠ 适配字号 %d（自适应未生效）" % [
+			dialog_text.get_theme_font_size("font_size"), int(live_fit.get("font_size", -1)),
+		])
+	if not panel.get_global_rect().encloses(dialog_text.get_global_rect()):
+		_failures.append("阶段 15：文本区越出对话框面板（%s ⊄ %s）" % [
+			dialog_text.get_global_rect(), panel.get_global_rect(),
+		])
+	var font: Font = dialog_text.get_theme_font("font")
+	var need: Vector2 = font.get_multiline_string_size(
+		dialog_text.text, HORIZONTAL_ALIGNMENT_LEFT, dialog_text.size.x,
+		dialog_text.get_theme_font_size("font_size"))
+	if need.y > dialog_text.size.y + 1.0:
+		_failures.append("阶段 15：最长文本渲染高 %.1f > 文本框高 %.1f（会裁字）" % [
+			need.y, dialog_text.size.y,
+		])
+	if options_box != null and options_box.visible:
+		var overlap: Rect2 = options_box.get_global_rect().intersection(panel.get_global_rect())
+		if overlap.size.x > 0.5 and overlap.size.y > 0.5:
+			_failures.append("阶段 15：对话框与选项列重叠 %s（面板增高未让行）" % str(overlap))
+	# 还原：回到第一幕入口节点，不污染后续阶段（当前为最后一个行为阶段，保守重进）。
+	_main.call("_load_act", 1)
+	await _wait_physics_frames(INPUT_FRAMES)
 
 
 ## 同步驱动 Main：从当前剧情进度一路走到终局抉择并选择 index 选项（无帧等待，纯结算链）。
@@ -1110,7 +1310,7 @@ func _first_valid_hazard() -> CrisisHazard:
 	for node in get_tree().get_nodes_in_group("crisis_hazards"):
 		var hazard := node as CrisisHazard
 		if hazard != null and is_instance_valid(hazard):
-			_last_hazard_sprite = hazard.get_node_or_null("Body") as Sprite2D
+			_last_hazard_multiframe = _animated_with_frames(hazard, &"walk")
 			return hazard
 	return null
 
@@ -1119,10 +1319,17 @@ func _token_of_persona(persona_id: String) -> BondToken:
 	for node in get_tree().get_nodes_in_group("bond_tokens"):
 		var token := node as BondToken
 		if token != null and is_instance_valid(token) and token.persona_id == persona_id:
-			_last_token_sprite = token.get_node_or_null("Body") as Sprite2D
-			_last_token_had_texture = _last_token_sprite != null and _last_token_sprite.texture != null
+			_last_token_multiframe = _animated_with_frames(token, &"idle")
 			return token
 	return null
+
+
+## 多帧动画判定：Body 是 AnimatedSprite2D、声明了指定动画且帧数达标。
+func _animated_with_frames(owner_node: Node, anim: StringName) -> bool:
+	var body := owner_node.get_node_or_null("Body") as AnimatedSprite2D
+	if body == null or body.sprite_frames == null or not body.sprite_frames.has_animation(anim):
+		return false
+	return body.sprite_frames.get_frame_count(anim) >= MULTIFRAME_MIN_FRAMES
 
 
 func _count_valid(group_name: String) -> int:

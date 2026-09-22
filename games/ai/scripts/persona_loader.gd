@@ -196,6 +196,37 @@ func expression_paths(persona_id: String) -> Array:
 	return paths
 
 
+## 行动段待机帧（信物呼吸循环，≥2 帧多帧动画）。
+## 回落链：卡内 arena_idle → avatar → portrait —— 换任意人设卡（含无 arena 字段的旧卡）
+## 零代码改动仍能渲染，swap 测试不因缺帧字段而挂。
+func arena_idle_paths(persona_id: String) -> Array:
+	var art: Dictionary = persona(persona_id).get("art", {})
+	var paths: Array = art.get("arena_idle", [])
+	if not paths.is_empty():
+		return paths
+	return _single_frame_fallback(persona_id)
+
+
+## 行动段行走帧（危机游走循环，≥2 帧多帧动画）。
+## 回落链：卡内 arena_walk → crisis 表情差分 → avatar → portrait。
+func arena_walk_paths(persona_id: String) -> Array:
+	var art: Dictionary = persona(persona_id).get("art", {})
+	var paths: Array = art.get("arena_walk", [])
+	if not paths.is_empty():
+		return paths
+	var expressions: Array = expression_paths(persona_id)
+	if expressions.size() > EXPRESSION_CRISIS:
+		return [String(expressions[EXPRESSION_CRISIS])]
+	return _single_frame_fallback(persona_id)
+
+
+func _single_frame_fallback(persona_id: String) -> Array:
+	var single := avatar_path(persona_id)
+	if single.is_empty():
+		single = portrait_path(persona_id)
+	return [single] if not single.is_empty() else []
+
+
 ## 全体人设的好感初值表（persona_id → int），GameState 开局用。
 func favor_initial_table() -> Dictionary:
 	var table := {}

@@ -1,12 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="240" height="24" viewBox="0 0 240 24">
-  <!-- 选项按钮底板：左侧序号徽标槽 + 圆角条（hover/选中时由代码调 modulate 提亮） -->
+<svg xmlns="http://www.w3.org/2000/svg" width="496" height="40" viewBox="0 0 496 40">
+  <!-- 选项按钮底板（第四轮）：圆角 11 + 渐变底 + 左侧主题色序号条 -->
   <defs>
-    <linearGradient id="ob" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#322a56" stop-opacity="0.95"/>
-      <stop offset="100%" stop-color="#1d1738" stop-opacity="0.95"/>
+    <linearGradient id="opt" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2c2547" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#191630" stop-opacity="0.92"/>
+    </linearGradient>
+    <linearGradient id="optbar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff9e9e"/>
+      <stop offset="100%" stop-color="#b28dff"/>
     </linearGradient>
   </defs>
-  <rect x="1" y="1" width="238" height="22" rx="8" fill="url(#ob)" stroke="#5a4d92" stroke-width="1.6"/>
-  <circle cx="15" cy="12" r="7" fill="none" stroke="#8fa8ff" stroke-width="1.6"/>
-  <path d="M24 4 L24 20" stroke="#5a4d92" stroke-width="1.2" opacity="0.8"/>
+  <rect x="1.5" y="2" width="493" height="37" rx="12" fill="none" stroke="#8a76c9" stroke-opacity="0.14" stroke-width="3"/>
+  <rect x="1" y="1" width="494" height="38" rx="11" fill="url(#opt)" stroke="#8a76c9" stroke-opacity="0.9" stroke-width="1.4"/>
+  <rect x="6" y="8" width="3.6" height="24" rx="1.8" fill="url(#optbar)"/>
+  <rect x="16" y="3.5" width="470" height="1" rx="0.5" fill="#ffffff" opacity="0.10"/>
 </svg>

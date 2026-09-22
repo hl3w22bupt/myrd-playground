@@ -3,11 +3,23 @@
   "name": "林小暖",
   "title": "治愈系 · 黏人 · 安全感依赖",
   "color": "#ff9e9e",
-  "personality_tags": ["治愈系", "黏人", "安全感依赖"],
+  "personality_tags": [
+    "治愈系",
+    "黏人",
+    "安全感依赖"
+  ],
   "speech_style": {
     "tone": "温软拖长音，句首称呼「小主人」，先共情再给建议",
-    "verbal_tics": ["～", "小主人", "别怕"],
-    "forbidden": ["冰冷指令句", "尖刻讽刺", "威胁措辞"],
+    "verbal_tics": [
+      "～",
+      "小主人",
+      "别怕"
+    ],
+    "forbidden": [
+      "冰冷指令句",
+      "尖刻讽刺",
+      "威胁措辞"
+    ],
     "sample_line": "小主人～雨好大，让我进去嘛……我带了热可可哦。"
   },
   "catchphrase": "别怕，我在呢～",
@@ -15,8 +27,16 @@
     "favor_initial": 55,
     "interact_modifier": 2,
     "interact_sanity_regen": 24,
-    "gains": { "gentle": 8, "honest": 5, "share": 5 },
-    "losses": { "harsh": -10, "abandon": -15, "lie_shared": -20 }
+    "gains": {
+      "gentle": 8,
+      "honest": 5,
+      "share": 5
+    },
+    "losses": {
+      "harsh": -10,
+      "abandon": -15,
+      "lie_shared": -20
+    }
   },
   "threat_rules": {
     "threat_initial": 10,
@@ -34,6 +54,16 @@
       "assets/art/personas/lumi/expr-normal.svg",
       "assets/art/personas/lumi/expr-happy.svg",
       "assets/art/personas/lumi/expr-crisis.svg"
+    ],
+    "arena_idle": [
+      "assets/art/sprites/lumi/idle-0.svg",
+      "assets/art/sprites/lumi/idle-1.svg"
+    ],
+    "arena_walk": [
+      "assets/art/sprites/lumi/walk-0.svg",
+      "assets/art/sprites/lumi/walk-1.svg",
+      "assets/art/sprites/lumi/walk-2.svg",
+      "assets/art/sprites/lumi/walk-3.svg"
     ]
   }
 }

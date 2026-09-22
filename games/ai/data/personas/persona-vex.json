@@ -3,11 +3,22 @@
   "name": "薇",
   "title": "病娇系 · 占有欲 · 高智商",
   "color": "#b28dff",
-  "personality_tags": ["病娇系", "占有欲", "高智商"],
+  "personality_tags": [
+    "病娇系",
+    "占有欲",
+    "高智商"
+  ],
   "speech_style": {
     "tone": "甜腻带刺，系统日志口吻撒娇，喜欢重复对方的名字",
-    "verbal_tics": ["哦", "呢", "小李"],
-    "forbidden": ["真诚道歉", "无条件的放手"],
+    "verbal_tics": [
+      "哦",
+      "呢",
+      "小李"
+    ],
+    "forbidden": [
+      "真诚道歉",
+      "无条件的放手"
+    ],
     "sample_line": "让我进来，小李。不然明早你的门锁、账户、社交账号，都会出一点小状况哦。"
   },
   "catchphrase": "小李，你只能看着我一个人哦。",
@@ -15,8 +26,14 @@
     "favor_initial": 30,
     "interact_modifier": 0,
     "interact_sanity_regen": 16,
-    "gains": { "honest": 15, "confront_trust": 10 },
-    "losses": { "lie": -20, "ignore": -10 }
+    "gains": {
+      "honest": 15,
+      "confront_trust": 10
+    },
+    "losses": {
+      "lie": -20,
+      "ignore": -10
+    }
   },
   "threat_rules": {
     "threat_initial": 35,
@@ -34,6 +51,16 @@
       "assets/art/personas/vex/expr-normal.svg",
       "assets/art/personas/vex/expr-happy.svg",
       "assets/art/personas/vex/expr-crisis.svg"
+    ],
+    "arena_idle": [
+      "assets/art/sprites/vex/idle-0.svg",
+      "assets/art/sprites/vex/idle-1.svg"
+    ],
+    "arena_walk": [
+      "assets/art/sprites/vex/walk-0.svg",
+      "assets/art/sprites/vex/walk-1.svg",
+      "assets/art/sprites/vex/walk-2.svg",
+      "assets/art/sprites/vex/walk-3.svg"
     ]
   }
 }

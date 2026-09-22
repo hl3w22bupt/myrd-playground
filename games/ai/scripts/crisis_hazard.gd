@@ -19,6 +19,8 @@ const HALF_SIZE: float = 30.0
 ## 威胁判定的额外余量（px）：真实重叠的轴心距上限是 HALF_SIZE + Player.HALF_SIZE，
 ## 幽灵事件（陈旧变换）远超此值，2px 余量覆盖浮点误差即可。
 const TRIGGER_MARGIN: float = 2.0
+## 行动段帧素材的统一画布宽（px）：与 BondToken.FRAME_WIDTH 同规格（chibi 帧 48×64）。
+const FRAME_WIDTH: float = 48.0
 
 ## 剧情节点 id（trace 回放定位到具体危机节点）。
 var node_id: String = ""
@@ -28,6 +30,8 @@ var persona_id: String = ""
 var _patrol_points: PackedVector2Array = PackedVector2Array()
 var _patrol_index: int = 0
 var _speed: float = 0.0
+## 游走朝向（-1 左 .. +1 右，连续值）：转向时插值过渡，不硬跳。
+var _facing: float = 1.0
 
 
 func _ready() -> void:
@@ -37,9 +41,9 @@ func _ready() -> void:
 		body_entered.connect(_on_body_entered)
 
 
-## 注入游走路径、实际速度与美术资产（危机表情贴图路径来自人设卡 art.expressions[crisis]）。
+## 注入游走路径、实际速度与美术资产（行走帧路径数组来自人设卡 art.arena_walk）。
 ## 路径首点即出生点（Main 在实例化后、加入场景树前调用）。
-func setup(next_node_id: String, next_persona_id: String, points: PackedVector2Array, speed: float, texture_path: String) -> void:
+func setup(next_node_id: String, next_persona_id: String, points: PackedVector2Array, speed: float, walk_paths: Array) -> void:
 	node_id = next_node_id
 	persona_id = next_persona_id
 	_patrol_points = points
@@ -47,12 +51,19 @@ func setup(next_node_id: String, next_persona_id: String, points: PackedVector2A
 	_speed = speed
 	if not points.is_empty():
 		position = points[0]
-	var body := get_node_or_null("Body") as Sprite2D
-	if body != null and not texture_path.is_empty():
-		var texture: Texture2D = load(texture_path)
-		if texture != null:
-			body.texture = texture
-			body.scale = Vector2.ONE * (HALF_SIZE * 2.0 / float(texture.get_width()))
+	var body := get_node_or_null("Body") as AnimatedSprite2D
+	if body != null and not walk_paths.is_empty():
+		var frames := ArenaFrames.build(walk_paths, &"walk", GameState.walk_anim_fps)
+		if frames != null:
+			body.sprite_frames = frames
+			body.play(&"walk")
+			# 帧素材 48×64：显示宽 ≈ 碰撞盒宽（60px），多帧步频与游走速度联动。
+			body.scale = Vector2.ONE * (HALF_SIZE * 2.0 / FRAME_WIDTH)
+
+
+## 游走朝向平滑翻转：横向移动方向变化时 facing 连续过渡（与玩家同一套插值手感）。
+func facing() -> float:
+	return _facing
 
 
 ## 是否具备游走能力（< 2 个路径点时静止为固定危机区）。
@@ -76,6 +87,22 @@ func _physics_process(delta: float) -> void:
 		_patrol_index = (_patrol_index + 1) % _patrol_points.size()
 	else:
 		global_position += to_target.normalized() * step
+	_update_facing(delta, to_target.x)
+
+
+## 朝向插值：横向意图存在时 facing 向 ±1 连续过渡（速率与玩家 turn_speed 同源）。
+func _update_facing(delta: float, intent_x: float) -> void:
+	var intent := signf(intent_x)
+	if intent == 0.0 or is_equal_approx(intent, _facing):
+		return
+	var step: float = GameState.turn_speed * delta
+	if step >= absf(intent - _facing):
+		_facing = intent
+	else:
+		_facing += step * signf(intent - _facing)
+	var body := get_node_or_null("Body") as AnimatedSprite2D
+	if body != null:
+		body.scale.x = absf(body.scale.x) * _facing
 
 
 ## 距离复核通过才结算威胁：Area2D 的重叠回调可能携带**陈旧的刚体变换** ——

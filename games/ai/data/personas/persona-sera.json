@@ -3,11 +3,22 @@
   "name": "瑟拉",
   "title": "神秘系 · 寡言 · 求真者",
   "color": "#8fa8ff",
-  "personality_tags": ["神秘系", "寡言", "求真者"],
+  "personality_tags": [
+    "神秘系",
+    "寡言",
+    "求真者"
+  ],
   "speech_style": {
     "tone": "省略句与诗，长停顿，喜欢用比喻和谜语说话",
-    "verbal_tics": ["……", "你听见了吗", "星图上说"],
-    "forbidden": ["长篇解释", "圆滑客套"],
+    "verbal_tics": [
+      "……",
+      "你听见了吗",
+      "星图上说"
+    ],
+    "forbidden": [
+      "长篇解释",
+      "圆滑客套"
+    ],
     "sample_line": "门后是风暴……也是星空。命运的低语，你听见了吗……"
   },
   "catchphrase": "命运的低语，你听见了吗……",
@@ -15,8 +26,14 @@
     "favor_initial": 25,
     "interact_modifier": 0,
     "interact_sanity_regen": 18,
-    "gains": { "honest": 10, "accept_offer": 5 },
-    "losses": { "lie": -20, "refuse_offer": -10 }
+    "gains": {
+      "honest": 10,
+      "accept_offer": 5
+    },
+    "losses": {
+      "lie": -20,
+      "refuse_offer": -10
+    }
   },
   "threat_rules": {
     "threat_initial": 30,
@@ -34,6 +51,16 @@
       "assets/art/personas/sera/expr-normal.svg",
       "assets/art/personas/sera/expr-happy.svg",
       "assets/art/personas/sera/expr-crisis.svg"
+    ],
+    "arena_idle": [
+      "assets/art/sprites/sera/idle-0.svg",
+      "assets/art/sprites/sera/idle-1.svg"
+    ],
+    "arena_walk": [
+      "assets/art/sprites/sera/walk-0.svg",
+      "assets/art/sprites/sera/walk-1.svg",
+      "assets/art/sprites/sera/walk-2.svg",
+      "assets/art/sprites/sera/walk-3.svg"
     ]
   }
 }

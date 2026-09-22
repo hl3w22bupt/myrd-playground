@@ -1,6 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="120" height="12" viewBox="0 0 120 12">
-  <!-- 状态条槽体：体力/饱食/理智与好感·威胁共用（填充条由代码按 ratio 画在槽内） -->
-  <rect x="1" y="1" width="118" height="10" rx="5" fill="#120e22" opacity="0.92"/>
-  <rect x="1" y="1" width="118" height="10" rx="5" fill="none" stroke="#5a4d92" stroke-width="1.4"/>
-  <line x1="7" y1="3" x2="7" y2="9" stroke="#5a4d92" stroke-width="1" opacity="0.5"/>
+  <!-- 状态条外框（第四轮）：圆角胶囊 + 内嵌暗槽 + 高光棱线 -->
+  <defs>
+    <linearGradient id="track" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#241d3f" stop-opacity="0.96"/>
+      <stop offset="100%" stop-color="#141122" stop-opacity="0.96"/>
+    </linearGradient>
+  </defs>
+  <rect x="0.5" y="0.5" width="119" height="11" rx="5.5" fill="url(#track)" stroke="#8a76c9" stroke-opacity="0.85" stroke-width="1"/>
+  <rect x="2.5" y="2" width="115" height="2" rx="1" fill="#ffffff" opacity="0.08"/>
 </svg>

@@ -1,6 +1,12 @@
 {
   "_comment": "全局数值单一事实源（spec.numeric）：键名与 autoload/game_state.gd 同名字段一一对应，改表即调不改码。人设相关的初值/修正/升级阈值不在这里 —— 它们落在各人设卡（favor_rules/threat_rules），避免双事实源。",
   "move_speed": 240.0,
+  "move_accel": 1500.0,
+  "move_decel": 1900.0,
+  "turn_speed": 7.5,
+  "walk_anim_fps": 9.0,
+  "idle_anim_fps": 2.2,
+  "walk_frame_threshold": 0.08,
   "stamina_max": 100.0,
   "satiety_max": 100.0,
   "sanity_max": 100.0,

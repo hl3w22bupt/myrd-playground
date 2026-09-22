@@ -1,0 +1,23 @@
+{
+  "_comment": "排版/动效/配色参数（可配置内容）：改本文件即调 UI，不改任何 .gd。键名与 scripts/main.gd 的 UI_DEFAULTS 一一对应；main._load_ui_config 读取并按默认值兜底。四级需求落点：字体自适应（dialog_*）、面板/选项/状态条动效（*_seconds / *_scale）、三级配色（palette_*，与 5 位女友主题色体系同源）。",
+  "dialog_max_font_size": 15,
+  "dialog_min_font_size": 10,
+  "dialog_line_spacing": 4,
+  "dialog_panel_width_min": 320.0,
+  "dialog_panel_width_max": 560.0,
+  "dialog_panel_height_min": 110.0,
+  "dialog_panel_height_max": 216.0,
+  "dialog_bottom_margin": 10.0,
+  "dialog_options_gap": 12.0,
+  "panel_anim_seconds": 0.16,
+  "option_stagger_seconds": 0.05,
+  "button_press_scale": 0.97,
+  "bar_tween_seconds": 0.22,
+  "title_bob_seconds": 2.4,
+  "title_bob_amplitude": 4.0,
+  "ending_fade_seconds": 0.35,
+  "palette_primary": "#ff9e9e",
+  "palette_secondary": "#b28dff",
+  "palette_accent": "#ffb35c",
+  "palette_calm": "#7ad0c9"
+}

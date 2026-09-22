@@ -32,6 +32,41 @@ const TOUCH_DEFAULTS: Dictionary = {
 }
 ## 触控参数内容文件落点。
 const TOUCH_CONFIG_PATH: String = "res://data/spec/touch.json"
+## 排版 / 动效 / 配色默认值：键名与 data/spec/ui.json 一一对应（改 JSON 即调，不改码）。
+## —— 第四轮需求范围一（字体不溢出）与范围四（整体审美）的全部可调参数。
+const UI_DEFAULTS: Dictionary = {
+	"dialog_max_font_size": 15,
+	"dialog_min_font_size": 10,
+	"dialog_line_spacing": 4,
+	"dialog_panel_width_min": 320.0,
+	"dialog_panel_width_max": 560.0,
+	"dialog_panel_height_min": 110.0,
+	"dialog_panel_height_max": 216.0,
+	"dialog_bottom_margin": 10.0,
+	"dialog_options_gap": 12.0,
+	"panel_anim_seconds": 0.16,
+	"option_stagger_seconds": 0.05,
+	"button_press_scale": 0.97,
+	"bar_tween_seconds": 0.22,
+	"title_bob_seconds": 2.4,
+	"title_bob_amplitude": 4.0,
+	"ending_fade_seconds": 0.35,
+	"palette_primary": "#ff9e9e",
+	"palette_secondary": "#b28dff",
+	"palette_accent": "#ffb35c",
+	"palette_calm": "#7ad0c9",
+}
+## 排版/动效内容文件落点。
+const UI_CONFIG_PATH: String = "res://data/spec/ui.json"
+
+## —— 对话框几何常量（布局骨架，非调参；调参走 ui.json）——
+## DialogPanel 内：文本区左缘（立绘 68px + 间距）、上缘（说话人行）、右/下内边距。
+const DIALOG_TEXT_LEFT: float = 84.0
+const DIALOG_TEXT_TOP: float = 30.0
+const DIALOG_TEXT_RIGHT: float = 10.0
+const DIALOG_TEXT_BOTTOM: float = 24.0
+## 对话框两侧与画布边缘的最小留白。
+const DIALOG_SIDE_MARGIN: float = 8.0
 
 ## 相位枚举。
 enum Phase { TITLE, STORY, ARENA, CHECKPOINT, ENDING }
@@ -95,12 +130,21 @@ var _ending_intent: String = ""
 var _roster_rows: Dictionary = {}
 ## 生效中的触控参数（TOUCH_DEFAULTS ∪ touch.json 覆盖值）。
 var _touch: Dictionary = TOUCH_DEFAULTS.duplicate()
+## 生效中的排版/动效参数（UI_DEFAULTS ∪ ui.json 覆盖值）。
+var _ui: Dictionary = UI_DEFAULTS.duplicate()
+## 最近一次对话框排版适配结果（冒烟断言直读；含 font_size/panel_height/fits 等）。
+var last_dialog_fit: Dictionary = {}
+## 状态条填充宽度的补间缓存（path → Tween），值变化时平滑过渡而不是跳变。
+var _bar_tweens: Dictionary = {}
+## 校验后的安全区内缩（画布逻辑 px）：_apply_safe_area 写入，_apply_dialog_layout 叠加。
+var _safe_inset: Dictionary = {"left": 0.0, "top": 0.0, "right": 0.0, "bottom": 0.0}
 ## 推进提示文案：按输入设备切换（触屏 = 点按画面；桌面 = 空格）。
 var _advance_hint: String = "空格 继续 ▼"
 
 
 func _ready() -> void:
 	_setup_display_mode()
+	_load_ui_config()
 	end_screen.visible = false
 	title_screen.visible = false
 	dialog_panel.visible = false
@@ -204,6 +248,18 @@ func _build_roster() -> void:
 		var row := PanelContainer.new()
 		row.custom_minimum_size = Vector2(118.0, ROSTER_ROW_HEIGHT)
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		# 质感底板（范围四）：圆角半透明 + 同色系细描边，替换默认生硬灰块。
+		var row_style := StyleBoxFlat.new()
+		row_style.bg_color = Color(0.09, 0.08, 0.16, 0.66)
+		row_style.set_corner_radius_all(7)
+		row_style.border_width_left = 2
+		row_style.border_width_right = 2
+		row_style.border_color = Color(personas.color(persona_id), 0.32)
+		row_style.content_margin_left = 4.0
+		row_style.content_margin_right = 4.0
+		row_style.content_margin_top = 3.0
+		row_style.content_margin_bottom = 3.0
+		row.add_theme_stylebox_override("panel", row_style)
 		var hbox := HBoxContainer.new()
 		hbox.add_theme_constant_override("separation", 4)
 		hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -250,6 +306,7 @@ func _show_title() -> void:
 	toast_label.visible = false
 	hud_label.text = ""
 	act_label.text = ""
+	_animate_title()
 	_update_touch_controls()
 
 
@@ -319,6 +376,16 @@ func _enter_node(node: Dictionary) -> void:
 			speaker_label.text = ""
 			dialog_text.text = String(node.get("text", ""))
 			confirm_hint.text = _advance_hint
+	# 排版适配（范围一）：按当前画布与文本实时挑字号/面板高——任意窗口尺寸不溢出；
+	# 面板出入场动效与选项逐条浮现（范围四）。
+	var options_visible: bool = String(node.get("type", "")) == StoryEngine.TYPE_CHOICE
+	var option_count: int = (node.get("options", []) as Array).size() if options_visible else 0
+	var fit := fit_dialog_text(dialog_text.text, GameState.play_area_size(), options_visible, option_count)
+	_apply_dialog_layout(fit)
+	last_dialog_fit = fit
+	_animate_panel_in()
+	if options_visible:
+		_animate_options_in()
 	# 旁白 / 台词节点的幕首事件数值（如召回公告、无人机夜）：进入节点即结算。
 	if String(node.get("type", "")) != StoryEngine.TYPE_CHOICE and node.has("effects"):
 		GameState.apply_effects(node.get("effects", {}), String(node.get("id", "")), "node", speaker_id)
@@ -394,13 +461,14 @@ func _rebuild_options(node: Dictionary) -> void:
 		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		button.add_child(label)
 		button.pressed.connect(_on_option_pressed.bind(i))
+		_bind_button_feedback(button)
 		options_box.add_child(button)
 		_option_buttons.append(button)
 
 
 func _highlight_option() -> void:
 	for i in _option_buttons.size():
-		_option_buttons[i].modulate = Color(1.35, 1.3, 1.1) if i == _selected_option else Color(0.75, 0.75, 0.8)
+		_option_buttons[i].modulate = Color(1.35, 1.3, 1.1) if i == _selected_option else _option_base_tint()
 
 
 func _on_option_pressed(index: int) -> void:
@@ -475,7 +543,7 @@ func _spawn_tokens(act: Dictionary) -> void:
 			String(token_data.get("node_id", "")),
 			persona_id,
 			String(token_data.get("line", "")),
-			personas.avatar_path(persona_id),
+			personas.arena_idle_paths(persona_id),
 			personas.color(persona_id),
 		)
 		token.collected.connect(_on_token_collected)
@@ -493,16 +561,12 @@ func _spawn_hazards(act: Dictionary) -> void:
 		var points := PackedVector2Array()
 		for point: Variant in hazard_data.get("patrol", []):
 			points.append(StoryEngine.to_vector2(point as Array))
-		var expressions: Array = personas.expression_paths(persona_id)
-		var crisis_texture := ""
-		if expressions.size() > PersonaLoader.EXPRESSION_CRISIS:
-			crisis_texture = String(expressions[PersonaLoader.EXPRESSION_CRISIS])
 		hazard.setup(
 			String(hazard_data.get("node_id", "")),
 			persona_id,
 			points,
 			float(hazard_data.get("speed", 0.0)) * personas.speed_bias(persona_id),
-			crisis_texture,
+			personas.arena_walk_paths(persona_id),
 		)
 		hazard.triggered.connect(_on_hazard_triggered)
 		add_child(hazard)
@@ -597,13 +661,6 @@ func _refresh_hud() -> void:
 	_refresh_roster()
 
 
-func _set_bar_fill(bar_path: String, ratio: float) -> void:
-	var fill := get_node_or_null(bar_path + "/Fill") as ColorRect
-	if fill == null:
-		return
-	fill.size = Vector2(clampf(ratio, 0.0, 1.0) * 116.0, 8.0)
-
-
 ## 剧情气泡：收集台词 / 危机台词 / 幕旁白共用一条通道（单行滚动覆盖，末位优先）。
 func _show_dialogue(text: String) -> void:
 	if text.is_empty():
@@ -682,6 +739,7 @@ func _on_game_ended(_outcome_name: String) -> void:
 		])
 	end_basis_label.text = " ｜ ".join(lines)
 	_refresh_hud()
+	_animate_ending_in()
 
 
 ## —— 输入 ——
@@ -739,9 +797,10 @@ func _handle_story_input(event: InputEvent) -> void:
 				return
 
 
-## 视口尺寸变化（旋转 / 分屏 / 桌面拖拽窗口）：刷新玩法边界。
+## 视口尺寸变化（旋转 / 分屏 / 桌面拖拽窗口）：刷新玩法边界 + 对话框实时重排。
 func _on_viewport_size_changed() -> void:
 	story.play_bounds = GameState.play_area_size()
+	_refit_dialog()
 
 
 ## 画面内点按的相位语义（与 confirm 一致，唯独 choice 相位例外）：
@@ -819,6 +878,136 @@ func _load_touch_config() -> void:
 			_touch[key] = parsed[key]
 
 
+## 读取排版/动效/配色内容文件（ui.json）：回落策略与触控参数一致。
+func _load_ui_config() -> void:
+	var text: String = FileAccess.get_file_as_string(UI_CONFIG_PATH)
+	if text.is_empty():
+		return
+	var parsed: Variant = JSON.parse_string(text)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		push_warning("排版配置文件格式不正确，使用默认值：%s" % UI_CONFIG_PATH)
+		return
+	for key: String in UI_DEFAULTS:
+		if parsed.has(key):
+			_ui[key] = parsed[key]
+
+
+## —— 对话框排版适配（需求范围一：任意窗口尺寸 × 任意 DPR 下文字不溢出）——
+## 纯计算、无副作用：冒烟直接调它做三档窗口 × 三档 DPR 的像素级断言。
+## 策略：① 文本区宽度固定后，从最大字号向下找「能装下全文」的最大字号；
+##       ② 找到 → 面板高度收缩为内容高度（自适应，不长黑边）；
+##       ③ 最小字号仍装不下 → 面板按上限增高（choice 相位不侵入选项热区）；
+##       ④ 仍装不下 → fits=false（渲染层还有 clip_contents 兜底，绝不越界）。
+func fit_dialog_text(text: String, canvas: Vector2, options_visible: bool, option_count: int = -1) -> Dictionary:
+	if canvas.x <= 0.0 or canvas.y <= 0.0:
+		canvas = GameState.play_area_size()
+	# 全局自定义字体（project.godot [gui] theme/custom_font，子集化中文字体）：
+	# 从对话框 Label 解析——Node2D 没有 get_theme_default_font，Control 才能解析主题链。
+	var font := dialog_text.get_theme_font("font")
+	var panel_width := clampf(
+		canvas.x - DIALOG_SIDE_MARGIN * 2.0,
+		minf(float(_ui.dialog_panel_width_min), canvas.x - DIALOG_SIDE_MARGIN * 2.0),
+		float(_ui.dialog_panel_width_max),
+	)
+	var height_cap := canvas.y * 0.62
+	if options_visible:
+		height_cap = minf(height_cap,
+				canvas.y - float(_ui.dialog_bottom_margin) - _options_column_height(canvas, option_count)
+				- float(_ui.dialog_options_gap))
+	var panel_height_max := clampf(height_cap,
+			float(_ui.dialog_panel_height_min), float(_ui.dialog_panel_height_max))
+	var text_width := panel_width - DIALOG_TEXT_LEFT - DIALOG_TEXT_RIGHT
+	var text_height_max := panel_height_max - DIALOG_TEXT_TOP - DIALOG_TEXT_BOTTOM
+	var line_spacing := int(_ui.dialog_line_spacing)
+	var chosen_size := int(_ui.dialog_min_font_size)
+	var needed := Vector2.ZERO
+	var fits := false
+	var size := int(_ui.dialog_max_font_size)
+	while size >= int(_ui.dialog_min_font_size):
+		needed = _measure_dialog_text(font, text, text_width, size, line_spacing)
+		if needed.y <= text_height_max + 0.01:
+			chosen_size = size
+			fits = true
+			break
+		size -= 1
+	if not fits:
+		chosen_size = int(_ui.dialog_min_font_size)
+		needed = _measure_dialog_text(font, text, text_width, chosen_size, line_spacing)
+	var panel_height := clampf(
+		needed.y + DIALOG_TEXT_TOP + DIALOG_TEXT_BOTTOM,
+		float(_ui.dialog_panel_height_min),
+		panel_height_max,
+	)
+	return {
+		"font_size": chosen_size,
+		"panel_width": panel_width,
+		"panel_height": panel_height,
+		"text_width": text_width,
+		"text_height": needed.y,
+		"text_height_max": text_height_max,
+		"panel_height_max": panel_height_max,
+		"fits": fits,
+	}
+
+
+## 多行文本测量：字号 × 换行宽 → 需求高度（含行距；无字体环境按行高估算）。
+func _measure_dialog_text(font: Font, text: String, width: float, font_size: int, line_spacing: int) -> Vector2:
+	if font == null:
+		return Vector2(width, float(font_size) * 1.5)
+	var measured := font.get_multiline_string_size(
+		text, HORIZONTAL_ALIGNMENT_LEFT, width, font_size)
+	var line_height := maxf(font.get_height(font_size), 1.0)
+	var lines := maxi(1, int(round(measured.y / line_height)))
+	return Vector2(measured.x, measured.y + float(maxi(0, lines - 1) * line_spacing))
+
+
+## 把适配结果落到 UI：面板尺寸/字号/文本区一次性重排（resize / 横竖切换实时生效）。
+## 对话框子节点在 tscn 里已锚定面板边缘（anchor 0/1），offsets 即「内边距」语义；
+## 面板与选项列在基线 offsets 之上叠加安全区内缩（_safe_inset，Web 恒为 0）。
+func _apply_dialog_layout(fit: Dictionary) -> void:
+	var width := float(fit.get("panel_width", 320.0))
+	var height := float(fit.get("panel_height", float(_ui.dialog_panel_height_min)))
+	var inset_l := float(_safe_inset.get("left", 0.0))
+	var inset_r := float(_safe_inset.get("right", 0.0))
+	var inset_b := float(_safe_inset.get("bottom", 0.0))
+	dialog_panel.offset_left = -width * 0.5 + inset_l
+	dialog_panel.offset_right = width * 0.5 - inset_r
+	dialog_panel.offset_bottom = -float(_ui.dialog_bottom_margin) - inset_b
+	dialog_panel.offset_top = -float(_ui.dialog_bottom_margin) - inset_b - height
+	dialog_text.add_theme_font_size_override("font_size", int(fit.get("font_size", 15)))
+	dialog_text.add_theme_constant_override("line_spacing", int(_ui.dialog_line_spacing))
+	dialog_text.offset_left = DIALOG_TEXT_LEFT
+	dialog_text.offset_top = DIALOG_TEXT_TOP
+	dialog_text.offset_right = -DIALOG_TEXT_RIGHT
+	dialog_text.offset_bottom = -DIALOG_TEXT_BOTTOM
+	speaker_label.offset_right = -DIALOG_TEXT_RIGHT
+	# 选项列随面板顶动态上移：任何面板高度下都不互相侵入（热区不重叠）。
+	options_box.offset_right = 248.0 - inset_r
+	options_box.offset_left = -248.0 + inset_l
+	options_box.offset_bottom = -(float(_ui.dialog_bottom_margin) + height
+			+ float(_ui.dialog_options_gap)) - inset_b
+
+
+## 选项列需求高度（VBox：按钮数 × 热区高 + 间隔）——面板高度上限的约束项。
+func _options_column_height(_canvas: Vector2, option_count: int) -> float:
+	var count := option_count if option_count > 0 else 4
+	var button_height := _min_option_height()
+	var separation := float(options_box.get_theme_constant("separation"))
+	return button_height * float(count) + separation * float(maxi(0, count - 1))
+
+
+## 对当前剧情节点重跑排版适配（窗口尺寸变化 / 横竖切换时实时重排）。
+func _refit_dialog() -> void:
+	if _current_node.is_empty() or not dialog_panel.visible:
+		return
+	var text := String(_current_node.get("prompt", _current_node.get("text", "")))
+	var options_visible := not _option_buttons.is_empty()
+	var count := _option_buttons.size()
+	var fit := fit_dialog_text(text, GameState.play_area_size(), options_visible, count)
+	_apply_dialog_layout(fit)
+	last_dialog_fit = fit
+
+
 ## headless 门禁环境把显示模式钉回 disabled：headless 无真实窗口/无 DPR/无触屏，
 ## canvas_items 拉伸在该环境下的视口语义不稳定（headless 探针实测：vrect 变 640×640
 ## 正方形、final_transform 缩放 0.1），会改变玩法实体布局坐标并连锁改变冒烟时序
@@ -894,6 +1083,9 @@ func _window_to_canvas_ratio() -> float:
 ## 刘海/打孔屏安全区避让：把安全区内缩量换算成画布逻辑像素，分别推移
 ## 顶部信息簇（下移右移）与底部/右侧触控与对话控件（上收左收）。
 ## 无安全区 API 的环境（headless/Web 返回零矩形）自然退化为零位移。
+## ⚠️ 有效性护栏（实测：macOS 桌面窗口下 get_display_safe_area 返回「整屏」坐标系，
+## 窗口只是屏幕一角时换算出 -1280px 这类垃圾内缩，直接撑爆布局）——
+## 只接受「非负且 ≤ 该边 20%」的内缩（手机刘海/打孔的量级），越界值一律弃用。
 func _apply_safe_area() -> void:
 	var window_size := Vector2(DisplayServer.window_get_size())
 	var safe := Rect2(DisplayServer.get_display_safe_area())
@@ -902,10 +1094,16 @@ func _apply_safe_area() -> void:
 		return
 	var sx := canvas_size.x / window_size.x
 	var sy := canvas_size.y / window_size.y
-	var left := safe.position.x * sx
-	var top := safe.position.y * sy
-	var right := (window_size.x - safe.end.x) * sx
-	var bottom := (window_size.y - safe.end.y) * sy
+	var limit_x := canvas_size.x * 0.2
+	var limit_y := canvas_size.y * 0.2
+	# 安全区是「显示坐标系」，窗口只是其中一角：先算窗口与安全区的真实相交
+	# （桌面窗口通常完全在安全区内 → 内缩为 0；移动端窗口=整屏 → 等价直接换算）。
+	var win_pos := Vector2(DisplayServer.window_get_position())
+	var left := _valid_inset((safe.position.x - win_pos.x) * sx, limit_x)
+	var top := _valid_inset((safe.position.y - win_pos.y) * sy, limit_y)
+	var right := _valid_inset((win_pos.x + window_size.x - safe.end.x) * sx, limit_x)
+	var bottom := _valid_inset((win_pos.y + window_size.y - safe.end.y) * sy, limit_y)
+	_safe_inset = {"left": left, "top": top, "right": right, "bottom": bottom}
 	for node_path in ["UI/HudLabel", "UI/ActLabel", "UI/BarStamina", "UI/BarSatiety", "UI/BarSanity"]:
 		var node := get_node_or_null(NodePath(node_path)) as Control
 		if node != null:
@@ -914,9 +1112,13 @@ func _apply_safe_area() -> void:
 			node.offset_right += left
 			node.offset_bottom += top
 	_nudge_control(get_node_or_null("UI/DialogPanel") as Control, left, 0.0, -right, -bottom)
-	_nudge_control(get_node_or_null("UI/OptionsBox") as Control, 0.0, 0.0, -right, -bottom)
 	_nudge_control(get_node_or_null("TouchUI/JoystickAnchor") as Control, left, 0.0, 0.0, -bottom)
 	_nudge_control(get_node_or_null("TouchUI/ConfirmAnchor") as Control, 0.0, 0.0, -right, -bottom)
+
+
+## 内缩有效性：非负且不超过 limit 才采纳（否则返回 0，防桌面窗口垃圾值毁布局）。
+func _valid_inset(value: float, limit: float) -> float:
+	return value if (value >= 0.0 and value <= limit) else 0.0
 
 
 ## 安全区推移助手：对 Control 的四边 offsets 追加增量（节点缺失时静默跳过）。
@@ -927,3 +1129,98 @@ func _nudge_control(control: Control, dl: float, dt: float, dr: float, db: float
 	control.offset_top += dt
 	control.offset_right += dr
 	control.offset_bottom += db
+
+
+## —— 动效系统（需求范围四：出入场过渡 + 反馈；时长/缓动全部来自 ui.json）——
+
+## 对话框入场：淡入 + 底部轻微上滑（pivot 置于底缘中点，缩放锚定不动）。
+func _animate_panel_in() -> void:
+	var seconds := maxf(float(_ui.panel_anim_seconds), 0.01)
+	dialog_panel.pivot_offset = Vector2(dialog_panel.size.x * 0.5, dialog_panel.size.y)
+	dialog_panel.modulate.a = 0.0
+	dialog_panel.scale = Vector2(0.97, 0.97)
+	var tween := create_tween().set_parallel(true)
+	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(dialog_panel, "modulate:a", 1.0, seconds)
+	tween.tween_property(dialog_panel, "scale", Vector2.ONE, seconds)
+
+
+## 选项逐条浮现：延迟错峰淡入（读选项像「她挨个说给你选」）。
+func _animate_options_in() -> void:
+	var stagger := maxf(float(_ui.option_stagger_seconds), 0.0)
+	for i in _option_buttons.size():
+		var button := _option_buttons[i]
+		button.modulate.a = 0.0
+		var tween := create_tween()
+		tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+		tween.tween_interval(stagger * float(i))
+		tween.tween_property(button, "modulate:a", 1.0, maxf(seconds_of_stagger(), 0.08))
+
+
+func seconds_of_stagger() -> float:
+	return maxf(float(_ui.panel_anim_seconds), 0.08)
+
+
+## 选项按钮反馈：hover 提亮 / 按下轻微缩放（键盘高亮沿用 _highlight_option 的 modulate）。
+func _bind_button_feedback(button: Button) -> void:
+	button.pivot_offset = Vector2(button.size.x * 0.5, button.size.y * 0.5)
+	button.mouse_entered.connect(func() -> void:
+		if button.modulate.a > 0.9:
+			button.modulate = Color(1.12, 1.12, 1.18)
+	)
+	button.mouse_exited.connect(func() -> void: button.modulate = _option_base_tint())
+	button.button_down.connect(func() -> void:
+		button.pivot_offset = Vector2(button.size.x * 0.5, button.size.y * 0.5)
+		button.scale = Vector2.ONE * float(_ui.button_press_scale)
+	)
+	button.button_up.connect(func() -> void: button.scale = Vector2.ONE)
+
+
+## 未选中选项的基础色调（与 _highlight_option 保持一致口径）。
+func _option_base_tint() -> Color:
+	return Color(0.75, 0.75, 0.8)
+
+
+## 状态条平滑补间：数值变化时填充宽度过渡（0.22s），替代生硬跳变。
+func _set_bar_fill(bar_path: String, ratio: float) -> void:
+	var fill := get_node_or_null(bar_path + "/Fill") as ColorRect
+	if fill == null:
+		return
+	var target_width: float = clampf(ratio, 0.0, 1.0) * 116.0
+	var existing: Tween = _bar_tweens.get(bar_path)
+	if existing != null and existing.is_valid():
+		existing.kill()
+	var seconds := maxf(float(_ui.bar_tween_seconds), 0.01)
+	var tween := create_tween()
+	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(fill, "size:x", target_width, seconds)
+	_bar_tweens[bar_path] = tween
+
+
+## 标题浮动：主标题上下轻摆循环 + 提示呼吸闪烁（TITLE 相位常驻动效）。
+func _animate_title() -> void:
+	var title_label := get_node_or_null("UI/TitleScreen/TitleTitle") as Label
+	if title_label != null:
+		title_label.pivot_offset = Vector2(title_label.size.x * 0.5, title_label.size.y * 0.5)
+		var bob := create_tween().set_loops()
+		bob.set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+		var amplitude := float(_ui.title_bob_amplitude)
+		var seconds := maxf(float(_ui.title_bob_seconds), 0.4)
+		bob.tween_property(title_label, "position:y", -amplitude, seconds)
+		bob.tween_property(title_label, "position:y", amplitude, seconds)
+		bob.tween_property(title_label, "position:y", 0.0, seconds * 0.5)
+	var hint_label := get_node_or_null("UI/TitleScreen/TitleHint") as Label
+	if hint_label != null:
+		var pulse := create_tween().set_loops()
+		pulse.set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+		pulse.tween_property(hint_label, "modulate:a", 0.45, 0.9)
+		pulse.tween_property(hint_label, "modulate:a", 1.0, 0.9)
+
+
+## 结局入场：整屏淡入 + 标题落版（从上方轻微滑入）。
+func _animate_ending_in() -> void:
+	var seconds := maxf(float(_ui.ending_fade_seconds), 0.05)
+	end_screen.modulate.a = 0.0
+	var tween := create_tween().set_parallel(true)
+	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(end_screen, "modulate:a", 1.0, seconds)

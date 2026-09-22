@@ -24,6 +24,9 @@ const PICKUP_MARGIN: float = 4.0
 ## 真正可收集的最大圆心距（由常量推导，不要手写魔数 ——
 ## 否则改了任一 .tscn 的形状尺寸，这里会静默过期，只会以「吃不到信物」的运行期症状暴露）。
 const PICKUP_MAX_DISTANCE: float = PICKUP_RADIUS + Player.HALF_SIZE * SQRT_2 + PICKUP_MARGIN
+## 行动段帧素材的统一画布宽（px）：信物/危机/玩家的 chibi 帧都按 48×64 绘制，
+## 显示缩放 = 目标显示尺寸 ÷ 本值（美术帧规格契约，gen_sprites.py 同值）。
+const FRAME_WIDTH: float = 48.0
 
 ## 剧情节点 id（trace 回放定位到具体节点）。
 var node_id: String = ""
@@ -42,20 +45,32 @@ func _ready() -> void:
 		body_entered.connect(_on_body_entered)
 
 
-## 注入剧情节点数据与美术资产（头像贴图路径来自人设卡 art 字段，主题色做呼吸光晕底色）。
-## 实例化后、加入场景树前调用（Sprite2D 子节点在实例化时就已存在，可直接取）。
-func apply_story(next_node_id: String, next_persona_id: String, line: String, avatar_path: String, color: Color) -> void:
+func _process(delta: float) -> void:
+	# 悬浮呼吸：信物贴图在光晕上轻微起伏（相位按实例错开，避免整排同步跳动）。
+	_hover_time += delta
+	var body := get_node_or_null("Body") as AnimatedSprite2D
+	if body != null and body.sprite_frames != null:
+		body.position.y = sin(_hover_time * 2.4 + float(position.x) * 0.05) * 2.0
+
+var _hover_time: float = 0.0
+
+
+## 注入剧情节点数据与美术资产（待机帧路径数组来自人设卡 art.arena_idle，主题色做呼吸光晕底色）。
+## 实例化后、加入场景树前调用（AnimatedSprite2D 子节点在实例化时就已存在，可直接取）。
+func apply_story(next_node_id: String, next_persona_id: String, line: String, idle_paths: Array, color: Color) -> void:
 	node_id = next_node_id
 	persona_id = next_persona_id
 	dialogue_line = line
-	var body := get_node_or_null("Body") as Sprite2D
-	if body != null and not avatar_path.is_empty():
-		var texture: Texture2D = load(avatar_path)
-		if texture != null:
-			body.texture = texture
-			body.scale = Vector2.ONE * (PICKUP_RADIUS * 2.0 / float(texture.get_width()))
-		body.modulate = Color(1.0, 1.0, 1.0, 1.0)
-		_theme_color = color
+	var body := get_node_or_null("Body") as AnimatedSprite2D
+	if body != null and not idle_paths.is_empty():
+		var frames := ArenaFrames.build(idle_paths, &"idle", GameState.idle_anim_fps)
+		if frames != null:
+			body.sprite_frames = frames
+			body.play(&"idle")
+			# 帧素材 48×64：按收集判定直径（28px）定显示宽，帧率高 ≈ 呼吸节奏随数值表。
+			body.scale = Vector2.ONE * (PICKUP_RADIUS * 2.0 / FRAME_WIDTH)
+			body.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	_theme_color = color
 	queue_redraw()
 
 

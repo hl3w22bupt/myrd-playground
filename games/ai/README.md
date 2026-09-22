@@ -116,3 +116,36 @@ bash games/ai/verify.sh
 ```
 
 判定协议：退出码 0 且日志含 `GODOT_SMOKE: PASS` 才算通过；退出码 2 = 环境不可用。
+
+## 第四轮：视觉审美与交互体验升级（v2.3.0-visual-motion）
+
+- **PC 字体不溢出（范围一）**：对话框排版自适应引擎 `main.fit_dialog_text`——
+  按当前画布从 `dialog_max_font_size` 向下找「装得下全文」的最大字号，装不下按上限
+  增高面板（choice 相位不侵入选项热区），渲染层 `clip_contents` 兜底；resize / 横竖切换
+  实时重排（`_on_viewport_size_changed` → `_refit_dialog`）。排版参数全部内容化于
+  `data/spec/ui.json`，冒烟做 3 档画布 × 3 档 DPR × 最长剧情文本的 fits 断言
+- **精灵品质（范围二）**：5 位女友 + 主角的行动段精灵全部升级为 48×64 多帧 chibi
+  （渐变发色/服装/瞳色/道具，派生自人设卡 `portrait_prompt`，生成器
+  `tools/gen_sprites.py` + `tools/sprite_lib.py` 可复现）；人设卡 `art` 新增
+  `arena_idle`（信物呼吸循环）/`arena_walk`（危机巡逻行走）声明，缺字段自动回落
+  avatar/表情差分（换卡免改码）
+- **移动平滑（范围三）**：起步加速 / 松杆减速（`move_accel`/`move_decel`）、
+  walk 帧率跟随实际速度（`walk_anim_fps` × speed_scale）、转身朝向连续过渡
+  （`turn_speed`，facing 从 +1 平滑插值到 -1，不硬跳）；全部手感参数在
+  `data/spec/numeric.json`，冒烟断言位移上限 / 缓动 / 帧切换 / 转身连续性
+- **UI 审美（范围四）**：三级配色（palette_primary/secondary/accent/calm，与女友主题色
+  同源）、对话框/选项卡/状态条/标题/结局全套新素材（圆角+渐变+描边+柔光）、
+  动效系统（面板出入场、选项逐条浮现、按钮 hover/按下反馈、状态条补间、标题浮动、
+  结局淡入），时长与幅度全部在 `data/spec/ui.json`
+- **开发工具**：`tools/preview_atlas.gd`（精灵帧目检图）、`tools/screenshot.gd`
+  （分相位截图到 user://shots，不入库）
+
+### Web 导出体积预算（本轮实测，Godot 4.3 单线程导出）
+
+| 资产 | 体积（gzip 前） |
+|---|---|
+| index.wasm | ~36 MB（gzip+base64 后 ~12.5 MB，落在 bundle 25MB 上限内） |
+| index.pck | 见 `games/ai/export/web/` 导出清单（新增 41 张 SVG@2x 后仍在预算内） |
+| 中文字体（子集化 Noto Sans SC） | ~3.4 MB（GB2312 全集 + ASCII） |
+
+SVG 帧素材按 `svg/scale=2.0` 导入（96×128 位图，显示 48×64），高 DPR 屏不糊。
