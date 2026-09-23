@@ -5,6 +5,7 @@
 //   ③ HUD 骨架一致：模板 DOM id ↔ hud.js 引用 id
 //   ④ 产物同步：index.html 的 SRC_SHA 与源输入（src/ + assets/ + index.template.html + tools/build.mjs + 本算法文件）重算一致
 //   ⑤ 关卡元素编号：spec.levels[].elements ↔ level-01-deck.js 双向集合相等（私加/漏实现都打回）
+//   ⑥ AppHost 导出同步：export/web/index.html（apphost.toml assets_dir 指向的部署产物）↔ 主产物 index.html 逐字节一致
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -107,5 +108,14 @@ const fail = (m) => failures.push(m);
   }
 }
 
+// —— ⑥ AppHost 导出同步 —— 部署产物（assets_dir）必须与主产物同一份，手改/漏拷贝都会在部署侧放大
+{
+  const exportPath = path.join(gameRoot, "export", "web", "index.html");
+  const mainPath = path.join(gameRoot, "index.html");
+  if (!existsSync(exportPath)) fail("缺少 export/web/index.html（apphost.toml assets_dir 指向的目录为空，先 node tools/build.mjs）");
+  else if (readFileSync(exportPath).equals(readFileSync(mainPath))) pass("AppHost 导出拷贝与主产物逐字节一致（export/web/index.html ↔ index.html）");
+  else fail("AppHost 导出拷贝与主产物不一致（部署侧会伺服旧页面）：重新 node tools/build.mjs，勿手改 export/");
+}
+
 if (failures.length) { console.error("—— QA 审计 FAIL ——"); for (const f of failures) console.error(`  FAIL  ${f}`); process.exit(1); }
-console.log("QA-AUDIT: PASS 五道互查关全过");
+console.log("QA-AUDIT: PASS 六道互查关全过");

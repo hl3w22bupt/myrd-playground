@@ -36,7 +36,7 @@ node games/transport-ship-3d/tests/singlefile.contract.mjs            # ac-1 单
 node games/transport-ship-3d/tests/kernel-determinism.spec.mjs        # ac-2 内核确定性
 node games/transport-ship-3d/tests/combat.spec.mjs                    # ac-3 武器数值与 spec 一致
 node games/transport-ship-3d/tests/wave.spec.mjs                      # ac-4 波次确定性递增
-node games/transport-ship-3d/tests/qa-audit.mjs                       # ac-6 QA 互查审计（五道关）
+node games/transport-ship-3d/tests/qa-audit.mjs                       # ac-6 QA 互查审计（六道关）
 ```
 
 无头冒烟（真浏览器跑内核 + 渲染统计）：`index.html?smoke=<秒>` → DOM/标题写回结果 JSON。
@@ -54,3 +54,16 @@ node games/transport-ship-3d/tests/qa-audit.mjs                       # ac-6 QA 
 | 缓存工厂 | `render/geometry.js` roundedBox/standardMat 键值缓存；`render/textures.js` cached() |
 | 装配顺序即依赖顺序 + compile 预编译 | `main.js` 渲染器→布景→装配→HUD/音频→输入→主循环 |
 | URL 参数即调试接口 + window.__game | `?smoke=<秒>` 无头冒烟 + `window.__game.fastForward(seconds)` |
+
+## AppHost 部署形态（单文件游戏 × 底座 A）
+
+```bash
+node tools/build.mjs               # 一步产出两份：主产物 index.html + 部署产物 export/web/index.html（同一字符串，勿手改后者）
+bash server/tools/verify-local.sh  # 壳端到端门禁：tsc → esbuild bundle（平台同款 runner 胶水）→ 起服 → 伪对象存储喂 assets_dir
+```
+
+- `apphost.toml`：`name="transport-ship-3d"`、`assets_dir="games/transport-ship-3d/export/web"`（对齐 soccer 线惯例 `games/<slug>/export/web`）。
+- 壳（仓库根 `server/`，Node20 + Hono）：本游戏是**单 HTML**（引擎+资产全内联），所以与 Godot 壳不同 —— `/` 直接把 assets_dir 里的 `index.html` 当响应体回出去，没有 wasm/pck 的 base64 中转，也没有子资源路径改写；资产不可得 → `503` 诊断页；`/health` 不依赖资产就绪。
+- 平台资产口径：`.html` 以 raw + `text/html` 上传（只有 `.wasm`/`.pck` gzip），壳内保留 gzip+b64 兼容分支（口径变化时显式降级，不回乱码）。
+- 部署调用（目标应用就位后）：`POST /api/v1/apphost/apps/<appId>/deployments`，body `{"mode":"bundle","deployedBy":"workflow","gitRef":"<本分支>"}`。
+- 当前部署状态：blocked 于平台无本目标 hostedApp —— 见 `.myrd/blackboard/blockers.md` B-6。

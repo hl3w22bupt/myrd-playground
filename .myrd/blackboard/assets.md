@@ -37,6 +37,17 @@
 
 > 音频不落 .wav 文件（零外部资源红线）：WebAudio 运行时合成，落点即合成器模块本身。
 
+## AppHost 部署产物（2026-09-24 部署就绪批次 · 游戏程序）
+
+| 项 | 落点 | 说明 | 状态 |
+|---|---|---|---|
+| 部署产物 | `games/transport-ship-3d/export/web/index.html` | `apphost.toml` assets_dir 指向本目录；由 `tools/build.mjs` 与主产物 `index.html` **同批次写出**（单文件、零外部资源），勿手改 | ✅ 已接线（qa-audit ⑥ 断言逐字节一致 + 负向验证） |
+| 壳落地页 | `server/src/game-page.ts` | `/` 直接回出 assets_dir 的 index.html（单文件游戏无需 wasm/pck 中转）；资产不可得 → 503 诊断页 | ✅ 已接线（`bash server/tools/verify-local.sh` 7 断言全过） |
+| 壳应用清单 | `apphost.toml` | `name="transport-ship-3d"`、`assets_dir="games/transport-ship-3d/export/web"`（对齐 soccer 分支惯例） | ✅ 已接线 |
+| 壳门禁 | `server/tools/verify-local.sh` + `server/tools/fake-s3.mjs` | 复刻平台构建链（tsc → esbuild bundle → 起服）+ 伪对象存储喂 assets_dir，断言 `/health` 与 `/` | ✅ 门禁证据 `gate-logs/transport-ship-3d/full-suite-004131-head-c3ad2cb-apphost-prep.log` 第 4 节 |
+
+> 部署状态：**blocked 于平台无本目标 hostedApp**（三个 ready 应用均属其他目标线，不得抢占）—— 见 blockers.md B-6；分支内部署就绪改造全部完成。
+
 ## 资产引用层（本批新增 · 文件名与 spec 资产 id 对应）
 
 | 落点（`games/transport-ship-3d/assets/`） | 职责 | 说明 |

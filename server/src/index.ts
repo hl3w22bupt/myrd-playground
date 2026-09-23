@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { ctx } from "#apphost";
 import { getAsset } from "./lib/asset-store";
-import { GAME_PAGE_HTML } from "./game-page";
+import { loadGamePage } from "./game-page";
 
 const app = new Hono();
 
@@ -10,16 +10,20 @@ const app = new Hono();
 app.get("/health", (c) =>
   c.json({
     ok: true,
-    app: "candy-crush-legend",
+    app: "transport-ship-3d",
     env: ctx.environment,
     assets: "lazy/object-storage",
   }),
 );
 
 // 游戏落地页（/ 是唯一豁免 /api 前缀护栏的业务路径）。
-// 页面内所有资源走相对路径 api/public/assets/*：公网入口 /apps/game 下相对路径
-// 会解析到网关子路径，绝对路径会 404/被登录墙拦下（见任务契约）。
-app.get("/", (c) => c.html(GAME_PAGE_HTML));
+// 本游戏是单文件 HTML（引擎+资产全内联，零外部资源），落地页直接回出 assets_dir 里的
+// index.html —— 没有子资源请求，因此不存在 Godot 壳的相对路径改写问题。
+// 资产不可得时回 503 + 诊断页（不伪装成游戏，详见 game-page.ts）。
+app.get("/", async (c) => {
+  const page = await loadGamePage();
+  return c.html(page.html, page.status);
+});
 
 /**
  * 游戏静态资产（底座 A：资产出 bundle，运行时从对象存储懒加载 + 内存缓存）。

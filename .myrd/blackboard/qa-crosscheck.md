@@ -29,6 +29,14 @@
 > 沿革：22:18 补跑锚定 043e8ab（驳回点③④修复，未提交）→ 22:20 终验 56a6d58 → c083db7 22:41 补跑 → 368d242 22:59 补跑，即本表。
 > 纪律：**任何游戏工程提交（src/ assets/ tools/ tests/ index.html）之后必须补跑全套门禁并落盘，否则本表视为失效。**
 
+### 互查基线增量（2026-09-24 部署就绪批次 · 锚定 c3ad2cb，原文 `full-suite-004131-head-c3ad2cb-apphost-prep.log`）
+
+本批**游戏本体零改动**（src/ assets/ index.template.html 未动），改动只在部署链路：
+①`tools/build.mjs` 增加同批次写出 `export/web/index.html`（AppHost assets_dir 产物）；②`apphost.toml` 由糖果模板改为本游戏；③壳 `server/src/game-page.ts` 改为伺服单文件游戏；④`tests/qa-audit.mjs` 增第⑥关（五道关 → 六道关）；⑤新增壳门禁 `server/tools/verify-local.sh`。实跑结果：
+契约 71 PASS / 0 FAIL + ac 五套 exit 0 + smoke 8 断言全 PASS（shotsFired=17 开火链路照旧）+ 壳端到端 7 断言全 PASS（`/` 响应体与游戏产物**逐字节一致**）。
+互查动作：qa-audit ⑥ **正/负向双向验证**（一致 → PASS；向导出拷贝追加 1 字节 → FAIL(exit 1)；重建 → PASS），`/health` 不依赖资产就绪单独验证（未配置资产 env 时 503 诊断页 + health 200）。
+自纠缺陷一笔：⑥ 关初版用 `===` 比较 Buffer（恒 false，正例也 FAIL），门禁落盘前抓出改为 `.equals()` 内容比较——教训：**Buffer 比较必须看内容，先跑正例再跑负例**。
+
 | 门禁 | 命令 | 结果（@c083db7） |
 |---|---|---|
 | 契约门禁 | `node scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --project .` | **71 PASS / 0 FAIL**（exit 0） |

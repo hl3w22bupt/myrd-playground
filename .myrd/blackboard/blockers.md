@@ -1,8 +1,8 @@
 # blockers.md — 阻塞项与升级线（共享黑板）
 
-> 更新时间：2026-09-23（节点收口批次 · 主策划整合）
+> 更新时间：2026-09-24（部署就绪批次 · 游戏程序：AppHost 壳接线 + 部署 blocked 上报）
 > 负责人：主策划（每次整合后更新；阻塞超过一轮解决不了 → 停下升级主人，不空转）
-> 下一步：呈主人人工试玩验收（好不好玩最终裁决）+ spec v3 追认；可玩链接部署另行节点
+> 下一步：呈主人人工试玩验收（好不好玩最终裁决）+ spec v3 追认 + **为部署建/指定 hostedApp（B-6）**
 
 ---
 
@@ -56,11 +56,31 @@
 
 ---
 
-## 升级汇总（本节点呈主人三件事）
+## B-6 部署目标缺失：无可用 hostedApp【blocked：部署节点不可发起，壳已就绪】
+
+- **现象**（2026-09-24 部署节点核实，`GET /api/v1/apphost/apps`）：平台内本项目（`cmto0g28j0002m9sqnvjdy8o7`）共有 3 个 status=ready 的 hostedApp —— `soccer`（Soccer）、`ai`（我被ai女友包围了）、`game`（糖果粉碎传奇），**没有一个与「运输船 3D」存在 name/slug 对应关系**；三者当前部署均锚定各自目标线的分支（`myrd/games-goal-cmtx73f9v…` / `myrd/games-goal-cmtoavt8w…` / `myrd/pixel-fives-m0-m1-cmtpb66pe…`），本目标 `cmudwiicy0025m9y30g71p3kz` 的 goal 记录里也无任何 hostedApp 绑定（本目标由主人贴 URL 建立而非小游戏工坊流程，故平台未做「project → hostedApp → goal」预配对）。
+- **判定**：按任务契约「同项目多应用时按 name/slug 与本游戏的对应关系选；找不到 → blocked，不要自行创建」→ **blocked：无可用 hostedApp**。强行把本分支部署到上述任一应用 = 抢占其他目标线的在线卡片（如把糖果卡换成运输船），不做。
+- **本节点已完成的部署就绪改造**（分支内，部署只差一次 API 调用）：
+  | 项 | 内容 | 证据 |
+  |---|---|---|
+  | 导出目录 | `games/transport-ship-3d/tools/build.mjs` 同批次写出 `export/web/index.html`（与主产物逐字节一致，勿手改） | qa-audit ⑥ PASS + 负向验证（手改导出 → FAIL，重建 → PASS） |
+  | 应用清单 | `apphost.toml`：name=`transport-ship-3d`、assets_dir=`games/transport-ship-3d/export/web`（对齐 soccer 分支惯例 `games/<slug>/export/web`） | apphost.toml diff |
+  | 壳伺服 | `server/src/game-page.ts`：`/` 直接回出 assets_dir 的 index.html（单文件游戏无需 wasm/pck 中转），资产不可得 → 503 诊断页；`server/src/index.ts`：/health 标识改 transport-ship-3d | `bash server/tools/verify-local.sh` 7 断言全过（含 `/` 与游戏产物逐字节一致） |
+  | 壳门禁 | `server/tools/verify-local.sh`（复刻平台构建链 tsc → esbuild bundle → 起服 → 伪对象存储喂 assets_dir） | `gate-logs/transport-ship-3d/full-suite-004131-head-c3ad2cb-apphost-prep.log` 第 4 节，exit 0 |
+- **恢复路径**：主人（或有权限者）在平台为本目标建/指定一个 hostedApp（建议 slug `transport-ship-3d`，与 apphost.toml name 对齐）→ 之后任意节点执行：
+  `curl -X POST -H "Authorization: Bearer $MYRD_TOKEN" -H "Content-Type: application/json" "$PLATFORM_API_URL/api/v1/apphost/apps/<appId>/deployments" -d '{"mode":"bundle","deployedBy":"workflow","gitRef":"myrd/effect-demo-goal-cmudwiicy0025m9y30g71p3kz"}'` → 轮询至 ready。
+  部署侧「按 gitRef clone」取到的即本分支：壳 + 导出产物均已就绪，无需再改代码。
+- **状态**：⏳ blocked（等 hostedApp）；分支内部署就绪改造已完成并有门禁证据。
+
+---
+
+## 升级汇总（呈主人三件事，2026-09-24 部署节点更新）
 
 1. **spec v3 追认**（B-1）：版本链已落平台；一句否决即回滚。
 2. **人工试玩验收**（B-4 + 红线）：`games/transport-ship-3d/index.html` 点开即玩；机判全绿不代表「好玩」已裁决。
-3. **可玩链接部署**：本节点产物为工程内可玩文件；如需目标卡片「可玩」入口（apphost 静态托管 + deploy_playable 落账），属下一节点。
+3. **可玩链接部署**（B-6）：分支侧壳与导出产物已就绪且门禁全绿；**blocked 于平台无本目标的 hostedApp** —— 需主人建/指定应用（建议 slug `transport-ship-3d`）后一次 API 调用即可上线。
+
+
 
 ## B-2 逆向报告（qqfeiche3d 线）未在本工作区【记录，不阻塞】
 

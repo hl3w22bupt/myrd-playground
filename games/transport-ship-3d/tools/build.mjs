@@ -3,7 +3,7 @@
 // 产物自检：不含 http(s) 外链 / importmap / src 引用 —— 见 tests/singlefile.contract.mjs
 
 import { build } from "esbuild";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { productSourceSha, FINGERPRINT_PATHS } from "./src-sha.mjs";
@@ -54,3 +54,16 @@ if (externalRefs.length > 0) {
 const bytes = Buffer.byteLength(html);
 console.log(`[done] 产物 ${path.relative(root, outPath)} = ${(bytes / 1024).toFixed(0)} KB，零外部资源引用`);
 console.log(`[done] SRC_SHA=${sha}（指纹范围：${FINGERPRINT_PATHS.join(" + ")}）`);
+
+// ---- AppHost 导出拷贝（部署侧 assets_dir = games/transport-ship-3d/export/web）----
+// 与主产物同批次写出的同一字符串：仓库里永远只有一份产物真源，拷贝不允许手改。
+// apphost.toml 的 assets_dir 指向本目录；平台部署时上传对象存储，壳 server 伺服 index.html。
+const exportPath = path.join(root, "export", "web", "index.html");
+mkdirSync(path.dirname(exportPath), { recursive: true });
+writeFileSync(exportPath, html);
+const same = readFileSync(exportPath, "utf8") === html;
+console.log(`[done] AppHost 导出 ${path.relative(root, exportPath)} = ${(Buffer.byteLength(html) / 1024).toFixed(0)} KB（与主产物一致: ${same}）`);
+if (!same) {
+  console.error("CONTRACT: FAIL AppHost 导出拷贝与主产物不一致");
+  process.exit(1);
+}
