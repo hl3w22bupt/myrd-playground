@@ -1,7 +1,11 @@
 // enemy.js — 敌兵表现：圆角盒拼装人形池 + 快照驱动（位置/朝向/受击闪白/死亡倒地/腿部摆动）。
+// 资产接线：人形经 assets/a02-geometry.mjs（引用失败降级同形兜底体）；姿态幅度取自 assets/palette.mjs。
 
 import * as THREE from "three";
-import { buildSoldier } from "./geometry.js";
+import { gameModel } from "../../assets/a02-geometry.mjs";
+import { safe, styleCard } from "../../assets/index.mjs";
+
+const P = styleCard();
 
 export class EnemyPool {
   constructor(scene) {
@@ -11,7 +15,10 @@ export class EnemyPool {
   }
   acquire(id) {
     let rig = this.free.pop();
-    if (!rig) rig = buildSoldier();
+    if (!rig) {
+      // 资产引用：a02/soldier（兜底链 a02 fallback → 空组，绝不阻断出兵）
+      rig = safe("a02:soldier", () => gameModel("a02/soldier"), () => ({ group: new THREE.Group(), parts: {} })) ?? { group: new THREE.Group(), parts: {} };
+    }
     this.scene.add(rig.group);
     this.live.set(id, rig);
     return rig;
@@ -46,13 +53,14 @@ export function syncEnemies(pool, world, dt) {
     } else {
       g.rotation.x = 0;
       g.position.y = 0;
-      // 走路摆动（chase 时摆动，engage 站定微晃）
+      // 走路摆动（chase 时摆动，engage 站定微晃；幅度取风格卡比例段）
       const moving = e.state === "chase";
-      const s = moving ? Math.sin(world.time * 9 + e.id) * 0.5 : Math.sin(world.time * 2 + e.id) * 0.06;
-      rig.parts.legL.rotation.x = moving ? s : 0;
-      rig.parts.legR.rotation.x = moving ? -s : 0;
-      rig.parts.armL.rotation.x = moving ? -s * 0.5 : -0.9; // 举枪姿态
-      rig.parts.armR.rotation.x = moving ? s * 0.5 : -0.9;
+      const S = P.scale.soldier;
+      const s = moving ? Math.sin(world.time * 9 + e.id) * S.walkSwing : Math.sin(world.time * 2 + e.id) * S.idleSway;
+      if (rig.parts?.legL) rig.parts.legL.rotation.x = moving ? s : 0;
+      if (rig.parts?.legR) rig.parts.legR.rotation.x = moving ? -s : 0;
+      if (rig.parts?.armL) rig.parts.armL.rotation.x = moving ? -s * 0.5 : S.aimPose; // 举枪姿态
+      if (rig.parts?.armR) rig.parts.armR.rotation.x = moving ? s * 0.5 : S.aimPose;
     }
     // 受击闪白（材质切换，走缓存克隆材质）
     flash(rig, e.hitFlashT > 0);
@@ -62,7 +70,8 @@ export function syncEnemies(pool, world, dt) {
 
 let flashMat = null;
 function flash(rig, on) {
-  if (!flashMat) flashMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xff5a3c, emissiveIntensity: 1.4 });
+  if (!rig.parts?.torso || !rig.parts?.head) return; // 兜底体无独立部位时跳过闪白
+  if (!flashMat) flashMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: P.fx.hitFlash, emissiveIntensity: 1.4 });
   // 先存原材质再切换（顺序不能反，否则原材质引用被闪白材质覆盖）
   if (!rig.baseMats) rig.baseMats = { torso: rig.parts.torso.material, head: rig.parts.head.material };
   rig.parts.torso.material = on ? flashMat : rig.baseMats.torso;

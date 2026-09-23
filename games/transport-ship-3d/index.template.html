@@ -6,11 +6,15 @@
 <title>运输船 3D · 单文件 Three.js FPS 复刻原型</title>
 <style>
   :root {
+    /* 兜底色卡：运行时由 assets/palette.mjs（风格卡）覆盖 —— HUD 与场景同一张色卡 */
     --panel: rgba(8, 16, 20, 0.62);
     --line: rgba(96, 202, 224, 0.55);
     --text: #e8f4f6;
     --accent: #ffb057;
     --danger: #ff5a3c;
+    --hp-good: #59d6a0;
+    --hp-good-end: #a8e6b8;
+    --hp-low: #c8342a;
     --font-num: "DIN Alternate", "Bahnschrift", "Arial Narrow", ui-sans-serif, sans-serif;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -35,8 +39,8 @@
   #ts-bottomline { position: absolute; left: 18px; right: 18px; bottom: 16px; display: flex; justify-content: space-between; align-items: flex-end; }
   #ts-vitals { width: 240px; }
   #ts-hpbar { height: 10px; background: rgba(255,255,255,0.12); clip-path: polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px); }
-  #ts-hpfill { height: 100%; width: 100%; background: linear-gradient(90deg, #59d6a0, #a8e6b8); transition: width 0.15s linear; }
-  #ts-hpfill.low { background: linear-gradient(90deg, #c8342a, var(--danger)); animation: pulse 0.8s infinite; }
+  #ts-hpfill { height: 100%; width: 100%; background: linear-gradient(90deg, var(--hp-good), var(--hp-good-end)); transition: width 0.15s linear; }
+  #ts-hpfill.low { background: linear-gradient(90deg, var(--hp-low), var(--danger)); animation: pulse 0.8s infinite; }
   @keyframes pulse { 50% { opacity: 0.55; } }
   #ts-hpnum { font-size: 12px; opacity: 0.8; margin-top: 4px; }
   #ts-ammo { font-size: 34px; display: flex; align-items: baseline; gap: 6px; }
@@ -53,6 +57,11 @@
   #ts-crosshair i:nth-child(3) { width: 9px; height: 2px; left: -15px; top: -1px; }
   #ts-crosshair i:nth-child(4) { width: 9px; height: 2px; left: 6px; top: -1px; }
   #ts-crosshair em { position: absolute; width: 2px; height: 2px; left: -1px; top: -1px; background: var(--accent); }
+  /* 命中标记（hud.hitMark 切换 .hit/.head）：准星短促张开 + 换警示色 */
+  #ts-crosshair { transition: transform 0.12s ease-out; }
+  #ts-crosshair.hit { transform: scale(1.5); }
+  #ts-crosshair.hit i { background: var(--accent); }
+  #ts-crosshair.head i { background: var(--danger); box-shadow: 0 0 4px var(--danger); }
 
   #ts-hint { position: absolute; left: 50%; top: 62%; transform: translateX(-50%); font-size: 13px; opacity: 0.55; }
   #ts-damage { position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse at center, transparent 40%, rgba(200,40,20,0.55) 100%); }

@@ -8,15 +8,17 @@ import { buildPlayerRig, attachInput } from "./render/player.js";
 import { EnemyPool, syncEnemies } from "./render/enemy.js";
 import { buildHud } from "./render/hud.js";
 import { buildAudio } from "./render/audio.js";
+import { buildFx, impactPoint } from "./render/fx.js";
 import { PLAYER_START } from "./levels/level-01-deck.js";
+import { styleCard, assetManifest } from "../assets/index.mjs";
 
 const canvas = document.getElementById("gl");
 const uiRoot = document.getElementById("ui");
 
-// —— 渲染器（对标样本封装：ACESFilmic / sRGB / PCFSoft / dpr 钳制）——
+// —— 渲染器（对标样本封装：ACESFilmic / sRGB / PCFSoft / dpr 钳制；曝光取风格卡）——
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance", stencil: false });
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.95;
+renderer.toneMappingExposure = styleCard().light.exposure;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -47,6 +49,7 @@ const rig = buildPlayerRig(canvas);
 const hud = buildHud(uiRoot);
 const audio = buildAudio();
 const enemies = new EnemyPool(scene);
+const fx = buildFx(scene); // 命中火花（表现层自带降级，失败为空实现）
 const inputState = { yaw: game.world.player.yaw, pitch: 0, firing: false, reloadQueued: false };
 const input = attachInput(canvas, inputState);
 
@@ -94,7 +97,14 @@ function loop(now) {
 
   if (state === "playing") {
     events = game.frame(dt, input.read());
-    for (const ev of events) if (ev.type === "shot") rig.fire();
+    // 内核事件 → 表现统一翻译（物理层零 UI/音频/特效依赖）
+    for (const ev of events) {
+      if (ev.type === "shot") rig.fire();
+      else if (ev.type === "enemyHit") {
+        fx.burst(impactPoint(rig.camera, ev.dist), ev.headshot === true);
+        hud.hitMark(ev.headshot === true);
+      }
+    }
     audio.handle(events);
     if (game.world.over) {
       state = "gameover";
@@ -117,6 +127,7 @@ function loop(now) {
 
   rig.apply(game.world);
   syncEnemies(enemies, game.world, dt);
+  fx.update(dt);
   map.update(rig.camera);
   hud.update(game.world, events);
 
@@ -141,11 +152,15 @@ resize();
 window.__game = {
   get world() { return game.world; },
   get state() { return state; },
+  /** 调试口：世界场景（美术自检用 —— 核验资产是否真的进了场景）*/
+  get scene() { return scene; },
   fastForward: (seconds) => game.fastForward(seconds),
   /** spec.content.replayHooks 的读取口：最高分 / 波次连击 / 当日种子 */
   get replayHooks() {
     return { highScore: replay.highScore ?? 0, waveStreak: replay.waveStreak ?? 0, dailySeed: dailySeed() };
   },
+  /** 资产台账（spec.assets[] → 落点/接线点，供审计与调试读取）*/
+  get assets() { return assetManifest(); },
 };
 
 // ?smoke=<秒>：无头冒烟 —— 跳过交互直接快进，把结果写进 DOM/标题供 headless chrome 断言。

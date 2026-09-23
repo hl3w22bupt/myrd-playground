@@ -1,25 +1,30 @@
 // geometry.js — 程序化几何工厂：圆角盒缓存 + 材质缓存 + 枪模/敌兵拼装。零外部模型。
+// 资产接线：色值/比例一律取自 assets/palette.mjs（风格卡），引用入口见 assets/a02-geometry.mjs。
 
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import { PALETTE } from "../../assets/palette.mjs";
 import { camo } from "./textures.js";
 
 // ---- 缓存工厂（同参数全场景唯一实例，对标样本 ht(color, opts) 口径）----
 const geoCache = new Map();
 const matCache = new Map();
 
-export function roundedBox(w, h, d, r = 0.04, seg = 2) {
+export function roundedBox(w, h, d, r = PALETTE.scale.cornerRadius, seg = PALETTE.scale.cornerSeg) {
   const key = `rb-${w}-${h}-${d}-${r}-${seg}`;
   if (!geoCache.has(key)) geoCache.set(key, new RoundedBoxGeometry(w, h, d, seg, r));
   return geoCache.get(key);
 }
 
 export function standardMat(color, opts = {}) {
-  const key = `m-${color}-${opts.roughness ?? 0.8}-${opts.metalness ?? 0.15}-${opts.map ?? ""}-${opts.emissive ?? ""}`;
+  // 材质兜底（风格卡 ②-b）：同色自发光底，背光面不读成死黑剪影
+  const floor = opts.floor ?? color;
+  const key = `m-${color}-${opts.roughness ?? 0.8}-${opts.metalness ?? 0.15}-${opts.map ?? ""}-${opts.emissive ?? ""}-${floor}`;
   if (!matCache.has(key)) {
     matCache.set(key, new THREE.MeshStandardMaterial({
       color, roughness: opts.roughness ?? 0.8, metalness: opts.metalness ?? 0.15,
-      map: opts.map ?? null, emissive: opts.emissive ?? 0x000000,
+      map: opts.map ?? null, emissive: opts.emissive ?? floor,
+      emissiveIntensity: opts.emissive ? 1 : PALETTE.material.ambientFloor,
     }));
   }
   return matCache.get(key);
@@ -41,7 +46,8 @@ export function block(w, h, d, color, x, y, z, opts = {}) {
  */
 export function buildRifle() {
   const g = new THREE.Group();
-  const dark = 0x2a2d31, mid = 0x3c4147, grip = 0x24262a, accent = 0xc9762e;
+  const P = PALETTE;
+  const dark = P.rifle.dark, mid = P.rifle.mid, grip = P.rifle.grip, accent = P.warning.orange;
   g.add(block(0.09, 0.10, 0.62, dark, 0, 0, -0.22));            // 机匣
   g.add(block(0.07, 0.07, 0.34, mid, 0, 0.015, -0.68));         // 护木
   g.add(block(0.035, 0.035, 0.22, dark, 0, 0.015, -0.94));      // 枪管
@@ -60,9 +66,10 @@ export function buildRifle() {
  */
 export function buildSoldier() {
   const g = new THREE.Group();
-  const uniform = standardMat(0xffffff, { map: camo(), roughness: 0.9, metalness: 0.05 });
-  const skin = standardMat(0x8a6a52, { roughness: 0.85 });
-  const gear = standardMat(0x2f3328, { roughness: 0.8 });
+  const S = PALETTE.soldier;
+  const uniform = standardMat(0xffffff, { map: camo(), roughness: 0.9, metalness: 0.05, floor: S.camoBase });
+  const skin = standardMat(S.skin, { roughness: 0.85 });
+  const gear = standardMat(S.gear, { roughness: 0.8 });
 
   const mk = (geo, mat, x, y, z) => {
     const m = new THREE.Mesh(geo, mat);

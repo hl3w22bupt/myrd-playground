@@ -1,5 +1,10 @@
 // audio.js — WebAudio 运行时合成音效（零音频文件）。内核事件 → 短合成器音色。
 // 口径：首次用户手势后 lazily resume AudioContext（浏览器自动播放策略）。
+// 资产接线：音色参数表在 assets/a03-sfx.mjs（数据表驱动 —— 调音色改表不改代码）；
+//          表缺失/合成失败 → 静音兜底，不破坏运行。
+
+import { SFX_TABLE, SFX_FALLBACK } from "../../assets/a03-sfx.mjs";
+import { safe } from "../../assets/index.mjs";
 
 export function buildAudio() {
   let ctx = null;
@@ -33,9 +38,9 @@ export function buildAudio() {
   }
 
   /** 短促方波/锯齿音（UI/提示/爆头叮声）*/
-  function blip({ freq = 880, dur = 0.08, vol = 0.25, type = "square", slide = 0 }) {
+  function blip({ freq = 880, dur = 0.08, vol = 0.25, wave = "square", slide = 0, type }) {
     const ac = ensure(); if (!ac) return;
-    const o = ac.createOscillator(); o.type = type;
+    const o = ac.createOscillator(); o.type = type ?? wave;
     o.frequency.setValueAtTime(freq, ac.currentTime);
     if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(40, freq + slide), ac.currentTime + dur);
     const g = ac.createGain();
@@ -45,24 +50,19 @@ export function buildAudio() {
     o.start(); o.stop(ac.currentTime + dur + 0.02);
   }
 
+  /** 音色表 → 合成调用（表项缺字段走默认值，坏表项不抛出）*/
+  function play(layers) {
+    for (const l of layers ?? []) {
+      try { l.kind === "noise" ? noiseBurst(l) : blip(l); } catch { /* 静音兜底 */ }
+    }
+  }
+
   return {
     unlock: ensure,
     /** 内核事件 → 音色（统一入口，物理层零音频依赖）*/
     handle(events) {
       for (const ev of events) {
-        switch (ev.type) {
-          case "shot": noiseBurst({ dur: 0.09, vol: 0.42, filter: 1500 }); blip({ freq: 180, dur: 0.05, vol: 0.16, type: "sawtooth", slide: -110 }); break;
-          case "enemyHit": blip({ freq: 520, dur: 0.05, vol: 0.18, type: "triangle" }); break;
-          case "headshot": blip({ freq: 1180, dur: 0.09, vol: 0.26, type: "triangle", slide: 420 }); break;
-          case "kill": blip({ freq: 320, dur: 0.14, vol: 0.2, type: "sawtooth", slide: -160 }); break;
-          case "playerHit": noiseBurst({ dur: 0.22, vol: 0.5, filter: 420 }); break;
-          case "reloadStart": blip({ freq: 240, dur: 0.06, vol: 0.16, type: "square" }); break;
-          case "reloadEnd": blip({ freq: 420, dur: 0.07, vol: 0.2, type: "square", slide: 180 }); break;
-          case "waveStart": blip({ freq: 300, dur: 0.3, vol: 0.22, type: "sine", slide: 220 }); break;
-          case "waveClear": blip({ freq: 660, dur: 0.18, vol: 0.22, type: "sine", slide: 330 }); break;
-          case "gameOver": blip({ freq: 220, dur: 0.6, vol: 0.3, type: "sawtooth", slide: -170 }); break;
-          default: break;
-        }
+        play(safe(`a03:${ev.type}`, () => SFX_TABLE[ev.type] ?? SFX_FALLBACK, () => SFX_FALLBACK));
       }
     },
   };

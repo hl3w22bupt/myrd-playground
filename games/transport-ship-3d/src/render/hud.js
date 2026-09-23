@@ -1,12 +1,24 @@
 // hud.js — HUD：DOM 差分直写（血量/弹药/得分/波次/提示）+ 独立 canvas 雷达 + 标题/暂停/结算屏。
 // 风格卡口径：DIN 数字字体栈、clip-path 斜切面板、青蓝描边 + 半透明黑底。
+// 资产接线：色卡取自 assets/palette.mjs（HUD 与场景同一张色卡）；模板 :root 里的静态值是 fallback，
+//          运行时被风格卡覆盖 —— 取色失败也能用模板兜底色照常显示。
 
 import { MINIMAP_RANGE, PLAYER_MAX_HP, MAG_SIZE } from "../numeric.js";
 import { DECK_BOUNDS, ENEMY_SPAWNS } from "../levels/level-01-deck.js";
+import { HUD_CSS_VARS, PALETTE } from "../../assets/palette.mjs";
 
 const EL = (id) => document.getElementById(id);
+const P = PALETTE;
+
+/** 风格卡色卡 → CSS 自定义属性（HUD 与世界同一张色卡，避免两处各改各的）*/
+function applyStyleCard() {
+  try {
+    for (const [k, v] of Object.entries(HUD_CSS_VARS)) document.documentElement.style.setProperty(k, v);
+  } catch { /* 模板 :root 静态值兜底 */ }
+}
 
 export function buildHud(root) {
+  applyStyleCard();
   root.innerHTML = `
   <div id="ts-hud">
     <div id="ts-topline">
@@ -107,13 +119,24 @@ export function buildHud(root) {
       void el.damage.offsetWidth; // 重启动画
       el.damage.classList.add("hit");
     },
+    /** 命中标记：准星短促张开（爆头加色），纯 CSS 类切换，无新 DOM */
+    hitMark(headshot) {
+      const ch = EL("ts-crosshair");
+      if (!ch) return;
+      ch.classList.remove("hit", "head");
+      void ch.offsetWidth; // 重启动画
+      ch.classList.add("hit");
+      if (headshot) ch.classList.add("head");
+      clearTimeout(api._ht);
+      api._ht = setTimeout(() => ch.classList.remove("hit", "head"), 140);
+    },
     /** 雷达：玩家居中朝上，敌点按相对方位（MINIMAP_RANGE 内），出生点常显 */
     radar(world) {
       const s = el.radar.width, c = s / 2, scale = (c - 8) / MINIMAP_RANGE;
       rctx.clearRect(0, 0, s, s);
       rctx.fillStyle = "rgba(6,14,18,0.55)";
       rctx.beginPath(); rctx.arc(c, c, c - 2, 0, 7); rctx.fill();
-      rctx.strokeStyle = "rgba(90,200,220,0.5)"; rctx.lineWidth = 1.5;
+      rctx.strokeStyle = P.hud.line; rctx.lineWidth = 1.5;
       rctx.stroke();
       const p = world.player;
       const toRadar = (x, z) => {
@@ -128,7 +151,7 @@ export function buildHud(root) {
         const [x, y] = toRadar(sp.x, sp.z);
         rctx.fillRect(x - 2, y - 2, 4, 4);
       }
-      rctx.fillStyle = "#ff5a3c";
+      rctx.fillStyle = P.hud.radarEnemy;
       for (const e of world.enemies) {
         if (e.state === "dead") continue;
         const dx = e.x - p.x, dz = e.z - p.z;
@@ -136,7 +159,7 @@ export function buildHud(root) {
         const [x, y] = toRadar(e.x, e.z);
         rctx.beginPath(); rctx.arc(x, y, 3, 0, 7); rctx.fill();
       }
-      rctx.fillStyle = "#e8f4f6";
+      rctx.fillStyle = P.hud.radarSelf;
       rctx.beginPath();
       rctx.moveTo(c, c - 6); rctx.lineTo(c - 4, c + 5); rctx.lineTo(c + 4, c + 5);
       rctx.closePath(); rctx.fill();
