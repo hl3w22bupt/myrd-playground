@@ -15,6 +15,8 @@
     --hp-good: #59d6a0;
     --hp-good-end: #a8e6b8;
     --hp-low: #c8342a;
+    --low-vignette: rgba(160, 24, 16, 0.6);
+    --death-filter: grayscale(0.85) brightness(0.75) contrast(1.05);
     --font-num: "DIN Alternate", "Bahnschrift", "Arial Narrow", ui-sans-serif, sans-serif;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -67,6 +69,13 @@
   #ts-damage { position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse at center, transparent 40%, rgba(200,40,20,0.55) 100%); }
   #ts-damage.hit { animation: dmg 0.35s ease-out; }
   @keyframes dmg { 0% { opacity: 1; } 100% { opacity: 0; } }
+  /* 低血量暗角（对标样本胶片 shader uLowHP）：血量 ≤30% 常驻屏边出血 + 缓脉动 */
+  #ts-vignette { position: absolute; inset: 0; opacity: 0; transition: opacity 0.4s linear;
+    background: radial-gradient(ellipse at center, transparent 42%, var(--low-vignette) 100%); }
+  #ts-vignette.low { opacity: 1; animation: lowpulse 1.6s ease-in-out infinite; }
+  @keyframes lowpulse { 50% { opacity: 0.5; } }
+  /* 阵亡灰度（对标 uDeath）：只压世界画布，HUD/结算屏保持可读 */
+  body.ts-dead #gl { filter: var(--death-filter); }
   #ts-banner { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); font-size: 24px; color: var(--accent);
     text-shadow: 0 2px 12px rgba(0,0,0,0.8); opacity: 0; transition: opacity 0.25s; white-space: nowrap; }
   #ts-banner.show { opacity: 1; }

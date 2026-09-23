@@ -63,6 +63,9 @@ export const PALETTE = {
     hpLow: "#c8342a",
     radarEnemy: "#ff5a3c",
     radarSelf: "#e8f4f6",
+    // 屏幕后处理（对标复刻样本胶片 shader 的 uLowHP / uDeath；uDamage 已由 #ts-damage 红闪承担）
+    lowVignette: "rgba(160,24,16,0.6)",  // 低血量暗角（屏边出血，血量 ≤30% 常驻 + 脉动）
+    deathFilter: "grayscale(0.85) brightness(0.75) contrast(1.05)", // 阵亡灰度（结算屏背后）
   },
 
   // ─────────────── ② 光照 ───────────────
@@ -139,4 +142,6 @@ export const HUD_CSS_VARS = {
   "--hp-good": PALETTE.hud.hpGood,
   "--hp-good-end": PALETTE.hud.hpGoodEnd,
   "--hp-low": PALETTE.hud.hpLow,
+  "--low-vignette": PALETTE.hud.lowVignette,
+  "--death-filter": PALETTE.hud.deathFilter,
 };

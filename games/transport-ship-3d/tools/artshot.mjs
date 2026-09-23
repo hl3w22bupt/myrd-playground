@@ -68,7 +68,7 @@ try {
   const evalJs = async (expr) => (await cdp.send("Runtime.evaluate", { expression: expr, returnByValue: true, awaitPromise: true })).result?.result?.value;
 
   await cdp.send("Page.navigate", { url });
-  await sleep(2500); // 等 fastForward + 首帧渲染
+  await sleep(Number(flag("--sleep", "2500"))); // 等 fastForward + 首帧渲染（长局表现取证可加大）
   const info = await evalJs(`(() => {
     const s = document.getElementById("ts-smoke");
     if (!s) return null;

@@ -37,6 +37,7 @@ export function buildHud(root) {
     <div id="ts-crosshair"><i></i><i></i><i></i><i></i><em></em></div>
     <div id="ts-hint"></div>
     <div id="ts-damage"></div>
+    <i id="ts-vignette"></i>
     <div id="ts-banner"></div>
   </div>
   <div id="ts-screen">
@@ -58,6 +59,7 @@ export function buildHud(root) {
     hpFill: EL("ts-hpfill"), hpNum: EL("ts-hpnum"),
     mag: EL("ts-ammo-mag"), res: EL("ts-ammo-res"), reloadTip: EL("ts-reload-tip"),
     hint: EL("ts-hint"), damage: EL("ts-damage"), banner: EL("ts-banner"), best: EL("ts-best"),
+    vignette: EL("ts-vignette"),
     radar: EL("ts-radar"),
   };
   const rctx = el.radar.getContext("2d");
@@ -83,7 +85,11 @@ export function buildHud(root) {
         el.hpNum.textContent = hp;
         el.hpFill.style.width = `${(p.hp / PLAYER_MAX_HP) * 100}%`;
         const nowLow = p.hp <= PLAYER_MAX_HP * 0.3;
-        if (nowLow !== lowHp) { lowHp = nowLow; el.hpFill.classList.toggle("low", nowLow); }
+        if (nowLow !== lowHp) {
+          lowHp = nowLow;
+          el.hpFill.classList.toggle("low", nowLow);
+          el.vignette?.classList.toggle("low", nowLow); // 低血量暗角（屏边出血，状态一眼可读）
+        }
       }
       const mag = String(p.ammo);
       if (el.mag.textContent !== mag) el.mag.textContent = mag;
@@ -113,6 +119,10 @@ export function buildHud(root) {
       el.banner.classList.add("show");
       clearTimeout(api._bt);
       api._bt = setTimeout(() => { el.banner.classList.remove("show"); lastBanner = ""; }, ms);
+    },
+    /** 阵亡灰度（对标 uDeath）：只压世界画布，结算屏/HUD 保持可读；重开时移除 */
+    setDead(dead) {
+      try { document.body.classList.toggle("ts-dead", dead === true); } catch { /* 无 body 环境忽略 */ }
     },
     damageFlash() {
       el.damage.classList.remove("hit");

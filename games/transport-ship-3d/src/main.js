@@ -21,7 +21,9 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = styleCard().light.exposure;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+// 阴影口径：样本用 PCFSoftShadowMap，但 three r185 已弃用（运行时警告并降级为 PCF）——
+// 这里显式声明实际生效的 PCFShadowMap，不再虚报软阴影（控制台零告警）。
+renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
 
 const scene = new THREE.Scene();
@@ -62,6 +64,7 @@ if (replay.highScore || replay.waveStreak) {
 hud.onStart(() => {
   audio.unlock();
   if (state === "gameover") resetMatch();
+  hud.setDead(false); // 重开：退出阵亡灰度
   canvas.requestPointerLock();
   state = "playing";
   hud.showScreen(false);
@@ -108,6 +111,7 @@ function loop(now) {
     audio.handle(events);
     if (game.world.over) {
       state = "gameover";
+      hud.setDead(true); // 阵亡灰度（纯表现，结算屏/HUD 不受影响）
       // 重玩钩子落账：最高分取历史最大值，波次连击记本次成绩
       replay = {
         highScore: Math.max(replay.highScore ?? 0, game.world.score),
