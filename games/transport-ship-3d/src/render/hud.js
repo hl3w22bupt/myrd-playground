@@ -30,6 +30,7 @@ export function buildHud(root) {
   <div id="ts-screen">
     <h1>运输船 3D <small>单文件 Three.js 复刻原型</small></h1>
     <p class="ts-goal">登上运输船甲板 —— 活过一波强过一波的敌兵，拿高分。</p>
+    <p id="ts-best" class="ts-best"></p>
     <ul class="ts-keys">
       <li><b>WASD</b> 移动 · <b>Shift</b> 疾跑</li>
       <li><b>鼠标</b> 瞄准 · <b>左键</b> 射击</li>
@@ -44,7 +45,7 @@ export function buildHud(root) {
     waveN: EL("ts-wave-n"), score: EL("ts-score-v"), time: EL("ts-time-v"),
     hpFill: EL("ts-hpfill"), hpNum: EL("ts-hpnum"),
     mag: EL("ts-ammo-mag"), res: EL("ts-ammo-res"), reloadTip: EL("ts-reload-tip"),
-    hint: EL("ts-hint"), damage: EL("ts-damage"), banner: EL("ts-banner"),
+    hint: EL("ts-hint"), damage: EL("ts-damage"), banner: EL("ts-banner"), best: EL("ts-best"),
     radar: EL("ts-radar"),
   };
   const rctx = el.radar.getContext("2d");
@@ -60,6 +61,8 @@ export function buildHud(root) {
       if (sub) el.screen.querySelector(".ts-goal").textContent = sub;
       if (btn) el.start.textContent = btn;
     },
+    /** 重玩钩子展示位（spec.content.replayHooks：最高分 / 上次波次）*/
+    setBest(text) { el.best.textContent = text; },
     /** 差分直写：只在值变化时触碰 DOM（高频字段不整段重排）*/
     update(world, events) {
       const p = world.player;

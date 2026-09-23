@@ -24,8 +24,24 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
 
 const scene = new THREE.Scene();
 
+// —— 重玩钩子（spec.content.replayHooks：high_score / wave_streak / daily_seed）——
+// daily_seed：当日种子，同一天首局可复现（对标样本「每张图固定随机种子」口径）；
+// 对局内重开仍用时间随机（resetMatch），布景复现性不受影响。
+function dailySeed() {
+  const d = new Date();
+  return ((d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()) * 2654435761) >>> 0;
+}
+const REPLAY_KEY = "ts3d.replay";
+function loadReplay() {
+  try { return JSON.parse(localStorage.getItem(REPLAY_KEY) ?? "{}") ?? {}; } catch { return {}; }
+}
+function saveReplay(patch) {
+  try { localStorage.setItem(REPLAY_KEY, JSON.stringify({ ...loadReplay(), ...patch })); } catch { /* 隐私模式：静默降级 */ }
+}
+let replay = loadReplay();
+
 // —— 游戏（确定性内核）与表现装配 ——
-const game = createGame({ seed: 20260923 });
+const game = createGame({ seed: dailySeed() });
 const map = buildMap(scene);
 const rig = buildPlayerRig(canvas);
 const hud = buildHud(uiRoot);
@@ -37,6 +53,9 @@ const input = attachInput(canvas, inputState);
 // —— 状态机 ——
 let state = "title"; // title | playing | paused | gameover
 hud.showScreen(true);
+if (replay.highScore || replay.waveStreak) {
+  hud.setBest(`最高 ${(replay.highScore ?? 0).toLocaleString("en-US")} · 上次 第 ${replay.waveStreak ?? 0} 波`);
+}
 hud.onStart(() => {
   audio.unlock();
   if (state === "gameover") resetMatch();
@@ -79,12 +98,19 @@ function loop(now) {
     audio.handle(events);
     if (game.world.over) {
       state = "gameover";
+      // 重玩钩子落账：最高分取历史最大值，波次连击记本次成绩
+      replay = {
+        highScore: Math.max(replay.highScore ?? 0, game.world.score),
+        waveStreak: game.world.wave.n,
+      };
+      saveReplay(replay);
       hud.showScreen(true);
       hud.screenText({
         title: `结算 · ${game.world.score.toLocaleString("en-US")} 分 `,
         sub: `波次 ${game.world.wave.n} · 击杀 ${game.world.kills} · 爆头 ${game.world.headshots} · 存活 ${game.world.time.toFixed(1)}s`,
         btn: "再来一局（锁定鼠标）",
       });
+      hud.setBest(`最高 ${replay.highScore.toLocaleString("en-US")} · 上次 第 ${replay.waveStreak} 波`);
       document.exitPointerLock?.();
     }
   }
@@ -116,6 +142,10 @@ window.__game = {
   get world() { return game.world; },
   get state() { return state; },
   fastForward: (seconds) => game.fastForward(seconds),
+  /** spec.content.replayHooks 的读取口：最高分 / 波次连击 / 当日种子 */
+  get replayHooks() {
+    return { highScore: replay.highScore ?? 0, waveStreak: replay.waveStreak ?? 0, dailySeed: dailySeed() };
+  },
 };
 
 // ?smoke=<秒>：无头冒烟 —— 跳过交互直接快进，把结果写进 DOM/标题供 headless chrome 断言。

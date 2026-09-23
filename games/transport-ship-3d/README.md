@@ -40,6 +40,8 @@ node games/transport-ship-3d/tests/qa-audit.mjs                       # ac-6 QA 
 ```
 
 无头冒烟（真浏览器跑内核 + 渲染统计）：`index.html?smoke=<秒>` → DOM/标题写回结果 JSON。
+真浏览器冒烟门禁（CDP 驱动，断言打开即玩/循环推进/零未捕获异常/重玩钩子落账）：
+`node games/transport-ship-3d/tools/smoke.mjs`（需本机 Chrome，`--chrome` 可指定路径）。
 
 ## 复刻要点对照（与知识文档的映射）
 

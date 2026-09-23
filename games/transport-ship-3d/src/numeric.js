@@ -1,4 +1,4 @@
-// numeric.js — 数值唯一来源（spec.numeric v2 的代码镜像，逐键对应）
+// numeric.js — 数值唯一来源（spec.numeric v3 的代码镜像，逐键对应；qa-audit 双向断言）
 // 红线：改这里的数值 = 改策划案 → 必须先走 POST /api/v1/game-design-specs/:id/revisions 产生新版本。
 // 禁止在其它文件散落玩法魔数；关卡布局坐标（甲板边界/出生点位）属关卡数据，见 levels/level-01-deck.js。
 
