@@ -19,11 +19,13 @@ description: "Godot 4 自主游戏开发技能包：脚手架（Godot 最小可�
 
 | 资产 | 用途 |
 |---|---|
-| `templates/minimal-2d/` | Godot 4 最小可运行工程骨架（主场景/自动加载/信号/输入映射/最小资源/冒烟场景/中文字体） |
+| `templates/minimal-2d/` | Godot 4 最小可运行工程骨架（主场景/自动加载/信号/输入映射/最小资源/冒烟场景/中文字体/Juice 反馈单例/调参面板/SFX 合成工具链） |
 | `templates/minimal-2d/CLAUDE.md` | 随工程复制走的规则文件：钉死 Godot 4.x / GDScript 2.0 + 版本污染对照表 + 场景/脚本分工边界（防 Godot 3 退化比每轮提示重申更有效的手段，**不得删除**） |
-| `scripts/preflight.py` | 13 类前置一致性静态检查，无需 Godot 即可机判 |
-| `scripts/preflight_selftest.py` | preflight 自身的回归用例（19 例）：门禁自己的门禁，改完检查器必跑 |
+| `scripts/preflight.py` | 14 类前置一致性静态检查，无需 Godot 即可机判 |
+| `scripts/preflight_selftest.py` | preflight 自身的回归用例（26 例）：门禁自己的门禁，改完检查器必跑 |
 | `scripts/smoke.sh` | 无头冒烟门禁：`godot --headless` + 退出码/日志双断言 |
+| `scripts/input-fuzz.sh` | 输入鲁棒性 fuzz：确定种子对抗事件序下的存活判定 |
+| `scripts/playtest.sh` | 机器人试玩门禁：bot 多局游玩，机判节奏类代理指标下限（§4.5） |
 | `scripts/resolve-godot.sh` | Godot 可执行文件解析的唯一实现（GODOT_BIN > PATH > 常见安装位置），routine 与 verify.sh 共用 |
 | `references/preflight-checklist.md` | 前置一致性检查清单（含人工核对项） |
 | `references/error-signatures.md` | 错误签名 → 根因 → 修复动作 对照表（**全部实测采集**） |
@@ -69,8 +71,12 @@ Main (Node2D, scripts/main.gd)
 ├── Player (player.tscn 实例, scripts/player.gd, class_name Player)
 │   ├── Body (Polygon2D)
 │   └── CollisionShape2D
-└── UI (CanvasLayer)
-    └── HudLabel (Label, unique_name_in_owner=true → 代码里用 %HudLabel)
+├── UI (CanvasLayer)
+│   └── HudLabel (Label, unique_name_in_owner=true → 代码里用 %HudLabel)
+└── TouchUI (CanvasLayer, layer=10, 默认隐藏)
+    ├── JoystickAnchor (Control ← virtual_joystick.gd, 左下)
+    └── ConfirmAnchor (Control)
+        └── ConfirmButton (TouchScreenButton ← touch_confirm_button.gd, 右下)
 ```
 
 ### 1.3 找不到 Godot 可执行文件时
@@ -88,8 +94,12 @@ export GODOT_BIN=/path/to/Godot
 
 ## 1A. 策划案读取协议（spec 是单一事实源，动工前必读）
 
-> 结构化策划案（GameDesignSpec：meta/world/entities/levels/numeric/acceptance 六段）是玩法、
-> 关卡、数值、验收的唯一事实来源。**实现与 spec 冲突 = 缺陷** —— 先对齐再写代码，不许静默偏离。
+> 结构化策划案（GameDesignSpec：meta/world/entities/levels/numeric/acceptance/content/assets 八段）
+> 是玩法、关卡、数值、验收、耐玩度预算、资产治理的唯一事实来源。**实现与 spec 冲突 = 缺陷** ——
+> 先对齐再写代码，不许静默偏离。content 段 = 耐玩度预算（目标单局时长/关卡数量下限/
+> 重玩钩子/解锁表）：levelCount 由契约测试机判（levels 实际声明数 ≥ 预算下限），
+> 其余字段供试玩量表与评审对照。assets 段 = 资产治理（§7B）：每个资产声明
+> 落点/品类/来源/生成器/许可，契约测试机判「存在且被引用」。
 
 1. **动工前先读当前 approved 版**：`GET /api/v1/game-design-specs/approved?goalId=<goal>`，
    或工程内导出件 `.myrd/spec/design-spec.json`。没有 approved 版 → 先走策划案流程（撰写 → 拍板），
@@ -101,7 +111,7 @@ export GODOT_BIN=/path/to/Godot
    并与 spec.numeric 键名对应；改数值 = 改 spec（修订产生新版本）→ 同步代码，禁止两头各改各的。
 4. **修改产生新版本**：改策划案走 `POST /api/v1/game-design-specs/:id/revisions`（version+1，
    旧版自动 superseded），带 `sourceTrajectoryId` 溯源；拍板用 `POST /:id/approve`。
-5. 目标卡片上策划案以 `design_spec` 产物条目呈现，点开可预览六段内容与版本。
+5. 目标卡片上策划案以 `design_spec` 产物条目呈现，点开可预览八段内容与版本。
 
 ---
 
@@ -169,6 +179,96 @@ export GODOT_BIN=/path/to/Godot
 
 ---
 
+## 3A. 移动端触摸规范（虚拟摇杆 = 动作的生产者）
+
+模板已内置触摸支持：`TouchUI` CanvasLayer（左下虚拟摇杆 `scripts/virtual_joystick.gd`
++ 右下确认按钮 `scripts/touch_confirm_button.gd`），由 `main.gd _ready()` 按
+`DisplayServer.is_touchscreen_available()` 决定显示 —— 桌面键盘环境完全不可见，
+从模板派生的新游戏**自动获得移动端可玩性，不得删除**。
+
+架构不变式（新加触摸控件也必须遵守）：
+
+1. **游戏逻辑仍然只读 InputMap 动作名**。触摸控件是动作的「生产者」：摇杆把手指向量
+   分解为 4 个移动动作的 `strength`，经 `InputEventAction + Input.parse_input_event()`
+   注入引擎；`Input.get_vector()` 读取 strength，玩家脚本零改动、键盘与触摸并存。
+   **禁止**游戏逻辑脚本（player/敌人/关卡）直接监听 `InputEventScreenTouch/Drag`
+   —— 那会造出第二套平行的输入路径，冒烟测试拦不住。
+2. **触摸 UI 独立成 CanvasLayer**（layer 高于游戏与 HUD），可见性只由
+   `DisplayServer.is_touchscreen_available()` 控制，不要用平台特征（`mobile`/`web`）
+   代替 —— 触屏笔记本上键盘 UI 也该在，平板浏览器上触摸 UI 也该在。
+3. **摇杆用 `_unhandled_input` 跟踪触点，不用 `_gui_input`**：拖动事件在手指滑出控件
+   矩形后必须继续接收，`_gui_input` 只在指针位于控件内时投递，会丢拖动轨迹。
+   初始按下必须落在摇杆矩形内才接管该触点（`touch_index` 跟踪，第二根手指不抢控）。
+4. **`TouchScreenButton` 用于离散动作**（确认/攻击/跳跃）：桌面端自动不响应，无需手动
+   屏蔽；`pressed` 信号里注入对应动作事件，走与键盘相同的 `_unhandled_input` 路径。
+5. **移动端导出注意项**：`renderer/rendering_method.mobile="gl_compatibility"` 模板已设；
+   竖屏游戏在 `project.godot` 设 `display/window/handheld/orientation="portrait"`；
+   HUD 操作提示文案要按输入设备切换（`_move_hint` 模式，见 `main.gd`）。
+
+---
+
+## 3B. 反馈完备性（Juice）：结果性事件必须挂反馈
+
+> 「能跑」门禁管不到「玩起来是哑的」—— 信号全通、无头全绿，但收集/命中/得分没有任何
+> 表现反馈，游戏立刻不可玩。反馈密度是好玩感的下限，本节把它变成规范 + 机判。
+
+模板已内置全局反馈单例 `autoload/juice.gd`（autoload 注册名 `Juice`），一调用 API：
+
+| API | 用途 | 适用 |
+|---|---|---|
+| `Juice.pop(node)` | 弹跳放大回弹 | 收集/得分/确认 |
+| `Juice.flash(node, color)` | modulate 闪白 | 受击/失效/状态切换 |
+| `Juice.shake(strength)` | 相机震动（无 Camera2D 时只记录不位移，调用合法） | 命中/爆炸/落地 |
+| `Juice.hit_stop(duration)` | 顿帧定格（ignore_time_scale 计时器保证还原） | 重命中/致命一击 |
+| `Juice.sfx(&"名")` | 播放 SFX_BANK 注册的音效；未注册名静默空转 | 所有结果 |
+
+接线规范：
+
+1. **结果性事件（得分/收集/命中/失败/确认/升级）至少挂 1 条反馈**；移动类连续输入由
+   游戏表现本身承担反馈，不强制。反馈挂在**结果事件的处理函数**上（如 `_on_score_changed`），
+   不挂在输入处理上 —— 同一结果有多个触发路径时只写一处（模板 main.gd 是示例）。
+2. **音效先钉调用点、后补资产**：`SFX_BANK` 留空时 `sfx()` 静默空转、冒烟不断言具体声音；
+   资产就位后在注册表加一行（`&"名": preload(...)`）即全局生效。Web 导出记得壳页面的
+   音频手势解锁（部署节点硬契约，headless 全绿 ≠ 移动端有声音）。
+3. **冒烟第 6 项断言**（模板 `tests/smoke.gd` 已内置，移植新游戏逐项保留）：驱动一次
+   结果性事件后 `Juice.events` 必须非空 —— 反馈接线断了 = 冒烟 FAIL。
+4. **preflight P14 机判**：脚本引用了 `Juice.` 但 `[autoload]` 未注册 Juice → FAIL
+   （解析期 Identifier not found 提前拦）。删除单例必须同步删全部调用点。
+
+---
+
+## 3C. 调参工作台：spec.numeric 的浏览器内调参与回写
+
+> 手感调不出是 agent 的短板，而调参不该等一次重新导出。调参工作台把「试玩 → 改数值 →
+> 定稿回写 spec」变成浏览器里即时可做的事 —— 人的试玩从口头反馈升级为直接调参。
+
+三件套（模板与壳契约已内置）：
+
+1. **数值调参区**：可调数值集中在 `autoload/game_state.gd` —— 变量 + `TUNING_META`
+   （min/max/step）成对声明，键名与 `spec.numeric` 一一对应；`apply_tuning()` 是唯一应用
+   入口（只认声明的键、按范围钳制、返回生效键列表）；消费方（player.gd 等）只读变量，
+   禁止散落魔数。新增可调数值 = 加变量 + 加一行 META。
+2. **调参桥（壳页面硬契约，deploy 节点校验）**：壳页面在引擎加载**之前**把 URL
+   `?tuning=<urlencoded JSON>` 解析到 `window.__GAME_TUNING__`；游戏启动时
+   `GameState._apply_web_tuning()` 读入并应用。桌面/无头环境桥不工作（eval 恒为 null），
+   自动跳过 —— 冒烟不受影响。
+3. **调参面板**：网页 URL 带 `?tuning=` 时游戏内浮出面板（`scripts/tuning_panel.gd`，
+   代码建 UI）：按 `TUNING_META` 生成滑杆、拖动即时生效，「复制调参 URL」把当前数值
+   序列化成可分享链接。非网页环境面板永不创建。
+
+冒烟断言（模板 `tests/smoke.gd` 内置，移植新游戏保留）：`TUNING_META` 非空；
+`apply_tuning` 应用已声明键、拒绝未声明键、按 max 钳制 —— 纯逻辑无头可判。
+
+**回写协议（定稿才发生；禁止只改代码默认值不改 spec）**：
+
+1. 试玩人在浏览器调出满意数值 → 复制调参 URL 发回；
+2. agent 把 URL 里的数值经 `POST /api/v1/game-design-specs/:id/revisions` 写进
+   `spec.numeric`（产生新版本，带 `sourceTrajectoryId` 溯源）→ 拍板 approve；
+3. 数值落代码（`game_state.gd` 默认值 = 定稿后的 `spec.numeric`）随下一轮部署生效 ——
+   spec 仍是唯一事实源，代码跟着 spec 走。
+
+---
+
 ## 4. 无头验证协议（游戏能不能跑，机器说了算）
 
 ### 4.1 三条命令（顺序固定）
@@ -202,14 +302,16 @@ GODOT_BIN=<godot> bash scripts/smoke.sh <工程目录>
 
 ### 4.3 冒烟场景必须断言什么（不要只 print 一句话）
 
-模板 `tests/smoke.gd` 的五项断言是最低标准，移植到新游戏时逐项保留：
+模板 `tests/smoke.gd` 的七项断言是最低标准，移植到新游戏时逐项保留：
 
 1. 主场景可实例化（场景接线没断）；
 2. autoload 已注册且带约定信号；
 3. InputMap 动作已注册、**物理键绑定正确（键位契约 `_check_key_bindings`，
    逐键核对 AND 语义，见下）**，且**注入输入后对象真的动了**（物理 + 脚本生效）；
 4. 信号真的到达订阅方（`moved` / `score_changed` 被收到）；
-5. 每项失败给出可读原因（对应 error-signatures 的修复动作）。
+5. 每项失败给出可读原因（对应 error-signatures 的修复动作）；
+6. 结果性事件真的挂了反馈（`Juice.events` 非空，见 §3B）；
+7. 调参协议可判（`TUNING_META` 非空、`apply_tuning` 钳制与未知键拒绝，见 §3C）。
 
 模拟按键的正确姿势（headless 下实测有效）：
 
@@ -234,11 +336,33 @@ Input.parse_input_event(ev)
 `references/godot-smoke-routine.md`），作为目标 DAG 的 gate：`reject` 打回修复循环，
 `maxLoops` 即修复预算上限。
 
+### 4.5 机器人试玩门禁（playtest）：节奏类代理指标的下限机判
+
+> 「好玩」判不了，「好玩的下限」判得了：开局正反馈是不是及时、反馈有没有断档、
+> 密度够不够、换种子有没有差异。`scripts/playtest.sh` 以 bot 多局游玩采样这两路
+> 时间序列——得分事件（`GameState.score_changed`）与反馈事件（`Juice.feedback_fired`）——
+> 逐条机判，缺口口语化写进日志供按签名修复。
+
+- **跑法**：`GODOT_BIN=<godot> bash scripts/playtest.sh <工程目录>`；默认 3 种子 × 15 秒/局。
+  指标明细在 `GODOT_PLAYTEST_METRICS:` 行（单行 JSON，工作流/调参轮可消费）。
+- **阈值覆盖**：工程内 `tests/playtest.json`（可选）——`frames_per_run` 建议对齐
+  `spec.content.sessionSeconds × 60`；`thresholds` 支持的键与内置默认见
+  `scripts/playtest_driver.gd` 头注释：`first_reward_seconds_max`（默认 10s，-1 关闭）、
+  `feedback_gap_seconds_max`（10s）、`feedback_events_min_per_run`（2）、
+  `seed_outcomes_min_distinct`（默认 1 = 只记录；**声明了重玩钩子的游戏设 2**，
+  与 spec.content.replayHooks 对齐）。
+- **判定协议**：`GODOT_PLAYTEST: PASS/FAIL`（逐条原因），与 smoke/fuzz 同款
+  「标记 + 退出码 + 无脚本错误」三重断言；已作为 `godot-smoke` routine 的 playtest
+  步进入门禁链（`references/godot-smoke-routine.md` 片段）。
+- **边界**：只机判节奏下限，不判「好不好玩」——后者是人 + 工作流 playtest 验收节点
+  （试玩量表 + 调参工作台）的职责，两层互补缺一不可。旧工程接入本门禁缺 Juice/调参区
+  时 fail-closed，按 §3B/§3C 补模板协议（失败信息带指引）。
+
 ---
 
 ## 5. 前置一致性检查清单（写完就查，别等运行）
 
-**先跑 `python3 scripts/preflight.py <工程目录>`**（13 类，逐条机判；语义见脚本 docstring）。
+**先跑 `python3 scripts/preflight.py <工程目录>`**（14 类，逐条机判；语义见脚本 docstring）。
 机器查不了的三项，人工核对：
 
 | 项 | 怎么核对 |
@@ -328,7 +452,7 @@ AI 能造出机器，但调不出手感 —— 而在游戏里，调校本身就
 
 | 资产类型 | 结论 | 本技能的默认动作 |
 |---|---|---|
-| 音效 SFX | 真能用，含上线 | 可直接生成/引入 |
+| 音效 SFX | 真能用，含上线 | 默认程序化合成（`tools/gen_sfx.gd`，零依赖、确定可复现）；外部生成 API/模型为可选升级，入口都是 §7B 的 assets 段 |
 | 音乐 | 占位与氛围可以；有辨识度的主题曲还不行 | 占位循环先顶上，主题曲留人工 |
 | 2D 背景 / 概念图 | 能用 | 可生成 |
 | 精灵图集 | 差：帧间一致性与统一调色板恰是生成模型守不住的 | 避免；用极简几何（Polygon2D 色块，模板默认）替代 |
@@ -342,6 +466,43 @@ AI 能造出机器，但调不出手感 —— 而在游戏里，调校本身就
 与「规则 vs 手感」互补的最优分工：存档系统、背包、UI 接线、数据表、编辑器插件这类
 「无聊基础设施」AI 几乎白送，优先交给 agent；决定游戏好不好玩的部分（手感、节奏、
 难度曲线）留给人调。
+
+---
+
+## 7B. 资产治理协议：生成资产的 spec 声明与契约机判
+
+> 画面/听感升级走「资产管线」，而管线的骨架不是生成器，是**治理协议**：资产在 spec 里
+> 声明（落点/品类/来源/生成器/许可），契约测试机判「存在且被引用」。生成器是可替换插件
+> ——今天的程序化合成、明天的生图 API 技能脚本、后天的 MCP 人在环挑图，都往同一协议里插。
+
+**assets 段条目**（GameDesignSpec 第八段）：
+
+```json
+{ "id": "sfx-score", "kind": "sfx", "file": "assets/sfx/score.wav",
+  "source": "generated", "generator": "procedural:tools/gen_sfx.gd", "license": "工程内生成，随工程分发" }
+```
+
+- `kind`：sfx / music / image / sprite / font / model …（开放字符串）；
+- `source`：generated / manual / licensed —— 溯源必填；非 generated 缺 `license` 只告警
+  （外购/CC 素材必须记录许可；Steam AI 内容披露口径见 §7A 末尾提醒）；
+- 契约测试（`game-contract` routine）机判两条：`asset.file` 落点存在（**硬失败**）、
+  `asset.referenced` 被工程引用（res:// 路径扫描，未命中 = warning，动态路径加载可豁免）。
+
+**内置生成器：程序化 SFX（`tools/gen_sfx.gd`，随模板复制到每个工程）**：
+
+```bash
+godot --headless --path . -s res://tools/gen_sfx.gd        # 按 tests/sfx-recipes.json 合成
+```
+
+- 配方驱动：blip/sweep/noise 三类基元 + 波形/包络参数；噪声种子 = hash(名字)，
+  **同配方同产物**（二进制 diff 干净）；产出 16-bit PCM wav 到 `assets/sfx/`；
+- 模板已内置四个示例音效（score/confirm/hit/fail）并接进 `Juice.SFX_BANK` ——
+  游戏换音效 = 改配方重跑工具（或替换 wav 文件），调用点零改动；
+- 生成产物与 `*.import` 一起提交（uid 纪律见 §3）。
+
+**生成器演进路线**（协议不变，只换 generator 标识）：程序化合成（当前）→ 生图/生音频
+API 的技能脚本（第二批，接入时锁版本、prompt 进 spec 溯源）→ MCP 人在环挑图
+（评审/playtest 环节用）。**禁止**绕过 assets 段直接往工程里塞不声明的生成资产。
 
 ---
 
