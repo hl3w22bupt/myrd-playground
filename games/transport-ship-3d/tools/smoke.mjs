@@ -1,6 +1,7 @@
 // smoke.mjs — Web 冒烟门禁：headless Chrome（CDP 驱动）打开产物，断言「打开即玩 + 核心循环推进」。
 // 断言链：页面可打开 → 零未捕获异常 → 渲染管线出画（draw calls/triangles）→ 内核时间推进（核心循环在跑）
-//         → fastForward 推到 gameover → 重玩钩子落账（localStorage）→ 重开页面标题屏回显最高分。
+//         → ?fire= 开火链路（shotsFired>0 机判，不以截图存证）→ fastForward 推到 gameover
+//         → 重玩钩子落账（localStorage）→ 重开页面标题屏回显最高分。
 // 用法：node tools/smoke.mjs [--chrome <path>] [--port 9223] [--fastforward 60]
 // 退出码：0 = 冒烟通过；1 = 失败（浏览器不可用 / 页面异常 / 循环未推进 / 钩子未落账）。
 import { spawn } from "node:child_process";
@@ -97,7 +98,16 @@ try {
     console.log(`  PASS  游戏内截图存证 — ${inGameShot}`);
   }
 
-  // ③ 快进到阵亡 → gameover 分支落账重玩钩子
+  // ③ 开火链路取证（?fire= 表现层调试驱动）：扳机按住 3 秒后内核射击计数必须 > 0。
+  //    机判断言为准（shotsFired/shotsHit），不依赖截图（截图与画面状态易错位，曾误标文件名）。
+  await cdp.send("Page.navigate", { url: `${base}?smoke=1&fire=3` });
+  await sleep(4200);
+  const fireChain = await evalJs(`({ fired: window.__game.world.shotsFired, hit: window.__game.world.shotsHit,
+    head: window.__game.world.headshots })`);
+  check((fireChain?.fired ?? 0) > 0, "开火链路取证（?fire= 驱动扳机 → 射击计数）",
+    `shotsFired=${fireChain?.fired} shotsHit=${fireChain?.hit} headshots=${fireChain?.head}`);
+
+  // ④ 快进到阵亡 → gameover 分支落账重玩钩子
   await evalJs(`window.__game.fastForward(${FAST_FORWARD})`);
   await sleep(1500);
   const overState = await evalJs(`({ state: window.__game.state, over: window.__game.world.over })`);
@@ -105,7 +115,7 @@ try {
   const replay = await evalJs(`JSON.parse(localStorage.getItem("ts3d.replay") ?? "{}")`);
   check(typeof replay?.waveStreak === "number", "replayHooks 落账 localStorage", JSON.stringify(replay));
 
-  // ④ 重开（同 profile）→ 标题屏回显最高分
+  // ⑤ 重开（同 profile）→ 标题屏回显最高分
   await cdp.send("Page.navigate", { url: base });
   await sleep(1500);
   const best = await evalJs(`document.getElementById("ts-best")?.textContent ?? ""`);

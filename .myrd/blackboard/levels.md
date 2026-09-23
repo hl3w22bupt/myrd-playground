@@ -35,13 +35,13 @@
 3. 敌兵从 N/E/W 三点按波次进入 → 击杀得分、波次清空拿奖励 → 下一波更强。
 4. 血量归零 → 结算屏（得分/波次/击杀/用时）→ 一键重开。
 
-## 实跑证据（2026-09-23 门禁侧补跑批次回填，锚定 HEAD `043e8ab`，原文见 gate-logs/transport-ship-3d/full-suite-221805-head-043e8ab.log）
+## 实跑证据（2026-09-23 门禁侧补跑批次回填，锚定游戏工程提交 `c083db7`，原文见 gate-logs/transport-ship-3d/full-suite-224134-head-c083db7.log）
 
 1. **契约门禁**：`node scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --project .` → **71 PASS / 0 FAIL**（spec v3 approved）。
-2. **验收测试**：ac-1 单文件 / ac-2 确定性（2441+2700 tick 逐字段一致）/ ac-3 武器数值 / ac-4 波次 / ac-6 QA 审计 —— 全 PASS（exit 0）。
-3. **真浏览器冒烟（CDP 门禁工具，9 断言全过、exit 0）**：页面打开出结果 JSON、渲染管线出画（drawCalls=9 / triangles=2700）、
-   内核 time 9.02s→10.25s 增长、快进至阵亡进入 gameover 态、重玩钩子落账 localStorage、重开页面标题屏回显「最高 0 · 上次 第 1 波」、
-   **0 个未捕获异常**；游戏内截图（集装箱 CSCL-0417 军绿 / HYUNDAI 土黄贴图、雷达敌点、WAVE 1）与标题屏截图均入 gate-logs。
+2. **验收测试**：ac-1 单文件 / ac-2 确定性（2441+2700 tick 逐字段一致）/ ac-3 武器数值 / ac-4 波次 / ac-6 QA 审计 —— 全 PASS（exit 0）；qa-audit ④ stamp=`8c562f1d…` ↔ 指纹匹配（覆盖美术批 assets/ 与模板）。
+3. **真浏览器冒烟（CDP 门禁工具，8 断言全过、exit 0）**：页面打开出结果 JSON、渲染管线出画（drawCalls=9 / triangles=2700）、
+   内核 time 9.00s→10.20s 增长、**开火链路机判（?fire=3 → shotsFired=17 / shotsHit=0）**、快进至阵亡进入 gameover 态、
+   重玩钩子落账 localStorage、重开页面标题屏回显「最高 0 · 上次 第 1 波」、**0 个未捕获异常**。
 4. **数值曲线**：基线 bot 四种子（1/42/777/20260923）静态站位存活 82–89s 至第 4 波；清波回血/奖励按 spec v3 口径生效。
 5. **操作路径复核**：打开即见标题屏（操作说明 10 秒可读）→ 点击开始锁定鼠标 → 波次告示 → 击杀得分/受击红闪/雷达敌点 → 阵亡结算屏 → 一键重开。
 
