@@ -3,12 +3,12 @@
 //   ① 内核纯净性：kernel/ 禁 three / DOM / Math.random / Date.now（确定性红线）
 //   ② 数值双向一致：spec.numeric ↔ src/numeric.js 逐键逐值（数值唯一来源红线）
 //   ③ HUD 骨架一致：模板 DOM id ↔ hud.js 引用 id
-//   ④ 产物同步：index.html 的 SRC_SHA 与当前 src/ 重算一致（改源码必须重新构建）
-//   ⑤ 关卡元素编号：spec.levels[].elements ↔ level-01-deck.js ELEMENT_IDS 一一对应
+//   ④ 产物同步：index.html 的 SRC_SHA 与源输入（src/ + assets/ + index.template.html + tools/build.mjs + 本算法文件）重算一致
+//   ⑤ 关卡元素编号：spec.levels[].elements ↔ level-01-deck.js 双向集合相等（私加/漏实现都打回）
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
-import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { productSourceSha, FINGERPRINT_PATHS } from "../tools/src-sha.mjs";
 
 const gameRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const repoRoot = path.resolve(gameRoot, "..", "..");
@@ -77,41 +77,34 @@ const fail = (m) => failures.push(m);
   else fail(`HUD 引用了模板不存在的 id：${missing.join(", ") || "未检出引用"}`);
 }
 
-// —— ④ 产物同步（SRC_SHA）——
+// —— ④ 产物同步（SRC_SHA）—— 算法与范围唯一真源 = tools/src-sha.mjs（构建器与审计共用，防两头各算各的）
 {
   const htmlPath = path.join(gameRoot, "index.html");
   if (!existsSync(htmlPath)) fail("缺少 index.html（先 node tools/build.mjs）");
   else {
     const stamp = (readFileSync(htmlPath, "utf8").match(/<!--SRC_SHA=([0-9a-f]+)-->/) || [])[1];
-    const files = [];
-    (function walk(dir) {
-      for (const name of readdirSync(dir).sort()) {
-        const full = path.join(dir, name);
-        if (statSync(full).isDirectory()) walk(full);
-        else files.push(full);
-      }
-    })(path.join(gameRoot, "src"));
-    const h = createHash("sha256");
-    for (const f of files) {
-      h.update(path.relative(gameRoot, f).replaceAll("\\", "/")); h.update("\0"); h.update(readFileSync(f)); h.update("\0");
-    }
-    const sha = h.digest("hex").slice(0, 16);
-    if (stamp === sha) pass(`产物与 src/ 同步（SRC_SHA=${sha}）`);
-    else fail(`产物过期：SRC_SHA=${stamp ?? "缺失"}，当前 src 指纹=${sha}（重新执行 node tools/build.mjs）`);
+    const sha = productSourceSha(gameRoot);
+    if (stamp === sha) pass(`产物与源输入同步（SRC_SHA=${sha}，指纹范围 ${FINGERPRINT_PATHS.join(" + ")}）`);
+    else fail(`产物过期：SRC_SHA=${stamp ?? "缺失"}，当前源指纹=${sha}（重新执行 node tools/build.mjs）`);
   }
 }
 
-// —— ⑤ 关卡元素编号对应 ——
+// —— ⑤ 关卡元素编号双向对应 —— spec.elements ↔ 关卡数据必须集合相等（防实现侧私加/漏实现编号）
 {
   const specPath = path.join(repoRoot, ".myrd/spec/design-spec.json");
   const spec = JSON.parse(readFileSync(specPath, "utf8"));
   const lvl = spec.levels?.find((l) => l.id === "lvl-01-deck");
   const levelSrc = readFileSync(path.join(gameRoot, "src/levels/level-01-deck.js"), "utf8");
-  const codeIds = [...levelSrc.matchAll(/"?(lvl-01-deck\/[a-z0-9-]+)"?/g)].map((m) => m[1]);
-  const specIds = (lvl?.elements ?? []).map((e) => e.id);
-  const missing = specIds.filter((id) => !codeIds.includes(id));
-  if (specIds.length > 0 && missing.length === 0) pass(`spec 关卡元素 ${specIds.length} 个编号全部在关卡数据中落地`);
-  else fail(`spec 元素编号未落地：${missing.join(", ") || "spec 无元素"}`);
+  const codeIds = [...new Set([...levelSrc.matchAll(/"?(lvl-01-deck\/[a-z0-9-]+)"?/g)].map((m) => m[1]))];
+  const specIds = [...new Set((lvl?.elements ?? []).map((e) => e.id))];
+  const notInSpec = codeIds.filter((id) => !specIds.includes(id)); // 实现 → spec 方向（防私加编号）
+  const notInCode = specIds.filter((id) => !codeIds.includes(id)); // spec → 实现方向（防漏实现）
+  if (specIds.length > 0 && notInSpec.length === 0 && notInCode.length === 0) {
+    pass(`关卡元素编号双向集合相等（${specIds.length} 个，spec ↔ 代码一一对应）`);
+  } else {
+    if (notInSpec.length > 0) fail(`实现侧私加编号（spec 未声明）：${notInSpec.join(", ")} —— 走 spec revisions 登记或实现收敛`);
+    if (notInCode.length > 0) fail(`spec 元素编号未落地：${notInCode.join(", ") || "spec 无元素"}`);
+  }
 }
 
 if (failures.length) { console.error("—— QA 审计 FAIL ——"); for (const f of failures) console.error(`  FAIL  ${f}`); process.exit(1); }

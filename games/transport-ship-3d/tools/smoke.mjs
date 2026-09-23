@@ -89,6 +89,14 @@ try {
   const t1 = await evalJs(`window.__game.world.time`);
   check(t1 > t0, "核心循环推进（内核固定步长累计）", `time ${t0.toFixed(2)}s → ${t1.toFixed(2)}s`);
 
+  // 可选：游戏内截图存证（--ingame-shot <path>，验证布景/贴图/敌兵实际渲染）
+  const inGameShot = flag("--ingame-shot", "");
+  if (inGameShot) {
+    const data = (await cdp.send("Page.captureScreenshot", { format: "png" })).result?.data;
+    writeFileSync(inGameShot, Buffer.from(data, "base64"));
+    console.log(`  PASS  游戏内截图存证 — ${inGameShot}`);
+  }
+
   // ③ 快进到阵亡 → gameover 分支落账重玩钩子
   await evalJs(`window.__game.fastForward(${FAST_FORWARD})`);
   await sleep(1500);

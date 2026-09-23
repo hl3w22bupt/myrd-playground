@@ -1,6 +1,6 @@
 # levels.md — 关卡状态（共享黑板）
 
-> 更新时间：2026-09-23（程序节点复验批次 · 游戏程序）
+> 更新时间：2026-09-23（门禁侧补跑批次 · 游戏程序）
 > 负责人：主策划（写「可核对状态」：哪关能玩、操作路径、门禁证据；不写「已完成」）
 > 下一步：实现后回填「实跑证据」区；人工验收未拍板前不标完成
 
@@ -35,23 +35,24 @@
 3. 敌兵从 N/E/W 三点按波次进入 → 击杀得分、波次清空拿奖励 → 下一波更强。
 4. 血量归零 → 结算屏（得分/波次/击杀/用时）→ 一键重开。
 
-## 实跑证据（2026-09-23 程序节点复验回填，原文见 gate-logs/transport-ship-3d/full-suite-20260923-194809.log）
+## 实跑证据（2026-09-23 门禁侧补跑批次回填，锚定 HEAD `043e8ab`，原文见 gate-logs/transport-ship-3d/full-suite-221805-head-043e8ab.log）
 
 1. **契约门禁**：`node scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --project .` → **71 PASS / 0 FAIL**（spec v3 approved）。
 2. **验收测试**：ac-1 单文件 / ac-2 确定性（2441+2700 tick 逐字段一致）/ ac-3 武器数值 / ac-4 波次 / ac-6 QA 审计 —— 全 PASS（exit 0）。
-3. **真浏览器冒烟（本次升级为 CDP 门禁工具）**：`node games/transport-ship-3d/tools/smoke.mjs`（headless Chrome + SwiftShader，7 断言全过、exit 0）——
-   页面打开出结果 JSON、渲染管线出画（drawCalls=9 / triangles=2700）、内核 time 9.78s→10.90s 增长、快进至阵亡进入 gameover 态、
-   重玩钩子落账 localStorage、重开页面标题屏回显「最高 0 · 上次 第 1 波」、**0 个未捕获异常**。
+3. **真浏览器冒烟（CDP 门禁工具，9 断言全过、exit 0）**：页面打开出结果 JSON、渲染管线出画（drawCalls=9 / triangles=2700）、
+   内核 time 9.02s→10.25s 增长、快进至阵亡进入 gameover 态、重玩钩子落账 localStorage、重开页面标题屏回显「最高 0 · 上次 第 1 波」、
+   **0 个未捕获异常**；游戏内截图（集装箱 CSCL-0417 军绿 / HYUNDAI 土黄贴图、雷达敌点、WAVE 1）与标题屏截图均入 gate-logs。
 4. **数值曲线**：基线 bot 四种子（1/42/777/20260923）静态站位存活 82–89s 至第 4 波；清波回血/奖励按 spec v3 口径生效。
 5. **操作路径复核**：打开即见标题屏（操作说明 10 秒可读）→ 点击开始锁定鼠标 → 波次告示 → 击杀得分/受击红闪/雷达敌点 → 阵亡结算屏 → 一键重开。
 
-### 程序节点复验增量（本批次改动，均为与 spec 对齐，非新设计）
+### 门禁侧补跑批次增量（驳回修复，均与 spec 对齐）
 
-| 改动 | 依据 | 证据 |
+| 驳回点 | 修复 | 证据 |
 |---|---|---|
-| 闭合 `spec.content.replayHooks`（high_score / wave_streak / daily_seed）——此前 spec 声明了但工程零落地 | spec.content.replayHooks 三钩子声明；口径对标知识文档「每张图固定随机种子」 | 冒烟断言 ⑤⑥：落账 localStorage + 重载回显（截图 smoke-title-replay-hooks.png） |
-| 首局种子由硬编码 `20260923` 改为当日种子 `dailySeed()`；重开局仍用时间随机 | 同上（布景复现性与对局内随机口径不变） | 冒烟两次运行结果随种子变化（29.22s 阵亡 / 37.57s 阵亡 / 30s 存活），确定性由 ac-2 机判保证 |
-| `src/numeric.js` 头注 v2 → v3（纯注释，无数值变化） | spec meta.version=3 | qa-audit 数值 41 键双向零偏差复跑 PASS |
-| 新增 `tools/smoke.mjs`（CDP 冒烟门禁，零依赖） | 角色规范「冒烟门禁」要求 + 平台反卡死纪律（60s 超时/显式失败退出码） | gate-logs full-suite-20260923-194809.log 第 2 节 |
+| ① 门禁证据滞后于 HEAD（美术批 1e61157 后无全量日志） | 对当前 HEAD 全量重跑 contract-check + ac-1~ac-4 + ac-6 + tools/smoke.mjs，日志落盘 | `full-suite-221805-head-043e8ab.log` |
+| ② 目录内最新日志实为 Godot 糖果线 | 本批次日志明确锚定 transport-ship-3d spec 与 HEAD hash | 同上（文件名含 head hash） |
+| ③ SRC_SHA 指纹只盖 src/，未盖产物实际内联的 assets/*.mjs 与 index.template.html | 算法收口到新模块 `tools/src-sha.mjs`（构建器与 qa-audit ④ 共用同一实现），指纹范围扩为 **src + assets + index.template.html + tools/build.mjs + tools/src-sha.mjs** | 日志第 0 节 SRC_SHA=2a98f7be…；qa-audit PASS 行内打印指纹范围 |
+| ④ 实现私加 spec 未声明编号 container-a-2 / container-b-2（13 vs 11） | 实现收敛：同一 spec 元素多体块时后续体块改带 `group` 指回元素编号（几何零变化，内核不读 id）；qa-audit ⑤ 增加 **code→spec 双向集合相等**断言 | 日志第 4 节负向验证：1e61157 会 FAIL（私加 2 个），当前 11↔11 PASS；游戏内截图确认贴图按 group 正常分派 |
+| ⑤ 黑板互查基线表未更新至 HEAD | qa-crosscheck.md「二、互查基线」重写为 @043e8ab 实跑结果；blockers.md B-5 门禁措辞同步更正 | qa-crosscheck.md 二 |
 
 > 判定口径：以上为「可核对状态」，不是「已完成」——人工试玩验收未做，关卡状态标 ✅ 可玩而非完结。

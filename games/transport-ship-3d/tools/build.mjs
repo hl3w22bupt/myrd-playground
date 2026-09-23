@@ -3,33 +3,16 @@
 // 产物自检：不含 http(s) 外链 / importmap / src 引用 —— 见 tests/singlefile.contract.mjs
 
 import { build } from "esbuild";
-import { readFileSync, writeFileSync, readdirSync, statSync } from "node:fs";
-import { createHash } from "node:crypto";
+import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { productSourceSha, FINGERPRINT_PATHS } from "./src-sha.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "..");
 
-/** 源码指纹：src/ 递归排序后 sha256（qa-audit 用它断言产物与源码同步）*/
-function srcSha() {
-  const files = [];
-  (function walk(dir) {
-    for (const name of readdirSync(dir).sort()) {
-      const full = path.join(dir, name);
-      if (statSync(full).isDirectory()) walk(full);
-      else files.push(full);
-    }
-  })(path.join(root, "src"));
-  const h = createHash("sha256");
-  for (const f of files) {
-    h.update(path.relative(root, f).replaceAll("\\", "/"));
-    h.update("\0");
-    h.update(readFileSync(f));
-    h.update("\0");
-  }
-  return h.digest("hex").slice(0, 16);
-}
+/** 源码指纹：算法唯一真源在 tools/src-sha.mjs（qa-audit ④ 用同一模块复算比对，防两头各算各的）*/
+const srcSha = () => productSourceSha(root);
 
 console.log("[build] esbuild 打包 src/main.js（three 全量内联，minify + iife）…");
 const res = await build({
@@ -70,3 +53,4 @@ if (externalRefs.length > 0) {
 }
 const bytes = Buffer.byteLength(html);
 console.log(`[done] 产物 ${path.relative(root, outPath)} = ${(bytes / 1024).toFixed(0)} KB，零外部资源引用`);
+console.log(`[done] SRC_SHA=${sha}（指纹范围：${FINGERPRINT_PATHS.join(" + ")}）`);

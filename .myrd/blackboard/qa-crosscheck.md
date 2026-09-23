@@ -1,6 +1,6 @@
 # qa-crosscheck.md — QA 互查记录（transport-ship-3d）
 
-> 更新时间：2026-09-23 · 主策划整合批次
+> 更新时间：2026-09-23 · 门禁侧补跑批次（美术批 1e61157 之后对 HEAD 043e8ab 重跑全套门禁）
 > 执行方式说明：本执行环境未暴露 `assign_agent` 工具，无法派活独立 QA 成员（见 blockers.md B-3）。
 > 互查以「**独立机判脚本（qa-audit.mjs，实现侧不可绕过）+ 第二遍交叉走查（对照 spec 逐条核对实现）**」替代，
 > 全部证据为可复现命令与原文日志，不伪造「另一人已查」。
@@ -23,17 +23,23 @@
 
 ## 二、互查基线（机判门禁，全部可复现）
 
-| 门禁 | 命令 | 结果 |
+> 基线锚定：**HEAD = `043e8ab`（含美术批 1e61157 + 门禁侧修复）**，实跑时间 2026-09-23 22:18，
+> 原文 `gate-logs/transport-ship-3d/full-suite-221805-head-043e8ab.log`（含冒烟 9 断言 + 驳回点④负向验证）。
+> 说明：美术批落地后曾出现门禁证据滞后（最后一次全量日志停在 3dd223e），本表为对当前 HEAD 的补跑结果。
+
+| 门禁 | 命令 | 结果（@043e8ab） |
 |---|---|---|
 | 契约门禁 | `node scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --project .` | **71 PASS / 0 FAIL**（exit 0） |
 | ac-1 单文件 | `node games/transport-ship-3d/tests/singlefile.contract.mjs` | PASS（零外链/零 CDN/three 内联） |
 | ac-2 确定性 | `node games/transport-ship-3d/tests/kernel-determinism.spec.mjs` | PASS（2441+2700 tick 逐字段一致、大 dt 钳制等价、fastForward 等价） |
 | ac-3 武器数值 | `node games/transport-ship-3d/tests/combat.spec.mjs` | PASS（射速/弹匣/换弹/伤害/爆头/得分/承伤口径） |
 | ac-4 波次 | `node games/transport-ship-3d/tests/wave.spec.mjs` | PASS（规模公式/封顶/轮转/休整/清波奖励与回血） |
-| ac-6 QA 审计 | `node games/transport-ship-3d/tests/qa-audit.mjs` | PASS（内核纯净 5 文件 / 数值 41 键双向零偏差 / HUD 14 id / 产物 SRC_SHA 同步 / 元素编号 11 个落地） |
-| 真浏览器冒烟 | headless Chrome `index.html?smoke=30`（SwiftShader WebGL） | `{"ok":true,...,"drawCalls":9,"triangles":2700}`，0 个未捕获错误 |
+| ac-6 QA 审计 | `node games/transport-ship-3d/tests/qa-audit.mjs` | PASS（内核纯净 / 数值 41 键双向零偏差 / HUD 16 id / 产物 SRC_SHA 同步〔指纹范围已扩至 src + assets + index.template.html + tools/build.mjs + tools/src-sha.mjs〕/ 元素编号 11 个**双向集合相等**） |
+| 真浏览器冒烟 | `node games/transport-ship-3d/tools/smoke.mjs`（headless Chrome + SwiftShader，CDP） | 9 断言全 PASS、exit 0：打开出结果 / 渲染出画（drawCalls 9·triangles 2700）/ 循环推进 / gameover / replayHooks 落账 / 重载回显 / **0 未捕获异常** + 游戏内与标题屏双截图 |
 
-原文日志：`.myrd/blackboard/gate-logs/transport-ship-3d/full-suite-*.log`、`smoke-frame.png`
+门禁侧修复记录（驳回点③④）：SRC_SHA 指纹算法收口到 `tools/src-sha.mjs`（构建器与审计共用同一模块）；
+`qa-audit ⑤` 增加 code→spec 方向断言，负向验证：美术批 1e61157 的 13 编号实现会被打回（私加 container-a-2/container-b-2），
+收敛后 11 ↔ 11 相等。关卡收敛口径：同一 spec 元素多体块时，后续体块只带 `group` 指回元素编号，不另造编号。
 
 ## 三、互查遗留（不阻塞，呈主人）
 

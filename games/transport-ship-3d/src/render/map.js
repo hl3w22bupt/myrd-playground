@@ -139,7 +139,7 @@ export function buildMap(scene) {
   for (const c of COVERS) {
     const cw = c.maxX - c.minX, cd = c.maxZ - c.minZ;
     const cx = (c.minX + c.maxX) / 2, cz = (c.minZ + c.maxZ) / 2;
-    if (c.id === "lvl-01-deck/bridge") {
+    if (c.group === "lvl-01-deck/bridge") {
       const mat = surfMat({ map: gameTexture("a01/hull-plate"), roughness: 0.8, metalness: 0.35, floor: P.hull.plate });
       const b1 = new THREE.Mesh(new THREE.BoxGeometry(cw * 0.8, 5.2, cd), mat);
       b1.position.set(cx, 2.6, cz + 1); b1.castShadow = true; b1.receiveShadow = true;
@@ -153,10 +153,10 @@ export function buildMap(scene) {
       strip.position.set(cx, 3.6, cz + 1 + cd / 2 + 0.02);
       group.add(strip);
     } else {
-      // 集装箱：军绿群 A / 土黄群 B（贴图资产 id 与掩体 id 对应，a01 内自动分派）
+      // 集装箱：军绿群 A / 土黄群 B（贴图/配色按元素编号 group 分派；同群体块共享同一贴图实例）
       const mat = surfMat({
-        map: containerTexture(c.id), roughness: 0.75, metalness: 0.3,
-        floor: c.id.includes("container-b") ? P.container.tan : P.container.green,
+        map: containerTexture(c.group), roughness: 0.75, metalness: 0.3,
+        floor: c.group.includes("container-b") ? P.container.tan : P.container.green,
       });
       const box = new THREE.Mesh(new THREE.BoxGeometry(cw, 2.9, cd), mat);
       box.position.set(cx, 1.45, cz);

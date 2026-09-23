@@ -46,7 +46,10 @@
   真 GPU（`--use-angle=metal`）与 SwiftShader 等价、材质交换后黑块跟随**网格+面朝向**而非材质、
   同一贴图换到 +z 面或把网格挪位/旋转后正常显示；`emissive` 可正常上色（shader 在跑，diffuse 项为 0）。
 - **美术侧兜底**（不改玩法）：贴图材质统一 `ambientFloor=0.13` 同色自发光底（`assets/palette.mjs` ②-b），
-  任何朝向的面都不再读成死黑剪影；已过全量门禁。
+  任何朝向的面都不再读成死黑剪影。门禁佐证：兜底后的全量门禁实跑见
+  `gate-logs/transport-ship-3d/full-suite-221805-head-043e8ab.log`（锚定 HEAD 043e8ab，71 PASS/0 FAIL + 冒烟 9 断言全绿，
+  游戏内截图 `smoke-ingame-post-gatefix.png` 可见背光面已非死黑）。
+  *（更正：本条此前写「已过全量门禁」但未落盘日志，系证据缺失；2026-09-23 门禁侧补跑后补齐，见 qa-crosscheck.md 二。）*
 - **升级**：请程序侧复核 three r185 材质/光照管线在此「贴图 + 朝向 -x + 掠射角」组合下的 diffuse 项；
   若确认为引擎缺陷，兜底可保留（视觉无损），若程序修掉根因，`ambientFloor` 可归零回归。
 - **状态**：⏳ 待程序排查（不阻塞门禁与试玩）。

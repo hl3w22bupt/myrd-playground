@@ -21,16 +21,20 @@ export const ENEMY_SPAWNS = [
 /**
  * 掩体（轴对齐盒）。内核用于视线遮挡与移动阻挡；表现层按同一数据建集装箱/舰桥体块。
  * height 单位米（掩体视为通高遮挡，不做人眼高低差判定 —— 原型口径）。
+ *
+ * 编号口径（与 spec.levels[0].elements 双向一致）：`id` 只允许 spec 已声明的元素编号；
+ * 同一元素由多个体块组成时（集装箱群 A/B），第二个及之后的体块只带 `group` 指回元素编号，
+ * 不另造 spec 未声明的编号 —— 表现层按 group 取贴图/配色，内核只读几何字段。
  */
 export const COVERS = [
   // 舰桥（lvl-01-deck/bridge）—— 层叠舱室，占舰首端
-  { id: "lvl-01-deck/bridge", minX: -8, maxX: 8, minZ: -30, maxZ: -24, height: 9 },
-  // 集装箱群 A（军绿，lvl-01-deck/container-a）
-  { id: "lvl-01-deck/container-a", minX: -8.6, maxX: -3.4, minZ: -14, maxZ: -8, height: 2.9 },
-  { id: "lvl-01-deck/container-a-2", minX: -8.6, maxX: -3.4, minZ: -4, maxZ: 2, height: 2.9 },
+  { id: "lvl-01-deck/bridge", group: "lvl-01-deck/bridge", minX: -8, maxX: 8, minZ: -30, maxZ: -24, height: 9 },
+  // 集装箱群 A（军绿，lvl-01-deck/container-a）：两个体块同属一个元素
+  { id: "lvl-01-deck/container-a", group: "lvl-01-deck/container-a", minX: -8.6, maxX: -3.4, minZ: -14, maxZ: -8, height: 2.9 },
+  { group: "lvl-01-deck/container-a", minX: -8.6, maxX: -3.4, minZ: -4, maxZ: 2, height: 2.9 },
   // 集装箱群 B（土黄，lvl-01-deck/container-b）—— 与 A 错位成通道
-  { id: "lvl-01-deck/container-b", minX: 3.4, maxX: 8.6, minZ: -10, maxZ: -4, height: 2.9 },
-  { id: "lvl-01-deck/container-b-2", minX: 3.4, maxX: 8.6, minZ: 2, maxZ: 8, height: 2.9 },
+  { id: "lvl-01-deck/container-b", group: "lvl-01-deck/container-b", minX: 3.4, maxX: 8.6, minZ: -10, maxZ: -4, height: 2.9 },
+  { group: "lvl-01-deck/container-b", minX: 3.4, maxX: 8.6, minZ: 2, maxZ: 8, height: 2.9 },
 ];
 
 /** 纯地标（无碰撞，仅供表现层构图）：停机坪 / 吊臂 / 围栏 */
@@ -49,10 +53,12 @@ export function clampToDeck(x, z, radius) {
   };
 }
 
-/** 关卡元素编号表（契约测试断言唯一性；表现层按此索引期望值）*/
+/** 关卡元素编号表（= spec.levels[0].elements，qa-audit 断言双向集合相等；群内体块只计一次）*/
 export const ELEMENT_IDS = [
-  ...COVERS.map((c) => c.id),
-  ...LANDMARKS.map((l) => l.id),
-  ...ENEMY_SPAWNS.map((s) => s.id),
-  "lvl-01-deck/player-start",
+  ...new Set([
+    ...COVERS.map((c) => c.id).filter(Boolean),
+    ...LANDMARKS.map((l) => l.id),
+    ...ENEMY_SPAWNS.map((s) => s.id),
+    "lvl-01-deck/player-start",
+  ]),
 ];

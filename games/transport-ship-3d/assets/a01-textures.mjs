@@ -40,7 +40,7 @@ export function gameTexture(id) {
   return safe(`a01:${id}`, a.make, () => flatTexture(a.fallbackHex));
 }
 
-/** 便捷口径：按关卡掩体 id 取集装箱贴图（军绿群 A / 土黄群 B） */
-export function containerTexture(coverId) {
-  return gameTexture(coverId.includes("container-b") ? "a01/container-tan" : "a01/container-green");
+/** 便捷口径：按关卡掩体的元素编号（group）取集装箱贴图（军绿群 A / 土黄群 B；同群体块共用一张） */
+export function containerTexture(coverGroup) {
+  return gameTexture(coverGroup.includes("container-b") ? "a01/container-tan" : "a01/container-green");
 }
