@@ -89,11 +89,25 @@
 
 > 说明：`?fire=` 仅在显式带参时生效，正常玩家路径零影响；玩法逻辑/数值未动（内核快照测试全绿）。
 
+## 美术批三：屏幕后处理补齐（uLowHP / uDeath）· 2026-09-23
+
+> 依据 = 权威 lineage 文档 3.3 的胶片 shader 三件（uDamage / uLowHP / uDeath）。此前实现只有 uDamage
+>（`#ts-damage` 受击红闪），本批补齐另两件 —— **纯呈现层**，阈值复用 hud 既有 `lowHp` 判定，零新增数值。
+
+| 项 | 落点 | 接线点 | 机判证据（遵 QA 新规：computed style，不以截图作证） |
+|---|---|---|---|
+| 低血量暗角（uLowHP） | `assets/palette.mjs` `hud.lowVignette` + 模板 `#ts-vignette` CSS | `src/render/hud.js` `update()`：与血条 `low` 同一判定源 toggle | HP 51% → `opacity:"0"`；HP 低 → `opacity:"0.98"`（阈值行为两端夹取） |
+| 阵亡灰度（uDeath） | `assets/palette.mjs` `hud.deathFilter` + 模板 `body.ts-dead #gl` | `src/main.js` gameover → `hud.setDead(true)`；重开 → `false` | `?smoke=60` → `dead:true`、`glFilter:"grayscale(0.85) brightness(0.75) contrast(1.05)"`、`hp:0` |
+| 阴影口径修正 | `src/main.js`：`PCFSoftShadowMap` → `PCFShadowMap` | three r185 已弃用 PCFSoft（运行时警告并降级），显式声明实际生效口径，控制台零告警 | 构建后 `--console` 无 THREE 警告 |
+
+> 色票/滤镜全部入 `assets/palette.mjs`（风格卡 ②-b / HUD 段），模板 `:root` 静态值降为 fallback。
+> 工具：`artshot.mjs` 新增 `--sleep`（长局表现取证）。
+
 ## 门禁结论（本批复验，全部可复现）
 
 | 门禁 | 命令 | 结果 |
 |---|---|---|
-| 契约门禁 | `node scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --project .` | **71 PASS / 0 FAIL** |
+| 契约门禁 | `node scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --project .` | **71 PASS / 0 FAIL**（@368d242 22:59 补跑，`full-suite-225944-head-368d242.log`） |
 | ac-1 单文件 | `node games/transport-ship-3d/tests/singlefile.contract.mjs` | PASS（零外链/零 CDN/three 内联） |
 | ac-2 确定性 | `node games/transport-ship-3d/tests/kernel-determinism.spec.mjs` | PASS（内核零改动，快照逐字段一致） |
 | ac-3 武器数值 | `node games/transport-ship-3d/tests/combat.spec.mjs` | PASS（数值表零改动） |
