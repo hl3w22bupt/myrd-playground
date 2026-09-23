@@ -12,6 +12,7 @@
 |---|---|
 | 黑板路径 | `.myrd/blackboard/`（levels.md / assets.md / blockers.md） |
 | 策划案版本号 | 平台 GameDesignSpec **v3 = `cmue00o2z003tm9y3159fb6xl`，status=approved**（版本链 v1 `cmudznmo8003nm9y3nhblfbxo` superseded → v2 `cmudzqzg0003pm9y32zll7j4x` superseded → v3 approved，均经 POST /revisions + /approve 落账）；导出件 `.myrd/spec/design-spec.json` |
+| 交付 PR | #25 `feat(games): 运输船3D 单文件Three.js复刻原型`（base: main，head: myrd/effect-demo-goal-cmudwiicy0025m9y30g71p3kz，commit ff28fcc） |
 | 门禁结论 | 契约门禁 **71 PASS / 0 FAIL**；ac-1~ac-6 验收测试全 PASS；QA 互查五道关全 PASS；真浏览器冒烟 0 未捕获错误（原文 `.myrd/blackboard/gate-logs/transport-ship-3d/`，互查记录 `qa-crosscheck.md`） |
 | 复刻对象 | 《运输船 · 穿越火线 3D》（字节 CDN 单文件 Three.js r186 FPS）；权威依据 = 知识文档《字节系 H5 3D 单文件游戏技术拆解与复刻路线》 |
 | 逆向证据 | `docs/reverse-analysis/transport-ship/REVERSE-ANALYSIS.md`（PR #23，已核实存在于 pr-23 分支，工作区尚未合并） |
