@@ -15,7 +15,8 @@ const PORT = Number(flag("--port", "9227"));
 const SECONDS = Number(flag("--seconds", "6"));
 const OUT = flag("--out", path.join(os.tmpdir(), "ts3d-artshot.png"));
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const url = `${flag("--url", `file://${root}/index.html`)}?smoke=${SECONDS}`;
+const EXTRA_QUERY = flag("--query", ""); // 附加查询串（如 "&fire=4"），驱动表现层调试钩子
+const url = `${flag("--url", `file://${root}/index.html`)}?smoke=${SECONDS}${EXTRA_QUERY}`;
 const fail = (m) => { console.error(`ARTSHOT: FAIL ${m}`); process.exit(1); };
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

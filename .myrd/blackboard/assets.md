@@ -73,6 +73,22 @@
 8. 后坐衰减由「每帧固定 0.12」改为「按 dt 衰减」（帧率无关，60fps 手感不变，纯表现层）。
 9. 调试/自检工具：`tools/artshot.mjs`（CDP 截图 + `--eval` 场景探针 + `--console` 采集 + `--gpu` 真显卡对照）；`window.__game` 增加 `scene`/`assets` 只读调试口。
 
+## 美术批二：表现链路可取证化（?fire= 调试驱动）· 2026-09-23
+
+> 背景：美术批一遗留「开火→命中→火光/火花/命中标记」链路无头不可验（合成事件驱动不了内核）。
+> 本批在装配根加 `?fire=<秒>` 表现层调试驱动（对标样本「URL 参数即调试接口」，默认关闭、不碰内核不改数值），
+> 并给 `tools/artshot.mjs` 加 `--query` 透传 —— 该链路自此可机判 + 截图取证。
+
+| 项 | 内容 | 证据 |
+|---|---|---|
+| 新调试钩子 | `src/main.js`：`?smoke=<s>&fire=<s>` → 300ms 后按住扳机 N 秒（`inputState.firing`，纯表现层输入驱动） | 构建产物已重建（SRC_SHA 同步，qa-audit ④ PASS） |
+| 自检工具 | `tools/artshot.mjs --query "&fire=N"` 透传查询串 | `ARTSHOT: PASS` |
+| 链路机判 | 8 发 / 4 中 / 3 爆头 / 2 击杀 / 215 分 / wave 1，**零未捕获异常** | `artshot --eval` 读 `window.__game.world` 实时计数 |
+| 链路截图 | 雷达双红点 + 集装箱后迷彩敌兵 + 弹药 20/150 消耗 + HP 79 受击反馈 | `gate-logs/transport-ship-3d/art-fire-hit-chain.png` |
+| 门禁 | contract 71 PASS / 0 FAIL；ac-1~ac-4、ac-6 全 PASS；smoke 零异常 | 本批 HEAD 实跑 |
+
+> 说明：`?fire=` 仅在显式带参时生效，正常玩家路径零影响；玩法逻辑/数值未动（内核快照测试全绿）。
+
 ## 门禁结论（本批复验，全部可复现）
 
 | 门禁 | 命令 | 结果 |

@@ -190,3 +190,12 @@ if (smoke !== null) {
   document.title = `SMOKE ${payload}`;
   console.log("[smoke]", payload);
 }
+
+// ?fire=<秒>：表现层调试驱动（默认关闭）—— 模拟按住扳机 N 秒，让「开火→命中→火光/火花/命中标记」
+// 这条纯表现链路可被无头截图与机判取证（对标样本「URL 参数即调试接口」口径；不碰内核，不改数值）。
+const fireSec = new URLSearchParams(location.search).get("fire");
+if (fireSec !== null) {
+  const ms = Math.max(0, Number(fireSec) || 0) * 1000;
+  setTimeout(() => { inputState.firing = true; }, 300);
+  setTimeout(() => { inputState.firing = false; }, 300 + ms);
+}
