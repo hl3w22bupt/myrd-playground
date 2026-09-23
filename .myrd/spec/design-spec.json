@@ -1,0 +1,289 @@
+{
+  "meta": {
+    "title": "运输船 3D · 单文件 Three.js FPS 复刻原型",
+    "genre": "第一人称射击（波次生存）",
+    "platform": "桌面/移动 Web · 单 HTML 文件 · 零外部资源",
+    "engine": "three@0.185（内联进产物 HTML）",
+    "oneLiner": "登上运输船甲板，用程序化拼装的步枪迎击一波强过一波的敌兵，活到波次尽头拿高分。",
+    "lineage": "复刻《运输船 · 穿越火线 3D》同款效果；依据知识文档《字节系 H5 3D 单文件游戏技术拆解与复刻路线》与 docs/reverse-analysis/transport-ship/REVERSE-ANALYSIS.md（PR #23）",
+    "version": 3,
+    "status": "approved",
+    "approval": {
+      "approved": true,
+      "approvedBy": "主人（流程拍板代记，依据主人「直接实现、不等审批」显式指令）",
+      "approvedAt": "2026-09-23",
+      "platformSpecId": "cmue00o2z003tm9y3159fb6xl",
+      "platformVersion": 3,
+      "basis": "v3 数值调参：基线 bot 四种子实测 → 敌兵压力下调 + 波间休整延长 + 清波回血。版本链 v1(superseded)→v2(superseded)→v3(approved)。",
+      "rollback": "主人否决 → 新修订置 draft，v3 superseded。",
+      "note": "人工验收红线不因代记失效。"
+    }
+  },
+  "world": {
+    "logline": "黄昏海面的运输船甲板是你唯一的阵地：从舰桥、集装箱与吊臂的夹缝里涌出的敌兵一波强过一波，你要在甲板围栏围出的战场上移动、瞄准、换弹，活过每一波。",
+    "art_style": "冷灰金属舰体 + 军绿/土黄集装箱 + 暖橙警示件；ACESFilmic 色调映射；全资产程序化（Canvas 贴图 + 圆角盒几何 + WebAudio 合成），零外部资源",
+    "reference": "《运输船 · 穿越火线 3D》：世界 fov 78 / 武器视图模型 fov 58 双场景、程序化资产、确定性内核 + fastForward 无头钩子、DOM HUD + 程序化雷达",
+    "architecture_rules": [
+      "确定性内核（kernel/）零 three、零 DOM，seeded RNG + 固定步长累加器，Node 可直接运行与无头测试",
+      "表现层（render/）只做「内核快照 → 场景」映射与程序化资产产出，事件上抛统一由 main 翻译成 HUD/音效/粒子",
+      "数值唯一来源 = src/numeric.js，与 spec.numeric 一一对应；改数值必须先改策划案版本"
+    ]
+  },
+  "entities": [
+    {
+      "id": "e-kernel-world",
+      "name": "确定性世界状态",
+      "script": "games/transport-ship-3d/src/kernel/world.js",
+      "role": "纯数据世界：玩家/敌兵/弹道状态 + seeded RNG（mulberry32）+ 碰撞边界，零 three 零 DOM"
+    },
+    {
+      "id": "e-kernel-wave",
+      "name": "波次与敌兵 AI",
+      "script": "games/transport-ship-3d/src/kernel/wave.js",
+      "role": "波次调度（休整/规模递增/出生点轮转）+ 敌兵追击/开火决策，全部确定性"
+    },
+    {
+      "id": "e-kernel-combat",
+      "name": "武器与命中判定",
+      "script": "games/transport-ship-3d/src/kernel/combat.js",
+      "role": "射速节流/散布/换弹/射线-圆柱命中/部位倍率/伤害与得分结算"
+    },
+    {
+      "id": "e-kernel-loop",
+      "name": "固定步长循环与无头钩子",
+      "script": "games/transport-ship-3d/src/kernel/loop.js",
+      "role": "累加器双循环（FIXED_STEP + MAX_DT 钳制）+ fastForward(seconds) 无头接口 + 快照序列化"
+    },
+    {
+      "id": "e-numeric",
+      "name": "数值表",
+      "script": "games/transport-ship-3d/src/numeric.js",
+      "role": "spec.numeric 的代码镜像，工程唯一数值来源，禁止散落魔数"
+    },
+    {
+      "id": "e-ship-map",
+      "name": "运输船甲板布景",
+      "script": "games/transport-ship-3d/src/render/map.js",
+      "role": "甲板/舰桥/集装箱/停机坪/吊臂/围栏/海面/天空穹顶的程序化拼装（吃 level-01-deck 元素表）"
+    },
+    {
+      "id": "e-player-rig",
+      "name": "玩家装配与武器视图模型",
+      "script": "games/transport-ship-3d/src/render/player.js",
+      "role": "指针锁定相机 + 内核意图注入 + 双场景武器视图模型（独立 fov 58 相机，clear=false/clearDepth=true）"
+    },
+    {
+      "id": "e-enemy-soldier",
+      "name": "程序化敌兵",
+      "script": "games/transport-ship-3d/src/render/enemy.js",
+      "role": "圆角盒拼装人形 + Canvas 迷彩贴图 + 受击/死亡表现，位置姿态来自内核快照"
+    },
+    {
+      "id": "e-textures",
+      "name": "程序化贴图工厂",
+      "script": "games/transport-ship-3d/src/render/textures.js",
+      "role": "Canvas2D 生成甲板防滑纹/舰体金属/集装箱波纹/迷彩/海面/停机坪 H 标线，键值缓存全场景唯一"
+    },
+    {
+      "id": "e-audio",
+      "name": "WebAudio 合成音效",
+      "script": "games/transport-ship-3d/src/render/audio.js",
+      "role": "射击/命中/爆头/换弹/受伤/波次开始/击杀的运行时合成，零音频文件"
+    },
+    {
+      "id": "e-hud",
+      "name": "HUD 与雷达",
+      "script": "games/transport-ship-3d/src/render/hud.js",
+      "role": "DOM 差分直写（血量/弹药/得分/波次/准星/提示）+ 独立 canvas 雷达（敌兵方位点）+ 结算/标题/暂停屏"
+    },
+    {
+      "id": "e-main",
+      "name": "装配根",
+      "script": "games/transport-ship-3d/src/main.js",
+      "role": "装配顺序 = 依赖顺序；内核事件 → HUD/音效/雷达；rAF 渲染 + 固定步长逻辑；暴露 window.__game 与 fastForward"
+    }
+  ],
+  "levels": [
+    {
+      "id": "lvl-01-deck",
+      "name": "运输船甲板 · 波次生存",
+      "scene": "games/transport-ship-3d/src/levels/level-01-deck.js",
+      "goal": "在甲板围栏围出的阵地上活过尽可能多的波次，击杀得分、爆头加成、波次清空拿奖励；血量归零结算。",
+      "elements": [
+        {
+          "id": "lvl-01-deck/player-start",
+          "kind": "spawn",
+          "expect": "甲板中部，面向舰桥"
+        },
+        {
+          "id": "lvl-01-deck/bridge",
+          "kind": "cover",
+          "expect": "层叠舱室掩体，天际线锚点"
+        },
+        {
+          "id": "lvl-01-deck/container-a",
+          "kind": "cover",
+          "expect": "军绿集装箱群，出生点视线遮挡"
+        },
+        {
+          "id": "lvl-01-deck/container-b",
+          "kind": "cover",
+          "expect": "土黄集装箱群，与 A 错位成通道"
+        },
+        {
+          "id": "lvl-01-deck/helipad",
+          "kind": "landmark",
+          "expect": "尾部圆形停机坪 + H 标线贴图"
+        },
+        {
+          "id": "lvl-01-deck/crane",
+          "kind": "landmark",
+          "expect": "舷侧吊臂，竖直构图锚点"
+        },
+        {
+          "id": "lvl-01-deck/railing",
+          "kind": "boundary",
+          "expect": "甲板边界，内核碰撞钳制玩家出界"
+        },
+        {
+          "id": "lvl-01-deck/sea",
+          "kind": "environment",
+          "expect": "海面平面 + 渐变天空穹顶（跟随相机）+ 海雾"
+        },
+        {
+          "id": "lvl-01-deck/spawn-north",
+          "kind": "enemy-spawn",
+          "expect": "舰桥方向出生点"
+        },
+        {
+          "id": "lvl-01-deck/spawn-east",
+          "kind": "enemy-spawn",
+          "expect": "右舷集装箱后出生点"
+        },
+        {
+          "id": "lvl-01-deck/spawn-west",
+          "kind": "enemy-spawn",
+          "expect": "左舷吊臂后出生点"
+        }
+      ]
+    }
+  ],
+  "numeric": {
+    "PLAYER_MAX_HP": 100,
+    "PLAYER_MOVE_SPEED": 5.2,
+    "PLAYER_SPRINT_MULT": 1.55,
+    "PLAYER_RADIUS": 0.35,
+    "PLAYER_HALF_HEIGHT": 0.9,
+    "GRAVITY": 0,
+    "MAG_SIZE": 30,
+    "RESERVE_AMMO": 150,
+    "FIRE_INTERVAL": 0.11,
+    "RELOAD_TIME": 2.0,
+    "BULLET_DAMAGE": 26,
+    "HEADSHOT_MULT": 2.0,
+    "BULLET_RANGE": 80,
+    "SPREAD_BASE": 0.006,
+    "SPREAD_MOVE_ADD": 0.02,
+    "ENEMY_HP": 55,
+    "ENEMY_SPEED": 2.7,
+    "ENEMY_SPEED_GROWTH": 0.15,
+    "ENEMY_DAMAGE": 7,
+    "ENEMY_FIRE_INTERVAL": 1.6,
+    "ENEMY_ENGAGE_DIST": 30,
+    "ENEMY_ATTACK_DIST": 14,
+    "ENEMY_HIT_CHANCE": 0.3,
+    "WAVE_REST": 8,
+    "WAVE_SIZE_BASE": 4,
+    "WAVE_SIZE_GROWTH": 2,
+    "WAVE_SIZE_CAP": 14,
+    "SPAWN_DISTANCE": 24,
+    "HIT_SCORE": 10,
+    "KILL_SCORE": 50,
+    "HEADSHOT_BONUS": 25,
+    "WAVE_CLEAR_BONUS": 200,
+    "FIXED_STEP": 0.016666666666666666,
+    "MAX_DT": 0.1,
+    "MINIMAP_RANGE": 40,
+    "EYE_HEIGHT": 1.6,
+    "ENEMY_HIT_RADIUS": 0.45,
+    "HEAD_HEIGHT_MIN": 1.45,
+    "HEAD_HEIGHT_MAX": 1.8,
+    "SPAWN_INTERVAL": 0.8,
+    "WAVE_CLEAR_HEAL": 35
+  },
+  "acceptance": [
+    {
+      "id": "ac-1-singlefile",
+      "statement": "构建产物 games/transport-ship-3d/index.html 为单文件：不含任何 http(s) 外链资源、不含 importmap/CDN、three 全量内联，打开即玩。",
+      "check": "node games/transport-ship-3d/tests/singlefile.contract.mjs"
+    },
+    {
+      "id": "ac-2-determinism",
+      "statement": "内核确定性：同 seed 同意图序列两次 fastForward 的逐 tick 快照完全一致；步长为 FIXED_STEP 累加器且 dt 钳制 MAX_DT。",
+      "check": "node games/transport-ship-3d/tests/kernel-determinism.spec.mjs"
+    },
+    {
+      "id": "ac-3-combat",
+      "statement": "武器数值与 spec.numeric 一致：射速 FIRE_INTERVAL 节流、弹匣 MAG_SIZE/备弹 RESERVE_AMMO 记账、换弹 RELOAD_TIME、伤害 BULLET_DAMAGE 与爆头 HEADSHOT_MULT、得分 HIT_SCORE/KILL_SCORE/HEADSHOT_BONUS。",
+      "check": "node games/transport-ship-3d/tests/combat.spec.mjs"
+    },
+    {
+      "id": "ac-4-wave",
+      "statement": "波次确定性递增：第 n 波规模 = min(WAVE_SIZE_BASE + (n-1)*WAVE_SIZE_GROWTH, WAVE_SIZE_CAP)，休整 WAVE_REST，出生点在三个声明出生点间确定性轮转；敌兵速度按 ENEMY_SPEED_GROWTH 逐波成长。",
+      "check": "node games/transport-ship-3d/tests/wave.spec.mjs"
+    },
+    {
+      "id": "ac-5-contract-gate",
+      "statement": "契约门禁实跑通过：approved 版 spec 声明的实体/关卡/数值/验收落点在工程中真实存在，关卡元素编号稳定唯一。",
+      "check": "node scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --project ."
+    },
+    {
+      "id": "ac-6-qa-audit",
+      "statement": "QA 互查审计：实现不绕过 numeric 表（关键路径零魔数）、HUD id 与实现一致、内核零 three/DOM 依赖、构建产物与源码同步。",
+      "check": "node games/transport-ship-3d/tests/qa-audit.mjs"
+    }
+  ],
+  "content": {
+    "sessionSeconds": 180,
+    "levelCount": 1,
+    "replayHooks": [
+      "high_score",
+      "wave_streak",
+      "daily_seed"
+    ],
+    "difficulty_curve": "波次规模 WAVE_SIZE_BASE→WAVE_SIZE_CAP 线性递增，敌速 ENEMY_SPEED + ENEMY_SPEED_GROWTH*(n-1)，容错随波次收紧但不改数值表以外的参数"
+  },
+  "assets": [
+    {
+      "id": "a01-textures",
+      "kind": "image",
+      "file": "games/transport-ship-3d/src/render/textures.js",
+      "source": "generated",
+      "generator": "procedural:canvas2d",
+      "license": "仓库内程序化生成，无第三方素材"
+    },
+    {
+      "id": "a02-geometry",
+      "kind": "model",
+      "file": "games/transport-ship-3d/src/render/geometry.js",
+      "source": "generated",
+      "generator": "procedural:rounded-box+merge",
+      "license": "仓库内程序化生成，无第三方模型"
+    },
+    {
+      "id": "a03-sfx",
+      "kind": "sfx",
+      "file": "games/transport-ship-3d/src/render/audio.js",
+      "source": "generated",
+      "generator": "procedural:webaudio",
+      "license": "仓库内运行时合成，无音频文件"
+    },
+    {
+      "id": "a04-style-card",
+      "kind": "doc",
+      "file": ".myrd/blackboard/assets.md",
+      "source": "manual",
+      "license": "内部文档"
+    }
+  ]
+}

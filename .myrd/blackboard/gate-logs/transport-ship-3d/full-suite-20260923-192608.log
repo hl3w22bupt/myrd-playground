@@ -1,0 +1,140 @@
+# 门禁实跑 2026-09-23 19:26:08 · transport-ship-3d · src_sha=
+## 1) game-contract（scripts/contract-check.mjs，spec=v3 approved）
+—— 契约测试输出 ——
+  PASS  spec 可解析: .myrd/spec/design-spec.json
+  PASS  spec 为 approved 版
+  PASS  六段完整: meta
+  PASS  六段完整: world
+  PASS  六段完整: entities
+  PASS  六段完整: levels
+  PASS  六段完整: numeric
+  PASS  六段完整: acceptance
+  PASS  实体 e-kernel-world script 存在: games/transport-ship-3d/src/kernel/world.js
+  PASS  实体 e-kernel-wave script 存在: games/transport-ship-3d/src/kernel/wave.js
+  PASS  实体 e-kernel-combat script 存在: games/transport-ship-3d/src/kernel/combat.js
+  PASS  实体 e-kernel-loop script 存在: games/transport-ship-3d/src/kernel/loop.js
+  PASS  实体 e-numeric script 存在: games/transport-ship-3d/src/numeric.js
+  PASS  实体 e-ship-map script 存在: games/transport-ship-3d/src/render/map.js
+  PASS  实体 e-player-rig script 存在: games/transport-ship-3d/src/render/player.js
+  PASS  实体 e-enemy-soldier script 存在: games/transport-ship-3d/src/render/enemy.js
+  PASS  实体 e-textures script 存在: games/transport-ship-3d/src/render/textures.js
+  PASS  实体 e-audio script 存在: games/transport-ship-3d/src/render/audio.js
+  PASS  实体 e-hud script 存在: games/transport-ship-3d/src/render/hud.js
+  PASS  实体 e-main script 存在: games/transport-ship-3d/src/main.js
+  PASS  关卡 lvl-01-deck scene 存在: games/transport-ship-3d/src/levels/level-01-deck.js
+  PASS  关卡元素编号唯一性核对完成（11 个）
+  PASS  数值扫描源就绪（18 个脚本，三层解析）
+  PASS  数值 PLAYER_MAX_HP 在工程常量区有对应
+  PASS  数值 PLAYER_MOVE_SPEED 在工程常量区有对应
+  PASS  数值 PLAYER_SPRINT_MULT 在工程常量区有对应
+  PASS  数值 PLAYER_RADIUS 在工程常量区有对应
+  PASS  数值 PLAYER_HALF_HEIGHT 在工程常量区有对应
+  PASS  数值 GRAVITY 在工程常量区有对应
+  PASS  数值 MAG_SIZE 在工程常量区有对应
+  PASS  数值 RESERVE_AMMO 在工程常量区有对应
+  PASS  数值 FIRE_INTERVAL 在工程常量区有对应
+  PASS  数值 RELOAD_TIME 在工程常量区有对应
+  PASS  数值 BULLET_DAMAGE 在工程常量区有对应
+  PASS  数值 HEADSHOT_MULT 在工程常量区有对应
+  PASS  数值 BULLET_RANGE 在工程常量区有对应
+  PASS  数值 SPREAD_BASE 在工程常量区有对应
+  PASS  数值 SPREAD_MOVE_ADD 在工程常量区有对应
+  PASS  数值 ENEMY_HP 在工程常量区有对应
+  PASS  数值 ENEMY_SPEED 在工程常量区有对应
+  PASS  数值 ENEMY_SPEED_GROWTH 在工程常量区有对应
+  PASS  数值 ENEMY_DAMAGE 在工程常量区有对应
+  PASS  数值 ENEMY_FIRE_INTERVAL 在工程常量区有对应
+  PASS  数值 ENEMY_ENGAGE_DIST 在工程常量区有对应
+  PASS  数值 ENEMY_ATTACK_DIST 在工程常量区有对应
+  PASS  数值 ENEMY_HIT_CHANCE 在工程常量区有对应
+  PASS  数值 WAVE_REST 在工程常量区有对应
+  PASS  数值 WAVE_SIZE_BASE 在工程常量区有对应
+  PASS  数值 WAVE_SIZE_GROWTH 在工程常量区有对应
+  PASS  数值 WAVE_SIZE_CAP 在工程常量区有对应
+  PASS  数值 SPAWN_DISTANCE 在工程常量区有对应
+  PASS  数值 HIT_SCORE 在工程常量区有对应
+  PASS  数值 KILL_SCORE 在工程常量区有对应
+  PASS  数值 HEADSHOT_BONUS 在工程常量区有对应
+  PASS  数值 WAVE_CLEAR_BONUS 在工程常量区有对应
+  PASS  数值 FIXED_STEP 在工程常量区有对应
+  PASS  数值 MAX_DT 在工程常量区有对应
+  PASS  数值 MINIMAP_RANGE 在工程常量区有对应
+  PASS  数值 EYE_HEIGHT 在工程常量区有对应
+  PASS  数值 ENEMY_HIT_RADIUS 在工程常量区有对应
+  PASS  数值 HEAD_HEIGHT_MIN 在工程常量区有对应
+  PASS  数值 HEAD_HEIGHT_MAX 在工程常量区有对应
+  PASS  数值 SPAWN_INTERVAL 在工程常量区有对应
+  PASS  数值 WAVE_CLEAR_HEAL 在工程常量区有对应
+  PASS  验收项 ac-1-singlefile 依赖存在: games/transport-ship-3d/tests/singlefile.contract.mjs
+  PASS  验收项 ac-2-determinism 依赖存在: games/transport-ship-3d/tests/kernel-determinism.spec.mjs
+  PASS  验收项 ac-3-combat 依赖存在: games/transport-ship-3d/tests/combat.spec.mjs
+  PASS  验收项 ac-4-wave 依赖存在: games/transport-ship-3d/tests/wave.spec.mjs
+  PASS  验收项 ac-5-contract-gate 依赖存在: scripts/contract-check.mjs
+  PASS  验收项 ac-5-contract-gate 依赖存在: .myrd/spec/design-spec.json
+  PASS  验收项 ac-6-qa-audit 依赖存在: games/transport-ship-3d/tests/qa-audit.mjs
+—— 合计 71 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
+exit=0
+
+## 2) ac-1 singlefile
+  PASS  产物存在: index.html（548 KB）
+  PASS  无 src/href 外部引用（零图片/脚本/样式外链）
+  PASS  无 importmap / CDN 域名命中
+  PASS  内联脚本就绪（最大块 543 KB，three+游戏本体）
+  PASS  产物包含 id="gl"
+  PASS  产物包含 id="ui"
+  PASS  产物包含 clip-path
+  PASS  产物包含 --font-num
+CONTRACT: PASS 单文件零外部资源约束成立
+exit=0
+
+## 3) ac-2 determinism
+  PASS  seed=7 两跑 2700 tick 快照逐字段一致
+  PASS  seed=20260923 两跑 2700 tick 快照逐字段一致
+  PASS  不同 seed 轨迹分化（seeded RNG 生效）
+  PASS  大 dt 帧被钳制为 6 个固定子步（快照一致）
+  PASS  fastForward 与逐 tick frame 快照等价
+CONTRACT: PASS 内核确定性成立
+exit=0
+
+## 4) ac-3 combat
+  PASS  射速节流成立：220 tick 内 30 发（理论上限 31，FIRE_INTERVAL=0.11s）
+  PASS  shotsFired 计数与实发一致
+  PASS  开局弹药 = MAG_SIZE(30) + RESERVE_AMMO(150)
+  PASS  弹匣打空触发自动换弹
+  PASS  换弹时长 ≈ RELOAD_TIME（实测 2.000s）
+  PASS  换弹后弹匣补满（或备弹耗尽）
+  PASS  备弹扣减记账正确（150 → 120）
+  PASS  命中得分 = HIT_SCORE（10）
+  PASS  爆头判定与 HEADSHOT_BONUS/HIT_SCORE 记账生效
+  PASS  玩家承伤为 ENEMY_DAMAGE 整数倍（-7，ENEMY_DAMAGE=7，命中率 ENEMY_HIT_CHANCE=0.3）
+  PASS  血量封顶 PLAYER_MAX_HP
+CONTRACT: PASS 武器数值与 spec.numeric 一致
+exit=0
+
+## 5) ac-4 wave
+  PASS  规模公式 waveSize(n)=BASE+(n-1)*GROWTH：w1=4 w2=6 w5=12
+  PASS  规模封顶 CAP=14（w20=14）
+  PASS  关卡声明 3 个出生点（spawn-north/spawn-east/spawn-west）
+  PASS  出生点轮转确定性：[0,1,2,0,1,2]
+  PASS  开局休整 8s 内不出波（t=7.98 wave=0）
+  PASS  休整结束触发 waveStart(wave=1)
+  PASS  waveStart 携带本波规模（4）
+  PASS  敌兵状态可序列化
+  PASS  敌速成长 ENEMY_SPEED + (n-1)*ENEMY_SPEED_GROWTH（w1=2.7 w4=3.1500000000000004）
+  PASS  清波奖励 = WAVE_CLEAR_BONUS（200）
+  PASS  清波回血 = min(缺口, WAVE_CLEAR_HEAL)（+35）
+CONTRACT: PASS 波次确定性递增成立
+exit=0
+
+## 6) ac-6 qa-audit
+  PASS  内核纯净（5 个文件：零 three / 零 DOM / 零随机 / 零时钟）
+  PASS  spec 导出件为 approved 版（v3，平台 cmue00o2z003tm9y3159fb6xl）
+  PASS  spec.numeric 的 41 键全部在 numeric.js 有镜像
+  PASS  numeric.js 无 spec 之外的私加数值键
+  PASS  数值逐键比对无偏差
+  PASS  HUD 引用的 14 个 DOM id 全部有声明（innerHTML/静态骨架）
+  PASS  产物与 src/ 同步（SRC_SHA=f59a0c04a03770a9）
+  PASS  spec 关卡元素 11 个编号全部在关卡数据中落地
+QA-AUDIT: PASS 五道互查关全过
+exit=0
