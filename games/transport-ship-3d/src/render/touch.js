@@ -102,7 +102,9 @@ export function controlLayout(vw, vh) {
 
 /** 手势识别器 + 移动控件（验收口径 B）：attach 到画布，把触屏输入翻译进 inputState
  *  （yaw/pitch/tapFire + moveX/moveY 摇杆移动轴），缩放经 onZoom 上抛、暂停经 onPause 上抛。
- *  双通道输入：touchstart/move/end 为主，pointerdown/move/up/cancel 为降级（同一入口，防双触发去重）。*/
+ *  双通道输入：touchstart/move/end 为主，pointer 事件为降级（同一入口，防双触发去重）；
+ *  降级通道 pointerdown 即 setPointerCapture（按住移出画布抬指不失联），capture 不可用时
+ *  pointerleave/lostpointercapture 兜底收尾 —— 指针登记表零泄漏（tests/pointer-fallback.spec.mjs 机判）。*/
 export function attachTouch(canvas, state, hooks = {}) {
   const onZoom = typeof hooks.onZoom === "function" ? hooks.onZoom : () => {};
   const onPause = typeof hooks.onPause === "function" ? hooks.onPause : () => {};
@@ -229,10 +231,25 @@ export function attachTouch(canvas, state, hooks = {}) {
   };
 
   // ———— 通道②：pointer 事件（降级路径，无 TouchEvent 的环境兜底）————
-  const onPointerDown = (e) => { if (!isSynthetic(e)) beginPointer(e.pointerId, e.clientX, e.clientY, e.timeStamp); };
+  const onPointerDown = (e) => {
+    if (isSynthetic(e)) return;
+    // 捕获指针：按住期间移出画布，pointerup/move 仍投递到画布（抬指不失联 —— 红队复验次级观察点收口）。
+    // 无该 API（旧环境）/ 指针未激活（合成事件）会抛错 → 吞掉，由 pointerleave 兜底收尾。
+    try { canvas.setPointerCapture?.(e.pointerId); } catch { /* 捕获不可用 → leave 兜底 */ }
+    beginPointer(e.pointerId, e.clientX, e.clientY, e.timeStamp);
+  };
   const onPointerMove = (e) => { if (!isSynthetic(e)) movePointer(e.pointerId, e.clientX, e.clientY); };
   const onPointerUp = (e) => { if (!isSynthetic(e)) endPointer(e.pointerId, e.clientX, e.clientY, e.timeStamp); };
   const onPointerCancel = (e) => { if (!isSynthetic(e)) endPointer(e.pointerId, e.clientX, e.clientY, e.timeStamp, true); };
+  // 抬指兜底：按住移出画布（capture 不可用的环境）/ 捕获被系统抢占释放 → 按取消收尾。
+  // 泄漏后果：残留条目使下一指 look.size≥2 → 误入捏合（拖拽失灵 + 意外缩放）。
+  // 正常 pointerup 后的隐式 lostpointercapture/pointerleave 在此空转早退（会话已收尾，零副作用）。
+  const onPointerAbandon = (e) => {
+    if (isSynthetic(e)) return;
+    if (look.has(e.pointerId) || e.pointerId === stick.id) {
+      endPointer(e.pointerId, e.clientX ?? 0, e.clientY ?? 0, e.timeStamp ?? 0, true);
+    }
+  };
 
   canvas.addEventListener("touchstart", onTouchStart, { passive: false });
   canvas.addEventListener("touchmove", onTouchMove, { passive: false });
@@ -242,6 +259,8 @@ export function attachTouch(canvas, state, hooks = {}) {
   canvas.addEventListener("pointermove", onPointerMove);
   canvas.addEventListener("pointerup", onPointerUp);
   canvas.addEventListener("pointercancel", onPointerCancel);
+  canvas.addEventListener("pointerleave", onPointerAbandon);
+  canvas.addEventListener("lostpointercapture", onPointerAbandon);
 
   // ———— 控件 DOM（验收口径 B）：摇杆 + 开火/换弹/暂停固定按钮，触发与键鼠同一路径 ————
   // 开火 → state.firing（与鼠标左键同字段，按住连发）；换弹 → state.reloadQueued（与 R 键同字段）；
@@ -277,6 +296,8 @@ export function attachTouch(canvas, state, hooks = {}) {
       canvas.removeEventListener("pointermove", onPointerMove);
       canvas.removeEventListener("pointerup", onPointerUp);
       canvas.removeEventListener("pointercancel", onPointerCancel);
+      canvas.removeEventListener("pointerleave", onPointerAbandon);
+      canvas.removeEventListener("lostpointercapture", onPointerAbandon);
       controls?.dispose();
       controls = null;
     },
