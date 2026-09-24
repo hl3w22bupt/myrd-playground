@@ -1,0 +1,13 @@
+{
+  "name": "transport-ship-3d",
+  "private": true,
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "verify": "node tools/verify-reproducible.mjs",
+    "test": "node tests/run-all.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "three": "0.185.1"
+  }
+}
