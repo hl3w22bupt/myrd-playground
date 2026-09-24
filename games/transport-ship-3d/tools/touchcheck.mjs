@@ -90,11 +90,17 @@ try {
   await cdp.send("Emulation.setEmitTouchEventsForMouse", { enabled: true, configuration: "mobile" });
   await cdp.send("Emulation.setEmulatedMedia", { features: [{ name: "pointer", value: "coarse" }, { name: "hover", value: "none" }] });
 
-  // ① 打开产物 ?touchdemo=1（合成手势驱动，约 2.1s 完成四类手势）
+  // ① 打开产物 ?touchdemo=1（合成手势驱动，约 2.1s 完成四类手势）。
+  // 报告轮询至 15s 截止（驱动内 beginGestures 对 headless SwiftShader 首帧预热容忍 10s）：
+  // 冷启动/高载下固定 5.2s 单次读取会误报「报告未产出」——轮询不放松任何断言，只消除计时 flake。
   await cdp.send("Page.navigate", { url: `${base}?touchdemo=1` });
-  await sleep(5200);
-  const payloadRaw = await evalJs(`document.getElementById("ts-touch")?.textContent ?? ""`);
-  check(!!payloadRaw, "touchdemo 报告产出（#ts-touch 落 DOM）", payloadRaw.slice(0, 140));
+  let payloadRaw = "";
+  for (let waited = 0; waited < 15000; waited += 400) {
+    payloadRaw = (await evalJs(`document.getElementById("ts-touch")?.textContent ?? ""`)) ?? "";
+    if (payloadRaw) break;
+    await sleep(400);
+  }
+  check(!!payloadRaw, "touchdemo 报告产出（#ts-touch 落 DOM，15s 截止轮询）", payloadRaw.slice(0, 140));
   const r = payloadRaw ? JSON.parse(payloadRaw) : null;
 
   // ② 三类手势机判
