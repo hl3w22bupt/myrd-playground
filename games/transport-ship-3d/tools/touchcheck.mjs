@@ -1,0 +1,139 @@
+// touchcheck.mjs — 触屏手势自动化用例（验收口径 B/D）：headless Chrome + 移动仿真（CDP），
+// 打开产物 ?touchdemo=1，在真实监听链路上合成 TouchEvent 序列，机判三类手势：
+//   拖拽（yaw 偏转 >0.2rad）· 捏合（fov 收窄 >5° 且 zoom<1）· 点按（shotsFired 增加，确认时延 <100ms）
+// 另断言：touch-action 口径（#gl 计算值 none）、viewport 禁缩放、零未捕获异常；--screenshot 存证。
+// 用法：node tools/touchcheck.mjs [--chrome <path>] [--port 9224] [--screenshot <path>]
+import { spawn, spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+import os from "node:os";
+
+const args = process.argv.slice(2);
+const flag = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
+const PORT = Number(flag("--port", "9224"));
+const SHOT = flag("--screenshot", "");
+const CANDIDATES = [flag("--chrome", ""), "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "google-chrome-stable", "google-chrome", "chromium-browser", "chromium"].filter(Boolean);
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const base = `file://${root}/index.html`;
+const failures = [];
+const check = (ok, label, detail = "") => {
+  console.log(`  ${ok ? "PASS" : "FAIL"}  ${label}${detail ? ` — ${detail}` : ""}`);
+  if (!ok) failures.push(label);
+};
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function pickChrome() {
+  for (const c of CANDIDATES) {
+    try { spawnSync(c, ["--version"], { stdio: "ignore" }); return c; } catch { /* 下一个 */ }
+  }
+  return null;
+}
+
+async function waitForDebugger(timeoutMs = 20000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      const list = await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json();
+      const page = list.find((t) => t.type === "page" && t.webSocketDebuggerUrl);
+      if (page) return page.webSocketDebuggerUrl;
+    } catch { /* chrome 尚未就绪 */ }
+    await sleep(300);
+  }
+  throw new Error(`CDP 端口 ${PORT} 未就绪（20s）`);
+}
+
+function connect(wsUrl) {
+  const ws = new WebSocket(wsUrl);
+  const pending = new Map();
+  const events = [];
+  let id = 0;
+  const opened = new Promise((res, rej) => { ws.onopen = res; ws.onerror = () => rej(new Error("WS 连接失败")); });
+  ws.onmessage = (m) => {
+    const msg = JSON.parse(m.data);
+    if (msg.id && pending.has(msg.id)) { pending.get(msg.id)(msg); pending.delete(msg.id); }
+    else if (msg.method) events.push(msg);
+  };
+  const send = (method, params = {}) => new Promise(async (res) => {
+    const mid = ++id;
+    pending.set(mid, res);
+    await opened;
+    ws.send(JSON.stringify({ id: mid, method, params }));
+  });
+  return { send, events, close: () => ws.close() };
+}
+
+const CHROME = await pickChrome();
+if (!CHROME) { console.error("TOUCHCHECK: FAIL 找不到本机 Chrome（--chrome 指定路径）"); process.exit(1); }
+const profile = mkdtempSync(path.join(os.tmpdir(), "ts3d-touch-"));
+const chrome = spawn(CHROME, [
+  "--headless=new", "--disable-gpu", "--use-angle=swiftshader", "--enable-unsafe-swiftshader",
+  "--no-sandbox", "--disable-dev-shm-usage", `--remote-debugging-port=${PORT}`,
+  `--user-data-dir=${profile}`, "--window-size=390,844", "about:blank",
+], { stdio: "ignore" });
+
+try {
+  const wsUrl = await waitForDebugger();
+  const cdp = connect(wsUrl);
+  await cdp.send("Runtime.enable");
+  await cdp.send("Page.enable");
+  const evalJs = async (expr) => (await cdp.send("Runtime.evaluate", {
+    expression: expr, returnByValue: true, awaitPromise: true,
+  })).result?.result?.value;
+
+  // —— 移动仿真（等效模拟器口径）：iPhone 视口 + 触摸仿真 + 主指针 coarse ——
+  await cdp.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+  await cdp.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 5 });
+  await cdp.send("Emulation.setEmitTouchEventsForMouse", { enabled: true, configuration: "mobile" });
+  await cdp.send("Emulation.setEmulatedMedia", { features: [{ name: "pointer", value: "coarse" }, { name: "hover", value: "none" }] });
+
+  // ① 打开产物 ?touchdemo=1（合成手势驱动，约 1.5s 完成三类手势）
+  await cdp.send("Page.navigate", { url: `${base}?touchdemo=1` });
+  await sleep(4000);
+  const payloadRaw = await evalJs(`document.getElementById("ts-touch")?.textContent ?? ""`);
+  check(!!payloadRaw, "touchdemo 报告产出（#ts-touch 落 DOM）", payloadRaw.slice(0, 140));
+  const r = payloadRaw ? JSON.parse(payloadRaw) : null;
+
+  // ② 三类手势机判
+  check(r?.drag?.moved === true, "手势① 拖拽 = 瞄准偏航",
+    `yawDelta=${r?.drag?.yawDelta} rad`);
+  check(r?.pinch?.zoomed === true, "手势② 双指捏合 = 视场缩放",
+    `fov ${r?.pinch?.fovBefore}° → ${r?.pinch?.fovMin}°, zoom=${r?.pinch?.zoomAfter}`);
+  check(r?.tap?.fired === true, "手势③ 点按 = 开火（单发）",
+    `shots ${r?.tap?.shotsBefore} → ${r?.tap?.shotsAfter}`);
+  check((r?.tap?.ackMs ?? 1e9) < 100, "点按确认时延 <100ms（无 300ms 延迟口径）",
+    `ackMs=${r?.tap?.ackMs}`);
+  check(r?.ok === true, "三类手势汇总判定 ok", JSON.stringify(r));
+
+  // ③ 消除延迟的静态口径：#gl touch-action=none + viewport 禁缩放
+  const touchAction = await evalJs(`getComputedStyle(document.getElementById("gl")).touchAction`);
+  check(touchAction === "none", "#gl touch-action=none（浏览器手势让位，touchstart 即响应）", touchAction);
+  const vp = await evalJs(`document.querySelector('meta[name="viewport"]')?.content ?? ""`);
+  check(vp.includes("user-scalable=no"), "viewport 禁缩放（消双击缩放等待）", vp);
+
+  // ④ 仿真形态自证：主指针 coarse + 有触摸点（等效模拟器生效）
+  const env = await evalJs(`({ coarse: matchMedia("(pointer: coarse)").matches, tpoints: navigator.maxTouchPoints, mode: window.__game.touchMode })`);
+  check(env?.coarse === true && (env?.tpoints ?? 0) > 0 && env?.mode === true,
+    "移动仿真生效（coarse 指针 + 触摸点 + 游戏触屏形态）", JSON.stringify(env));
+
+  const uncaught = cdp.events.filter((e) => e.method === "Runtime.exceptionThrown");
+  check(uncaught.length === 0, "零未捕获异常", uncaught.length ? JSON.stringify(uncaught[0]).slice(0, 200) : "0 个");
+
+  if (SHOT) {
+    const data = (await cdp.send("Page.captureScreenshot", { format: "png" })).result?.data;
+    writeFileSync(SHOT, Buffer.from(data, "base64"));
+    console.log(`  PASS  触屏仿真截图存证 — ${SHOT}`);
+  }
+  cdp.close();
+} catch (err) {
+  failures.push(`touchcheck 执行中断: ${err.message}`);
+  console.error(`  FAIL  touchcheck 执行中断 — ${err.message}`);
+} finally {
+  chrome.kill("SIGKILL");
+  rmSync(profile, { recursive: true, force: true });
+}
+
+console.log(failures.length === 0 ? "TOUCHCHECK: PASS 三类手势全部可用（拖拽/捏合/点按）" : `TOUCHCHECK: FAIL ${failures.join("; ")}`);
+process.exit(failures.length === 0 ? 0 : 1);

@@ -58,6 +58,12 @@ export function buildPlayerRig(canvas) {
 
   return {
     camera, vmScene, vmCamera, rifle, muzzle,
+    /** 触屏捏合缩放（验收口径 B）：只动世界相机 fov，枪模视角（vmCamera）保持固定不变形 */
+    setZoom(factor) {
+      const f = Number.isFinite(factor) ? Math.min(1, Math.max(0.35, factor)) : 1;
+      camera.fov = WORLD_FOV * f;
+      camera.updateProjectionMatrix();
+    },
     /** 内核快照 → 相机位姿。内核 yaw 口径：0=+z；three 相机 ry=π+yaw 时视线 = (sin yaw, cos yaw)。*/
     apply(world) {
       const p = world.player;
@@ -123,11 +129,13 @@ export function attachInput(canvas, state) {
       const strafe = (keys.has("KeyD") ? 1 : 0) + (keys.has("KeyA") ? -1 : 0);
       const reload = state.reloadQueued;
       state.reloadQueued = false;
+      const tapFire = state.tapFire === true;
+      state.tapFire = false; // 触屏点按开火（验收口径 B）：单发语义，读帧即消费
       return {
         forward, strafe,
         yaw: state.yaw, pitch: state.pitch,
         sprint: keys.has("ShiftLeft") || keys.has("ShiftRight"),
-        firing: state.firing === true,
+        firing: state.firing === true || tapFire,
         reload,
       };
     },

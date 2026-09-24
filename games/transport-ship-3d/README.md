@@ -10,6 +10,7 @@
 直接双击打开 `index.html`（或任意静态服务器）。点击「开始」锁定鼠标。
 
 - WASD 移动 · Shift 疾跑 · 鼠标瞄准 · 左键射击 · R 换弹 · Esc 暂停/释放鼠标
+- 触屏：**拖拽** 瞄准 · **双指捏合** 缩放 · **点按** 开火（`touch-action:none` + touchstart 直响应，无 300ms 延迟）
 
 ## 工程结构（逻辑/表现分离 + 数值唯一来源）
 
@@ -40,8 +41,11 @@ node games/transport-ship-3d/tests/qa-audit.mjs                       # ac-6 QA 
 ```
 
 无头冒烟（真浏览器跑内核 + 渲染统计）：`index.html?smoke=<秒>` → DOM/标题写回结果 JSON。
+触屏手势无头取证：`index.html?touchdemo=1` → 合成 TouchEvent 序列，机判结果落 `#ts-touch`。
 真浏览器冒烟门禁（CDP 驱动，断言打开即玩/循环推进/零未捕获异常/重玩钩子落账）：
 `node games/transport-ship-3d/tools/smoke.mjs`（需本机 Chrome，`--chrome` 可指定路径）。
+触屏手势自动化用例（移动仿真 + 三类手势机判 + 点按确认时延 <100ms）：
+`node games/transport-ship-3d/tools/touchcheck.mjs`（CDP 移动仿真 390×844 + coarse 指针）。
 
 ## 构建复现（验收口径 A）
 

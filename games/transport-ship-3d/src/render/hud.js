@@ -6,6 +6,7 @@
 import { MINIMAP_RANGE, PLAYER_MAX_HP, MAG_SIZE } from "../numeric.js";
 import { DECK_BOUNDS, ENEMY_SPAWNS } from "../levels/level-01-deck.js";
 import { HUD_CSS_VARS, PALETTE } from "../../assets/palette.mjs";
+import { isTouchDevice } from "./touch.js";
 
 const EL = (id) => document.getElementById(id);
 const P = PALETTE;
@@ -19,6 +20,7 @@ function applyStyleCard() {
 
 export function buildHud(root) {
   applyStyleCard();
+  const touch = isTouchDevice();
   root.innerHTML = `
   <div id="ts-hud">
     <div id="ts-topline">
@@ -48,6 +50,7 @@ export function buildHud(root) {
       <li><b>WASD</b> 移动 · <b>Shift</b> 疾跑</li>
       <li><b>鼠标</b> 瞄准 · <b>左键</b> 射击</li>
       <li><b>R</b> 换弹 · <b>Esc</b> 暂停/释放鼠标</li>
+      ${touch ? '<li><b>拖拽</b> 瞄准 · <b>双指捏合</b> 缩放 · <b>点按</b> 开火</li>' : ''}
     </ul>
     <button id="ts-start">点击开始（锁定鼠标）</button>
     <p class="ts-foot">零外部资源 · 程序化贴图 / 几何 / 音频 · 确定性内核可无头测试</p>
@@ -68,7 +71,14 @@ export function buildHud(root) {
 
   const api = {
     el,
-    onStart(cb) { el.start.addEventListener("click", cb); },
+    /** 开始/继续回调：pointerdown 快速路径（触屏落指即响应，不等 click 合成 —— 300ms 消除），
+        click 兜底（键盘 Enter 聚焦触发）；250ms 去重防 pointerdown+click 双触发 */
+    onStart(cb) {
+      let last = -Infinity; // 不能用 0：performance.now() 是「自页面加载」毫秒数，加载初期首点会被误判重复
+      const fire = () => { const now = performance.now(); if (now - last < 250) return; last = now; cb(); };
+      el.start.addEventListener("pointerdown", (e) => { e.preventDefault(); fire(); });
+      el.start.addEventListener("click", fire);
+    },
     showScreen(show) { el.screen.style.display = show ? "flex" : "none"; },
     screenText({ title, sub, btn }) {
       if (title) el.screen.querySelector("h1").firstChild.textContent = title;

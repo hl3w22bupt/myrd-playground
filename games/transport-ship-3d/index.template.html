@@ -20,8 +20,12 @@
     --font-num: "DIN Alternate", "Bahnschrift", "Arial Narrow", ui-sans-serif, sans-serif;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 100%; height: 100%; overflow: hidden; background: #0a1014; }
-  #gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; }
+  /* 触屏（验收口径 B）：禁浏览器手势（滚动/双击缩放/长按菜单）—— 300ms 点击延迟与手势冲突的根因；
+     touch-action:none 让 touchstart 立即可交互（消除延迟），游戏手势全由 touch.js 仲裁 */
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0a1014;
+    touch-action: none; overscroll-behavior: none;
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  #gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; touch-action: none; }
   #ui { position: fixed; inset: 0; pointer-events: none; color: var(--text); font-family: var(--font-num); }
 
   /* —— 斜切面板（clip-path）—— */
@@ -91,6 +95,7 @@
   .ts-keys b { color: var(--accent); }
   #ts-start { pointer-events: auto; cursor: pointer; font-family: var(--font-num); font-size: 18px; letter-spacing: 0.15em;
     color: #06121a; background: linear-gradient(180deg, #7fdce8, #38a7bd); border: 0; padding: 14px 38px;
+    touch-action: manipulation; /* 按钮：保留点击语义但去双击缩放等待（300ms 消除） */
     clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px); }
   #ts-start:hover { filter: brightness(1.1); }
   .ts-foot { font-size: 12px; opacity: 0.4; letter-spacing: 0.1em; }

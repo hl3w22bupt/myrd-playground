@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { createGame } from "./kernel/loop.js";
 import { buildMap } from "./render/map.js";
 import { buildPlayerRig, attachInput } from "./render/player.js";
+import { attachTouch, isTouchDevice } from "./render/touch.js";
 import { EnemyPool, syncEnemies } from "./render/enemy.js";
 import { buildHud } from "./render/hud.js";
 import { buildAudio } from "./render/audio.js";
@@ -52,8 +53,11 @@ const hud = buildHud(uiRoot);
 const audio = buildAudio();
 const enemies = new EnemyPool(scene);
 const fx = buildFx(scene); // 命中火花（表现层自带降级，失败为空实现）
-const inputState = { yaw: game.world.player.yaw, pitch: 0, firing: false, reloadQueued: false };
+const inputState = { yaw: game.world.player.yaw, pitch: 0, firing: false, reloadQueued: false, tapFire: false };
 const input = attachInput(canvas, inputState);
+// —— 触屏形态（验收口径 B）：拖拽瞄准 / 双指捏合缩放 / 点按开火；桌面无触摸时该识别器零副作用 ——
+const touchMode = isTouchDevice();
+const touchCtl = attachTouch(canvas, inputState, { onZoom: (z) => rig.setZoom(z) });
 
 // —— 状态机 ——
 let state = "title"; // title | playing | paused | gameover
@@ -64,8 +68,12 @@ if (replay.highScore || replay.waveStreak) {
 hud.onStart(() => {
   audio.unlock();
   if (state === "gameover") resetMatch();
+  touchCtl.resetZoom(); // 重开回标准视场
   hud.setDead(false); // 重开：退出阵亡灰度
-  canvas.requestPointerLock();
+  if (!touchMode) {
+    // 桌面：锁定鼠标；无头/拒绝场景静默降级（Promise 拒绝不外溢，冒烟门禁零未捕获异常口径）
+    try { canvas.requestPointerLock?.()?.catch?.(() => {}); } catch { /* pointerLock 不可用 */ }
+  } // 触屏：点按即进对局（无 pointerLock、无 300ms 等待）
   state = "playing";
   hud.showScreen(false);
 });
@@ -86,7 +94,16 @@ document.addEventListener("pointerlockchange", () => {
   if (!locked && state === "playing") {
     state = "paused";
     hud.showScreen(true);
-    hud.screenText({ title: "已暂停 ", sub: "点击按钮回到甲板。", btn: "继续（锁定鼠标）" });
+    hud.screenText({ title: "已暂停 ", sub: "点击按钮回到甲板。", btn: touchMode ? "继续（点按）" : "继续（锁定鼠标）" });
+  }
+});
+
+// 触屏没有 Esc：切后台即暂停，回前台点按继续（防后台白跑内核）
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && touchMode && state === "playing") {
+    state = "paused";
+    hud.showScreen(true);
+    hud.screenText({ title: "已暂停 ", sub: "点按按钮回到甲板。", btn: "继续（点按）" });
   }
 });
 
@@ -122,7 +139,7 @@ function loop(now) {
       hud.screenText({
         title: `结算 · ${game.world.score.toLocaleString("en-US")} 分 `,
         sub: `波次 ${game.world.wave.n} · 击杀 ${game.world.kills} · 爆头 ${game.world.headshots} · 存活 ${game.world.time.toFixed(1)}s`,
-        btn: "再来一局（锁定鼠标）",
+        btn: touchMode ? "再来一局（点按）" : "再来一局（锁定鼠标）",
       });
       hud.setBest(`最高 ${replay.highScore.toLocaleString("en-US")} · 上次 第 ${replay.waveStreak} 波`);
       document.exitPointerLock?.();
@@ -158,6 +175,10 @@ window.__game = {
   get state() { return state; },
   /** 调试口：世界场景（美术自检用 —— 核验资产是否真的进了场景）*/
   get scene() { return scene; },
+  /** 触屏调试口（验收口径 B/D）：世界相机视场角 + 当前捏合缩放系数 */
+  get fov() { return rig.camera.fov; },
+  get zoom() { return touchCtl.zoom; },
+  get touchMode() { return touchMode; },
   fastForward: (seconds) => game.fastForward(seconds),
   /** spec.content.replayHooks 的读取口：最高分 / 波次连击 / 当日种子 */
   get replayHooks() {
@@ -202,4 +223,88 @@ if (fireSec !== null) {
   const ms = Math.max(0, Number(fireSec) || 0) * 1000;
   setTimeout(() => { inputState.firing = true; }, 300);
   setTimeout(() => { inputState.firing = false; }, 300 + ms);
+}
+
+// ?touchdemo=1：触屏手势无头取证（验收口径 B/D）—— 在真实浏览器里合成 TouchEvent 序列
+// （拖拽 → 双指捏合 → 点按），把三类手势的机判结果写进 DOM(#ts-touch)/标题/控制台，
+// 供 CDP 冒烟断言与证据归档；不碰内核、不改数值，只走与真机完全相同的监听链路。
+const touchdemo = new URLSearchParams(location.search).get("touchdemo");
+if (touchdemo !== null) {
+  const fire = (type, touchList, changed = touchList) => canvas.dispatchEvent(
+    new TouchEvent(type, {
+      touches: touchList, targetTouches: touchList, changedTouches: changed,
+      bubbles: true, cancelable: true,
+    }),
+  );
+  const mk = (id, x, y) => new Touch({ identifier: id, target: canvas, clientX: x, clientY: y });
+  const report = {
+    ok: false, touchMode: touchMode,
+    drag: { moved: false, yawDelta: 0 },
+    pinch: { zoomed: false, fovBefore: 0, fovMin: 0, zoomAfter: 1 },
+    tap: { fired: false, shotsBefore: 0, shotsAfter: 0, ackMs: null },
+  };
+  const finish = () => {
+    if (document.getElementById("ts-touch")) return; // 报告只落一次
+    report.pinch.zoomed = report.pinch.fovMin < report.pinch.fovBefore - 5 && report.pinch.zoomAfter < 1;
+    report.drag.moved = Math.abs(report.drag.yawDelta) > 0.2;
+    report.tap.fired = report.tap.shotsAfter > report.tap.shotsBefore;
+    report.ok = report.drag.moved && report.pinch.zoomed && report.tap.fired;
+    const payload = JSON.stringify(report);
+    const box = document.createElement("div");
+    box.id = "ts-touch";
+    box.textContent = payload;
+    document.body.appendChild(box);
+    document.title = `TOUCH ${payload}`;
+    console.log("[touchdemo]", payload);
+  };
+
+  document.getElementById("ts-start")?.click(); // 走真实按钮链路进对局
+  // headless（SwiftShader）首帧 rAF 有 ~1s 预热：等内核首帧真正跑起来再开始手势取证（真机无此预热）
+  const beginGestures = (fn) => {
+    const t0 = performance.now();
+    (function wait() {
+      if ((state === "playing" && game.world.time > 0) || performance.now() - t0 > 10000) fn();
+      else setTimeout(wait, 100);
+    })();
+  };
+  beginGestures(() => {
+    const at = (ms, fn) => setTimeout(fn, ms);
+    at(150, () => {
+      report.pinch.fovBefore = rig.camera.fov;
+      report.tap.shotsBefore = game.world.shotsFired;
+      report.drag.yawBefore = game.world.player.yaw;
+      fire("touchstart", [mk(1, 200, 200)]);
+    });
+    // —— 拖拽：单指右扫 300px（6 步），位移远超点按阈值 → 必须判为拖拽且不开火 ——
+    for (let i = 1; i <= 6; i++) at(200 + i * 40, () => fire("touchmove", [mk(1, 200 + i * 50, 200)]));
+    at(500, () => fire("touchend", [], [mk(1, 500, 200)]));
+    // —— 捏合：双指从 100px 张开到 240px（5 步）→ zoom 变小 / fov 收窄 ——
+    at(650, () => fire("touchstart", [mk(1, 140, 320), mk(2, 240, 320)]));
+    for (let i = 1; i <= 5; i++) at(700 + i * 40, () => fire("touchmove", [mk(1, 140 - i * 28, 320), mk(2, 240 + i * 28, 320)]));
+    at(950, () => {
+      report.pinch.fovMin = rig.camera.fov;
+      report.pinch.zoomAfter = touchCtl.zoom;
+      report.drag.yawAfter = game.world.player.yaw;
+      report.drag.yawDelta = +(report.drag.yawAfter - report.drag.yawBefore).toFixed(4);
+      fire("touchend", [], [mk(1, 0, 320), mk(2, 380, 320)]);
+    });
+    // —— 点按：80ms 短触零位移 → 单发开火，并测内核确认时延（应 <100ms）——
+    at(1200, () => {
+      fire("touchstart", [mk(3, 200, 200)]);
+      at(80, () => {
+        const t0 = performance.now();
+        fire("touchend", [], [mk(3, 200, 200)]);
+        const poll = () => {
+          if (game.world.shotsFired > report.tap.shotsBefore) {
+            report.tap.ackMs = Math.round(performance.now() - t0);
+            report.tap.shotsAfter = game.world.shotsFired;
+            finish();
+          } else if (performance.now() - t0 < 2000) requestAnimationFrame(poll);
+          else { report.tap.shotsAfter = game.world.shotsFired; finish(); }
+        };
+        requestAnimationFrame(poll);
+      });
+    });
+    at(4000, finish); // 兜底：任何一环卡死也落报告
+  });
 }
