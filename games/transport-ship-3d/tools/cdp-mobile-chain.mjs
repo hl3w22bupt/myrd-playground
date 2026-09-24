@@ -152,6 +152,9 @@ try {
     const g = window.__game; if (!g) return null;
     const w = g.world, p = w.player;
     const scr = document.getElementById("ts-screen"), rst = document.getElementById("ts-restart");
+    // 可见性口径（红队 F2 收口）：getBoundingClientRect 实测 —— 元素或任一祖先 display:none 时
+    // 布局盒为 0×0；元素级 style.display 不作为判据（hud 置 "" 复位不回 "none"，父级隐藏下会出伪 true）
+    const shown = (n) => { if (!n) return false; const r = n.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
     return {
       state: g.state, kernelState: w.state, time: +w.time.toFixed(3),
       hp: p.hp, ammo: p.ammo, reserve: p.reserve,
@@ -161,8 +164,8 @@ try {
       enemiesAlive: w.enemies.filter((e) => e.state !== "dead").length,
       enemies: w.enemies.filter((e) => e.state !== "dead")
         .map((e) => ({ id: e.id, hp: e.hp, d: +Math.hypot(e.x - p.x, e.z - p.z).toFixed(2) })),
-      screenShown: !!scr && scr.style.display !== "none",
-      restartShown: !!rst && rst.style.display !== "none",
+      screenShown: shown(scr),
+      restartShown: shown(rst),
       restartLabel: rst ? rst.textContent : null,
     };
   })()`);
