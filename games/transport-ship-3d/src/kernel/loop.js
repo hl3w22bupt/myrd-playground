@@ -10,13 +10,20 @@ export const EMPTY_INTENT = Object.freeze({
   forward: 0, strafe: 0, yaw: 0, pitch: 0, sprint: false, firing: false, reload: false,
 });
 
-/** 归一化意图：剥离表现层多余字段 + 边沿标志（reload）只在第一个子步注入 —— 对标样本的边缘输入口径 */
+/** 俯仰钳制（与输入层 player.js/touch.js 同值）：对抗注入的极端俯仰，超界取边界 */
+const PITCH_CLAMP = 1.2;
+
+/** 边界加固（验收口径 C）：非有限数值（NaN/±Infinity）一律回退默认 —— 注入值不得进内核 */
+const finiteOr = (v, d = 0) => (Number.isFinite(v) ? v : d);
+
+/** 归一化意图：剥离表现层多余字段 + 边沿标志（reload）只在第一个子步注入 —— 对标样本的边缘输入口径。
+ *  边界加固：数值取有限值、俯仰钳制（超界坐标/极端参数在 world 层围栏钳制兜底）。*/
 function normalizeIntent(raw) {
   return {
-    forward: raw.forward ?? 0,
-    strafe: raw.strafe ?? 0,
-    yaw: raw.yaw ?? 0,
-    pitch: raw.pitch ?? 0,
+    forward: finiteOr(raw.forward),
+    strafe: finiteOr(raw.strafe),
+    yaw: finiteOr(raw.yaw),
+    pitch: Math.max(-PITCH_CLAMP, Math.min(PITCH_CLAMP, finiteOr(raw.pitch))),
     sprint: raw.sprint === true,
     firing: raw.firing === true,
     reload: raw.reload === true,
@@ -56,9 +63,9 @@ export function createGame({ seed = 1 } = {}) {
 
   return {
     world,
-    /** 渲染帧推进：dt 钳制 MAX_DT，累加器跑固定子步；边缘标志只在首子步注入 */
+    /** 渲染帧推进：dt 钳制 [0, MAX_DT]（0/负值/NaN → 不推进且不污染累加器），累加器跑固定子步；边缘标志只在首子步注入 */
     frame(dt, rawIntent) {
-      const clamped = Math.min(dt, MAX_DT);
+      const clamped = Number.isFinite(dt) ? Math.min(Math.max(dt, 0), MAX_DT) : 0;
       acc += clamped;
       let first = true;
       const events = [];
@@ -71,9 +78,11 @@ export function createGame({ seed = 1 } = {}) {
       }
       return events;
     },
-    /** 无头快进：等价于连续 frame(FIXED_STEP)；返回聚合结果（对标样本 {score,time,kills} 口径并扩展）*/
+    /** 无头快进：等价于连续 frame(FIXED_STEP)；返回聚合结果（对标样本 {score,time,kills} 口径并扩展）。
+     *  边界加固：0/负值/非有限秒数 → 0 tick（不推进）。*/
     fastForward(seconds, intentProvider = EMPTY_INTENT) {
-      const total = Math.max(0, Math.floor(seconds / FIXED_STEP));
+      const s = Number.isFinite(seconds) ? seconds : 0;
+      const total = Math.max(0, Math.floor(s / FIXED_STEP));
       const allEvents = [];
       for (let i = 0; i < total && !world.over; i++) {
         const raw = typeof intentProvider === "function" ? intentProvider(i) : intentProvider;

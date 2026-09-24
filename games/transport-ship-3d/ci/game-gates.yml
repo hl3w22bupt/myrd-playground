@@ -1,0 +1,46 @@
+# 运输船3D 验收门禁（常驻 CI）：构建复现（A）+ 边界断言（C）+ 全量验收门禁 + 触屏手势自动化（B）
+#
+# 存放口径：本文件为 CI 工作流定义真源，存于 games/transport-ship-3d/ci/（仓库内可追溯）。
+# 启用 = 一条命令拷入 .github/workflows/（需具备 workflow scope 的推送凭据）：
+#   mkdir -p .github/workflows && cp games/transport-ship-3d/ci/game-gates.yml .github/workflows/
+# CI 入口与本地完全一致：npm ci → npm run game:verify → npm run game:test → touchcheck。
+name: game-gates
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  transport-ship-3d:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: 安装依赖（lockfile 精确安装 —— 固定依赖版本口径）
+        run: npm ci --no-fund --no-audit
+
+      # A 构建复现：连构两次 sha256 一致 + SRC_SHA 源指纹复核（game:test 内亦复跑，此处独立先行快速失败）
+      - name: A · 构建复现门禁
+        run: npm run game:verify
+
+      # C 边界断言（空场景/超界坐标/极端缩放/0负值参数）+ 全量验收门禁常驻
+      - name: C · 全量验收门禁（含边界断言）
+        run: npm run game:test
+
+      # B 触屏手势自动化（headless Chrome 移动仿真；runner 无 Chrome 时显式跳过，不误报）
+      - name: B · 触屏手势自动化用例
+        run: |
+          if command -v google-chrome-stable >/dev/null 2>&1 \
+             || command -v google-chrome >/dev/null 2>&1 \
+             || command -v chromium-browser >/dev/null 2>&1 \
+             || command -v chromium >/dev/null 2>&1; then
+            node games/transport-ship-3d/tools/touchcheck.mjs
+          else
+            echo "SKIP runner 无 Chromium 系浏览器，触屏用例由本地/有浏览器环境执行"
+          fi
