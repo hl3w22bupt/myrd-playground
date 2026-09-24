@@ -80,10 +80,13 @@ export function createGame({ seed = 1 } = {}) {
     const events = [];
 
     // —— 玩家移动（局部朝向 → 世界位移；掩体滑移 + 围栏钳制在 world 层做）——
+    // strafe 基约定（跨层契约，tests/input-semantics.spec.mjs 守护）：渲染层相机 ry=π+yaw
+    // 时屏幕右 = (−cos yaw, sin yaw)（见 render/player.js apply()），strafe=+1（D/摇杆右推）
+    // 的世界位移必须与之同向。旧实现取 (cos, −sin) 恰为其反号 → A/D 整体镜像（2026-09-25 事故）。
     const speed = PLAYER_MOVE_SPEED * (intent.sprint ? PLAYER_SPRINT_MULT : 1);
     const sin = Math.sin(intent.yaw), cos = Math.cos(intent.yaw);
-    const dx = (sin * intent.forward + cos * intent.strafe) * speed * FIXED_STEP;
-    const dz = (cos * intent.forward - sin * intent.strafe) * speed * FIXED_STEP;
+    const dx = (sin * intent.forward - cos * intent.strafe) * speed * FIXED_STEP;
+    const dz = (cos * intent.forward + sin * intent.strafe) * speed * FIXED_STEP;
     const moving = Math.abs(intent.forward) + Math.abs(intent.strafe) > 0;
     p.moving = moving;
     p.sprinting = intent.sprint && moving;
