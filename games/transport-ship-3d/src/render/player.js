@@ -125,8 +125,13 @@ export function attachInput(canvas, state) {
   return {
     /** 合成本帧意图（内核 normalize 后消费）*/
     read() {
-      const forward = (keys.has("KeyW") ? 1 : 0) + (keys.has("KeyS") ? -1 : 0);
-      const strafe = (keys.has("KeyD") ? 1 : 0) + (keys.has("KeyA") ? -1 : 0);
+      // 摇杆轴合并（验收口径 B）：touch.js 把摇杆意图写进 state.moveX/moveY（|v| ≤ 1，死区已归零），
+      // 与键盘 WASD 同轴叠加后钳回 [-1,1]（双输入同按不失真）；非有限值按 0 处理（不产 NaN 意图）。
+      const jx = Number.isFinite(state.moveX) ? state.moveX : 0;
+      const jy = Number.isFinite(state.moveY) ? state.moveY : 0;
+      const axis = (kbd, stick) => Math.max(-1, Math.min(1, kbd + stick));
+      const forward = axis((keys.has("KeyW") ? 1 : 0) + (keys.has("KeyS") ? -1 : 0), jy);
+      const strafe = axis((keys.has("KeyD") ? 1 : 0) + (keys.has("KeyA") ? -1 : 0), jx);
       const reload = state.reloadQueued;
       state.reloadQueued = false;
       const tapFire = state.tapFire === true;

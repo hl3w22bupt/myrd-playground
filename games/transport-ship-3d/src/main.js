@@ -53,11 +53,18 @@ const hud = buildHud(uiRoot);
 const audio = buildAudio();
 const enemies = new EnemyPool(scene);
 const fx = buildFx(scene); // 命中火花（表现层自带降级，失败为空实现）
-const inputState = { yaw: game.world.player.yaw, pitch: 0, firing: false, reloadQueued: false, tapFire: false };
+const inputState = { yaw: game.world.player.yaw, pitch: 0, firing: false, reloadQueued: false, tapFire: false, moveX: 0, moveY: 0 };
 const input = attachInput(canvas, inputState);
 // —— 触屏形态（验收口径 B）：拖拽瞄准 / 双指捏合缩放 / 点按开火；桌面无触摸时该识别器零副作用 ——
 const touchMode = isTouchDevice();
-const touchCtl = attachTouch(canvas, inputState, { onZoom: (z) => rig.setZoom(z) });
+// 触屏没有 Esc：暂停按钮 → onPause 钩子（与桌面 pointerlock 丢失同一状态机路径，见下方 pauseGame）
+const pauseGame = () => {
+  if (state !== "playing") return;
+  state = "paused";
+  hud.showScreen(true);
+  hud.screenText({ title: "已暂停 ", sub: "点按按钮回到甲板。", btn: "继续（点按）" });
+};
+const touchCtl = attachTouch(canvas, inputState, { onZoom: (z) => rig.setZoom(z), onPause: pauseGame });
 
 // —— 状态机 ——
 let state = "title"; // title | playing | paused | gameover
@@ -87,6 +94,8 @@ function resetMatch() {
   inputState.pitch = 0;
   inputState.firing = false;
   inputState.reloadQueued = false;
+  inputState.moveX = 0; // 摇杆轴清零（触屏重开不漂移；摇杆指仍按住时下一帧 move 会重新写入）
+  inputState.moveY = 0;
 }
 
 document.addEventListener("pointerlockchange", () => {
