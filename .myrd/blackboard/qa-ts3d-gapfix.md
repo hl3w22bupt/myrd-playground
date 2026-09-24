@@ -143,3 +143,57 @@
 4. `b0e4db3` fix(games): touchcheck 报告读取 15s 轮询（消取证计时 flake）
 5. `1d044bb` test(games): D 证据第三批重采（ci 镜像激活因凭据缺 workflow scope 未落库，真源留仓库内）
 6. （本提交）docs(myrd): 证据索引如实记录 CI 激活受凭据不可抗 + 哈希修订
+
+---
+
+# 第四轮（红队 D 项三环对抗核验 partial → 五项收口）：批次 20260924-172811 @ 终稿 HEAD
+
+红队验证官对 D 项「开火命中/暂停/重开」三环（批次 20260924085533）出具 **partial**：7 项 Confirmed、
+3 项反例攻击全部被推翻，移交 5 项收口（F1/F2/F3 + U1/U2）。本轮逐项闭环如下，无一项搁置。
+
+## 本轮收口清单（逐项单项提交）
+
+| # | 红队移交 | 级别 | 处置 | 提交 |
+|---|---|---|---|---|
+| F3 | 接线绕过内核复位：`resetMatch` 自建世界 `Object.assign` 替换，未调 `game.restart()`，内核 `acc=0` 修复未跟 | P3 | 内核 `restart(nextSeed)` 扩展可选 seed 覆盖（`Number.isFinite` 边界加固：NaN/±∞ 回退创建 seed、`>>>0` 整数化、负值回绕）；表现层 `resetMatch` 改为唯一入口 `game.restart(seed)`（对局内随机语义保留）——波次计时复位 + 累加器清零 + world 逐键重建一次内核调用完成，不再绕过内核 | fix(games) |
+| F3⁺ | （配套断言）`restart(nextSeed)` 三性无机判 | — | `tests/state-machine.spec.mjs` ⑥ 组新增 5 断言：注入 seed 重建 + 计时归零直接 playing；累加器清零（残留半 tick + 5ms 不补帧，time 仍 0）；非整数 `>>>0` 取整；NaN 回退创建 seed；负值无符号回绕。套件 65→**70 断言全 PASS** | 同上 |
+| F2 | 探针伪值：`restartShown` 读元素级 `style.display`，hud 置 `""` 后不复位，父级 `#ts-screen` display:none 下出伪 true（不影响断言结论） | P3 | `tools/cdp-mobile-chain.mjs` 探针改 **getBoundingClientRect 实测口径**：元素或任一祖先 display:none 时布局盒 0×0 → false；元素级 style.display 不再作为判据 | fix(games) |
+| U1 | 重放复现未执行（红队会话无执行工具），仅一批运行记录 | Uncertain | 重放 `node tools/cdp-mobile-chain.mjs` 落**第二批** batch `20260924092524`：28/28 断言与第一批逐条**结论一致、全 PASS**（两报告 label+outcome 全同），A 项式两批一致实证闭环；分环截图×5 + 报告 JSON 落盘 | test(games) |
+| U2 | digest 未复算（第三批 sha256 前缀 + mobile-chain 批次） | Uncertain | `shasum -a 256` 全量复算：第三批 6 件 + 两批五环 15 件 + 本轮刷新 A–D 4 件逐一对照入表（见下）；第三批 C 项日志复算值 `536948e8cc373443…` 与索引登记**逐位一致**（跨运行确定性佐证） | docs(myrd) |
+| F1 | mobile-chain 五环批次（最新最强 D 项证据）未登记入证据索引 | P2 | 本章节即登记：两批报告/日志/分环截图 + sha256 全清单 + 两批一致性结论入索引 | docs(myrd) |
+
+## 五环链两批证据 digest 对照（U2，sha256 前 16 位）
+
+| 证据件 | 批一 20260924085533（12fbf8f） | 批二 20260924092524（本轮 U1 重放） |
+|---|---|---|
+| mobile-chain-report JSON | `6550fb7624b89581` | `99cb5bc073ab9bfe` |
+| mobile-chain-run log | `d84601441cf73f5f` | （批二运行输出由报告 JSON 承载，无独立 run log） |
+| ring1-start PNG | `efae48bbf13fda09` | `468216994c11a53e` |
+| ring2-move PNG | `83c147b198932bd5` | `9d151a44cf66aff6` |
+| ring3-fire-hit PNG | `b8a4d93c93a45abe` | `eb667ddab0b35466` |
+| ring4-paused PNG | `7cfb6043efd9b50d` | `54f7d0ee5564dbec` |
+| ring5-restarted PNG | `addf35f63cff4e29` | `c3ffa895c631567b` |
+
+两批断言结论一致性：28/28 条 label+outcome 全同、两报告 `ok=true`（第一批报告 `6550fb7624b89581`、
+第二批 `99cb5bc073ab9bfe`）。批二环⑤在**内核 restart 新接线**下复位口径全对上：HP 93→100、ammo 29→30、
+reserve 150、score 35→0、shotsFired/shotsHit 1→0、wave 1(active)→0(rest)、敌兵 3→0、time 9.683s→0.9s；
+F2 新口径下 `restartShown=true` 为布局盒实测真值。
+
+## 第四批 A–D 证据（批次 20260924-172811 @ 终稿代码态，sha256 前 16 位）
+
+| 口径 | 结果 | 证据（sha256 前 16 位） |
+|---|---|---|
+| A 构建复现 | 两次构建主产物=导出产物 sha256 全同，`SRC_SHA=0442d7522f58a247`（含本轮 src 改动）复算一致，`REPRODUCIBLE-BUILD` 单行 JSON | `gate-logs/build-repro.log`（`d1dae98ee4ac65af`，= stamped `gapfix-a-reproducible-build-20260924-172811.log` 逐字节同） |
+| B 四类手势 + 热区 + 帧率 | TOUCHCHECK: PASS（拖拽/捏合/摇杆/点按 + 44px 热区 + 帧率关） | `gapfix-b-touch-20260924-172811.log`（`d26f48cda417df7e`）· 截图 `gapfix-b-touch-mobile-390x844-20260924-172811.png`（`dc11f25635f02927`） |
+| C 边界断言 | 四类边界全过；日志 sha256 与第三批**逐位相同**（`536948e8cc373443…`）——确定性断言集跨运行零漂移 | `gapfix-c-boundary-20260924-172811.log`（`536948e8cc373443`） |
+| D 全量门禁 | **GAME-GATES 9/9 全过（构建复现 + 7 spec 套件 + qa-audit 七关），state-machine 扩至 70 断言，exit 0** | `gapfix-d-full-suite-20260924-172811.log`（`820aa32db00f94f8`） |
+| D 五环链（CDP 移动仿真） | 两批 `MOBILE-CHAIN: PASS`（开局/触摸移动/开火命中/暂停/重开），命中为内核真值（HP 55→3 = 26×2.0 指纹闭合） | 见上表两批 digest 对照 |
+
+第四轮齐全率：红队移交 5 项（F1/F2/F3/U1/U2）**5/5 闭环**，A–D 证据在终稿代码态重采归档并附 sha256，**100%**。
+
+## 第四轮提交清单
+
+1. fix(games): 内核 `restart(nextSeed)` + `resetMatch` 统一走内核 restart + spec ⑥ 组 5 断言（F3 收口，含重建产物）
+2. fix(games): cdp-mobile-chain 探针可见性改 getBoundingClientRect 口径（F2 收口）
+3. test(games): 五环链第二批重放证据落盘（U1 收口，两批 28/28 结论一致）
+4. （本提交）docs(myrd): 索引登记五环批次 + U2 全量 digest 复算 + 第四批 A–D 证据刷新（F1 收口）
