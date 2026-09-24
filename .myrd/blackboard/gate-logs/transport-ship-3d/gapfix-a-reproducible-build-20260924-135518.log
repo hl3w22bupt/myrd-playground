@@ -1,0 +1,22 @@
+# A 构建复现证据 @ e6c141e709821534dc701c9819de16d1050420e4（分支 myrd/ts3d-gapfix-goal-cmuewc8rr0023m987wdzz4dcu）
+# 时间: 2026-09-24 13:55:18
+
+> pubg-web-core@0.1.0 game:verify
+> node games/transport-ship-3d/tools/verify-reproducible.mjs
+
+[verify] 第 一 次构建（node tools/build.mjs）…
+[build] esbuild 打包 src/main.js（three 全量内联，minify + iife）…
+[done] 产物 index.html = 573 KB，零外部资源引用
+[done] SRC_SHA=c84939840483fe3b（指纹范围：src + assets + index.template.html + tools/build.mjs + tools/src-sha.mjs）
+[done] AppHost 导出 export/web/index.html = 573 KB（与主产物一致: true）
+[verify] 第 二 次构建（node tools/build.mjs）…
+[build] esbuild 打包 src/main.js（three 全量内联，minify + iife）…
+[done] 产物 index.html = 573 KB，零外部资源引用
+[done] SRC_SHA=c84939840483fe3b（指纹范围：src + assets + index.template.html + tools/build.mjs + tools/src-sha.mjs）
+[done] AppHost 导出 export/web/index.html = 573 KB（与主产物一致: true）
+  PASS  主产物两次构建 sha256 一致（cd1b896439c1c9fe…）
+  PASS  AppHost 导出产物两次构建 sha256 一致（cd1b896439c1c9fe…）
+  PASS  主产物 ↔ AppHost 导出产物 sha256 一致（同一字符串真源）
+  PASS  SRC_SHA 与源输入复算一致（c84939840483fe3b，指纹范围 src + assets + index.template.html + tools/build.mjs + tools/src-sha.mjs）
+REPRODUCIBLE-BUILD {"ok":true,"build1":{"main":"cd1b896439c1c9fed409ef74c03dc2649379e4e77df73b49ae1e8e65a6c10033","exportWeb":"cd1b896439c1c9fed409ef74c03dc2649379e4e77df73b49ae1e8e65a6c10033"},"build2":{"main":"cd1b896439c1c9fed409ef74c03dc2649379e4e77df73b49ae1e8e65a6c10033","exportWeb":"cd1b896439c1c9fed409ef74c03dc2649379e4e77df73b49ae1e8e65a6c10033"},"srcSha":"c84939840483fe3b","fingerprintPaths":["src","assets","index.template.html","tools/build.mjs","tools/src-sha.mjs"]}
+REPRODUCIBLE: PASS 连续两次构建逐字节一致，产物可复现
