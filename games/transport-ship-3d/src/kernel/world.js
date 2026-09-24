@@ -31,6 +31,9 @@ export function createWorld(seed = 1) {
     wave: { n: 0, state: "rest", restT: 0, toSpawn: 0, spawned: 0, spawnT: 0 },
     score: 0, kills: 0, shotsFired: 0, shotsHit: 0, headshots: 0,
     over: false,
+    // 对局状态机（唯一字段）：playing | paused | gameover —— 任一时刻只有一个明确状态，
+    // 由 loop.js 的 pause/resume/restart 与 over→gameover 收敛维护；非 playing 一律拒意图、停推进。
+    state: "playing",
   };
 }
 
