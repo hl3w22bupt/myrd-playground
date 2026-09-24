@@ -88,7 +88,8 @@ hud.onStart(() => {
 });
 
 // 重开按钮（暂停屏次操作，验收口径 D「重开环」）：整体复位 HP/波次/分数/弹药/敌兵 ——
-// 复用对局内随机重开 resetMatch（内核 createWorld 整体替换，引用稳定），与结算屏「再来一局」同一复位口径。
+// 复用对局内随机重开 resetMatch（统一走内核 game.restart(seed)：波次计时复位 + 累加器清零 + 逐键重建，
+// 引用稳定），与结算屏「再来一局」同一复位口径。
 hud.onRestart(() => {
   if (state !== "paused" && state !== "gameover") return; // 仅暂停/结算态可重开（对局中不误触）
   audio.unlock();
@@ -102,8 +103,9 @@ hud.onRestart(() => {
 function resetMatch() {
   enemies.clear();
   const seed = (Math.random() * 0xffffffff) >>> 0; // 对局内随机（布景复现性不受影响）
-  const fresh = createGame({ seed });
-  Object.assign(game.world, fresh.world); // 内核状态整体替换（保持 game/game.world 引用稳定）
+  // 内核 restart 口径（红队 F3 收口）：复位唯一入口走 game.restart(seed) —— 波次计时复位 + 累加器
+  // 清零（acc=0，无残留子步首帧跳变）+ world 逐键重建，不再自建世界 Object.assign 绕过内核。
+  game.restart(seed);
   inputState.yaw = game.world.player.yaw;
   inputState.pitch = 0;
   inputState.firing = false;

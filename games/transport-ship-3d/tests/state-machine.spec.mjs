@@ -178,6 +178,24 @@ console.log("—— ⑤ 无幽灵状态 / 无残留计时器 ——");
     && g2.world.wave.spawnT === 0 && g2.world.wave.toSpawn === 0 && g2.world.wave.restT === INITIAL_REST_T
     && g2.world.player.reloadT === 0 && g2.world.player.fireT === 0,
     `重开后旧波计时器清零（restT=${INITIAL_REST_T} 开局休整、spawnT/spawned/toSpawn/reloadT/fireT 归零）`);
+
+  // 内核 restart(seed) 覆盖（红队 F3 收口的内核基座）：表现层「对局内随机重开」统一走 game.restart(nextSeed)
+  const g3 = createGame({ seed: 13 });
+  g3.fastForward(10.5, { forward: 1 }); // 推进出非平凡状态（累加器/波次/位置均有残留）
+  g3.frame(0.011, { forward: 0 }); // 半 tick 残留在累加器（0.011 < FIXED_STEP 不成步）
+  const before = { seed: g3.world.seed, time: g3.world.time };
+  g3.restart(424242);
+  ok(g3.world.seed === 424242 && g3.world.seed !== before.seed && g3.world.time === 0
+    && g3.world.state === "playing",
+    "restart(424242)：以注入 seed 整体重建（world.seed 换新）+ 计时归零 + 直接 playing");
+  g3.frame(0.005, { forward: 0 }); // 累加器若未清零，0.011+0.005 ≥ FIXED_STEP 会补出一整 tick
+  ok(g3.world.time === 0, "restart 后累加器已清零：残留半 tick + 5ms 不补帧（time 仍 0，无首帧跳变）");
+  g3.restart(1.5);
+  ok(g3.world.seed === 1, "restart(1.5)：非整数有限值按 >>>0 取整为 1（整数化口径）");
+  g3.restart(NaN);
+  ok(g3.world.seed === 13, "restart(NaN)：非有限 seed 回退创建时 seed（边界加固，NaN 不进内核）");
+  g3.restart(-7);
+  ok(g3.world.seed === 4294967289, "restart(-7)：负值 >>>0 回绕为无符号（确定性域内）");
 }
 
 if (failures.length) {

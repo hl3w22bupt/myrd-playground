@@ -49,7 +49,9 @@ export function createGame({ seed = 1 } = {}) {
   /** 状态机迁移（唯一字段 world.state，单迁移语义，重复调用幂等）：
    *  - pause：仅 playing → paused（gameover 不可暂停）
    *  - resume：仅 paused → playing（gameover 不可恢复）
-   *  - restart：任意态 → playing，数值整体复位（同 seed 确定性重建，引用稳定原地覆盖）*/
+   *  - restart：任意态 → playing，数值整体复位（引用稳定原地覆盖）；
+   *    nextSeed 可选 —— 传有限数值即以该 seed 重建（表现层「对局内随机重开」统一走内核口径），
+   *    不传 / 非有限值（含 NaN/±∞）回退创建时 seed（同 seed 确定性重建）*/
   function pause() {
     if (world.state === "playing") world.state = "paused";
     return world.state;
@@ -58,8 +60,8 @@ export function createGame({ seed = 1 } = {}) {
     if (world.state === "paused") world.state = "playing";
     return world.state;
   }
-  function restart() {
-    const fresh = createWorld(seed);
+  function restart(nextSeed) {
+    const fresh = createWorld(Number.isFinite(nextSeed) ? nextSeed >>> 0 : seed);
     fresh.wave.restT = tickOf(WAVE_REST); // 波次计时器复位到开局休整（旧波计时清零，不残留）
     for (const k of Object.keys(world)) delete world[k]; // 原地整体替换，保持 game.world 引用稳定
     Object.assign(world, fresh);
