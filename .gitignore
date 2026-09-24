@@ -6,3 +6,6 @@ coverage
 .gstack/
 .myrd-platform/
 *.local.cjs
+# agent worktree 指针（gitlink）不入库：worktree 是执行期临时产物，入库会污染树（红队复验卫生级副作用）
+.claude/worktrees/
+.claude/
