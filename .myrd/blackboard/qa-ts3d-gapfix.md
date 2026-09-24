@@ -115,7 +115,7 @@
 | # | 红队发现 | 处置 | 提交 |
 |---|---|---|---|
 | 1 | 卫生级副作用：`.claude/worktrees/agent-*` 两个 gitlink 被误提交入树 | `git rm --cached` 移出 + `.gitignore` 忽略 `.claude/`，仓库树零 gitlink | `5039314` |
-| 2 | CI 未激活：`.github/workflows` 缺失（C 项要求 CI 常驻） | `ci/game-gates.yml` 真源镜像拷入 `.github/workflows/game-gates.yml`，push/PR 触发即跑全套门禁 | `d4d9705` |
+| 2 | CI 未激活：`.github/workflows` 缺失（C 项要求 CI 常驻） | 已尝试镜像激活 → **push 被远端拒绝**（`refusing to allow an OAuth App to create or update workflow ... without workflow scope`；gh token scopes 实测=`gist, read:org, repo`）→ 环境凭据不可抗，按纪律退回：仓库内真源 `ci/game-gates.yml` + 一键启用口径，待具备 workflow scope 的凭据一条命令激活（不伪造激活） | 尝试留痕，未落库 |
 | 3 | 次级观察点：pointer 降级通道无 setPointerCapture，按住移出画布抬指失联 → 登记表泄漏 → 多指针场景误入捏合 | pointerdown 即 `setPointerCapture`（try/catch 兼容旧环境）+ `pointerleave`/`lostpointercapture` 兜底收尾 + dispose 卸载；新增 `tests/pointer-fallback.spec.mjs` 四组对抗 12 断言（TDD 先红后绿：修复前 5 项 FAIL） | `4defae9` |
 | 4 | 取证脚本自身缺陷：touchcheck 固定 5.2s 单次读取，冷启动/高载下误报「报告未产出」（实测抓出：同环境复跑 t≈3s 即落报告 ok=true） | 单次读取 → 400ms 步进轮询至 15s 截止（覆盖驱动 10s 预热上限），断言集合与阈值零改动 | `b90cff5` |
 
@@ -139,6 +139,7 @@
 
 1. `5039314` chore: 移除误提交 worktree gitlink（红队卫生级副作用收口）
 2. `d4d9705` ci: 激活 .github/workflows 常驻门禁（C 项 CI 口径收口）
-3. `4defae9` fix(games): pointer 降级通道抬指兜底 + pointer-fallback.spec 对抗断言（红队次级观察点收口）
-4. `b90cff5` fix(games): touchcheck 报告读取 15s 轮询（消取证计时 flake）
-5. （本提交）test(games): D 证据第三批重采 + 索引刷新
+3. `68de399` fix(games): pointer 降级通道抬指兜底 + pointer-fallback.spec 对抗断言（红队次级观察点收口）
+4. `b0e4db3` fix(games): touchcheck 报告读取 15s 轮询（消取证计时 flake）
+5. `1d044bb` test(games): D 证据第三批重采（ci 镜像激活因凭据缺 workflow scope 未落库，真源留仓库内）
+6. （本提交）docs(myrd): 证据索引如实记录 CI 激活受凭据不可抗 + 哈希修订
