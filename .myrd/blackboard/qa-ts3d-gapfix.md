@@ -4,7 +4,7 @@
 - **基线纪律**：本分支 `myrd/ts3d-gapfix-goal-cmuewc8rr0023m987wdzz4dcu` 自基线 **pr-25（commit `0659452`）快进展开**，
   A→B→C→D 四个单项提交依次叠加，diff 可整段追溯至基线（`git diff 0659452..HEAD`）
 - **采集环境**：macOS + Node v26 + esbuild 0.28.2（钉版）+ 本机 Chrome 153（CDP headless，移动仿真 390×844）
-- **证据时间戳**：20260924-135518（全部证据同批次采集于最终 HEAD）
+- **证据时间戳**：批次1 `20260924-135518`（四项初版证据 @ 603cbcd）；批次2 `20260924-150742`（worktree 分支合并 + 残留差距补齐后 @ 合并后 HEAD，见文末第二轮章节）
 
 ## A 构建复现
 
@@ -62,4 +62,44 @@
 1. `09239d1` fix(games): 验收口径A 构建复现 —— esbuild钉版 + 连构两次哈希一致门禁 + 门禁聚合入口
 2. `ea4031b` feat(games): 验收口径B 移动触摸 —— 拖拽/捏合/点按三类手势 + 消除300ms点击延迟与手势冲突
 3. `e6c141e` test(games): 验收口径C 边界断言 —— 四类边界自动化断言 + 内核加固 + CI常驻
-4. （本提交）chore(games): 验收口径D 仿真证据归档
+4. `603cbcd` chore(games): 验收口径D 仿真证据归档
+
+---
+
+# 第二轮补齐：worktree 分支合并 + 残留差距（批次 20260924-150742）
+
+- **体检师核实的两个 worktree 补齐分支已合并**（B 与 C 改动分属 render/kernel 不同区域，零冲突合入）：
+  - `worktree-agent-aa6041653c0235366` → `8bfe482`（B：虚拟摇杆/按钮热区/pointer 降级通道）
+  - `worktree-agent-a8e83924bf247023a` → `dff6338`（C：状态机对抗断言 65 项 + 内核状态机补全）+ `b2ade8d`（A：游戏目录独立 package.json）
+- **合并后逐项自检发现并补齐的错位**（接线缺口，几何不变只通链路）：
+  1. 摇杆轴死输入：`inputState.moveX/moveY` 无人消费 → `player.js read()` 与键盘 WASD 同轴合并钳 [-1,1]
+  2. 触屏无暂停入口：`attachTouch` 未挂 `onPause` → 与桌面 pointerlock 丢失同一状态机路径
+  3. 控件样式缺失：`#ui` 是 `pointer-events:none` 层，控件无 `position:absolute`/`pointer-events:auto` → 全部摸不到；摇杆底盘漏 `position:absolute` 落左上角（首跑实测 rect=(0,0) 抓出）→ 修复后左下 center=(84,760)
+  4. `package.json` 增 `"type": "module"`（消 Node 模块类型重解析告警）
+
+## 第二轮证据（批次 20260924-150742 @ 合并后 HEAD）
+
+| 口径 | 结果 | 证据 |
+|---|---|---|
+| A 游戏目录独立复现 | `cd games/transport-ship-3d && npm install --no-fund --no-audit && npm run build`：3 包/4s 装毕，连构两次 sha256 **一致（`75bd24cd6cb2ac00…`）**，SRC_SHA=`10cd8d11bf75530c` 复算一致 | `.myrd/blackboard/gate-logs/build-repro.log`（含 REPRODUCIBLE-BUILD JSON） |
+| B 手势① 拖拽 | yawDelta = **-1.8462 rad** | `gapfix-b-touch-20260924-150742.log` |
+| B 手势② 捏合 | fov **78° → 27.3°**（zoom → 0.35 钳制下限） | 同上 |
+| B 手势③ 点按 | shotsFired **0 → 1**，ackMs = **9ms**（<100ms） | 同上 |
+| B 手势④ 摇杆（新增） | 左下摇杆区落指上推 → 位移 **1.5m**（(0,8)→(1.44,8.41)），抬指意图清零 | 同上 |
+| B 控件热区 DOM 实测 | 摇杆 112×112 @(28,704) 左下半屏 ✓ · 开火 64×64 @(302,716) ✓ · 换弹/暂停 44×44（Apple HIG 下限）✓ · 全部在 390×844 视口内 | 同上（`window.__game.touchRects` 机判口） |
+| B 帧率采样（新增） | rAF 连采 60 帧：平均 56.39ms/帧 ≈ **17.7fps**（SwiftShader 软渲染口径 ≥5fps，链路存活） | 同上 |
+| B 热区截图 | 移动仿真 390×844+touch+dpr2：摇杆底盘/旋钮、FIRE、R、II 四控件可见，弹药 29/150 | `gapfix-b-touch-mobile-390x844-20260924-150742.png` |
+| B pointer 降级 | touch 主通道 + pointerdown/move/up/cancel 降级通道（无 TouchEvent 环境兜底），触摸类 pointer 去重 | `src/render/touch.js`（纯函数区 qa-audit ⑦ 机判） |
+| C 状态机对抗断言 | 65 项六组对抗（连按暂停恢复/结算瞬间输入/重开连点/暂停后重开/无幽灵状态/内核缺口回归） | `tests/state-machine.spec.mjs` + 全量门禁日志 |
+| C 边界断言 | 25 项四类边界（既有），CI 常驻不变 | `gapfix-c-boundary-20260924-135518.log` |
+| QA-AUDIT 移动仿真关（新增第⑦关） | 纯几何机判：44px 热区下限 / 摇杆区矩形 / 死区归零 / 满行程钳 1 / 极端视口钳制 5 组（含 1×1 退化视口「热区下限优先」口径） | `tests/qa-audit.mjs` ⑦ |
+| D 全量门禁 | **GAME-GATES 8/8 全过（构建复现 + 6 spec 套件 + qa-audit 七关），156 条 PASS，exit 0** | `gapfix-d-full-suite-20260924-150742.log` |
+
+第二轮齐全率：A–D 四项证据在合并后 HEAD 重新采集归档，**100%**。
+
+## 第二轮提交清单
+
+1. `448f48b` merge: worktree 分支②（B 移动控件）
+2. `541f937` merge: worktree 分支①（C 状态机 + A 构建口径）
+3. `5db4c57` fix(games): B 摇杆/按钮接线补全（意图合并·暂停钩子·控件样式落位）
+4. （本提交）test(games): B 取证扩展 + QA-AUDIT 第⑦关 + D 证据刷新

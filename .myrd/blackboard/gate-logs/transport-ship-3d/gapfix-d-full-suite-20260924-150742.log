@@ -1,0 +1,194 @@
+
+> test
+> node tests/run-all.mjs
+
+
+===== 构建复现（两次构建哈希一致）（node games/transport-ship-3d/tools/verify-reproducible.mjs）=====
+[verify] 第 一 次构建（node tools/build.mjs）…
+[build] esbuild 打包 src/main.js（three 全量内联，minify + iife）…
+[done] 产物 index.html = 581 KB，零外部资源引用
+[done] SRC_SHA=10cd8d11bf75530c（指纹范围：src + assets + index.template.html + tools/build.mjs + tools/src-sha.mjs）
+[done] AppHost 导出 export/web/index.html = 581 KB（与主产物一致: true）
+[verify] 第 二 次构建（node tools/build.mjs）…
+[build] esbuild 打包 src/main.js（three 全量内联，minify + iife）…
+[done] 产物 index.html = 581 KB，零外部资源引用
+[done] SRC_SHA=10cd8d11bf75530c（指纹范围：src + assets + index.template.html + tools/build.mjs + tools/src-sha.mjs）
+[done] AppHost 导出 export/web/index.html = 581 KB（与主产物一致: true）
+  PASS  主产物两次构建 sha256 一致（75bd24cd6cb2ac00…）
+  PASS  AppHost 导出产物两次构建 sha256 一致（75bd24cd6cb2ac00…）
+  PASS  主产物 ↔ AppHost 导出产物 sha256 一致（同一字符串真源）
+  PASS  SRC_SHA 与源输入复算一致（10cd8d11bf75530c，指纹范围 src + assets + index.template.html + tools/build.mjs + tools/src-sha.mjs）
+REPRODUCIBLE-BUILD {"ok":true,"build1":{"main":"75bd24cd6cb2ac001ef7ace84ca599417c287638e4c751c1b71a430251cd6d5d","exportWeb":"75bd24cd6cb2ac001ef7ace84ca599417c287638e4c751c1b71a430251cd6d5d"},"build2":{"main":"75bd24cd6cb2ac001ef7ace84ca599417c287638e4c751c1b71a430251cd6d5d","exportWeb":"75bd24cd6cb2ac001ef7ace84ca599417c287638e4c751c1b71a430251cd6d5d"},"srcSha":"10cd8d11bf75530c","fingerprintPaths":["src","assets","index.template.html","tools/build.mjs","tools/src-sha.mjs"]}
+REPRODUCIBLE: PASS 连续两次构建逐字节一致，产物可复现
+
+===== boundary.spec.mjs（node games/transport-ship-3d/tests/boundary.spec.mjs）=====
+  PASS  空场景初始态：无敌兵/第0波/休整/零分/未结束
+  PASS  空场景短推进：零事件、仍无敌兵
+  PASS  空场景推进 12.2s → 首波完整生成（wave=1，敌兵=4=4）
+  PASS  首波 waveStart 事件上抛
+  PASS  极端意图位移（1e9 米级）→ 围栏钳制在甲板内（x=8.650, z=-29.650）
+  PASS  围栏钳制后坐标有限（无 NaN 外溢）
+  PASS  clampToDeck 对 6 组超界/合法坐标全部钳制入界
+  PASS  600 tick 极端意图+极端俯仰 → 始终在界内且俯仰被钳制（±1.2）
+  PASS  波次生成+追击的 4 名敌兵坐标全部在甲板内（出生轮转 + 围栏钳制）
+  PASS  clampZoom 对 12 组极端/合法输入全部收敛（含 NaN/±Infinity/0/负值）
+  PASS  lookSensitivity 对 0/负/NaN/Infinity/极小视口回退有限正值（不产生病态灵敏度）
+  PASS  缩放纯表现层口径：内核 world/player/snapshot 均无 zoom 字段（极端缩放不进内核）
+  PASS  frame(0) → 零 tick、时间不动
+  PASS  frame(-1) → 钳制为 0、时间不动
+  PASS  frame(NaN) → 回退 0、时间不动
+  PASS  frame(Infinity) → 回退 0、时间不动
+  PASS  异常 dt 之后正常帧仍精确推进一个固定子步（累加器未被污染）
+  PASS  fastForward(0/-5/NaN/±Infinity) → 0 tick（内核不动）
+  PASS  intent 注入 NaN/±Infinity → 内核全部字段保持有限且在界内
+  PASS  frame(undefined/null/{}) → 归一化为空意图正常推进
+  PASS  seed=0（回绕 0）双跑快照一致
+  PASS  seed=-1（回绕 4294967295）双跑快照一致
+  PASS  seed=4294967303（回绕 7）双跑快照一致
+  PASS  seed=1.5（回绕 1）双跑快照一致
+  PASS  0 弹药 + 0 备弹持续开火 → 零射击、零换弹事件（无死循环）
+  PASS  全零意图 2s → 玩家位置零漂移
+BOUNDARY: PASS 四类边界（空场景/超界坐标/极端缩放/0与负值）全部成立
+
+===== combat.spec.mjs（node games/transport-ship-3d/tests/combat.spec.mjs）=====
+  PASS  射速节流成立：220 tick 内 30 发（理论上限 31，FIRE_INTERVAL=0.11s）
+  PASS  shotsFired 计数与实发一致
+  PASS  开局弹药 = MAG_SIZE(30) + RESERVE_AMMO(150)
+  PASS  弹匣打空触发自动换弹
+  PASS  换弹时长 ≈ RELOAD_TIME（实测 2.000s）
+  PASS  换弹后弹匣补满（或备弹耗尽）
+  PASS  备弹扣减记账正确（150 → 120）
+  PASS  命中得分 = HIT_SCORE（10）
+  PASS  爆头判定与 HEADSHOT_BONUS/HIT_SCORE 记账生效
+  PASS  玩家承伤为 ENEMY_DAMAGE 整数倍（-7，ENEMY_DAMAGE=7，命中率 ENEMY_HIT_CHANCE=0.3）
+  PASS  血量封顶 PLAYER_MAX_HP
+CONTRACT: PASS 武器数值与 spec.numeric 一致
+
+===== kernel-determinism.spec.mjs（node games/transport-ship-3d/tests/kernel-determinism.spec.mjs）=====
+  PASS  seed=7 两跑 2700 tick 快照逐字段一致
+  PASS  seed=20260923 两跑 2700 tick 快照逐字段一致
+  PASS  不同 seed 轨迹分化（seeded RNG 生效）
+  PASS  大 dt 帧被钳制为 6 个固定子步（快照一致）
+  PASS  fastForward 与逐 tick frame 快照等价
+CONTRACT: PASS 内核确定性成立
+
+===== qa-audit.mjs（node games/transport-ship-3d/tests/qa-audit.mjs）=====
+  PASS  内核纯净（5 个文件：零 three / 零 DOM / 零随机 / 零时钟）
+  PASS  spec 导出件为 approved 版（v3，平台 cmue00o2z003tm9y3159fb6xl）
+  PASS  spec.numeric 的 41 键全部在 numeric.js 有镜像
+  PASS  numeric.js 无 spec 之外的私加数值键
+  PASS  数值逐键比对无偏差
+  PASS  HUD 引用的 17 个 DOM id 全部有声明（innerHTML/静态骨架）
+  PASS  产物与源输入同步（SRC_SHA=10cd8d11bf75530c，指纹范围 src + assets + index.template.html + tools/build.mjs + tools/src-sha.mjs）
+  PASS  关卡元素编号双向集合相等（11 个，spec ↔ 代码一一对应）
+  PASS  AppHost 导出拷贝与主产物逐字节一致（export/web/index.html ↔ index.html）
+  PASS  移动控件热区口径成立（44px 下限 / 摇杆区矩形 / 死区归零 / 满行程钳 1 / 极端视口钳制 5 组）
+QA-AUDIT: PASS 七道互查关全过
+
+===== singlefile.contract.mjs（node games/transport-ship-3d/tests/singlefile.contract.mjs）=====
+  PASS  产物存在: index.html（581 KB）
+  PASS  无 src/href 外部引用（零图片/脚本/样式外链）
+  PASS  无 importmap / CDN 域名命中
+  PASS  内联脚本就绪（最大块 572 KB，three+游戏本体）
+  PASS  产物包含 id="gl"
+  PASS  产物包含 id="ui"
+  PASS  产物包含 clip-path
+  PASS  产物包含 --font-num
+CONTRACT: PASS 单文件零外部资源约束成立
+
+===== state-machine.spec.mjs（node games/transport-ship-3d/tests/state-machine.spec.mjs）=====
+—— ① 暂停/恢复连按 ≥5 轮 ——
+  PASS  第1轮 双击暂停 → 唯一 paused，且暂停腿 10 tick 时间不走
+  PASS  第1轮 恢复 → 唯一 playing
+  PASS  第2轮 双击暂停 → 唯一 paused，且暂停腿 10 tick 时间不走
+  PASS  第2轮 恢复 → 唯一 playing
+  PASS  第3轮 双击暂停 → 唯一 paused，且暂停腿 10 tick 时间不走
+  PASS  第3轮 恢复 → 唯一 playing
+  PASS  第4轮 双击暂停 → 唯一 paused，且暂停腿 10 tick 时间不走
+  PASS  第4轮 恢复 → 唯一 playing
+  PASS  第5轮 双击暂停 → 唯一 paused，且暂停腿 10 tick 时间不走
+  PASS  第5轮 恢复 → 唯一 playing
+  PASS  第6轮 双击暂停 → 唯一 paused，且暂停腿 10 tick 时间不走
+  PASS  第6轮 恢复 → 唯一 playing
+  PASS  连按 6 轮（12 次迁移）零未捕获异常
+  PASS  状态唯一收敛：全程只出现 playing/paused 两个合法态，无第三态
+  PASS  收尾处于 playing 态
+  PASS  恢复后时间继续推进（无冻结残留）
+—— ② 结算瞬间继续输入 ——
+  PASS  自然战败结算（存活 34.2s）→ 状态唯一 gameover、HP=0
+  PASS  阵亡后注入 120 tick 移动+开火意图 → 零事件（无新弹道）
+  PASS  阵亡后弹道记账冻结（shotsFired/shotsHit 不增加）
+  PASS  阵亡后位置零位移（移动意图被拒）
+  PASS  阵亡后时间/分数不走
+  PASS  阵亡后敌兵/波次不再推进
+  PASS  结算后状态仍唯一 gameover（不会被输入改写）
+—— ③ 重开连点 ≥5 次 ——
+  PASS  重开前状态已非平凡（score=0 wave=1 ammo=19 敌兵=4）
+  PASS  第1次重开 → 状态唯一 playing
+  PASS  第1次重开 → 时间/分数/击杀/爆头归零
+  PASS  第1次重开 → HP/弹匣/储备/换弹标志复位
+  PASS  第1次重开 → 波次/敌兵复位
+  PASS  第2次重开 → 状态唯一 playing
+  PASS  第2次重开 → 时间/分数/击杀/爆头归零
+  PASS  第2次重开 → HP/弹匣/储备/换弹标志复位
+  PASS  第2次重开 → 波次/敌兵复位
+  PASS  第3次重开 → 状态唯一 playing
+  PASS  第3次重开 → 时间/分数/击杀/爆头归零
+  PASS  第3次重开 → HP/弹匣/储备/换弹标志复位
+  PASS  第3次重开 → 波次/敌兵复位
+  PASS  第4次重开 → 状态唯一 playing
+  PASS  第4次重开 → 时间/分数/击杀/爆头归零
+  PASS  第4次重开 → HP/弹匣/储备/换弹标志复位
+  PASS  第4次重开 → 波次/敌兵复位
+  PASS  第5次重开 → 状态唯一 playing
+  PASS  第5次重开 → 时间/分数/击杀/爆头归零
+  PASS  第5次重开 → HP/弹匣/储备/换弹标志复位
+  PASS  第5次重开 → 波次/敌兵复位
+  PASS  第6次重开 → 状态唯一 playing
+  PASS  第6次重开 → 时间/分数/击杀/爆头归零
+  PASS  第6次重开 → HP/弹匣/储备/换弹标志复位
+  PASS  第6次重开 → 波次/敌兵复位
+  PASS  连点 6 次重开零未捕获异常
+  PASS  重开 6 次 → game.world 引用稳定（表现层无需重建）
+  PASS  重开后与全新同 seed 对局逐步等价（确定性复位，非部分清零）
+—— ④ playing 中途暂停后重开 ——
+  PASS  推进 10s 后暂停成功
+  PASS  恢复路径可用（暂停 → 恢复 → 重开）
+  PASS  暂停→重开：HP/波次/分数/弹药/储备/位置/计时器全部等于全新对局初始值
+  PASS  重开后旧波敌兵全部清除
+  PASS  重开后状态唯一 playing、未终局
+—— ⑤ 无幽灵状态 / 无残留计时器 ——
+  PASS  状态字段唯一：仅 state（唯一状态字段）+ over（终局标记），无并列状态布尔/幽灵态
+  PASS  状态读取双口径一致且合法（game.state === world.state）
+  PASS  暂停期间推进 90 tick + fastForward(2s)：存活时间不走
+  PASS  暂停期间全字段零漂移（位置/波次计时器/换弹与射速计时器/敌兵状态全冻结）
+  PASS  恢复瞬间无时间跳变
+  PASS  恢复后首帧恰好推进 1 tick（无补帧爆发/累加器污染）
+  PASS  前置：已进入第1波 active、敌兵在场（旧计时器非初始）
+  PASS  重开后旧波计时器清零（restT=480 开局休整、spawnT/spawned/toSpawn/reloadT/fireT 归零）
+STATE-MACHINE: PASS 六组对抗（连按暂停恢复/结算瞬间输入/重开连点/暂停后重开/无幽灵状态/内核缺口回归）全部成立
+
+===== wave.spec.mjs（node games/transport-ship-3d/tests/wave.spec.mjs）=====
+  PASS  规模公式 waveSize(n)=BASE+(n-1)*GROWTH：w1=4 w2=6 w5=12
+  PASS  规模封顶 CAP=14（w20=14）
+  PASS  关卡声明 3 个出生点（spawn-north/spawn-east/spawn-west）
+  PASS  出生点轮转确定性：[0,1,2,0,1,2]
+  PASS  开局休整 8s 内不出波（t=7.98 wave=0）
+  PASS  休整结束触发 waveStart(wave=1)
+  PASS  waveStart 携带本波规模（4）
+  PASS  敌兵状态可序列化
+  PASS  敌速成长 ENEMY_SPEED + (n-1)*ENEMY_SPEED_GROWTH（w1=2.7 w4=3.1500000000000004）
+  PASS  清波奖励 = WAVE_CLEAR_BONUS（200）
+  PASS  清波回血 = min(缺口, WAVE_CLEAR_HEAL)（+35）
+CONTRACT: PASS 波次确定性递增成立
+
+===== 门禁汇总 =====
+  PASS  构建复现（两次构建哈希一致）
+  PASS  boundary.spec.mjs
+  PASS  combat.spec.mjs
+  PASS  kernel-determinism.spec.mjs
+  PASS  qa-audit.mjs
+  PASS  singlefile.contract.mjs
+  PASS  state-machine.spec.mjs
+  PASS  wave.spec.mjs
+GAME-GATES: PASS（8/8 全过）

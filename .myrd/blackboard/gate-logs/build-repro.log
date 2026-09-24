@@ -1,0 +1,41 @@
+# build-repro.log — 验收口径A 游戏目录独立复现（cd games/transport-ship-3d && npm install --no-fund --no-audit && npm run build）
+# 时间: 2026-09-24 15:08:27 +0800  分支: myrd/ts3d-gapfix-goal-cmuewc8rr0023m987wdzz4dcu  HEAD: 5db4c57
+
+== $ npm install --no-fund --no-audit ==
+
+up to date in 241ms
+install exit=0
+
+== $ npm run build ==
+
+> build
+> node tools/build.mjs
+
+[build] esbuild 打包 src/main.js（three 全量内联，minify + iife）…
+[done] 产物 index.html = 581 KB，零外部资源引用
+[done] SRC_SHA=10cd8d11bf75530c（指纹范围：src + assets + index.template.html + tools/build.mjs + tools/src-sha.mjs）
+[done] AppHost 导出 export/web/index.html = 581 KB（与主产物一致: true）
+build exit=0
+
+== $ npm run verify（连构两次哈希一致门禁）==
+
+> verify
+> node tools/verify-reproducible.mjs
+
+[verify] 第 一 次构建（node tools/build.mjs）…
+[build] esbuild 打包 src/main.js（three 全量内联，minify + iife）…
+[done] 产物 index.html = 581 KB，零外部资源引用
+[done] SRC_SHA=10cd8d11bf75530c（指纹范围：src + assets + index.template.html + tools/build.mjs + tools/src-sha.mjs）
+[done] AppHost 导出 export/web/index.html = 581 KB（与主产物一致: true）
+[verify] 第 二 次构建（node tools/build.mjs）…
+[build] esbuild 打包 src/main.js（three 全量内联，minify + iife）…
+[done] 产物 index.html = 581 KB，零外部资源引用
+[done] SRC_SHA=10cd8d11bf75530c（指纹范围：src + assets + index.template.html + tools/build.mjs + tools/src-sha.mjs）
+[done] AppHost 导出 export/web/index.html = 581 KB（与主产物一致: true）
+  PASS  主产物两次构建 sha256 一致（75bd24cd6cb2ac00…）
+  PASS  AppHost 导出产物两次构建 sha256 一致（75bd24cd6cb2ac00…）
+  PASS  主产物 ↔ AppHost 导出产物 sha256 一致（同一字符串真源）
+  PASS  SRC_SHA 与源输入复算一致（10cd8d11bf75530c，指纹范围 src + assets + index.template.html + tools/build.mjs + tools/src-sha.mjs）
+REPRODUCIBLE-BUILD {"ok":true,"build1":{"main":"75bd24cd6cb2ac001ef7ace84ca599417c287638e4c751c1b71a430251cd6d5d","exportWeb":"75bd24cd6cb2ac001ef7ace84ca599417c287638e4c751c1b71a430251cd6d5d"},"build2":{"main":"75bd24cd6cb2ac001ef7ace84ca599417c287638e4c751c1b71a430251cd6d5d","exportWeb":"75bd24cd6cb2ac001ef7ace84ca599417c287638e4c751c1b71a430251cd6d5d"},"srcSha":"10cd8d11bf75530c","fingerprintPaths":["src","assets","index.template.html","tools/build.mjs","tools/src-sha.mjs"]}
+REPRODUCIBLE: PASS 连续两次构建逐字节一致，产物可复现
+verify exit=0
