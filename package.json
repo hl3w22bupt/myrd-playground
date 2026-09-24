@@ -12,13 +12,17 @@
     "bench": "node --expose-gc ./node_modules/vitest/vitest.mjs run --config vitest.bench.config.ts",
     "test:watch": "vitest",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "game:build": "node games/transport-ship-3d/tools/build.mjs",
+    "game:verify": "node games/transport-ship-3d/tools/verify-reproducible.mjs",
+    "game:test": "node games/transport-ship-3d/tests/run-all.mjs"
   },
   "dependencies": {
     "three": "0.185.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
+    "esbuild": "0.28.2",
     "@types/three": "^0.180.0",
     "eslint": "^9.36.0",
     "typescript": "~5.9.3",

@@ -43,6 +43,22 @@ node games/transport-ship-3d/tests/qa-audit.mjs                       # ac-6 QA 
 真浏览器冒烟门禁（CDP 驱动，断言打开即玩/循环推进/零未捕获异常/重玩钩子落账）：
 `node games/transport-ship-3d/tools/smoke.mjs`（需本机 Chrome，`--chrome` 可指定路径）。
 
+## 构建复现（验收口径 A）
+
+构建关键依赖已显式钉死精确版本（`three@0.185.1`、`esbuild@0.28.2`，其余由 `package-lock.json` 锁定），
+从基线 **pr-25（commit `0659452`）** 起三步复现，产物逐字节一致：
+
+```bash
+git fetch origin pull/25/head && git checkout 0659452   # ① 回基线
+npm ci --no-fund --no-audit                             # ② 按 lockfile 精确装依赖（不解析新版本）
+npm run game:verify                                     # ③ 连构两次 → sha256 比对 + SRC_SHA 源指纹复核
+```
+
+- `npm run game:verify`（`tools/verify-reproducible.mjs`）机判：主产物与 `export/web/index.html`
+  两次构建 sha256 一致、主产物 ↔ 导出拷贝一致、`SRC_SHA` 与 `tools/src-sha.mjs` 复算一致；
+  末行输出单行 JSON 证据 `REPRODUCIBLE-BUILD {...}`，失败非零退出。
+- `npm run game:test`（`tests/run-all.mjs`）为全量门禁聚合入口（含上项与全部验收测试），CI 常驻。
+
 ## 复刻要点对照（与知识文档的映射）
 
 | 知识文档范式 | 本工程落点 |
