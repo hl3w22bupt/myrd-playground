@@ -103,3 +103,42 @@
 2. `541f937` merge: worktree 分支①（C 状态机 + A 构建口径）
 3. `5db4c57` fix(games): B 摇杆/按钮接线补全（意图合并·暂停钩子·控件样式落位）
 4. （本提交）test(games): B 取证扩展 + QA-AUDIT 第⑦关 + D 证据刷新
+
+---
+
+# 第三轮（红队复验残余差距修复）：批次 20260924-155606 @ 终稿 HEAD
+
+红队复验暴露的非 pass 残余差距逐项修复后，A–D 证据在终稿 HEAD 全量重采（此前两批证据保留作沿革）。
+
+## 本轮修复清单（逐项单项提交）
+
+| # | 红队发现 | 处置 | 提交 |
+|---|---|---|---|
+| 1 | 卫生级副作用：`.claude/worktrees/agent-*` 两个 gitlink 被误提交入树 | `git rm --cached` 移出 + `.gitignore` 忽略 `.claude/`，仓库树零 gitlink | `5039314` |
+| 2 | CI 未激活：`.github/workflows` 缺失（C 项要求 CI 常驻） | `ci/game-gates.yml` 真源镜像拷入 `.github/workflows/game-gates.yml`，push/PR 触发即跑全套门禁 | `d4d9705` |
+| 3 | 次级观察点：pointer 降级通道无 setPointerCapture，按住移出画布抬指失联 → 登记表泄漏 → 多指针场景误入捏合 | pointerdown 即 `setPointerCapture`（try/catch 兼容旧环境）+ `pointerleave`/`lostpointercapture` 兜底收尾 + dispose 卸载；新增 `tests/pointer-fallback.spec.mjs` 四组对抗 12 断言（TDD 先红后绿：修复前 5 项 FAIL） | `4defae9` |
+| 4 | 取证脚本自身缺陷：touchcheck 固定 5.2s 单次读取，冷启动/高载下误报「报告未产出」（实测抓出：同环境复跑 t≈3s 即落报告 ok=true） | 单次读取 → 400ms 步进轮询至 15s 截止（覆盖驱动 10s 预热上限），断言集合与阈值零改动 | `b90cff5` |
+
+## 第三批证据（批次 20260924-155606 @ 终稿 HEAD，每文件 sha256 摘要供第三方复核）
+
+| 口径 | 结果 | 证据（sha256 前 16 位） |
+|---|---|---|
+| A 构建复现 | 连构两次主产物=导出产物 sha256 **全同（`e79b6577c35c67ea…`）**，SRC_SHA=`3d6b765d300d115b` 复算一致 | `gate-logs/build-repro.log`（`105abaf494d2febf…`，含 REPRODUCIBLE-BUILD JSON） |
+| B 四类手势 | 拖拽 yawDelta=**-1.8462 rad** · 捏合 fov **78°→27.3°**（zoom 0.35 钳下限）· 摇杆位移 **1.524m** · 点按 shots **0→1** ackMs=**9ms** | `gapfix-b-touch-20260924-155606.log`（`7168c740bdd5cd54…`） |
+| B 热区 DOM 实测 | 摇杆 112×112 @(28,704) 左下半屏 · 开火 64×64 · 换弹/暂停 44×44（HIG 下限）· 全部在视口内 | 同上 |
+| B pointer 降级健壮性 | 四组对抗 **12 断言全 PASS**（leave 兜底/捕获接线/捕获异常不致命/隐式释放零副作用），`GAME-GATES 9/9` 纳入常驻 | `gapfix-d-full-suite-20260924-155606.log`（`800d47e2b6c38877…`）+ `POINTER-FALLBACK: PASS` |
+| B 帧率采样 | rAF 连采 61 帧，平均 55.83ms/帧 ≈ **17.9fps**（SwiftShader 软渲染 ≥5fps 口径） | `gapfix-b-touch-20260924-155606.log` |
+| B 移动仿真截图 | 390×844+touch+dpr2，摇杆底盘/旋钮 + FIRE/R/II 四控件可见 | `gapfix-b-touch-mobile-390x844-20260924-155606.png`（`d5838b1ebc88a853…`） |
+| C 边界断言 | 四类边界全过（空场景/1e9 超界坐标/clampZoom 对抗/frame(0,±∞,NaN)/seed 回绕/0 弹药） | `gapfix-c-boundary-20260924-155606.log`（`536948e8cc373443…`） |
+| C 状态机对抗 | 65 项六组对抗全过（连按暂停恢复/结算瞬间输入/重开连点/暂停后重开/无幽灵状态/内核缺口回归） | `gapfix-d-full-suite-20260924-155606.log`（state-machine.spec 套件节） |
+| D 全量门禁 | **GAME-GATES 9/9 全过（构建复现 + 7 spec 套件 + qa-audit 七关），170 PASS，exit 0** | `gapfix-d-full-suite-20260924-155606.log` |
+
+第三轮齐全率：A–D 四项证据在终稿 HEAD 重采归档并附 sha256 摘要，**100%**。
+
+## 第三轮提交清单
+
+1. `5039314` chore: 移除误提交 worktree gitlink（红队卫生级副作用收口）
+2. `d4d9705` ci: 激活 .github/workflows 常驻门禁（C 项 CI 口径收口）
+3. `4defae9` fix(games): pointer 降级通道抬指兜底 + pointer-fallback.spec 对抗断言（红队次级观察点收口）
+4. `b90cff5` fix(games): touchcheck 报告读取 15s 轮询（消取证计时 flake）
+5. （本提交）test(games): D 证据第三批重采 + 索引刷新
