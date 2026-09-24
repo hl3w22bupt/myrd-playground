@@ -83,6 +83,24 @@ try {
   const evalJs = async (expr) => (await cdp.send("Runtime.evaluate", {
     expression: expr, returnByValue: true, awaitPromise: true,
   })).result?.result?.value;
+  // 真实点按（与 touchdemo 同风格）：在目标元素上合成 TouchEvent 走它自己的监听链路；
+  // 对只挂 pointerdown/click 的按钮（#ts-start）按真机点按事件序补投 pointer 与 click 合成 ——
+  // 真实一指点按 = touchstart → pointerdown → pointerup → touchend → click，这里按同序投递。
+  const tapButton = (sel) => evalJs(`(() => {
+    const el = document.querySelector(${JSON.stringify(sel)});
+    if (!el) return { found: false };
+    const b = el.getBoundingClientRect();
+    const x = b.x + b.width / 2, y = b.y + b.height / 2;
+    const t = new Touch({ identifier: 31, target: el, clientX: x, clientY: y });
+    const to = { touches: [t], targetTouches: [t], changedTouches: [t], bubbles: true, cancelable: true };
+    const po = { pointerId: 31, pointerType: "touch", isPrimary: true, clientX: x, clientY: y, bubbles: true, cancelable: true };
+    el.dispatchEvent(new TouchEvent("touchstart", to));
+    el.dispatchEvent(new PointerEvent("pointerdown", po));
+    el.dispatchEvent(new PointerEvent("pointerup", po));
+    el.dispatchEvent(new TouchEvent("touchend", { ...to, touches: [], targetTouches: [] }));
+    el.dispatchEvent(new MouseEvent("click", { clientX: x, clientY: y, bubbles: true, cancelable: true }));
+    return { found: true, x: Math.round(x), y: Math.round(y) };
+  })()`);
 
   // —— 移动仿真（等效模拟器口径）：iPhone 视口 + 触摸仿真 + 主指针 coarse ——
   await cdp.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
@@ -90,12 +108,13 @@ try {
   await cdp.send("Emulation.setEmitTouchEventsForMouse", { enabled: true, configuration: "mobile" });
   await cdp.send("Emulation.setEmulatedMedia", { features: [{ name: "pointer", value: "coarse" }, { name: "hover", value: "none" }] });
 
-  // ① 打开产物 ?touchdemo=1（合成手势驱动，约 2.1s 完成四类手势）。
-  // 报告轮询至 15s 截止（驱动内 beginGestures 对 headless SwiftShader 首帧预热容忍 10s）：
-  // 冷启动/高载下固定 5.2s 单次读取会误报「报告未产出」——轮询不放松任何断言，只消除计时 flake。
+  // ① 打开产物 ?touchdemo=1（合成手势驱动：四类手势约 2.1s + 命中环等敌兵出生 ≤20s + 瞄准/补射 ≤6s）。
+  // 报告轮询至 45s 截止（驱动内 beginGestures 对 headless SwiftShader 首帧预热容忍 10s）：
+  // 冷启动/高载下固定单次读取会误报「报告未产出」——轮询只是截止放宽（命中环需等 WAVE_REST=8s
+  // 世界时间的休整期结束、敌兵出生后才能打中），不放松任何断言。
   await cdp.send("Page.navigate", { url: `${base}?touchdemo=1` });
   let payloadRaw = "";
-  for (let waited = 0; waited < 15000; waited += 400) {
+  for (let waited = 0; waited < 45000; waited += 400) {
     payloadRaw = (await evalJs(`document.getElementById("ts-touch")?.textContent ?? ""`)) ?? "";
     if (payloadRaw) break;
     await sleep(400);
@@ -112,6 +131,8 @@ try {
     `shots ${r?.tap?.shotsBefore} → ${r?.tap?.shotsAfter}`);
   check((r?.tap?.ackMs ?? 1e9) < 100, "点按确认时延 <100ms（无 300ms 延迟口径）",
     `ackMs=${r?.tap?.ackMs}`);
+  check(r?.tap?.hit === true, "开火命中环：点按开火 → 敌兵受击（内核 shotsHit 记账上升）",
+    `shotsHit ${r?.tap?.shotsHitBefore} → ${r?.tap?.shotsHitAfter}, aimErr=${r?.tap?.aimErr}rad, rounds=${r?.tap?.rounds}, hitMs=${r?.tap?.hitMs}ms, hitMark=${r?.tap?.hitMarkSeen}`);
   check(r?.stick?.moved === true, "手势④ 虚拟摇杆 = 移动意图（左下摇杆区落指上推 → 位移）",
     `dist=${r?.stick?.dist}m (${r?.stick?.xBefore},${r?.stick?.zBefore})→(${r?.stick?.xAfter},${r?.stick?.zAfter})`);
   check(r?.ok === true, "四类手势汇总判定 ok", JSON.stringify(r));

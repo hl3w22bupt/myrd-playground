@@ -60,9 +60,10 @@ const touchMode = isTouchDevice();
 // 触屏没有 Esc：暂停按钮 → onPause 钩子（与桌面 pointerlock 丢失同一状态机路径，见下方 pauseGame）
 const pauseGame = () => {
   if (state !== "playing") return;
+  game.pause(); // 内核状态机同步（kernel/loop.js 单字段 world.state）：暂停期内核拒意图、停推进 —— 双层口径一致
   state = "paused";
   hud.showScreen(true);
-  hud.screenText({ title: "已暂停 ", sub: "点按按钮回到甲板。", btn: "继续（点按）" });
+  hud.screenText({ title: "已暂停 ", sub: "点按按钮回到甲板。", btn: "继续（点按）", restart: "重开一局（点按）" });
 };
 const touchCtl = attachTouch(canvas, inputState, { onZoom: (z) => rig.setZoom(z), onPause: pauseGame });
 
@@ -75,12 +76,25 @@ if (replay.highScore || replay.waveStreak) {
 hud.onStart(() => {
   audio.unlock();
   if (state === "gameover") resetMatch();
+  else game.resume(); // 继续：内核 paused → playing（幂等；title 态空转）。重开路径走 onRestart → resetMatch
   touchCtl.resetZoom(); // 重开回标准视场
   hud.setDead(false); // 重开：退出阵亡灰度
   if (!touchMode) {
     // 桌面：锁定鼠标；无头/拒绝场景静默降级（Promise 拒绝不外溢，冒烟门禁零未捕获异常口径）
     try { canvas.requestPointerLock?.()?.catch?.(() => {}); } catch { /* pointerLock 不可用 */ }
   } // 触屏：点按即进对局（无 pointerLock、无 300ms 等待）
+  state = "playing";
+  hud.showScreen(false);
+});
+
+// 重开按钮（暂停屏次操作，验收口径 D「重开环」）：整体复位 HP/波次/分数/弹药/敌兵 ——
+// 复用对局内随机重开 resetMatch（内核 createWorld 整体替换，引用稳定），与结算屏「再来一局」同一复位口径。
+hud.onRestart(() => {
+  if (state !== "paused" && state !== "gameover") return; // 仅暂停/结算态可重开（对局中不误触）
+  audio.unlock();
+  resetMatch();
+  touchCtl.resetZoom();
+  hud.setDead(false);
   state = "playing";
   hud.showScreen(false);
 });
@@ -101,18 +115,20 @@ function resetMatch() {
 document.addEventListener("pointerlockchange", () => {
   const locked = document.pointerLockElement === canvas;
   if (!locked && state === "playing") {
+    game.pause(); // 内核状态机同步（与 pauseGame 同一口径）
     state = "paused";
     hud.showScreen(true);
-    hud.screenText({ title: "已暂停 ", sub: "点击按钮回到甲板。", btn: touchMode ? "继续（点按）" : "继续（锁定鼠标）" });
+    hud.screenText({ title: "已暂停 ", sub: "点击按钮回到甲板。", btn: touchMode ? "继续（点按）" : "继续（锁定鼠标）", restart: touchMode ? "重开一局（点按）" : "重开一局" });
   }
 });
 
 // 触屏没有 Esc：切后台即暂停，回前台点按继续（防后台白跑内核）
 document.addEventListener("visibilitychange", () => {
   if (document.hidden && touchMode && state === "playing") {
+    game.pause(); // 内核状态机同步（与 pauseGame 同一口径）
     state = "paused";
     hud.showScreen(true);
-    hud.screenText({ title: "已暂停 ", sub: "点按按钮回到甲板。", btn: "继续（点按）" });
+    hud.screenText({ title: "已暂停 ", sub: "点按按钮回到甲板。", btn: "继续（点按）", restart: "重开一局（点按）" });
   }
 });
 
@@ -237,8 +253,9 @@ if (fireSec !== null) {
 }
 
 // ?touchdemo=1：触屏手势无头取证（验收口径 B/D）—— 在真实浏览器里合成 TouchEvent 序列
-// （拖拽 → 双指捏合 → 点按），把三类手势的机判结果写进 DOM(#ts-touch)/标题/控制台，
+// （拖拽 → 双指捏合 → 点按开火+命中），把机判结果写进 DOM(#ts-touch)/标题/控制台，
 // 供 CDP 冒烟断言与证据归档；不碰内核、不改数值，只走与真机完全相同的监听链路。
+// 点按环含「开火→命中」闭环：先以同一拖拽链路伺服瞄准最近敌兵，命中以内核 shotsHit 计数上升机判。
 const touchdemo = new URLSearchParams(location.search).get("touchdemo");
 if (touchdemo !== null) {
   const fire = (type, touchList, changed = touchList) => canvas.dispatchEvent(
@@ -253,15 +270,22 @@ if (touchdemo !== null) {
     drag: { moved: false, yawDelta: 0 },
     pinch: { zoomed: false, fovBefore: 0, fovMin: 0, zoomAfter: 1 },
     stick: { moved: false, dist: 0, xBefore: 0, zBefore: 0, xAfter: 0, zAfter: 0 },
-    tap: { fired: false, shotsBefore: 0, shotsAfter: 0, ackMs: null },
+    tap: {
+      fired: false, hit: false, shotsBefore: 0, shotsAfter: 0,
+      shotsHitBefore: 0, shotsHitAfter: 0, ackMs: null, hitMs: null,
+      aimErr: null, rounds: 0, hitMarkSeen: false, targetHpBefore: null, targetHpAfter: null,
+    },
   };
   const finish = () => {
     if (document.getElementById("ts-touch")) return; // 报告只落一次
     report.pinch.zoomed = report.pinch.fovMin < report.pinch.fovBefore - 5 && report.pinch.zoomAfter < 1;
     report.drag.moved = Math.abs(report.drag.yawDelta) > 0.2;
     report.stick.moved = report.stick.dist > 0.5;
+    report.tap.shotsHitAfter = game.world.shotsHit;
     report.tap.fired = report.tap.shotsAfter > report.tap.shotsBefore;
-    report.ok = report.drag.moved && report.pinch.zoomed && report.stick.moved && report.tap.fired;
+    report.tap.hit = report.tap.shotsHitAfter > report.tap.shotsHitBefore; // 敌兵受击（内核命中记账）
+    report.ok = report.drag.moved && report.pinch.zoomed && report.stick.moved
+      && report.tap.fired && report.tap.hit;
     const payload = JSON.stringify(report);
     const box = document.createElement("div");
     box.id = "ts-touch";
@@ -314,23 +338,85 @@ if (touchdemo !== null) {
       report.stick.dist = +Math.hypot(report.stick.xAfter - report.stick.xBefore, report.stick.zAfter - report.stick.zBefore).toFixed(3);
       fire("touchend", [], [mk(4, 100, 630)]); // 抬指：移动意图立即清零（不漂移）
     });
-    // —— 点按：80ms 短触零位移 → 单发开火，并测内核确认时延（应 <100ms）——
-    at(1900, () => {
-      fire("touchstart", [mk(3, 200, 200)]);
-      at(80, () => {
-        const t0 = performance.now();
-        fire("touchend", [], [mk(3, 200, 200)]);
-        const poll = () => {
-          if (game.world.shotsFired > report.tap.shotsBefore) {
-            report.tap.ackMs = Math.round(performance.now() - t0);
-            report.tap.shotsAfter = game.world.shotsFired;
-            finish();
-          } else if (performance.now() - t0 < 2000) requestAnimationFrame(poll);
-          else { report.tap.shotsAfter = game.world.shotsFired; finish(); }
+    // —— 点按开火 → 命中（验收口径D「开火命中」环）：hitscan 只沿当前朝向打一发，不瞄准必脱靶，
+    // 先用与真机完全相同的拖拽链路把准星伺服到最近存活敌兵方向，再 80ms 短触零位移开火。
+    // 命中机判 = 内核 shotsHit 计数上升（敌兵受击/血量下降的确定性记账），并顺带记录表现层命中标记。
+    // 伺服与补射均有界：转向 ≤1.2s、最多 6 轮补射、轮内确认 ≤700ms，卡死由兜底 finish 落报告。
+    // 前置：开局休整 WAVE_REST=8s（世界时间）内场上无敌兵 —— 先有界等待 ≤20s 再进环，否则六轮补射必落空。——
+    const beginHitRing = () => {
+      const AIM_TOL = 0.015; // rad：残余瞄准误差在 12m 外 ≤0.18m，远小于 ENEMY_HIT_RADIUS 0.45m
+      const slop = Math.max(6, Math.min(window.innerWidth, window.innerHeight) * 0.016);
+      const k = 2.4 / Math.min(window.innerWidth, window.innerHeight); // touch.js lookSensitivity 同式
+      const norm = (a) => { const t = (a + Math.PI) / (2 * Math.PI); return (t - Math.floor(t)) * 2 * Math.PI - Math.PI; };
+      const target = (avoidId = 0) => {
+        const p = game.world.player;
+        let best = null;
+        for (const e of game.world.enemies) {
+          if (e.state === "dead" || e.id === avoidId) continue;
+          const err = norm(Math.atan2(e.x - p.x, e.z - p.z) - p.yaw);
+          const d = Math.hypot(e.x - p.x, e.z - p.z);
+          if (d < 1) continue;
+          if (!best || Math.abs(err) < Math.abs(best.err)) best = { id: e.id, err, d, hp: e.hp };
+        }
+        return best;
+      };
+      report.tap.shotsHitBefore = game.world.shotsHit;
+      // 伺服瞄准：每次一轮完整拖拽会话（按下 → 一步平移 → 抬指），applyLook: yaw -= dx*k → dx = -Δ/k
+      const aim = (done) => {
+        const deadline = performance.now() + 1200;
+        const step = () => {
+          const t = target();
+          if (!t || Math.abs(t.err) < AIM_TOL || performance.now() > deadline) {
+            report.tap.aimErr = t ? +t.err.toFixed(4) : null;
+            return done();
+          }
+          const dx = Math.max(-330, Math.min(330, -(t.err / k)));
+          if (Math.abs(dx) < slop * 2) { report.tap.aimErr = +t.err.toFixed(4); return done(); } // 位移低于点按阈值即视为已瞄准
+          fire("touchstart", [mk(7, 200, 200)]);
+          fire("touchmove", [mk(7, 200 + dx, 200)]);
+          fire("touchend", [], [mk(7, 200 + dx, 200)]);
+          setTimeout(step, 100); // 等内核子步吃到新朝向
         };
-        requestAnimationFrame(poll);
-      });
+        step();
+      };
+      // 补射轮：脱靶（或被掩体挡住）则换下一个最近敌兵再打，最多 6 轮 —— 任何一轮命中即收口
+      const shoot = (attempt, avoidId = 0) => {
+        report.tap.rounds = attempt;
+        const tgt = target(avoidId);
+        report.tap.targetHpBefore = tgt ? tgt.hp : null;
+        fire("touchstart", [mk(3, 200, 200)]);
+        at(80, () => {
+          const t0 = performance.now();
+          const shotsBeforeRound = game.world.shotsFired;
+          fire("touchend", [], [mk(3, 200, 200)]);
+          const cross = document.getElementById("ts-crosshair");
+          const poll = () => {
+            if (cross?.classList.contains("hit")) report.tap.hitMarkSeen = true; // 表现层命中标记（佐证）
+            if (game.world.shotsFired > shotsBeforeRound && report.tap.ackMs === null) {
+              report.tap.ackMs = Math.round(performance.now() - t0); // 点按 → 内核开出这一发（应 <100ms）
+              report.tap.shotsAfter = game.world.shotsFired;
+            }
+            if (game.world.shotsHit > report.tap.shotsHitBefore) {
+              report.tap.hitMs = Math.round(performance.now() - t0);
+              report.tap.shotsAfter = game.world.shotsFired;
+              report.tap.targetHpAfter = target()?.hp ?? 0;
+              finish();
+            } else if (performance.now() - t0 < 700) requestAnimationFrame(poll);
+            else if (attempt < 6) shoot(attempt + 1, tgt ? tgt.id : 0);
+            else { report.tap.shotsAfter = game.world.shotsFired; finish(); }
+          };
+          requestAnimationFrame(poll);
+        });
+      };
+      aim(() => shoot(1));
+    };
+    at(1900, () => {
+      const t0e = performance.now();
+      (function waitEnemy() {
+        if (game.world.enemies.some((e) => e.state !== "dead") || performance.now() - t0e > 20000) beginHitRing();
+        else setTimeout(waitEnemy, 200);
+      })();
     });
-    at(4500, finish); // 兜底：任何一环卡死也落报告
+    at(31000, finish); // 兜底：任何一环卡死也落报告（敌兵等待 ≤20s + 伺服 ≤1.2s + 补射 ≤4.2s 有界预算）
   });
 }

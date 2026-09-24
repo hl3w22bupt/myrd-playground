@@ -46,6 +46,9 @@ node games/transport-ship-3d/tests/qa-audit.mjs                       # ac-6 QA 
 `node games/transport-ship-3d/tools/smoke.mjs`（需本机 Chrome，`--chrome` 可指定路径）。
 触屏手势自动化用例（移动仿真 + 三类手势机判 + 点按确认时延 <100ms）：
 `node games/transport-ship-3d/tools/touchcheck.mjs`（CDP 移动仿真 390×844 + coarse 指针）。
+移动仿真五环链取证（开局→触摸移动→开火命中[shotsHit+敌方HP双口径]→暂停[双层状态机+时间冻结]→重开[HP/波次/分数/弹药复位]）：
+`node games/transport-ship-3d/tools/cdp-mobile-chain.mjs`（Input.dispatchTouchEvent 真输入管线，分环截图 + 帧率 + JSON 断言落
+`.myrd/blackboard/gate-logs/mobile-chain/`）。
 
 ## 构建复现（验收口径 A）
 

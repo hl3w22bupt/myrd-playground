@@ -113,11 +113,13 @@
   .ts-best { font-family: var(--font-num); font-size: 14px; letter-spacing: 0.08em; color: var(--accent); opacity: 0.9; min-height: 1.2em; margin: 0; }
   .ts-keys { list-style: none; display: flex; gap: 22px; font-size: 14px; opacity: 0.75; flex-wrap: wrap; justify-content: center; }
   .ts-keys b { color: var(--accent); }
-  #ts-start { pointer-events: auto; cursor: pointer; font-family: var(--font-num); font-size: 18px; letter-spacing: 0.15em;
+  #ts-start, #ts-restart { pointer-events: auto; cursor: pointer; font-family: var(--font-num); font-size: 18px; letter-spacing: 0.15em;
     color: #06121a; background: linear-gradient(180deg, #7fdce8, #38a7bd); border: 0; padding: 14px 38px;
     touch-action: manipulation; /* 按钮：保留点击语义但去双击缩放等待（300ms 消除） */
     clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px); }
-  #ts-start:hover { filter: brightness(1.1); }
+  #ts-start:hover, #ts-restart:hover { filter: brightness(1.1); }
+  /* 重开按钮（暂停屏/结算屏次操作）：默认隐藏，由 hud.screenText({restart}) 按屏显隐 */
+  #ts-restart { background: linear-gradient(180deg, #dbe9ee, #9fc4cf); }
   .ts-foot { font-size: 12px; opacity: 0.4; letter-spacing: 0.1em; }
 </style>
 </head>

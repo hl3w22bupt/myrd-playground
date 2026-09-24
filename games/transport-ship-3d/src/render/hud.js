@@ -53,11 +53,12 @@ export function buildHud(root) {
       ${touch ? '<li><b>拖拽</b> 瞄准 · <b>双指捏合</b> 缩放 · <b>点按</b> 开火</li>' : ''}
     </ul>
     <button id="ts-start">点击开始（锁定鼠标）</button>
+    <button id="ts-restart" type="button" style="display:none">重开一局</button>
     <p class="ts-foot">零外部资源 · 程序化贴图 / 几何 / 音频 · 确定性内核可无头测试</p>
   </div>`;
 
   const el = {
-    screen: EL("ts-screen"), start: EL("ts-start"),
+    screen: EL("ts-screen"), start: EL("ts-start"), restart: EL("ts-restart"),
     waveN: EL("ts-wave-n"), score: EL("ts-score-v"), time: EL("ts-time-v"),
     hpFill: EL("ts-hpfill"), hpNum: EL("ts-hpnum"),
     mag: EL("ts-ammo-mag"), res: EL("ts-ammo-res"), reloadTip: EL("ts-reload-tip"),
@@ -79,11 +80,21 @@ export function buildHud(root) {
       el.start.addEventListener("pointerdown", (e) => { e.preventDefault(); fire(); });
       el.start.addEventListener("click", fire);
     },
+    /** 重开回调（暂停屏/结算屏次操作）：与 onStart 同一套 pointerdown 快速路径 + 250ms 去重口径 */
+    onRestart(cb) {
+      let last = -Infinity;
+      const fire = () => { const now = performance.now(); if (now - last < 250) return; last = now; cb(); };
+      el.restart.addEventListener("pointerdown", (e) => { e.preventDefault(); fire(); });
+      el.restart.addEventListener("click", fire);
+    },
     showScreen(show) { el.screen.style.display = show ? "flex" : "none"; },
-    screenText({ title, sub, btn }) {
+    screenText({ title, sub, btn, restart }) {
       if (title) el.screen.querySelector("h1").firstChild.textContent = title;
       if (sub) el.screen.querySelector(".ts-goal").textContent = sub;
       if (btn) el.start.textContent = btn;
+      // 重开按钮按屏显隐：传了 restart 才出现（标题屏/结算屏 start 即重开，不再重复给第二个入口）
+      if (restart) { el.restart.textContent = restart; el.restart.style.display = ""; }
+      else el.restart.style.display = "none";
     },
     /** 重玩钩子展示位（spec.content.replayHooks：最高分 / 上次波次）*/
     setBest(text) { el.best.textContent = text; },

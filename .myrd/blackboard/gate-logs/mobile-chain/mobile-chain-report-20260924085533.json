@@ -1,0 +1,326 @@
+{
+  "tool": "tools/cdp-mobile-chain.mjs",
+  "purpose": "验收口径 B/D：CDP 移动仿真五环链（开局→触摸移动→开火命中→暂停→重开）机判断言与仿真证据",
+  "startedAt": "2026-09-24T08:55:33.863Z",
+  "finishedAt": "2026-09-24T08:55:52.385Z",
+  "emulation": {
+    "viewport": "390x844",
+    "devicePixelRatio": 2,
+    "touch": "Input.dispatchTouchEvent（浏览器输入管线）",
+    "maxTouchPoints": 5
+  },
+  "numeric": {
+    "PLAYER_MAX_HP": 100,
+    "MAG_SIZE": 30,
+    "RESERVE_AMMO": 150,
+    "WAVE_REST": 8
+  },
+  "env": {
+    "vw": 390,
+    "vh": 844,
+    "dpr": 2,
+    "coarse": true,
+    "tpoints": 5,
+    "ua": "chrome-headless"
+  },
+  "rings": {
+    "start": {
+      "state": "playing",
+      "kernelState": "playing",
+      "time": 0.933,
+      "hp": 100,
+      "ammo": 30,
+      "reserve": 150,
+      "score": 0,
+      "kills": 0,
+      "shotsFired": 0,
+      "shotsHit": 0,
+      "waveN": 0,
+      "waveState": "rest",
+      "px": 0,
+      "pz": 8,
+      "yaw": 3.14159,
+      "enemiesAlive": 0,
+      "enemies": [],
+      "screenShown": false,
+      "restartShown": false,
+      "restartLabel": "重开一局"
+    },
+    "move": {
+      "from": {
+        "x": 0,
+        "z": 8
+      },
+      "to": {
+        "x": 0,
+        "z": 1.977
+      },
+      "dist": 6.023
+    },
+    "fire": {
+      "round": 1,
+      "ackMs": 756,
+      "aimErr": 0.00035,
+      "aimDist": 23.47,
+      "shotsFiredBefore": 0,
+      "shotsFiredAfter": 1,
+      "shotsHitBefore": 0,
+      "shotsHitAfter": 1,
+      "targetId": 1,
+      "targetHpBefore": 55,
+      "targetHpAfter": 3,
+      "targetDead": false,
+      "score": 35
+    },
+    "pause": {
+      "state": "paused",
+      "kernelState": "paused",
+      "time": 9.6,
+      "hp": 93,
+      "ammo": 29,
+      "reserve": 150,
+      "score": 35,
+      "kills": 0,
+      "shotsFired": 1,
+      "shotsHit": 1,
+      "waveN": 1,
+      "waveState": "active",
+      "px": 0,
+      "pz": 1.977,
+      "yaw": 3.14159,
+      "enemiesAlive": 2,
+      "enemies": [
+        {
+          "id": 1,
+          "hp": 3,
+          "d": 19.75
+        },
+        {
+          "id": 2,
+          "hp": 55,
+          "d": 7.94
+        }
+      ],
+      "screenShown": true,
+      "restartShown": true,
+      "restartLabel": "重开一局（点按）"
+    },
+    "restart": {
+      "pre": {
+        "state": "paused",
+        "kernelState": "paused",
+        "time": 9.6,
+        "hp": 93,
+        "ammo": 29,
+        "reserve": 150,
+        "score": 35,
+        "kills": 0,
+        "shotsFired": 1,
+        "shotsHit": 1,
+        "waveN": 1,
+        "waveState": "active",
+        "px": 0,
+        "pz": 1.977,
+        "yaw": 3.14159,
+        "enemiesAlive": 2,
+        "enemies": [
+          {
+            "id": 1,
+            "hp": 3,
+            "d": 19.75
+          },
+          {
+            "id": 2,
+            "hp": 55,
+            "d": 7.94
+          }
+        ],
+        "screenShown": true,
+        "restartShown": true,
+        "restartLabel": "重开一局（点按）"
+      },
+      "post": {
+        "state": "playing",
+        "kernelState": "playing",
+        "time": 0.85,
+        "hp": 100,
+        "ammo": 30,
+        "reserve": 150,
+        "score": 0,
+        "kills": 0,
+        "shotsFired": 0,
+        "shotsHit": 0,
+        "waveN": 0,
+        "waveState": "rest",
+        "px": 0,
+        "pz": 8,
+        "yaw": 3.14159,
+        "enemiesAlive": 0,
+        "enemies": [],
+        "screenShown": false,
+        "restartShown": true,
+        "restartLabel": "重开一局（点按）"
+      }
+    }
+  },
+  "fps": {
+    "moving": {
+      "frames": 16,
+      "ms": 1246,
+      "fps": 12.8
+    },
+    "paused": {
+      "frames": 9,
+      "ms": 687,
+      "fps": 13.1
+    },
+    "afterRestart": {
+      "frames": 11,
+      "ms": 862,
+      "fps": 12.8
+    }
+  },
+  "checks": [
+    {
+      "ok": true,
+      "label": "产物加载就绪（__game 暴露 + 标题屏）",
+      "detail": "file://index.html"
+    },
+    {
+      "ok": true,
+      "label": "移动仿真视口 390×844",
+      "detail": "390×844"
+    },
+    {
+      "ok": true,
+      "label": "devicePixelRatio = 2（Retina 口径）",
+      "detail": "dpr=2"
+    },
+    {
+      "ok": true,
+      "label": "触摸仿真生效（coarse 主指针 + 触摸点）",
+      "detail": "coarse=true, maxTouchPoints=5"
+    },
+    {
+      "ok": true,
+      "label": "环① 开局：点按开始按钮 → 状态机进入 playing",
+      "detail": "start=(195,561)"
+    },
+    {
+      "ok": true,
+      "label": "环① 内核时间推进（对局真实运行）",
+      "detail": "time 0.47s → 0.93s"
+    },
+    {
+      "ok": true,
+      "label": "环② 触摸移动：摇杆上推 → 玩家位移 >0（机判阈值 0.05m）",
+      "detail": "dist=6.023m (0,8)→(0,1.977)"
+    },
+    {
+      "ok": true,
+      "label": "帧率采样（移动中，rAF 主循环存活）",
+      "detail": "16 帧 / 1246ms ≈ 12.8fps"
+    },
+    {
+      "ok": true,
+      "label": "环③ 前置：第 1 波敌兵出生（休整期结束）",
+      "detail": "wave=1, alive=1, t=8.1s"
+    },
+    {
+      "ok": true,
+      "label": "环③ 开火命中：点按开火 → 内核命中记账（shotsHit 上升，非仅 shots 计数）",
+      "detail": "rounds=1, shotsHit 0→1, aimErr=0.00035rad @23.47m, ackMs=756"
+    },
+    {
+      "ok": true,
+      "label": "环③ 敌方 HP 下降/阵亡（受击实质，非计数口径）",
+      "detail": "敌兵#1 HP 55→3"
+    },
+    {
+      "ok": true,
+      "label": "环③ 点按 → 开火确认（tapFire 消费为内核 shot）",
+      "detail": "shots 0→1, ackMs=756ms（CDP 链路参考值，含软渲染拥塞；<100ms 内核口径见 touchcheck）"
+    },
+    {
+      "ok": true,
+      "label": "环③ 命中得分入账（score >0，为重开环复位提供前值）",
+      "detail": "score=35"
+    },
+    {
+      "ok": true,
+      "label": "环④ 暂停：点按暂停按钮 → 状态机进入 paused（表现层+内核双层）",
+      "detail": "pause=(354,36) state=paused, kernel=paused"
+    },
+    {
+      "ok": true,
+      "label": "环④ 暂停期世界时间冻结（拒意图、停推进）",
+      "detail": "time 9.6s → 9.6s（800ms 间隔）"
+    },
+    {
+      "ok": true,
+      "label": "环④ 暂停屏弹出",
+      "detail": "screenShown=true"
+    },
+    {
+      "ok": true,
+      "label": "环④ 暂停屏出现重开按钮（重开环入口）",
+      "detail": "label=\"重开一局（点按）\""
+    },
+    {
+      "ok": true,
+      "label": "环⑤ 重开按钮可命中（DOM 实测中心点）",
+      "detail": "(195,585)"
+    },
+    {
+      "ok": true,
+      "label": "环⑤ 重开：点按重开按钮 → 状态机回到 playing",
+      "detail": "restart=(195,585)"
+    },
+    {
+      "ok": true,
+      "label": "环⑤ 分数复位 0",
+      "detail": "score 35 → 0"
+    },
+    {
+      "ok": true,
+      "label": "环⑤ 开火/命中记账复位 0",
+      "detail": "shotsFired 1→0, shotsHit 1→0"
+    },
+    {
+      "ok": true,
+      "label": "环⑤ HP 复位 100",
+      "detail": "hp 93 → 100"
+    },
+    {
+      "ok": true,
+      "label": "环⑤ 弹药复位（弹匣 30 / 备弹 150）",
+      "detail": "ammo 29→30, reserve 150→150"
+    },
+    {
+      "ok": true,
+      "label": "环⑤ 波次复位到开局休整（wave 0 / rest）",
+      "detail": "wave 1(active) → 0(rest)"
+    },
+    {
+      "ok": true,
+      "label": "环⑤ 敌兵清空（波次重排）",
+      "detail": "alive 2 → 0"
+    },
+    {
+      "ok": true,
+      "label": "环⑤ 对局计时复位",
+      "detail": "time 9.6s → 0.85s"
+    },
+    {
+      "ok": true,
+      "label": "帧率采样（重开后渲染存活）",
+      "detail": "11 帧 ≈ 12.8fps"
+    },
+    {
+      "ok": true,
+      "label": "零未捕获异常",
+      "detail": "0 个"
+    }
+  ],
+  "ok": true
+}
