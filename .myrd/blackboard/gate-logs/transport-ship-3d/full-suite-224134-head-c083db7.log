@@ -1,0 +1,31 @@
+# 全量门禁补跑 2026-09-23 22:41:34 · 游戏工程提交 = c083db7（?fire= 开火链路取证 + 产物重建 SRC_SHA=8c562f1d4294d167）
+# 仓库 HEAD = c6c3db7（仅新增糖果线 gate 日志，游戏工程与 c083db7 一致）。本次补跑后的提交相对 c083db7 的 games/transport-ship-3d 差异【仅】tools/smoke.mjs（门禁工具：新增 ?fire= 机判断言；非产物输入，不在 SRC_SHA 指纹范围）——产物 index.html 与 src/ assets/ 零改动，可 git diff c083db7 HEAD -- games/transport-ship-3d 核对
+# 本次提交内容 = 本日志 + 黑板锚定回填（qa-crosscheck/levels）+ tools/smoke.mjs（新增 ?fire= 机判断言）+ 删除误标截图 smoke-frame-fire-chain.png；游戏产物与源输入零改动
+
+## 0) 基线
+HEAD: c6c3db7 myrd: workflow auto-commit [skip ci]
+SRC_SHA: SRC_SHA=8c562f1d4294d167（范围 src + assets + index.template.html + tools/build.mjs + tools/src-sha.mjs）
+dirty: D  .myrd/blackboard/gate-logs/transport-ship-3d/smoke-frame-fire-chain.png  M games/transport-ship-3d/tools/smoke.mjs ?? .myrd/blackboard/gate-logs/transport-ship-3d/full-suite-224134-head-c083db7.log 
+
+## 1) game-contract
+—— 合计 71 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
+
+## 2) ac-1~ac-4 / ac-6
+CONTRACT: PASS 单文件零外部资源约束成立
+CONTRACT: PASS 内核确定性成立
+CONTRACT: PASS 武器数值与 spec.numeric 一致
+CONTRACT: PASS 波次确定性递增成立
+QA-AUDIT: PASS 五道互查关全过
+
+## 3) 真浏览器冒烟（CDP，含 ?fire= 开火链路机判）
+  PASS  页面打开且冒烟钩子产出结果 — {"ok":true,"score":0,"kills":0,"wave":1,"hp":100,"over":false,"time":8,"shotsFired":0,"shotsHit":0,"drawCalls":9,"triang
+  PASS  渲染管线出画 — drawCalls=9 triangles=2700
+  PASS  核心循环推进（内核固定步长累计） — time 9.00s → 10.20s
+  PASS  开火链路取证（?fire= 驱动扳机 → 射击计数） — shotsFired=17 shotsHit=0 headshots=0
+  PASS  血量归零进入结算态 — {"state":"gameover","over":true}
+  PASS  replayHooks 落账 localStorage — {"highScore":0,"waveStreak":1}
+  PASS  标题屏回显最高分（spec.content.replayHooks） — 最高 0 · 上次 第 1 波
+  PASS  零未捕获异常 — 0 个
+SMOKE: PASS 打开即玩 + 核心循环可玩
+smoke-exit=0

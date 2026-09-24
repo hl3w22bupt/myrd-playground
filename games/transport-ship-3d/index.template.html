@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>运输船 3D · 单文件 Three.js FPS 复刻原型</title>
+<style>
+  :root {
+    /* 兜底色卡：运行时由 assets/palette.mjs（风格卡）覆盖 —— HUD 与场景同一张色卡 */
+    --panel: rgba(8, 16, 20, 0.62);
+    --line: rgba(96, 202, 224, 0.55);
+    --text: #e8f4f6;
+    --accent: #ffb057;
+    --danger: #ff5a3c;
+    --hp-good: #59d6a0;
+    --hp-good-end: #a8e6b8;
+    --hp-low: #c8342a;
+    --low-vignette: rgba(160, 24, 16, 0.6);
+    --death-filter: grayscale(0.85) brightness(0.75) contrast(1.05);
+    --font-num: "DIN Alternate", "Bahnschrift", "Arial Narrow", ui-sans-serif, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* 触屏（验收口径 B）：禁浏览器手势（滚动/双击缩放/长按菜单）—— 300ms 点击延迟与手势冲突的根因；
+     touch-action:none 让 touchstart 立即可交互（消除延迟），游戏手势全由 touch.js 仲裁 */
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0a1014;
+    touch-action: none; overscroll-behavior: none;
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  #gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; touch-action: none; }
+  #ui { position: fixed; inset: 0; pointer-events: none; color: var(--text); font-family: var(--font-num); }
+
+  /* —— 斜切面板（clip-path）—— */
+  .ts-panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 6px 14px;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    letter-spacing: 0.08em;
+    font-size: 15px;
+  }
+  #ts-topline { position: absolute; top: 14px; left: 0; right: 0; display: flex; justify-content: center; gap: 12px; align-items: center; }
+  #ts-wave b { color: var(--accent); font-size: 18px; }
+  #ts-score b { font-size: 20px; color: #fff; }
+  #ts-timer { opacity: 0.75; font-size: 13px; }
+
+  #ts-bottomline { position: absolute; left: 18px; right: 18px; bottom: 16px; display: flex; justify-content: space-between; align-items: flex-end; }
+  #ts-vitals { width: 240px; }
+  #ts-hpbar { height: 10px; background: rgba(255,255,255,0.12); clip-path: polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px); }
+  #ts-hpfill { height: 100%; width: 100%; background: linear-gradient(90deg, var(--hp-good), var(--hp-good-end)); transition: width 0.15s linear; }
+  #ts-hpfill.low { background: linear-gradient(90deg, var(--hp-low), var(--danger)); animation: pulse 0.8s infinite; }
+  @keyframes pulse { 50% { opacity: 0.55; } }
+  #ts-hpnum { font-size: 12px; opacity: 0.8; margin-top: 4px; }
+  #ts-ammo { font-size: 34px; display: flex; align-items: baseline; gap: 6px; }
+  #ts-ammo span { font-size: 15px; opacity: 0.7; }
+  #ts-ammo.dry b { color: var(--danger); }
+  #ts-reload-tip { display: none; font-style: normal; font-size: 13px; color: var(--accent); }
+  #ts-radar { border-radius: 50%; box-shadow: 0 0 0 1px rgba(96,202,224,0.35); }
+
+  /* —— 触屏控件（验收口径 B）：摇杆 + 固定按钮。几何（尺寸/落位）由 touch.js 的
+     controlLayout 直写内联 style，这里只管「能被摸到 + 长什么样」：
+     #ui 是 pointer-events:none 的 HUD 层，容器自身穿透、只有按钮可命中；
+     摇杆底盘是纯视觉（aria-hidden），保持穿透 —— 摇杆输入走画布监听链路（悬浮式，落指即底座）。 —— */
+  #ts-touchctl { position: absolute; inset: 0; pointer-events: none; }
+  #ts-stick { position: absolute; pointer-events: none; border-radius: 50%; border: 2px solid rgba(255,255,255,0.28); background: rgba(10,16,24,0.30); transition: border-color 0.12s ease-out; }
+  #ts-stick.on { border-color: var(--accent); }
+  #ts-stick-knob { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: rgba(255,255,255,0.30); }
+  #ts-btn-fire, #ts-btn-reload, #ts-btn-pause {
+    position: absolute; pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--line); background: var(--panel); color: var(--text);
+    font-family: var(--font-num); letter-spacing: 0.08em;
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  }
+  #ts-btn-fire { background: rgba(255,90,60,0.32); font-size: 15px; }
+  #ts-btn-reload, #ts-btn-pause { font-size: 14px; opacity: 0.9; }
+  #ts-btn-fire:active, #ts-btn-reload:active, #ts-btn-pause:active { filter: brightness(1.45); }
+
+  /* —— 准星 —— */
+  #ts-crosshair { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+  #ts-crosshair i { position: absolute; background: rgba(232,244,246,0.9); box-shadow: 0 0 2px rgba(0,0,0,0.8); }
+  #ts-crosshair i:nth-child(1) { width: 2px; height: 9px; left: -1px; top: -15px; }
+  #ts-crosshair i:nth-child(2) { width: 2px; height: 9px; left: -1px; top: 6px; }
+  #ts-crosshair i:nth-child(3) { width: 9px; height: 2px; left: -15px; top: -1px; }
+  #ts-crosshair i:nth-child(4) { width: 9px; height: 2px; left: 6px; top: -1px; }
+  #ts-crosshair em { position: absolute; width: 2px; height: 2px; left: -1px; top: -1px; background: var(--accent); }
+  /* 命中标记（hud.hitMark 切换 .hit/.head）：准星短促张开 + 换警示色 */
+  #ts-crosshair { transition: transform 0.12s ease-out; }
+  #ts-crosshair.hit { transform: scale(1.5); }
+  #ts-crosshair.hit i { background: var(--accent); }
+  #ts-crosshair.head i { background: var(--danger); box-shadow: 0 0 4px var(--danger); }
+
+  #ts-hint { position: absolute; left: 50%; top: 62%; transform: translateX(-50%); font-size: 13px; opacity: 0.55; }
+  #ts-damage { position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse at center, transparent 40%, rgba(200,40,20,0.55) 100%); }
+  #ts-damage.hit { animation: dmg 0.35s ease-out; }
+  @keyframes dmg { 0% { opacity: 1; } 100% { opacity: 0; } }
+  /* 低血量暗角（对标样本胶片 shader uLowHP）：血量 ≤30% 常驻屏边出血 + 缓脉动 */
+  #ts-vignette { position: absolute; inset: 0; opacity: 0; transition: opacity 0.4s linear;
+    background: radial-gradient(ellipse at center, transparent 42%, var(--low-vignette) 100%); }
+  #ts-vignette.low { opacity: 1; animation: lowpulse 1.6s ease-in-out infinite; }
+  @keyframes lowpulse { 50% { opacity: 0.5; } }
+  /* 阵亡灰度（对标 uDeath）：只压世界画布，HUD/结算屏保持可读 */
+  body.ts-dead #gl { filter: var(--death-filter); }
+  #ts-banner { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); font-size: 24px; color: var(--accent);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.8); opacity: 0; transition: opacity 0.25s; white-space: nowrap; }
+  #ts-banner.show { opacity: 1; }
+
+  /* —— 标题/暂停/结算屏 —— */
+  #ts-screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+    background: linear-gradient(180deg, rgba(6,12,16,0.88), rgba(6,12,16,0.96)); pointer-events: auto; text-align: center; padding: 24px; }
+  #ts-screen h1 { font-size: 46px; letter-spacing: 0.12em; color: #fff; }
+  #ts-screen h1 small { display: block; font-size: 14px; letter-spacing: 0.3em; color: var(--line); margin-top: 8px; }
+  .ts-goal { font-size: 16px; opacity: 0.85; }
+  .ts-best { font-family: var(--font-num); font-size: 14px; letter-spacing: 0.08em; color: var(--accent); opacity: 0.9; min-height: 1.2em; margin: 0; }
+  .ts-keys { list-style: none; display: flex; gap: 22px; font-size: 14px; opacity: 0.75; flex-wrap: wrap; justify-content: center; }
+  .ts-keys b { color: var(--accent); }
+  #ts-start, #ts-restart { pointer-events: auto; cursor: pointer; font-family: var(--font-num); font-size: 18px; letter-spacing: 0.15em;
+    color: #06121a; background: linear-gradient(180deg, #7fdce8, #38a7bd); border: 0; padding: 14px 38px;
+    touch-action: manipulation; /* 按钮：保留点击语义但去双击缩放等待（300ms 消除） */
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px); }
+  #ts-start:hover, #ts-restart:hover { filter: brightness(1.1); }
+  /* 重开按钮（暂停屏/结算屏次操作）：默认隐藏，由 hud.screenText({restart}) 按屏显隐 */
+  #ts-restart { background: linear-gradient(180deg, #dbe9ee, #9fc4cf); }
+  .ts-foot { font-size: 12px; opacity: 0.4; letter-spacing: 0.1em; }
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="ui"></div>
+<script><!--BUNDLE--></script>
+</body>
+</html>

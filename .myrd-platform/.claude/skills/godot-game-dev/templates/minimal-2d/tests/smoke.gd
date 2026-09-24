@@ -8,23 +8,33 @@ extends Node
 ##   通过 → stdout 打印 `GODOT_SMOKE: PASS ...`，进程退出码 0
 ##   失败 → stderr 打印 `GODOT_SMOKE: FAIL <原因>`（每条一行），进程退出码 1
 ##
-## 覆盖面（对应 SKILL.md「冒烟场景必须断言什么」的五项，移植新游戏时逐项保留）：
+## 覆盖面（对应 SKILL.md「冒烟场景必须断言什么」的六项，移植新游戏时逐项保留）：
 ##   1. 场景可实例化（main.tscn → player.tscn 接线未断裂）
 ##   2. autoload 已注册且带约定信号
 ##   3. InputMap 动作已注册、物理键绑定正确（键位契约），且注入输入后对象真的动了
 ##   4. 信号真的到达订阅方（Player.moved / GameState.score_changed）
 ##   5. 每项失败给出可读原因（可直接查 references/error-signatures.md）
+##   6. 结果性事件真的挂了反馈（Juice.events 非空 —— 反馈缺失既有断言全拦不住：
+##      游戏能跑、信号能到，但玩起来是哑的；见 SKILL.md §3B）
+##   7. 调参协议可判（TUNING_META 非空、apply_tuning 钳制与未知键拒绝 —— §3C）
 ##
 ## ⚠️ 输入注入分两个阶段、互不重叠（见 references/error-signatures.md E-08）：
 ##   headless 下 `Input.parse_input_event()` 的缓冲冲刷会清掉 `Input.action_press()`
 ##   设置的按下状态，两者同帧混用会让「移动断言」假失败。
+
+## ── 噪声相位（输入鲁棒性门禁的逐游戏语义层）──
+## 正式断言前注入一段确定种子的对抗输入：悬挂手势（按下不抬起）、孤儿释放（抬起无按下）、
+## 双指抢控、乱键。随后照常执行移动/收集断言 —— 断言仍全过 = 噪声没有楔死输入管线。
+## 「输入状态残留」类缺陷（实例：手势中致胜 → release 被丢弃 → 下一关首手势被吞）在这一层拦。
+## 只注入原始事件（Key/Mouse/Touch），不注入 InputEventAction —— 动作级投递断言的判定不被噪声污染。
+const NOISE_FRAMES: int = 30
 
 ## 阶段一：按住 move_right 让玩家移动的帧数。
 const MOVE_FRAMES: int = 10
 ## 阶段二：注入 confirm 事件后等待信号送达的帧数。
 const SCORE_FRAMES: int = 4
 ## 总帧数上限（超过即出报告，防止死循环；smoke.sh 另有 --quit-after 兜底）。
-const TOTAL_FRAMES: int = MOVE_FRAMES + SCORE_FRAMES + 2
+const TOTAL_FRAMES: int = NOISE_FRAMES + MOVE_FRAMES + SCORE_FRAMES + 2
 ## 判定「真的移动了」的最小位移（像素）。
 const MIN_MOVE_DISTANCE: float = 1.0
 
@@ -76,6 +86,7 @@ func _ready() -> void:
 		_failures.append("autoload GameState 缺少信号 score_changed")
 	else:
 		game_state.score_changed.connect(_on_score_changed)
+		_check_tuning_protocol(game_state)
 
 	_player = get_tree().root.find_child("Player", true, false) as Player
 	if _player == null:
@@ -91,18 +102,63 @@ func _physics_process(_delta: float) -> void:
 	_frames += 1
 
 	if _failures.is_empty():
-		if _frames == 1:
+		if _frames <= NOISE_FRAMES:
+			_inject_noise_frame()
+		elif _frames == NOISE_FRAMES + 1:
 			Input.action_press(&"move_right")
-		elif _frames == MOVE_FRAMES:
+		elif _frames == NOISE_FRAMES + MOVE_FRAMES:
 			Input.action_release(&"move_right")
 			_assert_player_moved()
 			_press_action(&"confirm")
 		elif _frames == TOTAL_FRAMES:
 			_assert_score_changed()
+			_assert_feedback_fired()
 
 	if _frames >= TOTAL_FRAMES or not _failures.is_empty():
 		_finished = true
 		_report()
+
+
+## 噪声相位：确定种子随机事件（原始事件，不含 InputEventAction）。
+var _noise_rng := RandomNumberGenerator.new()
+
+
+func _inject_noise_frame() -> void:
+	if _frames == 1:
+		_noise_rng.seed = 20260913  # 门禁要求可复现：同种子同事件序
+	var roll := _noise_rng.randf()
+	var pos := Vector2(_noise_rng.randf_range(0, 720), _noise_rng.randf_range(0, 1280))
+	if roll < 0.30:
+		# 悬挂手势：按下不抬起
+		var t := InputEventScreenTouch.new()
+		t.index = _noise_rng.randi_range(0, 1)
+		t.position = pos
+		t.pressed = true
+		Input.parse_input_event(t)
+	elif roll < 0.45:
+		# 孤儿释放：抬起无按下
+		var t2 := InputEventScreenTouch.new()
+		t2.index = _noise_rng.randi_range(0, 1)
+		t2.position = pos
+		t2.pressed = false
+		Input.parse_input_event(t2)
+	elif roll < 0.60:
+		var d := InputEventScreenDrag.new()
+		d.index = _noise_rng.randi_range(0, 1)
+		d.position = pos
+		d.relative = Vector2(_noise_rng.randf_range(-40, 40), _noise_rng.randf_range(-40, 40))
+		Input.parse_input_event(d)
+	elif roll < 0.80:
+		var mb := InputEventMouseButton.new()
+		mb.button_index = MOUSE_BUTTON_LEFT
+		mb.position = pos
+		mb.pressed = _noise_rng.randf() < 0.5
+		Input.parse_input_event(mb)
+	else:
+		var k := InputEventKey.new()
+		k.physical_keycode = [KEY_A, KEY_D, KEY_W, KEY_S, KEY_SPACE, KEY_ENTER][_noise_rng.randi_range(0, 5)]
+		k.pressed = _noise_rng.randf() < 0.5
+		Input.parse_input_event(k)
 
 
 ## 无显示设备时模拟「玩家按键」：注入真实 InputEvent，让 _unhandled_input 收得到。
@@ -167,9 +223,41 @@ func _assert_score_changed() -> void:
 		_failures.append("信号 GameState.score_changed 未到达订阅方：连接断裂或从未 emit（confirm 动作未触发加分）")
 
 
+## 第 6 项断言：结果性事件挂了反馈（confirm → 加分 → _on_score_changed → Juice 反馈链路）。
+## 反馈缺失是「玩起来是哑的」类缺陷：能跑、信号全通，但没有任何表现反馈 —— 只有这一层拦。
+func _assert_feedback_fired() -> void:
+	if Juice.events.is_empty():
+		_failures.append("反馈断言：confirm→加分的结果事件没有触发任何 Juice 反馈"
+			+ "（结果性事件必须挂 ≥1 条反馈，见 SKILL.md §3B；如确实移除了反馈，同步更新本断言）")
+
+
+## 调参工作台协议（SKILL.md §3C，纯逻辑、无头可判）：
+## TUNING_META 非空；apply_tuning 应用已声明键、拒绝未声明键、按 max 钳制 ——
+## 这是「试玩调参 → URL → 回写 spec」链路的机器前提，桥断了调参结果就无法复现。
+## ⚠️ 检查完必须把调过的值恢复原状 —— 协议检查不得污染被测状态（gate-selftest D5
+## 实测：不恢复的话，本检查会把「速度被静默归零」的缺陷用钳制值 600 悄悄修好，让位移
+## 断言全绿放行）。
+func _check_tuning_protocol(game_state: Node) -> void:
+	var meta: Variant = game_state.get("TUNING_META")
+	if meta is Dictionary and not (meta as Dictionary).is_empty():
+		var original_speed: Variant = game_state.get("move_speed")
+		var applied: PackedStringArray = game_state.call("apply_tuning", {"move_speed": 99999.0, "tuning_bogus_key": 1})
+		if not applied.has("move_speed"):
+			_failures.append("调参协议：apply_tuning 未应用已声明键 move_speed（应用逻辑断裂）")
+		if applied.has("tuning_bogus_key"):
+			_failures.append("调参协议：apply_tuning 应用了未声明键 tuning_bogus_key（必须只认 TUNING_META 声明的键）")
+		var speed: Variant = game_state.get("move_speed")
+		if not (speed is float or speed is int) or float(speed) > 600.0:
+			_failures.append("调参协议：move_speed=%s 超出 TUNING_META.max=600（钳制缺失）" % [speed])
+		if applied.has("move_speed") and original_speed != null:
+			game_state.set("move_speed", original_speed)
+	else:
+		_failures.append("调参协议：GameState.TUNING_META 为空或不可读（数值调参区必须声明至少一个可调键，见 SKILL.md §3C）")
+
+
 func _report() -> void:
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/autoload/输入映射/信号/物理移动 全部通过")
+		print("GODOT_SMOKE: PASS 场景实例化/autoload/输入映射/信号/物理移动/反馈触发/调参协议 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

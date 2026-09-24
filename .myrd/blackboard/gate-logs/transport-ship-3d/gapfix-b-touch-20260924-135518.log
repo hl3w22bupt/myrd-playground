@@ -1,0 +1,14 @@
+# B 触屏手势证据（CDP 移动仿真 390×844 + coarse 指针）@ e6c141e709821534dc701c9819de16d1050420e4
+# 时间: 2026-09-24 13:55:32
+# 退出码: 0
+  PASS  touchdemo 报告产出（#ts-touch 落 DOM） — {"ok":true,"touchMode":true,"drag":{"moved":true,"yawDelta":-1.8462,"yawBefore":3.141592653589793,"yawAfter":1.2954388074359475},"pinch":{"z
+  PASS  手势① 拖拽 = 瞄准偏航 — yawDelta=-1.8462 rad
+  PASS  手势② 双指捏合 = 视场缩放 — fov 78° → 27.299999999999997°, zoom=0.35
+  PASS  手势③ 点按 = 开火（单发） — shots 0 → 1
+  PASS  点按确认时延 <100ms（无 300ms 延迟口径） — ackMs=3
+  PASS  三类手势汇总判定 ok — {"ok":true,"touchMode":true,"drag":{"moved":true,"yawDelta":-1.8462,"yawBefore":3.141592653589793,"yawAfter":1.2954388074359475},"pinch":{"zoomed":true,"fovBefore":78,"fovMin":27.299999999999997,"zoomAfter":0.35},"tap":{"fired":true,"shotsBefore":0,"shotsAfter":1,"ackMs":3}}
+  PASS  #gl touch-action=none（浏览器手势让位，touchstart 即响应） — none
+  PASS  viewport 禁缩放（消双击缩放等待） — width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no
+  PASS  移动仿真生效（coarse 指针 + 触摸点 + 游戏触屏形态） — {"coarse":true,"tpoints":5,"mode":true}
+  PASS  零未捕获异常 — 0 个
+TOUCHCHECK: PASS 三类手势全部可用（拖拽/捏合/点按）

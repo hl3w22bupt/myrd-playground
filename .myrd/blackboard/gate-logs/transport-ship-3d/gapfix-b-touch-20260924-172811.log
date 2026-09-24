@@ -1,0 +1,20 @@
+  PASS  touchdemo 报告产出（#ts-touch 落 DOM，15s 截止轮询） — {"ok":true,"touchMode":true,"drag":{"moved":true,"yawDelta":-1.8462,"yawBefore":3.141592653589793,"yawAfter":1.2954388074359475},"pinch":{"z
+  PASS  手势① 拖拽 = 瞄准偏航 — yawDelta=-1.8462 rad
+  PASS  手势② 双指捏合 = 视场缩放 — fov 78° → 27.299999999999997°, zoom=0.35
+  PASS  手势③ 点按 = 开火（单发） — shots 0 → 2
+  PASS  点按确认时延 <100ms（无 300ms 延迟口径） — ackMs=2
+  PASS  开火命中环：点按开火 → 敌兵受击（内核 shotsHit 记账上升） — shotsHit 0 → 1, aimErr=-0.0005rad, rounds=2, hitMs=4ms, hitMark=true
+  PASS  手势④ 虚拟摇杆 = 移动意图（左下摇杆区落指上推 → 位移） — dist=1.541m (0,8)→(1.4827119835887608,8.418917489210402)
+  PASS  四类手势汇总判定 ok — {"ok":true,"touchMode":true,"drag":{"moved":true,"yawDelta":-1.8462,"yawBefore":3.141592653589793,"yawAfter":1.2954388074359475},"pinch":{"zoomed":true,"fovBefore":78,"fovMin":27.299999999999997,"zoomAfter":0.35},"stick":{"moved":true,"dist":1.541,"xBefore":0,"zBefore":8,"xAfter":1.4827119835887608,"zAfter":8.418917489210402},"tap":{"fired":true,"hit":true,"shotsBefore":0,"shotsAfter":2,"shotsHitBefore":0,"shotsHitAfter":1,"ackMs":2,"hitMs":4,"aimErr":-0.0005,"rounds":2,"hitMarkSeen":true,"targetHpBefore":55,"targetHpAfter":29}}
+  PASS  #gl touch-action=none（浏览器手势让位，touchstart 即响应） — none
+  PASS  viewport 禁缩放（消双击缩放等待） — width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no
+  PASS  移动仿真生效（coarse 指针 + 触摸点 + 游戏触屏形态） — {"coarse":true,"tpoints":5,"mode":true}
+  PASS  移动控件 DOM 就位（摇杆 + 开火/换弹/暂停） — {"joystick":{"x":28,"y":704,"w":112,"h":112},"fire":{"x":302,"y":716,"w":64,"h":64},"reload":{"x":204,"y":772,"w":44,"h":44},"pause":{"x":332,"y":14,"w":44,"h":44}}
+  PASS  按钮热区 ≥44px（Apple HIG 下限，热区按命中算不按贴图算） — joystick:112×112 fire:64×64 reload:44×44 pause:44×44
+  PASS  控件热区全部落在 390×844 视口内（无越界错位） — {"joystick":{"x":28,"y":704,"w":112,"h":112},"fire":{"x":302,"y":716,"w":64,"h":64},"reload":{"x":204,"y":772,"w":44,"h":44},"pause":{"x":332,"y":14,"w":44,"h":44}}
+  PASS  摇杆底盘位于左下半屏（与 controlLayout 布局真源一致） — center=(84,760)
+  PASS  开火主按钮 64px 热区（高频主操作大于下限） — 64×64 @(302,716)
+  PASS  帧率采样 60 帧（渲染主循环存活，软渲染 ≥5fps 口径） — 61 帧 / 平均 123.05ms/帧 ≈ 8.1fps
+  PASS  零未捕获异常 — 0 个
+  PASS  触屏仿真截图存证 — ../../.myrd/blackboard/gate-logs/transport-ship-3d/gapfix-b-touch-mobile-390x844-20260924-172811.png
+TOUCHCHECK: PASS 四类手势全部可用（拖拽/捏合/摇杆/点按）+ 热区与帧率关全过

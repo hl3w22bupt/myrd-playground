@@ -1,0 +1,40 @@
+  PASS  产物加载就绪（__game 暴露 + 标题屏） — file://index.html
+[ring] ① 开局（点按 #ts-start）
+  PASS  移动仿真视口 390×844 — 390×844
+  PASS  devicePixelRatio = 2（Retina 口径） — dpr=2
+  PASS  触摸仿真生效（coarse 主指针 + 触摸点） — coarse=true, maxTouchPoints=5
+  PASS  环① 开局：点按开始按钮 → 状态机进入 playing — start=(195,561)
+  PASS  环① 内核时间推进（对局真实运行） — time 0.47s → 0.93s
+  [shot] ring1-start-20260924085533.png
+[ring] ② 触摸移动（虚拟摇杆上推）
+  PASS  环② 触摸移动：摇杆上推 → 玩家位移 >0（机判阈值 0.05m） — dist=6.023m (0,8)→(0,1.977)
+  PASS  帧率采样（移动中，rAF 主循环存活） — 16 帧 / 1246ms ≈ 12.8fps
+  [shot] ring2-move-20260924085533.png
+[ring] ③ 开火命中（伺服瞄准 + 点按开火）
+  PASS  环③ 前置：第 1 波敌兵出生（休整期结束） — wave=1, alive=1, t=8.1s
+  PASS  环③ 开火命中：点按开火 → 内核命中记账（shotsHit 上升，非仅 shots 计数） — rounds=1, shotsHit 0→1, aimErr=0.00035rad @23.47m, ackMs=756
+  PASS  环③ 敌方 HP 下降/阵亡（受击实质，非计数口径） — 敌兵#1 HP 55→3
+  PASS  环③ 点按 → 开火确认（tapFire 消费为内核 shot） — shots 0→1, ackMs=756ms（CDP 链路参考值，含软渲染拥塞；<100ms 内核口径见 touchcheck）
+  PASS  环③ 命中得分入账（score >0，为重开环复位提供前值） — score=35
+  [shot] ring3-fire-hit-20260924085533.png
+[ring] ④ 暂停（点按 #ts-btn-pause）
+  PASS  环④ 暂停：点按暂停按钮 → 状态机进入 paused（表现层+内核双层） — pause=(354,36) state=paused, kernel=paused
+  PASS  环④ 暂停期世界时间冻结（拒意图、停推进） — time 9.6s → 9.6s（800ms 间隔）
+  PASS  环④ 暂停屏弹出 — screenShown=true
+  PASS  环④ 暂停屏出现重开按钮（重开环入口） — label="重开一局（点按）"
+  [shot] ring4-paused-20260924085533.png
+[ring] ⑤ 重开（点按 #ts-restart）
+  PASS  环⑤ 重开按钮可命中（DOM 实测中心点） — (195,585)
+  PASS  环⑤ 重开：点按重开按钮 → 状态机回到 playing — restart=(195,585)
+  PASS  环⑤ 分数复位 0 — score 35 → 0
+  PASS  环⑤ 开火/命中记账复位 0 — shotsFired 1→0, shotsHit 1→0
+  PASS  环⑤ HP 复位 100 — hp 93 → 100
+  PASS  环⑤ 弹药复位（弹匣 30 / 备弹 150） — ammo 29→30, reserve 150→150
+  PASS  环⑤ 波次复位到开局休整（wave 0 / rest） — wave 1(active) → 0(rest)
+  PASS  环⑤ 敌兵清空（波次重排） — alive 2 → 0
+  PASS  环⑤ 对局计时复位 — time 9.6s → 0.85s
+  PASS  帧率采样（重开后渲染存活） — 11 帧 ≈ 12.8fps
+  [shot] ring5-restarted-20260924085533.png
+  PASS  零未捕获异常 — 0 个
+[report] /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-goal-cmuewc8rr0023m987wdzz4dcu/.myrd/blackboard/gate-logs/mobile-chain/mobile-chain-report-20260924085533.json
+MOBILE-CHAIN: PASS 五环链全过（开局/触摸移动/开火命中/暂停/重开）+ 帧率与分环截图落盘

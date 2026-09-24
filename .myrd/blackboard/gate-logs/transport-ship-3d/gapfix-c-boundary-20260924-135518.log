@@ -1,0 +1,29 @@
+# C 边界断言证据 @ e6c141e709821534dc701c9819de16d1050420e4
+# 时间: 2026-09-24 13:55:27
+  PASS  空场景初始态：无敌兵/第0波/休整/零分/未结束
+  PASS  空场景短推进：零事件、仍无敌兵
+  PASS  空场景推进 12.2s → 首波完整生成（wave=1，敌兵=4=4）
+  PASS  首波 waveStart 事件上抛
+  PASS  极端意图位移（1e9 米级）→ 围栏钳制在甲板内（x=8.650, z=-29.650）
+  PASS  围栏钳制后坐标有限（无 NaN 外溢）
+  PASS  clampToDeck 对 6 组超界/合法坐标全部钳制入界
+  PASS  600 tick 极端意图+极端俯仰 → 始终在界内且俯仰被钳制（±1.2）
+  PASS  波次生成+追击的 4 名敌兵坐标全部在甲板内（出生轮转 + 围栏钳制）
+  PASS  clampZoom 对 12 组极端/合法输入全部收敛（含 NaN/±Infinity/0/负值）
+  PASS  lookSensitivity 对 0/负/NaN/Infinity/极小视口回退有限正值（不产生病态灵敏度）
+  PASS  缩放纯表现层口径：内核 world/player/snapshot 均无 zoom 字段（极端缩放不进内核）
+  PASS  frame(0) → 零 tick、时间不动
+  PASS  frame(-1) → 钳制为 0、时间不动
+  PASS  frame(NaN) → 回退 0、时间不动
+  PASS  frame(Infinity) → 回退 0、时间不动
+  PASS  异常 dt 之后正常帧仍精确推进一个固定子步（累加器未被污染）
+  PASS  fastForward(0/-5/NaN/±Infinity) → 0 tick（内核不动）
+  PASS  intent 注入 NaN/±Infinity → 内核全部字段保持有限且在界内
+  PASS  frame(undefined/null/{}) → 归一化为空意图正常推进
+  PASS  seed=0（回绕 0）双跑快照一致
+  PASS  seed=-1（回绕 4294967295）双跑快照一致
+  PASS  seed=4294967303（回绕 7）双跑快照一致
+  PASS  seed=1.5（回绕 1）双跑快照一致
+  PASS  0 弹药 + 0 备弹持续开火 → 零射击、零换弹事件（无死循环）
+  PASS  全零意图 2s → 玩家位置零漂移
+BOUNDARY: PASS 四类边界（空场景/超界坐标/极端缩放/0与负值）全部成立

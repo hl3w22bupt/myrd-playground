@@ -1,0 +1,60 @@
+# 全量门禁 2026-09-24 004131 · 部署就绪批次（AppHost 壳接线）· 游戏工程提交 = c3ad2cb
+# 本批次内容：①tools/build.mjs 同批次产出 export/web/index.html（= apphost.toml assets_dir）②apphost.toml 由糖果模板改为本游戏 ③壳 server 改为伺服单文件游戏 ④qa-audit 增第⑥关（导出拷贝同步，正/负向均验证）⑤server/tools/verify-local.sh 壳端到端门禁（伪对象存储）
+# 游戏本体（src/ assets/ index.template.html）零改动；产物 index.html 仅 SRC_SHA 随 build.mjs 变更（ee80886c… → 5aebb6a1…），玩法输入不变
+
+## 0) 基线
+HEAD: c3ad2cb myrd: workflow auto-commit [skip ci]
+SRC_SHA: 5aebb6a1462529b1（范围 src + assets + index.template.html + tools/build.mjs + tools/src-sha.mjs）
+export/web/index.html ↔ index.html: 逐字节一致
+dirty:  M .gitignore  M apphost.toml  M games/transport-ship-3d/index.html  M games/transport-ship-3d/tests/qa-audit.mjs  M games/transport-ship-3d/tools/build.mjs  M server/src/game-page.ts  M server/src/index.ts ?? .myrd/blackboard/gate-logs/transport-ship-3d/full-suite-004131-head-c3ad2cb-apphost-prep.log ?? games/transport-ship-3d/export/ ?? server/tools/ 
+
+## 1) game-contract
+—— 合计 71 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
+contract-exit=0
+
+## 2) ac-1~ac-4 / ac-6
+— singlefile.contract (exit=0)
+  PASS  产物包含 --font-num
+CONTRACT: PASS 单文件零外部资源约束成立
+— kernel-determinism.spec (exit=0)
+  PASS  fastForward 与逐 tick frame 快照等价
+CONTRACT: PASS 内核确定性成立
+— combat.spec (exit=0)
+  PASS  血量封顶 PLAYER_MAX_HP
+CONTRACT: PASS 武器数值与 spec.numeric 一致
+— wave.spec (exit=0)
+  PASS  清波回血 = min(缺口, WAVE_CLEAR_HEAL)（+35）
+CONTRACT: PASS 波次确定性递增成立
+— qa-audit (exit=0)
+  PASS  AppHost 导出拷贝与主产物逐字节一致（export/web/index.html ↔ index.html）
+QA-AUDIT: PASS 六道互查关全过
+
+## 3) 真浏览器冒烟（CDP，tools/smoke.mjs）
+  PASS  页面打开且冒烟钩子产出结果 — {"ok":true,"score":0,"kills":0,"wave":1,"hp":100,"over":false,"time":8,"shotsFired":0,"shotsHit":0,"drawCalls":9,"triang
+  PASS  渲染管线出画 — drawCalls=9 triangles=2700
+  PASS  核心循环推进（内核固定步长累计） — time 8.95s → 10.18s
+  PASS  开火链路取证（?fire= 驱动扳机 → 射击计数） — shotsFired=17 shotsHit=0 headshots=0
+  PASS  血量归零进入结算态 — {"state":"gameover","over":true}
+  PASS  replayHooks 落账 localStorage — {"highScore":0,"waveStreak":1}
+  PASS  标题屏回显最高分（spec.content.replayHooks） — 最高 0 · 上次 第 1 波
+  PASS  零未捕获异常 — 0 个
+SMOKE: PASS 打开即玩 + 核心循环可玩
+smoke-exit=0
+
+## 4) AppHost 壳本地端到端（server/tools/verify-local.sh）
+[1/4] tsc --noEmit（与平台步骤 2 同口径）
+  PASS  类型检查通过
+[2/4] esbuild 单 bundle（平台步骤 3：runner 胶水 + 用户 app，CJS）
+  PASS  bundle 就绪（104 KB）
+[3/4] 起伪对象存储 + 壳（assets_dir = games/transport-ship-3d/export/web）
+[4/4] 断言（/health 与 /）
+  PASS  /health HTTP 状态（200）
+  PASS  /health 应用标识（yes）
+  PASS  / HTTP 状态（200）
+  PASS  / 响应体字节数 = 游戏导出产物（580999）
+  PASS  / 响应体与游戏产物逐字节一致（yes）
+  PASS  / 页面标题为运输船 3D（yes）
+—— 合计 0 FAIL ——
+APPHOST-SHELL: PASS 壳伺服 transport-ship 单文件游戏（本地端到端）
+shell-verify-exit=0

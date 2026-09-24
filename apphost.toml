@@ -1,8 +1,11 @@
-# 《糖果粉碎传奇》AppHost 应用清单（平台构建管线步骤 1 读取；M1 仅支持顶层字符串键值）
-# 壳位于仓库根：server/ 内是 Node20 + Hono 应用，游戏 Web 导出产物经 gzip+base64 内联进 bundle
-name = "candy-crush-legend"
+# 《运输船 3D · 单文件 Three.js FPS 复刻原型》AppHost 应用清单
+# 平台构建管线步骤 1 读取；M1 仅支持顶层字符串键值。
+# 壳位于仓库根：server/ 内是 Node20 + Hono 应用；本游戏是单文件 HTML（Three.js 全量内联、
+# 零外部资源），壳的 / 直接伺服 assets_dir 里的 index.html（见 server/src/game-page.ts）。
+name = "transport-ship-3d"
 runtime = "node20"
 health = "/health"
 
-# 底座 A：资产出 bundle（部署时平台把该目录上传对象存储，server 用 asset-store 懒加载）
-assets_dir = "games/game/export/web"
+# 底座 A：资产出 bundle（部署时平台把该目录上传对象存储，server 用 asset-store 懒加载）。
+# 目录内容由 games/transport-ship-3d/tools/build.mjs 同批次产出（勿手改，防与主产物漂移）。
+assets_dir = "games/transport-ship-3d/export/web"

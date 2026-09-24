@@ -1,0 +1,16 @@
+[verify] 第 一 次构建（node tools/build.mjs）…
+[build] esbuild 打包 src/main.js（three 全量内联，minify + iife）…
+[done] 产物 index.html = 583 KB，零外部资源引用
+[done] SRC_SHA=0442d7522f58a247（指纹范围：src + assets + index.template.html + tools/build.mjs + tools/src-sha.mjs）
+[done] AppHost 导出 export/web/index.html = 583 KB（与主产物一致: true）
+[verify] 第 二 次构建（node tools/build.mjs）…
+[build] esbuild 打包 src/main.js（three 全量内联，minify + iife）…
+[done] 产物 index.html = 583 KB，零外部资源引用
+[done] SRC_SHA=0442d7522f58a247（指纹范围：src + assets + index.template.html + tools/build.mjs + tools/src-sha.mjs）
+[done] AppHost 导出 export/web/index.html = 583 KB（与主产物一致: true）
+  PASS  主产物两次构建 sha256 一致（2b94b55647690fc8…）
+  PASS  AppHost 导出产物两次构建 sha256 一致（2b94b55647690fc8…）
+  PASS  主产物 ↔ AppHost 导出产物 sha256 一致（同一字符串真源）
+  PASS  SRC_SHA 与源输入复算一致（0442d7522f58a247，指纹范围 src + assets + index.template.html + tools/build.mjs + tools/src-sha.mjs）
+REPRODUCIBLE-BUILD {"ok":true,"build1":{"main":"2b94b55647690fc8bc9f7e860846ddc90ecf673a2ed6b0fe719595b99c6893e7","exportWeb":"2b94b55647690fc8bc9f7e860846ddc90ecf673a2ed6b0fe719595b99c6893e7"},"build2":{"main":"2b94b55647690fc8bc9f7e860846ddc90ecf673a2ed6b0fe719595b99c6893e7","exportWeb":"2b94b55647690fc8bc9f7e860846ddc90ecf673a2ed6b0fe719595b99c6893e7"},"srcSha":"0442d7522f58a247","fingerprintPaths":["src","assets","index.template.html","tools/build.mjs","tools/src-sha.mjs"]}
+REPRODUCIBLE: PASS 连续两次构建逐字节一致，产物可复现
