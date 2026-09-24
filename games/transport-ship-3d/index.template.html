@@ -60,7 +60,7 @@
      #ui 是 pointer-events:none 的 HUD 层，容器自身穿透、只有按钮可命中；
      摇杆底盘是纯视觉（aria-hidden），保持穿透 —— 摇杆输入走画布监听链路（悬浮式，落指即底座）。 —— */
   #ts-touchctl { position: absolute; inset: 0; pointer-events: none; }
-  #ts-stick { pointer-events: none; border-radius: 50%; border: 2px solid rgba(255,255,255,0.28); background: rgba(10,16,24,0.30); transition: border-color 0.12s ease-out; }
+  #ts-stick { position: absolute; pointer-events: none; border-radius: 50%; border: 2px solid rgba(255,255,255,0.28); background: rgba(10,16,24,0.30); transition: border-color 0.12s ease-out; }
   #ts-stick.on { border-color: var(--accent); }
   #ts-stick-knob { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: rgba(255,255,255,0.30); }
   #ts-btn-fire, #ts-btn-reload, #ts-btn-pause {

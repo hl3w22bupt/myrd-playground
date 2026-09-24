@@ -188,6 +188,8 @@ window.__game = {
   get fov() { return rig.camera.fov; },
   get zoom() { return touchCtl.zoom; },
   get touchMode() { return touchMode; },
+  /** 触屏控件热区（viewport 坐标，验收口径 B/D 机判口）：摇杆 + 开火/换弹/暂停，桌面触屏形态外为 null */
+  get touchRects() { return touchCtl.rects(); },
   fastForward: (seconds) => game.fastForward(seconds),
   /** spec.content.replayHooks 的读取口：最高分 / 波次连击 / 当日种子 */
   get replayHooks() {
@@ -250,14 +252,16 @@ if (touchdemo !== null) {
     ok: false, touchMode: touchMode,
     drag: { moved: false, yawDelta: 0 },
     pinch: { zoomed: false, fovBefore: 0, fovMin: 0, zoomAfter: 1 },
+    stick: { moved: false, dist: 0, xBefore: 0, zBefore: 0, xAfter: 0, zAfter: 0 },
     tap: { fired: false, shotsBefore: 0, shotsAfter: 0, ackMs: null },
   };
   const finish = () => {
     if (document.getElementById("ts-touch")) return; // 报告只落一次
     report.pinch.zoomed = report.pinch.fovMin < report.pinch.fovBefore - 5 && report.pinch.zoomAfter < 1;
     report.drag.moved = Math.abs(report.drag.yawDelta) > 0.2;
+    report.stick.moved = report.stick.dist > 0.5;
     report.tap.fired = report.tap.shotsAfter > report.tap.shotsBefore;
-    report.ok = report.drag.moved && report.pinch.zoomed && report.tap.fired;
+    report.ok = report.drag.moved && report.pinch.zoomed && report.stick.moved && report.tap.fired;
     const payload = JSON.stringify(report);
     const box = document.createElement("div");
     box.id = "ts-touch";
@@ -297,8 +301,21 @@ if (touchdemo !== null) {
       report.drag.yawDelta = +(report.drag.yawAfter - report.drag.yawBefore).toFixed(4);
       fire("touchend", [], [mk(1, 0, 320), mk(2, 380, 320)]);
     });
+    // —— 摇杆：左下摇杆区落指上推（悬浮底座=落指处）→ 移动意图 → 玩家位移（>0.5m 机判）——
+    at(1050, () => {
+      report.stick.xBefore = game.world.player.x;
+      report.stick.zBefore = game.world.player.z;
+      fire("touchstart", [mk(4, 100, 700)]); // (100,700)：390×844 下在摇杆区（x≤195 且 y≥422）
+    });
+    for (let i = 1; i <= 7; i++) at(1100 + i * 80, () => fire("touchmove", [mk(4, 100, 700 - i * 10)]));
+    at(1760, () => {
+      report.stick.xAfter = game.world.player.x;
+      report.stick.zAfter = game.world.player.z;
+      report.stick.dist = +Math.hypot(report.stick.xAfter - report.stick.xBefore, report.stick.zAfter - report.stick.zBefore).toFixed(3);
+      fire("touchend", [], [mk(4, 100, 630)]); // 抬指：移动意图立即清零（不漂移）
+    });
     // —— 点按：80ms 短触零位移 → 单发开火，并测内核确认时延（应 <100ms）——
-    at(1200, () => {
+    at(1900, () => {
       fire("touchstart", [mk(3, 200, 200)]);
       at(80, () => {
         const t0 = performance.now();
@@ -314,6 +331,6 @@ if (touchdemo !== null) {
         requestAnimationFrame(poll);
       });
     });
-    at(4000, finish); // 兜底：任何一环卡死也落报告
+    at(4500, finish); // 兜底：任何一环卡死也落报告
   });
 }
