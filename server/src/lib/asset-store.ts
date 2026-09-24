@@ -91,12 +91,22 @@ let manifestPromise: Promise<AssetManifest | null> | null = null;
 const cache = new Map<string, AssetPayload>();
 const inflight = new Map<string, Promise<AssetPayload | null>>();
 
-/** 拉资产清单（进程内只拉一次；404 → null） */
+/**
+ * 拉资产清单（进程内只拉一次；404 → null）。
+ * 只缓存成功结果：失败即清空 manifestPromise，下一次请求重拉 —— 端点瞬断若被
+ * 永久缓存，实例会从「暂时拉不到」劣化成「永远 500」（2026-09-23 糖果游戏事故，
+ * 与平台模板 templates/apphost/myrd-app/server/src/lib/asset-store.ts 同步修复）。
+ */
 function loadManifest(): Promise<AssetManifest | null> {
-  manifestPromise ??= s3GetBytes(env.manifestKey).then((bytes) => {
-    if (!bytes) return null;
-    return JSON.parse(new TextDecoder().decode(bytes)) as AssetManifest;
-  });
+  manifestPromise ??= s3GetBytes(env.manifestKey)
+    .then((bytes) => {
+      if (!bytes) return null;
+      return JSON.parse(new TextDecoder().decode(bytes)) as AssetManifest;
+    })
+    .catch((e: unknown) => {
+      manifestPromise = null;
+      throw e;
+    });
   return manifestPromise;
 }
 
