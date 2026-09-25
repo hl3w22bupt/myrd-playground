@@ -7,5 +7,7 @@
 - **myrd-platform-skill** — `.myrd-platform/.claude/skills/myrd-platform-skill.md`
 - **godot-game-dev** — `.myrd-platform/.claude/skills/godot-game-dev/SKILL.md`
 - **lark** — `.myrd-platform/.claude/skills/lark/SKILL.md`
+- **onboarding-review** — `.myrd-platform/.claude/skills/onboarding-review/SKILL.md`
+- **style-card-library** — `.myrd-platform/.claude/skills/style-card-library/SKILL.md`
 - **verification** — `.myrd-platform/.claude/skills/verification/SKILL.md`
 - **webgame-prototype** — `.myrd-platform/.claude/skills/webgame-prototype/SKILL.md`
