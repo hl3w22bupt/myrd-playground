@@ -1,9 +1,9 @@
 # QA 终审记录 — M2.1「有声可装」（音效 + 移动端适配 + PWA 部署）
 
-> 更新时间：2026-09-25 · 负责人：QA 线（主策划整合）
+> 更新时间：2026-09-25（复验轮：playwright 装载器统一 + sw.js 清单同步，见 §4 末两行；干净 shell 复跑全绿）· 负责人：QA 线（主策划整合）
 > 基线：spec **v3 approved**（platformSpecId `cmugok2uz000xm9ilx42t8pnl`，v2 superseded）
 > 基线导出：`.myrd/spec/stack-tower-spec.json`（契约与 QA 共同输入）
-> 总复现：`cd games/stack-tower && npm run build && PLAYWRIGHT_MODULE_DIR=/opt/homebrew/lib/node_modules/@playwright node tests/contract/run-all.mjs`
+> 总复现：`cd games/stack-tower && npm run build && node tests/contract/run-all.mjs`（playwright 经 `tests/contract/_browser.mjs` 自动发现：本包 → PLAYWRIGHT_MODULE_DIR → npm 全局根，无需手工注入）
 
 ## 0. 总判定
 
@@ -77,6 +77,8 @@
 | AudioManager unlock 先补放后预解码 | 挂起队列走程序化层而非 buffer 层（降级语义倒挂） | unlock 内 `await preload()` 后再补放 | a2 契约 PASS |
 | manifest 生成键名覆盖（`m4a` 文件名被 KB 数覆盖） | acc-a1 注册表对号失败 | 键名改 `m4aKb/oggKb` | a1 契约 PASS |
 | e07 数值总闸键序敏感 | 平台入库会归一化对象键序 → 基线切换即假红 | 总闸改键序无关深比（stableStringify），语义仍锁结构+数值 | e07 PASS |
+| playwright 装载器三处各写一份、只认 `PLAYWRIGHT_MODULE_DIR` 显式注入 | 干净 shell 复跑门禁 → m1/m3/d2 三条浏览器级契约集体 not-runnable，A–E 汇总假 FAIL(3)（2026-09-25 复验轮实捕） | 装载统一收敛 `tests/contract/_browser.mjs`：本包 → 环境变量 → `npm root -g` 自动发现（非交互、失败路径显式 null）；assets-check / smoke 改指共享装载器 | 复验轮日志 `gate-logs/m21-reverify-20260925-art-final/`：A–E RESULT: PASS 22/22；m1/m3/d2 干净 shell 逐条 PASS |
+| `sw.js` precache 清单落后 build 产物 5 项（audio-manager/voices/fps-overlay/rotate-overlay/style） | M2.1 新模块不进预缓存 → 全新离线首访缺件（回填机制兜底掩盖，冷启动离线面存疑）；生成件与生成器失同步 | `node tools/gen-sw.mjs` 重生成（清单 = build/ 目录真实扫描，确定性） | d1/d2 契约重跑 PASS；sw precache 55 项与 build 产物一致 |
 
 ### 语义裁决留档（QA 判读依据）
 - **升调语义**：连击取内核 perfect 连击（combo）；「place 音第 n 连升 n 半音」读作「落块音随连击逐块 +1」（perfect 叮与 place 闷响同参），miss（combo=0）归零——与 a4a/a4b 判据（逐块 +1、13/14 封顶）自洽。

@@ -2,7 +2,7 @@
 /**
  * 资产接线门禁（T3 美术线）— 断言 assets/ 实体贴图真实接线且缺项安全降级。复现：
  *   node games/stack-tower/tests/assets-check.mjs
- *   PLAYWRIGHT_MODULE_DIR=<全局 node_modules> node games/stack-tower/tests/assets-check.mjs   # 真实浏览器级
+ * （playwright 经 contract/_browser.mjs 自动发现：本包 → PLAYWRIGHT_MODULE_DIR → npm 全局根）
  *
  * 三态输出（与契约 runner 同口径）：
  *   RESULT: PASS (browser)   —— Chromium 打开页面：9 项资产请求全 200 且 console 报「贴图就绪 9/9」，零页面错误
@@ -10,10 +10,10 @@
  *   RESULT: FAIL …           —— exit 1
  */
 import { spawn } from 'node:child_process';
-import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadPlaywright } from './contract/_browser.mjs';
 
 const GAME_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = Number(process.env.SMOKE_PORT ?? 4673 + (process.pid % 500));
@@ -83,20 +83,8 @@ try {
   }
 
   // —— 浏览器级证据：运行时真加载 + 零错误 ——
-  const resolvePw = async () => {
-    try {
-      return createRequire(path.join(GAME_DIR, 'package.json'))('playwright');
-    } catch {
-      const dir = process.env.PLAYWRIGHT_MODULE_DIR;
-      if (!dir) return null;
-      try {
-        return createRequire(path.join(dir, 'noop.js'))('playwright');
-      } catch {
-        return null;
-      }
-    }
-  };
-  const pw = await resolvePw();
+  // 装载统一走 contract/_browser.mjs（本包 → PLAYWRIGHT_MODULE_DIR → npm 全局根自动发现）。
+  const pw = await loadPlaywright();
   const browserOk = await (async () => {
     if (!pw) return false;
     const browser = await pw.chromium.launch({ headless: true }).catch(() => null);

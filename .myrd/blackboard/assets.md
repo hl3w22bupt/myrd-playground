@@ -1,8 +1,8 @@
 # 资产清单黑板 — stack-tower（M2 首卡 → M2.1「有声可装」）
 
-> 更新时间：2026-09-25（**M2.1 D2 落盘**：sfx-pack-v1 12 音频文件（6 事件 × m4a+ogg，44.1kHz 单声道，A6=sfx-restart 198ms≤200 ✓）+ 3 枚 PWA 图标（192/512 maskable + apple-touch-180）；**另修复 pnglib blend 通道缺陷**（既有 9 件贴图曾全图退化为灰度，已全量重生成恢复琥珀/冷蓝原色））
+> 更新时间：2026-09-25（**M2.1 复验轮·终证**：资产面五道门禁干净 shell 全量复跑——assets:check **PASS (browser)**（9/9 运行时 200 + 404 负面用例可玩）/ contract A–E 22/22 / run-all 22/0/0 / smoke PASS (browser)；**gen-audio 确定性口径澄清**：PNG 逐字节确定 ✓，音频内容稳定但容器元数据非字节稳定（m4a 时间戳 / ogg 随机序列号），复验 12 文件零内容漂移已回退；sw.js precache 清单同步修复见 blockers.md 缺陷台账）
 > 负责人：主策划（整合人）· T3 美术线维护资产段，T4 程序线维护实现段
-> 下一步：D3 程序接入 sfx-pack（AudioManager 预解码 + 缺文件回程序化合成）；主人试玩后如对色板/构图给方向性意见 → 风格卡 30 分钟升 v1
+> 下一步：B5 HTTPS 托管地址（主人指认）+ B6 真机三项（2026-09-26 排期）；主人试玩后如对色板/构图给方向性意见 → 风格卡 30 分钟升 v1
 
 ## M2.1 新增资产段（D2 交付）
 
@@ -44,10 +44,10 @@
 | a14-block-tileset | tileset | games/stack-tower/assets/tileset/blocks-tower.png | tools/gen-assets.mjs（360×28，暖色三循环 A/B/C cell） | **implemented（已接线）** | textures.sliceTileset（blockFace 切片优先）；缺图回程序化画布 |
 
 落盘核对：
-- `node scripts/contract-check.mjs` E 段 → spec 登记 assets **7/7**（spec v3：a01–a05 + a06-sfx-restart + a07-pwa-icons，全部 source=generated，零外部资源；M2.1 复验轮 2026-09-25 复跑 PASS）。
+- `node scripts/contract-check.mjs` E 段 → spec 登记 assets **7/7**（spec v3：a01–a05 + a06-sfx-restart + a07-pwa-icons，全部 source=generated，零外部资源；M2.1 复验轮终证 2026-09-25 复跑 PASS，取证 `gate-logs/m21-reverify-20260925-art-final/`）。
 - 实体贴图 a06–a14 登记于本表（spec assets 段不动，属 T3 资产段管辖）：
-  - 生成复现：`cd games/stack-tower && npm run assets:generate`（确定性，重复运行逐字节一致；单资产 >50KB 或总量 >300KB 即非零退出）。
-  - 接线复现：`cd games/stack-tower && npm run assets:check` → 三态门禁：浏览器级（运行时 9/9 请求 200 + 「贴图就绪 9/9」+ 零页面错误 + **资产全 404 负面用例核心循环仍可玩**）/ 降级（静态可达 + PNG 签名）/ FAIL。
+  - 生成复现：`cd games/stack-tower && npm run assets:generate`（PNG **逐字节确定**，复验零漂移；单资产 >50KB 或总量 >300KB 即非零退出）。音频 `npm run audio:generate` 为**内容稳定、字节不稳定**（容器时间戳/序列号），复验 12 文件零内容漂移；无内容变化不重生成入库。
+  - 接线复现：`cd games/stack-tower && npm run assets:check` → 三态门禁：浏览器级（运行时 9/9 请求 200 + 「贴图就绪 9/9」+ 零页面错误 + **资产全 404 负面用例核心循环仍可玩**）/ 降级（静态可达 + PNG 签名）/ FAIL。复验轮终证 **PASS (browser)**（playwright 装载器已统一自动发现，无需手工注入环境变量）。
   - 降级纪律：`src/render/assets.ts` 无加载器（Node 契约测试）→ 空清单走程序化；加载失败 → 单项 null → 程序化绘制；任何情况不抛错、不刷 console.error。
 
 ## 红线

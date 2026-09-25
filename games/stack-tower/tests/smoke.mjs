@@ -12,10 +12,10 @@
  *   RESULT: FAIL …                            —— exit 1
  */
 import { spawn } from 'node:child_process';
-import { createRequire } from 'node:module';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { loadPlaywright } from './contract/_browser.mjs';
 
 const GAME_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = Number(process.env.SMOKE_PORT ?? 4173 + (process.pid % 500));
@@ -90,20 +90,7 @@ async function headlessLoopSmoke() {
 }
 
 // ---------- 2) 真实浏览器冒烟 ----------
-async function loadPlaywright() {
-  try {
-    const req = createRequire(path.join(GAME_DIR, 'package.json'));
-    return req('playwright');
-  } catch {
-    const globalDir = process.env.PLAYWRIGHT_MODULE_DIR;
-    if (!globalDir) return null;
-    try {
-      return createRequire(path.join(globalDir, 'noop.js'))('playwright');
-    } catch {
-      return null;
-    }
-  }
-}
+// playwright 装载统一走 contract/_browser.mjs（本包 → PLAYWRIGHT_MODULE_DIR → npm 全局根自动发现）。
 
 async function browserSmoke() {
   const pw = await loadPlaywright();

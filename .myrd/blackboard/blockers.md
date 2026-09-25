@@ -1,6 +1,6 @@
 # 阻塞项黑板 — stack-tower（M2 首卡 → M2.1「有声可装」）
 
-> 更新时间：2026-09-25（**M2.1 复验轮**：五道门禁全量复跑取证——build 逐字节无漂移 / 契约 run-all 22/22 / contract-check A–E PASS（**基线漏切缺陷销账**，见缺陷台账）/ smoke PASS (browser) / assets PASS；补挂 daemon 未启动项）
+> 更新时间：2026-09-25（**M2.1 复验轮·终证**：干净 shell 五道门禁全量复跑取证——contract-check A–E PASS 22/22 / run-all PASS 22 FAIL 0 not-runnable 0 / smoke PASS (browser) / assets PASS (browser) / build+typecheck 绿；**新销账 2 项**：playwright 装载器环境缺口（m1/m3/d2 假 not-runnable）+ sw.js precache 清单落后 build 5 项，见缺陷台账；取证 `gate-logs/m21-reverify-20260925-art-final/` 7 份）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：主人人工拍板（试玩终裁「好不好玩」+ 指认 HTTPS 托管地址 + 真机三项排期）
 
@@ -106,6 +106,9 @@
 - [x] gen-audio manifest 键名覆盖 → m4aKb/oggKb
 - [x] e07 数值总闸键序敏感 vs 平台键序归一化 → stableStringify 键序无关深比
 - [x] **contract-check A–E 提交前置门禁 spec 基线漏切**（B4 迁移漏网：run-all/e07 已切 v3，但 `scripts/contract-check-stack-tower.mjs` 仍读已冻结的 `design-spec.json`，实跑仍对 v2 断言 8 条 acceptance / 12 实体 / 5 资产）→ 修复于 `scripts/contract-check-stack-tower.mjs`：① 基线解析改「一游戏一文件」优先（`stack-tower-spec.json`，缺失才回退 design-spec.json）；② `_platform` 元数据形状兼容（platformSpecId/status/version）；③ C 段两族映射（id 前缀 `ac-lvl*` ↔ levels[].elements 8↔8；横切 `acc-*` ↔ m21 契约文件 14↔14 双向防孤儿）；④ D 段实体落点花括号多路径展开（e-pwa-shell 四落点）。**复跑取证：RESULT: PASS**——[A] v3 基线 acceptance=22/entities=17/assets=7 · [B] 22/22 实跑 PASS · [C] 8↔8 + 14↔14 · [D] 17/17 + kernel 纯净性 10 文件 · [E] 7/7（2026-09-25，随 M2.1 复验轮）
+- [x] **playwright 装载器环境缺口**（复验轮实捕：三处测试各写一份装载器且只认 `PLAYWRIGHT_MODULE_DIR` 显式注入 → 干净 shell 下 m1/m3/d2 三条浏览器级契约集体 not-runnable，A–E 汇总假 FAIL(3)，与黑板「22/22 全绿」口径冲突）→ 装载统一收敛 `games/stack-tower/tests/contract/_browser.mjs`（本包 → 环境变量 → `npm root -g` 自动发现，非交互、失败路径显式 null → not-runnable 不静默计绿）；`tests/assets-check.mjs` / `tests/smoke.mjs` 改指共享装载器。**复跑取证：干净 shell 全绿**（`gate-logs/m21-reverify-20260925-art-final/`：1-contract-check 22/22 · 5-run-all 22/0/0 · m1/m3/d2 逐条 PASS）（2026-09-25）
+- [x] **sw.js precache 清单落后 build 产物 5 项**（M2.1 新模块 audio-manager/voices/fps-overlay/rotate-overlay/style 未进预缓存；生成件生成早于模块编译入库，回填机制兜底掩盖了冷启动离线缺件面）→ `node tools/gen-sw.mjs` 重生成（清单 = build/ 目录真实扫描，确定性产出，precache 55 项）。**回归取证：d1/d2 契约 PASS + run-all 22/0/0**（2026-09-25）
+- 澄清（非缺陷）：`gen-audio` 为**内容稳定、字节不稳定**——afconvert 写容器时间戳、oggenc 随机化 OggS 序列号+CRC（实测 sfx-place.m4a 仅 12 字节头差异、尺寸逐字节相等，载荷一致）；「重复运行逐字节一致」口径仅适用于 `gen-assets`（PNG，复验零漂移）。音频再生成后如无内容变化，回退即可，勿入库制造 churn。
 
 ## 挂账（不阻塞代码收口）
 - B5：HTTPS 托管地址待主人指认（acc-d1 安装面需要）。
