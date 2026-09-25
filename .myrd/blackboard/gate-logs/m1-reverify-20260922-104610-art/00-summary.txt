@@ -1,0 +1,12 @@
+美术会话独立复跑（2026-09-22 · 游戏美术批次 · 资产零改动纯复核）
+
+足球线（pixel-fives）三件套：1-contract-check / 2-full-match-smoke / 3-fulltime-restart / 4-bot-sim-100 全 exit=0
+复现命令：bash pixel-fives/tools/m1-reverify.sh art
+
+糖果线（games/game）：
+- bash games/game/verify.sh                    → VERIFY_EXIT=0（preflight 13 类 110 文件 + godot smoke PASS）
+- node scripts/contract-check.mjs              → CONTRACT_EXIT=0（46 PASS / 0 FAIL，approved v1 强制模式）
+- godot --headless --path games/game tests/contracts/fx-settlement-contract.tscn → FX_EXIT=0
+  （PERF avg_fps=61.0≥50 / steady_worst=53.7≥30；三态 WIN/LOSE/RESUME 接线机判 PASS）
+
+判定：双线全绿（ALL-GREEN）。本批美术零资产改动、零调参，纯独立复验 + 接线完整性核查。

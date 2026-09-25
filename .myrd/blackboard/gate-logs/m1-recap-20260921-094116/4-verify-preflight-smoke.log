@@ -1,0 +1,12 @@
+### [5/5] verify.sh（preflight 静态一致性 → 无头冒烟；B-5 修复后复跑）
+verify: Godot = 4.3.stable.official.77dcf97d8（godot）
+verify: 工程 = /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmuajxsyy0010m95me4r1csdc/games/game
+
+==> [1/2] preflight（静态前置一致性检查，12 类）
+PREFLIGHT: PASS 13 类前置一致性检查全部通过（105 个工程文件，不含 .godot/ 导入缓存）
+
+==> [2/2] smoke（godot --headless 无头冒烟门禁）
+godot-smoke: PASS 冒烟场景通过：tests/smoke.tscn（退出码 0，断言标记齐全，日志无脚本错误）
+
+verify: PASS preflight + smoke 全部通过（可玩验收七项：移动/收集交互/死局洗牌/计分加成/难度梯度/过关推进/胜负重开）
+VERIFY_EXIT=0

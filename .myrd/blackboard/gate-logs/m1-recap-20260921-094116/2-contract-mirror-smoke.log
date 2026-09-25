@@ -1,0 +1,55 @@
+### [2/4] contract-check（口径B：工程内镜像版，project=games/game）
+—— 契约测试输出 ——
+  PASS  spec 可解析: .myrd/spec/design-spec.json
+  PASS  spec 为 approved 版
+  PASS  六段完整: meta
+  PASS  六段完整: world
+  PASS  六段完整: entities
+  PASS  六段完整: levels
+  PASS  六段完整: numeric
+  PASS  六段完整: acceptance
+  PASS  实体 e1 script 存在: games/game/scripts/main.gd
+  PASS  实体 e1 scene 存在: games/game/scenes/main.tscn
+  PASS  实体 e2 script 存在: games/game/scripts/board.gd
+  PASS  实体 e2 scene 存在: games/game/scenes/main.tscn
+  PASS  实体 e3 script 存在: games/game/scripts/player.gd
+  PASS  实体 e3 scene 存在: games/game/scenes/player.tscn
+  PASS  实体 e4 script 存在: games/game/scripts/candy.gd
+  PASS  实体 e4 scene 存在: games/game/scenes/candy.tscn
+  PASS  实体 e5 script 存在: games/game/autoload/game_state.gd
+  PASS  实体 e6 script 存在: games/game/autoload/audio_manager.gd
+  PASS  关卡 l1 scene 存在: games/game/scenes/main.tscn
+  PASS  关卡 l2 scene 存在: games/game/scenes/main.tscn
+  PASS  关卡元素编号唯一性核对完成（9 个）
+  PASS  数值扫描源就绪（6 个脚本，三层解析）
+  PASS  数值 COLS 在工程常量区有对应
+  PASS  数值 ROWS 在工程常量区有对应
+  PASS  数值 CELL 在工程常量区有对应
+  PASS  数值 CANDY_KINDS 在工程常量区有对应
+  PASS  数值 START_MOVES 在工程常量区有对应
+  PASS  数值 TARGET_SCORE 在工程常量区有对应
+  PASS  数值 MAX_LEVEL 在工程常量区有对应
+  PASS  数值 POINTS_PER_CANDY 在工程常量区有对应
+  PASS  数值 FOUR_RUN_BONUS 在工程常量区有对应
+  PASS  数值 FIVE_RUN_BONUS 在工程常量区有对应
+  PASS  数值 SPAWN_TWEEN_SEC 在工程常量区有对应
+  PASS  数值 FX_LIFE_SEC 在工程常量区有对应
+  PASS  数值 INVALID_MSG_HOLD_SEC 在工程常量区有对应
+  PASS  数值 COMBO_PITCH_STEP 在工程常量区有对应
+  PASS  数值 COMBO_MAX_PITCH 在工程常量区有对应
+  PASS  数值 SWIPE_TRIGGER_DISTANCE 在工程常量区有对应
+  PASS  验收项 ac-smoke-pass 依赖存在: std-skills/godot-game-dev/scripts/smoke.sh
+  PASS  验收项 ac-core-loop 依赖存在: games/game/tests/smoke.gd
+  PASS  验收项 ac-win-lose 依赖存在: games/game/tests/smoke.gd
+  PASS  验收项 ac-difficulty 依赖存在: games/game/tests/smoke.gd
+  PASS  验收项 ac-audio-tick 依赖存在: games/game/tests/smoke.gd
+  PASS  验收项 ac-audio-tick 依赖存在: games/game/tests/contracts/audio-same-tick.gd
+  PASS  验收项 ac-deadlock 依赖存在: games/game/tests/smoke.gd
+  PASS  验收项 ac-invalid-swap 依赖存在: games/game/tests/smoke.gd
+—— 合计 46 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
+EXIT_B=0
+
+### [3/4] godot-smoke（无头冒烟 0-12 阶段）
+godot-smoke: PASS 冒烟场景通过：tests/smoke.tscn（退出码 0，断言标记齐全，日志无脚本错误）
+SMOKE_EXIT=0

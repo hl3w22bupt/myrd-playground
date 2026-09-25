@@ -1,0 +1,152 @@
+{
+  "test": "qa/bot-sim-contract",
+  "total": 29,
+  "failures": 0,
+  "results": [
+    {
+      "name": "A1 runner 正常结束（无信号/超时）",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "A2 全量 100 场 exit 0",
+      "pass": true,
+      "detail": "status=0"
+    },
+    {
+      "name": "A3 报告可解析为 JSON",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "B1 meta.seeds_start=42",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "B2 meta.seeds_end=141",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "B3 meta.game_count=100",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "B4 meta.spec_version=v1.2",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "B5 meta.built_from 可追溯（git sha 或 build id）",
+      "pass": true,
+      "detail": "d0487cf2a6a6ea620987c6f274c74a0d3f243e96"
+    },
+    {
+      "name": "B6 meta.generated_at 为 ISO8601",
+      "pass": true,
+      "detail": "2026-09-21T23:52:56+08:00"
+    },
+    {
+      "name": "B7 meta.deterministic=true",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C1 per_game 共 100 场",
+      "pass": true,
+      "detail": "100"
+    },
+    {
+      "name": "C2 seeds 恰为 42..141 无重复",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C3 per_game 字段齐备（seed/goals_total/goals_red/goals_blue/duration_s/shots/touches/errors）",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C4 goals_total = goals_red + goals_blue（逐场）",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "D1 summary.goal_range_ratio 存在且为数值",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "D2 summary.duration_in_range_ratio 存在且为数值",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "D3 summary.games_with_errors 存在",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "D4 summary.errors 为数组",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "D5 指标拆分未被合并（两字段独立存在）",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "E1 goal_range_ratio == 1.0",
+      "pass": true,
+      "detail": "1"
+    },
+    {
+      "name": "E2 duration_in_range_ratio == 1.0",
+      "pass": true,
+      "detail": "1"
+    },
+    {
+      "name": "E3 games_with_errors == 0",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "F1 errors 非空 ⇒ exit ≠ 0",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "F2 比率 < 1.0 ⇒ exit ≠ 0",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "G1 复跑两次均 exit 0",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "G2 同 seed 复跑 stdout 逐字节一致",
+      "pass": true,
+      "detail": "2246B"
+    },
+    {
+      "name": "H1 parseSeeds(\"42..141\") = 100 个",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "H2 parseSeeds 单值/混写",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "H3 parseSeeds 缺省 = BOT_SIM_SEEDS 全集",
+      "pass": true,
+      "detail": null
+    }
+  ]
+}
