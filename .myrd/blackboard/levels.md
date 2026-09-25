@@ -1,6 +1,6 @@
 # 关卡状态黑板 — stack-tower（M2 首卡）
 
-> 更新时间：2026-09-25（**M2.1「有声可装」收口**：lvl-01 维持 green（冻结 8 条零改动回归 PASS）+ M2.1 契约族 14 条全绿；契约总盘 22/22 PASS + 冒烟 PASS + 资产门禁 PASS）
+> 更新时间：2026-09-25（**M2.1 复验轮**：五道门禁全量复跑取证——build 无漂移 / 契约 22/22 / contract-check A–E PASS（基线切 v3，销账见 blockers.md）/ smoke PASS (browser) / assets PASS）
 > 负责人：主策划（整合人）· 全团队共用，改前先读，改后写更新时间
 > 下一步：主人试玩终裁「好不好玩」（代持 approved 候选版的最后一道人工闸）
 
@@ -29,8 +29,17 @@
 
 ## 冒烟门禁（Web 原型口径）
 - `cd games/stack-tower && npm run smoke` → **RESULT: PASS (browser)**
-- 证据链：HTTP / 200 → 18 个 build 模块相对导入全部可解析 → 无头核心循环 3 连落块 score=120 →
+- 证据链：HTTP / 200 → 25 个 build 模块相对导入全部可解析 → 无头核心循环 3 连落块 score=120 →
   Chromium 打开页面（画布 480×720）→ 3 次点击 HUD「分数 45」（perfect 35 + place 10）→ R 键重开回「分数 0」→ 零 pageerror/console.error。
+
+## 提交前置契约（A–E 版，`node scripts/contract-check.mjs` 裸调用口径）
+- **RESULT: PASS（spec ↔ 工程一致）**，M2.1 复验轮 2026-09-25 复跑取证：
+  - [A] 基线 = `.myrd/spec/stack-tower-spec.json` · platformSpecId `cmugok2uz000xm9ilx42t8pnl` · **v3 approved** · acceptance=22 / levels=1 / entities=17 / assets=7
+  - [B] acceptance 命令化 + 逐字实跑：**22/22 PASS**（not-runnable 0）
+  - [C] 双向映射：level/element **8 ↔ 8**（statement 标注 ↔ spec.elements）+ 横切 acceptance **14 ↔ 14**（`acc-*` ↔ `tests/contract/m21-*.spec.mjs`，双向防孤儿）
+  - [D] 实体落盘 **17/17**（含 e-pwa-shell 花括号四落点展开）+ kernel 纯净性 10 文件扫描零违禁
+  - [E] 资产落盘 **7/7**（全部 generated，零外部资源）
+- 本轮修复（销账记录见 blockers.md「缺陷销账」）：A–E 检查器 spec 基线由已冻结的 `design-spec.json`（v2 残留）切指 v3 导出件——修复前实跑对 v2 断言（8 条/12 实体/5 资产全过但基线陈旧），修复后才真正对 approved v3 全量断言。
 
 ## 约定
 - 关卡/元素 id 一旦进入 approved spec 即冻结，改名 = spec 升版。

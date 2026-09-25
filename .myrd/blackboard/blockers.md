@@ -1,6 +1,6 @@
 # 阻塞项黑板 — stack-tower（M2 首卡 → M2.1「有声可装」）
 
-> 更新时间：2026-09-25（**M2.1「有声可装」收口**：spec v3 approved + 契约 22/22 PASS + 冒烟/资产门禁 PASS；真机三项挂日期，HTTPS 托管待主人指认）
+> 更新时间：2026-09-25（**M2.1 复验轮**：五道门禁全量复跑取证——build 逐字节无漂移 / 契约 run-all 22/22 / contract-check A–E PASS（**基线漏切缺陷销账**，见缺陷台账）/ smoke PASS (browser) / assets PASS；补挂 daemon 未启动项）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：主人人工拍板（试玩终裁「好不好玩」+ 指认 HTTPS 托管地址 + 真机三项排期）
 
@@ -105,9 +105,11 @@
 - [x] unlock 补放早于预解码（降级语义倒挂）→ await preload 后补放
 - [x] gen-audio manifest 键名覆盖 → m4aKb/oggKb
 - [x] e07 数值总闸键序敏感 vs 平台键序归一化 → stableStringify 键序无关深比
+- [x] **contract-check A–E 提交前置门禁 spec 基线漏切**（B4 迁移漏网：run-all/e07 已切 v3，但 `scripts/contract-check-stack-tower.mjs` 仍读已冻结的 `design-spec.json`，实跑仍对 v2 断言 8 条 acceptance / 12 实体 / 5 资产）→ 修复于 `scripts/contract-check-stack-tower.mjs`：① 基线解析改「一游戏一文件」优先（`stack-tower-spec.json`，缺失才回退 design-spec.json）；② `_platform` 元数据形状兼容（platformSpecId/status/version）；③ C 段两族映射（id 前缀 `ac-lvl*` ↔ levels[].elements 8↔8；横切 `acc-*` ↔ m21 契约文件 14↔14 双向防孤儿）；④ D 段实体落点花括号多路径展开（e-pwa-shell 四落点）。**复跑取证：RESULT: PASS**——[A] v3 基线 acceptance=22/entities=17/assets=7 · [B] 22/22 实跑 PASS · [C] 8↔8 + 14↔14 · [D] 17/17 + kernel 纯净性 10 文件 · [E] 7/7（2026-09-25，随 M2.1 复验轮）
 
 ## 挂账（不阻塞代码收口）
 - B5：HTTPS 托管地址待主人指认（acc-d1 安装面需要）。
 - B6：真机三项 + 帧率/安装面（acc-a2/m2/m3/a5b 真机口径/d1 安装）挂 2026-09-26 排期，证据=设备型号+录屏。
+- B7：daemon 未启动（本轮无视觉依赖）——Open Design/pencil 视觉协作物未启用，本轮资产与呈现全部走仓库内程序化生成器（gen-assets/gen-audio），自动化门禁不依赖 daemon；主人如需视觉走查再启动。
 - sfx_mapping 文案与 miss 绑定出入（spec v3 content.sfxPack）→ 下一版修订（文案级，不涉数值/acceptance）。
 - 玩法落点裁决记录：主人已裁 **PWA 可安装**；微信/抖音小游戏进下期 backlog，主人可一句话改判。
