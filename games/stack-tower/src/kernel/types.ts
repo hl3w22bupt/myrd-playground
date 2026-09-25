@@ -53,7 +53,9 @@ export type KernelEvent =
       duration_ms: number;
     }
   | { type: 'block-placed'; level_id: string; perfect: boolean }
-  | { type: 'game-over'; level_id: string; reason: 'width-floor' | 'total-miss' };
+  | { type: 'game-over'; level_id: string; reason: 'width-floor' | 'total-miss' }
+  /** M2.1（spec v3 content.towerRipple.restart）：重开事件，载荷恰一字段 source */
+  | { type: 'restart'; source: 'button' | 'keyboard' };
 
 /** 内核只读快照（表现层输入） */
 export interface Snapshot {
@@ -76,6 +78,7 @@ export interface SimHandle {
   fastForward(n: number): KernelEvent[];
   /** 只读快照 */
   snapshot(): Snapshot;
-  /** 全量复位（重开）：塔回单块、分数/连击清零、关卡回 1（seed 保留） */
-  restart(): void;
+  /** 全量复位（重开）：塔回单块、分数/连击清零、关卡回 1（seed 保留）；
+   *  传 source 时上抛契约级 restart 事件（spec v3 content.towerRipple.restart） */
+  restart(source?: 'button' | 'keyboard'): KernelEvent[];
 }

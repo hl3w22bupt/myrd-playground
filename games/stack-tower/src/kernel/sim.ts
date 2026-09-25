@@ -141,8 +141,10 @@ export function createSim(options: SimOptions = {}): SimHandle {
       return events;
     },
     snapshot,
-    restart(): void {
+    /** 全量复位并上抛契约级 restart 事件（spec v3 content.towerRipple.restart，载荷恰 {source}） */
+    restart(source?: 'button' | 'keyboard'): KernelEvent[] {
       reset();
+      return source ? [{ type: 'restart', source }] : [];
     },
   };
 }

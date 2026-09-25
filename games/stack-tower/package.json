@@ -9,6 +9,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "contract": "node tests/contract/run-all.mjs",
     "assets:generate": "node tools/gen-assets.mjs",
+    "audio:generate": "node tools/gen-audio.mjs",
+    "sw:generate": "node tools/gen-sw.mjs",
+    "spec:build-m21": "node tools/build-spec-m21.mjs",
     "assets:check": "node tests/assets-check.mjs",
     "serve": "node serve.mjs",
     "smoke": "node tests/smoke.mjs"

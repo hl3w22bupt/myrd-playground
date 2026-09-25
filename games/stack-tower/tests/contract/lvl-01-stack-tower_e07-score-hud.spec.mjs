@@ -5,8 +5,7 @@
  * 断言：place=+10；perfect 连击 1/2/3 次 bonus=25/30/35（step 5、cap 75）；
  *       HUD 格式化输出与内核状态一致；NUMERIC 与 spec 基线一一对应（数值总闸）。
  */
-import { runContract, assertEq, assert, assertApproxEq } from './_runner.mjs';
-import { readFileSync } from 'node:fs';
+import { runContract, assertEq, assert, assertApproxEq, loadSpec, stableStringify } from './_runner.mjs';
 
 function dropAtFirstHit(h, thresh) {
   for (let i = 0; i < 400; i++) {
@@ -71,11 +70,13 @@ runContract({
       },
     },
     {
-      name: '数值总闸：NUMERIC 与 spec 基线 numeric 深度一致',
+      name: '数值总闸：NUMERIC 与 spec 基线 numeric 深度一致（键序无关）',
       fn: async ({ 'build/kernel/numeric.js': num }) => {
-        const spec = JSON.parse(readFileSync(new URL('../../../../.myrd/spec/design-spec.json', import.meta.url), 'utf8'));
+        // M2.1 起基线 = .myrd/spec/stack-tower-spec.json（v3 approved）；平台入库会归一化对象键序，
+        // 故总闸语义 = 结构 + 数值等价（键序无关深比），锁死数值与结构，不锁书写顺序。
+        const spec = loadSpec();
         const specNumeric = spec.spec.numeric;
-        assertEq(JSON.stringify(num.NUMERIC), JSON.stringify(specNumeric), 'NUMERIC 与 spec.numeric 不一致——改数值必须先升策划案版本');
+        assertEq(stableStringify(num.NUMERIC), stableStringify(specNumeric), 'NUMERIC 与 spec.numeric 不一致——改数值必须先升策划案版本');
       },
     },
   ],

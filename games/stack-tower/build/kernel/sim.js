@@ -120,8 +120,10 @@ export function createSim(options = {}) {
             return events;
         },
         snapshot,
-        restart() {
+        /** 全量复位并上抛契约级 restart 事件（spec v3 content.towerRipple.restart，载荷恰 {source}） */
+        restart(source) {
             reset();
+            return source ? [{ type: 'restart', source }] : [];
         },
     };
 }

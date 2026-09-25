@@ -39,6 +39,8 @@ export interface Platform {
   input: InputSource;
   clock: ClockSource;
   audio: AudioSink;
+  /** M2.1：音频管理器（解锁/音池/静音持久）；headless 测试不注入 → 表现层走静音路径 */
+  audioManager?: import('../audio/audio-manager.js').AudioManager;
   canvas: CanvasHost | null; // headless 测试环境可无画布
   assets?: AssetHost; // headless/契约测试不注入 → 表现层走程序化 fallback
 }

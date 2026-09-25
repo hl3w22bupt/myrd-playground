@@ -33,6 +33,23 @@ export const NUMERIC = {
         PERFECT_COMBO_STEP: 5,
         PLACE_SCORE: 10,
     },
+    // —— M2.1「有声可装」新增三组（spec v3 numeric.audio/mobile/deploy，键序无关深比）——
+    audio: {
+        SFX_BUS_GAIN: 0.9,
+        VOICE_POOL_SIZE: 8,
+        COMBO_PITCH_STEP_SEMITONES: 1,
+        COMBO_PITCH_CAP_SEMITONES: 12,
+        SAMPLE_RATE_HZ: 44100,
+        RESTART_SFX_MAX_MS: 200,
+    },
+    mobile: {
+        ROTATE_ASPECT_RATIO: 1,
+    },
+    deploy: {
+        PRECACHE_REVISION: 1,
+        PWA_ICON_SIZES: [192, 512],
+        APPLE_TOUCH_ICON_SIZE: 180,
+    },
 };
 /** 完美判定窗口（ms）：max(140 − (level−1)×8, 60) */
 export function perfectWindowMs(level) {

@@ -1,8 +1,20 @@
-# 资产清单黑板 — stack-tower（M2 首卡）
+# 资产清单黑板 — stack-tower（M2 首卡 → M2.1「有声可装」）
 
-> 更新时间：2026-09-25（资产实体化：a01–a05 程序化生成器 + a06–a14 assets/ 实体贴图接线，门禁全绿）
+> 更新时间：2026-09-25（**M2.1 D2 落盘**：sfx-pack-v1 12 音频文件（6 事件 × m4a+ogg，44.1kHz 单声道，A6=sfx-restart 198ms≤200 ✓）+ 3 枚 PWA 图标（192/512 maskable + apple-touch-180）；**另修复 pnglib blend 通道缺陷**（既有 9 件贴图曾全图退化为灰度，已全量重生成恢复琥珀/冷蓝原色））
 > 负责人：主策划（整合人）· T3 美术线维护资产段，T4 程序线维护实现段
-> 下一步：主人试玩后如对色板/构图给方向性意见 → 风格卡 30 分钟升 v1（落点不变）
+> 下一步：D3 程序接入 sfx-pack（AudioManager 预解码 + 缺文件回程序化合成）；主人试玩后如对色板/构图给方向性意见 → 风格卡 30 分钟升 v1
+
+## M2.1 新增资产段（D2 交付）
+
+| 资产 | 落点 | 规格 | 生成复现 | 核对 |
+|---|---|---|---|---|
+| a06-sfx-restart | assets/sfx/sfx-restart.{m4a,ogg} | 198ms（≤200 红线 ✓）440/587Hz triangle，critical=true | `node games/stack-tower/tools/gen-audio.mjs` | manifest.json events.restart.durationMs=198 |
+| sfx-pack-v1（12 文件） | assets/sfx/sfx-{place,perfect,miss,game-over,restart,level-clear}.{m4a,ogg} | 6 事件 × 双格式，44.1kHz 单声道 16-bit；事件 ≤400ms（最大 game-over 388ms ✓）；共 66.74KB | 同上（音色表唯一真源 = src/audio/voices.ts，运行时降级同表合成） | `assets/sfx/manifest.json` = acc-a1 注册表断言点 |
+| a07-pwa-icons（3 件） | assets/icons/{icon-192-maskable,icon-512-maskable,apple-touch-icon-180}.png | maskable 安全区内构图（塔块三层意象同风格卡）；共 4.68KB | `node games/stack-tower/tools/gen-assets.mjs`（新增 drawIcon 三 job） | PNG 签名 + 色值抽样已验（琥珀块/冷蓝天天空） |
+
+### M2.1 缺陷修复记录（美术线，随 D2 一并落盘）
+- **pnglib.mjs `blend()` 通道缺陷**：三通道循环误写 `r`（g/b 解构未用）→ 此前所有生成 PNG 的 R=G=B（全图灰度），琥珀塔块/冷蓝天空全部失色。M2 门禁只查 PNG 签名与可达性，未抽色值——盲区已记入 QA 台账；本轮修复 + 12 件全量重生成 + 色值抽样核对（e01 块面 = amber 0.78 阶 (154,84,43)）。
+- 工具链备忘：本机 ffmpeg 无 libvorbis（原生 vorbis 编码器拒单声道）→ .ogg 用 `oggenc`（vorbis-tools 1.4.3，已 brew 安装）；.m4a 用 `afconvert`（系统自带）。生成器已固化该路径。
 
 ## 顶部：风格卡（v0 摘要）
 - 主题锚点：stack-tower（叠塔 · 落块），主题项零编造，全部派生自 T1 锚定的「叠塔/塔/切面」意象与 spec world 段文本

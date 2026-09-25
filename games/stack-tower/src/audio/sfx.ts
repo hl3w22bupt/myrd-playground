@@ -1,10 +1,11 @@
 /**
- * 程序化音效（资产 a04-sfx-place / a05-sfx-perfect，generator: procedural:webaudio）。
- * 零外部音频文件：落块=短促闷响（低频正弦+快衰减）；完美=清脆叮（高频双音），
- * 与 tower-ripple 波纹一次性呼应（不随 duration_ms 循环）；结束=下行两音。
+ * 程序化合成音效（资产 a04-sfx-place / a05-sfx-perfect 规格，generator: procedural:webaudio）。
+ * M2.1 起本模块 = AudioManager 的降级合成路径（sfx-pack 文件缺失/解码失败时用同一张
+ * voices.ts 音色表合成）；落块=短促闷响、完美=清脆双音叮的音色规格不变。
  * 浏览器外（无 AudioContext）自动退化为静音，绝不抛错。
  */
-import type { AudioSink } from '../platform/index.js';
+import type { GainNodeLike, OscillatorLike } from './audio-manager.js';
+import type { SfxVoice } from './voices.js';
 
 type Ctor = new () => AudioContext;
 
@@ -21,58 +22,37 @@ function getAudioContext(): AudioContext | null {
 
 let ctx: AudioContext | null = null;
 
-/** 三类程序化音色（频率/时长/波形表，零采样） */
-interface Voice {
-  freqs: number[];
-  durationMs: number;
-  type: OscillatorType;
-  gain: number;
+/** 浏览器共享 AudioContext（AudioManager 装配用；无 AudioContext 环境返回 null） */
+export function sharedAudioContext(): AudioContext | null {
+  if (!ctx) ctx = getAudioContext();
+  return ctx;
 }
 
-const SFX_TABLE: Record<'place' | 'perfect' | 'over', Voice> = {
-  place: { freqs: [120], durationMs: 90, type: 'sine', gain: 0.35 },
-  perfect: { freqs: [880, 1320], durationMs: 180, type: 'triangle', gain: 0.22 },
-  over: { freqs: [220, 165], durationMs: 320, type: 'sawtooth', gain: 0.18 },
-};
-
-function tone(voice: Voice): void {
-  if (!ctx) return;
-  const t0 = ctx.currentTime;
+/** 程序化合成单音色（多频按 60ms 错开；rate 用于连击升调）。返回结束时刻（ctx 时钟，秒） */
+export function scheduleProceduralVoice(
+  audioCtx: { currentTime: number },
+  bus: GainNodeLike,
+  voice: SfxVoice,
+  rate: number,
+  mkOsc: () => OscillatorLike,
+  mkGain: () => GainNodeLike,
+): number {
+  const t0 = audioCtx.currentTime;
+  let last = 0;
   for (let i = 0; i < voice.freqs.length; i++) {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    const freq = voice.freqs[i]!;
+    const osc = mkOsc();
+    const gain = mkGain();
     osc.type = voice.type;
-    osc.frequency.value = freq;
+    osc.frequency.value = voice.freqs[i]! * rate;
     const start = t0 + i * 0.06; // 双音错开 60ms（叮的上扬感）
-    gain.gain.setValueAtTime(voice.gain, start);
-    gain.gain.exponentialRampToValueAtTime(0.0001, start + voice.durationMs / 1000);
-    osc.connect(gain).connect(ctx.destination);
+    const dur = voice.durationMs / 1000 / rate;
+    if (gain.gain.setValueAtTime) gain.gain.setValueAtTime(voice.gain, start);
+    else gain.gain.value = voice.gain;
+    osc.connect(gain);
+    gain.connect(bus);
     osc.start(start);
-    osc.stop(start + voice.durationMs / 1000 + 0.02);
+    osc.stop(start + dur + 0.02);
+    last = Math.max(last, start + dur);
   }
-}
-
-/** WebAudio 输出（浏览器平台装配用；无 AudioContext 环境为静音） */
-export function createWebAudioSink(): AudioSink {
-  return {
-    play(kind) {
-      if (!ctx) ctx = getAudioContext();
-      tone(SFX_TABLE[kind]);
-    },
-  };
-}
-
-/** 事件消费门面（app/main 用）：静音开关 + 主音量 */
-export function createSfx(sink: AudioSink): { play(kind: 'place' | 'perfect' | 'over'): void; toggleMute(): boolean } {
-  let muted = false;
-  return {
-    play(kind) {
-      if (!muted) sink.play(kind);
-    },
-    toggleMute() {
-      muted = !muted;
-      return muted;
-    },
-  };
+  return last;
 }

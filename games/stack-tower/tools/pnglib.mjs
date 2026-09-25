@@ -69,7 +69,7 @@ export class Raster {
   }
 
   /** alpha 混合写单像素（srcA 0..255） */
-  blend(x, y, [r, g, b], a) {
+  blend(x, y, rgb, a) {
     if (x < 0 || y < 0 || x >= this.width || y >= this.height || a <= 0) return;
     const i = (y * this.width + x) * 4;
     const sa = Math.min(255, a);
@@ -77,7 +77,8 @@ export class Raster {
     const outA = sa + (da * (255 - sa)) / 255;
     if (outA <= 0) return;
     for (let k = 0; k < 3; k++) {
-      this.data[i + k] = Math.round((r * sa + this.data[i + k] * da * (255 - sa) / 255) / outA);
+      const sc = rgb[k]; // 逐通道取源色（修复：此前三通道均写 r，全图退化为灰度）
+      this.data[i + k] = Math.round((sc * sa + this.data[i + k] * da * (255 - sa) / 255) / outA);
     }
     this.data[i + 3] = Math.round(outA);
   }

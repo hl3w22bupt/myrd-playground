@@ -138,6 +138,50 @@ const out = (file, raster) => jobs.push({ file, raster });
   out('assets/tileset/blocks-tower.png', r);
 }
 
+// ---------- PWA 图标三件（M2.1：a07-pwa-icons；maskable 安全区 = 内切 80%，构图不出圈） ----------
+// 意象同风格卡：冷灰蓝天底 + 暖色塔块三面光照 + 切面白描边；内容集中内切圆 r=40% 内（maskable 规范）
+function drawIcon(size, { maskable = true } = {}) {
+  const r = new Raster(size, size);
+  const SKY_TOP = shadeRgb(P.SKY_BOTTOM, 1.18);
+  for (let y = 0; y < size; y++) {
+    const t = y / (size - 1);
+    const c = [
+      Math.round(SKY_TOP[0] + (P.SKY_BOTTOM[0] - SKY_TOP[0]) * t),
+      Math.round(SKY_TOP[1] + (P.SKY_BOTTOM[1] - SKY_TOP[1]) * t),
+      Math.round(SKY_TOP[2] + (P.SKY_BOTTOM[2] - SKY_TOP[2]) * t),
+    ];
+    r.fillRect(0, y, size, 1, c);
+  }
+  // 三层塔块（下宽上窄），约束在内切圆 r=40%（maskable）内
+  const s = size;
+  const layers = [
+    { w: 0.56, h: 0.11, y: 0.60, c: P.BLOCK_A },
+    { w: 0.46, h: 0.11, y: 0.47, c: P.BLOCK_B },
+    { w: 0.36, h: 0.11, y: 0.34, c: P.BLOCK_C },
+  ];
+  for (const L of layers) {
+    const bw = Math.round(s * L.w);
+    const bh = Math.max(3, Math.round(s * L.h));
+    const bx = Math.round((s - bw) / 2);
+    const by = Math.round(s * L.y);
+    blockFaceRegion(r, bx, by, bw, bh, L.c);
+  }
+  return r;
+}
+
+/** 区域版三面光照块（顶 12% 高光带 + 100/78/55），复用 blockFace 明度策略 */
+function blockFaceRegion(r, bx, by, bw, bh, rgb) {
+  const hi = Math.max(1, Math.round(bh * 0.12));
+  const bot = Math.max(1, Math.round(bh * 0.18));
+  r.fillRect(bx, by, bw, hi, shadeRgb(rgb, 1));
+  r.fillRect(bx, by + hi, bw, Math.max(1, bh - hi - bot), shadeRgb(rgb, 0.78));
+  r.fillRect(bx, by + bh - bot, bw, bot, shadeRgb(rgb, 0.55));
+  r.fillRect(bx, by, bw, 1, WHITE, 200); // 切面白描边（上缘）
+}
+out('assets/icons/icon-192-maskable.png', drawIcon(192));
+out('assets/icons/icon-512-maskable.png', drawIcon(512));
+out('assets/icons/apple-touch-icon-180.png', drawIcon(180, { maskable: false }));
+
 // ---------- 落盘 + 预算红线 ----------
 let total = 0;
 for (const { file, raster } of jobs) {

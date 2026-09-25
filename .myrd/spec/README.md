@@ -1,30 +1,31 @@
-# .myrd/spec/ — 策划案导出件索引（本仓库两线并存口径）
+# .myrd/spec/ — 策划案导出件索引（分游戏独立路径，2026-09-25 M2.1 起施行）
 
-> 更新时间：2026-09-22（M1 收口验证 + M2 立项冲刺 · 主策划）
+> 更新时间：2026-09-25（M2.1「有声可装」收口 · 主策划）
 > 负责人：主策划（版本链唯一看护；任何内容修订必须走版本链 version+1，禁止覆盖旧版）
-> 下一步：足球线 v1.3 M2 段草案今日挂 draft（不走 approve）；糖果线 spec v1 冻结不动
+> 下一步：主人人工拍板（试玩 + 真机三项 + HTTPS 托管指认）
 
-## 两份导出件（契约测试的共同输入）
+## 导出件一览（一游戏一文件，终结撞车史）
 
 | 文件 | 游戏 | 版本/状态 | 契约测试调用 |
 |---|---|---|---|
-| `design-spec.json` | 糖果粉碎传奇（代号 Pixel Fives，`games/game/`） | v1 · **approved**（2026-09-20 追认代记） | `node scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --project .`（双口径见 runbook §1） |
-| `design-spec-pixel-fives.json` | 像素街机足球 Pixel Fives（`pixel-fives/`） | v1.2 · **approved**（2026-09-12 主策划盖章） | `node pixel-fives/tools/contract-check.mjs`（acc-07 落点，默认读本文件） |
+| `stack-tower-spec.json` | **Stack Tower 叠塔（`games/stack-tower/`）** | **v3 · approved**（platformSpecId `cmugok2uz000xm9ilx42t8pnl`；v2 `cmugal9ob0013gqlok6dstuyc` superseded；v1 `cmuga6tq90011gqlo3wkh9k7a` superseded） | `node games/stack-tower/tests/contract/run-all.mjs`（runner 自动读本文件） |
+| `stack-tower-spec-v2.json` | 同上（历史档） | v2 approved（被 v3 取代前快照） | 只读审计 |
+| `stack-tower-spec-v3-content.json` | 同上（建版载荷） | v3 内容稿（平台入库键序归一化后以平台版为准） | 只读审计 |
+| `stack-tower-spec-v1.json` | 同上（历史档） | v1（T2 初稿） | 只读审计 |
+| `design-spec-pixel-fives.json` | 像素街机足球 Pixel Fives（`pixel-fives/`） | v1.2 · approved | `node pixel-fives/tools/contract-check.mjs` |
+| `design-spec-pixel-fives-v1.3-draft.json` | 同上（草案） | v1.3 draft（不作契约依据） | — |
+| `design-spec.json` | ⚠️ **冻结现状：内容为 stack-tower v2（糖果线导出件被撞丢，git 不可回滚）** | 不可作为任何契约依据 | 糖果线 contract-check 在导出件归位前**不得作为验收依据** |
 
-## 为什么有两份（合并撞车事故记录）
+## 版本链红线（重申）
 
-本仓库两条产物线共用分支（`myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d`）。2026-09-21 晚合并
-（d0487cf，两段历史无共同祖先）时，两条线各自把导出件写在同一路径 `.myrd/spec/design-spec.json`：
-**糖果版胜出，足球版被覆盖丢失**（足球线 contract-check.mjs 同批丢失，从未入库）。本次冲刺已按以下方式处置：
+1. 每个游戏的 approved 版是唯一断言依据；禁止把一个游戏的 acceptance 拿去核另一个游戏。
+2. 任何内容修订 → `POST /api/v1/game-design-specs/:id/revisions`（version+1）；旧版不覆盖。
+3. approve 只有一个；draft 不作为契约测试依据。
+4. 平台入库会把对象键做归一化排序 → 契约侧数值总闸一律**键序无关深比**（`stableStringify`）。
 
-- 足球 v1.2 导出件自合并父提交 d9f2f13 **字节级还原**至 `design-spec-pixel-fives.json`
-  （sha256 见当日 gate-log；六段内容零改动，版本链 v1.2 approved 原样，非新版本）；
-- 足球线 contract-check 按其 spec acc-07 落点声明**重建**于 `pixel-fives/tools/contract-check.mjs`
-  （规格依据 = evidence-prog-m1 §2：双模式，approved→全量强制 / 未批准→pending 降级 warning）；
-- 糖果线 `design-spec.json` 与 `scripts/contract-check.mjs` 一字未动。
+## stack-tower v3 要点（M2.1）
 
-## 红线重申
-
-1. 两份导出件各自的 approved 版都是**唯一断言依据**；禁止把一个游戏的 acceptance 拿去核另一个游戏。
-2. 任何内容修订 → 走 `POST /api/v1/game-design-specs/:id/revisions`（version+1）；旧版不覆盖。
-3. approve 只有一个；draft（如足球 v1.3 M2 段草案）不作为契约测试依据。
+- 22 条 acceptance = 8 条 gameplay 冻结（ac-lvl01-e01~e08）+ 14 条 M2.1 增量（acc-a1~a5b/a6、acc-m1~m4、acc-d1~d2）。
+- numeric 追加 audio/mobile/deploy 三组（与 `src/kernel/numeric.ts` 同步增，frozen 四组零改动）；world/levels 零改动。
+- entities 追加 5 个：audio-manager / touch-input-layer / sfx-pack-v1 / pwa-shell / rotate-overlay。
+- content 追加 sfxPack / mobile / pwa 三段 + towerRipple.restart 事件契约。

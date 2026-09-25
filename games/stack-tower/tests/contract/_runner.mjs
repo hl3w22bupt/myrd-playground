@@ -17,14 +17,25 @@ import path from 'node:path';
 export const CONTRACT_DIR = path.dirname(fileURLToPath(import.meta.url));
 export const GAME_DIR = path.resolve(CONTRACT_DIR, '..', '..');
 export const REPO_ROOT = path.resolve(GAME_DIR, '..', '..');
-export const SPEC_PATH = path.join(REPO_ROOT, '.myrd', 'spec', 'design-spec.json');
+// 基线（M2.1 起独立路径，终结与糖果线 design-spec.json 的撞车）：approved 平台版导出件
+export const SPEC_PATH = path.join(REPO_ROOT, '.myrd', 'spec', 'stack-tower-spec.json');
+export const SPEC_PATH_LEGACY = path.join(REPO_ROOT, '.myrd', 'spec', 'design-spec.json');
 
 /** 读取当前基线 spec（QA 与契约测试的共同输入）。不可达 → 抛错（显式失败，不静默）。 */
 export function loadSpec() {
-  if (!existsSync(SPEC_PATH)) {
+  const p = existsSync(SPEC_PATH) ? SPEC_PATH : SPEC_PATH_LEGACY;
+  if (!existsSync(p)) {
     throw new Error(`spec 基线不可达: ${SPEC_PATH}（先由平台 approved 版导出）`);
   }
-  return JSON.parse(readFileSync(SPEC_PATH, 'utf8'));
+  return JSON.parse(readFileSync(p, 'utf8'));
+}
+
+/** 规范化 JSON：键序无关深比（平台入库会对对象键做归一化排序，总闸语义 = 结构+数值等价） */
+export function stableStringify(value) {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
+  const keys = Object.keys(value).sort();
+  return `{${keys.map((k) => `${JSON.stringify(k)}:${stableStringify(value[k])}`).join(',')}}`;
 }
 
 /** 尝试动态加载构建产物；不可达返回 { ok:false, reason }。 */
@@ -85,8 +96,15 @@ export async function runContract(def) {
   let pass = 0;
   const failures = [];
   for (const c of def.checks) {
+    const report = {};
     try {
-      await c.fn(mods);
+      await c.fn(mods, report);
+      if (report.notRunnable) {
+        console.log(`RESULT: not-runnable — ${report.notRunnable}`);
+        process.exitCode = 0;
+        return;
+      }
+      if (report.evidence) console.log(`        [evidence] ${report.evidence}`);
       pass += 1;
       console.log(`  ok    ${c.name}`);
     } catch (e) {

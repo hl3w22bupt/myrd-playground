@@ -36,26 +36,48 @@ export function formatHud(snap: Snapshot): HudView {
 export interface HudHandle {
   update(snap: Snapshot): void;
   onRestart(handler: () => void): void;
+  /** 静音开关（M2.1 acc-a3）：由 main 接 AudioManager.toggleMute */
+  onToggleMute(handler: () => void): void;
+  /** 静音态视觉回写 */
+  setMutedVisual(muted: boolean): void;
   /** e08-fail-recover 按钮皮肤（assets/ui 贴图就绪后调用；缺省保持 CSS 底） */
   applyRestartSkin(src: string): void;
 }
 
+const NOOP_HUD: HudHandle = {
+  update: () => {},
+  onRestart: () => {},
+  onToggleMute: () => {},
+  setMutedVisual: () => {},
+  applyRestartSkin: () => {},
+};
+
 /** 挂载 DOM HUD；root 缺失时退化为无操作（headless 安全） */
 export function mountHud(root: HTMLElement | null): HudHandle {
   if (!root) {
-    return { update: () => {}, onRestart: () => {}, applyRestartSkin: () => {} };
+    return NOOP_HUD;
   }
   const scoreEl = spawnLine(root, 'score');
   const comboEl = spawnLine(root, 'combo');
   const levelEl = spawnLine(root, 'level');
   const statusEl = spawnLine(root, 'status');
+  const actions = document.createElement('div');
+  actions.className = 'st-hud-actions';
+  root.appendChild(actions);
   const restartBtn = document.createElement('button');
   restartBtn.textContent = '重开（R）';
   restartBtn.className = 'st-hud-restart';
-  root.appendChild(restartBtn);
+  actions.appendChild(restartBtn);
+  const muteBtn = document.createElement('button');
+  muteBtn.textContent = '🔊 声音';
+  muteBtn.className = 'st-hud-mute';
+  muteBtn.setAttribute('aria-label', '切换静音');
+  actions.appendChild(muteBtn);
 
   let restartHandler: (() => void) | null = null;
+  let muteHandler: (() => void) | null = null;
   restartBtn.addEventListener('click', () => restartHandler?.());
+  muteBtn.addEventListener('click', () => muteHandler?.());
 
   return {
     update(snap: Snapshot) {
@@ -67,6 +89,12 @@ export function mountHud(root: HTMLElement | null): HudHandle {
     },
     onRestart(handler: () => void) {
       restartHandler = handler;
+    },
+    onToggleMute(handler: () => void) {
+      muteHandler = handler;
+    },
+    setMutedVisual(muted: boolean) {
+      muteBtn.textContent = muted ? '🔇 静音' : '🔊 声音';
     },
     applyRestartSkin(src: string) {
       restartBtn.style.backgroundImage = `url("${src}")`;

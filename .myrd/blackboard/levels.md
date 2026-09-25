@@ -1,6 +1,6 @@
 # 关卡状态黑板 — stack-tower（M2 首卡）
 
-> 更新时间：2026-09-25（M2 实现冲刺收口：契约 8/8 转绿 + 冒烟 PASS）
+> 更新时间：2026-09-25（**M2.1「有声可装」收口**：lvl-01 维持 green（冻结 8 条零改动回归 PASS）+ M2.1 契约族 14 条全绿；契约总盘 22/22 PASS + 冒烟 PASS + 资产门禁 PASS）
 > 负责人：主策划（整合人）· 全团队共用，改前先读，改后写更新时间
 > 下一步：主人试玩终裁「好不好玩」（代持 approved 候选版的最后一道人工闸）
 
@@ -11,7 +11,7 @@
 
 | level_id | 状态 | 数值来源 | 契约测试 | 备注 |
 |---|---|---|---|---|
-| lvl-01-stack-tower | **green**（spec v2 approved + 实现落盘 + 契约 8/8 PASS + 浏览器冒烟 PASS） | spec v2 numeric（写死；内核 `kernel/numeric.ts` 为 SSOT，e07 数值总闸深度比对通过） | tests/contract/ 8 条（e01–e08）全绿：`node games/stack-tower/tests/contract/run-all.mjs` → `PASS 8 / FAIL 0 / not-runnable 0` | 首关，element e01–e08 逐个编号；元素↔acceptance 双向映射 8↔8（`node scripts/contract-check.mjs` C 段核对） |
+| lvl-01-stack-tower | **green**（spec **v3 approved** + 契约总盘 **22/22 PASS**（冻结 8 + M2.1 增量 14）+ 浏览器冒烟 PASS + 资产门禁 PASS） | spec v3 numeric（frozen 四组写死零改动 + 新增 audio/mobile/deploy 三组；内核 `kernel/numeric.ts` 为 SSOT，e07 数值总闸键序无关深比通过） | tests/contract/ 全量：`PLAYWRIGHT_MODULE_DIR=<全局> node games/stack-tower/tests/contract/run-all.mjs` → `PASS 22 / FAIL 0 / not-runnable 0` | 首关；M2.1 新增音频/触控/横屏/PWA 五实体（audio-manager / touch-input-layer / sfx-pack-v1 / pwa-shell / rotate-overlay），玩法数值零改动 |
 | lvl-02…lvl-12 | 未定义 | 难度曲线参数化生成（spec v2 content.formulas；总 228 层，单关 8~30 层，护栏 180s/关） | 复用 lvl-01 契约族（内核已按公式实现 levelTuning/levelId，level≥2 无需改内核） | M2 只交付首关 + 曲线，其余关卡按曲线解锁 |
 
 ## 首关逐元素核对（spec ↔ 实现 ↔ 契约）
