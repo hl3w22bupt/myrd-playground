@@ -1,6 +1,7 @@
 # 阻塞项黑板 — stack-tower（M2 首卡 → M2.1「有声可装」）
 
-> 更新时间：2026-09-25（**M2.1 复验轮·终证**：干净 shell 五道门禁全量复跑取证——contract-check A–E PASS 22/22 / run-all PASS 22 FAIL 0 not-runnable 0 / smoke PASS (browser) / assets PASS (browser) / build+typecheck 绿；**新销账 2 项**：playwright 装载器环境缺口（m1/m3/d2 假 not-runnable）+ sw.js precache 清单落后 build 5 项，见缺陷台账；取证 `gate-logs/m21-reverify-20260925-art-final/` 7 份；**第四轮驳回销账**：routine「游戏契约测试」SPEC_NOT_APPROVED 三层根因（specPath 漏网 + unified 三代形状兼容）→ routine 口径复跑 CONTRACT: PASS 62/0）
+> 更新时间：2026-09-25（**M2.1 复验轮·二巡**（HEAD ec888dd 后独立复跑）：六道门禁全绿——routine 注参口径 CONTRACT PASS 62/0（第四轮驳回销账独立复核属实）/ A–E PASS 22/22 / run-all 22/0/0 / smoke PASS (browser) / assets PASS (browser) / build+typecheck 绿；任务书逐条深审零缺口（a5b seeded 3 秒 20 连 tap 判据 / ?fps=1 p95≤18.2 零 jank / touch-action 禁缩放长按 / d2 链路含结算 / manifest 双图标 any maskable / **ogg 头 6/6 实测 44.1kHz 单声道**）；取证 `gate-logs/m21-reverify-20260925-round2/` 5 份）
+> 前巡·终证（同日）：干净 shell 五道门禁全量复跑取证——A–E PASS 22/22 / run-all 22/0/0 / smoke PASS (browser) / assets PASS (browser) / build+typecheck 绿；**销账 2 项**：playwright 装载器环境缺口（m1/m3/d2 假 not-runnable）+ sw.js precache 清单落后 build 5 项，见缺陷台账；**第四轮驳回销账**：routine「游戏契约测试」SPEC_NOT_APPROVED 三层根因（specPath 漏网 + unified 三代形状兼容）→ routine 口径复跑 CONTRACT: PASS 62/0；取证 `gate-logs/m21-reverify-20260925-art-final/` 8 份
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：主人人工拍板（试玩终裁「好不好玩」+ 指认 HTTPS 托管地址 + 真机三项排期）
 

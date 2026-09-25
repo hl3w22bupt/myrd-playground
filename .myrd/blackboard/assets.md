@@ -9,7 +9,8 @@
 | 资产 | 落点 | 规格 | 生成复现 | 核对 |
 |---|---|---|---|---|
 | a06-sfx-restart | assets/sfx/sfx-restart.{m4a,ogg} | 198ms（≤200 红线 ✓）440/587Hz triangle，critical=true | `node games/stack-tower/tools/gen-audio.mjs` | manifest.json events.restart.durationMs=198 |
-| sfx-pack-v1（12 文件） | assets/sfx/sfx-{place,perfect,miss,game-over,restart,level-clear}.{m4a,ogg} | 6 事件 × 双格式，44.1kHz 单声道 16-bit；事件 ≤400ms（最大 game-over 388ms ✓）；共 66.74KB | 同上（音色表唯一真源 = src/audio/voices.ts，运行时降级同表合成） | `assets/sfx/manifest.json` = acc-a1 注册表断言点 |
+| （声道实测口径） | 同上 6 个 .ogg | Vorbis ID 头实测 channels=1 / sampleRate=44100（6/6，python3 解析 `\x01vorbis` 包头） | 复验轮 2026-09-25 抽证 | m4a 侧 afconvert 写 stsd channelcount=2 元数据（流实为 1ch），机判以 ogg 头为准（qa-m21 §语义裁决留档） |
+| sfx-pack-v1（12 文件） | assets/sfx/sfx-{place,perfect,miss,game-over,restart,level-clear}.{m4a,ogg} | 6 事件 × 双格式，44.1kHz 单声道 16-bit；事件 ≤400ms（最大 level-clear 398ms ✓）；共 66.74KB | 同上（音色表唯一真源 = src/audio/voices.ts，运行时降级同表合成） | `assets/sfx/manifest.json` = acc-a1 注册表断言点 |
 | a07-pwa-icons（3 件） | assets/icons/{icon-192-maskable,icon-512-maskable,apple-touch-icon-180}.png | maskable 安全区内构图（塔块三层意象同风格卡）；共 4.68KB | `node games/stack-tower/tools/gen-assets.mjs`（新增 drawIcon 三 job） | PNG 签名 + 色值抽样已验（琥珀块/冷蓝天天空） |
 
 ### M2.1 缺陷修复记录（美术线，随 D2 一并落盘）

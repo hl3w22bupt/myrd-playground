@@ -1,0 +1,143 @@
+[contract] ac-lvl01-e01-spawn · lvl-01-stack-tower/e01-spawn-first-block
+  ok    启动即有塔基块：tower.length===1
+  ok    塔基块宽度=BLOCK_BASE_WIDTH(120)
+  ok    塔基块中心 x=画布逻辑宽中点(240)
+  ok    塔基块静止：fastForward(60) 后塔基快照不变
+RESULT: PASS (4/4)
+
+[contract] ac-lvl01-e02-swing · lvl-01-stack-tower/e02-swing-motion
+  ok    L1 摆速 = swingSpeed(1) = 160px/s
+  ok    同 seed fastForward 两次：摆块 x 逐 tick 全等（确定性）
+  ok    单 tick 位移 = speed×FIXED_STEP/1000（解析解，L1=2.56px）
+  ok    行程钳制 ±240：fastForward(240) 内 |x| ≤ 240 且方向发生反转
+RESULT: PASS (4/4)
+
+[contract] ac-lvl01-e03-input · lvl-01-stack-tower/e03-drop-input
+  ok    drop 后塔身 +1（tower.length===2）
+  ok    同一 tick 生效：drop 的 tick 返回 block-placed 事件
+  ok    落块速度归零：已落块不再有 dir/speed 摆动语义（快照位置稳定）
+  ok    下一摆动块同 tick 序内生成：drop 后 moving 非空
+RESULT: PASS (4/4)
+
+[contract] ac-lvl01-e04-cut · lvl-01-stack-tower/e04-overlap-cut
+  ok    offset≈30 → 保留宽度 ≈90
+  ok    offset≈30 → 产生掉落碎块（debris ≥1）
+  ok    |offset|≥width → 整块掉落：塔身不增加、不加分
+RESULT: PASS (3/3)
+
+[contract] ac-lvl01-e05-window · lvl-01-stack-tower/e05-perfect-window
+  ok    窗口公式：perfectWindowMs(1)=140，perfectDistance(1)=22.4px
+  ok    必改①：一个往返周期内独立命中段 ≥2（窗口周期重现，无死局）
+  ok    必改①：前 3 次输入预算内达成 perfect（在首个命中段内输入，实际 ≤3 次）
+  ok    perfect 成立后块宽不变（无切割损耗）
+RESULT: PASS (4/4)
+
+[contract] ac-lvl01-e06-ripple · lvl-01-stack-tower/e06-tower-ripple
+  ok    perfect 同 tick 上抛恰 1 个 tower-ripple
+  ok    载荷恰四字段且类型正确
+  ok    window_ms=本关实际判定窗口(140)；duration_ms∈[250,350]（默认 300）
+  ok    必改②：无整屏 aha/闪屏通道（事件不含 screen-flash 语义字段）
+RESULT: PASS (4/4)
+
+[contract] ac-lvl01-e07-score · lvl-01-stack-tower/e07-score-hud
+  ok    非 perfect 落块 +10
+  ok    perfect 连击 1/2/3：累计分 = 35 / 75 / 120（bonus 25/30/35）
+  ok    HUD 格式化与内核状态一致（score/combo/level/进度）
+  ok    数值总闸：NUMERIC 与 spec 基线 numeric 深度一致（键序无关）
+RESULT: PASS (4/4)
+
+[contract] ac-lvl01-e08-recover · lvl-01-stack-tower/e08-fail-recover
+  ok    keepWidth 跌破 36 → status=game-over（两刀：120→60→0 触发 floor）
+  ok    game-over 后塔身冻结（tick 不再改变快照）
+  ok    重开全量复位：塔回单块、分数/连击清零、status=running
+  ok    复位后摆速/窗口回 L1 值（160px/s / 140ms），无状态残留
+RESULT: PASS (4/4)
+
+[contract] acc-a1 · lvl-01-stack-tower/e-sfx-pack-v1
+  ok    manifest 与 12 文件落盘逐项对号（6 事件 × m4a+ogg，命名 = sfx- + 事件 id）
+  ok    音频头校验：44.1kHz 全量；单声道以 Ogg Vorbis 头机判（m4a 通道元数据不可靠，见 QA 留档）
+  ok    时长红线：事件 ≤400ms；restart ≤200ms；critical 标记与 voices.ts 一致
+RESULT: PASS (3/3)
+
+[contract] acc-a2 · lvl-01-stack-tower/e-audio-manager
+  ok    解锁前：play 挂起不出声（零 source 创建，pending 入队）
+  ok    unlock 后：state=running，挂起请求补放（队首到队尾依序出声）
+  ok    解锁后直接出声 + 预解码装载（buffer tier）
+RESULT: PASS (3/3)
+
+[contract] acc-a3 · lvl-01-stack-tower/e-audio-manager
+  ok    toggle 落盘 st.settings.muted（"1"/"0"）
+  ok    重建实例读回静音态（刷新/重开语义）
+  ok    静音态 play 零输出节点（零 source / 零 osc）
+  ok    存储不可用（隐私模式）：静音仅会话内生效，不抛错
+RESULT: PASS (4/4)
+
+[contract] acc-a4a · lvl-01-stack-tower/e-audio-manager
+  ok    semitonesForCombo(1..5) = 1..5；rate = 2^(n/12) 逐块递增
+  ok    miss 重置：combo=0 → 0 半音（rate 回 1）
+  ok    seeded 5 连 perfect：音频层逐块收 1..5 半音（管理器全链）
+RESULT: PASS (3/3)
+
+[contract] acc-a4b · lvl-01-stack-tower/e-audio-manager
+  ok    第 13、14 块（及 20/99 连）均 +12 封顶
+  ok    封顶后 rate 不再增加（12 连与 99 连 rate 相等）
+  ok    连续序列无跳变：1..14 半音序列 = 1..12,12,12
+RESULT: PASS (3/3)
+
+[contract] acc-a5a · lvl-01-stack-tower/e-audio-manager
+  ok    满载时非 critical 被丢弃（pool-full，不超池）
+  ok    满载时 miss / game-over / restart 仍出声（抢占最老非 critical，池恒 ≤8）
+  ok    critical 之间互不抢占（未满池中 critical 全部存活）
+RESULT: PASS (3/3)
+
+[contract] acc-a5b · lvl-01-stack-tower/e-audio-manager
+    [budget] sound p95=0.004ms max=0.255ms | muted p95=0.001ms
+  ok    有声局零 >50ms 帧，且 jank 计数不高于静音局
+  ok    帧预算判据纯函数：p95≤18.2 且零 jank 才算达标
+RESULT: PASS (2/2)
+
+[contract] acc-a6 · lvl-01-stack-tower/e06-tower-ripple
+  ok    restart(button) / restart(keyboard) 上抛恰 {type,source} 载荷
+  ok    sfx-restart 在 12 文件清单（≤200ms，critical=true）
+  ok    restart 触发 sfx-restart 出声（管理器全链）
+RESULT: PASS (3/3)
+
+[contract] acc-m1 · lvl-01-stack-tower/e-pwa-shell
+  ok    样式真源：padding 由 env(safe-area-inset-*) 经 CSS 变量换算
+        [evidence] 计算样式快照: {"top":"32px","right":"22px","bottom":"28px","left":"14px"}
+  ok    计算样式快照：注入模拟 inset 后 #hud padding 逐边随动（Chromium 实测）
+RESULT: PASS (2/2)
+
+[contract] acc-m2 · lvl-01-stack-tower/e-touch-input-layer
+  ok    pointerdown 单一入口 + 300ms 去抖（连点不做连落）
+  ok    移动守卫：contextmenu/gesturestart/gesturechange/dblclick 全部 preventDefault
+  ok    CSS 面：touch-action: manipulation + 禁长按选择/系统手势（style 真源）
+  ok    浏览器装配接线：main 入口挂载守卫 + viewport-fit=cover
+RESULT: PASS (4/4)
+
+[contract] acc-m3 · lvl-01-stack-tower/e-rotate-overlay
+        [evidence] portrait 35 → landscape 冻结 → portrait 重开恢复 10
+  ok    横屏视口：遮罩显示 + 点击不计分（激活即暂停）；回竖屏恢复
+RESULT: PASS (1/1)
+
+[contract] acc-m4 · lvl-01-stack-tower/e-rotate-overlay
+  ok    宽高比判定：横屏激活 / 竖屏不激活 / 正方形不激活
+  ok    阈值取自 numeric.mobile.ROTATE_ASPECT_RATIO（=1，可注入比较）
+  ok    遮罩状态机：setViewport 驱动激活/解除，onChange 同步（无 DOM 可跑）
+RESULT: PASS (3/3)
+
+[contract] acc-d1 · lvl-01-stack-tower/e-pwa-shell
+  ok    manifest.webmanifest：standalone + icons 192/512 purpose maskable + 域内 start_url/scope
+  ok    index.html：manifest link + apple-touch-icon 180 + theme-color + SW 可注册环境
+  ok    sw.js：版本化 CACHE（REVISION = numeric.deploy.PRECACHE_REVISION）+ 全量 precache 清单
+  ok    入口装配：SW 注册 + ?fps=1 帧率面板
+RESULT: PASS (4/4)
+
+[contract] acc-d2 · lvl-01-stack-tower/e-pwa-shell
+        [evidence] caches=[st-precache-v1]
+  ok    断网全链路：冷启动→一局→重开→静音持久（SW 离线供源）
+  ok    无音频 404 负面用例：sfx 全 404 不抛错、核心循环可玩（404 子句承接自 acc-a1）
+RESULT: PASS (2/2)
+
+==== 契约汇总 ====
+PASS 22 / FAIL 0 / not-runnable 0 （共 22）
