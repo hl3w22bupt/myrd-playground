@@ -38,6 +38,16 @@ export function createBrowserPlatform(canvas: HTMLCanvasElement): Platform {
       now: () => performance.now(),
     },
     audio: createWebAudioSink(),
+    assets: {
+      // 资产装载：失败（404/解码错误）→ null，由表现层回程序化绘制，不抛错不刷 console.error
+      loadImage: (url: string) =>
+        new Promise<HTMLImageElement | null>((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve(img.naturalWidth > 0 ? img : null);
+          img.onerror = () => resolve(null);
+          img.src = url;
+        }),
+    },
     canvas: {
       logicalWidth,
       logicalHeight,

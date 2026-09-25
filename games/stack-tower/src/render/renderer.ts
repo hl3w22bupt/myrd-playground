@@ -7,8 +7,9 @@
 import type { Snapshot, PlacedBlock, DebrisSpec } from '../kernel/types.js';
 import { RIPPLE_DURATION } from '../kernel/numeric.js';
 import { PALETTE, blockColor, layerShade, shade } from './palette.js';
-import { blockFace } from './textures.js';
+import { blockFace, setBlockTileset } from './textures.js';
 import { drawBackdrop } from './backdrop.js';
+import { emptyAssets, type GameAssets, type GameImage } from './assets.js';
 
 interface RippleFx {
   levelId: string;
@@ -21,6 +22,14 @@ interface RippleFx {
 
 export class Renderer {
   private ripples: RippleFx[] = [];
+  /** assets/ 实体贴图（缺项 = 程序化绘制 fallback，引用失败不破坏运行） */
+  private sprites: GameAssets = emptyAssets();
+
+  /** 注入贴图（loadGameAssets 完成后调用一次；tileset 同步进 textures 切片层） */
+  applyAssets(assets: GameAssets): void {
+    this.sprites = assets;
+    setBlockTileset(assets.blockTileset ?? null);
+  }
 
   /** 重开时清空表现层残留特效（波纹等），不触碰内核状态 */
   clearFx(): void {
@@ -47,8 +56,15 @@ export class Renderer {
     // L3 摆动块（悬停带：塔顶上方两层高）
     if (snap.moving) {
       const hover: PlacedBlock = { x: snap.moving.x, width: snap.moving.width, yIndex: snap.layers + 2 };
-      this.drawBlock(ctx, hover, logical, true);
-      this.drawBounceLight(ctx, hover, logical);
+      const y = logical.height - (hover.yIndex + 1) * BLOCK_H;
+      const moveSprite = this.sprites.blockMove;
+      if (moveSprite) {
+        ctx.drawImage(moveSprite, hover.x - hover.width / 2, y, hover.width, BLOCK_H);
+      } else {
+        this.drawBlock(ctx, hover, logical, true);
+        this.drawBounceLight(ctx, hover, logical);
+      }
+      this.drawGuide(ctx, hover, logical); // L4 引导层（首局 layers<2）
     }
     // L6 tower-ripple 波纹（300±50ms 内可见，随 duration 等比扩散；无整屏闪光）
     this.ripples = this.ripples.filter((r) => nowMs - r.startedAt < r.durationMs);
@@ -57,29 +73,58 @@ export class Renderer {
       const topBlock = snap.tower[snap.tower.length - 1];
       const cx = topBlock ? topBlock.x : logical.width / 2;
       const cy = logical.height - ((topBlock ? topBlock.yIndex : snap.layers) + 1) * BLOCK_H + BLOCK_H / 2;
-      ctx.save();
-      ctx.strokeStyle = `rgba(255,255,255,${(1 - t) * 0.8})`;
-      ctx.lineWidth = 2 * (1 - t) + 0.5;
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, 40 + 120 * t, 12 + 36 * t, 0, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
+      const ring = this.sprites.rippleRing;
+      if (ring) {
+        const w = 80 + 200 * t;
+        const h = (w * ring.naturalHeight) / Math.max(1, ring.naturalWidth);
+        ctx.save();
+        ctx.globalAlpha = (1 - t) * 0.9;
+        ctx.drawImage(ring, cx - w / 2, cy - h / 2, w, h);
+        ctx.restore();
+      } else {
+        ctx.save();
+        ctx.strokeStyle = `rgba(255,255,255,${(1 - t) * 0.8})`;
+        ctx.lineWidth = 2 * (1 - t) + 0.5;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, 40 + 120 * t, 12 + 36 * t, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+      // 完美切面脉冲（风格卡 §1 特殊时刻光：白色切面描边脉冲；无贴图则不加光源）
+      const pulse = this.sprites.perfectPulse;
+      if (pulse && topBlock) {
+        const px = topBlock.x - topBlock.width / 2;
+        const py = logical.height - (topBlock.yIndex + 1) * BLOCK_H;
+        ctx.save();
+        ctx.globalAlpha = (1 - t) * 0.85;
+        ctx.drawImage(pulse, px, py, topBlock.width, BLOCK_H);
+        ctx.restore();
+      }
     }
     // 掉落碎块（纯装饰；内核只给初始姿态）
     for (const d of snap.debris) this.drawDebris(ctx, d, logical);
+    // L5 HUD 顶部安全区渐隐衬底（贴图缺项 = 无衬底，DOM 白字深描边已可读）
+    const scrim = this.sprites.hudScrim;
+    if (scrim) ctx.drawImage(scrim, 0, 0, logical.width, 56);
   }
 
   private drawBlock(ctx: CanvasRenderingContext2D, b: PlacedBlock, logical: { width: number; height: number }, moving: boolean): void {
     const h = BLOCK_H;
     const y = logical.height - (b.yIndex + 1) * h;
     const hex = blockColor(b.yIndex);
-    const face = blockFace(hex, b.width, h);
-    if (face) {
-      ctx.drawImage(face.canvas, b.x - b.width / 2, y);
+    // e01 塔基块贴图（首块专用；缺项回 blockFace → tileset 切片 → 程序化画布）
+    const base = this.sprites.blockBase;
+    if (!moving && b.yIndex === 0 && base) {
+      ctx.drawImage(base, b.x - b.width / 2, y, b.width, h);
     } else {
-      const f = moving ? 1 : layerShade(b.yIndex);
-      ctx.fillStyle = shade(hex, f);
-      ctx.fillRect(b.x - b.width / 2, y, b.width, h - 1);
+      const face = blockFace(hex, b.width, h);
+      if (face) {
+        ctx.drawImage(face.canvas, b.x - b.width / 2, y);
+      } else {
+        const f = moving ? 1 : layerShade(b.yIndex);
+        ctx.fillStyle = shade(hex, f);
+        ctx.fillRect(b.x - b.width / 2, y, b.width, h - 1);
+      }
     }
     // 切面高亮描边（1px 白，判定物）
     ctx.strokeStyle = PALETTE.FACE_HIGHLIGHT;
@@ -101,9 +146,38 @@ export class Renderer {
     ctx.restore();
   }
 
+  /** L4 引导层（风格卡 §3）：首局 layers<2 时摆块正下方落点虚线；2 次落块后随 layers≥2 自动消失 */
+  private drawGuide(ctx: CanvasRenderingContext2D, hover: PlacedBlock, logical: { width: number; height: number }): void {
+    if (hover.yIndex < 2) return;
+    const topY = logical.height - hover.yIndex * BLOCK_H;
+    const baseTopY = logical.height - BLOCK_H;
+    if (baseTopY - topY < 4) return;
+    const guide = this.sprites.guide;
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    if (guide) {
+      ctx.drawImage(guide, hover.x - guide.naturalWidth / 2, topY, guide.naturalWidth, baseTopY - topY);
+    } else {
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo(hover.x, topY + 2);
+      ctx.lineTo(hover.x, baseTopY - 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   private drawDebris(ctx: CanvasRenderingContext2D, d: DebrisSpec, logical: { height: number }): void {
+    const y = logical.height - (d.yIndex + 1) * BLOCK_H;
+    const debris = this.sprites.debris;
+    if (debris) {
+      ctx.drawImage(debris, d.x - d.width / 2, y, d.width, BLOCK_H);
+      return;
+    }
     ctx.fillStyle = PALETTE.DEBRIS;
-    ctx.fillRect(d.x - d.width / 2, logical.height - (d.yIndex + 1) * BLOCK_H, d.width, BLOCK_H - 1);
+    ctx.fillRect(d.x - d.width / 2, y, d.width, BLOCK_H - 1);
   }
 }
 

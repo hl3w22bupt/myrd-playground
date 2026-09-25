@@ -17,7 +17,7 @@ export function formatHud(snap) {
 /** 挂载 DOM HUD；root 缺失时退化为无操作（headless 安全） */
 export function mountHud(root) {
     if (!root) {
-        return { update: () => { }, onRestart: () => { } };
+        return { update: () => { }, onRestart: () => { }, applyRestartSkin: () => { } };
     }
     const scoreEl = spawnLine(root, 'score');
     const comboEl = spawnLine(root, 'combo');
@@ -39,6 +39,11 @@ export function mountHud(root) {
         },
         onRestart(handler) {
             restartHandler = handler;
+        },
+        applyRestartSkin(src) {
+            restartBtn.style.backgroundImage = `url("${src}")`;
+            restartBtn.style.backgroundSize = '100% 100%';
+            restartBtn.style.backgroundRepeat = 'no-repeat';
         },
     };
 }

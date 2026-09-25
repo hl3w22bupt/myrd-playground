@@ -61,3 +61,4 @@
 - palette 三色/切面白/失败黑 → `src/render/renderer.ts`（已一致）
 - 天空双色/暮色线 → `renderer.ts drawSky()` + style-card §3 L1（暮色线随实现冲刺补）
 - 波纹 → `renderer.ts` 椭圆描边（300±50ms，读 tower-ripple.duration_ms）
+- 实体素材（2026-09-25 追加）：8 色板同源实体化为 `assets/`（sprites/tileset/ui，9 件 29.19KB），生成器解析 palette.ts 取值（style-card §6 命名映射），运行时缺图回程序化绘制

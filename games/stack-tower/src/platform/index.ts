@@ -29,12 +29,18 @@ export interface CanvasHost {
   context2d(): CanvasRenderingContext2D;
 }
 
+/** 资产装载宿主：工程内相对路径 → 解码后的图（缺图/失败返回 null，绝不抛错） */
+export interface AssetHost {
+  loadImage(url: string): Promise<HTMLImageElement | null>;
+}
+
 /** 平台装配体：一份实现 = 一个可运行环境（browser / headless-test） */
 export interface Platform {
   input: InputSource;
   clock: ClockSource;
   audio: AudioSink;
   canvas: CanvasHost | null; // headless 测试环境可无画布
+  assets?: AssetHost; // headless/契约测试不注入 → 表现层走程序化 fallback
 }
 
 /** 手动泵时钟（契约测试 / 无头环境）：由测试代码推进帧，零真实时间依赖 */

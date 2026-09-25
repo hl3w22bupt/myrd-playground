@@ -61,6 +61,32 @@ L6 反馈层：tower-ripple 波纹（椭圆描边，300±50ms，1→0 淡出）+
 | S5 通关祝贺画面 | 未设计（M2 只交首关） | L12 通关动线随关卡扩展升版 |
 | S6 块高 BLOCK_H=28（逻辑像素） | v0 由 renderer.ts 事实固定（QA 预审建议补槽：表现层参数应归风格卡管辖） | 视觉改块高须回本卡走留槽升版，并同步 spec 无涉（纯表现参数，不进 numeric） |
 
+## 6. assets/ 实体素材落盘（v0 附录 · 2026-09-25 追加）
+
+> 依冲刺执行要求新增：素材实体落盘 `assets/`（sprites / tileset / ui），文件名与 spec `lvl-01-stack-tower` 元素 id 逐字对应。
+> **仍属 v0 纪律**：全部由 `tools/gen-assets.mjs` 程序化生成（色值解析 `palette.ts` 取值，解析失败即拒生成），零外部下载，不破坏「程序化优先」。
+
+### 6.1 命名映射（spec 元素 id ↔ 文件 ↔ 接线点）
+
+| spec 元素 id | 素材文件 | 接线点（缺图 fallback） |
+|---|---|---|
+| e01-spawn-first-block | `assets/sprites/e01-spawn-first-block.png` | renderer.drawBlock 塔基块分支 → 程序化 blockFace |
+| e02-swing-motion | `assets/sprites/e02-swing-motion.png`（下缘反弹光烘焙） | renderer.drawBlock 摆块分支 → 程序化贴图 + drawBounceLight |
+| e03-drop-input | `assets/sprites/e03-drop-input.png`（L4 引导层落点虚线） | renderer.drawGuide → 程序化 setLineDash 虚线 |
+| e04-overlap-cut | `assets/sprites/e04-overlap-cut.png`（错口碎块） | renderer.drawDebris → 纯色 DEBRIS 矩形 |
+| e05-perfect-window | `assets/sprites/e05-perfect-window.png`（完美切面脉冲框，§1 特殊时刻光） | 无贴图则不加脉冲（保持「完美=克制」） |
+| e06-tower-ripple | `assets/sprites/e06-tower-ripple.png`（涟漪环三圈椭圆） | renderer 波纹分支 → 程序化 ctx.ellipse 描边 |
+| e07-score-hud | `assets/ui/e07-score-hud.png`（L5 顶部 56px 渐隐衬底，无底板） | 无贴图则不绘衬底（DOM 白字深描边已可读） |
+| e08-fail-recover | `assets/ui/e08-fail-recover.png`（重开按钮皮肤） | hud.applyRestartSkin 未调用 → CSS 底不变 |
+| —（塔块三循环） | `assets/tileset/blocks-tower.png`（A/B/C 三 cell ×120×28，层序读数） | textures.sliceTileset → 程序化画布 |
+
+### 6.2 预算与门禁自证
+- 实测 **9 资产共 29.19KB**（单资产最大 16.48KB），远低于 §4 的 300KB 总预算与 50KB 单资产红线；生成器超限即非零退出。
+- 复现：`node games/stack-tower/tools/gen-assets.mjs`（确定性：重复运行逐字节一致）。
+- 接线门禁：`node games/stack-tower/tests/assets-check.mjs` 三态 —— 浏览器级（运行时 9/9 请求 200 + 「贴图就绪 9/9」+ 零页面错误 + **资产全 404 负面用例核心循环仍可玩**）/ 降级（静态可达 + PNG 签名）/ FAIL。
+- fallback 纪律：`src/render/assets.ts` 无加载器（Node 契约测试）→ 空清单；加载失败 → 该项 null → 程序化绘制；任何情况不抛错、不刷 console.error。
+
 ## 版本链
 - v0（2026-09-25）：骨架四要素 + 情绪板 + 留槽清单；锚定 spec v1 world 段。（本版）
+- v0 附录（2026-09-25）：§6 assets/ 实体素材落盘（程序化生成器实体化，版本仍为 v0，不触发升版）。
 - v1：待主人方向性意见或 30 分钟升版触发器（衔接协议：风格卡 30 分钟升 v1 的约定指「有新输入时」的转化时限，而非无输入定时升版）。

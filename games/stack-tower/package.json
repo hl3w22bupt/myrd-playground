@@ -8,6 +8,8 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "contract": "node tests/contract/run-all.mjs",
+    "assets:generate": "node tools/gen-assets.mjs",
+    "assets:check": "node tests/assets-check.mjs",
     "serve": "node serve.mjs",
     "smoke": "node tests/smoke.mjs"
   },

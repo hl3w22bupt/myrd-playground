@@ -3,13 +3,47 @@
  * 三面明度比 100 : 78 : 55（风格卡 §1 光照逻辑：顶面/正面/底面），
  * 一次生成、逐层复用；无外部图片。浏览器外（无 document）返回 null，渲染层降级为纯色矩形。
  */
-import { PALETTE, shade } from './palette.js';
+import { PALETTE, BLOCK_CYCLE, shade } from './palette.js';
 const FACE_CACHE = new Map();
-/** 生成（带缓存）某色块面贴图：宽 = 块逻辑宽，高 = BLOCK_H */
+/** tileset 贴图（assets/tileset/blocks-tower.png，3 cell ×120×28）与 cell 逻辑尺寸 */
+let TILESET = null;
+export const TILESET_CELL_W = 120;
+export const TILESET_CELL_H = 28;
+/** 接线：assets/tileset 就绪后注入；传 null = 回程序化画布（引用失败不得破坏运行） */
+export function setBlockTileset(img) {
+    TILESET = img;
+    FACE_CACHE.clear();
+}
+/** 从 tileset 切片为指定尺寸 canvas（暖色三循环按色值定位 cell；色值不在循环内 → 走程序化） */
+function sliceTileset(hex, width, height) {
+    if (!TILESET || !TILESET.naturalWidth)
+        return null;
+    const idx = BLOCK_CYCLE.indexOf(hex);
+    if (idx < 0)
+        return null;
+    const doc = globalThis.document;
+    if (!doc)
+        return null;
+    const canvas = doc.createElement('canvas');
+    canvas.width = Math.max(1, Math.ceil(width));
+    canvas.height = Math.max(1, Math.ceil(height));
+    const ctx = canvas.getContext('2d');
+    if (!ctx)
+        return null;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(TILESET, idx * TILESET_CELL_W, 0, TILESET_CELL_W, TILESET_CELL_H, 0, 0, canvas.width, canvas.height);
+    return { canvas, fallbackColor: shade(hex, 0.78) };
+}
+/** 生成（带缓存）某色块面贴图：宽 = 块逻辑宽，高 = BLOCK_H；tileset 就绪 → 切片优先，否则程序化画布 */
 export function blockFace(hex, width, height) {
     const key = `${hex}|${width}x${height}`;
     if (FACE_CACHE.has(key))
         return FACE_CACHE.get(key) ?? null;
+    const sliced = sliceTileset(hex, width, height);
+    if (sliced) {
+        FACE_CACHE.set(key, sliced);
+        return sliced;
+    }
     const doc = globalThis.document;
     if (!doc)
         return null;

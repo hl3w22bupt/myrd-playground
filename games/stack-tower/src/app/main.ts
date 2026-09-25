@@ -7,6 +7,7 @@ import { NUMERIC } from '../kernel/numeric.js';
 import type { KernelEvent } from '../kernel/types.js';
 import type { Platform } from '../platform/index.js';
 import { Renderer } from '../render/renderer.js';
+import { loadGameAssets } from '../render/assets.js';
 import { mountHud } from '../ui/hud.js';
 import { createSfx } from '../audio/sfx.js';
 
@@ -70,6 +71,14 @@ export function boot(platform: Platform, opts?: { seed?: number }): BootSession 
     renderer.clearFx();
   };
   hud.onRestart(restart);
+
+  // assets/ 实体贴图预载（异步、非阻塞；失败静默回程序化绘制 —— 引用失败不得破坏运行）
+  if (platform.assets) {
+    void loadGameAssets((url) => platform.assets!.loadImage(url), (msg) => console.info(msg)).then((assets) => {
+      renderer.applyAssets(assets);
+      if (assets.restartButton) hud.applyRestartSkin(assets.restartButton.src);
+    });
+  }
   return {
     restart,
     dispose(): void {
