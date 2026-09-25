@@ -22,9 +22,16 @@
 
 ## 开放阻塞项
 
-### B5 · HTTPS 托管地址待主人指认（acc-d1 需要，不阻塞开发）
-- PWA 可安装（install prompt / 添加到主屏）要求 HTTPS 托管；本地开发与自动化验收已在 `http://127.0.0.1` 口径全绿（localhost 属安全上下文）。
-- 需要主人：一句话指认托管地址（如内网 nginx / 云端静态托管 / GitHub Pages 任一）。指认后执行 `acc-d1` 安装面真机核销（见 qa-m21 §3）。
+### B5 · HTTPS 托管地址待主人指认（acc-d1 需要，不阻塞开发）— 2026-09-25 部署轮实质缓解
+- **HTTPS 托管已具备**：AppHost liveUrl `https://leomac-studio.tail49399e.ts.net/apps/stack-tower-3/gw`（tailscale HTTPS，安全上下文，PWA install 面可用），安装面真机核销已具备执行条件（并入 B6 排期）。
+- 仍待主人：若另有正式对外托管地址（内网 nginx / 云端静态托管 / GitHub Pages），一句话指认后以指认地址为准复跑 `acc-d1`。
+
+### B7 · AppHost 专属坑位与部署登记（2026-09-25 部署轮，供后续轮复用同一坑）
+- **坑位（一游戏一坑，后续轮次复用，禁止再建/挤占他坑）**：appId `cmugttipt000km9299oej5z9b` · platformSlug `stack-tower-3`（slug `stack-tower`/`stack-tower-2` 被两次误建后软删占位无法释放，平台自动加后缀；坑↔游戏仍一一对应，manifestPath 恒为 `games/stack-tower/apphost.toml`）
+- **liveUrl（HTTPS）**：`https://leomac-studio.tail49399e.ts.net/apps/stack-tower-3/gw` · **本轮 gitRef**：`myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d`（部署 commit `75debf9`）
+- 部署自测（2026-09-25 实测）：/health 200 `{"app":"stack-tower"}`；live 冒烟 PASS——画布 480×720、3 连点「分数 45」、R 重开归零、PNG 魔数 ✓、sfx-place.m4a 经 AudioContext 解码 ✓（48kHz 重采样输出）、**零 404 / 零 pageerror**；复现 `node games/stack-tower/tests/live-smoke.mjs <gw-url>`
+- 壳改造（本分支 `server/`，糖果线不受影响——各线部署按各自分支构建壳）：糖果落地页已替换为 stack-tower 专属壳；对齐平台契约三事实——`/gw` 网关别名 + 子路径透传、image/audio 响应 502 黑名单（二进制以 base64 文本回传 + 页面 boot 脚本还原）、`/api/*` 路由护栏（公开资产走 `/api/public/assets/*`）
+- 经验教训：slug 一旦误建软删后**不可释放**，建坑前必须先 `GET /api/v1/apphost/apps?slug=` 检索；仓库根 `server/` 是「各分支各自的游戏壳」，不是通用静态托管——新游戏部署前先确认壳身份（/health 的 app 字段）
 
 ### B6 · 真机三项 + 帧率/安装面挂日期（2026-09-26 待排期，不阻塞代码收口）
 - acc-a2（iOS 首手势解锁）/ acc-m2（触控归一）/ acc-m3（遮罩暂停）真机核销 + acc-a5b 帧率面板录屏 + acc-d1 安装面。
