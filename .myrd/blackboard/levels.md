@@ -41,6 +41,12 @@
   - [E] 资产落盘 **7/7**（全部 generated，零外部资源）
 - 本轮修复（销账记录见 blockers.md「缺陷销账」）：A–E 检查器 spec 基线由已冻结的 `design-spec.json`（v2 残留）切指 v3 导出件——修复前实跑对 v2 断言（8 条/12 实体/5 资产全过但基线陈旧），修复后才真正对 approved v3 全量断言。
 
+## 平台 routine 门禁（`--spec` 统一口径，routine id: game-contract）
+- **CONTRACT: PASS（62 PASS / 0 FAIL，exit 0）**，第四轮驳回销账后 2026-09-25 复跑取证：
+  - 复现命令：`node scripts/contract-check.mjs --spec .myrd/spec/stack-tower-spec.json --project .`
+  - 六段完整（平台导出件 `spec.spec` 嵌套解析）+ 实体落盘 17 实体（含 e-pwa-shell 花括号四落点展开）+ 关卡元素编号唯一（8 个）+ numeric 全部 10 键对号（`kernel/numeric.ts` SSOT 恒并入扫描源）+ 22 条 acceptance 依赖契约文件全存在。
+  - 第四轮根因与修复详见 blockers.md「缺陷销账」（specPath 漏网改指 + unified 检查器三代形状兼容 + .gd/.ts 双栈扫描；镜像 `games/game/scripts/contract-check.mjs` 同步）。
+
 ## 约定
 - 关卡/元素 id 一旦进入 approved spec 即冻结，改名 = spec 升版。
 - contract 文件名 = `<level_id>_<element_id>.spec.mjs`，与 acceptance[].check 逐字对齐。
