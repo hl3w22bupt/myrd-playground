@@ -220,6 +220,19 @@ GODOT_SMOKE: FAIL A5 胜利：分数 4 != WIN_SCORE 5（有金币没被收掉）
   确属外部噪声才用 `GODOT_SMOKE_IGNORE_RUNTIME_ERRORS=1` 显式豁免（勿用于门禁）。
   修复代码时优先看 `_process` / `_physics_process` 里的索引与空引用。
 
+### E-18（**隐蔽坑**）桌面端 JavaScriptBridge：单例存在但 eval 恒为 null，`String(null)` 崩
+
+- **现象**：桌面/无头运行报 `SCRIPT ERROR: Invalid call. Nonexistent 'String' constructor.`
+  （`String(bridge.call("eval", …))` 形态），网页导出反而正常 —— 平台差异类缺陷在
+  桌面冒烟就现形（这是好事：门禁抓到了）。
+- **根因**：桌面二进制里 `JavaScriptBridge` 单例**已注册**（`Engine.has_singleton` 返回
+  true），但 eval 平台不工作、恒返回 `null` —— `String(null)` 没有构造重载，运行期才炸。
+  只判「单例已注册」挡不住，必须判返回值。
+- **修复动作**：桥的返回值一律按 Variant 判空（`if result == null: return`）后再
+  `str(result)`；取桥本身用 `Engine.get_singleton("JavaScriptBridge")` 动态引用，
+  不写 `JavaScriptBridge.eval` 编译期平台引用。参考：模板 `game_state.gd
+  _apply_web_tuning` / `tuning_panel.gd is_enabled`。
+
 ---
 
 ## F. 修复循环的速度技巧
@@ -227,7 +240,7 @@ GODOT_SMOKE: FAIL A5 胜利：分数 4 != WIN_SCORE 5（有金币没被收掉）
 | 场景 | 做法 |
 |---|---|
 | 只想知道「能不能跑」 | `bash scripts/smoke.sh <工程>`（内部含导入 + 运行 + 断言，一条命令出结论） |
-| 没装 Godot / 想秒级反馈 | `python3 scripts/preflight.py <工程>`（12 类静态检查，能拦下大部分黑屏） |
+| 没装 Godot / 想秒级反馈 | `python3 scripts/preflight.py <工程>`（14 类静态检查，能拦下大部分黑屏） |
 | 报错信息乱码/带颜色码 | 先 `sed 's/\x1b\[[0-9;]*m//g'` 清洗再 grep |
 | 报错行不在根因文件 | 解析错误会蔓延（E-01/E-04）：先修 `class_name` / autoload 的根因文件 |
 | 同一处反复修不好 | 连续 3 轮同类失败 → 换实现路径或拆小任务，不要原地试探（受 `maxLoops` 约束） |
