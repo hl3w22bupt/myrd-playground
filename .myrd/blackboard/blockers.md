@@ -34,7 +34,7 @@
 | 交付线 | 产物 | 落点 | 状态 |
 |---|---|---|---|
 | T2 策划 | spec v2 终稿（numeric 四组写死 / 首关 e01–e08 编号 / acceptance 8 条全命令化 / tower-ripple 契约） | 平台 spec + `.myrd/spec/design-spec.json` | approved 候选版 |
-| T3 美术 | 风格卡 v0（四要素 + 留槽 S1–S5）+ 文字情绪板（12 关键词 + 8 色 + 构图脚本 + 落选卡归档） | `games/stack-tower/docs/style-card-v0.md` `moodboard-stack-tower.md` | v0 落盘 |
+| T3 美术 | 风格卡 v0（四要素 + 留槽 S1–S5 + §6 实体素材命名映射）+ 文字情绪板（12 关键词 + 8 色 + 构图脚本 + 落选卡归档）+ **assets/ 实体贴图 9 件（29.19KB，按 e01–e08 命名，程序化生成器产出，接线三态降级）** | `games/stack-tower/docs/style-card-v0.md` `moodboard-stack-tower.md` `assets/`（sprites/tileset/ui）`tools/gen-assets.mjs` | v0 落盘 + 实体化已接线（门禁 `npm run assets:check` PASS (browser)，含 404 负面用例） |
 | T4 程序 | 技术方案 v2 + 五件脚手架 + 三态契约 runner + 8 条契约（全部转绿）+ 内核/表现/平台实现 + 冒烟门禁 | `games/stack-tower/`（docs/src/tests/index.html/serve.mjs/build）+ 仓库根 `scripts/contract-check.mjs` | **implemented → green**：run-all 8/8 PASS；contract-check [A]–[E] 全 PASS；smoke PASS (browser) |
 | T5 QA | 预审记录（逐条三态 + QNC-01~08 + 打回复审闭环） | `games/stack-tower/docs/qa-precheck.md` | CERTIFIED（骨架态）→ 实现态复跑证据已回填（见 qa-precheck §6，仅补证据不改三态结论） |
 
