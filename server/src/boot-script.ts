@@ -35,7 +35,7 @@ export const BOOT_SCRIPT = `
     return;
   }
   function absOf(u) {
-    try { return new URL(String(u), location.href); } catch (e) { return null; }
+    try { return new URL(String(u), document.baseURI || location.href); } catch (e) { return null; }
   }
   function mimeOf(pathname) {
     var m = pathname.match(/(\\.[a-z0-9]+)$/i);
