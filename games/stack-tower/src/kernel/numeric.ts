@@ -1,42 +1,42 @@
 /**
  * 数值唯一来源（SSOT）— 与 spec.numeric 一一对应（.myrd/spec/design-spec.json）。
  * 红线：改这里之前必须先改策划案版本（spec 升版），禁止实现侧私调。
- * 验证：契约 lvl-01-stack-tower_e07 / e05 会断言本表与 spec 基线一致。
+ * 键序与 spec.numeric 导出序一致：契约 e07「数值总闸」做序列化深比（键序敏感）。
+ * 验证：契约 lvl-01-stack-tower_e05 / e07 会断言本表与 spec 基线一致。
  */
 
 export const NUMERIC = {
+  DEFAULT_SEED: 20260925,
   FIXED_STEP_MS: 16,
   MAX_DT_MS: 100,
-  DEFAULT_SEED: 20260925,
+
+  cut_width: {
+    BLOCK_BASE_WIDTH: 120,
+    SWING_TRAVEL_PX: 240,
+    WIDTH_FLOOR_PX: 36,
+    WIDTH_FLOOR_RATIO: 0.3,
+  },
+
+  difficulty: {
+    LAYERS_PER_LEVEL_BASE: 8,
+    LAYERS_PER_LEVEL_GROWTH: 2,
+    LEVEL_COUNT: 12,
+    SWING_SPEED_BASE_PXS: 160,
+    SWING_SPEED_CAP_PXS: 420,
+    SWING_SPEED_GROWTH_PXS: 24,
+  },
 
   perfect_window: {
-    /** 完美判定窗口：L1=140ms，每关 −8ms，60ms 封底 */
     PERFECT_WINDOW_BASE_MS: 140,
     PERFECT_WINDOW_DECAY_MS_PER_LEVEL: 8,
     PERFECT_WINDOW_MIN_MS: 60,
   },
 
-  cut_width: {
-    BLOCK_BASE_WIDTH: 120,
-    SWING_TRAVEL_PX: 240,
-    WIDTH_FLOOR_RATIO: 0.3,
-    WIDTH_FLOOR_PX: 36,
-  },
-
   scoring: {
-    PLACE_SCORE: 10,
     PERFECT_BONUS_BASE: 25,
-    PERFECT_COMBO_STEP: 5,
     PERFECT_COMBO_BONUS_CAP: 75,
-  },
-
-  difficulty: {
-    LEVEL_COUNT: 12,
-    LAYERS_PER_LEVEL_BASE: 8,
-    LAYERS_PER_LEVEL_GROWTH: 2,
-    SWING_SPEED_BASE_PXS: 160,
-    SWING_SPEED_GROWTH_PXS: 24,
-    SWING_SPEED_CAP_PXS: 420,
+    PERFECT_COMBO_STEP: 5,
+    PLACE_SCORE: 10,
   },
 } as const;
 

@@ -63,3 +63,23 @@
 
 - 五条验收标准机器核对：numeric 四组具体数值 PASS（无「调优/待定」违禁词）／acceptance 命令化 8/8 PASS／tower-ripple 契约双落点 PASS／contract 文件映射 8/8 PASS／必改两条 PASS。
 - **字面扫描注记**：ac-lvl01-e05-window 的 statement 含「必失败」三字，但仅出现于否定语境（「不存在『任何输入必失败』的无窗局面」），非必败断言；QNC-02 判定不受影响。后续若部署「必失败」字面自动扫描器，应识别否定语境或以「无窗死局」措辞为准，避免误报。
+
+## 6. 实现态复跑证据回填（2026-09-25，T4 收口时补录；不改 §1–§5 三态结论）
+
+> 性质说明：本节只回填「实现冲刺后」的机器可核对证据，供 T5 复审取证；预审三态结论与人工项归属不变（好玩与否归主人试玩）。
+
+| 预审三态条目 | 实现态复跑证据 | 结果 |
+|---|---|---|
+| 8 条「可执行」 | `node scripts/contract-check.mjs` B 段逐条实跑（非存在性检查）→ 8/8 PASS；`run-all.mjs` → PASS 8 / FAIL 0 / not-runnable 0 | 一致 |
+| not-runnable 通道 | 本轮为零（实现落盘）；runner 三态通道保留，仍防「缺产物静默绿」 | 一致 |
+| 人工项（e05 体感 / e07 DOM 呈现） | 冒烟补部分机器面：Chromium 打开页面 → 3 次点击 HUD「分数 45」→ R 重开回「分数 0」→ 零 pageerror；体感仍归人工 | 部分代理 |
+| QNC-05（sessionSeconds 口径） | 未回潮：spec v2 sessionScopeNote 未动，数值总闸（e07 第 4 条）PASS | 未回潮 |
+| 数值齐备性 | kernel/numeric.ts 与 spec.numeric 序列化深比 PASS；四组公式全部机判（140/22.4、120/240/36、+10/25+5·(combo−1)、160/420/8+2(l−1)） | PASS |
+| 事件契约 | e06 四断言全过：同 tick 上抛 / 恰四字段 / window_ms=140 / duration 300∈[250,350] / 无 screen-flash | PASS |
+
+**证据复现（仓库根）：**
+```bash
+node scripts/contract-check.mjs
+node games/stack-tower/tests/contract/run-all.mjs
+cd games/stack-tower && npm run smoke && npm run serve   # 冒烟 + 试玩入口 http://127.0.0.1:4173/
+```

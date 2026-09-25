@@ -1,6 +1,6 @@
 # Stack Tower 技术方案（T4）— M2 首卡
 
-> 版本：v1（2026-09-25） · 负责人：游戏程序（T4） · 依据：spec v1（platformSpecId `cmuga6tq90011gqlo3wkh9k7a`，`.myrd/spec/design-spec.json`）
+> 版本：v2（2026-09-25，实现冲刺收口） · 负责人：游戏程序（T4） · 依据：spec v2 approved 候选版（platformSpecId `cmugal9ob0013gqlok6dstuyc`，`.myrd/spec/design-spec.json`）
 > 技术栈：TypeScript 5.x + Canvas 2D + vanilla（零框架、零外部运行时依赖）
 > 所有命令均可粘贴复现（仓库根目录执行）。
 
@@ -44,13 +44,13 @@ games/stack-tower/
 
 | 文件 | 内容 | 状态 |
 |---|---|---|
-| `src/kernel/numeric.ts` | 数值唯一来源 + 四组公式（perfectWindowMs / swingSpeed / targetLayers / perfectDistance）+ RIPPLE_DURATION | 可编译 |
-| `src/kernel/types.ts` | Snapshot / KernelEvent（tower-ripple 四字段载荷）/ SimHandle（tick/fastForward/snapshot/restart） | 可编译 |
-| `src/platform/index.ts` | 四接口 + 手动泵时钟 + 无声/无输入实现 | 可编译 |
-| `src/render/renderer.ts` | 快照→画布（天空/塔块/摆块/波纹/碎块），波纹时长读 `duration_ms`，越界兜底 300 | 可编译 |
-| `src/app/main.ts` | 组装根：事件单向流翻译 + 16ms 累加器双循环 | 可编译（依赖实现冲刺模块） |
+| `src/kernel/numeric.ts` | 数值唯一来源 + 四组公式（perfectWindowMs / swingSpeed / targetLayers / perfectDistance）+ RIPPLE_DURATION；键序对齐 spec.numeric 导出序（e07 数值总闸为序列化深比） | implemented |
+| `src/kernel/types.ts` | Snapshot / KernelEvent（tower-ripple 四字段载荷）/ SimHandle（tick/fastForward/snapshot/restart） | implemented |
+| `src/platform/index.ts` | 四接口 + 手动泵时钟 + 无声/无输入实现 | implemented |
+| `src/render/renderer.ts` | 快照→画布（背景/塔块/摆块/波纹/碎块），波纹时长读 `duration_ms`，越界兜底 300 | implemented |
+| `src/app/main.ts` | 组装根：事件单向流翻译 + 16ms 累加器双循环 + restart 暴露 | implemented |
 
-实现冲刺补齐：`rng/sim/tower/block/cut/judge/ripple/difficulty/hud/sfx`（含 `formatHud` 纯函数导出）。
+实现冲刺补齐（全部落盘，spec 实体落点逐一对号）：`kernel/rng|tower|block|cut|judge|ripple|difficulty|sim`、`platform/input.ts`（实体 e-input-intent）、`render/palette|textures|backdrop`（资产 a01–a03）、`audio/sfx.ts`（a04/a05）、`ui/hud.ts`（`formatHud` 纯函数导出）、`platform/browser.ts`（浏览器装配体）、`main.ts`（浏览器入口）＋ `index.html`/`serve.mjs`（冒烟落点）。
 
 ## 4. 契约测试三态协议
 
@@ -90,3 +90,28 @@ kernel/judge（perfect 成立）
 
 - 载荷恰四字段（加 `type` 判别字段共五键）；多一个语义字段（如 `screen_flash`）即违反降维决议，契约 e06 第 4 条断言拒绝。
 - 表现层只有波纹与音效两个消费点；**无整屏 aha / 闪屏通道**。
+
+## 7. 实现冲刺结果（v2 收口，2026-09-25）
+
+### 7.1 门禁证据（命令可粘贴，仓库根执行）
+
+```bash
+node scripts/contract-check.mjs            # [A]–[E] 全 PASS：spec↔工程一致，acceptance 实跑 8/8
+node games/stack-tower/tests/contract/run-all.mjs   # PASS 8 / FAIL 0 / not-runnable 0
+cd games/stack-tower && npm run smoke      # RESULT: PASS (browser)
+```
+
+浏览器冒烟实跑记录：HTTP / 200 → 18 个 build 模块相对导入全部可解析 → 无头核心循环 3 连落块
+score=120 → Chromium 打开页面（画布 480×720）→ 3 次点击 HUD「分数 45」（perfect 35 + place 10）→
+R 键重开回「分数 0」→ 零 pageerror / console.error。
+
+### 7.2 实现期两处契约驱动修正（红线：以 spec/契约为准，不私改设计）
+
+| 现象 | 根因 | 修正 | 依据 |
+|---|---|---|---|
+| 摆块自行程远端入画，开局第 1 次输入 \|offset\|=240 必死 | 入画相位选择 | 改为自中轴（塔顶 x）入画，方向仍取 RNG | T1 必改①/QNC-02（无开局死局）+ 契约 e03 |
+| keepWidth 可为 −2.6（seek 容差内），归因被分叉成 total-miss | 失败归因规则拆分过细 | 统一按 spec 单一公式 `keepWidth<36 → game-over` 归因 width-floor | spec content.formulas + 契约 e08 |
+
+### 7.3 产物说明
+- `build/` 已随仓库提交：spec acceptance 命令开箱可粘贴即跑（不需先 build）；改 src 后必须 `npm run build` 再跑契约，`node scripts/contract-check.mjs` 的 B 段会实跑防陈旧。
+- 开发依赖仅 `typescript`（构建期，零运行时依赖）。

@@ -10,7 +10,14 @@ import { Renderer } from '../render/renderer.js';
 import { mountHud } from '../ui/hud.js';
 import { createSfx } from '../audio/sfx.js';
 
-export function boot(platform: Platform, opts?: { seed?: number }): void {
+export interface BootSession {
+  /** 全量重开（同 seed；HUD 按钮 / 键盘 R 共用入口） */
+  restart(): void;
+  /** 解绑输入与帧回调（测试拆装用） */
+  dispose(): void;
+}
+
+export function boot(platform: Platform, opts?: { seed?: number }): BootSession {
   const sim = createSim({ seed: opts?.seed ?? NUMERIC.DEFAULT_SEED });
   const renderer = new Renderer();
   const sfx = createSfx(platform.audio);
@@ -57,13 +64,17 @@ export function boot(platform: Platform, opts?: { seed?: number }): void {
     hud.update(snap);
   });
 
-  // 重开入口：HUD 按钮 + 键盘 R（返回解绑，便于测试拆装）
-  hud.onRestart(() => {
-    const fresh = createSim({ seed: opts?.seed ?? NUMERIC.DEFAULT_SEED });
-    Object.assign(sim, fresh);
-  });
-  return () => {
-    offInput();
-    offFrame();
+  // 重开入口：HUD 按钮 / 键盘 R → 内核全量复位（同 seed，无状态残留）
+  const restart = (): void => {
+    sim.restart();
+    renderer.clearFx();
+  };
+  hud.onRestart(restart);
+  return {
+    restart,
+    dispose(): void {
+      offInput();
+      offFrame();
+    },
   };
 }

@@ -7,6 +7,11 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "contract": "node tests/contract/run-all.mjs"
+    "contract": "node tests/contract/run-all.mjs",
+    "serve": "node serve.mjs",
+    "smoke": "node tests/smoke.mjs"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3"
   }
 }
