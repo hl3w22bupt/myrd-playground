@@ -131,3 +131,36 @@ bash games/game-3/verify.sh
 **复跑结论**：验收包（§1–§7）在独立环境可复现，`GODOT_PLAYTEST: PASS` 稳定成立，
 试玩验收正式通过；工程产物 `export/web/`（pck 2557296 字节）自 `a89235f` 起已含
 Juice 反馈协议与重开防误触，本轮随部署分支 `myrd/games-goal-cmuieq51k002cm9gysxbyppv7` 重新发布。
+
+## 十、playtest 节点 rerun 交付记录（2026-09-27 · 试玩验收节点）
+
+运维补齐套件后的**第二次独立复跑**（新轨迹，从分支 `myrd/games-goal-cmuieq51k002cm9gysxbyppv7`
+@ `74fad5e` 检出，判定器零改动、`games/game-3` 玩法代码零改动）：
+
+| 步骤 | 本轮结果 |
+|---|---|
+| preflight（13 类） | PASS（55 文件） |
+| smoke（240 帧） | PASS，日志零 `SCRIPT ERROR` |
+| input-fuzz | PASS（seed=20260913，batches=6，239 帧） |
+| playtest（1200 帧/局） | **PASS：fb=24/25/28，first=2.80/2.65/2.92s，gap=3.12/3.42/3.00s，score=0/0/0** |
+
+与 §3 表格 / §9 复跑记录**逐位一致**——验收包在三个独立轨迹可复现，机判结论稳定。
+
+### 本轮增量交付：§3C 调参工作台（壳页 `?tuning=1` 面板）
+
+试玩验收包标准入口 `<liveUrl>?tuning=1` 此前只有被动注入链路（`?tuning=<JSON>` 解析），
+没有面板 UI。本轮补齐（不碰玩法代码、不碰判定器、不改任何默认值）：
+
+- `server/src/game-page.ts`：右上角滑杆面板（8 键与 `TUNING_META` 逐键一致，含 min/max/step/默认值），
+  拖动即时写 `window.__GAME_TUNING__` 并同步地址栏 `?tuning=<JSON>`（默认值键不写入）；
+  「复制调参 URL」一键产出完整链接（剪贴板不可用时降级为展示 URL + prompt）；
+  「恢复默认」清空调参回到策划案 numeric 口径；面板手势 `stopPropagation`，不进游戏输入。
+- `games/game-3/autoload/game_state.gd`：`reset()` 每局重开时重新读取 `window.__GAME_TUNING__`
+  （生效通道：拖动 → R 重开一局即生效，无需刷新页面）。无头/桌面直开返回 `{}` 幂等，
+  **不改任何常量默认值**——关卡设计与冒烟断言口径不变，spec.numeric 仍是唯一事实源。
+- 增量后全量门禁复跑：见上表（四步全绿，无回归）。server `tsc --noEmit` 通过，
+  壳页内嵌 JS 经 node 语法解析通过（12992 字符）。
+
+**面板生效条件**：随下一次 AppHost 部署上线（部署 gitRef 仍为
+`myrd/games-goal-cmuieq51k002cm9gysxbyppv7`）。当前线上等价回传路径不变：
+按 `qa/tuning-params.md` 的命令行/控制台方法拼 `?tuning=<JSON>` 直链即可。

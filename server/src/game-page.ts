@@ -47,6 +47,24 @@ body { color: #fff; background: #10141f; overflow: hidden; touch-action: none; f
   padding: 6px 16px; font-size: 12px; letter-spacing: .05em; pointer-events: none; }
 #boot kbd { background: #263252; border: 1px solid #42578c; border-bottom-width: 2px; border-radius: 5px; padding: 1px 7px; font-family: inherit; font-size: .92em; color: #ffe9ea; }
 #keys { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; color: #9fb0d0; font-size: .82rem; }
+/* ---- §3C 调参工作台（仅 ?tuning=1 时出现；玩家正常入口不带参数，零干扰） ---- */
+#tuning-panel { position: fixed; top: 10px; right: 10px; z-index: 20; width: min(300px, 84vw);
+  background: rgba(12,17,32,.94); border: 1px solid #33456e; border-radius: 12px; padding: 12px 14px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.45); font-size: 12px; }
+#tuning-panel .tp-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+#tuning-panel .tp-head b { color: #ffe9ea; letter-spacing: .08em; }
+#tuning-panel .tp-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+#tuning-panel .tp-row label { flex: 0 0 74px; color: #c6d2ea; white-space: nowrap; }
+#tuning-panel .tp-row input[type=range] { flex: 1 1 auto; accent-color: #e63946; }
+#tuning-panel .tp-row .tp-val { flex: 0 0 58px; text-align: right; color: #7ae0c3; font-variant-numeric: tabular-nums; }
+#tuning-panel .tp-tip { color: #8b9ab8; margin: 8px 0 6px; line-height: 1.5; }
+#tuning-panel .tp-tip kbd { background: #263252; border: 1px solid #42578c; border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; font-family: inherit; }
+#tuning-panel .tp-actions { display: flex; gap: 8px; }
+#tuning-panel button { flex: 1; cursor: pointer; background: #263252; color: #ffe9ea; border: 1px solid #42578c;
+  border-radius: 8px; padding: 6px 8px; font-size: 12px; font-family: inherit; }
+#tuning-panel button:hover { background: #33456e; }
+#tp-status { color: #ffd166; margin-top: 6px; min-height: 15px; word-break: break-all; }
+#tp-status.err { color: #ff8fa0; }
 </style>
 </head>
 <body>
@@ -59,12 +77,27 @@ body { color: #fff; background: #10141f; overflow: hidden; touch-action: none; f
   <div id="keys"><span><kbd>空格</kbd>/<kbd>W</kbd>/<kbd>↑</kbd>/<kbd>点按</kbd> 跳跃 · 空中再按 = 二段跳</span><span><kbd>R</kbd> 重开</span></div>
 </div>
 <div id="hint" style="display:none">点按/空格 跳跃 · 二段跳越坑 · 收集飞镖 · R 重开</div>
+<!-- §3C 调参工作台：?tuning=1 打开（工坊试玩验收包标准入口），拖滑杆即时改数值，复制调参 URL 回传 -->
+<div id="tuning-panel" style="display:none">
+  <div class="tp-head"><b>调参工作台</b><button id="tp-toggle" type="button">收起</button></div>
+  <div id="tp-body">
+    <div id="tp-sliders"></div>
+    <div class="tp-tip">拖动后按 <kbd>R</kbd> 重开一局即生效（死亡/过关结算后重开同样生效）。</div>
+    <div class="tp-actions">
+      <button id="tp-copy" type="button">复制调参 URL</button>
+      <button id="tp-default" type="button">恢复默认</button>
+    </div>
+    <div id="tp-status"></div>
+  </div>
+</div>
 <noscript>你的浏览器不支持 JavaScript。</noscript>
 <!-- 引擎引导脚本由启动脚本按 BASE_PATH 动态注入（静态 src 在无尾斜杠入口下会 404） -->
 <script>
 (function () {
   // ---- §3C 调参桥（必须在引擎加载前解析：GameState 启动时读取 window.__GAME_TUNING__）----
   // URL 形如 ?tuning=%7B%22run_speed%22%3A300%7D；只接受对象，解析失败静默忽略（不影响进游戏）。
+  // 注：?tuning=1 是「打开调参工作台」的开关 —— JSON.parse('1') 得到数字而非对象，
+  // 天然不会进 window.__GAME_TUNING__，开关与调参值两种语义互不干扰。
   var rawTuning = new URLSearchParams(location.search).get('tuning');
   if (rawTuning) {
     try {
@@ -72,6 +105,120 @@ body { color: #fff; background: #10141f; overflow: hidden; touch-action: none; f
       if (t && typeof t === 'object' && !Array.isArray(t)) window.__GAME_TUNING__ = t;
     } catch (e) { /* 非法 tuning 参数按未调参处理 */ }
   }
+
+  // ---- §3C 调参工作台（?tuning=1 打开）：右上角滑杆面板，即时改数值；「复制调参 URL」
+  // 产出带 ?tuning=<JSON> 的链接，回传即一次完整调参结果。键/范围唯一口径是
+  // games/game-3/autoload/game_state.gd 的 TUNING_META（下表与其逐键一致，勿单边改）。
+  // 生效时机：拖动只写 window.__GAME_TUNING__ + 地址栏；GameState 在每局重开（R/结算后
+  // 重开）时重新读取 →「拖动 → 重开一局即生效」，无需整页刷新。
+  (function () {
+    if (rawTuning !== '1' && rawTuning !== 'true') return;
+    var SPEC = [
+      { key: 'run_speed',          label: '奔跑速度', min: 120, max: 480,  step: 10, def: 240, unit: 'px/s' },
+      { key: 'jump_velocity_abs',  label: '起跳力度', min: 260, max: 900,  step: 10, def: 520, unit: 'px/s' },
+      { key: 'gravity',            label: '重力',     min: 700, max: 2800, step: 20, def: 1400, unit: 'px/s²' },
+      { key: 'max_jumps',          label: '跳跃段数', min: 1,   max: 3,    step: 1,  def: 2,   unit: '段' },
+      { key: 'coyote_frames',      label: '土狼时间', min: 0,   max: 20,   step: 1,  def: 6,   unit: '帧' },
+      { key: 'jump_buffer_frames', label: '跳跃缓冲', min: 0,   max: 20,   step: 1,  def: 6,   unit: '帧' },
+      { key: 'dart_score',         label: '飞镖分值', min: 1,   max: 10,   step: 1,  def: 1,   unit: '分' },
+      { key: 'win_bonus',          label: '过关奖励', min: 0,   max: 50,   step: 1,  def: 10,  unit: '分' }
+    ];
+    var panel = document.getElementById('tuning-panel');
+    if (!panel) return;
+    // 面板上的手势不进游戏输入（引擎监听 canvas；stopPropagation 兜底 window 级监听）。
+    ['pointerdown', 'touchstart', 'mousedown', 'click', 'keydown', 'keyup'].forEach(function (type) {
+      panel.addEventListener(type, function (e) { e.stopPropagation(); });
+    });
+    var current = {};
+    // 初值：已注入的调参键优先，其余用常量默认（与「缺省合并」语义一致）。
+    var injected = window.__GAME_TUNING__ || {};
+    SPEC.forEach(function (s) {
+      var v = injected[s.key];
+      current[s.key] = (typeof v === 'number' && v >= s.min && v <= s.max) ? v : s.def;
+    });
+    function tuningJson() {
+      var out = {};
+      var dirty = false;
+      SPEC.forEach(function (s) {
+        if (current[s.key] !== s.def) { out[s.key] = current[s.key]; dirty = true; }
+      });
+      return dirty ? JSON.stringify(out) : '';
+    }
+    function syncUrl() {
+      var json = tuningJson();
+      var url = location.origin + location.pathname + (json ? '?tuning=' + encodeURIComponent(json) : '');
+      try { history.replaceState(null, '', url.replace(location.origin, '')); } catch (e) { /* 老内核忽略 */ }
+      return url;
+    }
+    function setStatus(text, isErr) {
+      var el = document.getElementById('tp-status');
+      if (el) { el.textContent = text; el.className = isErr ? 'err' : ''; }
+    }
+    function applyAll() {
+      var json = tuningJson();
+      if (json) window.__GAME_TUNING__ = JSON.parse(json);
+      else delete window.__GAME_TUNING__;
+    }
+    var wrap = document.getElementById('tp-sliders');
+    SPEC.forEach(function (s) {
+      var row = document.createElement('div');
+      row.className = 'tp-row';
+      var label = document.createElement('label');
+      label.textContent = s.label;
+      label.setAttribute('for', 'tp-' + s.key);
+      var range = document.createElement('input');
+      range.type = 'range';
+      range.id = 'tp-' + s.key;
+      range.min = String(s.min); range.max = String(s.max); range.step = String(s.step);
+      range.value = String(current[s.key]);
+      var val = document.createElement('span');
+      val.className = 'tp-val';
+      val.textContent = current[s.key] + ' ' + s.unit;
+      range.addEventListener('input', function () {
+        current[s.key] = parseFloat(range.value);
+        val.textContent = current[s.key] + ' ' + s.unit;
+        applyAll();
+        syncUrl();
+        setStatus('已暂存，重开一局生效');
+      });
+      row.appendChild(label); row.appendChild(range); row.appendChild(val);
+      wrap.appendChild(row);
+    });
+    document.getElementById('tp-copy').addEventListener('click', function () {
+      var url = syncUrl();
+      var json = tuningJson();
+      if (!json) { setStatus('当前全是默认值，拖动滑杆后再复制'); return; }
+      var done = function () { setStatus('调参 URL 已复制，发给工坊即完成一次调参'); };
+      var fallback = function () {
+        // 剪贴板不可用（http/老内核）：选中地址栏并显示完整 URL，手动复制。
+        setStatus(url, false);
+        try { window.prompt('全选复制：', url); } catch (e2) { /* 忽略 */ }
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(done, fallback);
+      } else fallback();
+    });
+    document.getElementById('tp-default').addEventListener('click', function () {
+      SPEC.forEach(function (s) {
+        current[s.key] = s.def;
+        var range = document.getElementById('tp-' + s.key);
+        if (range) range.value = String(s.def);
+        var val = wrap.querySelector('#tp-' + s.key + ' + .tp-val') || range.parentNode.lastChild;
+        if (val) val.textContent = s.def + ' ' + s.unit;
+      });
+      applyAll();
+      syncUrl();
+      setStatus('已恢复默认（默认手感以策划案 numeric 为准）');
+    });
+    var toggleBtn = document.getElementById('tp-toggle');
+    toggleBtn.addEventListener('click', function () {
+      var body = document.getElementById('tp-body');
+      var hidden = body.style.display === 'none';
+      body.style.display = hidden ? '' : 'none';
+      toggleBtn.textContent = hidden ? '收起' : '展开';
+    });
+    panel.style.display = 'block';
+  })();
 
   // ---- 移动端音频手势解锁器（必须在引擎加载前安装，见文件尾注释）----
   // 根因（games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md F1/F2 取证）：

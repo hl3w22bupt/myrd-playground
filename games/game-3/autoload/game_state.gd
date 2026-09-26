@@ -122,5 +122,9 @@ func register_loss() -> void:
 func reset() -> void:
 	score = 0
 	state = State.PLAYING
+	# 调参工作台生效通道：壳页 ?tuning=1 面板拖滑杆只更新 window.__GAME_TUNING__，
+	# 每局重开时在此重新读取 →「拖动 → R 重开一局即生效」。未调参/无头/桌面直开
+	# 返回 {} 幂等（全走常量默认），不改任何默认值，关卡与冒烟断言口径不变。
+	tuning = _load_browser_tuning()
 	score_changed.emit(score)
 	state_changed.emit(state)
