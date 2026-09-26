@@ -64,3 +64,38 @@
 | commit | `d09aab8`（与线上 v6 同 commit，幂等重建） |
 | liveUrl | `https://leomac-studio.tail49399e.ts.net/apps/game-3/` |
 | 部署后核验 | 入口与资产通道 200（见 §五）；Goal.artifacts 已回写 `deploy_playable` 条目（artifactId=deployment id） |
+
+## 五、线上核验（v7 现役部署，补齐本节）
+
+> 资产通道为 **M1 网关文本契约**：壳页 `fetchAsset()` 以 `r.text()` 取
+> `/apps/game-3/api/public/assets/<name>`，内容是 base64(gzip(产物))——
+> 直接对响应做二进制哈希比对会得到假阴性（实测响应 3,387,472B ≠ 产物 2,557,296B），
+> 必须 b64 解码 + gunzip 后再比对。
+
+| 检查 | 方法 | 结果 |
+|---|---|---|
+| 入口 | `GET /apps/game-3/`（跟随 308 尾斜杠重定向） | 200，壳页《疾风忍者跑》（调参桥 + 引导脚本按 BASE_PATH 注入） |
+| index.wasm / index.js / index.pck / index.html | `GET …/api/public/assets/<name>` | 全部 200 |
+| index.pck 内容一致性 | 响应 b64 解码 + gunzip → SHA-256 | `c79d6f28…14f0b10e`，与提交产物**逐字节一致** |
+| 平台侧现役 | `GET /api/v1/apphost/apps/cmuieq51i002am9gyfxqx06rl` | `currentDeploymentId=cmuip8rqw005cm9l6l2d0ohu1`（v7，status=running，commit d09aab8，gitRef=目标分支，triggeredById=目标 id） |
+| Goal.artifacts 回写 | `GET /api/v1/goals/cmuieq51k002cm9gysxbyppv7` | `deploy_playable` 条目在位（index 16）：hostedAppId + deploymentId(v7) + liveUrl 三要素齐全，detail 与平台实况一致 |
+
+## 六、节点重入复验（2026-09-27 第二次执行，幂等再确认）
+
+> 本节点被重入执行。重入时零代码改动（HEAD 仍为 c1a0dae，工作区干净，与 origin 同步），
+> 按幂等分支口径**全量重验**而非盲信本记录前文：
+
+| 复验项 | 方法（判定脚本均为仓库内 std-skills/godot-game-dev/scripts/） | 结果 |
+|---|---|---|
+| spec.numeric 权威源 | `GET /api/v1/game-design-specs/approved?goalId=…`（id=cmuiiofl4004tm9gcmaz3sstp，v1，approved）直取 numeric+world，与 §一 对照表重比 | 15 项仍逐项一致，判定幂等 |
+| preflight | `preflight.py games/game-3` | `PREFLIGHT: PASS`（56 文件）exit 0 |
+| smoke | `GODOT_SMOKE_FRAMES=240 … smoke.sh games/game-3` | `godot-smoke: PASS`，日志 0 处 SCRIPT ERROR，exit 0 |
+| input-fuzz | `input-fuzz.sh games/game-3` | `GODOT_FUZZ: PASS` seed=20260913 batches=6 frames=239，exit 0 |
+| playtest | `playtest.sh games/game-3` | `GODOT_PLAYTEST: PASS` 3 局×900 帧：score=3/0/6，first_reward 2.65~2.92s，max_gap 3.00~3.42s（阈值 10s），反馈事件 17/17/18 |
+| 导出幂等 | `--export-release Web` 至 /tmp/export-check 后逐文件 SHA-256 | 7/8 与提交产物一致；index.pck 字节数相同（2,557,296B）仅 pck 头 mtime 抖动；`git status` 干净 |
+| 线上现役 | §五 同口径复测（入口 200、资产全 200、pck 解码哈希一致、v7 running） | 与 §五 结论一致，无漂移 |
+| artifacts 回写 | Goal.artifacts `deploy_playable`（v7）三要素复核 | 在位且准确，无需改写 |
+
+**重入结论：无任何数值/代码/产物变更，不产生新部署**——线上 v7 即本节点部署（内容与当前
+HEAD 逐字节一致），重复重建只会制造冗余部署（见知识文档 §「504 冗余部署处置」）。
+本轮增量 = 本节与 §五 的落盘补全（上轮记录在 §五 处被截断，引用悬空）+ 门禁新证。
