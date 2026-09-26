@@ -44,6 +44,9 @@ const SPAWN_ATTEMPTS: int = 12
 @onready var restart_button: Button = %RestartButton
 @onready var milestone_label: Label = %MilestoneLabel
 @onready var touch_ui: CanvasLayer = $TouchUI
+## 调参工作台（scripts/tuning_panel.gd）：Web 端 ?tuning=1 / 桌面 T 键开关，
+## 只做运行时数值覆盖，不改 config/gameplay.cfg 文件。
+@onready var tuning_panel: CanvasLayer = $TuningUI
 
 var _move_hint: String = "WASD / 方向键移动 · 收集星尘 · 躲避陨石"
 var _spawn_rng := RandomNumberGenerator.new()
@@ -63,6 +66,9 @@ func _ready() -> void:
 	if DisplayServer.is_touchscreen_available():
 		touch_ui.visible = true
 		_move_hint = "摇杆移动 · 收集星尘 · 躲避陨石"
+	else:
+		# 桌面端给出调参工作台入口提示（headless 下不渲染，不影响冒烟断言）。
+		_move_hint = "WASD/方向键移动 · 收集星尘 · 躲避陨石 · T 调参"
 	# 信号连接：订阅方（本场景）集中连接，发布方（player / StarDust / GameState）只 emit。
 	if not player.moved.is_connected(_on_player_moved):
 		player.moved.connect(_on_player_moved)

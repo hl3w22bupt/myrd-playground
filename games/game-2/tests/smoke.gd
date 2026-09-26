@@ -9,7 +9,9 @@ extends Node
 ##   失败 → stderr 打印 `GODOT_SMOKE: FAIL <原因>`（每条一行），进程退出码 1
 ##
 ## 断言覆盖（对应本游戏四项验收的机判形态）：
-##   A. 玩家能移动：注入 move_right 动作后位移 ≥ 阈值（输入 → 物理 → 位移全链路）
+##   A. 玩家能移动【方向语义契约】：注入 move_right 后水平位移 ≥ +阈值且纵向偏移有上界；
+##      再注入 move_left 相同帧数，水平位移 ≤ -阈值 —— 有符号轴分量断言，
+##      输入映射镜像（按右往左走）会让无向 distance_to 断言照样全绿，本断言能识破。
 ##   B. 核心交互生效：把玩家传送到星尘上，物理碰撞触发收集
 ##      （分数 +score_per_crystal、晶体消失不重复计分、飘字反馈出现）
 ##   C. 胜负可达：物理碰撞陨石扣盾 1 点；无敌帧内不重复扣血；
@@ -43,6 +45,8 @@ const SMOKE_SEED: int = 20260926
 const MOVE_ORIGIN: Vector2 = Vector2(320, 180)
 ## 阶段一：按住 move_right 的帧数。
 const MOVE_FRAMES: int = 10
+## 阶段二（反向契约）：按住 move_left 的帧数（与阶段一等长，便于对称断言）。
+const LEFT_MOVE_FRAMES: int = 10
 ## 传送接触后等待物理判定送达的帧数（收集相位）。
 const CONTACT_FRAMES: int = 6
 ## 受击跟随窗口：期间逐帧贴住目标陨石，直到护盾扣减达成。
@@ -67,12 +71,16 @@ const DIFFICULTY_ASSERT_OFFSET: int = 1
 ## ── 固定锚点帧 ──
 const FRAME_MOVE_START: int = NOISE_FRAMES + 1
 const FRAME_MOVE_END: int = NOISE_FRAMES + MOVE_FRAMES
-const FRAME_COLLECT_ASSERT: int = FRAME_MOVE_END + CONTACT_FRAMES
+const FRAME_LEFT_MOVE_END: int = FRAME_MOVE_END + LEFT_MOVE_FRAMES
+const FRAME_COLLECT_ASSERT: int = FRAME_LEFT_MOVE_END + CONTACT_FRAMES
 const FRAME_HIT_WINDOW_START: int = FRAME_COLLECT_ASSERT + 1
 const FRAME_HIT_WINDOW_END: int = FRAME_HIT_WINDOW_START + HIT_WINDOW_FRAMES - 1
 
 ## 判定「真的移动了」的最小位移（像素）。
 const MIN_MOVE_DISTANCE: float = 1.0
+## 方向语义契约的横向漂移上界（像素）：只按单一水平方向时，纵向偏移不允许超过该值
+## （10 帧 × 240px/s ≈ 40px 位移，64px 上界足够宽容，但足以识破「斜着乱跑/镜像输入」）。
+const MAX_LATERAL_DRIFT: float = 64.0
 
 const REQUIRED_ACTIONS: Array[StringName] = [
 	&"move_left", &"move_right", &"move_up", &"move_down", &"confirm",
@@ -93,6 +101,8 @@ var _finished: bool = false
 var _main: MainScene
 var _player: Player
 var _origin: Vector2 = Vector2.ZERO
+## 反向相位（move_left）的出发点：与 _origin 分开记录，避免两个方向断言互相污染。
+var _left_origin: Vector2 = Vector2.ZERO
 var _moved_seen: bool = false
 var _score_seen: bool = false
 var _score_before_collect: int = 0
@@ -171,8 +181,10 @@ func _physics_process(_delta: float) -> void:
 		elif _frames == FRAME_MOVE_START:
 			_begin_move_phase()
 		elif _frames == FRAME_MOVE_END:
-			_end_move_phase_begin_collect()
-		elif _frames > FRAME_MOVE_END and _frames < FRAME_COLLECT_ASSERT:
+			_end_move_phase_begin_left_phase()
+		elif _frames == FRAME_LEFT_MOVE_END:
+			_end_left_phase_begin_collect()
+		elif _frames > FRAME_LEFT_MOVE_END and _frames < FRAME_COLLECT_ASSERT:
 			_follow_collect()
 		elif _frames == FRAME_COLLECT_ASSERT:
 			_follow_collect()
@@ -313,13 +325,47 @@ func _begin_move_phase() -> void:
 	Input.action_press(&"move_right")
 
 
-func _end_move_phase_begin_collect() -> void:
+## ── A. 方向语义契约（有符号断言，识破「输入映射镜像」缺陷）──
+## 无向位移（distance_to）分不清「按右往右走」和「按右往左走」：镜像映射下照样全绿。
+## 2D 无旋转相机下 +x 即屏幕右、+y 即屏幕下，因此用带符号的轴分量断言：
+##   move_right → (x - origin.x) >= +MIN_MOVE_DISTANCE，且 |y - origin.y| <= MAX_LATERAL_DRIFT；
+##   move_left  → (x - origin.x) <= -MIN_MOVE_DISTANCE，且纵向同样有上界。
+func _end_move_phase_begin_left_phase() -> void:
 	Input.action_release(&"move_right")
 	_release_move_actions()
-	var travelled: float = _player.global_position.distance_to(_origin)
-	if travelled < MIN_MOVE_DISTANCE:
-		_failures.append("玩家 %d 帧内位移 %.2fpx < %.2fpx：InputMap 动作未生效或 _physics_process 未驱动 velocity" % [
-			MOVE_FRAMES, travelled, MIN_MOVE_DISTANCE,
+	var dx: float = _player.global_position.x - _origin.x
+	var dy: float = _player.global_position.y - _origin.y
+	if dx < MIN_MOVE_DISTANCE:
+		_failures.append("方向语义失败：按 move_right %d 帧后水平位移 %+.2fpx 未达到 +%.2fpx（输入映射可能镜像/反向，或 _physics_process 未驱动 velocity）" % [
+			MOVE_FRAMES, dx, MIN_MOVE_DISTANCE,
+		])
+	if absf(dy) > MAX_LATERAL_DRIFT:
+		_failures.append("方向语义失败：按 move_right %d 帧后纵向偏移 %+.2fpx 超出 ±%.0fpx 上界（移动方向跑偏）" % [
+			MOVE_FRAMES, dy, MAX_LATERAL_DRIFT,
+		])
+	_begin_left_move_phase()
+
+
+## 反向相位：先释放全部方向动作、记录新出发点，再按住 move_left 相同帧数。
+func _begin_left_move_phase() -> void:
+	_player.velocity = Vector2.ZERO
+	_release_move_actions()
+	_left_origin = _player.global_position
+	Input.action_press(&"move_left")
+
+
+func _end_left_phase_begin_collect() -> void:
+	Input.action_release(&"move_left")
+	_release_move_actions()
+	var dx: float = _player.global_position.x - _left_origin.x
+	var dy: float = _player.global_position.y - _left_origin.y
+	if dx > -MIN_MOVE_DISTANCE:
+		_failures.append("方向语义失败：按 move_left %d 帧后水平位移 %+.2fpx 未达到 -%.2fpx（输入映射可能镜像/反向，或 _physics_process 未驱动 velocity）" % [
+			LEFT_MOVE_FRAMES, dx, MIN_MOVE_DISTANCE,
+		])
+	if absf(dy) > MAX_LATERAL_DRIFT:
+		_failures.append("方向语义失败：按 move_left %d 帧后纵向偏移 %+.2fpx 超出 ±%.0fpx 上界（移动方向跑偏）" % [
+			LEFT_MOVE_FRAMES, dy, MAX_LATERAL_DRIFT,
 		])
 	_begin_collect_phase()
 
@@ -539,7 +585,7 @@ func _report() -> void:
 	if not _score_seen:
 		_failures.append("信号 GameState.score_changed 未到达订阅方：连接断裂或从未 emit")
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 移动/收集/受击无敌帧/结算/重开/里程碑/胜利结算/难度梯度 全部通过")
+		print("GODOT_SMOKE: PASS 方向语义(move_right/move_left)/收集/受击无敌帧/结算/重开/里程碑/胜利结算/难度梯度 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:
