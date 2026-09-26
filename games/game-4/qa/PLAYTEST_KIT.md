@@ -32,6 +32,13 @@
 > **复验（2026-09-27 iterate 收口轮，HEAD `4b24894`）**：四门禁在本 HEAD 复跑全绿；
 > `GODOT_PLAYTEST_METRICS` 与上表**逐字段一致**（3 种子确定性复现），
 > 复验与 v6 部署取证见 `qa/LIVE_VERIFY.md` §五。
+>
+> **再复验（2026-09-27 iterate 收口第 2 轮，HEAD `8551380`）**：四门禁再次复跑全绿
+> （PREFLIGHT 13 类/63 文件 → GODOT_SMOKE 240 帧 → GODOT_FUZZ 6 批 239 帧 →
+> GODOT_PLAYTEST 3 种子×900 帧）；`GODOT_PLAYTEST_METRICS` 与上表**逐字段一致**
+> （run1 1.45s/156、run2 null/147、run3 11.5s/173，3 种子确定性第 3 次复现）；
+> Web 重导出产物与库内基线逐字节一致（pck `5bfa5ca8…` / wasm `fe5cebc5…`）。
+> 本轮部署与公网核验收敛于同一 HEAD，取证见 `qa/LIVE_VERIFY.md` §七。
 
 ## 二、playtest 协议修复史（FAIL → PASS，可审计）
 
