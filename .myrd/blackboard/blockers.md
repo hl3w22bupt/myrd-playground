@@ -29,8 +29,8 @@
 | 节点 | 职能 | 产物落点 | 状态 |
 |---|---|---|---|
 | N1 发布体检 | 程序 | `games/stack-tower/docs/release-healthcheck-m21.md` + `gate-logs/release-m21-20260926/` | **完成**（六道门禁全绿非降级；tag `stack-tower-m2.1-release` @ `5a3284fa137a3926fabb5f7b4fcdd098bd075df3`；门禁树→tag 树发布面 delta=0 字节） |
-| N2 对内放行 | QA | `games/stack-tower/docs/qa-release-receipt-m21.md`（含编号回执 + 已知未收口项） | 待 N1 |
-| N3 素材终检 | 美术 | `.myrd/blackboard/gate-logs/release-m21-20260926/art-final-check.md` | 待 N1 |
+| N2 对内放行 | QA | `games/stack-tower/docs/qa-release-receipt-m21.md`（含编号回执 + 已知未收口项） | **完成**（回执 QA-REL-M21-20260926-01 签发：对内放行 PASS；U1–U5 单列） |
+| N3 素材终检 | 美术 | `.myrd/blackboard/gate-logs/release-m21-20260926/art-final-check.md` | **完成**（四项全 PASS；maskable 0px 出圆；sfx 注册表双签完成——程序侧 healthcheck §5 + 美术侧 art-final-check §会签） |
 | N4 release notes | 策划 | `games/stack-tower/docs/release-notes-m21.md` + 溯源映射表 + spec 字段包（扣住不生效） | 待 N2 |
 | N5 deploy | 程序/deploy | AppHost 坑位 `cmugttipt000km9299oej5z9b`（slug `stack-tower-3`） | 待 N4 |
 | N6 对外放行 | QA | 线上冒烟记录（入回执 §对外放行） | 待 N5 |
