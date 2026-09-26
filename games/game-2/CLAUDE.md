@@ -37,7 +37,10 @@
 ## 本工程（星尘收集者）补充接线
 
 - `[autoload]` 顺序：`GameConfig`（数值配置，**必须先于 GameState 注册**）→ `GameState`（分数/护盾/最高分/结算状态机）。
-- 数值唯一来源：`config/gameplay.cfg`（收集加分 / 扣盾 / 初始护盾 / 无敌帧 / 星尘陨石数量与速度）—— 改配置即生效，不改代码。
-- 玩法闭环：`StarDust.collected` → main 加分 + 飘字 + 延迟补位；`Asteroid` 碰撞 → `Player.take_hit()`（无敌帧防重复扣血）→ `GameState.apply_hit()` → 护盾归 0 弹结算面板（本局得分 + 历史最高分，`user://stardust_save.cfg` 持久化）。
-- 重开入口：结算面板「重新开始」按钮 / confirm 动作（空格/回车）→ `GameState.start_game()` 重置并重铺战场。
+- 数值唯一来源：`config/gameplay.cfg`（收集加分 / 扣盾 / 初始护盾 / 无敌帧 / 星尘陨石数量与速度 / 难度梯度 / 胜利目标 / 里程碑步长）—— 改配置即生效，不改代码。
+- 玩法闭环：`StarDust.collected` → main 加分 + 飘字 + 延迟补位；`Asteroid` 碰撞 → `Player.take_hit()`（无敌帧防重复扣血）→ `GameState.apply_hit()` → 护盾归 0 弹失败结算面板（本局得分 + 历史最高分，`user://stardust_save.cfg` 持久化）。
+- 难度梯度：分数每跨过 `difficulty_step` → main `_apply_difficulty` 上调陨石常驻上限与速度倍率（封顶见配置），重开复位 0 级。
+- 胜利终局：得分达 `score_target`（0 = 无尽模式）→ `GameState.game_won` → 同一结算面板标题切「目标达成 · 胜利！」。
+- 里程碑反馈：分数每跨过 `milestone_step`（0 = 关闭）→ UI CanvasLayer 的 `%MilestoneLabel` 庆祝横幅。
+- 重开入口：结算面板「重新开始」按钮 / confirm 动作（空格/回车）→ `GameState.start_game()` 重置分数护盾并重铺战场（难度同时复位）。
 - 本地复跑门禁：`bash games/game-2/verify.sh`（preflight + smoke(GODOT_SMOKE_FRAMES=240) + fuzz，只调用 std-skills/godot-game-dev/scripts/ 判定脚本）。

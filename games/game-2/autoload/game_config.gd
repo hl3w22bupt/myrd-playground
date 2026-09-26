@@ -31,6 +31,27 @@ var player_speed: float = 240.0
 ## 星尘被收集后补位延迟（秒）。
 var respawn_delay_seconds: float = 1.5
 
+## ── 难度梯度（本节点新增）──
+## 每收集多少分提升一级难度（0 = 关闭梯度，恒定难度）。
+var difficulty_step: int = 8
+## 每提升一级难度，陨石常驻数量增加多少。
+var difficulty_asteroids_per_level: int = 1
+## 难度提升后陨石常驻数量的封顶（梯度的天花板，防止刷满屏幕）。
+var difficulty_asteroids_cap: int = 10
+## 每提升一级难度，陨石漂移速度乘以的增量比例（线性叠加后封顶）。
+var difficulty_speed_per_level: float = 0.15
+## 难度提升后陨石速度的倍率封顶（相对 asteroid_speed_min/max 基准）。
+var difficulty_speed_cap_scale: float = 1.8
+
+## ── 胜利目标（本节点新增）──
+## 本局得分达到该值即触发胜利结算（面板 + 可重开）；0 = 无尽模式，
+## 唯一终局回到需求口径「护盾耗尽本轮结束」。
+var score_target: int = 20
+
+## ── 里程碑反馈（本节点新增）──
+## 每收集多少分弹出一次里程碑庆祝横幅（0 = 关闭）。
+var milestone_step: int = 10
+
 
 func _ready() -> void:
 	apply_config_file()
@@ -52,3 +73,14 @@ func apply_config_file() -> void:
 	asteroid_speed_max = config.get_value("gameplay", "asteroid_speed_max", asteroid_speed_max)
 	player_speed = config.get_value("gameplay", "player_speed", player_speed)
 	respawn_delay_seconds = config.get_value("gameplay", "respawn_delay_seconds", respawn_delay_seconds)
+	difficulty_step = config.get_value("gameplay", "difficulty_step", difficulty_step)
+	difficulty_asteroids_per_level = config.get_value(
+		"gameplay", "difficulty_asteroids_per_level", difficulty_asteroids_per_level)
+	difficulty_asteroids_cap = config.get_value(
+		"gameplay", "difficulty_asteroids_cap", difficulty_asteroids_cap)
+	difficulty_speed_per_level = config.get_value(
+		"gameplay", "difficulty_speed_per_level", difficulty_speed_per_level)
+	difficulty_speed_cap_scale = config.get_value(
+		"gameplay", "difficulty_speed_cap_scale", difficulty_speed_cap_scale)
+	score_target = config.get_value("gameplay", "score_target", score_target)
+	milestone_step = config.get_value("gameplay", "milestone_step", milestone_step)

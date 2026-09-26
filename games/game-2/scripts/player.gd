@@ -13,7 +13,10 @@ signal moved(position: Vector2)
 ## 受击生效时发出（携带扣盾后的剩余护盾）；订阅方播放震屏反馈。
 signal hit_taken(shield: int)
 
-## 可活动范围（世界坐标，视口 640x360 内留边）。
+## 可活动范围（世界坐标）：飞船中心距视口各边 ≥16px。
+## 余量推导：碰撞半径 12px（scenes/player.tscn CollisionShape2D）→ 碰撞圆距视口边
+## ≥4px；视觉轮廓最远 14px（机鼻顶点）→ 贴边时机鼻距视口边 ≥2px，全程不裁切。
+## clamp 双轴独立钳制：斜向顶着角落输入时沿边滑动，不会卡进死角。
 const PLAY_BOUNDS: Rect2 = Rect2(16.0, 16.0, 608.0, 328.0)
 
 var speed: float = 240.0

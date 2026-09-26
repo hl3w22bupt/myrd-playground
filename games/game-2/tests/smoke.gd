@@ -16,6 +16,12 @@ extends Node
 ##      护盾归 0 的瞬间结算面板弹出，展示本局得分与历史最高分且最高分已落盘
 ##   D. 重开可用：confirm 动作（结算态键盘入口）触发重开 ——
 ##      分数归 0、护盾恢复初始值、面板隐藏、新战场生成
+##   E. 新玩法面（本节点新增，断言与交互同步升级）：
+##      E1 里程碑反馈：跨过 milestone_step 整数倍弹出庆祝横幅；
+##      E2 胜利结算可达：得分达到 score_target 的瞬间弹出「胜利」结算面板
+##         （标题区分胜负、正文含本局得分/历史最高、最高分落盘）；
+##      E3 胜利后重开：confirm 重开 —— 分数/护盾复位、面板隐藏、难度复位 0 级；
+##      E4 难度梯度生效：跨过 difficulty_step 后陨石上限 +1 并补足生成。
 ##
 ## 可复现性设计（门禁要求同一事件序 → 同一判定结果）：
 ## - 噪声相位结束后 Input.release_pressed_events()，清掉悬挂按键/手势；
@@ -50,6 +56,13 @@ const FAST_HIT_FRAMES: int = 7
 const IFRAME_EXPIRE_FRAMES: int = 52
 ## 注入 confirm 后等待重开生效的帧数。
 const RESTART_FRAMES: int = 8
+## ── E 段锚点偏移（胜利 / 里程碑 / 难度梯度）──
+## 重开断言后到里程碑注入的帧间隔。
+const VICTORY_MILESTONE_OFFSET: int = 1
+## 里程碑注入到胜利结算断言的帧间隔。
+const VICTORY_ASSERT_OFFSET: int = 1
+## 第二次重开断言到难度梯度断言的帧间隔（add_score 同帧生效，留 1 帧观察）。
+const DIFFICULTY_ASSERT_OFFSET: int = 1
 
 ## ── 固定锚点帧 ──
 const FRAME_MOVE_START: int = NOISE_FRAMES + 1
@@ -95,6 +108,10 @@ var _t_fast_hit_1: int = -1
 var _t_fast_hit_2: int = -1
 var _t_game_over: int = -1
 var _t_restart: int = -1
+var _t_victory_milestone: int = -1
+var _t_victory_assert: int = -1
+var _t_victory_restart: int = -1
+var _t_difficulty_assert: int = -1
 var _t_report: int = -1
 
 
@@ -121,10 +138,17 @@ func _ready() -> void:
 	if game_state == null:
 		_failures.append("autoload GameState 未注册（project.godot [autoload] 缺失）")
 	else:
-		for signal_name in ["score_changed", "shield_changed", "game_over", "game_restarted"]:
+		for signal_name in ["score_changed", "shield_changed", "game_over", "game_won", "game_restarted"]:
 			if not game_state.has_signal(signal_name):
 				_failures.append("autoload GameState 缺少信号 %s" % signal_name)
 		game_state.score_changed.connect(_on_score_changed)
+
+	# 清掉上一轮运行遗留的最高分存档：让「结算后已落盘」断言只认可本轮写入，
+	# 否则陈旧存档会把持久化缺陷洗成假阳性。
+	var save_dir := DirAccess.open("user://")
+	var save_file_name: String = GameState.SAVE_PATH.get_file()
+	if save_dir != null and save_dir.file_exists(save_file_name):
+		save_dir.remove(save_file_name)
 
 	if _player == null:
 		_failures.append("主场景里找不到 Player（player.tscn 未实例化或未挂 player.gd）")
@@ -173,6 +197,16 @@ func _physics_process(_delta: float) -> void:
 			_press_action(&"confirm")
 		elif _t_restart > 0 and _frames == _t_restart:
 			_assert_restarted()
+		elif _t_victory_milestone > 0 and _frames == _t_victory_milestone:
+			_inject_victory_milestone_step()
+		elif _t_victory_assert > 0 and _frames == _t_victory_assert:
+			_assert_victory()
+			_press_action(&"confirm")
+		elif _t_victory_restart > 0 and _frames == _t_victory_restart:
+			_assert_victory_restarted()
+			_begin_difficulty_phase()
+		elif _t_difficulty_assert > 0 and _frames == _t_difficulty_assert:
+			_assert_difficulty_level()
 
 	if (_t_report > 0 and _frames >= _t_report) or not _failures.is_empty():
 		_finished = true
@@ -362,7 +396,11 @@ func _follow_hit() -> void:
 		_t_fast_hit_2 = _t_fast_hit_1 + FAST_HIT_FRAMES
 		_t_game_over = _t_fast_hit_2 + FAST_HIT_FRAMES
 		_t_restart = _t_game_over + RESTART_FRAMES
-		_t_report = _t_restart + 2
+		_t_victory_milestone = _t_restart + VICTORY_MILESTONE_OFFSET
+		_t_victory_assert = _t_victory_milestone + VICTORY_ASSERT_OFFSET
+		_t_victory_restart = _t_victory_assert + RESTART_FRAMES
+		_t_difficulty_assert = _t_victory_restart + DIFFICULTY_ASSERT_OFFSET
+		_t_report = _t_difficulty_assert + 1
 
 
 func _assert_invincibility_window() -> void:
@@ -409,6 +447,88 @@ func _assert_restarted() -> void:
 		])
 
 
+## ── E1. 里程碑反馈断言 ──
+## 临时把目标分调到 2、里程碑步长调到 1：收集 1 分应弹横幅且不触发终局。
+func _inject_victory_milestone_step() -> void:
+	GameConfig.score_target = 2
+	GameConfig.milestone_step = 1
+	GameState.add_score(1)
+	if GameState.is_game_over:
+		_failures.append("里程碑阶段误触发终局：score=1 < score_target=2 时 is_game_over 不应为 true")
+	if not _main.milestone_label.visible:
+		_failures.append("里程碑横幅未弹出（milestone_step=1 时收集 1 分应弹庆祝反馈）")
+	elif not _main.milestone_label.text.contains("已收集 1"):
+		_failures.append("里程碑横幅文案不含已收集分数：\"%s\"" % _main.milestone_label.text)
+
+
+## ── E2. 胜利结算断言 ──
+## 再加 1 分踩线（score 1 → 2 = score_target）：胜利结算应在同一入口内立即触发。
+func _assert_victory() -> void:
+	GameState.add_score(1)
+	_score_at_game_over = GameState.score
+	if not GameState.is_game_over:
+		_failures.append("胜利判定失败：得分 %d 已达 score_target(%d) 但 is_game_over 仍为 false" % [
+			GameState.score, GameConfig.score_target,
+		])
+	if not _main.game_over_panel.visible:
+		_failures.append("胜利结算面板未弹出（达到 score_target 的瞬间应展示结算）")
+	var title_text: String = _main.result_title_label.text
+	if not title_text.contains("胜利"):
+		_failures.append("胜利结算标题未区分胜负：\"%s\"" % title_text)
+	if title_text.contains("护盾耗尽"):
+		_failures.append("胜利终局误用了失败文案：\"%s\"" % title_text)
+	var result_text: String = _main.result_label.text
+	if not result_text.contains("本局得分") or not result_text.contains("历史最高"):
+		_failures.append("胜利结算文案缺少本局得分/历史最高：\"%s\"" % result_text)
+	if not GameState.has_high_score_save():
+		_failures.append("胜利结算后历史最高分未持久化（%s 未落盘）" % GameState.SAVE_PATH)
+
+
+## ── E3. 胜利后重开断言 ──
+func _assert_victory_restarted() -> void:
+	if GameState.is_game_over:
+		_failures.append("胜利重开失败：GameState 仍处于结算态")
+	if GameState.score != 0 or GameState.shield != GameConfig.initial_shield:
+		_failures.append("胜利重开失败：分数/护盾未复位（score=%d, shield=%d）" % [
+			GameState.score, GameState.shield,
+		])
+	if _main.game_over_panel.visible:
+		_failures.append("胜利重开失败：结算面板仍可见")
+	if _main.difficulty_level != 0:
+		_failures.append("胜利重开失败：难度未复位（difficulty_level=%d）" % _main.difficulty_level)
+	if _main.asteroids.get_child_count() != GameConfig.max_asteroids:
+		_failures.append("胜利重开失败：陨石数量 %d 未回到 0 级上限 %d" % [
+			_main.asteroids.get_child_count(), GameConfig.max_asteroids,
+		])
+
+
+## ── E4. 难度梯度断言 ──
+## 转无尽模式（score_target=0）并收紧梯度步长：加 2 分应升到 1 级，陨石上限 +1 且已补足。
+func _begin_difficulty_phase() -> void:
+	GameConfig.score_target = 0
+	GameConfig.milestone_step = 0
+	GameConfig.difficulty_step = 2
+	GameState.add_score(2)
+
+
+func _assert_difficulty_level() -> void:
+	var expected_level: int = floori(float(GameState.score) / float(GameConfig.difficulty_step))
+	if _main.difficulty_level != expected_level:
+		_failures.append("难度梯度失败：score=%d 时难度等级 %d ≠ %d" % [
+			GameState.score, _main.difficulty_level, expected_level,
+		])
+	var expected_cap: int = GameConfig.max_asteroids + expected_level * GameConfig.difficulty_asteroids_per_level
+	if _main.asteroid_cap != expected_cap:
+		_failures.append("难度梯度失败：陨石上限 %d ≠ 0 级上限 %d + 每级增量 %d" % [
+			_main.asteroid_cap, GameConfig.max_asteroids, GameConfig.difficulty_asteroids_per_level,
+		])
+	var asteroid_count: int = _main.asteroids.get_child_count()
+	if asteroid_count != expected_cap:
+		_failures.append("难度梯度失败：陨石未按新上限补足（场上 %d ≠ %d）" % [
+			asteroid_count, expected_cap,
+		])
+
+
 func _report() -> void:
 	if _hit_landed_tick < 0 and _hit_target != null and _failures.is_empty():
 		_failures.append("受击判定失败：跟随陨石 %d 帧（%d-%d）内护盾始终未从 %d 扣减（body_entered 未触发或受击链路断裂）" % [
@@ -419,7 +539,7 @@ func _report() -> void:
 	if not _score_seen:
 		_failures.append("信号 GameState.score_changed 未到达订阅方：连接断裂或从未 emit")
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 移动/收集/受击无敌帧/结算/重开 全部通过")
+		print("GODOT_SMOKE: PASS 移动/收集/受击无敌帧/结算/重开/里程碑/胜利结算/难度梯度 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

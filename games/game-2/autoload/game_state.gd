@@ -15,8 +15,10 @@ extends Node
 signal score_changed(score: int)
 ## 护盾变化：场景层订阅刷新 HUD / 播放受击反馈。
 signal shield_changed(shield: int)
-## 护盾归 0：场景层订阅弹出结算面板。
+## 护盾归 0：场景层订阅弹出结算面板（失败终局）。
 signal game_over(score: int, high_score: int)
+## 得分达到 score_target：场景层订阅弹出胜利结算面板（胜利终局）。
+signal game_won(score: int, high_score: int)
 ## 重开完成：场景层订阅重置战场。
 signal game_restarted()
 
@@ -35,6 +37,7 @@ func _ready() -> void:
 
 
 ## 收集星尘加分；本局已结算后忽略，实时抬高历史最高分。
+## 得分达到 GameConfig.score_target（>0 时）立即胜利结算 —— 分数与终局在同一入口收口。
 func add_score(amount: int) -> void:
 	if is_game_over or amount == 0:
 		return
@@ -42,6 +45,8 @@ func add_score(amount: int) -> void:
 	if score > high_score:
 		high_score = score
 	score_changed.emit(score)
+	if GameConfig.score_target > 0 and score >= GameConfig.score_target:
+		_finish_game(true)
 
 
 ## 撞上陨石扣盾（受击唯一入口：无敌帧在 Player 侧把关，这里只负责数值与结算）。
@@ -51,7 +56,7 @@ func apply_hit() -> void:
 	shield = maxi(shield - GameConfig.damage_per_hit, 0)
 	shield_changed.emit(shield)
 	if shield <= 0:
-		_finish_game()
+		_finish_game(false)
 
 
 ## 重开：分数归 0、护盾恢复初始值、退出结算态（需求验收标准 4）。
@@ -64,10 +69,15 @@ func start_game() -> void:
 	game_restarted.emit()
 
 
-func _finish_game() -> void:
+## 终局收口：失败（护盾耗尽）与胜利（达成目标分）共用落盘逻辑，
+## 用不同信号区分，场景层据此弹出对应文案的结算面板。
+func _finish_game(won: bool) -> void:
 	is_game_over = true
 	_save_high_score()
-	game_over.emit(score, high_score)
+	if won:
+		game_won.emit(score, high_score)
+	else:
+		game_over.emit(score, high_score)
 
 
 func _save_high_score() -> void:

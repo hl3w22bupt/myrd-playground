@@ -6,8 +6,13 @@ extends Area2D
 ## - 碰到玩家只调用 Player.take_hit()，扣不扣盾由玩家侧无敌帧决定（职责分离）；
 ## - 漂移用 _physics_process，速度由 main.gd 生成时注入（速度区间来自 GameConfig）。
 
-## 世界回绕范围（与视口同尺寸，飞出一侧从另一侧回来）。
-const WRAP_BOUNDS: Rect2 = Rect2(0.0, 0.0, 640.0, 360.0)
+## 陨石受击包络半径（scenes/asteroid.tscn 的 CollisionShape2D radius，常量必须与其一致）。
+const HURT_RADIUS: float = 13.0
+## 世界回绕范围 = 视口 640×360 向四周各外扩一个包络半径（13px）：
+## 陨石中心越过视口边 13px（整体完全出屏）后才回绕，并从对侧视口外 13px 处入场 ——
+## 玩家在陨石重新入屏前始终看得见它离场，杜绝「陨石贴边瞬移到脸上」的不公平受击。
+const WRAP_BOUNDS: Rect2 = Rect2(
+	-HURT_RADIUS, -HURT_RADIUS, 640.0 + 2.0 * HURT_RADIUS, 360.0 + 2.0 * HURT_RADIUS)
 
 ## 漂移速度（像素/秒），生成时由 main.gd 注入。
 var velocity: Vector2 = Vector2.ZERO

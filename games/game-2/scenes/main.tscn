@@ -33,6 +33,18 @@ offset_right = 624.0
 offset_bottom = 40.0
 text = "星尘收集者 · 分数 0 · 护盾 3/3"
 
+[node name="MilestoneLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+visible = false
+offset_left = 140.0
+offset_top = 46.0
+offset_right = 500.0
+offset_bottom = 70.0
+theme_override_colors/font_color = Color(1, 0.92, 0.5, 1)
+theme_override_font_sizes/font_size = 16
+text = "里程碑 · 已收集 10 颗星尘！"
+horizontal_alignment = 1
+
 [node name="GameOverPanel" type="PanelContainer" parent="UI"]
 unique_name_in_owner = true
 visible = false
@@ -52,7 +64,8 @@ grow_vertical = 2
 theme_override_constants/separation = 10
 alignment = 1
 
-[node name="TitleLabel" type="Label" parent="UI/GameOverPanel/Box"]
+[node name="ResultTitleLabel" type="Label" parent="UI/GameOverPanel/Box"]
+unique_name_in_owner = true
 theme_override_font_sizes/font_size = 22
 text = "本局结束"
 horizontal_alignment = 1
