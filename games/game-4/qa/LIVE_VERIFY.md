@@ -134,3 +134,27 @@
 **v9 结论：公网可玩通过 + 调参工作台可用。** 试玩入口 `<liveUrl>?tuning=1` 浮出面板、
 拖滑杆即时改数值、复制调参 URL 可回传 —— 四问量表「待用户试玩」，调参回传通道就绪。
 截图取证：`qa/shots-live-verify/tuning-panel-LIVE-*.png`。
+
+## 八、v17 轮部署（2026-09-27，qa 自检 + 四问量表内置化上线）
+
+- 本轮内容：真机自检模式 `?qa=1`（触屏命中 sweep / 旋转时延 / AudioContext 与设备信息 /
+  JSON 报告 iOS 分享→剪贴板四级降级导出）+ 四问量表内置化（`?tuning=1` 入口按钮与
+  通关结算页，逐答落盘 + 一键导出回传）+ 合入调参工作台线（TuningPanel 共存）。
+- 门禁（HEAD `5bb9554`）：四门禁全绿（PREFLIGHT 13 类/71 文件 → GODOT_SMOKE 240 帧 →
+  GODOT_FUZZ → GODOT_PLAYTEST，METRICS 与基线一致）。
+- Web 重导出：pck 2,609,264B（sha256 `f5f101f9…`，含 QA/量表/调参三件套），wasm 不变。
+- 部署：dryRun 通过（routeAnalysis 3 路由）→ 正式 POST 单次成功，**v17 running**
+  （deploymentId `cmuirsdyz00aom9l69tu1ts1v`，commitHash `5bb9554017`，
+  gitRef `myrd/games-goal-cmuieqj7o0031m9gyf4pbwptg`，mode=bundle，duration 818ms；
+  携带 goalId + artifactKind=playable，目标卡片已自动回写 `deploy_playable` completed）。
+
+| 步骤 | 结果 |
+|---|---|
+| 壳页 `GET /apps/game-4`（-L） | **200 text/html 14,310B**，含 `__QA_MODE__` / `__SURVEY_MODE__` / `__GAME_TUNING_PANEL__` / mode-badge |
+| `GET /gw/health` | 200 `{"ok":true,"app":"light-path-labyrinth","assets":"lazy/object-storage"}` |
+| `GET /api/public/assets/index.wasm` | **200 + `content-type: application/wasm`**（10,696,408B，MIME 硬约束持续满足） |
+| pck 内容一致性 | 线上 `index.pck.gz.b64`（b64→gunzip）2,609,264B sha256 `f5f101f9…`，与库内构建**逐字节一致** |
+| `?qa=1&tuning=1` 无头实测 | **8/8 PASS**（`qa/qa-live-check.log`）：引擎启动、`__QA_MODE__=true`、`__SURVEY_MODE__=true`、调参面板 `shown`、双模式徽标、画布渲染推进、触屏点击零页面错误、`__audioDebug().state='running'` |
+| 面板共存取证 | 截图 `qa/qa-selftest-live.png`：QA 面板（UA/AudioContext/三按钮）+ 右上调参工作台滑杆 + 左下「📋 试玩四问」入口同屏 |
+
+**v17 结论：公网可玩通过，qa 自检与四问量表在线可用；四门禁 + 构建一致 + 部署指针 + 目标卡片回写四者同一 HEAD `5bb9554`。**

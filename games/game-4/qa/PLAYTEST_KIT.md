@@ -3,6 +3,11 @@
 > 试玩入口：<https://leomac-studio.tail49399e.ts.net/apps/game-4/gw>
 > 量表状态：**待用户试玩（未回填）** —— 本包交付指引、量表与机器判定结果；
 > 「好不好玩」的结论只能来自试玩者回填（§五），严禁代填。
+> **量表已内置化（v17，2026-09-27）**：§五四问改为游戏内点选，URL 加 `?tuning=1`
+> 浮出「📋 试玩四问」入口按钮（与调参工作台共存），通关结算页同样浮出；答案本地
+> 持久化（`user://guanglu_survey.cfg`），提交一键导出回传（iOS 系统分享 → 剪贴板，
+> JSON schema `guanglu-survey/1`）。线下 markdown 回填方式仍有效（§五原样保留），
+> 游戏内回填导出的 JSON 与本节字段一一对应。详见 `qa/QA_SELFTEST.md` §二。
 > 数值事实源：`qa/spec-numeric.json`（拍板后参考步数/星级阈值）+ `qa/tuning-data.json`（headless 机判）。
 > 关卡数据源：`scripts/levels.gd`（10 关）。
 

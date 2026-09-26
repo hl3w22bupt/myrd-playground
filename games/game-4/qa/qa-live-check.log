@@ -1,0 +1,10 @@
+PASS 引擎启动完成（boot hidden）
+PASS URL 参数解析 __QA_MODE__ —— true
+PASS __SURVEY_MODE__ —— true
+PASS 调参面板标记 shown —— shown
+PASS 启动屏徽标 —— 🛠 QA 真机自检模式 · 📋 试玩四问模式
+PASS 引擎画布已渲染（像素非纯色） —— distinct=4
+PASS 触屏点击无页面错误
+PASS 音频取证出口可用 —— state=running
+
+QA_LIVE_CHECK: PASS（8/8 项通过，页面错误 0）
