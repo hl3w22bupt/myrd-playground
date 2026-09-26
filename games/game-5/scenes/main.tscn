@@ -1,0 +1,146 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
+[ext_resource type="Script" path="res://scripts/fruit_spawner.gd" id="3_fruit_spawner"]
+[ext_resource type="Script" path="res://scripts/log_spawner.gd" id="4_log_spawner"]
+[ext_resource type="Script" path="res://scripts/hud.gd" id="5_hud"]
+[ext_resource type="Script" path="res://scripts/restart_button.gd" id="6_restart"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_restart"]
+radius = 40.0
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(480, 270)
+
+[node name="FruitSpawner" type="Node2D" parent="."]
+script = ExtResource("3_fruit_spawner")
+
+[node name="RestockTimer" type="Timer" parent="FruitSpawner"]
+one_shot = true
+
+[node name="LogSpawner" type="Node2D" parent="."]
+script = ExtResource("4_log_spawner")
+
+[node name="SpawnTimer" type="Timer" parent="LogSpawner"]
+one_shot = true
+
+[node name="Popups" type="Node2D" parent="."]
+
+[node name="Hud" type="CanvasLayer" parent="."]
+script = ExtResource("5_hud")
+
+[node name="TimeLabel" type="Label" parent="Hud"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 300.0
+offset_bottom = 40.0
+theme_override_font_sizes/font_size = 20
+text = "剩余时间 60"
+
+[node name="ScoreLabel" type="Label" parent="Hud"]
+unique_name_in_owner = true
+offset_left = 330.0
+offset_top = 12.0
+offset_right = 630.0
+offset_bottom = 40.0
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+text = "得分 0"
+
+[node name="FruitLabel" type="Label" parent="Hud"]
+unique_name_in_owner = true
+offset_left = 660.0
+offset_top = 12.0
+offset_right = 944.0
+offset_bottom = 40.0
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 2
+text = "水果 0"
+
+[node name="ComboLabel" type="Label" parent="Hud"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 44.0
+offset_right = 300.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 18
+text = ""
+
+[node name="ComboBar" type="ProgressBar" parent="Hud"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 72.0
+offset_right = 216.0
+offset_bottom = 82.0
+show_percentage = false
+
+[node name="ResultPanel" type="PanelContainer" parent="Hud"]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -130.0
+offset_top = -150.0
+offset_right = 130.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="Hud/ResultPanel"]
+alignment = 1
+
+[node name="ResultTitle" type="Label" parent="Hud/ResultPanel/VBox"]
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 26
+horizontal_alignment = 1
+text = "时间到！"
+
+[node name="ResultScore" type="Label" parent="Hud/ResultPanel/VBox"]
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+text = "本局得分 0"
+
+[node name="ResultFruits" type="Label" parent="Hud/ResultPanel/VBox"]
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+text = "收集水果 0 个"
+
+[node name="ResultBest" type="Label" parent="Hud/ResultPanel/VBox"]
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+text = "历史最高 0"
+
+[node name="RestartHint" type="Label" parent="Hud/ResultPanel/VBox"]
+theme_override_font_sizes/font_size = 15
+horizontal_alignment = 1
+text = "按 Enter / Space 或点击「重新开始」"
+
+[node name="RestartAnchor" type="Control" parent="Hud/ResultPanel/VBox"]
+custom_minimum_size = Vector2(220, 92)
+
+[node name="RestartButton" type="TouchScreenButton" parent="Hud/ResultPanel/VBox/RestartAnchor"]
+unique_name_in_owner = true
+position = Vector2(70, 6)
+shape = SubResource("CircleShape2D_restart")
+visibility_mode = 1
+script = ExtResource("6_restart")
+
+[node name="RestartLabel" type="Label" parent="Hud/ResultPanel/VBox/RestartAnchor/RestartButton"]
+offset_left = -42.0
+offset_top = -14.0
+offset_right = 42.0
+offset_bottom = 14.0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.92, 0.95, 0.85, 1)
+text = "重新开始"

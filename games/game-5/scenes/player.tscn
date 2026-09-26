@@ -1,0 +1,30 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/player.gd" id="1_player"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 11.0
+
+[node name="Player" type="CharacterBody2D"]
+script = ExtResource("1_player")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Tail" type="Polygon2D" parent="Visual"]
+color = Color(0.62, 0.42, 0.24, 1)
+polygon = PackedVector2Array(-8, -6, -26, -12, -24, 8, -8, 8)
+
+[node name="Body" type="Polygon2D" parent="Visual"]
+color = Color(0.72, 0.5, 0.28, 1)
+polygon = PackedVector2Array(14, 0, 9.9, 9.9, 0, 14, -9.9, 9.9, -14, 0, -9.9, -9.9, 0, -14, 9.9, -9.9)
+
+[node name="Ear" type="Polygon2D" parent="Visual"]
+color = Color(0.55, 0.36, 0.2, 1)
+polygon = PackedVector2Array(-2, -12, 2, -19, 6, -11)
+
+[node name="Eye" type="Polygon2D" parent="Visual"]
+color = Color(0.1, 0.08, 0.06, 1)
+polygon = PackedVector2Array(4, -5, 8, -5, 8, -1, 4, -1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_body")

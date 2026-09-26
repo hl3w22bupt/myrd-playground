@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/fruit.gd" id="1_fruit"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pick"]
+radius = 12.0
+
+[node name="Fruit" type="Area2D"]
+script = ExtResource("1_fruit")
+
+[node name="Visual" type="Polygon2D" parent="."]
+color = Color(0.86, 0.22, 0.18, 1)
+polygon = PackedVector2Array(-11, -4, -6, -10, 6, -10, 11, -4, 6, 9, -6, 9)
+
+[node name="Leaf" type="Polygon2D" parent="."]
+color = Color(0.2, 0.6, 0.25, 1)
+polygon = PackedVector2Array(-2, -10, 3, -15, 8, -11, 2, -8)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_pick")
