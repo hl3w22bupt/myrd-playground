@@ -1,6 +1,6 @@
 # 阻塞项黑板 — stack-tower（M2 首卡 → M2.1「有声可装」→ 正式发布轮）
 
-> 更新时间：2026-09-26（**复验轮（r2）收口**：主人重发任务解冻 R1 → U6 工程修复全量落码（R1①②③④⑤，`6a6b4a8` = tag `stack-tower-m2.1-release-r2`）→ 八道门禁全绿 + 新增壳形态模拟门禁 PASS → deploy 成功 → **N6 对外放行再次 FAIL：直接原因收敛为平台层缺陷 R2**（实例已发 `Service-Worker-Allowed`，平台公网代理剥离 + 路由护栏禁应用根静态路由，三层实测留证）→ notes 维持 HELD → **R2 升级主人**。过程全留痕见 `docs/release-healthcheck-m21-r2.md` §7 与 `docs/qa-live-check-m21-r2.md`）
+> 更新时间：2026-09-26（**复验轮（r2）收口 + r3 对象对齐轮收口**：r2 = U6 工程修复全量落码（`6a6b4a8` = tag `stack-tower-m2.1-release-r2`）+ 八道门禁全绿 + deploy 成功 + **N6 FAIL（R2 平台层缺陷，三层实测）** → R2 升级主人；r3 = 响应驳回：发布对象对齐 run 分支 HEAD（`a15f66b` 快进至含 U6 修复树，tag `stack-tower-m2.1-release-r3` @ `4bfb875`）+ 程序侧发布链补全（11 项门禁全绿 + 对内回执 QA-REL-M21-20260926-05 PASS）+ **N6 未复跑（R2 未解，两轮 FAIL 后不硬推）** → notes 维持 HELD。过程见 `docs/release-healthcheck-m21-r3.md` 与 `docs/qa-release-receipt-m21-r3.md`）
 > 前轮纪要：2026-09-26 上午（r1）：N1 体检→N2 对内 PASS（QA-REL-M21-20260926-01）→N3 素材终检→N4 notes HELD→N5 deploy 成功（tag `stack-tower-m2.1-release` @ `5a3284f`）→ N6 对外 FAIL（U6 线上 SW scope 缺陷）→ R1 立案；2026-09-25（M2.1 复验轮）：六道门禁全绿取证
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：**等主人裁决 R2**（三选一见 qa-live-check-m21-r2 §三：代理放行头 / 放宽路由护栏 / 指认非代理托管形态）；R2 解除后复跑 N6（工程侧已备妥，无需重新体检）→ notes 生效 → 版本链登记收口。仍欠：试玩终裁 + 真机三项 + D5 答复
@@ -50,6 +50,18 @@
 - **实测修正 R1 假设（2026-09-26 线上探针，`/tmp/probe-sw-register.mjs`）**：线上 `document.baseURI` = `…/apps/stack-tower-3/api/public/assets/`（相对 `<base href>` **吞掉 /gw 段**）→ scope 正确推导 = **页面目录**（`new URL('./', location.href)` = `…/apps/stack-tower-3/`），非「gw 根」；`register` 现状默认 scope **注册成功但无用**（scope=`…/api/public/assets/` 不含页面）；`Service-Worker-Allowed` 头缺失经报错原文实证（`The path of the provided scope … is not under the max scope allowed`）。
 - **U7 立案（新发现，与 SW 无关、线上既有，本轮不改）**：壳形态下 `Image` 贴图经 boot 补丁 `origFetch` 取回 base64 文本后 `blob()` 为文本 blob → `img.onerror` → 表现层按设计降级程序化绘制（`loadGameAssets` → `resolve(null)`）。实证：线上 `new Image()` 加载 `assets/sprites/e01-spawn-first-block.png` 得 ERROR（src=blob:text）。**影响**：线上贴图自 9/25 起即为程序化绘制形态，在线/离线一致，不影响可玩性与门禁；修复点=`server/src/boot-script.ts` Image 补丁改用已还原字节的 fetch（约 3 行）→ 待主人排期，不夹带本轮。
 
+### r3 复验轮节点台账（2026-09-26 · 发布对象对齐 + 链补全，响应驳回①②③④）
+
+| 节点 | 职能 | 产物落点 | 状态 |
+|---|---|---|---|
+| N1'' 发布体检 | 程序 | `docs/release-healthcheck-m21-r3.md` | **完成**（对象对齐 + 11 项门禁全绿 + 发布面与生产字节全等） |
+| N2'' 对内放行 | QA | `docs/qa-release-receipt-m21-r3.md`（回执 **QA-REL-M21-20260926-05**） | **完成 · PASS**（U1–U5/U7/R2 单列） |
+| N3'' 素材终检 | 美术 | `gate-logs/release-m21-20260926-r3/art-final-check.md` + 1/2/3 号日志 | **完成 · 四项全 PASS + 复签**（检对象 436be68 与 tag 树发布面字节全等，证据可转移） |
+| N4'' notes | 策划 | `docs/release-notes-m21.md` | **维持 HELD**（未生效） |
+| N5'' deploy | 程序/deploy | 沿用 r2 deployment `cmuhzflkk001mm97cxzu1tphg` @ `6a6b4a8` | **不重复部署**（发布面字节全等，零价值空跑规避） |
+| N6'' 对外放行 | QA | **未复跑**（R2 未解 + 两轮 FAIL → 铁律不硬推） | **闸门关闭中**，等主人三选一裁决 |
+| N7'' 版本链登记 | 主策划 | 本表 + §版本链登记 r3 行 | **完成（登记为「对外闸关闭中」）** |
+
 ### R1 落地结果（复验轮执行记录，2026-09-26）
 
 - **工程侧全量完成并部署**：tag `stack-tower-m2.1-release-r2` @ `6a6b4a8` = 生产 deployment `cmuhzflkk001mm97cxzu1tphg`。①头（实例直连实测已发 ✓）②显式注册（scope=页面目录）③live-smoke 补 SW/断网断言 ④资产路由目录形态回落地页（新发现：网关 308 归一化后 `./` 落点 404 → addAll 整体拒绝、install 永不完成）⑤`index.html` 资产路由回注入版落地页（新发现：precache 离线导航回退页无 `<base>`）+ **新增壳形态模拟门禁 `tests/shell-sim.mjs`**（复现→修复后 PASS：断网 reload 落块得分 35）。八道门禁全绿（证据 `gate-logs/release-m21-20260926-r2/`，含 server 侧 `npx tsc --noEmit` 与平台构建 step2b 同命令）。
@@ -61,7 +73,7 @@
   4. **处置三选一（主人裁决）**：a) apphost 代理响应头白名单放行 `Service-Worker-Allowed`（推荐，实例已在发，放行即通）；b) 放宽护栏允许应用根静态 `.js`（绕开方案已实现过）；c) 指认非代理 HTTPS 托管形态（B5 口径）。R2 解除后复跑 N6 即可，工程侧无需再动。
 - **deploy 事故披露（已纠正）**：首次 deploy 漏传 `manifestPath`，平台按仓库根清单（糖果线）上传资产 → 生产串线约 3 分钟（`cmuhynlf7001dm97c8qbxvwx1`，05:40–05:43，线上短暂呈现糖果线页面）→ 正确清单重部署纠正。教训入台账：**本坑位 deploy 必带 `manifestPath=games/stack-tower/apphost.toml`**。
 
-### 版本链登记（正式发布轮 · 2026-09-26）——**连续两轮未完成，如实登记**
+### 版本链登记（正式发布轮 · 2026-09-26，r1/r2/r3）——**对外闸关闭中，如实登记**
 
 | 字段 | r1（2026-09-26 上午） | r2 复验轮（2026-09-26，本轮） |
 |---|---|---|
@@ -73,8 +85,9 @@
 | QA 回执 | 对内 QA-REL-M21-20260926-01（PASS）· 对外 QA-LIVE-M21-20260926-02（FAIL） | 对内 QA-REL-M21-20260926-03（PASS）· 对外 QA-LIVE-M21-20260926-04（FAIL，R2） |
 | notes | HELD | **维持 HELD**（r2 增记已写入 notes 头，R2 解除后无需改稿） |
 | 证据目录 | `gate-logs/release-m21-20260926/`（6 件）+ `docs/release-healthcheck-m21.md` | `gate-logs/release-m21-20260926-r2/`（10 件）+ `docs/release-healthcheck-m21-r2.md` + `docs/qa-release-receipt-m21-r2.md` + `docs/qa-live-check-m21-r2.md` |
+| **r3（复验轮 · 对象对齐）** | — | **发布未完成（闸门关闭中）**：发布对象对齐 run 分支 HEAD + 程序侧发布链补全 + 11 项门禁全绿 + 对内 PASS（QA-REL-M21-20260926-05）+ **N6 未复跑（R2 未解，铁律不硬推）** · tag `stack-tower-m2.1-release-r3` @ `4bfb875`（= run 分支 HEAD）· 生产沿用 r2 部署（发布面字节全等）· 证据 `gate-logs/release-m21-20260926-r3/`（11 件）+ `docs/release-healthcheck-m21-r3.md` + `docs/qa-release-receipt-m21-r3.md` |
 
-- 两轮对内面均 PASS、两轮对外面均 FAIL；**r1 拦的是工程缺陷（已修复销案），r2 拦的是平台缺陷（R2，需主人裁决）**。对外宣告以线上冒烟全绿为闸，在此之前「可安装/断网可玩」不得出口。
+- r1/r2 两轮对内面均 PASS、两轮对外面均 FAIL；**r1 拦的是工程缺陷（已修复销案），r2 拦的是平台缺陷（R2，需主人裁决）**；r3 为对象对齐+链补全轮（未触碰对外闸）。对外宣告以线上冒烟全绿为闸，在此之前「可安装/断网可玩」不得出口。
 
 ### 历史失败轮挂账（2026-09-23 / 09-24，与本次解耦）
 
