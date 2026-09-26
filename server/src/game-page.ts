@@ -13,8 +13,9 @@
  *
  * 调参桥（§3C 调参工作台硬契约，必须在引擎加载前安装）：
  * 把 URL 参数 `?tuning=<json>` 解析进 window.__GAME_TUNING__，
- * 游戏侧 GameConfig.apply_tuning_bridge() 启动时读取（只认 TUNING_META 声明的键、
- * 按 min/max 钳制）—— 缺这一层 = 试玩调好的参数无法用 URL 复现，调参回写流程断裂。
+ * 游戏侧 TuningPanel.parse_tuning_query / apply_parsed_tuning 消费 URL 里的
+ * key=value 候选数值（只认 TUNABLE_KEYS 声明的键、按 KEY_RANGES 钳制）
+ * —— 缺这一层 = 试玩调好的参数无法用 URL 复现，调参回写流程断裂。
  *
  * 移动端音频手势解锁器（脚本最前段，必须先于引擎加载安装）：
  * iOS/Android WebKit 的 AudioContext 创建即 suspended、打断后 interrupted（引擎不识别），

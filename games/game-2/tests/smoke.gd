@@ -24,6 +24,8 @@ extends Node
 ##         （标题区分胜负、正文含本局得分/历史最高、最高分落盘）；
 ##      E3 胜利后重开：confirm 重开 —— 分数/护盾复位、面板隐藏、难度复位 0 级；
 ##      E4 难度梯度生效：跨过 difficulty_step 后陨石上限 +1 并补足生成。
+##   F. 调参 URL 契约（试玩回填闭环的机判形态）：parse_tuning_query 只认声明键、
+##      钳制量程、吸附步长、忽略未知/非法键；应用侧 float 写 int 键收敛为 int。
 ##
 ## 可复现性设计（门禁要求同一事件序 → 同一判定结果）：
 ## - 噪声相位结束后 Input.release_pressed_events()，清掉悬挂按键/手势；
@@ -141,6 +143,7 @@ func _ready() -> void:
 		if not InputMap.has_action(action):
 			_failures.append("InputMap 缺少动作 %s（project.godot [input] 未注册）" % action)
 	_check_key_bindings()
+	_check_tuning_query_contract()
 
 	if get_tree().root.get_node_or_null("GameConfig") == null:
 		_failures.append("autoload GameConfig 未注册（project.godot [autoload] 缺失，数值配置无法生效）")
@@ -297,6 +300,34 @@ func _contains_all(expected: Array, bound: Array[Key]) -> bool:
 		if not (key in bound):
 			return false
 	return true
+
+
+## ── F. 调参 URL 契约断言（headless 可机判，无帧排期）──
+## 回填闭环依赖「调参链接打开即复现候选数值」：此前 ?tuning=1 只开面板、
+## key=value 无人消费。这里断言解析纯函数与应用侧的类型收敛。
+func _check_tuning_query_contract() -> void:
+	var parsed: Dictionary = TuningPanel.parse_tuning_query(
+		"?tuning=1&max_crystals=9&score_target=99&invincibility_seconds=0.123&bogus=7&max_asteroids=abc")
+	if parsed.size() != 3:
+		_failures.append("调参 URL 解析：应识别 3 个合法键（未知键 bogus / 非数值 max_asteroids=abc 忽略），实际 %s" % [parsed])
+	if float(parsed.get("max_crystals", -1.0)) != 9.0:
+		_failures.append("调参 URL 解析：max_crystals=9 未还原（%s）" % [parsed])
+	if float(parsed.get("score_target", -1.0)) != 60.0:
+		_failures.append("调参 URL 解析：score_target=99 未钳制到量程上限 60（%s）" % [parsed])
+	if not is_equal_approx(float(parsed.get("invincibility_seconds", -1.0)), 0.10):
+		_failures.append("调参 URL 解析：invincibility_seconds=0.123 未吸附到步长 0.05（%s）" % [parsed])
+	# 应用侧：float 值写入 int 键必须收敛为 int；应用后立即还原，不污染后续相位
+	var probe: TuningPanel = TuningPanel.new()
+	var snapshot: int = GameConfig.score_per_crystal
+	var applied: int = probe.apply_parsed_tuning({"score_per_crystal": 5.0})
+	if applied != 1:
+		_failures.append("调参 URL 应用：应应用 1 项，实际 %d" % applied)
+	if GameConfig.score_per_crystal != 5 or not (GameConfig.score_per_crystal is int):
+		_failures.append("调参 URL 应用：score_per_crystal 应收敛为 int 5，实际 %s（%s）" % [
+			GameConfig.score_per_crystal, typeof(GameConfig.score_per_crystal),
+		])
+	GameConfig.score_per_crystal = snapshot
+	probe.free()
 
 
 func _key_labels(keys: Array) -> String:

@@ -9,6 +9,9 @@ extends CanvasLayer
 ## 规范要点：
 ## - 数值唯一来源仍是 config/gameplay.cfg（autoload/game_config.gd 启动时读入）；
 ##   本面板只在运行时改 GameConfig 的属性，等价于 main.gd _apply_difficulty 的推导链路；
+## - 调参链接回填契约：「复制调参链接」生成的 ?tuning=1&key=value…，下次打开时由
+##   parse_tuning_query（静态、可机判）解析 + apply_parsed_tuning 应用 —— 缺这一环，
+##   试玩调好的数值无法用 URL 复现，回填闭环断裂；
 ## - 改陨石数量类键后调用 MainScene.respawn_field(-1) 才能落到场上；
 ## - 纯代码构建 UI（与 virtual_joystick.gd 同风格：无图片素材，模板复制即用）。
 
@@ -72,9 +75,80 @@ func _ready() -> void:
 	layer = 20
 	visible = false
 	_main = get_parent() as MainScene
+	var applied_from_url: int = 0
+	if _should_open_from_url():
+		# 先应用 URL 里的候选数值、再构建滑杆行：行标签与滑杆初值才会显示调参后的值。
+		applied_from_url = _apply_from_url()
 	_build_ui()
 	if _should_open_from_url():
 		set_open(true)
+		if applied_from_url > 0:
+			_status_label.text = "已从调参链接应用 %d 项数值（只改本局运行时，刷新前不会写回 cfg）" % applied_from_url
+
+
+## 从当前页面 URL 解析并应用候选数值，返回成功应用的键数（仅 Web 端调用）。
+func _apply_from_url() -> int:
+	if not OS.has_feature("web"):
+		return 0
+	var search: Variant = JavaScriptBridge.eval("window.location.search", true)
+	if search == null:
+		return 0
+	return apply_tuning_query(str(search))
+
+
+## 把调参链接 query 串（"?tuning=1&key=value…"）解析成可应用数值表。
+## 静态纯函数：只认 TUNABLE_KEYS 声明的键、按 KEY_RANGES 钳制到量程并吸附到步长；
+## 未知键 / 非法数值一律忽略 —— 冒烟以它机判「调参链接打开即复现候选数值」契约。
+static func parse_tuning_query(search: String) -> Dictionary:
+	var values: Dictionary = {}
+	for pair in search.lstrip("?").split("&", false):
+		var parts := pair.split("=", true, 1)
+		if parts.size() != 2:
+			continue
+		var key := parts[0]
+		if key not in TUNABLE_KEYS:
+			continue
+		if not parts[1].is_valid_float():
+			continue  # 非数值（如 abc）忽略，避免 to_float 失败返回 0 被误应用为下限
+		var value := parts[1].to_float()
+		if not is_finite(value):
+			continue
+		var range_values: Array = KEY_RANGES[key]
+		var step: float = float(range_values[2])
+		values[key] = clampf(snappedf(value, step), float(range_values[0]), float(range_values[1]))
+	return values
+
+
+## 应用 parse_tuning_query 的结果到 GameConfig（运行时覆盖，cfg 文件不动）；
+## 数量类键触发重铺战场让改动立即落到场上。返回应用的键数。
+func apply_parsed_tuning(values: Dictionary) -> int:
+	var applied: int = 0
+	for key: String in values:
+		var current: Variant = GameConfig.get(key)
+		if current == null:
+			continue
+		GameConfig.set(key, int(round(values[key])) if current is int else values[key])
+		applied += 1
+		_sync_row(key)
+	if values.has("max_crystals") or values.has("max_asteroids"):
+		if _main != null:
+			_main.respawn_field(-1)
+	return applied
+
+
+func apply_tuning_query(search: String) -> int:
+	return apply_parsed_tuning(parse_tuning_query(search))
+
+
+## 把某一行滑杆与标签刷成 GameConfig 当前值（URL 应用后同步 UI）。
+func _sync_row(key: String) -> void:
+	var label: Label = _rows.get(key)
+	if label == null or _root == null:
+		return
+	label.text = "%s = %s" % [key, _config_value_text(key)]
+	var slider := _root.find_child("%sSlider" % key, true, false) as HSlider
+	if slider != null:
+		slider.set_value_no_signal(float(GameConfig.get(key)))
 
 
 ## Web 端从 URL 参数开启；非 Web（桌面 / headless）一律走 T 键，避免 JavaScriptBridge 报错。
@@ -167,6 +241,7 @@ func _build_row(key: String) -> HBoxContainer:
 	row.add_child(label)
 
 	var slider := HSlider.new()
+	slider.name = "%sSlider" % key
 	slider.min_value = range_values[0]
 	slider.max_value = range_values[1]
 	slider.step = range_values[2]
