@@ -26,12 +26,32 @@ script = ExtResource("3_cursor")
 [node name="HudLabel" type="Label" parent="UI"]
 unique_name_in_owner = true
 offset_left = 16.0
-offset_top = 10.0
+offset_top = 6.0
 offset_right = 1264.0
-offset_bottom = 110.0
+offset_bottom = 66.0
 theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.92, 0.94, 1, 1)
 text = "光路谜阵"
+
+[node name="StatusLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 68.0
+offset_right = 1264.0
+offset_bottom = 98.0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.87, 0.45, 1)
+text = ""
+
+[node name="LevelBar" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 100.0
+offset_right = 1264.0
+offset_bottom = 126.0
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.72, 0.8, 0.95, 1)
+text = "关卡"
 
 [node name="TouchUI" type="CanvasLayer" parent="."]
 layer = 10
@@ -75,6 +95,34 @@ offset_bottom = 14.0
 theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 0.9)
 text = "旋转"
+
+[node name="UndoAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -420.0
+offset_top = -140.0
+offset_right = -304.0
+offset_bottom = -24.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="UndoButton" type="TouchScreenButton" parent="TouchUI/UndoAnchor"]
+position = Vector2(58, 58)
+shape = SubResource("CircleShape2D_confirm")
+script = ExtResource("5_touch")
+inject_action = &"undo"
+
+[node name="UndoLabel" type="Label" parent="TouchUI/UndoAnchor/UndoButton"]
+offset_left = -40.0
+offset_top = -14.0
+offset_right = 40.0
+offset_bottom = 14.0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 0.9)
+text = "撤销"
 
 [node name="ResetAnchor" type="Control" parent="TouchUI"]
 anchors_preset = 3
