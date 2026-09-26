@@ -1,0 +1,11 @@
+# Godot 本机导入缓存：由 `godot --headless --path . --import` 重新生成，不进版本库
+.godot/
+
+# 导出产物：桌面端产物不入库；export/web 是 AppHost 部署的构建输入，必须入库
+/export/*
+!/export/web/
+*.exe
+*.zip
+
+# 系统
+.DS_Store
