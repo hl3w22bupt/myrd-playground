@@ -82,3 +82,11 @@ godot --headless --path games/game-4 --export-release "Web" export/web/index.htm
    - `.wasm` 响应头 `Content-Type: application/wasm`
    - 跨域隔离响应头（COOP/COEP 或等效配置）正确
    - 资源无 404，页面控制台无报错
+4. 壳页硬契约（`server/src/game-page.ts`，均已实现）：
+   - **调参桥**：URL `?tuning=<urlencoded JSON>`（如 `?tuning=%7B%22beam_core_width%22%3A10%7D`）
+     在引擎加载前写入 `window.__GAME_TUNING__`；游戏侧 `GameState.TUNING_META`
+     只认声明键并按 min/max 钳制（`beam_core_width` 2~16 / `beam_glow_width` 4~40）
+   - **移动端音频手势解锁**：AudioContext 包装 + document 级手势同步 resume +
+     `window.__audioDebug()` 取证出口（缺这层 = 移动端无声而桌面正常）
+   - **相对路径资产通道**：`api/public/assets/:name`（`.gz.b64` 后缀映射回真实文件名，
+     base64 文本过 M1 文本网关，浏览器端 DecompressionStream 解压）

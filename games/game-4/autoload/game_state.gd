@@ -19,6 +19,14 @@ const SAVE_PATH: String = "user://guanglu_save.cfg"
 ## 存档版本：字段结构变化时 +1，旧档直接丢弃重开档。
 const SAVE_VERSION: int = 2
 
+## 调参桥元数据（§3C 调参工作台契约）：壳页在引擎加载前把 URL `?tuning=<json>`
+## 解析进 window.__GAME_TUNING__；本单例 _ready 时读取，只认这里声明的键、按 min/max 钳制。
+## 缺这一层 = 试玩工作台调好的参数无法用 URL 复现，调参回写流程断裂。
+const TUNING_META: Dictionary = {
+	"beam_core_width": {"min": 2.0, "max": 16.0, "default": 6.0},
+	"beam_glow_width": {"min": 4.0, "max": 40.0, "default": 16.0},
+}
+
 var level_index: int = 0
 var moves: int = 0
 var solved: bool = false
@@ -28,10 +36,34 @@ var best_stars: Dictionary = {}
 var best_moves: Dictionary = {}
 ## 已解锁的最大关卡下标（通关第 n 关解锁第 n+1 关；本地存档）。
 var unlocked_max: int = 0
+## 生效调参（TUNING_META 声明键 → 钳制后的数值；未传 tuning 时等于 default）。
+var tuning: Dictionary = {}
 
 
 func _ready() -> void:
+	_apply_tuning()
 	load_save()
+
+
+## 读取壳页注入的 window.__GAME_TUNING__，只认 TUNING_META 声明的键并按 min/max 钳制。
+## 非 Web 平台（含无头冒烟）无注入物，直接用 default —— 不影响门禁确定性。
+func _apply_tuning() -> void:
+	for key: String in TUNING_META:
+		tuning[key] = float(TUNING_META[key]["default"])
+	if not OS.has_feature("web"):
+		return
+	var raw: Variant = JavaScriptBridge.eval(
+		"window.__GAME_TUNING__ ? JSON.stringify(window.__GAME_TUNING__) : ''", true)
+	if typeof(raw) != TYPE_STRING or (raw as String).is_empty():
+		return
+	var parsed: Variant = JSON.parse_string(raw as String)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return
+	for key_meta: String in TUNING_META:
+		if (parsed as Dictionary).has(key_meta):
+			var meta: Dictionary = TUNING_META[key_meta]
+			tuning[key_meta] = clampf(
+				float((parsed as Dictionary)[key_meta]), float(meta["min"]), float(meta["max"]))
 
 
 ## 进入关卡（切关或重开共用）：步数清零、通关状态复位。
