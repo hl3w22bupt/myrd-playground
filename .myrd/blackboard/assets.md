@@ -1,6 +1,7 @@
 # 资产清单黑板 — stack-tower（M2 首卡 → M2.1「有声可装」→ 正式发布轮）
 
-> 更新时间：2026-09-26（**正式发布轮开工**：本轮资产面**只检不新做**——发布素材终检（maskable 安全区 / 首屏对齐风格卡 / 资产零缺失 / 无未压缩大图拖慢冷启动）由 T3 美术线执行，终检记录落 `gate-logs/release-m21-20260926/art-final-check.md`；资产核对状态 = **终检完成（四项全 PASS）**，`sfx-<事件id>` 注册表**双签完成**（程序侧 healthcheck §5 + 美术侧 art-final-check §会签）；线上 SW scope 缺陷（U6）属壳/注册链路，非素材面）
+> 更新时间：2026-09-26（**正式发布轮 r3**：发布对象变更 → 当前分支 HEAD `436be68`，T3 美术线按「只检不新做」对 HEAD 发布面独立复检四项——**全 PASS**，资产面相对 9/25 基线/r1/r2 **逐字节零漂移**；终检记录落 `gate-logs/release-m21-20260926-r3/art-final-check.md`；资产核对状态 = **终检完成（r3 四项全 PASS）**，`sfx-<事件id>` 注册表**双签完成**（程序侧 healthcheck §5 + 美术侧 r3 §复签）；U6/U7 属壳/注册链路，非素材面，U7 美术面口径见 r3 记录 §已知未收口项）
+> 前轮纪要：2026-09-26（r1 正式发布轮开工）：资产面只检不新做，终检记录 `gate-logs/release-m21-20260926/art-final-check.md`（四项全 PASS，检对象 tag `stack-tower-m2.1-release` @ `5a3284f`）；2026-09-25（M2.1 复验轮·终证）：资产面五道门禁干净 shell 全量复跑——assets:check **PASS (browser)**（9/9 运行时 200 + 404 负面用例可玩）/ contract A–E 22/22 / run-all 22/0/0 / smoke PASS (browser)；gen-audio 确定性口径：PNG 逐字节确定 ✓，音频内容稳定但容器元数据非字节稳定
 > 前轮纪要：2026-09-25（M2.1 复验轮·终证）：资产面五道门禁干净 shell 全量复跑——assets:check **PASS (browser)**（9/9 运行时 200 + 404 负面用例可玩）/ contract A–E 22/22 / run-all 22/0/0 / smoke PASS (browser)；gen-audio 确定性口径：PNG 逐字节确定 ✓，音频内容稳定但容器元数据非字节稳定
 > 负责人：主策划（整合人）· T3 美术线维护资产段，T4 程序线维护实现段
 > 下一步：N3 素材终检 → N1 sfx 注册表双签；B6 真机三项仍挂主人排期；主人试玩后如对色板/构图给方向性意见 → 风格卡 30 分钟升 v1
@@ -61,3 +62,11 @@
 - 资产面**零改动**：`git diff stack-tower-m2.1-release..stack-tower-m2.1-release-r2 -- games/stack-tower/assets/` 为空（r1 美术终检与 sfx 双签结论**原样沿用**，不重复终检）。
 - 资产核对状态 = 终检完成（r1 四项全 PASS）+ r2 可达性复验（线上 manifest/3 图标/12 sfx 资产通道 200，live-smoke L7 PASS）。
 - 新立案 **U7**（非素材面缺陷，壳交付链路）：boot 补丁 Image 加载 base64→文本 blob → 贴图在线降级程序化绘制（素材本体在库且字节正确，属「素材已到位、壳未还原」）；修复点 `server/src/boot-script.ts` 约 3 行，待主人排期。**素材面无需重做。**
+
+## r3 正式发布轮增记（2026-09-26 · 检对象 = 当前分支 HEAD `436be68`）
+
+- **零漂移证明**：`git diff 75debf9..HEAD -- assets/ src/render/ tools/gen-assets.mjs tools/gen-audio.mjs` 全空；`stack-tower-m2.1-release-r2..HEAD` 仅 8 个文档/黑板文件（无码无机）；源面 ≡ 发布面 25/25 字节全等，sw.js / manifest.webmanifest 字节全等。
+- **四项终检全 PASS**（本轮独立复检，证据 `gate-logs/release-m21-20260926-r3/`）：① maskable 安全区 3/3（contentPx 5565/39592 与 r1 逐位一致，检查器本轮入库可复现）；② 首屏对齐风格卡（内容色 = 色板基色 × 0.78 / × 0.55 逐位吻合三面明度链，bgBottom = `SKY_BOTTOM` 逐位一致）；③ 资产零缺失（precache 55 = 壳 30 + assets 25 全覆盖零重复，`REVISION=1` 冻结未动）+ sfx 注册表 **ART-SFX-REGISTRY-PASS 6/6**（critical 旗标与 spec 一致、restart 198ms ≤ 200 红线）；④ 体积（发布面 174.6KB < 300KB 预算，最大单件 16.7KB，零 >50KB PNG）。
+- **机器门禁**：`npm run assets:check` → **PASS (browser)**（9/9 运行时 200 + 404 负面用例可玩）；`node scripts/contract-check.mjs` → **PASS**（acceptance 22/22 · E 段资产登记 7/7 全 generated 零外部资源）。
+- 素材核对状态 = **终检完成（r3 四项全 PASS）+ 注册表双签完成**；接线面零改动（a06–a14 接线点沿用，无需重检——渲染代码相对基线零漂移）。
+- U7 美术面口径：线上贴图呈程序化绘制形态属壳链路缺陷，素材本体与风格卡符合性不受影响，素材面无需重做（详见 r3 记录 §已知未收口项）。

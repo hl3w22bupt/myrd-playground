@@ -1,0 +1,11 @@
+spec 事件集 = place,perfect,miss,game-over,restart,level-clear · manifest 事件集 = place,perfect,miss,game-over,restart,level-clear
+事件集一致 = true
+  place: 文件双格式=✓ 命名=✓ critical=false✓ 98ms ≤200ms红线相关 4.60/3.80KB
+  perfect: 文件双格式=✓ 命名=✓ critical=false✓ 248ms ≤200ms红线相关 5.43/5.12KB
+  miss: 文件双格式=✓ 命名=✓ critical=true✓ 208ms ≤200ms红线相关 5.16/5.73KB
+  game-over: 文件双格式=✓ 命名=✓ critical=true✓ 388ms ≤200ms红线相关 6.12/7.21KB
+  restart: 文件双格式=✓ 命名=✓ critical=true✓ 198ms ≤200ms红线相关 5.31/5.08KB
+  level-clear: 文件双格式=✓ 命名=✓ critical=false✓ 398ms ≤200ms红线相关 6.26/6.92KB
+事件时长 ≥400ms = 无（最长 level-clear 398ms）
+sampleRateHz/channels = 44100/1 (spec numeric.audio.SAMPLE_RATE_HZ=44100)
+registry 判定 = ART-SFX-REGISTRY-PASS (6/6)
