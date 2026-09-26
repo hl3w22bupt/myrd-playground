@@ -13,6 +13,8 @@ description: "WebGame 原型技能包：用 Web 栈（静态站点 + Canvas/Phas
 
 - 任务是「做个原型验证玩法」「把策划案变成可玩版本」「给目标产出可玩链接」。
 - 工程形态：**静态站点**（纯 HTML/CSS/JS 或 Phaser），零构建依赖优先 —— 原型阶段引入打包器是负资产。
+- **需求涉及 3D（three.js / WebGL / 浏览器 3D 场景）时转用 `threejs-game-dev`** ——
+  本包只覆盖 2D（Canvas/Phaser）；3D 网页游戏走那条技能包的单文件全程序化路线。
 
 ## 1. 单一事实源：先读策划案再动手
 
