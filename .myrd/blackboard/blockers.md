@@ -1,6 +1,6 @@
 # 阻塞项黑板 — stack-tower（M2 首卡 → M2.1「有声可装」→ 正式发布轮）
 
-> 更新时间：2026-09-26（**复验轮（r2）收口 + r3 对象对齐轮收口**：r2 = U6 工程修复全量落码（`6a6b4a8` = tag `stack-tower-m2.1-release-r2`）+ 八道门禁全绿 + deploy 成功 + **N6 FAIL（R2 平台层缺陷，三层实测）** → R2 升级主人；r3 = 响应驳回：发布对象对齐 run 分支 HEAD（`a15f66b` 快进至含 U6 修复树，tag `stack-tower-m2.1-release-r3` @ `4bfb875`）+ 程序侧发布链补全（11 项门禁全绿 + 对内回执 QA-REL-M21-20260926-05 PASS）+ **N6 未复跑（R2 未解，两轮 FAIL 后不硬推）** → notes 维持 HELD。过程见 `docs/release-healthcheck-m21-r3.md` 与 `docs/qa-release-receipt-m21-r3.md`）
+> 更新时间：2026-09-26（**复验轮（r2）收口 + r3 对象对齐轮收口**：r2 = U6 工程修复全量落码（`6a6b4a8` = tag `stack-tower-m2.1-release-r2`）+ 八道门禁全绿 + deploy 成功 + **N6 FAIL（R2 平台层缺陷，三层实测）** → R2 升级主人；r3 = 响应驳回：发布对象对齐 run 分支 HEAD（`a15f66b` 快进至含 U6 修复树，tag `stack-tower-m2.1-release-r3` @ `26a53d7`）+ 程序侧发布链补全（11 项门禁全绿 + 对内回执 QA-REL-M21-20260926-05 PASS）+ **N6 未复跑（R2 未解，两轮 FAIL 后不硬推）** → notes 维持 HELD。过程见 `docs/release-healthcheck-m21-r3.md` 与 `docs/qa-release-receipt-m21-r3.md`）
 > 前轮纪要：2026-09-26 上午（r1）：N1 体检→N2 对内 PASS（QA-REL-M21-20260926-01）→N3 素材终检→N4 notes HELD→N5 deploy 成功（tag `stack-tower-m2.1-release` @ `5a3284f`）→ N6 对外 FAIL（U6 线上 SW scope 缺陷）→ R1 立案；2026-09-25（M2.1 复验轮）：六道门禁全绿取证
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：**等主人裁决 R2**（三选一见 qa-live-check-m21-r2 §三：代理放行头 / 放宽路由护栏 / 指认非代理托管形态）；R2 解除后复跑 N6（工程侧已备妥，无需重新体检）→ notes 生效 → 版本链登记收口。仍欠：试玩终裁 + 真机三项 + D5 答复
@@ -85,7 +85,7 @@
 | QA 回执 | 对内 QA-REL-M21-20260926-01（PASS）· 对外 QA-LIVE-M21-20260926-02（FAIL） | 对内 QA-REL-M21-20260926-03（PASS）· 对外 QA-LIVE-M21-20260926-04（FAIL，R2） |
 | notes | HELD | **维持 HELD**（r2 增记已写入 notes 头，R2 解除后无需改稿） |
 | 证据目录 | `gate-logs/release-m21-20260926/`（6 件）+ `docs/release-healthcheck-m21.md` | `gate-logs/release-m21-20260926-r2/`（10 件）+ `docs/release-healthcheck-m21-r2.md` + `docs/qa-release-receipt-m21-r2.md` + `docs/qa-live-check-m21-r2.md` |
-| **r3（复验轮 · 对象对齐）** | — | **发布未完成（闸门关闭中）**：发布对象对齐 run 分支 HEAD + 程序侧发布链补全 + 11 项门禁全绿 + 对内 PASS（QA-REL-M21-20260926-05）+ **N6 未复跑（R2 未解，铁律不硬推）** · tag `stack-tower-m2.1-release-r3` @ `4bfb875`（= run 分支 HEAD）· 生产沿用 r2 部署（发布面字节全等）· 证据 `gate-logs/release-m21-20260926-r3/`（11 件）+ `docs/release-healthcheck-m21-r3.md` + `docs/qa-release-receipt-m21-r3.md` |
+| **r3（复验轮 · 对象对齐）** | — | **发布未完成（闸门关闭中）**：发布对象对齐 run 分支 HEAD + 程序侧发布链补全 + 11 项门禁全绿 + 对内 PASS（QA-REL-M21-20260926-05）+ **N6 未复跑（R2 未解，铁律不硬推）** · tag `stack-tower-m2.1-release-r3` @ `26a53d7`（= run 分支 HEAD）· 生产沿用 r2 部署（发布面字节全等）· 证据 `gate-logs/release-m21-20260926-r3/`（11 件）+ `docs/release-healthcheck-m21-r3.md` + `docs/qa-release-receipt-m21-r3.md` |
 
 - r1/r2 两轮对内面均 PASS、两轮对外面均 FAIL；**r1 拦的是工程缺陷（已修复销案），r2 拦的是平台缺陷（R2，需主人裁决）**；r3 为对象对齐+链补全轮（未触碰对外闸）。对外宣告以线上冒烟全绿为闸，在此之前「可安装/断网可玩」不得出口。
 

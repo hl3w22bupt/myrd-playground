@@ -73,4 +73,4 @@
 
 ### r3 对象对齐增记（程序侧，2026-09-26）
 
-- r3 素材终检原检对象 = `436be68`；发布对象已对齐至 run 分支快进后 HEAD（tag `stack-tower-m2.1-release-r3` @ `4bfb875`）。**证据效力转移成立**：`git diff 436be68..4bfb875 -- games/stack-tower/assets/`（及全部发布面）为空 → 终检结论与 sfx 复签原样有效，无需重检（美术只检不新做）。
+- r3 素材终检原检对象 = `436be68`；发布对象已对齐至 run 分支快进后 HEAD（tag `stack-tower-m2.1-release-r3` @ `26a53d7`）。**证据效力转移成立**：`git diff 436be68..4bfb875 -- games/stack-tower/assets/`（及全部发布面）为空 → 终检结论与 sfx 复签原样有效，无需重检（美术只检不新做）。
