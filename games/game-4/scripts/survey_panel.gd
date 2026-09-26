@@ -76,11 +76,14 @@ func _ready() -> void:
 	# 订阅通关信号：结算页入口（通关后浮出「试玩四问」按钮）。
 	if not GameState.level_solved.is_connected(_on_level_solved):
 		GameState.level_solved.connect(_on_level_solved)
-	# ?tuning=1 直开量表（仅 Web）；headless / 桌面不构建 UI，零输入竞争。
+	# ?tuning= 与调参工作台（TuningPanel）共用 URL 入口：量表以「入口按钮」形态浮出，
+	# 不弹模态、不遮挡右上角调参滑杆 —— 数值调参与主观回填两条工作流互不妨碍。
+	# headless / 桌面不构建 UI，零输入竞争。
 	var flags: Dictionary = WebBridge.read_url_flags()
-	if WebBridge.is_web() and str(flags.get("tuning", "")) == "1":
+	if WebBridge.is_web() and str(flags.get("tuning", "")) != "":
 		_build_ui()
-		open_survey()
+		solved_entry_pending = true
+		_open_button.visible = true
 
 
 func _exit_tree() -> void:
@@ -106,14 +109,22 @@ func open_survey() -> void:
 		if not WebBridge.is_web():
 			return
 		_build_ui()
-	_root.visible = true
+	_show_modal(true)
 	_refresh_all()
 
 
 func close_survey() -> void:
 	is_open = false
-	if _root != null:
-		_root.visible = false
+	_show_modal(false)
+
+
+## 模态层（遮罩 + 面板）显隐；入口按钮独立于模态层，只受 solved_entry_pending 控制。
+func _show_modal(shown: bool) -> void:
+	if _root == null:
+		return
+	for child: Node in _root.get_children():
+		if child is Control and child != _open_button:
+			(child as Control).visible = shown
 
 
 ## 选中一个选项（纯逻辑入口，UI 与冒烟共用）。
@@ -153,7 +164,8 @@ func _build_ui() -> void:
 	_root = Control.new()
 	_root.name = "SurveyRoot"
 	_root.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_root.visible = false
+	# root 常显（承载入口按钮）；模态层（遮罩+面板）单独控显隐。
+	_root.visible = true
 	add_child(_root)
 
 	var dim := ColorRect.new()
@@ -162,11 +174,13 @@ func _build_ui() -> void:
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	# 拦截背景输入，但入口按钮在 dim 之上不受影响。
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	dim.visible = false
 	_root.add_child(dim)
 
 	_panel = PanelContainer.new()
 	_panel.name = "Panel"
 	_panel.set_anchors_preset(Control.PRESET_CENTER)
+	_panel.visible = false
 	_panel.custom_minimum_size = Vector2(560, 0)
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.07, 0.1, 0.2, 0.97)

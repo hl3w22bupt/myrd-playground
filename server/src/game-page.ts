@@ -91,8 +91,9 @@ body { color: #fff; background: #0b0e1a; overflow: hidden; touch-action: none; f
   // ---- QA / 量表模式开关（URL 参数，引擎加载前解析）----
   // ?qa=1     → 真机自检模式：QaSelftest 激活，自动采集触屏命中 / 旋转时延 / 音频状态，
   //             一键 JSON 报告（系统分享 → 剪贴板 → 下载）。
-  // ?tuning=1 → 试玩四问量表直开（通关结算页也有入口）。
-  // 游戏侧用 JavaScriptBridge 解析 location.search 各自激活（两条通道互不依赖）；
+  // ?tuning=1 → 调参工作台（TuningPanel，滑杆即时生效）+ 试玩四问入口按钮
+  //             （通关结算页也会浮出该按钮）；两者并存互不遮挡。
+  // 游戏侧用 JavaScriptBridge 解析 location.search 各自激活（多条通道互不依赖）；
   // 壳页再暴露一份全局供启动屏徽标与桌面取证（引擎加载前就可见）。
   var qaMode = false, surveyMode = false;
   try {
