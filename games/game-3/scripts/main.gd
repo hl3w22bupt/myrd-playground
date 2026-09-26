@@ -11,6 +11,8 @@ extends Node2D
 ##   Level.hazard_hit（撞尖刺）→ register_loss；Level.dart_collected → add_score + 飞镖消失
 ##   Level.goal_reached → register_win；GameState.game_won/game_lost → 结算文案 + 震屏反馈
 ##   输入 restart（R / 回车 / 触摸重开按钮）→ restart_run()（就地重置，不重载场景）
+##   §3B：上述结果事件在各自处理函数里统一挂 Juice 反馈（pop/flash/sfx）——
+##   反馈事件流（Juice.feedback_fired）同时是机器人试玩门禁的采样锚点。
 ##
 ## UI 组织（分数/提示/结算各司其职，全部挂在独立的 UI CanvasLayer）：
 ##   %HudLabel  = 常驻分数行（分数 · 进度 · 历史最佳）
@@ -89,7 +91,10 @@ func is_shaking() -> bool:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed(&"restart"):
+	# 重开只在结算后（WON/LOST）受理：奔跑中忽略 —— 自动跑酷里玩家不控方向，
+	# 奔跑中误触 R 会静默清掉已有进度（playtest 机器人实测：随机 R 流把角色按在
+	# 起点 144px 内，核心循环 20s 收集数为 0）。结算弹层的「按 R 重开」文案与之配套。
+	if event.is_action_pressed(&"restart") and GameState.state != GameState.State.PLAYING:
 		restart_run()
 
 
@@ -100,6 +105,8 @@ func restart_run() -> void:
 	GameState.reset()
 	state_label.visible = false
 	_refresh_hud()
+	# §3B 确认类反馈：重开指令已被受理（音效资产后补，事件流始终有记录）。
+	Juice.sfx(&"confirm")
 
 
 func _refresh_hud() -> void:
@@ -129,6 +136,9 @@ func _on_dart_collected(dart: Dart) -> void:
 	# 生效分值：URL ?tuning= 可覆盖（game_state.gd TUNING_META 钳制），未调参时等于 DART_SCORE。
 	GameState.add_score(GameState.dart_score_value())
 	dart.collect()
+	# §3B 结果反馈：HUD 分数弹跳 + 得分音效（音效资产后补，SFX_BANK 注册即出声）。
+	Juice.pop(hud_label)
+	Juice.sfx(&"score")
 
 
 func _on_goal_reached() -> void:
@@ -140,6 +150,9 @@ func _on_game_won(final_score: int) -> void:
 	_start_shake(SHAKE_FRAMES_WIN)
 	state_label.text = "胜利！坚持跑到底 · 本局 %d 分\n按 R / 回车 重开一局" % final_score
 	state_label.visible = true
+	# §3B 结果反馈：结算弹层弹跳 + 确认音效（过关 = 确认类结果）。
+	Juice.pop(state_label)
+	Juice.sfx(&"confirm")
 
 
 func _on_game_lost(final_score: int) -> void:
@@ -147,6 +160,9 @@ func _on_game_lost(final_score: int) -> void:
 	_start_shake(SHAKE_FRAMES_LOSS)
 	state_label.text = "失败…本局收集飞镖 %d 枚\n按 R / 回车 重开一局" % final_score
 	state_label.visible = true
+	# §3B 结果反馈：结算弹层闪红 + 失败音效（震屏仍由上方 _start_shake 驱动，冒烟断言依赖）。
+	Juice.flash(state_label, Color(1.0, 0.35, 0.3, 0.85))
+	Juice.sfx(&"fail")
 
 
 func _start_shake(frames: int) -> void:

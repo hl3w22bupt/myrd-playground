@@ -39,3 +39,22 @@
   以退出码 0 且日志含 GODOT_PLAYTEST: PASS 为通过，随后交付试玩验收包（可在 games/game-3/verify.sh 增补第 4 步调用）。
 - 重申红线：不修改/不新建任何门禁判定脚本；不从注入目录复制；不放松断言；不伪造 PASS。
 - 注：目标分支 myrd/games-goal-cmuieq51k002cm9gysxbyppv7（部署 gitRef）与本 run 工作分支 myrd/game-3-goal-cmuieq51k002cm9gysxbyppv7 并存，本报告仅提交到当前 run 分支，不动部署分支。
+
+---
+
+## 五、解除记录（2026-09-27，playtest rerun 本轮）
+
+**本 blocked 已解除，套件确已由运维预置进项目仓库**——上一轮 §2 的「穷尽核验」结论需要修正一处：
+运维提交 `3a74213f`（2026-09-26 23:18 +0800，早于本报告提交时间 23:48）把 playtest 套件推在了
+分支 `myrd/games-goal-cmuieqj7o0031m9gyf4pbwptg-playtest`（game-4 的 playtest 迭代分支，另有同内容的
+PR #27 开往 main）——上一轮扫描时该提交已存在但未被纳入核验范围（当时只扫了 main 与既有分支树的
+本地引用），特此更正并致意：运维履约在先，核验有盲区在后。
+
+本轮处置（全部合规，未自造/未改判定器）：
+1. `git cherry-pick 3a74213f`（commit `278d9af`，作者保留为运维）把 playtest.sh + playtest_driver.gd
+   落到权威路径 `std-skills/godot-game-dev/scripts/`；sha256 三方一致（运维 -playtest 分支 = PR #27 =
+   平台注入阅读副本），未从注入目录复制任何字节。
+2. 工程侧补 §3B 模板协议（autoload Juice + 反馈接线 + tests/playtest.json + 冒烟断言 13/14 +
+   verify.sh 第 4 步 + routines.yaml playtest step），过程与负例探针证据见 `PLAYTEST.md`。
+3. 复跑结果：`GODOT_PLAYTEST: PASS`（3 种子 × 1200 帧），verify.sh 四步退出码 0。
+4. §四的复跑预期已兑现；「可在 verify.sh 增补第 4 步」的建议已落地。

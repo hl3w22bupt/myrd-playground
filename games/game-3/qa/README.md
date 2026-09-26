@@ -8,6 +8,7 @@
 
 | 口径 | 能证明什么 | 不能证明什么 | 状态 |
 |---|---|---|---|
+| **机器人试玩门禁** | 「好玩下限」的机判部分：开局正反馈及时性、反馈无断档、反馈密度、重开循环反复可玩（3 种子可复现） | 「好不好玩」（人 + 调参工作台的职责）；真实触控手感 | ✅ 已完成（`PLAYTEST.md`，GODOT_PLAYTEST: PASS） |
 | **CDP 移动仿真预检** | 壳页资产通道、引擎启动链、调参桥注入、音频手势解锁的**链路正确性** | 真实触控延迟、真机音频（iOS 静音键/打断）、真机帧率/发热、Safari 版本差异 | ✅ 已完成（`cdp-precheck/`） |
 | **iOS Safari 真机实测** | 上面「不能证明」的全部四项 | —— | ⏳ 待用户按 `ios-safari-checklist.md` 执行 |
 
@@ -19,6 +20,7 @@ Chromium 因缺 WebGL2 被引擎拒绝启动，见 `cdp-precheck/precheck-log.md
 
 | 文件 | 内容 | 谁用 |
 |---|---|---|
+| `PLAYTEST.md` | ⓪ 机器人试玩验收包：GODOT_PLAYTEST 指标、阈值依据、负例探针证据、试玩发现的真缺陷与修复（重开防误触） | 全员只读；调参轮对照机判指标 |
 | `ios-safari-checklist.md` | ① 真机实测清单：点按跳跃/二段跳、音效、加载与帧率，含机型/系统/录屏归档位 | 用户（真机执行者） |
 | `cdp-precheck/` | ② CDP 移动仿真预检证据归档（**明确标注：非真机口径**） | 全员只读 |
 | `tuning-params.md` | ③ 调参 URL 参数表：8 个键、钳制区间、复现 URL 生成方法 | 调手感的人 |
@@ -38,5 +40,5 @@ Chromium 因缺 WebGL2 被引擎拒绝启动，见 `cdp-precheck/precheck-log.md
 - 引擎：Godot 4.3 stable，gl_compatibility（WebGL2），线程支持关闭
 - 壳页：`server/src/game-page.ts`（资产 base64 中转 + 音频手势解锁 + §3C 调参桥）
 - 触摸输入：TouchScreenButton「跳」注入 `confirm` 动作 → 与键盘 `jump` 同一路径（`scripts/player.gd`）
-- 门禁：`bash games/game-3/verify.sh` = preflight → smoke → input-fuzz（改游戏代码后必跑；本包纯
-  文档与证据归档，未触碰游戏代码与门禁脚本）
+- 门禁：`bash games/game-3/verify.sh` = preflight → smoke → input-fuzz → playtest（改游戏代码后必跑；
+  2026-09-27 起四步全绿，playtest 判定器由运维提交落库，试玩证据见 `PLAYTEST.md`）

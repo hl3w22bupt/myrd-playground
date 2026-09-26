@@ -30,6 +30,7 @@ routines:
   params:
     gamePath: games/godot-coin-rush
     smokeFrames: 240
+    playtestFrames: 1200
   steps:
   - name: godot-availability
     command: bash std-skills/godot-game-dev/scripts/resolve-godot.sh >/dev/null
@@ -49,6 +50,16 @@ routines:
       {{gamePath}}
     target: host
     timeout: 180
+  # 机器人试玩 —— bot 以确定种子多局游玩，机判节奏类代理指标下限：首次得分时间 /
+  # 最长无反馈窗口 / 反馈密度 / 局间结果方差。阈值可被工程内 tests/playtest.json 覆盖
+  # （对齐 spec.content.sessionSeconds）。判定协议 GODOT_PLAYTEST: PASS/FAIL，
+  # 指标明细在 METRICS 行（单行 JSON）。片段照抄 std-skills/godot-game-dev/references/godot-smoke-routine.md；
+  # playtestFrames=1200：本工程跑酷赛道跑满全程 4800px ÷ 240px/s = 20s ≈ 60 × 20。
+  - name: playtest
+    command: GODOT_PLAYTEST_FRAMES={{playtestFrames}} GODOT_BIN="$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)" bash
+      std-skills/godot-game-dev/scripts/playtest.sh {{gamePath}}
+    target: host
+    timeout: 600
 - id: game-contract
   name: 游戏契约测试
   description: 断言工程实现与 approved 版策划案（GameDesignSpec）一致 —— 实体/关卡落点文件存在、验收项有可执行检查、关卡元素编号稳定唯一

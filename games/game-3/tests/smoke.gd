@@ -23,6 +23,9 @@ extends Node
 ##  10. 重开可用：restart 动作 → 分数清零 / 状态回 PLAYING / 玩家回出生点 / 飞镖复位
 ##  11. 正向可达：跑进终点旗 → game_won + 结算文案 + 过关奖励 + 跨局留存（runs_finished/best_score）
 ##  12. 胜负已定后玩家冻结（位置不再变化，不会「赢了还在跑」）
+##  13. 反馈总线（§3B / playtest 协议）：autoload Juice 已注册且带 feedback_fired 信号与
+##      clear_events；收集与失败两条结果事件后 Juice.events 非空（反馈接线断了 = FAIL）
+##  14. 重开防误触：奔跑中（PLAYING）按 restart 不重置（进度不丢），结算后（LOST，见第 10 项）才受理
 ##
 ## ⚠️ 输入注入全部走 InputEventAction（不与 Input.action_press 混帧，E-08）；
 ##    噪声相位只注入原始事件（Key/Mouse/Touch），不污染动作级断言（模板既有约定）。
@@ -36,6 +39,8 @@ const NOISE_FRAMES: int = 20
 ## ── 分阶段里程碑（物理帧）──
 const RUN_START_FRAME: int = 21          # 记录奔跑起点
 const RUN_END_FRAME: int = 41            # 断言位移，并按下跳跃（一段跳）
+const RESTART_GUARD_FRAME: int = 43      # 奔跑中按 restart（应被忽略：进度不重置）
+const RESTART_GUARD_ASSERT_FRAME: int = 46  # 断言玩家仍在前进（未被拽回出生点）
 const JUMP2_FRAME: int = 45              # 断言一段跳，并按第二次（二段跳）
 const DOUBLE_ASSERT_FRAME: int = 49      # 断言二段跳生效
 const COYOTE_TELEPORT_FRAME: int = 51    # 传送到 S1 右端（坑1 唇边 20px），让他自然跑出平台
@@ -91,6 +96,8 @@ var _main: Node2D
 var _player: Player
 var _level: GameLevel
 var _state_label: Label
+## Juice 反馈单例（§3B / playtest 协议面：feedback_fired 信号 + events 记录 + clear_events）。
+var _juice: Node
 
 ## 信号到达标记（「信号真的到达订阅方」断言层）。
 var _moved_seen: bool = false
@@ -108,6 +115,8 @@ var _pre_jump_count: int = 0
 var _coyote_press_y: float = 0.0
 var _coyote_checked: bool = false
 var _freeze_x: float = 0.0
+## 重开防误触断言采样（PLAYING 中按 restart 前的玩家 x）。
+var _guard_x: float = 0.0
 
 ## 跳跃缓冲轮询状态。
 var _buffer_await: bool = false
@@ -140,6 +149,16 @@ func _ready() -> void:
 		game_state.score_changed.connect(_on_score_changed)
 		game_state.game_won.connect(_on_game_won)
 		game_state.game_lost.connect(_on_game_lost)
+
+	# 13. 反馈总线协议面（playtest 门禁依赖它采样反馈事件流，缺了即 fail-closed）。
+	_juice = get_tree().root.get_node_or_null("Juice")
+	if _juice == null:
+		_failures.append("autoload Juice 未注册（§3B 反馈协议 / playtest 门禁模板协议缺失）")
+	else:
+		if not _juice.has_signal("feedback_fired"):
+			_failures.append("autoload Juice 缺少信号 feedback_fired（机器人试玩的反馈采样锚点）")
+		if not _juice.has_method("clear_events"):
+			_failures.append("autoload Juice 缺少 clear_events（试玩每局清窗 / 冒烟按时间窗断言依赖）")
 
 	_main = get_node_or_null("Main") as Node2D
 	if _main == null:
@@ -181,9 +200,15 @@ func _physics_process(_delta: float) -> void:
 		_pre_jump_y = _player.global_position.y
 		_pre_jump_count = _player.jumps_used
 		_press_action(&"jump")
+	elif _frames == RESTART_GUARD_FRAME:
+		# 14. 重开防误触：奔跑中按 restart 必须被忽略（此时玩家在 S1 平台 ≈220px 处）。
+		_guard_x = _player.global_position.x
+		_press_action(&"restart")
 	elif _frames == JUMP2_FRAME:
 		_assert_first_jump()
 		_press_action(&"jump")
+	elif _frames == RESTART_GUARD_ASSERT_FRAME:
+		_assert_restart_guarded()
 	elif _frames == DOUBLE_ASSERT_FRAME:
 		_assert_double_jump()
 	elif _frames == COYOTE_TELEPORT_FRAME and _player != null:
@@ -197,10 +222,12 @@ func _physics_process(_delta: float) -> void:
 		_assert_coyote_jump()
 	elif _frames == TELEPORT_DART_FRAME and _level != null:
 		_teleport_player(_level.DART_SPOTS[0])
+		_clear_juice_events()  # 反馈窗口起点：此后到收集断言之间的 Juice 事件必须非空
 	elif _frames == COLLECT_ASSERT_FRAME:
 		_assert_dart_collected()
 	elif _frames == TELEPORT_SPIKE_FRAME and _level != null:
 		_teleport_player(Vector2(_level.SPIKE_XS[0], _level.GROUND_TOP_Y - 13.0))
+		_clear_juice_events()  # 反馈窗口起点：此后到失败断言之间的 Juice 事件必须非空
 	elif _frames == LOSE_ASSERT_FRAME:
 		_assert_lost()
 	elif _frames == RESTART_FRAME:
@@ -319,6 +346,20 @@ func _assert_double_jump() -> void:
 			_player.jumps_used, _pre_jump_count + 2])
 
 
+## 14. 重开防误触：PLAYING 中按 restart 后玩家必须仍在前进（x 增长），没有被拽回出生点。
+## 采样时玩家在 S1 平台 ≈220px 处；若重开被误受理，这里 x 会回到 ≈60px。
+func _assert_restart_guarded() -> void:
+	if _player == null:
+		return
+	var travelled: float = _player.global_position.x - _guard_x
+	if travelled < 4.0:
+		_failures.append("奔跑中按 restart 触发了重开（x %.1f → %.1f）：进度被静默清掉，" % [
+			_guard_x, _player.global_position.x] +
+			"重开必须只在结算后（WON/LOST）受理（自动跑酷防误触，playtest 机器人实证的进度丢失缺陷）")
+	if GameState.state != GameState.State.PLAYING:
+		_failures.append("奔跑中按 restart 后局状态被改变（当前 %d，应仍 PLAYING）" % GameState.state)
+
+
 ## 6. 土狼时间：走出平台边缘 ≈2 帧后按跳，应兑现为「地面起跳」（jumps_used 停在 1）。
 func _assert_coyote_jump() -> void:
 	if _player == null:
@@ -346,6 +387,8 @@ func _assert_dart_collected() -> void:
 	# 收集反馈：飞镖应正在播「弹大/淡出」补间（结果性事件必须有可感知反馈）。
 	if _last_dart != null and _last_dart.modulate.a > 0.999 and _last_dart.scale.x < 1.001:
 		_failures.append("收集反馈未接线：飞镖被收集后既没弹大也没淡出（Dart.collect 未启动表现补间）")
+	# §3B 反馈总线：收集这条结果事件必须在 Juice 事件流里留痕（playtest 采样锚点）。
+	_assert_juice_fired("收集飞镖")
 
 
 func _assert_lost() -> void:
@@ -357,6 +400,8 @@ func _assert_lost() -> void:
 		_failures.append("失败后结算文案未显示「失败」：StateLabel 未被 _on_game_lost 刷新")
 	if _main != null and not _main.is_shaking():
 		_failures.append("失败反馈未接线：撞刺后相机未震屏（Main._on_game_lost 未触发 shake）")
+	# §3B 反馈总线：失败这条结果事件必须在 Juice 事件流里留痕（结算弹层 flash + 音效调用点）。
+	_assert_juice_fired("撞上尖刺失败")
 
 
 func _assert_restarted() -> void:
@@ -423,10 +468,32 @@ func _assert_frozen() -> void:
 			_freeze_x, _player.global_position.x])
 
 
+## ── §3B 反馈总线断言辅助 ──
+
+## 反馈窗口起点：清空 Juice 事件记录（单例缺失已由 _ready 协议断言上报，这里静默跳过）。
+func _clear_juice_events() -> void:
+	if _juice != null and _juice.has_method("clear_events"):
+		_juice.call("clear_events")
+
+
+## 窗口断言：自上次清空以来，结果事件必须至少留痕 1 条反馈（playtest 反馈流同源）。
+func _assert_juice_fired(context: String) -> void:
+	if _juice == null:
+		return
+	var events_variant: Variant = _juice.get("events")
+	if not (events_variant is PackedStringArray):
+		_failures.append("autoload Juice.events 类型异常（期望 PackedStringArray，实际 %s）" % [
+			type_string(typeof(events_variant))])
+		return
+	var events: PackedStringArray = events_variant
+	if events.is_empty():
+		_failures.append("%s后 Juice.events 为空：结果事件未挂任何反馈（§3B 接线断裂，playtest 反馈流断供）" % context)
+
+
 func _report() -> void:
 	_finished = true
 	if _failures.is_empty() and _coyote_checked and _buffer_checked:
-		print("GODOT_SMOKE: PASS 关卡几何/场景实例化/autoload/键位契约/自动奔跑/跳跃二段跳/土狼跳/跳跃缓冲/收集飞镖+反馈/撞刺失败+震屏/重开复位/跑底过关+留存/冻结停跑 全部通过")
+		print("GODOT_SMOKE: PASS 关卡几何/场景实例化/autoload/键位契约/自动奔跑/跳跃二段跳/土狼跳/跳跃缓冲/收集飞镖+反馈/撞刺失败+震屏/重开复位/跑底过关+留存/冻结停跑/Juice反馈总线/重开防误触 全部通过")
 		get_tree().quit(0)
 	else:
 		if not _coyote_checked and _failures.is_empty():

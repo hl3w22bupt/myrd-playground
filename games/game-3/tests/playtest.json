@@ -1,0 +1,8 @@
+{
+  "thresholds": {
+    "first_reward_seconds_max": 10.0,
+    "feedback_gap_seconds_max": 10.0,
+    "feedback_events_min_per_run": 2,
+    "seed_outcomes_min_distinct": 1
+  }
+}
