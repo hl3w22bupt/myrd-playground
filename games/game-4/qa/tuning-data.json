@@ -1,0 +1,1414 @@
+{
+  "contract_checks": {
+    "problems": []
+  },
+  "difficulty_curve": {
+    "mechanic_introductions": [
+      {
+        "at_level": 2,
+        "mechanic": "墙体阻挡"
+      },
+      {
+        "at_level": 5,
+        "mechanic": "分光三通"
+      },
+      {
+        "at_level": 6,
+        "mechanic": "网格扩容(6x5)"
+      }
+    ],
+    "non_decreasing": false,
+    "par_by_level": [
+      1,
+      4,
+      8,
+      10,
+      10,
+      10,
+      10,
+      11,
+      13,
+      14
+    ],
+    "par_delta": [
+      3,
+      4,
+      2,
+      0,
+      0,
+      0,
+      1,
+      2,
+      1
+    ],
+    "par_total": 14,
+    "plateau_levels": [
+      4,
+      5,
+      6
+    ],
+    "steep_jump_levels": [
+      {
+        "at_level": 2,
+        "delta": 4
+      }
+    ],
+    "true_par_by_level_expert_moves": [
+      1,
+      2,
+      8,
+      6,
+      4,
+      8,
+      9,
+      6,
+      11,
+      12
+    ],
+    "true_par_delta": [
+      1,
+      6,
+      -2,
+      -2,
+      4,
+      1,
+      -3,
+      5,
+      1
+    ],
+    "true_par_drops": [
+      {
+        "at_level": 4,
+        "delta": -2
+      },
+      {
+        "at_level": 5,
+        "delta": -2
+      },
+      {
+        "at_level": 8,
+        "delta": -3
+      }
+    ],
+    "true_par_note": "真 par 曲线若非单调（true_par_drops 非空）说明声明 par 的虚高掩盖了实际难度回落；难度还含读盘/推演成分，此曲线只代表点击成本梯度"
+  },
+  "levels": [
+    {
+      "beam_shape_at_solution": {
+        "cells_touched": 3,
+        "hits_wall_at_solution": false,
+        "segments": 2,
+        "solved": true,
+        "turns": 0
+      },
+      "counts": {
+        "corner": 0,
+        "empty_cells": 22,
+        "pipes": 1,
+        "straight": 1,
+        "tee": 0,
+        "walls": 0
+      },
+      "grid": {
+        "cells_total": 25,
+        "h": 5,
+        "w": 5
+      },
+      "index": 0,
+      "name": "初试光线",
+      "par": 1,
+      "par_optimality": {
+        "bfs": {
+          "elapsed_ms": 0,
+          "mode": "trivial",
+          "node_budget": 120000,
+          "nodes_explored": 1,
+          "par": 1,
+          "par_proven_optimal": true,
+          "pipes": 1,
+          "searched_depth": 0,
+          "shorter_solution_depth": -1,
+          "shorter_solution_found": false,
+          "status": "exhausted_proven_optimal"
+        },
+        "declared_par": 1,
+        "inflation_steps": 0,
+        "status": "declared_par_optimal_proven",
+        "symmetry_aware_par": 1,
+        "true_par": 1,
+        "true_par_semantics": "proven_exact"
+      },
+      "persona_runs": {
+        "casual": {
+          "expect_stars_analytic": 1,
+          "extra_clicks": 4,
+          "machine_consistent": true,
+          "matches_model": false,
+          "moves": 1,
+          "planned_moves": 4,
+          "solved": true,
+          "solved_early": true,
+          "stars": 3,
+          "unlocked_next": true
+        },
+        "expert": {
+          "expect_stars_analytic": 3,
+          "extra_clicks": 0,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 1,
+          "planned_moves": 0,
+          "solved": true,
+          "solved_early": false,
+          "stars": 3,
+          "unlocked_next": true
+        },
+        "novice": {
+          "expect_stars_analytic": 1,
+          "extra_clicks": 8,
+          "machine_consistent": true,
+          "matches_model": false,
+          "moves": 1,
+          "planned_moves": 8,
+          "solved": true,
+          "solved_early": true,
+          "stars": 3,
+          "unlocked_next": true
+        },
+        "par": 1
+      },
+      "solvability": {
+        "init_state_hits_wall": false,
+        "init_state_solved": false,
+        "target_state_solved": true
+      },
+      "star_bands": {
+        "three_star_max_moves": 1,
+        "two_star_band_width": 1,
+        "two_star_max_moves": 2
+      }
+    },
+    {
+      "beam_shape_at_solution": {
+        "cells_touched": 5,
+        "hits_wall_at_solution": false,
+        "segments": 4,
+        "solved": true,
+        "turns": 0
+      },
+      "counts": {
+        "corner": 0,
+        "empty_cells": 18,
+        "pipes": 3,
+        "straight": 3,
+        "tee": 0,
+        "walls": 2
+      },
+      "grid": {
+        "cells_total": 25,
+        "h": 5,
+        "w": 5
+      },
+      "index": 1,
+      "name": "三连直道",
+      "par": 4,
+      "par_optimality": {
+        "bfs": {
+          "elapsed_ms": 0,
+          "mode": "bounded_bfs",
+          "node_budget": 120000,
+          "nodes_explored": 7,
+          "par": 4,
+          "par_proven_optimal": false,
+          "pipes": 3,
+          "searched_depth": 1,
+          "shorter_solution_depth": 2,
+          "shorter_solution_found": true,
+          "status": "shorter_found"
+        },
+        "declared_par": 4,
+        "inflation_steps": 2,
+        "status": "shorter_solution_found",
+        "symmetry_aware_par": 2,
+        "true_par": 2,
+        "true_par_semantics": "proven_exact"
+      },
+      "persona_runs": {
+        "casual": {
+          "expect_stars_analytic": 1,
+          "extra_clicks": 4,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 8,
+          "planned_moves": 4,
+          "solved": true,
+          "solved_early": false,
+          "stars": 1,
+          "unlocked_next": true
+        },
+        "expert": {
+          "expect_stars_analytic": 3,
+          "extra_clicks": 0,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 4,
+          "planned_moves": 0,
+          "solved": true,
+          "solved_early": false,
+          "stars": 3,
+          "unlocked_next": true
+        },
+        "novice": {
+          "expect_stars_analytic": 1,
+          "extra_clicks": 8,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 12,
+          "planned_moves": 8,
+          "solved": true,
+          "solved_early": false,
+          "stars": 1,
+          "unlocked_next": true
+        },
+        "par": 4
+      },
+      "solvability": {
+        "init_state_hits_wall": false,
+        "init_state_solved": false,
+        "target_state_solved": true
+      },
+      "star_bands": {
+        "three_star_max_moves": 4,
+        "two_star_band_width": 2,
+        "two_star_max_moves": 6
+      }
+    },
+    {
+      "beam_shape_at_solution": {
+        "cells_touched": 7,
+        "hits_wall_at_solution": false,
+        "segments": 6,
+        "solved": true,
+        "turns": 4
+      },
+      "counts": {
+        "corner": 4,
+        "empty_cells": 17,
+        "pipes": 5,
+        "straight": 1,
+        "tee": 0,
+        "walls": 1
+      },
+      "grid": {
+        "cells_total": 25,
+        "h": 5,
+        "w": 5
+      },
+      "index": 2,
+      "name": "转角初见",
+      "par": 8,
+      "par_optimality": {
+        "bfs": {
+          "elapsed_ms": 9,
+          "mode": "bounded_bfs",
+          "node_budget": 120000,
+          "nodes_explored": 512,
+          "par": 8,
+          "par_proven_optimal": false,
+          "pipes": 5,
+          "searched_depth": 7,
+          "shorter_solution_depth": -1,
+          "shorter_solution_found": false,
+          "status": "budget_exhausted"
+        },
+        "declared_par": 8,
+        "inflation_steps": 0,
+        "status": "unproven_search_budget_exhausted",
+        "symmetry_aware_par": 8,
+        "true_par": 8,
+        "true_par_semantics": "lower_bound_only"
+      },
+      "persona_runs": {
+        "casual": {
+          "expect_stars_analytic": 2,
+          "extra_clicks": 4,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 12,
+          "planned_moves": 4,
+          "solved": true,
+          "solved_early": false,
+          "stars": 2,
+          "unlocked_next": true
+        },
+        "expert": {
+          "expect_stars_analytic": 3,
+          "extra_clicks": 0,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 8,
+          "planned_moves": 0,
+          "solved": true,
+          "solved_early": false,
+          "stars": 3,
+          "unlocked_next": true
+        },
+        "novice": {
+          "expect_stars_analytic": 1,
+          "extra_clicks": 8,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 16,
+          "planned_moves": 8,
+          "solved": true,
+          "solved_early": false,
+          "stars": 1,
+          "unlocked_next": true
+        },
+        "par": 8
+      },
+      "solvability": {
+        "init_state_hits_wall": false,
+        "init_state_solved": false,
+        "target_state_solved": true
+      },
+      "star_bands": {
+        "three_star_max_moves": 8,
+        "two_star_band_width": 4,
+        "two_star_max_moves": 12
+      }
+    },
+    {
+      "beam_shape_at_solution": {
+        "cells_touched": 9,
+        "hits_wall_at_solution": false,
+        "segments": 8,
+        "solved": true,
+        "turns": 2
+      },
+      "counts": {
+        "corner": 2,
+        "empty_cells": 13,
+        "pipes": 7,
+        "straight": 5,
+        "tee": 0,
+        "walls": 3
+      },
+      "grid": {
+        "cells_total": 25,
+        "h": 5,
+        "w": 5
+      },
+      "index": 3,
+      "name": "绕墙而行",
+      "par": 10,
+      "par_optimality": {
+        "bfs": {
+          "elapsed_ms": 21,
+          "mode": "bounded_bfs",
+          "node_budget": 120000,
+          "nodes_explored": 983,
+          "par": 10,
+          "par_proven_optimal": false,
+          "pipes": 7,
+          "searched_depth": 5,
+          "shorter_solution_depth": 6,
+          "shorter_solution_found": true,
+          "status": "shorter_found"
+        },
+        "declared_par": 10,
+        "inflation_steps": 4,
+        "status": "shorter_solution_found",
+        "symmetry_aware_par": 6,
+        "true_par": 6,
+        "true_par_semantics": "proven_exact"
+      },
+      "persona_runs": {
+        "casual": {
+          "expect_stars_analytic": 2,
+          "extra_clicks": 4,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 14,
+          "planned_moves": 4,
+          "solved": true,
+          "solved_early": false,
+          "stars": 2,
+          "unlocked_next": true
+        },
+        "expert": {
+          "expect_stars_analytic": 3,
+          "extra_clicks": 0,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 10,
+          "planned_moves": 0,
+          "solved": true,
+          "solved_early": false,
+          "stars": 3,
+          "unlocked_next": true
+        },
+        "novice": {
+          "expect_stars_analytic": 1,
+          "extra_clicks": 8,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 18,
+          "planned_moves": 8,
+          "solved": true,
+          "solved_early": false,
+          "stars": 1,
+          "unlocked_next": true
+        },
+        "par": 10
+      },
+      "solvability": {
+        "init_state_hits_wall": false,
+        "init_state_solved": false,
+        "target_state_solved": true
+      },
+      "star_bands": {
+        "three_star_max_moves": 10,
+        "two_star_band_width": 5,
+        "two_star_max_moves": 15
+      }
+    },
+    {
+      "beam_shape_at_solution": {
+        "cells_touched": 8,
+        "hits_wall_at_solution": true,
+        "segments": 7,
+        "solved": true,
+        "turns": 3
+      },
+      "counts": {
+        "corner": 2,
+        "empty_cells": 16,
+        "pipes": 5,
+        "straight": 2,
+        "tee": 1,
+        "walls": 2
+      },
+      "grid": {
+        "cells_total": 25,
+        "h": 5,
+        "w": 5
+      },
+      "index": 4,
+      "name": "分光三通",
+      "par": 10,
+      "par_optimality": {
+        "bfs": {
+          "elapsed_ms": 2,
+          "mode": "bounded_bfs",
+          "node_budget": 120000,
+          "nodes_explored": 117,
+          "par": 10,
+          "par_proven_optimal": false,
+          "pipes": 5,
+          "searched_depth": 3,
+          "shorter_solution_depth": 4,
+          "shorter_solution_found": true,
+          "status": "shorter_found"
+        },
+        "declared_par": 10,
+        "inflation_steps": 6,
+        "status": "shorter_solution_found",
+        "symmetry_aware_par": 6,
+        "true_par": 4,
+        "true_par_semantics": "proven_exact"
+      },
+      "persona_runs": {
+        "casual": {
+          "expect_stars_analytic": 2,
+          "extra_clicks": 4,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 14,
+          "planned_moves": 4,
+          "solved": true,
+          "solved_early": false,
+          "stars": 2,
+          "unlocked_next": true
+        },
+        "expert": {
+          "expect_stars_analytic": 3,
+          "extra_clicks": 0,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 10,
+          "planned_moves": 0,
+          "solved": true,
+          "solved_early": false,
+          "stars": 3,
+          "unlocked_next": true
+        },
+        "novice": {
+          "expect_stars_analytic": 1,
+          "extra_clicks": 8,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 18,
+          "planned_moves": 8,
+          "solved": true,
+          "solved_early": false,
+          "stars": 1,
+          "unlocked_next": true
+        },
+        "par": 10
+      },
+      "solvability": {
+        "init_state_hits_wall": false,
+        "init_state_solved": false,
+        "target_state_solved": true
+      },
+      "star_bands": {
+        "three_star_max_moves": 10,
+        "two_star_band_width": 5,
+        "two_star_max_moves": 15
+      }
+    },
+    {
+      "beam_shape_at_solution": {
+        "cells_touched": 10,
+        "hits_wall_at_solution": false,
+        "segments": 9,
+        "solved": true,
+        "turns": 4
+      },
+      "counts": {
+        "corner": 4,
+        "empty_cells": 18,
+        "pipes": 8,
+        "straight": 4,
+        "tee": 0,
+        "walls": 2
+      },
+      "grid": {
+        "cells_total": 30,
+        "h": 5,
+        "w": 6
+      },
+      "index": 5,
+      "name": "双折回廊",
+      "par": 10,
+      "par_optimality": {
+        "bfs": {
+          "elapsed_ms": 166,
+          "mode": "bounded_bfs",
+          "node_budget": 120000,
+          "nodes_explored": 6777,
+          "par": 10,
+          "par_proven_optimal": false,
+          "pipes": 8,
+          "searched_depth": 7,
+          "shorter_solution_depth": 8,
+          "shorter_solution_found": true,
+          "status": "shorter_found"
+        },
+        "declared_par": 10,
+        "inflation_steps": 2,
+        "status": "shorter_solution_found",
+        "symmetry_aware_par": 8,
+        "true_par": 8,
+        "true_par_semantics": "proven_exact"
+      },
+      "persona_runs": {
+        "casual": {
+          "expect_stars_analytic": 2,
+          "extra_clicks": 4,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 14,
+          "planned_moves": 4,
+          "solved": true,
+          "solved_early": false,
+          "stars": 2,
+          "unlocked_next": true
+        },
+        "expert": {
+          "expect_stars_analytic": 3,
+          "extra_clicks": 0,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 10,
+          "planned_moves": 0,
+          "solved": true,
+          "solved_early": false,
+          "stars": 3,
+          "unlocked_next": true
+        },
+        "novice": {
+          "expect_stars_analytic": 1,
+          "extra_clicks": 8,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 18,
+          "planned_moves": 8,
+          "solved": true,
+          "solved_early": false,
+          "stars": 1,
+          "unlocked_next": true
+        },
+        "par": 10
+      },
+      "solvability": {
+        "init_state_hits_wall": false,
+        "init_state_solved": false,
+        "target_state_solved": true
+      },
+      "star_bands": {
+        "three_star_max_moves": 10,
+        "two_star_band_width": 5,
+        "two_star_max_moves": 15
+      }
+    },
+    {
+      "beam_shape_at_solution": {
+        "cells_touched": 12,
+        "hits_wall_at_solution": true,
+        "segments": 12,
+        "solved": true,
+        "turns": 6
+      },
+      "counts": {
+        "corner": 4,
+        "empty_cells": 15,
+        "pipes": 10,
+        "straight": 5,
+        "tee": 1,
+        "walls": 3
+      },
+      "grid": {
+        "cells_total": 30,
+        "h": 5,
+        "w": 6
+      },
+      "index": 6,
+      "name": "分光择路",
+      "par": 10,
+      "par_optimality": {
+        "bfs": {
+          "elapsed_ms": 1229,
+          "mode": "bounded_bfs",
+          "node_budget": 120000,
+          "nodes_explored": 45321,
+          "par": 10,
+          "par_proven_optimal": false,
+          "pipes": 10,
+          "searched_depth": 8,
+          "shorter_solution_depth": 9,
+          "shorter_solution_found": true,
+          "status": "shorter_found"
+        },
+        "declared_par": 10,
+        "inflation_steps": 1,
+        "status": "shorter_solution_found",
+        "symmetry_aware_par": 10,
+        "true_par": 9,
+        "true_par_semantics": "proven_exact"
+      },
+      "persona_runs": {
+        "casual": {
+          "expect_stars_analytic": 2,
+          "extra_clicks": 4,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 14,
+          "planned_moves": 4,
+          "solved": true,
+          "solved_early": false,
+          "stars": 2,
+          "unlocked_next": true
+        },
+        "expert": {
+          "expect_stars_analytic": 3,
+          "extra_clicks": 0,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 10,
+          "planned_moves": 0,
+          "solved": true,
+          "solved_early": false,
+          "stars": 3,
+          "unlocked_next": true
+        },
+        "novice": {
+          "expect_stars_analytic": 1,
+          "extra_clicks": 8,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 18,
+          "planned_moves": 8,
+          "solved": true,
+          "solved_early": false,
+          "stars": 1,
+          "unlocked_next": true
+        },
+        "par": 10
+      },
+      "solvability": {
+        "init_state_hits_wall": false,
+        "init_state_solved": false,
+        "target_state_solved": true
+      },
+      "star_bands": {
+        "three_star_max_moves": 10,
+        "two_star_band_width": 5,
+        "two_star_max_moves": 15
+      }
+    },
+    {
+      "beam_shape_at_solution": {
+        "cells_touched": 10,
+        "hits_wall_at_solution": true,
+        "segments": 9,
+        "solved": true,
+        "turns": 5
+      },
+      "counts": {
+        "corner": 3,
+        "empty_cells": 22,
+        "pipes": 7,
+        "straight": 3,
+        "tee": 1,
+        "walls": 4
+      },
+      "grid": {
+        "cells_total": 35,
+        "h": 5,
+        "w": 7
+      },
+      "index": 7,
+      "name": "回环折阵",
+      "par": 11,
+      "par_optimality": {
+        "bfs": {
+          "elapsed_ms": 20,
+          "mode": "bounded_bfs",
+          "node_budget": 120000,
+          "nodes_explored": 819,
+          "par": 11,
+          "par_proven_optimal": false,
+          "pipes": 7,
+          "searched_depth": 5,
+          "shorter_solution_depth": 6,
+          "shorter_solution_found": true,
+          "status": "shorter_found"
+        },
+        "declared_par": 11,
+        "inflation_steps": 5,
+        "status": "shorter_solution_found",
+        "symmetry_aware_par": 9,
+        "true_par": 6,
+        "true_par_semantics": "proven_exact"
+      },
+      "persona_runs": {
+        "casual": {
+          "expect_stars_analytic": 2,
+          "extra_clicks": 4,
+          "machine_consistent": true,
+          "matches_model": false,
+          "moves": 10,
+          "planned_moves": 4,
+          "solved": true,
+          "solved_early": false,
+          "stars": 3,
+          "unlocked_next": true
+        },
+        "expert": {
+          "expect_stars_analytic": 3,
+          "extra_clicks": 0,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 6,
+          "planned_moves": 0,
+          "solved": true,
+          "solved_early": false,
+          "stars": 3,
+          "unlocked_next": true
+        },
+        "novice": {
+          "expect_stars_analytic": 1,
+          "extra_clicks": 8,
+          "machine_consistent": true,
+          "matches_model": false,
+          "moves": 14,
+          "planned_moves": 8,
+          "solved": true,
+          "solved_early": false,
+          "stars": 2,
+          "unlocked_next": true
+        },
+        "par": 11
+      },
+      "solvability": {
+        "init_state_hits_wall": false,
+        "init_state_solved": false,
+        "target_state_solved": true
+      },
+      "star_bands": {
+        "three_star_max_moves": 11,
+        "two_star_band_width": 6,
+        "two_star_max_moves": 17
+      }
+    },
+    {
+      "beam_shape_at_solution": {
+        "cells_touched": 12,
+        "hits_wall_at_solution": false,
+        "segments": 11,
+        "solved": true,
+        "turns": 3
+      },
+      "counts": {
+        "corner": 3,
+        "empty_cells": 26,
+        "pipes": 10,
+        "straight": 7,
+        "tee": 0,
+        "walls": 4
+      },
+      "grid": {
+        "cells_total": 42,
+        "h": 6,
+        "w": 7
+      },
+      "index": 8,
+      "name": "长蛇引光",
+      "par": 13,
+      "par_optimality": {
+        "bfs": {
+          "elapsed_ms": 2501,
+          "mode": "bounded_bfs",
+          "node_budget": 120000,
+          "nodes_explored": 76200,
+          "par": 13,
+          "par_proven_optimal": false,
+          "pipes": 10,
+          "searched_depth": 9,
+          "shorter_solution_depth": -1,
+          "shorter_solution_found": false,
+          "status": "budget_exhausted"
+        },
+        "declared_par": 13,
+        "inflation_steps": 2,
+        "status": "declared_par_inflated_by_symmetry",
+        "symmetry_aware_par": 11,
+        "true_par": 11,
+        "true_par_semantics": "achievable_upper_bound"
+      },
+      "persona_runs": {
+        "casual": {
+          "expect_stars_analytic": 2,
+          "extra_clicks": 4,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 17,
+          "planned_moves": 4,
+          "solved": true,
+          "solved_early": false,
+          "stars": 2,
+          "unlocked_next": true
+        },
+        "expert": {
+          "expect_stars_analytic": 3,
+          "extra_clicks": 0,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 13,
+          "planned_moves": 0,
+          "solved": true,
+          "solved_early": false,
+          "stars": 3,
+          "unlocked_next": true
+        },
+        "novice": {
+          "expect_stars_analytic": 1,
+          "extra_clicks": 8,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 21,
+          "planned_moves": 8,
+          "solved": true,
+          "solved_early": false,
+          "stars": 1,
+          "unlocked_next": true
+        },
+        "par": 13
+      },
+      "solvability": {
+        "init_state_hits_wall": false,
+        "init_state_solved": false,
+        "target_state_solved": true
+      },
+      "star_bands": {
+        "three_star_max_moves": 13,
+        "two_star_band_width": 7,
+        "two_star_max_moves": 20
+      }
+    },
+    {
+      "beam_shape_at_solution": {
+        "cells_touched": 15,
+        "hits_wall_at_solution": true,
+        "segments": 15,
+        "solved": true,
+        "turns": 7
+      },
+      "counts": {
+        "corner": 5,
+        "empty_cells": 21,
+        "pipes": 13,
+        "straight": 7,
+        "tee": 1,
+        "walls": 6
+      },
+      "grid": {
+        "cells_total": 42,
+        "h": 6,
+        "w": 7
+      },
+      "index": 9,
+      "name": "终局光阵",
+      "par": 14,
+      "par_optimality": {
+        "bfs": {
+          "elapsed_ms": 2501,
+          "mode": "bounded_bfs",
+          "node_budget": 120000,
+          "nodes_explored": 71648,
+          "par": 14,
+          "par_proven_optimal": false,
+          "pipes": 13,
+          "searched_depth": 7,
+          "shorter_solution_depth": -1,
+          "shorter_solution_found": false,
+          "status": "budget_exhausted"
+        },
+        "declared_par": 14,
+        "inflation_steps": 2,
+        "status": "declared_par_inflated_by_symmetry",
+        "symmetry_aware_par": 12,
+        "true_par": 12,
+        "true_par_semantics": "achievable_upper_bound"
+      },
+      "persona_runs": {
+        "casual": {
+          "expect_stars_analytic": 2,
+          "extra_clicks": 4,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 18,
+          "planned_moves": 4,
+          "solved": true,
+          "solved_early": false,
+          "stars": 2,
+          "unlocked_next": false
+        },
+        "expert": {
+          "expect_stars_analytic": 3,
+          "extra_clicks": 0,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 14,
+          "planned_moves": 0,
+          "solved": true,
+          "solved_early": false,
+          "stars": 3,
+          "unlocked_next": false
+        },
+        "novice": {
+          "expect_stars_analytic": 1,
+          "extra_clicks": 8,
+          "machine_consistent": true,
+          "matches_model": true,
+          "moves": 22,
+          "planned_moves": 8,
+          "solved": true,
+          "solved_early": false,
+          "stars": 1,
+          "unlocked_next": false
+        },
+        "par": 14
+      },
+      "solvability": {
+        "init_state_hits_wall": false,
+        "init_state_solved": false,
+        "target_state_solved": true
+      },
+      "star_bands": {
+        "three_star_max_moves": 14,
+        "two_star_band_width": 7,
+        "two_star_max_moves": 21
+      }
+    }
+  ],
+  "models": {
+    "formula": "8s 读盘 + 3s×管数 + 6s×三通数 + 1s×par 步",
+    "parameters": {
+      "click_s": 1,
+      "decide_s_per_pipe": 3,
+      "observe_s": 8,
+      "tee_extra_s": 6
+    },
+    "per_level": [
+      {
+        "est_seconds": 12,
+        "level": 1
+      },
+      {
+        "est_seconds": 21,
+        "level": 2
+      },
+      {
+        "est_seconds": 31,
+        "level": 3
+      },
+      {
+        "est_seconds": 39,
+        "level": 4
+      },
+      {
+        "est_seconds": 39,
+        "level": 5
+      },
+      {
+        "est_seconds": 42,
+        "level": 6
+      },
+      {
+        "est_seconds": 54,
+        "level": 7
+      },
+      {
+        "est_seconds": 46,
+        "level": 8
+      },
+      {
+        "est_seconds": 51,
+        "level": 9
+      },
+      {
+        "est_seconds": 67,
+        "level": 10
+      }
+    ],
+    "provenance": "model_estimate_not_measurement",
+    "usage": "仅用于找节奏断档（相邻关估算时长跳变 >45s 视为陡增），不能当玩家实测数据"
+  },
+  "par_findings": {
+    "declared_par_total": 91,
+    "impact": "星级阈值带（⌈par×1.5⌉）随 par 一起被抬高，2 星容差失真；「最优解」标签与真实最短走法不符（需求要求每关记录最少旋转步数）",
+    "inflate_levels": [
+      {
+        "declared_par": 4,
+        "inflation_steps": 2,
+        "level": 2,
+        "name": "三连直道",
+        "true_par": 2
+      },
+      {
+        "declared_par": 10,
+        "inflation_steps": 4,
+        "level": 4,
+        "name": "绕墙而行",
+        "true_par": 6
+      },
+      {
+        "declared_par": 10,
+        "inflation_steps": 6,
+        "level": 5,
+        "name": "分光三通",
+        "true_par": 4
+      },
+      {
+        "declared_par": 10,
+        "inflation_steps": 2,
+        "level": 6,
+        "name": "双折回廊",
+        "true_par": 8
+      },
+      {
+        "declared_par": 10,
+        "inflation_steps": 1,
+        "level": 7,
+        "name": "分光择路",
+        "true_par": 9
+      },
+      {
+        "declared_par": 11,
+        "inflation_steps": 5,
+        "level": 8,
+        "name": "回环折阵",
+        "true_par": 6
+      },
+      {
+        "declared_par": 13,
+        "inflation_steps": 2,
+        "level": 9,
+        "name": "长蛇引光",
+        "true_par": 11
+      },
+      {
+        "declared_par": 14,
+        "inflation_steps": 2,
+        "level": 10,
+        "name": "终局光阵",
+        "true_par": 12
+      }
+    ],
+    "proven_optimal_levels": [
+      {
+        "declared_par": 1,
+        "inflation_steps": 0,
+        "level": 1,
+        "name": "初试光线",
+        "true_par": 1
+      }
+    ],
+    "recommendation": "二选一走拍板：① 修 LevelSet.par_of 为等效朝向感知（直管按 (target-init)%2 计），同步复核冒烟 par 非递减契约；② 保留声明 par 作为 3 星参考线（玩家更少步数仍 3 星，无恶性），但 spec.numeric 的参考步数/星级阈值改用 true_par。",
+    "root_cause": "直管元件有 180° 对称（rot 与 rot+2 开口等价），LevelSet.par_of 按精确 target_rot 计步，直管 init_rot 与 target_rot 同差 2 时多算 2 步",
+    "true_par_total": 67,
+    "unproven_levels": [
+      {
+        "declared_par": 8,
+        "inflation_steps": 0,
+        "level": 3,
+        "name": "转角初见",
+        "true_par": 8
+      }
+    ]
+  },
+  "star_distribution": {
+    "casual": {
+      "1": 1,
+      "2": 7,
+      "3": 2,
+      "fail": 0
+    },
+    "expert": {
+      "1": 0,
+      "2": 0,
+      "3": 10,
+      "fail": 0
+    },
+    "note": "moves = 按既定路线逐管旋转到通关的实测步数（走生产状态机 register_rotation）；中途光路已通即判通关，moves 可小于声明 par（直管对称性所致）；solved_early=true 表示试错步还没烧完就通关了，该关试错成本近乎为零",
+    "novice": {
+      "1": 8,
+      "2": 1,
+      "3": 1,
+      "fail": 0
+    },
+    "personas": [
+      {
+        "desc": "知道解法，零试错（3 星基准）",
+        "extra_clicks": 0,
+        "key": "expert"
+      },
+      {
+        "desc": "试错绕圈一次（+4 步）",
+        "extra_clicks": 4,
+        "key": "casual"
+      },
+      {
+        "desc": "试错绕圈两次（+8 步）",
+        "extra_clicks": 8,
+        "key": "novice"
+      }
+    ]
+  },
+  "star_thresholds": {
+    "bands": [
+      {
+        "band_width": 1,
+        "level": 1,
+        "name": "初试光线",
+        "par": 1,
+        "two_star_max": 2
+      },
+      {
+        "band_width": 2,
+        "level": 2,
+        "name": "三连直道",
+        "par": 4,
+        "two_star_max": 6
+      },
+      {
+        "band_width": 4,
+        "level": 3,
+        "name": "转角初见",
+        "par": 8,
+        "two_star_max": 12
+      },
+      {
+        "band_width": 5,
+        "level": 4,
+        "name": "绕墙而行",
+        "par": 10,
+        "two_star_max": 15
+      },
+      {
+        "band_width": 5,
+        "level": 5,
+        "name": "分光三通",
+        "par": 10,
+        "two_star_max": 15
+      },
+      {
+        "band_width": 5,
+        "level": 6,
+        "name": "双折回廊",
+        "par": 10,
+        "two_star_max": 15
+      },
+      {
+        "band_width": 5,
+        "level": 7,
+        "name": "分光择路",
+        "par": 10,
+        "two_star_max": 15
+      },
+      {
+        "band_width": 6,
+        "level": 8,
+        "name": "回环折阵",
+        "par": 11,
+        "two_star_max": 17
+      },
+      {
+        "band_width": 7,
+        "level": 9,
+        "name": "长蛇引光",
+        "par": 13,
+        "two_star_max": 20
+      },
+      {
+        "band_width": 7,
+        "level": 10,
+        "name": "终局光阵",
+        "par": 14,
+        "two_star_max": 21
+      }
+    ],
+    "note": "band_width = ⌈par/2⌉ = 2 星允许的额外步数；≤2 的关卡一次绕圈试错（+4）即掉 1 星",
+    "recommended_bands_from_true_par": [
+      {
+        "declared_two_star_max": 2,
+        "level": 1,
+        "name": "初试光线",
+        "recommended_two_star_max": 2,
+        "true_par": 1,
+        "true_par_semantics": "proven_exact"
+      },
+      {
+        "declared_two_star_max": 6,
+        "level": 2,
+        "name": "三连直道",
+        "recommended_two_star_max": 3,
+        "true_par": 2,
+        "true_par_semantics": "proven_exact"
+      },
+      {
+        "declared_two_star_max": 12,
+        "level": 3,
+        "name": "转角初见",
+        "recommended_two_star_max": 12,
+        "true_par": 8,
+        "true_par_semantics": "lower_bound_only"
+      },
+      {
+        "declared_two_star_max": 15,
+        "level": 4,
+        "name": "绕墙而行",
+        "recommended_two_star_max": 9,
+        "true_par": 6,
+        "true_par_semantics": "proven_exact"
+      },
+      {
+        "declared_two_star_max": 15,
+        "level": 5,
+        "name": "分光三通",
+        "recommended_two_star_max": 6,
+        "true_par": 4,
+        "true_par_semantics": "proven_exact"
+      },
+      {
+        "declared_two_star_max": 15,
+        "level": 6,
+        "name": "双折回廊",
+        "recommended_two_star_max": 12,
+        "true_par": 8,
+        "true_par_semantics": "proven_exact"
+      },
+      {
+        "declared_two_star_max": 15,
+        "level": 7,
+        "name": "分光择路",
+        "recommended_two_star_max": 14,
+        "true_par": 9,
+        "true_par_semantics": "proven_exact"
+      },
+      {
+        "declared_two_star_max": 17,
+        "level": 8,
+        "name": "回环折阵",
+        "recommended_two_star_max": 9,
+        "true_par": 6,
+        "true_par_semantics": "proven_exact"
+      },
+      {
+        "declared_two_star_max": 20,
+        "level": 9,
+        "name": "长蛇引光",
+        "recommended_two_star_max": 17,
+        "true_par": 11,
+        "true_par_semantics": "achievable_upper_bound"
+      },
+      {
+        "declared_two_star_max": 21,
+        "level": 10,
+        "name": "终局光阵",
+        "recommended_two_star_max": 18,
+        "true_par": 12,
+        "true_par_semantics": "achievable_upper_bound"
+      }
+    ],
+    "rule": "3 星 = par；2 星 = ≤⌈par×1.5⌉；1 星 = 通关（PuzzleLogic.stars_for 机判）",
+    "tight_two_star_levels": [
+      {
+        "band_width": 1,
+        "level": 1,
+        "name": "初试光线",
+        "par": 1,
+        "two_star_max": 2
+      },
+      {
+        "band_width": 2,
+        "level": 2,
+        "name": "三连直道",
+        "par": 4,
+        "two_star_max": 6
+      }
+    ]
+  },
+  "meta": {
+    "game": "game-4",
+    "title": "光路谜阵",
+    "generated_at_utc": "2026-09-26T16:21:27Z",
+    "collector": "games/game-4/qa/collect_tuning_data.sh",
+    "probe": "games/game-4/tests/tuning_probe.gd",
+    "fact_sources": [
+      "scripts/levels.gd",
+      "scripts/puzzle_logic.gd",
+      "autoload/game_state.gd"
+    ],
+    "method_notes": [
+      "全部数值由生产代码无头机判得出，无手填、无推测填充",
+      "par = LevelSet.par_of（声明最优解）；true_par = 有界 BFS 更短解搜索 + 直管 180° 对称闭式下界合成",
+      "星级分布 = expert/casual/novice 三档画像走真实 GameState.register_rotation 状态机",
+      "通关时长分两层：机器侧为有界搜索实测毫秒；人类时长为显式参数模型估算（models.*，非实测）",
+      "用户真实试玩数据以 PLAYTEST_KIT.md 四问量表回填为准，本文件不含也不代填用户结论"
+    ]
+  }
+}

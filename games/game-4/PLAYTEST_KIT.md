@@ -3,6 +3,8 @@
 > 试玩入口：<https://leomac-studio.tail49399e.ts.net/apps/game-4/gw>
 > 量表状态：**待用户试玩（未回填）** —— 本包只交付指引与量表，不预设任何试玩结论；
 > 结论只能来自试玩者回填（见 §五）。工程内对应关卡数据源：`scripts/levels.gd`（10 关）。
+> 调参数据（headless 机判）：`qa/tuning-data.json`（采集器 `qa/collect_tuning_data.sh`，
+> 探针 `tests/tuning_probe.gd`；含 par/真最优/星级带/难度曲线与 par 虚高发现，供 spec.numeric 拍板取数）。
 
 ## 一、试玩指引（怎么玩、看什么）
 
@@ -64,15 +66,28 @@
 
 ## 三、调参工作台入口
 
-- 约定入口：`<liveUrl>?tuning=1` → <https://leomac-studio.tail49399e.ts.net/apps/game-4/gw?tuning=1>
-- **当前状态：暂不可用（如实标注，不带病交付）**。调参面板依赖平台技能包的
-  `GameState.TUNING_META` 调参协议（SKILL.md §3C），该协议资产与
-  `std-skills/godot-game-dev/scripts/playtest.sh` 同属模板仓库未预置内容；
-  仓库内（含其它游戏工程）均未实现，打开上述链接不会出现调参面板。
-- 残余缺口与补救路径（二选一）：① 平台侧给技能包补 TUNING_META 协议资产；
-  ② 后续节点按该契约为 game-4 实现面板（`?tuning=1` 打开右上角滑杆面板 + 「复制调参 URL」）。
-- 当前用户回填通道：直接把 §二 四问答案发回目标会话即可；面板可用后，
-  回填带 `?tuning=<JSON>` 的链接将自动走 spec.numeric revisions（见 §五）。
+- 入口形态：**URL 直填 JSON**（`<liveUrl>?tuning=<JSON对象>`）。
+  示例：<https://leomac-studio.tail49399e.ts.net/apps/game-4/gw?tuning=%7B%22beam_core_width%22:12%7D>
+  （把光束主线宽调到 12；`{`/`"` 需 URL 编码，或直接把 JSON 粘在 `?tuning=` 后也能被解析）。
+- **当前状态：已可用（线上 v2 部署，deploymentId=cmuihb72x002dm9gcj5f1ud2b，commit 619d6d6）**。
+  契约：壳页解析 `?tuning=` 的 JSON 对象 → `window.__GAME_TUNING__` → 游戏侧
+  `GameState._apply_tuning()` 只认 TUNING_META 声明键并按 min/max 钳制；
+  非对象 / 非法 JSON / 未知键一律忽略，绝不阻断启动（因此 `?tuning=1` 是安全的空操作，不会出面板）。
+- 当前可调键（TUNING_META，实测自线上壳页与部署线 `autoload/game_state.gd`）：
+
+  | 键 | 范围 | 默认 | 含义 |
+  |---|---|---|---|
+  | `beam_core_width` | 2 ~ 16 | 6 | 光束主线宽度 |
+  | `beam_glow_width` | 4 ~ 40 | 16 | 光束辉光宽度 |
+
+  注意：当前桥只覆盖**光束视觉参数**；星级阈值 / 参考步数等玩法数值尚未接桥，
+  其调参依据走 `qa/tuning-data.json`（headless 机判）+ §五 spec.numeric 拍板流程。
+- 滑杆式面板（打开即见滑杆 + 「复制调参 URL」按钮）**仍未实现**；当前交互就是改 URL 重开页面。
+- 分支现状（如实标注）：调参桥壳层代码在部署线分支
+  `myrd/games-goal-cmuieqj7o0031m9gyf4pbwptg`（619d6d6），本分支 `myrd/game-4-goal-…` 尚未合入该壳层改动；
+  两线玩法逻辑源（levels.gd / puzzle_logic.gd）逐字一致，调参数据对两线同样有效。
+- 用户回填通道：把 §二 四问答案直接发回目标会话即可；想对比光束视觉效果时，
+  改 `?tuning=<JSON>` 里的数值重开页面，并在回填里附上所用 JSON（后续可走 spec.numeric revisions，见 §五）。
 
 ## 四、门禁与来源说明（为什么没有 GODOT_PLAYTEST）
 
