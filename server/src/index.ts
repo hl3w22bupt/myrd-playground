@@ -32,11 +32,23 @@ app.get("/", (c) => c.html(GAME_PAGE_HTML));
  */
 app.get("/api/public/assets/:name", async (c) => {
   const name = c.req.param("name");
+  const wantsRawName = !name.endsWith(".gz.b64");
   const asset = await getAsset(name.replace(/\.gz\.b64$/, ""));
   if (!asset) {
     return c.text(`asset not found: ${name}`, 404);
   }
-  const contentType = asset.encoding === "raw" ? asset.contentType : "text/plain; charset=utf-8";
+  // raw 名直取（验收/直连口径）：gzip 资产以清单真实 contentType 伺服，满足「.wasm 的
+  // Content-Type 必须为 application/wasm」部署硬约束 —— M1 网关二进制黑名单只拦
+  // octet-stream/pdf/zip/gzip 等，application/wasm 可透传。body 仍为 base64 文本
+  // （网关 res.text() 文本通道会破坏原始二进制），浏览器消费路径不变（.gz.b64 + 端内解压）。
+  // 其余 gzip 资产（pck = octet-stream，会被网关 502）维持 text/plain 形态。
+  const GATEWAY_PASSABLE_GZIP_CT = /^application\/wasm$/;
+  const contentType =
+    asset.encoding === "raw"
+      ? asset.contentType
+      : wantsRawName && GATEWAY_PASSABLE_GZIP_CT.test(asset.contentType)
+        ? asset.contentType
+        : "text/plain; charset=utf-8";
   return c.body(asset.body, 200, {
     "Content-Type": contentType,
     "Cache-Control": "public, max-age=300",
