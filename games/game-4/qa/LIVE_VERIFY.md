@@ -33,6 +33,22 @@
   `playable / deploy_playable / completed / https://leomac-studio.tail49399e.ts.net/apps/game-4/`（唯一一条，重复项已清理）
 - 与既有 `hosted_app`（`/apps/game-4/gw` 相对路径）并存，本次为完整公网 URL 口径
 
+## 四、v5 轮核验（2026-09-27，spec.numeric 收口重部署）
+
+- 部署：**v5 running**（commit `6cbeee5`，deploymentId `cmuin4z7q001om9l6lxwbw46s`，
+  gitRef `myrd/games-goal-cmuieqj7o0031m9gyf4pbwptg`，mode=bundle，11 资产 36.5MB→存储 10.4MB）
+- 本轮构建内容：spec.numeric 拍板数值（par 修真 + 难度曲线回正，见 `qa/spec-numeric.json`）
+  + Juice 反馈协议 + 合成音效（`qa/SFX_NOTES.md`），四门禁全绿（PREFLIGHT / GODOT_SMOKE 240 帧 /
+  GODOT_FUZZ / **GODOT_PLAYTEST** 3 种子×900 帧）
+
+| 步骤 | 结果 |
+|---|---|
+| 壳页 `GET /apps/game-4/gw` | **200 text/html**（12KB；`/` 308 规整，正常） |
+| `GET /api/public/assets/index.wasm` | **200 + `content-type: application/wasm`** ✓（硬约束持续满足） |
+| `GET /api/public/assets/index.js` | 200 `text/javascript` |
+| pck 内容一致性 | 线上资产（b64→gunzip 解码）与仓库构建 `export/web/index.pck` **逐字节一致**（sha256 `5bfa5ca8…`，2,568,528 B）—— 线上即本轮新构建 |
+| 部署状态 | `running`（= 服务中终态，engine 事务内切指针 + hosted_apps.current_deployment_id 已指向 v5） |
+
 ## 结论
 
 **公网可玩：通过。** liveUrl 可直接打开试玩，第 1 关加载、渲染、旋转交互、通关结算、星级判定全部符合需求；`.wasm` Content-Type 硬约束已修复并在线验证；COOP/COEP 以平台 M1 阶段等效配置达成（M2 可补头部）。
