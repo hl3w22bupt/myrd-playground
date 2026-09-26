@@ -17,40 +17,46 @@ extends Node
 ##   D. 重开可用：confirm 动作（结算态键盘入口）触发重开 ——
 ##      分数归 0、护盾恢复初始值、面板隐藏、新战场生成
 ##
+## 可复现性设计（门禁要求同一事件序 → 同一判定结果）：
+## - 噪声相位结束后 Input.release_pressed_events()，清掉悬挂按键/手势；
+## - 重铺战场【之前】先把玩家固定到确定点：_pick_spawn_point 的重试次数取决于
+##   玩家位置，位置不定会改变 RNG 消耗次数，导致「同种子不同布局」；
+## - 收集/受击采用「跟随式传送」：每物理帧把玩家贴到目标上，直到物理判定达成
+##   —— body_entered 只在进入重叠时发一次，不跟随会被目标漂移/晚到的输入残留
+##   造成偶发漏判（实测：墙钟脱钩 + 布局漂移组合下 1/13 偶发失败）；
+## - 快进扣血等后续阶段以「受击达成帧」为锚点自适应排期，不再依赖固定帧号。
 ## ⚠️ 输入注入分两个阶段、互不重叠（references/error-signatures.md E-08）：
 ##   headless 下 Input.parse_input_event() 的缓冲冲刷会清掉 Input.action_press()
 ##   设置的按下状态，两者同帧混用会让「移动断言」假失败。
-## ⚠️ 噪声相位结束后统一 Input.action_release 四个方向动作，防悬挂按键抵消 move_right。
 
 ## ── 噪声相位（输入鲁棒性门禁的逐游戏语义层，与模板同种子同事件序）──
 const NOISE_FRAMES: int = 30
 ## 战场固定种子：冒烟要求可复现（同一事件序 → 同一判定结果）。
 const SMOKE_SEED: int = 20260926
+## 移动相位的固定出发点（战场重铺前把玩家固定在此，保证 RNG 消耗次数恒定）。
+const MOVE_ORIGIN: Vector2 = Vector2(320, 180)
 ## 阶段一：按住 move_right 的帧数。
 const MOVE_FRAMES: int = 10
-## 传送接触后等待物理判定送达的帧数。
+## 传送接触后等待物理判定送达的帧数（收集相位）。
 const CONTACT_FRAMES: int = 6
-## 无敌帧窗口观察帧数（0.5s < 默认无敌帧 0.8s，期间不允许第二次扣盾）。
+## 受击跟随窗口：期间逐帧贴住目标陨石，直到护盾扣减达成。
+## 取 50 帧 > 默认无敌帧 48 tick：即使布局里存在更早的擦碰，窗口也覆盖到其过期。
+const HIT_WINDOW_FRAMES: int = 50
+## 无敌帧窗口观察帧数（0.5s < 默认无敌帧 0.8s≈48 tick，期间不允许第二次扣盾）。
 const INVINCIBILITY_FRAMES: int = 30
-## 快速结算前再等的帧数：等首次物理受击的无敌帧（0.8s ≈ 48 帧）自然过期，
-## 快进扣血才不会被「上一颗陨石」的无敌帧正确地挡掉。
-const IFRAME_EXPIRE_FRAMES: int = 18
-## 快速结算：把无敌帧临时调短后的帧间隔（> 0.05s 的物理帧数）。
+## 快速结算：把无敌帧临时调短后的帧间隔（> 0.05s≈3 tick 的物理帧数）。
 const FAST_HIT_FRAMES: int = 7
+## 物理受击后其无敌帧（48 tick）确认过期所需帧数（留 4 tick 余量）。
+const IFRAME_EXPIRE_FRAMES: int = 52
 ## 注入 confirm 后等待重开生效的帧数。
 const RESTART_FRAMES: int = 8
-## ── 关键帧（由上面的间隔推导，避免两处手数不一致）──
+
+## ── 固定锚点帧 ──
 const FRAME_MOVE_START: int = NOISE_FRAMES + 1
 const FRAME_MOVE_END: int = NOISE_FRAMES + MOVE_FRAMES
 const FRAME_COLLECT_ASSERT: int = FRAME_MOVE_END + CONTACT_FRAMES
-const FRAME_HIT_ASSERT: int = FRAME_COLLECT_ASSERT + CONTACT_FRAMES
-const FRAME_IFRAME_ASSERT: int = FRAME_HIT_ASSERT + INVINCIBILITY_FRAMES
-const FRAME_FAST_HIT_1: int = FRAME_IFRAME_ASSERT + IFRAME_EXPIRE_FRAMES
-const FRAME_FAST_HIT_2: int = FRAME_FAST_HIT_1 + FAST_HIT_FRAMES
-const FRAME_GAME_OVER_ASSERT: int = FRAME_FAST_HIT_2 + FAST_HIT_FRAMES
-const FRAME_RESTART_ASSERT: int = FRAME_GAME_OVER_ASSERT + RESTART_FRAMES
-## 总帧数上限（超过即出报告，防止死循环；smoke.sh 另有 --quit-after 兜底）。
-const TOTAL_FRAMES: int = FRAME_RESTART_ASSERT + 2
+const FRAME_HIT_WINDOW_START: int = FRAME_COLLECT_ASSERT + 1
+const FRAME_HIT_WINDOW_END: int = FRAME_HIT_WINDOW_START + HIT_WINDOW_FRAMES - 1
 
 ## 判定「真的移动了」的最小位移（像素）。
 const MIN_MOVE_DISTANCE: float = 1.0
@@ -78,8 +84,18 @@ var _moved_seen: bool = false
 var _score_seen: bool = false
 var _score_before_collect: int = 0
 var _collect_target: StarDust
+var _hit_target: Asteroid
 var _shield_before_hit: int = 0
+var _shield_after_hit: int = -1
+var _hit_landed_tick: int = -1
 var _score_at_game_over: int = -1
+## 受击达成后的自适应锚点（受击帧 + 偏移推导，避免与实际达成帧脱钩）。
+var _t_iframe_assert: int = -1
+var _t_fast_hit_1: int = -1
+var _t_fast_hit_2: int = -1
+var _t_game_over: int = -1
+var _t_restart: int = -1
+var _t_report: int = -1
 
 
 func _ready() -> void:
@@ -114,7 +130,6 @@ func _ready() -> void:
 		_failures.append("主场景里找不到 Player（player.tscn 未实例化或未挂 player.gd）")
 	else:
 		_player.moved.connect(_on_player_moved)
-		_origin = _player.global_position
 	if _main.restart_button == null:
 		_failures.append("主场景缺少 RestartButton（重开入口不存在）")
 	elif not _main.restart_button.pressed.is_connected(_main._on_restart_pressed):
@@ -132,27 +147,34 @@ func _physics_process(_delta: float) -> void:
 		elif _frames == FRAME_MOVE_START:
 			_begin_move_phase()
 		elif _frames == FRAME_MOVE_END:
-			_end_move_phase()
+			_end_move_phase_begin_collect()
+		elif _frames > FRAME_MOVE_END and _frames < FRAME_COLLECT_ASSERT:
+			_follow_collect()
 		elif _frames == FRAME_COLLECT_ASSERT:
+			_follow_collect()
 			_assert_collected()
 			_begin_hit_phase()
-		elif _frames == FRAME_HIT_ASSERT:
-			_assert_hit()
-		elif _frames == FRAME_IFRAME_ASSERT:
+		elif _frames >= FRAME_HIT_WINDOW_START and _frames <= FRAME_HIT_WINDOW_END:
+			_follow_hit()
+		elif _frames == FRAME_HIT_WINDOW_END + 1 and _hit_landed_tick < 0:
+			_failures.append("受击判定失败：跟随陨石 %d 帧（%d-%d）内护盾始终未从 %d 扣减（body_entered 未触发或受击链路断裂）" % [
+				HIT_WINDOW_FRAMES, FRAME_HIT_WINDOW_START, FRAME_HIT_WINDOW_END, _shield_before_hit,
+			])
+		elif _t_iframe_assert > 0 and _frames == _t_iframe_assert:
 			_assert_invincibility_window()
-		elif _frames == FRAME_FAST_HIT_1:
-			# 首次受击的无敌帧已过期；把无敌帧临时调短，快进打出剩余扣盾。
+		elif _t_fast_hit_1 > 0 and _frames == _t_fast_hit_1:
+			# 物理受击的无敌帧（48 tick）已过期；把无敌帧临时调短，快进打出剩余扣盾。
 			GameConfig.invincibility_seconds = 0.05
 			_player.take_hit()
-		elif _frames == FRAME_FAST_HIT_2:
+		elif _t_fast_hit_2 > 0 and _frames == _t_fast_hit_2:
 			_player.take_hit()
-		elif _frames == FRAME_GAME_OVER_ASSERT:
+		elif _t_game_over > 0 and _frames == _t_game_over:
 			_assert_game_over()
 			_press_action(&"confirm")
-		elif _frames == FRAME_RESTART_ASSERT:
+		elif _t_restart > 0 and _frames == _t_restart:
 			_assert_restarted()
 
-	if _frames >= TOTAL_FRAMES or not _failures.is_empty():
+	if (_t_report > 0 and _frames >= _t_report) or not _failures.is_empty():
 		_finished = true
 		_report()
 
@@ -239,17 +261,27 @@ func _key_labels(keys: Array) -> String:
 
 
 ## ── A. 移动断言 ──
-func _begin_move_phase() -> void:
-	# 固定种子重铺战场（可复现），并清掉噪声相位可能悬挂的方向按键。
-	_main.respawn_field(SMOKE_SEED)
+## 逐个释放方向动作：晚到的噪声按键可能重新置起动作强度，移动/传送前必须清零。
+func _release_move_actions() -> void:
 	for action in [&"move_left", &"move_right", &"move_up", &"move_down"]:
 		Input.action_release(action)
+
+
+func _begin_move_phase() -> void:
+	# 先把玩家固定到确定点再重铺战场：_pick_spawn_point 的重试次数取决于玩家位置，
+	# 位置不定会改变 RNG 消耗次数，导致「同种子不同布局」（偶发失败根因之一）。
+	_player.global_position = MOVE_ORIGIN
+	_player.velocity = Vector2.ZERO
+	# 清掉噪声相位可能悬挂/晚到的方向按键，保证动作强度从零开始。
+	_release_move_actions()
+	_main.respawn_field(SMOKE_SEED)
 	_origin = _player.global_position
 	Input.action_press(&"move_right")
 
 
-func _end_move_phase() -> void:
+func _end_move_phase_begin_collect() -> void:
 	Input.action_release(&"move_right")
+	_release_move_actions()
 	var travelled: float = _player.global_position.distance_to(_origin)
 	if travelled < MIN_MOVE_DISTANCE:
 		_failures.append("玩家 %d 帧内位移 %.2fpx < %.2fpx：InputMap 动作未生效或 _physics_process 未驱动 velocity" % [
@@ -271,11 +303,19 @@ func _begin_collect_phase() -> void:
 	_player.global_position = _collect_target.global_position
 
 
+## 跟随式收集：晶体静止，但残留输入可能让玩家漂移 —— 贴住直到判定达成。
+func _follow_collect() -> void:
+	if _collect_target == null or not is_instance_valid(_collect_target):
+		return
+	if GameState.score != _score_before_collect:
+		return  # 已收集，停止跟随
+	_player.global_position = _collect_target.global_position
+
+
 func _assert_collected() -> void:
-	if _collect_target != null and is_instance_valid(_collect_target):
-		_failures.append("星尘晶体接触玩家后未被收集（Area2D body_entered 未触发或收集门闩失效）")
+	_collect_target = null
 	if GameState.score != _score_before_collect + GameConfig.score_per_crystal:
-		_failures.append("收集判定失败：分数 %d ≠ %d + score_per_crystal(%d)" % [
+		_failures.append("收集判定失败：分数 %d ≠ %d + score_per_crystal(%d)（Area2D body_entered 未触发或收集门闩失效）" % [
 			GameState.score, _score_before_collect, GameConfig.score_per_crystal,
 		])
 	if _main.effects.get_child_count() == 0:
@@ -288,26 +328,47 @@ func _begin_hit_phase() -> void:
 	if _main.asteroids.get_child_count() == 0:
 		_failures.append("战场里没有陨石（respawn_field 未按 max_asteroids 生成）")
 		return
-	var target := _main.asteroids.get_child(0) as Asteroid
-	if target == null:
+	_hit_target = _main.asteroids.get_child(0) as Asteroid
+	if _hit_target == null:
 		_failures.append("Asteroids 容器里存在非 Asteroid 子节点（场景组装错误）")
 		return
-	_player.global_position = target.global_position
+	_player.global_position = _hit_target.global_position
 
 
-func _assert_hit() -> void:
+## 跟随式受击：陨石在漂移且 body_entered 只在进入重叠时发一次 ——
+## 逐帧贴住目标并做「贴上-拉开」脉冲（拉开 > 25px 重叠半径制造新的进入事件），
+## 直到护盾扣减达成；若布局中存在更早的擦碰（无敌帧占用），过期后的第一次
+## 进入仍能受击，整个窗口内未达成才判失败。
+func _follow_hit() -> void:
+	if _hit_landed_tick >= 0:
+		return
+	if _hit_target == null or not is_instance_valid(_hit_target):
+		return
+	if _frames % 4 < 3:
+		_player.global_position = _hit_target.global_position
+	else:
+		_player.global_position = _hit_target.global_position + Vector2(44, 0)
 	var expected: int = maxi(_shield_before_hit - GameConfig.damage_per_hit, 0)
-	if GameState.shield != expected:
-		_failures.append("受击判定失败：护盾 %d ≠ %d - damage_per_hit(%d)（陨石碰撞未扣盾）" % [
-			GameState.shield, _shield_before_hit, GameConfig.damage_per_hit,
-		])
+	if GameState.shield != _shield_before_hit:
+		if GameState.shield != expected:
+			_failures.append("受击判定失败：护盾 %d ≠ %d - damage_per_hit(%d)（一次碰撞的扣盾数值不对）" % [
+				GameState.shield, _shield_before_hit, GameConfig.damage_per_hit,
+			])
+			return
+		_hit_landed_tick = _frames
+		_shield_after_hit = GameState.shield
+		_t_iframe_assert = _hit_landed_tick + INVINCIBILITY_FRAMES
+		_t_fast_hit_1 = _hit_landed_tick + IFRAME_EXPIRE_FRAMES
+		_t_fast_hit_2 = _t_fast_hit_1 + FAST_HIT_FRAMES
+		_t_game_over = _t_fast_hit_2 + FAST_HIT_FRAMES
+		_t_restart = _t_game_over + RESTART_FRAMES
+		_t_report = _t_restart + 2
 
 
 func _assert_invincibility_window() -> void:
-	var expected: int = maxi(_shield_before_hit - GameConfig.damage_per_hit, 0)
-	if GameState.shield != expected:
-		_failures.append("无敌帧失效：接触陨石 %d 帧（< %.1fs 无敌帧）内护盾从 %d 变为 %d，同一次碰撞被重复扣血" % [
-			INVINCIBILITY_FRAMES, GameConfig.invincibility_seconds, expected, GameState.shield,
+	if GameState.shield != _shield_after_hit:
+		_failures.append("无敌帧失效：受击后 %d 帧（< %.1fs 无敌帧）内护盾从 %d 变为 %d，同一次碰撞被重复扣血" % [
+			INVINCIBILITY_FRAMES, GameConfig.invincibility_seconds, _shield_after_hit, GameState.shield,
 		])
 
 
@@ -349,6 +410,10 @@ func _assert_restarted() -> void:
 
 
 func _report() -> void:
+	if _hit_landed_tick < 0 and _hit_target != null and _failures.is_empty():
+		_failures.append("受击判定失败：跟随陨石 %d 帧（%d-%d）内护盾始终未从 %d 扣减（body_entered 未触发或受击链路断裂）" % [
+			HIT_WINDOW_FRAMES, FRAME_HIT_WINDOW_START, FRAME_HIT_WINDOW_END, _shield_before_hit,
+		])
 	if not _moved_seen:
 		_failures.append("信号 Player.moved 未到达订阅方：连接断裂或从未 emit")
 	if not _score_seen:

@@ -18,7 +18,10 @@ const PLAY_BOUNDS: Rect2 = Rect2(16.0, 16.0, 608.0, 328.0)
 
 var speed: float = 240.0
 
-var _invincible_until_sec: float = 0.0
+## 无敌帧剩余物理 tick 数（>0 期间再次受击被忽略）。
+## 用物理 tick 计数而不用墙钟：headless / 掉帧场景下墙钟与物理节拍会脱钩，
+## 受击窗口必须跟随游戏时间（60 tick/s）才可判定、可复现。
+var _iframe_ticks_left: int = 0
 var _blink_tween: Tween
 
 
@@ -27,6 +30,8 @@ func _ready() -> void:
 
 
 func _physics_process(_delta: float) -> void:
+	if _iframe_ticks_left > 0:
+		_iframe_ticks_left -= 1
 	var direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	velocity = direction * speed
 	move_and_slide()
@@ -37,15 +42,18 @@ func _physics_process(_delta: float) -> void:
 
 ## 撞上陨石（陨石侧的 body_entered 调用）：无敌帧外才真正扣盾。
 func take_hit() -> void:
-	if GameState.is_game_over:
+	if GameState.is_game_over or _iframe_ticks_left > 0:
 		return
-	var now_sec: float = Time.get_ticks_msec() / 1000.0
-	if now_sec < _invincible_until_sec:
-		return
-	_invincible_until_sec = now_sec + GameConfig.invincibility_seconds
+	_iframe_ticks_left = _invincibility_ticks()
 	GameState.apply_hit()
 	hit_taken.emit(GameState.shield)
 	_play_blink()
+
+
+## 无敌帧时长（秒）→ 物理 tick 数（至少 1 tick）。
+func _invincibility_ticks() -> int:
+	var ticks := int(round(GameConfig.invincibility_seconds * float(Engine.physics_ticks_per_second)))
+	return maxi(ticks, 1)
 
 
 ## 受击反馈：无敌帧期间飞船闪烁，给「刚才那下生效了」的视觉证据。
