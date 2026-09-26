@@ -118,8 +118,8 @@ body { color: #fff; background: #10141f; overflow: hidden; touch-action: none; f
       { key: 'jump_velocity_abs',  label: '起跳力度', min: 260, max: 900,  step: 10, def: 520, unit: 'px/s' },
       { key: 'gravity',            label: '重力',     min: 700, max: 2800, step: 20, def: 1400, unit: 'px/s²' },
       { key: 'max_jumps',          label: '跳跃段数', min: 1,   max: 3,    step: 1,  def: 2,   unit: '段' },
-      { key: 'coyote_frames',      label: '土狼时间', min: 0,   max: 20,   step: 1,  def: 6,   unit: '帧' },
-      { key: 'jump_buffer_frames', label: '跳跃缓冲', min: 0,   max: 20,   step: 1,  def: 6,   unit: '帧' },
+      { key: 'coyote_frames',      label: '土狼时间', min: 0,   max: 20,   step: 1,  def: 12,  unit: '帧' },
+      { key: 'jump_buffer_frames', label: '跳跃缓冲', min: 0,   max: 20,   step: 1,  def: 12,  unit: '帧' },
       { key: 'dart_score',         label: '飞镖分值', min: 1,   max: 10,   step: 1,  def: 1,   unit: '分' },
       { key: 'win_bonus',          label: '过关奖励', min: 0,   max: 50,   step: 1,  def: 10,  unit: '分' }
     ];
