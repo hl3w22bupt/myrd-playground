@@ -20,7 +20,9 @@ extends Node
 ##   7. 重开可用：reset 动作归零步数/朝向/通关态，可再次通关
 ##   8. 撤销可用：undo 回退步数与朝向、栈清空；通关后撤销被屏蔽
 ##   9. 解锁推进：通关解锁下一关；未解锁的关 request_level / level_next 一律拒绝
-##  10. 多管关卡：第 2 关按最优解 4 步通关得 3 星，最少步数纪录落档
+##  10. 多管关卡：第 2 关按最优解 2 步（等效朝向感知）通关得 3 星，最少步数纪录落档
+##  11. 模板反馈协议：Juice autoload 已注册（feedback_fired/clear_events），
+##      GameState 带 score_changed 得分锚点（playtest 门禁的两个采样锚点）
 ##
 ## ⚠️ 输入注入分两个通道、互不重叠（references/error-signatures.md E-08）：
 ##   移动断言用 Input.action_press（强度通道，Input.get_vector 读取），
@@ -57,7 +59,7 @@ const L2_ROTATE_FRAME: int = L2_LOADED_ASSERT_FRAME + 1      # 84：confirm 旋�
 const L2_ROTATE_ASSERT_FRAME: int = L2_ROTATE_FRAME + 4      # 88：断言计步 + 朝向 + 未误判通关
 const L2_UNDO_FRAME: int = L2_ROTATE_ASSERT_FRAME + 1        # 89：undo 撤销这一步
 const L2_UNDO_ASSERT_FRAME: int = L2_UNDO_FRAME + 4          # 93：断言步数与朝向回退、栈清空
-const L2_SOLVE_FRAME: int = L2_UNDO_ASSERT_FRAME + 1         # 94：按最优解 4 步转完三根管
+const L2_SOLVE_FRAME: int = L2_UNDO_ASSERT_FRAME + 1         # 94：按最优解 2 步转完首尾直管
 const L2_SOLVE_ASSERT_FRAME: int = L2_SOLVE_FRAME + 6        # 100：断言通关 3 星 + 解锁第 3 关
 const L2_UNDO_BLOCKED_FRAME: int = L2_SOLVE_ASSERT_FRAME + 1 # 101：通关后按 undo 应被屏蔽
 const L2_UNDO_BLOCKED_ASSERT: int = L2_UNDO_BLOCKED_FRAME + 4  # 105：断言步数/通关态未被改动
@@ -121,10 +123,20 @@ func _static_assertions() -> void:
 	if game_state == null:
 		_failures.append("autoload GameState 未注册（project.godot [autoload] 缺失）")
 	else:
-		for signal_name in ["moves_changed", "level_changed", "level_solved"]:
+		for signal_name in ["moves_changed", "level_changed", "level_solved", "score_changed"]:
 			if not game_state.has_signal(signal_name):
 				_failures.append("autoload GameState 缺少信号 %s" % signal_name)
 		game_state.level_solved.connect(_on_level_solved)
+	# 模板反馈协议（SKILL.md §3B）：playtest 门禁以 Juice.feedback_fired 为反馈采样锚点，
+	# 缺注册 = 机器试玩直接 FAIL（结构性，阈值救不回来），这里提前到冒烟层拦截。
+	var juice := get_tree().root.get_node_or_null("Juice")
+	if juice == null:
+		_failures.append("autoload Juice 未注册（模板反馈协议缺失，见 SKILL.md §3B）")
+	else:
+		if not juice.has_signal("feedback_fired"):
+			_failures.append("autoload Juice 缺少信号 feedback_fired（playtest 反馈锚点失效）")
+		if not juice.has_method("clear_events"):
+			_failures.append("autoload Juice 缺少 clear_events()（playtest 无法清采样窗）")
 
 	_main = get_tree().root.find_child("Main", true, false) as Node2D
 	if _main == null:
@@ -415,11 +427,14 @@ func _assert_l2_undone() -> void:
 		_failures.append("撤销断言：undo 后 solved 仍为 true")
 
 
-## 以最优解（第 2 关 par=1+2+1=4 步）驱动通关：多管关卡的可通关性 + 星级规则复验。
+## 以最优解驱动通关（第 2 关 par = 1+0+1 = 2 步：首尾两根直管各转 1 次，
+## 中管 init_rot 与 target_rot 同差 2、180° 等效朝向无需旋转）：
+## 多管关卡的可通关性 + 星级规则复验。
 func _drive_l2_optimal_solve() -> void:
 	var level: Dictionary = LevelSet.level_at(1)
 	for pipe: Dictionary in level["pipes"]:
-		var clicks: int = PuzzleLogic.clicks_between(int(pipe["init_rot"]), int(pipe["target_rot"]))
+		var clicks: int = PuzzleLogic.min_clicks_between(
+			pipe["type"], int(pipe["init_rot"]), int(pipe["target_rot"]))
 		for click: int in range(clicks):
 			if _board.rotate_at(pipe["cell"]):
 				GameState.register_rotation(_board.current_cells(), _board.level)

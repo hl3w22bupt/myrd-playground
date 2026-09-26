@@ -61,6 +61,17 @@ static func clicks_between(init_rot: int, target_rot: int) -> int:
 	return (target_rot - init_rot + 4) % 4
 
 
+## 等效朝向感知的最少点击数（spec.numeric 拍板 ①，qa/TUNING_NOTES.md §二.1）：
+## 直管有 180° 对称（rot 与 rot+2 开口完全等价），点击数按 (target - init) mod 2 计；
+## 弯管 / 三通四个朝向两两不同，按顺时针转到位的点击数计。
+## 依据：直管按精确 target_rot 计步会把「同差 2」的等效朝向多算 2 步，
+## 导致参考步数与 2 星阈值带（⌈par×1.5⌉）系统性虚高（qa/tuning-data.json 实证 8/10 关虚高）。
+static func min_clicks_between(piece_type: String, init_rot: int, target_rot: int) -> int:
+	if piece_type == TYPE_STRAIGHT:
+		return (target_rot - init_rot + 4) % 2
+	return (target_rot - init_rot + 4) % 4
+
+
 ## 星级规则（需求 §星级规则）：
 ##   1 星 = 通关；2 星 = moves ≤ ceil(par × 1.5)；3 星 = 以最优解步数通关。
 static func stars_for(moves: int, par: int) -> int:

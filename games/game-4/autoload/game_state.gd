@@ -14,6 +14,10 @@ signal level_changed(level_index: int)
 signal level_solved(stars: int, moves: int, par: int)
 ## 新解锁一关（参数：新解锁的关卡下标；用于 HUD 关卡条刷新与提示）。
 signal level_unlocked(level_index: int)
+## 得分事件（解谜品类把「通关得分」映射为累计星数；参数：当前累计星数）。
+## 这是 playtest 门禁的奖励采样锚点（模板协议，见 SKILL.md §4.5）——
+## 每次通关必发（即使星数未创新高，重复通关同样是正反馈事件）。
+signal score_changed(score: int)
 
 const SAVE_PATH: String = "user://guanglu_save.cfg"
 ## 存档版本：字段结构变化时 +1，旧档直接丢弃重开档。
@@ -30,6 +34,8 @@ const TUNING_META: Dictionary = {
 var level_index: int = 0
 var moves: int = 0
 var solved: bool = false
+## 累计星数（Σ 各关历史最高星级；得分锚点，通关即变化/广播）。
+var score: int = 0
 ## 各关历史最高星级（只升不降，本地存档）。
 var best_stars: Dictionary = {}
 ## 各关历史最少通关步数（0 = 尚未通关；本地存档，重玩刷星用）。
@@ -80,6 +86,11 @@ func reset_level() -> void:
 	start_level(level_index)
 
 
+## 模板协议别名（playtest 驱动每局开头调用）：等价于重开当前关。
+func reset() -> void:
+	reset_level()
+
+
 ## 关卡是否已解锁（解锁进度门禁：第 n+1 关需先通关第 n 关）。
 func is_unlocked(index: int) -> bool:
 	return index >= 0 and index <= unlocked_max
@@ -118,9 +129,19 @@ func register_rotation(cells: Dictionary, level: Dictionary) -> int:
 		var stars: int = PuzzleLogic.stars_for(moves, par)
 		_record_score(level_index, stars, moves)
 		_unlock_next(level_index)
+		_recompute_score()
+		score_changed.emit(score)
 		level_solved.emit(stars, moves, par)
 		return stars
 	return 0
+
+
+## 重算累计星数（Σ 各关历史最高星级）；通关路径与载入存档后都会同步。
+func _recompute_score() -> void:
+	var total: int = 0
+	for stars: int in best_stars.values():
+		total += stars
+	score = total
 
 
 ## 撤销一次旋转：步数 -1（下限 0），通关态不受影响（通关后由调用方屏蔽撤销）。
@@ -161,6 +182,7 @@ func reset_progress() -> void:
 	best_stars.clear()
 	best_moves.clear()
 	unlocked_max = 0
+	score = 0
 	save()
 
 
@@ -186,6 +208,7 @@ func load_save() -> void:
 	for key_moves: String in encoded_moves:
 		best_moves[int(key_moves)] = int(encoded_moves[key_moves])
 	unlocked_max = clampi(int(config.get_value("progress", "unlocked_max", 0)), 0, LevelSet.count() - 1)
+	_recompute_score()
 
 
 ## Dictionary[int] -> Dictionary[String]（ConfigFile 只稳定支持字符串键）。

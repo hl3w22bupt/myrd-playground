@@ -8,13 +8,23 @@ extends RefCounted
 ##   sink_cell/sink_open    —— 终点所在格与开口方向（光行进方向的反向 = sink_open 时接收）；
 ##   walls                  —— 墙体（阻挡物，光进入即中断，不可旋转、不可穿透）；
 ##   pipes                  —— 可旋转管道：init_rot = 关卡初始朝向，target_rot = 最优解朝向；
-##   par                    —— 最优解总步数 = Σ clicks_between(init_rot, target_rot)，由
-##                             par_of() 推导，不手填（手填会与朝向数据漂移）。
+##   par                    —— 参考步数（最优解）= Σ min_clicks_between(朝向类型, init_rot,
+##                             target_rot)，由 par_of() 推导，不手填（手填会与朝向数据漂移）；
+##                             直管按 180° 等效朝向计步（spec.numeric 拍板 ①，见 PuzzleLogic）。
 ##
 ## 已推演约束（冒烟场景 levels 契约断言机判，全部 10 关逐关检查）：
 ##   1) 所有管子转到 target_rot 后 propagate 必 solved（关卡有解）；
 ##   2) 初始朝向下 propagate 必不 solved（关卡未提前通关）；
 ##   3) par > 0，且 par 随关卡序号非递减（难度梯度机判）。
+##
+## spec.numeric 拍板落地（2026-09-27，依据 qa/tuning-data.json + qa/TUNING_NOTES.md §二）：
+##   - 参考步数修真：par_of 改用等效朝向感知计步（拍板项 ①），星级阈值随真 par 收敛；
+##   - 难度曲线回正：修真后第 4/5/8 关 par 回落（8→6 / 6→8 倒挂、10→9），仅调整这三关
+##     部分管子的 init_rot（初始朝向，不动 target_rot / 布局 / 墙体），把参考步数曲线
+##     抬回非递减：[1, 2, 8, 8, 8, 8, 10, 10, 11, 12]。
+##   - 附注：有界 BFS 搜索在个别关（如「分光三通」）能找到比「各管转到 target_rot」
+##     更短的替代走法；par 口径 = 设计解朝向的最少点击数，玩家用更少步数通关仍得 3 星，
+##     与「星级只升不降」不冲突。逐关实测数据见 qa/tuning-data.json。
 
 const LEVELS: Array[Dictionary] = [
 	{
@@ -62,10 +72,10 @@ const LEVELS: Array[Dictionary] = [
 		"pipes": [
 			{"cell": Vector2i(1, 4), "type": "straight", "init_rot": 3, "target_rot": 0},
 			{"cell": Vector2i(2, 4), "type": "straight", "init_rot": 3, "target_rot": 0},
-			{"cell": Vector2i(3, 4), "type": "corner", "init_rot": 2, "target_rot": 3},
+			{"cell": Vector2i(3, 4), "type": "corner", "init_rot": 1, "target_rot": 3},
 			{"cell": Vector2i(3, 3), "type": "straight", "init_rot": 0, "target_rot": 1},
 			{"cell": Vector2i(3, 2), "type": "straight", "init_rot": 2, "target_rot": 1},
-			{"cell": Vector2i(3, 1), "type": "straight", "init_rot": 3, "target_rot": 1},
+			{"cell": Vector2i(3, 1), "type": "straight", "init_rot": 0, "target_rot": 1},
 			{"cell": Vector2i(3, 0), "type": "corner", "init_rot": 0, "target_rot": 1},
 		],
 	},
@@ -76,9 +86,9 @@ const LEVELS: Array[Dictionary] = [
 		"sink_cell": Vector2i(4, 4), "sink_open": 0,
 		"walls": [Vector2i(3, 1), Vector2i(1, 2)],
 		"pipes": [
-			{"cell": Vector2i(2, 1), "type": "straight", "init_rot": 3, "target_rot": 1},
+			{"cell": Vector2i(2, 1), "type": "straight", "init_rot": 0, "target_rot": 1},
 			{"cell": Vector2i(2, 2), "type": "tee", "init_rot": 0, "target_rot": 2},
-			{"cell": Vector2i(2, 3), "type": "corner", "init_rot": 3, "target_rot": 0},
+			{"cell": Vector2i(2, 3), "type": "corner", "init_rot": 2, "target_rot": 0},
 			{"cell": Vector2i(3, 3), "type": "straight", "init_rot": 1, "target_rot": 0},
 			{"cell": Vector2i(4, 3), "type": "corner", "init_rot": 0, "target_rot": 2},
 		],
@@ -132,7 +142,7 @@ const LEVELS: Array[Dictionary] = [
 			{"cell": Vector2i(3, 1), "type": "straight", "init_rot": 3, "target_rot": 0},
 			{"cell": Vector2i(4, 1), "type": "corner", "init_rot": 1, "target_rot": 2},
 			{"cell": Vector2i(4, 2), "type": "tee", "init_rot": 0, "target_rot": 3},
-			{"cell": Vector2i(5, 2), "type": "straight", "init_rot": 2, "target_rot": 0},
+			{"cell": Vector2i(5, 2), "type": "straight", "init_rot": 1, "target_rot": 0},
 		],
 	},
 	{
@@ -192,11 +202,13 @@ static func level_at(index: int) -> Dictionary:
 	return LEVELS[clampi(index, 0, LEVELS.size() - 1)]
 
 
-## 最优解步数（par）：每管从 init_rot 顺时针转到 target_rot 的点击数之和。
+## 参考步数（最优解 par）：每管从 init_rot 转到 target_rot 的最少点击数之和
+## （直管按 180° 等效朝向计步，见 PuzzleLogic.min_clicks_between）。
 static func par_of(level: Dictionary) -> int:
 	var total: int = 0
 	for pipe: Dictionary in level["pipes"]:
-		total += PuzzleLogic.clicks_between(pipe["init_rot"], pipe["target_rot"])
+		total += PuzzleLogic.min_clicks_between(
+			pipe["type"], int(pipe["init_rot"]), int(pipe["target_rot"]))
 	return total
 
 

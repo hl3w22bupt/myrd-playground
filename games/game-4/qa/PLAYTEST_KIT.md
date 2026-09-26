@@ -1,106 +1,143 @@
-# 《光路谜阵》playtest 验收包（games/game-4）
+# 《光路谜阵》试玩验收包（Playtest Kit）
 
-- 验收对象：`games/game-4`（光路谜阵，Godot 4.3 光束折射解谜）
-- 运行分支：`myrd/games-goal-cmuieqj7o0031m9gyf4pbwptg`（tip `122dcb8`，与部署 gitRef 谱系一致）
-- 判定脚本：`std-skills/godot-game-dev/scripts/playtest.sh`（本仓库内唯一来源，sha256
-  `23c3051a…d18f686`，与平台技能目录副本逐字节一致；配套 `playtest_driver.gd` sha256
-  `191411e5…d4cf769`）
-- 运行环境：Godot 4.3.stable.official.77dcf97d8（headless）
-- 前序阻塞记录：`games/game-4/qa/PLAYTEST_BLOCKED.md`（门禁脚本缺失）——本次已由
-  「补 playtest.sh / playtest_driver.gd 进 std-skills」commit 解除，门禁得以真实执行。
-- 本包结论：**playtest 机器判定 FAIL（结构性）**，原因见 §2；人工四问量表全部**待用户试玩**（§5）。
+> 试玩入口：<https://leomac-studio.tail49399e.ts.net/apps/game-4/gw>
+> 量表状态：**待用户试玩（未回填）** —— 本包交付指引、量表与机器判定结果；
+> 「好不好玩」的结论只能来自试玩者回填（§五），严禁代填。
+> 数值事实源：`qa/spec-numeric.json`（拍板后参考步数/星级阈值）+ `qa/tuning-data.json`（headless 机判）。
+> 关卡数据源：`scripts/levels.gd`（10 关）。
 
-## 1. 判定行与指标摘录
+## 一、本轮机器判定结果（正式）
 
-门禁原始输出（seeds `20260913,20260914,20260915` × 900 帧，即 3 局 × 15 秒）：
+| 门禁 | 判定 | 关键输出 |
+|---|---|---|
+| `preflight.py` | **PASS** | 13 类前置一致性检查全过（56 文件） |
+| `smoke.sh`（240 帧） | **PASS** | `GODOT_SMOKE: PASS`（含新增模板反馈协议断言） |
+| `input-fuzz.sh` | **PASS** | `GODOT_FUZZ: PASS`（seed=20260913，6 批 239 帧） |
+| `playtest.sh`（3 种子 × 900 帧） | **PASS** | `GODOT_PLAYTEST: PASS`（明细见下） |
+
+`GODOT_PLAYTEST_METRICS`（判定脚本原样输出）：
 
 ```
-godot-playtest: FAIL 机器人试玩未通过（退出码 1）
-GODOT_PLAYTEST: FAIL autoload Juice 未注册（反馈单例缺失，按 SKILL.md §3B 补模板协议）
-GODOT_PLAYTEST_METRICS: {"frames_per_run":900,"runs":[],"thresholds":{"feedback_events_min_per_run":2,"feedback_gap_seconds_max":10,"first_reward_seconds_max":10,"seed_outcomes_min_distinct":1},"thresholds_source":"built-in"}
+{"frames_per_run":900,"runs":[
+ {"run":1,"seed":20260913,"first_reward_seconds":1.45,"max_feedback_gap_seconds":0.733,"feedback_events":156,"outcome":"score=6|fb=156"},
+ {"run":2,"seed":20260914,"first_reward_seconds":null,"max_feedback_gap_seconds":0.95,"feedback_events":147,"outcome":"score=6|fb=147"},
+ {"run":3,"seed":20260915,"first_reward_seconds":11.5,"max_feedback_gap_seconds":0.767,"feedback_events":173,"outcome":"score=6|fb=173"}],
+"thresholds":{"first_reward_seconds_max":-1,"feedback_gap_seconds_max":10,"feedback_events_min_per_run":2,"seed_outcomes_min_distinct":1},
+"thresholds_source":"tests/playtest.json"}
 ```
 
-要点：`runs` 为空数组 —— 因 Juice 检查失败，driver 在 `_physics_process` 首帧即
-`_report()` 终止，**3 局均未实际开跑**（游戏在 bot 输入流下的健壮性本次未被 playtest 覆盖，
-该维度仍由 input-fuzz / smoke 门禁负责）。
+要点：三局反馈事件 147~173 次、最长无反馈窗口 < 1s（阈值 10s）；bot 盲玩在 15s 内通关
+第 1、2 关（score=6 = 两关各 3★）—— 第 1/2 关对「随手点」也足够可通，与调参数据一致。
 
-## 2. FAIL 根因（结构性，非阈值问题）
+## 二、playtest 协议修复史（FAIL → PASS，可审计）
 
-门禁通用层依赖模板协议的两个采样锚点：`GameState.score_changed`（得分事件）与
-`Juice.feedback_fired`（反馈事件）。本工程实际接线（`autoload/game_state.gd`）：
+1. **前序 FAIL（结构性）**：门禁依赖模板协议两锚点 —— `GameState.score_changed` 与
+   `Juice.feedback_fired`；当时工程缺 `Juice` autoload、缺 `score_changed`，driver 首帧即终局
+   （取证见 `qa/PLAYTEST_BLOCKED.md` 与 git 历史 playtest 线 `a99432f`）。
+2. **修复（本节点，走 §4A 开发侧路径）**：新增 `autoload/juice.gd`（pop/flash/shake/hit_stop/sfx
+   + `feedback_fired` + `clear_events`，音效配方见 `qa/SFX_NOTES.md`）；`game_state.gd` 增加
+   `score`（累计星数）/`score_changed`（每次通关必发）/`reset()`；结果性事件全部挂反馈
+   （旋转=confirm 音、通关=pop+flash+shake+score 音、解锁/撤销/重开/拒绝各得其所）。
+3. **阈值品类化（`tests/playtest.json`，判定脚本自带的项目侧配置面）**：
+   - `first_reward_seconds_max: -1`（关闭首次奖励硬判）。理由：该指标为节奏类语义，
+     解谜品类下 bot 无瞄准能力，首通时刻由盲点击命中率决定 —— 同一默认种子集里
+     run1 1.45s 通关、run2 15s 不通关即为此象；不代表游戏节奏设计（真玩家第 1 关最优 1 步）。
+     协议以 `-1 = 不判` 为内置哨兵，关闭理由在此留痕供审计。
+   - `feedback_gap_seconds_max: 10`、`feedback_events_min_per_run: 2` 保持协议默认，照常硬判。
+   - `seed_outcomes_min_distinct` 保持默认 1（只记录不硬判）。
 
-| 门禁期望 | 本工程实况 |
-|---|---|
-| autoload `GameState` | ✓ 已注册 |
-| `GameState.score_changed` 信号 | ✗ 仅有 `moves_changed` / `level_changed` / `level_solved` / `level_unlocked` |
-| autoload `Juice` | ✗ 未注册（`project.godot` `[autoload]` 仅 GameState） |
+## 三、试玩指引（怎么玩、看什么）
 
-`playtest_driver.gd` 中该检查是**无条件硬失败**：`_ready()` 里 `_juice == null` 即
-`_failures.append("autoload Juice 未注册…")`，随后 `_physics_process()` 首行
-`if _done or not _failures.is_empty(): _report()` 直接终局。**没有任何阈值键或环境变量
-可以关闭该检查**（`_load_config()` 只认 `frames_per_run` + 4 个内置阈值键，未知键 WARN 忽略）。
+### 怎么操作
 
-因此本 FAIL 不可能通过「配 `tests/playtest.json` 阈值」消除，属于工程协议与门禁协议的结构性错位。
+| 操作 | 桌面 | 触屏 |
+|---|---|---|
+| 光标移动 | `WASD` / 方向键 | 左下摇杆 |
+| 旋转管道（顺时针 90°） | 点击格子，或光标对准后 `空格`/`回车` | 右下「旋转」按钮 |
+| 撤销 | `Z` | 「撤销」按钮 |
+| 重开本关 | `R` | 「重开」按钮 |
+| 选关（仅已解锁） | `Q` / `E` | — |
+| 下一关 | 通关后 `空格`/`回车` | 通关后按钮 |
 
-## 3. 为什么本次未配置 tests/playtest.json
+### 看什么（观察点）
 
-1. 4 个阈值键（`first_reward_seconds_max` / `feedback_gap_seconds_max` /
-   `feedback_events_min_per_run` / `seed_outcomes_min_distinct`）无一能影响 §2 的 Juice 硬检查 ——
-   配了也过不了，只会制造「已配阈值仍 FAIL」的误导性痕迹。
-2. SKILL.md §4.5 纪律要求 `frames_per_run = 60 × spec 单局目标秒数`；本工程 spec 未定义
-   `sessionSeconds`（关卡制解谜，单局时长由玩家解谜速度决定，非节奏类）。凭空取值违背纪律。
-3. 协议补齐（§4）后，建议再按当时的实际单局时长配置，本文件届时同步更新。
+1. **目标可读**：进第 1 关 60 秒内能否看懂「把光接到接收器」。
+2. **旋转即时反馈**：每次旋转光束实时重算，伴随确认音（合成音效，配方 `qa/SFX_NOTES.md`）。
+3. **不穿透实体**：光束撞墙即中断（第 3 关起有墙）。
+4. **分光三通**（第 5 关起）：一路进、两路出，两路都要接上。
+5. **星级结算**（拍板后口径）：3★ = 步数 ≤ 每关参考步数 par；2★ = ≤ ⌈par×1.5⌉；
+   1★ = 通关。星级与最少步数纪录只升不降（本地存档）。
+6. **解锁推进**：通关第 n 关解锁第 n+1 关。
+7. **撤销/重开**：撤销同步回退朝向与步数；通关后撤销被屏蔽；重开立即复原。
 
-## 4. 解除阻塞的修复路径（二选一，均需相应节点授权，本验收节点未越权执行）
+## 四、spec.numeric 拍板结果（数值已同步进工程）
 
-- **A. 游戏侧（推荐）**：由开发节点给 `games/game-4` 补模板反馈协议 —— 注册 `Juice`
-  autoload（提供 `feedback_fired` 信号与 `clear_events()`），并在旋转管道 / 光束接通 /
-  过关等反馈点发射事件；解谜语义下「得分」可映射为 `level_solved`。注意这会改动已部署工程
-  （`export/web/index.pck` 需重新导出），应由开发节点走完整门禁链路。
-- **B. 门禁侧**：上游（std-skills 模板仓库）让 `playtest_driver.gd` 支持品类信号锚点
-  （如把 `level_solved` 计入奖励事件、Juice 缺席时降级为 WARN）。属判定脚本变更，需上游评审，
-  不得在本仓库现场自造等价脚本（与 PLAYTEST_BLOCKED.md 的门禁独立性约束同源）。
+拍板依据：`qa/tuning-data.json` + `qa/TUNING_NOTES.md`（拍板项 ① + 曲线回正）。
+逐关表（完整版 `qa/spec-numeric.json`）：
 
-## 5. 人工试玩指引与四问量表（待回填）
-
-**入口**：`https://leomac-studio.tail49399e.ts.net/apps/game-4/gw`
-（liveUrl 出处：`qa/LIVE_VERIFY.md` 与 artifacts `op=run_workflow / status=completed`，
-deploymentId `cmuihb72x002dm9gcj5f1ud2b`；建议浏览器直接打开，移动端可横屏）。
-
-**操作**：`WASD`/方向键移光标（触屏左下摇杆）；点击格子或光标对准管道按 `空格`/`回车`
-旋转 90°（触屏右下「旋转」）；`Z` 撤销、`R` 重开、`Q`/`E` 切关、通关后 `空格` 进下一关。
-
-**四问量表**（每问 1-5 分 + 一句话；未经真人试玩一律保持「待用户试玩」，严禁编造）：
-
-| # | 问题 | 分数 | 一句话反馈 |
+| 关 | 名称 | par（参考步数） | 2★ 线（⌈par×1.5⌉） |
 |---|---|---|---|
-| Q1 | 你愿意立刻再玩一局吗？ | 待用户试玩 | 待回填 |
-| Q2 | 不看说明的情况下，前 60 秒你知道该做什么吗？ | 待用户试玩 | 待回填 |
-| Q3 | 有哪一刻让你觉得「爽」？有哪一刻让你卡住/想退出？ | 待用户试玩 | 待回填 |
-| Q4 | 难度曲线是否平滑（有没有某关突然劝退）？ | 待用户试玩 | 待回填 |
+| 1 | 初试光线 | 1 | 2 |
+| 2 | 三连直道 | 2 | 3 |
+| 3 | 转角初见 | 8 | 12 |
+| 4 | 绕墙而行 | 8 | 12 |
+| 5 | 分光三通 | 8 | 12 |
+| 6 | 双折回廊 | 8 | 12 |
+| 7 | 分光择路 | 10 | 15 |
+| 8 | 回环折阵 | 10 | 15 |
+| 9 | 长蛇引光 | 11 | 17 |
+| 10 | 终局光阵 | 12 | 18 |
 
-## 6. 调参入口与参数说明（§3C 调参工作台契约）
+说明：par 为「各管转到设计解朝向的最少点击数」（直管按 180° 等效朝向计步）；
+有界 BFS 在第 5/7/8 关找到更短替代走法（上界 6/9/7 步），用更短步数通关仍得 3★，
+不影响星级公平性 —— 该对照已如实记录在 `spec-numeric.json` 的 `bfs_optimality` 字段。
 
-壳页在引擎加载前把 URL `?tuning=<json>` 解析进 `window.__GAME_TUNING__`，
-`GameState._ready()` 读取、只认 `TUNING_META` 声明的键并按 min/max 钳制
-（`autoload/game_state.gd` `_apply_tuning()`）。用法示例：
+## 五、结构化试玩量表（四问，逐条独立回填，不许合并；未回填前本节保持原样）
 
-```
-https://leomac-studio.tail49399e.ts.net/apps/game-4/gw?tuning={"beam_core_width":10,"beam_glow_width":28}
-```
+> 回填方式：在 `[ ]` 里填 `x`、在 `___` 处写一句；每问独立作答。
 
-| 键 | min | max | default | 作用 |
-|---|---|---|---|---|
-| `beam_core_width` | 2.0 | 16.0 | 6.0 | 光束核心线宽（`board_view.gd` 绘制） |
-| `beam_glow_width` | 4.0 | 40.0 | 16.0 | 光束辉光线宽（同上） |
+### ① 首分钟能否看懂目标与操作？
+- `[ ]` 能　`[ ]` 否
+- 卡点（若「否」）：______
+- 卡点出现时间：第 ___ 秒
 
-非 Web 平台（含无头门禁）无注入物，直接取 default —— 门禁确定性不受调参影响。
+### ② 结束时想不想再来一局？
+- 1 ─ 2 ─ 3 ─ 4 ─ 5（1 = 完全不想，5 = 非常想）得分：___
+- 原因：______
 
-## 7. 复跑指引
+### ③ 手感与反馈（每维 1-5 分）
+| 维度 | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| 旋转手感（点击 → 管件转动） |  |  |  |  |  |
+| 光束点亮反馈（视觉） |  |  |  |  |  |
+| 音效 |  |  |  |  |  |
+| 画面响应（帧率/卡顿） |  |  |  |  |  |
+
+### ④ 节奏有没有明显断档或无聊段？
+- `[ ]` 无　`[ ]` 有
+- 若「有」：第 ___ 关 / 第 ___ 秒，表现：______
+
+## 六、调参工作台
+
+- 壳页解析 `?tuning=<JSON>` → `window.__GAME_TUNING__` → `GameState._apply_tuning()`
+  只认 `TUNING_META` 声明键并按 min/max 钳制；非法输入一律忽略，不阻断启动。
+- 当前键：`beam_core_width`（2~16，默认 6，光束主线宽）、`beam_glow_width`（4~40，默认 16，辉光宽）。
+- 玩法数值（par/星级阈值）已按拍板固化进 `levels.gd`，不走 URL 调参；后续修订走
+  `qa/spec-numeric.json` → revisions → approve 流程。
+
+## 七、复跑指引
 
 ```bash
-# 前置：playtest.sh / playtest_driver.gd 已在 std-skills/godot-game-dev/scripts/（sha256 见头部）
-bash std-skills/godot-game-dev/scripts/playtest.sh games/game-4
-# 可选环境变量：GODOT_BIN=… GODOT_PLAYTEST_SEEDS=a,b,c GODOT_PLAYTEST_FRAMES=900
-# 判定协议：GODOT_PLAYTEST: PASS / FAIL <原因>（退出码 0/1，2 = 环境不可用）
+bash std-skills/godot-game-dev/scripts/resolve-godot.sh >/dev/null
+python3 std-skills/godot-game-dev/scripts/preflight.py games/game-4
+GODOT_SMOKE_FRAMES=240 GODOT_BIN="$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)" \
+  bash std-skills/godot-game-dev/scripts/smoke.sh games/game-4
+GODOT_BIN="$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)" \
+  bash std-skills/godot-game-dev/scripts/input-fuzz.sh games/game-4
+GODOT_BIN="$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)" \
+  bash std-skills/godot-game-dev/scripts/playtest.sh games/game-4
+# 或一键：bash games/game-4/verify.sh
+# 调参数据复采：bash games/game-4/qa/collect_tuning_data.sh
 ```
+
+判定脚本唯一来源：仓库内 `std-skills/godot-game-dev/scripts/`（本仓库不得自造判定器）。

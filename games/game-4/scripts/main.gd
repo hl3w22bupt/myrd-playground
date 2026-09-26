@@ -46,6 +46,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("reset"):
 		GameState.reset_level()
+		Juice.flash(board)
+		Juice.sfx(&"hit")
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("level_next"):
 		_request_level(GameState.level_index + 1)
@@ -75,8 +77,10 @@ func _handle_undo() -> void:
 		return
 	if board.undo():
 		GameState.register_undo()
+		Juice.sfx(&"hit")
 		_status_line = "已撤销一步（剩余可撤 %d 步）" % _undo_depth()
 	else:
+		Juice.sfx(&"fail")
 		_status_line = "没有可撤销的旋转"
 	_update_hud()
 
@@ -86,6 +90,8 @@ func _request_level(index: int) -> void:
 	if index < 0 or index >= LevelSet.count():
 		_status_line = "没有这一关（共 %d 关）" % LevelSet.count()
 	elif not GameState.request_level(index):
+		Juice.sfx(&"fail")
+		Juice.flash(level_bar, Color(1.0, 0.55, 0.45, 0.6))
 		_status_line = "第 %d 关未解锁：先通关第 %d 关" % [index + 1, GameState.unlocked_max + 1]
 	else:
 		return
@@ -98,6 +104,7 @@ func _on_board_rotate_requested(cell: Vector2i) -> void:
 		return
 	if board.rotate_at(cell):
 		GameState.register_rotation(board.current_cells(), board.level)
+		Juice.sfx(&"confirm")
 		_update_status_from_beam()
 	_update_hud()
 
@@ -120,17 +127,22 @@ func _on_level_changed(_level_index: int) -> void:
 
 
 func _on_level_unlocked(unlocked_index: int) -> void:
+	Juice.pop(level_bar)
+	Juice.sfx(&"confirm")
 	_status_line = "第 %d 关已解锁！" % (unlocked_index + 1)
 
 
-## 通关结算：星级/步数反馈 + 棋盘闪光（结果性事件必须挂反馈）。
+## 通关结算：星级/步数反馈 + 棋盘闪光（结果性事件必须挂反馈，SKILL.md §3B）。
 func _on_level_solved(stars: int, moves: int, par: int) -> void:
 	_status_line = "通关！%s（步数 %d / 最优 %d）· 按 确认 进下一关，R 重开刷星" % [
 		_star_text(stars), moves, par,
 	]
 	if GameState.is_last_level():
 		_status_line += " —— 这是最后一关！"
-	_flash_board()
+	Juice.pop(status_label)
+	Juice.flash(board, Color(1.4, 1.3, 0.9, 1.0), 0.3)
+	Juice.shake(2.5)
+	Juice.sfx(&"score")
 	_update_hud()
 
 
@@ -146,13 +158,6 @@ func _update_status_from_beam() -> void:
 
 func _undo_depth() -> int:
 	return board.history_size()
-
-
-## 通关反馈：棋盘短促提亮再回落（create_tween，headless 下同样安全）。
-func _flash_board() -> void:
-	board.modulate = Color(1.5, 1.5, 1.2, 1.0)
-	var tween: Tween = create_tween()
-	tween.tween_property(board, "modulate", Color.WHITE, 0.6)
 
 
 func _star_text(stars: int) -> String:

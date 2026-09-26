@@ -1,5 +1,11 @@
 # 《光路谜阵》调参建议（headless 机判）
 
+> **拍板落地（2026-09-27）**：本文 §二 的两个拍板项已按 **①** 落进工程 ——
+> `PuzzleLogic.min_clicks_between`（直管按 180° 等效朝向计步）+ `LevelSet.par_of` 修真 +
+> 第 4/5/8 关 `init_rot` 微调把 par 曲线抬回非递减 `[1,2,8,8,8,8,10,10,11,12]`；
+> 逐关参考步数与星级阈值表见 `qa/spec-numeric.json`，复跑采集器数据见 `qa/tuning-data.json`。
+> 下文为拍板前的原始采集结论，保留作数据溯源。
+
 > 数据文件：`qa/tuning-data.json`（生成于 2026-09-26T16:21:27Z）
 > 复现：`bash games/game-4/qa/collect_tuning_data.sh`（Godot 无头，约 10s；判定全部由生产代码机判，无手填）
 > 用途：为 spec.numeric（参考步数 / 星级阈值 / 关卡梯度）拍板取数。**用户主观结论不在此文件里**，以四问量表真实回填为准。

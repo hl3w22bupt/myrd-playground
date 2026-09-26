@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "game": "光路谜阵",
+  "goal_id": "cmuieqj7o0031m9gyf4pbwptg",
+  "recorded_at": "2026-09-27",
+  "provenance": {
+    "data": "games/game-4/qa/tuning-data.json (collect_tuning_data.sh, headless 机判)",
+    "decision": "qa/TUNING_NOTES.md §二 拍板项①（par_of 等效朝向感知修真）+ 难度曲线回正（L4/L5/L8 init_rot 微调）",
+    "implemented_in": [
+      "games/game-4/scripts/puzzle_logic.gd#min_clicks_between",
+      "games/game-4/scripts/levels.gd#par_of",
+      "games/game-4/scripts/levels.gd LEVELS L4/L5/L8 init_rot"
+    ]
+  },
+  "rules": {
+    "star_3": "moves <= par（最优解通关）",
+    "star_2": "moves <= ceil(par * 1.5)",
+    "star_1": "通关",
+    "monotonic": "星级与每关最少步数纪录只升不降（本地存档 user://guanglu_save.cfg v2）",
+    "par_semantics": "par = 各管转到设计解朝向 target_rot 的最少点击数之和；直管按 180° 等效朝向计步（mod 2）。有界 BFS 在个别关找到更短替代走法（见 bfs_optimality），玩家用更少步数通关仍得 3 星，不影响星级公平性。"
+  },
+  "difficulty_curve": {
+    "par_sequence": [
+      1,
+      2,
+      8,
+      8,
+      8,
+      8,
+      10,
+      10,
+      11,
+      12
+    ],
+    "monotonic_non_decreasing": true,
+    "mechanism_intro": {
+      "walls": 2,
+      "corners": 3,
+      "tee_splitter": 5,
+      "grid_expand": 6
+    }
+  },
+  "levels": [
+    {
+      "index": 1,
+      "name": "初试光线",
+      "grid": "5x5",
+      "par_reference_steps": 1,
+      "star_3_max_steps": 1,
+      "star_2_max_steps": 2,
+      "star_1": "clear",
+      "bfs_optimality": {
+        "status": "declared_par_optimal_proven",
+        "shorter_solution_upper_bound": null
+      }
+    },
+    {
+      "index": 2,
+      "name": "三连直道",
+      "grid": "5x5",
+      "par_reference_steps": 2,
+      "star_3_max_steps": 2,
+      "star_2_max_steps": 3,
+      "star_1": "clear",
+      "bfs_optimality": {
+        "status": "unproven_search_budget_exhausted",
+        "shorter_solution_upper_bound": null
+      }
+    },
+    {
+      "index": 3,
+      "name": "转角初见",
+      "grid": "5x5",
+      "par_reference_steps": 8,
+      "star_3_max_steps": 8,
+      "star_2_max_steps": 12,
+      "star_1": "clear",
+      "bfs_optimality": {
+        "status": "unproven_search_budget_exhausted",
+        "shorter_solution_upper_bound": null
+      }
+    },
+    {
+      "index": 4,
+      "name": "绕墙而行",
+      "grid": "5x5",
+      "par_reference_steps": 8,
+      "star_3_max_steps": 8,
+      "star_2_max_steps": 12,
+      "star_1": "clear",
+      "bfs_optimality": {
+        "status": "unproven_search_budget_exhausted",
+        "shorter_solution_upper_bound": null
+      }
+    },
+    {
+      "index": 5,
+      "name": "分光三通",
+      "grid": "5x5",
+      "par_reference_steps": 8,
+      "star_3_max_steps": 8,
+      "star_2_max_steps": 12,
+      "star_1": "clear",
+      "bfs_optimality": {
+        "status": "shorter_solution_found",
+        "shorter_solution_upper_bound": null
+      }
+    },
+    {
+      "index": 6,
+      "name": "双折回廊",
+      "grid": "6x5",
+      "par_reference_steps": 8,
+      "star_3_max_steps": 8,
+      "star_2_max_steps": 12,
+      "star_1": "clear",
+      "bfs_optimality": {
+        "status": "unproven_search_budget_exhausted",
+        "shorter_solution_upper_bound": null
+      }
+    },
+    {
+      "index": 7,
+      "name": "分光择路",
+      "grid": "6x5",
+      "par_reference_steps": 10,
+      "star_3_max_steps": 10,
+      "star_2_max_steps": 15,
+      "star_1": "clear",
+      "bfs_optimality": {
+        "status": "shorter_solution_found",
+        "shorter_solution_upper_bound": null
+      }
+    },
+    {
+      "index": 8,
+      "name": "回环折阵",
+      "grid": "7x5",
+      "par_reference_steps": 10,
+      "star_3_max_steps": 10,
+      "star_2_max_steps": 15,
+      "star_1": "clear",
+      "bfs_optimality": {
+        "status": "shorter_solution_found",
+        "shorter_solution_upper_bound": null
+      }
+    },
+    {
+      "index": 9,
+      "name": "长蛇引光",
+      "grid": "7x6",
+      "par_reference_steps": 11,
+      "star_3_max_steps": 11,
+      "star_2_max_steps": 17,
+      "star_1": "clear",
+      "bfs_optimality": {
+        "status": "unproven_search_budget_exhausted",
+        "shorter_solution_upper_bound": null
+      }
+    },
+    {
+      "index": 10,
+      "name": "终局光阵",
+      "grid": "7x6",
+      "par_reference_steps": 12,
+      "star_3_max_steps": 12,
+      "star_2_max_steps": 18,
+      "star_1": "clear",
+      "bfs_optimality": {
+        "status": "unproven_search_budget_exhausted",
+        "shorter_solution_upper_bound": null
+      }
+    }
+  ]
+}

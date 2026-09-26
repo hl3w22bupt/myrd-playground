@@ -29,7 +29,11 @@ Godot 解析顺序：环境变量 `GODOT_BIN` > PATH 里的 `godot` > 常见安�
 ## 关卡与元件
 
 - **首发 10 关**（`scripts/levels.gd` 单一数据源），难度递进：网格 5×5 → 7×6、
-  最优解步数 1 → 10+、墙体与路径长度同步增长；冒烟机判「par 随关号非递减」
+  参考步数（par，等效朝向感知口径）1 → 12、墙体与路径长度同步增长；冒烟机判「par 随关号非递减」
+- **spec.numeric 拍板落地**（2026-09-27，依据 `qa/tuning-data.json` + `qa/TUNING_NOTES.md`）：
+  par 修真 = 直管按 180° 等效朝向计步（`PuzzleLogic.min_clicks_between`），星级阈值随真 par
+  收敛；第 4/5/8 关初始朝向微调把 par 曲线抬回非递减 `[1,2,8,8,8,8,10,10,11,12]`
+  （逐关阈值表见 `qa/spec-numeric.json`）
 - 元件：直管 / 弯管（顺时针旋转 90°）· **分光三通**（一路进、两路出，第 5 关起登场）·
   墙体（光进入即中断，**不穿透**）· 光源 · 终点接收器
 - 全部关卡契约由冒烟机判：target 朝向必可解、初始朝向必未通关、光束永不深入墙体内部
@@ -42,7 +46,7 @@ godot --path games/game-4            # 或用 Godot 编辑器打开 games/game-4
 
 ## 门禁（提交前必须全绿）
 
-一键自检（preflight → 冒烟 240 帧 → 输入 fuzz）：
+一键自检（preflight → 冒烟 240 帧 → 输入 fuzz → 机器人试玩）：
 
 ```bash
 bash games/game-4/verify.sh
@@ -57,11 +61,13 @@ GODOT_SMOKE_FRAMES=240 GODOT_BIN="$(bash std-skills/godot-game-dev/scripts/resol
   bash std-skills/godot-game-dev/scripts/smoke.sh games/game-4
 GODOT_BIN="$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)" \
   bash std-skills/godot-game-dev/scripts/input-fuzz.sh games/game-4
+GODOT_BIN="$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)" \
+  bash std-skills/godot-game-dev/scripts/playtest.sh games/game-4
 ```
 
-判定协议：退出码 0 且日志含 `PREFLIGHT: PASS` / `GODOT_SMOKE: PASS` / `GODOT_FUZZ: PASS` 才算通过；退出码 2 = 环境不可用（装环境，不要改判定脚本）。
+判定协议：退出码 0 且日志含 `PREFLIGHT: PASS` / `GODOT_SMOKE: PASS` / `GODOT_FUZZ: PASS` / `GODOT_PLAYTEST: PASS` 才算通过；退出码 2 = 环境不可用（装环境，不要改判定脚本）。
 
-冒烟断言覆盖：场景接线（Main/Board/Cursor）、autoload 信号（含 `level_unlocked`）、键位契约（逐键核对，含 `undo`/`level_prev`/`level_next`）、光标可移动、confirm 旋转生效、第 1 关 1 步最优解通关得 3 星、reset 重开后可复玩、撤销回退步数与朝向（通关后屏蔽）、解锁门禁（未通关的关进不去）、第 2 关按最优解 4 步通关得 3 星、全部 10 关「target 朝向必可解 + 初始必未通关 + par 非递减 + 光束不穿透墙体」契约、分光三通双路出射契约。
+冒烟断言覆盖：场景接线（Main/Board/Cursor）、autoload 信号（含 `level_unlocked` / `score_changed`）与模板反馈协议（`Juice` 单例：`feedback_fired` / `clear_events`）、键位契约（逐键核对，含 `undo`/`level_prev`/`level_next`）、光标可移动、confirm 旋转生效、第 1 关 1 步最优解通关得 3 星、reset 重开后可复玩、撤销回退步数与朝向（通关后屏蔽）、解锁门禁（未通关的关进不去）、第 2 关按最优解 2 步（等效朝向感知）通关得 3 星、全部 10 关「target 朝向必可解 + 初始必未通关 + par 非递减 + 光束不穿透墙体」契约、分光三通双路出射契约。
 
 ## Web 导出
 
