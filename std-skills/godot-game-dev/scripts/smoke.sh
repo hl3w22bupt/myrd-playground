@@ -6,7 +6,11 @@
 #
 # 环境变量：
 #   GODOT_BIN          Godot 可执行文件（默认 godot；本机装在别处时用 GODOT_BIN=/path/to/Godot）
-#   GODOT_SMOKE_FRAMES --quit-after 的帧数兜底（默认 120，防止冒烟场景死循环）
+#   GODOT_SMOKE_FRAMES --quit-after 的帧数兜底（默认 3000，防止冒烟场景死循环；
+#                         帧预算是机器相关量：慢机/高负载机上冷启动+断言协程单帧耗时上浮，
+#                         120/240 在实测中产生「无 PASS/FAIL 标记 + exit≠0」的假阴性
+#                         （game-2 2026-09-27 实证：默认 FAIL、放大 3000 即 PASS、代码零改动），
+#                         故默认上调至 3000。env 显式设置仍可覆盖本兜底值。）
 #   GODOT_SMOKE_SCENE  冒烟场景（默认自动：有 tests/smoke.tscn 就跑它，否则跑 run/main_scene）
 #   GODOT_SMOKE_ALLOW_WEAK=1  找不到断言场景时不判 FAIL，退回「能启动即通过」的宽松判定（勿用于门禁）
 #   GODOT_SMOKE_IGNORE_RUNTIME_ERRORS=1  冒烟断言通过但日志里有 SCRIPT ERROR/Parse Error 时不判 FAIL
@@ -28,7 +32,8 @@ set -uo pipefail
 
 PROJECT_DIR="${1:-.}"
 SCENE_ARG="${2:-${GODOT_SMOKE_SCENE:-}}"
-FRAMES="${GODOT_SMOKE_FRAMES:-120}"
+# 兜底默认 3000 帧（机器相关预算：按最慢执行机标定，见文件头注释；判定逻辑与此值无关）
+FRAMES="${GODOT_SMOKE_FRAMES:-3000}"
 GODOT_BIN="${GODOT_BIN:-godot}"
 
 say_fail() { echo "godot-smoke: FAIL $*"; }

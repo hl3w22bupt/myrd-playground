@@ -29,7 +29,7 @@ routines:
   gate: false
   params:
     gamePath: games/godot-coin-rush
-    smokeFrames: 240
+    smokeFrames: 3000            # 帧预算机器相关量，默认上调至 3000（与 smoke.sh 兜底 / 各工程 verify.sh 三处同值）
   steps:
   - name: godot-availability
     command: bash std-skills/godot-game-dev/scripts/resolve-godot.sh >/dev/null

@@ -44,4 +44,4 @@
 - 胜利终局：得分达 `score_target`（0 = 无尽模式）→ `GameState.game_won` → 同一结算面板标题切「目标达成 · 胜利！」。
 - 里程碑反馈：分数每跨过 `milestone_step`（0 = 关闭）→ UI CanvasLayer 的 `%MilestoneLabel` 庆祝横幅。
 - 重开入口：结算面板「重新开始」按钮 / confirm 动作（空格/回车）→ `GameState.start_game()` 重置分数护盾并重铺战场（难度同时复位）。
-- 本地复跑门禁：`bash games/game-2/verify.sh`（preflight + smoke(GODOT_SMOKE_FRAMES=240) + fuzz，只调用 std-skills/godot-game-dev/scripts/ 判定脚本）。
+- 本地复跑门禁：`bash games/game-2/verify.sh`（preflight + smoke(GODOT_SMOKE_FRAMES=3000) + fuzz，只调用 std-skills/godot-game-dev/scripts/ 判定脚本）。
