@@ -6,7 +6,7 @@
 <title>试玩反馈中枢 · 星尘收集者</title>
 <!--
   《星尘收集者》试玩反馈中枢（随 Web 导出产物发布：apphost.toml assets_dir = games/game-2/export/web，
-  server 侧 /feedback 路由从资产清单取本文件伺服，经 M1 文本网关直达浏览器）。
+  server 侧 /api/public/feedback 路由从资产清单取本文件伺服，经 M1 文本网关直达浏览器）。
 
   设计目标（零门槛真机取证）：iPhone 上不开任何开发者开关 —— 扫码 → 玩 1 分钟 → 点 3 下
   （点「反馈」→ 点「试听/评分」→ 点「提交复制」）即同时完成：
@@ -147,9 +147,11 @@ footer { text-align: center; color: #5f78a3; font-size: .7rem; margin-top: 16px;
 (function () {
 'use strict';
 
-/* ---------- 基路径：与壳页同口径（公网入口 /apps/game-2 无尾斜杠下相对路径仍能落对） ---------- */
+/* ---------- 基路径：与壳页同口径（公网入口 /apps/game-2 无尾斜杠下相对路径仍能落对） ----------
+   本页挂 api/public/*（部署护栏：业务路由必须在 /api/* 下），推导时一并剥掉该前缀，
+   使 gameEntryUrl 落回游戏根 /apps/game-2/ 而非 /apps/game-2/api/public/。 */
 var BASE_PATH = (function () {
-  var p = location.pathname.replace(/index\.html$/, '').replace(/feedback(\.html)?$/, '');
+  var p = location.pathname.replace(/index\.html$/, '').replace(/(api\/public\/)?feedback(\.html)?$/, '');
   return p.charAt(p.length - 1) === '/' ? p : p + '/';
 })();
 function gameEntryUrl() { return location.origin + BASE_PATH; }

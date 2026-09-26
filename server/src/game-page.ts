@@ -70,7 +70,7 @@ body { color: #e8f4ff; background: #050a1c; overflow: hidden; touch-action: none
   <div id="keys"><span><kbd>WASD</kbd>/<kbd>←↑↓→</kbd> 驾驶飞船</span><span><kbd>空格</kbd>/<kbd>回车</kbd> 确认 / 重开</span><span>触屏：虚拟摇杆</span></div>
 </div>
 <div id="hint" style="display:none">收集星尘 +1 分 · 撞陨石 -1 护盾 · 护盾耗尽本局结束</div>
-<a id="fb-chip" href="feedback" rel="noopener">反馈 ★</a>
+<a id="fb-chip" href="api/public/feedback" rel="noopener">反馈 ★</a>
 <noscript>你的浏览器不支持 JavaScript。</noscript>
 <!-- 引擎引导脚本由启动脚本动态注入（静态 src 在无尾斜杠入口下会 404） -->
 <script>
@@ -147,9 +147,9 @@ body { color: #e8f4ff; background: #050a1c; overflow: hidden; touch-action: none
     var p = location.pathname.replace(/index\\.html$/, '');
     return p.charAt(p.length - 1) === '/' ? p : p + '/';
   })();
-  // 「反馈」角标指向反馈中枢页（同 BASE_PATH 派生，避免无尾斜杠入口下 404）。
+  // 「反馈」角标指向反馈中枢页（api/public/* 护栏合规路径；同 BASE_PATH 派生，避免无尾斜杠入口下 404）。
   var fbChip = document.getElementById('fb-chip');
-  if (fbChip) fbChip.href = BASE_PATH + 'feedback';
+  if (fbChip) fbChip.href = BASE_PATH + 'api/public/feedback';
   var bar = document.getElementById('bar');
   var msg = document.getElementById('boot-msg');
   function setBar(p) { if (bar) bar.style.width = Math.max(0, Math.min(100, p * 100)) + '%'; }
