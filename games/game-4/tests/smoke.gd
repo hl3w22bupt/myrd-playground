@@ -109,6 +109,7 @@ func _ready() -> void:
 	# 密封开局：清掉本机历史存档（解锁面/星级），保证「锁着的关拒绝进入」等断言可复现。
 	GameState.reset_progress()
 	_static_assertions()
+	_tuning_protocol_assertions()
 	_level_contract_assertions()
 
 
@@ -123,7 +124,7 @@ func _static_assertions() -> void:
 	if game_state == null:
 		_failures.append("autoload GameState 未注册（project.godot [autoload] 缺失）")
 	else:
-		for signal_name in ["moves_changed", "level_changed", "level_solved", "score_changed"]:
+		for signal_name in ["moves_changed", "level_changed", "level_solved", "score_changed", "tuning_changed"]:
 			if not game_state.has_signal(signal_name):
 				_failures.append("autoload GameState 缺少信号 %s" % signal_name)
 		game_state.level_solved.connect(_on_level_solved)
@@ -151,6 +152,31 @@ func _static_assertions() -> void:
 		_failures.append("Board 下找不到 Cursor（main.tscn 未挂 cursor.gd）")
 	elif not _cursor.moved.is_connected(_on_cursor_moved):
 		_cursor.moved.connect(_on_cursor_moved)
+
+
+## 调参协议断言（SKILL.md §3C，模板冒烟内置项）：TUNING_META 非空且元数据完整；
+## 已声明键 set() 生效并按 max 钳制；未声明键 get() 返回 null（拒绝语义）。
+## 纯字典/属性逻辑，无头可判；探针值断言后复原，不影响后续帧断言与光束宽度。
+func _tuning_protocol_assertions() -> void:
+	if GameState.TUNING_META.is_empty():
+		_failures.append("调参协议：GameState.TUNING_META 为空（§3C 要求至少声明一个可调键）")
+		return
+	for key: String in GameState.TUNING_META:
+		var meta: Dictionary = GameState.TUNING_META[key]
+		for field: String in ["min", "max", "step"]:
+			if not meta.has(field):
+				_failures.append("调参协议：键 %s 缺 %s 元数据（滑杆/钳制无法工作）" % [key, field])
+		if meta.has("min") and meta.has("max") and float(meta["min"]) > float(meta["max"]):
+			_failures.append("调参协议：键 %s 的 min > max" % key)
+	var probe_key: String = String(GameState.TUNING_META.keys()[0])
+	var probe_meta: Dictionary = GameState.TUNING_META[probe_key]
+	var original: float = GameState.get(probe_key)
+	GameState.set(probe_key, float(probe_meta["max"]) + 1000.0)
+	if not is_equal_approx(GameState.get(probe_key), float(probe_meta["max"])):
+		_failures.append("调参协议：键 %s 超上限未按 max 钳制（set 路径失效）" % probe_key)
+	GameState.set(probe_key, original)
+	if GameState.get("__definitely_not_a_tuning_key__") != null:
+		_failures.append("调参协议：未声明键 get() 应返回 null（拒绝语义失效）")
 
 
 ## 关卡契约断言（纯逻辑，不依赖帧循环）：

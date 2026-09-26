@@ -18,6 +18,8 @@ signal level_unlocked(level_index: int)
 ## 这是 playtest 门禁的奖励采样锚点（模板协议，见 SKILL.md §4.5）——
 ## 每次通关必发（即使星数未创新高，重复通关同样是正反馈事件）。
 signal score_changed(score: int)
+## 生效调参变化（调参面板拖滑杆 / 壳页 URL 注入应用后必发；订阅方 BoardView 重绘光束）。
+signal tuning_changed
 
 const SAVE_PATH: String = "user://guanglu_save.cfg"
 ## 存档版本：字段结构变化时 +1，旧档直接丢弃重开档。
@@ -27,8 +29,8 @@ const SAVE_VERSION: int = 2
 ## 解析进 window.__GAME_TUNING__；本单例 _ready 时读取，只认这里声明的键、按 min/max 钳制。
 ## 缺这一层 = 试玩工作台调好的参数无法用 URL 复现，调参回写流程断裂。
 const TUNING_META: Dictionary = {
-	"beam_core_width": {"min": 2.0, "max": 16.0, "default": 6.0},
-	"beam_glow_width": {"min": 4.0, "max": 40.0, "default": 16.0},
+	"beam_core_width": {"min": 2.0, "max": 16.0, "step": 1.0, "default": 6.0},
+	"beam_glow_width": {"min": 4.0, "max": 40.0, "step": 1.0, "default": 16.0},
 }
 
 var level_index: int = 0
@@ -44,6 +46,24 @@ var best_moves: Dictionary = {}
 var unlocked_max: int = 0
 ## 生效调参（TUNING_META 声明键 → 钳制后的数值；未传 tuning 时等于 default）。
 var tuning: Dictionary = {}
+
+## 可调键的属性访问器（§3C 调参面板契约）：面板经 GameState.get/set 按键读写，
+## 写入按 min/max 钳制并广播 tuning_changed —— 棋盘即时重绘光束，拖滑杆立刻见效。
+## 未声明的键没有对应属性：set() 静默无效、get() 返回 null（冒烟按此断言拒绝语义）。
+
+
+var beam_core_width: float:
+	get:
+		return _tuning_value("beam_core_width")
+	set(value):
+		_write_tuning("beam_core_width", value)
+
+
+var beam_glow_width: float:
+	get:
+		return _tuning_value("beam_glow_width")
+	set(value):
+		_write_tuning("beam_glow_width", value)
 
 
 func _ready() -> void:
@@ -70,6 +90,22 @@ func _apply_tuning() -> void:
 			var meta: Dictionary = TUNING_META[key_meta]
 			tuning[key_meta] = clampf(
 				float((parsed as Dictionary)[key_meta]), float(meta["min"]), float(meta["max"]))
+	tuning_changed.emit()
+
+
+## 键 → 当前生效值（未应用注入前 = default；面板滑杆初值与复制 URL 都从这里取）。
+func _tuning_value(key: String) -> float:
+	return float(tuning.get(key, float(TUNING_META[key]["default"])))
+
+
+## 键 → 钳制写入并广播（值没变就不发信号，避免无谓重绘）；未知键在属性层已拒绝。
+func _write_tuning(key: String, value: float) -> void:
+	var meta: Dictionary = TUNING_META[key]
+	var clamped: float = clampf(value, float(meta["min"]), float(meta["max"]))
+	if is_equal_approx(_tuning_value(key), clamped):
+		return
+	tuning[key] = clamped
+	tuning_changed.emit()
 
 
 ## 进入关卡（切关或重开共用）：步数清零、通关状态复位。

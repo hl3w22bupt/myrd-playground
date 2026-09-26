@@ -39,6 +39,15 @@
 > （run1 1.45s/156、run2 null/147、run3 11.5s/173，3 种子确定性第 3 次复现）；
 > Web 重导出产物与库内基线逐字节一致（pck `5bfa5ca8…` / wasm `fe5cebc5…`）。
 > 本轮部署与公网核验收敛于同一 HEAD，取证见 `qa/LIVE_VERIFY.md` §七。
+>
+> **本轮（2026-09-27 调参工作台轮，面板落地）**：补齐 §3C 三件套缺失的面板件
+> （`scripts/tuning_panel.gd` 模板复制 + `?tuning=1` 壳页标记 + `tuning_changed` 即时重绘），
+> 冒烟新增调参协议断言（TUNING_META 完整性 / set 钳制 / 未知键拒绝）。四门禁在本轮 HEAD
+> 复跑**全绿**（PREFLIGHT 13 类/64 文件 → GODOT_SMOKE 240 帧 → GODOT_FUZZ 6 批 239 帧 →
+> GODOT_PLAYTEST 3 种子×900 帧）；`GODOT_PLAYTEST_METRICS` 与上表**逐字段一致**
+> （确定性第 4 次复现）。Web 重导出：pck `46606b15…`（脚本入包，按预期变化），
+> wasm `fe5cebc5…` 与 js `8b649683…` 不变（引擎层无变化）。部署与公网核验见
+> `qa/LIVE_VERIFY.md` §八。
 
 ## 二、playtest 协议修复史（FAIL → PASS，可审计）
 
@@ -128,11 +137,24 @@
 - `[ ]` 无　`[ ]` 有
 - 若「有」：第 ___ 关 / 第 ___ 秒，表现：______
 
-## 六、调参工作台
+## 六、调参工作台（入口：`<liveUrl>?tuning=1`）
 
-- 壳页解析 `?tuning=<JSON>` → `window.__GAME_TUNING__` → `GameState._apply_tuning()`
-  只认 `TUNING_META` 声明键并按 min/max 钳制；非法输入一律忽略，不阻断启动。
-- 当前键：`beam_core_width`（2~16，默认 6，光束主线宽）、`beam_glow_width`（4~40，默认 16，辉光宽）。
+- **怎么打开**：试玩入口 URL 后加 `?tuning=1`
+  （例：`https://leomac-studio.tail49399e.ts.net/apps/game-4/gw?tuning=1`），
+  画面**右上角**浮出「调参工作台」面板。
+- **面板有什么**：按 `GameState.TUNING_META` 生成的滑杆（键名 + 滑杆 + 当前值），
+  **拖动即时生效**（`tuning_changed` 信号 → 棋盘重绘光束，无需通关/旋转才看到变化）。
+- **怎么把调参结果发回来**：拖到满意的数值后点「**复制调参 URL**」，得到带
+  `?tuning=<JSON>` 的完整链接（同时显示在面板底部，剪贴板被拒时手动复制亦可）。
+  把该链接发回来 = 一次完整的调参结果，agent 解析 diff 后走
+  `POST /api/v1/game-design-specs/:id/revisions` 回写 spec.numeric → approve 拍板。
+- **注入链路**：壳页解析 `?tuning=<JSON>` → `window.__GAME_TUNING__` →
+  `GameState._apply_tuning()` 只认 `TUNING_META` 声明键并按 min/max 钳制；
+  非对象 / 数组 / 非法 JSON 一律忽略，不阻断启动。`?tuning=1`（非 JSON 值）只开面板不注入数值。
+- **机器取证锚点**：面板真正浮出后向壳页写 `window.__GAME_TUNING_PANEL__='shown'`
+  （壳页先把 `?tuning=1` 置 `'requested'`）—— 公网核验据此断言工作台真实出现。
+- 当前可调键：`beam_core_width`（2~16，步长 1，默认 6，光束主线宽）、
+  `beam_glow_width`（4~40，步长 1，默认 16，辉光宽）。
 - 玩法数值（par/星级阈值）已按拍板固化进 `levels.gd`，不走 URL 调参；后续修订走
   `qa/spec-numeric.json` → revisions → approve 流程。
 

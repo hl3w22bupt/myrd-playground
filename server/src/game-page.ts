@@ -14,7 +14,9 @@
  *
  * 调参桥（§3C 调参工作台硬契约，必须在引擎加载前安装）：
  * URL ?tuning=<urlencoded json> → window.__GAME_TUNING__；
- * 游戏侧 GameState._apply_tuning() 只认 TUNING_META 声明的键并按 min/max 钳制。
+ * URL ?tuning=1（或非 JSON 值）→ window.__GAME_TUNING_PANEL__='requested'（只开调参面板，不注入数值）；
+ * 游戏侧 GameState._apply_tuning() 只认 TUNING_META 声明的键并按 min/max 钳制，
+ * TuningPanel 面板就绪后把 __GAME_TUNING_PANEL__ 改为 'shown'（公网机判取证锚点）。
  *
  * 移动端音频手势解锁器（脚本最前段，必须先于引擎加载安装）：
  * iOS/Android WebKit 的 AudioContext 创建即 suspended、打断后 interrupted（引擎不识别），
@@ -67,15 +69,20 @@ body { color: #fff; background: #0b0e1a; overflow: hidden; touch-action: none; f
   // ---- 调参桥（§3C 契约）：必须最先执行，引擎加载前把 ?tuning= 解析进全局 ----
   // 游戏侧 GameState._apply_tuning() 只认 TUNING_META 声明的键并按 min/max 钳制；
   // 非对象 / 数组 / 非法 JSON 一律忽略，绝不让坏参数阻断启动。
+  // ?tuning=1（或任何非 JSON 对象的值）= 只开调参面板：置 __GAME_TUNING_PANEL__ 标记，
+  // 游戏侧 TuningPanel 检测到 URL 带 ?tuning= 即浮出面板，并在就绪后把标记改为 'shown'。
   var tuningRaw = null;
   try { tuningRaw = new URLSearchParams(location.search).get('tuning'); } catch (e) { /* 老内核无 URLSearchParams：调参不可用，游戏照常 */ }
   if (tuningRaw) {
+    var tuningIsObject = false;
     try {
       var tuningParsed = JSON.parse(tuningRaw);
       if (tuningParsed && typeof tuningParsed === 'object' && !Array.isArray(tuningParsed)) {
         window.__GAME_TUNING__ = tuningParsed;
+        tuningIsObject = true;
       }
-    } catch (e) { /* 非法 JSON：忽略调参 */ }
+    } catch (e) { /* 非法 JSON：按开面板处理 */ }
+    if (!tuningIsObject) { try { window.__GAME_TUNING_PANEL__ = 'requested'; } catch (e) { /* 忽略 */ } }
   }
 
   // ---- 移动端音频手势解锁器（必须在引擎加载前安装）----

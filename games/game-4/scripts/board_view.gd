@@ -49,9 +49,16 @@ var beam: Dictionary = {}
 
 
 func _ready() -> void:
+	# 调参面板拖滑杆 → GameState.tuning_changed → 重绘光束（宽度即时变化，无需旋转一次才生效）。
+	if not GameState.tuning_changed.is_connected(_on_tuning_changed):
+		GameState.tuning_changed.connect(_on_tuning_changed)
 	if not level.is_empty():
 		_layout_board()
 		_recompute_beam()
+
+
+func _on_tuning_changed() -> void:
+	queue_redraw()
 
 
 ## 按当前网格尺寸计算棋盘原点：水平居中，垂直在 HUD 以下的剩余区域居中（钳到下边界内）。
