@@ -53,3 +53,27 @@
 - 任务锁定部署 ref：`myrd/games-goal-cmuieqj7o0031m9gyf4pbwptg`（远端原不存在，按任务纪律自当前基线新建并推送）。
 - 既有实现分支：`myrd/game-4-goal-cmuieqj7o0031m9gyf4pbwptg`（前序各轮产出所在，基线 d639ab8）。
 - 两分支同源同内容：本轮提交同时推送到两条分支，部署 gitRef 用锁定的 `myrd/games-goal-…`，绝不落 main。
+
+## 五、v18 部署与公网核验（2026-09-27）
+
+- 部署请求：mode=bundle，gitRef=`myrd/games-goal-cmuieqj7o0031m9gyf4pbwptg`，sourceId=`cmuieqj7o0031m9gyf4pbwptg`，
+  triggeredById=`cmuieqj7o0031m9gyf4pbwptg`，hostedAppId=`cmuieqj7n002zm9gyy4u8qeai`
+- 响应：success=true，**deploymentId `cmuisxou100ccm9l6wv2gpynx`**，liveUrl `https://leomac-studio.tail49399e.ts.net/apps/game-4/`，
+  status=running（旧部署全部 superseded；状态停 running 为平台已知行为，验收以公网实测为准，与 v5/v17 口径一致）
+- 本轮 commit：`81e3304`（复验取证文档 + 重导出字节一致证明）
+
+### 公网冒烟（curl 实测，全绿）
+
+| 检查 | 结果 |
+|---|---|
+| GET `/apps/game-4/health` | 200，`{"ok":true,"app":"light-path-labyrinth","assets":"lazy/object-storage"}` |
+| GET `/apps/game-4/`（无尾斜杠） | 200 text/html；带尾斜杠 308 规整（网关既有行为，浏览器自动跟随） |
+| 壳契约标记 | `__audioDebug` / `__GAME_TUNING__` / `mode-badge` / 相对路径 `api/public/assets/index.js` / `index.wasm.gz.b64` / 标题「光路谜阵」全部 FOUND |
+| GET `…/api/public/assets/index.wasm` | 200 **application/wasm**（部署硬约束） |
+| GET `…/api/public/assets/index.js` | 200 text/javascript |
+| GET `…/api/public/assets/index.audio.worklet.js` | 200 text/javascript |
+| GET `…/api/public/assets/index.pck.gz.b64` | 200 text/plain（文本通道） |
+| 资产完整性 | b64→gunzip 往返 sha256 与仓内产物一致：wasm `fe5cebc5…`(35,376,909B)、pck `f5f101f9…`(2,609,264B) |
+
+**冒烟结论**：v18 部署公网 8/8 全绿；线上 wasm/pck 与过四门禁的仓内产物 sha256 逐字节一致，
+即 ?qa=1 真机自检与 ?tuning=1 四问量表两项内置化能力已随本轮部署对公网生效。
