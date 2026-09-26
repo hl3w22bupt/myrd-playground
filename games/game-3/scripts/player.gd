@@ -32,10 +32,13 @@ const GRAVITY: float = 1400.0
 const MAX_FALL_SPEED: float = 900.0
 ## 最大跳跃段数：地面起跳 + 二段跳。
 const MAX_JUMPS: int = 2
-## 土狼时间（物理帧，60fps 下 ≈ 0.10s）：走出平台边缘后仍可「地面起跳」的窗口。
-const COYOTE_FRAMES: int = 6
-## 跳跃缓冲（物理帧，60fps 下 ≈ 0.10s）：无可用地跳时的按跳保留多久，落地即消费。
-const JUMP_BUFFER_FRAMES: int = 6
+## 土狼时间（物理帧，60fps 下 ≈ 0.20s）：走出平台边缘后仍可「地面起跳」的窗口。
+## 策划案 v2 拍板值（12/12）：坑2 单跳起跳窗口由 ≈13.1 物理帧提升到 ≈19.1 帧（+46%），
+## 触屏「提前按跳」兑现窗口 0.100s → 0.200s；实测依据见 design-spec/REVISIONS.md §二。
+const COYOTE_FRAMES: int = 12
+## 跳跃缓冲（物理帧，60fps 下 ≈ 0.20s）：无可用地跳时的按跳保留多久，落地即消费。
+## 与土狼时间配套的 v2 拍板值；仍在 TUNING_META 钳制区间 [0,20] 内。
+const JUMP_BUFFER_FRAMES: int = 12
 ## 坠落判定线：低于它视为掉进深坑（相机下缘在 340，本线在其下方，坠落全程可见）。
 const FALL_LIMIT_Y: float = 420.0
 ## 出生点（Level 赛道的起始平台上方）。

@@ -58,9 +58,9 @@ location.href = location.origin + location.pathname + "?tuning=" +
 | 症状 | 先试这组 URL | 判读 |
 |---|---|---|
 | 按了偶尔没反应 | `{"coyote_frames":12,"jump_buffer_frames":12}` | 有效 → 数值问题（窗口太小）；无效 → 链路问题，报 bug |
-| 跳得太飘/太空 | `{"gravity":1800,"jump_velocity_abs":560}` | 提高重力压缩滞空，落点更跟手 |
+| 跳得太飘/太空 | `{"gravity":1700,"jump_velocity_abs":600}` | **安全组合**：压缩滞空落点更跟手，且坑2 仍有余量（真机可选调参，v2 拍板依据见 `../design-spec/REVISIONS.md` §二）；⚠️ `{"gravity":1800,"jump_velocity_abs":560}` 为**反例勿用** —— 会把坑2 调成帧完美、无土狼时窗口为 0 |
 | 跳不过宽坑 | `{"jump_velocity_abs":600}` 或 `{"max_jumps":3}`（仅体验用） | 前者改力学，后者放开段数；定稿后应改坑宽而不是放段数 |
-| 整体节奏太快 | `{"run_speed":200}` | 注意低于 200 时坑宽余量变小，跨坑难度反向上升 |
+| 整体节奏太快 | `{"run_speed":200}` | ⚠️ 试玩反例：低于 240 会把坑2 窗口压到 5.6 帧，跨坑难度反向上升（v2 拍板 runSpeed=240 固化） |
 
 **定稿流程**：真机上试出满意参数 → 回写 `../artifacts/` 结果表 → 若要成为默认手感，由后续
 实现节点把值改进 `scripts/player.gd` 常量区并跑 `bash games/game-3/verify.sh` 门禁提交——

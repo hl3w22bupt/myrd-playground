@@ -160,8 +160,8 @@
     },
     {
       "id": "ac-10-feel-tuning-v2",
-      "status": "pending",
-      "statement": "v2 拍板默认手感落地：scripts/player.gd 常量 COYOTE_FRAMES=12、JUMP_BUFFER_FRAMES=12（当前代码仍为 6，待实现节点按本 spec 修订）；落地后 bash games/game-3/verify.sh 四步全绿，且坑2 单跳起跳窗口由 ≈13.1 物理帧提升到 ≈19.1 物理帧（+46%）；同时按试玩发现①③修正 level.gd 坑5 技巧注释与 qa/tuning-params.md「跳得太飘」建议组合（安全组合 gravity=1700 / jump_velocity_abs=600）",
+      "status": "pass",
+      "statement": "v2 拍板默认手感落地：scripts/player.gd 常量 COYOTE_FRAMES=12、JUMP_BUFFER_FRAMES=12（已由实现节点于 2026-09-27 按本 spec 修订落地）；落地后 bash games/game-3/verify.sh 四步全绿，且坑2 单跳起跳窗口由 ≈13.1 物理帧提升到 ≈19.1 物理帧（+46%）；同时按试玩发现①③修正 level.gd 坑5 技巧注释与 qa/tuning-params.md「跳得太飘」建议组合（安全组合 gravity=1700 / jump_velocity_abs=600）",
       "check": "games/game-3/scripts/player.gd 常量区 + bash games/game-3/verify.sh 退出码 0；实现节点完成后本条置 pass"
     }
   ],

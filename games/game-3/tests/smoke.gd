@@ -44,7 +44,7 @@ const RESTART_GUARD_ASSERT_FRAME: int = 46  # 断言玩家仍在前进（未被�
 const JUMP2_FRAME: int = 45              # 断言一段跳，并按第二次（二段跳）
 const DOUBLE_ASSERT_FRAME: int = 49      # 断言二段跳生效
 const COYOTE_TELEPORT_FRAME: int = 51    # 传送到 S1 右端（坑1 唇边 20px），让他自然跑出平台
-const COYOTE_PRESS_FRAME: int = 61       # 已离地 ≈2 帧（土狼窗口 6 帧内）按跳 → 应兑现为地面跳
+const COYOTE_PRESS_FRAME: int = 61       # 已离地 ≈2 帧（土狼窗口 12 帧内）按跳 → 应兑现为地面跳
 const COYOTE_ASSERT_FRAME: int = 67      # 断言土狼跳（jumps_used == 1 且明显上升）
 const TELEPORT_DART_FRAME: int = 71      # 传送到第一枚飞镖上
 const COLLECT_ASSERT_FRAME: int = 78     # 断言收集 + 加分 + 收集反馈在播
@@ -68,7 +68,7 @@ const MIN_JUMP_RISE: float = 4.0         # 起跳后至少上升 4px（重力未
 const MIN_COYOTE_RISE: float = 10.0      # 土狼跳按跳后 6 帧 ≈ 上升 44px，取 10px 宽容
 const RESTART_X_TOLERANCE: float = 120.0 # 重开 5 帧内玩家仍应在出生点附近
 ## 跳跃缓冲轮询：下落至此高度（离地站立中心 187px 的上方 37px）即按跳 ——
-## 离落地还剩 ≈4 帧，落在 JUMP_BUFFER_FRAMES(6) 窗口内且留有余量。
+## 离落地还剩 ≈4 帧，落在 JUMP_BUFFER_FRAMES(12) 窗口内且留有余量。
 const BUFFER_PRESS_HEIGHT: float = 37.0
 const GROUND_CENTER_Y: float = 200.0 - 13.0  # 站在地面上的玩家中心 y（碰撞盒 26 高的一半）
 

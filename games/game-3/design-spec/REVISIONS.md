@@ -58,4 +58,47 @@
 | ⚠️ 反例勿用 | gravity 1800 / jump 560 | `%7B%22gravity%22%3A1800%2C%22jump_velocity_abs%22%3A560%7D` |
 | ⚠️ 反例勿降速 | run_speed 200 | `%7B%22run_speed%22%3A200%7D` |
 
-> 注：落地清单 #1 完成前，线上默认仍是 6/6，可用第一条 URL 在线上体验 v2 手感。
+> 注：落地清单 #1–#3 已于 2026-09-27 由「编码实现」节点完成（v2 默认 12/12 已固化进 `scripts/player.gd`
+> 常量区，门禁四件套复跑全绿，见下节落地记录）；第一条 URL 保留用于真机复验对照。
+
+## 六、落地记录（2026-09-27 · 编码实现节点 · 策划案 ↔ 实现闭环）
+
+**拍板版本号：v2（version=2，status=approved，拍板 2026-09-27）。** 本次为「实现向 spec 对齐」：
+spec.numeric 十项逐一比对后未发生任何 spec 修订（version 不变），实现侧按 v2 固化默认值。
+
+### 6.1 逐项比对结论（spec.numeric ↔ 代码默认）
+
+| spec 键 | 拍板值 | 代码落点（改前 → 改后） | 判定 |
+|---|---|---|---|
+| coyoteFrames | 12 | `player.gd COYOTE_FRAMES` 6 → **12** | **偏差 → 对齐固化** |
+| jumpBufferFrames | 12 | `player.gd JUMP_BUFFER_FRAMES` 6 → **12** | **偏差 → 对齐固化** |
+| runSpeed | 240 | `player.gd RUN_SPEED = 240.0` | 一致 |
+| jumpVelocity | -520 | `player.gd JUMP_VELOCITY = -520.0` | 一致 |
+| gravity | 1400 | `player.gd GRAVITY = 1400.0` | 一致 |
+| maxJumps | 2 | `player.gd MAX_JUMPS = 2` | 一致 |
+| maxFallSpeed | 900 | `player.gd MAX_FALL_SPEED = 900.0`（不开放调参） | 一致 |
+| dartScore | 1 | `game_state.gd DART_SCORE = 1` | 一致 |
+| winBonus | 10 | `game_state.gd WIN_BONUS = 10` | 一致 |
+| tuning | 12 ∈ [0,20] 钳制区间 | `game_state.gd TUNING_META.coyote_frames/jump_buffer_frames = {"min":0,"max":20}` | 一致 |
+
+### 6.2 落地清单执行结果
+
+| # | 事项 | 结果 |
+|---|---|---|
+| 1 | 常量 6→12 | ✅ `player.gd` 常量区已固化 12/12，注释同步 ≈0.20s（坑2 单跳起跳窗口 ≈13.1 → ≈19.1 物理帧，+46%） |
+| 2 | 坑5 技巧注释修正 | ✅ `level.gd` 难度梯度表改为「第二跳在回落越过起跳高度后 ≈0.26s 再按（力学最优，最高点按是最差时机）」 |
+| 3 | tuning-params.md 建议组合 | ✅ 「跳得太飘」改安全组合 `{"gravity":1700,"jump_velocity_abs":600}`；`1800/560` 与 `run_speed:200` 标注为反例勿用 |
+| 4 | S1 增设「白给」镖（评估项） | **评估结论：不增设**。机判 first_reward 实测 2.67–2.92s，远优于 ≤10s 阈值，首枚镖 x=420 小跳即收、正反馈已足够早；改关卡数据须复算跨坑承诺表并重跑逐镖可达断言，收益边际、风险不对称 → 不进本版（与 spec `lvl-01/darts` expect 口径一致），留待后续版本结合真机数据再评估 |
+
+同步项：`tests/smoke.gd` 两处窗口注释（土狼/缓冲）6→12（断言为窗口内正例，数值无影响）；`spec.json` 的 `ac-10-feel-tuning-v2` 按 spec 预设置 **pass**。
+
+### 6.3 门禁结论（判定脚本唯一来源 std-skills/godot-game-dev/scripts/）
+
+`bash games/game-3/verify.sh` 退出码 **0**（Godot 4.3.stable.official.77dcf97d8）：
+
+- PREFLIGHT: PASS（13 类前置一致性检查，57 个工程文件）
+- godot-smoke: PASS（`GODOT_SMOKE_FRAMES=240`，断言标记齐全，日志零 SCRIPT ERROR）
+- godot-fuzz: PASS（seed=20260913，batches=6，total_frames=239）
+- godot-playtest: PASS（3 种子 × 1200 帧：first_reward 2.67/2.80/2.92s ≤10s、最长无反馈窗口 ≤5.88s ≤10s、反馈事件 20–23 ≥2/局）
+
+12/12 新默认在三项运行期门禁下全部复现 v2 拍板时的机判达标结论 —— 策划案与实现闭环完成。
