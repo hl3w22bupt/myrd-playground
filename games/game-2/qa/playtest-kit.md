@@ -7,8 +7,8 @@
 
 | 项 | 说明 |
 |---|---|
-| 游戏地址 | `<liveUrl>`（平台部署后的 Web 链接） |
-| 调参工作台 | `<liveUrl>?tuning=1`（打开即右上角面板） |
+| 游戏地址 | `https://leomac-studio.tail49399e.ts.net/apps/game-2`（平台部署后的 Web 链接） |
+| 调参工作台 | `https://leomac-studio.tail49399e.ts.net/apps/game-2?tuning=1`（打开即右上角面板） |
 | 桌面开关面板 | 按 **T** 键（工作台关闭时同理再按一次） |
 | 浏览器 | 桌面 Chrome / Safari 最新两个大版本；真机另见 `ios-checklist.md` |
 | 每轮时长 | 至少 3 局（1 局失败终局 + 1 局胜利终局 + 1 局中途放弃） |
@@ -29,7 +29,7 @@
 
 ## 三、调参映射（哪句抱怨 → 改哪个键）
 
-面板在 `<liveUrl>?tuning=1`，拖滑杆即时生效（改数量类键会自动重铺战场）。
+面板在 `https://leomac-studio.tail49399e.ts.net/apps/game-2?tuning=1`，拖滑杆即时生效（改数量类键会自动重铺战场）。
 
 | 试玩者原话 | 优先改的键 | 方向 |
 |---|---|---|
@@ -45,7 +45,7 @@
 
 ## 四、回填方式（改完数值 → 复制 → 回填）
 
-1. 打开 `<liveUrl>?tuning=1`，把上一表对应的滑杆拖到候选值；
+1. 打开 `https://leomac-studio.tail49399e.ts.net/apps/game-2?tuning=1`，把上一表对应的滑杆拖到候选值；
 2. 点 **「复制调参链接」** —— 当前 17 个数值会被序列化成
    `?tuning=1&max_crystals=…&difficulty_step=…` 追加在当前页面地址后并写入剪贴板
    （浏览器拒绝剪贴板权限时，面板会直接把完整链接展示出来，手动复制即可）；

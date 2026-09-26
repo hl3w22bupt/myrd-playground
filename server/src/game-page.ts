@@ -12,10 +12,14 @@
  * 经公网入口 /apps/game-2 访问时才能解析到网关子路径。
  *
  * 调参桥（§3C 调参工作台硬契约，必须在引擎加载前安装）：
- * 把 URL 参数 `?tuning=<json>` 解析进 window.__GAME_TUNING__，
- * 游戏侧 TuningPanel.parse_tuning_query / apply_parsed_tuning 消费 URL 里的
- * key=value 候选数值（只认 TUNABLE_KEYS 声明的键、按 KEY_RANGES 钳制）
- * —— 缺这一层 = 试玩调好的参数无法用 URL 复现，调参回写流程断裂。
+ * 把 URL 参数解析进 window.__GAME_TUNING__，游戏侧 GameConfig.apply_tuning_bridge()
+ * 启动时读取（只认 TUNING_META 声明的键、按 min/max 钳制）—— 缺这一层 =
+ * 试玩调好的参数无法用 URL 复现，调参回写流程断裂。
+ * 两种 URL 形态都认（游戏侧白名单兜底，未知键一律忽略）：
+ *   ① `?tuning=<json>`          —— 契约形态（调参工作台 URL 复现入口）；
+ *   ② `?tuning=1&key=value&…`   —— 游戏内调参面板「复制调参链接」的扁平回填形态
+ *      （tuning_panel.gd _on_copy_link_pressed 的序列化输出；旧壳只认 ①，
+ *       面板生成的链接无人消费 = 调参回填契约缺失，2026-09-27 轮修复）。
  *
  * 移动端音频手势解锁器（脚本最前段，必须先于引擎加载安装）：
  * iOS/Android WebKit 的 AudioContext 创建即 suspended、打断后 interrupted（引擎不识别），
@@ -66,14 +70,27 @@ body { color: #e8f4ff; background: #050a1c; overflow: hidden; touch-action: none
 <script>
 (function () {
   // ---- 调参桥（§3C 硬契约：必须先于引擎加载，游戏侧 GameConfig 启动时消费）----
+  // 双形态：① ?tuning=<json>（契约形态）；② ?tuning=1&key=value&…（面板扁平回填形态）。
   var tuningApplied = false;
-  var tuningRaw = new URLSearchParams(location.search).get('tuning');
+  var tuningParams = new URLSearchParams(location.search);
+  var tuningObj = null;
+  var tuningRaw = tuningParams.get('tuning');
   if (tuningRaw) {
     try {
       var t = JSON.parse(tuningRaw);
-      if (t && typeof t === 'object' && !Array.isArray(t)) { window.__GAME_TUNING__ = t; tuningApplied = true; }
-    } catch (e) { /* 非法 JSON：静默忽略，游戏用内置/配置数值 */ }
+      if (t && typeof t === 'object' && !Array.isArray(t)) { tuningObj = t; tuningApplied = true; }
+    } catch (e) { /* 非法 JSON：转解析扁平形态，游戏用内置/配置数值兜底 */ }
   }
+  if (!tuningObj) {
+    var flat = {};
+    tuningParams.forEach(function (v, k) {
+      if (k === 'tuning') return;  // 面板开关位本身不是调参键
+      var n = Number(v);
+      flat[k] = (v !== '' && isFinite(n)) ? n : v;  // 数值化；其余原样透传交游戏侧白名单过滤
+    });
+    if (Object.keys(flat).length > 0) { tuningObj = flat; tuningApplied = true; }
+  }
+  if (tuningObj) window.__GAME_TUNING__ = tuningObj;
   // ---- 移动端音频手势解锁器（必须在引擎加载前安装，见文件头注释）----
   var audioCtx = null;
   var audioLog = [];
