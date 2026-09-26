@@ -104,3 +104,30 @@ bash games/game-3/verify.sh
    （fb=24/25/28）；若策划案定稿「每局赛道随机化」类 replayHooks，把该阈值设 2 硬判。
 3. **调参联动**：playtest 的 METRICS 行是调参轮的机判底座——URL `?tuning=` 改手感参数后
    复跑 playtest 对照指标，定稿走策划案 revisions API 回写（口径见 `tuning-params.md`）。
+
+## 九、rerun 复跑记录（2026-09-27 · 发布节点 iterate/rerun）
+
+运维补齐套件后的**独立复跑**（新 worktree，从分支 `myrd/games-goal-cmuieq51k002cm9gysxbyppv7` @ `a89235f`
+检出，零代码改动、判定器零改动），逐项对照上轮记录：
+
+| 步骤 | 本轮结果 | 与上轮对照 |
+|---|---|---|
+| `resolve-godot.sh` → `godot --headless --version` | 4.3.stable.official.77dcf97d8 | 一致 |
+| preflight（13 类） | PASS（55 文件，含本轮 qa 归档增量） | PASS |
+| smoke（240 帧） | PASS，日志零 `SCRIPT ERROR` | PASS |
+| input-fuzz | PASS（seed=20260913，batches=6，239 帧） | PASS |
+| playtest（900 帧/局，判定器默认） | PASS：fb=17/17/18，first=2.80/2.65/2.92s，gap≤3.42s，score=3/0/6 | 参数不同，指标同量级 |
+| playtest（**1200 帧/局，门禁参数**） | **PASS：fb=24/25/28，first=2.80/2.65/2.92s，gap=3.12/3.42/3.00s，score=0/0/0** | **与第三节表格逐位一致** |
+
+复跑命令与判定协议同第六节；`GODOT_PLAYTEST_METRICS` 单行 JSON 明细：
+
+```json
+{"frames_per_run":1200,"runs":[{"feedback_events":24,"first_reward_seconds":2.8,"max_feedback_gap_seconds":3.11666666666667,"outcome":"score=0|fb=24","run":1,"seed":20260913},{"feedback_events":25,"first_reward_seconds":2.65,"max_feedback_gap_seconds":3.41666666666667,"outcome":"score=0|fb=25","run":2,"seed":20260914},{"feedback_events":28,"first_reward_seconds":2.91666666666667,"max_feedback_gap_seconds":3,"outcome":"score=0|fb=28","run":3,"seed":20260915}],"thresholds":{"feedback_events_min_per_run":2,"feedback_gap_seconds_max":10,"first_reward_seconds_max":10,"seed_outcomes_min_distinct":1},"thresholds_source":"tests/playtest.json"}
+```
+
+（run3 的 `outcome` 在 900 帧局为 `score=6`、1200 帧局为 `score=0`——bot 的 6 枚飞镖都在
+前 15 秒内收齐后坠坑，20 秒局末分归零属结算语义，非缺陷；`first_reward`/`gap`/`fb` 三项两参数完全一致。）
+
+**复跑结论**：验收包（§1–§7）在独立环境可复现，`GODOT_PLAYTEST: PASS` 稳定成立，
+试玩验收正式通过；工程产物 `export/web/`（pck 2557296 字节）自 `a89235f` 起已含
+Juice 反馈协议与重开防误触，本轮随部署分支 `myrd/games-goal-cmuieq51k002cm9gysxbyppv7` 重新发布。
