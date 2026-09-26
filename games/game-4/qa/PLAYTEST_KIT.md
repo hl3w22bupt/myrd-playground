@@ -8,6 +8,10 @@
 > 持久化（`user://guanglu_survey.cfg`），提交一键导出回传（iOS 系统分享 → 剪贴板，
 > JSON schema `guanglu-survey/1`）。线下 markdown 回填方式仍有效（§五原样保留），
 > 游戏内回填导出的 JSON 与本节字段一一对应。详见 `qa/QA_SELFTEST.md` §二。
+> **真机自检已内置（v18，2026-09-27）**：URL 加 `?qa=1` 进入「真机自检」模式——自动采集
+> 触屏命中（真实点击 + 全格 sweep）、旋转响应时延（p95 预算 120ms）、音效播放状态
+> （AudioContext/设备信息），一键生成 JSON 实测报告并 iOS 系统分享/剪贴板/下载四级导出；
+> 试玩者用法见本包 §六·补，技术细节见 `qa/QA_SELFTEST.md` §一。
 > 数值事实源：`qa/spec-numeric.json`（拍板后参考步数/星级阈值）+ `qa/tuning-data.json`（headless 机判）。
 > 关卡数据源：`scripts/levels.gd`（10 关）。
 
@@ -70,6 +74,17 @@
 > 真壳页注入 `?tuning={"beam_core_width":14}` 滑杆正确显示 14 —— 调参回传通道在公网就绪
 > （截图 `qa/shots-live-verify/tuning-panel-LIVE-*.png`，HTTP 级核验见 `qa/LIVE_VERIFY.md` §八）。
 > **四问量表仍「待用户试玩（未回填）」—— 调参工作台入口：`<liveUrl>?tuning=1`。**
+>
+> **本轮复验（2026-09-27 试玩验收轮，HEAD `65e9c30`）**：四门禁在当前 HEAD 复跑全绿
+> （PREFLIGHT PASS 13 类/77 文件 → GODOT_SMOKE PASS 240 帧退出码 0 零脚本错误 →
+> GODOT_FUZZ PASS seed=20260913 6 批 239 帧 → GODOT_PLAYTEST PASS 3 种子×900 帧）；
+> `GODOT_PLAYTEST_METRICS` 与上表**逐字段一致**（run1 1.45s/156、run2 null/147、
+> run3 11.5s/173，确定性第 6 次复现）。部署线：v18（deploymentId
+> `cmuisxou100ccm9l6wv2gpynx`，commit `65e9c30`，gitRef=`myrd/games-goal-cmuieqj7o0031m9gyf4pbwptg`）
+> 公网 8/8 全绿——/health 200、落地页 200、壳契约标记齐全、wasm
+> Content-Type=application/wasm、wasm/pck sha256 与仓内产物一致（取证
+> `qa/QA_SURVEY_ITERATION.md` §五）；本轮工作区零代码改动，导出字节一致性维持，
+> liveUrl 不变：`https://leomac-studio.tail49399e.ts.net/apps/game-4/gw`。
 
 ## 二、playtest 协议修复史（FAIL → PASS，可审计）
 
@@ -180,6 +195,29 @@
   `beam_glow_width`（4~40，步长 1，默认 16，辉光宽）。
 - 玩法数值（par/星级阈值）已按拍板固化进 `levels.gd`，不走 URL 调参；后续修订走
   `qa/spec-numeric.json` → revisions → approve 流程。
+
+## 六·补、真机自检模式（入口：`<liveUrl>?qa=1`）
+
+> 这台设备玩不玩得动？不靠感觉，靠机判。试玩者/验收者打开
+> `https://leomac-studio.tail49399e.ts.net/apps/game-4/?qa=1`（可与调参工作台叠加：
+> `?qa=1&tuning=1`），画面浮出 QA 自检面板。
+
+1. **怎么采**：正常玩即可——每次真实点击自动记一个样本（点击坐标 → 路由格子 →
+   是否按预期旋转）；点「**自动扫描**」跑全格合成点击 sweep（逐格命中核验，
+   坐标映射错位当场现形）。
+2. **看什么**：面板实时显示触屏命中率（预算 100%）、旋转响应时延 mean/p50/p95/max
+   （预算 **p95 ≤ 120ms**，含帧开销的「跟手度」）、音效播放状态（AudioContext
+   running / 待手势解锁）与设备信息（UA/DPR/屏幕/触摸点数）。
+3. **怎么回传**：点「生成报告并导出」得到单行 JSON（schema `guanglu-qa-report/1`，
+   含 `verdict.pass` 机判结论与四问量表快照），按 **iOS 系统分享 → 剪贴板 →
+   execCommand 复制 → 下载** 四级降级导出，同时投浏览器控制台（标签
+   `GUANGLU_QA_REPORT`）。把该 JSON 发回来 = 一次完整的真机自检结果。
+4. **判定口径（机判、无主观项）**：`verdict.pass = 触屏命中达标 ∧ 时延 p95 达标 ∧
+   音频可出声`；管格样本「路由到位且真的转了」计 hit，非管格（空格/墙）「正确地
+   不旋转」也计 hit，坐标映射错位/响应丢失计 miss。
+5. **公网可用性**：?qa=1 壳页徽标 + `__QA_MODE__` 标记已随 v18 部署生效；门禁侧
+   自检纯逻辑（样本记录/统计/报告构建）被冒烟直接断言——「自检本身也被门禁检」。
+   浏览器端实测取证：`qa/QA_SELFTEST.md` §三、`qa/qa-live-check.log`。
 
 ## 七、复跑指引
 
