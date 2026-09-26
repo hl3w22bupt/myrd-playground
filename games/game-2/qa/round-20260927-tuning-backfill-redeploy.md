@@ -39,3 +39,25 @@
   index.js 200（331495B）、index.wasm.gz.b64 200（10.7MB text/plain）、index.pck.gz.b64 200（3.3MB text/plain）。
 - 调参回填链路：面板「复制调参链接」→ 扁平 URL → 壳页解析进 `window.__GAME_TUNING__` →
   `GameConfig.apply_tuning_bridge` 白名单消费 —— 闭环已修复上线。
+
+## playtest 节点独立复核（2026-09-27 迭代轮，只读，不重烧 v9）
+
+deploy/playtest-kit 回填均由本轮 deploy 派发轨迹完成（a3a5d2f + 57869b2）；playtest 节点独立复核结论：
+
+| 复核点 | 结果 |
+|---|---|
+| 工作区/远端同步 | 本地 HEAD = `57869b2` = `git ls-remote` 远端 goal 分支 HEAD，工作树 clean |
+| 指令引用 HEAD `01219f7` | **不存在**（本地/远端任何引用均无，stale 引用）；按「最新 HEAD」口径执行，实际基线 `57869b2` |
+| v8 线上健康 | `/apps/game-2/health` → 200 `{ok:true,app:star-dust-collector,assets:lazy/object-storage}` |
+| 壳页双形态桥 | 壳页 200（12375B），`__GAME_TUNING__` ×2、扁平形态标记 `k === 'tuning'` ×1，`<title>星尘收集者</title>` |
+| 调参 URL 双形态 | 扁平 `?tuning=1&max_crystals=5&initial_shield=2` → 200；JSON `?tuning=%7B%22max_crystals%22%3A5%7D` → 200 |
+| 资产懒加载端点 | `api/public/assets/index.js` 200（331495B，与仓库导出逐字节同尺寸）；`index.wasm.gz.b64` 200（10696408B）；`index.pck.gz.b64` 200（3340912B） |
+| playtest-kit.md 占位符 | `<liveUrl>` 残留 **0 处**（a3a5d2f 已回填 4 处真实入口） |
+| playtest.sh | ⛔ 仍缺：本地 `std-skills/godot-game-dev/scripts/` 与 `origin/main a15f66b` 同目录均无 playtest 匹配；注入阅读副本有 → **playtest 维持 blocked** |
+
+**不重烧 v9 的理由**：HEAD `57869b2` 相对 v8 部署基线 `a3a5d2f` 仅差一个纯 docs（qa markdown）提交，
+构建产物零差异；v8 线上全绿且自测通过，重复部署只会产生 superseded 版本空转。
+
+**回写链路备查**（收到用户试玩结果后启用）：调参 URL → diff（仅认 `game_config.gd TUNING_META` 17 键）
+→ `POST /api/v1/game-design-specs/cmuinva4t002xm9l6bwjcnyy6/revisions`（当前 v1 draft，numeric 15 键）
+→ `POST .../approve` 拍板 → artifacts 追加 `op=tuning_applied` → 下一轮按新 spec 重部署。
