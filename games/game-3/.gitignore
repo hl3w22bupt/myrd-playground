@@ -1,0 +1,15 @@
+# Godot 本机导入缓存：由 `godot --headless --path . --import` 重新生成，不进版本库
+.godot/
+
+# 导出产物：桌面端产物不入库；export/web 是 AppHost 部署的构建输入
+# （仓库根 server/ 会把它 gzip+base64 内联进 bundle），必须入库
+/export/*
+!/export/web/
+*.exe
+*.zip
+
+# 门禁 fuzz 驱动的运行时暂存（input-fuzz.sh 用后即清）
+tests/.fuzz/
+
+# 系统
+.DS_Store
