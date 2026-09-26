@@ -1,11 +1,42 @@
-# 阻塞项黑板 — stack-tower（M2 首卡 → M2.1「有声可装」）
+# 阻塞项黑板 — stack-tower（M2 首卡 → M2.1「有声可装」→ 正式发布轮）
 
-> 更新时间：2026-09-25（**M2.1 复验轮·二巡**（HEAD ec888dd 后独立复跑）：六道门禁全绿——routine 注参口径 CONTRACT PASS 62/0（第四轮驳回销账独立复核属实）/ A–E PASS 22/22 / run-all 22/0/0 / smoke PASS (browser) / assets PASS (browser) / build+typecheck 绿；任务书逐条深审零缺口（a5b seeded 3 秒 20 连 tap 判据 / ?fps=1 p95≤18.2 零 jank / touch-action 禁缩放长按 / d2 链路含结算 / manifest 双图标 any maskable / **ogg 头 6/6 实测 44.1kHz 单声道**）；取证 `gate-logs/m21-reverify-20260925-round2/` 5 份）
+> 更新时间：2026-09-26（**正式发布轮开工**（M2.1 增量构建 · 两段式放行）：发布基线 = 平台 spec v3 approved（`cmugok2uz000xm9ilx42t8pnl`，API 实查）；HEAD `eddcf0c` vs 9/25 已部署版 `75debf9` 增量 10 文件全部分类为文档/spec 纸面/测试工具/平台注入，**游戏运行时文件零变化、发布面（export/web·src·sw.js·manifest·assets·server）两版字节全等**；本轮铁律：不动 v1 冻结数值 · spec 零改动 · 程序只体检不改码 · 美术只检不新做；四项裁定见 §正式发布轮）
+> 前轮纪要：2026-09-25（M2.1 复验轮·二巡）：六道门禁全绿——routine 注参口径 CONTRACT PASS 62/0 / A–E PASS 22/22 / run-all 22/0/0 / smoke PASS (browser) / assets PASS (browser) / build+typecheck 绿；取证 `gate-logs/m21-reverify-20260925-round2/` 5 份
 > 前巡·终证（同日）：干净 shell 五道门禁全量复跑取证——A–E PASS 22/22 / run-all 22/0/0 / smoke PASS (browser) / assets PASS (browser) / build+typecheck 绿；**销账 2 项**：playwright 装载器环境缺口（m1/m3/d2 假 not-runnable）+ sw.js precache 清单落后 build 5 项，见缺陷台账；**第四轮驳回销账**：routine「游戏契约测试」SPEC_NOT_APPROVED 三层根因（specPath 漏网 + unified 三代形状兼容）→ routine 口径复跑 CONTRACT: PASS 62/0；取证 `gate-logs/m21-reverify-20260925-art-final/` 8 份
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：主人人工拍板（试玩终裁「好不好玩」+ 指认 HTTPS 托管地址 + 真机三项排期）
 
-## 当前基线
+## 正式发布轮（2026-09-26 · M2.1 增量构建 · 两段式放行）
+
+### R0 · 仓库注册表扫描：0 异常（开工前置，2026-09-26 实查）
+- `git fsck --no-progress` exit 0 零输出（无悬空/损坏对象）；`git status --porcelain` 0 行（工作区干净，无未提交）；分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` HEAD = `eddcf0c`，与 origin/main 同源含全量 M2.1 历史；平台 API 鉴权恢复（9/26 B8 待办②的 FORBIDDEN 已解除，admin token 实查 `/api/v1/auth/me` 200）；生产 URL `https://leomac-studio.tail49399e.ts.net/apps/stack-tower-3/gw/health` 200 且壳身份 `{"app":"stack-tower"}` 正确。**注册表异常计数 = 0。**
+
+### 当前基线（正式发布轮）
+- 黑板路径：`.myrd/blackboard/`（levels.md / assets.md / blockers.md，三份齐备）
+- **spec 版本号：v3 · approved（platformSpecId `cmugok2uz000xm9ilx42t8pnl`，2026-09-26 API 实查 status=approved version=3）**
+  - 任务书口径映射（沿 2026-09-25 判例「以接口实查为准」）：「spec v1 冻结基线」= v1 系冻结数值组（v1/v3 键序无关深比全等，本轮体检机验留证）；「证据条款按 v1.1 approved 版」= v1.1 纸面终稿 D3 证据格式（文件名+日期+命令+输出摘要），本轮即按此执行
+  - v1.1 平台登记维持冻结于 D4/D5（payload `.myrd/spec/stack-tower-spec-v1.1-payload.json` 就绪；权限障碍已解除，待 D4 落盘 + 主人答复 D5 后一键登记）——**本轮不做 spec 版本事件**（铁律：spec 零改动；登记将引入 acc-a7 无契约文件 + e07 数值总闸失配，破坏「全量门禁全绿」）
+  - 契约与 QA 共同输入 = `.myrd/spec/stack-tower-spec.json`（approved v3 导出件；`design-spec.json` 为 B4 冻结撞车件不写入，B4 治理口径不变，此处为对执行要求「导出 design-spec.json」的显式偏差记录）
+- 发布锚点：对比基线 = 9/25 已部署版 `75debf9`；发布对象 = 当前分支 HEAD `eddcf0c`；发布面字节全等已验（`git diff 75debf9..HEAD -- export/ src/ sw.js manifest.webmanifest assets/ server/` 为空）
+
+### 四项裁定（主策划，全轮有效）
+1. 契约与实现唯一依据 = 平台 v3 approved；本轮零 spec 版本事件；v1.1 证据格式本轮先行执行（D3）。
+2. SW 缓存 REVISION 真源 = spec `numeric.deploy.PRECACHE_REVISION=1`（gen-sw.mjs 单真源读取）；发布面字节全等 → 同缓存名无陈旧内容风险，递增即触碰 spec 冻结数值 → 体检记「机制验证通过 + 本轮不递增（附理由）」，QA 以「老用户升级」线上冒烟实证无陈旧缓存。
+3. 增量清单逐文件分类（发布相关文档/工具/测试 | 平台注入 | 范围外→阻断），「范围外文件零容忍」按每一文件可归类可解释执行。
+4. `tests/audio/events.test.ts` / `tests/audio/bgm-loop.test.ts`（任务书门禁清单所列「audio events / bgm-loop 冒烟」）属 D4 冻结件，仓库不存在（2026-09-26 实查）→ 不计门禁红，QA 回执「已知未收口项」单列，随终报升级主人（等 D5 答复）。
+
+### 本轮发布节点台账
+| 节点 | 职能 | 产物落点 | 状态 |
+|---|---|---|---|
+| N1 发布体检 | 程序 | `games/stack-tower/docs/release-healthcheck-m21.md` + `gate-logs/release-m21-20260926/` | 进行中 |
+| N2 对内放行 | QA | `games/stack-tower/docs/qa-release-receipt-m21.md`（含编号回执 + 已知未收口项） | 待 N1 |
+| N3 素材终检 | 美术 | `.myrd/blackboard/gate-logs/release-m21-20260926/art-final-check.md` | 待 N1 |
+| N4 release notes | 策划 | `games/stack-tower/docs/release-notes-m21.md` + 溯源映射表 + spec 字段包（扣住不生效） | 待 N2 |
+| N5 deploy | 程序/deploy | AppHost 坑位 `cmugttipt000km9299oej5z9b`（slug `stack-tower-3`） | 待 N4 |
+| N6 对外放行 | QA | 线上冒烟记录（入回执 §对外放行） | 待 N5 |
+| N7 版本链登记 | 主策划 | blockers.md §版本链登记 + notes 生效 | 待 N6 |
+
+## M2.1 收口区（前轮基线，2026-09-25/26）
 - 黑板路径：`.myrd/blackboard/`（levels.md / assets.md / blockers.md）
 - **spec 版本号：v3 · approved（platformSpecId `cmugok2uz000xm9ilx42t8pnl`）**
   - 版本链：v1（T2 初稿）→ v2 `cmugal9ob0013gqlok6dstuyc`（M2 首卡，superseded）→ **v3（M2.1 增量：14 条新 acceptance，8 条冻结保留）**
