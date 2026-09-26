@@ -122,3 +122,26 @@ HEAD 逐字节一致），重复重建只会制造冗余部署（见知识文档
 **第三次执行结论：spec.numeric 幂等成立且实现侧零改动；线上 v7 的工程内容与当前 HEAD
 逐字节一致（漂移检查 + 资产解码双证），故维持 v7 现役、不发起重复部署（冗余部署处置纪律）。
 本节点交付 = 本节落盘 + artifacts 回写引用 v7 现役部署。**
+
+## 八、节点第四次执行复验（2026-09-27，幂等成立，v7 留任现役 + 双帧预算 playtest 交叉验证）
+
+> 本节点第四次重入（HEAD=9c40898，工作区干净，HEAD 与 origin/FETCH_HEAD 同步，零领先零落后）。
+> 仍按幂等分支口径全量重验（不盲信 §一~§七 前文），判定脚本均为仓库内
+> `std-skills/godot-game-dev/scripts/`，本轮全部退出码 0：
+
+| 复验项 | 方法 | 结果 |
+|---|---|---|
+| spec.numeric 权威源 | `GET /api/v1/game-design-specs/cmuiiofl4004tm9gcmaz3sstp` 直取 | version=1，status=**approved**，updatedAt=2026-09-26T15:00:44Z（无新 revision：两次 revise_design_spec 节点失败于「未支持的操作类型」，spec 仍为 v1 基线） |
+| 数值对照 | spec.numeric + spec.world ↔ player.gd / game_state.gd / level.gd 常量 | 15 项逐项一致（runSpeed 240 / jumpVelocity −520 / gravity 1400 / maxFallSpeed 900 / maxJumps 2 / coyote 6 / buffer 6 / dartScore 1 / winBonus 10 / jumpAirTime 同式派生 / FALL_LIMIT_Y 420 / START_POSITION(60,150) / goalX 4800 / trackEndX 5060 / spikeXs 7 项同序）→ **幂等，零数值改动** |
+| 四门禁 | `bash games/game-3/verify.sh`（HEAD 9c40898 上） | `verify: PASS` exit 0：preflight PASS（13 类 56 文件）/ smoke PASS（240 帧）/ input-fuzz PASS（seed=20260913 batches=6 frames=239）/ playtest PASS（3 局×1200 帧，routine 默认帧预算） |
+| playtest 双帧预算 | routine 默认 1200 帧 + 前两轮口径 900 帧各复跑一次 | 1200 帧：fb=24/25/28，first_reward 2.65~2.92s，max_gap 3.00~3.42s（阈值内）；900 帧：**score=3/0/6、fb=17/17/18 与 §六/§七 确定性复现**（帧预算不同只改变种子化输入时间线的得分轨迹，节奏指标两口径均绿，无回归） |
+| 导出幂等 | `--export-release "Web"` 至 /tmp/export-check4，逐文件 SHA-256 | 7/8 与提交产物一致（html/js/wasm/png/icon/touch-icon/audio-worklet）；index.pck 哈希不同但字节数同（2,557,296B）= pck 头 mtime 抖动；导出后 `git status` 干净 |
+| 漂移检查 | `git diff --name-only d09aab8..HEAD` | 唯一差异 = qa 核验文档自身；工程目录零漂移（与 §七 结论一致） |
+| 线上健康 | `GET /apps/game-3/`（跟随 308）、`GET /apps/game-3/gw/health` | 入口 200 壳页《疾风忍者跑》（title 实测）；/health 200 |
+| 资产通道 | `GET /apps/game-3/api/public/assets/{index.pck,index.wasm,index.js}` | 全 200（pck wire 3,387,472B / wasm 10,696,408B / js 331,495B=提交产物同字节数）；pck b64 解码+gunzip → 2,557,296B，SHA-256 `c79d6f28e177463e…` 与提交产物**逐字节 MATCH** |
+
+**第四次执行结论：幂等第三次复验成立，实现侧零改动；线上 v7（deploymentId=
+`cmuip8rqw005cm9l6l2d0ohu1`，HostedApp `cmuieq51i002am9gyfxqx06rl`，liveUrl
+`https://leomac-studio.tail49399e.ts.net/apps/game-3/`）资产通道解码与当前 HEAD 导出逐字节
+一致 → 维持 v7 现役、不发起冗余部署。试玩量表仍为「待用户试玩」（用户结论未回填，
+不伪造）；spec 无新拍板 revision，无 tuning_applied 可回写。**
