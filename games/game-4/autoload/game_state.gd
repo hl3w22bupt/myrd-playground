@@ -23,6 +23,18 @@ const SAVE_PATH: String = "user://guanglu_save.cfg"
 ## 存档版本：字段结构变化时 +1，旧档直接丢弃重开档。
 const SAVE_VERSION: int = 2
 
+## 四问量表独立存档（与进度档分开版本化：量表答案回填不该牵连通关进度）。
+const SURVEY_PATH: String = "user://guanglu_survey.cfg"
+const SURVEY_VERSION: int = 1
+## 四问量表已声明的作答键（q1 看懂目标 / q2 再来一局 / q3 手感四维 / q4 节奏断档）。
+## 面板按这份清单渲染与校验，导出载荷也按它序列化 —— 单一事实源。
+const SURVEY_KEYS: Array[String] = [
+	"q1_understood", "q1_blocker", "q1_blocker_sec",
+	"q2_replay", "q2_reason",
+	"q3_rotate", "q3_beam", "q3_sfx", "q3_perf",
+	"q4_gap", "q4_where", "q4_detail",
+]
+
 ## 调参桥元数据（§3C 调参工作台契约）：壳页在引擎加载前把 URL `?tuning=<json>`
 ## 解析进 window.__GAME_TUNING__；本单例 _ready 时读取，只认这里声明的键、按 min/max 钳制。
 ## 缺这一层 = 试玩工作台调好的参数无法用 URL 复现，调参回写流程断裂。
@@ -44,11 +56,16 @@ var best_moves: Dictionary = {}
 var unlocked_max: int = 0
 ## 生效调参（TUNING_META 声明键 → 钳制后的数值；未传 tuning 时等于 default）。
 var tuning: Dictionary = {}
+## 四问量表作答（SURVEY_KEYS 声明键 → 玩家作答字符串；未作答键不出现）。
+var survey_answers: Dictionary = {}
+## 四问量表回填元数据（提交时刻 / 提交时所在关卡与进度快照）。
+var survey_meta: Dictionary = {}
 
 
 func _ready() -> void:
 	_apply_tuning()
 	load_save()
+	load_survey()
 
 
 ## 读取壳页注入的 window.__GAME_TUNING__，只认 TUNING_META 声明的键并按 min/max 钳制。
@@ -217,3 +234,101 @@ func _encode_indexed(source: Dictionary) -> Dictionary:
 	for index: int in source:
 		encoded[str(index)] = source[index]
 	return encoded
+
+
+## ── 四问量表（?tuning=1 与通关结算页共用，答案本地持久化 + 一键导出回传）──
+
+## 记录一问的作答并立即落盘（未声明的键拒绝，防止 UI 与数据表漂移）。
+func set_survey_answer(key: String, value: String) -> bool:
+	if not (key in SURVEY_KEYS):
+		return false
+	survey_answers[key] = value
+	save_survey()
+	return true
+
+
+## 必答键（四问的选项主体；文本补充栏不计入必答）：
+## q1 看懂与否 / q2 再来一局 / q3 手感四维 / q4 节奏断档。
+func survey_required_keys() -> Array[String]:
+	return ["q1_understood", "q2_replay", "q3_rotate", "q3_beam", "q3_sfx", "q3_perf", "q4_gap"]
+
+
+## 缺失的必答键（空数组 = 可提交）。
+func survey_missing_required() -> Array[String]:
+	var missing: Array[String] = []
+	for key: String in survey_required_keys():
+		if not survey_answers.has(key) or String(survey_answers[key]).is_empty():
+			missing.append(key)
+	return missing
+
+
+## 四问是否已完整回填（结算页据此决定入口按钮文案：填写 / 修改）。
+func survey_complete() -> bool:
+	return survey_missing_required().is_empty()
+
+
+## 导出回传载荷：作答 + 元数据 + 提交时进度快照（调参侧好按进度分段分析）。
+func survey_export_payload() -> Dictionary:
+	var best_stars_text: Dictionary = {}
+	for index: int in best_stars:
+		best_stars_text[str(index)] = best_stars[index]
+	return {
+		"schema": "guanglu-survey/1",
+		"game": "光路谜阵",
+		"answers": survey_answers.duplicate(),
+		"meta": survey_meta.duplicate(),
+		"progress": {
+			"level_index": level_index,
+			"moves": moves,
+			"unlocked_max": unlocked_max,
+			"score": score,
+			"best_stars": best_stars_text,
+		},
+		"tuning": tuning.duplicate(),
+	}
+
+
+## 提交回填：盖章元数据（时刻 / 关卡进度）并落盘。答案本体已随作答实时保存。
+func stamp_survey_meta() -> void:
+	survey_meta = {
+		"submitted_at": Time.get_datetime_string_from_system(true),
+		"level_index": level_index,
+		"level_name": LevelSet.level_at(level_index).get("name", ""),
+		"unlocked_max": unlocked_max,
+		"score": score,
+	}
+	save_survey()
+
+
+func clear_survey() -> void:
+	survey_answers.clear()
+	survey_meta.clear()
+	save_survey()
+
+
+func save_survey() -> void:
+	var config := ConfigFile.new()
+	config.set_value("meta", "version", SURVEY_VERSION)
+	for key: String in survey_answers:
+		config.set_value("answers", key, survey_answers[key])
+	for meta_key: String in survey_meta:
+		config.set_value("meta", meta_key, survey_meta[meta_key])
+	config.save(SURVEY_PATH)
+
+
+func load_survey() -> void:
+	var config := ConfigFile.new()
+	if config.load(SURVEY_PATH) != OK:
+		return
+	if int(config.get_value("meta", "version", 0)) != SURVEY_VERSION:
+		return
+	if config.has_section("answers"):
+		for key: String in config.get_section_keys("answers"):
+			if key in SURVEY_KEYS:
+				survey_answers[key] = str(config.get_value("answers", key, ""))
+	for meta_key: String in ["submitted_at", "level_name"]:
+		if config.has_section_key("meta", meta_key):
+			survey_meta[meta_key] = str(config.get_value("meta", meta_key, ""))
+	for meta_key_int: String in ["level_index", "unlocked_max", "score"]:
+		if config.has_section_key("meta", meta_key_int):
+			survey_meta[meta_key_int] = int(config.get_value("meta", meta_key_int, 0))

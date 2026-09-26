@@ -23,6 +23,11 @@ extends Node
 ##  10. 多管关卡：第 2 关按最优解 2 步（等效朝向感知）通关得 3 星，最少步数纪录落档
 ##  11. 模板反馈协议：Juice autoload 已注册（feedback_fired/clear_events），
 ##      GameState 带 score_changed 得分锚点（playtest 门禁的两个采样锚点）
+##  12. QA 真机自检（?qa=1）：QaSelftest/SurveyPanel 已接入主场景；合成点击 sweep
+##      逐样本核对「坐标 → 路由 → 预期旋转」全命中、时延样本闭合且 p95 在预算内、
+##      报告 JSON 可解析且键面完整
+##  13. 四问量表：GameState 作答 API 键面校验 / 本地持久化 roundtrip / 必答校验 /
+##      导出载荷结构；面板开合状态机（headless 只断言纯状态）
 ##
 ## ⚠️ 输入注入分两个通道、互不重叠（references/error-signatures.md E-08）：
 ##   移动断言用 Input.action_press（强度通道，Input.get_vector 读取），
@@ -67,7 +72,14 @@ const L3_NAV_FRAME: int = L2_UNDO_BLOCKED_ASSERT + 1         # 106：level_next 
 const L3_NAV_ASSERT_FRAME: int = L3_NAV_FRAME + 4            # 110：断言切关生效（关卡/网格/解锁面）
 const L3_LOCKED_FRAME: int = L3_NAV_ASSERT_FRAME + 1         # 111：level_next 越过未解锁关应被拒
 const L3_LOCKED_ASSERT_FRAME: int = L3_LOCKED_FRAME + 4      # 115：断言仍停在第 3 关
-const FINAL_FRAME: int = L3_LOCKED_ASSERT_FRAME + 1          # 116：全部断言完成 → 报告
+const FINAL_FRAME: int = L3_LOCKED_ASSERT_FRAME + 1          # 116：玩法两阶段断言完成
+
+## ── 第三阶段（qa/survey 迭代）：QA 真机自检 + 四问量表 ──
+## QA 命中 sweep：对当前关的目标格逐个合成点击，核对「点击坐标 → 路由格子 → 预期旋转」，
+## 并记录旋转响应时延（合成点击与真实点击同一条 _unhandled_input 通道）。
+const QA_SWEEP_START_FRAME: int = FINAL_FRAME + 1            # 117：发起 sweep
+const QA_SWEEP_MAX_PROBES: int = 6                           # 目标数上限（帧预算：6 × 5 帧 ≈ 30 帧）
+const QA_SWEEP_CAP_FRAME: int = QA_SWEEP_START_FRAME + 80    # 197：sweep 完成兜底（< 240 帧预算）
 
 const REQUIRED_ACTIONS: Array[StringName] = [
 	&"move_left", &"move_right", &"move_up", &"move_down",
@@ -101,6 +113,9 @@ var _cursor_origin: Vector2i = Vector2i(-1, -1)
 var _moved_seen: bool = false
 var _solved_seen: bool = false
 var _solved_stars: int = 0
+var _qa: QaSelftest
+var _survey: SurveyPanel
+var _qa_queued: int = -1
 
 
 func _ready() -> void:
@@ -151,6 +166,17 @@ func _static_assertions() -> void:
 		_failures.append("Board 下找不到 Cursor（main.tscn 未挂 cursor.gd）")
 	elif not _cursor.moved.is_connected(_on_cursor_moved):
 		_cursor.moved.connect(_on_cursor_moved)
+	# QA 真机自检（?qa=1）与四问量表（?tuning=1 / 结算页）的场景接线。
+	if not _board.has_signal("rotated"):
+		_failures.append("BoardView 缺少 rotated 信号（QA 旋转时延锚点失效）")
+	_qa = _main.get_node_or_null("QaSelftest") as QaSelftest
+	if _qa == null:
+		_failures.append("Main 下找不到 QaSelftest（main.tscn 未挂 qa_selftest.gd，?qa=1 真机自检缺失）")
+	_survey = _main.get_node_or_null("SurveyPanel") as SurveyPanel
+	if _survey == null:
+		_failures.append("Main 下找不到 SurveyPanel（main.tscn 未挂 survey_panel.gd，四问量表缺失）")
+	if not GameState.has_method("set_survey_answer") or not GameState.has_method("survey_export_payload"):
+		_failures.append("GameState 缺四问量表 API（set_survey_answer / survey_export_payload）")
 
 
 ## 关卡契约断言（纯逻辑，不依赖帧循环）：
@@ -296,9 +322,128 @@ func _physics_process(_delta: float) -> void:
 		elif _frames == L3_LOCKED_ASSERT_FRAME:
 			_assert_locked_nav_refused()
 
-	if _frames >= FINAL_FRAME or not _failures.is_empty():
+	# 收口编排：玩法断言失败立即终局；否则进 QA sweep 相位（117 帧起），sweep 完成后
+	# 跑 QA/四问断言再报告。QA 相位在既有玩法断言之后执行，不干扰前面任何状态锚点。
+	if not _failures.is_empty():
 		_finished = true
 		_report()
+		return
+	if _frames == QA_SWEEP_START_FRAME:
+		_start_qa_sweep()
+		return
+	if _frames > QA_SWEEP_START_FRAME and _qa != null and _qa.sweep_finished():
+		_qa_phase_assertions()
+		_survey_phase_assertions()
+		_finished = true
+		_report()
+		return
+	if _frames >= QA_SWEEP_CAP_FRAME:
+		_failures.append("QA sweep 断言：自动扫描未在 %d 帧内完成（_process 未闭合样本）" % QA_SWEEP_CAP_FRAME)
+		_finished = true
+		_report()
+
+
+## ── QA 真机自检相位（?qa=1 的机判面；真机 UI 与导出通道在 Web 端激活）──
+
+## 发起合成点击 sweep：目标 = 当前关前 QA_SWEEP_MAX_PROBES 个管格/探针格。
+func _start_qa_sweep() -> void:
+	if _qa == null:
+		return  # 缺节点已在静态断言上报，这里不重复计失败
+	_qa_queued = _qa.run_auto_sweep(QA_SWEEP_MAX_PROBES)
+	if _qa_queued <= 0:
+		_failures.append("QA sweep 断言：未排入任何扫描目标（当前关无可点格）")
+
+
+func _qa_phase_assertions() -> void:
+	if _qa == null:
+		return
+	if _qa.samples.size() != _qa_queued:
+		_failures.append("QA sweep 断言：样本数 %d != 目标数 %d（合成点击在输入管线中丢失）" % [
+			_qa.samples.size(), _qa_queued,
+		])
+		return
+	var misses: Array[String] = []
+	for sample: Dictionary in _qa.samples:
+		if not sample["hit"]:
+			misses.append("目标%s→路由%s applied%s" % [
+				sample["target_cell"], sample["routed_cell"], sample["applied_cell"]])
+	if not misses.is_empty():
+		_failures.append("QA 命中断言：%d/%d 个合成点击未按预期命中（坐标映射错位）—— %s" % [
+			misses.size(), _qa.samples.size(), "；".join(misses.slice(0, 3)),
+		])
+	var latency: Dictionary = _qa.latency_stats()
+	if int(latency.get("count", 0)) != _qa.samples.size():
+		_failures.append("QA 时延断言：时延样本 %d != 命中样本 %d（样本未闭合）" % [
+			int(latency.get("count", 0)), _qa.samples.size(),
+		])
+	elif float(latency.get("p95_ms", 0.0)) <= 0.0 \
+			or float(latency.get("p95_ms", 0.0)) > QaSelftest.ROTATION_LATENCY_BUDGET_MS:
+		_failures.append("QA 时延断言：p95=%.2fms 超预算 %.0fms（旋转响应不跟手）" % [
+			float(latency.get("p95_ms", 0.0)), QaSelftest.ROTATION_LATENCY_BUDGET_MS,
+		])
+	var hit_summary: Dictionary = _qa.hit_stats()
+	if float(hit_summary.get("hit_rate", 0.0)) < QaSelftest.HIT_RATE_BUDGET:
+		_failures.append("QA 命中断言：命中率 %.3f 低于预算 %.2f" % [
+			float(hit_summary.get("hit_rate", 0.0)), QaSelftest.HIT_RATE_BUDGET,
+		])
+	# 报告结构与 JSON 可解析性（一键导出的载荷契约）。
+	var report: Dictionary = _qa.build_report()
+	for required_key: String in ["schema", "game", "engine", "device", "audio", "touch",
+			"rotation_latency", "verdict"]:
+		if not report.has(required_key):
+			_failures.append("QA 报告断言：缺必需键 %s（报告结构漂移）" % required_key)
+	var report_text := _qa.report_json()
+	if report_text.is_empty() or typeof(JSON.parse_string(report_text)) != TYPE_DICTIONARY:
+		_failures.append("QA 报告断言：report_json() 不可解析（导出载荷损坏）")
+
+
+## ── 四问量表相位（?tuning=1 / 结算页共用的机判面）──
+func _survey_phase_assertions() -> void:
+	GameState.clear_survey()
+	# 未作答：必答键全缺。
+	var missing: Array[String] = GameState.survey_missing_required()
+	if missing.size() != GameState.survey_required_keys().size():
+		_failures.append("四问断言：空表缺失必答键 %d != 必答键总数 %d" % [
+			missing.size(), GameState.survey_required_keys().size()])
+	# 未声明键拒绝作答（UI 与数据表不漂移）。
+	if GameState.set_survey_answer("not_a_survey_key", "x"):
+		_failures.append("四问断言：未声明键 not_a_survey_key 被接受（SURVEY_KEYS 漂移）")
+	# 逐必答键作答 → 缺失清空 → 完整态。
+	for key: String in GameState.survey_required_keys():
+		if not GameState.set_survey_answer(key, "1"):
+			_failures.append("四问断言：必答键 %s 作答被拒" % key)
+	if not GameState.survey_missing_required().is_empty() or not GameState.survey_complete():
+		_failures.append("四问断言：全部必答键作答后 survey_complete() 仍为 false")
+	# 持久化 roundtrip：内存清空 → 重读存档 → 作答还原。
+	GameState.survey_answers.clear()
+	GameState.load_survey()
+	if GameState.survey_answers.size() != GameState.survey_required_keys().size():
+		_failures.append("四问断言：持久化 roundtrip 后作答 %d 项 != %d 项（存档丢失）" % [
+			GameState.survey_answers.size(), GameState.survey_required_keys().size(),
+		])
+	# 导出载荷结构与 JSON 可解析性。
+	var payload: Dictionary = GameState.survey_export_payload()
+	for payload_key: String in ["schema", "game", "answers", "progress", "meta"]:
+		if not payload.has(payload_key):
+			_failures.append("四问断言：导出载荷缺键 %s" % payload_key)
+	if typeof(JSON.parse_string(JSON.stringify(payload))) != TYPE_DICTIONARY:
+		_failures.append("四问断言：导出载荷 JSON 不可解析")
+	# 面板开合状态机（headless 只构建纯状态，不建 UI、不抢输入）。
+	if _survey == null:
+		_failures.append("四问断言：SurveyPanel 缺失，无法断言面板状态机")
+	else:
+		_survey.open_survey()
+		if not _survey.is_open:
+			_failures.append("四问断言：open_survey() 后 is_open 仍为 false")
+		if not _survey.choose_option("q2_replay", "5"):
+			_failures.append("四问断言：面板 choose_option 写入失败")
+		if str(GameState.survey_answers.get("q2_replay", "")) != "5":
+			_failures.append("四问断言：面板点选未落到 GameState 存档")
+		_survey.close_survey()
+		if _survey.is_open:
+			_failures.append("四问断言：close_survey() 后 is_open 仍为 true")
+	# 清场：不留测试作答污染真机回填档。
+	GameState.clear_survey()
 
 
 ## 清掉噪声相位对开局的污染：强制回到第 1 关，并断言干净开局状态。

@@ -1,10 +1,12 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/board_view.gd" id="2_board"]
 [ext_resource type="Script" path="res://scripts/cursor.gd" id="3_cursor"]
 [ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="4_joystick"]
 [ext_resource type="Script" path="res://scripts/touch_confirm_button.gd" id="5_touch"]
+[ext_resource type="Script" path="res://scripts/qa_selftest.gd" id="6_qa"]
+[ext_resource type="Script" path="res://scripts/survey_panel.gd" id="7_survey"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_confirm"]
 radius = 44.0
@@ -151,3 +153,10 @@ offset_bottom = 14.0
 theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 0.9)
 text = "重开"
+
+[node name="QaSelftest" type="Node" parent="."]
+script = ExtResource("6_qa")
+
+[node name="SurveyPanel" type="CanvasLayer" parent="."]
+layer = 40
+script = ExtResource("7_survey")

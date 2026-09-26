@@ -9,6 +9,8 @@ extends Node2D
 
 ## 旋转请求（点击 / confirm 键），参数：目标格子坐标。
 signal rotate_requested(cell: Vector2i)
+## 旋转已应用（rotate_at 成功后发；QA 自检按时延锚点订阅，参数：被旋转的格子）。
+signal rotated(cell: Vector2i)
 ## 关卡装载完成（参数：关卡数据；Cursor 订阅它归位）。
 signal level_loaded(level: Dictionary)
 
@@ -141,6 +143,7 @@ func rotate_at(cell: Vector2i) -> bool:
 	_history.append(cell)
 	_recompute_beam()
 	queue_redraw()
+	rotated.emit(cell)
 	return true
 
 
@@ -185,7 +188,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if not (click.pressed and click.button_index == MOUSE_BUTTON_LEFT):
 		return
-	var cell: Vector2i = local_to_cell(get_local_mouse_position())
+	# 用事件自带的坐标（make_input_local 换算到棋盘局部），不用缓存鼠标位：
+	# 触屏上「点击位置」与「上一次悬停位置」可能不同（双指/滑动后尤其如此），
+	# 缓存位会把点击路由到错误格子（qa=1 真机自检的命中 sweep 正是抓这类错位）。
+	var local_click := make_input_local(click)
+	var cell: Vector2i = local_to_cell(local_click.position)
 	if is_inside_grid(cell):
 		request_rotate(cell)
 		get_viewport().set_input_as_handled()

@@ -59,6 +59,9 @@ body { color: #fff; background: #0b0e1a; overflow: hidden; touch-action: none; f
   <div id="keys"><span><kbd>WASD/←↑↓→</kbd> 移动光标</span><span><kbd>点击/空格</kbd> 旋转管道</span><span><kbd>Z</kbd> 撤销</span><span><kbd>R</kbd> 重开</span><span><kbd>Q/E</kbd> 选关</span><span><kbd>Enter</kbd> 下一关</span></div>
 </div>
 <div id="hint" style="display:none">点击/WASD 移动 · 空格旋转 · Z 撤销 · R 重开 · Q/E 选关 · Enter 下一关</div>
+<div id="mode-badge" style="display:none; position:fixed; top:10px; left:50%; transform:translateX(-50%); z-index:6;
+  background:rgba(13,18,38,.82); border:1px solid #3d5390; border-radius:999px; padding:5px 14px;
+  font-size:12px; letter-spacing:.06em; color:#ffd966; pointer-events:none;"></div>
 <noscript>你的浏览器不支持 JavaScript。</noscript>
 <!-- 引擎引导脚本由启动脚本按 BASE_PATH 动态注入（静态 src 在无尾斜杠入口下会 404） -->
 <script>
@@ -77,6 +80,30 @@ body { color: #fff; background: #0b0e1a; overflow: hidden; touch-action: none; f
       }
     } catch (e) { /* 非法 JSON：忽略调参 */ }
   }
+
+  // ---- QA / 量表模式开关（URL 参数，引擎加载前解析）----
+  // ?qa=1     → 真机自检模式：QaSelftest 激活，自动采集触屏命中 / 旋转时延 / 音频状态，
+  //             一键 JSON 报告（系统分享 → 剪贴板 → 下载）。
+  // ?tuning=1 → 试玩四问量表直开（通关结算页也有入口）。
+  // 游戏侧用 JavaScriptBridge 解析 location.search 各自激活（两条通道互不依赖）；
+  // 壳页再暴露一份全局供启动屏徽标与桌面取证（引擎加载前就可见）。
+  var qaMode = false, surveyMode = false;
+  try {
+    var sp = new URLSearchParams(location.search);
+    qaMode = sp.get('qa') === '1';
+    surveyMode = sp.get('tuning') === '1';
+  } catch (e) { /* 老内核无 URLSearchParams：游戏侧自解析兜底 */ }
+  window.__QA_MODE__ = qaMode;
+  window.__SURVEY_MODE__ = surveyMode;
+  // 启动屏徽标：QA / 量表模式一眼可辨（真机取证截图自带上下文）。
+  (function () {
+    var badge = document.getElementById('mode-badge');
+    if (!badge) return;
+    var parts = [];
+    if (qaMode) parts.push('🛠 QA 真机自检模式');
+    if (surveyMode) parts.push('📋 试玩四问模式');
+    if (parts.length) { badge.textContent = parts.join(' · '); badge.style.display = 'block'; }
+  })();
 
   // ---- 移动端音频手势解锁器（必须在引擎加载前安装）----
   // iOS/Android WebKit 下 AudioContext 创建即 suspended，锁屏/来电/切后台会打成
