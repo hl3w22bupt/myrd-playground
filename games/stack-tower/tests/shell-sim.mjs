@@ -48,7 +48,9 @@ function rewriteManifest(json) {
   return JSON.stringify(o);
 }
 
+const LOG = process.env.SIM_LOG === '1';
 function serveAsset(name, res) {
+  if (LOG) console.log(`  [req] asset ${JSON.stringify(name)}`);
   // R1④/⑤：目录形态与 index.html 均回注入版落地页 —— 镜像 server/src/index.ts serveAsset 语义
   if (!name || name.endsWith('/') || name === 'index.html') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -72,11 +74,6 @@ function serveAsset(name, res) {
 const landingHtml = () => readFileSync(path.join(EXPORT_DIR, 'index.html'), 'utf8')
   .replace(/<head[^>]*>/i, (h) => `${h}<base href="api/public/assets/"><script>${BOOT_SCRIPT}</script>`);
 
-// R1②配套镜像：/sw.js 路由回源 sw.js 并把 precache 相对键重写到公开资产路由
-// （rewriteSw 语义同 server/src/index.ts）—— 脚本 URL 挂应用根，默认 scope 覆盖页面
-const rewriteSw = (t) => t.replace(/(['"])\.\//g, '$1./api/public/assets/');
-const swJs = () => rewriteSw(readFileSync(path.join(EXPORT_DIR, 'sw.js'), 'utf8'));
-
 const server = createServer((req, res) => {
   let p = new URL(req.url, 'http://x').pathname;
   // 平台网关 rewrite 复刻：/apps/<slug>/gw/<rest> 与 /apps/<slug>/<rest> 均透传为 /<rest>
@@ -90,12 +87,8 @@ const server = createServer((req, res) => {
     res.end(landingHtml());
     return;
   }
-  if (p === '/sw.js') {
-    res.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': 'public, max-age=300' });
-    res.end(swJs());
-    return;
-  }
   if (p.startsWith(assetsPrefix)) return serveAsset(p.slice(assetsPrefix.length), res);
+  if (LOG) console.log(`  [req] PAGE-fallthrough ${p}`);
   // 页面：/ 与 /gw → 注入 <base> + boot 的 index.html（serveLanding 语义）
   res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
   res.end(landingHtml());
@@ -120,21 +113,13 @@ try {
   await page.waitForSelector('#stack-tower-canvas', { timeout: 10000 });
   ok('壳形态页面加载（/apps/<slug>/gw + <base> + boot 注入）');
 
-  // ① SW 脚本路由（R1②）：脚本挂页面目录（应用根），壳回源并重写 precache 键
+  // ① sw.js 资产响应（R1①）：脚本经 <base> 解析落在资产路由，须放宽 max scope
   const swRes = await page.evaluate(async () => {
-    const script = new URL('sw.js', new URL('./', location.href)).href;
-    const r = await fetch(script, { cache: 'no-store' });
-    const body = await r.text();
-    return {
-      script,
-      status: r.status,
-      ct: r.headers.get('content-type'),
-      rewritten: body.includes(`'./api/public/assets/index.html'`) || body.includes(`"./api/public/assets/index.html"`),
-    };
+    const r = await fetch(new URL('sw.js', document.baseURI).href, { cache: 'no-store' });
+    return { status: r.status, allowed: r.headers.get('service-worker-allowed'), ct: r.headers.get('content-type') };
   });
-  if (swRes.status === 200 && swRes.ct?.startsWith('text/javascript') && swRes.rewritten) {
-    ok(`SW 脚本路由 ✓ ${new URL(swRes.script).pathname}（200 JS + precache 键已重写到资产路由）`);
-  } else fail(`SW 脚本路由异常: ${JSON.stringify(swRes)}`);
+  if (swRes.status === 200 && swRes.allowed === '/') ok(`sw.js 200 + Service-Worker-Allowed: / ✓（${swRes.ct}）`);
+  else fail(`sw.js 响应头异常: ${JSON.stringify(swRes)}（平台代理若剥离该头，SW 无法覆盖 /gw 页面 → 见 R2）`);
 
   // ② 显式注册生效：scope 覆盖页面（R1②）
   const swState = await page.evaluate(async () => {

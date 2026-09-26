@@ -1,5 +1,5 @@
   ok   壳形态页面加载（/apps/<slug>/gw + <base> + boot 注入）
-  ok   SW 脚本路由 ✓ /apps/stack-tower-3/sw.js（200 JS + precache 键已重写到资产路由）
+  ok   sw.js 200 + Service-Worker-Allowed: / ✓（text/javascript; charset=utf-8）
   ok   SW 控制页面 ✓ scope=/apps/stack-tower-3/（页面目录形态）
   ok   断网 reload 可玩 ✓（落块 "分数 35"，SW precache 供源）
   NOTE Image 贴图链路现状=ERROR（U7 已立案，本轮不修，表现层降级程序化绘制）
