@@ -44,6 +44,13 @@
 - **流程**：修复 = 改码，与「程序只体检不改码」铁律冲突 → **未经主人解冻不擅动**；主人批准后走「修复 → N1 六道门禁 + 新 SW 门禁 → 重打 tag（版本+1 语义）→ N2 对内 → N6 对外」完整复验，不得只验单项。
 - **临时口径**：线上当前内容与 9/25 字节全等，在线可玩 PASS，无回滚必要；对外口径暂不得宣称「可安装/断网可玩」。
 
+### R1-R2 · 解冻裁定与本轮修复范围（复验轮，2026-09-26 第二次发布尝试）
+
+- **裁定依据**：主人重发发布轮任务书（同口径 M2.1 增量构建·两段式放行）+ 任务书显式「**不要进入 plan mode 或等待人工审批。直接实现需求并提交代码**」+ 完成判据含「对外放行（线上冒烟含老用户升级全绿）」。对外放行全绿的唯一障碍即 U6 → 重发任务视为主人对 R1 修复的**解冻授权**（沿 B3 代持判例：主人显式反审批指令 + 既定方案实施）。裁定人=主策划（代持），全程可追溯。
+- **本轮修复范围 = R1 定稿三件，零夹带**：① `server/src/index.ts` sw.js 响应加 `Service-Worker-Allowed`；② `games/stack-tower/src/app/main.ts` SW 注册改显式 script/scope；③ `tests/live-smoke.mjs` 补「SW controller 断言 + 断网 reload 可玩」（消灭形态盲区门禁）。不含任何调优/新功能；不动 v1 冻结数值；spec 零改动；美术只检不新做。
+- **实测修正 R1 假设（2026-09-26 线上探针，`/tmp/probe-sw-register.mjs`）**：线上 `document.baseURI` = `…/apps/stack-tower-3/api/public/assets/`（相对 `<base href>` **吞掉 /gw 段**）→ scope 正确推导 = **页面目录**（`new URL('./', location.href)` = `…/apps/stack-tower-3/`），非「gw 根」；`register` 现状默认 scope **注册成功但无用**（scope=`…/api/public/assets/` 不含页面）；`Service-Worker-Allowed` 头缺失经报错原文实证（`The path of the provided scope … is not under the max scope allowed`）。
+- **U7 立案（新发现，与 SW 无关、线上既有，本轮不改）**：壳形态下 `Image` 贴图经 boot 补丁 `origFetch` 取回 base64 文本后 `blob()` 为文本 blob → `img.onerror` → 表现层按设计降级程序化绘制（`loadGameAssets` → `resolve(null)`）。实证：线上 `new Image()` 加载 `assets/sprites/e01-spawn-first-block.png` 得 ERROR（src=blob:text）。**影响**：线上贴图自 9/25 起即为程序化绘制形态，在线/离线一致，不影响可玩性与门禁；修复点=`server/src/boot-script.ts` Image 补丁改用已还原字节的 fetch（约 3 行）→ 待主人排期，不夹带本轮。
+
 ### 版本链登记（正式发布轮 · 2026-09-26）——**未完成轮，如实登记**
 
 | 字段 | 值 |

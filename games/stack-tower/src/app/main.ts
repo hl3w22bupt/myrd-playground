@@ -132,8 +132,18 @@ export function boot(platform: Platform, opts?: { seed?: number }): BootSession 
   }
 
   // M2.1：Service Worker 注册（PWA 可安装壳；失败不抛错）
+  // R1②（U6 修复）：显式 script + scope，不再依赖文档 base URL 隐式推导——
+  //  - script 仍按 <base> 解析：壳形态落在 api/public/assets/sw.js（与 sw.js 内
+  //    precache 的相对键同源）；本地/静态形态落在页面目录下。
+  //  - scope 取页面所在目录（new URL('./', location.href)）：壳形态 = /apps/<slug>/，
+  //    本地根形态 = /。默认 max scope（脚本目录）覆盖不了页面 → 由壳对 sw.js 响应
+  //    的 Service-Worker-Allowed 头放宽（serve.mjs 根路径形态本就允许，无需头）。
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => console.info('[pwa] SW 注册失败（离线 precache 不可用）'));
+    const script = new URL('sw.js', document.baseURI).href;
+    const scope = new URL('./', location.href).href;
+    navigator.serviceWorker
+      .register(script, { scope })
+      .catch(() => console.info('[pwa] SW 注册失败（离线 precache 不可用）'));
   }
 
   return {

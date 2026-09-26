@@ -72,6 +72,47 @@ try {
   }, BASE);
   if (!audio.ok) fail(`音效解码失败: ${audio.error}`); else ok(`音效可解码 ✓（${audio.sampleRate}Hz / ${audio.channels}ch / ${audio.duration.toFixed(2)}s）`);
 
+  // —— PWA 离线链路（R1③，U6 形态盲区补盲）——
+  // 线上壳形态：页面 /apps/<slug>/gw，SW 脚本经 <base> 落在 …/api/public/assets/sw.js。
+  // 本地 serve（根路径形态）controller 恒 true 的旧门禁覆盖不了壳形态 → 在被测 URL 上
+  // 直接断言「SW 注册且 scope 控制页面 + 断网 reload 可玩」，消灭形态盲区防回归。
+  const swState = await page.evaluate(async () => {
+    const deadline = Date.now() + 20000;
+    while (Date.now() < deadline) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      const active = regs.find((r) => r.active);
+      if (active && navigator.serviceWorker.controller) {
+        return { ok: true, scope: active.scope, script: active.active.scriptURL };
+      }
+      await new Promise((r) => setTimeout(r, 250));
+    }
+    const regs = await navigator.serviceWorker.getRegistrations();
+    return {
+      ok: false,
+      registrations: regs.map((r) => ({ scope: r.scope, state: r.active?.state ?? 'none' })),
+    };
+  });
+  if (!swState.ok) fail(`SW 未控制页面（U6 形态缺陷复现）: ${JSON.stringify(swState)}`);
+  else ok(`SW 已注册并控制页面 ✓ scope=${swState.scope}`);
+
+  const offlineCtx = page.context();
+  await offlineCtx.setOffline(true);
+  try {
+    await page.reload({ waitUntil: 'load', timeout: 20000 });
+    await page.waitForSelector('#stack-tower-canvas', { timeout: 10000 });
+    const offBox = await page.locator('#stack-tower-canvas').boundingBox();
+    await page.mouse.click(offBox.x + offBox.width / 2, offBox.y + offBox.height / 2);
+    await page.waitForTimeout(420);
+    const offScore = await page.locator('.st-hud-score').innerText();
+    const offScoreNum = Number(offScore.replace(/\D+/g, '')) || 0;
+    if (offScoreNum <= 0) fail(`断网 reload 后不可玩（落块无分）: "${offScore}"`);
+    else ok(`断网 reload 可玩 ✓（SW precache 供源，落块得分 "${offScore}"）`);
+  } catch (e) {
+    fail(`断网 reload 异常: ${e.message}`);
+  } finally {
+    await offlineCtx.setOffline(false);
+  }
+
   if (errors.length) fail(`页面运行期错误: ${errors.join(' | ')}`); else ok('零页面错误（pageerror / console.error 均无）');
 } catch (e) {
   fail(`脚本异常: ${e.message}`);
