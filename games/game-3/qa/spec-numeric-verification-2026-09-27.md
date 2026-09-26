@@ -99,3 +99,26 @@
 **重入结论：无任何数值/代码/产物变更，不产生新部署**——线上 v7 即本节点部署（内容与当前
 HEAD 逐字节一致），重复重建只会制造冗余部署（见知识文档 §「504 冗余部署处置」）。
 本轮增量 = 本节与 §五 的落盘补全（上轮记录在 §五 处被截断，引用悬空）+ 门禁新证。
+
+## 七、节点第三次执行复验（2026-09-27，全量重验 → 幂等成立，v7 留任现役）
+
+> 本节点再次重入（HEAD=bc6f839，工作区干净，与 origin 同步，0 领先 0 落后）。
+> 按幂等分支口径再次全量重验（不盲信 §一~§六 前文），判定脚本均为仓库内
+> `std-skills/godot-game-dev/scripts/`，本轮全部退出码 0：
+
+| 复验项 | 方法 | 结果 |
+|---|---|---|
+| spec.numeric 权威源 | `GET /api/v1/game-design-specs/approved?goalId=…` 直取（id=cmuiiofl4004tm9gcmaz3sstp，v1，status=approved，updatedAt 2026-09-26T15:00:44Z 未变） | 15 项（runSpeed 240 / jumpVelocity −520 / gravity 1400 / maxFallSpeed 900 / maxJumps 2 / coyote 6 / buffer 6 / dartScore 1 / winBonus 10 / jumpAirTime 同式派生 / FALL_LIMIT_Y 420 / goalX 4800 / trackEndX 5060 / spikeXs 7 项同序）逐项一致 → **幂等，零数值改动** |
+| preflight | `preflight.py games/game-3` | `PREFLIGHT: PASS`（13 类，56 文件）exit 0 |
+| smoke | `GODOT_SMOKE_FRAMES=240 … smoke.sh games/game-3` | `godot-smoke: PASS` exit 0，日志 0 处 SCRIPT ERROR |
+| input-fuzz | `input-fuzz.sh games/game-3` | `GODOT_FUZZ: PASS` seed=20260913 batches=6 frames=239，exit 0 |
+| playtest | `playtest.sh games/game-3` | `GODOT_PLAYTEST: PASS` 3 局×900 帧：score=3/0/6，first_reward 2.65~2.92s，max_gap 3.00~3.42s（阈值 10s），反馈事件 17/17/18（与 §六 同种子同结果，确定性复现） |
+| 导出幂等 | `--export-release "Web"` 至 /tmp/export-check，逐文件 SHA-256 | 7/8 与提交产物一致；index.pck 字节数同（2,557,296B）仅 pck 头 mtime 抖动；导出后 `git status` 干净 |
+| 漂移检查 | `git diff --name-only d09aab8..HEAD`（v7 部署基线 → HEAD） | 唯一差异 = 本核验文档自身（qa/*.md）；`export/`、`scripts/`、`autoload/`、`scenes/`、`project.godot` 零漂移 |
+| 线上现役 | `GET /api/v1/apphost/apps/cmuieq51i002am9gyfxqx06rl` + deployments 列表 | status=ready，currentDeploymentId=`cmuip8rqw005cm9l6l2d0ohu1`（v7，running，gitRef=目标分支，triggeredById=目标 id，createdAt 2026-09-26T18:04:30Z）；v5/v6 superseded |
+| 线上健康 | `GET /apps/game-3/health`、`GET /apps/game-3/` | /health 200 `{"ok":true,"app":"ninja-run","assets":"lazy/object-storage"}`；入口 200 壳页《疾风忍者跑》 |
+| 资产通道 | `GET /apps/game-3/api/public/assets/index.pck` → b64 解码 + gunzip → SHA-256 | 200（wire 3,387,472B）→ 解码 `c79d6f28…` 与提交产物逐字节一致（MATCH） |
+
+**第三次执行结论：spec.numeric 幂等成立且实现侧零改动；线上 v7 的工程内容与当前 HEAD
+逐字节一致（漂移检查 + 资产解码双证），故维持 v7 现役、不发起重复部署（冗余部署处置纪律）。
+本节点交付 = 本节落盘 + artifacts 回写引用 v7 现役部署。**
