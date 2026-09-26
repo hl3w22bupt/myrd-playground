@@ -91,7 +91,7 @@ RESULT: PASS (3/3)
 RESULT: PASS (3/3)
 
 [contract] acc-a5b · lvl-01-stack-tower/e-audio-manager
-    [budget] sound p95=0.005ms max=0.239ms | muted p95=0.001ms
+    [budget] sound p95=0.004ms max=0.218ms | muted p95=0.001ms
   ok    有声局零 >50ms 帧，且 jank 计数不高于静音局
   ok    帧预算判据纯函数：p95≤18.2 且零 jank 才算达标
 RESULT: PASS (2/2)

@@ -50,6 +50,16 @@ function rewriteManifest(json: string): string {
   }
 }
 
+/**
+ * sw.js 重写（/sw.js 路由专用）：precache 相对键与离线导航回退页从 SW 脚本目录
+ * （应用根）改挂到公开资产路由 —— 使 precache 键与页面实际请求 URL（<base> 解析）
+ * 完全一致。这样浏览器侧脚本 URL = /apps/<slug>/sw.js，默认 max scope = 应用根，
+ * 天然覆盖 /gw 页面，不依赖 Service-Worker-Allowed 头（实测平台网关会剥离该头）。
+ */
+function rewriteSw(text: string): string {
+  return text.replace(/(['"])\.\//g, "$1./api/public/assets/");
+}
+
 /** 落地页注入：<base> 钉住公开资产路由 + boot 脚本（二进制还原 / 入口自愈） */
 function injectBoot(html: string): string {
   const head = `<base href="api/public/assets/"><script>${BOOT_SCRIPT}</script>`;
@@ -114,6 +124,24 @@ app.get("/health", (c) =>
 
 // 游戏落地页（网关豁免路径；/apps/<slug>/gw 即落到这里）。
 app.get("/", serveLanding);
+
+// R1②配套：SW 脚本挂在应用根（/apps/<slug>/sw.js → 实例 /sw.js）。默认 max scope =
+// 脚本目录 = 应用根，覆盖 /gw 页面 —— 不依赖 Service-Worker-Allowed 头。
+// precache 键在回源后重写到公开资产路由（见 rewriteSw）。
+app.get("/sw.js", async (c) => {
+  if (!assetBytesConfigured) return c.text("asset not found: sw.js", 404);
+  const bytes = await getAssetBytes("sw.js");
+  if (!bytes) return c.text("asset not found: sw.js", 404);
+  const text = new TextDecoder().decode(bytes);
+  return c.body(rewriteSw(text), 200, {
+    "Cache-Control": "public, max-age=300",
+    "Content-Type": "text/javascript; charset=utf-8",
+  });
+});
+
+// R1④配套：网关把目录形态 308 归一化为无尾斜杠路径（实例收到 /api/public/assets），
+// 这里回落地页 —— sw.js precache 首项 "./" 因此可取，cache.addAll 不再整体拒绝。
+app.get("/api/public/assets", serveLanding);
 
 // 静态产物回源（相对 assets_dir 的 POSIX 路径）：文本直出、二进制 base64 文本。
 app.get("/api/public/assets/*", (c) => {
