@@ -32,10 +32,13 @@ const GRAVITY: float = 1400.0
 const MAX_FALL_SPEED: float = 900.0
 ## 最大跳跃段数：地面起跳 + 二段跳。
 const MAX_JUMPS: int = 2
-## 土狼时间（物理帧，60fps 下 ≈ 0.10s）：走出平台边缘后仍可「地面起跳」的窗口。
-const COYOTE_FRAMES: int = 6
-## 跳跃缓冲（物理帧，60fps 下 ≈ 0.10s）：无可用地跳时的按跳保留多久，落地即消费。
-const JUMP_BUFFER_FRAMES: int = 6
+## 土狼时间（物理帧，60fps 下 ≈ 0.20s）：走出平台边缘后仍可「地面起跳」的窗口。
+## 12 = spec v2 拍板默认（ac-10-feel-tuning-v2）：v1 的 6 帧在真机上仍会「按了没反应」，
+## 12 帧把坑2 单跳起跳窗口从 ≈13.1 物理帧放宽到 ≈19.1 帧（+46%），力学参数不变。
+const COYOTE_FRAMES: int = 12
+## 跳跃缓冲（物理帧，60fps 下 ≈ 0.20s）：无可用地跳时的按跳保留多久，落地即消费。
+## 12 = spec v2 拍板默认（与土狼时间同批放宽）；钳制区间见 game_state.gd TUNING_META [0,20]。
+const JUMP_BUFFER_FRAMES: int = 12
 ## 坠落判定线：低于它视为掉进深坑（相机下缘在 340，本线在其下方，坠落全程可见）。
 const FALL_LIMIT_Y: float = 420.0
 ## 出生点（Level 赛道的起始平台上方）。

@@ -145,3 +145,49 @@ HEAD 逐字节一致），重复重建只会制造冗余部署（见知识文档
 `https://leomac-studio.tail49399e.ts.net/apps/game-3/`）资产通道解码与当前 HEAD 导出逐字节
 一致 → 维持 v7 现役、不发起冗余部署。试玩量表仍为「待用户试玩」（用户结论未回填，
 不伪造）；spec 无新拍板 revision，无 tuning_applied 可回写。**
+
+## 九、节点第五次执行：spec v2 拍板值落地（2026-09-27，ac-10-feel-tuning-v2 由 pending → 达成）
+
+> 前四次执行均对照 spec v1（id=cmuiiofl4004tm9gcmaz3sstp）成立幂等；本轮开工前置检查发现
+> approved spec 已推进到 **v2**（id=cmuirjku500a6m9l67mfwor9a，parentSpecId=v1 id，
+> status=approved，createdAt 2026-09-26T19:08:54Z / updatedAt 19:09:13Z），带一条 pending
+> 验收项 `ac-10-feel-tuning-v2`：把 v2 试玩拍板的手感默认落进 player.gd 常量区。本轮即执行该落地。
+
+### v1 → v2 数值差异（全量对照，仅 2 项变化）
+
+| 键 | v1 | v2 | 实现落点 |
+|---|---|---|---|
+| coyoteFrames | 6 | **12** | `scripts/player.gd` `COYOTE_FRAMES` |
+| jumpBufferFrames | 6 | **12** | `scripts/player.gd` `JUMP_BUFFER_FRAMES` |
+| 其余 13 项（runSpeed 240 / jumpVelocity −520 / gravity 1400 / maxFallSpeed 900 / maxJumps 2 / dartScore 1 / winBonus 10 / goalX 4800 / trackEndX 5060 / spikeXs 7 项同序 / 坑宽 110·150·200·240·280 同序 / FALL_LIMIT_Y 420 / START_POSITION(60,150)） | — | 不变 | 零改动，逐项复核一致 |
+
+力学参数不变 → 跨坑上限推导（单跳 ≈189px / 二段跳 ≈368px）、坑宽梯度表、飞镖可达带全部维持原口径；
+土狼/缓冲只是「输入判定窗口」，12 帧把坑2 单跳起跳窗口从 ≈13.1 物理帧放宽到 ≈19.1 帧（+46%，与
+spec v2 world.track.pit-2 的 jumpBudget 注记一致）。TUNING_META 钳制区间 [0,20] 不变，v2 默认 12 在区间内。
+
+### 本轮改动清单
+
+| 文件 | 改动 |
+|---|---|
+| `scripts/player.gd` | `COYOTE_FRAMES` 6→12、`JUMP_BUFFER_FRAMES` 6→12 + 注释（v2 拍板依据与坑2 窗口推导） |
+| `tests/smoke.gd` | ①阶段表注释同步（土狼窗口 ≤12 帧 / 缓冲窗口 12 帧）；②新增 `_check_feel_contract()` 手感契约断言：两常量 ≠12 即 FAIL（防回退 v1，URL 调参只覆盖 live_* 不受影响）；③PASS 标记补「手感契约(v2=12帧)」 |
+| `scripts/level.gd` | 坑5 技巧注释修正（spec v2 试玩发现①：第二跳在回落越过起跳高度后 ≈0.26s 按为力学最优，「贴近最高点按」反而短） |
+| `qa/tuning-params.md` | 默认值表 6→12×2；「跳得太飘」建议组合改 v2 安全组合 `{"gravity":1700,"jump_velocity_abs":600}`（发现③）；「按了偶尔没反应」试探值改 16/16（高于新默认才有判别力） |
+| `qa/ios-safari-checklist.md` | C6/C7 期望帧数同步 12，「拉到 10」改「拉到 16」（v2 默认 12 下原建议语义反转） |
+| `export/web/*` | 重导出：index.pck 2,557,296B → 2,557,728B（+432B），index.html 仅 fileSizes 同步；wasm/js 逐字节不变 |
+
+### 复验证据（全部在仓库内判定脚本上跑，判定器零改动）
+
+| 复验项 | 方法 | 结果 |
+|---|---|---|
+| 门禁四件套 | `bash games/game-3/verify.sh`（改动后全量） | `verify: PASS` exit 0：preflight PASS（13 类 56 文件）/ smoke PASS（240 帧，含新手感契约断言）/ input-fuzz PASS（seed=20260913）/ playtest PASS（3 局×1200 帧：fb=23/23/20，first_reward 2.67~2.92s，max_gap 3.98~5.88s，阈值 ≤10s 全部在限内；指标较 v1 常量略有漂移属窗口放宽后 bot 输入时序变化的预期效应，无回归） |
+| 负例探针（断言有效性） | 临时把 `COYOTE_FRAMES` 退回 6 → 重跑 smoke | 退出码 1，失败原因逐字为「手感契约：COYOTE_FRAMES = 6，spec v2 拍板默认为 12…」→ 新断言能拦住声称要拦的缺陷；恢复 12 后复跑 smoke 退出码 0 → 正例不误报 |
+| 导出确定性 | 恢复后再次 `--export-release "Web"` 逐文件 SHA-256 | index.pck 两次导出哈希一致（df780d9c…）→ pck 与当前源码严格对应、导出确定性成立；wasm/js 与 v7 基线逐字节一致 |
+| 漂移检查 | `git diff --name-only d09aab8..HEAD` | 本轮改动 = 上表 6 类文件（v2 落地）+ 前几轮 qa 文档；无实现面外漂移 |
+
+### 结论
+
+spec v2 的 pending 验收项 `ac-10-feel-tuning-v2` 全部达成：常量落地、四步门禁全绿、
+负例探针证明断言有效、坑2 起跳窗口承诺与 world.track 注记一致。本轮交付 = 上表改动 +
+本节记录 + PLAYTEST.md §十一 指标存档；产物回写引用本分支 HEAD（部署 gitRef 仍为
+`myrd/games-goal-cmuieq51k002cm9gysxbyppv7`，随下一次 AppHost 部署上线）。

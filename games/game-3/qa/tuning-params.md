@@ -13,8 +13,8 @@
 | `jump_velocity_abs` | 起跳初速度大小（px/s，方向恒向上） | 520 | 260 | 900 | `player.gd` live_jump_velocity |
 | `gravity` | 重力加速度（px/s²） | 1400 | 700 | 2800 | `player.gd` live_gravity |
 | `max_jumps` | 最大跳跃段数（2 = 地面跳 + 二段跳） | 2 | 1 | 3 | `player.gd` live_max_jumps |
-| `coyote_frames` | 土狼时间（物理帧，60fps 下 6 ≈ 0.10s） | 6 | 0 | 20 | `player.gd` live_coyote_frames |
-| `jump_buffer_frames` | 跳跃缓冲（物理帧） | 6 | 0 | 20 | `player.gd` live_jump_buffer_frames |
+| `coyote_frames` | 土狼时间（物理帧，60fps 下 12 ≈ 0.20s） | 12 | 0 | 20 | `player.gd` live_coyote_frames |
+| `jump_buffer_frames` | 跳跃缓冲（物理帧） | 12 | 0 | 20 | `player.gd` live_jump_buffer_frames |
 | `dart_score` | 每枚飞镖得分 | 1 | 1 | 10 | `game_state.gd` dart_score_value() |
 | `win_bonus` | 跑到底过关奖励分 | 10 | 0 | 50 | `game_state.gd` win_bonus_value() |
 
@@ -57,11 +57,13 @@ location.href = location.origin + location.pathname + "?tuning=" +
 
 | 症状 | 先试这组 URL | 判读 |
 |---|---|---|
-| 按了偶尔没反应 | `{"coyote_frames":12,"jump_buffer_frames":12}` | 有效 → 数值问题（窗口太小）；无效 → 链路问题，报 bug |
-| 跳得太飘/太空 | `{"gravity":1800,"jump_velocity_abs":560}` | 提高重力压缩滞空，落点更跟手 |
+| 按了偶尔没反应 | `{"coyote_frames":16,"jump_buffer_frames":16}`（v2 默认已放宽到 12/12，仍在往上试探才有效 → 说明是链路问题，报 bug） | 16 在钳制区间 [0,20] 内，比默认更宽容；无效 → 链路问题 |
+| 跳得太飘/太空 | `{"gravity":1700,"jump_velocity_abs":600}`（v2 试玩发现③的安全组合：滞空收紧 ≈22% 且跳跃高度基本不变，跨坑余量不受损） | 提高重力 + 等比抬高起跳速度，落点更跟手 |
 | 跳不过宽坑 | `{"jump_velocity_abs":600}` 或 `{"max_jumps":3}`（仅体验用） | 前者改力学，后者放开段数；定稿后应改坑宽而不是放段数 |
 | 整体节奏太快 | `{"run_speed":200}` | 注意低于 200 时坑宽余量变小，跨坑难度反向上升 |
 
 **定稿流程**：真机上试出满意参数 → 回写 `../artifacts/` 结果表 → 若要成为默认手感，由后续
 实现节点把值改进 `scripts/player.gd` 常量区并跑 `bash games/game-3/verify.sh` 门禁提交——
 本文件只记录用法，不承担常量变更。
+（已落地一例：spec v2 拍板把 `coyote_frames` / `jump_buffer_frames` 默认 6 → 12，见
+`scripts/player.gd` 常量区与 `../qa/spec-numeric-verification-2026-09-27.md` §九。）

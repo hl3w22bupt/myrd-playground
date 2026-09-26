@@ -164,3 +164,27 @@ Juice 反馈协议与重开防误触，本轮随部署分支 `myrd/games-goal-cm
 **面板生效条件**：随下一次 AppHost 部署上线（部署 gitRef 仍为
 `myrd/games-goal-cmuieq51k002cm9gysxbyppv7`）。当前线上等价回传路径不变：
 按 `qa/tuning-params.md` 的命令行/控制台方法拼 `?tuning=<JSON>` 直链即可。
+
+## 十一、spec v2 手感常量落地后的复跑存档（2026-09-27 · 实现节点第五次执行）
+
+`COYOTE_FRAMES` / `JUMP_BUFFER_FRAMES` 6→12（spec v2 拍板，见
+`spec-numeric-verification-2026-09-27.md` §九）后的全量门禁复跑，判定器与阈值零改动
+（`tests/playtest.json` 阈值不变）：
+
+```
+GODOT_PLAYTEST_METRICS: {"frames_per_run":1200,"runs":[{"feedback_events":23,"first_reward_seconds":2.8,"max_feedback_gap_seconds":3.98333333333333,"outcome":"score=0|fb=23","run":1,"seed":20260913},{"feedback_events":23,"first_reward_seconds":2.66666666666667,"max_feedback_gap_seconds":4.76666666666667,"outcome":"score=0|fb=23","run":2,"seed":20260914},{"feedback_events":20,"first_reward_seconds":2.91666666666667,"max_feedback_gap_seconds":5.88333333333333,"outcome":"score=0|fb=20","run":3,"seed":20260915}],"thresholds":{"feedback_events_min_per_run":2,"feedback_gap_seconds_max":10,"first_reward_seconds_max":10,"seed_outcomes_min_distinct":1},"thresholds_source":"tests/playtest.json"}
+GODOT_PLAYTEST: PASS 3 局全部通过（节奏代理指标在阈值内，明细见 METRICS 行）
+```
+
+| 局 | seed | fb | first_reward | max_gap | 判定 |
+|---|---|---|---|---|---|
+| 1 | 20260913 | 23 | 2.80s | 3.98s | PASS |
+| 2 | 20260914 | 23 | 2.67s | 4.77s | PASS |
+| 3 | 20260915 | 20 | 2.92s | 5.88s | PASS |
+
+与 v1 常量口径（§九/§十：fb=24/25/28，gap=3.00~3.42s）相比：first_reward 基本不变，
+max_gap 3.00→5.88s 以内、fb 密度略降 —— 窗口放宽后 bot 的确定性输入时间线落在「更晚的
+起跳被容忍」的新窗口里，属输入时序与判定窗口交互的预期漂移；全部指标仍在阈值（≤10s /
+≥2 条）内且有余量，`GODOT_PLAYTEST: PASS` 无回归。冒烟侧新增 `_check_feel_contract()`
+手感契约断言（两常量 ≠12 即 FAIL），负例探针（退回 6 → smoke FAIL 逐字命中该断言 →
+恢复 12 → PASS）见 spec-numeric-verification §九。

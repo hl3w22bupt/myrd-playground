@@ -14,6 +14,7 @@ extends Node
 ##   1. 主场景可实例化（main.tscn → player.tscn / level.gd 接线未断裂）
 ##   2. autoload GameState 已注册且带约定信号（score_changed / game_won / game_lost）
 ##   3. InputMap 动作已注册、物理键绑定逐键核对（键位契约）
+##   3B. 手感契约：土狼/缓冲窗口默认 = spec v2 拍板值 12 帧（回退 6 帧 = 吞按缺陷回归）
 ##   4. 玩家能移动：不注入任何输入也自动向前奔跑（跑酷核心）
 ##   5. 跳跃 + 二段跳（jumped 信号、跳跃计数、离地位移）
 ##   6. 手感容错：土狼时间（走出平台边缘后仍可地面起跳，jumps_used 停在 1）
@@ -44,7 +45,7 @@ const RESTART_GUARD_ASSERT_FRAME: int = 46  # 断言玩家仍在前进（未被�
 const JUMP2_FRAME: int = 45              # 断言一段跳，并按第二次（二段跳）
 const DOUBLE_ASSERT_FRAME: int = 49      # 断言二段跳生效
 const COYOTE_TELEPORT_FRAME: int = 51    # 传送到 S1 右端（坑1 唇边 20px），让他自然跑出平台
-const COYOTE_PRESS_FRAME: int = 61       # 已离地 ≈2 帧（土狼窗口 6 帧内）按跳 → 应兑现为地面跳
+const COYOTE_PRESS_FRAME: int = 61       # 已离地 ≈2 帧（土狼窗口 12 帧内）按跳 → 应兑现为地面跳
 const COYOTE_ASSERT_FRAME: int = 67      # 断言土狼跳（jumps_used == 1 且明显上升）
 const TELEPORT_DART_FRAME: int = 71      # 传送到第一枚飞镖上
 const COLLECT_ASSERT_FRAME: int = 78     # 断言收集 + 加分 + 收集反馈在播
@@ -68,7 +69,7 @@ const MIN_JUMP_RISE: float = 4.0         # 起跳后至少上升 4px（重力未
 const MIN_COYOTE_RISE: float = 10.0      # 土狼跳按跳后 6 帧 ≈ 上升 44px，取 10px 宽容
 const RESTART_X_TOLERANCE: float = 120.0 # 重开 5 帧内玩家仍应在出生点附近
 ## 跳跃缓冲轮询：下落至此高度（离地站立中心 187px 的上方 37px）即按跳 ——
-## 离落地还剩 ≈4 帧，落在 JUMP_BUFFER_FRAMES(6) 窗口内且留有余量。
+## 离落地还剩 ≈4 帧，落在 JUMP_BUFFER_FRAMES(12) 窗口内且留有余量。
 const BUFFER_PRESS_HEIGHT: float = 37.0
 const GROUND_CENTER_Y: float = 200.0 - 13.0  # 站在地面上的玩家中心 y（碰撞盒 26 高的一半）
 
@@ -138,6 +139,7 @@ func _ready() -> void:
 		if not InputMap.has_action(action):
 			_failures.append("InputMap 缺少动作 %s（project.godot [input] 未注册）" % action)
 	_check_key_bindings()
+	_check_feel_contract()
 
 	var game_state := get_tree().root.get_node_or_null("GameState")
 	if game_state == null:
@@ -213,7 +215,7 @@ func _physics_process(_delta: float) -> void:
 		_assert_double_jump()
 	elif _frames == COYOTE_TELEPORT_FRAME and _player != null:
 		# 传送到坑1 左唇边 20px：以 4px/帧 前进，约第 59 物理帧走出平台边缘，
-		# 第 61 帧按跳落在土狼窗口（离地 ≤6 帧）内。
+		# 第 61 帧按跳落在土狼窗口（离地 ≤12 帧）内。
 		_teleport_player(Vector2(_level.GROUND_SEGMENTS[0].y - 20.0, GROUND_CENTER_Y))
 	elif _frames == COYOTE_PRESS_FRAME:
 		_coyote_press_y = _player.global_position.y
@@ -493,7 +495,7 @@ func _assert_juice_fired(context: String) -> void:
 func _report() -> void:
 	_finished = true
 	if _failures.is_empty() and _coyote_checked and _buffer_checked:
-		print("GODOT_SMOKE: PASS 关卡几何/场景实例化/autoload/键位契约/自动奔跑/跳跃二段跳/土狼跳/跳跃缓冲/收集飞镖+反馈/撞刺失败+震屏/重开复位/跑底过关+留存/冻结停跑/Juice反馈总线/重开防误触 全部通过")
+		print("GODOT_SMOKE: PASS 关卡几何/场景实例化/autoload/键位契约/手感契约(v2=12帧)/自动奔跑/跳跃二段跳/土狼跳/跳跃缓冲/收集飞镖+反馈/撞刺失败+震屏/重开复位/跑底过关+留存/冻结停跑/Juice反馈总线/重开防误触 全部通过")
 		get_tree().quit(0)
 	else:
 		if not _coyote_checked and _failures.is_empty():
@@ -549,6 +551,21 @@ func _contains_all(expected: Array, bound: Array[Key]) -> bool:
 		if not (key in bound):
 			return false
 	return true
+
+
+## A2. 手感契约（spec v2 拍板值，ac-10-feel-tuning-v2）：输入容错窗口默认必须是 12 帧。
+## 两个常量是「土狼跳 / 跳跃缓冲」两组断言的窗口来源，也是真机吞按缺陷的整改值 ——
+## 意外回退到 v1 的 6 帧属验收回归，必须在这里被拦下（URL ?tuning= 覆盖的是运行期值，
+## 不改常量，所以本断言与调参通道互不干扰）。
+func _check_feel_contract() -> void:
+	var contract := [
+		[Player.COYOTE_FRAMES, 12, "COYOTE_FRAMES"],
+		[Player.JUMP_BUFFER_FRAMES, 12, "JUMP_BUFFER_FRAMES"],
+	]
+	for row: Array in contract:
+		if row[0] != row[1]:
+			_failures.append("手感契约：%s = %d，spec v2 拍板默认为 %d（输入容错窗口回退 = 真机「按了没反应」缺陷回归）" % [
+				row[2], row[0], row[1]])
 
 
 ## 键码 → 可读键名（附数值，未映射键名会打印成私有区字形）。
