@@ -141,3 +141,48 @@ $ curl -s https://leomac-studio.tail49399e.ts.net/apps/game-2/gw/health
 | 帧率 | 桌面 GPU/无热节流，数据无参考价值 | E1-E4 只认真机 |
 
 **结论**：桌面 WebKit 与真机的差异项（A/D/E 全部、C 的手势解锁、B 的真实触控命中）恰恰是 `ios-checklist.md` 判定 P0 的全部内容，因此桌面侧无法替代、本轮也不产生任何可用于放行的结论。
+
+## 7. 2026-09-27 第 4 轮探针记录（编排侧实测）
+
+> **结论先行：`未验：真机阻塞`（卡点已收敛）。** 4 个必要开关中的 **第 1 个已确认打开**，
+> 剩余阻塞从「系统层 sudo 授权」收敛为 **Safari 应用自身的「允许远程自动化」设置**。
+> 仍无一项 A/B/C/D/E pass/fail —— 本节只记录探针结果与剩余用户动作。
+
+实测时间：2026-09-27（第 4 轮，编排侧复探）；执行环境：本工作区（macOS 26.3.1）。
+
+### 7.1 已生效：sudo `safaridriver --enable`
+
+```
+$ safaridriver --version
+Included with Safari 26.3.1 (21623.2.7.111.2)          → EXIT=0
+```
+
+`sudo safaridriver --enable` 已由用户执行成功 → **第 1 个开关（Mac 侧远程自动化授权，§4 表 #1）已打开**。
+与 §3.1 的 `AllowRemoteAutomation` 偏好键缺失相比，这一步的前置阻塞已解除。
+
+### 7.2 新卡点：Safari 应用自身设置未同步
+
+建会话（`safari:deviceUDID=00008140-000438141EA2801C`，端口 4799）返回**新报错**：
+
+```json
+{"value":{"error":"session not created","message":"session not created: You must enable 'Allow remote automation' in the Developer section of Safari Settings to control Safari via WebDriver.","stacktrace":""}}
+```
+
+即：`safaridriver` 守护进程层面已获授权，但 **Safari 应用自身的设置项**（设置 → 高级 →
+「显示网页开发者功能」→ 菜单栏「开发」→「允许远程自动化」）仍未勾选，
+授权没有被自动同步过来。**卡点收敛为 Safari 应用自身设置**。
+
+补充实测：无 sudo 的 `safaridriver --enable` 仍**交互式索要密码**（`Password:` 提示），
+非交互环境（stdin 关死）无法完成 —— 不能靠脚本绕过，必须人工操作。
+
+### 7.3 剩余用户动作（预计 2 分钟）
+
+| # | 动作 | 说明 |
+|---|---|---|
+| ① | Mac Safari → 设置 → 高级 → 勾选 **「显示网页开发者功能」** | 打开「开发」菜单的前置 |
+| ② | 菜单栏 **「开发」→「允许远程自动化」**（或终端执行 `safaridriver --enable` 并输入开机密码） | 解除 §7.2 报错 |
+| ③ | iPhone 设置 → Safari → 高级 → 打开 **「网页检查器」** | 解除 §3.3 第一次尝试的设备侧报错 |
+| ④ | iPhone 数据线连接 Mac，**首次在手机上点「信任」** | 建立设备通道 |
+
+四项完成后即可按 §4 末尾的命令直达实测环节（`safaridriver -p <port>` + `POST /session`
+带 `safari:deviceUDID`），再按 `ios-checklist.md` A→E 顺序逐项实测。
