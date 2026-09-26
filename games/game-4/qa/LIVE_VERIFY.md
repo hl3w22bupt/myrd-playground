@@ -158,3 +158,32 @@
 | 面板共存取证 | 截图 `qa/qa-selftest-live.png`：QA 面板（UA/AudioContext/三按钮）+ 右上调参工作台滑杆 + 左下「📋 试玩四问」入口同屏 |
 
 **v17 结论：公网可玩通过，qa 自检与四问量表在线可用；四门禁 + 构建一致 + 部署指针 + 目标卡片回写四者同一 HEAD `5bb9554`。**
+
+## 九、v17 复验收口轮（2026-09-27，HEAD `676dfbe`：四门禁复跑 + 构建复现 + 公网复验 + 断言负例探针）
+
+- 背景：HEAD `676dfbe` 相对已部署 v17（`5bb9554`）**仅多取证文档（qa/ 下 4 文件，194 行），
+  代码零变更** —— 按知识文档「冗余部署处置」结论不重部署，本轮做纯证据性复验收口。
+- 门禁复跑（HEAD `676dfbe`，同源判定脚本）：**四门禁全绿** ——
+  `PREFLIGHT: PASS`（13 类 / 75 文件）→ `GODOT_SMOKE: PASS`（240 帧）→
+  `GODOT_FUZZ: PASS`（seed=20260913，6 批 239 帧）→ `GODOT_PLAYTEST: PASS`
+  （3 种子×900 帧，fb=156/147/173、score=6，METRICS 与 `qa/PLAYTEST_KIT.md` §一
+  **逐字段一致**，确定性第 6 次复现）。
+- Web 重导出（`godot --headless --export-release Web`）：pck/wasm/js/html 与库内基线
+  **逐字节一致**（pck sha256 `f5f101f9…` 2,609,264 B = v17 线上载荷）—— 构建可复现第 4 次验证。
+- 断言有效性负例探针（新增断言面首验，详见 `qa/QA_SELFTEST.md` §三·补）：
+  探针 A（QA 命中判定恒 miss）与探针 B（四问存档读盘不还原）均使冒烟以清晰签名
+  FAIL（exit 1），还原后复绿 —— 「拦得住、不误报」两头实测。
+
+| 公网步骤 | 结果 |
+|---|---|
+| `GET /apps/game-4/gw/health` | 200 `{"ok":true,"app":"light-path-labyrinth","assets":"lazy/object-storage"}` |
+| 壳页 `GET /apps/game-4`（-L） | 200 text/html 14,310 B，`__QA_MODE__` / `__SURVEY_MODE__` / `__GAME_TUNING_PANEL__` / mode-badge 标记齐全 |
+| `GET /api/public/assets/index.wasm` | **200 + `content-type: application/wasm`**（10,696,408 B，MIME 硬约束持续满足） |
+| pck 内容一致性 | 线上 `index.pck.gz.b64`（b64→gunzip）2,609,264 B sha256 `f5f101f9…`，与 HEAD 本地重导出构建**逐字节一致** |
+| `?qa=1&tuning=1` 无头实测 | **8/8 PASS、0 页面错误**（引擎启动 / `__QA_MODE__=true` / `__SURVEY_MODE__=true` / 调参面板 shown / 双模式徽标 / 画布渲染推进 / 触屏点击零错误 / `__audioDebug().state='running'`） |
+| 部署状态（平台库核实） | v17 `running`（deploymentId `cmuirsdyz00aom9l69tu1ts1v`，commit `5bb9554`，gitRef `myrd/games-goal-cmuieqj7o0031m9gyf4pbwptg`），`hosted_apps.current_deployment_id` 指向 v17，app status=ready |
+| 目标卡片回写（平台库核实） | `deploy_playable / completed / https://leomac-studio.tail49399e.ts.net/apps/game-4/` 共 7 条，最新一条 19:16:02 UTC 与 v17 部署 19:15:45 UTC 相差 17 秒（自动回写链实证） |
+
+**收口结论：HEAD `676dfbe` 与线上 v17 `5bb9554` 代码同一（文档性差异）；四门禁 + 构建复现 +
+公网 8/8 + 断言负例探针 + 部署指针 + 目标卡片回写，六项证据全部复核成立。qa 自检与
+四问量表上线状态维持：liveUrl `https://leomac-studio.tail49399e.ts.net/apps/game-4/?qa=1`。**

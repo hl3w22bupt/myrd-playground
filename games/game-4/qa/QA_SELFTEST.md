@@ -61,6 +61,18 @@ Godot Web 端用 `JavaScriptBridge` 解析 URL 参数激活（`scripts/web_bridg
   `__GAME_TUNING_PANEL__='shown'`、启动屏徽标双模式、画布渲染推进、触屏点击零页面错误、
   `__audioDebug().state='running'` —— 8/8 PASS（`qa-live-check.log`、截图 `qa-selftest-live.png`）。
 
+## 三·补、断言有效性负例探针（2026-09-27 收口轮实测，HEAD `676dfbe`）
+
+按技能包纪律「断言要拦得住各自声称要拦的缺陷」，对两组新断言面各注入一枚缺陷探针，
+冒烟均以清晰签名 FAIL（exit 1），还原后复绿（exit 0）——「拦得住、不误报」两头实测：
+
+| 探针 | 注入缺陷（模拟真实故障） | 冒烟签名（实测） | 还原后 |
+|---|---|---|---|
+| A · QA 命中判定 | `qa_selftest.gd` 样本闭合处 `hit` 恒置 `false`（坐标映射错位类缺陷） | `GODOT_SMOKE: FAIL QA 命中断言：6/6 个合成点击未按预期命中（坐标映射错位）` + `命中率 0.000 低于预算 1.00`，exit 1 | `GODOT_SMOKE: PASS`，exit 0 |
+| B · 四问持久化 | `game_state.gd load_survey()` 读盘后提前 `return`（存档丢失类缺陷） | `GODOT_SMOKE: FAIL 四问断言：持久化 roundtrip 后作答 0 项 != 7 项（存档丢失）`，exit 1 | `GODOT_SMOKE: PASS`，exit 0 |
+
+两探针均为临时注入、当场还原（工作区无残留，`git status` 干净），探针代码不入库。
+
 ## 四、复跑方式
 
 ```bash

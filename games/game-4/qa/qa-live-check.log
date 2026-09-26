@@ -1,3 +1,6 @@
+# 《光路谜阵》?qa=1&tuning=1 公网实测（2026-09-27 收口轮复跑，HEAD 676dfbe，线上 v17）
+# 脚本：qa/qa_live_check.mjs（无头 Chromium + swiftshader）
+
 PASS 引擎启动完成（boot hidden）
 PASS URL 参数解析 __QA_MODE__ —— true
 PASS __SURVEY_MODE__ —— true

@@ -1,0 +1,12 @@
+# 负例探针 A：qa_selftest.gd hit 恒 false（模拟坐标映射错位）→ 冒烟必须 FAIL
+GODOT_SMOKE: FAIL QA 命中断言：6/6 个合成点击未按预期命中（坐标映射错位）—— 目标[1, 2]→路由[1, 2] applied[1, 2]；目标[1, 1]→路由[1, 1] applied[1, 1]；目标[2, 1]→路由[2, 1] applied[2, 1]
+GODOT_SMOKE: FAIL QA 命中断言：命中率 0.000 低于预算 1.00
+# 退出码：1
+
+# 负例探针 B：game_state.gd load_survey() 提前 return（模拟存档丢失）→ 冒烟必须 FAIL
+GODOT_SMOKE: FAIL 四问断言：持久化 roundtrip 后作答 0 项 != 7 项（存档丢失）
+# 退出码：1
+
+# 还原后复跑（探针代码不入库）：
+godot-smoke: PASS 冒烟场景通过：tests/smoke.tscn（退出码 0，断言标记齐全，日志无脚本错误）
+# 退出码：0
