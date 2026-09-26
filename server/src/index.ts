@@ -85,12 +85,14 @@ async function serveAsset(c: Context, name: string) {
   // = 脚本目录，覆盖不了页面所在的应用根（/apps/<slug>/… 或本地根）→ 注册被浏览器拒绝。
   // 该头放宽 max scope；值取根路径（规范要求其为脚本路径前缀，/ 恒成立），真实 scope
   // 由页面侧显式传入（games/stack-tower src/app/main.ts 按 location 推导）。
-  const swAllowed = name === "sw.js" ? { "Service-Worker-Allowed": "/" } : {};
+  // （具体 Record 类型就地赋值：Hono HeaderRecord 不接受含 undefined 可选键的联合展开）
+  const headers: Record<string, string> = { ...cache };
+  if (name === "sw.js") headers["Service-Worker-Allowed"] = "/";
 
   if (BINARY_NAME_RE.test(name)) {
     // 二进制：base64 文本过 M1 网关，浏览器端 boot 脚本还原真实字节
     return c.body(Buffer.from(bytes).toString("base64"), 200, {
-      ...cache,
+      ...headers,
       "Content-Type": "text/plain; charset=utf-8",
     });
   }
@@ -100,7 +102,7 @@ async function serveAsset(c: Context, name: string) {
       ? new TextDecoder().decode(gunzipSync(bytes))
       : new TextDecoder().decode(bytes);
   const body = name === "manifest.webmanifest" ? rewriteManifest(text) : text;
-  return c.body(body, 200, { ...cache, ...swAllowed, "Content-Type": TEXT_CONTENT_TYPE[extOf(name)] ?? entry.contentType });
+  return c.body(body, 200, { ...headers, "Content-Type": TEXT_CONTENT_TYPE[extOf(name)] ?? entry.contentType });
 }
 
 const app = new Hono();
