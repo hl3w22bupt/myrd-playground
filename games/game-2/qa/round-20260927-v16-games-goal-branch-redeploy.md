@@ -43,11 +43,26 @@
 | 项 | 值 |
 | --- | --- |
 | HostedApp id | `cmuiepuda001xm9gyecrisk7n`（slug: game-2，星尘收集者） |
-| deployment id | （部署后回填） |
-| liveUrl | （部署后回填） |
+| deployment id | `cmuiy9ypu00g2m9l6ljmg83lq`（**v16**，status=running 即服务中，构建 838ms） |
+| liveUrl | `https://leomac-studio.tail49399e.ts.net/apps/game-2/` |
 | gitRef | `myrd/games-goal-cmuiepudc001zm9gyyzqgztta`（任务固定参数分支，本轮起既定部署口径） |
-| 部署 commit | （部署后回填） |
+| 部署 commit | `e75b5c7`（**= 部署时分支 HEAD，commit 粒度零解释余量**） |
+| 被替代 | v15 `cmuixvwrc00fzm9l6zzdv0v0h` |
 
-## 线上验证
+## 线上验证（v16）
 
-（部署后回填）
+| 检查 | 结果 |
+| --- | --- |
+| `GET /health` | ✅ 200 `{"ok":true,"app":"star-dust-collector","assets":"lazy/object-storage"}` |
+| `GET /`（壳页，跟随 308） | ✅ 200 13269B，音频手势解锁器标记 ×10，「反馈 ★」角标 href=`api/public/feedback` |
+| `GET /api/public/feedback` | ✅ 200 text/html 35566B，**与 HEAD 导出逐字节一致**（sha256 1db3e585…） |
+| `GET /api/public/feedback.html` | ✅ 200 同上（别名入口） |
+| `GET /feedback.html`（顶层） | ⛔ 404 —— 部署护栏明确禁止顶层业务路由（v13/v14 已裁决），属预期；反馈中枢权威入口 = `<liveUrl>api/public/feedback` |
+| `GET /api/public/assets/index.pck` | ✅ 200 text/plain（base64 文本形态，M1 网关「只透传文本」契约合规，壳端 DecompressionStream 解压） |
+| routeAnalysis | /health、/（static）+ /api/public/feedback(.html)、/api/public/assets/:name（public），无登录墙路由 |
+
+## 结论
+
+- 线上版本 = HEAD（e75b5c7），gitRef = 任务固定参数分支 `myrd/games-goal-cmuiepudc001zm9gyyzqgztta`，
+  feedback.html 回填中枢页随产物发布且线上逐字节一致，门禁（3000 帧预算）三件套全绿。
+- playtest.sh 仍缺（Bug cmuimz29u0014m9l6t0cp1hpt），未自造判定器，不阻塞本节点。
