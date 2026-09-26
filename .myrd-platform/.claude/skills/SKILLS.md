@@ -9,5 +9,6 @@
 - **lark** — `.myrd-platform/.claude/skills/lark/SKILL.md`
 - **onboarding-review** — `.myrd-platform/.claude/skills/onboarding-review/SKILL.md`
 - **style-card-library** — `.myrd-platform/.claude/skills/style-card-library/SKILL.md`
+- **threejs-game-dev** — `.myrd-platform/.claude/skills/threejs-game-dev/SKILL.md`
 - **verification** — `.myrd-platform/.claude/skills/verification/SKILL.md`
 - **webgame-prototype** — `.myrd-platform/.claude/skills/webgame-prototype/SKILL.md`
