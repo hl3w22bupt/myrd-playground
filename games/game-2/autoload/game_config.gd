@@ -55,6 +55,68 @@ var milestone_step: int = 10
 
 func _ready() -> void:
 	apply_config_file()
+	apply_tuning_bridge()
+
+
+## ── 调参桥（§3C 调参工作台硬契约，消费端）──
+## 壳页面在引擎加载前把 URL 参数 `?tuning=<json>` 解析进 `window.__GAME_TUNING__`；
+## 本单例在 Web 构建启动时读取它覆盖调参区数值。协议约束：
+## - 只认 TUNING_META 声明的键（未知键一律忽略，防止壳端注入任意字段）；
+## - 数值按 TUNING_META 的 min/max 钳制（越界值落到边界）；
+## - 类型跟随本单例对应成员的声明类型（int/float 显式转换）；
+## - 仅 Web 构建生效（OS.has_feature("web")），桌面/无头冒烟零影响；
+## - 解析失败静默回退内置/配置文件数值，绝不让调参桥变成启动故障点。
+const TUNING_META: Dictionary = {
+	"score_per_crystal": {"min": 1.0, "max": 10.0},
+	"damage_per_hit": {"min": 1.0, "max": 3.0},
+	"initial_shield": {"min": 1.0, "max": 10.0},
+	"invincibility_seconds": {"min": 0.2, "max": 3.0},
+	"max_crystals": {"min": 1.0, "max": 12.0},
+	"max_asteroids": {"min": 0.0, "max": 14.0},
+	"asteroid_speed_min": {"min": 10.0, "max": 200.0},
+	"asteroid_speed_max": {"min": 20.0, "max": 400.0},
+	"player_speed": {"min": 80.0, "max": 600.0},
+	"respawn_delay_seconds": {"min": 0.0, "max": 5.0},
+	"difficulty_step": {"min": 2.0, "max": 50.0},
+	"difficulty_asteroids_per_level": {"min": 0.0, "max": 5.0},
+	"difficulty_asteroids_cap": {"min": 0.0, "max": 20.0},
+	"difficulty_speed_per_level": {"min": 0.0, "max": 1.0},
+	"difficulty_speed_cap_scale": {"min": 1.0, "max": 4.0},
+	"score_target": {"min": 0.0, "max": 200.0},
+	"milestone_step": {"min": 0.0, "max": 100.0},
+}
+
+
+## 应用壳页注入的调参覆盖（仅 Web；无注入时是零副作用空操作）。
+func apply_tuning_bridge() -> void:
+	if not OS.has_feature("web"):
+		return
+	var raw: Variant = null
+	if ClassDB.class_exists("JavaScriptBridge"):
+		raw = JavaScriptBridge.eval(
+			"window.__GAME_TUNING__ ? JSON.stringify(window.__GAME_TUNING__) : ''", true)
+	if raw == null or String(raw).is_empty():
+		return
+	var overrides: Variant = JSON.parse_string(String(raw))
+	if typeof(overrides) != TYPE_DICTIONARY:
+		push_warning("GameConfig: __GAME_TUNING__ 不是对象，忽略调参覆盖")
+		return
+	var applied: int = 0
+	for key: String in TUNING_META.keys():
+		if not overrides.has(key):
+			continue
+		var meta: Dictionary = TUNING_META[key]
+		var current: Variant = get(key)
+		var value: Variant = overrides[key]
+		if typeof(value) != TYPE_FLOAT and typeof(value) != TYPE_INT:
+			continue
+		var clamped: float = clampf(float(value), float(meta["min"]), float(meta["max"]))
+		if typeof(current) == TYPE_INT:
+			set(key, int(round(clamped)))
+		elif typeof(current) == TYPE_FLOAT:
+			set(key, clamped)
+		applied += 1
+	print("GameConfig: 调参桥已应用 %d 项覆盖（共 %d 项可调）" % [applied, TUNING_META.size()])
 
 
 ## 从 CONFIG_PATH 读入数值；缺文件/缺键时保留上方内置默认值，不视为致命错误。
