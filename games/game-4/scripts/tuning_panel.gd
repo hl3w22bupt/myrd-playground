@@ -26,7 +26,10 @@ static func is_enabled() -> bool:
 	if not Engine.has_singleton("JavaScriptBridge"):
 		return false
 	var bridge: Object = Engine.get_singleton("JavaScriptBridge")
-	var flag: Variant = bridge.call("eval", "new URLSearchParams(location.search).get('tuning') !== null")
+	# ★ 引擎级实测（Godot 4.3 Web）：布尔表达式过桥会被数值化（true→"1"），模板原写法
+	#   `... !== null` 恒返回 "1"，is_enabled 永假、面板永不浮出。必须在 JS 侧先转字符串，
+	#   字符串过桥不失真（'ok'→"ok"、"true"→"true"），再按字符串比较。
+	var flag: Variant = bridge.call("eval", "String(new URLSearchParams(location.search).has('tuning'))")
 	# 桌面/无头下桥存在但不工作（eval 恒为 null）—— 判空后才转字符串
 	if flag == null:
 		return false

@@ -48,6 +48,17 @@
 > （确定性第 4 次复现）。Web 重导出：pck `46606b15…`（脚本入包，按预期变化），
 > wasm `fe5cebc5…` 与 js `8b649683…` 不变（引擎层无变化）。部署与公网核验见
 > `qa/LIVE_VERIFY.md` §八。
+>
+> **本轮追补（模板缺陷修复 + 浏览器实测）**：真浏览器（Chromium 内核 + swiftshader 软渲染）
+> 实测发现模板 `is_enabled()` 在 Web 上**恒假** —— Godot 4.3 的 `JavaScriptBridge.eval` 对
+> 布尔表达式回传被数值化（`true`→`"1"`），`"… !== null"` 恒等于 `"1"` ≠ `"true"`；
+> 修复为 JS 侧先转字符串（`String(new URLSearchParams(location.search).has('tuning'))`）。
+> 实测矩阵（eval 回传语义）：`'ok'`→`"ok"` ✓ / `1+1`→`"2"` ✓ / 裸布尔→`"1"` ✗ /
+> `String(bool)`→`"true"` ✓ / `JSON.stringify(bool)`→`"true"` ✓ —— **跨 eval 传值一律用
+> 字符串**（该发现已留档，供技能包模板后续修正参考）。修复后本地双场景实测通过：
+> `?tuning=1` 面板浮出（滑杆 6/16）+ 带桥壳注入 `{"beam_core_width":12}` 滑杆显示 12
+> （截图 `qa/shots-live-verify/tuning-panel-local-*.png`）；修复态四门禁复跑全绿
+> （PREFLIGHT 13 类/66 文件 → SMOKE → FUZZ → PLAYTEST，METRICS 确定性第 5 次逐字段一致）。
 
 ## 二、playtest 协议修复史（FAIL → PASS，可审计）
 
@@ -153,6 +164,7 @@
   非对象 / 数组 / 非法 JSON 一律忽略，不阻断启动。`?tuning=1`（非 JSON 值）只开面板不注入数值。
 - **机器取证锚点**：面板真正浮出后向壳页写 `window.__GAME_TUNING_PANEL__='shown'`
   （壳页先把 `?tuning=1` 置 `'requested'`）—— 公网核验据此断言工作台真实出现。
+  注：桥回传布尔会被数值化（见 §一本轮追补），跨桥判定一律走字符串回传。
 - 当前可调键：`beam_core_width`（2~16，步长 1，默认 6，光束主线宽）、
   `beam_glow_width`（4~40，步长 1，默认 16，辉光宽）。
 - 玩法数值（par/星级阈值）已按拍板固化进 `levels.gd`，不走 URL 调参；后续修订走
