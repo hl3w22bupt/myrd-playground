@@ -267,5 +267,5 @@ func _draw_beam() -> void:
 	for segment: Array in beam["segments"]:
 		var from: Vector2 = cell_point(segment[0])
 		var to: Vector2 = cell_point(segment[1])
-		draw_line(from, to, COLOR_BEAM_GLOW, 16.0)
-		draw_line(from, to, COLOR_BEAM, 6.0)
+		draw_line(from, to, COLOR_BEAM_GLOW, float(GameState.tuning["beam_glow_width"]))
+		draw_line(from, to, COLOR_BEAM, float(GameState.tuning["beam_core_width"]))

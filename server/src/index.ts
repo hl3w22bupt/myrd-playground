@@ -10,14 +10,14 @@ const app = new Hono();
 app.get("/health", (c) =>
   c.json({
     ok: true,
-    app: "candy-crush-legend",
+    app: "light-path-labyrinth",
     env: ctx.environment,
     assets: "lazy/object-storage",
   }),
 );
 
 // 游戏落地页（/ 是唯一豁免 /api 前缀护栏的业务路径）。
-// 页面内所有资源走相对路径 api/public/assets/*：公网入口 /apps/game 下相对路径
+// 页面内所有资源走相对路径 api/public/assets/*：公网入口 /apps/game-4 下相对路径
 // 会解析到网关子路径，绝对路径会 404/被登录墙拦下（见任务契约）。
 app.get("/", (c) => c.html(GAME_PAGE_HTML));
 
