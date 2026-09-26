@@ -1,0 +1,198 @@
+{
+  "schemaVersion": "v0",
+  "id": "cmuiiofl4004tm9gcmaz3sstp",
+  "projectId": "cmuieq51c0026m9gyynwo0sww",
+  "goalId": "cmuieq51k002cm9gysxbyppv7",
+  "title": "《疾风忍者跑》结构化策划案 v2（跑酷闯关 · AI 代理试玩调参拍板）",
+  "version": 2,
+  "status": "approved",
+  "approvedAt": "2026-09-27",
+  "note": "本文件为策划案在仓库内的单一事实源落盘（平台 revise_design_spec 接口不支持，经仓库直改等效达成）。版本与修订记录见 revisions；修订说明详见同目录 REVISIONS.md。",
+  "meta": {
+    "engine": "Godot 4 Web",
+    "genre": "跑酷闯关",
+    "name": "疾风忍者跑",
+    "oneLiner": "忍者自动向前奔跑，点按跳跃与二段跳越过深坑和尖刺，坚持跑到底即过关，途中可收集飞镖加分",
+    "source": "games/game-3@myrd/game-3-goal-cmuieq51k002cm9gysxbyppv7（v2 拍板 2026-09-27，基线 v1=games/game-3@c679aa2）"
+  },
+  "world": {
+    "camera": "侧视跟随",
+    "fallback": "坠落到 FALL_LIMIT_Y=420 以下判死亡",
+    "track": {
+      "goalX": 4800,
+      "trackEndX": 5060,
+      "spikeXs": [1000, 1750, 2020, 2650, 2920, 3580, 4550],
+      "pits": [
+        { "id": "pit-1", "x0": 640, "x1": 750, "width": 110, "jumpBudget": "单跳可过（起跳窗口 0.48s，最宽容）" },
+        { "id": "pit-2", "x0": 1400, "x1": 1550, "width": 150, "jumpBudget": "单跳贴边可过（v2 默认参数下窗口 ≈19.1 物理帧 ≈0.32s）" },
+        { "id": "pit-3", "x0": 2250, "x1": 2450, "width": 200, "jumpBudget": "二段跳入门（窗口 ≈0.75s）" },
+        { "id": "pit-4", "x0": 3150, "x1": 3390, "width": 240, "jumpBudget": "二段跳（窗口 ≈0.59s）" },
+        { "id": "pit-5", "x0": 4050, "x1": 4330, "width": 280, "jumpBudget": "二段跳（第二跳在回落越过起跳高度后 ≈0.26s 按为力学最优，见 REVISIONS.md 发现①）" }
+      ]
+    }
+  },
+  "entities": [
+    {
+      "id": "e-player",
+      "name": "忍者",
+      "role": "自动前进跑酷：jump/confirm 同路径触发跳跃与二段跳（maxJumps=2），土狼 12 帧 + 缓冲 12 帧手感容错（v2 拍板值，≈0.2s @60fps）",
+      "script": "games/game-3/scripts/player.gd"
+    },
+    {
+      "id": "e-spike",
+      "name": "尖刺",
+      "role": "触碰即死的地面障碍，7 处沿 x 轴难度递增",
+      "script": "games/game-3/scripts/level.gd"
+    },
+    {
+      "id": "e-pit",
+      "name": "深坑",
+      "role": "地台间隙（5 处，坑宽 110/150/200/240/280 严格递增），坠落越过 FALL_LIMIT_Y 判死",
+      "script": "games/game-3/scripts/level.gd"
+    },
+    {
+      "id": "e-dart",
+      "name": "飞镖",
+      "role": "收集物共 17 枚，每枚 +1 分（DART_SCORE）；首枚 x=420 平地低空，专家线 17/17 全收可达（试玩实测）",
+      "script": "games/game-3/scripts/dart.gd"
+    },
+    {
+      "id": "e-goal",
+      "name": "终点",
+      "role": "GOAL_X=4800 到达即过关，结算=飞镖数+通关奖励 10",
+      "script": "games/game-3/scripts/main.gd"
+    }
+  ],
+  "levels": [
+    {
+      "id": "lvl-01-ninja-run",
+      "elements": [
+        {
+          "id": "lvl-01/spawn",
+          "kind": "spawn",
+          "expect": "START_POSITION(60,150)，落定后自动向右奔跑"
+        },
+        {
+          "id": "lvl-01/spikes",
+          "kind": "hazard",
+          "expect": "尖刺 x=1000~4550 共 7 处，前疏后密构成难度梯度，均在单跳/二段跳可达包络内；5 处深坑（world.track.pits）坑宽严格递增，逐坑起跳窗口已按 v2 试玩量化并记入 world.track"
+        },
+        {
+          "id": "lvl-01/darts",
+          "kind": "pickup",
+          "expect": "飞镖 17 枚散布于跳跃弧线可选路径，收集加分不打断跑动；首枚 x=420（S1 低空）需主动小跳——v2 试玩发现④建议增设「白给」正反馈镖，属关卡改动，留待实现节点评估，未进本版 spec"
+        },
+        {
+          "id": "lvl-01/goal",
+          "kind": "goal",
+          "expect": "x=4800 终点，到达结算并给重开入口"
+        }
+      ]
+    }
+  ],
+  "numeric": {
+    "runSpeed": 240,
+    "jumpVelocity": -520,
+    "gravity": 1400,
+    "maxJumps": 2,
+    "coyoteFrames": 12,
+    "jumpBufferFrames": 12,
+    "maxFallSpeed": 900,
+    "dartScore": 1,
+    "winBonus": 10,
+    "jumpAirTime": "2x520/1400≈0.743s（v2 未改力学，仅放宽输入容错）",
+    "tuning": "live_* 运行时调参键 + <liveUrl>?tuning=<urlencoded json> 调参桥（§3C）；TUNING_META 钳制 coyote_frames/jump_buffer_frames ∈ [0,20]，v2 默认 12 在区间内；maxFallSpeed 不开放调参（安全阀恒用常量）"
+  },
+  "acceptance": [
+    {
+      "id": "ac-1-input",
+      "status": "pass",
+      "statement": "操作方式：点按屏幕/触摸确认按钮/空格键均触发跳跃（InputMap 统一 jump/confirm 动作，触摸与键盘同代码路径）",
+      "check": "games/game-3/tests/smoke.tscn 输入断言 + scripts/player.gd _unhandled_input"
+    },
+    {
+      "id": "ac-2-doublejump",
+      "status": "pass",
+      "statement": "空中再按一次触发二段跳（maxJumps=2）；二段跳引擎侧触发率试玩实测 6/6=100%（无吞按）",
+      "check": "tests/smoke.gd jumps_used 断言 + games/game-3/qa/PLAYTEST.md §三"
+    },
+    {
+      "id": "ac-3-feedback",
+      "status": "pass",
+      "statement": "胜负反馈：撞尖刺/坠落判死并给失败反馈；到达 GOAL_X=4800 过关，结算=飞镖×1+通关 10",
+      "check": "tests/smoke.gd 胜负断言 + autoload/game_state.gd"
+    },
+    {
+      "id": "ac-4-restart",
+      "status": "pass",
+      "statement": "重开入口：结算与死亡界面提供重开（R 键与触摸确认按钮同路径）",
+      "check": "tests/smoke.tscn 重开断言"
+    },
+    {
+      "id": "ac-5-noise",
+      "status": "pass",
+      "statement": "状态边界：smoke 含确定种子 20260926 噪声相位（20 帧悬挂手势/孤儿释放/双指抢控/乱键），噪声后移动/交互断言全部通过——任意输入序后核心操作仍然生效",
+      "check": "GODOT_SMOKE_FRAMES=400 bash std-skills/godot-game-dev/scripts/smoke.sh games/game-3 → GODOT_SMOKE: PASS"
+    },
+    {
+      "id": "ac-6-semantics",
+      "status": "pass",
+      "statement": "操控语义：跑酷自动向屏幕右前进，跳跃为竖直动作无横移镜像面；正向语义由 smoke 位移断言覆盖（moved 信号 x 单调递增）",
+      "check": "tests/smoke.gd 位移断言"
+    },
+    {
+      "id": "ac-7-gates",
+      "status": "pass",
+      "statement": "门禁四件套仓库同源判定：preflight PASS / smoke PASS / input-fuzz PASS（seed=20260913）/ playtest PASS",
+      "check": "bash std-skills/godot-game-dev/scripts/{preflight.py,smoke.sh,input-fuzz.sh,playtest.sh} games/game-3，或一把跑 bash games/game-3/verify.sh"
+    },
+    {
+      "id": "ac-8-playtest-metrics",
+      "status": "pass",
+      "statement": "机器人试玩机判指标达标（3 种子 × 1200 帧/局）：首次正反馈 ≤10s（实测 2.65/2.80/2.92s）、最长无反馈窗口 ≤10s（实测 3.00/3.12/3.42s）、每局反馈事件 ≥2（实测 24/25/28）",
+      "check": "GODOT_PLAYTEST_FRAMES=1200 bash std-skills/godot-game-dev/scripts/playtest.sh games/game-3 → GODOT_PLAYTEST: PASS（GODOT_PLAYTEST_METRICS 单行 JSON 存档于 games/game-3/qa/PLAYTEST.md §九）"
+    },
+    {
+      "id": "ac-9-restart-guard",
+      "status": "pass",
+      "statement": "重开防误触：奔跑中按 R / 触摸确认不触发重开（进度不被静默清零），仅结算/死亡界面受理",
+      "check": "tests/smoke.gd 第 14 组断言（奔跑中按 R 必须被忽略）；负例探针证据见 qa/PLAYTEST.md §五探针 C"
+    },
+    {
+      "id": "ac-10-feel-tuning-v2",
+      "status": "pending",
+      "statement": "v2 拍板默认手感落地：scripts/player.gd 常量 COYOTE_FRAMES=12、JUMP_BUFFER_FRAMES=12（当前代码仍为 6，待实现节点按本 spec 修订）；落地后 bash games/game-3/verify.sh 四步全绿，且坑2 单跳起跳窗口由 ≈13.1 物理帧提升到 ≈19.1 物理帧（+46%）；同时按试玩发现①③修正 level.gd 坑5 技巧注释与 qa/tuning-params.md「跳得太飘」建议组合（安全组合 gravity=1700 / jump_velocity_abs=600）",
+      "check": "games/game-3/scripts/player.gd 常量区 + bash games/game-3/verify.sh 退出码 0；实现节点完成后本条置 pass"
+    }
+  ],
+  "revisions": [
+    {
+      "version": 1,
+      "status": "superseded",
+      "title": "《疾风忍者跑》结构化策划案 v1（跑酷闯关 · 已实现基线）",
+      "date": "2026-09-26",
+      "numeric": {
+        "coyoteFrames": 6,
+        "dartScore": 1,
+        "gravity": 1400,
+        "jumpAirTime": "2x520/1400≈0.743s",
+        "jumpBufferFrames": 6,
+        "jumpVelocity": -520,
+        "maxFallSpeed": 900,
+        "maxJumps": 2,
+        "runSpeed": 240,
+        "tuning": "live_* 运行时调参键 + <liveUrl>?tuning=1 调参桥（§3C）",
+        "winBonus": 10
+      },
+      "detail": "v1 基线（实现口径），平台记录 id=cmuiiofl4004tm9gcmaz3sstp version=1；被 v2 取代。"
+    },
+    {
+      "version": 2,
+      "status": "approved",
+      "date": "2026-09-27",
+      "dataSource": "AI 代理试玩（后续 iOS 真机复核可再覆盖）",
+      "op": "tuning_applied",
+      "detail": "按「平台体检师」线上代试玩 6 局结论修订 spec.numeric 并拍板：①修订 coyoteFrames 6→12、jumpBufferFrames 6→12（实测偏差：坑2 单跳起跳窗口仅 13.1 物理帧 ≈0.22s 构成新手墙、触屏提前按跳容错仅 0.100s；修订后窗口 ≈19.1 帧 +46%、容错 0.200s，无力学副作用，且在 TUNING_META 钳制上限 20 之内）；②固化现值（实测达标）：runSpeed=240（试玩反例证实降至 200 会把坑2 窗口压到 5.6 帧）、jumpVelocity=-520、gravity=1400（拒绝 1800/560 反例组合——会把坑2 调成帧完美；1700/600 仅作真机可选调参）、maxJumps=2（跨坑目的达成 5/6、引擎触发 100%）、dartScore=1（专家线 17/17 可达）、winBonus=10、maxFallSpeed=900；③机判指标达标（ac-8）：first_reward 2.65–2.92s / gap ≤3.42s / fb 24–28，均优于阈值；④新增 acceptance ac-8/9/10，同步 e-player、e-pit、e-dart、lvl-01 元素口径与 world.track 逐坑窗口量化。遗留（不进本版，交实现节点）：坑5 官方技巧注释与力学最优相反（level.gd:26）、tuning-params.md 反例组合替换、S1 增设白给镖评估、常量 6→12 落地。证据：games/game-3/qa/PLAYTEST.md（门禁 3 局×1200 帧 PASS + 负例探针）、qa/cdp-precheck/precheck-log.md、体检师代试玩轨迹 cmuio2axi003gm9l6jvynz0k4（过关率 33%，死亡深坑:尖刺=4:1）。"
+    }
+  ]
+}
