@@ -107,3 +107,30 @@
 **v7 结论：公网可玩通过。** 本轮收口 = 四门禁全绿 + 重导出逐字节一致 + v7 部署 + 公网资产逐字节核对，
 四者同一 HEAD `00d2238`（代码与 v6 部署的 `8551380`/`4b24894` 完全一致，仅补验收文档），
 无行为变化，属纯证据性收口轮。
+
+## 八、v9 轮部署（2026-09-27，调参工作台轮：面板落地 + Web 恒假修复）
+
+- 背景：补齐 SKILL §3C 三件套缺失的「调参面板」件后，真浏览器实测发现模板
+  `TuningPanel.is_enabled()` 在 Web **恒假**（`JavaScriptBridge.eval` 布尔回传被数值化，
+  `true`→`"1"`），面板永不浮出；修复为 JS 侧 `String(...)` 转字符串回传（`0f57a73`）。
+- 门禁（HEAD `0f57a73`，修复态复跑）：四门禁**全绿**（PREFLIGHT 13 类/66 文件 →
+  GODOT_SMOKE 240 帧 → GODOT_FUZZ 6 批 239 帧 → GODOT_PLAYTEST 3 种子×900 帧；
+  METRICS 确定性第 5 次逐字段一致）。
+- Web 重导出：pck `46606b15…` 含修复（脚本入包），wasm/js 不变（引擎层无变化）。
+- 部署：dryRun 构建通过（superseded，无 errorMessage）→ 正式 POST 单次成功 →
+  **v9 running**（deploymentId `cmuipykw3007em9l6darx2jw0`，gitRef
+  `myrd/games-goal-cmuieqj7o0031m9gyf4pbwptg`，mode=bundle，携带 goalId+artifactKind=playable）。
+
+| 步骤 | 结果 |
+|---|---|
+| 壳页 `GET /apps/game-4`（-L） | **200 text/html 12,578 B**，含 `__GAME_TUNING_PANEL__` 标记（requested→shown）×2 处 |
+| `GET /gw/health` | 200 `{"ok":true,"app":"light-path-labyrinth",...}` |
+| `GET /api/public/assets/index.wasm` | **200 + `content-type: application/wasm`** ✓ |
+| pck 内容一致性 | 线上 b64→gunzip 与本地 HEAD `0f57a73` 构建**逐字节一致**（2,575,152 B） |
+| 面板行为（Chromium 内核 + swiftshader 实测） | `?tuning=1` → `window.__GAME_TUNING_PANEL__==='shown'`，右上角面板浮出（滑杆 6/16 + 复制调参 URL）✓ |
+| 注入链路（真壳页） | `?tuning={"beam_core_width":14}` → 面板滑杆显示 **14**（解析→`__GAME_TUNING__`→`_apply_tuning`→面板初值全链贯通）✓ |
+| 部署状态 | `running`（服务终态，指针已切 v9，app status=ready，无 errorMessage） |
+
+**v9 结论：公网可玩通过 + 调参工作台可用。** 试玩入口 `<liveUrl>?tuning=1` 浮出面板、
+拖滑杆即时改数值、复制调参 URL 可回传 —— 四问量表「待用户试玩」，调参回传通道就绪。
+截图取证：`qa/shots-live-verify/tuning-panel-LIVE-*.png`。

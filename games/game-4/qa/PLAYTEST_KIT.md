@@ -59,6 +59,12 @@
 > `?tuning=1` 面板浮出（滑杆 6/16）+ 带桥壳注入 `{"beam_core_width":12}` 滑杆显示 12
 > （截图 `qa/shots-live-verify/tuning-panel-local-*.png`）；修复态四门禁复跑全绿
 > （PREFLIGHT 13 类/66 文件 → SMOKE → FUZZ → PLAYTEST，METRICS 确定性第 5 次逐字段一致）。
+>
+> **公网实测（v9 部署 `cmuipykw3007em9l6darx2jw0`，HEAD `0f57a73`）**：
+> `<liveUrl>?tuning=1` 面板浮出（`__GAME_TUNING_PANEL__='shown'`，右上角滑杆 6/16）；
+> 真壳页注入 `?tuning={"beam_core_width":14}` 滑杆正确显示 14 —— 调参回传通道在公网就绪
+> （截图 `qa/shots-live-verify/tuning-panel-LIVE-*.png`，HTTP 级核验见 `qa/LIVE_VERIFY.md` §八）。
+> **四问量表仍「待用户试玩（未回填）」—— 调参工作台入口：`<liveUrl>?tuning=1`。**
 
 ## 二、playtest 协议修复史（FAIL → PASS，可审计）
 
