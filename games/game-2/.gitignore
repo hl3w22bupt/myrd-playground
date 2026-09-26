@@ -1,0 +1,13 @@
+# Godot 本机导入缓存：由 `godot --headless --path . --import` 重新生成，不进版本库
+.godot/
+
+# 导出产物
+/export/
+*.exe
+*.zip
+
+# 系统
+.DS_Store
+
+# input-fuzz 门禁的驱动暂存目录（脚本运行后自清理，防残留误提交）
+tests/.fuzz/

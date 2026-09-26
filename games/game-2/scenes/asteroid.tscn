@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/asteroid.gd" id="1_asteroid"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hurt"]
+radius = 13.0
+
+[node name="Asteroid" type="Area2D"]
+script = ExtResource("1_asteroid")
+
+[node name="Visual" type="Polygon2D" parent="."]
+color = Color(0.55, 0.5, 0.45, 1)
+polygon = PackedVector2Array(12, -4, 6, -12, -5, -11, -12, -2, -7, 9, 5, 11)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_hurt")
