@@ -41,6 +41,20 @@ horizontal_alignment = 1
 vertical_alignment = 1
 text = ""
 
+[node name="HintLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -40.0
+offset_right = 624.0
+offset_bottom = -12.0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(1, 1, 1, 0.85)
+text = "空格/W 跳跃（空中再按=二段跳） · R 重开"
+
 [node name="TouchUI" type="CanvasLayer" parent="."]
 layer = 10
 visible = false
