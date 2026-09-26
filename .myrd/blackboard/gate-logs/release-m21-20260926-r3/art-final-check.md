@@ -1,7 +1,7 @@
 # 发布素材终检记录 — stack-tower M2.1 正式发布轮（第三轮 · r3）
 
 > 终检人：T3 游戏美术 · 日期 2026-09-26 · 性质：**发布素材终检，只检不新做**（本轮零新资产、零工具链改动）
-> 检对象：当前分支 HEAD `436be68b8be67fc146257ed8cd7255536594e4bd`（r2 收口后树）的 `games/stack-tower/` 发布面 `export/web/`；发布 tag 由程序侧门禁全绿后打，tag 树与本检对象树的一致性由程序侧「门禁树→tag 树 delta=0 字节」惯例兜底
+> 检对象：当前分支 HEAD `436be68b8be67fc146257ed8cd7255536594e4bd`（r2 收口后树）的 `games/stack-tower/` 发布面 `export/web/`；发布 tag = **`stack-tower-m2.1-release-r3` @ `26a53d7fe4460f2dedb55729f21399474159ac2e`**（绑定闭合见 §⑤，美术线独立复验，非仅程序侧兜底）
 > 结论：**四项全 PASS + sfx 注册表美术侧复签通过**；资产面相对 r1/r2 两轮已验证状态**逐字节零漂移**（见 ⓪），结论与 r1 终证同源不冲突
 > 前轮关系：r1 终证 `gate-logs/release-m21-20260926/art-final-check.md`（tag `stack-tower-m2.1-release` @ `5a3284f`）；r2 沿用记录在 `assets.md` §r2 增记。本轮为发布对象变更（→ HEAD）后的独立复检，不覆盖前轮记录。
 
@@ -67,6 +67,20 @@
 | `3-sfx-registry-check.log` | sfx 注册表逐条 | PASS 6/6 |
 | `4-assets-check.log` | `npm run assets:check` 三态门禁 | **PASS (browser)** |
 | `5-contract-check.log` | `node scripts/contract-check.mjs`（B 段 22 条实跑 + E 段资产登记） | **PASS**（E 段 7/7 全 generated 零外部资源） |
+| `12-tag-tree-binding.log` | 发布对象绑定闭合（tag hash + 零漂移复核 + maskable tag 树重跑） | PASS 3/3（见 §⑤） |
+
+## ⑤ 发布对象绑定闭合（tag hash，2026-09-26 追加）
+
+本记录初稿落盘时 r3 tag 尚未打出，故写明「tag 树一致性由程序侧兜底」。tag `stack-tower-m2.1-release-r3` 打出后，美术线**独立复验**并闭合绑定（复核命令与输出全文见 `12-tag-tree-binding.log`）：
+
+| 复核 | 结果 |
+|---|---|
+| `git rev-parse stack-tower-m2.1-release-r3^{commit}` | `26a53d7fe4460f2dedb55729f21399474159ac2e` |
+| `git diff 436be68..stack-tower-m2.1-release-r3 -- assets/ src/render/ tools/gen-assets.mjs tools/gen-audio.mjs` | **空**（本记录全部结论原样适用于 tag 树，零转移风险） |
+| `git diff stack-tower-m2.1-release-r3 -- export/web assets`（工作树 vs tag 树） | **空**（字节全等） |
+| maskable 检查器在 tag 树工作面重跑 | **PASS 3/3**，contentPx 5565/39592/4980 与 §① 逐位一致 |
+
+结论：**本终检记录（四项 PASS + sfx 注册表美术侧复签）自本节起正式绑定发布 tag `stack-tower-m2.1-release-r3` @ `26a53d7`**；后续如发布面再有变更，须重开终检而非引用本记录。
 
 ## 已知未收口项（单列，不阻断素材终检）
 

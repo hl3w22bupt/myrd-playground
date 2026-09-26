@@ -69,6 +69,7 @@
 - **四项终检全 PASS**（本轮独立复检，证据 `gate-logs/release-m21-20260926-r3/`）：① maskable 安全区 3/3（contentPx 5565/39592 与 r1 逐位一致，检查器本轮入库可复现）；② 首屏对齐风格卡（内容色 = 色板基色 × 0.78 / × 0.55 逐位吻合三面明度链，bgBottom = `SKY_BOTTOM` 逐位一致）；③ 资产零缺失（precache 55 = 壳 30 + assets 25 全覆盖零重复，`REVISION=1` 冻结未动）+ sfx 注册表 **ART-SFX-REGISTRY-PASS 6/6**（critical 旗标与 spec 一致、restart 198ms ≤ 200 红线）；④ 体积（发布面 174.6KB < 300KB 预算，最大单件 16.7KB，零 >50KB PNG）。
 - **机器门禁**：`npm run assets:check` → **PASS (browser)**（9/9 运行时 200 + 404 负面用例可玩）；`node scripts/contract-check.mjs` → **PASS**（acceptance 22/22 · E 段资产登记 7/7 全 generated 零外部资源）。
 - 素材核对状态 = **终检完成（r3 四项全 PASS）+ 注册表双签完成**；接线面零改动（a06–a14 接线点沿用，无需重检——渲染代码相对基线零漂移）。
+- **发布对象绑定闭合（美术线独立复验，2026-09-26 追加）**：r3 终检记录已绑定 tag `stack-tower-m2.1-release-r3` @ `26a53d7fe4460f2dedb55729f21399474159ac2e`——`git diff 436be68..tag`（assets/src/render/生成器）为空、工作树发布面 ≡ tag 树发布面、maskable 在 tag 树面重跑 3/3 同值；复核全文 `gate-logs/release-m21-20260926-r3/12-tag-tree-binding.log`（art-final-check §⑤）。此后发布面再变更须重开终检。
 - U7 美术面口径：线上贴图呈程序化绘制形态属壳链路缺陷，素材本体与风格卡符合性不受影响，素材面无需重做（详见 r3 记录 §已知未收口项）。
 
 ### r3 对象对齐增记（程序侧，2026-09-26）
