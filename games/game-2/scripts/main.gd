@@ -23,8 +23,8 @@ const FLOAT_TEXT_SCENE: PackedScene = preload("res://scenes/float_text.tscn")
 ## 均小于 40px —— 生成点必然整体在视口内，不会出现「半截在屏外」的目标。
 const SPAWN_BOUNDS: Rect2 = Rect2(40.0, 48.0, 560.0, 264.0)
 ## 陨石生成点与玩家的最小距离：接触包络 = 玩家碰撞半径 12 + 陨石受击半径 13 = 25px，
-## 110px ≈ 4.4 倍包络，按最高漂移速度（110px/s × 1.8 难度封顶 ≈ 198px/s）也有
-## ≥0.55s 反应时间，杜绝开局即撞。
+## 110px ≈ 4.4 倍包络，按最高漂移速度（110px/s × 2.0 难度封顶 = 220px/s）也有
+## ≥0.5s 反应时间，杜绝开局即撞。
 const ASTEROID_MIN_PLAYER_DISTANCE: float = 110.0
 ## 星尘生成点与玩家的最小距离：大于收集包络（12 + 14 = 26px），
 ## 保证新补位的晶体不会在玩家脚下「凭空被收」。

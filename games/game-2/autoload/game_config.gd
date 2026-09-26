@@ -39,9 +39,9 @@ var difficulty_asteroids_per_level: int = 1
 ## 难度提升后陨石常驻数量的封顶（梯度的天花板，防止刷满屏幕）。
 var difficulty_asteroids_cap: int = 10
 ## 每提升一级难度，陨石漂移速度乘以的增量比例（线性叠加后封顶）。
-var difficulty_speed_per_level: float = 0.15
+var difficulty_speed_per_level: float = 0.12
 ## 难度提升后陨石速度的倍率封顶（相对 asteroid_speed_min/max 基准）。
-var difficulty_speed_cap_scale: float = 1.8
+var difficulty_speed_cap_scale: float = 2.0
 
 ## ── 胜利目标（本节点新增）──
 ## 本局得分达到该值即触发胜利结算（面板 + 可重开）；0 = 无尽模式，

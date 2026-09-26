@@ -55,8 +55,8 @@
 | 10 | difficulty_step | 8 | 0-30 (1) | 难度突变 → ↑；太简单 → ↓ | |
 | 11 | difficulty_asteroids_per_level | 1 | 0-5 (1) | 难度太平 → ↑ | |
 | 12 | difficulty_asteroids_cap | 10 | 1-30 (1) | 后期看不清 → ↓ | |
-| 13 | difficulty_speed_per_level | 0.15 | 0-0.6 (0.05) | 陨石太快躲不开 → ↓ | |
-| 14 | difficulty_speed_cap_scale | 1.8 | 1.0-3.0 (0.05) | 陨石太快躲不开 → ↓ | |
+| 13 | difficulty_speed_per_level | 0.12 | 0-0.6 (0.05) | 陨石太快躲不开 → ↓ | |
+| 14 | difficulty_speed_cap_scale | 2.0 | 1.0-3.0 (0.05) | 陨石太快躲不开 → ↓ | |
 | 15 | score_target | 20 | 0-60 (1) | 目标太远 → ↓（0 = 无尽） | |
 | 16 | milestone_step | 10 | 0-30 (1) | 反馈稀 → ↓（0 = 关闭） | |
 | 17 | invincibility_seconds | 0.8 | 0-3 (0.05) | 连续受击挫败感强 → ↑ | |
