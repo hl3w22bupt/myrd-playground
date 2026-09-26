@@ -27,10 +27,25 @@ var combo_count: int = 0
 var combo_window_left: float = 0.0
 var best_score: int = 0
 
+## ── 数值调参区（SKILL.md §3C 调参工作台的对接面）──
+## 默认值 = 知识 6e91a11d §一/§四 的建议基线；试玩调参经 apply_tuning 覆盖，
+## 定稿回写 spec 后更新这里。需求硬性口径（60s / +10 / +5 / 2~4s 间隔）不进调参区。
+var player_speed: float = 240.0
+var log_speed_start: float = 120.0
+var log_speed_end_factor: float = 1.8
+
+## 可调键的元数据：键名 → {min, max, step}。调参面板按它生成滑杆，apply_tuning 按它钳制。
+const TUNING_META: Dictionary = {
+	&"player_speed": {"min": 120.0, "max": 480.0, "step": 10.0},
+	&"log_speed_start": {"min": 60.0, "max": 300.0, "step": 10.0},
+	&"log_speed_end_factor": {"min": 1.0, "max": 3.0, "step": 0.1},
+}
+
 var _loaded: bool = false
 
 
 func _ready() -> void:
+	_apply_web_tuning()
 	load_best_score()
 
 
@@ -98,3 +113,38 @@ func save_best_score() -> void:
 func reload_best_score_from_disk() -> int:
 	load_best_score()
 	return best_score
+
+
+## 应用调参覆盖（调参面板与壳页面 __GAME_TUNING__ 桥共用的唯一入口）：
+## 只认 TUNING_META 声明的键、按 min/max 钳制；返回实际生效的键名列表。
+func apply_tuning(overrides: Dictionary) -> PackedStringArray:
+	var applied := PackedStringArray()
+	for key: String in overrides:
+		var meta: Dictionary = TUNING_META.get(StringName(key), {})
+		if meta.is_empty() or get(key) == null:
+			continue
+		var raw: Variant = overrides[key]
+		if not (raw is float or raw is int):
+			continue
+		set(key, clampf(float(raw), meta["min"], meta["max"]))
+		applied.append(key)
+	return applied
+
+
+## Web 调参桥读入：壳页面在引擎加载前把 URL ?tuning=<JSON> 解析到 window.__GAME_TUNING__，
+## 这里在启动时应用。桌面/无头环境桥不工作（eval 返回 null），自动跳过（冒烟不受影响）。
+## 注意：JavaScriptBridge 单例在桌面二进制也存在但 eval 恒为 null —— 判空而非只判注册；
+## 经 Engine.get_singleton 动态取用，不做编译期平台引用。
+func _apply_web_tuning() -> void:
+	if not Engine.has_singleton("JavaScriptBridge"):
+		return
+	var bridge: Object = Engine.get_singleton("JavaScriptBridge")
+	var result: Variant = bridge.call("eval", "JSON.stringify(window.__GAME_TUNING__ || null)")
+	if result == null:
+		return
+	var raw := str(result)
+	if raw.is_empty() or raw == "null":
+		return
+	var parsed: Variant = JSON.parse_string(raw)
+	if parsed is Dictionary:
+		apply_tuning(parsed)

@@ -13,9 +13,6 @@ const LOG_SCENE: PackedScene = preload("res://scenes/log_roller.tscn")
 ## 生成间隔 [2, 4) 秒（需求硬性口径）。
 const SPAWN_INTERVAL_MIN: float = 2.0
 const SPAWN_INTERVAL_MAX: float = 4.0
-## 开局速度 v0；终局速度 v1 = SPEED_START × SPEED_END_FACTOR。
-const SPEED_START: float = 120.0
-const SPEED_END_FACTOR: float = 1.8
 ## 竖直落点带（避开上下边缘）。
 const EDGE_PADDING: float = 48.0
 ## 同侧相邻两根原木的最小轨距（≥ 1 个原木长度，保留可穿越缝隙）。
@@ -62,9 +59,14 @@ func freeze_logs() -> void:
 
 
 ## 速度公式（纯函数，冒烟直测端点与单调性）。
+## v0 / 终局倍率读调参区（GameState.log_speed_start / log_speed_end_factor），
+## 默认 120 / 1.8 = 知识 6e91a11d §四建议基线。
 func speed_for(time_left: float) -> float:
 	var ratio: float = clampf(time_left / GameState.MATCH_SECONDS, 0.0, 1.0)
-	return lerpf(SPEED_START * SPEED_END_FACTOR, SPEED_START, ratio)
+	return lerpf(
+		GameState.log_speed_start * GameState.log_speed_end_factor,
+		GameState.log_speed_start,
+		ratio)
 
 
 ## 立即生成一根原木并重排下一次计时（冒烟白盒断言用；正常运行走 _on_spawn_timer_timeout）。

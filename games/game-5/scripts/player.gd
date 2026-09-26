@@ -10,7 +10,6 @@ extends CharacterBody2D
 
 signal moved(position: Vector2)
 
-const SPEED: float = 240.0
 ## 视觉半径（贴边内边距按此计算）；碰撞盒取视觉的 ~78%（宽容度，知识 6e91a11d §四）。
 const VISUAL_RADIUS: float = 14.0
 ## 场景边缘内边距：边界 clamp 的安全距离（≥ 半个角色）。
@@ -25,7 +24,7 @@ func _physics_process(_delta: float) -> void:
 		velocity = Vector2.ZERO
 		return
 	var direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	velocity = direction * SPEED
+	velocity = direction * GameState.player_speed
 	move_and_slide()
 	global_position = clamped_position(global_position)
 	if direction != Vector2.ZERO:

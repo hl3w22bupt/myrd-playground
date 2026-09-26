@@ -13,6 +13,8 @@ extends Node
 ##   倒计时逐秒递减    → 实测 1s+ 后 time_left 下降且 HUD 文本变化（验收 1 前半）
 ##   重开可用（双通道）→ 键盘 confirm 重开；触摸按钮信号链路重开（验收 4/知识 ed31081f）
 ##   最高分持久化      → 结算后 user:// 存档存在且 best ≥ 本局分（验收 5 无头代理）
+##   移动端触摸链路    → 虚拟摇杆拖右 → move_right strength 生效、松手清零（验收 2/SKILL §3A）
+##   调参协议          → TUNING_META 非空、apply_tuning 应用/拒未知键/max 钳制（SKILL §3C）
 ##
 ## 输入注入两阶段互不重叠（模板约定，error-signatures E-08）：噪声相位只注入原始事件；
 ## 行为相位用 Input.action_press/release。相位切换时显式释放全部移动动作，
@@ -28,6 +30,8 @@ const RESTART_FRAMES: int = 4
 const COUNTDOWN_FRAMES: int = 65
 const TIMEUP_FRAMES: int = 8
 const TOUCH_FRAMES: int = 4
+const JOYSTICK_ON_FRAMES: int = 6
+const JOYSTICK_OFF_FRAMES: int = 9
 
 const MIN_MOVE_DISTANCE: float = 1.0
 ## 固定种子（门禁要求可复现：同种子同事件序）。
@@ -48,7 +52,7 @@ const KEY_CONTRACT: Dictionary = {
 	&"confirm": [KEY_SPACE, KEY_ENTER],
 }
 
-enum Phase { NOISE, MOVE, CLAMP, COLLECT_1, COLLECT_2, LOGS, FAIL, RESTART, COUNTDOWN, TIMEUP, TOUCH, DONE }
+enum Phase { NOISE, MOVE, CLAMP, COLLECT_1, COLLECT_2, LOGS, FAIL, RESTART, COUNTDOWN, TIMEUP, TOUCH, JOYSTICK, DONE }
 
 var _failures: PackedStringArray = []
 var _phase: int = Phase.NOISE
@@ -59,6 +63,7 @@ var _fruit_spawner: FruitSpawner
 var _log_spawner: LogSpawner
 var _result_panel: PanelContainer
 var _result_title: Label
+var _joystick: VirtualJoystick
 var _origin: Vector2 = Vector2.ZERO
 var _moved_seen: bool = false
 var _feedback_seen: bool = false
@@ -88,6 +93,7 @@ func _ready() -> void:
 			if not game_state.has_signal(signal_name):
 				_failures.append("GameState 缺少信号 %s" % signal_name)
 		game_state.score_changed.connect(_on_score_changed)
+		_check_tuning_protocol(game_state)
 
 	var juice := get_tree().root.get_node_or_null("Juice")
 	if juice == null:
@@ -114,6 +120,7 @@ func _ready() -> void:
 			_failures.append("场景树找不到 FruitSpawner/LogSpawner（main.tscn 装配不完整）")
 		if _result_panel == null or _result_title == null:
 			_failures.append("场景树找不到结算面板 ResultPanel/ResultTitle")
+		_check_touch_ui_wiring()
 		# 固定种子重开一局：后续所有断言可复现。
 		_main.start_match(FRUIT_SEED, LOG_SEED)
 		var count: int = _fruit_spawner.fruit_count() if _fruit_spawner != null else 0
@@ -153,6 +160,8 @@ func _physics_process(_delta: float) -> void:
 			_phase_timeup()
 		Phase.TOUCH:
 			_phase_touch()
+		Phase.JOYSTICK:
+			_phase_joystick()
 
 
 func _advance(next: int) -> void:
@@ -253,15 +262,15 @@ func _phase_collect_2() -> void:
 ## 原木断言：间隔 ∈ [2,4)；速度随剩余时间递增（v0/中点单调/终局 1.8×）；确实在滚（验收 4）。
 func _phase_logs() -> void:
 	if _phase_frame == 1:
-		if absf(_log_spawner.speed_for(GameState.MATCH_SECONDS) - LogSpawner.SPEED_START) > 0.01:
+		if absf(_log_spawner.speed_for(GameState.MATCH_SECONDS) - GameState.log_speed_start) > 0.01:
 			_failures.append("v(60s) != v0：速度公式起点错误")
-		if absf(_log_spawner.speed_for(0.0) - LogSpawner.SPEED_START * LogSpawner.SPEED_END_FACTOR) > 0.01:
+		if absf(_log_spawner.speed_for(0.0) - GameState.log_speed_start * GameState.log_speed_end_factor) > 0.01:
 			_failures.append("v(0s) != 1.8·v0：终局速度倍率错误")
 		_log_a = _log_spawner.spawn_now(GameState.MATCH_SECONDS)
 		_log_b = _log_spawner.spawn_now(GameState.MATCH_SECONDS / 2.0)
-		if absf(_log_a.speed - LogSpawner.SPEED_START) > 0.01:
+		if absf(_log_a.speed - GameState.log_speed_start) > 0.01:
 			_failures.append("原木实际速度 %.2f != v0 %.2f：生成时未按公式赋速" % [
-				_log_a.speed, LogSpawner.SPEED_START])
+				_log_a.speed, GameState.log_speed_start])
 		if _log_b.speed <= _log_a.speed:
 			_failures.append("剩余 30s 的原木速度 %.2f 未快于 60s 的 %.2f：速度未随剩余时间递增" % [
 				_log_b.speed, _log_a.speed])
@@ -359,8 +368,50 @@ func _phase_touch() -> void:
 	if _phase_frame == TOUCH_FRAMES:
 		if bool(_main.get("match_over")) or _result_panel.visible:
 			_failures.append("触摸重开信号触发后未进入新局：触摸通道断裂")
+		_advance(Phase.JOYSTICK)
+
+
+## 移动端触摸链路（SKILL §3A）：虚拟摇杆是动作的生产者 —— 白盒驱动 _unhandled_input
+## 注入合成触点（按下 + 拖右），断言 move_right strength 经 InputEventAction 生效；
+## 再注入松开，断言强度清零（松手残留 = 玩家松手后松鼠继续漂移的真实缺陷）。
+## 注入与断言分帧（E-08：parse_input_event 缓冲下一帧才 flush）。
+func _phase_joystick() -> void:
+	if _joystick == null:
+		_failures.append("摇杆相位找不到 JoystickAnchor：_check_touch_ui_wiring 未取到节点")
 		_advance(Phase.DONE)
 		_report()
+		return
+	if _phase_frame == 1:
+		_feed_joystick_touch(true, Vector2(40.0, 0.0))
+	if _phase_frame == 2:
+		_feed_joystick_drag(Vector2(50.0, 0.0))
+	if _phase_frame == JOYSTICK_ON_FRAMES:
+		var strength: float = Input.get_action_strength(&"move_right")
+		if strength <= 0.0:
+			_failures.append("摇杆拖右后 move_right strength=%.2f 未生效：触摸动作生产链路断裂（§3A）" % strength)
+		_feed_joystick_touch(false, Vector2.ZERO)
+	if _phase_frame == JOYSTICK_OFF_FRAMES:
+		var rest: float = Input.get_action_strength(&"move_right")
+		if rest > 0.0:
+			_failures.append("摇杆松开后 move_right strength=%.2f 未清零：松手残留会漂移（§3A）" % rest)
+		_advance(Phase.DONE)
+		_report()
+
+
+func _feed_joystick_touch(pressed: bool, local_offset: Vector2) -> void:
+	var touch := InputEventScreenTouch.new()
+	touch.index = 7
+	touch.pressed = pressed
+	touch.position = _joystick.get_global_transform_with_canvas() * (_joystick.size / 2.0 + local_offset)
+	_joystick._unhandled_input(touch)
+
+
+func _feed_joystick_drag(local_offset: Vector2) -> void:
+	var drag := InputEventScreenDrag.new()
+	drag.index = 7
+	drag.position = _joystick.get_global_transform_with_canvas() * (_joystick.size / 2.0 + local_offset)
+	drag.relative = Vector2(10.0, 0.0)
+	_joystick._unhandled_input(drag)
 
 
 ## ── 输入注入与静态契约（与模板同源） ──
@@ -425,6 +476,44 @@ func _check_key_bindings() -> void:
 					action, OS.get_keycode_string(key as Key)])
 
 
+## 调参协议断言（SKILL §3C，模板冒烟第 7 项）：TUNING_META 非空；apply_tuning 应用已声明键、
+## 拒绝未声明键、按 max 钳制 —— 纯逻辑无头可判。断言后还原原值，不污染后续相位。
+func _check_tuning_protocol(game_state: Node) -> void:
+	var meta: Variant = game_state.get("TUNING_META")
+	if not (meta is Dictionary) or (meta as Dictionary).is_empty():
+		_failures.append("调参协议：GameState.TUNING_META 为空或不可读（数值调参区必须声明至少一个可调键，见 SKILL.md §3C）")
+		return
+	var original_speed: float = float(game_state.get("player_speed"))
+	var applied: PackedStringArray = game_state.call(
+		"apply_tuning", {"player_speed": 99999.0, "tuning_bogus_key": 1})
+	if not applied.has("player_speed"):
+		_failures.append("调参协议：apply_tuning 未应用已声明键 player_speed（应用逻辑断裂）")
+	if applied.has("tuning_bogus_key"):
+		_failures.append("调参协议：apply_tuning 应用了未声明键 tuning_bogus_key（必须只认 TUNING_META 声明的键）")
+	if absf(float(game_state.get("player_speed")) - 480.0) > 0.01:
+		_failures.append("调参协议：player_speed=%s 超出 TUNING_META.max=480（钳制缺失）" % [game_state.get("player_speed")])
+	game_state.set("player_speed", original_speed)
+
+
+## 触摸层接线断言（SKILL §3A）：TouchUI/摇杆/确认按钮存在且脚本已挂、confirm 通道已连接。
+## 可见性由运行环境触屏能力决定，不做断言（headless 无触屏恒隐藏，属健康）。
+func _check_touch_ui_wiring() -> void:
+	if _main == null:
+		return
+	var touch_ui := _main.get_node_or_null("TouchUI") as CanvasLayer
+	if touch_ui == null:
+		_failures.append("场景树找不到 TouchUI（移动端触摸层缺失，SKILL.md §3A 模板接线）")
+		return
+	_joystick = touch_ui.get_node_or_null("JoystickAnchor") as VirtualJoystick
+	if _joystick == null:
+		_failures.append("TouchUI 缺少 JoystickAnchor（虚拟摇杆未接入，移动端验收 2 断裂）")
+	var confirm_button := touch_ui.get_node_or_null("ConfirmAnchor/ConfirmButton") as TouchScreenButton
+	if confirm_button == null:
+		_failures.append("TouchUI 缺少 ConfirmButton（触摸确认/重开入口缺失）")
+	elif confirm_button.get_signal_connection_list(&"pressed").is_empty():
+		_failures.append("TouchUI ConfirmButton.pressed 无连接：触摸确认通道未接线")
+
+
 func _first_fruit() -> Fruit:
 	for child in _fruit_spawner.get_children():
 		if child is Fruit and not child.is_queued_for_deletion():
@@ -442,7 +531,7 @@ func _time_label_text() -> String:
 func _report() -> void:
 	_phase = Phase.DONE
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 移动/边界/收集连击/反馈/原木节奏/双终局/重开双通道/倒计时/持久化 全部通过")
+		print("GODOT_SMOKE: PASS 移动/边界/收集连击/反馈/原木节奏/双终局/重开双通道/倒计时/持久化/触摸摇杆/调参协议 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

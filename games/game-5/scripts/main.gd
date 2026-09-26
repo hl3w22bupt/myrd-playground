@@ -23,6 +23,7 @@ var match_over: bool = false
 @onready var log_spawner: LogSpawner = $LogSpawner
 @onready var hud: Hud = $Hud
 @onready var popups: Node2D = $Popups
+@onready var touch_ui: CanvasLayer = $TouchUI
 
 
 func _ready() -> void:
@@ -33,6 +34,12 @@ func _ready() -> void:
 	GameState.score_changed.connect(hud.on_score_changed)
 	GameState.fruits_changed.connect(hud.on_fruits_changed)
 	time_changed.connect(hud.on_time_changed)
+	# 触摸 UI 只在有触摸屏时显示（SKILL.md §3A：按触屏能力判定，不用平台特征代替）。
+	if DisplayServer.is_touchscreen_available():
+		touch_ui.visible = true
+	# 调参工作台（SKILL.md §3C）：网页 + URL 带 ?tuning 参数才创建，其余环境零成本。
+	if TuningPanel.is_enabled():
+		add_child(TuningPanel.new())
 	start_match()
 
 

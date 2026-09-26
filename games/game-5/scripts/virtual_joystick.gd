@@ -85,6 +85,12 @@ func _release() -> void:
 
 ## 把摇杆向量分解为 4 个方向动作的 strength 注入引擎；
 ## Input.get_vector 会读取 strength，游戏侧拿到的是模拟量方向。
+##
+## ⚠ 注入路线硬约束（Godot 4.3 实测，见冒烟摇杆断言 + error-signatures E-17）：
+## 必须走 Input.action_press/action_release API，不能经 parse_input_event 注入
+## InputEventAction —— 实测后者同批/跨帧只有「最后一个 action 事件」的状态能存活，
+## 斜向移动（两个方向同时按住）结构性失效，玩家表现为「斜着拖就卡死」。
+## API 路线多动作同持可靠（V3）、且扛无关原始键事件冲刷（V5/V6）。
 func _emit_move_actions() -> void:
 	_emit_action(MOVE_ACTIONS.left, -_output.x if _output.x < 0.0 else 0.0)
 	_emit_action(MOVE_ACTIONS.right, _output.x if _output.x > 0.0 else 0.0)
@@ -93,11 +99,10 @@ func _emit_move_actions() -> void:
 
 
 func _emit_action(action: StringName, strength: float) -> void:
-	var ev := InputEventAction.new()
-	ev.action = action
-	ev.pressed = strength > 0.0
-	ev.strength = clampf(strength, 0.0, 1.0)
-	Input.parse_input_event(ev)
+	if strength > 0.0:
+		Input.action_press(action, clampf(strength, 0.0, 1.0))
+	else:
+		Input.action_release(action)
 
 
 func _draw() -> void:

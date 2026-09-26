@@ -20,21 +20,33 @@
 ## 操作
 
 - 桌面：WASD / 方向键移动（对角线已归一化）；结算界面 Enter / Space 重开
-- 移动端：左下虚拟摇杆移动（`virtual_joystick.gd`，动作生产者）；结算界面触摸「重新开始」
+- 移动端：左下虚拟摇杆移动（`virtual_joystick.gd`，动作生产者，支持斜向）；
+  右下「确认」按钮（TouchUI）= confirm 动作；结算界面触摸「重新开始」
+
+## 调参区（SKILL §3C）
+
+可调数值集中在 `autoload/game_state.gd`：`player_speed`（默认 240）、`log_speed_start`（默认 120）、
+`log_speed_end_factor`（默认 1.8），带 `TUNING_META`（min/max/step）。Web 壳页面把 URL
+`?tuning=<JSON>` 解析到 `window.__GAME_TUNING__`，启动时经 `apply_tuning()` 应用（带 min/max 钳制、
+拒绝未声明键）；网页带 `?tuning=` 参数时浮出调参面板（`scripts/tuning_panel.gd`，代码建 UI），
+可复制调参 URL 回写 spec。需求硬性口径（60s / +10 / +5 / 2~4s）不进调参区。
 
 ## 工程结构
 
 ```
-autoload/game_state.gd   计分唯一入口 + 连击状态机 + 最高分持久化（模板协议）
+autoload/game_state.gd   计分唯一入口 + 连击状态机 + 最高分持久化 + 调参区（模板协议）
 autoload/juice.gd        反馈单例：pop/flash/shake/hit_stop/sfx + feedback_fired（playtest 采样锚点）
-scripts/main.gd          单局流程：倒计时 / 双终局路径（时间到 | 被原木击中）/ 重开 / 飘分
+scripts/main.gd          单局流程：倒计时 / 双终局路径（时间到 | 被原木击中）/ 重开 / 飘分 / TouchUI 显隐
 scripts/player.gd        松鼠：归一化移动 + 边界 clamp + moved 信号
 scripts/fruit.gd         水果 Area2D：碰松鼠 → collected 信号
 scripts/log_roller.gd    原木 Area2D：横滚 + 出界自毁 + 碰松鼠 → hit_player
 scripts/fruit_spawner.gd 铺场 + 补货（独立计时器）
-scripts/log_spawner.gd   原木节奏 + 速度递增公式（独立计时器）
+scripts/log_spawner.gd   原木节奏 + 速度递增公式（独立计时器，速度读调参区）
 scripts/hud.gd           HUD：时间/得分/水果/连击窗口条 + 结算三要素面板
-scenes/main.tscn         主场景（Player/FruitSpawner/LogSpawner/Popups/Hud 装配）
+scripts/virtual_joystick.gd        虚拟摇杆（Input.action_press 路线，见 E-18）
+scripts/touch_confirm_button.gd    触摸确认按钮（注入 confirm 动作，模板协议）
+scripts/tuning_panel.gd            调参面板（网页 + ?tuning 时创建）
+scenes/main.tscn         主场景（Player/FruitSpawner/LogSpawner/Popups/Hud/TouchUI 装配）
 tests/smoke.tscn|gd      无头冒烟断言（协议：GODOT_SMOKE: PASS/FAIL）
 tests/playtest.json      机器人试玩局时长与阈值
 ```
@@ -58,10 +70,13 @@ bash games/game-5/verify.sh
 | 3. 收集 +10、连击累加 | 传送收集第一笔 +10（连击=1）；3s 窗口内第二笔增量 +15（连击=2） |
 | 4. 原木 2~4s、速度递增、碰撞即终局 | `wait_time ∈ [2,4)`；v(60)=v0、v(30)>v(60)、v(0)=1.8·v0；原木瞬移到松鼠 → 「被原木击中」结算 |
 | 5. 结算三要素 + 最高分持久化 | 结算后 `best ≥ 本局分` 且 `user://game_5_save.cfg` 存在（真机刷新留痕由 qa 节点复验） |
+| 2（移动端补充）/ §3C | 摇杆拖右 → `move_right` strength 生效、松手清零（触摸动作生产链路）；`TUNING_META` 非空、`apply_tuning` 应用/拒未知键/钳制 |
 
 ## 已知边界（对下游节点的提示）
 
 - 音效为程序化合成短音（`assets/sfx/*.wav`）；Web 端出声依赖壳页音频手势解锁（部署节点硬契约）
+- 摇杆动作用 `Input.action_press/release` API 注入（`parse_input_event(InputEventAction)` 路线
+  实测同批只存活最后一个动作、斜向必坏，见 error-signatures E-18）—— 改摇杆实现时别退回事件路线
 - 一期无暂停（需求未要求）；若加暂停，必须同步冻结 60s 倒计时，否则验收 1 判失败
 - `first_reward_seconds_max` 设为 `-1`（关闭）：bot 是随机游走者、不追踪水果，开局世界布局
   与 bot 事件流分属不同随机源，「10s 内撞上水果」是随机事件而非设计承诺，纳入机判会随机翻车
