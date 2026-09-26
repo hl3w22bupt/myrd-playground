@@ -1,0 +1,153 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/board_view.gd" id="2_board"]
+[ext_resource type="Script" path="res://scripts/cursor.gd" id="3_cursor"]
+[ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="4_joystick"]
+[ext_resource type="Script" path="res://scripts/touch_confirm_button.gd" id="5_touch"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_confirm"]
+radius = 44.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_reset"]
+radius = 44.0
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Board" type="Node2D" parent="."]
+script = ExtResource("2_board")
+
+[node name="Cursor" type="Node2D" parent="Board"]
+script = ExtResource("3_cursor")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HudLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 6.0
+offset_right = 1264.0
+offset_bottom = 66.0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.92, 0.94, 1, 1)
+text = "光路谜阵"
+
+[node name="StatusLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 68.0
+offset_right = 1264.0
+offset_bottom = 98.0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.87, 0.45, 1)
+text = ""
+
+[node name="LevelBar" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 100.0
+offset_right = 1264.0
+offset_bottom = 126.0
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.72, 0.8, 0.95, 1)
+text = "关卡"
+
+[node name="TouchUI" type="CanvasLayer" parent="."]
+layer = 10
+visible = false
+
+[node name="JoystickAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -160.0
+offset_right = 160.0
+offset_bottom = -24.0
+grow_vertical = 0
+script = ExtResource("4_joystick")
+
+[node name="ConfirmAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -140.0
+offset_top = -140.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="ConfirmButton" type="TouchScreenButton" parent="TouchUI/ConfirmAnchor"]
+position = Vector2(58, 58)
+shape = SubResource("CircleShape2D_confirm")
+script = ExtResource("5_touch")
+
+[node name="ConfirmLabel" type="Label" parent="TouchUI/ConfirmAnchor/ConfirmButton"]
+unique_name_in_owner = true
+offset_left = -40.0
+offset_top = -14.0
+offset_right = 40.0
+offset_bottom = 14.0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 0.9)
+text = "旋转"
+
+[node name="UndoAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -420.0
+offset_top = -140.0
+offset_right = -304.0
+offset_bottom = -24.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="UndoButton" type="TouchScreenButton" parent="TouchUI/UndoAnchor"]
+position = Vector2(58, 58)
+shape = SubResource("CircleShape2D_confirm")
+script = ExtResource("5_touch")
+inject_action = &"undo"
+
+[node name="UndoLabel" type="Label" parent="TouchUI/UndoAnchor/UndoButton"]
+offset_left = -40.0
+offset_top = -14.0
+offset_right = 40.0
+offset_bottom = 14.0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 0.9)
+text = "撤销"
+
+[node name="ResetAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -280.0
+offset_top = -140.0
+offset_right = -164.0
+offset_bottom = -24.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="ResetButton" type="TouchScreenButton" parent="TouchUI/ResetAnchor"]
+position = Vector2(58, 58)
+shape = SubResource("CircleShape2D_reset")
+script = ExtResource("5_touch")
+inject_action = &"reset"
+
+[node name="ResetLabel" type="Label" parent="TouchUI/ResetAnchor/ResetButton"]
+offset_left = -40.0
+offset_top = -14.0
+offset_right = 40.0
+offset_bottom = 14.0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 0.9)
+text = "重开"
