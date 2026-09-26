@@ -1,0 +1,35 @@
+{
+  "_pending": {
+    "status": "awaiting_user_survey_submission",
+    "is_real_data": false,
+    "note": "待回填位（占位骨架，不是用户作答）：截至 2026-09-27 本轮归档时，「光路谜阵 · 试玩反馈」频道只有出站邀请（2026-09-26 试玩回填邀请 + 2026-09-26 iPhone 一键实测邀请 v4），尚无用户四问作答回传。平台 artifacts 中 tuning_applied=true 的 spec.numeric 拍板（v2）以 headless 机判数据为事实源先行落地，用户主观四问回填到达后按流程补录归档、必要时走 spec revisions 追平。",
+    "how_to_fill": "收到用户回传后：原样保存为 games/game-4/qa/ios-safari-survey-<UTC日期>.json，删除本占位文件，并在 games/game-4/qa/ios-safari-realdevice-qa.md 登记四问结论；若主观结论与已拍板 spec.numeric 冲突，按平台流程 POST /api/v1/game-design-specs/:id/revisions 追平并重新 approve。",
+    "source_channel": "光路谜阵 · 试玩反馈（id=cmuilmi19009im9gcqjh5yuns）",
+    "invite_link": "https://leomac-studio.tail49399e.ts.net/apps/game-4/gw?qa=1&tuning=1",
+    "operation_card": "games/game-4/qa/IPHONE_QA_CARD.md",
+    "required_keys": [
+      "q1_understood",
+      "q2_replay",
+      "q3_rotate",
+      "q3_beam",
+      "q3_sfx",
+      "q3_perf",
+      "q4_gap"
+    ],
+    "schema_reference_sample": "games/game-4/qa/shots-webkit-verify/survey-live.json（WebKit 桌面链路验证样例，agent 代答，非用户作答）"
+  },
+  "schema": "guanglu-survey/1",
+  "game": "光路谜阵",
+  "answers": {
+    "q1_understood": null,
+    "q2_replay": null,
+    "q3_rotate": null,
+    "q3_beam": null,
+    "q3_sfx": null,
+    "q3_perf": null,
+    "q4_gap": null
+  },
+  "meta": null,
+  "progress": null,
+  "tuning": null
+}

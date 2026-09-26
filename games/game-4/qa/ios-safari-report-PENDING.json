@@ -1,0 +1,25 @@
+{
+  "_pending": {
+    "status": "awaiting_real_device_submission",
+    "is_real_data": false,
+    "note": "待回收位（占位骨架，不是实测数据）：截至 2026-09-27 本轮归档时，「光路谜阵 · 试玩反馈」频道尚无 iOS Safari 真机 ?qa=1 回传。本文件只声明回传数据的落位与键面，全部实测字段置 null。",
+    "how_to_fill": "收到真机回传后：把回传 JSON 原样保存为 games/game-4/qa/ios-safari-<UTC日期>-<机型>.json（如 ios-safari-20260928-iphone15.json），删除本占位文件，并在 games/game-4/qa/ios-safari-realdevice-qa.md 登记实测结论（触控命中/旋转响应/音效状态/设备信息 + verdict 机判）。",
+    "source_channel": "光路谜阵 · 试玩反馈（id=cmuilmi19009im9gcqjh5yuns）",
+    "invite_link": "https://leomac-studio.tail49399e.ts.net/apps/game-4/gw?qa=1&tuning=1",
+    "operation_card": "games/game-4/qa/IPHONE_QA_CARD.md",
+    "schema_reference_sample": "games/game-4/qa/shots-webkit-verify/qa-report-live.json（Playwright WebKit 26.6 桌面等价性实测样例，非真机）",
+    "verification_note": "真 WebKit 内核对 ?qa=1 自检链路的等价性验证见 games/game-4/qa/WEBKIT_LIVE_VERIFY.md（27/27 PASS，3 个 UI/输入层缺陷已修，待重部署上线）"
+  },
+  "schema": "guanglu-qa-report/1",
+  "game": "光路谜阵",
+  "generated_at": null,
+  "device": null,
+  "engine": null,
+  "level": null,
+  "qa_url_flags": null,
+  "touch": null,
+  "rotation_latency": null,
+  "audio": null,
+  "verdict": null,
+  "survey_snapshot": null
+}
