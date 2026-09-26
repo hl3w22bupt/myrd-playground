@@ -1,5 +1,9 @@
 # 《光路谜阵》调参建议（headless 机判）
 
+> **拍板已闭环（2026-09-27）**：结论见 `qa/SPEC_NUMERIC_FINAL.md`；平台权威版本 =
+> GameDesignSpec **v2 `cmuiwi0va00eum9l6m9r6aapt`（approved，tuning_applied=true）**，
+> 经 `POST /game-design-specs/:id/revisions` + `/approve` 落账，目标 artifacts 已追加 `op=tuning_applied`。
+
 > **拍板落地（2026-09-27）**：本文 §二 的两个拍板项已按 **①** 落进工程 ——
 > `PuzzleLogic.min_clicks_between`（直管按 180° 等效朝向计步）+ `LevelSet.par_of` 修真 +
 > 第 4/5/8 关 `init_rot` 微调把 par 曲线抬回非递减 `[1,2,8,8,8,8,10,10,11,12]`；

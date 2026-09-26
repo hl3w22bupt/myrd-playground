@@ -1,23 +1,31 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "game": "光路谜阵",
   "goal_id": "cmuieqj7o0031m9gyf4pbwptg",
   "recorded_at": "2026-09-27",
+  "tuning_applied": true,
+  "platform_spec": {
+    "api": "POST /api/v1/game-design-specs/cmuiqdanr007pm9l6j4j3lere/revisions → POST /:id/approve",
+    "spec_id": "cmuiwi0va00eum9l6m9r6aapt",
+    "version": 2,
+    "status": "approved",
+    "op": "tuning_applied"
+  },
   "provenance": {
-    "data": "games/game-4/qa/tuning-data.json (collect_tuning_data.sh, headless 机判)",
-    "decision": "qa/TUNING_NOTES.md §二 拍板项①（par_of 等效朝向感知修真）+ 难度曲线回正（L4/L5/L8 init_rot 微调）",
-    "implemented_in": [
-      "games/game-4/scripts/puzzle_logic.gd#min_clicks_between",
+    "data": "games/game-4/qa/tuning-data.json（collect_tuning_data.sh 无头机判，本轮重跑 exit 0，硬契约全过）",
+    "landed_in": [
+      "games/game-4/scripts/puzzle_logic.gd#min_clicks_between（直管按 180° 等效朝向 mod 2 计步）",
       "games/game-4/scripts/levels.gd#par_of",
-      "games/game-4/scripts/levels.gd LEVELS L4/L5/L8 init_rot"
-    ]
+      "games/game-4/scripts/levels.gd LEVELS L4/L5/L8 init_rot 微调"
+    ],
+    "decision": "games/game-4/qa/SPEC_NUMERIC_FINAL.md（拍板记录）"
   },
   "rules": {
-    "star_3": "moves <= par（最优解通关）",
-    "star_2": "moves <= ceil(par * 1.5)",
     "star_1": "通关",
+    "star_2": "moves <= ceil(par * 1.5)",
+    "star_3": "moves <= par（par = 已落地 LevelSet.par_of）",
     "monotonic": "星级与每关最少步数纪录只升不降（本地存档 user://guanglu_save.cfg v2）",
-    "par_semantics": "par = 各管转到设计解朝向 target_rot 的最少点击数之和；直管按 180° 等效朝向计步（mod 2）。有界 BFS 在个别关找到更短替代走法（见 bfs_optimality），玩家用更少步数通关仍得 3 星，不影响星级公平性。"
+    "par_semantics": "par = Σ min_clicks_between(类型, init_rot, target_rot)；直管 mod 2（180° 等效朝向），弯管/三通 mod 4。BFS 在 L5/L7/L8 证实更短替代走法：玩家用更少步数通关仍得 3 星，星级公平性不受影响。"
   },
   "difficulty_curve": {
     "par_sequence": [
@@ -32,143 +40,241 @@
       11,
       12
     ],
+    "par_total": 78,
     "monotonic_non_decreasing": true,
     "mechanism_intro": {
       "walls": 2,
-      "corners": 3,
       "tee_splitter": 5,
       "grid_expand": 6
     }
+  },
+  "bfs_residual_inflation": [
+    {
+      "level": 5,
+      "name": "分光三通",
+      "landed_par": 8,
+      "bfs_true_par": 6,
+      "note": "保守上界，改值留作四问量表回填后备选微调项"
+    },
+    {
+      "level": 7,
+      "name": "分光择路",
+      "landed_par": 10,
+      "bfs_true_par": 9,
+      "note": "保守上界，改值留作四问量表回填后备选微调项"
+    },
+    {
+      "level": 8,
+      "name": "回环折阵",
+      "landed_par": 10,
+      "bfs_true_par": 7,
+      "note": "保守上界，改值留作四问量表回填后备选微调项"
+    }
+  ],
+  "survey_pending": {
+    "status": "待用户四问量表回填（games/game-4/qa/PLAYTEST_KIT.md §二）",
+    "tuning_entry": "https://leomac-studio.tail49399e.ts.net/apps/game-4/gw?tuning=1",
+    "next_step": "回填后数值经 POST /api/v1/game-design-specs/:id/revisions micro-tune 并重新拍板；未回填前不代填主观结论"
   },
   "levels": [
     {
       "index": 1,
       "name": "初试光线",
       "grid": "5x5",
+      "pieces": {
+        "straight": 1,
+        "corner": 0,
+        "tee": 0,
+        "walls": 0
+      },
       "par_reference_steps": 1,
       "star_3_max_steps": 1,
       "star_2_max_steps": 2,
       "star_1": "clear",
       "bfs_optimality": {
         "status": "declared_par_optimal_proven",
-        "shorter_solution_upper_bound": null
+        "bfs_true_par": 1,
+        "proven": true
       }
     },
     {
       "index": 2,
       "name": "三连直道",
       "grid": "5x5",
+      "pieces": {
+        "straight": 3,
+        "corner": 0,
+        "tee": 0,
+        "walls": 2
+      },
       "par_reference_steps": 2,
       "star_3_max_steps": 2,
       "star_2_max_steps": 3,
       "star_1": "clear",
       "bfs_optimality": {
         "status": "unproven_search_budget_exhausted",
-        "shorter_solution_upper_bound": null
+        "bfs_true_par": 2,
+        "proven": false
       }
     },
     {
       "index": 3,
       "name": "转角初见",
       "grid": "5x5",
+      "pieces": {
+        "straight": 1,
+        "corner": 4,
+        "tee": 0,
+        "walls": 1
+      },
       "par_reference_steps": 8,
       "star_3_max_steps": 8,
       "star_2_max_steps": 12,
       "star_1": "clear",
       "bfs_optimality": {
         "status": "unproven_search_budget_exhausted",
-        "shorter_solution_upper_bound": null
+        "bfs_true_par": 8,
+        "proven": false
       }
     },
     {
       "index": 4,
       "name": "绕墙而行",
       "grid": "5x5",
+      "pieces": {
+        "straight": 5,
+        "corner": 2,
+        "tee": 0,
+        "walls": 3
+      },
       "par_reference_steps": 8,
       "star_3_max_steps": 8,
       "star_2_max_steps": 12,
       "star_1": "clear",
       "bfs_optimality": {
         "status": "unproven_search_budget_exhausted",
-        "shorter_solution_upper_bound": null
+        "bfs_true_par": 8,
+        "proven": false
       }
     },
     {
       "index": 5,
       "name": "分光三通",
       "grid": "5x5",
+      "pieces": {
+        "straight": 2,
+        "corner": 2,
+        "tee": 1,
+        "walls": 2
+      },
       "par_reference_steps": 8,
       "star_3_max_steps": 8,
       "star_2_max_steps": 12,
       "star_1": "clear",
       "bfs_optimality": {
         "status": "shorter_solution_found",
-        "shorter_solution_upper_bound": null
+        "bfs_true_par": 6,
+        "proven": true
       }
     },
     {
       "index": 6,
       "name": "双折回廊",
       "grid": "6x5",
+      "pieces": {
+        "straight": 4,
+        "corner": 4,
+        "tee": 0,
+        "walls": 2
+      },
       "par_reference_steps": 8,
       "star_3_max_steps": 8,
       "star_2_max_steps": 12,
       "star_1": "clear",
       "bfs_optimality": {
         "status": "unproven_search_budget_exhausted",
-        "shorter_solution_upper_bound": null
+        "bfs_true_par": 8,
+        "proven": false
       }
     },
     {
       "index": 7,
       "name": "分光择路",
       "grid": "6x5",
+      "pieces": {
+        "straight": 5,
+        "corner": 4,
+        "tee": 1,
+        "walls": 3
+      },
       "par_reference_steps": 10,
       "star_3_max_steps": 10,
       "star_2_max_steps": 15,
       "star_1": "clear",
       "bfs_optimality": {
         "status": "shorter_solution_found",
-        "shorter_solution_upper_bound": null
+        "bfs_true_par": 9,
+        "proven": true
       }
     },
     {
       "index": 8,
       "name": "回环折阵",
       "grid": "7x5",
+      "pieces": {
+        "straight": 3,
+        "corner": 3,
+        "tee": 1,
+        "walls": 4
+      },
       "par_reference_steps": 10,
       "star_3_max_steps": 10,
       "star_2_max_steps": 15,
       "star_1": "clear",
       "bfs_optimality": {
         "status": "shorter_solution_found",
-        "shorter_solution_upper_bound": null
+        "bfs_true_par": 7,
+        "proven": true
       }
     },
     {
       "index": 9,
       "name": "长蛇引光",
       "grid": "7x6",
+      "pieces": {
+        "straight": 7,
+        "corner": 3,
+        "tee": 0,
+        "walls": 4
+      },
       "par_reference_steps": 11,
       "star_3_max_steps": 11,
       "star_2_max_steps": 17,
       "star_1": "clear",
       "bfs_optimality": {
         "status": "unproven_search_budget_exhausted",
-        "shorter_solution_upper_bound": null
+        "bfs_true_par": 11,
+        "proven": false
       }
     },
     {
       "index": 10,
       "name": "终局光阵",
       "grid": "7x6",
+      "pieces": {
+        "straight": 7,
+        "corner": 5,
+        "tee": 1,
+        "walls": 6
+      },
       "par_reference_steps": 12,
       "star_3_max_steps": 12,
       "star_2_max_steps": 18,
       "star_1": "clear",
       "bfs_optimality": {
         "status": "unproven_search_budget_exhausted",
-        "shorter_solution_upper_bound": null
+        "bfs_true_par": 12,
+        "proven": false
       }
     }
   ]

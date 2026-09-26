@@ -594,7 +594,7 @@ TUNING_DATA_BEGIN
       "par": 8,
       "par_optimality": {
         "bfs": {
-          "elapsed_ms": 125,
+          "elapsed_ms": 124,
           "mode": "bounded_bfs",
           "node_budget": 120000,
           "nodes_explored": 5115,
@@ -882,7 +882,7 @@ TUNING_DATA_BEGIN
           "elapsed_ms": 2501,
           "mode": "bounded_bfs",
           "node_budget": 120000,
-          "nodes_explored": 78854,
+          "nodes_explored": 79044,
           "par": 11,
           "par_proven_optimal": false,
           "pipes": 10,
@@ -977,7 +977,7 @@ TUNING_DATA_BEGIN
           "elapsed_ms": 2501,
           "mode": "bounded_bfs",
           "node_budget": 120000,
-          "nodes_explored": 73674,
+          "nodes_explored": 74190,
           "par": 12,
           "par_proven_optimal": false,
           "pipes": 13,
