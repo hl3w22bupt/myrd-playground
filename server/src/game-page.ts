@@ -51,6 +51,11 @@ body { color: #e8f4ff; background: #050a1c; overflow: hidden; touch-action: none
 #hint { position: fixed; left: 50%; transform: translateX(-50%); bottom: 10px; z-index: 5;
   color: #b9d4f2; background: rgba(10,22,48,.72); border: 1px solid #24487f; border-radius: 999px;
   padding: 6px 16px; font-size: 12px; letter-spacing: .05em; pointer-events: none; }
+/* 「反馈」角标：真机试玩 1 分钟后一键进反馈中枢（顶部居中 —— 左上是得分 HUD，右上是调参面板）。
+   href 由下方 JS 按 BASE_PATH 派生（公网入口 /apps/game-2 无尾斜杠时静态 href 会 404）。 */
+#fb-chip { position: fixed; top: calc(8px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 20;
+  color: #b9d4f2; background: rgba(10,22,48,.72); border: 1px solid #24487f; border-radius: 999px;
+  padding: 4px 13px; font-size: 12px; letter-spacing: .08em; text-decoration: none; }
 #boot kbd { background: #12295a; border: 1px solid #2f6bb0; border-bottom-width: 2px; border-radius: 5px; padding: 1px 7px; font-family: inherit; font-size: .92em; color: #aee6ff; }
 #keys { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; color: #8fa8cf; font-size: .82rem; }
 </style>
@@ -65,6 +70,7 @@ body { color: #e8f4ff; background: #050a1c; overflow: hidden; touch-action: none
   <div id="keys"><span><kbd>WASD</kbd>/<kbd>←↑↓→</kbd> 驾驶飞船</span><span><kbd>空格</kbd>/<kbd>回车</kbd> 确认 / 重开</span><span>触屏：虚拟摇杆</span></div>
 </div>
 <div id="hint" style="display:none">收集星尘 +1 分 · 撞陨石 -1 护盾 · 护盾耗尽本局结束</div>
+<a id="fb-chip" href="feedback" rel="noopener">反馈 ★</a>
 <noscript>你的浏览器不支持 JavaScript。</noscript>
 <!-- 引擎引导脚本由启动脚本动态注入（静态 src 在无尾斜杠入口下会 404） -->
 <script>
@@ -141,6 +147,9 @@ body { color: #e8f4ff; background: #050a1c; overflow: hidden; touch-action: none
     var p = location.pathname.replace(/index\\.html$/, '');
     return p.charAt(p.length - 1) === '/' ? p : p + '/';
   })();
+  // 「反馈」角标指向反馈中枢页（同 BASE_PATH 派生，避免无尾斜杠入口下 404）。
+  var fbChip = document.getElementById('fb-chip');
+  if (fbChip) fbChip.href = BASE_PATH + 'feedback';
   var bar = document.getElementById('bar');
   var msg = document.getElementById('boot-msg');
   function setBar(p) { if (bar) bar.style.width = Math.max(0, Math.min(100, p * 100)) + '%'; }

@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>试玩反馈中枢 · 星尘收集者</title>
+<!--
+  《星尘收集者》试玩反馈中枢（随 Web 导出产物发布：apphost.toml assets_dir = games/game-2/export/web，
+  server 侧 /feedback 路由从资产清单取本文件伺服，经 M1 文本网关直达浏览器）。
+
+  设计目标（零门槛真机取证）：iPhone 上不开任何开发者开关 —— 扫码 → 玩 1 分钟 → 点 3 下
+  （点「反馈」→ 点「试听/评分」→ 点「提交复制」）即同时完成：
+    ① 真机操作取证（UA / 触屏 / 分辨率 / 是否 iOS Safari / AudioContext 解锁态，自动采集，只读）；
+    ② 音效取证（四类程序化音效同参数 WebAudio 移植，逐类试听 + 1-5 星评分）；
+    ③ 试玩结论回填（复用既有 ?tuning=1 回填通道：反馈以 fb_* 参数搭车；
+       无后端可落库，因此同时生成结构化 JSON 回执一键复制）。
+
+  红线：本页零外部请求 —— 不引 CDN、不发 POST（无后端）；所有资源内联，
+  资源引用一律相对路径（经 /apps/game-2 公网入口访问时才能解析到网关子路径）。
+-->
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  color: #e8f4ff; background: #050a1c; min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+  background-image: radial-gradient(circle at 50% 0%, #12306b 0%, #0a1a3f 48%, #050a1c 100%);
+  padding: 18px 14px calc(28px + env(safe-area-inset-bottom));
+  line-height: 1.55;
+}
+.wrap { max-width: 640px; margin: 0 auto; }
+header { text-align: center; margin-bottom: 14px; }
+h1 { font-size: 1.45rem; margin: 0 0 4px; letter-spacing: .1em; color: #aee6ff;
+  text-shadow: 0 2px 0 #1c5f9e, 0 0 18px rgba(120,200,255,.5); }
+.sub { color: #8fa8cf; font-size: .82rem; }
+.card { background: rgba(10,22,48,.72); border: 1px solid #24487f; border-radius: 14px;
+  padding: 14px 15px; margin: 12px 0; }
+.card h2 { font-size: .98rem; margin: 0 0 8px; color: #ffd166; letter-spacing: .06em; }
+.tip { color: #9db4d8; font-size: .8rem; margin: 4px 0 10px; }
+.tip b { color: #cfe6ff; }
+/* 二维码 */
+#qr-box { display: flex; justify-content: center; padding: 10px; background: #fff;
+  border-radius: 10px; width: min(220px, 60vw); margin: 6px auto; }
+#qr-box canvas, #qr-box svg { display: block; width: 100%; height: auto; }
+#qr-url { text-align: center; color: #aee6ff; font-size: .72rem; word-break: break-all;
+  background: #0d2148; border: 1px solid #2b5f9e; border-radius: 8px; padding: 6px 8px; margin-top: 8px; }
+#qr-note { text-align: center; color: #ffb4b4; font-size: .78rem; margin-top: 8px; }
+/* 音效行 */
+.sfx-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px dashed #1d3d6e; flex-wrap: wrap; }
+.sfx-row:first-of-type { border-top: 0; }
+.sfx-name { font-size: .9rem; color: #cfe6ff; min-width: 4.6em; }
+.sfx-desc { font-size: .72rem; color: #8fa8cf; flex: 1 1 100%; order: 4; }
+button.play { flex: 0 0 auto; background: linear-gradient(180deg, #1c5f9e, #123f73); color: #e8f4ff;
+  border: 1px solid #3f7fc0; border-radius: 999px; padding: 7px 16px; font-size: .86rem; letter-spacing: .04em; }
+button.play:active { transform: scale(.96); }
+button.play.playing { background: linear-gradient(180deg, #7ae0ff, #3f9fd6); color: #06263f; border-color: #aee6ff; }
+/* 星级 */
+.stars { display: flex; gap: 2px; margin-left: auto; }
+.star { font-size: 1.5rem; color: #33507f; cursor: pointer; user-select: none; -webkit-user-select: none;
+  padding: 0 1px; transition: color .12s, transform .12s; }
+.star.on { color: #ffd166; text-shadow: 0 0 10px rgba(255,209,102,.55); }
+.star:active { transform: scale(1.25); }
+.rate-line { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px dashed #1d3d6e; }
+.rate-line .sfx-name { min-width: 6.5em; }
+#notes { width: 100%; margin-top: 6px; background: #0d2148; color: #e8f4ff; border: 1px solid #2b5f9e;
+  border-radius: 8px; padding: 8px; font-size: .85rem; font-family: inherit; min-height: 64px; }
+/* 证据 */
+#ev-pre { background: #081428; border: 1px solid #1d3d6e; border-radius: 8px; padding: 8px;
+  font-size: .68rem; color: #9db4d8; overflow-x: auto; white-space: pre-wrap; word-break: break-all; margin: 0; }
+/* 提交区 */
+.submit-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+button.big { border-radius: 12px; padding: 12px 14px; font-size: .95rem; letter-spacing: .04em;
+  border: 1px solid #3f7fc0; color: #e8f4ff; background: linear-gradient(180deg, #1c5f9e, #123f73); }
+button.big.primary { background: linear-gradient(90deg, #7ae0ff, #a78bfa); color: #06263f;
+  border-color: #aee6ff; font-weight: 600; }
+button.big:active { transform: scale(.98); }
+button.big[disabled] { opacity: .5; }
+#submit-msg { font-size: .82rem; color: #ffd166; min-height: 1.2em; margin-top: 6px; text-align: center; }
+#submit-msg.err { color: #ffb4b4; }
+details { margin-top: 10px; }
+summary { color: #8fa8cf; font-size: .8rem; cursor: pointer; }
+#link-preview { margin-top: 6px; color: #aee6ff; font-size: .68rem; word-break: break-all;
+  background: #0d2148; border: 1px solid #2b5f9e; border-radius: 8px; padding: 6px 8px; }
+#receipt-preview { margin-top: 6px; color: #9db4d8; font-size: .68rem; white-space: pre-wrap;
+  word-break: break-all; background: #081428; border: 1px solid #1d3d6e; border-radius: 8px; padding: 6px 8px; }
+footer { text-align: center; color: #5f78a3; font-size: .7rem; margin-top: 16px; }
+#toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(20px);
+  background: #123f73; color: #e8f4ff; border: 1px solid #3f7fc0; border-radius: 999px;
+  padding: 8px 20px; font-size: .85rem; opacity: 0; transition: all .25s; pointer-events: none; z-index: 50; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>试玩反馈中枢</h1>
+  <div class="sub">《星尘收集者》· 真机取证 / 音效评分 / 一键回填 · 不用开任何开发者开关</div>
+</header>
+
+<section class="card" id="qr-sec">
+  <h2>① 手机直达</h2>
+  <p class="tip">在<b>桌面</b>看到本页：用手机相机扫码直达游戏入口；手机上玩 1 分钟后点右上角<b>「反馈」</b>回到本页提交。</p>
+  <div id="qr-box" aria-label="游戏入口二维码"></div>
+  <div id="qr-url">正在生成本页入口链接…</div>
+  <div id="qr-note" hidden></div>
+</section>
+
+<section class="card" id="sfx-sec">
+  <h2>② 四类音效：试听 + 评分</h2>
+  <p class="tip">与游戏内<b>完全同参数</b>的程序化合成（sfx.gd 移植到 WebAudio）。首次点按自动解锁 iOS 静音；点开 <b>▶ 试听</b> 后按右侧星星打分。</p>
+  <div id="sfx-rows"></div>
+</section>
+
+<section class="card" id="rate-sec">
+  <h2>③ 真机总评</h2>
+  <div class="rate-line"><span class="sfx-name">操作流畅度</span><div class="stars" data-target="flow"></div></div>
+  <div class="rate-line"><span class="sfx-name">整体满意度</span><div class="stars" data-target="overall"></div></div>
+  <textarea id="notes" maxlength="300" placeholder="备注（可选）：比如哪类音效太响/太闷、哪里卡、摇杆好不好用…"></textarea>
+</section>
+
+<section class="card" id="ev-sec">
+  <h2>④ 自动取证（只读，随回执一起回填）</h2>
+  <pre id="ev-pre">采集中…</pre>
+</section>
+
+<section class="card" id="submit-sec">
+  <h2>⑤ 提交（点一下即可）</h2>
+  <p class="tip">回填链接走既有 <b>?tuning=1</b> 通道（fb_* 参数搭车，游戏侧白名单过滤不影响玩法）；无后端时用 JSON 回执复制粘贴兜底。</p>
+  <div class="submit-grid">
+    <button class="big primary" id="btn-copy-link">复制回填链接（?tuning=1 通道）</button>
+    <button class="big" id="btn-open">在游戏里打开回填链接（现场验证通道）</button>
+    <button class="big" id="btn-copy-json">复制 JSON 回执（无后端兜底）</button>
+  </div>
+  <div id="submit-msg"></div>
+  <details>
+    <summary>回填链接 / 回执预览</summary>
+    <div id="link-preview"></div>
+    <div id="receipt-preview"></div>
+  </details>
+</section>
+
+<footer>feedback-hub v1 · 2026-09-27 · 星尘收集者工坊线 · 本页零外部请求，全部计算在本机完成</footer>
+</div>
+<div id="toast"></div>
+<script>
+(function () {
+'use strict';
+
+/* ---------- 基路径：与壳页同口径（公网入口 /apps/game-2 无尾斜杠下相对路径仍能落对） ---------- */
+var BASE_PATH = (function () {
+  var p = location.pathname.replace(/index\.html$/, '').replace(/feedback(\.html)?$/, '');
+  return p.charAt(p.length - 1) === '/' ? p : p + '/';
+})();
+function gameEntryUrl() { return location.origin + BASE_PATH; }
+
+/* ---------- 移动端音频手势解锁器（与壳页 game-page.ts 同款三件套，取证口径一致） ---------- */
+var audioCtx = null;
+var audioLog = [];
+var unlockAt = 0;
+var NativeAudioContext = window.AudioContext || window.webkitAudioContext;
+if (NativeAudioContext) {
+  var WrappedAudioContext = function (options) {
+    var ctx = new NativeAudioContext(options);
+    audioCtx = ctx;
+    try {
+      ctx.addEventListener('statechange', function () { audioLog.push({ t: Date.now(), state: ctx.state }); });
+    } catch (e) { /* 老内核无 statechange：只损失观测 */ }
+    return ctx;
+  };
+  WrappedAudioContext.prototype = NativeAudioContext.prototype;
+  window.AudioContext = WrappedAudioContext;
+}
+function ensureCtx() {
+  if (!audioCtx && NativeAudioContext) {
+    try { audioCtx = new NativeAudioContext(); } catch (e) { audioCtx = null; }
+  }
+  return audioCtx;
+}
+function unlockAudio() {
+  var ctx = ensureCtx();
+  if (!ctx || ctx.state === 'running') return;
+  try {
+    var pending = ctx.resume();
+    if (pending && typeof pending.catch === 'function') {
+      pending.then(function () { unlockAt = Date.now(); }).catch(function () {});
+    }
+  } catch (e) { /* resume 抛异常按无操作处理 */ }
+}
+['touchstart', 'touchend', 'pointerdown', 'keydown', 'click'].forEach(function (type) {
+  document.addEventListener(type, unlockAudio, { capture: true, passive: true });
+});
+document.addEventListener('visibilitychange', function () {
+  if (!document.hidden) unlockAudio();
+}, { passive: true });
+window.__fbAudioDebug = function () {
+  return { state: audioCtx ? audioCtx.state : 'no-ctx', sampleRate: audioCtx ? audioCtx.sampleRate : 0, log: audioLog };
+};
+
+/* ---------- 设备取证（自动采集，只读；真机证据：UA/触屏/分辨率/是否 iOS Safari/音频解锁态） ---------- */
+function collectEvidence() {
+  var ua = navigator.userAgent || '';
+  var isIOS = /iPad|iPhone|iPod/.test(ua)
+    || (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1); /* iPadOS 桌面 UA 伪装 */
+  var isWebkit = /AppleWebKit/.test(ua) && !/Chrom(e|ium)|Edg\/|OPR\//.test(ua);
+  var dpr = window.devicePixelRatio || 1;
+  var aud = window.__fbAudioDebug();
+  return {
+    ua: ua,
+    platform: navigator.platform || '',
+    isIOS: isIOS,
+    isIOS_Safari: Boolean(isIOS && isWebkit),
+    isWebKit: isWebkit,
+    browser: (function () {
+      if (/CriOS|Chrom(e|ium)/.test(ua)) return 'Chrome/Chromium';
+      if (/FxiOS|Firefox/.test(ua)) return 'Firefox';
+      if (/EdgiOS|Edg\//.test(ua)) return 'Edge';
+      if (isWebkit) return 'Safari/WebKit';
+      return 'Other';
+    })(),
+    touch: (navigator.maxTouchPoints || 0),
+    viewport: window.innerWidth + 'x' + window.innerHeight,
+    screen: (screen.width || 0) + 'x' + (screen.height || 0) + '@' + dpr + 'x',
+    language: navigator.language || '',
+    online: navigator.onLine,
+    audioState: aud.state,
+    audioSampleRate: aud.sampleRate,
+    audioLog: aud.log,
+    ts: new Date().toISOString()
+  };
+}
+
+/* ---------- 四类音效同参数合成（autoload/sfx.gd 的 1:1 JS 移植，改一处必须两处同改） ---------- */
+var MIX_RATE = 22050;                 // sfx.gd MIX_RATE
+var SFX_DEFS = [
+  { key: 'collect', name: '收集', desc: '上行双音「叮」：收集星尘 +1 分瞬间（游戏内音量 -8dB）', volumeDb: -8.0, segments: [
+    { wave: 'sine', freq0: 987.77, freq1: 987.77, duration: 0.08, gain: 0.55, decay: 8.0 },
+    { wave: 'sine', freq0: 1318.51, freq1: 1318.51, duration: 0.16, gain: 0.60, decay: 14.0 } ] },
+  { key: 'hit', name: '受击', desc: '下行锯齿「闷响」+ 25% 白噪声颗粒：撞陨石扣盾（-4dB）', volumeDb: -4.0, segments: [
+    { wave: 'saw', freq0: 220.0, freq1: 62.0, duration: 0.26, gain: 0.62, decay: 9.0, noise: 0.25 } ] },
+  { key: 'game_over', name: '结算', desc: '下行三连音 A4→E4→C4「落幕」：护盾耗尽 / 达成目标（-4dB）', volumeDb: -4.0, segments: [
+    { wave: 'triangle', freq0: 440.0, freq1: 440.0, duration: 0.18, gain: 0.50, decay: 6.0 },
+    { wave: 'triangle', freq0: 329.63, freq1: 329.63, duration: 0.18, gain: 0.50, decay: 6.0 },
+    { wave: 'triangle', freq0: 261.63, freq1: 261.63, duration: 0.36, gain: 0.55, decay: 7.0 } ] },
+  { key: 'restart', name: '重开', desc: '上行扫频 C5→C6「启动感」：重新开始新一局（-6dB）', volumeDb: -6.0, segments: [
+    { wave: 'sine', freq0: 523.25, freq1: 1046.50, duration: 0.30, gain: 0.55, decay: 3.5 },
+    { wave: 'sine', freq0: 1046.50, freq1: 1046.50, duration: 0.12, gain: 0.45, decay: 10.0 } ] }
+];
+/* 基础波形（sfx.gd _waveform 原式：phase 为弧度，0~2π 循环） */
+function waveform(wave, phase) {
+  var TAU = Math.PI * 2;
+  switch (wave) {
+    case 'triangle': return 2.0 / Math.PI * Math.asin(Math.sin(phase));
+    case 'square': return Math.sign(Math.sin(phase)) * 0.6;
+    case 'saw': return 2.0 * ((phase / TAU) % 1.0) - 1.0;
+    default: return Math.sin(phase);
+  }
+}
+/* 分段渲染（sfx.gd _render 原式：线性扫频 + 指数衰减 + 5% 起音斜坡 + 白噪声混合 + ±1 钳制） */
+function renderSegments(segments) {
+  var out = [];
+  for (var s = 0; s < segments.length; s++) {
+    var seg = segments[s];
+    var frameCount = Math.max(Math.floor(seg.duration * MIX_RATE), 1);
+    var freq0 = seg.freq0, freq1 = (seg.freq1 == null ? seg.freq0 : seg.freq1);
+    var gain = seg.gain, decay = seg.decay;
+    var noiseMix = Math.min(Math.max(seg.noise || 0, 0), 1);
+    var attackFrames = Math.floor(frameCount / 20);
+    var phase = 0, TAU = Math.PI * 2;
+    for (var i = 0; i < frameCount; i++) {
+      var freq = freq0 + (freq1 - freq0) * (i / frameCount);
+      phase += TAU * freq / MIX_RATE;
+      var tone = waveform(seg.wave, phase);
+      if (noiseMix > 0) tone = tone + (Math.random() * 2 - 1 - tone) * noiseMix;
+      var envelope = Math.exp(-decay * i / MIX_RATE);
+      if (i < attackFrames) envelope *= i / attackFrames;
+      var v = tone * envelope * gain;
+      out.push(Math.max(-1, Math.min(1, v)));
+    }
+  }
+  return out;
+}
+var audioBuffers = {};
+function playSfx(key) {
+  var ctx = ensureCtx();
+  if (!ctx) return false;
+  unlockAudio();
+  if (ctx.state !== 'running') { renderNote('音频未解锁（state=' + ctx.state + '）：再点一次即可'); }
+  var buf = audioBuffers[key];
+  if (!buf) {
+    var def = null;
+    for (var i = 0; i < SFX_DEFS.length; i++) if (SFX_DEFS[i].key === key) def = SFX_DEFS[i];
+    if (!def) return false;
+    var samples = renderSegments(def.segments);
+    buf = ctx.createBuffer(1, samples.length, MIX_RATE);
+    var ch = buf.getChannelData(0);
+    for (var j = 0; j < samples.length; j++) ch[j] = samples[j];
+    audioBuffers[key] = buf;
+  }
+  var src = ctx.createBufferSource();
+  src.buffer = buf;
+  var vol = ctx.createGain();
+  vol.gain.value = Math.pow(10, SFX_DEFS.volumeDbFor(key) / 20);
+  src.connect(vol); vol.connect(ctx.destination);
+  src.start();
+  return true;
+}
+SFX_DEFS.volumeDbFor = function (key) {
+  for (var i = 0; i < this.length; i++) if (this[i].key === key) return this[i].volumeDb;
+  return -6.0;
+};
+
+/* ---------- 评分状态（localStorage 草稿：误触刷新不丢） ---------- */
+var DRAFT_KEY = 'stardust_fb_draft_v1';
+var RATING_KEYS = ['sfx_collect', 'sfx_hit', 'sfx_game_over', 'sfx_restart', 'flow', 'overall'];
+var state = { ratings: {}, notes: '' };
+RATING_KEYS.forEach(function (k) { state.ratings[k] = 0; });
+try {
+  var saved = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
+  if (saved && saved.ratings) {
+    RATING_KEYS.forEach(function (k) { state.ratings[k] = Math.min(5, Math.max(0, saved.ratings[k] | 0)); });
+    state.notes = String(saved.notes || '');
+  }
+} catch (e) { /* 草稿坏了就当没有 */ }
+function saveDraft() {
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ ratings: state.ratings, notes: state.notes })); } catch (e) { /* 隐私模式写入失败可忽略 */ }
+}
+
+/* ---------- DOM 渲染 ---------- */
+function el(tag, cls, text) {
+  var n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+}
+function renderNote(msg, isErr) {
+  var box = document.getElementById('submit-msg');
+  box.textContent = msg || '';
+  box.className = isErr ? 'err' : '';
+}
+var toastTimer = 0;
+function toast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.classList.remove('show'); }, 1800);
+}
+function renderSfxRows() {
+  var host = document.getElementById('sfx-rows');
+  SFX_DEFS.forEach(function (def) {
+    var row = el('div', 'sfx-row');
+    row.appendChild(el('span', 'sfx-name', def.name));
+    var btn = el('button', 'play', '▶ 试听');
+    btn.type = 'button';
+    btn.setAttribute('aria-label', '试听' + def.name + '音效');
+    btn.addEventListener('click', function () {
+      var ok = playSfx(def.key);
+      if (!ok) { toast('音频不可用：' + (audioCtx ? audioCtx.state : 'no AudioContext')); return; }
+      btn.classList.add('playing');
+      setTimeout(function () { btn.classList.remove('playing'); }, 700);
+    });
+    row.appendChild(btn);
+    var stars = el('div', 'stars');
+    stars.setAttribute('data-target', 'sfx_' + def.key);
+    for (var v = 1; v <= 5; v++) {
+      (function (val) {
+        var s = el('span', 'star', '★');
+        s.setAttribute('data-v', String(val));
+        s.addEventListener('click', function () { setRating('sfx_' + def.key, val, stars); });
+        stars.appendChild(s);
+      })(v);
+    }
+    row.appendChild(stars);
+    row.appendChild(el('span', 'sfx-desc', def.desc));
+    host.appendChild(row);
+    paintStars(stars, state.ratings['sfx_' + def.key]);
+  });
+}
+function paintStars(stars, val) {
+  var list = stars.querySelectorAll('.star');
+  for (var i = 0; i < list.length; i++) {
+    list[i].classList.toggle('on', (i + 1) <= val);
+  }
+}
+function setRating(key, val, stars) {
+  state.ratings[key] = (state.ratings[key] === val ? 0 : val); /* 再点同一颗 = 清除 */
+  paintStars(stars, state.ratings[key]);
+  saveDraft();
+}
+function renderRateLines() {
+  var lines = document.querySelectorAll('.rate-line .stars');
+  for (var i = 0; i < lines.length; i++) {
+    (function (stars) {
+      var target = stars.getAttribute('data-target');
+      for (var v = 1; v <= 5; v++) {
+        (function (val) {
+          var s = el('span', 'star', '★');
+          s.setAttribute('data-v', String(val));
+          s.addEventListener('click', function () { setRating(target, val, stars); });
+          stars.appendChild(s);
+        })(v);
+      }
+      paintStars(stars, state.ratings[target]);
+    })(lines[i]);
+  }
+}
+function renderEvidence() {
+  document.getElementById('ev-pre').textContent = JSON.stringify(collectEvidence(), null, 2);
+}
+window.__FB_HUB__ = {
+  state: state,
+  evidence: collectEvidence,
+  gameEntryUrl: gameEntryUrl,
+  renderSegments: renderSegments,
+  SFX_DEFS: SFX_DEFS
+};
+/* ==================== QR 编码器（byte 模式 / EC 级 M / 版本 1~5，纯函数无 DOM） ====================
+ * 零依赖内嵌：M1 网关与离线真机都不保证能拉到 CDN，二维码必须本页自产。
+ * 容量（M 级、字节模式）：v1 14 / v2 26 / v3 42 / v4 62 / v5 84 字符 —— 游戏入口 URL（~50 字符）v4 足够。 */
+/* == QR-ENCODER-START == */
+var QR = (function () {
+  /* GF(256)，本原多项式 0x11D（QR 标准） */
+  var EXP = new Array(256), LOG = new Array(256);
+  (function () {
+    var x = 1;
+    for (var i = 0; i < 255; i++) { EXP[i] = x; LOG[x] = i; x <<= 1; if (x & 0x100) x ^= 0x11d; }
+    EXP[255] = EXP[0];
+  })();
+  function gexp(n) { return EXP[((n % 255) + 255) % 255]; }
+  function glog(n) { if (n === 0) throw new Error('glog(0)'); return LOG[n]; }
+  function gmul(a, b) { return (a === 0 || b === 0) ? 0 : EXP[(LOG[a] + LOG[b]) % 255]; }
+
+  /* 版本表（EC 级 M）：[边长, 数据码字, 每块 EC 码字, 块数, 校正图形中心] */
+  var VERSIONS = [
+    { v: 1, size: 21, dataCw: 16, ecPerBlock: 10, blocks: 1, align: [] },
+    { v: 2, size: 25, dataCw: 28, ecPerBlock: 16, blocks: 1, align: [6, 18] },
+    { v: 3, size: 29, dataCw: 44, ecPerBlock: 26, blocks: 1, align: [6, 22] },
+    { v: 4, size: 33, dataCw: 64, ecPerBlock: 18, blocks: 2, align: [6, 26] },
+    { v: 5, size: 37, dataCw: 86, ecPerBlock: 24, blocks: 2, align: [6, 30] }
+  ];
+
+  /* Reed-Solomon 纠错码字：生成多项式综合除法（余数 = ec） */
+  function rsRemainder(data, ecCount) {
+    var gen = [1];
+    for (var i = 0; i < ecCount; i++) {
+      var a = gexp(i);
+      var next = new Array(gen.length + 1).fill(0);
+      for (var j = 0; j < gen.length; j++) {
+        next[j] ^= gen[j];              /* 乘 x：同次项升一位（最高位优先） */
+        next[j + 1] ^= gmul(gen[j], a); /* 乘常数 a：落在原次项 */
+      }
+      gen = next;
+    }
+    var res = data.slice();
+    var ec = new Array(ecCount).fill(0);
+    for (var i = 0; i < data.length; i++) {
+      var factor = res[i];
+      if (factor !== 0) {
+        for (var j = 1; j < gen.length; j++) {
+          var target = i + j;
+          if (target < res.length) res[target] ^= gmul(factor, gen[j]);
+          else ec[target - res.length] ^= gmul(factor, gen[j]);
+        }
+      }
+    }
+    return ec;
+  }
+
+  /* 比特流 → 码字（byte 模式 + 终止符 + 0xEC/0x11 填充） */
+  function buildCodewords(text, info) {
+    var bits = [];
+    function push(val, len) { for (var i = len - 1; i >= 0; i--) bits.push((val >>> i) & 1); }
+    var bytes = []; /* UTF-8 */
+    for (var i = 0; i < text.length; i++) {
+      var c = text.codePointAt(i);
+      if (c > 0xffff) i++; /* 代理对：codePointAt 已合并 */
+      if (c < 0x80) bytes.push(c);
+      else if (c < 0x800) bytes.push(0xc0 | (c >> 6), 0x80 | (c & 63));
+      else if (c < 0x10000) bytes.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+      else bytes.push(0xf0 | (c >> 18), 0x80 | ((c >> 12) & 63), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+    }
+    if (bytes.length > info.dataCw - 2) return null; /* 超 v5 容量 */
+    push(0x4, 4);            /* mode: byte */
+    push(bytes.length, 8);   /* count（v1~9 固定 8 bit） */
+    bytes.forEach(function (b) { push(b, 8); });
+    var capacityBits = info.dataCw * 8;
+    var terminator = Math.min(4, capacityBits - bits.length);
+    push(0, terminator);
+    while (bits.length % 8 !== 0) bits.push(0);
+    var cw = [];
+    for (var i = 0; i < bits.length; i += 8) {
+      var b = 0;
+      for (var j = 0; j < 8; j++) b = (b << 1) | bits[i + j];
+      cw.push(b);
+    }
+    var pad = [0xec, 0x11], p = 0;
+    while (cw.length < info.dataCw) { cw.push(pad[p % 2]); p++; }
+    return cw;
+  }
+
+  function interleave(cw, info) {
+    if (info.blocks === 1) return cw.concat(rsRemainder(cw, info.ecPerBlock));
+    var per = cw.length / info.blocks, out = [], blocks = [];
+    for (var b = 0; b < info.blocks; b++) blocks.push(cw.slice(b * per, (b + 1) * per));
+    for (var i = 0; i < per; i++) for (var b = 0; b < info.blocks; b++) out.push(blocks[b][i]);
+    var ecs = blocks.map(function (blk) { return rsRemainder(blk, info.ecPerBlock); });
+    for (var i = 0; i < info.ecPerBlock; i++) for (var b = 0; b < info.blocks; b++) out.push(ecs[b][i]);
+    return out;
+  }
+
+  /* 格式信息：BCH(15,5)，生成 0x537，掩码 0x5412；EC 级 M = 00 → 5 位数据 = 掩码号 */
+  function bchFormat(mask) {
+    var data = mask & 7, d = data << 10;
+    function digit(x) { var n = 0; while (x !== 0) { n++; x >>>= 1; } return n; }
+    while (digit(d) - digit(0x537) >= 0) d ^= (0x537 << (digit(d) - digit(0x537)));
+    return ((data << 10) | d) ^ 0x5412;
+  }
+
+  var MASKS = [
+    function (i, j) { return (i + j) % 2 === 0; },
+    function (i) { return i % 2 === 0; },
+    function (i, j) { return j % 3 === 0; },
+    function (i, j) { return (i + j) % 3 === 0; },
+    function (i, j) { return (Math.floor(i / 2) + Math.floor(j / 3)) % 2 === 0; },
+    function (i, j) { return ((i * j) % 2) + ((i * j) % 3) === 0; },
+    function (i, j) { return (((i * j) % 2) + ((i * j) % 3)) % 2 === 0; },
+    function (i, j) { return (((i + j) % 2) + ((i * j) % 3)) % 2 === 0; }
+  ];
+
+  function blank(size) { return Array.apply(null, new Array(size)).map(function () { return new Array(size).fill(null); }); }
+  function setFinder(m, top, left) {
+    var n = m.length;
+    for (var r = -1; r <= 7; r++) {
+      for (var c = -1; c <= 7; c++) {
+        var rr = top + r, cc = left + c;
+        if (rr < 0 || rr >= n || cc < 0 || cc >= n) continue;
+        m[rr][cc] = (r >= 0 && r <= 6 && c >= 0 && c <= 6)
+          && (r === 0 || r === 6 || c === 0 || c === 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4));
+      }
+    }
+  }
+  function setTiming(m) {
+    var n = m.length;
+    for (var i = 8; i < n - 8; i++) {
+      if (m[6][i] === null) m[6][i] = (i % 2 === 0);
+      if (m[i][6] === null) m[i][6] = (i % 2 === 0);
+    }
+  }
+  function setAlign(m, centers) {
+    for (var a = 0; a < centers.length; a++) {
+      for (var b = 0; b < centers.length; b++) {
+        var row = centers[a], col = centers[b];
+        if (m[row][col] !== null) continue; /* 与定位/时序图形重叠的跳过 */
+        for (var r = -2; r <= 2; r++) {
+          for (var c = -2; c <= 2; c++) {
+            m[row + r][col + c] = (r === 0 && c === 0) || Math.abs(r) === 2 || Math.abs(c) === 2;
+          }
+        }
+      }
+    }
+  }
+  function setFormat(m, mask) {
+    var n = m.length, bits = bchFormat(mask);
+    for (var i = 0; i < 15; i++) {
+      var bit = ((bits >> i) & 1) === 1;
+      /* 竖排副本（左上定位图形右侧 / 左下定位图形上方） */
+      if (i < 6) m[i][8] = bit; else if (i < 8) m[i + 1][8] = bit; else m[n - 15 + i][8] = bit;
+      /* 横排副本（左上定位图形下方 / 右上定位图形左侧） */
+      if (i < 8) m[8][n - i - 1] = bit; else if (i < 9) m[8][15 - i - 1 + 1] = bit; else m[8][15 - i - 1] = bit;
+    }
+    m[n - 8][8] = true; /* 暗模块 */
+  }
+  function mapData(m, cw, maskId) {
+    var n = m.length, inc = -1, row = n - 1, bitIndex = 7, byteIndex = 0;
+    for (var col = n - 1; col > 0; col -= 2) {
+      if (col === 6) col -= 1;
+      for (;;) {
+        for (var c = 0; c < 2; c++) {
+          if (m[row][col - c] === null) {
+            var dark = false;
+            if (byteIndex < cw.length) dark = ((cw[byteIndex] >>> bitIndex) & 1) === 1;
+            if (MASKS[maskId](row, col - c)) dark = !dark;
+            m[row][col - c] = dark;
+            bitIndex -= 1;
+            if (bitIndex === -1) { byteIndex += 1; bitIndex = 7; }
+          }
+        }
+        row += inc;
+        if (row < 0 || row >= n) { row -= inc; inc = -inc; break; }
+      }
+    }
+  }
+  /* 掩码评分（N1~N4）——只影响选哪个掩码，选错也不影响可解码性 */
+  function penalty(m) {
+    var n = m.length, score = 0, r, c, k;
+    for (r = 0; r < n; r++) {
+      var run = 1;
+      for (c = 1; c < n; c++) {
+        if (m[r][c] === m[r][c - 1]) { run++; if (c === n - 1 && run >= 5) score += 3 + run - 5; }
+        else { if (run >= 5) score += 3 + run - 5; run = 1; }
+      }
+      run = 1;
+      for (c = 1; c < n; c++) {
+        if (m[c][r] === m[c - 1][r]) { run++; if (c === n - 1 && run >= 5) score += 3 + run - 5; }
+        else { if (run >= 5) score += 3 + run - 5; run = 1; }
+      }
+    }
+    for (r = 0; r < n - 1; r++) for (c = 0; c < n - 1; c++) {
+      var v = m[r][c];
+      if (m[r][c + 1] === v && m[r + 1][c] === v && m[r + 1][c + 1] === v) score += 3;
+    }
+    var pat = [true, false, true, true, true, false, true];
+    for (r = 0; r < n; r++) for (c = 0; c <= n - 7; c++) {
+      var okH = true, okV = true;
+      for (k = 0; k < 7; k++) { if (m[r][c + k] !== pat[k]) okH = false; if (m[c + k][r] !== pat[k]) okV = false; }
+      if (okH) {
+        var lightL = c >= 4 && !m[r][c - 1] && !m[r][c - 2] && !m[r][c - 3] && !m[r][c - 4];
+        var lightR = c + 10 < n && !m[r][c + 7] && !m[r][c + 8] && !m[r][c + 9] && !m[r][c + 10];
+        if (lightL || lightR) score += 40;
+      }
+      if (okV) {
+        var lightT = c >= 4 && !m[c - 1][r] && !m[c - 2][r] && !m[c - 3][r] && !m[c - 4][r];
+        var lightB = c + 10 < n && !m[c + 7][r] && !m[c + 8][r] && !m[c + 9][r] && !m[c + 10][r];
+        if (lightT || lightB) score += 40;
+      }
+    }
+    var dark = 0;
+    for (r = 0; r < n; r++) for (c = 0; c < n; c++) if (m[r][c]) dark++;
+    score += Math.floor(Math.abs(dark * 100 / (n * n) - 50) / 5) * 10;
+    return score;
+  }
+
+  function encode(text) {
+    var info = null;
+    for (var i = 0; i < VERSIONS.length; i++) {
+      if (text.length <= VERSIONS[i].dataCw - 2) { info = VERSIONS[i]; break; }
+    }
+    if (!info) return null;
+    var cw = interleave(buildCodewords(text, info), info);
+    var best = null, bestScore = Infinity;
+    for (var mask = 0; mask < 8; mask++) {
+      var m = blank(info.size);
+      setFinder(m, 0, 0); setFinder(m, info.size - 7, 0); setFinder(m, 0, info.size - 7);
+      setTiming(m);
+      setAlign(m, info.align);
+      setFormat(m, mask);
+      mapData(m, cw, mask);
+      var s = penalty(m);
+      if (s < bestScore) { bestScore = s; best = m; }
+    }
+    return best;
+  }
+  return { encode: encode, VERSIONS: VERSIONS };
+})();
+/* == QR-ENCODER-END == */
+
+function drawQr() {
+  var url = gameEntryUrl();
+  document.getElementById('qr-url').textContent = url;
+  var box = document.getElementById('qr-box');
+  var note = document.getElementById('qr-note');
+  var matrix = null;
+  try { matrix = QR.encode(url); } catch (e) { matrix = null; }
+  if (!matrix) {
+    box.innerHTML = '';
+    note.hidden = false;
+    note.textContent = '入口链接超出内嵌二维码容量（>84 字符）：请直接复制上方链接到手机打开。';
+    return;
+  }
+  var quiet = 4, count = matrix.length, scale = 6, dim = (count + quiet * 2) * scale;
+  var canvas = document.createElement('canvas');
+  canvas.width = dim; canvas.height = dim;
+  canvas.setAttribute('role', 'img');
+  canvas.setAttribute('aria-label', '游戏入口二维码');
+  var g = canvas.getContext('2d');
+  g.fillStyle = '#ffffff';
+  g.fillRect(0, 0, dim, dim);
+  g.fillStyle = '#000000';
+  for (var r = 0; r < count; r++) {
+    for (var c = 0; c < count; c++) {
+      if (matrix[r][c]) g.fillRect((c + quiet) * scale, (r + quiet) * scale, scale, scale);
+    }
+  }
+  box.innerHTML = '';
+  box.appendChild(canvas);
+}
+
+/* ==================== 回执与回填（复用既有 ?tuning=1 通道 + JSON 回执兜底） ==================== */
+var ROUND_TAG = '20260927-feedback-hub';
+/* 反馈以 fb_* 参数搭车 ?tuning=1：壳页调参桥把全部 query 合并进 window.__GAME_TUNING__，
+ * 游戏侧 TUNING_META 白名单只消费已声明的玩法键，fb_* 未知键安全忽略（不影响玩法数值）。 */
+function backfillUrl() {
+  var p = new URLSearchParams();
+  p.set('tuning', '1');
+  p.set('fb', 'hub');        /* 反馈来源标记 */
+  p.set('fbv', '1');         /* 回执格式版本 */
+  p.set('r', '20260927');    /* 轮次日期 */
+  RATING_KEYS.forEach(function (k) {
+    if (state.ratings[k] > 0) p.set(k, String(state.ratings[k]));
+  });
+  var ev = collectEvidence();
+  p.set('ios', ev.isIOS ? '1' : '0');
+  p.set('safari', ev.isWebKit ? '1' : '0');
+  p.set('touch', String(ev.touch));
+  p.set('scr', ev.screen);
+  if (state.notes && state.notes.length <= 120) p.set('notes', state.notes);
+  return gameEntryUrl() + '?' + p.toString();
+}
+function buildReceipt() {
+  var missing = RATING_KEYS.filter(function (k) { return state.ratings[k] === 0; });
+  return {
+    game: 'star-dust-collector',
+    type: 'playtest_feedback',
+    round: ROUND_TAG,
+    hubVersion: 1,
+    ratings: (function () {
+      var out = {};
+      RATING_KEYS.forEach(function (k) { out[k] = state.ratings[k]; });
+      return out;
+    })(),
+    notes: state.notes,
+    incomplete: missing,
+    backfillUrl: backfillUrl(),
+    device: collectEvidence()
+  };
+}
+function refreshPreviews() {
+  document.getElementById('link-preview').textContent = backfillUrl();
+  document.getElementById('receipt-preview').textContent = JSON.stringify(buildReceipt(), null, 2);
+}
+function copyText(text, okMsg) {
+  function fallback() {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    finish(ok);
+  }
+  function finish(ok) {
+    if (ok) { toast(okMsg); renderNote('已复制：粘到工坊对话 / 工单即可完成回填'); }
+    else { renderNote('复制失败：请展开「回填链接 / 回执预览」长按手动拷贝', true); }
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function () { finish(true); }, fallback);
+  } else {
+    fallback();
+  }
+}
+
+/* ==================== 初始化 ==================== */
+function init() {
+  renderSfxRows();
+  renderRateLines();
+  renderEvidence();
+  drawQr();
+  var notes = document.getElementById('notes');
+  notes.value = state.notes;
+  notes.addEventListener('input', function () {
+    state.notes = notes.value.slice(0, 300);
+    saveDraft();
+    refreshPreviews();
+  });
+  document.getElementById('btn-copy-link').addEventListener('click', function () {
+    refreshPreviews();
+    copyText(backfillUrl(), '回填链接已复制（?tuning=1 通道）');
+  });
+  document.getElementById('btn-copy-json').addEventListener('click', function () {
+    refreshPreviews();
+    copyText(JSON.stringify(buildReceipt(), null, 2), 'JSON 回执已复制');
+  });
+  document.getElementById('btn-open').addEventListener('click', function () {
+    refreshPreviews();
+    renderNote('正在以回填链接打开游戏（壳页调参桥会注入 window.__GAME_TUNING__）…');
+    location.href = backfillUrl();
+  });
+  document.querySelectorAll('.stars').forEach(function (stars) {
+    stars.addEventListener('click', refreshPreviews);
+  });
+  refreshPreviews();
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+else init();
+})();
+</script>
+</body>
+</html>
