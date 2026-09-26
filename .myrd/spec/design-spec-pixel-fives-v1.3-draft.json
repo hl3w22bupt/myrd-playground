@@ -1,0 +1,699 @@
+{
+  "$note": "GameDesignSpec v1.2 机器可读导出（六段全量）。真源 = pixel-fives/docs/spec/design-spec-v1.2.md；送审单 = pixel-fives/docs/spec/v1.2-review-submission.md；批准记录 = pixel-fives/docs/spec/v1.2-approval-record.md。状态 approved（2026-09-12 主策划复核批准，六问全 yes；offline 落文盖章，接口恢复后按 pending_homecoming 补建正式版本链）。contract-check（game-contract routine）即以本文件为断言依据。",
+  "meta": {
+    "game_id": "pixel-fives",
+    "name": "像素街机足球 Pixel Fives",
+    "spec_version": "1.3-draft",
+    "scope": "M2-feel-curve-onboarding",
+    "status": "draft",
+    "inherited_from": "v1.2",
+    "version_chain": "v1.1 (superseded) -> v1.2 (approved) -> v1.3 (draft, 本稿)",
+    "reviewer": "lead-game-designer",
+    "project_root": "pixel-fives",
+    "platforms": [
+      "web"
+    ],
+    "modes": [
+      "1v1-human-vs-human",
+      "1v1-human-vs-bot",
+      "bot-vs-bot-sim"
+    ],
+    "doc": "pixel-fives/docs/spec/design-spec-v1.2.md",
+    "sources": {
+      "style_card": "pixel-fives/docs/art/style-card-v1.md",
+      "asset_registry": "pixel-fives/docs/art/asset-registry-v1.md",
+      "asset_manifest": "pixel-fives/assets/manifest.json",
+      "numeric_single_source": "pixel-fives/src/core/constants.js"
+    },
+    "api_note": "本 approved 状态为主策划 offline 盖章（2026-09-12，批准记录 v1.2-approval-record.md）。平台 game-design-specs 接口恢复后，由主策划 POST /api/v1/game-design-specs/:id/revisions 以本版全文补建正式版本链，旧版自动置 superseded，随后以接口为准回写本导出。",
+    "revision_detail": [
+      {
+        "id": "R-01",
+        "change": "A06 锁定 9 帧@12fps=0.75s，contact_frame=3 仅视觉不阻塞判定",
+        "basis": "2026-09-12 终裁"
+      },
+      {
+        "id": "R-02",
+        "change": "新增 A08 sfx-goal-hit + 字段 goal_sfx_at_s=0.0（音效不删、变可测）",
+        "basis": "2026-09-12 终裁"
+      },
+      {
+        "id": "R-03",
+        "change": "红线 input_to_shot_latency_ms<=50 落 numeric+acceptance；v1.3 以实测定标",
+        "basis": "2026-09-12 终裁"
+      },
+      {
+        "id": "R-04",
+        "change": "onboarding-hint check 落点=UI 集成测试；bot 对局不背此断言",
+        "basis": "2026-09-12 终裁"
+      },
+      {
+        "id": "R-05",
+        "change": "out_of_scope 负面清单落文（冻结项）",
+        "basis": "2026-09-12 终裁 + Team Lead 冻结项"
+      },
+      {
+        "id": "R-06",
+        "change": "命名配色锁定：赤焰 Fives #D93A2B / 霜蓝 Fives #2B6BD9",
+        "basis": "2026-09-12 流程外裁决"
+      },
+      {
+        "id": "R-07",
+        "change": "落点规则：src/entities/<id>.js / src/levels/<id>.js（相对 pixel-fives/）",
+        "basis": "2026-09-12 流程外裁决"
+      },
+      {
+        "id": "R-08",
+        "change": "bot-sim 契约冻结：拆 goal_range_ratio/duration_in_range_ratio；errors 非空⇒exit≠0；补 per_game[]+meta；seeds=42..141 双方同一套",
+        "basis": "2026-09-12 终裁 Q5-Q7"
+      },
+      {
+        "id": "R-09",
+        "change": "继承声明：本版为完整自洽文本，不依赖 v1.1 原文即可实现与验收",
+        "basis": "黑板不可达处置"
+      },
+      {
+        "id": "R-10",
+        "change": "采纳程序线提案：player.kick_cooldown_s=0.3、player.reach_px=13（v1.3 调参候选）",
+        "basis": "程序线 constants.js 提案 + 策划侧采纳"
+      }
+    ],
+    "out_of_scope": [
+      "《AI女友》不启动",
+      "不立新游戏",
+      "M1 不做多模式/联赛/锦标赛/积分榜",
+      "不碰 Steam/Roblox（M2=微信/抖音小游戏，主策划预排）",
+      "资源 70/30 分配不变",
+      "M1 不做：守门员专用 AI、在线联机、账号/存档、内购、道具/技能、犯规/越位/点球",
+      "不做非 16px 公度美术与第二套风格"
+    ],
+    "draft_note": "M2 段修订草案（2026-09-22 主策划起草，依主人当日指令：范围锁定反馈表现力+bot曲线+onboarding）。挂 draft 不走 approve；契约测试与实现继续只认 v1.2 approved。9/12《M2 预排·微信/抖音双平台化》自本草案送审起改列 M3 候选（scope 决策记录见 docs/spec/v1.3-m2-draft-proposal.md §1.3），预排稿非 DoD 文书、无版本链问题。"
+  },
+  "world": {
+    "summary": "霓虹夜色街机球馆 Fives Arena：16px 公度像素球场，暖白灯光左上 45°。赤焰 Fives 与霜蓝 Fives 宿敌对决——无犯规、无越位、无裁判，90 秒内进球多者胜。",
+    "teams": [
+      {
+        "id": "red",
+        "name": "赤焰 Fives",
+        "hex": "#D93A2B",
+        "dark": "#A8281C",
+        "light": "#F06A50",
+        "attack": "left-goal (el-03)"
+      },
+      {
+        "id": "blue",
+        "name": "霜蓝 Fives",
+        "hex": "#2B6BD9",
+        "dark": "#1E4DA8",
+        "light": "#5C8FF0",
+        "attack": "right-goal (el-04)"
+      }
+    ],
+    "tone": [
+      "复古像素街机",
+      "暖白灯光",
+      "硬边无渐变",
+      "街机记分牌式 HUD"
+    ],
+    "style_ref": "pixel-fives/docs/art/style-card-v1.md"
+  },
+  "entities": {
+    "placement_rule": "R-07：实体 script = src/entities/<id>.js，关卡 script = src/levels/<id>.js（相对工程根 pixel-fives/）；contract-check 按此断言",
+    "list": [
+      {
+        "id": "player",
+        "name": "球员",
+        "script": "pixel-fives/src/entities/player.js",
+        "script_status": "in-repo",
+        "assets": [
+          "A02 a02-player-red (kit=red)",
+          "A03 a03-player-blue (kit=blue)",
+          "A06 a06-kick-shot (shoot 动画，纯视觉)"
+        ],
+        "fields": {
+          "team": [
+            "red",
+            "blue"
+          ],
+          "size_px": 16,
+          "facing": "side-view-right; reverse=horizontal-mirror; rotation=forbidden"
+        },
+        "behavior_contract": "射门判定即时：输入所在 tick 内完成出球（R-03 红线 input_to_shot_latency_ms<=50）；A06 动画 kickAnimT 计时不参与判定、未播完仅受冷却约束；射门方向 = 朝向水平分量 + 指向球的垂直修正（避免垂直死区）",
+        "api": [
+          "tryKick(ball, impulse)",
+          "tick(intent, ball, impulse, dt)",
+          "place(x, y)"
+        ]
+      },
+      {
+        "id": "ball",
+        "name": "足球",
+        "script": "pixel-fives/src/entities/ball.js",
+        "script_status": "in-repo",
+        "assets": [
+          "A04 a04-ball (roll 4帧 @12fps，渲染层按滚动距离采样)"
+        ],
+        "fields": {
+          "radius_px": 4,
+          "size_px": 8,
+          "max_speed_px_s": 230,
+          "kick_impulse_px_s": 240,
+          "friction_half_life_s": 0.45,
+          "low_speed_cutoff_px_s": 2
+        },
+        "behavior_contract": "位置积分 + 指数摩擦（半衰期）；速度上限 clamp；impulse() 为射门/带球触碰共用入口"
+      },
+      {
+        "id": "goal",
+        "name": "球门",
+        "script": "pixel-fives/src/entities/goal.js",
+        "script_status": "in-repo",
+        "assets": [
+          "A05 a05-goal-net (32x24，左门朝右/右门水平镜像)",
+          "A08 a08-sfx-goal-hit (进球音效)"
+        ],
+        "fields": {
+          "mouth_h_px": 44,
+          "depth_px": 12,
+          "defends": "red|blue"
+        },
+        "behavior_contract": "进球判定 = 球心越过门线 ∧ 球心处于门嘴高度带内；进球即按 goal_sfx_at_s=0.0 排程 A08（sfxSchedule() 接口已实现）"
+      }
+    ],
+    "entity_asset_alignment": [
+      {
+        "asset": "A01",
+        "id": "a01-pitch-tileset",
+        "hook": "pixel-fives/src/levels/pitch.js（tile 索引见 assets/manifest.json A01.tile_index）"
+      },
+      {
+        "asset": "A02/A03",
+        "id": "a02-player-red / a03-player-blue",
+        "hook": "pixel-fives/src/entities/player.js（kit 参数区分）"
+      },
+      {
+        "asset": "A04",
+        "id": "a04-ball",
+        "hook": "pixel-fives/src/entities/ball.js"
+      },
+      {
+        "asset": "A05",
+        "id": "a05-goal-net",
+        "hook": "pixel-fives/src/entities/goal.js"
+      },
+      {
+        "asset": "A06",
+        "id": "a06-kick-shot",
+        "hook": "pixel-fives/src/entities/player.js（shoot 动画，纯视觉，9帧@12fps=0.75s，contact_frame=3）"
+      },
+      {
+        "asset": "A07",
+        "id": "a07-ui-hud",
+        "hook": "HUD（level pitch 元素 el-08 槽位）"
+      },
+      {
+        "asset": "A08",
+        "id": "a08-sfx-goal-hit",
+        "hook": "pixel-fives/src/entities/goal.js（goal_sfx_at_s 触发）"
+      }
+    ]
+  },
+  "levels": {
+    "list": [
+      {
+        "id": "pitch",
+        "name": "Fives Arena 主球场（M1 唯一关卡）",
+        "script": "pixel-fives/src/levels/pitch.js",
+        "script_status": "pending（落点声明，程序线 M1 内交付，当前未在库）",
+        "logical_size": [
+          256,
+          160
+        ],
+        "coordinate": "原点左上，1x 世界单位；渲染整数倍缩放",
+        "element_id_policy": "el-01..el-10 为稳定 id（关卡可视化编辑页精确落点修改依据）；只增不改，改名/改号走 spec 新版本",
+        "elements": [
+          {
+            "id": "el-01",
+            "name": "边线",
+            "type": "static-decor",
+            "def": "内缩 6px 白线矩形 (6,6)-(250,154)，1px 暖白 w；A01 tile 2（顶边线）沿边铺设"
+          },
+          {
+            "id": "el-02",
+            "name": "中线+中点",
+            "type": "static-decor",
+            "def": "中线 x=128（y 6→154）；中点 (128,80)（A01 tile 3）"
+          },
+          {
+            "id": "el-03",
+            "name": "左门",
+            "type": "goal",
+            "def": "side=left, lineX=6, centerY=80, defends=blue；门嘴带 y ∈ (58,102)；A05 朝右"
+          },
+          {
+            "id": "el-04",
+            "name": "右门",
+            "type": "goal",
+            "def": "side=right, lineX=250, centerY=80, defends=red；A05 水平镜像"
+          },
+          {
+            "id": "el-05",
+            "name": "赤焰站位",
+            "type": "spawn",
+            "def": "开球/重开位 (168,80)，homeX=168"
+          },
+          {
+            "id": "el-06",
+            "name": "霜蓝站位",
+            "type": "spawn",
+            "def": "开球/重开位 (88,80)，homeX=88"
+          },
+          {
+            "id": "el-07",
+            "name": "球位",
+            "type": "spawn",
+            "def": "开球/重开位 (128,80)，速度清零"
+          },
+          {
+            "id": "el-08",
+            "name": "HUD 记分牌",
+            "type": "ui",
+            "def": "顶部居中 (104,6) 起 48x16，A07 九宫格；比分 = 系统像素字体（不占美术位图预算）；显示双方比分 + 剩余时间"
+          },
+          {
+            "id": "el-09",
+            "name": "onboarding 提示",
+            "type": "ui",
+            "def": "底部居中提示条（文案 = numeric.onboarding.text）；开局显示，首次触球后 ≤3s 淡出；check 落点 = UI 集成测试（R-04）"
+          },
+          {
+            "id": "el-10",
+            "name": "进球庆祝层",
+            "type": "ui-flow",
+            "def": "进球触发：冻结对局 → 播 A08（goal_sfx_at_s=0.0）→ 庆祝 1.2s → 中圈重开（el-05/06/07 复位、速度清零、无开球特权）→ 恢复运行"
+          }
+        ],
+        "match_flow": {
+          "kickoff": "开球：双方置 el-05/el-06，球置 el-07，90s 计时开始（无倒计时特权回合，M1 简化）",
+          "goal": "进球：goal 实体判定通过 → 对方比分 +1 → el-10 流程 → 中圈重开",
+          "fulltime": "终局：计时归零冻结对局，显示终局比分；平局合法（M1 无加时）；提供「再来一局」重开（比分清零）",
+          "determinism": "确定性：core/sim 内禁止 Math.random/Date.now，一切随机走 pixel-fives/src/core/rng.js（mulberry32，同 seed 必同序列）——bot-sim 可复跑校验前提"
+        }
+      }
+    ]
+  },
+  "numeric": {
+    "single_source": "pixel-fives/src/core/constants.js",
+    "slot_sync": "键名与程序线 PENDING_APPROVED_SLOTS 一一对应；spec approved 后由程序线逐条翻转 pending-approved→approved，constants.js 是唯一改动点。别名映射：PENDING_APPROVED_SLOTS 登记键 bot.goal_range / bot.duration_in_range_s 即本表 bot_sim.goal_range / bot_sim.duration_in_range_s（同值别名，翻转时按此对应，勿漏）",
+    "source_legend": "〔终裁〕=2026-09-12 主策划终裁；〔v1.1〕=继承条目；〔采纳〕=R-10 采纳程序线提案（v1.3 调参候选）",
+    "values": [
+      {
+        "key": "tick_hz",
+        "value": 60,
+        "unit": "Hz",
+        "source": "v1.1"
+      },
+      {
+        "key": "pitch.logical_size",
+        "value": "256x160（16px tile，16x10）",
+        "unit": "逻辑 px",
+        "source": "v1.1"
+      },
+      {
+        "key": "pitch.inset_px",
+        "value": 6,
+        "unit": "px",
+        "source": "v1.1"
+      },
+      {
+        "key": "match.duration_s",
+        "value": 90,
+        "unit": "s",
+        "source": "v1.1"
+      },
+      {
+        "key": "goal.mouth_h_px",
+        "value": 44,
+        "unit": "px",
+        "source": "v1.1"
+      },
+      {
+        "key": "goal.depth_px",
+        "value": 12,
+        "unit": "px",
+        "source": "v1.1"
+      },
+      {
+        "key": "player.size_px",
+        "value": 16,
+        "unit": "px",
+        "source": "v1.1"
+      },
+      {
+        "key": "player.speed_px_s",
+        "value": 92,
+        "unit": "px/s",
+        "source": "v1.1"
+      },
+      {
+        "key": "player.kick_cooldown_s",
+        "value": 0.3,
+        "unit": "s",
+        "source": "采纳 R-10（v1.3 调参候选）"
+      },
+      {
+        "key": "player.reach_px",
+        "value": 13,
+        "unit": "px",
+        "source": "采纳 R-10（v1.3 调参候选）"
+      },
+      {
+        "key": "ball.size_px",
+        "value": 8,
+        "unit": "px（半径 4）",
+        "source": "v1.1"
+      },
+      {
+        "key": "ball.max_speed_px_s",
+        "value": 230,
+        "unit": "px/s",
+        "source": "v1.1"
+      },
+      {
+        "key": "ball.kick_impulse_px_s",
+        "value": 240,
+        "unit": "px/s",
+        "source": "v1.1"
+      },
+      {
+        "key": "ball.friction_half_life_s",
+        "value": 0.45,
+        "unit": "s",
+        "source": "v1.1"
+      },
+      {
+        "key": "ball.low_speed_cutoff_px_s",
+        "value": 2,
+        "unit": "px/s",
+        "source": "v1.1"
+      },
+      {
+        "key": "goal_celebration_s",
+        "value": 1.2,
+        "unit": "s",
+        "source": "v1.1"
+      },
+      {
+        "key": "goal_sfx_at_s",
+        "value": 0.0,
+        "unit": "s",
+        "source": "终裁 R-02"
+      },
+      {
+        "key": "red_line.input_to_shot_latency_ms",
+        "value": "<=50（v1.3 以实测定标）",
+        "unit": "ms",
+        "source": "终裁 R-03"
+      },
+      {
+        "key": "a06.frames/fps/duration_s/contact_frame",
+        "value": "9 / 12 / 0.75 / 3",
+        "unit": "帧·fps·s·帧号",
+        "source": "终裁 R-01"
+      },
+      {
+        "key": "a08.duration_s/sample_rate_hz/seed",
+        "value": "0.6 / 44100 / 20260912",
+        "unit": "s·Hz·-",
+        "source": "终裁 R-02"
+      },
+      {
+        "key": "bot_sim.seeds",
+        "value": "42..141（含端点，100 场）",
+        "unit": "-",
+        "source": "终裁 R-08"
+      },
+      {
+        "key": "bot_sim.goal_range",
+        "value": [
+          1,
+          12
+        ],
+        "unit": "进球数",
+        "source": "v1.1"
+      },
+      {
+        "key": "bot_sim.duration_in_range_s",
+        "value": [
+          80,
+          100
+        ],
+        "unit": "s",
+        "source": "v1.1"
+      },
+      {
+        "key": "onboarding.hide_after_first_touch_s",
+        "value": 3,
+        "unit": "s",
+        "source": "v1.1"
+      },
+      {
+        "key": "onboarding.text",
+        "value": "移动 WASD/方向键 · 射门 空格/J",
+        "unit": "-",
+        "source": "v1.1"
+      },
+      {
+        "key": "red_line.feedback_first_frame_ms",
+        "value": "<=100",
+        "unit": "ms",
+        "source": "2026-09-22 主人指令（M2 新增）",
+        "m2_note": "输入所在 tick → 首个反馈事件（音/粒子/屏震/震动任一）排程的全链路；headless 断言同 tick 排程 + 真机抽测"
+      },
+      {
+        "key": "feedback.anim_max_ms",
+        "value": "<=300",
+        "unit": "ms",
+        "source": "2026-09-22 主人指令（M2 新增）",
+        "m2_note": "仅约束 M2 新增反馈动效生命周期；M1 已批 A06(0.75s)/庆祝(1.2s) 为既有批准动效，不回退、不适用此条"
+      },
+      {
+        "key": "feedback.haptic_levels",
+        "value": 3,
+        "unit": "级",
+        "source": "2026-09-22 主人指令（M2 新增）",
+        "m2_note": "轻触=1/进球=2/失球=3；Web Vibration API + 平台 adapter 映射表"
+      },
+      {
+        "key": "match.duration_cap_s",
+        "value": "<=180",
+        "unit": "s",
+        "source": "2026-09-22 主人指令（不回退红线）",
+        "m2_note": "M1 实为 90s，红线只防膨胀"
+      },
+      {
+        "key": "bot_curve.avg_goals_range",
+        "value": "[2, 4]",
+        "unit": "球/场",
+        "source": "2026-09-22 主人指令（不回退红线）",
+        "m2_note": "bot-sim seeds 42..141 场均（onboarding+ranked 加权）；M1 基线 avg 5.52，M2 调参压入"
+      },
+      {
+        "key": "bot_curve.first_match_win_rate",
+        "value": "[0.65, 0.75]",
+        "unit": "-",
+        "source": "2026-09-22 主人指令（M2 新增）",
+        "m2_note": "新人首局 vs onboarding 档 bot 胜率；埋点口径见 acceptance acc-13"
+      },
+      {
+        "key": "bot_curve.long_term_win_rate",
+        "value": "0.50±0.05",
+        "unit": "-",
+        "source": "2026-09-22 主人指令（M2 新增）",
+        "m2_note": "进阶档长期胜率收敛目标"
+      },
+      {
+        "key": "onboarding.tutorial_time_s",
+        "value": "<=30",
+        "unit": "s",
+        "source": "2026-09-22 主人指令（M2 新增）",
+        "m2_note": "教学引导完成时长中位数（首次触球→首次进球链路提示完成）"
+      },
+      {
+        "key": "onboarding.first_match_complete_rate",
+        "value": ">=0.90",
+        "unit": "-",
+        "source": "2026-09-22 主人指令（M2 新增）",
+        "m2_note": "样本口径：安装后 48h 内新玩家首局，开始→终局达成率；自然周聚合，周样本 ≥200 方判定，不足则本周不出结论（不伪造）"
+      },
+      {
+        "key": "telemetry.dual_caliber",
+        "value": "[platform, local]",
+        "unit": "-",
+        "source": "2026-09-22 主人指令（M2 新增）",
+        "m2_note": "平台分析 SDK 主口径 + 本地环形缓冲兜底；平台不可用自动降级本地口径，字段 schema 一致"
+      }
+    ],
+    "bot_sim_contract": {
+      "frozen": true,
+      "frozen_by": "终裁 R-08（Q5-Q7 回应），QA 与程序双方同一套",
+      "report_schema": {
+        "meta": {
+          "seeds_start": 42,
+          "seeds_end": 141,
+          "game_count": 100,
+          "spec_version": "v1.2",
+          "built_from": "<git sha 或 build id>",
+          "generated_at": "<ISO8601>",
+          "deterministic": true
+        },
+        "per_game_item_example": {
+          "seed": 42,
+          "goals_total": 5,
+          "goals_red": 3,
+          "goals_blue": 2,
+          "duration_s": 90.0,
+          "shots": 41,
+          "touches": 118,
+          "errors": []
+        },
+        "summary": {
+          "goal_range_ratio": 1.0,
+          "duration_in_range_ratio": 1.0,
+          "games_with_errors": 0,
+          "errors": []
+        }
+      },
+      "metric_definitions": {
+        "goal_range_ratio": "#{ g : per_game[g].goals_total ∈ [1,12] } / 100",
+        "duration_in_range_ratio": "#{ g : per_game[g].duration_s ∈ [80,100] } / 100"
+      },
+      "exit_code_rule": "exit 0 ⇔ games_with_errors==0 ∧ goal_range_ratio==1.0 ∧ duration_in_range_ratio==1.0；errors 非空 ⇒ exit≠0（冻结）",
+      "no_relax_rule": "套件确定性故比率断言取 ==1.0；个别 seed 越界按 per_game.seed 定位修复后重跑，禁止放宽区间过关；区间变更必须走 spec 新版本",
+      "seed_discipline": "seeds=42..141，QA 与程序双方同一套；bot vs bot 双方控制器从同一 seed 确定性派生，同 seed 复跑逐字节一致"
+    },
+    "m2_scope_lock": [
+      "反馈表现力",
+      "bot 曲线",
+      "onboarding"
+    ]
+  },
+  "acceptance": {
+    "check_note": "check 落点为契约声明：in-repo = 当前可跑；pending = 程序线/QA 线本冲刺交付，路径即落点，QA 按此打缺陷",
+    "items": [
+      {
+        "id": "acc-01",
+        "statement": "完整对局：M1 build 可从开球踢到 90s 终局并显示比分，全程零报错；结构化指标 fps_min>=58、frame_time_p95_ms<=18、errors=0",
+        "check": "pixel-fives/tests/smoke/full-match.test.mjs",
+        "check_status": "pending（程序线，DoD#3 冒烟门禁）",
+        "m2_note": "M2 内不回退：门禁随冲刺复跑"
+      },
+      {
+        "id": "acc-02",
+        "statement": "红线：射门输入到出球判定延迟 <=50ms（60Hz 同 tick 即时判定，<=16.7ms）；动画不阻塞判定",
+        "check": "pixel-fives/tests/red-line/input-to-shot.test.mjs（断言判定发生在输入所在 tick）",
+        "check_status": "pending（程序线；v1.3 以实测定标，v1.2 只锁红线 R-03）",
+        "m2_note": "M2 内不回退：门禁随冲刺复跑"
+      },
+      {
+        "id": "acc-03",
+        "statement": "bot-sim 门禁：seeds 42..141 共 100 场全过；exit 0 ⇔ errors 空 ∧ 两比率 ==1.0；errors 非空 ⇒ exit≠0",
+        "check": "node pixel-fives/tools/bot-sim.mjs --seeds 42..141 --json（runner 由程序线交付）+ pixel-fives/tests/qa/bot-sim-contract.test.mjs",
+        "check_status": "pending（程序+QA；R-08，双方同一套种子）"
+      },
+      {
+        "id": "acc-04",
+        "statement": "bot-sim 报告契约：含 meta + per_game[]（逐场 seed/比分/时长/errors）+ summary（两拆分比率字段）；同 seed 复跑输出逐字节一致",
+        "check": "pixel-fives/tests/qa/bot-sim-contract.test.mjs",
+        "check_status": "pending（QA；字段名与 numeric.bot_sim_contract 逐字一致）"
+      },
+      {
+        "id": "acc-05",
+        "statement": "onboarding 提示：开局可见（el-09），首次触球后 <=3s 内淡出",
+        "check": "pixel-fives/tests/ui/onboarding-hint.test.mjs（UI 集成测试）",
+        "check_status": "pending（QA；bot 对局与 bot-sim 不背此断言，终裁 R-04）"
+      },
+      {
+        "id": "acc-06",
+        "statement": "进球链路：球心过门线且在门嘴带内 → 比分 +1 → A08 于 goal_sfx_at_s=0.0 触发 → 庆祝 1.2s 冻结 → 中圈重开",
+        "check": "pixel-fives/tests/goal-flow.test.mjs",
+        "check_status": "pending（程序线；el-10 流程逐拍断言）",
+        "m2_note": "M2 内不回退：门禁随冲刺复跑"
+      },
+      {
+        "id": "acc-07",
+        "statement": "落点契约：src/entities/{player,ball,goal}.js（in-repo）、src/levels/pitch.js（M1 内交付）存在；实体-资产 id 对齐表成立；关卡元素 id 稳定唯一",
+        "check": "contract-check 例行任务（game-contract，读 .myrd/spec/design-spec.json）",
+        "check_status": "spec approved 后启用；「跑的是不是策划案里那个游戏」"
+      },
+      {
+        "id": "acc-08",
+        "statement": "资产预算：全部产物 <=1,572,864 B（1.5MB，微信主包 <=4MB 红线内）",
+        "check": "node pixel-fives/tools/gen-assets.mjs（超线 exit 1）",
+        "check_status": "in-repo（美术线已接线）"
+      },
+      {
+        "id": "acc-09",
+        "statement": "数值单源：玩法数值只出现在 pixel-fives/src/core/constants.js；spec approved 后 PENDING_APPROVED_SLOTS 全部翻转、以 numeric.values 覆盖",
+        "check": "人工核对（主策划批准后程序线执行翻转并回报）",
+        "check_status": "流程项；constants.js 是唯一改动点"
+      },
+      {
+        "id": "acc-10",
+        "statement": "反馈首帧：任何玩法输入所在 tick 内排程首个反馈事件（音/粒子/屏震/震动任一），headless 同 tick 断言通过",
+        "check": "pixel-fives/tests/red-line/feedback-first-frame.test.mjs（M2 交付）+ 真机抽测录屏",
+        "check_status": "pending"
+      },
+      {
+        "id": "acc-11",
+        "statement": "M2 新增反馈动效生命周期 ≤300ms（A06/庆祝为 M1 已批动效，不适用）",
+        "check": "pixel-fives/tests/ui/feedback-anim.test.mjs（M2 交付）逐动效时长断言",
+        "check_status": "pending"
+      },
+      {
+        "id": "acc-12",
+        "statement": "震动 3 级映射正确（轻触/进球/失球 → haptic_levels 1/2/3），平台不可用静默降级不报错",
+        "check": "pixel-fives/tests/ui/haptics-map.test.mjs（M2 交付）映射表断言 + 真机手感复核",
+        "check_status": "pending"
+      },
+      {
+        "id": "acc-13",
+        "statement": "bot 曲线：onboarding 档 bot-sim 场均进球 ∈[2,4] 且逐场 [1,12] 不回退；ranked 档逐场 [1,12] 不回退",
+        "check": "node pixel-fives/tools/bot-sim.mjs --profile onboarding --seeds 42..141 --json（M2 交付 --profile 扩展）+ 本地埋点口径核对首局胜率",
+        "check_status": "pending"
+      },
+      {
+        "id": "acc-14",
+        "statement": "onboarding 教学：首次触球→首次进球引导链 ≤30s（中位数）可从埋点还原；首局完成率 ≥90%（周样本 ≥200 方判定）",
+        "check": "pixel-fives/tests/ui/onboarding-flow.test.mjs（M2 交付）+ 本地埋点周报（样本不足不出结论）",
+        "check_status": "pending"
+      },
+      {
+        "id": "acc-15",
+        "statement": "埋点双口径降级：平台 SDK 不可用时自动落本地环形缓冲，字段 schema 与主口径逐字一致，重启不丢",
+        "check": "pixel-fives/tests/qa/telemetry-dual.test.mjs（M2 交付）降级路径断言",
+        "check_status": "pending"
+      }
+    ],
+    "qa_verdict_precondition": "spec approved + 程序 P1-P4 交付 + 美术资产获批，三份输入到齐才出 verdict；QA 打回依据 = 本节逐条"
+  },
+  "review": {
+    "addressed_to": "lead-game-designer（唯一 approved 执行人）",
+    "submission_doc": "pixel-fives/docs/spec/v1.2-review-submission.md",
+    "checklist": [
+      "① §0/revision_detail 修订 diff R-01..R-10 是否与终裁逐条一致（含 R-10 采纳值 kick_cooldown_s=0.3、reach_px=13）",
+      "② numeric.values 数值表是否批准（批准 ⇒ 程序线翻转 PENDING_APPROVED_SLOTS）",
+      "③ numeric.bot_sim_contract 报告契约与退出码规则是否批准（批准 ⇒ QA 以此出 verdict，程序按此冻结接口）",
+      "④ levels.pitch 布局（el-01..el-10 坐标、开球/重开/终局规则、平局合法）是否批准",
+      "⑤ acceptance 9 条及 check 落点是否批准（批准 ⇒ QA 验收包以此为依据）",
+      "⑥ 批准动作：spec 状态 → approved（POST /api/v1/game-design-specs/:id/revisions 建版本链 v1.1→v1.2）→ 通知程序线翻转槽位、QA 出 verdict、美术量产解锁（manifest.status 同步 approved）"
+    ],
+    "reject_rule": "任何一条 no = 打回策划线修订，产生 v1.2.x 或 v1.3；不批准期间程序线按 pending-approved 槽位推进不受阻，QA verdict 继续挂起"
+  },
+  "pending_homecoming": [
+    "平台 game-design-specs 接口恢复：由主策划 POST /api/v1/game-design-specs/:id/revisions 建立 v1.2 正式版本（detail 引用 revision_detail R-01..R-10），旧版自动置 superseded",
+    ".myrd/spec/design-spec.json 与接口侧 approved 版本对齐（以接口为准回写本导出）",
+    "黑板恢复：本 spec 迁入/挂链 .myrd/blackboard/",
+    "9/19 例会：M1 DoD 复盘以 acceptance 节 + QA verdict 为准"
+  ]
+}

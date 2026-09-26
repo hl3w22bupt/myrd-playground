@@ -1,0 +1,82 @@
+# pixel-fives grid asset v1
+# id: A01
+# name: pitch-tileset
+# kind: tileset
+# frame: 16x16
+# frames: 4
+# tiles: 0=grass-light-stripe 1=grass-dark-stripe 2=boundary-line-top 3=center-spot
+# style: 引用 docs/art/style-card-v1.md（20色锁 / 左上45°光 / 1px线 / 16px公度）
+# 解析规则：'#'开头为注释；legend: 段映射 字符 HEX；grid: 段为像素行；仅含'+'的行分隔帧
+legend:
+g #2E7D46
+d #256B3A
+l #3B9457
+w #F4F1E8
+grid:
+ggglgggggglggggg
+gggggglgggggglgg
+glggggggglgggggg
+gggglggggggglggg
+ggggggglgggggggl
+gglggggggglggggg
+ggggglggggggglgg
+lggggggglggggggg
+ggglggggggglgggg
+gggggglgggggglgg
+glggggggglgggggg
+gggglggggggglggg
+ggggggglgggggggl
+gglggggggglggggg
+ggggglggggggglgg
+lggggggglggggggg
++
+dddgddddddgddddd
+ddddddgddddddgdd
+dgdddddddgdddddd
+ddddgdddddddgddd
+dddddddgdddddddg
+ddgdddddddgddddd
+dddddgdddddddgdd
+gdddddddgddddddd
+dddgddddddgddddd
+ddddddgddddddgdd
+dgdddddddgdddddd
+ddddgdddddddgddd
+dddddddgdddddddg
+ddgdddddddgddddd
+dddddgdddddddgdd
+gdddddddgddddddd
++
+wwwwwwwwwwwwwwww
+gggggglgggggglgg
+glggggggglgggggg
+gggglggggggglggg
+ggggggglgggggggl
+gglggggggglggggg
+ggggglggggggglgg
+lggggggglggggggg
+ggglggggggglgggg
+gggggglgggggglgg
+glggggggglgggggg
+gggglggggggglggg
+ggggggglgggggggl
+gglggggggglggggg
+ggggglggggggglgg
+lggggggglggggggg
++
+gggggglgggggglgg
+glggggggglgggggg
+gggglggggggglggg
+ggggggglgggggggl
+gglggggggglggggg
+ggggglggggggglgg
+ggggglgwwgggglgg
+lgggggwwwwgggggg
+lgggggwwwwgggggg
+gggggglwwgggglgg
+glggggggglgggggg
+gggglggggggglggg
+ggggggglgggggggl
+gglggggggglggggg
+ggggglggggggglgg
+lggggggglggggggg

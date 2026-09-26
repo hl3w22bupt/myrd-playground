@@ -1,0 +1,65 @@
+—— 契约测试输出 ——
+  PASS  spec 可解析: .myrd/spec/stack-tower-spec.json
+  PASS  spec 为 approved 版（平台登记 v3 · cmugok2uz000xm9ilx42t8pnl）
+  PASS  六段完整: meta
+  PASS  六段完整: world
+  PASS  六段完整: entities
+  PASS  六段完整: levels
+  PASS  六段完整: numeric
+  PASS  六段完整: acceptance
+  PASS  实体 e-kernel-sim script 存在: games/stack-tower/src/kernel/sim.ts
+  PASS  实体 e-kernel-rng script 存在: games/stack-tower/src/kernel/rng.ts
+  PASS  实体 e-tower-stack script 存在: games/stack-tower/src/kernel/tower.ts
+  PASS  实体 e-block-moving script 存在: games/stack-tower/src/kernel/block.ts
+  PASS  实体 e-cut-system script 存在: games/stack-tower/src/kernel/cut.ts
+  PASS  实体 e-perfect-judge script 存在: games/stack-tower/src/kernel/judge.ts
+  PASS  实体 e-ripple-emitter script 存在: games/stack-tower/src/kernel/ripple.ts
+  PASS  实体 e-difficulty-scheduler script 存在: games/stack-tower/src/kernel/difficulty.ts
+  PASS  实体 e-input-intent script 存在: games/stack-tower/src/platform/input.ts
+  PASS  实体 e-render-canvas2d script 存在: games/stack-tower/src/render/renderer.ts
+  PASS  实体 e-hud-dom script 存在: games/stack-tower/src/ui/hud.ts
+  PASS  实体 e-audio-sfx script 存在: games/stack-tower/src/audio/sfx.ts
+  PASS  实体 e-audio-manager script 存在: games/stack-tower/src/audio/audio-manager.ts
+  PASS  实体 e-touch-input-layer script 存在: games/stack-tower/src/platform/input.ts
+  PASS  实体 e-sfx-pack-v1 script 存在: games/stack-tower/assets/sfx/
+  PASS  实体 e-pwa-shell script 存在: games/stack-tower/index.html
+  PASS  实体 e-pwa-shell script 存在: games/stack-tower/manifest.webmanifest
+  PASS  实体 e-pwa-shell script 存在: games/stack-tower/sw.js
+  PASS  实体 e-pwa-shell script 存在: games/stack-tower/assets/icons/
+  PASS  实体 e-rotate-overlay script 存在: games/stack-tower/src/ui/rotate-overlay.ts
+  PASS  关卡元素编号唯一性核对完成（8 个）
+  PASS  数值扫描源就绪（15 个脚本，三层解析）
+  PASS  数值 DEFAULT_SEED 在工程常量区有对应
+  PASS  数值 FIXED_STEP_MS 在工程常量区有对应
+  PASS  数值 MAX_DT_MS 在工程常量区有对应
+  PASS  数值 audio 在工程常量区有对应
+  PASS  数值 cut_width 在工程常量区有对应
+  PASS  数值 deploy 在工程常量区有对应
+  PASS  数值 difficulty 在工程常量区有对应
+  PASS  数值 mobile 在工程常量区有对应
+  PASS  数值 perfect_window 在工程常量区有对应
+  PASS  数值 scoring 在工程常量区有对应
+  PASS  验收项 ac-lvl01-e01-spawn 依赖存在: games/stack-tower/tests/contract/lvl-01-stack-tower_e01-spawn-first-block.spec.mjs
+  PASS  验收项 ac-lvl01-e02-swing 依赖存在: games/stack-tower/tests/contract/lvl-01-stack-tower_e02-swing-motion.spec.mjs
+  PASS  验收项 ac-lvl01-e03-input 依赖存在: games/stack-tower/tests/contract/lvl-01-stack-tower_e03-drop-input.spec.mjs
+  PASS  验收项 ac-lvl01-e04-cut 依赖存在: games/stack-tower/tests/contract/lvl-01-stack-tower_e04-overlap-cut.spec.mjs
+  PASS  验收项 ac-lvl01-e05-window 依赖存在: games/stack-tower/tests/contract/lvl-01-stack-tower_e05-perfect-window.spec.mjs
+  PASS  验收项 ac-lvl01-e06-ripple 依赖存在: games/stack-tower/tests/contract/lvl-01-stack-tower_e06-tower-ripple.spec.mjs
+  PASS  验收项 ac-lvl01-e07-score 依赖存在: games/stack-tower/tests/contract/lvl-01-stack-tower_e07-score-hud.spec.mjs
+  PASS  验收项 ac-lvl01-e08-recover 依赖存在: games/stack-tower/tests/contract/lvl-01-stack-tower_e08-fail-recover.spec.mjs
+  PASS  验收项 acc-a1 依赖存在: games/stack-tower/tests/contract/m21-acc-a1-sfx-pack-registry.spec.mjs
+  PASS  验收项 acc-a2 依赖存在: games/stack-tower/tests/contract/m21-acc-a2-unlock.spec.mjs
+  PASS  验收项 acc-a3 依赖存在: games/stack-tower/tests/contract/m21-acc-a3-mute-persist.spec.mjs
+  PASS  验收项 acc-a4a 依赖存在: games/stack-tower/tests/contract/m21-acc-a4a-combo-pitch.spec.mjs
+  PASS  验收项 acc-a4b 依赖存在: games/stack-tower/tests/contract/m21-acc-a4b-combo-cap.spec.mjs
+  PASS  验收项 acc-a5a 依赖存在: games/stack-tower/tests/contract/m21-acc-a5a-critical-priority.spec.mjs
+  PASS  验收项 acc-a5b 依赖存在: games/stack-tower/tests/contract/m21-acc-a5b-audio-frame-budget.spec.mjs
+  PASS  验收项 acc-a6 依赖存在: games/stack-tower/tests/contract/m21-acc-a6-restart-event.spec.mjs
+  PASS  验收项 acc-m1 依赖存在: games/stack-tower/tests/contract/m21-acc-m1-safe-area.spec.mjs
+  PASS  验收项 acc-m2 依赖存在: games/stack-tower/tests/contract/m21-acc-m2-touch-input.spec.mjs
+  PASS  验收项 acc-m3 依赖存在: games/stack-tower/tests/contract/m21-acc-m3-rotate-pause.spec.mjs
+  PASS  验收项 acc-m4 依赖存在: games/stack-tower/tests/contract/m21-acc-m4-rotate-aspect.spec.mjs
+  PASS  验收项 acc-d1 依赖存在: games/stack-tower/tests/contract/m21-acc-d1-pwa-shell.spec.mjs
+  PASS  验收项 acc-d2 依赖存在: games/stack-tower/tests/contract/m21-acc-d2-offline-smoke.spec.mjs
+—— 合计 62 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致

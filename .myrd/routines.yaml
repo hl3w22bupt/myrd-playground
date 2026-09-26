@@ -54,7 +54,9 @@ routines:
   description: 断言工程实现与 approved 版策划案（GameDesignSpec）一致 —— 实体/关卡落点文件存在、验收项有可执行检查、关卡元素编号稳定唯一
   gate: false
   params:
-    specPath: .myrd/spec/design-spec.json
+    # specPath 指针治理（B4「一游戏一文件」，2026-09-25）：design-spec.json 为糖果线撞车冻结件
+    # （README 明令不可作为契约依据），stack-tower 的 approved 导出件 = stack-tower-spec.json。
+    specPath: .myrd/spec/stack-tower-spec.json
     projectDir: .
   steps:
   - name: contract-check

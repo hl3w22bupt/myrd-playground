@@ -1,0 +1,1019 @@
+{
+  "meta": {
+    "seeds_start": 42,
+    "seeds_end": 141,
+    "game_count": 100,
+    "spec_version": "v1.2",
+    "built_from": "9152e4b2fb86b0e37beb17bdc258ee0abd924899",
+    "generated_at": "2026-09-22T10:41:54+08:00",
+    "deterministic": true
+  },
+  "per_game": [
+    {
+      "seed": 42,
+      "goals_total": 7,
+      "goals_red": 5,
+      "goals_blue": 2,
+      "duration_s": 90,
+      "shots": 13,
+      "touches": 3894,
+      "errors": []
+    },
+    {
+      "seed": 43,
+      "goals_total": 9,
+      "goals_red": 5,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 13,
+      "touches": 3899,
+      "errors": []
+    },
+    {
+      "seed": 44,
+      "goals_total": 3,
+      "goals_red": 2,
+      "goals_blue": 1,
+      "duration_s": 90,
+      "shots": 14,
+      "touches": 3589,
+      "errors": []
+    },
+    {
+      "seed": 45,
+      "goals_total": 6,
+      "goals_red": 3,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 18,
+      "touches": 3278,
+      "errors": []
+    },
+    {
+      "seed": 46,
+      "goals_total": 4,
+      "goals_red": 2,
+      "goals_blue": 2,
+      "duration_s": 90,
+      "shots": 11,
+      "touches": 3655,
+      "errors": []
+    },
+    {
+      "seed": 47,
+      "goals_total": 9,
+      "goals_red": 5,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 16,
+      "touches": 3716,
+      "errors": []
+    },
+    {
+      "seed": 48,
+      "goals_total": 1,
+      "goals_red": 1,
+      "goals_blue": 0,
+      "duration_s": 90,
+      "shots": 8,
+      "touches": 4193,
+      "errors": []
+    },
+    {
+      "seed": 49,
+      "goals_total": 8,
+      "goals_red": 0,
+      "goals_blue": 8,
+      "duration_s": 90,
+      "shots": 16,
+      "touches": 3324,
+      "errors": []
+    },
+    {
+      "seed": 50,
+      "goals_total": 8,
+      "goals_red": 3,
+      "goals_blue": 5,
+      "duration_s": 90,
+      "shots": 17,
+      "touches": 3595,
+      "errors": []
+    },
+    {
+      "seed": 51,
+      "goals_total": 6,
+      "goals_red": 1,
+      "goals_blue": 5,
+      "duration_s": 90,
+      "shots": 14,
+      "touches": 3836,
+      "errors": []
+    },
+    {
+      "seed": 52,
+      "goals_total": 4,
+      "goals_red": 0,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 11,
+      "touches": 3628,
+      "errors": []
+    },
+    {
+      "seed": 53,
+      "goals_total": 1,
+      "goals_red": 0,
+      "goals_blue": 1,
+      "duration_s": 90,
+      "shots": 15,
+      "touches": 4072,
+      "errors": []
+    },
+    {
+      "seed": 54,
+      "goals_total": 4,
+      "goals_red": 2,
+      "goals_blue": 2,
+      "duration_s": 90,
+      "shots": 9,
+      "touches": 3971,
+      "errors": []
+    },
+    {
+      "seed": 55,
+      "goals_total": 7,
+      "goals_red": 4,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 12,
+      "touches": 3551,
+      "errors": []
+    },
+    {
+      "seed": 56,
+      "goals_total": 3,
+      "goals_red": 0,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 12,
+      "touches": 3760,
+      "errors": []
+    },
+    {
+      "seed": 57,
+      "goals_total": 6,
+      "goals_red": 2,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 13,
+      "touches": 3687,
+      "errors": []
+    },
+    {
+      "seed": 58,
+      "goals_total": 9,
+      "goals_red": 5,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 12,
+      "touches": 4117,
+      "errors": []
+    },
+    {
+      "seed": 59,
+      "goals_total": 6,
+      "goals_red": 1,
+      "goals_blue": 5,
+      "duration_s": 90,
+      "shots": 14,
+      "touches": 3626,
+      "errors": []
+    },
+    {
+      "seed": 60,
+      "goals_total": 5,
+      "goals_red": 1,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 13,
+      "touches": 3654,
+      "errors": []
+    },
+    {
+      "seed": 61,
+      "goals_total": 7,
+      "goals_red": 3,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 13,
+      "touches": 3607,
+      "errors": []
+    },
+    {
+      "seed": 62,
+      "goals_total": 7,
+      "goals_red": 4,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 17,
+      "touches": 3929,
+      "errors": []
+    },
+    {
+      "seed": 63,
+      "goals_total": 5,
+      "goals_red": 2,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 15,
+      "touches": 3616,
+      "errors": []
+    },
+    {
+      "seed": 64,
+      "goals_total": 9,
+      "goals_red": 5,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 14,
+      "touches": 3430,
+      "errors": []
+    },
+    {
+      "seed": 65,
+      "goals_total": 4,
+      "goals_red": 1,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 17,
+      "touches": 3792,
+      "errors": []
+    },
+    {
+      "seed": 66,
+      "goals_total": 2,
+      "goals_red": 1,
+      "goals_blue": 1,
+      "duration_s": 90,
+      "shots": 13,
+      "touches": 3436,
+      "errors": []
+    },
+    {
+      "seed": 67,
+      "goals_total": 6,
+      "goals_red": 2,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 14,
+      "touches": 3755,
+      "errors": []
+    },
+    {
+      "seed": 68,
+      "goals_total": 4,
+      "goals_red": 0,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 13,
+      "touches": 3716,
+      "errors": []
+    },
+    {
+      "seed": 69,
+      "goals_total": 3,
+      "goals_red": 0,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 9,
+      "touches": 3831,
+      "errors": []
+    },
+    {
+      "seed": 70,
+      "goals_total": 8,
+      "goals_red": 2,
+      "goals_blue": 6,
+      "duration_s": 90,
+      "shots": 16,
+      "touches": 4021,
+      "errors": []
+    },
+    {
+      "seed": 71,
+      "goals_total": 3,
+      "goals_red": 1,
+      "goals_blue": 2,
+      "duration_s": 90,
+      "shots": 16,
+      "touches": 3534,
+      "errors": []
+    },
+    {
+      "seed": 72,
+      "goals_total": 5,
+      "goals_red": 2,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 13,
+      "touches": 3754,
+      "errors": []
+    },
+    {
+      "seed": 73,
+      "goals_total": 4,
+      "goals_red": 0,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 11,
+      "touches": 3884,
+      "errors": []
+    },
+    {
+      "seed": 74,
+      "goals_total": 3,
+      "goals_red": 0,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 10,
+      "touches": 3995,
+      "errors": []
+    },
+    {
+      "seed": 75,
+      "goals_total": 5,
+      "goals_red": 4,
+      "goals_blue": 1,
+      "duration_s": 90,
+      "shots": 11,
+      "touches": 3618,
+      "errors": []
+    },
+    {
+      "seed": 76,
+      "goals_total": 1,
+      "goals_red": 1,
+      "goals_blue": 0,
+      "duration_s": 90,
+      "shots": 11,
+      "touches": 3473,
+      "errors": []
+    },
+    {
+      "seed": 77,
+      "goals_total": 3,
+      "goals_red": 2,
+      "goals_blue": 1,
+      "duration_s": 90,
+      "shots": 6,
+      "touches": 4529,
+      "errors": []
+    },
+    {
+      "seed": 78,
+      "goals_total": 4,
+      "goals_red": 2,
+      "goals_blue": 2,
+      "duration_s": 90,
+      "shots": 12,
+      "touches": 3591,
+      "errors": []
+    },
+    {
+      "seed": 79,
+      "goals_total": 7,
+      "goals_red": 2,
+      "goals_blue": 5,
+      "duration_s": 90,
+      "shots": 11,
+      "touches": 3459,
+      "errors": []
+    },
+    {
+      "seed": 80,
+      "goals_total": 2,
+      "goals_red": 1,
+      "goals_blue": 1,
+      "duration_s": 90,
+      "shots": 11,
+      "touches": 3634,
+      "errors": []
+    },
+    {
+      "seed": 81,
+      "goals_total": 6,
+      "goals_red": 3,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 13,
+      "touches": 3592,
+      "errors": []
+    },
+    {
+      "seed": 82,
+      "goals_total": 2,
+      "goals_red": 0,
+      "goals_blue": 2,
+      "duration_s": 90,
+      "shots": 13,
+      "touches": 3356,
+      "errors": []
+    },
+    {
+      "seed": 83,
+      "goals_total": 2,
+      "goals_red": 1,
+      "goals_blue": 1,
+      "duration_s": 90,
+      "shots": 12,
+      "touches": 3770,
+      "errors": []
+    },
+    {
+      "seed": 84,
+      "goals_total": 6,
+      "goals_red": 3,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 11,
+      "touches": 3984,
+      "errors": []
+    },
+    {
+      "seed": 85,
+      "goals_total": 9,
+      "goals_red": 3,
+      "goals_blue": 6,
+      "duration_s": 90,
+      "shots": 12,
+      "touches": 4022,
+      "errors": []
+    },
+    {
+      "seed": 86,
+      "goals_total": 7,
+      "goals_red": 3,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 13,
+      "touches": 3855,
+      "errors": []
+    },
+    {
+      "seed": 87,
+      "goals_total": 4,
+      "goals_red": 0,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 10,
+      "touches": 4037,
+      "errors": []
+    },
+    {
+      "seed": 88,
+      "goals_total": 2,
+      "goals_red": 0,
+      "goals_blue": 2,
+      "duration_s": 90,
+      "shots": 13,
+      "touches": 3461,
+      "errors": []
+    },
+    {
+      "seed": 89,
+      "goals_total": 8,
+      "goals_red": 5,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 15,
+      "touches": 3391,
+      "errors": []
+    },
+    {
+      "seed": 90,
+      "goals_total": 8,
+      "goals_red": 1,
+      "goals_blue": 7,
+      "duration_s": 90,
+      "shots": 15,
+      "touches": 3611,
+      "errors": []
+    },
+    {
+      "seed": 91,
+      "goals_total": 8,
+      "goals_red": 1,
+      "goals_blue": 7,
+      "duration_s": 90,
+      "shots": 16,
+      "touches": 3515,
+      "errors": []
+    },
+    {
+      "seed": 92,
+      "goals_total": 6,
+      "goals_red": 4,
+      "goals_blue": 2,
+      "duration_s": 90,
+      "shots": 14,
+      "touches": 3537,
+      "errors": []
+    },
+    {
+      "seed": 93,
+      "goals_total": 6,
+      "goals_red": 2,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 12,
+      "touches": 4158,
+      "errors": []
+    },
+    {
+      "seed": 94,
+      "goals_total": 5,
+      "goals_red": 2,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 10,
+      "touches": 4222,
+      "errors": []
+    },
+    {
+      "seed": 95,
+      "goals_total": 6,
+      "goals_red": 3,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 21,
+      "touches": 3367,
+      "errors": []
+    },
+    {
+      "seed": 96,
+      "goals_total": 5,
+      "goals_red": 4,
+      "goals_blue": 1,
+      "duration_s": 90,
+      "shots": 16,
+      "touches": 3925,
+      "errors": []
+    },
+    {
+      "seed": 97,
+      "goals_total": 2,
+      "goals_red": 0,
+      "goals_blue": 2,
+      "duration_s": 90,
+      "shots": 9,
+      "touches": 3984,
+      "errors": []
+    },
+    {
+      "seed": 98,
+      "goals_total": 4,
+      "goals_red": 3,
+      "goals_blue": 1,
+      "duration_s": 90,
+      "shots": 14,
+      "touches": 3854,
+      "errors": []
+    },
+    {
+      "seed": 99,
+      "goals_total": 7,
+      "goals_red": 4,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 14,
+      "touches": 3560,
+      "errors": []
+    },
+    {
+      "seed": 100,
+      "goals_total": 8,
+      "goals_red": 3,
+      "goals_blue": 5,
+      "duration_s": 90,
+      "shots": 15,
+      "touches": 3684,
+      "errors": []
+    },
+    {
+      "seed": 101,
+      "goals_total": 4,
+      "goals_red": 2,
+      "goals_blue": 2,
+      "duration_s": 90,
+      "shots": 12,
+      "touches": 4056,
+      "errors": []
+    },
+    {
+      "seed": 102,
+      "goals_total": 8,
+      "goals_red": 4,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 14,
+      "touches": 3762,
+      "errors": []
+    },
+    {
+      "seed": 103,
+      "goals_total": 5,
+      "goals_red": 2,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 12,
+      "touches": 3591,
+      "errors": []
+    },
+    {
+      "seed": 104,
+      "goals_total": 5,
+      "goals_red": 2,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 12,
+      "touches": 3514,
+      "errors": []
+    },
+    {
+      "seed": 105,
+      "goals_total": 3,
+      "goals_red": 0,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 9,
+      "touches": 4229,
+      "errors": []
+    },
+    {
+      "seed": 106,
+      "goals_total": 4,
+      "goals_red": 2,
+      "goals_blue": 2,
+      "duration_s": 90,
+      "shots": 13,
+      "touches": 3454,
+      "errors": []
+    },
+    {
+      "seed": 107,
+      "goals_total": 3,
+      "goals_red": 1,
+      "goals_blue": 2,
+      "duration_s": 90,
+      "shots": 15,
+      "touches": 3493,
+      "errors": []
+    },
+    {
+      "seed": 108,
+      "goals_total": 6,
+      "goals_red": 3,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 18,
+      "touches": 3750,
+      "errors": []
+    },
+    {
+      "seed": 109,
+      "goals_total": 10,
+      "goals_red": 3,
+      "goals_blue": 7,
+      "duration_s": 90,
+      "shots": 9,
+      "touches": 4281,
+      "errors": []
+    },
+    {
+      "seed": 110,
+      "goals_total": 5,
+      "goals_red": 3,
+      "goals_blue": 2,
+      "duration_s": 90,
+      "shots": 9,
+      "touches": 3902,
+      "errors": []
+    },
+    {
+      "seed": 111,
+      "goals_total": 5,
+      "goals_red": 2,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 14,
+      "touches": 3557,
+      "errors": []
+    },
+    {
+      "seed": 112,
+      "goals_total": 3,
+      "goals_red": 0,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 13,
+      "touches": 3615,
+      "errors": []
+    },
+    {
+      "seed": 113,
+      "goals_total": 5,
+      "goals_red": 4,
+      "goals_blue": 1,
+      "duration_s": 90,
+      "shots": 10,
+      "touches": 4369,
+      "errors": []
+    },
+    {
+      "seed": 114,
+      "goals_total": 5,
+      "goals_red": 2,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 15,
+      "touches": 4012,
+      "errors": []
+    },
+    {
+      "seed": 115,
+      "goals_total": 4,
+      "goals_red": 2,
+      "goals_blue": 2,
+      "duration_s": 90,
+      "shots": 10,
+      "touches": 4121,
+      "errors": []
+    },
+    {
+      "seed": 116,
+      "goals_total": 6,
+      "goals_red": 2,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 8,
+      "touches": 4037,
+      "errors": []
+    },
+    {
+      "seed": 117,
+      "goals_total": 7,
+      "goals_red": 0,
+      "goals_blue": 7,
+      "duration_s": 90,
+      "shots": 18,
+      "touches": 3975,
+      "errors": []
+    },
+    {
+      "seed": 118,
+      "goals_total": 6,
+      "goals_red": 3,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 15,
+      "touches": 3854,
+      "errors": []
+    },
+    {
+      "seed": 119,
+      "goals_total": 9,
+      "goals_red": 5,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 14,
+      "touches": 4203,
+      "errors": []
+    },
+    {
+      "seed": 120,
+      "goals_total": 7,
+      "goals_red": 1,
+      "goals_blue": 6,
+      "duration_s": 90,
+      "shots": 12,
+      "touches": 3847,
+      "errors": []
+    },
+    {
+      "seed": 121,
+      "goals_total": 5,
+      "goals_red": 1,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 10,
+      "touches": 3735,
+      "errors": []
+    },
+    {
+      "seed": 122,
+      "goals_total": 9,
+      "goals_red": 5,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 18,
+      "touches": 3472,
+      "errors": []
+    },
+    {
+      "seed": 123,
+      "goals_total": 9,
+      "goals_red": 4,
+      "goals_blue": 5,
+      "duration_s": 90,
+      "shots": 16,
+      "touches": 3101,
+      "errors": []
+    },
+    {
+      "seed": 124,
+      "goals_total": 11,
+      "goals_red": 4,
+      "goals_blue": 7,
+      "duration_s": 90,
+      "shots": 16,
+      "touches": 3833,
+      "errors": []
+    },
+    {
+      "seed": 125,
+      "goals_total": 7,
+      "goals_red": 1,
+      "goals_blue": 6,
+      "duration_s": 90,
+      "shots": 10,
+      "touches": 3861,
+      "errors": []
+    },
+    {
+      "seed": 126,
+      "goals_total": 6,
+      "goals_red": 1,
+      "goals_blue": 5,
+      "duration_s": 90,
+      "shots": 7,
+      "touches": 3868,
+      "errors": []
+    },
+    {
+      "seed": 127,
+      "goals_total": 5,
+      "goals_red": 1,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 18,
+      "touches": 3628,
+      "errors": []
+    },
+    {
+      "seed": 128,
+      "goals_total": 5,
+      "goals_red": 2,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 11,
+      "touches": 3589,
+      "errors": []
+    },
+    {
+      "seed": 129,
+      "goals_total": 7,
+      "goals_red": 2,
+      "goals_blue": 5,
+      "duration_s": 90,
+      "shots": 16,
+      "touches": 3983,
+      "errors": []
+    },
+    {
+      "seed": 130,
+      "goals_total": 2,
+      "goals_red": 1,
+      "goals_blue": 1,
+      "duration_s": 90,
+      "shots": 13,
+      "touches": 3597,
+      "errors": []
+    },
+    {
+      "seed": 131,
+      "goals_total": 5,
+      "goals_red": 3,
+      "goals_blue": 2,
+      "duration_s": 90,
+      "shots": 8,
+      "touches": 4181,
+      "errors": []
+    },
+    {
+      "seed": 132,
+      "goals_total": 9,
+      "goals_red": 2,
+      "goals_blue": 7,
+      "duration_s": 90,
+      "shots": 19,
+      "touches": 3052,
+      "errors": []
+    },
+    {
+      "seed": 133,
+      "goals_total": 8,
+      "goals_red": 3,
+      "goals_blue": 5,
+      "duration_s": 90,
+      "shots": 14,
+      "touches": 3956,
+      "errors": []
+    },
+    {
+      "seed": 134,
+      "goals_total": 4,
+      "goals_red": 0,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 13,
+      "touches": 3622,
+      "errors": []
+    },
+    {
+      "seed": 135,
+      "goals_total": 4,
+      "goals_red": 3,
+      "goals_blue": 1,
+      "duration_s": 90,
+      "shots": 12,
+      "touches": 3555,
+      "errors": []
+    },
+    {
+      "seed": 136,
+      "goals_total": 7,
+      "goals_red": 5,
+      "goals_blue": 2,
+      "duration_s": 90,
+      "shots": 12,
+      "touches": 3733,
+      "errors": []
+    },
+    {
+      "seed": 137,
+      "goals_total": 5,
+      "goals_red": 2,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 12,
+      "touches": 3472,
+      "errors": []
+    },
+    {
+      "seed": 138,
+      "goals_total": 3,
+      "goals_red": 2,
+      "goals_blue": 1,
+      "duration_s": 90,
+      "shots": 8,
+      "touches": 4098,
+      "errors": []
+    },
+    {
+      "seed": 139,
+      "goals_total": 7,
+      "goals_red": 5,
+      "goals_blue": 2,
+      "duration_s": 90,
+      "shots": 12,
+      "touches": 3782,
+      "errors": []
+    },
+    {
+      "seed": 140,
+      "goals_total": 9,
+      "goals_red": 5,
+      "goals_blue": 4,
+      "duration_s": 90,
+      "shots": 14,
+      "touches": 4061,
+      "errors": []
+    },
+    {
+      "seed": 141,
+      "goals_total": 6,
+      "goals_red": 3,
+      "goals_blue": 3,
+      "duration_s": 90,
+      "shots": 14,
+      "touches": 3917,
+      "errors": []
+    }
+  ],
+  "summary": {
+    "goal_range_ratio": 1,
+    "duration_in_range_ratio": 1,
+    "games_with_errors": 0,
+    "errors": []
+  }
+}

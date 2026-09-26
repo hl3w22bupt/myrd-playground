@@ -1,0 +1,22 @@
+{
+  "name": "stack-tower",
+  "version": "0.1.0",
+  "private": true,
+  "description": "M2 首卡 · Stack Tower（叠塔）— TS + Canvas2D + vanilla，确定性内核 + 契约测试",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "contract": "node tests/contract/run-all.mjs",
+    "assets:generate": "node tools/gen-assets.mjs",
+    "audio:generate": "node tools/gen-audio.mjs",
+    "sw:generate": "node tools/gen-sw.mjs",
+    "spec:build-m21": "node tools/build-spec-m21.mjs",
+    "assets:check": "node tests/assets-check.mjs",
+    "serve": "node serve.mjs",
+    "smoke": "node tests/smoke.mjs"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3"
+  }
+}

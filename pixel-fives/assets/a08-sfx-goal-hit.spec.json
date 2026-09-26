@@ -1,0 +1,54 @@
+{
+  "id": "A08",
+  "name": "sfx-goal-hit",
+  "kind": "audio",
+  "status": "draft-pending-approval",
+  "added_by": "2026-09-12 例会主策划终裁（音效不删、变可测）",
+  "format": {
+    "container": "wav",
+    "codec": "pcm_s16le",
+    "channels": 1,
+    "sample_rate_hz": 44100,
+    "duration_s": 0.6,
+    "normalize_dbfs": -3,
+    "seed": 20260912
+  },
+  "layers": [
+    {
+      "name": "net-swish",
+      "desc": "球网摩擦：带通噪声爆发",
+      "type": "bandpass-noise",
+      "center_hz": 2400,
+      "q": 1.2,
+      "attack_s": 0.002,
+      "decay_s": 0.16,
+      "gain_db": -6
+    },
+    {
+      "name": "thump",
+      "desc": "球体闷响：下扫正弦",
+      "type": "sine-sweep",
+      "freq_hz": 90,
+      "end_freq_hz": 60,
+      "attack_s": 0.001,
+      "decay_s": 0.12,
+      "gain_db": -4
+    },
+    {
+      "name": "crowd-rise",
+      "desc": "观众声浪起：低通噪声渐强渐弱",
+      "type": "lowpass-noise",
+      "cutoff_hz": 900,
+      "attack_s": 0.25,
+      "release_s": 0.25,
+      "gain_db": -14
+    }
+  ],
+  "trigger": {
+    "field": "goal_sfx_at_s",
+    "offset_s": 0.0,
+    "owner": "spec v1.2（字段归属策划案落文，美术侧仅登记默认偏移）"
+  },
+  "build": "node pixel-fives/tools/gen-audio.mjs  →  assets/a08-sfx-goal-hit.wav（确定性输出，同 seed 必同比特）",
+  "preview": "pixel-fives/preview.html 内置 WebAudio 同参试听（无需生成 wav）"
+}

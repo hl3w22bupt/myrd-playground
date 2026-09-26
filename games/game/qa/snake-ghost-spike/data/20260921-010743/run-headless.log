@@ -1,0 +1,67 @@
+Godot Engine v4.3.stable.official.77dcf97d8 - https://godotengine.org
+
+SPIKE: begin run_sec=60 life=3.0s hz=10 pool=30 out=/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmu94gra4000vm9kjjtw8ys6z/games/game/qa/snake-ghost-spike/data/20260921-010743
+SPIKE: sample second=0 fps=51 frame_ms_avg=17.10 frame_ms_min=0.00 frame_ms_max=75.34 ghosts=10 pool_exhausted=0
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.66 frame_ms_max=16.67 ghosts=20 pool_exhausted=0
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=30 pool_exhausted=0
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.64 frame_ms_max=16.67 ghosts=29 pool_exhausted=1
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.64 frame_ms_max=16.67 ghosts=29 pool_exhausted=1
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.63 frame_ms_max=16.67 ghosts=29 pool_exhausted=1
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.66 frame_ms_min=16.45 frame_ms_max=16.67 ghosts=29 pool_exhausted=2
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=2
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.65 frame_ms_max=16.67 ghosts=29 pool_exhausted=2
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=3
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=3
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=3
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=4
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=4
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=4
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=5
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=5
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=5
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=6
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=6
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=6
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=7
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=7
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=7
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=8
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=8
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=8
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=9
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=9
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=9
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=10
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=10
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=10
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=30 pool_exhausted=10
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=11
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=11
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=11
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=12
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=12
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=12
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=13
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=13
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=13
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=14
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=14
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=14
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=15
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=15
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=15
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=16
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=16
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=16
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=17
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=17
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=17
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=18
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=18
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=18
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=19
+SPIKE: sample second=0 fps=60 frame_ms_avg=16.67 frame_ms_min=16.67 frame_ms_max=16.67 ghosts=29 pool_exhausted=19
+SPIKE: csv written /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmu94gra4000vm9kjjtw8ys6z/games/game/qa/snake-ghost-spike/data/20260921-010743/fps.csv
+SPIKE: json written /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmu94gra4000vm9kjjtw8ys6z/games/game/qa/snake-ghost-spike/data/20260921-010743/mem.json
+SPIKE: verdict_desktop fps_pct_at60=98.3%(阈值≥95%) p1_low_fps=58.5(阈值≥45) heap_delta=0.0MB(阈值<50MB) pool_exhausted=19
+SPIKE: verdict_desktop fps=能 mem=能 => 桌面口径 能
