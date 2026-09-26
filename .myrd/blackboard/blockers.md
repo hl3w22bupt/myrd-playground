@@ -33,6 +33,12 @@
 - 壳改造（本分支 `server/`，糖果线不受影响——各线部署按各自分支构建壳）：糖果落地页已替换为 stack-tower 专属壳；对齐平台契约三事实——`/gw` 网关别名 + 子路径透传、image/audio 响应 502 黑名单（二进制以 base64 文本回传 + 页面 boot 脚本还原）、`/api/*` 路由护栏（公开资产走 `/api/public/assets/*`）
 - 经验教训：slug 一旦误建软删后**不可释放**，建坑前必须先 `GET /api/v1/apphost/apps?slug=` 检索；仓库根 `server/` 是「各分支各自的游戏壳」，不是通用静态托管——新游戏部署前先确认壳身份（/health 的 app 字段）
 
+### B8 · spec v1.1「登记就绪版」挂账（2026-09-26，纸面终稿已落盘，未登记）
+- **产物链（可复现）**：`games/stack-tower/tools/build-spec-v11-ready.mjs`（冻结守卫 + 只增不改）→ `.myrd/spec/stack-tower-spec-v1.1-payload.json`（POST /revisions 载荷 `{spec, detail}`）→ `scripts/spec-v11-emit-yaml.py`（发射 + 5 项就绪校验全绿）→ `.myrd/spec/stack-tower-spec-v1.1-ready.yaml`（全文 yaml 终稿）。
+- **折入内容（QA 三处缺陷修复一次性）**：D1 `numeric_add` benchmark_device（实验室=playwright chromium + 4x CPU throttle + 390x844/360x640；真机单列注明型号+UA）+ content.benchmark；D2 `acceptance_add` acc-a7「冷启动首触即放置」（`tests/audio/events.test.ts`）+ world 实现约束（闸门不得吞掉或延后首次出声，仍受 50ms 约束），不设 iOS 豁免；D3 content.evidence 全局证据条款（每条冒烟留文件名+日期+命令+输出摘要）+ BGM 接缝双轨证据（听测留档 + `tests/audio/bgm-loop.test.ts` 调度连续性断言并行，均不可省）。
+- **版本口径（沿 2026-09-25 判例）**：任务书所称 v1.1 ≡ 平台链 v3（approved `cmugok2uz000xm9ilx42t8pnl`）下一版；登记 = POST revisions version+1 单版落账，旧版自动 superseded；v1 起冻结数值七键 v1/v3/v1.1 三方键序无关深比全等（diff 为空）；版本链仅此一版，不产生 v1.2。基线门禁复跑 run-all PASS 22 / FAIL 0 / not-runnable 0（2026-09-26，基线导出件未动）。
+- **待办**：① 游戏 QA 纸面预审（仅核 D1/D2/D3 关闭 + 两锚点；**不构成 M2.1 核销**）；② 平台项目面权限不可达（GET `game-design-specs?projectId=` → FORBIDDEN「您不是该项目的成员」，2026-09-26 实查）——环境恢复后按 payload 一键登记；③ D4 两用例落盘与全部核销冻结不变（等主人答复 D5）；④ 登记 + D4 落盘时同步 `src/kernel/numeric.ts` 镜像 benchmark_device 组（契约 e07 数值总闸全量深比）。
+
 ### B6 · 真机三项 + 帧率/安装面挂日期（2026-09-26 待排期，不阻塞代码收口）
 - acc-a2（iOS 首手势解锁）/ acc-m2（触控归一）/ acc-m3（遮罩暂停）真机核销 + acc-a5b 帧率面板录屏 + acc-d1 安装面。
 - 证据形式：设备型号 + 录屏（清单见 `games/stack-tower/docs/qa-m21-verification.md` §3）。自动化面已全绿，真机未核销前不判「已完成」。
