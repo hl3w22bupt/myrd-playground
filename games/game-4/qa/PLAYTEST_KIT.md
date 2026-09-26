@@ -32,6 +32,39 @@
 > **复验（2026-09-27 iterate 收口轮，HEAD `4b24894`）**：四门禁在本 HEAD 复跑全绿；
 > `GODOT_PLAYTEST_METRICS` 与上表**逐字段一致**（3 种子确定性复现），
 > 复验与 v6 部署取证见 `qa/LIVE_VERIFY.md` §五。
+>
+> **再复验（2026-09-27 iterate 收口第 2 轮，HEAD `8551380`）**：四门禁再次复跑全绿
+> （PREFLIGHT 13 类/63 文件 → GODOT_SMOKE 240 帧 → GODOT_FUZZ 6 批 239 帧 →
+> GODOT_PLAYTEST 3 种子×900 帧）；`GODOT_PLAYTEST_METRICS` 与上表**逐字段一致**
+> （run1 1.45s/156、run2 null/147、run3 11.5s/173，3 种子确定性第 3 次复现）；
+> Web 重导出产物与库内基线逐字节一致（pck `5bfa5ca8…` / wasm `fe5cebc5…`）。
+> 本轮部署与公网核验收敛于同一 HEAD，取证见 `qa/LIVE_VERIFY.md` §七。
+>
+> **本轮（2026-09-27 调参工作台轮，面板落地）**：补齐 §3C 三件套缺失的面板件
+> （`scripts/tuning_panel.gd` 模板复制 + `?tuning=1` 壳页标记 + `tuning_changed` 即时重绘），
+> 冒烟新增调参协议断言（TUNING_META 完整性 / set 钳制 / 未知键拒绝）。四门禁在本轮 HEAD
+> 复跑**全绿**（PREFLIGHT 13 类/64 文件 → GODOT_SMOKE 240 帧 → GODOT_FUZZ 6 批 239 帧 →
+> GODOT_PLAYTEST 3 种子×900 帧）；`GODOT_PLAYTEST_METRICS` 与上表**逐字段一致**
+> （确定性第 4 次复现）。Web 重导出：pck `46606b15…`（脚本入包，按预期变化），
+> wasm `fe5cebc5…` 与 js `8b649683…` 不变（引擎层无变化）。部署与公网核验见
+> `qa/LIVE_VERIFY.md` §八。
+>
+> **本轮追补（模板缺陷修复 + 浏览器实测）**：真浏览器（Chromium 内核 + swiftshader 软渲染）
+> 实测发现模板 `is_enabled()` 在 Web 上**恒假** —— Godot 4.3 的 `JavaScriptBridge.eval` 对
+> 布尔表达式回传被数值化（`true`→`"1"`），`"… !== null"` 恒等于 `"1"` ≠ `"true"`；
+> 修复为 JS 侧先转字符串（`String(new URLSearchParams(location.search).has('tuning'))`）。
+> 实测矩阵（eval 回传语义）：`'ok'`→`"ok"` ✓ / `1+1`→`"2"` ✓ / 裸布尔→`"1"` ✗ /
+> `String(bool)`→`"true"` ✓ / `JSON.stringify(bool)`→`"true"` ✓ —— **跨 eval 传值一律用
+> 字符串**（该发现已留档，供技能包模板后续修正参考）。修复后本地双场景实测通过：
+> `?tuning=1` 面板浮出（滑杆 6/16）+ 带桥壳注入 `{"beam_core_width":12}` 滑杆显示 12
+> （截图 `qa/shots-live-verify/tuning-panel-local-*.png`）；修复态四门禁复跑全绿
+> （PREFLIGHT 13 类/66 文件 → SMOKE → FUZZ → PLAYTEST，METRICS 确定性第 5 次逐字段一致）。
+>
+> **公网实测（v9 部署 `cmuipykw3007em9l6darx2jw0`，HEAD `0f57a73`）**：
+> `<liveUrl>?tuning=1` 面板浮出（`__GAME_TUNING_PANEL__='shown'`，右上角滑杆 6/16）；
+> 真壳页注入 `?tuning={"beam_core_width":14}` 滑杆正确显示 14 —— 调参回传通道在公网就绪
+> （截图 `qa/shots-live-verify/tuning-panel-LIVE-*.png`，HTTP 级核验见 `qa/LIVE_VERIFY.md` §八）。
+> **四问量表仍「待用户试玩（未回填）」—— 调参工作台入口：`<liveUrl>?tuning=1`。**
 
 ## 二、playtest 协议修复史（FAIL → PASS，可审计）
 
@@ -121,11 +154,25 @@
 - `[ ]` 无　`[ ]` 有
 - 若「有」：第 ___ 关 / 第 ___ 秒，表现：______
 
-## 六、调参工作台
+## 六、调参工作台（入口：`<liveUrl>?tuning=1`）
 
-- 壳页解析 `?tuning=<JSON>` → `window.__GAME_TUNING__` → `GameState._apply_tuning()`
-  只认 `TUNING_META` 声明键并按 min/max 钳制；非法输入一律忽略，不阻断启动。
-- 当前键：`beam_core_width`（2~16，默认 6，光束主线宽）、`beam_glow_width`（4~40，默认 16，辉光宽）。
+- **怎么打开**：试玩入口 URL 后加 `?tuning=1`
+  （例：`https://leomac-studio.tail49399e.ts.net/apps/game-4/gw?tuning=1`），
+  画面**右上角**浮出「调参工作台」面板。
+- **面板有什么**：按 `GameState.TUNING_META` 生成的滑杆（键名 + 滑杆 + 当前值），
+  **拖动即时生效**（`tuning_changed` 信号 → 棋盘重绘光束，无需通关/旋转才看到变化）。
+- **怎么把调参结果发回来**：拖到满意的数值后点「**复制调参 URL**」，得到带
+  `?tuning=<JSON>` 的完整链接（同时显示在面板底部，剪贴板被拒时手动复制亦可）。
+  把该链接发回来 = 一次完整的调参结果，agent 解析 diff 后走
+  `POST /api/v1/game-design-specs/:id/revisions` 回写 spec.numeric → approve 拍板。
+- **注入链路**：壳页解析 `?tuning=<JSON>` → `window.__GAME_TUNING__` →
+  `GameState._apply_tuning()` 只认 `TUNING_META` 声明键并按 min/max 钳制；
+  非对象 / 数组 / 非法 JSON 一律忽略，不阻断启动。`?tuning=1`（非 JSON 值）只开面板不注入数值。
+- **机器取证锚点**：面板真正浮出后向壳页写 `window.__GAME_TUNING_PANEL__='shown'`
+  （壳页先把 `?tuning=1` 置 `'requested'`）—— 公网核验据此断言工作台真实出现。
+  注：桥回传布尔会被数值化（见 §一本轮追补），跨桥判定一律走字符串回传。
+- 当前可调键：`beam_core_width`（2~16，步长 1，默认 6，光束主线宽）、
+  `beam_glow_width`（4~40，步长 1，默认 16，辉光宽）。
 - 玩法数值（par/星级阈值）已按拍板固化进 `levels.gd`，不走 URL 调参；后续修订走
   `qa/spec-numeric.json` → revisions → approve 流程。
 

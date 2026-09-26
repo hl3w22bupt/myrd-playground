@@ -20,6 +20,10 @@ var _status_line: String = ""
 func _ready() -> void:
 	if DisplayServer.is_touchscreen_available():
 		touch_ui.visible = true
+	# 调参工作台（SKILL.md §3C）：仅网页 + URL 带 ?tuning= 时浮出（?tuning=1 / ?tuning=<JSON> 都算）；
+	# 桌面与无头门禁环境 is_enabled() 恒 false，零成本。
+	if TuningPanel.is_enabled():
+		add_child(TuningPanel.new())
 	# 信号连接：订阅方（本场景）写连接代码，发布方（board / GameState）只 emit。
 	board.rotate_requested.connect(_on_board_rotate_requested)
 	board.level_loaded.connect(_on_board_level_loaded)
