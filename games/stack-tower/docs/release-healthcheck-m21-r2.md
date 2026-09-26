@@ -59,3 +59,12 @@
 
 - **U1** audio events/bgm-loop 冻结件（等 D5 答复）· **U2** 真机三项 · **U3** iOS 真机 · **U4** v1.1 平台登记 · **U5** 试玩终裁
 - **U7（新立案，本轮不修）**：壳形态 `Image` 贴图经 boot 补丁取 base64 文本 → `blob()` 为文本 blob → 贴图降级程序化绘制（线上/离线一致、不影响可玩性与门禁）；修复点=`server/src/boot-script.ts` 改用还原字节的 fetch（约 3 行），待主人排期。实证：shell-sim NOTE 行 + 线上探针 ERROR。
+
+## 7. r2 过程增补（2026-09-26，全留痕）
+
+1. **U6 修复实施**（①头 ②显式注册 ③live-smoke 补断言）+ 过程中新发现④目录形态 `./` 断供（cache.addAll 整体拒绝、install 永不完成）⑤precache `./index.html` 为裸 HTML（离线导航回退页无 `<base>`，模块解析错位）——均壳侧修复。
+2. **本地壳形态模拟门禁**（`tests/shell-sim.mjs`）复刻 `<base>`+boot+base64+`/apps/<slug>/gw`：先复现缺陷（SW 不激活/断网不可玩），修复后 **PASS**（断网 reload 落块得分 35）。
+3. **改道实验（已回退）**：`b44c016` 试挂应用根 `/sw.js` 路由（precache 键重写）摆脱头的依赖，壳形态门禁 PASS，但平台部署护栏拒绝（「护栏违规：业务路由必须位于 /api/* 下（/health 豁免）。违规路由: /sw.js」，deployment `cmuhz1xds001jm97c9y2wzrp7` 构建日志）→ `6a6b4a8` 回退。
+4. **三层头剥离定位**：实例直连（127.0.0.1:41007）有头 ✓ → 平台公网代理（:3001）无头 ✗ → funnel 仅转发。R2 立案升级主人。
+5. **deploy 事故披露**：首次 deploy 漏传 `manifestPath`，平台按仓库根清单（糖果线）上传资产，生产串线约 3 分钟（`cmuhynlf7001dm97c8qbxvwx1`，05:40–05:43），已用正确清单纠正；最终生产 = `cmuhzflkk001mm97cxzu1tphg` @ `6a6b4a8`（= 本 tag 树）。教训：**deploy 必带 `manifestPath=games/stack-tower/apphost.toml`**。
+6. **最终门禁矩阵**（本 tag 树，八道全绿）：§4 表 1–7 + `8-server-typecheck.log`（server 侧 `npx tsc --noEmit`，与平台构建 step2b 同命令）。

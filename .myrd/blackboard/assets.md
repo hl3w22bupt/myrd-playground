@@ -55,3 +55,9 @@
 ## 红线
 - 零外部资源（不引入 http(s) 外链、不下载素材包）；assets/ 全部由仓库内生成器产出并入库。
 - 任一资产超预算 → 先砍表现层细节，不动玩法数值。
+
+## r2 复验轮增记（2026-09-26）
+
+- 资产面**零改动**：`git diff stack-tower-m2.1-release..stack-tower-m2.1-release-r2 -- games/stack-tower/assets/` 为空（r1 美术终检与 sfx 双签结论**原样沿用**，不重复终检）。
+- 资产核对状态 = 终检完成（r1 四项全 PASS）+ r2 可达性复验（线上 manifest/3 图标/12 sfx 资产通道 200，live-smoke L7 PASS）。
+- 新立案 **U7**（非素材面缺陷，壳交付链路）：boot 补丁 Image 加载 base64→文本 blob → 贴图在线降级程序化绘制（素材本体在库且字节正确，属「素材已到位、壳未还原」）；修复点 `server/src/boot-script.ts` 约 3 行，待主人排期。**素材面无需重做。**

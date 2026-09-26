@@ -2,8 +2,9 @@
 
 > 撰写：T2 游戏策划（主策划派单）· 日期 2026-09-26
 > **状态：扣住（HELD）——本 notes 在 QA 第二段「对外放行」（N6 线上冒烟全绿）前不生效、不对外宣告**；生效时由主策划在 N7 改签状态并登记版本链
-> 发布对象：tag `stack-tower-m2.1-release` @ `5a3284fa137a3926fabb5f7b4fcdd098bd075df3`
-> 对内放行凭据：QA 回执 `QA-REL-M21-20260926-01`
+> r2 增记（2026-09-26 复验轮）：对外放行再次不通过（QA-LIVE-M21-20260926-04）——直接原因收敛为平台层缺陷 R2（公网代理剥离 `Service-Worker-Allowed` + 路由护栏），工程侧修复已全量落码（tag `stack-tower-m2.1-release-r2` @ `6a6b4a8`）并八道门禁全绿；**「可安装/断网可玩」仍然禁止对外宣告**，R2 解除后本 notes 无需改稿、直接复跑 N6
+> 发布对象：tag `stack-tower-m2.1-release` @ `5a3284fa137a3926fabb5f7b4fcdd098bd075df3`（r1）/ `stack-tower-m2.1-release-r2` @ `6a6b4a8`（r2）
+> 对内放行凭据：QA 回执 `QA-REL-M21-20260926-01`（r1）/ `QA-REL-M21-20260926-03`（r2）
 
 ---
 

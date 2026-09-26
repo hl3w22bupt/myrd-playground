@@ -1,10 +1,9 @@
 # 阻塞项黑板 — stack-tower（M2 首卡 → M2.1「有声可装」→ 正式发布轮）
 
-> 更新时间：2026-09-26（**正式发布轮开工**（M2.1 增量构建 · 两段式放行）：发布基线 = 平台 spec v3 approved（`cmugok2uz000xm9ilx42t8pnl`，API 实查）；HEAD `eddcf0c` vs 9/25 已部署版 `75debf9` 增量 10 文件全部分类为文档/spec 纸面/测试工具/平台注入，**游戏运行时文件零变化、发布面（export/web·src·sw.js·manifest·assets·server）两版字节全等**；本轮铁律：不动 v1 冻结数值 · spec 零改动 · 程序只体检不改码 · 美术只检不新做；四项裁定见 §正式发布轮）
-> 前轮纪要：2026-09-25（M2.1 复验轮·二巡）：六道门禁全绿——routine 注参口径 CONTRACT PASS 62/0 / A–E PASS 22/22 / run-all 22/0/0 / smoke PASS (browser) / assets PASS (browser) / build+typecheck 绿；取证 `gate-logs/m21-reverify-20260925-round2/` 5 份
-> 前巡·终证（同日）：干净 shell 五道门禁全量复跑取证——A–E PASS 22/22 / run-all 22/0/0 / smoke PASS (browser) / assets PASS (browser) / build+typecheck 绿；**销账 2 项**：playwright 装载器环境缺口（m1/m3/d2 假 not-runnable）+ sw.js precache 清单落后 build 5 项，见缺陷台账；**第四轮驳回销账**：routine「游戏契约测试」SPEC_NOT_APPROVED 三层根因（specPath 漏网 + unified 三代形状兼容）→ routine 口径复跑 CONTRACT: PASS 62/0；取证 `gate-logs/m21-reverify-20260925-art-final/` 8 份
+> 更新时间：2026-09-26（**复验轮（r2）收口**：主人重发任务解冻 R1 → U6 工程修复全量落码（R1①②③④⑤，`6a6b4a8` = tag `stack-tower-m2.1-release-r2`）→ 八道门禁全绿 + 新增壳形态模拟门禁 PASS → deploy 成功 → **N6 对外放行再次 FAIL：直接原因收敛为平台层缺陷 R2**（实例已发 `Service-Worker-Allowed`，平台公网代理剥离 + 路由护栏禁应用根静态路由，三层实测留证）→ notes 维持 HELD → **R2 升级主人**。过程全留痕见 `docs/release-healthcheck-m21-r2.md` §7 与 `docs/qa-live-check-m21-r2.md`）
+> 前轮纪要：2026-09-26 上午（r1）：N1 体检→N2 对内 PASS（QA-REL-M21-20260926-01）→N3 素材终检→N4 notes HELD→N5 deploy 成功（tag `stack-tower-m2.1-release` @ `5a3284f`）→ N6 对外 FAIL（U6 线上 SW scope 缺陷）→ R1 立案；2026-09-25（M2.1 复验轮）：六道门禁全绿取证
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：**发布轮对外放行 FAIL（U6 SW scope 线上缺陷）→ notes 维持扣住 → 已升级主人裁决**（修复方案见 R1；修复需解冻改码）；其后仍欠：试玩终裁 + 真机三项 + D5 答复
+> 下一步：**等主人裁决 R2**（三选一见 qa-live-check-m21-r2 §三：代理放行头 / 放宽路由护栏 / 指认非代理托管形态）；R2 解除后复跑 N6（工程侧已备妥，无需重新体检）→ notes 生效 → 版本链登记收口。仍欠：试玩终裁 + 真机三项 + D5 答复
 
 ## 正式发布轮（2026-09-26 · M2.1 增量构建 · 两段式放行）
 
@@ -51,17 +50,31 @@
 - **实测修正 R1 假设（2026-09-26 线上探针，`/tmp/probe-sw-register.mjs`）**：线上 `document.baseURI` = `…/apps/stack-tower-3/api/public/assets/`（相对 `<base href>` **吞掉 /gw 段**）→ scope 正确推导 = **页面目录**（`new URL('./', location.href)` = `…/apps/stack-tower-3/`），非「gw 根」；`register` 现状默认 scope **注册成功但无用**（scope=`…/api/public/assets/` 不含页面）；`Service-Worker-Allowed` 头缺失经报错原文实证（`The path of the provided scope … is not under the max scope allowed`）。
 - **U7 立案（新发现，与 SW 无关、线上既有，本轮不改）**：壳形态下 `Image` 贴图经 boot 补丁 `origFetch` 取回 base64 文本后 `blob()` 为文本 blob → `img.onerror` → 表现层按设计降级程序化绘制（`loadGameAssets` → `resolve(null)`）。实证：线上 `new Image()` 加载 `assets/sprites/e01-spawn-first-block.png` 得 ERROR（src=blob:text）。**影响**：线上贴图自 9/25 起即为程序化绘制形态，在线/离线一致，不影响可玩性与门禁；修复点=`server/src/boot-script.ts` Image 补丁改用已还原字节的 fetch（约 3 行）→ 待主人排期，不夹带本轮。
 
-### 版本链登记（正式发布轮 · 2026-09-26）——**未完成轮，如实登记**
+### R1 落地结果（复验轮执行记录，2026-09-26）
 
-| 字段 | 值 |
-|---|---|
-| 轮次 | stack-tower M2.1 正式发布轮（两段式放行） |
-| 结果 | **发布未完成**：对内放行 PASS（QA-REL-M21-20260926-01）→ deploy 成功 → 对外放行 FAIL（QA-LIVE-M21-20260926-02，U6）→ notes 维持 HELD 未生效 |
-| tag | `stack-tower-m2.1-release` @ `5a3284fa137a3926fabb5f7b4fcdd098bd075df3`（六道门禁于该树全绿） |
-| spec | v3 approved（`cmugok2uz000xm9ilx42t8pnl`）；数值 = v1 冻结段（三方深比全等）；v1.1 仍冻结于 D4/D5 |
-| 生产 | deploymentId `cmuhwtimk0015m97cgvmvcvh7` · URL `https://leomac-studio.tail49399e.ts.net/apps/stack-tower-3/gw` |
-| QA 回执 | 对内 QA-REL-M21-20260926-01（PASS）· 对外 QA-LIVE-M21-20260926-02（FAIL） |
-| 证据目录 | `.myrd/blackboard/gate-logs/release-m21-20260926/`（7 件）+ `games/stack-tower/docs/release-healthcheck-m21.md` |
+- **工程侧全量完成并部署**：tag `stack-tower-m2.1-release-r2` @ `6a6b4a8` = 生产 deployment `cmuhzflkk001mm97cxzu1tphg`。①头（实例直连实测已发 ✓）②显式注册（scope=页面目录）③live-smoke 补 SW/断网断言 ④资产路由目录形态回落地页（新发现：网关 308 归一化后 `./` 落点 404 → addAll 整体拒绝、install 永不完成）⑤`index.html` 资产路由回注入版落地页（新发现：precache 离线导航回退页无 `<base>`）+ **新增壳形态模拟门禁 `tests/shell-sim.mjs`**（复现→修复后 PASS：断网 reload 落块得分 35）。八道门禁全绿（证据 `gate-logs/release-m21-20260926-r2/`，含 server 侧 `npx tsc --noEmit` 与平台构建 step2b 同命令）。
+- **sw.js 本体与 spec 零改动**：PRECACHE_REVISION=1 冻结不动，gen-sw 复跑 55 项零漂移；v1 冻结七组键序无关深比全等。
+- **R2 立案（平台层缺陷，升级主人——本次对外放行 FAIL 的直接原因）**：
+  1. `Service-Worker-Allowed` 三层实测：实例直连（`127.0.0.1:41007`）**有头 ✓** → 平台公网代理（`:3001/apps/<slug>/…`）**无头 ✗**（cache-control/content-type 透传、该头被滤）→ funnel 仅转发。
+  2. 部署护栏拒绝绕开方案：`/sw.js` 应用根路由（precache 键重写，壳形态门禁 PASS）被 catch「护栏违规：业务路由必须位于 /api/* 下（/health 豁免）。违规路由: /sw.js」（deployment `cmuhz1xds001jm97c9y2wzrp7`），已回退（`b44c016` → `6a6b4a8`）。
+  3. 几何结论：页面固定 `/apps/<slug>/gw` + 脚本必须在 `/api/*` 下 ⇒ 脚本目录（默认 max scope）永不为页面路径前缀 ⇒ **无该头则 SW 无法覆盖页面，仓库侧无解**。
+  4. **处置三选一（主人裁决）**：a) apphost 代理响应头白名单放行 `Service-Worker-Allowed`（推荐，实例已在发，放行即通）；b) 放宽护栏允许应用根静态 `.js`（绕开方案已实现过）；c) 指认非代理 HTTPS 托管形态（B5 口径）。R2 解除后复跑 N6 即可，工程侧无需再动。
+- **deploy 事故披露（已纠正）**：首次 deploy 漏传 `manifestPath`，平台按仓库根清单（糖果线）上传资产 → 生产串线约 3 分钟（`cmuhynlf7001dm97c8qbxvwx1`，05:40–05:43，线上短暂呈现糖果线页面）→ 正确清单重部署纠正。教训入台账：**本坑位 deploy 必带 `manifestPath=games/stack-tower/apphost.toml`**。
+
+### 版本链登记（正式发布轮 · 2026-09-26）——**连续两轮未完成，如实登记**
+
+| 字段 | r1（2026-09-26 上午） | r2 复验轮（2026-09-26，本轮） |
+|---|---|---|
+| 轮次 | M2.1 正式发布轮（两段式放行） | M2.1 增量构建 · R1 解冻修复轮 |
+| 结果 | **发布未完成**：对内 PASS → deploy 成功 → 对外 FAIL（U6） | **发布未完成**：工程修复全量落码+八道门禁全绿+deploy 成功 → 对外 FAIL（R2 平台层） |
+| tag | `stack-tower-m2.1-release` @ `5a3284f` | `stack-tower-m2.1-release-r2` @ `6a6b4a8`（= 线上运行树） |
+| spec | v3 approved（`cmugok2uz000xm9ilx42t8pnl`）；数值 = v1 冻结段（深比全等） | 同左（零 spec 事件；PRECACHE_REVISION=1 未动） |
+| 生产 | deploymentId `cmuhwtimk0015m97cgvmvcvh7`（superseded） | deploymentId `cmuhzflkk001mm97cxzu1tphg`（running）· URL `https://leomac-studio.tail49399e.ts.net/apps/stack-tower-3/gw` |
+| QA 回执 | 对内 QA-REL-M21-20260926-01（PASS）· 对外 QA-LIVE-M21-20260926-02（FAIL） | 对内 QA-REL-M21-20260926-03（PASS）· 对外 QA-LIVE-M21-20260926-04（FAIL，R2） |
+| notes | HELD | **维持 HELD**（r2 增记已写入 notes 头，R2 解除后无需改稿） |
+| 证据目录 | `gate-logs/release-m21-20260926/`（6 件）+ `docs/release-healthcheck-m21.md` | `gate-logs/release-m21-20260926-r2/`（10 件）+ `docs/release-healthcheck-m21-r2.md` + `docs/qa-release-receipt-m21-r2.md` + `docs/qa-live-check-m21-r2.md` |
+
+- 两轮对内面均 PASS、两轮对外面均 FAIL；**r1 拦的是工程缺陷（已修复销案），r2 拦的是平台缺陷（R2，需主人裁决）**。对外宣告以线上冒烟全绿为闸，在此之前「可安装/断网可玩」不得出口。
 
 ### 历史失败轮挂账（2026-09-23 / 09-24，与本次解耦）
 

@@ -1,0 +1,14 @@
+  ok    画布就绪 480×720
+  ok    初始 HUD: "分数 0"
+  ok    3 次点击落块生效，HUD "分数 45"
+  ok    重开复位: "分数 0"
+  ok    PNG 字节通道 ✓（1011B，PNG 魔数正确）
+  ok    M4A 字节通道 ✓（4711B）
+  ok    音效可解码 ✓（48000Hz / 1ch / 0.11s）
+  FAIL  SW 未控制页面（U6 形态缺陷复现）: {"ok":false,"registrations":[]}
+  FAIL  断网 reload 异常: page.reload: net::ERR_INTERNET_DISCONNECTED
+Call log:
+[2m  - waiting for navigation until "load"[22m
+
+  FAIL  页面运行期错误: console.error: The path of the provided scope ('/apps/stack-tower-3/') is not under the max scope allowed ('/apps/stack-tower-3/api/public/assets/'). Adjust the scope, move the Service Worker script, or use the Service-Worker-Allowed HTTP header to allow the scope.
+RESULT: FAIL
