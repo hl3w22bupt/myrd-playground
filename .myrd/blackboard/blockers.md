@@ -4,7 +4,7 @@
 > 前轮纪要：2026-09-25（M2.1 复验轮·二巡）：六道门禁全绿——routine 注参口径 CONTRACT PASS 62/0 / A–E PASS 22/22 / run-all 22/0/0 / smoke PASS (browser) / assets PASS (browser) / build+typecheck 绿；取证 `gate-logs/m21-reverify-20260925-round2/` 5 份
 > 前巡·终证（同日）：干净 shell 五道门禁全量复跑取证——A–E PASS 22/22 / run-all 22/0/0 / smoke PASS (browser) / assets PASS (browser) / build+typecheck 绿；**销账 2 项**：playwright 装载器环境缺口（m1/m3/d2 假 not-runnable）+ sw.js precache 清单落后 build 5 项，见缺陷台账；**第四轮驳回销账**：routine「游戏契约测试」SPEC_NOT_APPROVED 三层根因（specPath 漏网 + unified 三代形状兼容）→ routine 口径复跑 CONTRACT: PASS 62/0；取证 `gate-logs/m21-reverify-20260925-art-final/` 8 份
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：主人人工拍板（试玩终裁「好不好玩」+ 指认 HTTPS 托管地址 + 真机三项排期）
+> 下一步：**发布轮对外放行 FAIL（U6 SW scope 线上缺陷）→ notes 维持扣住 → 已升级主人裁决**（修复方案见 R1；修复需解冻改码）；其后仍欠：试玩终裁 + 真机三项 + D5 答复
 
 ## 正式发布轮（2026-09-26 · M2.1 增量构建 · 两段式放行）
 
@@ -32,9 +32,33 @@
 | N2 对内放行 | QA | `games/stack-tower/docs/qa-release-receipt-m21.md`（含编号回执 + 已知未收口项） | **完成**（回执 QA-REL-M21-20260926-01 签发：对内放行 PASS；U1–U5 单列） |
 | N3 素材终检 | 美术 | `.myrd/blackboard/gate-logs/release-m21-20260926/art-final-check.md` | **完成**（四项全 PASS；maskable 0px 出圆；sfx 注册表双签完成——程序侧 healthcheck §5 + 美术侧 art-final-check §会签） |
 | N4 release notes | 策划 | `games/stack-tower/docs/release-notes-m21.md` + 溯源映射表 + spec 字段包（扣住不生效） | **完成**（四件套 + 11 行溯源映射 + 字段包；状态=HELD 扣住，待 N6 全绿后 N7 改签生效） |
-| N5 deploy | 程序/deploy | AppHost 坑位 `cmugttipt000km9299oej5z9b`（slug `stack-tower-3`） | 待 N4 |
-| N6 对外放行 | QA | 线上冒烟记录（入回执 §对外放行） | 待 N5 |
-| N7 版本链登记 | 主策划 | blockers.md §版本链登记 + notes 生效 | 待 N6 |
+| N5 deploy | 程序/deploy | AppHost 坑位 `cmugttipt000km9299oej5z9b`（slug `stack-tower-3`） | **完成**（deploymentId `cmuhwtimk0015m97cgvmvcvh7` · commit `5a3284f` · dryRun 先行验证 catch「tag 未推 origin」；live /health 200 壳身份正确；旧部署 75debf9 → superseded；**deploy 成功 ≠ 发布成功**） |
+| N6 对外放行 | QA | 线上冒烟记录（入回执 §对外放行） | **不通过（FAIL）**：`games/stack-tower/docs/qa-live-check-m21.md`（QA-LIVE-M21-20260926-02）——L3 断网 / L4 离线三步 / L5 老用户升级机制 = 线上 SW scope 硬缺陷（U6）；L2 首触听测机判受限归真机；L1 在线可玩 PASS |
+| N7 版本链登记 | 主策划 | blockers.md §版本链登记 + notes 生效 | **登记为「未完成轮」**（对外放行未过 → notes 不生效；登记如实入 §版本链登记） |
+
+### R1 · U6 线上 SW scope 缺陷立案（对外放行 FAIL 的直接原因，2026-09-26，**待主人裁决**）
+
+- **缺陷**：壳落地页注入 `<base href="api/public/assets/">`（`server/src/index.ts:55`）→ `register('sw.js')`（`src/app/main.ts:136`）按文档 base URL 解析 → script 落 `…/api/public/assets/sw.js`，无显式 scope 且响应无 `Service-Worker-Allowed` 头 → scope 默认 = script 目录，**页面 `/gw` 不受 SW 控制**（线上 controller=false 实测；本地根路径形态 controller=true 对照）→ 断网供源 / activate 清旧缓存 / skipWaiting-claim 全部空转。
+- **波及**：9/25 已部署版同缺陷（非本轮回归）；「可装」的离线承诺自始未在线上成立；既有 d1/d2 契约在本地 serve 形态跑，**形态盲区**（线上 gw 形态无门禁覆盖）。
+- **修复方案（估算 ~10 行 + 门禁补盲区，2 文件）**：① `server/src/index.ts` 资产路由对 `sw.js` 响应加 `Service-Worker-Allowed: <应用根路径>`；② `src/app/main.ts` 注册改显式解析（`new URL` 基于 `location.pathname` 求得 gw 根 + `{ scope: <gw 根> }`）；③ 补门禁：live-smoke 增加「SW controller 断言 + 离线 reload 可玩」（消灭形态盲区，防回归）。
+- **流程**：修复 = 改码，与「程序只体检不改码」铁律冲突 → **未经主人解冻不擅动**；主人批准后走「修复 → N1 六道门禁 + 新 SW 门禁 → 重打 tag（版本+1 语义）→ N2 对内 → N6 对外」完整复验，不得只验单项。
+- **临时口径**：线上当前内容与 9/25 字节全等，在线可玩 PASS，无回滚必要；对外口径暂不得宣称「可安装/断网可玩」。
+
+### 版本链登记（正式发布轮 · 2026-09-26）——**未完成轮，如实登记**
+
+| 字段 | 值 |
+|---|---|
+| 轮次 | stack-tower M2.1 正式发布轮（两段式放行） |
+| 结果 | **发布未完成**：对内放行 PASS（QA-REL-M21-20260926-01）→ deploy 成功 → 对外放行 FAIL（QA-LIVE-M21-20260926-02，U6）→ notes 维持 HELD 未生效 |
+| tag | `stack-tower-m2.1-release` @ `5a3284fa137a3926fabb5f7b4fcdd098bd075df3`（六道门禁于该树全绿） |
+| spec | v3 approved（`cmugok2uz000xm9ilx42t8pnl`）；数值 = v1 冻结段（三方深比全等）；v1.1 仍冻结于 D4/D5 |
+| 生产 | deploymentId `cmuhwtimk0015m97cgvmvcvh7` · URL `https://leomac-studio.tail49399e.ts.net/apps/stack-tower-3/gw` |
+| QA 回执 | 对内 QA-REL-M21-20260926-01（PASS）· 对外 QA-LIVE-M21-20260926-02（FAIL） |
+| 证据目录 | `.myrd/blackboard/gate-logs/release-m21-20260926/`（7 件）+ `games/stack-tower/docs/release-healthcheck-m21.md` |
+
+### 历史失败轮挂账（2026-09-23 / 09-24，与本次解耦）
+
+- 9/23、9/24 两轮为失败轮，**另立挂账、与本次发布轮解耦**：其失败结论不因本轮产物而核销，本轮结论也不因其历史而加重；细节以平台轨迹（agentExecutionTrajectory）为准，本黑板不重复推断。后续复盘若需并入版本链叙事，须单独立项，不在发布轮内搭车处理。
 
 ## M2.1 收口区（前轮基线，2026-09-25/26）
 - 黑板路径：`.myrd/blackboard/`（levels.md / assets.md / blockers.md）
