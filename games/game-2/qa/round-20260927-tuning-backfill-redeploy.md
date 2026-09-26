@@ -31,6 +31,11 @@
 - 游戏代码未变，产物与入库版本逐字节一致（wasm 35376909B / pck 2521520B）。
 
 ## 线上验证（部署后回填）
-- deploymentId：见 artifacts 回写（v8）。
-- 调参回填链路：`GET /apps/game-2?tuning=1&max_crystals=5` 200 且页面含双形态调参桥脚本；
-  `?tuning=<json>` 契约形态回归不受影响（同一解析入口，JSON 分支先行）。
+- deploymentId：`cmuio5u90003om9l6baasdij9`（v8，status=running，commit a3a5d2f=分支 HEAD，
+  gitRef=myrd/games-goal-cmuiepudc001zm9gyyzqgztta，sourceId=cmuiepudc001zm9gyyzqgztta，v7 已 superseded）。
+- 线上自测（公网入口）：`/health` 200 {ok:true,app:star-dust-collector}；壳页 200（12375B，含双形态调参桥标记）；
+  `?tuning=1&max_crystals=5&initial_shield=2`（面板扁平回填形态）200；
+  `?tuning=%7B%22max_crystals%22%3A5%7D`（JSON 契约形态）200；
+  index.js 200（331495B）、index.wasm.gz.b64 200（10.7MB text/plain）、index.pck.gz.b64 200（3.3MB text/plain）。
+- 调参回填链路：面板「复制调参链接」→ 扁平 URL → 壳页解析进 `window.__GAME_TUNING__` →
+  `GameConfig.apply_tuning_bridge` 白名单消费 —— 闭环已修复上线。
