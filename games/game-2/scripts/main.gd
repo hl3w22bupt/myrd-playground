@@ -5,9 +5,9 @@ extends Node2D
 ## 玩法闭环（谁接收输入 / 谁改状态 / 谁 emit / 谁订阅 / 谁渲染）：
 ## - 输入：player.gd 读 InputMap 动作驱动移动；confirm 动作在结算态触发重开；
 ## - 状态：GameState（autoload）持有分数/护盾/最高分并 emit 信号；
-## - 收集：StarDust.body_entered → StarDust.collected → main 加分 + 飘字 + 补位；
+## - 收集：StarDust.body_entered → StarDust.collected → main 加分 + 音效 + 飘字 + 补位；
 ## - 受击：Asteroid.body_entered → Player.take_hit()（无敌帧）→ GameState.apply_hit()
-##   → shield_changed（震屏）→ 归 0 时 game_over（弹失败结算面板）；
+##   → shield_changed（音效 + 震屏）→ 归 0 时 game_over（音效 + 弹失败结算面板）；
 ## - 梯度：score_changed → 分数跨过 difficulty_step → _apply_difficulty 上调陨石上限/速度；
 ## - 终局：失败 = 护盾耗尽（game_over）；胜利 = 得分达 score_target（game_won）——
 ##   同一结算面板，标题区分胜负；
@@ -176,9 +176,10 @@ func _pick_spawn_point(min_player_distance: float) -> Vector2:
 	return candidate
 
 
-## 收集结算：加分（数值来自 GameConfig）→ 飘字反馈 → 延迟补位。
+## 收集结算：加分（数值来自 GameConfig）→ 音效 + 飘字反馈 → 延迟补位。
 func _on_crystal_collected(collected_at: Vector2) -> void:
 	GameState.add_score(GameConfig.score_per_crystal)
+	Sfx.play_collect()
 	_spawn_float_text("+%d" % GameConfig.score_per_crystal, collected_at)
 	get_tree().create_timer(GameConfig.respawn_delay_seconds).timeout.connect(_spawn_crystal)
 
@@ -191,6 +192,7 @@ func _spawn_float_text(text_value: String, at: Vector2) -> void:
 
 
 func _on_player_hit_taken(_shield: int) -> void:
+	Sfx.play_hit()
 	_play_shake()
 
 
@@ -227,6 +229,7 @@ func _show_settlement(title: String, final_score: int, final_high_score: int) ->
 		summary += " · 新纪录！"
 	result_label.text = summary
 	_hide_milestone_banner()
+	Sfx.play_game_over()
 	game_over_panel.visible = true
 
 
@@ -262,6 +265,7 @@ func _hide_milestone_banner() -> void:
 
 ## 重开：重置分数与护盾（GameState.start_game）并重铺战场，立即进入新一局。
 func _on_restart_pressed() -> void:
+	Sfx.play_restart()
 	game_over_panel.visible = false
 	GameState.start_game()
 

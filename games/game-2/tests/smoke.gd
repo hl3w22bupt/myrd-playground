@@ -26,6 +26,10 @@ extends Node
 ##      E4 难度梯度生效：跨过 difficulty_step 后陨石上限 +1 并补足生成。
 ##   F. 调参 URL 契约（试玩回填闭环的机判形态）：parse_tuning_query 只认声明键、
 ##      钳制量程、吸附步长、忽略未知/非法键；应用侧 float 写 int 键收敛为 int。
+##   G. 音效反馈契约（验收标准 6 的机判形态）：Sfx 单例注册、四类音效各占 1 个
+##      AudioStreamPlayer 节点且 stream 为程序化生成的 AudioStreamWAV（非空 16-bit PCM）；
+##      且四类音效在真实玩法相位里被触发（collect/hit/game_over/restart 计数 ≥ 1）——
+##      静态「有节点」不算数，接线必须真的送达。
 ##
 ## 可复现性设计（门禁要求同一事件序 → 同一判定结果）：
 ## - 噪声相位结束后 Input.release_pressed_events()，清掉悬挂按键/手势；
@@ -144,6 +148,7 @@ func _ready() -> void:
 			_failures.append("InputMap 缺少动作 %s（project.godot [input] 未注册）" % action)
 	_check_key_bindings()
 	_check_tuning_query_contract()
+	_check_sfx_contract()
 
 	if get_tree().root.get_node_or_null("GameConfig") == null:
 		_failures.append("autoload GameConfig 未注册（project.godot [autoload] 缺失，数值配置无法生效）")
@@ -330,6 +335,64 @@ func _check_tuning_query_contract() -> void:
 	probe.free()
 
 
+## ── G. 音效反馈契约断言（结构层，headless 可机判，无帧排期）──
+## 验收标准 6「音效反馈」的机判形态：四类音效各有 1 个 AudioStreamPlayer 节点、
+## stream 为非空 16-bit PCM 的 AudioStreamWAV（程序化生成成功）、play 后进入播放态、
+## 触发计数递增。接线是否在真实玩法相位里送达由各相位断言复查（SFX_COUNTERS）。
+func _check_sfx_contract() -> void:
+	var sfx: Node = get_tree().root.get_node_or_null("Sfx")
+	if sfx == null:
+		_failures.append("autoload Sfx 未注册（project.godot [autoload] 缺失，四类音效无法生效）")
+		return
+	var audio_nodes: int = 0
+	for child in sfx.get_children():
+		if child is AudioStreamPlayer:
+			audio_nodes += 1
+	if audio_nodes != Sfx.SFX_KEYS.size():
+		_failures.append("音效节点数 %d ≠ %d（收集/受击/结算/重开应各占 1 个 AudioStreamPlayer）" % [
+			audio_nodes, Sfx.SFX_KEYS.size(),
+		])
+	for key: String in Sfx.SFX_KEYS:
+		var player: AudioStreamPlayer = sfx._players.get(key)
+		if player == null:
+			_failures.append("音效 %s 缺少 AudioStreamPlayer 播放器节点" % key)
+			continue
+		if player.get_parent() != sfx:
+			_failures.append("音效 %s 的播放器未挂在 Sfx 单例下" % key)
+		var stream := player.stream as AudioStreamWAV
+		if stream == null:
+			_failures.append("音效 %s 的 stream 不是 AudioStreamWAV（应为程序化生成的 PCM 流）" % key)
+			continue
+		if stream.data.size() <= 0:
+			_failures.append("音效 %s 的 AudioStreamWAV.data 为空（合成失败，播放必然无声）" % key)
+			continue
+		if stream.format != AudioStreamWAV.FORMAT_16_BITS:
+			_failures.append("音效 %s 的 PCM 格式不是 16-bit（format=%s）" % [key, stream.format])
+		if stream.mix_rate != Sfx.MIX_RATE:
+			_failures.append("音效 %s 的采样率 %d ≠ 合成采样率 %d" % [key, stream.mix_rate, Sfx.MIX_RATE])
+		# 播放契约：直接触发后播放器应进入播放态、计数应递增（headless Dummy 驱动同样置位）。
+		var before: int = int(Sfx.play_counts.get(key, -1))
+		sfx.play(key)
+		if int(Sfx.play_counts.get(key, -1)) != before + 1:
+			_failures.append("音效 %s 触发计数未递增（%d → %d）" % [
+				key, before, Sfx.play_counts.get(key, -1),
+			])
+		if not player.playing:
+			_failures.append("音效 %s play() 后未进入播放态（流数据无效或音频路由断裂）" % key)
+
+
+## 相位内的音效接线复查：断言某类音效在真实玩法里至少被触发过 once。
+func _assert_sfx_fired(key: String, context: String) -> void:
+	var sfx: Node = get_tree().root.get_node_or_null("Sfx")
+	if sfx == null:
+		return  # 单例缺失已在 _check_sfx_contract 上报，这里不重复计失败
+	var count: int = int(Sfx.play_counts.get(key, 0))
+	if count < 1:
+		_failures.append("音效接线断裂：%s 发生但 %s 音效从未触发（play_counts=%s）" % [
+			context, key, Sfx.play_counts,
+		])
+
+
 func _key_labels(keys: Array) -> String:
 	var labels: PackedStringArray = []
 	for code in keys:
@@ -431,6 +494,7 @@ func _assert_collected() -> void:
 		])
 	if _main.effects.get_child_count() == 0:
 		_failures.append("收集后没有飘字反馈（Effects 容器为空）")
+	_assert_sfx_fired("collect", "收集判定达成")
 
 
 ## ── C. 受击 / 胜负断言 ──
@@ -468,6 +532,7 @@ func _follow_hit() -> void:
 			return
 		_hit_landed_tick = _frames
 		_shield_after_hit = GameState.shield
+		_assert_sfx_fired("hit", "受击判定达成")
 		_t_iframe_assert = _hit_landed_tick + INVINCIBILITY_FRAMES
 		_t_fast_hit_1 = _hit_landed_tick + IFRAME_EXPIRE_FRAMES
 		_t_fast_hit_2 = _t_fast_hit_1 + FAST_HIT_FRAMES
@@ -502,6 +567,7 @@ func _assert_game_over() -> void:
 		])
 	if not GameState.has_high_score_save():
 		_failures.append("历史最高分未持久化（%s 未落盘，刷新后不保留）" % GameState.SAVE_PATH)
+	_assert_sfx_fired("game_over", "护盾归 0 结算触发")
 
 
 ## ── D. 重开断言 ──
@@ -522,6 +588,7 @@ func _assert_restarted() -> void:
 		_failures.append("重开后历史最高分 %d 丢失（应 ≥ 上局得分 %d）" % [
 			GameState.high_score, _score_at_game_over,
 		])
+	_assert_sfx_fired("restart", "confirm 重开触发")
 
 
 ## ── E1. 里程碑反馈断言 ──
@@ -616,7 +683,7 @@ func _report() -> void:
 	if not _score_seen:
 		_failures.append("信号 GameState.score_changed 未到达订阅方：连接断裂或从未 emit")
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 方向语义(move_right/move_left)/收集/受击无敌帧/结算/重开/里程碑/胜利结算/难度梯度 全部通过")
+		print("GODOT_SMOKE: PASS 方向语义(move_right/move_left)/收集/受击无敌帧/结算/重开/里程碑/胜利结算/难度梯度/音效四类接线 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

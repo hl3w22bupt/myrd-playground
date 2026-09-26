@@ -17,6 +17,9 @@ config/icon="res://icon.svg"
 ; 数值配置单例必须先于 GameState 注册：GameState 在 apply_hit 里读扣盾数值。
 GameConfig="*res://autoload/game_config.gd"
 GameState="*res://autoload/game_state.gd"
+; 音效单例：四类音效（收集/受击/结算/重开）的程序化 AudioStreamWAV + 播放器。
+; 不依赖其他单例，注册顺序随意，放最后。
+Sfx="*res://autoload/sfx.gd"
 
 [display]
 
