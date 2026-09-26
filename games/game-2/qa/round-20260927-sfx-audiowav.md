@@ -38,3 +38,9 @@ GODOT_FUZZ: PASS seed=20260913 batches=6 total_frames=239
 ## 待办（移交真机/红队）
 - C4 听感复测（iOS Safari：首次手势后收一颗星尘能听到收集音效；横竖屏切换、切后台往返后音效仍响）。
 - `playtest.sh` 由运维补模板仓库后，再补机器人试玩门禁结论。
+
+## 部署（AppHost cmuiepuda001xm9gyecrisk7n · slug game-2）
+- **v11 已上线**：deployment id `cmuisxkxr00cam9l654pg9uwm`（status=running，构建 827ms），commit `0fc434a`（= `myrd/game-2-goal-cmuiepudc001zm9gyyzqgztta` HEAD，含 913d9af SFX 实现 + Web 重导出产物），gitRef=game-2 分支；v10 `cmuipopw0006tm9l6zead0llt` superseded。
+- 线上校验：`GET /health` 200 `{ok:true,app:star-dust-collector}`；壳页 200（12375B，AudioContext 手势解锁器在位）；`/api/public/assets/index.pck`（base64→gunzip）sha256=`4ca3c417…459b85` 与本地 HEAD 导出**逐字节一致**（2530512B；v10 为 2524384B，+6128B = SFX 合成代码入包）。
+- liveUrl：<https://leomac-studio.tail49399e.ts.net/apps/game-2/>；HostedApp id / deployment id / liveUrl 已回写本目标 artifacts（hosted_app 条目原位更新）。
+- 终态门禁复跑（`bash games/game-2/verify.sh`）退出码 0：`PREFLIGHT: PASS`（13 类 / 63 文件）+ `godot-smoke: PASS`（240 帧）+ `godot-fuzz: PASS`。
