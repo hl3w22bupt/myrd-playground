@@ -27,11 +27,64 @@ const DART_SCORE: int = 1
 ## 过关奖励：坚持跑到底额外加的分。
 const WIN_BONUS: int = 10
 
+## §3C 调参工作台桥（游戏侧声明）：可通过 URL `?tuning=<json>` 覆盖的键与钳制区间。
+## 壳页面在引擎加载前把 URL 参数解析进 `window.__GAME_TUNING__`；本单例启动时读取，
+## 只认这里声明的键（其余忽略）并按 min/max 钳制 —— 试玩调好的参数因此可用 URL 复现。
+## 手感键由 Player 在 _ready 时按同名键取用（见 player.gd 运行期值区）。
+const TUNING_META: Dictionary = {
+	"dart_score": {"min": 1, "max": 10},
+	"win_bonus": {"min": 0, "max": 50},
+	"run_speed": {"min": 120.0, "max": 480.0},
+	"jump_velocity_abs": {"min": 260.0, "max": 900.0},
+	"gravity": {"min": 700.0, "max": 2800.0},
+	"max_jumps": {"min": 1, "max": 3},
+	"coyote_frames": {"min": 0, "max": 20},
+	"jump_buffer_frames": {"min": 0, "max": 20},
+}
+
 var score: int = 0
 var state: int = State.PLAYING
 ## 跨局留存：历史最高分与累计过关次数（reset() 不清这两项）。
 var best_score: int = 0
 var runs_finished: int = 0
+## 生效调参（键 → 钳制后的值）。空字典 = 全部用常量默认（无头/桌面直开时的常态）。
+var tuning: Dictionary = {}
+
+
+func _ready() -> void:
+	tuning = _load_browser_tuning()
+
+
+## 读取壳页面注入的 `window.__GAME_TUNING__`（Web 平台才有 JavaScriptBridge）：
+## 只认 TUNING_META 声明的键，按 min/max 钳制；引擎外环境或解析失败一律返回空字典。
+func _load_browser_tuning() -> Dictionary:
+	if not ClassDB.class_exists("JavaScriptBridge") or not Engine.has_singleton("JavaScriptBridge"):
+		return {}
+	var bridge: Object = Engine.get_singleton("JavaScriptBridge")
+	var raw: String = str(bridge.eval("JSON.stringify(window.__GAME_TUNING__ || null)", true))
+	if raw == "" or raw == "null" or raw == "undefined":
+		return {}
+	var parsed: Variant = JSON.parse_string(raw)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return {}
+	var effective: Dictionary = {}
+	for key: String in TUNING_META:
+		if not parsed.has(key):
+			continue
+		var value: float = float(parsed[key])
+		var bounds: Dictionary = TUNING_META[key]
+		effective[key] = clampf(value, float(bounds["min"]), float(bounds["max"]))
+	return effective
+
+
+## 生效的每枚飞镖得分（URL 调参覆盖 DART_SCORE，未调参时等于常量）。
+func dart_score_value() -> int:
+	return int(tuning.get("dart_score", DART_SCORE))
+
+
+## 生效的过关奖励（URL 调参覆盖 WIN_BONUS，未调参时等于常量）。
+func win_bonus_value() -> int:
+	return int(tuning.get("win_bonus", WIN_BONUS))
 
 
 func add_score(amount: int) -> void:
@@ -46,7 +99,7 @@ func add_score(amount: int) -> void:
 func register_win() -> void:
 	if state != State.PLAYING:
 		return
-	score += WIN_BONUS
+	score += win_bonus_value()
 	state = State.WON
 	runs_finished += 1
 	best_score = maxi(best_score, score)

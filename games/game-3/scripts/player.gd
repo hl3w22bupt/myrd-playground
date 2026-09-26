@@ -60,10 +60,38 @@ var jumps_used: int = 0
 ## 结算后冻结（胜/负都停跑），由 Main 在信号回调里设置。
 var frozen: bool = false
 
+## ── 运行期生效手感值（默认 = 上面同名常量；启动时被 URL ?tuning= 覆盖）──
+## 类常量是关卡设计与冒烟断言的唯一口径（不可变）；实际运动学一律走这里的运行期值，
+## 两者的默认相等，所以无 URL 调参时行为与纯常量实现完全一致。
+var live_run_speed: float = RUN_SPEED
+var live_jump_velocity: float = JUMP_VELOCITY
+var live_gravity: float = GRAVITY
+var live_max_fall_speed: float = MAX_FALL_SPEED
+var live_max_jumps: int = MAX_JUMPS
+var live_coyote_frames: int = COYOTE_FRAMES
+var live_jump_buffer_frames: int = JUMP_BUFFER_FRAMES
+
 ## 土狼窗口剩余帧数（在地面时充满，离地后逐帧递减）。
 var _coyote_left: int = 0
 ## 跳跃缓冲剩余帧数（按跳却无跳可用时充满，落地瞬间消费）。
 var _jump_buffer_left: int = 0
+
+
+func _ready() -> void:
+	# GameState（autoload）先于场景 _ready，URL 调参此刻已就绪且已按 TUNING_META 钳制。
+	_apply_tuning(GameState.tuning)
+
+
+## 把生效调参写进运行期手感值：只取 TUNING_META 声明过的键，未声明的键保持默认。
+func _apply_tuning(t: Dictionary) -> void:
+	live_run_speed = float(t.get("run_speed", RUN_SPEED))
+	live_jump_velocity = -absf(float(t.get("jump_velocity_abs", absf(JUMP_VELOCITY))))
+	live_gravity = float(t.get("gravity", GRAVITY))
+	# 下落上限不开放 URL 调参（防穿透的安全阀，与调参意图无关），恒用常量。
+	live_max_fall_speed = MAX_FALL_SPEED
+	live_max_jumps = int(t.get("max_jumps", MAX_JUMPS))
+	live_coyote_frames = int(t.get("coyote_frames", COYOTE_FRAMES))
+	live_jump_buffer_frames = int(t.get("jump_buffer_frames", JUMP_BUFFER_FRAMES))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -76,14 +104,14 @@ func _physics_process(delta: float) -> void:
 	if frozen:
 		velocity = Vector2.ZERO
 		return
-	velocity.y = minf(velocity.y + GRAVITY * delta, MAX_FALL_SPEED)
-	velocity.x = RUN_SPEED
+	velocity.y = minf(velocity.y + live_gravity * delta, live_max_fall_speed)
+	velocity.x = live_run_speed
 	move_and_slide()
 
 	var on_floor := is_on_floor()
 	if on_floor:
 		jumps_used = 0
-		_coyote_left = COYOTE_FRAMES
+		_coyote_left = live_coyote_frames
 		if _jump_buffer_left > 0:
 			# 落地瞬间消费跳跃缓冲：之前「差一点」的那次按跳在这里兑现。
 			_do_jump(1)
@@ -106,11 +134,11 @@ func _physics_process(delta: float) -> void:
 func try_jump() -> bool:
 	if frozen:
 		return false
-	_jump_buffer_left = JUMP_BUFFER_FRAMES
+	_jump_buffer_left = live_jump_buffer_frames
 	if is_on_floor() or _coyote_left > 0:
 		_do_jump(1)
 		return true
-	if jumps_used < MAX_JUMPS:
+	if jumps_used < live_max_jumps:
 		_do_jump(jumps_used + 1)
 		return true
 	return false
@@ -133,7 +161,7 @@ func respawn() -> void:
 
 
 func _do_jump(count: int) -> void:
-	velocity.y = JUMP_VELOCITY
+	velocity.y = live_jump_velocity
 	jumps_used = count
 	_coyote_left = 0
 	_jump_buffer_left = 0

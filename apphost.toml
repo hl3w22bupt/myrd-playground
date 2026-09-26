@@ -1,8 +1,11 @@
-# 《糖果粉碎传奇》AppHost 应用清单（平台构建管线步骤 1 读取；M1 仅支持顶层字符串键值）
-# 壳位于仓库根：server/ 内是 Node20 + Hono 应用，游戏 Web 导出产物经 gzip+base64 内联进 bundle
-name = "candy-crush-legend"
+# 《疾风忍者跑》AppHost 应用清单（平台构建管线步骤 1 读取；M1 仅支持顶层字符串键值）
+# 壳位于仓库根：server/ 内是 Node20 + Hono 应用；游戏 Web 导出产物经 asset-store 懒加载
+#（部署时平台把 assets_dir 上传对象存储并注入清单 key，bundle 本体不含游戏资源）。
+name = "ninja-run"
 runtime = "node20"
 health = "/health"
 
-# 底座 A：资产出 bundle（部署时平台把该目录上传对象存储，server 用 asset-store 懒加载）
-assets_dir = "games/game/export/web"
+# 底座 A：资产出 bundle（部署时平台把该目录上传对象存储，server 用 asset-store 懒加载）。
+# 产物由 games/game-3 的 Web（HTML5）预设导出：godot --headless --path games/game-3 \
+#   --export-release "Web" export/web/index.html
+assets_dir = "games/game-3/export/web"

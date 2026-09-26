@@ -126,7 +126,8 @@ func _on_level_hazard_hit(_kind: String) -> void:
 
 
 func _on_dart_collected(dart: Dart) -> void:
-	GameState.add_score(GameState.DART_SCORE)
+	# 生效分值：URL ?tuning= 可覆盖（game_state.gd TUNING_META 钳制），未调参时等于 DART_SCORE。
+	GameState.add_score(GameState.dart_score_value())
 	dart.collect()
 
 
