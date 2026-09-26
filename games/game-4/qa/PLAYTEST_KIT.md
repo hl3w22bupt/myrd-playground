@@ -235,3 +235,12 @@ GODOT_BIN="$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)" \
 ```
 
 判定脚本唯一来源：仓库内 `std-skills/godot-game-dev/scripts/`（本仓库不得自造判定器）。
+
+## 八、iPhone 一键实测链接与操作卡（v4，2026-09-27）
+
+- **一键实测链接（自检 + 量表 + 调参台三合一）**：<https://leomac-studio.tail49399e.ts.net/apps/game-4/gw?qa=1&tuning=1>
+- 操作卡（给试玩者的 5 步图文说明 + 最低门槛回传方式）：`qa/IPHONE_QA_CARD.md`
+- 回传协议：试玩者在分享面板点「拷贝」→ 回频道粘贴 JSON 即可（`guanglu-qa-report/1` 或 `guanglu-survey/1`）。
+- WebKit 真内核核验与三个 UI/输入层缺陷的取证、根因、修复：`qa/WEBKIT_LIVE_VERIFY.md`
+  （脚本 `qa/webkit_qa_live_check.mjs`，证据 `qa/shots-webkit-verify/`）。
+  **修复已入库，待重导出重部署上线；上线前线上为 v18 行为（自动扫描 0 目标格 / 量表提交不可达 / `?tuning=1` 下点击旋转失效）。**

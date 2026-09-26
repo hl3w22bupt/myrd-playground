@@ -59,10 +59,7 @@ func _ready() -> void:
 	# 棋盘信号接线与 _process 常开：headless 冒烟要能直接驱动 sweep 并闭合样本；
 	# 「不激活」只关闭 UI 与被动采集，让门禁进程零输入竞争。
 	_resolve_board()
-	if _board != null and not _board.rotated.is_connected(_on_board_rotated):
-		_board.rotated.connect(_on_board_rotated)
-	if _board != null and not _board.rotate_requested.is_connected(_on_board_rotate_requested):
-		_board.rotate_requested.connect(_on_board_rotate_requested)
+	_ensure_board_wiring()
 	if not active:
 		return
 	_build_ui()
@@ -367,12 +364,29 @@ func log_line(text: String) -> void:
 func _resolve_board() -> void:
 	if _board != null and is_instance_valid(_board):
 		return
-	var main := get_tree().current_scene if get_tree() != null else null
+	var main: Node = get_tree().current_scene if get_tree() != null else null
 	if main == null:
 		main = get_parent()
-	var candidate: Node = main if main != null and main.get_node_or_null("Board") != null \
-		else get_tree().root.find_child("Board", true, false)
+	# 注意：必须取「Board 子节点」本身，而不是 main —— 真实游戏场景 current_scene=Main
+	# 且必然有 Board 子节点，若把 main 赋给 candidate，`as BoardView` 得 null，
+	# 线上 ?qa=1「自动扫描」会永远报 0 目标格（无头门禁因场景拓扑不同测不出这一分支）。
+	var candidate: Node = main.get_node_or_null("Board") if main != null else null
+	if candidate == null:
+		candidate = get_tree().root.find_child("Board", true, false)
 	_board = candidate as BoardView if candidate != null else null
+	if _board != null:
+		_ensure_board_wiring()
+
+
+## 晚到接线：Web 下 _ready 时棋盘可能尚未可解析（此前曾因此永不接线 → 样本全 miss），
+## 解析成功后补接两路信号（幂等，可重复调用）。
+func _ensure_board_wiring() -> void:
+	if _board == null or not is_instance_valid(_board):
+		return
+	if not _board.rotated.is_connected(_on_board_rotated):
+		_board.rotated.connect(_on_board_rotated)
+	if not _board.rotate_requested.is_connected(_on_board_rotate_requested):
+		_board.rotate_requested.connect(_on_board_rotate_requested)
 
 
 func _cell_for_window_pos(window_pos: Vector2) -> Vector2i:

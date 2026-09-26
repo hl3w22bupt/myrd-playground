@@ -125,6 +125,18 @@ func _show_modal(shown: bool) -> void:
 	for child: Node in _root.get_children():
 		if child is Control and child != _open_button:
 			(child as Control).visible = shown
+	if shown:
+		# 延迟到本帧布局完成后居中（PanelContainer 尺寸由内容决定，当场取是旧值）。
+		_center_panel.call_deferred()
+
+
+## 面板按最终尺寸在视口内居中（越界钳回屏内，保证提交按钮可点）。
+func _center_panel() -> void:
+	if _panel == null or _root == null or not is_instance_valid(_panel):
+		return
+	_panel.reset_size()
+	var view: Vector2 = _root.size
+	_panel.position = ((view - _panel.size) / 2.0).clamp(Vector2.ZERO, view - _panel.size)
 
 
 ## 选中一个选项（纯逻辑入口，UI 与冒烟共用）。
@@ -166,6 +178,10 @@ func _build_ui() -> void:
 	_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	# root 常显（承载入口按钮）；模态层（遮罩+面板）单独控显隐。
 	_root.visible = true
+	# ★ 必须 IGNORE：Control 默认 mouse_filter=STOP，全屏 root 会把「点击棋盘旋转」
+	#   全部吃掉（?tuning=1 一带入口就点不动管格 —— WebKit 真机实测复现，无头门禁测不出：
+	#   headless 不构建这套 UI）。子控件（遮罩/入口按钮/面板）自带 filter，不受影响。
+	_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_root)
 
 	var dim := ColorRect.new()
@@ -179,7 +195,9 @@ func _build_ui() -> void:
 
 	_panel = PanelContainer.new()
 	_panel.name = "Panel"
-	_panel.set_anchors_preset(Control.PRESET_CENTER)
+	# 居中不再用 PRESET_CENTER：PanelContainer 会在子控件装配后向右下生长，
+	# 预置锚点会让面板左上角钉死在视口中心，底部（含「提交并导出回传」）落到引擎
+	# 视口之外（任何 16:9 屏都点不到）。改为显示时按最终尺寸显式居中（_center_panel）。
 	_panel.visible = false
 	_panel.custom_minimum_size = Vector2(560, 0)
 	var style := StyleBoxFlat.new()
@@ -192,7 +210,10 @@ func _build_ui() -> void:
 	_root.add_child(_panel)
 
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(560, 520)
+	# 高度自适应视口：内容天然 ~880px，写死 520 会让按钮行超出引擎视口。
+	# 留出面板边距 + 屏幕上方 HUD，使「提交并导出回传」始终在屏内可点。
+	var view_height: float = get_viewport().get_visible_rect().size.y
+	scroll.custom_minimum_size = Vector2(560, clampf(view_height - 200.0, 320.0, 520.0))
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_panel.add_child(scroll)
 

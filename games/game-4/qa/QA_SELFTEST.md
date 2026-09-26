@@ -4,6 +4,12 @@
 > `myrd/games-goal-cmuieqj7o0031m9gyf4pbwptg`，2026-09-27）。
 > 入口：<https://leomac-studio.tail49399e.ts.net/apps/game-4/?qa=1>
 > 公网实测：8/8 项 PASS（`qa-live-check.log` + 截图 `qa-selftest-live.png`）。
+>
+> **⚠️ v2（2026-09-27，WebKit 真内核复测）**：`qa-live-check` 的「8/8」只覆盖壳页标志与
+> 引擎启动，**未覆盖面板交互与真实点击**。Playwright WebKit 真内核逐按钮实测复现 3 个
+> UI/输入层缺陷（自动扫描 0 目标格 / 量表提交按钮不可达 / `?tuning=1` 下点击旋转失效），
+> 均已定位修复并本地复验 27/27 PASS —— 明细、根因与修复见 `qa/WEBKIT_LIVE_VERIFY.md`；
+> 修复待重导出重部署上线，上线前线上仍为 v18 行为。
 
 ## 一、真机自检模式（URL 加 `?qa=1`）
 
