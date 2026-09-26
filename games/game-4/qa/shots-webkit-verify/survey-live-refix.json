@@ -1,0 +1,33 @@
+{
+  "answers": {
+    "q1_understood": "能",
+    "q2_replay": "3",
+    "q3_beam": "5",
+    "q3_perf": "5",
+    "q3_rotate": "5",
+    "q3_sfx": "5",
+    "q4_gap": "无"
+  },
+  "game": "光路谜阵",
+  "meta": {
+    "level_index": 0,
+    "level_name": "初试光线",
+    "score": 3,
+    "submitted_at": "2026-09-26T22:00:43",
+    "unlocked_max": 1
+  },
+  "progress": {
+    "best_stars": {
+      "0": 3
+    },
+    "level_index": 0,
+    "moves": 1,
+    "score": 3,
+    "unlocked_max": 1
+  },
+  "schema": "guanglu-survey/1",
+  "tuning": {
+    "beam_core_width": 6,
+    "beam_glow_width": 16
+  }
+}

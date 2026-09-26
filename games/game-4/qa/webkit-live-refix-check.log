@@ -1,0 +1,29 @@
+PASS A·iPhone 形态引擎启动完成（引擎 QA 激活日志）
+PASS A·WebKit 内核（UA 含 WebKit） —— Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) V
+PASS A·__QA_MODE__ = true（平台壳钩子） —— true
+PASS A·__SURVEY_MODE__ = true（平台壳钩子） —— true
+PASS A·启动屏徽标双模式（平台壳钩子） —— 🛠 QA 真机自检模式 · 📋 试玩四问模式
+PASS A·画布已渲染（截图体积 + canvas 尺寸） —— bytes=233035 canvas=1170x2532
+PASS A·音频取证出口可用（点按后） —— state=running
+PASS A·console 出现 QA 激活日志 —— QA: QA 自检已激活：点击棋盘开始采集；点「自动扫描」跑全格命中 sweep。
+PASS A·iPhone 形态零页面错误
+PASS B·引擎启动完成
+PASS B·QA 自检已激活
+PASS B·自动扫描已启动（触屏点按「自动扫描」）
+PASS B·自动扫描完成（样本闭合） —— QA: 自动扫描完成：24 个样本。点「生成报告」导出 JSON。
+PASS B·扫描目标数 > 0（board 解析正确） —— targets=23（0 = _resolve_board 缺陷）
+PASS B·报告 JSON 已投递（GUANGLU_QA_REPORT）
+PASS B·报告 JSON 可解析且 schema 正确 —— guanglu-qa-report/1
+PASS B·报告含触屏样本（自检确有执行） —— samples=24 hit_rate=0.958
+PASS B·报告含旋转时延统计 —— p95=51ms
+PASS B·报告含音频状态 —— running
+PASS B·报告含 verdict 机判 —— {"audio_pending_unlock":false,"audio_running":true,"pass":false,"rotation_latency_ok":true,"touch_hit_ok":false}
+PASS B·导出通道完成（__GUANGLU_SHARE__.state=done） —— channel=share state=done err=
+PASS B·下载兜底（若走第 4 级通道则捕获文件） —— 未触发（更高级通道已成功）
+PASS B·四问模态可交互（出现 Survey 日志）
+PASS B·四问量表可点选并提交（GUANGLU_SURVEY） —— GUANGLU_SURVEY {"answers":{"q1_understood":"能","q2_replay":"
+PASS B·回传载荷含 7 项必答 —— 7/7 q1_understood,q2_replay,q3_rotate,q3_beam,q3_sfx,q3_perf,q4_gap
+PASS B·量表导出通道完成 —— channel=share
+PASS B·全程零页面错误
+
+WEBKIT_QA_LIVE_CHECK: PASS（27/27 项通过）

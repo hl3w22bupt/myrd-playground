@@ -23,6 +23,8 @@ if (!/[?&]qa=1/.test(BASE)) BASE += '?qa=1&tuning=1';
 const HERE = process.env.QA_OUT_DIR || path.dirname(fileURLToPath(import.meta.url));
 const SHOTS = path.join(HERE, 'shots-webkit-verify');
 fs.mkdirSync(SHOTS, { recursive: true });
+// 输出文件名后缀（QA_FILE_SUFFIX=-refix 时产物带 -refix，不覆盖旧证据）
+const SUF = process.env.QA_FILE_SUFFIX || '';
 
 const results = [];
 function check(name, ok, detail = '') {
@@ -110,7 +112,7 @@ async function waitEngineReady(page, lines, timeoutMs) {
     hasShell ? `state=${audio && audio.state}` : '本地原生壳无 __audioDebug，跳过');
   check('A·console 出现 QA 激活日志', lines.some((l) => l.startsWith('QA: QA 自检已激活')), lastLine(lines, 'QA:').slice(0, 60));
   check('A·iPhone 形态零页面错误', errors.length === 0, errors.slice(0, 2).join(' | '));
-  await page.screenshot({ path: path.join(SHOTS, 'webkit-iphone-390x844.png') });
+  await page.screenshot({ path: path.join(SHOTS, `webkit-iphone-390x844${SUF}.png`) });
   await ctx.close();
 }
 
@@ -127,7 +129,7 @@ async function waitEngineReady(page, lines, timeoutMs) {
   page.on('console', (m) => lines.push(`${m.text()}`));
   page.on('download', async (d) => {
     downloads.push(d.suggestedFilename());
-    try { await d.saveAs(path.join(SHOTS, 'qa-report-download-' + downloads.length + '.json')); } catch {}
+    try { await d.saveAs(path.join(SHOTS, `qa-report-download-${downloads.length}${SUF}.json`)); } catch {}
   });
 
   await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 60000 });
@@ -160,7 +162,7 @@ async function waitEngineReady(page, lines, timeoutMs) {
   const sweepTargets = Number((sweepLine.match(/(\d+) 个目标格/) || [])[1] || 0);
   check('B·自动扫描完成（样本闭合）', sweepDone, lastLine(lines, 'QA: 自动扫描完成').slice(0, 60));
   check('B·扫描目标数 > 0（board 解析正确）', sweepTargets > 0, `targets=${sweepTargets}（0 = _resolve_board 缺陷）`);
-  await page.screenshot({ path: path.join(SHOTS, 'webkit-b-sweep.png') });
+  await page.screenshot({ path: path.join(SHOTS, `webkit-b-sweep${SUF}.png`) });
 
   // —— ③ 一键报告导出：「分享/复制」→ GUANGLU_QA_REPORT + __GUANGLU_SHARE__ ——
   let reportTag = false;
@@ -179,13 +181,13 @@ async function waitEngineReady(page, lines, timeoutMs) {
     check('B·报告含旋转时延统计', !!(report.rotation_latency?.stats?.count), `p95=${report.rotation_latency?.stats?.p95_ms}ms`);
     check('B·报告含音频状态', typeof report.audio?.audio_context_state === 'string', report.audio?.audio_context_state);
     check('B·报告含 verdict 机判', typeof report.verdict?.pass === 'boolean', JSON.stringify(report.verdict));
-    fs.writeFileSync(path.join(SHOTS, 'qa-report-live.json'), JSON.stringify(report, null, 2));
+    fs.writeFileSync(path.join(SHOTS, `qa-report-live${SUF}.json`), JSON.stringify(report, null, 2));
   }
   const share = await page.evaluate(() => window.__GUANGLU_SHARE__ || null);
   check('B·导出通道完成（__GUANGLU_SHARE__.state=done）', !!share && share.state === 'done',
     share ? `channel=${share.channel} state=${share.state} err=${share.error}` : 'null');
   check('B·下载兜底（若走第 4 级通道则捕获文件）', true, downloads.join(',') || '未触发（更高级通道已成功）');
-  await page.screenshot({ path: path.join(SHOTS, 'webkit-b-report.png') });
+  await page.screenshot({ path: path.join(SHOTS, `webkit-b-report${SUF}.png`) });
 
   // —— ④ 四问量表：入口按钮 → 模态（修复后居中）→ 逐问点选 → 滚动条翻页 → 提交回传 ——
   // 坐标为 1280×800 视口 + 修复后面板居中布局的实测值（见 shots-webkit-verify 截图）。
@@ -202,7 +204,7 @@ async function waitEngineReady(page, lines, timeoutMs) {
   await tap(599, 365);   // ③ 音效「5」
   await tap(599, 425);   // ③ 画面响应「5」
   await tap(390, 496);   // ④「无」
-  await page.screenshot({ path: path.join(SHOTS, 'webkit-b-survey-filled.png') });
+  await page.screenshot({ path: path.join(SHOTS, `webkit-b-survey-filled${SUF}.png`) });
   // 提交（带 ±8px 扫描兜底）：出现 GUANGLU_SURVEY 即「可点选 + 可提交」双证
   let submitted = false;
   for (const [x, y] of [[418, 616], [418, 608], [418, 624], [400, 616], [436, 616]]) {
@@ -222,12 +224,12 @@ async function waitEngineReady(page, lines, timeoutMs) {
     const a = survey.answers || survey.payload?.answers || {};
     const got = REQUIRED.filter((k) => a[k] !== undefined && a[k] !== '');
     check('B·回传载荷含 7 项必答', got.length === 7, `${got.length}/7 ${got.join(',')}`);
-    fs.writeFileSync(path.join(SHOTS, 'survey-live.json'), JSON.stringify(survey, null, 2));
+    fs.writeFileSync(path.join(SHOTS, `survey-live${SUF}.json`), JSON.stringify(survey, null, 2));
     const share2 = await page.evaluate(() => window.__GUANGLU_SHARE__ || null);
     check('B·量表导出通道完成', !!share2 && share2.state === 'done', share2 ? `channel=${share2.channel}` : 'null');
   }
   check('B·全程零页面错误', errors.length === 0, errors.slice(0, 2).join(' | '));
-  await page.screenshot({ path: path.join(SHOTS, 'webkit-b-final.png') });
+  await page.screenshot({ path: path.join(SHOTS, `webkit-b-final${SUF}.png`) });
   await ctx.close();
 }
 
