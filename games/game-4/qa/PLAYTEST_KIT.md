@@ -29,6 +29,10 @@
 要点：三局反馈事件 147~173 次、最长无反馈窗口 < 1s（阈值 10s）；bot 盲玩在 15s 内通关
 第 1、2 关（score=6 = 两关各 3★）—— 第 1/2 关对「随手点」也足够可通，与调参数据一致。
 
+> **复验（2026-09-27 iterate 收口轮，HEAD `4b24894`）**：四门禁在本 HEAD 复跑全绿；
+> `GODOT_PLAYTEST_METRICS` 与上表**逐字段一致**（3 种子确定性复现），
+> 复验与 v6 部署取证见 `qa/LIVE_VERIFY.md` §五。
+
 ## 二、playtest 协议修复史（FAIL → PASS，可审计）
 
 1. **前序 FAIL（结构性）**：门禁依赖模板协议两锚点 —— `GameState.score_changed` 与

@@ -52,3 +52,27 @@
 ## 结论
 
 **公网可玩：通过。** liveUrl 可直接打开试玩，第 1 关加载、渲染、旋转交互、通关结算、星级判定全部符合需求；`.wasm` Content-Type 硬约束已修复并在线验证；COOP/COEP 以平台 M1 阶段等效配置达成（M2 可补头部）。
+
+## 五、v6 轮复验（2026-09-27，iterate 收口轮：四门禁复跑 + 重导出 + 重部署）
+
+- 门禁复跑（同源判定脚本 `std-skills/godot-game-dev/scripts/`，HEAD `4b24894`）：
+  `PREFLIGHT: PASS`（13 类 / 63 文件）→ `GODOT_SMOKE: PASS`（240 帧）→
+  `GODOT_FUZZ: PASS`（seed=20260913，6 批 239 帧）→ `GODOT_PLAYTEST: PASS`（3 种子×900 帧，
+  METRICS 与 `qa/PLAYTEST_KIT.md` §一逐字段一致 —— 判定可复现）
+- Web 重导出（`godot --headless --export-release Web`）：产物与库内基线**逐字节一致**
+  （pck sha256 `5bfa5ca8…` / wasm sha256 `fe5cebc5…`）—— 构建可复现，无需产物换版
+- 部署：**v6 running**（deploymentId `cmuio05ia0036m9l69170hjqi`，commit `4b24894`，
+  gitRef `myrd/games-goal-cmuieqj7o0031m9gyf4pbwptg`，mode=bundle，
+  部署 API 携带 `goalId=cmuieqj7o0031m9gyf4pbwptg` + `artifactKind=playable`；
+  部署前先 dryRun 校验构建，正式 POST 单次不重试 —— 规避 v3/v4 的 504 重复部署坑）
+
+| 步骤 | 结果 |
+|---|---|
+| 壳页 `GET /apps/game-4`（308 规整后跟随） | **200 text/html 12,178 B**，含调参桥 `__GAME_TUNING__` 与音频解锁 `__audioDebug` |
+| `GET /health` | 200 `{"ok":true,"app":"light-path-labyrinth",...}` |
+| `GET /api/public/assets/index.wasm` | **200 + `content-type: application/wasm`** ✓（10,696,408 B；b64+gzip 载荷解回 sha256 `fe5cebc5…` 35,376,909 B，与库内 wasm 逐字节一致 —— MIME 修复后载荷有效） |
+| `GET /api/public/assets/index.js` | 200 `text/javascript` 331,495 B（= 库内字节数） |
+| pck 内容一致性 | 线上 `index.pck.gz.b64`（b64→gunzip）sha256 `5bfa5ca8…` 2,568,528 B，与库内构建**逐字节一致** |
+| 部署状态 | `running`（服务终态，`hosted_apps.current_deployment_id` 已指向 v6，app status=ready，无 errorMessage） |
+
+**v6 结论：公网可玩通过，四门禁 + 构建复现 + 部署指针三者同一 HEAD，收口闭环。**
