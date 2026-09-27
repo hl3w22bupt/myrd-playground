@@ -1,0 +1,17 @@
+{
+  "asset": "neon-night-quad-v1.png",
+  "styleCard": "docs/style-card-neon-night-v1.md (v1.0 frozen 2026-09-27)",
+  "panels": [
+    "P1 开局首屏（e09 初始摆位）",
+    "P2 游戏中（六色循环）",
+    "P3 perfect 时刻（additive 涟漪+辉光）",
+    "P4 失败与重开"
+  ],
+  "size": {
+    "width": 484,
+    "height": 724
+  },
+  "sha256": "01ea413e15e4c6ed9742985b1a460aaf1221a8b05cbad78313bfae19de25700a",
+  "generator": "tools/gen-neon-reference.mjs",
+  "source": "generated"
+}

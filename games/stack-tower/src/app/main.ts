@@ -31,7 +31,7 @@ export function createSilentAudioManager(): AudioManager {
   return createAudioManager({ ctx: null, storage: null, now: () => 0, loadBuffer: async () => null });
 }
 
-export function boot(platform: Platform, opts?: { seed?: number }): BootSession {
+export function boot(platform: Platform, opts?: { seed?: number; telemetrySink?: (p: unknown) => void }): BootSession {
   const sim = createSim({ seed: opts?.seed ?? NUMERIC.DEFAULT_SEED });
   const renderer = new Renderer();
   const audio = platform.audioManager ?? createSilentAudioManager();
@@ -47,7 +47,12 @@ export function boot(platform: Platform, opts?: { seed?: number }): BootSession 
   });
 
   // —— v1.2：五钩子埋点（e-telemetry-emitter，acc-e1 契约；异常隔离，零 PII）——
-  const telemetry = createTelemetryEmitter(browserTelemetryDeps(() => platform.clock.now()));
+  // 埋点出口：默认 no-op 浏览器依赖；QA 契约经 opts.telemetrySink 注入采集器（不写一行平台代码）
+  const telemetry = createTelemetryEmitter(
+    opts?.telemetrySink
+      ? { ...browserTelemetryDeps(() => platform.clock.now()), sink: opts.telemetrySink }
+      : browserTelemetryDeps(() => platform.clock.now()),
+  );
   telemetry.emit('session_start', { data: { seed: String(opts?.seed ?? NUMERIC.DEFAULT_SEED) } });
   const offPageHide = (() => {
     const onHide = () => telemetry.emit('session_end');
