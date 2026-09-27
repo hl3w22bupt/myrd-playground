@@ -47,6 +47,9 @@ func _ready() -> void:
 		GameState.run_ended.connect(_on_run_ended)
 	if not settle_panel.restart_requested.is_connected(_on_restart_requested):
 		settle_panel.restart_requested.connect(_on_restart_requested)
+	# 调参工作台（SKILL.md §3C）：网页 + URL 带 ?tuning 参数才创建，其余环境零成本。
+	if TuningPanel.is_enabled():
+		add_child(TuningPanel.new())
 	restart_run()
 
 
