@@ -150,7 +150,7 @@
 | 步骤 | 结果 |
 |---|---|
 | preflight | **PASS**（13 类，76 文件） |
-| headless-smoke（320 帧） | **GODOT_SMOKE: PASS**（11 断言组：原 10 + 幽灵拾取回归；美术结构断言并入 player_move_contract） |
+| headless-smoke（320 帧） | **GODOT_SMOKE: PASS**（10 契约全过 + 新增幽灵拾取回归断言每局把关；美术结构断言并入 player_move_contract） |
 | 负例探针（幽灵拾取） | main.tscn 改回 140 → FAIL（签名见上）→ 还原复绿 |
 | input-fuzz | **GODOT_FUZZ: PASS**（seed=20260913） |
 | playtest | 模板仓库仍缺 `playtest.sh`（延续 v1 上报，未伪造结果） |
