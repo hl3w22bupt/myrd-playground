@@ -58,10 +58,23 @@ scripts/hud.gd           HUD：时间/得分/水果/连击窗口条 + 结算三�
 scripts/virtual_joystick.gd        虚拟摇杆（Input.action_press 路线，见 E-18）
 scripts/touch_confirm_button.gd    触摸确认按钮（注入 confirm 动作，模板协议）
 scripts/tuning_panel.gd            调参面板（网页 + ?tuning 时创建）
+scripts/qr_codec.gd                QR 编码器（Byte 模式 / EC M / v1~v10，黄金向量锚定）
+scripts/evidence_archive.gd        取证与量表通道层（带来源标记采集 + 结论禁用词自检）
+scripts/acceptance_hub.gd          验收中枢页（二维码 / 取证引导 / 量表回填 / 调参直达）
 scenes/main.tscn         主场景（Player/FruitSpawner/LogSpawner/Popups/Hud/TouchUI 装配）
 tests/smoke.tscn|gd      无头冒烟断言（协议：GODOT_SMOKE: PASS/FAIL）
 tests/playtest.json      机器人试玩局时长与阈值
+qa/README.md             真机取证与试玩回填归档通道（games/game-5/qa/ 约定）
 ```
+
+## 验收中枢页（真机取证 + 量表回填）
+
+需求《game-5 真机验收与试玩回填》（cmujot5ys0051m99i5t96onmo）的通道层：入口为
+HUD「验收中枢」按钮 / H 键（`open_hub` 动作）/ URL `?hub=1`。提供 liveUrl 二维码
+（iPhone 扫码直达）、真机取证分步引导、设备数据一键真实归档（每项读数带来源标记，
+不产生任何结论）、五维试玩量表回填（填完才可导出）与 `?tuning=1` 调参直达。
+归档去向与红线见 `qa/README.md`；QR 编码器以 3 条黄金向量（v1/v4/v9 × 掩码 0/3，
+与独立参考实现逐模块比对）锚定正确性。
 
 ## 本地门禁
 

@@ -47,6 +47,11 @@ func _ready() -> void:
 	# 调参工作台（SKILL.md §3C）：网页 + URL 带 ?tuning 参数才创建，其余环境零成本。
 	if TuningPanel.is_enabled():
 		add_child(TuningPanel.new())
+	# 验收中枢页（需求 cmujot5ys0051m99i5t96onmo）：常驻入口（按钮 / H 键 / ?hub=1 直达），
+	# 全代码构建、桌面与无头自动降级 —— 挂载本身零玩法影响。
+	var hub := AcceptanceHub.new()
+	hub.name = "AcceptanceHub"
+	add_child(hub)
 	start_match()
 
 
