@@ -24,37 +24,75 @@ signal speed_changed(speed: float)
 signal game_finished(stats: Dictionary)
 
 ## ── 数值调参区（知识基准「数值配置节」）──────────────────────────
-const SPEED_BASE: float = 100.0            ## speed.base 基础前进速度 px/s
-const SPEED_BOOST_MUL: float = 1.35        ## speed.boostMul 加速态倍率（+35% ≥ 验收 +30%）
-const SPEED_EASE_OUT_SEC: float = 1.5      ## speed.easeOutSec 加速退出缓动
-const COMBO_WINDOW_SEC: float = 4.0        ## combo.windowSec 连击窗口
-const COMBO_TRIGGER: int = 5               ## combo.trigger 触发加速的连击数
-const BOOST_DURATION_SEC: float = 8.0      ## boost.durationSec 加速初始时长
-const BOOST_EXTEND_SEC: float = 2.0        ## boost.extendSec 加速态内每颗水晶续时
-const BOOST_CAP_SEC: float = 15.0          ## boost.capSec 加速总时长上限
-const BOOST_SCORE_MULTIPLIER: int = 2      ## boost.scoreMultiplier 加速态得分倍率
-const SCORE_PER_CRYSTAL: int = 10          ## score.crystal 单颗水晶分值
-const SHIELD_MAX: int = 3                  ## shield.max 护盾格数
-const SHIELD_INVINCIBLE_SEC: float = 1.0   ## shield.invincibleSec 受击无敌时长
-const METEOR_SPAWN_INTERVAL_BASE: float = 2.0   ## meteor.spawnIntervalBase
-const METEOR_SPAWN_DECAY: float = 0.88          ## meteor.spawnDecay 每档生成间隔系数
-const METEOR_SPAWN_JITTER: float = 0.2          ## meteor.spawnJitter ±20%
-const METEOR_CAP_BASE: int = 3                  ## meteor.capBase 同屏上限基数
-const METEOR_CAP_STEP: int = 2                  ## meteor.capStep 每档增量
-const METEOR_BOOST_CAP_ADD: int = 2             ## meteor.boostCapAdd 加速态上限修正
-const METEOR_BOOST_INTERVAL_MUL: float = 0.85   ## meteor.boostIntervalMul 加速态间隔修正
-const DIFFICULTY_STEP_SEC: float = 30.0    ## difficulty.stepSec 每档秒数
-const DIFFICULTY_MAX: int = 6              ## difficulty.max 档位封顶
-const CRYSTAL_INTERVAL_SEC: float = 1.1    ## crystal.intervalSec
-const CRYSTAL_JITTER_SEC: float = 0.4      ## crystal.jitterSec ±0.4s
-const CRYSTAL_MAX_ON_SCREEN: int = 4       ## crystal.maxOnScreen
-const CRYSTAL_MIN_ON_SCREEN: int = 1       ## crystal.minOnScreen
-const CRYSTAL_FORCE_SPAWN_AFTER_SEC: float = 3.0  ## crystal.forceSpawnAfterSec 保底刷新
-const PLAYER_LATERAL_SPEED: float = 300.0  ## player.lateralSpeed 横移速度 px/s
-const SPAWN_AVOID_SHIP_BAND: float = 80.0  ## spawn.avoidShipBand 防刷脸杀判定带
-const SPAWN_MIN_GAP_RADIUS_MUL: float = 1.5       ## spawn.minGapRadiusMul 生成间距系数
+## 可变量而非 const：§3C 调参工作台硬契约 —— 壳页面把 URL ?tuning=<json> 解析进
+## window.__GAME_TUNING__，这里 _ready() 时读取并按 TUNING_META 钳制覆盖（见下方调参桥）。
+## 未传参 / 非导出平台 = 保持字面默认值，行为与 const 时代完全一致。
+var SPEED_BASE: float = 100.0            ## speed.base 基础前进速度 px/s
+var SPEED_BOOST_MUL: float = 1.35        ## speed.boostMul 加速态倍率（+35% ≥ 验收 +30%）
+var SPEED_EASE_OUT_SEC: float = 1.5      ## speed.easeOutSec 加速退出缓动
+var COMBO_WINDOW_SEC: float = 4.0        ## combo.windowSec 连击窗口
+var COMBO_TRIGGER: int = 5               ## combo.trigger 触发加速的连击数
+var BOOST_DURATION_SEC: float = 8.0      ## boost.durationSec 加速初始时长
+var BOOST_EXTEND_SEC: float = 2.0        ## boost.extendSec 加速态内每颗水晶续时
+var BOOST_CAP_SEC: float = 15.0          ## boost.capSec 加速总时长上限
+var BOOST_SCORE_MULTIPLIER: int = 2      ## boost.scoreMultiplier 加速态得分倍率
+var SCORE_PER_CRYSTAL: int = 10          ## score.crystal 单颗水晶分值
+var SHIELD_MAX: int = 3                  ## shield.max 护盾格数
+var SHIELD_INVINCIBLE_SEC: float = 1.0   ## shield.invincibleSec 受击无敌时长
+var METEOR_SPAWN_INTERVAL_BASE: float = 2.0   ## meteor.spawnIntervalBase
+var METEOR_SPAWN_DECAY: float = 0.88          ## meteor.spawnDecay 每档生成间隔系数
+var METEOR_SPAWN_JITTER: float = 0.2          ## meteor.spawnJitter ±20%
+var METEOR_CAP_BASE: int = 3                  ## meteor.capBase 同屏上限基数
+var METEOR_CAP_STEP: int = 2                  ## meteor.capStep 每档增量
+var METEOR_BOOST_CAP_ADD: int = 2             ## meteor.boostCapAdd 加速态上限修正
+var METEOR_BOOST_INTERVAL_MUL: float = 0.85   ## meteor.boostIntervalMul 加速态间隔修正
+var DIFFICULTY_STEP_SEC: float = 30.0    ## difficulty.stepSec 每档秒数
+var DIFFICULTY_MAX: int = 6              ## difficulty.max 档位封顶
+var CRYSTAL_INTERVAL_SEC: float = 1.1    ## crystal.intervalSec
+var CRYSTAL_JITTER_SEC: float = 0.4      ## crystal.jitterSec ±0.4s
+var CRYSTAL_MAX_ON_SCREEN: int = 4       ## crystal.maxOnScreen
+var CRYSTAL_MIN_ON_SCREEN: int = 1       ## crystal.minOnScreen
+var CRYSTAL_FORCE_SPAWN_AFTER_SEC: float = 3.0  ## crystal.forceSpawnAfterSec 保底刷新
+var PLAYER_LATERAL_SPEED: float = 300.0  ## player.lateralSpeed 横移速度 px/s
+var SPAWN_AVOID_SHIP_BAND: float = 80.0  ## spawn.avoidShipBand 防刷脸杀判定带
+var SPAWN_MIN_GAP_RADIUS_MUL: float = 1.5       ## spawn.minGapRadiusMul 生成间距系数
 
 const BEST_SAVE_PATH: String = "user://nebula_crystal_run.cfg"
+
+## ── 调参桥（§3C 调参工作台硬契约）────────────────────────────────
+## 键名 = 知识基准「数值配置节」的配置键；值 = 成员变量名 + 钳制区间 + 类型。
+## 只认这张表声明的键，URL 里多出来的键一律忽略；数值按 min/max 钳制后覆盖成员变量。
+const TUNING_META: Dictionary = {
+	"speed.base": {"prop": "SPEED_BASE", "min": 40.0, "max": 400.0, "type": "float"},
+	"speed.boostMul": {"prop": "SPEED_BOOST_MUL", "min": 1.0, "max": 3.0, "type": "float"},
+	"speed.easeOutSec": {"prop": "SPEED_EASE_OUT_SEC", "min": 0.0, "max": 5.0, "type": "float"},
+	"combo.windowSec": {"prop": "COMBO_WINDOW_SEC", "min": 1.0, "max": 10.0, "type": "float"},
+	"combo.trigger": {"prop": "COMBO_TRIGGER", "min": 2.0, "max": 20.0, "type": "int"},
+	"boost.durationSec": {"prop": "BOOST_DURATION_SEC", "min": 1.0, "max": 30.0, "type": "float"},
+	"boost.extendSec": {"prop": "BOOST_EXTEND_SEC", "min": 0.0, "max": 10.0, "type": "float"},
+	"boost.capSec": {"prop": "BOOST_CAP_SEC", "min": 1.0, "max": 60.0, "type": "float"},
+	"boost.scoreMultiplier": {"prop": "BOOST_SCORE_MULTIPLIER", "min": 1.0, "max": 10.0, "type": "int"},
+	"score.crystal": {"prop": "SCORE_PER_CRYSTAL", "min": 1.0, "max": 100.0, "type": "int"},
+	"shield.max": {"prop": "SHIELD_MAX", "min": 1.0, "max": 9.0, "type": "int"},
+	"shield.invincibleSec": {"prop": "SHIELD_INVINCIBLE_SEC", "min": 0.0, "max": 5.0, "type": "float"},
+	"meteor.spawnIntervalBase": {"prop": "METEOR_SPAWN_INTERVAL_BASE", "min": 0.3, "max": 10.0, "type": "float"},
+	"meteor.spawnDecay": {"prop": "METEOR_SPAWN_DECAY", "min": 0.5, "max": 1.0, "type": "float"},
+	"meteor.spawnJitter": {"prop": "METEOR_SPAWN_JITTER", "min": 0.0, "max": 0.5, "type": "float"},
+	"meteor.capBase": {"prop": "METEOR_CAP_BASE", "min": 1.0, "max": 20.0, "type": "int"},
+	"meteor.capStep": {"prop": "METEOR_CAP_STEP", "min": 0.0, "max": 10.0, "type": "int"},
+	"meteor.boostCapAdd": {"prop": "METEOR_BOOST_CAP_ADD", "min": 0.0, "max": 10.0, "type": "int"},
+	"meteor.boostIntervalMul": {"prop": "METEOR_BOOST_INTERVAL_MUL", "min": 0.3, "max": 1.0, "type": "float"},
+	"difficulty.stepSec": {"prop": "DIFFICULTY_STEP_SEC", "min": 5.0, "max": 120.0, "type": "float"},
+	"difficulty.max": {"prop": "DIFFICULTY_MAX", "min": 1.0, "max": 20.0, "type": "int"},
+	"crystal.intervalSec": {"prop": "CRYSTAL_INTERVAL_SEC", "min": 0.2, "max": 5.0, "type": "float"},
+	"crystal.jitterSec": {"prop": "CRYSTAL_JITTER_SEC", "min": 0.0, "max": 2.0, "type": "float"},
+	"crystal.maxOnScreen": {"prop": "CRYSTAL_MAX_ON_SCREEN", "min": 1.0, "max": 20.0, "type": "int"},
+	"crystal.minOnScreen": {"prop": "CRYSTAL_MIN_ON_SCREEN", "min": 0.0, "max": 10.0, "type": "int"},
+	"crystal.forceSpawnAfterSec": {"prop": "CRYSTAL_FORCE_SPAWN_AFTER_SEC", "min": 0.5, "max": 15.0, "type": "float"},
+	"player.lateralSpeed": {"prop": "PLAYER_LATERAL_SPEED", "min": 50.0, "max": 900.0, "type": "float"},
+	"spawn.avoidShipBand": {"prop": "SPAWN_AVOID_SHIP_BAND", "min": 0.0, "max": 300.0, "type": "float"},
+	"spawn.minGapRadiusMul": {"prop": "SPAWN_MIN_GAP_RADIUS_MUL", "min": 1.0, "max": 4.0, "type": "float"},
+}
 
 ## 陨石速度系数 k(D)：档位表 D1..D6 → 0.9x..1.4x（知识基准 2.1）。
 const METEOR_SPEED_COEFF_STEP: float = 0.1
@@ -82,6 +120,36 @@ var _speed_before_ease: float = SPEED_BASE
 
 func _ready() -> void:
 	_load_best()
+	_apply_url_tuning()
+
+
+## ── 调参桥：window.__GAME_TUNING__ → 调参区覆盖（Web 导出生效，其余平台空操作）──
+
+## 读取壳页面在引擎加载前解析好的 URL ?tuning=<json>（缺页/未传参/解析失败 → null）。
+func _read_url_tuning() -> Variant:
+	if not OS.has_feature("web") or not ClassDB.class_exists("JavaScriptBridge"):
+		return null
+	var raw: String = str(JavaScriptBridge.eval("JSON.stringify(window.__GAME_TUNING__ || null)", true))
+	if raw.is_empty() or raw == "null" or raw == "undefined":
+		return null
+	return JSON.parse_string(raw)
+
+
+## 只认 TUNING_META 声明的键；数值按 min/max 钳制后写入对应成员变量（改配置重开局生效）。
+func _apply_url_tuning() -> void:
+	var tuning: Variant = _read_url_tuning()
+	if typeof(tuning) != TYPE_DICTIONARY:
+		return
+	for key: String in TUNING_META.keys():
+		if not (tuning as Dictionary).has(key):
+			continue
+		var meta: Dictionary = TUNING_META[key]
+		var raw_value: Variant = (tuning as Dictionary)[key]
+		if typeof(raw_value) != TYPE_FLOAT and typeof(raw_value) != TYPE_INT:
+			continue
+		var clamped: float = clampf(float(raw_value), float(meta["min"]), float(meta["max"]))
+		set(meta["prop"], int(clamped) if meta["type"] == "int" else clamped)
+		print("[GameState] tuning override %s = %s" % [key, str(get(meta["prop"]))])
 
 
 ## 每局开始 / 重开：全部状态归零，最高分保留（验收 5）。

@@ -58,6 +58,21 @@ body { color: #e8f6ff; background: #0b0b22; overflow: hidden; touch-action: none
 <noscript>你的浏览器不支持 JavaScript。</noscript>
 <!-- 引擎引导脚本由启动脚本按 BASE_PATH 动态注入（静态 src 在无尾斜杠入口下会 404） -->
 <script>
+// ---- §3C 调参桥（必须在引擎加载前安装）----
+// URL ?tuning=<json对象> → window.__GAME_TUNING__；引擎内 GameState 启动时读取，
+// 只认其 TUNING_META 声明的键并按 min/max 钳制。缺这一层 = 试玩调好的参数无法用
+// URL 复现，调参回写流程断裂。非对象 / 解析失败一律忽略（保持默认数值）。
+(function () {
+  var raw = new URLSearchParams(location.search).get("tuning");
+  if (raw) {
+    try {
+      var t = JSON.parse(raw);
+      if (t && typeof t === "object" && !Array.isArray(t)) window.__GAME_TUNING__ = t;
+    } catch (e) {}
+  }
+})();
+</script>
+<script>
 (function () {
   // ---- 移动端音频手势解锁器（必须在引擎加载前安装，见文件尾注释）----
   // 根因（games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md F1/F2 取证）：
