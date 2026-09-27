@@ -10,15 +10,17 @@ const app = new Hono();
 app.get("/health", (c) =>
   c.json({
     ok: true,
-    app: "candy-crush-legend",
+    app: "game-8",
+    game: "牛牛打游戏",
     env: ctx.environment,
     assets: "lazy/object-storage",
   }),
 );
 
 // 游戏落地页（/ 是唯一豁免 /api 前缀护栏的业务路径）。
-// 页面内所有资源走相对路径 api/public/assets/*：公网入口 /apps/game 下相对路径
-// 会解析到网关子路径，绝对路径会 404/被登录墙拦下（见任务契约）。
+// 页面内含：调参桥（URL ?tuning= → window.__GAME_TUNING__，先于引擎加载）、
+// 移动端音频手势解锁器、base64 资产文本通道；所有资源走相对路径 api/public/assets/*：
+// 公网入口 /apps/game-8 下相对路径会解析到网关子路径，绝对路径会 404/被登录墙拦下。
 app.get("/", (c) => c.html(GAME_PAGE_HTML));
 
 /**

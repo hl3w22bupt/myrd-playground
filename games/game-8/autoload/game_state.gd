@@ -12,21 +12,37 @@ extends Node
 ## 单局阶段：进行中 / 通关 / 失败。
 enum Phase { RUNNING, WON, LOST }
 
-## ── 数值调参区 ──
+## ── 数值调参区（SKILL.md §3C 调参工作台）──
+## 可调数值 = 变量（默认值 = 需求验收基线：目标 20 个 / 限时 60 秒）+ TUNING_META（min/max/step）
+## 成对声明；名称保留大写与历史一致（tests/smoke.gd 直接引用）。
+## apply_tuning() 是唯一应用入口：只认 META 声明的键、按范围钳制、返回生效键列表；
+## Web 端启动时 _apply_web_tuning() 读壳页面调参桥（window.__GAME_TUNING__）覆盖默认值；
+## 桌面/无头环境桥不存在，自动跳过 —— 冒烟与本地运行不受影响。
+## 新增可调数值 = 加一个变量 + 在 TUNING_META 加一行。
+## TUNING_META：变量名 → {min, max, step}（调参面板按它生成滑杆，apply_tuning 按它钳制）。
+const TUNING_META: Dictionary = {
+	"TARGET_SCORE": {"min": 5.0, "max": 60.0, "step": 1.0},
+	"TIME_LIMIT": {"min": 15.0, "max": 180.0, "step": 5.0},
+	"MAX_COLLECTIBLES": {"min": 1.0, "max": 20.0, "step": 1.0},
+	"SPAWN_INTERVAL_START": {"min": 0.3, "max": 3.0, "step": 0.05},
+	"SPAWN_INTERVAL_MIN": {"min": 0.2, "max": 2.0, "step": 0.05},
+	"LIFETIME_START": {"min": 2.0, "max": 15.0, "step": 0.5},
+	"LIFETIME_MIN": {"min": 1.0, "max": 10.0, "step": 0.5},
+}
 ## 单局目标收集量（需求验收基线 3：收集 20 个即通关）。
-const TARGET_SCORE: int = 20
+var TARGET_SCORE: int = 20
 ## 单局时限秒数（需求验收基线 3：限时 60 秒）。
-const TIME_LIMIT: float = 60.0
+var TIME_LIMIT: float = 60.0
 ## 场上同屏可收集物上限（少于该数时由生成器补充）。
-const MAX_COLLECTIBLES: int = 6
+var MAX_COLLECTIBLES: int = 6
 ## 可收集物补充刷新间隔秒数（开局值；随难度梯度收紧到 SPAWN_INTERVAL_MIN）。
-const SPAWN_INTERVAL_START: float = 0.8
+var SPAWN_INTERVAL_START: float = 0.8
 ## 刷新间隔下限（难度封顶时的值，保证后期仍可读、可反应）。
-const SPAWN_INTERVAL_MIN: float = 0.45
+var SPAWN_INTERVAL_MIN: float = 0.45
 ## 可收集物寿命（开局值，秒）：超时未收集即过期消失，逼玩家主动追着收。
-const LIFETIME_START: float = 6.0
+var LIFETIME_START: float = 6.0
 ## 可收集物寿命下限（秒）：难度封顶时仍留出可追的距离。
-const LIFETIME_MIN: float = 3.0
+var LIFETIME_MIN: float = 3.0
 ## 物品临期闪烁警示的剩余寿命阈值（秒）。
 const LIFETIME_WARN_SECONDS: float = 1.5
 ## 持久化文件（收集进度与历史最高分）。
@@ -55,6 +71,9 @@ signal best_changed(best: int)
 
 func _ready() -> void:
 	load_progress()
+	# 调参桥（SKILL.md §3C）：Web 端读壳页面在引擎加载前写入的 window.__GAME_TUNING__。
+	# 桌面/无头环境无此桥，函数内部直接返回 —— 冒烟断言始终基于默认值，不受影响。
+	_apply_web_tuning()
 
 
 ## 收集判定计数入口：由场景层在「角色触碰到可收集物」时调用。
@@ -104,6 +123,58 @@ func spawn_interval_now() -> float:
 ## 当前难度下新生成可收集物的寿命（秒）：收集越少留存越久，后期必须主动追着收。
 func collectible_lifetime_now() -> float:
 	return lerpf(LIFETIME_START, LIFETIME_MIN, difficulty_ratio())
+
+
+## ── 调参应用（SKILL.md §3C 调参工作台唯一应用入口）──
+## 只认 TUNING_META 声明的键（未声明键拒绝）、按 min/max 钳制，返回实际生效的键列表。
+## 调参面板（scripts/tuning_panel.gd）拖滑杆与 Web 启动读桥共用本函数。
+func apply_tuning(values: Dictionary) -> Array[String]:
+	var applied: Array[String] = []
+	for key: String in values:
+		if not TUNING_META.has(key):
+			continue  # 未声明的键一律拒绝：调参不能改到玩法逻辑或存档字段
+		var meta: Dictionary = TUNING_META[key]
+		var clamped: float = clampf(float(values[key]), float(meta["min"]), float(meta["max"]))
+		set(key, _cast_tuned_value(key, clamped))
+		applied.append(key)
+	_normalize_tuning_order()
+	if applied.has("TIME_LIMIT"):
+		# 改时限立即生效：本局剩余时间重置为新时限（调参台是开发工具，语义直观优先）。
+		time_left = TIME_LIMIT
+		time_changed.emit(time_left)
+	return applied
+
+
+## 把钳制后的浮点值转回变量自身类型（整型变量取整，其余保持浮点）。
+func _cast_tuned_value(key: String, value: float) -> Variant:
+	var current: Variant = get(key)
+	if typeof(current) == TYPE_INT:
+		return int(roundf(value))
+	return value
+
+
+## 保序约束：下限值不允许高于开局值（否则难度梯度断言的单调性被破坏）。
+func _normalize_tuning_order() -> void:
+	SPAWN_INTERVAL_MIN = minf(SPAWN_INTERVAL_MIN, SPAWN_INTERVAL_START)
+	LIFETIME_MIN = minf(LIFETIME_MIN, LIFETIME_START)
+
+
+## Web 调参桥消费端：壳页面在引擎加载前把 URL ?tuning=<JSON> 写进 window.__GAME_TUNING__，
+## 这里读回并应用。非 Web 平台（桌面/无头）没有 JavaScriptBridge 语义，直接返回。
+func _apply_web_tuning() -> void:
+	if not OS.has_feature("web"):
+		return
+	var raw: Variant = JavaScriptBridge.eval(
+		"window.__GAME_TUNING__ ? JSON.stringify(window.__GAME_TUNING__) : null", true
+	)
+	if raw == null or typeof(raw) != TYPE_STRING:
+		return
+	var parsed: Variant = JSON.parse_string(raw)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return
+	var applied := apply_tuning(parsed)
+	if not applied.is_empty():
+		print("[game-8] 已应用 URL 调参: ", ", ".join(applied))
 
 
 func _set_phase(next_phase: int) -> void:

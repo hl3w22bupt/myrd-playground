@@ -56,6 +56,10 @@ func _ready() -> void:
 	_fill_collectibles()
 	spawn_timer.start()
 	_update_hud()
+	# 调参工作台（SKILL.md §3C）：仅 Web 且 URL 带 ?tuning= 时创建；
+	# 桌面/无头环境 should_show() 恒 false，冒烟与本地运行不受影响。
+	if TuningPanel.should_show():
+		add_child(TuningPanel.new())
 
 
 func _process(delta: float) -> void:
