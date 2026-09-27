@@ -11,23 +11,28 @@ signal match_ended(reason: StringName)
 
 const REASON_TIME_UP: StringName = &"time_up"
 const REASON_HIT_LOG: StringName = &"hit_log"
-## 飘分颜色：基础 +10 与连击加分区分（知识 6e91a11d §三）；扣分用坏水果色系。
+## 飘分颜色：基础 +10 / 连击加分 / 金水果 / 坏水果惩罚 四种区分（知识 6e91a11d §三）。
 const POPUP_BASE_COLOR: Color = Color(1, 1, 1)
 const POPUP_COMBO_COLOR: Color = Color(1, 0.62, 0.15)
-const POPUP_PENALTY_COLOR: Color = Color(0.62, 0.85, 0.4)
-## 倒计时告警：最后 5 秒逐秒 tick + HUD 时间变警示色（迭代反馈 2）。
-const ALERT_SECONDS: int = 5
+const POPUP_GOLDEN_COLOR: Color = Color(1, 0.84, 0.25)
+const POPUP_BAD_COLOR: Color = Color(0.95, 0.3, 0.3)
+## 倒计时告警：最后 5 秒每跨 1 秒一声 tick（用户反馈「倒计时最后 5 秒告警」）。
+const TICK_LAST_SECONDS: int = 5
 
 var time_left: float = GameState.MATCH_SECONDS
 var match_over: bool = false
 ## 已tick过的秒数（每秒只告警一次）。
 var _last_alert_second: int = -1
 
+## 末 5 秒 tick 的去重游标（同一整秒只响一次；-1 = 本局尚未响过）。
+var _tick_second: int = -1
+
 @onready var player: Player = $Player
 @onready var fruit_spawner: FruitSpawner = $FruitSpawner
 @onready var log_spawner: LogSpawner = $LogSpawner
 @onready var hud: Hud = $Hud
 @onready var popups: Node2D = $Popups
+@onready var touch_ui: CanvasLayer = $TouchUI
 
 
 func _ready() -> void:
@@ -38,6 +43,17 @@ func _ready() -> void:
 	GameState.score_changed.connect(hud.on_score_changed)
 	GameState.fruits_changed.connect(hud.on_fruits_changed)
 	time_changed.connect(hud.on_time_changed)
+	# 触摸 UI 只在有触摸屏时显示（SKILL.md §3A：按触屏能力判定，不用平台特征代替）。
+	if DisplayServer.is_touchscreen_available():
+		touch_ui.visible = true
+	# 调参工作台（SKILL.md §3C）：网页 + URL 带 ?tuning 参数才创建，其余环境零成本。
+	if TuningPanel.is_enabled():
+		add_child(TuningPanel.new())
+	# 验收中枢页（需求 cmujot5ys0051m99i5t96onmo）：常驻入口（按钮 / H 键 / ?hub=1 直达），
+	# 全代码构建、桌面与无头自动降级 —— 挂载本身零玩法影响。
+	var hub := AcceptanceHub.new()
+	hub.name = "AcceptanceHub"
+	add_child(hub)
 	start_match()
 
 
@@ -47,26 +63,28 @@ func _physics_process(delta: float) -> void:
 	time_left -= delta
 	log_spawner.time_left = time_left
 	time_changed.emit(time_left)
-	_tick_countdown_alert()
+	_tick_countdown_warning()
 	if time_left <= 0.0:
 		time_left = 0.0
 		_end_match(REASON_TIME_UP)
 
 
-## 倒计时最后 5 秒：每跨过 1 秒播一次告警音，并把 HUD 时间染成警示色。
-func _tick_countdown_alert() -> void:
+## 末 5 秒告警：整秒跳变（60→59…→5→4→3→2→1）时每秒一声 tick；start_match 重置游标。
+func _tick_countdown_warning() -> void:
 	var second: int = int(ceilf(maxf(time_left, 0.0)))
-	var urgent := second <= ALERT_SECONDS and second >= 1
-	if urgent and second != _last_alert_second:
-		_last_alert_second = second
-		Juice.sfx(&"tick")
-	hud.set_time_urgent(urgent)
+	if second != _tick_second:
+		_tick_second = second
+		if second > 0 and second <= TICK_LAST_SECONDS:
+			Juice.sfx(&"tick")
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	# 结算界面键盘通道：Enter / Space（confirm 动作）重开 —— 双通道之一。
 	if match_over and event.is_action_pressed("confirm"):
 		start_match()
+	# 静音开关键盘通道：M 键（toggle_mute 动作）—— 桌面端不用去够屏幕右上角按钮。
+	if event.is_action_pressed("toggle_mute"):
+		Juice.toggle_muted()
 
 
 ## 开局 / 重开。种子默认随机；冒烟与试玩传固定种子保证可复现。
@@ -74,7 +92,7 @@ func start_match(fruit_seed: int = -1, log_seed: int = -1) -> void:
 	GameState.reset()
 	time_left = GameState.MATCH_SECONDS
 	match_over = false
-	_last_alert_second = -1
+	_tick_second = -1
 	player.reset_for_new_match()
 	fruit_spawner.start_match(fruit_seed if fruit_seed >= 0 else randi())
 	log_spawner.start_match(log_seed if log_seed >= 0 else randi())
@@ -97,11 +115,14 @@ func _end_match(reason: StringName) -> void:
 	GameState.submit_final_score(GameState.score)
 	var title: String = "被原木击中！" if reason == REASON_HIT_LOG else "时间到！"
 	if reason == REASON_HIT_LOG:
+		# 撞击瞬间：hit + fail（撞击声 + 失败短句）；结算界面统一再给 settle。
 		Juice.flash(player, Color(1, 0.35, 0.3, 0.8), 0.2)
 		Juice.shake(9.0, 0.3)
 		Juice.hit_stop(0.08)
 		Juice.sfx(&"hit")
 		Juice.sfx(&"fail")
+	# 结算音（两条终局路径共用，用户反馈「结算」音效；HUD 不再重复播）。
+	Juice.sfx(&"settle")
 	hud.show_result(title, GameState.score, GameState.fruits_collected, GameState.best_score)
 	# 结算音（迭代反馈 2）：两条终局路径进面板时都播一次 settle 失败局在前已有撞击音。
 	Juice.sfx(&"settle")
@@ -110,30 +131,36 @@ func _end_match(reason: StringName) -> void:
 
 ## 收集分流（迭代反馈 3）：普通/金水果走加分入口，坏水果走惩罚入口（扣分 + 减速）。
 func _on_fruit_collected(fruit: Fruit) -> void:
-	if fruit.is_bad():
-		var lost: int = GameState.apply_penalty()
-		Juice.sfx(&"bad")
-		Juice.flash(player, Color(0.55, 0.75, 0.4, 0.7), 0.25)
-		_spawn_penalty_popup(fruit.global_position, lost)
-		return
-	var gained: int = GameState.add_score(fruit.points_value())
-	if fruit.kind == Fruit.KIND_GOLDEN:
+	if fruit.is_golden():
+		# 金水果：固定高分 + 专属音效 + 金色大字飘分（仍是成功收集，计入水果数/刷新连击）。
+		var gained_golden: int = GameState.add_golden_score()
 		Juice.sfx(&"golden")
-	else:
-		Juice.sfx(&"score")
+		_spawn_score_popup(fruit.global_position, gained_golden, POPUP_GOLDEN_COLOR, 28)
+		return
+	if fruit.is_bad():
+		# 坏水果：扣分 + 短暂减速（用户反馈「扣分或减速」→ 两者都给，惩罚可感知）。
+		var penalty: int = GameState.apply_bad_fruit()
+		player.apply_slow()
+		Juice.sfx(&"bad")
+		Juice.flash(player, Color(0.4, 0.3, 0.15, 0.6), 0.25)
+		_spawn_score_popup(fruit.global_position, -penalty, POPUP_BAD_COLOR, 24)
+		return
+	# 普通水果：+10，窗口内追加 +5（连击加成唯一入口在 GameState.add_score）。
+	var gained: int = GameState.add_score()
+	Juice.sfx(&"score")
 	if gained > GameState.BASE_POINTS:
 		Juice.sfx(&"confirm")
-	_spawn_score_popup(fruit.global_position, gained)
+		_spawn_score_popup(fruit.global_position, gained, POPUP_COMBO_COLOR, 22)
+	else:
+		_spawn_score_popup(fruit.global_position, gained, POPUP_BASE_COLOR, 22)
 
 
-## 飘分：跟随水果被收集的世界坐标；连击加分用不同颜色（不用角落滚动合计替代）。
-func _spawn_score_popup(world_pos: Vector2, gained: int) -> void:
+## 飘分：跟随水果被收集的世界坐标；普通/连击/金/坏四种颜色与字号区分（不做角落滚动合计）。
+func _spawn_score_popup(world_pos: Vector2, value: int, color: Color, font_size: int) -> void:
 	var label := Label.new()
-	label.text = "+%d" % gained
-	label.add_theme_font_size_override("font_size", 22)
-	label.add_theme_color_override(
-		"font_color",
-		POPUP_COMBO_COLOR if gained > GameState.BASE_POINTS else POPUP_BASE_COLOR)
+	label.text = "%+d" % value
+	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_color_override("font_color", color)
 	label.z_index = 50
 	popups.add_child(label)
 	label.position = world_pos + Vector2(-14, -34)

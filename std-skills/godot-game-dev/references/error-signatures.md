@@ -220,6 +220,23 @@ GODOT_SMOKE: FAIL A5 胜利：分数 4 != WIN_SCORE 5（有金币没被收掉）
   确属外部噪声才用 `GODOT_SMOKE_IGNORE_RUNTIME_ERRORS=1` 显式豁免（勿用于门禁）。
   修复代码时优先看 `_process` / `_physics_process` 里的索引与空引用。
 
+### E-18（**隐蔽坑**）`parse_input_event(InputEventAction)` 多动作注入：只有最后一个事件的状态存活
+
+- **现象**：虚拟摇杆经 `Input.parse_input_event(InputEventAction)` 注入 4 个方向动作
+  （3 个 release + 1 个 press，或斜向 2 个 press），单方向时好时坏、**斜向必然丢一个方向**
+  （`Input.get_action_strength` 读回 0）；玩家表现为「斜着拖摇杆就卡死 / 松开另一方向整体停」。
+- **根因**：Godot 4.3 实测（headless 与窗口行为一致）—— 每处理一个 action 型事件都会
+  重建全部动作的按住状态，`parse_input_event` 注入的 `InputEventAction` 不进原始事件注册表，
+  在下一个 action 型事件处理时被清掉；同批内只有「最后一个事件」能留下状态。
+  API 路线（`Input.action_press/action_release`）不受影响：多动作同持可靠，
+  且扛无关原始键事件的冲刷。
+- **修复动作**：持续型模拟量输入（摇杆/重力感应）一律用
+  `Input.action_press(action, strength)` / `Input.action_release(action)`，
+  禁止 `parse_input_event(InputEventAction)` 维持按住状态（离散一次性动作如「确认」
+  走事件投递没问题）。冒烟断言：注入合成触点 → 断言两个方向动作同持 > 0（斜向），
+  松手后归零（防松手残留漂移）。注意与 E-08 区分：E-08 是「API 状态 vs 事件注入分帧」，
+  本条是「事件注入路线本身不能维持多动作状态」。
+
 ---
 
 ## F. 修复循环的速度技巧

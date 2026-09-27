@@ -1,0 +1,102 @@
+# game-5 试玩验收包（playtest kit）
+
+> 依据：需求《森林收集水果限时赛（game-5）》（cmuipol63006rm9l6cp2ww5r5）+ 知识 6e91a11d
+> （玩法权威基准）+ 知识 82e419bb（触屏摇杆 / Web 音频门控规范）。
+> 仓库内无 `.myrd/spec/design-spec.json`，本指引按实现说明（README + 实测门禁）编写。
+> 量表结论只能来自真人试玩：未回填前一律「待用户试玩」，禁止任何 agent 代填。
+
+## 0. 基本信息
+
+| 项 | 值 |
+| --- | --- |
+| 试玩地址（liveUrl） | https://leomac-studio.tail49399e.ts.net/apps/game-5/ |
+| 验收中枢页（hubUrl） | https://leomac-studio.tail49399e.ts.net/apps/game-5/?hub=1 |
+| 调参工作台 | https://leomac-studio.tail49399e.ts.net/apps/game-5/?tuning=1 |
+| 部署 | hostedAppId=cmuipis4f0063m9l6hagvvvd4（slug: game-5），deploymentId=cmujrk7lc009rm99i1p2madip（v7），commit 7f85c40e，gitRef=myrd/games-goal-cmuipis4g0065m9l69hew4nng |
+| 线上-仓库一致性 | 线上 `api/public/assets/index.pck.gz.b64` 解压后 sha256=021250af…57ca7d，与仓库 `games/game-5/export/web/index.pck` **逐字节一致**（部署内容即 HEAD 构建） |
+| 机判门禁 | 本地 verify.sh 全绿（preflight 13 类 PASS + GODOT_SMOKE 240 帧 PASS + GODOT_FUZZ PASS + GODOT_PLAYTEST 3 局 PASS）；部署自检 /health、壳资产链路全 200 |
+| 复验（2026-09-27，HEAD 245dad1） | 与门禁同源四项在本 HEAD 重跑全绿（preflight 13 类 / smoke 240 帧 / fuzz / playtest 3 局）；既有 4 个 URL 逐一探活：liveUrl、hubUrl、`?tuning=1` 308→200，`/health` 200；线上 `index.pck` 解压后 sha256=021250af…57ca7d 与仓库 HEAD `games/game-5/export/web/index.pck` 逐字节一致（245dad1 仅改 docs，不进 pck，无需重导出重部署） |
+| 复验（2026-09-27，v7 重部署） | 仓库可用（remote fetch 成功、本地 HEAD==远端 tip 7f85c40e）；四门禁本 HEAD 重跑全绿（preflight 13 类 / smoke 240 帧 / fuzz seed=20260913 / playtest 3 局 score=25/60/50）；Web 导出重跑与仓库既有产物逐字节一致（pck sha256=021250af…57ca7d）；重部署 v7（deploymentId=cmujrk7lc009rm99i1p2madip，commitHash=7f85c40e4056…7502）后既有 4 个 URL 全 200（liveUrl、/health、?hub=1、?tuning=1）+ 资产链路 index.js / index.pck.gz.b64 / index.wasm.gz.b64 全 200；线上 pck 解压 sha256=021250af…57ca7d 与仓库 HEAD 逐字节一致 |
+| 复验（2026-09-27，HEAD 9164b74，run cmujote7w） | 仓库可用（`git ls-remote` 成功、本地 HEAD==远端 tip 9164b74389df，目标分支 `myrd/games-goal-cmuipis4g0065m9l69hew4nng` 在 origin 在位）；四门禁本 HEAD 独立重跑全绿：preflight 13 类 PASS（exit 0）+ GODOT_SMOKE 240 帧 PASS（exit 0）+ GODOT_FUZZ PASS（seed=20260913，6 批次 239 帧）+ GODOT_PLAYTEST PASS（3 局 × 900 帧，score=45/0/50，反馈事件 47/44/49，最大间隔 1.3s）；既有 4 个 URL 逐一探活 308→200（liveUrl、/health 200、?hub=1、?tuning=1）；线上 `api/public/assets/index.pck.gz.b64` 解压 sha256=021250af…5548d08 与仓库 HEAD `games/game-5/export/web/index.pck` **逐字节一致**（9164b74 相对 v7 构建 commit 7f85c40e 仅改 docs，不进 pck，无需重导出重部署，v7 deploymentId=cmujrk7lc009rm99i1p2madip 保持 running）；壳页 `?tuning=` 调参桥（引擎加载前落全局）与 `AcceptanceHub` 常驻挂载经代码核对在位。量表四问与真机取证仍为**待用户试玩 / 待用户取证**，无任何 agent 代填 |
+| 桌面操作 | WASD / 方向键移动（对角线归一化）；结算界面 Enter / Space 重开；**M 键静音开关** |
+| 移动端操作 | 左下虚拟摇杆移动（`_input` 阶段接管触点，支持斜向）；右下「确认」按钮；结算界面触摸「重新开始」；**右上「音效」按钮静音** |
+
+## 0.5 验收中枢页（hubUrl，真机取证 + 量表回填一站式入口）
+
+打开 <https://leomac-studio.tail49399e.ts.net/apps/game-5/?hub=1>（或游戏内「验收中枢」按钮 / H 键）：
+
+| 功能 | 说明 |
+| --- | --- |
+| liveUrl 二维码 | 桌面打开中枢页 → iPhone 相机扫码直达线上版；地址可改后点「刷新二维码」重生成 |
+| 真机取证分步引导 | 「复制归档说明」给出取证步骤与说明行五要素（设备型号/系统版本/实测时间/操作项/用户本人结论） |
+| 设备数据一键真实归档 | 采集引擎侧 + Web 侧原始读数（userAgent、屏幕、DPR、`window.__audioDebug__()` 等），**每项带来源标记**，取不到的读数如实标「未采集」；导出 markdown 后放入 `games/game-5/qa/`。文档只含读数，不作任何判定 |
+| 试玩量表回填 | 五维（移动操控手感/音效体验/难度曲线/连击反馈清晰度/整体可玩性）各 1~5 分 + 一句理由 + 署名；**全部填完才允许导出**，导出后同样放入 `games/game-5/qa/` |
+| ?tuning=1 调参直达 | 「打开调参工作台」一键跳转 §3 调参工作台 |
+
+归档命名与红线见 `games/game-5/qa/README.md`：agent 只搭通道，不代做、不伪造任何真机/试玩结论。
+
+## 1. 试玩指引（怎么玩、看什么）
+
+**怎么玩**：点击/触摸画面开始——这第一次点击同时完成音频解锁（Web 端浏览器策略要求，
+首次手势之前静音属正常，之后就有声音）。60 秒倒计时开跑：操控松鼠吃水果得分、躲开横向
+滚来的原木。碰到原木本局立即结束（失败结算，文案明确「被原木击中」）；坚持到倒计时归零
+则正常结算。历史最高分本地保存，刷新页面不丢。
+
+**水果三种**（场上加权：普通 68% / 金 16% / 坏 16%）：
+
+| 类型 | 得分 | 额外效果 |
+| --- | --- | --- |
+| 普通（苹果/浆果） | +10 | 计入收集数；3 秒内连吃触发连击（第 2 个起每颗额外 +5） |
+| 金水果（放大 1.3×） | +50 | 同样计入收集数、刷新连击窗口 |
+| 坏水果 | -15（下限 0） | **不计收集数、不清连击**；松鼠减速 1.5 秒（×0.6），有提示音 |
+
+**看什么（对照玩法基准 6e91a11d + 音频规范 82e419bb）**：
+
+1. **开局 3 秒内**视野里是否至少有 2 个可收水果（铺场 8~12 个）；
+2. **HUD**：剩余时间逐秒递减、得分、连击数 + 连击窗口条（< 1 秒时应有视觉提醒）；
+3. **连击体感**：连吃时飘分是否区分 +10 / +15（位置跟随水果、颜色/字号不同）；
+4. **音效**：首次点击后收集/连击/金/坏/被撞是否有声；**最后 5 秒每秒滴答（tick）**；
+   结算界面有 settle 音；右上「音效」按钮（或 M 键）切换静音后声音应立即停、刷新页面仍记住偏好；
+5. **原木曲线**：是否越到局末越快（v0=120 → 终局 1.8×v0）、间隔 2~4 秒、留有可穿越缝隙；
+6. **移动端（重点回归项）**：左下摇杆推任一方向松鼠都应移动，**斜向推两轴同时生效**；
+   摇杆不应误触结算页按钮；右下「确认」按钮可用；
+7. **失败结算**是否明确写「被原木击中」一类文案，与「时间到」可区分；
+8. **重开双通道**：结算界面触摸按钮与键盘 Enter/Space 都能立即开新局；
+9. **边界**：持续朝一个方向推，松鼠应被挡在屏幕内不越界。
+
+## 2. 结构化试玩量表（四问，逐条作答，不许合并）
+
+| # | 问题 | 作答格式 | 你的结论 |
+| --- | --- | --- | --- |
+| ① | 首分钟能否看懂目标与操作 | 是/否 + 卡点（哪一步看不懂/找不到） | 待用户试玩 |
+| ② | 结束时想不想再来一局 | 1-5 分 + 原因 | 待用户试玩 |
+| ③ | 手感与反馈（打击感/音效/画面响应） | 1-5 分（可分项） | 待用户试玩 |
+| ④ | 节奏有没有明显断档或无聊段 | 有/无 + 出现在第几秒 | 待用户试玩 |
+
+> 量表状态：**待用户试玩**。回填方式：直接回复四问结论，附上调参 URL（如有）。
+
+## 3. 调参工作台（?tuning=1）
+
+打开 <https://leomac-studio.tail49399e.ts.net/apps/game-5/?tuning=1>，画面右上角浮出调参面板，
+拖滑杆即时生效；点「复制调参 URL」得到带 `?tuning=<JSON>` 的链接——**把它发回来就是一次完整的调参结果**，
+agent 将 diff 后经 spec revisions 落库拍板（下一轮按新 spec 重部署，不改代码默认值）。
+
+可调键（`GameState.TUNING_META`，仅认这 5 个；URL 里未声明的键会被忽略并标注）：
+
+| 键 | 含义 | 默认 | 范围 | 步长 |
+| --- | --- | --- | --- | --- |
+| player_speed | 松鼠移动速度 | 240 | 120~480 | 10 |
+| log_speed_start | 原木开局速度 v0 | 120 | 60~300 | 10 |
+| log_speed_end_factor | 终局速度倍率 v1/v0 | 1.8 | 1.0~3.0 | 0.1 |
+| golden_points | 金水果得分 | 50 | 20~100 | 5 |
+| bad_penalty | 坏水果扣分 | 15 | 5~40 | 5 |
+
+需求硬性口径（60 秒 / 普通 +10 / 连击 +5 / 原木 2~4 秒间隔）不进调参区，不在可调范围。
+
+## 4. 结果回写协议（agent 侧，收到结果才执行）
+
+1. 解析 `?tuning=` JSON → 与现值 diff（未声明键忽略并标注）；
+2. `POST /api/v1/game-design-specs/:id/revisions` 写进 spec.numeric（新版本 + sourceTrajectoryId 溯源）
+   → `POST /api/v1/game-design-specs/:id/approve` 拍板；
+3. 结论与 diff 以 `op=tuning_applied` 追加进 goal artifacts；下一轮工作流按新 spec 重部署。
+4. 未收到用户结果：量表保持「待用户试玩」，本节整体跳过，不伪造结论。

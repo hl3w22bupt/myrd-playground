@@ -22,6 +22,10 @@ const MIN_SPAWN_DISTANCE: float = 36.0
 ## 与原木瞬时位置的最小净距（原木半长 + 水果半径）。
 const LOG_CLEARANCE: float = 60.0
 
+## 种类加权（迭代：金水果/坏水果）：普通 68% / 金 16% / 坏 16%。
+## 抽取走本生成器同一 RNG 流（种子固定 → 局局可复现，冒烟断言依赖）。
+const KIND_WEIGHTS: Array[float] = [0.34, 0.34, 0.16, 0.16]
+
 var _rng := RandomNumberGenerator.new()
 var _last_spawn_pos: Vector2 = Vector2.ZERO
 var _running: bool = false
@@ -74,23 +78,32 @@ func _on_restock_timer_timeout() -> void:
 
 func _spawn_fruit() -> void:
 	var fruit: Fruit = FRUIT_SCENE.instantiate()
-	fruit.kind = _roll_kind()
+	fruit.kind = _pick_kind()
 	fruit.position = _pick_spawn_position()
 	_last_spawn_pos = fruit.position
 	fruit.collected.connect(_on_fruit_collected)
 	add_child(fruit)
 
 
-## 掉落分布（迭代反馈 3：玩法丰富 —— 类型分化）：
-## 金水果 10%（高分目标）、坏水果 12%（惩罚与风险）、其余为普通水果（苹果/浆果各半）。
-## 掷骰走本生成器自己的 RNG 流 —— 与原木生成、补货计时互不影响（知识 6e91a11d §二）。
-func _roll_kind() -> int:
-	var roll: int = _rng.randi_range(0, 99)
-	if roll < 10:
-		return Fruit.KIND_GOLDEN
-	if roll < 22:
-		return Fruit.KIND_BAD
-	return Fruit.KIND_APPLE if _rng.randi_range(0, 1) == 0 else Fruit.KIND_BERRY
+## 加权抽取水果种类：KIND_WEIGHTS 累积分布 + 单次 randf（同 RNG 流，复现安全）。
+func _pick_kind() -> int:
+	var roll: float = _rng.randf()
+	var cumulative: float = 0.0
+	for kind: int in KIND_WEIGHTS.size():
+		cumulative += KIND_WEIGHTS[kind]
+		if roll < cumulative:
+			return kind
+	return Fruit.KIND_APPLE
+
+
+## 冒烟白盒辅助：在指定位置生成指定种类的水果（确定性断言用，不占用随机流）。
+func spawn_fruit_of_kind(kind: int, pos: Vector2) -> Fruit:
+	var fruit: Fruit = FRUIT_SCENE.instantiate()
+	fruit.kind = kind
+	fruit.position = pos
+	fruit.collected.connect(_on_fruit_collected)
+	add_child(fruit)
+	return fruit
 
 
 ## 落点：随机 + 三重约束（边缘内边距 / 避开原木瞬时位置 / 离上一落点不过近）。

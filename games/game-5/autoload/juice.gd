@@ -2,18 +2,28 @@ extends Node
 ## 全局反馈单例（Juice）—— 模板协议（SKILL.md §3B）在本工程的落地。
 ##
 ## 结果性事件与反馈的对应（知识 6e91a11d：连击 UI 反馈必须显式、飘分区分颜色）：
-##   收集水果 → pop(水果飘分) + sfx(&"score")；连击加成 → pop(连击标签) + sfx(&"confirm")
-##   被原木击中 → flash + shake + hit_stop + sfx(&"hit"/&"fail")；时间到 → sfx(&"confirm")
-##   重开 → pop(结算面板) + sfx(&"confirm")；原木入场 → flash(原木)（可感知的场上事件）
+##   收集水果 → pop(水果飘分) + sfx(&"score")；金水果 → sfx(&"golden")
+##   坏水果 → sfx(&"bad") + 玩家减速；连击加成 → sfx(&"confirm")
+##   倒计时最后 5 秒 → 每跨 1 秒 sfx(&"tick")；被原木击中 → flash + shake + hit_stop + sfx(&"hit"/&"fail")
+##   结算界面（两条终局路径共用）→ sfx(&"settle")；重开 → pop(结算面板)
+##   原木入场 → flash(原木)（可感知的场上事件）
 ##
-## 音效：SFX_BANK 指向程序化合成的短音效（assets/sfx/*.wav）；未注册名合法空转。
-## Web 端出声依赖壳页的音频手势解锁（部署节点硬契约，headless 全绿 ≠ 移动端有声音）。
+## ── Web 音频门控三件套（知识 82e419bb §3.2，迭代硬契约）──
+## 1. 入口门：任何真实用户手势（按键/鼠标/触摸）的输入回调内 unlock_audio() —— 解锁前
+##    只记账不播放。Godot Web 引擎只在自身输入回调里 resume AudioContext，所以「解锁」
+##    必须与第一次输入同栈发生；壳页面的 document 级 resume 是第二道兜底（覆盖 interrupted）。
+## 2. 记账层：sfx() 在解锁前只累计 sfx_counts 与 events（事件名 + 计数），不播放、不报错、
+##    不阻塞玩法 —— headless 断言「事件触发了没有」，声波交给浏览器策略。
+## 3. 再解锁：unlock_audio() 幂等；解锁状态不随重开一局重置。静音开关独立于解锁，
+##    走 AudioServer 总线 mute + 本地持久化（user://game_5_audio.cfg）。
+## 局内全部音效走本单例入口，禁止绕过门控直连 AudioStreamPlayer。
 
 ## 反馈触发信号：反馈统计 / 连击 UI 可订阅；playtest 门禁以此作为反馈采样锚点。
 signal feedback_fired(kind: StringName)
+## 静音状态变化（HUD 按钮据此刷新文案）。
+signal mute_changed(muted: bool)
 
-## 音效注册表：名 → AudioStream。
-## 迭代反馈新增：tick（倒计时末 5 秒告警）、settle（结算）、golden（金水果）、bad（坏水果）。
+## 音效注册表：名 → AudioStream（程序化合成的短音效 assets/sfx/*.wav）。
 const SFX_BANK: Dictionary = {
 	&"score": preload("res://assets/sfx/score.wav"),
 	&"confirm": preload("res://assets/sfx/confirm.wav"),
@@ -25,8 +35,17 @@ const SFX_BANK: Dictionary = {
 	&"bad": preload("res://assets/sfx/bad.wav"),
 }
 
+const AUDIO_SAVE_PATH: String = "user://game_5_audio.cfg"
+
 ## 本局反馈记录（"kind@ms"），断言只看是否非空；环形上限防长局内存膨胀。
 var events: PackedStringArray = []
+## 音效记账：名 → 触发次数（含解锁前被门控的次数）。冒烟按它断言「事件发生过」。
+var sfx_counts: Dictionary = {}
+
+## 音频解锁状态（首次用户手势后为 true；重开一局不重置）。
+var audio_unlocked: bool = false
+## 静音开关（用户偏好，本地持久化；与解锁相互独立）。
+var muted: bool = false
 
 const EVENTS_CAP: int = 512
 const SFX_POOL_SIZE: int = 4
@@ -61,53 +80,45 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	# 首个真实用户手势内解锁音频并同步出第一声（入口门：知识 82e419bb §三.2 第 1 条）。
-	# 只读事件、不 set_input_as_handled —— 门控不得改变输入分发的既有语义。
-	if event is InputEventKey or event is InputEventMouseButton \
-			or event is InputEventScreenTouch or event is InputEventScreenDrag:
-		var gesture_pressed := true
-		if event is InputEventKey or event is InputEventMouseButton or event is InputEventScreenTouch:
-			gesture_pressed = event.pressed
-		if gesture_pressed and (not audio_unlocked or _await_reunlock):
-			unlock_audio()
-			sfx(&"confirm", -6.0)
+	# 入口门：首个真实手势（按下类按键/鼠标/触摸）即解锁 —— 与引擎自身的
+	# AudioContext resume 同栈发生（知识 82e419bb §3.1：引擎只在输入回调里 resume）。
+	var is_press := (event is InputEventKey and event.is_pressed()) \
+		or (event is InputEventMouseButton and event.is_pressed()) \
+		or (event is InputEventScreenTouch and event.is_pressed())
+	if is_press:
+		unlock_audio()
 
 
-func _notification(what: int) -> void:
-	# Web 端退后台 / 锁屏：AudioContext 可能被浏览器挂起，标记「下一次手势再解锁」。
-	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and OS.has_feature("web"):
-		_await_reunlock = true
-
-
-## 幂等解锁：翻转标志并记账。真实浏览器侧的 resume 由引擎在输入回调栈内完成，
-## 这里只保证「解锁前不发声、解锁后放行」的确定性（headless 可断言的是这层协议）。
+## 幂等解锁：首次手势后翻标志。不回放解锁前积压的音效（记账已留痕）。
 func unlock_audio() -> void:
-	_await_reunlock = false
 	if audio_unlocked:
 		return
 	audio_unlocked = true
-	_record(&"audio_unlocked", null)
+	_record(&"audio:unlocked", null)
 
 
-## 静音开关（独立于解锁）：静音时 play 全部降级为记账。持久化到用户存档。
+## 静音开关（用户手势路径调用）：AudioServer 主总线 mute + 持久化。
 func set_muted(value: bool) -> void:
-	if muted == value:
-		return
 	muted = value
+	AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), muted)
 	var config := ConfigFile.new()
-	config.load(GameState.SAVE_PATH)  # 文件不存在时保留默认，写入其余段不丢
-	config.set_value(MUTE_SAVE_SECTION, MUTE_SAVE_KEY, muted)
-	config.save(GameState.SAVE_PATH)
-	_record(&"muted_on" if muted else &"muted_off", null)
+	config.set_value("audio", "muted", muted)
+	config.save(AUDIO_SAVE_PATH)
+	_record(&"audio:muted" if muted else &"audio:unmuted", null)
+	mute_changed.emit(muted)
+
+
+func toggle_muted() -> void:
+	set_muted(not muted)
 
 
 func _load_mute_pref() -> void:
-	if not FileAccess.file_exists(GameState.SAVE_PATH):
+	if not FileAccess.file_exists(AUDIO_SAVE_PATH):
 		return
 	var config := ConfigFile.new()
-	if config.load(GameState.SAVE_PATH) != OK:
+	if config.load(AUDIO_SAVE_PATH) != OK:
 		return
-	muted = bool(config.get_value(MUTE_SAVE_SECTION, MUTE_SAVE_KEY, false))
+	set_muted(bool(config.get_value("audio", "muted", false)))
 
 
 ## 弹跳放大后回弹（收集/得分/确认类结果的默认反馈）。
@@ -159,23 +170,19 @@ func hit_stop(duration: float = 0.06) -> void:
 	Engine.time_scale = 1.0
 
 
-## 播放注册表里的音效。返回「本次是否真的发声」——事件触发（确定性，headless 可断言）
-## 与声波放出（受浏览器音频策略控制）是两层（知识 82e419bb §三.2 第 2 条）：
-##   未注册   → 记账 sfx:<name>(未注册)，不发声，返回 false；
-##   未解锁   → 记账 gate:<name>，不发声不报错（玩法不阻塞），返回 false；
-##   已静音   → 记账 muted:<name>，不发声，返回 false；
-##   其余     → 进池播放，返回 true。
-func sfx(name: StringName, volume_db: float = 0.0) -> bool:
+## 播放注册表里的音效（唯一音频入口）。
+## - 未注册名合法空转（记录事件，资产后补即出声）；
+## - 解锁前只记账不播放（门控三件套第 2 条）；
+## - 静音时只记账不播放（偏好层，与解锁相互独立）。
+func sfx(name: StringName, volume_db: float = 0.0) -> void:
+	sfx_counts[name] = int(sfx_counts.get(name, 0)) + 1
 	var stream: AudioStream = SFX_BANK.get(name)
 	if stream == null:
 		_record(StringName("sfx:%s(未注册)" % name), null)
-		return false
-	if not audio_unlocked:
-		_record(StringName("gate:%s" % name), null)
-		return false
-	if muted:
-		_record(StringName("muted:%s" % name), null)
-		return false
+		return
+	if not audio_unlocked or muted:
+		_record(StringName("sfx:%s(记账)" % name), null)
+		return
 	var player := _sfx_pool[_sfx_next]
 	_sfx_next = (_sfx_next + 1) % _sfx_pool.size()
 	player.stream = stream
@@ -185,7 +192,7 @@ func sfx(name: StringName, volume_db: float = 0.0) -> bool:
 	return true
 
 
-## 测试辅助：清空反馈记录（playtest 每局开头会调）。
+## 测试辅助：清空反馈记录（playtest 每局开头会调）。账本 sfx_counts / 解锁状态不清。
 func clear_events() -> void:
 	events.clear()
 
