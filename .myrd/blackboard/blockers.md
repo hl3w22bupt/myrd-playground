@@ -14,7 +14,20 @@
 - **处置裁定（主策划，非降级为纸面件）**：①本冲刺风格卡/基准四联图/P0 资产产物一律落 git 仓库文件（`games/stack-tower/assets/reference/` 等）+ 黑板登记，**不依赖 OD 画布承载验收物**——OD 不可达不阻塞本轮执行面；②按纪律升级主人：请修复 OD 守护进程（`pnpm tools-dev` 或等效方式）；恢复前 N2 风格卡以「repo 文件 + hash」为准，恢复后可回流 OD 复核（不构成新门禁）。
 - **平台 API 通道修复（E1，本轮打通）**：前端代理会剥 `Authorization` 头 → Bearer 通道 UNAUTHORIZED（本地 3001 与远程 tailnet 双复现）；改走 **cookie `token` 通道**（引擎注入的 `MYRD_TOKEN` 工作流代行身份，via=workflow-node）→ 本地/远程 `/api/v1/auth/me` 双 200。本轮 spec v1.2 登记全部走此通道，全程留痕。历史「平台 API 鉴权恢复」的成因就此闭环：非 token 失效，是通道差异。
 
+## E0b · 程序线复跑与裸调用契约门禁修复（r4 · 2026-09-27 11:07–11:14，程序）
+
+- **发现**：提交前置口径的裸调用契约门禁 `node scripts/contract-check.mjs`（A–E 版）在 spec v1.2 导出形状下**首跑即崩溃**
+  （`contract-check-stack-tower.mjs:151` TypeError: join undefined）——该工具仍是 v3 形状假设，未跟上 v1.2，属**门禁工具失配**（N5 的 7 道门禁不含它，故未在 N5 暴露）。三处失配：
+  ① 登记凭据读取 `_platform.id` ≠ 实际字段 `_platform.platformSpecId` → 「缺 platformSpecId」误报路径；
+  ② v1.2 新增 3 个锚点实体（e-theme-constants / e-ripple-renderer / e-telemetry-emitter，`kind:entity` + `expect`，无 `script`）→ D 段 join(undefined) 崩溃；
+  ③ e09 开局摆位为 levels 元素、断言按 spec revision_note 显式折入 e01/e03/e08（无独立 acceptance）→ C 段反向映射误判孤儿；acc-a7（spec 内置 D4 冻结）无显式 not-runnable 通道。
+- **修复（只动门禁工具，零游戏代码/零设计变更）**：①③字段与折入口径对齐 v1.2；② 锚点实体双闸核验（expect 非空 + expect 具名落点 repo/游戏工程双根存在 + 契约文件可追溯）；并加两条**新护栏**：not-runnable 挂起必须有 spec 原文挂账条款背书（无据挂起 = FAIL）；每个契约文件必须列入 run-all 门禁清单（「文件在、门禁不跑」= 假绿）。
+- **复跑（8 道门禁全绿，证据 `gate-logs/r4-neon-juice-20260927-prog-recheck/`）**：typecheck / run-all 31 条 / P0 查表 13 件 / perf 相对判（+8.73%，容差 ±10%）/ M2.1 资产运行时 / 端到端冒烟 / 壳形态模拟（U7 NOTE 维持立案）/ **裸调用契约门禁 PASS**（A 段 platformSpecId=cmuj5f6ik00hkm9l64r5uickm v4 approved；B 段 31/32 + acc-a7 显式挂起；C 段 8↔9 元素 + 23↔31 契约 + run-all 聚合全量核对；D 段 20/20 实体 + kernel 纯净；E 段 20/20 资产）。
+- **acc-j1 负载敏感性（如实记录，判据零放松）**：裸调用首跑曾现 1 次 acc-j1 瞬时 FAIL（页内时钟 >3000ms），与同期门禁 4 观测的负载尖峰（perf +8.73%，较 N5 首跑 -12.73%）同源；独立复跑 5/5 PASS 后取证。预算仍 3000ms、无重试，测试实现与 spec 语句一致——环境抖动记录，不构成豁免。
+- **E0 复核（11:11:53，双通道）**：OD 守护进程 127.0.0.1:7456 仍不可达（curl `http_code=000` + open-design MCP 原文报错）→ **维持升级主人待修**；本轮产物继续以 repo 文件 + hash 为准。cwd 非 repo root 异常：未复现（`pwd` = `git rev-parse --show-toplevel`）。
+
 ## r4 当前基线（霓虹夜塔冲刺 · N5 收口后状态）
+
 
 - 黑板路径：`.myrd/blackboard/`（levels.md / assets.md / blockers.md 三份齐备，本轮增量见各文件顶部 r4 段）
 - **spec 版本号：v1.2（平台 v4）· approved**（platformSpecId `cmuj5f6ik00hkm9l64r5uickm`，2026-09-27 API 实查 approved 唯一；v3 `cmugok2uz000xm9ilx42t8pnl` superseded）

@@ -25,6 +25,7 @@
 | 13 | a20-ui-icon-sound | assets/neon/ui-icon-sound.png | generated | PASS（字形锚点 ±10%） |
 
 - 查表执行器：`tests/assets-neon-check.mjs`（**13/13 PASS**，2026-09-27），并经 contract `acc-a8` 并入 run-all 同门运行。
+- 程序线复跑（2026-09-27 11:07–11:14）：**本轮零资产改动**，13 件 P0 + M2.1 运行时链两项门禁复验均 PASS（查表 13/13 / 9 项资产请求全 200 + 404 fallback 可玩），登记与磁盘一致；证据 `gate-logs/r4-neon-juice-20260927-prog-recheck/`（3、5 号日志）。
 - **验收门开闭状态：风格卡冻结（2026-09-27）先于本表落盘 → 全部 13 件合法进入验收。**
 
 ## r4 之前的资产状态（r3 及更早，保持不变）

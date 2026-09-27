@@ -1,0 +1,22 @@
+# 门禁2 契约 run-all · 2026-09-27 11:08:25 · 命令: node tests/contract/run-all.mjs（cwd games/stack-tower）
+
+[contract] acc-t1 · lvl-01-stack-tower/e-theme-constants
+  ok    render/ui 零散落十六进制色值（theme.ts 除外）
+  ok    juice/池常量零本地重定义（必须 import 自 theme）
+  ok    theme.js 构建产物与 spec 登记值一致（四预算 + 池 200）
+RESULT: PASS (3/3)
+
+[contract] acc-a8 · lvl-01-stack-tower/e-theme-constants
+  ok    P0 13 件逐件 PASS（完整性 + hex±5 + 禁描边 + 渐变二值 + 几何 ±10%）
+  ok    spec assets 段对齐：a08..a20 逐项在档（id 对齐）
+RESULT: PASS (2/2)
+
+[contract] acc-num · lvl-01-stack-tower/e-num-frozen-gate
+  ok    v1 冻结七键深比 + sha256 全等（v1 vs v1.2）
+  ok    numeric.js 与 spec.numeric 全量镜像（键序无关深比）
+  ok    opening 组两侧同构（STACK_MIN=3 / STACK_MAX=5 / JITTER=6）
+RESULT: PASS (3/3)
+
+==== 契约汇总 ====
+PASS 31 / FAIL 0 / not-runnable 0 （共 31）
+exit=0
