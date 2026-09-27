@@ -1,8 +1,11 @@
-# 《糖果粉碎传奇》AppHost 应用清单（平台构建管线步骤 1 读取；M1 仅支持顶层字符串键值）
-# 壳位于仓库根：server/ 内是 Node20 + Hono 应用，游戏 Web 导出产物经 gzip+base64 内联进 bundle
-name = "candy-crush-legend"
+# 《复刻天天酷跑》AppHost 应用清单（平台构建管线步骤 1 读取；M1 仅支持顶层字符串键值）
+# 壳位于仓库根：server/ 内是 Node20 + Hono 应用，游戏 Web 导出产物经 assets_dir 出 bundle
+#（部署时平台把该目录上传对象存储，server 用 asset-store 懒加载，bundle 不含游戏资源）。
+# 注意：壳按部署 gitRef 隔离——本分支根壳 = game-6；main 分支根壳仍为 candy-crush-legend，
+# 各游戏应用从各自 goal 分支部署，互不影响。
+name = "tiantian-kupao-game-6"
 runtime = "node20"
 health = "/health"
 
 # 底座 A：资产出 bundle（部署时平台把该目录上传对象存储，server 用 asset-store 懒加载）
-assets_dir = "games/game/export/web"
+assets_dir = "games/game-6/export/web"

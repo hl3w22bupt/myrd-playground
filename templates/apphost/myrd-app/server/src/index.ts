@@ -46,6 +46,20 @@ app.get("/", (c) =>
   });
   // ③ 真机取证出口
   window.__audioDebug = function () { return { state: audioCtx ? audioCtx.state : 'no-ctx', log: audioLog }; };
+
+  // 调参桥（工坊 §3C 调参工作台硬契约，必须先于引擎加载）：
+  // URL 参数 tuning=<JSON对象> 解析进全局 window.__GAME_TUNING__；
+  // 游戏侧启动时读取，只认 TUNING_META 声明的键、按 min/max 钳制 ——
+  // 缺这一层 = 试玩调好的参数无法用 URL 复现，调参回写流程断裂。
+  try {
+    var tuningRaw = new URLSearchParams(location.search).get('tuning');
+    if (tuningRaw) {
+      var tuningParsed = JSON.parse(tuningRaw);
+      if (tuningParsed && typeof tuningParsed === 'object' && !Array.isArray(tuningParsed)) {
+        window.__GAME_TUNING__ = tuningParsed;
+      }
+    }
+  } catch (e) { /* 非法 tuning 参数按未传处理 */ }
 })();
 </script>
 </body></html>`,

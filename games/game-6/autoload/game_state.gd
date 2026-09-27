@@ -165,7 +165,29 @@ var best_distance_m: float = 0.0
 
 
 func _ready() -> void:
+	_apply_web_shell_tuning()
 	load_progress()
+
+
+## ── Web 壳调参桥（工坊 §3C 硬契约的游戏侧接线）──
+## 壳页面在引擎加载前把 URL 参数 tuning 解析进 window.__GAME_TUNING__；
+## 这里在启动时读取并经 apply_tuning 应用（只认 TUNING_META 声明的键、按 min/max 钳制），
+## 使「试玩调好的参数可用 URL 复现」。仅 Web 平台生效；动态取单例，
+## 桌面/无头环境零引用零开销；解析失败静默回落 spec 默认值，绝不阻塞启动。
+func _apply_web_shell_tuning() -> void:
+	if OS.get_name() != "Web":
+		return
+	if not Engine.has_singleton("JavaScriptBridge"):
+		return
+	var js_bridge: Object = Engine.get_singleton("JavaScriptBridge")
+	var raw: Variant = js_bridge.eval("JSON.stringify(window.__GAME_TUNING__ || null)", true)
+	var raw_text := String(raw)
+	if raw_text.is_empty() or raw_text == "null" or raw_text == "undefined":
+		return
+	var parsed: Variant = JSON.parse_string(raw_text)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return
+	apply_tuning(parsed)
 
 
 ## ── 调参协议（acc-09 唯一应用入口）──

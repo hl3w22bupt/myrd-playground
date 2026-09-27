@@ -1,8 +1,11 @@
 # Godot 本机导入缓存：由 `godot --headless --path . --import` 重新生成，不进版本库
 .godot/
 
-# 导出产物
-/export/
+# 导出产物：桌面端产物不入库；export/web 是 AppHost 部署的构建输入
+# （apphost.toml 声明 assets_dir = "games/game-6/export/web"，部署时平台把该目录
+# 上传对象存储、server 经 asset-store 懒加载），必须入库，与 games/game 先例同规
+/export/*
+!/export/web/
 *.exe
 *.zip
 
