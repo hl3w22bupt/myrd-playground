@@ -43,6 +43,7 @@
 - 落点：`assets/reference/neon-night-quad-v1.png`（2×2 四面板拼图）+ `assets/reference/neon-night-quad-v1.manifest.json`（sha256 + 逐面板规格）。
 - 复现链：`node games/stack-tower/tools/gen-neon-reference.mjs`（真源 theme.ts，确定性）。
 - hash 管理改图：改 theme/构图 → 重生成 → hash 变更 → **必须先升本卡版本**，否则查表拒收。
+- **勘误留痕（2026-09-27 冻结当日，美术线）**：冻结复检发现四联图生成器塔吊剪影画了 **2 道**，与本卡 §3「3 道」及 runtime `src/render/backdrop.ts`（×3，0.18/0.52/0.84 分布）不一致——属**物证未对齐卡**的生成器缺陷，非构图意图变更。修正：`gen-neon-reference.mjs` 塔吊 2→3 道（几何比例对齐 backdrop）；重生成后 sha256 `01ea413e15e4c6ed…` → **`098e28b7f1a29479…`**（manifest 随生成同步）。**本卡条款零变更、版本维持 v1.0**——§5 的「先升卡再改图」规则针对构图/色值意图调整，缺陷修正不适用；像素级抽验（四面板立柱列簇 43/125/202，相对位 0.18/0.52/0.84）已过。
 
 ## §6 冻结登记（写回黑板）
 

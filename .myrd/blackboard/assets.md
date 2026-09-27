@@ -1,12 +1,21 @@
 # 资产清单黑板 — stack-tower（霓虹夜塔视觉与 juice 冲刺 r4）
 
-> 更新时间：2026-09-27（**r4 开工 · 主策划**：换装「霓虹夜塔」+ P0 资产 13 项。开工首笔：①**风格卡冻结纪律生效**——A1「霓虹夜塔」参考卡冻结 v1.0 前，任何 r4 新资产不得进验收；②OD 守护进程 127.0.0.1:7456 不可达（两通道四次复现，留痕见 blockers.md §E0）——本冲刺资产产物一律落 repo 文件 + hash，不落 OD 画布，不降级为纸面件；③P0 13 项清单与拆分口径见 §r4-P0）
+> 更新时间：2026-09-27（**r4 美术线复检轮 · T3 美术**：N2/N3 交付「只检不新做」独立复检——**风格卡/查表/hash 全部过检，捡出并修复 1 件物证缺陷 F1**（四联图塔吊剪影 2→3 道对齐风格卡 §3，详见 §r4 复检记录）；开工首笔环境复核：OD 守护进程仍不可达（本轮 MCP 通道第 3 次独立复现，维持升级主人）、cwd 非 repo root 异常未复现）
+> 本轮前纪要：2026-09-27（**r4 开工 · 主策划**：换装「霓虹夜塔」+ P0 资产 13 项。开工首笔：①**风格卡冻结纪律生效**——A1「霓虹夜塔」参考卡冻结 v1.0 前，任何 r4 新资产不得进验收；②OD 守护进程 127.0.0.1:7456 不可达（两通道四次复现，留痕见 blockers.md §E0）——本冲刺资产产物一律落 repo 文件 + hash，不落 OD 画布，不降级为纸面件；③P0 13 项清单与拆分口径见 §r4-P0）
 > 前轮纪要：2026-09-26（**正式发布轮 r3**：发布对象变更 → 当前分支 HEAD `436be68`，T3 美术线按「只检不新做」对 HEAD 发布面独立复检四项——**全 PASS**，资产面相对 9/25 基线/r1/r2 **逐字节零漂移**；终检记录落 `gate-logs/release-m21-20260926-r3/art-final-check.md`；资产核对状态 = **终检完成（r3 四项全 PASS）**，`sfx-<事件id>` 注册表**双签完成**（程序侧 healthcheck §5 + 美术侧 r3 §复签）；U6/U7 属壳/注册链路，非素材面，U7 美术面口径见 r3 记录 §已知未收口项）
+
+## r4 · 美术线复检轮（2026-09-27 · T3 美术 · N2/N3 只检不新做）
+
+- **开工首笔环境复核**：①OD 守护进程 `127.0.0.1:7456` **仍不可达**——本轮经 open-design MCP `get_active_context` 独立复现（报错原文同 §E0），累计第 3 次跨轮复现，**维持升级主人待修**；本轮产物继续以 repo 文件 + hash 为准，风格卡回流 OD 复核项继续挂起。②cwd 非 repo root：**未复现**（本轮 shell 初始 `pwd` = `git rev-parse --show-toplevel` = run 工作区根；执行中差异系美术自查主动切目录所致，非环境异常，不冒领）。
+- **N2 复检 = PASS（含 1 件物证缺陷 F1，已修复）**：风格卡 v1.0 三要素齐全（版本+日期+生效范围）✓；基准四联图 manifest sha256 与磁盘逐字节一致 ✓；**确定性复现再证**——重生成 13 件 P0 + 四联图，`git diff` 全空（零漂移）✓；四面板与卡 §3 逐条目视+像素双验 ✓。**F1**：四联图生成器塔吊剪影画 2 道，与卡 §3「3 道」及 runtime backdrop（×3）不符 → `tools/gen-neon-reference.mjs` 修正 2→3 道（几何比例 0.18/0.52/0.84 对齐 backdrop），重生成后 **sha256 `01ea413e…` → `098e28b7f1a29479…`**（manifest 同步）；卡条款零变更、版本维持 v1.0，勘误留痕见卡 §5。像素抽验：四面板立柱列簇 x=43/125/202（相对位 0.18/0.52/0.84）全部命中。
+- **N3 复检 = PASS（13/13）**：`node tests/assets-neon-check.mjs` 本轮复跑 **13/13 PASS**；`assets/neon/manifest.json` 13 件 sha256 与磁盘逐件比对全等；spec v1.2 assets a08..a20 落点（theme.ts 单源）与登记一致。
+- **机器门禁复跑（本轮美术侧取证，证据条款见 `gate-logs/r4-neon-juice-20260927-art-recheck/`）**：`node scripts/contract-check.mjs` 全量 —— 首跑 B 段 acc-d2 瞬时 FAIL（浏览器并发负载抖动，与 E0b 记录的 acc-j1 同源，判据零放松），**独立复跑 PASS（31/32 + acc-a7 not-runnable 具 spec 挂账背书）**；A 段 spec 基线 approved / C 段双向映射 / D 段 entities 20/20 / E 段 assets 20/20 全 generated。
+- **N6 首图物证就绪**：`assets/reference/neon-night-quad-v1.png` @ `098e28b7…` 即主人首图定稿对象（四联图 = 风格卡 §3 四面板），随 N6 拍板；机器不替人判断，定稿权在主人。
 
 ## r4 · 风格卡 A1「霓虹夜塔」冻结登记（N2 · 2026-09-27 冻结当日写回）
 
 - **风格卡 v1.0 已冻结**：`games/stack-tower/docs/style-card-neon-night-v1.md`（版本号+日期+生效资产范围见卡头）。生效范围 = spec v1.2 assets a08..a20（P0 13 件）+ 渲染换装（backdrop/palette/textures/HUD style）。**冻结前零资产进验收，冻结后改色先升卡再动 theme.ts。**
-- **基准四联图已带 hash 提交**：`games/stack-tower/assets/reference/neon-night-quad-v1.png`（484×724，**sha256 `01ea413e15e4c6ed…`**，全值见同目录 `.manifest.json`）+ 复现链 `tools/gen-neon-reference.mjs`（真源 theme.ts，确定性复现已验：重生成 hash 不变）。四面板 = 开局首屏（e09 初始摆位）/ 游戏中 / perfect 时刻 / 失败与重开（风格卡 §3）。
+- **基准四联图已带 hash 提交**：`games/stack-tower/assets/reference/neon-night-quad-v1.png`（484×724，**sha256 `098e28b7f1a29479…`**〔复检轮 F1 修正后，原 `01ea413e15e4c6ed…` 作废〕，全值见同目录 `.manifest.json`）+ 复现链 `tools/gen-neon-reference.mjs`（真源 theme.ts，确定性复现已验：重生成 hash 不变——本复检轮再证）。四面板 = 开局首屏（e09 初始摆位）/ 游戏中 / perfect 时刻 / 失败与重开（风格卡 §3）。
 - 色值唯一真源 = `src/render/theme.ts` NEON 表（acc-t1 契约锚点）；本卡 §2 与 theme 逐字对应。
 
 ## r4 · P0 资产 13 项（N3 · 已落盘，查表 13/13 PASS）

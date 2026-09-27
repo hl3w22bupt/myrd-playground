@@ -47,9 +47,9 @@ function sky(r) {
     const t = y / (H - 1);
     r.fillRect(0, y, W, 1, [0, 1, 2].map((k) => Math.round(top[k] + (bot[k] - top[k]) * t)));
   }
-  // 塔吊剪影 ×2（熄灭态）
+  // 塔吊剪影 ×3（熄灭态；三道分布对齐 src/render/backdrop.ts L0：0.18/0.52/0.84）
   const sil = shadeRgb(hexToRgb(NEON.DEBRIS), 1.4);
-  for (const [cx, h, arm] of [[W * 0.2, 90, 40], [W * 0.78, 110, 55]]) {
+  for (const [cx, h, arm] of [[W * 0.18, 90, 32], [W * 0.52, 108, 43], [W * 0.84, 76, 25]]) {
     for (let y = HORIZON_Y + 8; y > HORIZON_Y + 8 - h; y--) r.fillRect(Math.round(cx), y, 1, 1, sil, 90);
     r.fillRect(Math.round(cx) - Math.round(arm * 0.35), HORIZON_Y + 8 - h, Math.round(arm * 1.35), 1, sil, 90);
   }
