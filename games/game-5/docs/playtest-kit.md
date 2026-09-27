@@ -9,10 +9,11 @@
 
 | 项 | 值 |
 | --- | --- |
-| 试玩地址 | https://leomac-studio.tail49399e.ts.net/apps/game-5/ |
+| 试玩地址（liveUrl） | https://leomac-studio.tail49399e.ts.net/apps/game-5/ |
+| 验收中枢页（hubUrl） | https://leomac-studio.tail49399e.ts.net/apps/game-5/?hub=1 |
 | 调参工作台 | https://leomac-studio.tail49399e.ts.net/apps/game-5/?tuning=1 |
-| 部署 | deploymentId=cmujl7x67001wm99iu04zq600（v3），commit 7e47be3，gitRef=myrd/games-goal-cmuipis4g0065m9l69hew4nng |
-| 线上-仓库一致性 | 线上 `api/public/assets/index.pck.gz.b64` 解压后 sha256=af670aa7…68857，与仓库 `games/game-5/export/web/index.pck` **逐字节一致**（部署内容即 HEAD 构建） |
+| 部署 | deploymentId=cmujqozv00089m99imslrxmo2（v6），commit af26fc6，gitRef=myrd/games-goal-cmuipis4g0065m9l69hew4nng |
+| 线上-仓库一致性 | 线上 `api/public/assets/index.pck.gz.b64` 解压后 sha256=021250af…57ca7d，与仓库 `games/game-5/export/web/index.pck` **逐字节一致**（部署内容即 HEAD 构建） |
 | 机判门禁 | 本地 verify.sh 全绿（preflight 13 类 PASS + GODOT_SMOKE 240 帧 PASS + GODOT_FUZZ PASS + GODOT_PLAYTEST 3 局 PASS）；部署自检 /health、壳资产链路全 200 |
 | 桌面操作 | WASD / 方向键移动（对角线归一化）；结算界面 Enter / Space 重开；**M 键静音开关** |
 | 移动端操作 | 左下虚拟摇杆移动（`_input` 阶段接管触点，支持斜向）；右下「确认」按钮；结算界面触摸「重新开始」；**右上「音效」按钮静音** |
