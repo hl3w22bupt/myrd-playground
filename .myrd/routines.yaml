@@ -28,8 +28,8 @@ routines:
   description: 对 Godot 工程跑前置一致性检查 + 无头运行冒烟，断言退出码与 GODOT_SMOKE 标记 —— 「游戏能不能跑且玩得动」的机判门禁
   gate: false
   params:
-    gamePath: games/godot-coin-rush
-    smokeFrames: 240
+    gamePath: games/game-6
+    smokeFrames: 320
   steps:
   - name: godot-availability
     command: bash std-skills/godot-game-dev/scripts/resolve-godot.sh >/dev/null

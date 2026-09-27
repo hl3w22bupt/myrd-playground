@@ -55,9 +55,10 @@ fi
 echo ""
 
 echo "==> [2/3] smoke（godot --headless 无头冒烟门禁）"
-# 帧预算 240：冒烟要跑「噪声相位 30 帧 + 负向局(撞障碍) + 按钮重开 + 正向局(跳跃越障+收集达标)」，
-# 预算对齐 .myrd/routines.yaml godot-smoke 的 smokeFrames 默认值（240），两边同值不各说各话。
-GODOT_SMOKE_FRAMES="${GODOT_SMOKE_FRAMES:-240}" GODOT_BIN="${GODOT_BIN}" \
+# 帧预算 320：冒烟要跑「噪声相位 8 帧 + 负向局(撞障碍判负) + 按钮重开 + 正向局
+# (跳跃越障/输入延迟实测/二段跳封顶/滑铲/磁铁/护盾/冲刺碾怪/坠坑结算) + 8 契约全量」，
+# 预算对齐 .myrd/routines.yaml godot-smoke 的 smokeFrames 默认值（320），两边同值不各说各话。
+GODOT_SMOKE_FRAMES="${GODOT_SMOKE_FRAMES:-320}" GODOT_BIN="${GODOT_BIN}" \
 	bash "${SKILL_DIR}/scripts/smoke.sh" "${GAME_DIR}"
 SMOKE_EXIT=$?
 if [ "${SMOKE_EXIT}" -ne 0 ]; then

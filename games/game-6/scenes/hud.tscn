@@ -1,0 +1,69 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
+
+[node name="Hud" type="CanvasLayer"]
+layer = 5
+script = ExtResource("1_hud")
+
+[node name="TopBar" type="HBoxContainer" parent="."]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 944.0
+offset_bottom = 44.0
+theme_override_constants/separation = 24
+
+[node name="DistanceLabel" type="Label" parent="TopBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "距离 0m"
+
+[node name="CoinLabel" type="Label" parent="TopBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.72, 0.5, 0.05, 1)
+text = "金币 0"
+
+[node name="ScoreLabel" type="Label" parent="TopBar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "得分 0"
+
+[node name="BestLabel" type="Label" parent="TopBar"]
+layout_mode = 2
+size_flags_horizontal = 10
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.35, 0.35, 0.4, 1)
+text = "最高分 0 · 累计金币 0"
+
+[node name="PowerupLabel" type="Label" parent="."]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 48.0
+offset_right = 500.0
+offset_bottom = 76.0
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.16, 0.5, 0.9, 1)
+text = ""
+
+[node name="HintLabel" type="Label" parent="."]
+unique_name_in_owner = true
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = -320.0
+offset_top = -44.0
+offset_right = 320.0
+offset_bottom = -16.0
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.3, 0.3, 0.35, 0.85)
+horizontal_alignment = 1
+text = "W/↑/空格 跳跃（可二段跳） · S/↓ 滑铲"
+
+[node name="FloatAnchor" type="Control" parent="."]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2

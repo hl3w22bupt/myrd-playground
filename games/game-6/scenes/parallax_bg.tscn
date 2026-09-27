@@ -1,0 +1,12 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/parallax_bg.gd" id="1_parallax"]
+
+[node name="ParallaxBg" type="ParallaxBackground"]
+script = ExtResource("1_parallax")
+
+[node name="CloudLayer" type="ParallaxLayer" parent="."]
+
+[node name="MountainLayer" type="ParallaxLayer" parent="."]
+
+[node name="TownLayer" type="ParallaxLayer" parent="."]

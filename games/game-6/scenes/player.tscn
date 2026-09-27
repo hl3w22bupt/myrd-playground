@@ -15,6 +15,16 @@ script = ExtResource("1_player")
 color = Color(0.35, 0.65, 1, 1)
 polygon = PackedVector2Array(-22, -32, 22, -32, 22, 32, -22, 32)
 
+[node name="LegFront" type="Polygon2D" parent="."]
+position = Vector2(9, 24)
+color = Color(0.22, 0.42, 0.78, 1)
+polygon = PackedVector2Array(-5, -6, 5, -6, 5, 14, -5, 14)
+
+[node name="LegBack" type="Polygon2D" parent="."]
+position = Vector2(-9, 24)
+color = Color(0.28, 0.52, 0.9, 1)
+polygon = PackedVector2Array(-5, -6, 5, -6, 5, 14, -5, 14)
+
 [node name="StandShape" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_stand")
 
@@ -25,3 +35,5 @@ disabled = true
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(200, -40)
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0

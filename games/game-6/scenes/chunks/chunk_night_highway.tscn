@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/chunk_base.gd" id="1_chunk"]
+
+[node name="ChunkNightHighway" type="Node2D"]
+script = ExtResource("1_chunk")
+chunk_id = &"l3"
+
+[node name="Statics" type="Node2D" parent="."]
+
+[node name="Entities" type="Node2D" parent="."]

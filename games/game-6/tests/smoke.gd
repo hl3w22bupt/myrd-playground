@@ -1,5 +1,5 @@
 extends Node
-## 无头冒烟自检（headless smoke）—— 跑酷骨架「能不能跑且玩得动」的机器判定。
+## 无头冒烟自检（headless smoke）——「能不能跑且玩得动」的机器判定（acc-07 门禁场景）。
 ##
 ## 运行方式（由 std-skills/godot-game-dev/scripts/smoke.sh 封装）：
 ##   godot --headless --path <工程目录> tests/smoke.tscn
@@ -7,140 +7,122 @@ extends Node
 ##   通过 → stdout 打印 `GODOT_SMOKE: PASS ...`，进程退出码 0
 ##   失败 → stderr 打印 `GODOT_SMOKE: FAIL <原因>`（每条一行），进程退出码 1
 ##
-## 断言覆盖（脚手架节点要求 + 模板五项最低标准）：
-##   1. 主场景可实例化（main.tscn → player/coin/obstacle 接线未断裂）
-##   2. autoload GameState 已注册且带约定信号（score_changed / coins_changed / run_ended）
-##   3. InputMap 动作已注册 + 物理键绑定逐键核对（键位契约）+ 注入输入后对象真的动了
-##   4. 信号真的到达订阅方（moved / score_changed / coins_changed / run_ended）
-##   5. 玩法闭环：自动奔跑位移 → 滑铲生效 → 撞障碍死亡（负）→ 按钮重开 → 跳跃越障 →
-##      收集达标判胜（正）——「玩家能移动、核心交互生效、胜负可达、重开可用」
+## 阶段流（帧预算 290 < 门禁 smokeFrames=320 兜底，与 .myrd/routines.yaml 同值；
+## Engine.max_fps=60 下 process:physics ≈ 1:1）：
+##   NOISE(8)   确定种子对抗输入 → 噪声后玩法断言仍通过（输入管线不被楔死）
+##   RUN_A(≤80) 负向局：不输入 → 自动奔跑撞首个障碍判负（死亡/距离/得分链路）
+##   BETWEEN(3) 经「重新开始」按钮真实信号链重开 → 状态清零（acc-05）
+##   RUN_B(≤195) 正向局：跳跃越障 + 输入延迟实测(≤3帧,acc-08) + 滞空二段跳封顶(acc-02) +
+##              落地滑铲时长 + 磁铁吸附 + 护盾破盾 + 冲刺碾怪(acc-04) + 坠坑结算(acc-05)
+##   FINAL(1)   八个契约全量机判（acc-01/02/03/04/05/06/08/09）→ 汇总 PASS/FAIL
 ##
-## ⚠️ 输入注入只用 Input.parse_input_event（不与 Input.action_press 同帧混用，
-##   见 references/error-signatures.md E-08）；先释放再按下，避免噪声相位的
-##   按键残留吞掉 just_pressed 边沿。
+## ⚠️ 输入注入只用 Input.parse_input_event（E-08：不与 Input.action_press 同帧混用）；
+##   动作「先释放后按下、按下跨帧」，保证 just_pressed 边沿可读（实测冲刷延迟 2 帧）。
 
-## ── 噪声相位：正式断言前注入确定种子的对抗输入（模板同源），验证输入管线不被楔死 ──
-const NOISE_FRAMES: int = 30
+## ── 噪声相位：正式断言前注入确定种子的对抗输入（模板同源）──
+const NOISE_FRAMES: int = 8
 
-## RUN_A（负向局）：重开后不跳，撞障碍应判负。滑铲注入点（相对重开帧）。
-const SLIDE_RELEASE_AT: int = 8
-const SLIDE_PRESS_AT: int = 9
-const SLIDE_CHECK_AT: int = 16
-const AUTORUN_CHECK_AT: int = 20
-## 自动奔跑位移断言的最小位移（px）。
-const MIN_MOVE_DISTANCE: float = 100.0
-## 障碍物中心 x（与 scenes/main.tscn 的 Obstacle1 position.x 一致）。
-const OBSTACLE_X: float = 470.0
-## RUN_B（正向局）：越过障碍的起跳触发线（玩家 x ≥ 该值即注入跳跃；
-## 起跳点 300 → 弧线 300..540，在 B1 金币(560)前落地，越障与收集都留足裕度）。
-const JUMP_TRIGGER_X: float = 300.0
-## 跳跃后判定离地的最低高度（站立中心 y=268，上升 ≥10px 即视为离地）。
+## 正向局：起跳触发线（x ≥ 380 起跳 → 单跳落地 620 > 障碍右沿 592，裕度 28px；
+## 二段跳在滞空前段完成，弧线更高更远，越障裕度进一步扩大）。
+const JUMP_TRIGGER_X: float = 380.0
+## 离地判定：站立中心 y=268，上升 ≥10px 视为离地。
 const AIRBORNE_MAX_Y: float = 258.0
-## 阶段帧预算（60FPS 物理帧；正常流程 ~192 帧完成）。
-## TOTAL_FRAME_BUDGET 必须显著小于 smoke.sh 的 --quit-after 240 兜底：
-## 物理帧比 process 帧滞后数帧，预算贴满会被兜底先杀 → 既无 PASS 也无 FAIL。
-const RUN_A_DEADLINE: int = 130
-const RUN_B_DEADLINE: int = 115
-const TOTAL_FRAME_BUDGET: int = 210
+## 障碍物中心 x（l1/e3，见 chunk_defs.gd）。
+const OBSTACLE_X: float = 560.0
+## 帧预算（必须 < 门禁 smokeFrames=320；物理帧计数）。
+const TOTAL_FRAME_BUDGET: int = 290
+const RUN_A_DEADLINE: int = 90
 
-enum Phase { NOISE, RUN_A, BETWEEN, RUN_B, DONE }
-
-const REQUIRED_ACTIONS: Array[StringName] = [
-	&"move_left", &"move_right", &"move_up", &"move_down", &"confirm",
-	&"jump", &"slide",
-]
-
-## 键位契约：动作 → 键表承诺的物理键，逐键核对（AND 语义，见模板 smoke.gd 说明）。
-const KEY_CONTRACT: Dictionary = {
-	&"move_left": [KEY_A, KEY_LEFT],
-	&"move_right": [KEY_D, KEY_RIGHT],
-	&"move_up": [KEY_W, KEY_UP],
-	&"move_down": [KEY_S, KEY_DOWN],
-	&"confirm": [KEY_SPACE, KEY_ENTER],
-	&"jump": [KEY_W, KEY_UP, KEY_SPACE],
-	&"slide": [KEY_S, KEY_DOWN],
+enum Phase { NOISE, RUN_A, BETWEEN, RUN_B, FINAL, DONE }
+enum RbStep {
+	WAIT_TRIGGER, WAIT_AIRBORNE, DJUMP_VERIFY, WAIT_LAND,
+	SLIDE_START, MAGNET, VERDICTS, SLIDE_END, PIT_DEATH,
 }
 
 var _failures: PackedStringArray = []
 var _frames: int = 0
 var _phase: Phase = Phase.NOISE
 var _phase_started_at: int = 0
-var _slide_check_done: bool = false
-var _autorun_check_done: bool = false
-var _jump_released: bool = false
-var _jump_injected: bool = false
-var _airborne_seen: bool = false
+var _rb_step: RbStep = RbStep.WAIT_TRIGGER
+var _rb_step_started_at: int = 0
+var _reported: bool = false
+
+## 行为证据（契约 ctx/flags）。
+var _flags: Dictionary = {
+	"jump_latency_frames": -1,
+	"jump_lifted_off": false,
+	"slide_measured_frames": -1,
+	"double_jump_capped": false,
+	"magnet_pulled_coin": false,
+	"shield_blocked_hazard": false,
+	"dash_speed_up": false,
+	"dash_smashed_obstacle": false,
+	"settle_coins_match": false,
+	"restart_cleared": false,
+}
 
 var _player: Player
 var _main: RunnerMain
-var _origin_x: float = 0.0
 var _moved_seen: bool = false
 var _score_seen: bool = false
 var _coins_seen: bool = false
 var _run_ended_seen: bool = false
-var _reported: bool = false
+var _death_cause: StringName = &""
+var _death_seen: bool = false
+## 输入注入小队列：{action, stage}（0=释放 1=按下 2=完成）。
+var _inject_queue: Array[Dictionary] = []
+var _slide_frame_counter: int = 0
+var _slide_counting: bool = false
+## 等待 jump 按下被解析（延迟计量起点）。
+var _await_jump_parse: bool = false
+var _rb_jump_inject_frame: int = -1
+var _magnet_coins_before: int = 0
+var _dash_score_before: int = 0
+var _test_coin: Coin = null
+var _settle_coins_at_end: int = -1
 
 
 func _ready() -> void:
-	# headless 没有垂直同步：限到 60FPS 让 process 帧 : 物理帧 ≈ 1:1，
-	# --quit-after 的帧预算兜底才有意义（模板实测坑，勿删）。
+	# headless 无垂直同步：限 60FPS 让 process:physics ≈ 1:1（--quit-after 兜底才有意义）。
 	Engine.max_fps = 60
-
-	for action in REQUIRED_ACTIONS:
-		if not InputMap.has_action(action):
-			_failures.append("InputMap 缺少动作 %s（project.godot [input] 未注册）" % action)
-	_check_key_bindings()
-
-	var game_state := get_tree().root.get_node_or_null("GameState")
-	if game_state == null:
-		_failures.append("autoload GameState 未注册（project.godot [autoload] 缺失）")
-	else:
-		for signal_name in ["score_changed", "coins_changed", "run_ended"]:
-			if not game_state.has_signal(signal_name):
-				_failures.append("autoload GameState 缺少信号 %s" % signal_name)
-		game_state.score_changed.connect(_on_score_changed)
-		game_state.coins_changed.connect(_on_coins_changed)
-		game_state.run_ended.connect(_on_run_ended)
-
 	_player = get_tree().root.find_child("Player", true, false) as Player
+	_main = get_tree().root.find_child("Main", true, false) as RunnerMain
 	if _player == null:
-		_failures.append("场景树找不到 Player（main.tscn 未实例化 player.tscn，或实例名不是 Player）")
+		_failures.append("场景树找不到 Player（main.tscn 未实例化 player.tscn）")
 	else:
 		_player.moved.connect(_on_player_moved)
-
-	var main_node := get_tree().root.find_child("Main", true, false) as RunnerMain
-	if main_node == null:
+		_player.died.connect(_on_player_died)
+	if _main == null:
 		_failures.append("场景树找不到 Main（smoke.tscn 未实例化 main.tscn）")
-	else:
-		_main = main_node
+	GameState.score_changed.connect(_on_score_changed)
+	GameState.coins_changed.connect(_on_coins_changed)
+	GameState.run_ended.connect(_on_run_ended)
 
 
 func _physics_process(_delta: float) -> void:
 	if _phase == Phase.DONE:
 		return
 	_frames += 1
-
+	_tick_injection()
 	if _failures.is_empty():
 		match _phase:
 			Phase.NOISE:
 				_inject_noise_frame()
 				if _frames >= NOISE_FRAMES:
-					# 噪声结束后立即重开：丢弃噪声局，进入干净的负向局。
 					_enter_phase(Phase.RUN_A)
-					_main.restart_run()
-					_origin_x = _player.global_position.x
-			Phase.RUN_A:
-				_tick_run_a()
-			Phase.BETWEEN:
-				_tick_between()
-			Phase.RUN_B:
-				_tick_run_b()
-			Phase.DONE:
-				pass
-
+					if _main != null:
+						_main.restart_run()
+	if _phase == Phase.RUN_A:
+		_tick_run_a()
+	elif _phase == Phase.BETWEEN:
+		_tick_between()
+	elif _phase == Phase.RUN_B:
+		_tick_run_b()
+	elif _phase == Phase.FINAL:
+		_run_contracts()
 	if _frames >= TOTAL_FRAME_BUDGET:
-		_failures.append("冒烟未在 %d 帧预算内完成（当前阶段 %s）—— 帧预算或阶段推进卡死" % [
-			TOTAL_FRAME_BUDGET, Phase.keys()[_phase],
+		_failures.append("冒烟未在 %d 帧预算内完成（阶段 %s / 步骤 %s）" % [
+			TOTAL_FRAME_BUDGET, Phase.keys()[_phase], RbStep.keys()[_rb_step],
 		])
 	if not _failures.is_empty() or _phase == Phase.DONE:
 		_phase = Phase.DONE
@@ -152,176 +134,242 @@ func _enter_phase(phase: Phase) -> void:
 	_phase_started_at = _frames
 
 
-## ── RUN_A：负向局（不跳）—— 自动奔跑位移 + 滑铲生效 + 撞障碍判负 ──
+func _enter_rb_step(step: RbStep) -> void:
+	_rb_step = step
+	_rb_step_started_at = _frames
+
+
+func _rb_rel() -> int:
+	return _frames - _rb_step_started_at
+
+
+## ── RUN_A：负向局（不输入）—— 自动奔跑 → 撞首个障碍判负 ──
 func _tick_run_a() -> void:
 	var rel: int = _frames - _phase_started_at
-	if rel == SLIDE_RELEASE_AT:
-		_release_action(&"slide")
-	elif rel == SLIDE_PRESS_AT:
-		_press_action(&"slide")
-	elif rel == SLIDE_CHECK_AT and not _slide_check_done:
-		_slide_check_done = true
-		if not _player.is_sliding():
-			_failures.append("注入 slide 动作后玩家未进入滑铲态（player.gd 未读 InputMap 动作 slide）")
-	elif rel == AUTORUN_CHECK_AT and not _autorun_check_done:
-		_autorun_check_done = true
-		var travelled: float = _player.global_position.x - _origin_x
-		if travelled < MIN_MOVE_DISTANCE:
-			_failures.append("自动奔跑 %d 帧位移 %.2fpx < %.2fpx：跑酷内核（velocity.x）未生效" % [
-				AUTORUN_CHECK_AT, travelled, MIN_MOVE_DISTANCE,
-			])
+	if _death_seen:
+		return
 	if rel > RUN_A_DEADLINE:
-		_failures.append("负向局 %d 帧内未撞上障碍（x=%.0f 处）触发死亡：碰撞/死亡链路断裂" % [
+		_failures.append("负向局 %d 帧内未撞上障碍（x=%.0f）触发死亡：碰撞/死亡链路断裂" % [
 			RUN_A_DEADLINE, OBSTACLE_X,
 		])
-		_finish()
 
 
+## ── BETWEEN：经「重新开始」按钮真实信号链重开 → 断言清零 ──
 func _tick_between() -> void:
 	if _frames - _phase_started_at < 2:
 		return
-	# 重开走「结算页按钮」的真实信号路径（断言重开接线，而不是直接调方法）。
-	_main.restart_button.pressed.emit()
-	if GameState.coins != 0 or GameState.score != 0:
-		_failures.append("重开后金币/得分未清零（GameState.start_run 未复位）：%d/%d" % [
-			GameState.coins, GameState.score,
+	# 死因断言放这里：died→run_ended 级联里 run_ended 处理器先跑，死因此刻才就绪。
+	if _death_cause != &"hazard":
+		_failures.append("负向局死因应为 hazard，实际 %s" % _death_cause)
+	var button: Button = _main.settle_panel.get_node("%RestartButton") as Button
+	button.pressed.emit()
+	if GameState.coins != 0 or GameState.score != 0 or GameState.smashes != 0:
+		_failures.append("重开后金币/得分/碾怪未清零：%d/%d/%d" % [
+			GameState.coins, GameState.score, GameState.smashes,
 		])
-	if GameState.run_active == false:
+	if not GameState.run_active:
 		_failures.append("重开后 run_active 为 false：新局未启动")
 	if _main.settle_panel.visible:
-		_failures.append("重开后结算页仍可见（restart_run 未隐藏 SettlePanel）")
+		_failures.append("重开后结算页仍可见（restart_run 未隐藏面板）")
+	if _player.global_position.distance_to(_main.PLAYER_SPAWN) > 2.0:
+		_failures.append("重开后玩家未回到出生点：%s" % _player.global_position)
+	if GameState.coins == 0 and GameState.score == 0 and GameState.run_active \
+			and not _main.settle_panel.visible:
+		_flags["restart_cleared"] = true
 	_enter_phase(Phase.RUN_B)
+	_enter_rb_step(RbStep.WAIT_TRIGGER)
 
 
-## ── RUN_B：正向局 —— 跳跃越障 + 收集达标判胜 ──
+## ── RUN_B：正向局 —— 跳跃/延迟/二段跳/滑铲/道具/坠坑结算 ──
 func _tick_run_b() -> void:
-	var rel: int = _frames - _phase_started_at
-	if not _jump_injected and _player.global_position.x >= JUMP_TRIGGER_X:
-		if not _jump_released:
-			_release_action(&"jump")
-			_jump_released = true
+	if _slide_counting and _player.is_sliding():
+		_slide_frame_counter += 1
+	match _rb_step:
+		RbStep.WAIT_TRIGGER:
+			if _player.global_position.x >= JUMP_TRIGGER_X:
+				_stage_action(&"jump")
+				_await_jump_parse = true
+				_rb_jump_inject_frame = _frames
+				_enter_rb_step(RbStep.WAIT_AIRBORNE)
+		RbStep.WAIT_AIRBORNE:
+			if _player.global_position.y < AIRBORNE_MAX_Y:
+				_flags["jump_latency_frames"] = _frames - _rb_jump_inject_frame
+				_flags["jump_lifted_off"] = true
+				_enter_rb_step(RbStep.DJUMP_VERIFY)
+			elif _rb_rel() > 30:
+				_failures.append("注入 jump 后 30 帧未离地（跳跃链路断裂）")
+		RbStep.DJUMP_VERIFY:
+			_tick_djump_verify()
+		RbStep.WAIT_LAND:
+			if _player.is_on_floor():
+				_enter_rb_step(RbStep.SLIDE_START)
+			elif _rb_rel() > 120:
+				_failures.append("二段跳后 120 帧未落地（重力失效）")
+		RbStep.SLIDE_START:
+			if _rb_rel() == 1:
+				_stage_action(&"slide")
+				_slide_frame_counter = 0
+				_slide_counting = true
+			elif _rb_rel() >= 4:
+				# 滑铲进行中并行做道具验证（磁铁/护盾/冲刺），节省帧预算；
+				# 冲刺无敌罩住滑铲结束后的暴露帧，时序安全。
+				_enter_rb_step(RbStep.MAGNET)
+		RbStep.MAGNET:
+			_tick_magnet()
+		RbStep.VERDICTS:
+			_tick_verdicts()
+		RbStep.SLIDE_END:
+			# 滑铲计时自然走满（slideDurationSeconds），结束后立即坠坑（冲刺无敌已罩住）。
+			if not _player.is_sliding() and _slide_frame_counter > 0:
+				_flags["slide_measured_frames"] = _slide_frame_counter
+				_slide_counting = false
+				_settle_coins_at_end = GameState.coins
+				_player.global_position.y = GameState.GROUND_LINE_Y \
+					+ GameState.tuning_value(&"deathFallPx") + 20.0
+				_enter_rb_step(RbStep.PIT_DEATH)
+			elif _rb_rel() > 60:
+				_failures.append("滑铲 %d 帧后仍未结束（slideDurationSeconds 失效）" % _slide_frame_counter)
+		RbStep.PIT_DEATH:
+			_tick_pit_death()
+
+
+## 二段跳封顶：滞空中注入第二跳（jumps_used 1→2）与第三跳（保持 2）—— acc-02。
+## 注入冲刷实测延迟 2 帧（stage 按下 → 下下帧玩家状态变化），检查点留足帧窗。
+func _tick_djump_verify() -> void:
+	var rel: int = _rb_rel()
+	if rel == 3:
+		_stage_action(&"jump")
+	elif rel == 8:
+		if _player.jumps_used != 2:
+			_failures.append("二段跳后 jumps_used=%d（应为 2）" % _player.jumps_used)
+		_stage_action(&"jump")
+	elif rel == 13:
+		if _player.jumps_used != 2:
+			_failures.append("第三跳未被封顶：jumps_used=%d（应仍为 2）" % _player.jumps_used)
 		else:
-			_press_action(&"jump")
-			_jump_injected = true
-	if _jump_injected and _player.global_position.y < AIRBORNE_MAX_Y:
-		_airborne_seen = true
-	if rel > RUN_B_DEADLINE:
-		_failures.append("正向局 %d 帧内未达成收集目标判胜：金币 %d/%d，越障=%s" % [
-			RUN_B_DEADLINE, GameState.coins, GameState.WIN_COIN_GOAL, _airborne_seen,
-		])
-		_finish()
+			_flags["double_jump_capped"] = true
+		_enter_rb_step(RbStep.WAIT_LAND)
 
 
-func _finish() -> void:
+## 磁铁吸附：测试金币放在 90px 外 → 磁铁生效 → 被吸到玩家身上计数（acc-04）。
+func _tick_magnet() -> void:
+	var rel: int = _rb_rel()
+	if rel == 1:
+		_magnet_coins_before = GameState.coins
+		_test_coin = (load("res://scenes/coin.tscn") as PackedScene).instantiate() as Coin
+		_test_coin.position = _player.global_position + Vector2(90, -40)
+		_main.add_child(_test_coin)
+		_player.apply_powerup(Player.POWERUP_MAGNET)
+	elif rel > 3 and GameState.coins > _magnet_coins_before:
+		_flags["magnet_pulled_coin"] = true
+		_cleanup_test_coin()
+		_enter_rb_step(RbStep.VERDICTS)
+	elif rel > 20:
+		_failures.append("磁铁 20 帧内未把 90px 内金币吸到玩家（吸附失效）")
+		_cleanup_test_coin()
+		_enter_rb_step(RbStep.VERDICTS)
+
+
+## 护盾/冲刺裁决 + 冲刺速度倍增 + 真实碾怪计分（acc-04）。滑铲中执行，冲刺无敌罩住后续暴露帧。
+func _tick_verdicts() -> void:
+	var rel: int = _rb_rel()
+	if rel == 1:
+		_player.apply_powerup(Player.POWERUP_SHIELD)
+		var verdict: StringName = _player.hit_hazard()
+		_flags["shield_blocked_hazard"] = verdict == &"shield_break" \
+			and _player.active and _player.hurt_invincible_timer > 0.0
+		_player.hurt_invincible_timer = 0.0
+		_player.apply_powerup(Player.POWERUP_DASH)
+		_dash_score_before = GameState.score
+	elif rel == 3:
+		_flags["dash_speed_up"] = absf(_player.velocity.x - GameState.speed_for_distance(
+			GameState.distance_m) * GameState.tuning_value(&"dashSpeedMultiplier")) < 1.0
+		# 真实障碍压到玩家身上 → 下一物理帧 body_entered → hit_hazard → smash → +30。
+		var obstacle: ObstacleGround = (load("res://scenes/obstacle_ground.tscn") as PackedScene).instantiate()
+		obstacle.position = _player.global_position + Vector2(10, 0)
+		_main.add_child(obstacle)
+	elif rel > 8:
+		if GameState.score >= _dash_score_before + GameState.tuning_value(&"scorePerObstacleSmash"):
+			_flags["dash_smashed_obstacle"] = true
+		else:
+			_failures.append("冲刺碾怪未得分：score %d → %d（预期 +%d）" % [
+				_dash_score_before, GameState.score,
+				int(GameState.tuning_value(&"scorePerObstacleSmash")),
+			])
+		_enter_rb_step(RbStep.SLIDE_END)
+
+
+## 坠坑死亡 → run_ended → 结算页展示（acc-05 金币账实一致）。
+func _tick_pit_death() -> void:
+	if _rb_rel() > 10:
+		_failures.append("坠坑判定未触发死亡（deathFallPx 判定失效）")
+		_enter_phase(Phase.FINAL)
+
+
+func _cleanup_test_coin() -> void:
+	if _test_coin != null and is_instance_valid(_test_coin):
+		_test_coin.queue_free()
+	_test_coin = null
+
+
+func _run_contracts() -> void:
+	if _player != null:
+		# 契约需要活体玩家：放回出生点再复位（坠坑局结束时玩家还在坑底）。
+		_player.global_position = _main.PLAYER_SPAWN
+		_player.reset_for_run()
+		# 坠坑死因断言（此刻 died 级联已结束，死因就绪）。
+		if _death_cause != &"fall":
+			_failures.append("坠坑死因应为 fall，实际 %s" % _death_cause)
+	for failure: String in TuningContract.run():
+		_failures.append("tuning_contract：%s" % failure)
+	for failure: String in SaveContract.run():
+		_failures.append("save_contract：%s" % failure)
+	for failure: String in InputContract.run(_main):
+		_failures.append("input_contract：%s" % failure)
+	for failure: String in TrackPassabilityContract.run():
+		_failures.append("passability_contract：%s" % failure)
+	for failure: String in ScoreSettleContract.run(_flags):
+		_failures.append("score_settle_contract：%s" % failure)
+	for failure: String in PlayerMoveContract.run({"player": _player, "flags": _flags}):
+		_failures.append("player_move_contract：%s" % failure)
+	for failure: String in PowerupContract.run({"player": _player, "flags": _flags}):
+		_failures.append("powerup_contract：%s" % failure)
+	for failure: String in InputLatencyContract.run(_flags):
+		_failures.append("input_latency_contract：%s" % failure)
+	_signal_report_asserts()
 	_phase = Phase.DONE
 	_report()
 
 
-## ── GameState.run_ended 到达订阅方后的逐局断言 ──
-func _on_run_ended(win: bool, score: int, coins: int, distance_m: float) -> void:
-	_run_ended_seen = true
-	if _phase == Phase.RUN_A:
-		if win:
-			_failures.append("负向局（未跳跃）被判胜：障碍碰撞未触发死亡")
-		if coins != 3:
-			_failures.append("负向局死亡时金币应为 3（撞障碍前的一串），实际 %d：收集链路异常" % coins)
-		if score <= 0:
-			_failures.append("负向局死亡时得分应 > 0（距离分+金币分），实际 %d" % score)
-		if distance_m <= 0.0:
-			_failures.append("负向局死亡时距离应 > 0，实际 %.1f" % distance_m)
-		_enter_phase(Phase.BETWEEN)
-	elif _phase == Phase.RUN_B:
-		if not win:
-			_failures.append("正向局被判负：金币 %d/%d —— 跳跃越障或收集目标判定异常" % [
-				coins, GameState.WIN_COIN_GOAL,
-			])
-		if coins < GameState.WIN_COIN_GOAL:
-			_failures.append("胜利时金币 %d 未达目标 %d" % [coins, GameState.WIN_COIN_GOAL])
-		if not _airborne_seen:
-			_failures.append("正向局未观察到玩家离地：注入 jump 动作后玩家没有真的跳起")
-		_finish()
+## ── 输入注入：释放→按下→自动完成（按下跨帧，just_pressed 边沿可读）──
+func _stage_action(action: StringName) -> void:
+	_inject_queue.append({"action": action, "stage": 0})
 
 
-## ── 无显示设备时模拟「玩家按键」：注入真实 InputEvent（模板同源）──
-func _press_action(action: StringName) -> void:
+func _tick_injection() -> void:
+	for item: Dictionary in _inject_queue:
+		var stage: int = item["stage"]
+		if stage == 0:
+			_inject_raw(StringName(item["action"]), false)
+			item["stage"] = 1
+		elif stage == 1:
+			_inject_raw(StringName(item["action"]), true)
+			item["stage"] = 2
+			# 延迟计量从「按下事件真正解析」这一帧起算（acc-08 量的是角色响应，
+			# 不含测试暂存队列的开销）。
+			if _await_jump_parse and StringName(item["action"]) == &"jump":
+				_rb_jump_inject_frame = _frames
+				_await_jump_parse = false
+	_inject_queue = _inject_queue.filter(func(item: Dictionary) -> bool: return int(item["stage"]) < 2)
+
+
+func _inject_raw(action: StringName, pressed: bool) -> void:
 	var event := InputEventAction.new()
 	event.action = action
-	event.pressed = true
+	event.pressed = pressed
 	Input.parse_input_event(event)
 
-
-func _release_action(action: StringName) -> void:
-	var event := InputEventAction.new()
-	event.action = action
-	event.pressed = false
-	Input.parse_input_event(event)
-
-
-## 键位契约断言：目标键表 → project.godot [input] 的 physical_keycode（逐键 AND）。
-func _check_key_bindings() -> void:
-	for action: StringName in KEY_CONTRACT:
-		if not InputMap.has_action(action):
-			continue  # 动作缺失已由 REQUIRED_ACTIONS 断言上报
-		var expected: Array = KEY_CONTRACT[action]
-		var bound: Array[Key] = []
-		for event in InputMap.action_get_events(action):
-			var key := event as InputEventKey
-			if key != null and key.physical_keycode != KEY_NONE:
-				bound.append(key.physical_keycode)
-		if not _contains_all(expected, bound):
-			_failures.append("键位契约：动作 %s 未绑全键表承诺的物理键（期望全部 %s，实际 %s）" % [
-				action, _key_labels(expected), _key_labels(bound),
-			])
-
-
-func _contains_all(expected: Array, bound: Array[Key]) -> bool:
-	for key in expected:
-		if not (key in bound):
-			return false
-	return true
-
-
-func _key_labels(keys: Array) -> String:
-	var labels: PackedStringArray = []
-	for code in keys:
-		labels.append("%s(%d)" % [OS.get_keycode_string(code as Key), code])
-	return "[%s]" % ", ".join(labels)
-
-
-func _report() -> void:
-	if _reported:
-		return
-	_reported = true
-	if not _moved_seen:
-		_failures.append("信号 Player.moved 未到达订阅方：连接断裂或从未 emit")
-	if not _score_seen:
-		_failures.append("信号 GameState.score_changed 未到达订阅方")
-	if not _coins_seen:
-		_failures.append("信号 GameState.coins_changed 未到达订阅方")
-	if not _run_ended_seen:
-		_failures.append("信号 GameState.run_ended 未到达订阅方（胜负判定从未发生）")
-	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/自动奔跑/滑铲/收集/撞障碍判负/按钮重开/跳跃越障/达标判胜 全部通过")
-		get_tree().quit(0)
-	else:
-		for failure in _failures:
-			printerr("GODOT_SMOKE: FAIL %s" % failure)
-		get_tree().quit(1)
-
-
-func _on_player_moved(_position: Vector2) -> void:
-	_moved_seen = true
-
-
-func _on_score_changed(_score: int) -> void:
-	_score_seen = true
-
-
-func _on_coins_changed(_coins: int) -> void:
-	_coins_seen = true
-
-
-## ── 噪声相位：确定种子随机事件（原始事件，不含 InputEventAction，模板同源）──
+## ── 噪声相位：确定种子随机事件（原始事件，模板同源）──
 var _noise_rng := RandomNumberGenerator.new()
 
 
@@ -359,3 +407,81 @@ func _inject_noise_frame() -> void:
 		k.physical_keycode = [KEY_A, KEY_D, KEY_W, KEY_S, KEY_SPACE, KEY_ENTER][_noise_rng.randi_range(0, 5)]
 		k.pressed = _noise_rng.randf() < 0.5
 		Input.parse_input_event(k)
+
+
+## ── 信号到达断言与逐局判据 ──
+func _on_player_moved(_position: Vector2) -> void:
+	_moved_seen = true
+
+
+func _on_player_died(cause: StringName) -> void:
+	_death_seen = true
+	_death_cause = cause
+	print("[smoke-dbg] died cause=%s f=%d step=%s x=%.0f y=%.0f dash=%.2f shield=%d mag=%.2f slide=%.2f" % [
+		cause, _frames, RbStep.keys()[_rb_step], _player.global_position.x,
+		_player.global_position.y, _player.dash_timer, _player.shield_charges,
+		_player.magnet_timer, _player.slide_timer,
+	])
+
+
+func _on_score_changed(_score: int) -> void:
+	_score_seen = true
+
+
+func _on_coins_changed(_coins: int) -> void:
+	_coins_seen = true
+
+
+func _on_run_ended(win: bool, _score: int, coins: int, distance_m: float) -> void:
+	_run_ended_seen = true
+	match _phase:
+		Phase.RUN_A:
+			if win:
+				_failures.append("负向局（未输入）被判胜：障碍碰撞未触发死亡")
+			if coins != 0:
+				_failures.append("负向局死亡时金币应为 0（首障在金币前），实际 %d" % coins)
+			if GameState.score <= 0:
+				_failures.append("负向局死亡时得分应 > 0（距离分），实际 %d" % GameState.score)
+			if distance_m <= 0.0:
+				_failures.append("负向局死亡时距离应 > 0，实际 %.1f" % distance_m)
+			_enter_phase(Phase.BETWEEN)
+		Phase.RUN_B:
+			if _rb_step == RbStep.PIT_DEATH:
+				# 死因断言放 FINAL（died 处理器在 run_ended 级联之后才更新死因）。
+				if coins != _settle_coins_at_end:
+					_failures.append("结算金币 %d ≠ 本局实际拾取 %d（acc-05 账实不一致）" % [
+						coins, _settle_coins_at_end,
+					])
+				else:
+					_flags["settle_coins_match"] = true
+				if not _main.settle_panel.visible:
+					_failures.append("run_ended 后结算页未展示")
+				_enter_phase(Phase.FINAL)
+
+
+func _signal_report_asserts() -> void:
+	if not _moved_seen:
+		_failures.append("信号 Player.moved 未到达订阅方：连接断裂或从未 emit")
+	if not _score_seen:
+		_failures.append("信号 GameState.score_changed 未到达订阅方")
+	if not _coins_seen:
+		_failures.append("信号 GameState.coins_changed 未到达订阅方")
+	if not _run_ended_seen:
+		_failures.append("信号 GameState.run_ended 未到达订阅方（胜负判定从未发生）")
+	if not _death_seen:
+		_failures.append("信号 Player.died 未到达订阅方（死亡链路断裂）")
+
+
+func _report() -> void:
+	if _reported:
+		return
+	_reported = true
+	if _failures.is_empty():
+		print("GODOT_SMOKE: PASS 噪声抗性/自动奔跑/撞怪判负/重开清零/跳跃越障/输入延迟%d帧/滑铲%d帧/二段跳封顶/磁铁/护盾/冲刺碾怪/坠坑结算/8契约 全部通过" % [
+			int(_flags["jump_latency_frames"]), int(_flags["slide_measured_frames"]),
+		])
+		get_tree().quit(0)
+	else:
+		for failure in _failures:
+			printerr("GODOT_SMOKE: FAIL %s" % failure)
+		get_tree().quit(1)

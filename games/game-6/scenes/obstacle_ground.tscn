@@ -1,0 +1,26 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/obstacle_ground.gd" id="1_ground"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(64, 56)
+
+[node name="ObstacleGround" type="Area2D"]
+script = ExtResource("1_ground")
+
+[node name="Body" type="Polygon2D" parent="."]
+color = Color(0.482, 0.369, 0.231, 1)
+polygon = PackedVector2Array(-32, -28, 32, -28, 32, 28, -32, 28)
+
+[node name="EyeLeft" type="Polygon2D" parent="Body"]
+position = Vector2(-10, -10)
+color = Color(1, 1, 1, 1)
+polygon = PackedVector2Array(5, 0, 3.5, 3.5, 0, 5, -3.5, 3.5, -5, 0, -3.5, -3.5, 0, -5, 3.5, -3.5)
+
+[node name="EyeRight" type="Polygon2D" parent="Body"]
+position = Vector2(10, -10)
+color = Color(1, 1, 1, 1)
+polygon = PackedVector2Array(5, 0, 3.5, 3.5, 0, 5, -3.5, 3.5, -5, 0, -3.5, -3.5, 0, -5, 3.5, -3.5)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_hurt")

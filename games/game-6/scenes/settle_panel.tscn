@@ -1,0 +1,42 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/settle_panel.gd" id="1_settle"]
+
+[node name="SettlePanel" type="CenterContainer"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_settle")
+
+[node name="Panel" type="PanelContainer" parent="."]
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+theme_override_constants/separation = 12
+custom_minimum_size = Vector2(420, 0)
+
+[node name="TitleLabel" type="Label" parent="Panel/VBox"]
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 30
+horizontal_alignment = 1
+text = "本局结束"
+
+[node name="SettleLabel" type="Label" parent="Panel/VBox"]
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+text = "距离 0m · 金币 0 枚 · 得分 0"
+
+[node name="RecordLabel" type="Label" parent="Panel/VBox"]
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.4, 0.4, 0.46, 1)
+horizontal_alignment = 1
+text = "历史最高分 0 · 累计金币 0 · 最远 0m"
+
+[node name="RestartButton" type="Button" parent="Panel/VBox"]
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 22
+text = "重新开始"

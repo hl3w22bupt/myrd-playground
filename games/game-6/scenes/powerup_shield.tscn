@@ -1,0 +1,24 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/powerup_shield.gd" id="1_shield"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pickup"]
+radius = 22.0
+
+[node name="PowerupShield" type="Area2D"]
+script = ExtResource("1_shield")
+
+[node name="Body" type="Polygon2D" parent="."]
+color = Color(0.4, 0.75, 1, 1)
+polygon = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+
+[node name="Glyph" type="Label" parent="."]
+offset_left = -16.0
+offset_top = -12.0
+offset_right = 16.0
+offset_bottom = 12.0
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "盾"
+horizontal_alignment = 1
+vertical_alignment = 1

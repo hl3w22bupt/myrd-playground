@@ -1,108 +1,51 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
-[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
-[ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="3_joystick"]
-[ext_resource type="Script" path="res://scripts/touch_confirm_button.gd" id="4_confirm"]
-[ext_resource type="PackedScene" path="res://scenes/coin.tscn" id="5_coin"]
-[ext_resource type="PackedScene" path="res://scenes/obstacle.tscn" id="6_obstacle"]
+[ext_resource type="PackedScene" path="res://scenes/parallax_bg.tscn" id="2_parallax"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="3_player"]
+[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="4_hud"]
+[ext_resource type="PackedScene" path="res://scenes/settle_panel.tscn" id="5_settle"]
+[ext_resource type="Script" path="res://scripts/touch_confirm_button.gd" id="6_jumpbtn"]
+[ext_resource type="Script" path="res://scripts/touch_swipe.gd" id="7_swipe"]
+[ext_resource type="Script" path="res://scripts/track_builder.gd" id="8_track"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_confirm"]
 radius = 44.0
 
-[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_ground"]
-
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
 
+[node name="ParallaxBg" parent="." instance=ExtResource("2_parallax")]
+
 [node name="World" type="Node2D" parent="."]
 
-[node name="Ground" type="StaticBody2D" parent="World"]
+[node name="TrackBuilder" type="Node2D" parent="World"]
+script = ExtResource("8_track")
 
-[node name="GroundShape" type="CollisionShape2D" parent="World/Ground"]
-position = Vector2(0, 300)
-shape = SubResource("WorldBoundaryShape2D_ground")
-
-[node name="GroundVisual" type="Polygon2D" parent="World/Ground"]
-color = Color(0.647, 0.549, 0.4, 1)
-polygon = PackedVector2Array(-2000, 300, 200000, 300, 200000, 460, -2000, 460)
-
-[node name="Coins" type="Node2D" parent="World"]
-
-[node name="CoinA1" parent="World/Coins" instance=ExtResource("5_coin")]
-position = Vector2(200, 260)
-
-[node name="CoinA2" parent="World/Coins" instance=ExtResource("5_coin")]
-position = Vector2(260, 260)
-
-[node name="CoinA3" parent="World/Coins" instance=ExtResource("5_coin")]
-position = Vector2(320, 260)
-
-[node name="CoinB1" parent="World/Coins" instance=ExtResource("5_coin")]
-position = Vector2(560, 260)
-
-[node name="CoinB2" parent="World/Coins" instance=ExtResource("5_coin")]
-position = Vector2(620, 260)
-
-[node name="CoinB3" parent="World/Coins" instance=ExtResource("5_coin")]
-position = Vector2(680, 260)
-
-[node name="Obstacles" type="Node2D" parent="World"]
-
-[node name="Obstacle1" parent="World/Obstacles" instance=ExtResource("6_obstacle")]
-position = Vector2(470, 272)
-
-[node name="Player" parent="." instance=ExtResource("2_player")]
+[node name="Player" parent="." instance=ExtResource("3_player")]
 position = Vector2(140, 268)
 
-[node name="UI" type="CanvasLayer" parent="."]
+[node name="Hud" parent="." instance=ExtResource("4_hud")]
 
-[node name="HudLabel" type="Label" parent="UI"]
-unique_name_in_owner = true
-offset_left = 16.0
-offset_top = 12.0
-offset_right = 944.0
-offset_bottom = 40.0
-text = "W/↑/空格 跳跃（可二段跳） · S/↓ 滑铲"
+[node name="Overlay" type="CanvasLayer" parent="."]
+layer = 6
 
-[node name="SettlePanel" type="CenterContainer" parent="UI"]
-unique_name_in_owner = true
-visible = false
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Panel" type="PanelContainer" parent="UI/SettlePanel"]
-
-[node name="VBox" type="VBoxContainer" parent="UI/SettlePanel/Panel"]
-
-[node name="SettleLabel" type="Label" parent="UI/SettlePanel/Panel/VBox"]
-unique_name_in_owner = true
-horizontal_alignment = 1
-text = "本局结束"
-
-[node name="RestartButton" type="Button" parent="UI/SettlePanel/Panel/VBox"]
-unique_name_in_owner = true
-text = "重新开始"
+[node name="SettlePanel" parent="Overlay" instance=ExtResource("5_settle")]
 
 [node name="TouchUI" type="CanvasLayer" parent="."]
 layer = 10
 visible = false
 
-[node name="JoystickAnchor" type="Control" parent="TouchUI"]
-anchors_preset = 2
-anchor_top = 1.0
+[node name="SwipeLayer" type="Control" parent="TouchUI"]
+anchors_preset = 15
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = -160.0
-offset_right = 160.0
-offset_bottom = -24.0
-grow_vertical = 0
-script = ExtResource("3_joystick")
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_swipe")
 
-[node name="ConfirmAnchor" type="Control" parent="TouchUI"]
+[node name="JumpAnchor" type="Control" parent="TouchUI"]
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
@@ -115,12 +58,12 @@ offset_bottom = -24.0
 grow_horizontal = 0
 grow_vertical = 0
 
-[node name="ConfirmButton" type="TouchScreenButton" parent="TouchUI/ConfirmAnchor"]
+[node name="JumpButton" type="TouchScreenButton" parent="TouchUI/JumpAnchor"]
 position = Vector2(58, 58)
 shape = SubResource("CircleShape2D_confirm")
-script = ExtResource("4_confirm")
+script = ExtResource("6_jumpbtn")
 
-[node name="ConfirmLabel" type="Label" parent="TouchUI/ConfirmAnchor/ConfirmButton"]
+[node name="ConfirmLabel" type="Label" parent="TouchUI/JumpAnchor/JumpButton"]
 unique_name_in_owner = true
 offset_left = -40.0
 offset_top = -14.0
