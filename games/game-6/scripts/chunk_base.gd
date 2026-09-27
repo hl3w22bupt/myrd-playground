@@ -11,17 +11,19 @@ extends Node2D
 ## chunk id（场景里逐实例指定：l1/l2/l3）。
 @export var chunk_id: StringName = &"l1"
 
-## 三主题地形配色（spec world.artDirectives.palette 派生）。
+## 三主题地形配色（spec world.artDirectives.palette 派生；迭代需求 ②整体提亮一档：
+## 夜段从「暗夜」提为「亮暮色」，与提亮后的主角/金币同一明度带）。
 const THEME_COLORS: Dictionary = {
-	&"l1": {"ground": Color(0.965, 0.659, 0.129), "ground_dark": Color(0.78, 0.5, 0.1), "sky_hint": Color(0.494, 0.784, 0.961)},
-	&"l2": {"ground": Color(0.62, 0.36, 0.3), "ground_dark": Color(0.45, 0.25, 0.22), "sky_hint": Color(0.9, 0.6, 0.4)},
-	&"l3": {"ground": Color(0.3, 0.32, 0.48), "ground_dark": Color(0.2, 0.21, 0.34), "sky_hint": Color(0.15, 0.17, 0.3)},
+	&"l1": {"ground": Color(0.99, 0.74, 0.24), "ground_dark": Color(0.52, 0.85, 0.42), "sky_hint": Color(0.55, 0.82, 0.98)},
+	&"l2": {"ground": Color(0.84, 0.55, 0.45), "ground_dark": Color(0.66, 0.4, 0.33), "sky_hint": Color(0.98, 0.74, 0.52)},
+	&"l3": {"ground": Color(0.46, 0.5, 0.74), "ground_dark": Color(0.34, 0.38, 0.6), "sky_hint": Color(0.32, 0.36, 0.6)},
 }
 
 ## 地面块厚度（视觉与碰撞同厚；碰撞只需顶面，厚块防斜穿）。
 const GROUND_THICKNESS: float = 160.0
 
-## 道具盒种类（track_builder 指派；空 = build 时随机三选一，spec l1/e2 教学位）。
+## 道具盒种类（测试注入用；空 = 默认 magnet，实际种类由 track_builder 铺设时
+## 经 reroll_powerups 按 GameState.POWERUP_KIND_WEIGHTS seeded 重掷 —— 见迭代需求 ①）。
 var powerup_kind: StringName = &""
 
 @onready var _statics: Node2D = $Statics
@@ -192,16 +194,27 @@ const POWERUP_SCENES: Dictionary = {
 }
 
 
-## 道具盒：powerup_kind 已指派用指派值，否则随机三选一（spec l1/e2「随机其一」）。
+## 道具盒：build 时只放权重表默认种类（magnet，无 rng 依赖、确定性构建）；
+## 真实种类由 track_builder 每次铺设经 reroll_powerups seeded 重掷（迭代需求 ①：
+## 上一版 randi()%3 在 build 时定死 + 对象池不复位 → 磁吸/冲刺整局可能不出现，即本次根因）。
 func _build_powerup(element: Dictionary) -> void:
 	var kind: StringName = powerup_kind
 	if kind == &"":
-		kind = [&"magnet", &"shield", &"dash"][randi() % 3]
+		kind = &"magnet"
 	var scene_path: String = POWERUP_SCENES.get(kind, POWERUP_SCENES[&"magnet"])
 	var pickup: PickupBox = (load(scene_path) as PackedScene).instantiate()
 	pickup.name = "Pickup%s" % element["id"]
 	pickup.position = Vector2(element["x"], -46.0)
 	_entities.add_child(pickup)
+
+
+## 道具种类池化重掷（迭代需求 ①）：track_builder 每次铺设本 chunk 时调用；
+## 权重表集中在 GameState.POWERUP_KIND_WEIGHTS（磁铁 0.40 / 冲刺 0.35 / 护盾 0.25），
+## 同种子同序列 —— 冒烟 powerup_pool_contract 以固定种子机判分布。
+func reroll_powerups(rng: RandomNumberGenerator) -> void:
+	for node in _entities.get_children():
+		if node is PickupBox:
+			(node as PickupBox).reroll_kind(GameState.pick_powerup_kind(rng))
 
 
 ## 池化复位：chunk 被循环挪位到玩家前方时调用（不重建节点树）。

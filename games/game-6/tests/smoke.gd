@@ -22,21 +22,21 @@ extends Node
 ## ── 噪声相位：正式断言前注入确定种子的对抗输入（模板同源）──
 const NOISE_FRAMES: int = 8
 
-## 正向局：起跳触发线（x ≥ 380 起跳 → 单跳落地 620 > 障碍右沿 592，裕度 28px；
+## 正向局：起跳触发线（x ≥ 380 起跳 → 单跳落地 ~621 > 障碍右沿 592，裕度 ~29px；
 ## 二段跳在滞空前段完成，弧线更高更远，越障裕度进一步扩大）。
 const JUMP_TRIGGER_X: float = 380.0
 ## 离地判定：站立中心 y=268，上升 ≥10px 视为离地。
 const AIRBORNE_MAX_Y: float = 258.0
 ## 障碍物中心 x（l1/e3，见 chunk_defs.gd）。
 const OBSTACLE_X: float = 560.0
-## 帧预算（必须 < 门禁 smokeFrames=320；物理帧计数）。
-const TOTAL_FRAME_BUDGET: int = 290
+## 帧预算（必须 < 门禁 smokeFrames=320；物理帧计数；EXPIRE 步骤 +5 帧后留 15 帧裕度）。
+const TOTAL_FRAME_BUDGET: int = 305
 const RUN_A_DEADLINE: int = 90
 
 enum Phase { NOISE, RUN_A, BETWEEN, RUN_B, FINAL, DONE }
 enum RbStep {
 	WAIT_TRIGGER, WAIT_AIRBORNE, DJUMP_VERIFY, WAIT_LAND,
-	SLIDE_START, MAGNET, VERDICTS, SLIDE_END, PIT_DEATH,
+	SLIDE_START, MAGNET, VERDICTS, SLIDE_END, EXPIRE, PIT_DEATH,
 }
 
 var _failures: PackedStringArray = []
@@ -59,6 +59,13 @@ var _flags: Dictionary = {
 	"dash_smashed_obstacle": false,
 	"settle_coins_match": false,
 	"restart_cleared": false,
+	# ── 迭代需求 ①：收集反馈全链路证据 ──
+	"pickup_feedback": false,
+	"pickup_hud_lit": false,
+	"magnet_ring_on": false,
+	"dash_trail_on": false,
+	"dash_hud_lit": false,
+	"powerup_expire_synced": false,
 }
 
 var _player: Player
@@ -79,6 +86,8 @@ var _rb_jump_inject_frame: int = -1
 var _magnet_coins_before: int = 0
 var _dash_score_before: int = 0
 var _test_coin: Coin = null
+var _test_pickup: PickupBox = null
+var _player_fx: PlayerFx = null
 var _settle_coins_at_end: int = -1
 
 
@@ -94,6 +103,10 @@ func _ready() -> void:
 		_player.died.connect(_on_player_died)
 	if _main == null:
 		_failures.append("场景树找不到 Main（smoke.tscn 未实例化 main.tscn）")
+	if _player != null:
+		_player_fx = _player.get_node_or_null("Fx") as PlayerFx
+		if _player_fx == null:
+			_failures.append("Player 缺少 Fx 特效层（生效期表现未接入）")
 	GameState.score_changed.connect(_on_score_changed)
 	GameState.coins_changed.connect(_on_coins_changed)
 	GameState.run_ended.connect(_on_run_ended)
@@ -219,16 +232,15 @@ func _tick_run_b() -> void:
 		RbStep.VERDICTS:
 			_tick_verdicts()
 		RbStep.SLIDE_END:
-			# 滑铲计时自然走满（slideDurationSeconds），结束后立即坠坑（冲刺无敌已罩住）。
+			# 滑铲计时自然走满（slideDurationSeconds）；结束后先做道具归零同步断言，再坠坑。
 			if not _player.is_sliding() and _slide_frame_counter > 0:
 				_flags["slide_measured_frames"] = _slide_frame_counter
 				_slide_counting = false
-				_settle_coins_at_end = GameState.coins
-				_player.global_position.y = GameState.GROUND_LINE_Y \
-					+ GameState.tuning_value(&"deathFallPx") + 20.0
-				_enter_rb_step(RbStep.PIT_DEATH)
+				_enter_rb_step(RbStep.EXPIRE)
 			elif _rb_rel() > 60:
 				_failures.append("滑铲 %d 帧后仍未结束（slideDurationSeconds 失效）" % _slide_frame_counter)
+		RbStep.EXPIRE:
+			_tick_expire()
 		RbStep.PIT_DEATH:
 			_tick_pit_death()
 
@@ -251,7 +263,9 @@ func _tick_djump_verify() -> void:
 		_enter_rb_step(RbStep.WAIT_LAND)
 
 
-## 磁铁吸附：测试金币放在 90px 外 → 磁铁生效 → 被吸到玩家身上计数（acc-04）。
+## 磁铁吸附（迭代需求 ①升级：走真实道具盒碰撞拾取链，不再直调 apply_powerup）：
+## 磁铁盒压到玩家身上 → 碰撞拾取（闪光+音效+HUD 点亮）→ 测试金币放在 90px 外被吸到
+## 玩家身上计数（acc-04），同时采集生效期光圈证据。
 func _tick_magnet() -> void:
 	var rel: int = _rb_rel()
 	if rel == 1:
@@ -259,15 +273,47 @@ func _tick_magnet() -> void:
 		_test_coin = (load("res://scenes/coin.tscn") as PackedScene).instantiate() as Coin
 		_test_coin.position = _player.global_position + Vector2(90, -40)
 		_main.add_child(_test_coin)
-		_player.apply_powerup(Player.POWERUP_MAGNET)
+		_test_pickup = (load("res://scenes/powerup_magnet.tscn") as PackedScene).instantiate() as PickupBox
+		_test_pickup.position = _player.global_position + Vector2(6, 0)
+		_main.add_child(_test_pickup)
 	elif rel > 3 and GameState.coins > _magnet_coins_before:
 		_flags["magnet_pulled_coin"] = true
+		_flags["pickup_feedback"] = FxBank.spawned_of(&"pickup_magnet") > 0 \
+			and SfxBank.plays_of(&"powerup") > 0
+		_flags["pickup_hud_lit"] = _main.hud.is_powerup_lit(&"magnet")
+		_flags["magnet_ring_on"] = _player_fx != null and _player_fx.ring_active
 		_cleanup_test_coin()
 		_enter_rb_step(RbStep.VERDICTS)
 	elif rel > 20:
+		if _test_pickup != null and is_instance_valid(_test_pickup):
+			print("[smoke-dbg] pickup kind=%s collected=%s visible=%s monitoring=%s pos=%s player=%s mag=%.2f" % [
+				_test_pickup.kind, _test_pickup._collected, _test_pickup.visible,
+				_test_pickup.monitoring, _test_pickup.global_position,
+				_player.global_position, _player.magnet_timer,
+			])
 		_failures.append("磁铁 20 帧内未把 90px 内金币吸到玩家（吸附失效）")
 		_cleanup_test_coin()
 		_enter_rb_step(RbStep.VERDICTS)
+
+
+## 道具倒计时归零（迭代需求 ①「倒计时结束特效与增益同步消失」）：
+## 把磁铁/冲刺计时压到 0.02s → 数帧内自然归零 → 光圈/速度线/HUD 槽位全部同步熄灭。
+func _tick_expire() -> void:
+	var rel: int = _rb_rel()
+	if rel == 1:
+		_player.magnet_timer = 0.02
+		_player.dash_timer = 0.02
+	elif rel >= 5:
+		var fx_off: bool = _player_fx != null and not _player_fx.ring_active \
+			and not _player_fx.lines_active and not _player_fx.visible
+		var gain_off: bool = not _player.is_dashing() and _player.magnet_timer == 0.0
+		_flags["powerup_expire_synced"] = fx_off and gain_off \
+			and not _main.hud.is_powerup_lit(&"magnet") \
+			and not _main.hud.is_powerup_lit(&"dash")
+		_settle_coins_at_end = GameState.coins
+		_player.global_position.y = GameState.GROUND_LINE_Y \
+			+ GameState.tuning_value(&"deathFallPx") + 20.0
+		_enter_rb_step(RbStep.PIT_DEATH)
 
 
 ## 护盾/冲刺裁决 + 冲刺速度倍增 + 真实碾怪计分（acc-04）。滑铲中执行，冲刺无敌罩住后续暴露帧。
@@ -289,6 +335,9 @@ func _tick_verdicts() -> void:
 		obstacle.position = _player.global_position + Vector2(10, 0)
 		_main.add_child(obstacle)
 	elif rel > 8:
+		# 冲刺生效期证据在特效/HUD 层（idle 帧驱动）至少走一帧后再采（避免同帧假阴性）。
+		_flags["dash_trail_on"] = _player_fx != null and _player_fx.lines_active
+		_flags["dash_hud_lit"] = _main.hud.is_powerup_lit(&"dash")
 		if GameState.score >= _dash_score_before + GameState.tuning_value(&"scorePerObstacleSmash"):
 			_flags["dash_smashed_obstacle"] = true
 		else:
@@ -310,6 +359,9 @@ func _cleanup_test_coin() -> void:
 	if _test_coin != null and is_instance_valid(_test_coin):
 		_test_coin.queue_free()
 	_test_coin = null
+	if _test_pickup != null and is_instance_valid(_test_pickup):
+		_test_pickup.queue_free()
+	_test_pickup = null
 
 
 func _run_contracts() -> void:
@@ -334,6 +386,10 @@ func _run_contracts() -> void:
 		_failures.append("player_move_contract：%s" % failure)
 	for failure: String in PowerupContract.run({"player": _player, "flags": _flags}):
 		_failures.append("powerup_contract：%s" % failure)
+	for failure: String in PowerupPoolContract.run({"root": _main}):
+		_failures.append("powerup_pool_contract：%s" % failure)
+	for failure: String in FeedbackContract.run({"flags": _flags, "hud": _main.hud, "root": _main}):
+		_failures.append("feedback_contract：%s" % failure)
 	for failure: String in InputLatencyContract.run(_flags):
 		_failures.append("input_latency_contract：%s" % failure)
 	_signal_report_asserts()
@@ -477,7 +533,7 @@ func _report() -> void:
 		return
 	_reported = true
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 噪声抗性/自动奔跑/撞怪判负/重开清零/跳跃越障/输入延迟%d帧/滑铲%d帧/二段跳封顶/磁铁/护盾/冲刺碾怪/坠坑结算/8契约 全部通过" % [
+		print("GODOT_SMOKE: PASS 噪声抗性/自动奔跑/撞怪判负/重开清零/跳跃越障/输入延迟%d帧/滑铲%d帧/二段跳封顶/磁铁吸附+拾取反馈/护盾/冲刺碾怪+拖尾/归零同步熄灭/坠坑结算/10契约 全部通过" % [
 			int(_flags["jump_latency_frames"]), int(_flags["slide_measured_frames"]),
 		])
 		get_tree().quit(0)

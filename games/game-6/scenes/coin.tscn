@@ -9,7 +9,7 @@ radius = 14.0
 script = ExtResource("1_coin")
 
 [node name="Body" type="Polygon2D" parent="."]
-color = Color(1, 0.788, 0.235, 1)
+color = Color(1, 0.855, 0.32, 1)
 polygon = PackedVector2Array(14, 0, 12.1, 7, 7, 12.1, 0, 14, -7, 12.1, -12.1, 7, -14, 0, -12.1, -7, -7, -12.1, 0, -14, 7, -12.1, 12.1, -7)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

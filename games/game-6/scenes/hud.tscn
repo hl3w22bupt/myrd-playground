@@ -36,15 +36,13 @@ theme_override_font_sizes/font_size = 18
 theme_override_colors/font_color = Color(0.35, 0.35, 0.4, 1)
 text = "最高分 0 · 累计金币 0"
 
-[node name="PowerupLabel" type="Label" parent="."]
+[node name="PowerupBar" type="HBoxContainer" parent="."]
 unique_name_in_owner = true
 offset_left = 16.0
-offset_top = 48.0
-offset_right = 500.0
-offset_bottom = 76.0
-theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.16, 0.5, 0.9, 1)
-text = ""
+offset_top = 46.0
+offset_right = 420.0
+offset_bottom = 88.0
+theme_override_constants/separation = 10
 
 [node name="HintLabel" type="Label" parent="."]
 unique_name_in_owner = true

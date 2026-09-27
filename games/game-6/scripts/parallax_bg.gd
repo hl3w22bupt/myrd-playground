@@ -32,7 +32,7 @@ func _build_clouds() -> void:
 			var cloud := Polygon2D.new()
 			var radius: float = 26.0 - 5.0 * float(puff)
 			cloud.position = Vector2(base_x + float(puff) * radius * 1.4, base_y + float(puff % 2) * 8.0)
-			cloud.color = Color(1, 1, 1, 0.85)
+			cloud.color = Color(1, 1, 1, 0.95)
 			cloud.polygon = _circle_polygon(radius)
 			_cloud_layer.add_child(cloud)
 
@@ -49,7 +49,7 @@ func _build_mountains() -> void:
 		points.append(Vector2(segment * (float(i) + 1.0), -30.0))
 	var mountain := Polygon2D.new()
 	mountain.polygon = points
-	mountain.color = Color(0.55, 0.78, 0.55, 1)
+	mountain.color = Color(0.63, 0.86, 0.58, 1)
 	mountain.position = Vector2(0, GROUND_LINE_Y)
 	_mountain_layer.add_child(mountain)
 
@@ -59,8 +59,8 @@ func _build_town() -> void:
 	_town_layer.motion_mirroring = Vector2(TILE_WIDTH, 0)
 	# 糖果屋街区：一排矩形房体 + 三角屋顶，两色交替。
 	var palette: Array[Color] = [
-		Color(0.96, 0.72, 0.78, 1), Color(0.72, 0.82, 0.95, 1),
-		Color(0.98, 0.85, 0.6, 1), Color(0.78, 0.9, 0.75, 1),
+		Color(1.0, 0.8, 0.85, 1), Color(0.8, 0.9, 1.0, 1),
+		Color(1.0, 0.92, 0.68, 1), Color(0.85, 0.95, 0.8, 1),
 	]
 	var houses: int = 8
 	var house_w: float = TILE_WIDTH / float(houses)
@@ -79,7 +79,7 @@ func _build_town() -> void:
 		roof.polygon = PackedVector2Array([
 			Vector2(-half_w - 10.0, -body_h), Vector2(half_w + 10.0, -body_h), Vector2(0, -body_h - 34.0),
 		])
-		roof.color = Color(0.83, 0.35, 0.37, 1)
+		roof.color = Color(0.96, 0.44, 0.46, 1)
 		roof.position = body.position
 		_town_layer.add_child(roof)
 
