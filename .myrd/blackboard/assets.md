@@ -12,6 +12,7 @@
 - **机器门禁复跑（本轮美术侧取证，证据条款见 `gate-logs/r4-neon-juice-20260927-art-recheck/`）**：`node scripts/contract-check.mjs` 全量 —— 首跑 B 段 acc-d2 瞬时 FAIL（浏览器并发负载抖动，与 E0b 记录的 acc-j1 同源，判据零放松），**独立复跑 PASS（31/32 + acc-a7 not-runnable 具 spec 挂账背书）**；A 段 spec 基线 approved / C 段双向映射 / D 段 entities 20/20 / E 段 assets 20/20 全 generated。
 - **N6 首图物证就绪**：`assets/reference/neon-night-quad-v1.png` @ `098e28b7…` 即主人首图定稿对象（四联图 = 风格卡 §3 四面板），随 N6 拍板；机器不替人判断，定稿权在主人。
 - **复检增记（同日第二轮开工首笔，E3 后重证）**：程序线 §E3 驳回处置（acc-j1 spec 口径修复 / N6 备忘 hash 更正 / 证据补正）落树后，美术面三件套重证——①确定性复现：重生成 13 件 P0 + 四联图 hash 仍 `098e28b7…`，零漂移；②查表 13/13 PASS；③`node scripts/contract-check.mjs` 全量 PASS（31/32 + acc-a7 挂账背书，A–E 段同前）。**hash 链四方一致复核**（资产归属方）：manifest.json = 磁盘实算 = 风格卡 §5 = N6 备忘 §二.1，历史 `01ea413e` 引用均带作废标注。资产面自 F1 修复后零改动（`git diff 66852b4..HEAD -- assets/ src/render/ gen-neon-*` 全空）。素材路径与接线点状态不变：P0 13 件落 `assets/neon/`（对照件，查表入 contract acc-a8）；运行时换装走 theme.ts 单源程序化绘制（spec a08..a20 具名落点，fallback=程序化恒在）；M2.1 实体贴图 9 件接线点沿用（`src/render/assets.ts` ASSET_MANIFEST，404 降级不破坏运行）。
+- **复检增记（同日第三轮开工首笔）**：`8a0bdb5`（备忘 §一证据表述对齐）落树后重证同轮结论——重生成 hash 仍 `098e28b7…` 零漂移 / 查表 13/13 / contract-check 全量 PASS；资产面相对 `95fa549` 零触碰。**美术线 r4 交付面维持收口态**：卡 v1.0 冻结 + 四联图 @ `098e28b7…` + P0 13 件全过检，无新做项（主人未给新方向前不擅动卡——风格统一纪律）；后续唯一美术动作 = 主人对首图/色板给方向后 30 分钟升卡 v1.1 → 改 theme.ts → 重生成 → hash 留痕。
 
 ## r4 · 风格卡 A1「霓虹夜塔」冻结登记（N2 · 2026-09-27 冻结当日写回）
 
