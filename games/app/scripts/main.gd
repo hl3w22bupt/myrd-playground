@@ -76,6 +76,9 @@ func _ready() -> void:
 	result_panel.visible = false
 	flash_rect.color.a = 0.0
 	_refresh_hud()
+	## 调参工作台（SKILL.md §3C）：网页 + URL 带 ?tuning 参数才创建，其余环境零成本。
+	if TuningPanel.is_enabled():
+		add_child(TuningPanel.new())
 
 
 func _physics_process(delta: float) -> void:
