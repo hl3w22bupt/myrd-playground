@@ -1,33 +1,35 @@
 /**
- * 色板（资产 a01-block-palette，generator: procedural:constant-table）。
- * 唯一真源 = games/stack-tower/docs/moodboard-stack-tower.md §二（8 色板）；
- * 改色先改情绪板再动这里；不得在渲染代码里另设色值。
+ * 色板出口（v1.2 换装「霓虹夜塔」）— 兼容层：色值唯一真源已迁至 theme.ts（e-theme-constants，
+ * acc-t1 单一常量源契约），本文件仅做具名再导出，供既有渲染调用点（renderer/backdrop/textures）平滑换源。
+ * 禁止在本文件新增任何字面量色值；新增常量一律落 theme.ts。
  */
-/** 8 色板（与情绪板逐条对应） */
+import { NEON, BLOCK_NEON_CYCLE } from './theme.js';
+/** 8 色板（旧口径命名 → 霓虹夜塔映射；真源 theme.NEON） */
 export const PALETTE = {
-    /** 1 暮蓝深：天空渐变顶 */
-    SKY_TOP: '#2b3a4d',
-    /** 2 暮蓝浅：天空渐变底 / 反弹光 */
-    SKY_BOTTOM: '#8a97a8',
-    /** 3 陶土橙：塔块主色 A */
-    BLOCK_A: '#c96f3b',
-    /** 4 砖红：塔块主色 B */
-    BLOCK_B: '#a84a32',
-    /** 5 沙黄：塔块主色 C */
-    BLOCK_C: '#d9a441',
-    /** 6 切面白：判定物描边（唯一纯白，唯一高亮） */
-    FACE_HIGHLIGHT: 'rgba(255,255,255,0.85)',
-    /** 7 暮色线：地平线 1px（α0.4） */
-    HORIZON: '#a08c6a',
-    /** 8 失败黑：掉落碎块（离开可玩域） */
-    DEBRIS: 'rgba(0,0,0,0.25)',
+    /** 1 夜空渐变顶（旧：暮蓝深） */
+    SKY_TOP: NEON.NIGHT_SKY_TOP,
+    /** 2 夜空渐变底（旧：暮蓝浅） */
+    SKY_BOTTOM: NEON.NIGHT_SKY_BOTTOM,
+    /** 3 塔块主色 A（霓虹 01 青蓝） */
+    BLOCK_A: NEON.BLOCK_NEON_01,
+    /** 4 塔块主色 B（霓虹 02 品红） */
+    BLOCK_B: NEON.BLOCK_NEON_02,
+    /** 5 塔块主色 C（霓虹 03 琥珀） */
+    BLOCK_C: NEON.BLOCK_NEON_03,
+    /** 6 切面高亮（霓虹白，发光填充无描边） */
+    FACE_HIGHLIGHT: NEON.CUT_FACE,
+    /** 7 夜色地平线 */
+    HORIZON: NEON.HORIZON,
+    /** 8 失败黑（霓虹熄灭态） */
+    DEBRIS: NEON.DEBRIS,
 };
-/** 塔块暖色三循环（层序读数，不表意好坏） */
-export const BLOCK_CYCLE = [PALETTE.BLOCK_A, PALETTE.BLOCK_B, PALETTE.BLOCK_C];
-/** 塔身自上而下每层明度 −2%，下限 0.55（风格卡 §1 层递减） */
+/** 塔块霓虹六色循环（v1.2：3 色升 6 色，a09..a14 同源；导出改名 BLOCK_NEON_CYCLE，旧名保留别名） */
+export const BLOCK_CYCLE = BLOCK_NEON_CYCLE;
+export { BLOCK_NEON_CYCLE };
+/** 塔身自上而下每层明度 −2%，下限 0.55（层递减读数感保留；霓虹自发光体光照差见 theme.LIGHT） */
 export const LAYER_SHADE_STEP = 0.02;
 export const LAYER_SHADE_MIN = 0.55;
-/** 层序取色（已落块按层循环；摆动块用首色提亮） */
+/** 层序取色（已落块按层六色循环；摆动块用首色提亮） */
 export function blockColor(yIndex) {
     return BLOCK_CYCLE[yIndex % BLOCK_CYCLE.length];
 }
