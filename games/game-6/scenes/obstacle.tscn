@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(40, 56)
+
+[node name="Obstacle" type="Area2D"]
+
+[node name="Body" type="Polygon2D" parent="."]
+color = Color(0.482, 0.369, 0.231, 1)
+polygon = PackedVector2Array(-20, -28, 20, -28, 20, 28, -20, 28)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_hurt")
