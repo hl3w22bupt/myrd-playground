@@ -11,7 +11,7 @@
 | spec v1.2 | 平台 v4 approved（`cmuj5f6ik00hkm9l64r5uickm`，approved 唯一）；v1.1（D1/D2/D3）零丢失折入；v1 冻结七键 sha256 相等（机械断言进门禁） | `.myrd/spec/stack-tower-spec.json` / `design-spec.json`；QA 回执 §一 |
 | 四判据 | j1 首块≤3s ✓（**spec 实验口径复测：CDP 4x CPU throttle + 390x844/360x640 双视口 = 310ms/166ms**） / j2 juice≤100ms ✓ / j3 音画≤50ms（dispatch→play，采纳 QA 重定义）✓ / j4 重开≤1.5s ✓ | run-all 31/31，`gate-logs/r4-neon-juice-20260927-n5/2-run-all.log` + spec 口径复跑 `gate-logs/r4-neon-juice-20260927-prog-recheck/9-run-all-post-rejection1.log` |
 | P0 资产 13 项 | 逐件查表 PASS（hex±5 / 禁描边 / 渐变二值 / 几何±10%） | `3-assets-neon.log`；风格卡 v1.0 冻结（2026-09-27）先于验收，门序合规 |
-| 门禁 | 7/7 全绿（typecheck / 契约 31 / P0 查表 / perf 相对判 / M2.1 资产 / 冒烟 / 壳形态） | `gate-logs/r4-neon-juice-20260927-n5/`（7 文件，命令+日期+输出摘要） |
+| 门禁 | 7/7 全绿（typecheck / 契约 31 / P0 查表 / perf 相对判 / M2.1 资产 / 冒烟 / 壳形态） | `gate-logs/r4-neon-juice-20260927-n5/`（**原件+补正登记**：1 号原件 0 字节无效保留补记行、2–7 号缺命令/时刻头，命令已在该目录 README 四要素补正版补录，typecheck 证据转移登记）+ **四要素完整链 `gate-logs/r4-neon-juice-20260927-prog-recheck/`**（1–8 号复跑 + 驳回后 9/10/11 号复跑，逐条命令+日期+exit+摘要） |
 | 销案 | 9/24、9/25 五案正式关账（A 失败轮 / B spec v1.1→v1.2 吸收 / C sfx-pack-v1 已交付 / D PWA 工程面 / E U7 维持立案），每案保留一次代码级复核权 | QA 回执 §四 |
 
 ## 二、待您拍板的四件事
