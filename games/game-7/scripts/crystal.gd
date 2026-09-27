@@ -6,7 +6,9 @@ extends Area2D
 signal collected(crystal: Crystal)
 
 const BLINK_HZ: float = 2.0
-const PICKUP_RADIUS: float = 12.0
+## 拾取判定半径 16px：刻意大于视觉菱形半高 14px（约 +14%）——收集类判定向玩家倾斜，
+## 防「明明碰到却没吃到」的挫败；与陨石（碰撞向内收 8%）的严格判定形成松紧对比。
+const PICKUP_RADIUS: float = 16.0
 
 var fall_factor: float = 1.0
 var _age: float = 0.0

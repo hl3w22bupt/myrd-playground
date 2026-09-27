@@ -11,6 +11,9 @@ signal hit_player(meteor: Meteor)
 const OUTLINE_WIDTH: float = 2.0
 const GLOW_SCALE: float = 1.22
 const GLOW_ALPHA: float = 0.3
+## 碰撞余量（验收 2：碰撞盒误差 ≤ 角色宽度 10%）：碰撞半径 = 视觉半径 × 0.92，
+## 即向内收 8%（玩家有利，「看着擦边其实没撞」），同时在 10% 容差内、肉眼不可辨。
+const COLLISION_RADIUS_RATIO: float = 0.92
 
 var type_key: String = "red"
 var body_color: Color = Color("#FF4D5E")
@@ -44,7 +47,7 @@ func _build_shape() -> void:
 		var r := radius * randf_range(0.78, 1.12)
 		_vertices.append(Vector2(cos(angle), sin(angle)) * r)
 	var shape := CircleShape2D.new()
-	shape.radius = radius * 0.92
+	shape.radius = radius * COLLISION_RADIUS_RATIO
 	var collision := $CollisionShape2D as CollisionShape2D
 	collision.shape = shape
 

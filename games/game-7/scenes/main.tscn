@@ -15,6 +15,9 @@ script = ExtResource("1_main")
 [node name="Starfield" type="Node2D" parent="."]
 script = ExtResource("5_starfield")
 
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(320, 180)
+
 [node name="Entities" type="Node2D" parent="."]
 
 [node name="Player" parent="." instance=ExtResource("2_player")]

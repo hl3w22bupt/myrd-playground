@@ -49,26 +49,91 @@ var max_speed_px_s: float = 0.0
 var invincible_until_sec: float = -1.0
 var last_result: Dictionary = {}
 
+## ── 数值调参区（SKILL.md §3C 调参工作台的对接面）──
+## 手感可调变量：默认值由 config/game_config.json 同步（config 仍是唯一基准，验收 5）；
+## 试玩调参经 apply_tuning（面板 / URL ?tuning= 桥）覆盖，start_run 重读配置时回到配置基准。
+## 消费方（player.gd / main.gd）只读这些变量或取值函数，禁止散落魔数。
+var move_speed: float = 260.0
+var player_margin_px: float = 16.0
+var meteor_spawn_interval: float = 0.8
+var crystal_spawn_interval: float = 1.1
+
+## 可调键的元数据：键名 → {min, max, step}。调参面板按它生成滑杆，apply_tuning 按它钳制。
+## 新增可调数值 = 上面加变量 + 这里加一行，两处都在本文件。
+const TUNING_META: Dictionary = {
+	&"move_speed": {"min": 140.0, "max": 480.0, "step": 10.0},
+	&"player_margin_px": {"min": 8.0, "max": 48.0, "step": 2.0},
+	&"meteor_spawn_interval": {"min": 0.3, "max": 2.0, "step": 0.1},
+	&"crystal_spawn_interval": {"min": 0.4, "max": 2.5, "step": 0.1},
+}
+
 
 func _ready() -> void:
 	load_config()
+	_apply_web_tuning()
 
 
-## 读取统一数值配置：整体以默认值打底，再深合并 JSON 覆盖项。
+## 读取统一数值配置：整体以默认值打底，再深合并 JSON 覆盖项；
+## 无论走哪个分支，收尾都同步调参区变量（保证调参面与 config 基准一致）。
 func load_config() -> void:
 	config = DEFAULT_CONFIG.duplicate(true)
 	if not FileAccess.file_exists(CONFIG_PATH):
 		push_warning("game_config.json 缺失，使用内置默认配置")
+	else:
+		var file := FileAccess.open(CONFIG_PATH, FileAccess.READ)
+		if file == null:
+			push_warning("game_config.json 打开失败，使用内置默认配置")
+		else:
+			var parsed: Variant = JSON.parse_string(file.get_as_text())
+			if typeof(parsed) != TYPE_DICTIONARY:
+				push_warning("game_config.json 解析失败，使用内置默认配置")
+			else:
+				_merge_config(config, parsed)
+	_sync_tuning_vars()
+
+
+## 用 config 基准刷新调参区变量（验收 5：改配置重开一局即生效；
+## 试玩调参在 apply_tuning 后覆盖这些变量，下一次 start_run 回到配置基准）。
+func _sync_tuning_vars() -> void:
+	move_speed = float(config["player"]["moveSpeed"])
+	player_margin_px = float(config["player"]["marginPx"])
+	meteor_spawn_interval = float(config["meteor"]["spawnIntervalSec"])
+	crystal_spawn_interval = float(config["crystal"]["spawnIntervalSec"])
+
+
+## 应用调参覆盖（调参面板与壳页面 __GAME_TUNING__ 桥共用的唯一入口）：
+## 只认 TUNING_META 声明的键、按 min/max 钳制；返回实际生效的键名列表。
+func apply_tuning(overrides: Dictionary) -> PackedStringArray:
+	var applied := PackedStringArray()
+	for key: String in overrides:
+		var meta: Dictionary = TUNING_META.get(StringName(key), {})
+		if meta.is_empty() or get(key) == null:
+			continue
+		var raw: Variant = overrides[key]
+		if not (raw is float or raw is int):
+			continue
+		set(key, clampf(float(raw), meta["min"], meta["max"]))
+		applied.append(key)
+	return applied
+
+
+## Web 调参桥读入：壳页面在引擎加载前把 URL ?tuning=<JSON> 解析到 window.__GAME_TUNING__，
+## 这里在启动时应用。桌面/无头环境桥不工作（eval 返回 null），自动跳过（冒烟不受影响）。
+## 注意：JavaScriptBridge 单例在桌面二进制也存在但 eval 恒为 null —— 判空而非只判注册；
+## 经 Engine.get_singleton 动态取用，不做编译期平台引用。
+func _apply_web_tuning() -> void:
+	if not Engine.has_singleton("JavaScriptBridge"):
 		return
-	var file := FileAccess.open(CONFIG_PATH, FileAccess.READ)
-	if file == null:
-		push_warning("game_config.json 打开失败，使用内置默认配置")
+	var bridge: Object = Engine.get_singleton("JavaScriptBridge")
+	var result: Variant = bridge.call("eval", "JSON.stringify(window.__GAME_TUNING__ || null)")
+	if result == null:
 		return
-	var parsed: Variant = JSON.parse_string(file.get_as_text())
-	if typeof(parsed) != TYPE_DICTIONARY:
-		push_warning("game_config.json 解析失败，使用内置默认配置")
+	var raw := str(result)
+	if raw.is_empty() or raw == "null":
 		return
-	_merge_config(config, parsed)
+	var parsed: Variant = JSON.parse_string(raw)
+	if parsed is Dictionary:
+		apply_tuning(parsed)
 
 
 func _merge_config(base: Dictionary, override: Dictionary) -> void:
@@ -126,11 +191,11 @@ func invincible_remaining_sec() -> float:
 
 
 func player_move_speed() -> float:
-	return float(config["player"]["moveSpeed"])
+	return move_speed
 
 
 func player_margin() -> float:
-	return float(config["player"]["marginPx"])
+	return player_margin_px
 
 
 func score_int() -> int:
