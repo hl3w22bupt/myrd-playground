@@ -160,3 +160,11 @@
 - 开局帧（距离 1m）：HUD 三槽全灭、无飘字 —— 幽灵拾取消失；闪电道具盒带呼吸光环留在身后。
 - 角色特写：棕发 + 红发带 + 肤色脸 + 眼睛高光 + **橙色卫衣（描边+高光可读）** + 蓝短裤 + 白鞋。
 - 无输入负向局 ~100 帧撞怪 → 慢动作 → 结算页 → 一键重开，链路完好。
+
+## 五、迭代 v3 部署与回写（本轮收口）
+
+- 重导出：`index.pck` 2677200 字节（sha256 `c1cd0342…`），Web 红线不变（nothreads + gl_compatibility）。
+- 部署：`cmujm2j2d002am99iv7qtd572`（v6）@ commit `50e90df`，分支 `myrd/games-goal-cmuj6p1q2000em9hc4srodpkt`，
+  liveUrl `https://leomac-studio.tail49399e.ts.net/apps/game-6/`，HostedApp `cmuj6p1py000cm9hcmqje9khr`。
+- 线上核验：`/health` 200；线上 pck 与本地 HEAD 导出逐字节一致。
+- 过程性冗余 v4/v5（同 commit）已被 v6 superseded。

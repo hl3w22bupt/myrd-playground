@@ -60,4 +60,9 @@
 - 部署前基线（复核轮实测，deployment v3 `cmujkhwcv001qm99ibwws5dv9` @ a08b6e3）：
   线上 `index.pck` sha256 `7986de20…`、`index.wasm` sha256 `fe5cebc5…`，
   与本地 HEAD 导出**逐字节一致**（base64+gzip 解码后比对）。
-- 本轮修复后重新导出与部署的结果：见 IMPLEMENTATION.md v3 章节与目标 artifacts 回写。
+- 本轮修复后部署：**deployment `cmujm2j2d002am99iv7qtd572`（v6）** @ commit `50e90df`，
+  gitRef `myrd/games-goal-cmuj6p1q2000em9hc4srodpkt`，liveUrl
+  `https://leomac-studio.tail49399e.ts.net/apps/game-6/`（HostedApp `cmuj6p1py000cm9hcmqje9khr`）。
+  `/health` 200；线上 `index.pck` sha256 `c1cd0342…`（2677200 字节）与本地 HEAD 导出**逐字节一致**。
+- 过程性冗余部署 v4/v5（同 commit 50e90df，首次 API 调用未捕获响应与缺 triggeredById 的重试）
+  已被 v6 正常 superseded —— 平台既有行为（知识文档 v3「504 冗余部署处置」口径）。
