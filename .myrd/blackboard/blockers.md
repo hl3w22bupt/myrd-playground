@@ -14,13 +14,32 @@
 - **处置裁定（主策划，非降级为纸面件）**：①本冲刺风格卡/基准四联图/P0 资产产物一律落 git 仓库文件（`games/stack-tower/assets/reference/` 等）+ 黑板登记，**不依赖 OD 画布承载验收物**——OD 不可达不阻塞本轮执行面；②按纪律升级主人：请修复 OD 守护进程（`pnpm tools-dev` 或等效方式）；恢复前 N2 风格卡以「repo 文件 + hash」为准，恢复后可回流 OD 复核（不构成新门禁）。
 - **平台 API 通道修复（E1，本轮打通）**：前端代理会剥 `Authorization` 头 → Bearer 通道 UNAUTHORIZED（本地 3001 与远程 tailnet 双复现）；改走 **cookie `token` 通道**（引擎注入的 `MYRD_TOKEN` 工作流代行身份，via=workflow-node）→ 本地/远程 `/api/v1/auth/me` 双 200。本轮 spec v1.2 登记全部走此通道，全程留痕。历史「平台 API 鉴权恢复」的成因就此闭环：非 token 失效，是通道差异。
 
-## r4 当前基线（霓虹夜塔冲刺开工）
+## r4 当前基线（霓虹夜塔冲刺 · N5 收口后状态）
 
 - 黑板路径：`.myrd/blackboard/`（levels.md / assets.md / blockers.md 三份齐备，本轮增量见各文件顶部 r4 段）
-- spec 版本号：当前 approved = **平台 v3**（platformSpecId `cmugok2uz000xm9ilx42t8pnl`，2026-09-27 API 实查 status=approved version=3，与本地导出件 `.myrd/spec/stack-tower-spec.json` 键序无关深比全等）；**本轮目标 = spec v1.2**（= 平台链 version+1 → v4，映射口径见 §E2）
-- 契约与 QA 共同输入 = `.myrd/spec/stack-tower-spec.json`（approved 导出件；v1.2 approved 后同步刷新并按任务书要求导出至 `.myrd/spec/design-spec.json`——该文件现状为 stack-tower v2 遗留（糖果线内容 2026-09-25 前已丢失、git 不可回滚，README 已声明不得作糖果线契约依据），本轮以 stack-tower approved v1.2 覆写并在 README 留痕，一游戏一文件口径不变）
-- 冲刺目标（主人单句）：换装「霓虹夜塔」+ juice 四判据 = spec v1.2 approved、四判据冒烟全绿、P0 资产对照过检
-- 节点链：N1 spec v1.2（策划）→ N2 风格卡冻结+基准四联图（美术）‖ N3 P0 资产 13 项（美术）→ N4 渲染与 juice 接入（程序）‖ N5 门禁与口径（QA）→ N6 人工拍板（主人，机器不替人判断好玩——此关不过冲刺不算完）
+- **spec 版本号：v1.2（平台 v4）· approved**（platformSpecId `cmuj5f6ik00hkm9l64r5uickm`，2026-09-27 API 实查 approved 唯一；v3 `cmugok2uz000xm9ilx42t8pnl` superseded）
+- 契约与 QA 共同输入 = `.myrd/spec/stack-tower-spec.json`（approved v4 导出件）+ `.myrd/spec/design-spec.json`（任务书指定路径同内容第二落点，README 已留痕）
+- 冲刺目标达成度：spec v1.2 approved ✓ / 四判据冒烟全绿 ✓ / P0 资产对照过检 13/13 ✓ / **N6 人工拍板待主人（未过不算完）**
+- 门禁：7/7 全绿（typecheck / run-all 31 条 / P0 查表 13 件 / perf 相对判 / M2.1 资产运行时 / 端到端冒烟 / 壳形态模拟），证据 = `.myrd/blackboard/gate-logs/r4-neon-juice-20260927-n5/`（七文件，每文件含命令+日期+输出摘要）；QA 回执 = `games/stack-tower/docs/qa-r4-neon-juice.md`（QA-R4-NEON-20260927-01）
+
+### r4 · 9/24、9/25 正式销案台账（账务结论，2026-09-27；每案保留一次代码级复核权）
+
+- **案 A 历史失败轮挂账（9/24，溯 9/23）→ 销案关账**：平台轨迹实查 9/24 failed×4（workflow×2 无 error / routines×1 unrecognized_model / evolution_merge×1 SIGINT）、9/25 failed×1（workflow 无 error）→ 定性 = 平台基础设施层中断与配置错配，非游戏产物缺陷；吸收去向 = 平台执行纪律规范固化 + 本轮 7 门禁全绿接管游戏面。复核入口 = 轨迹表 9/23–25 failed 行（上列 id 可查）。
+- **案 B spec v1.1 登记挂账（9/25 判例→9/26 冻结 D4/D5）→ 销案（吸收升级）**：v1.1-ready 内容（D1/D2/D3）零丢失折入 **spec v1.2（平台 v4）**，一次 revisions 落账；权限障碍经 cookie 通道打通留痕。复核入口 = `tools/build-spec-v12.mjs` 冻结守卫 + 平台 v3→v4 revisions 链。
+- **案 C sfx-pack-v1（9/25 复验轮）→ 销案（已交付）**：12 文件双签交付维持零漂移，acc-a1 本轮 PASS。复核入口 = `m21-acc-a1` 契约。
+- **案 D PWA 安装项（9/25 起线上既存，U6/R2）→ 工程面销案 / 线上面保留待裁决**：修复代码经壳形态模拟门禁实证（shell-sim PASS，本轮证据 `7-shell-sim.log`）；线上「可安装/断网可玩」宣告继续冻结至主人 R2 裁决 + N6 复跑（`tests/live-smoke.mjs <gw-url>`）。复核入口 = shell-sim + live-smoke。
+- **案 E U7 线上贴图程序化形态 → 不销案维持立案**（修复 ~3 行属工程改动，本轮冻结不夹带；shell-sim NOTE 如实注记）。复核入口 = shell-sim NOTE 行。
+- 台账明细与证据条款全文见 `games/stack-tower/docs/qa-r4-neon-juice.md` §四。
+
+### r4 · 版本链登记
+
+| 版本 | 平台 id | 内容 | 状态 |
+|---|---|---|---|
+| v1–v3 | `cmuga6tq…` / `cmugal9o…` / `cmugok2u…` | T2 初稿 / M2 建版 / M2.1 有声可装（22 条 acceptance） | superseded |
+| （v1.1-ready） | 未登记 | D1/D2/D3 纸面终稿 | **已吸收**（零丢失折入 v4） |
+| **v1.2 = 平台 v4** | `cmuj5f6ik00hkm9l64r5uickm` | 霓虹夜塔 juice 冲刺：acceptance 22→32（四判据 j1–j4 + j5 首局无弹窗 + e1 埋点 + t1 theme 单源 + a8 P0 查表 + num 冻结闸）；levels +e09 开局 3–5 块（落点 tower.ts buildOpeningStack + numeric.opening）；entities +3；assets +13（a08..a20）；numeric +opening/benchmark_device（冻结七键 sha256 相等机械断言） | **approved（唯一）** |
+
+## r4 开工时基线（存档，N5 收口后见上节）
 
 ## E2 · spec v1.2 版本映射与增量口径（主策划拍板，r4）
 

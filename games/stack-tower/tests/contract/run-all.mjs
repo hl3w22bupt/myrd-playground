@@ -36,6 +36,16 @@ const CONTRACTS = [
   'm21-acc-m4-rotate-aspect.spec.mjs',
   'm21-acc-d1-pwa-shell.spec.mjs',
   'm21-acc-d2-offline-smoke.spec.mjs',
+  // —— r4 霓虹夜塔 juice 冲刺契约族（spec v1.2 增量 9 条：acc-j1~j5 / acc-e1 / acc-t1 / acc-a8 / acc-num）——
+  'juice-acc-j1-first-block.spec.mjs',
+  'juice-acc-j2-juice-latency.spec.mjs',
+  'juice-acc-j3-audio-dispatch.spec.mjs',
+  'juice-acc-j4-restart.spec.mjs',
+  'juice-acc-j5-first-session-no-modal.spec.mjs',
+  'telemetry-acc-e1-hooks.spec.mjs',
+  'theme-acc-t1-constants-source.spec.mjs',
+  'assets-acc-a8-p0-table.spec.mjs', // asset-check 并入 contract-check 同门（N4 两层制）
+  'numeric-acc-num-frozen-gate.spec.mjs',
 ];
 
 const tally = { pass: 0, fail: 0, notRunnable: 0 };

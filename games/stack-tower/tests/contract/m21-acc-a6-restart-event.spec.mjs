@@ -35,9 +35,10 @@ runContract({
             `${source} 载荷恰 {type,source}`,
           );
           assertEq(e.source, source, 'source 载荷');
-          // 复位语义不变：塔回单块、分数清零
+          // 复位语义（v1.2 e09 同步）：塔回开局初始摆位（3–5 块+塔基）、分数清零
           assertEq(h.snapshot().score, 0, '重开清零');
-          assertEq(h.snapshot().tower.length, 1, '塔回单块');
+          const len = h.snapshot().tower.length;
+          assert(len >= 4 && len <= 6, `塔回开局初始摆位（实际 ${len}，应 ∈ [4, 6]）`);
         }
         // 无 screen-flash 语义字段（与主波纹同纪律）
         const e = sim.createSim({ seed: 1 }).restart('button')[0];

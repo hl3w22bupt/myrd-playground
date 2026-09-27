@@ -2,7 +2,7 @@
 /**
  * 契约测试 lvl-01-stack-tower/e08-fail-recover（spec: ac-lvl01-e08-recover）
  * 复现：node games/stack-tower/tests/contract/lvl-01-stack-tower_e08-fail-recover.spec.mjs
- * 断言：keepWidth<36（=120×0.30）→ game-over；重开后塔回单块、分数/连击清零、摆速与窗口回 L1 值，无状态残留。
+ * 断言：keepWidth<36（=120×0.30）→ game-over；重开后塔回开局初始摆位（v1.2 e09：3–5 块，同 seed 同摆位）、分数/连击清零、摆速与窗口回 L1 值，无状态残留。
  */
 import { runContract, assertEq, assert } from './_runner.mjs';
 
@@ -56,9 +56,10 @@ runContract({
       },
     },
     {
-      name: '重开全量复位：塔回单块、分数/连击清零、status=running',
-      fn: async ({ 'build/kernel/sim.js': sim }) => {
+      name: '重开全量复位：塔回开局初始摆位（3–5 块，同 seed 同摆位）、分数/连击清零、status=running',
+      fn: async ({ 'build/kernel/sim.js': sim, 'build/kernel/numeric.js': num }) => {
         const h = sim.createSim({ seed: 20260925 });
+        const openingAtBoot = JSON.stringify(h.snapshot().tower);
         seekOffset(h, 60);
         h.tick({ type: 'drop' });
         seekOffset(h, 60);
@@ -66,7 +67,12 @@ runContract({
         assertEq(h.snapshot().status, 'game-over', '前置：已 game-over');
         h.restart();
         const s = h.snapshot();
-        assertEq(s.tower.length, 1, '塔回单块');
+        const { STACK_MIN_BLOCKS, STACK_MAX_BLOCKS } = num.NUMERIC.opening;
+        assert(
+          s.tower.length >= 1 + STACK_MIN_BLOCKS && s.tower.length <= 1 + STACK_MAX_BLOCKS,
+          `塔回开局初始摆位（实际 ${s.tower.length}，应 ∈ [${1 + STACK_MIN_BLOCKS}, ${1 + STACK_MAX_BLOCKS}]）`,
+        );
+        assertEq(JSON.stringify(s.tower), openingAtBoot, '重开摆位与开局逐字节一致（同 seed 同摆位，v1.2 e09）');
         assertEq(s.score, 0, '分数清零');
         assertEq(s.combo, 0, '连击清零');
         assertEq(s.status, 'running', '状态回 running');

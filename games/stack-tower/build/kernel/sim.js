@@ -7,7 +7,7 @@
  */
 import { NUMERIC, targetLayers } from './numeric.js';
 import { createRng } from './rng.js';
-import { createBaseBlock, topOf, pushBlock, layerCount } from './tower.js';
+import { createBaseBlock, buildOpeningStack, topOf, pushBlock, layerCount } from './tower.js';
 import { spawnMoving, advanceMoving } from './block.js';
 import { resolveCut } from './cut.js';
 import { emitTowerRipple } from './ripple.js';
@@ -15,11 +15,15 @@ import { levelId, nextLevel, isLevelClear, levelTuning } from './difficulty.js';
 export function createSim(options = {}) {
     const seed = options.seed ?? NUMERIC.DEFAULT_SEED;
     let s;
-    /** 全量复位（createSim 与 restart 共用同一初始态构造，保证逐字节一致） */
+    /** 全量复位（createSim 与 restart 共用同一初始态构造，保证逐字节一致——含开局初始摆位同 seed 同摆位） */
     function reset() {
+        const rng = createRng(seed);
+        const base = createBaseBlock();
+        const opening = buildOpeningStack(rng);
         s = {
-            rng: createRng(seed),
-            tower: [createBaseBlock()],
+            rng,
+            tower: [base, ...opening],
+            openingCount: opening.length,
             moving: null,
             debris: [],
             score: 0,
@@ -71,7 +75,7 @@ export function createSim(options = {}) {
             return;
         }
         // 关卡推进：层数累计达标 → level-clear（塔身不清，速度/窗口随公式走）
-        if (isLevelClear(layerCount(s.tower), s.level)) {
+        if (isLevelClear(layerCount(s.tower, s.openingCount), s.level)) {
             s.moving = null;
             s.status = 'level-clear';
             return;
@@ -105,7 +109,7 @@ export function createSim(options = {}) {
             score: s.score,
             combo: s.combo,
             level: s.level,
-            layers: layerCount(s.tower),
+            layers: layerCount(s.tower, s.openingCount),
             target: targetLayers(s.level),
             status: s.status,
         };

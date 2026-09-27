@@ -34,7 +34,7 @@ runContract({
         const off = seekOffset(h, 30);
         assert(off !== null, '行程内应存在 |offset|≈30 的时机');
         const events = h.tick({ type: 'drop' });
-        const top = h.snapshot().tower[1];
+        const top = h.snapshot().tower.at(-1);
         assertApproxEq(top.width, 120 - Math.abs(off), 2.6, '切割后保留宽度');
         assert(!events.some((e) => e.type === 'tower-ripple'), '非 perfect 不发 ripple');
       },

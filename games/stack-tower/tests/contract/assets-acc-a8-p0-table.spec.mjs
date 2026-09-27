@@ -28,12 +28,13 @@ runContract({
       name: 'spec assets 段对齐：a08..a20 逐项在档（id 对齐）',
       fn: async () => {
         const spec = (await import('./_runner.mjs')).loadSpec().spec;
-        const ids = new Set(spec.assets.map((a) => a.id));
+        const ids = spec.assets.map((a) => a.id);
         for (let i = 8; i <= 20; i++) {
-          assert(ids.has(`a${String(i).padStart(2, '0')}`), `spec assets 缺 a${String(i).padStart(2, '0')}`);
+          const prefix = `a${String(i).padStart(2, '0')}-`;
+          assert(ids.some((id) => id.startsWith(prefix)), `spec assets 缺 ${prefix}*`);
         }
         const { rows } = runNeonAssetCheck();
-        for (const r of rows) assert(ids.has(r.id), `manifest 件 ${r.id} 未在 spec assets 段登记`);
+        for (const r of rows) assert(ids.includes(r.id), `manifest 件 ${r.id} 未在 spec assets 段登记`);
       },
     },
   ],

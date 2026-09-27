@@ -8,6 +8,20 @@
  * 闸门语义：play 调用发生在 dispatch 同步窗口内（闸门不得吞掉或延后首次出声，acc-a7 衔接）。
  */
 import { runContract, assertEq, assert } from './_runner.mjs';
+
+// —— 无头 DOM stub（boot 只触碰挂载点与事件注册，全部可空实现；hud/rotate/fps 均容 null）——
+// Node ≥21 自带 getter-only navigator（无 serviceWorker 字段，'serviceWorker' in navigator = false 正合需求），
+// 已存在的全局一律不覆盖。
+function stubGlobal(name, value) {
+  try {
+    if (typeof globalThis[name] === 'undefined') globalThis[name] = value;
+  } catch {
+    /* getter-only 全局：跳过 */
+  }
+}
+stubGlobal('document', { getElementById: () => null, body: null });
+stubGlobal('window', { addEventListener: () => {}, removeEventListener: () => {} });
+stubGlobal('location', { search: '', href: 'http://127.0.0.1:4673/' });
 import { boot } from '../../build/app/main.js';
 import { createSilentAudioManager } from '../../build/app/main.js';
 import { JUICE } from '../../build/render/theme.js';
@@ -17,8 +31,15 @@ function fakePlatform() {
   let t = 0;
   let frameCb = null;
   let intentCb = null;
+  const clock = {
+    now: () => t,
+    onNextFrame(cb) {
+      frameCb = cb;
+      return () => (frameCb = null);
+    },
+  };
   return {
-    clock: { now: () => t },
+    clock,
     canvas: null, // 无头：跳过真实绘制
     audioManager: null, // boot 内替换
     input: { onIntent(cb) { intentCb = cb; return () => (intentCb = null); } },
@@ -33,10 +54,6 @@ function fakePlatform() {
     },
     set audio(m) {
       this.audioManager = m;
-    },
-    onNextFrame(cb) {
-      frameCb = cb;
-      return () => (frameCb = null);
     },
   };
 }

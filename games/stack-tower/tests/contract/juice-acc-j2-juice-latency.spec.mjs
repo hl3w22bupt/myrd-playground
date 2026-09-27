@@ -10,6 +10,7 @@
 import { runContract, assertEq, assert } from './_runner.mjs';
 import { createSim } from '../../build/kernel/sim.js';
 import { Renderer } from '../../build/render/renderer.js';
+import { createRippleRenderer } from '../../build/render/ripple-renderer.js';
 import { JUICE, RIPPLE_POOL_MAX } from '../../build/render/theme.js';
 
 /** 无头 Canvas2D 替身：全方法 no-op（涟漪只做数学与绘制调用，不依赖真实位图） */
@@ -83,26 +84,24 @@ runContract({
       },
     },
     {
-      name: '异常隔离：绘制抛错不上抛（订阅器吞掉返回 -1）',
+      name: '异常隔离（e-ripple-renderer）：绘制抛错被订阅器吞掉（返回 -1），不外溢',
       fn: async () => {
-        const sim = perfectHitHandle();
-        const renderer = new Renderer();
-        const events = sim.tick({ type: 'drop' });
-        const ripple = events.find((e) => e.type === 'tower-ripple');
-        if (ripple) {
-          const throwingCtx = new Proxy(
-            {},
-            { get() { throw new Error('ctx exploded'); }, set() { return true; } },
-          );
-          let exploded = false;
-          try {
-            renderer.enqueueRipple(ripple, 1000);
-            renderer.draw(throwingCtx, sim.snapshot(), 1000, { width: 480, height: 720 });
-          } catch {
-            exploded = true;
-          }
-          assert(!exploded, '表现层异常不得外溢（内核 tick 链路不受影响）');
+        const rr = createRippleRenderer();
+        rr.enqueue(300, 1000);
+        const throwingCtx = new Proxy(
+          {},
+          { get() { throw new Error('ctx exploded'); }, set() { return true; } },
+        );
+        let result;
+        try {
+          result = rr.draw(throwingCtx, 1000, 240, 600, 1);
+        } catch {
+          result = 'threw';
         }
+        assertEq(result, -1, '订阅器吞掉异常并返回 -1');
+        // 池状态不被异常破坏：换正常 ctx 仍可绘
+        const ok = rr.draw(fakeCtx(), 1010, 240, 600, 1);
+        assert(ok >= 0, '异常后池仍可用');
       },
     },
   ],

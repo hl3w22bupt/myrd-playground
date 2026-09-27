@@ -11,6 +11,7 @@ import { Renderer } from '../render/renderer.js';
 import { loadGameAssets } from '../render/assets.js';
 import { mountHud } from '../ui/hud.js';
 import { createRotateOverlay } from '../ui/rotate-overlay.js';
+import { createTelemetryEmitter, browserTelemetryDeps } from '../telemetry/emitter.js';
 import { createFpsOverlay } from '../ui/fps-overlay.js';
 /** headless 兜底音频管理器（ctx=null → play 一律 no-ctx 静音，不抛错） */
 export function createSilentAudioManager() {
@@ -29,6 +30,17 @@ export function boot(platform, opts) {
     rotate.onChange((active) => {
         paused = active;
     });
+    // —— v1.2：五钩子埋点（e-telemetry-emitter，acc-e1 契约；异常隔离，零 PII）——
+    // 埋点出口：默认 no-op 浏览器依赖；QA 契约经 opts.telemetrySink 注入采集器（不写一行平台代码）
+    const telemetry = createTelemetryEmitter(opts?.telemetrySink
+        ? { ...browserTelemetryDeps(() => platform.clock.now()), sink: opts.telemetrySink }
+        : browserTelemetryDeps(() => platform.clock.now()));
+    telemetry.emit('session_start', { data: { seed: String(opts?.seed ?? NUMERIC.DEFAULT_SEED) } });
+    const offPageHide = (() => {
+        const onHide = () => telemetry.emit('session_end');
+        window.addEventListener('pagehide', onHide);
+        return () => window.removeEventListener('pagehide', onHide);
+    })();
     const fpsEnabled = new URLSearchParams(location.search).has('fps');
     const fps = createFpsOverlay();
     if (fpsEnabled)
@@ -40,24 +52,32 @@ export function boot(platform, opts) {
             pendingIntents.push(intent);
     });
     // —— 事件翻译：内核 → 表现层（唯一副作用入口）。连击升调取自内核快照 combo ——
+    /** acc-j3 可测点：play 调用毫秒（与 dispatch 同源时钟） */
+    const play_msOf = (ms) => ms;
     let lastStatus = sim.snapshot().status;
     const handleEvents = (events, combo, status) => {
         const semis = semitonesForCombo(combo);
+        const dispatchMs = platform.clock.now(); // acc-j3 起点：事件进入翻译站（dispatch）
         for (const e of events) {
             if (e.type === 'tower-ripple') {
                 renderer.enqueueRipple(e, platform.clock.now());
+                const playMs = platform.clock.now(); // acc-j3 终点：AudioContext 播放调用（play 调用点）
                 audio.play('perfect', semis);
+                telemetry.emit('perfect_hit', { dispatch_ms: dispatchMs, play_ms: play_msOf(playMs), data: { combo } });
             }
             else if (e.type === 'block-placed') {
                 // 落块闷响按连击逐块升调（+1 半音/块，cap +12；miss 后 combo=0 归零）
                 audio.play('place', semis);
+                telemetry.emit('block_place', { data: { combo, perfect: e.perfect } });
             }
             else if (e.type === 'game-over') {
                 // critical：完全脱靶=miss，切损触底=game-over（满载不挤占）
                 audio.play(e.reason === 'total-miss' ? 'miss' : 'game-over', 0);
+                telemetry.emit('game_over', { data: { reason: e.reason } });
             }
             else if (e.type === 'restart') {
                 audio.play('restart', 0);
+                telemetry.emit('restart');
             }
         }
         if (status === 'level-clear' && lastStatus !== 'level-clear')
@@ -136,6 +156,8 @@ export function boot(platform, opts) {
         restart,
         setViewport: (width, height) => rotate.setViewport(width, height),
         dispose() {
+            telemetry.emit('session_end');
+            offPageHide();
             offInput();
             offFrame();
             rotate.dispose();

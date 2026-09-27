@@ -13,11 +13,12 @@ runContract({
   needs: ['build/kernel/sim.js'],
   checks: [
     {
-      name: 'drop 后塔身 +1（tower.length===2）',
+      name: 'drop 后塔身 +1（开局摆位基础上恰增一块，v1.2 e09）',
       fn: async ({ 'build/kernel/sim.js': sim }) => {
         const h = sim.createSim({ seed: 20260925 });
+        const before = h.snapshot().tower.length;
         h.tick({ type: 'drop' });
-        assertEq(h.snapshot().tower.length, 2, '落块后塔身层数');
+        assertEq(h.snapshot().tower.length, before + 1, '落块后塔身层数（+1）');
       },
     },
     {
@@ -34,9 +35,9 @@ runContract({
       fn: async ({ 'build/kernel/sim.js': sim }) => {
         const h = sim.createSim({ seed: 20260925 });
         h.tick({ type: 'drop' });
-        const top = JSON.stringify(h.snapshot().tower[1]);
+        const top = JSON.stringify(h.snapshot().tower.at(-1));
         h.fastForward(30);
-        assertEq(JSON.stringify(h.snapshot().tower[1]), top, '已落块位置应稳定');
+        assertEq(JSON.stringify(h.snapshot().tower.at(-1)), top, '已落块位置应稳定');
       },
     },
     {
@@ -45,7 +46,7 @@ runContract({
         const h = sim.createSim({ seed: 20260925 });
         h.tick({ type: 'drop' });
         assert(h.snapshot().moving, 'drop 后应立即有新摆动块');
-        assertEq(h.snapshot().moving.width, h.snapshot().tower[1].width, '新摆块宽度继承上一已落块');
+        assertEq(h.snapshot().moving.width, h.snapshot().tower.at(-1).width, '新摆块宽度继承上一已落块');
       },
     },
   ],
