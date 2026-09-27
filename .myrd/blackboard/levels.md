@@ -19,7 +19,7 @@
 ## 关卡实现落点（契约断言面）
 
 - 关卡数据：`games/stack-tower/src/kernel/`（numeric.ts 数值 SSOT / sim.ts / difficulty.ts / judge.ts / tower.ts）
-- 契约测试：`games/stack-tower/tests/contract/lvl-01-stack-tower_e01~e08*.spec.mjs`（8 条，全部 PASS）
+- 契约测试：`games/stack-tower/tests/contract/`（r4 = 31 条全绿：e01~e08 八条 gameplay（含 e09 断言）+ M2.1 14 条 + r4 新增 9 条）
 - 数值冻结：v1 系冻结四组（perfect_window / cut_width / scoring / difficulty + DEFAULT_SEED / FIXED_STEP_MS / MAX_DT_MS）——本轮发布体检机验 v1/v3 深比全等，漂移即回退
 
 ## 本轮发布口径（M2.1 正式发布轮 · 2026-09-26）
