@@ -84,6 +84,20 @@ offset_right = 216.0
 offset_bottom = 82.0
 show_percentage = false
 
+[node name="MuteButton" type="Button" parent="Hud"]
+unique_name_in_owner = true
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -132.0
+offset_top = 48.0
+offset_right = -16.0
+offset_bottom = 80.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 16
+focus_mode = 0
+text = "🔊 音效：开"
+
 [node name="ResultPanel" type="PanelContainer" parent="Hud"]
 unique_name_in_owner = true
 visible = false

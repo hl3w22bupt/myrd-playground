@@ -2,18 +2,20 @@ extends Node
 ## game-5 无头冒烟（tests/smoke.tscn）—— 判定协议与模板一致：
 ##   通过 → stdout `GODOT_SMOKE: PASS ...` 且退出码 0；失败 → stderr `GODOT_SMOKE: FAIL <原因>` 退出码 1。
 ##
-## 断言覆盖（任务四项 + 知识 6e91a11d §七 验收映射）：
+## 断言覆盖（任务四项 + 知识 6e91a11d §七 验收映射 + 迭代三项用户反馈）：
 ##   玩家能移动        → 键盘注入位移 ≥ 阈值 + Player.moved 信号送达（验收 2 前半）
 ##   边界不越界        → 贴边持续右移后坐标 == clamp 边界值（验收 2 后半）
 ##   核心交互生效      → 收集 +10；3s 窗口内第二笔 +15；连击计数 == 2（验收 3）
+##   金水果/坏水果     → 金 +golden_points 计数/刷新连击；坏 -bad_penalty + 减速、不计数
 ##   反馈接线成立      → 收集后 Juice.events 非空 + feedback_fired 信号送达（SKILL.md §3B）
+##   音频门控三件套    → 启动未解锁 → 首输入后解锁；tick/settle 记账；M 键静音开↔关（知识 82e419bb §3）
 ##   原木节奏与难度    → 生成间隔 ∈ [2,4)；速度 v(60)=v0、v(30)>v(60)、v(0)=1.8·v0（验收 4）
 ##   负路径可达        → 碰撞原木 → 失败结算（标题含「原木」）（验收 4 后半）
 ##   正路径可达        → 时间归零 → 「时间到」结算（验收 1 后半）
-##   倒计时逐秒递减    → 实测 1s+ 后 time_left 下降且 HUD 文本变化（验收 1 前半）
+##   倒计时逐秒递减    → time_left 下降 + HUD 文本变化 + 末 5 秒 tick 告警（验收 1 前半）
 ##   重开可用（双通道）→ 键盘 confirm 重开；触摸按钮信号链路重开（验收 4/知识 ed31081f）
 ##   最高分持久化      → 结算后 user:// 存档存在且 best ≥ 本局分（验收 5 无头代理）
-##   移动端触摸链路    → 虚拟摇杆拖右 → move_right strength 生效、松手清零（验收 2/SKILL §3A）
+##   移动端触摸链路    → 摇杆拖右生效 + 斜向双轴同时非零 + 松手清零（验收 2/知识 82e419bb §2.4）
 ##   调参协议          → TUNING_META 非空、apply_tuning 应用/拒未知键/max 钳制（SKILL §3C）
 ##
 ## 输入注入两阶段互不重叠（模板约定，error-signatures E-08）：噪声相位只注入原始事件；
@@ -24,6 +26,7 @@ const NOISE_FRAMES: int = 30
 const MOVE_FRAMES: int = 10
 const CLAMP_FRAMES: int = 30
 const COLLECT_FRAMES: int = 7
+const GOLDEN_FRAMES: int = 14
 const LOGS_MOVE_FRAMES: int = 11
 const FAIL_FRAMES: int = 6
 const RESTART_FRAMES: int = 4
@@ -31,7 +34,11 @@ const COUNTDOWN_FRAMES: int = 65
 const TIMEUP_FRAMES: int = 8
 const TOUCH_FRAMES: int = 4
 const JOYSTICK_ON_FRAMES: int = 6
-const JOYSTICK_OFF_FRAMES: int = 9
+const JOYSTICK_DIAG_FRAMES: int = 9
+const JOYSTICK_OFF_FRAMES: int = 12
+const MUTE_FRAMES: int = 6
+## 末 5 秒告警的注入起点（提前 0.1s 放进告警窗口，跨整秒触发 tick）。
+const TICK_TEST_SECONDS: float = 5.9
 
 const MIN_MOVE_DISTANCE: float = 1.0
 ## 固定种子（门禁要求可复现：同种子同事件序）。
@@ -40,7 +47,7 @@ const LOG_SEED: int = 20260914
 const NOISE_SEED: int = 20260915
 
 const REQUIRED_ACTIONS: Array[StringName] = [
-	&"move_left", &"move_right", &"move_up", &"move_down", &"confirm",
+	&"move_left", &"move_right", &"move_up", &"move_down", &"confirm", &"toggle_mute",
 ]
 
 ## 键位契约（与 project.godot [input] 对齐）：方向键与 WASD 同时承诺（知识 6e91a11d §五）。
@@ -50,9 +57,10 @@ const KEY_CONTRACT: Dictionary = {
 	&"move_up": [KEY_W, KEY_UP],
 	&"move_down": [KEY_S, KEY_DOWN],
 	&"confirm": [KEY_SPACE, KEY_ENTER],
+	&"toggle_mute": [KEY_M],
 }
 
-enum Phase { NOISE, MOVE, CLAMP, COLLECT_1, COLLECT_2, LOGS, FAIL, RESTART, COUNTDOWN, TIMEUP, TOUCH, JOYSTICK, DONE }
+enum Phase { NOISE, MOVE, CLAMP, COLLECT_1, COLLECT_2, GOLDEN_BAD, LOGS, FAIL, RESTART, COUNTDOWN, TIMEUP, TOUCH, JOYSTICK, MUTE, DONE }
 
 var _failures: PackedStringArray = []
 var _phase: int = Phase.NOISE
@@ -71,6 +79,9 @@ var _log_a: LogRoller
 var _log_b: LogRoller
 var _log_a_x: float = 0.0
 var _baseline_score: int = 0
+var _fruits_before_bad: int = 0
+var _combo_before_bad: int = 0
+var _muted_at_start: bool = false
 var _label_text_at_start: String = ""
 var _time_at_start: float = 0.0
 var _noise_rng := RandomNumberGenerator.new()
@@ -102,6 +113,9 @@ func _ready() -> void:
 		_failures.append("Juice 缺少信号 feedback_fired（playtest 门禁的反馈采样锚点）")
 	else:
 		juice.feedback_fired.connect(_on_feedback_fired)
+		# 音频门控（知识 82e419bb §3）：启动时尚无任何用户手势 —— 必须处于未解锁态。
+		if bool(juice.get("audio_unlocked")):
+			_failures.append("音频门控：启动时 audio_unlocked 已为 true（解锁早于首次输入，手势门失效）")
 
 	_main = get_tree().root.find_child("Main", true, false) as Node2D
 	if _main == null:
@@ -148,6 +162,8 @@ func _physics_process(_delta: float) -> void:
 			_phase_collect_1()
 		Phase.COLLECT_2:
 			_phase_collect_2()
+		Phase.GOLDEN_BAD:
+			_phase_golden_bad()
 		Phase.LOGS:
 			_phase_logs()
 		Phase.FAIL:
@@ -162,6 +178,8 @@ func _physics_process(_delta: float) -> void:
 			_phase_touch()
 		Phase.JOYSTICK:
 			_phase_joystick()
+		Phase.MUTE:
+			_phase_mute()
 
 
 func _advance(next: int) -> void:
@@ -236,6 +254,11 @@ func _phase_collect_1() -> void:
 			_failures.append("首次收集后连击数 %d != 1" % GameState.combo_count)
 		if Juice.events.is_empty() or not _feedback_seen:
 			_failures.append("收集后 Juice 反馈为空：反馈接线断裂（SKILL.md §3B 第 6 项）")
+		# 音频门控：噪声相位已注入真实按键/触摸 → 解锁标志必须已翻转为 true。
+		if not Juice.audio_unlocked:
+			_failures.append("首次用户输入后 audio_unlocked 仍为 false：手势门未触发（知识 82e419bb §3.2）")
+		if int(Juice.sfx_counts.get(&"score", 0)) < 1:
+			_failures.append("收集音效 score 未记账：sfx 计数断裂（音频记账层缺失）")
 		_advance(Phase.COLLECT_2)
 
 
@@ -256,6 +279,42 @@ func _phase_collect_2() -> void:
 				GameState.score, expected, GameState.COMBO_WINDOW])
 		if GameState.combo_count != 2:
 			_failures.append("窗口内第二笔后连击数 %d != 2" % GameState.combo_count)
+		_advance(Phase.GOLDEN_BAD)
+
+
+## 金水果 / 坏水果断言（迭代反馈 3）：
+##   金：+golden_points 固定高分、计入水果数、刷新连击（连击 2 → 3）；
+##   坏：-bad_penalty（下限 0）、不计水果数、不动连击、玩家进入减速。
+## 白盒 spawn_fruit_of_kind 固定种类与落点（压在松鼠脚下），不依赖加权抽取的随机性。
+func _phase_golden_bad() -> void:
+	if _phase_frame == 1:
+		_baseline_score = GameState.score
+		_fruit_spawner.stop_match()
+		_fruit_spawner.spawn_fruit_of_kind(Fruit.KIND_GOLDEN, _player.global_position)
+	if _phase_frame == COLLECT_FRAMES:
+		if GameState.score != _baseline_score + GameState.golden_points:
+			_failures.append("金水果后得分 %d != %d：金水果计分入口断裂" % [
+				GameState.score, _baseline_score + GameState.golden_points])
+		if int(Juice.sfx_counts.get(&"golden", 0)) < 1:
+			_failures.append("金水果音效 golden 未记账：SFX_BANK 注册/接线缺失")
+		_baseline_score = GameState.score
+		_fruits_before_bad = GameState.fruits_collected
+		_combo_before_bad = GameState.combo_count
+		_fruit_spawner.spawn_fruit_of_kind(Fruit.KIND_BAD, _player.global_position)
+	if _phase_frame == GOLDEN_FRAMES:
+		if GameState.score != _baseline_score - GameState.bad_penalty:
+			_failures.append("坏水果后得分 %d != %d：坏水果惩罚未生效" % [
+				GameState.score, _baseline_score - GameState.bad_penalty])
+		if GameState.fruits_collected != _fruits_before_bad:
+			_failures.append("坏水果改变了水果计数 %d → %d：惩罚不应计入收集数" % [
+				_fruits_before_bad, GameState.fruits_collected])
+		if GameState.combo_count != _combo_before_bad:
+			_failures.append("坏水果改变了连击 %d → %d：连击只由成功收集锚定" % [
+				_combo_before_bad, GameState.combo_count])
+		if not _player.is_slowed():
+			_failures.append("坏水果后玩家未进入减速：apply_slow 未接线")
+		if int(Juice.sfx_counts.get(&"bad", 0)) < 1:
+			_failures.append("坏水果音效 bad 未记账：SFX_BANK 注册/接线缺失")
 		_advance(Phase.LOGS)
 
 
@@ -329,15 +388,21 @@ func _phase_restart() -> void:
 		_advance(Phase.COUNTDOWN)
 
 
-## 倒计时断言：实测 1s+ 后 time_left 下降且 HUD 文本变化（验收 1：逐秒递减、实时显示）。
+## 倒计时断言：time_left 下降 + HUD 文本变化（验收 1）+ 末 5 秒 tick 告警（迭代反馈 2）。
+## 注入起点 5.9s：65 帧 ≈ 1.08s，跨过 5 → 4 的整秒边界，tick 必须至少响一次。
 func _phase_countdown() -> void:
+	if _phase_frame == 1:
+		_main.set("time_left", TICK_TEST_SECONDS)
 	if _phase_frame == COUNTDOWN_FRAMES:
 		var now: float = float(_main.get("time_left"))
-		if now >= _time_at_start - 0.9:
+		if now >= TICK_TEST_SECONDS - 0.9:
 			_failures.append("%d 帧后 time_left %.2f 未递减（初值 %.2f）：倒计时不工作" % [
-				COUNTDOWN_FRAMES, now, _time_at_start])
+				COUNTDOWN_FRAMES, now, TICK_TEST_SECONDS])
 		if _time_label_text() == _label_text_at_start:
 			_failures.append("倒计时已递减但 HUD 时间文本未变化（%s）：实时显示断裂" % _label_text_at_start)
+		if int(Juice.sfx_counts.get(&"tick", 0)) < 1:
+			_failures.append("末 5 秒告警 tick 未记账（time_left %.2f → %.2f）：告警接线缺失" % [
+				TICK_TEST_SECONDS, now])
 		_advance(Phase.TIMEUP)
 
 
@@ -350,6 +415,8 @@ func _phase_timeup() -> void:
 			_failures.append("时间归零后仍未终局：倒计时归零路径断裂（验收 1）")
 		elif _result_title.text.find("时间") < 0:
 			_failures.append("正常结算标题「%s」未含「时间」" % _result_title.text)
+		if int(Juice.sfx_counts.get(&"settle", 0)) < 1:
+			_failures.append("结算音 settle 未记账：结算音效接线缺失（迭代反馈 2）")
 		_advance(Phase.TOUCH)
 
 
@@ -371,39 +438,75 @@ func _phase_touch() -> void:
 		_advance(Phase.JOYSTICK)
 
 
-## 移动端触摸链路（SKILL §3A）：虚拟摇杆是动作的生产者 —— 白盒驱动 _unhandled_input
-## 注入合成触点（按下 + 拖右），断言 move_right strength 经 InputEventAction 生效；
-## 再注入松开，断言强度清零（松手残留 = 玩家松手后松鼠继续漂移的真实缺陷）。
-## 注入与断言分帧（E-08：parse_input_event 缓冲下一帧才 flush）。
+## 移动端触摸链路（SKILL §3A + 知识 82e419bb §2.2/§2.4）：虚拟摇杆是动作的生产者 ——
+## 白盒驱动 `_input`（迁移后的接管阶段）注入合成触点：
+##   ① 按下 + 拖右 → move_right strength 生效；
+##   ② 拖到对角 → move_right 与 move_down 双轴同时非零（action_press 路线的斜向回归断言，E-17/E-19）；
+##   ③ 松开 → 全部清零（松手残留 = 玩家松手后松鼠继续漂移的真实缺陷）。
+## headless 下 TouchUI 恒隐藏：注入前显式置 visible（模拟触屏设备），结束后还原。
 func _phase_joystick() -> void:
 	if _joystick == null:
 		_failures.append("摇杆相位找不到 JoystickAnchor：_check_touch_ui_wiring 未取到节点")
 		_advance(Phase.DONE)
 		_report()
 		return
+	var touch_ui := _main.get_node_or_null("TouchUI") as CanvasLayer
 	if _phase_frame == 1:
+		if touch_ui != null:
+			touch_ui.visible = true
 		_feed_joystick_touch(true, Vector2(40.0, 0.0))
 	if _phase_frame == 2:
 		_feed_joystick_drag(Vector2(50.0, 0.0))
 	if _phase_frame == JOYSTICK_ON_FRAMES:
 		var strength: float = Input.get_action_strength(&"move_right")
 		if strength <= 0.0:
-			_failures.append("摇杆拖右后 move_right strength=%.2f 未生效：触摸动作生产链路断裂（§3A）" % strength)
+			_failures.append("摇杆拖右后 move_right strength=%.2f 未生效：触摸动作生产链路断裂（§3A/_input 接管失败）" % strength)
+		_feed_joystick_drag(Vector2(50.0, 50.0))
+	if _phase_frame == JOYSTICK_DIAG_FRAMES:
+		var right: float = Input.get_action_strength(&"move_right")
+		var down: float = Input.get_action_strength(&"move_down")
+		if right <= 0.0 or down <= 0.0:
+			_failures.append("斜向拖拽后右/下 strength=(%.2f, %.2f) 未同时非零：斜向分量互踩（E-19 回归）" % [right, down])
 		_feed_joystick_touch(false, Vector2.ZERO)
 	if _phase_frame == JOYSTICK_OFF_FRAMES:
-		var rest: float = Input.get_action_strength(&"move_right")
-		if rest > 0.0:
-			_failures.append("摇杆松开后 move_right strength=%.2f 未清零：松手残留会漂移（§3A）" % rest)
+		var rest_right: float = Input.get_action_strength(&"move_right")
+		var rest_down: float = Input.get_action_strength(&"move_down")
+		if rest_right > 0.0 or rest_down > 0.0:
+			_failures.append("摇杆松开后 strength=(%.2f, %.2f) 未清零：松手残留会漂移（§3A）" % [rest_right, rest_down])
+		if touch_ui != null:
+			touch_ui.visible = false
+		_advance(Phase.MUTE)
+
+
+## 静音开关断言（迭代反馈 2）：注入 toggle_mute 动作（M 键路径）→ 总线 mute 翻转 +
+## HUD 按钮文案跟随；再注入还原。结束强制 unmuted，避免污染后续运行。
+func _phase_mute() -> void:
+	if _phase_frame == 1:
+		_muted_at_start = Juice.muted
+		_press_action(&"toggle_mute")
+	if _phase_frame == 4:
+		if Juice.muted == _muted_at_start:
+			_failures.append("toggle_mute 注入后静音态未翻转（%s）：M 键通道断裂" % Juice.muted)
+		elif AudioServer.is_bus_mute(0) != Juice.muted:
+			_failures.append("AudioServer 主总线 mute 与 Juice.muted 不一致：set_muted 未落总线")
+		elif not FileAccess.file_exists(Juice.AUDIO_SAVE_PATH):
+			_failures.append("静音偏好未持久化：%s 不存在" % Juice.AUDIO_SAVE_PATH)
+		_press_action(&"toggle_mute")
+	if _phase_frame == MUTE_FRAMES:
+		if Juice.muted != _muted_at_start:
+			_failures.append("二次 toggle 后静音态未还原（%s）" % Juice.muted)
+		Juice.set_muted(false)  # 归一化：不留 muted 存档给下次运行
 		_advance(Phase.DONE)
 		_report()
 
 
+## 白盒注入合成触点：直接调 `_joystick._input`（摇杆迁移后挂在 _input 阶段，E-18 修复）。
 func _feed_joystick_touch(pressed: bool, local_offset: Vector2) -> void:
 	var touch := InputEventScreenTouch.new()
 	touch.index = 7
 	touch.pressed = pressed
 	touch.position = _joystick.get_global_transform_with_canvas() * (_joystick.size / 2.0 + local_offset)
-	_joystick._unhandled_input(touch)
+	_joystick._input(touch)
 
 
 func _feed_joystick_drag(local_offset: Vector2) -> void:
@@ -411,7 +514,7 @@ func _feed_joystick_drag(local_offset: Vector2) -> void:
 	drag.index = 7
 	drag.position = _joystick.get_global_transform_with_canvas() * (_joystick.size / 2.0 + local_offset)
 	drag.relative = Vector2(10.0, 0.0)
-	_joystick._unhandled_input(drag)
+	_joystick._input(drag)
 
 
 ## ── 输入注入与静态契约（与模板同源） ──
@@ -515,8 +618,10 @@ func _check_touch_ui_wiring() -> void:
 
 
 func _first_fruit() -> Fruit:
+	# 只取普通水果（+10 断言的口径）；金/坏水果由 GOLDEN_BAD 相位白盒生成后定点断言。
 	for child in _fruit_spawner.get_children():
-		if child is Fruit and not child.is_queued_for_deletion():
+		if child is Fruit and not child.is_queued_for_deletion() \
+				and not child.is_golden() and not child.is_bad():
 			return child
 	return null
 
@@ -531,7 +636,7 @@ func _time_label_text() -> String:
 func _report() -> void:
 	_phase = Phase.DONE
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 移动/边界/收集连击/反馈/原木节奏/双终局/重开双通道/倒计时/持久化/触摸摇杆/调参协议 全部通过")
+		print("GODOT_SMOKE: PASS 移动/边界/收集连击/金坏水果/反馈/音频门控与静音/末5秒tick/结算音/原木节奏/双终局/重开双通道/倒计时/持久化/触摸摇杆斜向/调参协议 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

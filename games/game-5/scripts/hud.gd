@@ -25,6 +25,11 @@ const COMBO_BAR_IDLE_ALPHA: float = 0.35
 @onready var result_fruits: Label = %ResultFruits
 @onready var result_best: Label = %ResultBest
 @onready var restart_button: TouchScreenButton = %RestartButton
+@onready var mute_button: Button = %MuteButton
+
+## 静音按钮文案（触屏通道；桌面端另有 M 键 toggle_mute 动作）。
+const MUTE_TEXT_ON: String = "🔊 音效：开"
+const MUTE_TEXT_OFF: String = "🔇 音效：关"
 
 
 func _ready() -> void:
@@ -35,6 +40,12 @@ func _ready() -> void:
 	on_score_changed(0)
 	on_fruits_changed(0)
 	on_time_changed(GameState.MATCH_SECONDS)
+	# 静音开关：初始同步 Juice 持久化偏好；此后跟随 mute_changed 信号刷新文案。
+	Juice.mute_changed.connect(_on_mute_changed)
+	_refresh_mute_button()
+	# focus_mode=NONE：防止获得焦点后空格键（confirm 动作）误触发按钮。
+	mute_button.focus_mode = Control.FOCUS_NONE
+	mute_button.pressed.connect(_on_mute_button_pressed)
 
 
 func _process(_delta: float) -> void:
@@ -63,6 +74,7 @@ func on_fruits_changed(count: int) -> void:
 
 
 ## 失败 / 到时结算：三要素 + 标题（失败局明确「被原木击中」，避免误以为计时结束）。
+## 结算音（settle）由 Main._end_match 统一播放 —— 本节点不重复触发（单一入口）。
 func show_result(title: String, final_score: int, fruits: int, best: int) -> void:
 	result_title.text = title
 	result_score.text = "本局得分 %d" % final_score
@@ -70,7 +82,6 @@ func show_result(title: String, final_score: int, fruits: int, best: int) -> voi
 	result_best.text = "历史最高 %d" % best
 	result_panel.visible = true
 	Juice.pop(result_panel)
-	Juice.sfx(&"confirm")
 
 
 func hide_result() -> void:
@@ -80,3 +91,16 @@ func hide_result() -> void:
 func _on_restart_button_pressed() -> void:
 	# 触摸通道（桌面键盘 Enter/Space 走 confirm 动作，双通道 —— 知识 ed31081f 教训）。
 	restart_requested.emit()
+
+
+func _on_mute_button_pressed() -> void:
+	# 触屏/鼠标通道：与键盘 M 键收敛到 Juice.toggle_muted() 单一入口。
+	Juice.toggle_muted()
+
+
+func _on_mute_changed(_muted: bool) -> void:
+	_refresh_mute_button()
+
+
+func _refresh_mute_button() -> void:
+	mute_button.text = MUTE_TEXT_OFF if Juice.muted else MUTE_TEXT_ON

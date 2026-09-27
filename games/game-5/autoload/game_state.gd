@@ -15,11 +15,18 @@ const COMBO_WINDOW: float = 3.0
 ## 基础得分：每个水果 +10；窗口内每追加 1 个额外 +5（连击数 - 1，下限 0）。
 const BASE_POINTS: int = 10
 const COMBO_BONUS: int = 5
+## 金水果：固定高分（不吃连击加成，但仍刷新连击窗口并计入水果数）。
+var golden_points: int = 50
+## 坏水果：固定扣分（下限 0）；不计水果数、不动连击状态机。
+var bad_penalty: int = 15
 ## 单局时长（需求硬性：60 秒倒计时）。全局唯一事实源，Main / LogSpawner / HUD 都引用这里。
 const MATCH_SECONDS: float = 60.0
 
 ## 历史最高分存档（user:// 跨刷新持久化，验收 5）。
 const SAVE_PATH: String = "user://game_5_save.cfg"
+## Web 端 localStorage 镜像键（用户反馈口径「localStorage 最佳成绩」；
+## user:// 在 Web 落 IndexedDB，镜像到 localStorage 双保险，两处取 max）。
+const LOCAL_STORAGE_KEY: String = "game-5-best"
 
 var score: int = 0
 var fruits_collected: int = 0
@@ -39,6 +46,8 @@ const TUNING_META: Dictionary = {
 	&"player_speed": {"min": 120.0, "max": 480.0, "step": 10.0},
 	&"log_speed_start": {"min": 60.0, "max": 300.0, "step": 10.0},
 	&"log_speed_end_factor": {"min": 1.0, "max": 3.0, "step": 0.1},
+	&"golden_points": {"min": 20.0, "max": 100.0, "step": 5.0},
+	&"bad_penalty": {"min": 5.0, "max": 40.0, "step": 5.0},
 }
 
 var _loaded: bool = false
@@ -74,6 +83,32 @@ func add_score() -> int:
 	return gained
 
 
+## 金水果收集（固定 golden_points 高分，不吃连击加成）：
+## 同样是「一次成功收集」—— 计入水果数、刷新连击窗口（连击数 +1，与普通水果同口径）。
+func add_golden_score() -> int:
+	if combo_window_left > 0.0:
+		combo_count += 1
+	else:
+		combo_count = 1
+	combo_window_left = COMBO_WINDOW
+	var gained: int = golden_points
+	score += gained
+	fruits_collected += 1
+	score_changed.emit(score)
+	fruits_changed.emit(fruits_collected)
+	combo_changed.emit(combo_count, combo_window_left)
+	return gained
+
+
+## 坏水果惩罚：扣 bad_penalty 分（下限 0）。不计水果数、不动连击状态机
+##（连击只按「成功收集」锚定，坏水果不是收集 —— 清零口径仍归窗口超时/终局）。
+func apply_bad_fruit() -> int:
+	var penalty: int = mini(bad_penalty, score)
+	score -= penalty
+	score_changed.emit(score)
+	return penalty
+
+
 ## 结算时提交本局得分：仅在新分数 > 历史最高时覆写（知识 6e91a11d §六）。
 func submit_final_score(final_score: int) -> void:
 	if final_score > best_score:
@@ -95,18 +130,43 @@ func reset() -> void:
 
 func load_best_score() -> void:
 	_loaded = true
-	if not FileAccess.file_exists(SAVE_PATH):
-		return
-	var config := ConfigFile.new()
-	if config.load(SAVE_PATH) != OK:
-		return
-	best_score = int(config.get_value("record", "best_score", 0))
+	if FileAccess.file_exists(SAVE_PATH):
+		var config := ConfigFile.new()
+		if config.load(SAVE_PATH) == OK:
+			best_score = int(config.get_value("record", "best_score", 0))
+	# Web 端 localStorage 镜像：与 user://（IndexedDB）两处取 max，任一幸存即可恢复。
+	var mirrored := _read_local_storage_best()
+	if mirrored > best_score:
+		best_score = mirrored
 
 
 func save_best_score() -> void:
 	var config := ConfigFile.new()
 	config.set_value("record", "best_score", best_score)
 	config.save(SAVE_PATH)
+	_write_local_storage_best(best_score)
+
+
+## ── localStorage 镜像（Web 专用；桌面/无头环境 JavaScriptBridge.eval 恒 null，自动跳过）──
+## JavaScriptBridge 单例在桌面二进制也存在但 eval 不可用 —— 判空而非只判注册；
+## 经 Engine.get_singleton 动态取用，不做编译期平台引用。任何异常按「无镜像」处理。
+
+func _read_local_storage_best() -> int:
+	if not Engine.has_singleton("JavaScriptBridge"):
+		return 0
+	var bridge: Object = Engine.get_singleton("JavaScriptBridge")
+	var result: Variant = bridge.call("eval",
+		"parseInt(localStorage.getItem('%s') || '0', 10) || 0" % LOCAL_STORAGE_KEY)
+	if result == null:
+		return 0
+	return maxi(int(str(result).to_int()), 0)
+
+
+func _write_local_storage_best(value: int) -> void:
+	if not Engine.has_singleton("JavaScriptBridge"):
+		return
+	var bridge: Object = Engine.get_singleton("JavaScriptBridge")
+	bridge.call("eval", "try{localStorage.setItem('%s','%d')}catch(e){}" % [LOCAL_STORAGE_KEY, value])
 
 
 ## 冒烟断言用：从磁盘重读最高分（等价「重启实例后再读取」，验收 5 的无头代理）。

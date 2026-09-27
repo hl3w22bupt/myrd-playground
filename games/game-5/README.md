@@ -8,25 +8,37 @@
 | 项 | 值 |
 | --- | --- |
 | 单局时长 | 60 秒逐秒倒计时（`GameState.MATCH_SECONDS` 唯一定义） |
-| 基础得分 | 每个水果 +10（苹果/浆果外观不同、分值等价） |
+| 基础得分 | 普通水果 +10（苹果/浆果）；窗口内每追加 1 个额外 +5（连击） |
+| 金水果 | 固定 +50（`golden_points` 可调），视觉放大 1.3×，仍计入收集数/刷新连击 |
+| 坏水果 | 固定 -15（`bad_penalty` 可调，下限 0）+ 松鼠减速 1.5s（×0.6）；不计收集数、不动连击 |
 | 连击加成 | 3 秒窗口内每追加 1 个额外 +5（窗口刷新式，`GameState.add_score()` 唯一入口） |
 | 原木生成 | 2~4 秒随机间隔，与水果补货计时相互独立 |
 | 原木速度 | `v(t) = lerp(1.8·v0, v0, timeLeft/60)`，v0 = 120（随剩余时间递增） |
-| 水果供给 | 初始 8~12 个；存量 < 6 时每 0.8~1.5 秒补 1 个 |
+| 水果供给 | 初始 8~12 个；存量 < 6 时每 0.8~1.5 秒补 1 个；种类加权 普通 68% / 金 16% / 坏 16% |
 | 边界 | 松鼠永 clamp 在场景内（视觉 14px，碰撞盒 11px ≈ 78% 宽容度） |
-| 结算 | 本局得分 + 收集数量 + 历史最高分（`user://game_5_save.cfg` 持久化，仅破纪录覆写） |
+| 结算 | 本局得分 + 收集数量 + 历史最高分（`user://` 存档 + Web 端 localStorage 镜像，仅破纪录覆写） |
 | 重开 | 双通道：触摸「重新开始」按钮 + 键盘 Enter/Space（confirm 动作） |
+| 音效 | 8 种（收集/连击/金/坏/撞击/失败/末 5 秒 tick/结算），经 Juice 门控（见下） |
 
 ## 操作
 
-- 桌面：WASD / 方向键移动（对角线已归一化）；结算界面 Enter / Space 重开
-- 移动端：左下虚拟摇杆移动（`virtual_joystick.gd`，动作生产者，支持斜向）；
-  右下「确认」按钮（TouchUI）= confirm 动作；结算界面触摸「重新开始」
+- 桌面：WASD / 方向键移动（对角线已归一化）；结算界面 Enter / Space 重开；M 键静音开关
+- 移动端：左下虚拟摇杆移动（`virtual_joystick.gd`，`_input` 阶段接管触点，支持斜向）；
+  右下「确认」按钮（TouchUI）= confirm 动作；结算界面触摸「重新开始」；右上「音效」按钮静音
+
+## 音频门控（知识 82e419bb §3，移动端硬契约）
+
+- 壳页面（`server/src/game-page.ts`）在引擎加载前包 AudioContext 构造器 + document 级
+  手势 resume（capture+passive）+ `window.__audioDebug()` 取证出口；
+- 游戏侧 Juice 单例：首个手势输入 `unlock_audio()`（幂等）；解锁/静音前 `sfx()` 只记账
+  （`sfx_counts`），不播放不报错；静音走 AudioServer 主总线 mute + `user://game_5_audio.cfg` 持久化；
+- 局内全部音效走 `Juice.sfx()` 唯一入口，禁止直连 AudioStreamPlayer。
 
 ## 调参区（SKILL §3C）
 
 可调数值集中在 `autoload/game_state.gd`：`player_speed`（默认 240）、`log_speed_start`（默认 120）、
-`log_speed_end_factor`（默认 1.8），带 `TUNING_META`（min/max/step）。Web 壳页面把 URL
+`log_speed_end_factor`（默认 1.8）、`golden_points`（默认 50）、`bad_penalty`（默认 15），
+带 `TUNING_META`（min/max/step）。Web 壳页面把 URL
 `?tuning=<JSON>` 解析到 `window.__GAME_TUNING__`，启动时经 `apply_tuning()` 应用（带 min/max 钳制、
 拒绝未声明键）；网页带 `?tuning=` 参数时浮出调参面板（`scripts/tuning_panel.gd`，代码建 UI），
 可复制调参 URL 回写 spec。需求硬性口径（60s / +10 / +5 / 2~4s）不进调参区。

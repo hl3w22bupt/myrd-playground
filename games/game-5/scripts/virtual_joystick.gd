@@ -1,11 +1,22 @@
 class_name VirtualJoystick
 extends Control
-## 虚拟摇杆：把手指拖动向量合成为 InputEventAction（带 strength）注入引擎。
+## 虚拟摇杆：在 `_input` 阶段接管触点，把拖动向量经 Input.action_press 注入引擎动作。
 ##
-## 规范要点（见 SKILL.md「移动端触摸规范」）：
-## - 触摸控件是动作的「生产者」，经 Input.parse_input_event 注入 InputMap 动作；
-## - 游戏逻辑（如 player.gd）仍然只用 Input.get_vector 读动作，二者互不感知；
-## - 纯代码 _draw 绘制，不依赖图片素材，模板复制即用。
+## 迭代修复（红队 bug：移动端方向键全失灵，知识 82e419bb §2.1 E-18）：
+## 旧实现挂在 `_unhandled_input` —— 触摸事件分发顺序固定为 `_input → GUI 命中 → _unhandled`，
+## 本控件 mouse_filter=STOP 时，落在自身矩形内的触摸会在 GUI 命中阶段被消费，
+## 永远到不了 `_unhandled_input` → 真机上摇杆整体推不动（headless 门禁全绿、真机必挂型缺陷）。
+## 修复后规范（知识 82e419bb §2.2）：
+## - `_input` 是引擎里唯一保证先于 GUI 命中的阶段，触摸在这里接管；
+## - 初始按下必须落在摇杆矩形内才接管；接管后滑出矩形照常续跟（拖拽不失联）；
+## - `is_visible_in_tree()` 守卫：隐藏的摇杆（桌面端 TouchUI 不可见）不得抢按任何触摸；
+## - `set_input_as_handled()` 同时阻断后续 GUI 与 unhandled 消费，防二次交互；
+## - 保留 `mouse_filter=STOP`：让 emulate_mouse_from_touch 合成出的鼠标事件在 GUI 层
+##   被摇杆吃掉，不漏成第二次交互（与 _input 接管互补，不冲突）；
+## - 单指跟踪：第二根手指不抢控（touch_index 单值）。
+##
+## 输出路线（E-17 硬约束，保留）：Input.action_press/action_release —— 不能经
+## parse_input_event 注入 InputEventAction（同帧多动作互踩清零，斜向结构性失效）。
 
 const BASE_RADIUS: float = 56.0
 const STICK_RADIUS: float = 26.0
@@ -29,19 +40,22 @@ var _output: Vector2 = Vector2.ZERO
 func _ready() -> void:
 	custom_minimum_size = Vector2(BASE_RADIUS, BASE_RADIUS) * 2.0
 	_center = size / 2.0
+	# 保留 STOP（见文件头第 5 条）：合成鼠标事件在 GUI 层被本控件吃掉。
+	mouse_filter = Control.MOUSE_FILTER_STOP
 	queue_redraw()
 
 
-## 用 _unhandled_input 而非 _gui_input：拖动事件在手指滑出控件矩形后仍需持续接收，
-## _gui_input 只在指针位于控件内时投递，会丢拖动轨迹。
-func _unhandled_input(event: InputEvent) -> void:
+## `_input` 阶段处理触摸：先于 GUI 命中，摇杆才有机会接管落在自己矩形内的触点。
+func _input(event: InputEvent) -> void:
+	if not is_visible_in_tree():
+		return
 	if event is InputEventScreenTouch:
-		if event.pressed and _touch_index == -1:
-			# 初始按下必须落在摇杆区域内才接管该触点。
-			if Rect2(Vector2.ZERO, size).has_point(_to_local(event.position)):
+		if event.pressed:
+			# 初始按下必须落在摇杆区域内才接管该触点；单指跟踪，第二根手指不抢控。
+			if _touch_index == -1 and Rect2(Vector2.ZERO, size).has_point(_to_local(event.position)):
 				_touch_index = event.index
 				_accept_and_update(event.position)
-		elif not event.pressed and event.index == _touch_index:
+		elif event.index == _touch_index:
 			_accept_and_update(event.position)
 			_release()
 	elif event is InputEventScreenDrag and event.index == _touch_index:
@@ -49,6 +63,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _accept_and_update(viewport_pos: Vector2) -> void:
+	# 接管后阻断 GUI 与 unhandled 的后续消费（合成鼠标的第二次交互由此防住）。
 	get_viewport().set_input_as_handled()
 	_update_output(_to_local(viewport_pos))
 
@@ -85,12 +100,6 @@ func _release() -> void:
 
 ## 把摇杆向量分解为 4 个方向动作的 strength 注入引擎；
 ## Input.get_vector 会读取 strength，游戏侧拿到的是模拟量方向。
-##
-## ⚠ 注入路线硬约束（Godot 4.3 实测，见冒烟摇杆断言 + error-signatures E-17）：
-## 必须走 Input.action_press/action_release API，不能经 parse_input_event 注入
-## InputEventAction —— 实测后者同批/跨帧只有「最后一个 action 事件」的状态能存活，
-## 斜向移动（两个方向同时按住）结构性失效，玩家表现为「斜着拖就卡死」。
-## API 路线多动作同持可靠（V3）、且扛无关原始键事件冲刷（V5/V6）。
 func _emit_move_actions() -> void:
 	_emit_action(MOVE_ACTIONS.left, -_output.x if _output.x < 0.0 else 0.0)
 	_emit_action(MOVE_ACTIONS.right, _output.x if _output.x > 0.0 else 0.0)

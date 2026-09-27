@@ -11,12 +11,19 @@ signal match_ended(reason: StringName)
 
 const REASON_TIME_UP: StringName = &"time_up"
 const REASON_HIT_LOG: StringName = &"hit_log"
-## 飘分颜色：基础 +10 与连击加分区分（知识 6e91a11d §三）。
+## 飘分颜色：基础 +10 / 连击加分 / 金水果 / 坏水果惩罚 四种区分（知识 6e91a11d §三）。
 const POPUP_BASE_COLOR: Color = Color(1, 1, 1)
 const POPUP_COMBO_COLOR: Color = Color(1, 0.62, 0.15)
+const POPUP_GOLDEN_COLOR: Color = Color(1, 0.84, 0.25)
+const POPUP_BAD_COLOR: Color = Color(0.95, 0.3, 0.3)
+## 倒计时告警：最后 5 秒每跨 1 秒一声 tick（用户反馈「倒计时最后 5 秒告警」）。
+const TICK_LAST_SECONDS: int = 5
 
 var time_left: float = GameState.MATCH_SECONDS
 var match_over: bool = false
+
+## 末 5 秒 tick 的去重游标（同一整秒只响一次；-1 = 本局尚未响过）。
+var _tick_second: int = -1
 
 @onready var player: Player = $Player
 @onready var fruit_spawner: FruitSpawner = $FruitSpawner
@@ -49,15 +56,28 @@ func _physics_process(delta: float) -> void:
 	time_left -= delta
 	log_spawner.time_left = time_left
 	time_changed.emit(time_left)
+	_tick_countdown_warning()
 	if time_left <= 0.0:
 		time_left = 0.0
 		_end_match(REASON_TIME_UP)
+
+
+## 末 5 秒告警：整秒跳变（60→59…→5→4→3→2→1）时每秒一声 tick；start_match 重置游标。
+func _tick_countdown_warning() -> void:
+	var second: int = int(ceilf(maxf(time_left, 0.0)))
+	if second != _tick_second:
+		_tick_second = second
+		if second > 0 and second <= TICK_LAST_SECONDS:
+			Juice.sfx(&"tick")
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	# 结算界面键盘通道：Enter / Space（confirm 动作）重开 —— 双通道之一。
 	if match_over and event.is_action_pressed("confirm"):
 		start_match()
+	# 静音开关键盘通道：M 键（toggle_mute 动作）—— 桌面端不用去够屏幕右上角按钮。
+	if event.is_action_pressed("toggle_mute"):
+		Juice.toggle_muted()
 
 
 ## 开局 / 重开。种子默认随机；冒烟与试玩传固定种子保证可复现。
@@ -65,6 +85,7 @@ func start_match(fruit_seed: int = -1, log_seed: int = -1) -> void:
 	GameState.reset()
 	time_left = GameState.MATCH_SECONDS
 	match_over = false
+	_tick_second = -1
 	player.reset_for_new_match()
 	fruit_spawner.start_match(fruit_seed if fruit_seed >= 0 else randi())
 	log_spawner.start_match(log_seed if log_seed >= 0 else randi())
@@ -87,33 +108,49 @@ func _end_match(reason: StringName) -> void:
 	GameState.submit_final_score(GameState.score)
 	var title: String = "被原木击中！" if reason == REASON_HIT_LOG else "时间到！"
 	if reason == REASON_HIT_LOG:
+		# 撞击瞬间：hit + fail（撞击声 + 失败短句）；结算界面统一再给 settle。
 		Juice.flash(player, Color(1, 0.35, 0.3, 0.8), 0.2)
 		Juice.shake(9.0, 0.3)
 		Juice.hit_stop(0.08)
 		Juice.sfx(&"hit")
 		Juice.sfx(&"fail")
-	else:
-		Juice.sfx(&"confirm")
+	# 结算音（两条终局路径共用，用户反馈「结算」音效；HUD 不再重复播）。
+	Juice.sfx(&"settle")
 	hud.show_result(title, GameState.score, GameState.fruits_collected, GameState.best_score)
 	match_ended.emit(reason)
 
 
 func _on_fruit_collected(fruit: Fruit) -> void:
+	if fruit.is_golden():
+		# 金水果：固定高分 + 专属音效 + 金色大字飘分（仍是成功收集，计入水果数/刷新连击）。
+		var gained_golden: int = GameState.add_golden_score()
+		Juice.sfx(&"golden")
+		_spawn_score_popup(fruit.global_position, gained_golden, POPUP_GOLDEN_COLOR, 28)
+		return
+	if fruit.is_bad():
+		# 坏水果：扣分 + 短暂减速（用户反馈「扣分或减速」→ 两者都给，惩罚可感知）。
+		var penalty: int = GameState.apply_bad_fruit()
+		player.apply_slow()
+		Juice.sfx(&"bad")
+		Juice.flash(player, Color(0.4, 0.3, 0.15, 0.6), 0.25)
+		_spawn_score_popup(fruit.global_position, -penalty, POPUP_BAD_COLOR, 24)
+		return
+	# 普通水果：+10，窗口内追加 +5（连击加成唯一入口在 GameState.add_score）。
 	var gained: int = GameState.add_score()
 	Juice.sfx(&"score")
 	if gained > GameState.BASE_POINTS:
 		Juice.sfx(&"confirm")
-	_spawn_score_popup(fruit.global_position, gained)
+		_spawn_score_popup(fruit.global_position, gained, POPUP_COMBO_COLOR, 22)
+	else:
+		_spawn_score_popup(fruit.global_position, gained, POPUP_BASE_COLOR, 22)
 
 
-## 飘分：跟随水果被收集的世界坐标；连击加分用不同颜色（不用角落滚动合计替代）。
-func _spawn_score_popup(world_pos: Vector2, gained: int) -> void:
+## 飘分：跟随水果被收集的世界坐标；普通/连击/金/坏四种颜色与字号区分（不做角落滚动合计）。
+func _spawn_score_popup(world_pos: Vector2, value: int, color: Color, font_size: int) -> void:
 	var label := Label.new()
-	label.text = "+%d" % gained
-	label.add_theme_font_size_override("font_size", 22)
-	label.add_theme_color_override(
-		"font_color",
-		POPUP_COMBO_COLOR if gained > GameState.BASE_POINTS else POPUP_BASE_COLOR)
+	label.text = "%+d" % value
+	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_color_override("font_color", color)
 	label.z_index = 50
 	popups.add_child(label)
 	label.position = world_pos + Vector2(-14, -34)

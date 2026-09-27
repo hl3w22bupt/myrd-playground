@@ -18,17 +18,37 @@ const EDGE_MARGIN: float = 24.0
 ## 局结束 / 未开局时冻结（结算面板期间不可再动）。
 var frozen: bool = false
 
+## 坏水果减速状态（剩余时长 / 速度倍率）：只在剩余时长 > 0 时生效。
+const SLOW_DURATION: float = 1.5
+const SLOW_FACTOR: float = 0.6
 
-func _physics_process(_delta: float) -> void:
+var _slow_left: float = 0.0
+var _slow_factor: float = Player.SLOW_FACTOR
+
+
+func _physics_process(delta: float) -> void:
 	if frozen:
 		velocity = Vector2.ZERO
 		return
+	_slow_left = maxf(_slow_left - delta, 0.0)
 	var direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	velocity = direction * GameState.player_speed
+	var speed: float = GameState.player_speed * (_slow_factor if _slow_left > 0.0 else 1.0)
+	velocity = direction * speed
 	move_and_slide()
 	global_position = clamped_position(global_position)
 	if direction != Vector2.ZERO:
 		moved.emit(global_position)
+
+
+## 坏水果命中：进入减速状态（Main 在计分后调用）。
+func apply_slow(duration: float = SLOW_DURATION, factor: float = SLOW_FACTOR) -> void:
+	_slow_left = duration
+	_slow_factor = factor
+
+
+## 减速是否生效（冒烟断言用）。
+func is_slowed() -> bool:
+	return _slow_left > 0.0
 
 
 ## 边界 clamp：以当前视口（960x540 设计分辨率）为界，永不越界。
@@ -39,9 +59,10 @@ func clamped_position(pos: Vector2) -> Vector2:
 		Vector2(bounds.x - EDGE_MARGIN, bounds.y - EDGE_MARGIN))
 
 
-## 重开新局：回到场地中心并解冻。
+## 重开新局：回到场地中心并解冻（减速状态一并清掉）。
 func reset_for_new_match() -> void:
 	var bounds := get_viewport_rect().size
 	global_position = bounds / 2.0
 	velocity = Vector2.ZERO
 	frozen = false
+	_slow_left = 0.0
