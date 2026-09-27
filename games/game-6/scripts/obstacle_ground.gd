@@ -42,7 +42,7 @@ func _process(delta: float) -> void:
 	_body.scale = Vector2(1.0 + sin(_wobble_phase) * 0.05, 1.0 - sin(_wobble_phase) * 0.05)
 
 
-## 冲刺碾毁：压扁消失 + 计分（acc-04 / spec scorePerObstacleSmash）。
+## 冲刺碾毁：压扁消失 + 计分（acc-04 / spec scorePerObstacleSmash）+ 碾碎闪光音效。
 func smash() -> void:
 	if _destroyed:
 		return
@@ -51,6 +51,8 @@ func smash() -> void:
 	visible = false
 	GameState.add_smash()
 	GameState.emit_feedback(&"smash", global_position)
+	FxBank.flash(get_parent(), global_position, Color(1.0, 0.6, 0.35), &"smash")
+	SfxBank.play(&"smash", get_parent())
 	smashed.emit()
 
 

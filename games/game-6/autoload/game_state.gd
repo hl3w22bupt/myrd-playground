@@ -65,6 +65,34 @@ const SAVE_KEY: String = "game6_save_v1"                  # saveKey
 ## 地面线世界 y（chunk 局部「地面 y=0、向上为正」的换算基准，见策划案 §三坐标约定）。
 const GROUND_LINE_Y: float = 300.0
 
+## ── 道具生成配置（迭代需求 ①：磁吸/冲刺必须可感知地进入生成池）──
+## 每个道具点按此权重抽种类（可复核口径）：
+##   磁铁 0.40 / 冲刺 0.35 / 护盾 0.25 → 单点拿到「磁铁或冲刺」合计 0.75。
+##   一局跑 ≥6 个道具点时：至少一次磁铁概率 = 1−0.6^6 ≈ 95%；
+##   至少一次磁铁或冲刺概率 = 1−0.25^6 ≈ 99.98%（验收「1~2 局内至少遇到一次」远超满足）。
+## 定位说明：这是生成层配置而非手感调参，**不进 TUNING_META**（39 键契约键集保持与
+## spec.numeric 一致）；分布由冒烟 powerup_pool_contract 以固定种子机判。
+const POWERUP_KIND_WEIGHTS: Dictionary = {
+	&"magnet": 0.40,
+	&"dash": 0.35,
+	&"shield": 0.25,
+}
+
+
+## 按权重表抽一个道具种类（seeded rng 由调用方提供：同种子同序列，冒烟可复现）。
+func pick_powerup_kind(rng: RandomNumberGenerator) -> StringName:
+	var total: float = 0.0
+	for weight: Variant in POWERUP_KIND_WEIGHTS.values():
+		total += maxf(float(weight), 0.0)
+	if total <= 0.0:
+		return &"magnet"
+	var roll: float = rng.randf() * total
+	for kind: StringName in POWERUP_KIND_WEIGHTS.keys():
+		roll -= maxf(float(POWERUP_KIND_WEIGHTS[kind]), 0.0)
+		if roll <= 0.0:
+			return kind
+	return &"magnet"
+
 ## TUNING_META：可调数值键 → {min, max, step}（acc-09 契约断言键集与 spec.numeric 一致；
 ## saveKey 为字符串存档键，不参与数值钳制，meta 置 0 区间占位以满足键集相等）。
 const TUNING_META: Dictionary = {

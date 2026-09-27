@@ -9,15 +9,15 @@ size = Vector2(56, 88)
 script = ExtResource("1_air")
 
 [node name="WingLeft" type="Polygon2D" parent="."]
-color = Color(1, 0.62, 0.35, 1)
+color = Color(1, 0.74, 0.42, 1)
 polygon = PackedVector2Array(0, -4, -18, -14, -16, 6)
 
 [node name="WingRight" type="Polygon2D" parent="."]
-color = Color(1, 0.62, 0.35, 1)
+color = Color(1, 0.74, 0.42, 1)
 polygon = PackedVector2Array(0, -4, 18, -14, 16, 6)
 
 [node name="Body" type="Polygon2D" parent="."]
-color = Color(1, 0.353, 0.373, 1)
+color = Color(1, 0.46, 0.46, 1)
 polygon = PackedVector2Array(-28, 0, -20, -14, 0, -20, 20, -14, 28, 0, 20, 14, 0, 20, -20, 14)
 
 [node name="EyeLeft" type="Polygon2D" parent="Body"]

@@ -45,18 +45,26 @@ var _coyote_timer: float = 0.0
 var _jump_buffer_timer: float = 0.0
 ## 死亡原因（重开时复位）。
 var _death_cause: StringName = &""
-## 跑步动画相位（肢体摆动用）。
-var _run_phase: float = 0.0
+## 跑步帧累加器（帧表驱动：run_frame = int(累加值) % RUN_FRAME_COUNT）。
+var _run_frame_accum: float = 0.0
+## 滚动（滑铲）帧累加器。
+var _roll_frame_accum: float = 0.0
+## 卡通美术层与生效期特效层（_ready 拼装，见 player_art.gd / player_fx.gd）。
+var _art: PlayerArt = null
+var _fx: PlayerFx = null
 
 @onready var _stand_shape: CollisionShape2D = $StandShape
 @onready var _slide_shape: CollisionShape2D = $SlideShape
-@onready var _body: Polygon2D = $Body
-@onready var _leg_front: Polygon2D = $LegFront
-@onready var _leg_back: Polygon2D = $LegBack
 
 
 func _ready() -> void:
 	add_to_group(&"player")
+	_art = PlayerArt.new()
+	_art.name = "Art"
+	add_child(_art)
+	_fx = PlayerFx.new()
+	_fx.name = "Fx"
+	add_child(_fx)
 
 
 func _physics_process(delta: float) -> void:
@@ -153,8 +161,12 @@ func apply_powerup(kind: StringName) -> void:
 func _tick_powerups(delta: float) -> void:
 	if magnet_timer > 0.0:
 		magnet_timer = maxf(magnet_timer - delta, 0.0)
+		if magnet_timer == 0.0:
+			powerup_changed.emit(POWERUP_MAGNET, 0.0)
 	if dash_timer > 0.0:
 		dash_timer = maxf(dash_timer - delta, 0.0)
+		if dash_timer == 0.0:
+			powerup_changed.emit(POWERUP_DASH, 0.0)
 	if hurt_invincible_timer > 0.0:
 		hurt_invincible_timer = maxf(hurt_invincible_timer - delta, 0.0)
 
@@ -194,6 +206,7 @@ func hit_hazard() -> StringName:
 	if shield_charges > 0:
 		shield_charges -= 1
 		hurt_invincible_timer = GameState.tuning_value(&"hurtInvincibleSeconds")
+		SfxBank.play(&"shield", self)
 		return &"shield_break"
 	die(&"hazard")
 	return &"death"
@@ -209,6 +222,7 @@ func die(cause: StringName = &"hazard") -> void:
 	magnet_timer = 0.0
 	dash_timer = 0.0
 	velocity = Vector2(velocity.x * 0.25, -520.0)
+	SfxBank.play(&"death", self)
 	died.emit(cause)
 
 
@@ -226,46 +240,33 @@ func reset_for_run() -> void:
 	_jump_buffer_timer = 0.0
 	rotation = 0.0
 	active = true
+	_run_frame_accum = 0.0
+	_roll_frame_accum = 0.0
 	_apply_slide_shape(false)
 	modulate = Color(1, 1, 1, 1)
 
 
-## ── 表现层（Q 版卡通占位：几何肢体 + 姿态，见策划案 §五.1 程序化占位路线）──
-## 状态驱动：跑 = 双腿正弦摆动 + 身体起伏；跳/二段跳 = 收腿拉伸；
-## 滑铲 = 压扁前倾；死亡 = 后仰旋转（_physics_process 死亡分支已转 rotation）。
+## ── 表现层（迭代需求 ②：帧表驱动卡通动画，帧表在 PlayerArt）──
+## 状态 → 帧表：跑 = 8 帧循环（帧率随移速）、滞空 = 3 姿态（升/顶/落）、
+## 滑铲 = 6 帧滚动；死亡 = 后仰旋转（_physics_process 死亡分支已转根节点 rotation）。
+## 特效层（PlayerFx）按计时器自行显隐 —— 倒计时归零特效与增益同步消失。
 func _update_visuals(delta: float) -> void:
+	if _art == null:
+		return
 	if is_sliding():
-		_pose_slide()
+		_roll_frame_accum += delta * 14.0
+		_art.set_roll_frame(int(_roll_frame_accum) % PlayerArt.ROLL_FRAME_COUNT)
 	elif not is_on_floor():
-		_pose_air()
+		var pose: int = 0
+		if velocity.y > 160.0:
+			pose = 2
+		elif absf(velocity.y) <= 160.0:
+			pose = 1
+		_art.set_jump_pose(pose)
 	else:
-		_pose_run(delta)
+		_run_frame_accum += delta * clampf(velocity.x / 40.0, 4.0, 18.0)
+		_art.set_run_frame(int(_run_frame_accum) % PlayerArt.RUN_FRAME_COUNT)
 	_update_invincible_flash()
-
-
-func _pose_run(delta: float) -> void:
-	_run_phase += delta * (velocity.x / 26.0)
-	_body.scale = Vector2(1.0, 1.0 + sin(_run_phase * 2.0) * 0.04)
-	_body.rotation = 0.0
-	_leg_front.rotation = sin(_run_phase) * 0.9
-	_leg_back.rotation = sin(_run_phase + PI) * 0.9
-	_leg_front.visible = true
-	_leg_back.visible = true
-
-
-func _pose_air() -> void:
-	var rising: bool = velocity.y < 0.0
-	_body.scale = Vector2(0.94, 1.08 if rising else 1.02)
-	_body.rotation = -0.08 if rising else 0.06
-	_leg_front.rotation = 0.7 if rising else 0.25
-	_leg_back.rotation = -0.5 if rising else -0.2
-
-
-func _pose_slide() -> void:
-	_body.scale = Vector2(1.14, 0.62)
-	_body.rotation = 0.18
-	_leg_front.rotation = 1.2
-	_leg_back.rotation = -1.1
 
 
 ## 破盾无敌帧闪烁（半透明呼吸）；护盾在身上时挂淡蓝描边色。

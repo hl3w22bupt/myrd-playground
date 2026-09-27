@@ -52,3 +52,59 @@
 2. **spec 口径备注**：`pitLandingBufferPx` 的「落地缓冲」按策划案 §四算术采用「坑右沿 → 下一威胁点中心」（l3：500−372=128）；若按威胁盒左沿算 l3/e3 处为 96。建议策划案下次修订时把口径写明。
 3. **部署侧注意事项**：① 远端实际分支名为 `myrd/game-6-goal-cmuj6p1q2000em9hc4srodpkt`（任务文本中的 `myrd/games-goal-…` 在远端不存在，goal id 一致，命名符合 game-2..6 惯例），部署 gitRef 请用它，勿用 main；② 门禁 `godot-smoke` 的 `params.gamePath` 已指向 `games/game-6`、`smokeFrames=320`。
 4. 真机 FPS 记录（acc-08 人工项：中端机 ≥30FPS）与 iOS Safari 取证留待试玩/部署节点回填 `games/game-6/qa/`。
+
+---
+
+# 迭代交付说明 v2：磁吸/冲刺全链路可见 + 主角美术精美化（需求 cmujj72du0016m99irdzh37qt）
+
+## 〇、根因排查（需求前置项：道具为什么「没刷出来」）
+
+1. **道具盒没有碰撞形状（致命）**：三个 powerup_*.tscn 声明了 `CircleShape2D_pickup` 子资源但
+   没有任何节点引用它 —— Area2D 无形状永不触发 `body_entered`，玩家跑过道具毫无反应。
+   旧冒烟直调 `apply_powerup` 从未走过真实拾取链，因此门禁没有拦住。已补 CollisionShape2D 修复，
+   并把冒烟 MAGNET 步骤改为「真实道具盒压到玩家身上碰撞拾取」，负例探针实测可拦（注释掉碰撞
+   形状 → `GODOT_SMOKE: FAIL 磁铁…吸附失效`，还原复绿）。
+2. **出生点压在首格道具盒上**：拾取修好后暴露 —— 出生 (140,268) 与 l1/e2 道具盒（圆心 120,254、
+   r22）天生重叠，每局第 1 帧白捡一个随机道具（捡到护盾/冲刺会破坏负向局确定性）。
+   出生点右移到 (190,268)，首格道具盒不再被白捡。
+3. **生成池种类锁死**：`chunk_base._build_powerup` 用 `randi()%3` 在首次 build 定死种类，
+   对象池复位不复掷 → 池内 9 个 chunk 实例的种类整局不变，磁铁/冲刺可能整局不出。
+   现改为 track_builder 每次铺设用局种子 rng 重掷（`GameState.POWERUP_KIND_WEIGHTS`：
+   磁铁 0.40 / 冲刺 0.35 / 护盾 0.25，可复核；不进 TUNING_META，39 键契约保持与 spec.numeric 一致）。
+   l3 段无道具点位属 spec levels 固化（契约逐项机判），不动 spec，靠重掷分布保证可感知频率。
+
+## 一、迭代实现范围
+
+- **拾取反馈三件套**（迭代需求 ①）：`FxBank.flash`（扩散光环+六向星火，纯代码节点）+
+  `SfxBank.play`（AudioStreamWAV 运行时合成：coin/powerup/shield/dash/smash/death 六音，
+  零二进制资产，headless 安全）+ HUD 道具槽点亮（hud.tscn PowerupBar + hud.gd 代码拼装三槽位，
+  熄→亮弹跳 + 倒计时字）。三者由同一次 `PickupBox.collect` 触发。
+- **生效期表现**：`player_fx.gd`（PlayerFx）—— 磁吸期旋转虚线光圈（∝ magnetRadiusPx，呼吸脉动）、
+  冲刺期身后速度线组 + 渐隐拖影；visible 直接由计时器驱动，归零当帧与增益同步消失
+  （player 到期补发 `powerup_changed(kind, 0)`）。金币吸附计分链路不变（coin.gd）。
+- **场上辨识**（迭代需求 ①）：三道具独立剪影（磁铁马蹄 U / 护盾盾形 / 冲刺闪电）+ 描边层 +
+  呼吸光环 + 出场弹跳；与金币（小金圆+高光）一眼区分。
+- **主角美术**（迭代需求 ②）：`player_art.gd`（PlayerArt）多部件卡通角色（橙卫衣×蓝短裤×肤色脸
+  ×红发带+飘带，全部部件带深色描边层与半透明高光块），帧表驱动：跑步 8 帧（帧率随移速）、
+  跳跃 3 姿态（升/顶/落）、滑铲滚动 6 帧；player.tscn 移除三个占位多边形节点。
+- **场景提亮**（迭代需求 ②）：chunk 三主题地形提亮一档（夜段→亮暮色）、金币加白高光块、
+  障碍/翅膀提亮、三层视差（云/山/街区+屋顶）提亮；视差滚动逻辑未动。
+
+## 二、门禁结果（与门禁同源命令，2026-09-27 本机实测）
+
+| 步骤 | 结果 |
+|---|---|
+| preflight | **PASS**（13 类，64 文件） |
+| headless-smoke（320 帧） | **GODOT_SMOKE: PASS**（10 契约：原 8 + powerup_pool + feedback） |
+| input-fuzz | **GODOT_FUZZ: PASS**（seed=20260913） |
+| playtest | 环境缺口不变（模板仓库仍未预置 `playtest.sh`，见 v1「环境缺口 1」，未伪造结果） |
+
+新增契约：`powerup_pool_contract`（权重可复核/seeded 分布/同实例重掷可变/chunk 接线四断言，
+含「种类锁死」负例语义）、`feedback_contract`（拾取闪光+音效+HUD 点亮+光圈/拖尾+归零同步熄灭
+六证据 + FxBank/SfxBank 银行本体断言）。帧预算 290→305（EXPIRE 步骤 +5 帧，仍 < 门禁 320）。
+
+## 三、遗留
+
+1. playtest.sh 模板缺口未闭合（延续 v1 上报，请运维补齐模板仓库技能资产）。
+2. `GameState.powerup_changed` 信号目前仅 player 侧同名信号在用，autoload 上的定义暂无发布方
+   （历史遗留，未删以免破坏潜在订阅；后续如接 Juice 单例再统一）。

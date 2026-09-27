@@ -47,7 +47,7 @@ func _process(delta: float) -> void:
 	_body.position.y = -hover_y + sin(_flap_phase * 0.5) * 4.0
 
 
-## 冲刺碾毁（与地面怪同口径计分）。
+## 冲刺碾毁（与地面怪同口径计分）+ 碾碎闪光音效。
 func smash() -> void:
 	if _destroyed:
 		return
@@ -57,6 +57,8 @@ func smash() -> void:
 	GameState.add_smash()
 	GameState.emit_feedback(&"smash", global_position)
 	GameState.emit_feedback(&"smash_air", global_position)
+	FxBank.flash(get_parent(), global_position, Color(1.0, 0.55, 0.4), &"smash")
+	SfxBank.play(&"smash", get_parent())
 
 
 ## 对象池复位。

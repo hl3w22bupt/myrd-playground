@@ -81,6 +81,9 @@ func _lay_cell(current_cell: int) -> void:
 	_cell_of[chunk] = _front_cell
 	chunk.position = Vector2(float(_front_cell) * GameState.tuning_value(&"chunkWidthPx"), GameState.GROUND_LINE_Y)
 	chunk.reset_chunk()
+	# 道具种类每次铺设都按局种子重掷（迭代需求 ①：磁吸/冲刺按可感知概率进生成池，
+	# 不再被首次 build 的随机锁死整局；同种子同赛道同道具序列，冒烟可复现）。
+	chunk.reroll_powerups(_rng)
 	_front_cell += 1
 
 
