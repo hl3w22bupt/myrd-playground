@@ -7,13 +7,20 @@ extends Node
 ##   重开 → pop(结算面板) + sfx(&"confirm")；陨石/水晶入场 → flash(实体)（可感知的场上事件）
 ##
 ## headless 冒烟 / playtest 断言「事件触发过没有」看 events / sfx_counts；
-## 本骨架暂无音频资产：SFX_BANK 未注册名 sfx() 合法空转，只记账不播放，资产后补即出声。
+## 音效注册表见 SFX_BANK（未注册名 sfx() 合法空转，只记账不播放）。
 
 ## 反馈触发信号：反馈统计 / playtest 门禁以此作为反馈采样锚点。
 signal feedback_fired(kind: StringName)
 
-## 音效注册表：名 → AudioStream（骨架期无 .wav 资产，留空表；未注册名合法空转）。
-const SFX_BANK: Dictionary = {}
+## 音效注册表：名 → AudioStream（程序化生成的 wav，见 assets/audio/——需求 3「收集反馈（音效/特效）」）。
+## 未注册名仍合法空转（只记账），资产后补即出声。
+const SFX_BANK: Dictionary = {
+	&"score": preload("res://assets/audio/score.wav"),         ## 拾取水晶：双音上扬
+	&"confirm": preload("res://assets/audio/confirm.wav"),     ## 连击触发加速：短促上扬 chirp
+	&"hit": preload("res://assets/audio/hit.wav"),             ## 被陨石击中：低频闷响
+	&"fail": preload("res://assets/audio/fail.wav"),           ## 护盾归零结算：三连下行
+	&"spawn": preload("res://assets/audio/spawn.wav"),         ## 水晶入场：极短轻点
+}
 
 ## 本局反馈记录（"kind@ms"），断言只看是否非空；环形上限防长局内存膨胀。
 var events: PackedStringArray = []

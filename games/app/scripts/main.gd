@@ -19,6 +19,15 @@ const SPAWN_RETRY_MAX: int = 5
 const FRAGMENT_RADIUS_DIV: float = 2.0           ## 分裂子体 r 减半
 const FRAGMENT_OFFSET_MUL: float = 0.6
 
+## 加速态变焦外显（知识基准 4.2：全局 105% 变焦，进入 0.3s / 退出 0.5s 过渡）。
+const ZOOM_BOOST: float = 1.05
+const ZOOM_ENTER_SEC: float = 0.3
+const ZOOM_EXIT_SEC: float = 0.5
+## 收集粒子爆散（知识基准 4.2：白色粒子爆散 0.25s）。
+const BURST_PARTICLES: int = 14
+const BURST_LIFETIME_SEC: float = 0.25
+const BURST_FREE_AFTER_SEC: float = 0.8
+
 ## 陨石类型分布锚点表（知识基准 2.3：D1/D3/D6），中间档位线性插值。
 const KIND_TABLE: Dictionary = {
 	1: [0.70, 0.20, 0.10],
@@ -29,6 +38,8 @@ const KIND_TABLE: Dictionary = {
 @onready var player: Player = $Player
 @onready var entities: Node2D = $Entities
 @onready var starfield: Starfield = $Starfield
+@onready var camera_rig: Camera2D = $Camera
+@onready var speedlines: Speedlines = $FXLayer/Speedlines
 @onready var touch_ui: CanvasLayer = $TouchUI
 @onready var hud_label: Label = %HudLabel
 @onready var shield_label: Label = %ShieldLabel
@@ -242,8 +253,9 @@ func _count_crystals() -> int:
 
 ## ── 信号处理 ──
 
-func _on_crystal_collected(_crystal: Crystal) -> void:
+func _on_crystal_collected(crystal: Crystal) -> void:
 	GameState.register_crystal_collected()
+	_spawn_collect_burst(crystal.global_position)
 	Juice.pop(player)
 	Juice.sfx(&"score")
 	if GameState.combo == GameState.COMBO_TRIGGER:
@@ -310,8 +322,43 @@ func _on_combo_changed(_combo: int) -> void:
 	_refresh_hud()
 
 
-func _on_boost_changed(_active: bool, _time_left: float) -> void:
+func _on_boost_changed(active: bool, _time_left: float) -> void:
+	speedlines.set_boost(active)
+	_tween_boost_zoom(active)
 	_refresh_hud()
+
+
+## 加速态变焦：进入 0.3s 拉到 105%，退出 0.5s 回 100%（禁止跳变，知识基准 4.2）。
+func _tween_boost_zoom(active: bool) -> void:
+	var tween := create_tween()
+	tween.tween_property(camera_rig, "zoom", Vector2.ONE * (ZOOM_BOOST if active else 1.0),
+		ZOOM_ENTER_SEC if active else ZOOM_EXIT_SEC) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+## 收集反馈：白色粒子爆散 0.25s（知识基准 4.2），一次性发射后自动回收。
+func _spawn_collect_burst(pos: Vector2) -> void:
+	var burst := CPUParticles2D.new()
+	burst.position = pos
+	burst.one_shot = true
+	burst.emitting = false
+	burst.amount = BURST_PARTICLES
+	burst.lifetime = BURST_LIFETIME_SEC
+	burst.explosiveness = 1.0
+	burst.spread = 180.0
+	burst.gravity = Vector2.ZERO
+	burst.initial_velocity_min = 60.0
+	burst.initial_velocity_max = 160.0
+	burst.scale_amount_min = 1.5
+	burst.scale_amount_max = 3.0
+	burst.color = Color(1.0, 1.0, 1.0, 0.9)
+	entities.add_child(burst)
+	burst.emitting = true
+	get_tree().create_timer(BURST_FREE_AFTER_SEC).timeout.connect(
+		func() -> void:
+			if is_instance_valid(burst):
+				burst.queue_free()
+	)
 
 
 func _refresh_hud(pos: Vector2 = Vector2.ZERO) -> void:
@@ -324,7 +371,8 @@ func _refresh_hud(pos: Vector2 = Vector2.ZERO) -> void:
 	]
 	shield_label.text = "护盾 " + "◆".repeat(maxi(GameState.shield, 0)) + "◇".repeat(maxi(GameState.SHIELD_MAX - GameState.shield, 0))
 	if GameState.boost_active:
-		boost_label.text = "加速 ×%d · %.1fs" % [GameState.multiplier, GameState.boost_time_left]
+		## 「×2」倍率由 BoostRing 环心角标呈现，这里只补剩余秒数。
+		boost_label.text = "剩余 %.1fs" % GameState.boost_time_left
 	else:
 		boost_label.text = ""
 
