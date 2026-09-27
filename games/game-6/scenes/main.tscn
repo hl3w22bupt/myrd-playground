@@ -23,7 +23,7 @@ script = ExtResource("1_main")
 script = ExtResource("8_track")
 
 [node name="Player" parent="." instance=ExtResource("3_player")]
-position = Vector2(140, 268)
+position = Vector2(190, 268)
 
 [node name="Hud" parent="." instance=ExtResource("4_hud")]
 

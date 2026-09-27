@@ -117,6 +117,10 @@ func _physics_process(_delta: float) -> void:
 		return
 	_frames += 1
 	_tick_injection()
+	# 幽灵拾取回归断言只看「不该有道具的局」：开局噪声局与负向局（重开后的正向局
+	# 会真实拾取道具，不在此列）。
+	if _phase == Phase.NOISE or _phase == Phase.RUN_A or _phase == Phase.BETWEEN:
+		_check_no_phantom_pickup()
 	if _failures.is_empty():
 		match _phase:
 			Phase.NOISE:
@@ -145,6 +149,25 @@ func _physics_process(_delta: float) -> void:
 func _enter_phase(phase: Phase) -> void:
 	_phase = phase
 	_phase_started_at = _frames
+
+
+## ── 幽灵拾取回归断言（迭代 v3 实机取证缺陷）──
+## 形态：出生点/场景授权位与首个道具盒重叠时，物理服务端对「同帧授权+传送」的
+## 配对事件有 1~2 步滞后 —— 玩家已跑开几十像素才补发 body_entered，开屏白捡随机
+## 道具（上一版只改 PLAYER_SPAWN 常量、没改 main.tscn 授权位 (140,268)，即本断言
+## 拦截的形态）。负向局全程不输入，任何道具状态 > 0 都属异常。
+var _phantom_pickup_reported: bool = false
+
+
+func _check_no_phantom_pickup() -> void:
+	if _phantom_pickup_reported or _player == null or not _player.active:
+		return
+	if _player.magnet_timer > 0.0 or _player.is_dashing() or _player.shield_charges > 0:
+		_phantom_pickup_reported = true
+		_failures.append("负向局未拾取任何道具却出现道具状态（幽灵拾取/出生点压盒回归）："
+			+ "magnet=%.2f dash=%.2f shield=%d frame=%d" % [
+				_player.magnet_timer, _player.dash_timer, _player.shield_charges, _frames,
+			])
 
 
 func _enter_rb_step(step: RbStep) -> void:

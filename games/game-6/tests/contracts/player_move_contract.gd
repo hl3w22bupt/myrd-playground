@@ -45,6 +45,35 @@ static func run(ctx: Dictionary = {}) -> PackedStringArray:
 			slide_shape.position.y, height_diff / 2.0,
 		])
 
+	# 卡通美术层结构（迭代需求 ②）：每个描边层必须与其填充层同一变换。
+	# 上一版缺陷 = _build_block 只把位移设在填充层上，头部描边圆留在 holder 原点，
+	# 整个叠在躯干上把橙卫衣盖成暗棕团（实机帧取证 + 描边层染色探针双证实）。
+	var art: Node2D = player.get_node_or_null("Art") as Node2D
+	if art == null:
+		failures.append("Player 缺少 Art 卡通美术层（主角美术未接入）")
+	else:
+		var stack: Array[Node] = [art]
+		var outline_count: int = 0
+		while not stack.is_empty():
+			var node: Node = stack.pop_back()
+			for child in node.get_children():
+				stack.append(child)
+			if node.name != &"Outline":
+				continue
+			outline_count += 1
+			var outline := node as Polygon2D
+			var main := outline.get_parent().get_node_or_null("Main") as Polygon2D
+			if main == null:
+				failures.append("美术部件 %s 的描边层缺同 holder 的 Main 填充层" % node.get_parent().name)
+				continue
+			# 同 holder 下局部位移必须一致（祖先带旋转时 global 仍相等，局部比较更稳）。
+			if not outline.position.is_equal_approx(main.position):
+				failures.append("美术部件 %s 描边层与填充层位移不一致（描边错位会遮盖主色）：%s ≠ %s" % [
+					node.get_parent().name, outline.position, main.position,
+				])
+		if outline_count < 6:
+			failures.append("描边层数量 %d < 6（卡通部件描边缺失）" % outline_count)
+
 	# 状态机语义（直接驱动内部状态，不依赖物理帧）。
 	player.slide_timer = GameState.tuning_value(&"slideDurationSeconds")
 	if not player.is_sliding():

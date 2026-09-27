@@ -28,6 +28,11 @@ const COLOR_BAND := Color(0.94, 0.32, 0.36, 1.0)
 const COLOR_SHOE := Color(0.99, 0.99, 1.0, 1.0)
 const OUTLINE := Color(0.28, 0.18, 0.12, 1.0)
 
+## 头部锚点（upper 组局部坐标）。眼睛/高光/发带/头发都从它派生位置。
+## 教训（本轮实测）：部件位移必须设在 holder（描边+填充的共同父节点）上，
+## 只移填充层会让描边层留在原点 —— 头部描边圆曾整个叠在躯干上把橙卫衣盖成暗棕团。
+const HEAD_POS := Vector2(1.0, -24.0)
+
 var _torso: Polygon2D
 var _head: Polygon2D
 var _hair: Polygon2D
@@ -109,15 +114,15 @@ func _build() -> void:
 	# 短裤压在躯干下缘。
 	var shorts := _build_block(_upper_group, "Shorts", _shorts_polygon(), COLOR_SHORTS, 1)
 	shorts.show_behind_parent = false
-	# 头（肤色圆 + 头发 + 发带 + 眼睛 + 高光）。
-	_head = _build_block(_upper_group, "Head", _circle_polygon(14.5, 14), COLOR_SKIN, 2)
-	_head.position = Vector2(1.0, -24.0)
-	_hair = _build_block(_upper_group, "Hair", _hair_polygon(), COLOR_HAIR, 3)
-	_hair.position = _head.position + Vector2(0.0, -6.0)
-	_band = _build_block(_upper_group, "Band", _band_polygon(), COLOR_BAND, 4)
-	_band.position = _head.position + Vector2(0.0, -5.0)
+	# 头（肤色圆 + 头发 + 发带 + 眼睛 + 高光）。位移统一走 _build_block 的 at 参数
+	#（落在 holder 上），保证描边层与填充层同一 transform。
+	_head = _build_block(_upper_group, "Head", _circle_polygon(14.5, 14), COLOR_SKIN, 2, HEAD_POS)
+	_hair = _build_block(_upper_group, "Hair", _hair_polygon(), COLOR_HAIR, 3,
+		HEAD_POS + Vector2(0.0, -6.0))
+	_band = _build_block(_upper_group, "Band", _band_polygon(), COLOR_BAND, 4,
+		HEAD_POS + Vector2(0.0, -5.0))
 	_build_eyes()
-	_build_highlight(_upper_group, _head.position + Vector2(-5.0, -29.0), Vector2(5.0, 3.4))
+	_build_highlight(_upper_group, HEAD_POS + Vector2(-5.0, -29.0), Vector2(5.0, 3.4))
 	_build_highlight(_upper_group, Vector2(-8.0, -8.0), Vector2(4.2, 7.0))
 	# 前侧肢体（z=+2，盖在躯干前 → 摆臂/迈腿清晰可读）。
 	_leg_front = _build_limb("LegFront", Vector2(7.0, 20.0), COLOR_SHORTS, 2)
@@ -164,10 +169,12 @@ func _attach_outlined(parent: Node2D, polygon: PackedVector2Array, color: Color)
 
 
 ## 独立色块（躯干/头/发等静态部件）：返回主色层（描边层同树序在前）。
+## at 必须给在 holder 上 —— 描边层与填充层共用这一位移（见 HEAD_POS 处的教训注释）。
 func _build_block(parent: Node2D, block_name: String, polygon: PackedVector2Array,
-		color: Color, z: int) -> Polygon2D:
+		color: Color, z: int, at: Vector2 = Vector2.ZERO) -> Polygon2D:
 	var holder := Node2D.new()
 	holder.name = block_name
+	holder.position = at
 	holder.z_index = z
 	parent.add_child(holder)
 	_attach_outlined(holder, polygon, color)
@@ -179,7 +186,7 @@ func _build_eyes() -> void:
 	var holder := Node2D.new()
 	holder.name = "Eyes"
 	holder.z_index = 5
-	holder.position = _head.position + Vector2(4.0, -1.0)
+	holder.position = HEAD_POS + Vector2(4.0, -1.0)
 	_upper_group.add_child(holder)
 	for i: int in 2:
 		var eye := Polygon2D.new()
