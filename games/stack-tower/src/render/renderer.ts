@@ -5,23 +5,20 @@
  * 背景来自 render/backdrop。
  */
 import type { Snapshot, PlacedBlock, DebrisSpec } from '../kernel/types.js';
-import { RIPPLE_DURATION } from '../kernel/numeric.js';
 import { PALETTE, blockColor, layerShade, shade } from './palette.js';
+import { NEON } from './theme.js';
+import { createRippleRenderer } from './ripple-renderer.js';
 import { blockFace, setBlockTileset } from './textures.js';
 import { drawBackdrop } from './backdrop.js';
 import { emptyAssets, type GameAssets, type GameImage } from './assets.js';
 
-interface RippleFx {
-  levelId: string;
-  elementId: string;
-  windowMs: number;
-  durationMs: number;
-  /** 表现层本地接收时刻（表现时钟，非内核仿真时间） */
-  startedAt: number;
-}
-
 export class Renderer {
-  private ripples: RippleFx[] = [];
+  /** tower-ripple 表现层订阅者（e-ripple-renderer：池 ≤200 + additive + 异常隔离） */
+  private ripples = createRippleRenderer();
+  /** 池观测出口（acc-j2 / 测试用） */
+  get ripplePool() {
+    return { alive: this.ripples.aliveCount, capacity: this.ripples.capacity };
+  }
   /** assets/ 实体贴图（缺项 = 程序化绘制 fallback，引用失败不破坏运行） */
   private sprites: GameAssets = emptyAssets();
 
@@ -33,18 +30,12 @@ export class Renderer {
 
   /** 重开时清空表现层残留特效（波纹等），不触碰内核状态 */
   clearFx(): void {
-    this.ripples = [];
+    this.ripples.clear();
   }
 
   /** main 翻译 tower-ripple 事件后调用；越界 duration 按名义 300 兜底并告警 */
   enqueueRipple(e: { level_id: string; element_id: string; window_ms: number; duration_ms: number }, nowMs: number): void {
-    const duration = e.duration_ms;
-    if (duration < RIPPLE_DURATION.MIN_MS || duration > RIPPLE_DURATION.MAX_MS) {
-      console.warn(
-        `[render] tower-ripple duration_ms=${duration} 越界 [${RIPPLE_DURATION.MIN_MS},${RIPPLE_DURATION.MAX_MS}]，按名义 ${RIPPLE_DURATION.NOMINAL_MS} 兜底`,
-      );
-    }
-    this.ripples.push({ levelId: e.level_id, elementId: e.element_id, windowMs: e.window_ms, durationMs: duration, startedAt: nowMs });
+    this.ripples.enqueue(e.duration_ms, nowMs);
   }
 
   /** 渲染一帧：快照只读，不回写内核 */
@@ -66,40 +57,14 @@ export class Renderer {
       }
       this.drawGuide(ctx, hover, logical); // L4 引导层（首局 layers<2）
     }
-    // L6 tower-ripple 波纹（300±50ms 内可见，随 duration 等比扩散；无整屏闪光）
-    this.ripples = this.ripples.filter((r) => nowMs - r.startedAt < r.durationMs);
-    for (const r of this.ripples) {
-      const t = (nowMs - r.startedAt) / r.durationMs; // 0..1
+    // L6 tower-ripple 波纹（e-ripple-renderer：池 ≤200 颗 + additive 合成 + 异常隔离；
+    // duration 300±50ms 内可见，随 duration 等比扩散；无整屏闪光）
+    {
       const topBlock = snap.tower[snap.tower.length - 1];
       const cx = topBlock ? topBlock.x : logical.width / 2;
       const cy = logical.height - ((topBlock ? topBlock.yIndex : snap.layers) + 1) * BLOCK_H + BLOCK_H / 2;
-      const ring = this.sprites.rippleRing;
-      if (ring) {
-        const w = 80 + 200 * t;
-        const h = (w * ring.naturalHeight) / Math.max(1, ring.naturalWidth);
-        ctx.save();
-        ctx.globalAlpha = (1 - t) * 0.9;
-        ctx.drawImage(ring, cx - w / 2, cy - h / 2, w, h);
-        ctx.restore();
-      } else {
-        ctx.save();
-        ctx.strokeStyle = `rgba(255,255,255,${(1 - t) * 0.8})`;
-        ctx.lineWidth = 2 * (1 - t) + 0.5;
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, 40 + 120 * t, 12 + 36 * t, 0, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-      }
-      // 完美切面脉冲（风格卡 §1 特殊时刻光：白色切面描边脉冲；无贴图则不加光源）
-      const pulse = this.sprites.perfectPulse;
-      if (pulse && topBlock) {
-        const px = topBlock.x - topBlock.width / 2;
-        const py = logical.height - (topBlock.yIndex + 1) * BLOCK_H;
-        ctx.save();
-        ctx.globalAlpha = (1 - t) * 0.85;
-        ctx.drawImage(pulse, px, py, topBlock.width, BLOCK_H);
-        ctx.restore();
-      }
+      const drawn = this.ripples.draw(ctx, nowMs, cx, cy, 1);
+      if (drawn < 0) console.info('[render] ripple draw 异常已隔离');
     }
     // 掉落碎块（纯装饰；内核只给初始姿态）
     for (const d of snap.debris) this.drawDebris(ctx, d, logical);
@@ -158,7 +123,7 @@ export class Renderer {
     if (guide) {
       ctx.drawImage(guide, hover.x - guide.naturalWidth / 2, topY, guide.naturalWidth, baseTopY - topY);
     } else {
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = NEON.CUT_FACE;
       ctx.lineWidth = 2;
       ctx.setLineDash([6, 4]);
       ctx.beginPath();

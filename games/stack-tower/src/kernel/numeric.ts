@@ -56,6 +56,21 @@ export const NUMERIC = {
     PWA_ICON_SIZES: [192, 512],
     APPLE_TOUCH_ICON_SIZE: 180,
   },
+  // —— v1.2（D1 折入）：benchmark_device（实验室基准口径，spec numeric.benchmark_device）——
+  benchmark_device: {
+    LAB_RUNNER: 'playwright-chromium',
+    LAB_CPU_THROTTLE_X: 4,
+    LAB_VIEWPORTS_PX: [
+      [390, 844],
+      [360, 640],
+    ],
+  },
+  // —— v1.2（霓虹夜塔冲刺）：opening（开局 3–5 块初始摆位，spec levels e09 / numeric.opening）——
+  opening: {
+    STACK_MIN_BLOCKS: 3,
+    STACK_MAX_BLOCKS: 5,
+    STACK_WIDTH_JITTER_PX: 6,
+  },
 } as const;
 
 /** 完美判定窗口（ms）：max(140 − (level−1)×8, 60) */
