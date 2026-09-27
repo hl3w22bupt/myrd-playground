@@ -1,8 +1,14 @@
-# 关卡状态黑板 — stack-tower（正式发布轮 M2.1）
+# 关卡状态黑板 — stack-tower（霓虹夜塔视觉与 juice 冲刺 r4）
 
-> 更新时间：2026-09-26（正式发布轮开工 · 主策划）
+> 更新时间：2026-09-27（r4 开工 · 主策划）
 > 负责人：主策划（整合人）· T4 程序线维护实现状态列，T5 QA 线维护核销列
-> 下一步：程序发布体检（N1）→ QA 对内放行（N2）→ 美术终检（N3）→ 策划 notes（N4）→ deploy（N5）→ QA 对外放行（N6）→ 版本链登记（N7）
+> 下一步：N1 spec v1.2 approved → N4 程序按开局摆位+四判据落码 → N5 四判据冒烟 → N6 主人拍板
+
+## r4 关卡面改动计划（spec v1.2 驱动，先 approved 后动码）
+
+- **开局 3–5 块初始摆位**（任务书条款）：落点 `games/stack-tower/src/kernel/tower.ts`，参数 `numeric.opening`（`STACK_MIN_BLOCKS=3 / STACK_MAX_BLOCKS=5 / STACK_WIDTH_JITTER_PX`，seeded RNG 决定块数与宽度扰动，确定性可复现）。塔基块（宽度 120、中心 x=240、yIndex=0）规格不变，初始摆位块叠于其上；初始摆位块**不计分不计 layers**（layerCount 仍只数玩家落块），塔顶=初始摆位最顶块。
+- **e08 口径同步修订**：「重开后塔回单块」→「重开后塔回初始摆位（同 seed 同摆位）」，其余语义逐字保留（keepWidth<36 game-over / 分数连击清零 / 摆速窗口回 L1 值）。契约测试 e01/e08 同步（e01 断言不变仍真）。
+- **数值冻结不变**：v1 冻结七键零漂移（机械断言 `numeric-acc-num-frozen-gate` 进门禁）；本特性全部新数值走 `numeric.opening` 新组，不触碰冻结键集。
 
 ## 关卡清单
 

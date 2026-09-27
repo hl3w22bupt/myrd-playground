@@ -1,21 +1,22 @@
 # .myrd/spec/ — 策划案导出件索引（分游戏独立路径，2026-09-25 M2.1 起施行）
 
-> 更新时间：2026-09-25（M2.1「有声可装」收口 · 主策划）
+> 更新时间：2026-09-27（霓虹夜塔视觉与 juice 冲刺 r4 · N1 spec v1.2 登记+拍板完成 · 主策划）
 > 负责人：主策划（版本链唯一看护；任何内容修订必须走版本链 version+1，禁止覆盖旧版）
-> 下一步：主人人工拍板（试玩 + 真机三项 + HTTPS 托管指认）
+> 下一步：N2 风格卡冻结 → N3 P0 资产 → N4 程序落码 → N5 门禁 → N6 主人拍板
 
 ## 导出件一览（一游戏一文件，终结撞车史）
 
 | 文件 | 游戏 | 版本/状态 | 契约测试调用 |
 |---|---|---|---|
-| `stack-tower-spec.json` | **Stack Tower 叠塔（`games/stack-tower/`）** | **v3 · approved**（platformSpecId `cmugok2uz000xm9ilx42t8pnl`；v2 `cmugal9ob0013gqlok6dstuyc` superseded；v1 `cmuga6tq90011gqlo3wkh9k7a` superseded） | `node games/stack-tower/tests/contract/run-all.mjs`（runner 自动读本文件） |
+| `stack-tower-spec.json` | **Stack Tower 叠塔（`games/stack-tower/`）** | **v1.2（平台 v4）· approved**（platformSpecId `cmuj5f6ik00hkm9l64r5uickm`；v3 `cmugok2uz000xm9ilx42t8pnl` superseded；v2/v1 更早 superseded） | `node games/stack-tower/tests/contract/run-all.mjs`（runner 自动读本文件） |
+| `design-spec.json` | **Stack Tower 叠塔（r4 起）** | 同上（v1.2 approved 同内容第二落点，按 2026-09-27 任务书要求导出）——原糖果线遗留内容 2026-09-25 前已丢失（git 不可回滚），本文件自此为 stack-tower 专属，糖果线契约不得引用 | 同上（只读镜像） |
+| `stack-tower-spec-v1.2-payload.json` | 同上（v1.2 建版载荷） | POST /revisions 载荷 `{spec, detail}`；复现链 `node games/stack-tower/tools/build-spec-v12.mjs`（含冻结守卫） | 只读审计 |
 | `stack-tower-spec-v1.1-ready.yaml` | 同上（**登记就绪版，纸面终稿，未登记**） | v1.1 · ready（含 QA 三处缺陷修复 D1/D2/D3；任务书口径 v1.1 ≡ 平台链 v3 下一版，登记 = POST revisions version+1 单版落账，不产生 v1.2） | `python3 scripts/spec-v11-emit-yaml.py`（发射 + 5 项就绪校验）；复现链 `node games/stack-tower/tools/build-spec-v11-ready.mjs` → 同脚本发射 |
 | `stack-tower-spec-v2.json` | 同上（历史档） | v2 approved（被 v3 取代前快照） | 只读审计 |
 | `stack-tower-spec-v3-content.json` | 同上（建版载荷） | v3 内容稿（平台入库键序归一化后以平台版为准） | 只读审计 |
 | `stack-tower-spec-v1.json` | 同上（历史档） | v1（T2 初稿） | 只读审计 |
 | `design-spec-pixel-fives.json` | 像素街机足球 Pixel Fives（`pixel-fives/`） | v1.2 · approved | `node pixel-fives/tools/contract-check.mjs` |
 | `design-spec-pixel-fives-v1.3-draft.json` | 同上（草案） | v1.3 draft（不作契约依据） | — |
-| `design-spec.json` | ⚠️ **冻结现状：内容为 stack-tower v2（糖果线导出件被撞丢，git 不可回滚）** | 不可作为任何契约依据 | 糖果线 contract-check 在导出件归位前**不得作为验收依据** |
 
 ## 版本链红线（重申）
 

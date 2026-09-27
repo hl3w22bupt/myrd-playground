@@ -1,6 +1,27 @@
-# 资产清单黑板 — stack-tower（M2 首卡 → M2.1「有声可装」→ 正式发布轮）
+# 资产清单黑板 — stack-tower（霓虹夜塔视觉与 juice 冲刺 r4）
 
-> 更新时间：2026-09-26（**正式发布轮 r3**：发布对象变更 → 当前分支 HEAD `436be68`，T3 美术线按「只检不新做」对 HEAD 发布面独立复检四项——**全 PASS**，资产面相对 9/25 基线/r1/r2 **逐字节零漂移**；终检记录落 `gate-logs/release-m21-20260926-r3/art-final-check.md`；资产核对状态 = **终检完成（r3 四项全 PASS）**，`sfx-<事件id>` 注册表**双签完成**（程序侧 healthcheck §5 + 美术侧 r3 §复签）；U6/U7 属壳/注册链路，非素材面，U7 美术面口径见 r3 记录 §已知未收口项）
+> 更新时间：2026-09-27（**r4 开工 · 主策划**：换装「霓虹夜塔」+ P0 资产 13 项。开工首笔：①**风格卡冻结纪律生效**——A1「霓虹夜塔」参考卡冻结 v1.0 前，任何 r4 新资产不得进验收；②OD 守护进程 127.0.0.1:7456 不可达（两通道四次复现，留痕见 blockers.md §E0）——本冲刺资产产物一律落 repo 文件 + hash，不落 OD 画布，不降级为纸面件；③P0 13 项清单与拆分口径见 §r4-P0）
+> 前轮纪要：2026-09-26（**正式发布轮 r3**：发布对象变更 → 当前分支 HEAD `436be68`，T3 美术线按「只检不新做」对 HEAD 发布面独立复检四项——**全 PASS**，资产面相对 9/25 基线/r1/r2 **逐字节零漂移**；终检记录落 `gate-logs/release-m21-20260926-r3/art-final-check.md`；资产核对状态 = **终检完成（r3 四项全 PASS）**，`sfx-<事件id>` 注册表**双签完成**（程序侧 healthcheck §5 + 美术侧 r3 §复签）；U6/U7 属壳/注册链路，非素材面，U7 美术面口径见 r3 记录 §已知未收口项）
+
+## r4 · P0 资产 13 项清单（任务书逐项点名，spec assets a08..a20 对齐）
+
+**计数口径**：bg(1) + block-skin(6) + cut-face fx 三件套(3) + UI(3) = **13**（「cut-face / fx 三件套」= 切面 FX 三件：fx-cut-face / fx-ripple-ring / fx-perfect-glow）。
+
+| # | spec id | 名称 | 验收判据（N3 查表） |
+|---|---|---|---|
+| 1 | a08-bg-night-gradient | 夜空渐变底 | 渐变方向二值（垂直单向），hex 抽样 ±5 |
+| 2–7 | a09..a14-block-skin-base-01..06 | 塔块皮 6 色循环 | hex±5 / 禁描边 / 几何 ±10% 拒收 |
+| 8 | a15-fx-cut-face | 切面高亮 | 禁描边（发光填充形态）/ 几何 ±10% |
+| 9 | a16-fx-ripple-ring | 塔身涟漪环 | 中心对称 / hex±5 |
+| 10 | a17-fx-perfect-glow | 完美命中辉光 | additive 形态 / hex±5 |
+| 11 | a18-ui-btn-primary | 主按钮 | 圆角几何 ±10% / hex±5 |
+| 12 | a19-ui-panel-hud | HUD 面板 | 半透明度规格 / 禁描边 |
+| 13 | a20-ui-icon-sound | 声音开关图标 | 几何 ±10% / hex±5 |
+
+- 落点：`games/stack-tower/assets/reference/`（基准四联图 + 风格卡）与生成器链；逐件登记状态待 N2 冻结后刷新。
+- 验收查表执行：`tests/assets-check.mjs` 并入 `tests/contract/run-all.mjs` 同门运行（N4 落地），逐件 PASS/FAIL。
+
+## r4 之前的资产状态（r3 及更早，保持不变）
 > 前轮纪要：2026-09-26（r1 正式发布轮开工）：资产面只检不新做，终检记录 `gate-logs/release-m21-20260926/art-final-check.md`（四项全 PASS，检对象 tag `stack-tower-m2.1-release` @ `5a3284f`）；2026-09-25（M2.1 复验轮·终证）：资产面五道门禁干净 shell 全量复跑——assets:check **PASS (browser)**（9/9 运行时 200 + 404 负面用例可玩）/ contract A–E 22/22 / run-all 22/0/0 / smoke PASS (browser)；gen-audio 确定性口径：PNG 逐字节确定 ✓，音频内容稳定但容器元数据非字节稳定
 > 前轮纪要：2026-09-25（M2.1 复验轮·终证）：资产面五道门禁干净 shell 全量复跑——assets:check **PASS (browser)**（9/9 运行时 200 + 404 负面用例可玩）/ contract A–E 22/22 / run-all 22/0/0 / smoke PASS (browser)；gen-audio 确定性口径：PNG 逐字节确定 ✓，音频内容稳定但容器元数据非字节稳定
 > 负责人：主策划（整合人）· T3 美术线维护资产段，T4 程序线维护实现段

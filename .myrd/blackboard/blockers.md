@@ -1,9 +1,34 @@
-# 阻塞项黑板 — stack-tower（M2 首卡 → M2.1「有声可装」→ 正式发布轮）
+# 阻塞项黑板 — stack-tower（M2 首卡 → M2.1「有声可装」→ 正式发布轮 → 霓虹夜塔视觉与 juice 冲刺）
 
-> 更新时间：2026-09-26（**复验轮（r2）收口 + r3 对象对齐轮收口**：r2 = U6 工程修复全量落码（`6a6b4a8` = tag `stack-tower-m2.1-release-r2`）+ 八道门禁全绿 + deploy 成功 + **N6 FAIL（R2 平台层缺陷，三层实测）** → R2 升级主人；r3 = 响应驳回：发布对象对齐 run 分支 HEAD（`a15f66b` 快进至含 U6 修复树，tag `stack-tower-m2.1-release-r3` @ `26a53d7`）+ 程序侧发布链补全（11 项门禁全绿 + 对内回执 QA-REL-M21-20260926-05 PASS）+ **N6 未复跑（R2 未解，两轮 FAIL 后不硬推）** → notes 维持 HELD。过程见 `docs/release-healthcheck-m21-r3.md` 与 `docs/qa-release-receipt-m21-r3.md`）
+> 更新时间：2026-09-27（**霓虹夜塔视觉与 juice 冲刺开工（r4）· 主策划**：换装「霓虹夜塔」+ juice 四判据。开工首笔：①环境异常留痕见 §E0；②平台 API 通道修复见 §E1；③N1 spec v1.2 增量登记启动。前轮纪要：2026-09-26（**复验轮（r2）收口 + r3 对象对齐轮收口**：r2 = U6 工程修复全量落码（`6a6b4a8` = tag `stack-tower-m2.1-release-r2`）+ 八道门禁全绿 + deploy 成功 + **N6 FAIL（R2 平台层缺陷，三层实测）** → R2 升级主人；r3 = 响应驳回：发布对象对齐 run 分支 HEAD（`a15f66b` 快进至含 U6 修复树，tag `stack-tower-m2.1-release-r3` @ `26a53d7`）+ 程序侧发布链补全（11 项门禁全绿 + 对内回执 QA-REL-M21-20260926-05 PASS）+ **N6 未复跑（R2 未解，两轮 FAIL 后不硬推）** → notes 维持 HELD。过程见 `docs/release-healthcheck-m21-r3.md` 与 `docs/qa-release-receipt-m21-r3.md`）
 > 前轮纪要：2026-09-26 上午（r1）：N1 体检→N2 对内 PASS（QA-REL-M21-20260926-01）→N3 素材终检→N4 notes HELD→N5 deploy 成功（tag `stack-tower-m2.1-release` @ `5a3284f`）→ N6 对外 FAIL（U6 线上 SW scope 缺陷）→ R1 立案；2026-09-25（M2.1 复验轮）：六道门禁全绿取证
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：**等主人裁决 R2**（三选一见 qa-live-check-m21-r2 §三：代理放行头 / 放宽路由护栏 / 指认非代理托管形态）；R2 解除后复跑 N6（工程侧已备妥，无需重新体检）→ notes 生效 → 版本链登记收口。仍欠：试玩终裁 + 真机三项 + D5 答复
+
+## E0 · 开工首笔环境异常留痕（r4 · 2026-09-27 09:19–09:25，两条独立通道四次复现）
+
+- **OD 守护进程 127.0.0.1:7456 不可达——异常确认，如实上报待修**：
+  - 通道① curl 直探：09:18:59 三连复现，`http://127.0.0.1:7456/` 全部 `000 / exit 7`（connection refused）；
+  - 通道② open-design MCP 工具 `get_active_context`：报错原文 `cannot reach the Open Design daemon at http://127.0.0.1:7456. Is it running? Start it with 'pnpm tools-dev'`。
+- **cwd 非 repo root 异常——本轮不复现**：`pwd` = `git rev-parse --show-toplevel` = `/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmuj4opll00hem9l6gvw2ddnb`，实查一致（历史三方复现现象未在本轮出现，如实记录不冒领）。
+- **处置裁定（主策划，非降级为纸面件）**：①本冲刺风格卡/基准四联图/P0 资产产物一律落 git 仓库文件（`games/stack-tower/assets/reference/` 等）+ 黑板登记，**不依赖 OD 画布承载验收物**——OD 不可达不阻塞本轮执行面；②按纪律升级主人：请修复 OD 守护进程（`pnpm tools-dev` 或等效方式）；恢复前 N2 风格卡以「repo 文件 + hash」为准，恢复后可回流 OD 复核（不构成新门禁）。
+- **平台 API 通道修复（E1，本轮打通）**：前端代理会剥 `Authorization` 头 → Bearer 通道 UNAUTHORIZED（本地 3001 与远程 tailnet 双复现）；改走 **cookie `token` 通道**（引擎注入的 `MYRD_TOKEN` 工作流代行身份，via=workflow-node）→ 本地/远程 `/api/v1/auth/me` 双 200。本轮 spec v1.2 登记全部走此通道，全程留痕。历史「平台 API 鉴权恢复」的成因就此闭环：非 token 失效，是通道差异。
+
+## r4 当前基线（霓虹夜塔冲刺开工）
+
+- 黑板路径：`.myrd/blackboard/`（levels.md / assets.md / blockers.md 三份齐备，本轮增量见各文件顶部 r4 段）
+- spec 版本号：当前 approved = **平台 v3**（platformSpecId `cmugok2uz000xm9ilx42t8pnl`，2026-09-27 API 实查 status=approved version=3，与本地导出件 `.myrd/spec/stack-tower-spec.json` 键序无关深比全等）；**本轮目标 = spec v1.2**（= 平台链 version+1 → v4，映射口径见 §E2）
+- 契约与 QA 共同输入 = `.myrd/spec/stack-tower-spec.json`（approved 导出件；v1.2 approved 后同步刷新并按任务书要求导出至 `.myrd/spec/design-spec.json`——该文件现状为 stack-tower v2 遗留（糖果线内容 2026-09-25 前已丢失、git 不可回滚，README 已声明不得作糖果线契约依据），本轮以 stack-tower approved v1.2 覆写并在 README 留痕，一游戏一文件口径不变）
+- 冲刺目标（主人单句）：换装「霓虹夜塔」+ juice 四判据 = spec v1.2 approved、四判据冒烟全绿、P0 资产对照过检
+- 节点链：N1 spec v1.2（策划）→ N2 风格卡冻结+基准四联图（美术）‖ N3 P0 资产 13 项（美术）→ N4 渲染与 juice 接入（程序）‖ N5 门禁与口径（QA）→ N6 人工拍板（主人，机器不替人判断好玩——此关不过冲刺不算完）
+
+## E2 · spec v1.2 版本映射与增量口径（主策划拍板，r4）
+
+- **版本映射**：平台链 v1/v2/v3 = 任务书口径「v1 系」（v3=当前 approved）；「v1.1-ready」= 2026-09-26 纸面终稿（D1 benchmark_device / D2 acc-a7 / D3 evidence 证据条款）**未单独登记**；本轮一次 `POST /revisions`（version 3→4）落账，**平台 v4 ≡ 任务书口径 spec v1.2**（含 v1.1 未登记增量的完整折入 + 本轮 juice 冲刺增量，零内容丢失、零覆盖——平台 revisions 机制天然保序）。
+- **numeric 冻结口径（沿用黑板判例 + 升级为机械断言）**：「numeric 段与 v1 逐字节一致」= **v1 冻结七键**（DEFAULT_SEED / FIXED_STEP_MS / MAX_DT_MS / perfect_window / cut_width / scoring / difficulty）v1 vs v1.2 键序无关深比全等 + sha256 hash 相等断言（`numeric-acc-num-frozen-gate` 进契约门禁）；v3 已合法增量组（audio/mobile/deploy）与 v1.1 D1（benchmark_device）不在冻结键集，随 v1.2 保留；本轮新增 `numeric.opening` 组（开局摆位，镜像 `src/kernel/numeric.ts`，维持「spec.numeric ↔ numeric.ts 一一对应」世界规则）。
+- **开局摆位与 e08 口径修订（显式留痕）**：levels 段按任务书要求写明「开局 3–5 块初始摆位」落点文件+参数名（`src/kernel/tower.ts` + `numeric.opening`）；既有 e08「重开后塔回单块」与新特性直接互斥，spec 不留自相矛盾条款 → e01/e08 语句随特性同步修订（e01 塔基块规格不变；e08 改「塔回初始摆位」），其余语义（game-over 触发/分数连击清零/摆速窗口回 L1）逐字保留。revision_note 记录修订理由。
+- **P0 资产计数口径**：任务书「P0 资产 13 项」按逐项点名清点 = bg-night-gradient(1) + block-skin-base-01..06(6) + **cut-face fx 三件套**(3) + UI 三件(3) = 13（「cut-face / fx 三件套」读作切面 FX 三件：fx-cut-face / fx-ripple-ring / fx-perfect-glow）。spec assets 段 a08..a20 逐项登记，assets.md 对齐同 id。
+- **音画判据（采纳 QA 重定义）**：acc-j3 = perfect_hit dispatch → AudioContext 播放调用 ≤50ms（替代旧「音画同步」模糊口径，可 spy 可测）。
 
 ## 正式发布轮（2026-09-26 · M2.1 增量构建 · 两段式放行）
 

@@ -1,5 +1,4 @@
 {
-  "schemaVersion": "v0",
   "spec": {
     "acceptance": [
       {
@@ -113,54 +112,54 @@
         "statement": "断网冒烟全链路（SW precache 后离线）：冷启动→一局（tap 落块计分）→结算→重开→静音持久；含无音频 404 负面用例（sfx 全 404 不抛错、核心循环可玩）。（QA 修正③：承接 acc-a1 移出的 404 子句）"
       },
       {
-        "check": "npx vitest run tests/audio/events.test.ts",
         "id": "acc-a7",
-        "statement": "冷启动首触即放置：冷启动（首帧渲染完成、零历史交互）后的第一次 pointerdown/tap 必须在同一首触手势内完成两件事——①作为有效 drop 意图当 tick 落块（输入/音频闸门不得吞掉或延后到第二次手势）；②完成 AudioContext 解锁并播出首个音效（place），首次出声不得被闸门吞掉或延后（仍受 50ms 约束：有声局相对静音局零新增 >50ms 帧，acc-a5b 口径）。不设 iOS 豁免条款：iOS Safari 与所有平台同口径验收（与 acc-a2 首手势解锁同手势取证，acc-a2 原文不变）。"
+        "statement": "冷启动首触即放置：冷启动（首帧渲染完成、零历史交互）后的第一次 pointerdown/tap 必须在同一首触手势内完成两件事——①作为有效 drop 意图当 tick 落块（输入/音频闸门不得吞掉或延后到第二次手势）；②完成 AudioContext 解锁并播出首个音效（place），首次出声不得被闸门吞掉或延后（仍受 50ms 约束：有声局相对静音局零新增 >50ms 帧，acc-a5b 口径）。不设 iOS 豁免条款：iOS Safari 与所有平台同口径验收（与 acc-a2 首手势解锁同手势取证，acc-a2 原文不变）。",
+        "check": "npx vitest run tests/audio/events.test.ts"
       },
       {
-        "check": "node games/stack-tower/tests/contract/juice-acc-j1-first-block.spec.mjs",
         "id": "acc-j1",
-        "statement": "首块 ≤3s（juice 判据一）：冷启动（serve 起、无缓存首访）到首块可见（开局初始摆位 + 首个摆动块渲染上屏）≤3000ms（theme.FIRST_BLOCK_BUDGET_MS）；实验口径 playwright chromium + 4x throttle（numeric.benchmark_device），真机单列按 content.benchmark 口径"
+        "statement": "首块 ≤3s（juice 判据一）：冷启动（serve 起、无缓存首访）到首块可见（开局初始摆位 + 首个摆动块渲染上屏）≤3000ms（theme.FIRST_BLOCK_BUDGET_MS）；实验口径 playwright chromium + 4x throttle（numeric.benchmark_device），真机单列按 content.benchmark 口径",
+        "check": "node games/stack-tower/tests/contract/juice-acc-j1-first-block.spec.mjs"
       },
       {
-        "check": "node games/stack-tower/tests/contract/juice-acc-j2-juice-latency.spec.mjs",
         "id": "acc-j2",
-        "statement": "juice ≤100ms（juice 判据二）：perfect 判定成立 tick → 涟漪表现首帧上屏 ≤100ms（theme.JUICE_LATENCY_MS）；无头口径以「判定 tick 与表现层首绘 tick 差」计，禁止以感观估计替代"
+        "statement": "juice ≤100ms（juice 判据二）：perfect 判定成立 tick → 涟漪表现首帧上屏 ≤100ms（theme.JUICE_LATENCY_MS）；无头口径以「判定 tick 与表现层首绘 tick 差」计，禁止以感观估计替代",
+        "check": "node games/stack-tower/tests/contract/juice-acc-j2-juice-latency.spec.mjs"
       },
       {
-        "check": "node games/stack-tower/tests/contract/juice-acc-j3-audio-dispatch.spec.mjs",
         "id": "acc-j3",
-        "statement": "音画 ≤50ms（juice 判据三，采纳 QA 重定义）：perfect_hit dispatch（内核事件上抛时刻）→ AudioContext 播放调用（play 调用点，非实际出声）≤50ms（theme.AUDIO_DISPATCH_BUDGET_MS）；spy 可测，闸门吞音/延后即违此条（与 acc-a7 首触口径衔接）"
+        "statement": "音画 ≤50ms（juice 判据三，采纳 QA 重定义）：perfect_hit dispatch（内核事件上抛时刻）→ AudioContext 播放调用（play 调用点，非实际出声）≤50ms（theme.AUDIO_DISPATCH_BUDGET_MS）；spy 可测，闸门吞音/延后即违此条（与 acc-a7 首触口径衔接）",
+        "check": "node games/stack-tower/tests/contract/juice-acc-j3-audio-dispatch.spec.mjs"
       },
       {
-        "check": "node games/stack-tower/tests/contract/juice-acc-j4-restart.spec.mjs",
         "id": "acc-j4",
-        "statement": "重开 ≤1.5s（juice 判据四）：restart 输入 → 新局可交互（开局初始摆位渲染完成 + 首个摆动块可响应 drop）≤1500ms（theme.RESTART_BUDGET_MS）"
+        "statement": "重开 ≤1.5s（juice 判据四）：restart 输入 → 新局可交互（开局初始摆位渲染完成 + 首个摆动块可响应 drop）≤1500ms（theme.RESTART_BUDGET_MS）",
+        "check": "node games/stack-tower/tests/contract/juice-acc-j4-restart.spec.mjs"
       },
       {
-        "check": "node games/stack-tower/tests/contract/juice-acc-j5-first-session-no-modal.spec.mjs",
         "id": "acc-j5",
-        "statement": "首局无弹窗：安装态首访首局全程零非游戏内弹层（无引导遮罩/权限弹窗/更新提示/评分邀请）；rotate-overlay 仅横屏触发，不属竖屏首局路径；首局流程与 acc-j1/acc-e1 同轮冒烟取证"
+        "statement": "首局无弹窗：安装态首访首局全程零非游戏内弹层（无引导遮罩/权限弹窗/更新提示/评分邀请）；rotate-overlay 仅横屏触发，不属竖屏首局路径；首局流程与 acc-j1/acc-e1 同轮冒烟取证",
+        "check": "node games/stack-tower/tests/contract/juice-acc-j5-first-session-no-modal.spec.mjs"
       },
       {
-        "check": "node games/stack-tower/tests/contract/telemetry-acc-e1-hooks.spec.mjs",
         "id": "acc-e1",
-        "statement": "数据事件三要素定版（五钩子埋点契约）：事件名枚举封闭 = {session_start, session_end, block_place, perfect_hit, game_over, restart}（任务书口径五钩子，session_start/end 计一对）；每事件载荷必含双时间戳（client_ts ISO8601 + mono_ms 单调毫秒）+ anon_id（本地随机 UUID v4，零 PII：不含 IP/设备号/账号标识）+ schema_version + client_version；触发次数与字段类型进冒烟（session_start/end 每局各 1、block_place ≥1、perfect_hit ≥0、game_over 0..1、restart 0..N）"
+        "statement": "数据事件三要素定版（五钩子埋点契约）：事件名枚举封闭 = {session_start, session_end, block_place, perfect_hit, game_over, restart}（任务书口径五钩子，session_start/end 计一对）；每事件载荷必含双时间戳（client_ts ISO8601 + mono_ms 单调毫秒）+ anon_id（本地随机 UUID v4，零 PII：不含 IP/设备号/账号标识）+ schema_version + client_version；触发次数与字段类型进冒烟（session_start/end 每局各 1、block_place ≥1、perfect_hit ≥0、game_over 0..1、restart 0..N）",
+        "check": "node games/stack-tower/tests/contract/telemetry-acc-e1-hooks.spec.mjs"
       },
       {
-        "check": "node games/stack-tower/tests/contract/theme-acc-t1-constants-source.spec.mjs",
         "id": "acc-t1",
-        "statement": "theme.js 单一常量源契约（entity e-theme-constants 锚点）：render/audio/ui 全部视觉/音画/juice 常量（色值、时长、池上限、发光参数）仅从 games/stack-tower/src/render/theme.ts（导入形态 ./theme.js）具名常量 import；扫描断言 render/audio/ui 目录零散落十六进制色值与 juice 时限字面量（测试夹具/注释除外）；内核数值唯一来源仍为 src/kernel/numeric.ts（互不越界）"
+        "statement": "theme.js 单一常量源契约（entity e-theme-constants 锚点）：render/audio/ui 全部视觉/音画/juice 常量（色值、时长、池上限、发光参数）仅从 games/stack-tower/src/render/theme.ts（导入形态 ./theme.js）具名常量 import；扫描断言 render/audio/ui 目录零散落十六进制色值与 juice 时限字面量（测试夹具/注释除外）；内核数值唯一来源仍为 src/kernel/numeric.ts（互不越界）",
+        "check": "node games/stack-tower/tests/contract/theme-acc-t1-constants-source.spec.mjs"
       },
       {
-        "check": "node games/stack-tower/tests/contract/assets-acc-a8-p0-table.spec.mjs",
         "id": "acc-a8",
-        "statement": "P0 资产 13 项逐件查表：a08-bg-night-gradient、a09..a14-block-skin-base-01..06、a15-fx-cut-face、a16-fx-ripple-ring、a17-fx-perfect-glow、a18-ui-btn-primary、a19-ui-panel-hud、a20-ui-icon-sound——逐件 PASS/FAIL，判据 hex±5 / 禁描边 / 渐变方向二值 / 几何 ±10% 拒收；asset-check 并入 contract-check 同门运行"
+        "statement": "P0 资产 13 项逐件查表：a08-bg-night-gradient、a09..a14-block-skin-base-01..06、a15-fx-cut-face、a16-fx-ripple-ring、a17-fx-perfect-glow、a18-ui-btn-primary、a19-ui-panel-hud、a20-ui-icon-sound——逐件 PASS/FAIL，判据 hex±5 / 禁描边 / 渐变方向二值 / 几何 ±10% 拒收；asset-check 并入 contract-check 同门运行",
+        "check": "node games/stack-tower/tests/contract/assets-acc-a8-p0-table.spec.mjs"
       },
       {
-        "check": "node games/stack-tower/tests/contract/numeric-acc-num-frozen-gate.spec.mjs",
         "id": "acc-num",
-        "statement": "numeric 冻结机械断言（数值总闸加固）：v1 冻结七键（DEFAULT_SEED/FIXED_STEP_MS/MAX_DT_MS/perfect_window/cut_width/scoring/difficulty）v1 vs v1.2 键序无关深比全等 + sha256 相等，任一不满足即 FAIL；同时 numeric.opening 组与 src/kernel/numeric.ts 镜像一致（e07 数值总闸口径延续）"
+        "statement": "numeric 冻结机械断言（数值总闸加固）：v1 冻结七键（DEFAULT_SEED/FIXED_STEP_MS/MAX_DT_MS/perfect_window/cut_width/scoring/difficulty）v1 vs v1.2 键序无关深比全等 + sha256 相等，任一不满足即 FAIL；同时 numeric.opening 组与 src/kernel/numeric.ts 镜像一致（e07 数值总闸口径延续）",
+        "check": "node games/stack-tower/tests/contract/numeric-acc-num-frozen-gate.spec.mjs"
       }
     ],
     "assets": [
@@ -221,157 +220,124 @@
         "source": "generated"
       },
       {
-        "expect": "霓虹夜空垂直渐变底（深蓝紫→暗青，垂直单向）；验收判据（acc-a8 查表）：渐变方向二值（垂直单向）/ hex±5；逐件 PASS/FAIL",
-        "file": "games/stack-tower/src/render/theme.ts",
-        "generator": "procedural:canvas2d",
         "id": "a08-bg-night-gradient",
         "kind": "背景层",
-        "license": "仓库内自产（procedural），无第三方素材",
-        "source": "generated"
-      },
-      {
-        "expect": "霓虹塔块皮 6 色循环之第 1 色（120×28 基准几何）；验收判据（acc-a8 查表）：hex±5 / 禁描边 / 几何 ±10% 拒收；逐件 PASS/FAIL",
         "file": "games/stack-tower/src/render/theme.ts",
         "generator": "procedural:canvas2d",
+        "expect": "霓虹夜空垂直渐变底（深蓝紫→暗青，垂直单向）；验收判据（acc-a8 查表）：渐变方向二值（垂直单向）/ hex±5；逐件 PASS/FAIL",
+        "source": "generated",
+        "license": "仓库内自产（procedural），无第三方素材"
+      },
+      {
         "id": "a09-block-skin-base-01",
         "kind": "贴图",
-        "license": "仓库内自产（procedural），无第三方素材",
-        "source": "generated"
-      },
-      {
-        "expect": "霓虹塔块皮 6 色循环之第 2 色（120×28 基准几何）；验收判据（acc-a8 查表）：hex±5 / 禁描边 / 几何 ±10% 拒收；逐件 PASS/FAIL",
         "file": "games/stack-tower/src/render/theme.ts",
         "generator": "procedural:canvas2d",
+        "expect": "霓虹塔块皮 6 色循环之第 1 色（120×28 基准几何）；验收判据（acc-a8 查表）：hex±5 / 禁描边 / 几何 ±10% 拒收；逐件 PASS/FAIL",
+        "source": "generated",
+        "license": "仓库内自产（procedural），无第三方素材"
+      },
+      {
         "id": "a10-block-skin-base-02",
         "kind": "贴图",
-        "license": "仓库内自产（procedural），无第三方素材",
-        "source": "generated"
-      },
-      {
-        "expect": "霓虹塔块皮 6 色循环之第 3 色（120×28 基准几何）；验收判据（acc-a8 查表）：hex±5 / 禁描边 / 几何 ±10% 拒收；逐件 PASS/FAIL",
         "file": "games/stack-tower/src/render/theme.ts",
         "generator": "procedural:canvas2d",
+        "expect": "霓虹塔块皮 6 色循环之第 2 色（120×28 基准几何）；验收判据（acc-a8 查表）：hex±5 / 禁描边 / 几何 ±10% 拒收；逐件 PASS/FAIL",
+        "source": "generated",
+        "license": "仓库内自产（procedural），无第三方素材"
+      },
+      {
         "id": "a11-block-skin-base-03",
         "kind": "贴图",
-        "license": "仓库内自产（procedural），无第三方素材",
-        "source": "generated"
-      },
-      {
-        "expect": "霓虹塔块皮 6 色循环之第 4 色（120×28 基准几何）；验收判据（acc-a8 查表）：hex±5 / 禁描边 / 几何 ±10% 拒收；逐件 PASS/FAIL",
         "file": "games/stack-tower/src/render/theme.ts",
         "generator": "procedural:canvas2d",
+        "expect": "霓虹塔块皮 6 色循环之第 3 色（120×28 基准几何）；验收判据（acc-a8 查表）：hex±5 / 禁描边 / 几何 ±10% 拒收；逐件 PASS/FAIL",
+        "source": "generated",
+        "license": "仓库内自产（procedural），无第三方素材"
+      },
+      {
         "id": "a12-block-skin-base-04",
         "kind": "贴图",
-        "license": "仓库内自产（procedural），无第三方素材",
-        "source": "generated"
-      },
-      {
-        "expect": "霓虹塔块皮 6 色循环之第 5 色（120×28 基准几何）；验收判据（acc-a8 查表）：hex±5 / 禁描边 / 几何 ±10% 拒收；逐件 PASS/FAIL",
         "file": "games/stack-tower/src/render/theme.ts",
         "generator": "procedural:canvas2d",
+        "expect": "霓虹塔块皮 6 色循环之第 4 色（120×28 基准几何）；验收判据（acc-a8 查表）：hex±5 / 禁描边 / 几何 ±10% 拒收；逐件 PASS/FAIL",
+        "source": "generated",
+        "license": "仓库内自产（procedural），无第三方素材"
+      },
+      {
         "id": "a13-block-skin-base-05",
         "kind": "贴图",
-        "license": "仓库内自产（procedural），无第三方素材",
-        "source": "generated"
-      },
-      {
-        "expect": "霓虹塔块皮 6 色循环之第 6 色（120×28 基准几何）；验收判据（acc-a8 查表）：hex±5 / 禁描边 / 几何 ±10% 拒收；逐件 PASS/FAIL",
         "file": "games/stack-tower/src/render/theme.ts",
         "generator": "procedural:canvas2d",
+        "expect": "霓虹塔块皮 6 色循环之第 5 色（120×28 基准几何）；验收判据（acc-a8 查表）：hex±5 / 禁描边 / 几何 ±10% 拒收；逐件 PASS/FAIL",
+        "source": "generated",
+        "license": "仓库内自产（procedural），无第三方素材"
+      },
+      {
         "id": "a14-block-skin-base-06",
         "kind": "贴图",
-        "license": "仓库内自产（procedural），无第三方素材",
-        "source": "generated"
-      },
-      {
-        "expect": "切面高亮（发光填充形态）；验收判据（acc-a8 查表）：禁描边 / 几何 ±10%；逐件 PASS/FAIL",
         "file": "games/stack-tower/src/render/theme.ts",
         "generator": "procedural:canvas2d",
+        "expect": "霓虹塔块皮 6 色循环之第 6 色（120×28 基准几何）；验收判据（acc-a8 查表）：hex±5 / 禁描边 / 几何 ±10% 拒收；逐件 PASS/FAIL",
+        "source": "generated",
+        "license": "仓库内自产（procedural），无第三方素材"
+      },
+      {
         "id": "a15-fx-cut-face",
         "kind": "fx",
-        "license": "仓库内自产（procedural），无第三方素材",
-        "source": "generated"
-      },
-      {
-        "expect": "塔身涟漪环（中心对称扩散）；验收判据（acc-a8 查表）：中心对称 / hex±5；逐件 PASS/FAIL",
         "file": "games/stack-tower/src/render/theme.ts",
         "generator": "procedural:canvas2d",
+        "expect": "切面高亮（发光填充形态）；验收判据（acc-a8 查表）：禁描边 / 几何 ±10%；逐件 PASS/FAIL",
+        "source": "generated",
+        "license": "仓库内自产（procedural），无第三方素材"
+      },
+      {
         "id": "a16-fx-ripple-ring",
         "kind": "fx",
-        "license": "仓库内自产（procedural），无第三方素材",
-        "source": "generated"
-      },
-      {
-        "expect": "完美命中辉光（additive 形态）；验收判据（acc-a8 查表）：additive 形态 / hex±5；逐件 PASS/FAIL",
         "file": "games/stack-tower/src/render/theme.ts",
         "generator": "procedural:canvas2d",
+        "expect": "塔身涟漪环（中心对称扩散）；验收判据（acc-a8 查表）：中心对称 / hex±5；逐件 PASS/FAIL",
+        "source": "generated",
+        "license": "仓库内自产（procedural），无第三方素材"
+      },
+      {
         "id": "a17-fx-perfect-glow",
         "kind": "fx",
-        "license": "仓库内自产（procedural），无第三方素材",
-        "source": "generated"
-      },
-      {
-        "expect": "主按钮（霓虹描边圆角矩形）；验收判据（acc-a8 查表）：圆角几何 ±10% / hex±5；逐件 PASS/FAIL",
         "file": "games/stack-tower/src/render/theme.ts",
         "generator": "procedural:canvas2d",
+        "expect": "完美命中辉光（additive 形态）；验收判据（acc-a8 查表）：additive 形态 / hex±5；逐件 PASS/FAIL",
+        "source": "generated",
+        "license": "仓库内自产（procedural），无第三方素材"
+      },
+      {
         "id": "a18-ui-btn-primary",
         "kind": "ui",
-        "license": "仓库内自产（procedural），无第三方素材",
-        "source": "generated"
-      },
-      {
-        "expect": "HUD 面板（半透明夜色底）；验收判据（acc-a8 查表）：透明度规格 / 禁描边；逐件 PASS/FAIL",
         "file": "games/stack-tower/src/render/theme.ts",
         "generator": "procedural:canvas2d",
+        "expect": "主按钮（霓虹描边圆角矩形）；验收判据（acc-a8 查表）：圆角几何 ±10% / hex±5；逐件 PASS/FAIL",
+        "source": "generated",
+        "license": "仓库内自产（procedural），无第三方素材"
+      },
+      {
         "id": "a19-ui-panel-hud",
         "kind": "ui",
-        "license": "仓库内自产（procedural），无第三方素材",
-        "source": "generated"
-      },
-      {
-        "expect": "声音开关图标；验收判据（acc-a8 查表）：几何 ±10% / hex±5；逐件 PASS/FAIL",
         "file": "games/stack-tower/src/render/theme.ts",
         "generator": "procedural:canvas2d",
+        "expect": "HUD 面板（半透明夜色底）；验收判据（acc-a8 查表）：透明度规格 / 禁描边；逐件 PASS/FAIL",
+        "source": "generated",
+        "license": "仓库内自产（procedural），无第三方素材"
+      },
+      {
         "id": "a20-ui-icon-sound",
         "kind": "ui",
-        "license": "仓库内自产（procedural），无第三方素材",
-        "source": "generated"
+        "file": "games/stack-tower/src/render/theme.ts",
+        "generator": "procedural:canvas2d",
+        "expect": "声音开关图标；验收判据（acc-a8 查表）：几何 ±10% / hex±5；逐件 PASS/FAIL",
+        "source": "generated",
+        "license": "仓库内自产（procedural），无第三方素材"
       }
     ],
     "content": {
-      "analytics": {
-        "hooks": {
-          "events": [
-            "session_start",
-            "session_end",
-            "block_place",
-            "perfect_hit",
-            "game_over",
-            "restart"
-          ],
-          "payload": {
-            "anonId": "anon_id：本地随机 UUID v4，设备/会话级，零 PII（不含 IP/设备号/账号标识）",
-            "perfectHit": "perfect_hit 额外携带 dispatch 时间戳（acc-j3 音画 ≤50ms 可测点）",
-            "timestamps": "双时间戳：client_ts（ISO8601）+ mono_ms（单调毫秒，perf.now 系）",
-            "versions": "schema_version + client_version 必填"
-          }
-        },
-        "note": "统计三行均为「B 轮启动门槛」（业务目标），非本轮验收判据；本轮验收范围 = 埋点完整性与字段合规（acc-e1 三要素 + 触发次数 + 字段类型），业务值不在本轮判定",
-        "targets": {
-          "avgSessionsPerUser": "3 局（B 轮启动门槛：人均局数）",
-          "restartRate": "20%（B 轮启动门槛：game-over 后重开率）",
-          "sessionCompletionRate": "85%（B 轮启动门槛：会话完成率，口径 = 到达 targetLayers(level) 或 game-over 前未中途流失）"
-        }
-      },
-      "benchmark": {
-        "freeze": "本口径自 v1.1 起冻结：换浏览器内核/换节流档位/换视口/换基准设备，必须先升策划案版本（numeric.benchmark_device）再改测试",
-        "lab": "实验室自动化口径 = playwright chromium（numeric.benchmark_device.LAB_RUNNER）+ CPU throttle 4x（LAB_CPU_THROTTLE_X）+ 视口 390x844 / 360x640 两档（LAB_VIEWPORTS_PX）；acc-a5b 自动化判据（p95 ≤18.2ms、jank(>50ms)=0）在本口径下取证",
-        "realDevice": "真机口径单列：每台设备注明「设备型号 + UA」后单独成行列判据；禁止以「中端机」泛称合并口径，真机数据不与实验室口径混算、不互相替代"
-      },
-      "evidence": {
-        "bgmSeam": "BGM 接缝证据双轨，均不可省：①听测留档（录音或听测记录，按全局证据条款四要素入档）；②tests/audio/bgm-loop.test.ts 调度连续性断言——循环点由调度器预排队（lookahead ≥ 0.2s），接缝处下一循环起始时间与当前循环结束时间偏差 ≤ 16ms（1 tick）、无重叠、无静音留白。任缺其一 = 该条冒烟不通过",
-        "smokeLog": "全局证据条款：每条冒烟留文件名+日期+命令+输出摘要（落 .myrd/blackboard/gate-logs/<轮次>-<日期>-<主题>/）；四要素缺任一 = 该条冒烟无效，不得计绿、不得作为核销证据"
-      },
       "formulas": {
         "keepWidth(offset,width)": "width − |offset|；|offset|≥width → 整块掉落；keepWidth<36 → game-over",
         "perfectDistance(level)": "swingSpeed(level) × perfectWindowMs(level) / 1000  → L1=22.4px",
@@ -469,6 +435,39 @@
           "restart": "restart 事件 → sfx-restart（critical，≤200ms）"
         },
         "trigger": "perfect 判定成立的同一 tick，先于渲染帧消费"
+      },
+      "benchmark": {
+        "lab": "实验室自动化口径 = playwright chromium（numeric.benchmark_device.LAB_RUNNER）+ CPU throttle 4x（LAB_CPU_THROTTLE_X）+ 视口 390x844 / 360x640 两档（LAB_VIEWPORTS_PX）；acc-a5b 自动化判据（p95 ≤18.2ms、jank(>50ms)=0）在本口径下取证",
+        "realDevice": "真机口径单列：每台设备注明「设备型号 + UA」后单独成行列判据；禁止以「中端机」泛称合并口径，真机数据不与实验室口径混算、不互相替代",
+        "freeze": "本口径自 v1.1 起冻结：换浏览器内核/换节流档位/换视口/换基准设备，必须先升策划案版本（numeric.benchmark_device）再改测试"
+      },
+      "evidence": {
+        "smokeLog": "全局证据条款：每条冒烟留文件名+日期+命令+输出摘要（落 .myrd/blackboard/gate-logs/<轮次>-<日期>-<主题>/）；四要素缺任一 = 该条冒烟无效，不得计绿、不得作为核销证据",
+        "bgmSeam": "BGM 接缝证据双轨，均不可省：①听测留档（录音或听测记录，按全局证据条款四要素入档）；②tests/audio/bgm-loop.test.ts 调度连续性断言——循环点由调度器预排队（lookahead ≥ 0.2s），接缝处下一循环起始时间与当前循环结束时间偏差 ≤ 16ms（1 tick）、无重叠、无静音留白。任缺其一 = 该条冒烟不通过"
+      },
+      "analytics": {
+        "note": "统计三行均为「B 轮启动门槛」（业务目标），非本轮验收判据；本轮验收范围 = 埋点完整性与字段合规（acc-e1 三要素 + 触发次数 + 字段类型），业务值不在本轮判定",
+        "targets": {
+          "sessionCompletionRate": "85%（B 轮启动门槛：会话完成率，口径 = 到达 targetLayers(level) 或 game-over 前未中途流失）",
+          "avgSessionsPerUser": "3 局（B 轮启动门槛：人均局数）",
+          "restartRate": "20%（B 轮启动门槛：game-over 后重开率）"
+        },
+        "hooks": {
+          "events": [
+            "session_start",
+            "session_end",
+            "block_place",
+            "perfect_hit",
+            "game_over",
+            "restart"
+          ],
+          "payload": {
+            "timestamps": "双时间戳：client_ts（ISO8601）+ mono_ms（单调毫秒，perf.now 系）",
+            "anonId": "anon_id：本地随机 UUID v4，设备/会话级，零 PII（不含 IP/设备号/账号标识）",
+            "versions": "schema_version + client_version 必填",
+            "perfectHit": "perfect_hit 额外携带 dispatch 时间戳（acc-j3 音画 ≤50ms 可测点）"
+          }
+        }
       }
     },
     "entities": [
@@ -575,19 +574,19 @@
         "script": "games/stack-tower/src/ui/rotate-overlay.ts"
       },
       {
-        "expect": "theme.js 单一常量源（契约锚点）：games/stack-tower/src/render/theme.ts（导入形态 ./theme.js，任务书口径 theme.js）承载全部表现层常量——霓虹夜塔色板（夜空渐变/塔块霓虹 6 色/切面/辉光）+ juice 时限（FIRST_BLOCK_BUDGET_MS=3000 / JUICE_LATENCY_MS=100 / AUDIO_DISPATCH_BUDGET_MS=50 / RESTART_BUDGET_MS=1500）+ 涟漪池（RIPPLE_POOL_MAX=200）+ 发光与描边参数；render/audio/ui 只读此源，另设字面量即违契约（acc-t1 扫描断言）；内核数值唯一来源仍为 src/kernel/numeric.ts",
         "id": "e-theme-constants",
-        "kind": "entity"
+        "kind": "entity",
+        "expect": "theme.js 单一常量源（契约锚点）：games/stack-tower/src/render/theme.ts（导入形态 ./theme.js，任务书口径 theme.js）承载全部表现层常量——霓虹夜塔色板（夜空渐变/塔块霓虹 6 色/切面/辉光）+ juice 时限（FIRST_BLOCK_BUDGET_MS=3000 / JUICE_LATENCY_MS=100 / AUDIO_DISPATCH_BUDGET_MS=50 / RESTART_BUDGET_MS=1500）+ 涟漪池（RIPPLE_POOL_MAX=200）+ 发光与描边参数；render/audio/ui 只读此源，另设字面量即违契约（acc-t1 扫描断言）；内核数值唯一来源仍为 src/kernel/numeric.ts"
       },
       {
-        "expect": "tower-ripple 表现层订阅者：订阅内核 tower-ripple 事件，涟漪粒子对象池 ≤200 颗（theme.RIPPLE_POOL_MAX，超龄/超额复用禁新建），Canvas2D additive 合成（globalCompositeOperation lighter）；订阅侧异常必须隔离（表现层 catch，禁止反传内核/中断确定性 tick）；零内核改动（e-ripple-emitter 事件契约原文不变）",
         "id": "e-ripple-renderer",
-        "kind": "entity"
+        "kind": "entity",
+        "expect": "tower-ripple 表现层订阅者：订阅内核 tower-ripple 事件，涟漪粒子对象池 ≤200 颗（theme.RIPPLE_POOL_MAX，超龄/超额复用禁新建），Canvas2D additive 合成（globalCompositeOperation lighter）；订阅侧异常必须隔离（表现层 catch，禁止反传内核/中断确定性 tick）；零内核改动（e-ripple-emitter 事件契约原文不变）"
       },
       {
-        "expect": "五钩子埋点发射器（acc-e1 契约）：枚举事件 {session_start, session_end, block_place, perfect_hit, game_over, restart}，载荷含双时间戳 + anon_id（UUID v4 零 PII）+ schema_version + client_version；perfect_hit 携带 dispatch 时间戳（acc-j3 可测点）；异常隔离同 e-ripple-renderer 口径（埋点故障不得影响游戏逻辑）",
         "id": "e-telemetry-emitter",
-        "kind": "entity"
+        "kind": "entity",
+        "expect": "五钩子埋点发射器（acc-e1 契约）：枚举事件 {session_start, session_end, block_place, perfect_hit, game_over, restart}，载荷含双时间戳 + anon_id（UUID v4 零 PII）+ schema_version + client_version；perfect_hit 携带 dispatch 时间戳（acc-j3 可测点）；异常隔离同 e-ripple-renderer 口径（埋点故障不得影响游戏逻辑）"
       }
     ],
     "levels": [
@@ -634,9 +633,9 @@
             "kind": "rule"
           },
           {
-            "expect": "开局初始摆位（v1.2 特性）：塔基块之上预置 3–5 块（numeric.opening.STACK_MIN_BLOCKS=3 / STACK_MAX_BLOCKS=5，块数与宽度扰动由 seeded RNG 决定、同 seed 逐 tick 可复现，单块宽度扰动 ≤ STACK_WIDTH_JITTER_PX)；初始摆位块不计分不计 layers（layerCount 只数玩家落块），塔顶 = 初始摆位最顶块，摆动块在塔顶上方摆动。落点：games/stack-tower/src/kernel/tower.ts buildOpeningStack()，参数唯一来源 numeric.opening（镜像 spec.numeric.opening）",
             "id": "lvl-01-stack-tower/e09-opening-stack",
-            "kind": "spawn"
+            "kind": "spawn",
+            "expect": "开局初始摆位（v1.2 特性）：塔基块之上预置 3–5 块（numeric.opening.STACK_MIN_BLOCKS=3 / STACK_MAX_BLOCKS=5，块数与宽度扰动由 seeded RNG 决定、同 seed 逐 tick 可复现，单块宽度扰动 ≤ STACK_WIDTH_JITTER_PX)；初始摆位块不计分不计 layers（layerCount 只数玩家落块），塔顶 = 初始摆位最顶块，摆动块在塔顶上方摆动。落点：games/stack-tower/src/kernel/tower.ts buildOpeningStack()，参数唯一来源 numeric.opening（镜像 spec.numeric.opening）"
           }
         ],
         "expect": "玩家在 8 层目标内学会「看切面—等对齐—点下去」；塔基稳固、摆速最慢、窗口最宽，完美时有涟漪与叮声双反馈",
@@ -665,20 +664,6 @@
         "SFX_BUS_GAIN": 0.9,
         "VOICE_POOL_SIZE": 8
       },
-      "benchmark_device": {
-        "LAB_CPU_THROTTLE_X": 4,
-        "LAB_RUNNER": "playwright-chromium",
-        "LAB_VIEWPORTS_PX": [
-          [
-            390,
-            844
-          ],
-          [
-            360,
-            640
-          ]
-        ]
-      },
       "cut_width": {
         "BLOCK_BASE_WIDTH": 120,
         "SWING_TRAVEL_PX": 240,
@@ -704,11 +689,6 @@
       "mobile": {
         "ROTATE_ASPECT_RATIO": 1
       },
-      "opening": {
-        "STACK_MAX_BLOCKS": 5,
-        "STACK_MIN_BLOCKS": 3,
-        "STACK_WIDTH_JITTER_PX": 6
-      },
       "perfect_window": {
         "PERFECT_WINDOW_BASE_MS": 140,
         "PERFECT_WINDOW_DECAY_MS_PER_LEVEL": 8,
@@ -719,6 +699,25 @@
         "PERFECT_COMBO_BONUS_CAP": 75,
         "PERFECT_COMBO_STEP": 5,
         "PLACE_SCORE": 10
+      },
+      "benchmark_device": {
+        "LAB_RUNNER": "playwright-chromium",
+        "LAB_CPU_THROTTLE_X": 4,
+        "LAB_VIEWPORTS_PX": [
+          [
+            390,
+            844
+          ],
+          [
+            360,
+            640
+          ]
+        ]
+      },
+      "opening": {
+        "STACK_MIN_BLOCKS": 3,
+        "STACK_MAX_BLOCKS": 5,
+        "STACK_WIDTH_JITTER_PX": 6
       }
     },
     "world": {
@@ -737,13 +736,5 @@
       "reference": "T1 终裁锚点（首卡 stack-tower）；范式基准 transport-ship-3d spec v3（确定性内核 + 契约测试 + 代持拍板）"
     }
   },
-  "_platform": {
-    "platformSpecId": "cmuj5f6ik00hkm9l64r5uickm",
-    "version": 4,
-    "status": "approved",
-    "title": "Stack Tower（叠塔）",
-    "parentSpecId": "cmugok2uz000xm9ilx42t8pnl",
-    "exportedAt": "2026-09-27",
-    "note": "r4 霓虹夜塔冲刺导出件：平台 v4 ≡ 任务书口径 spec v1.2（v1.1 未登记增量已完整折入）"
-  }
+  "detail": "v1.2 建版载荷（含 v1.1 未登记增量完整折入）：含 QA 三处缺陷修复（D1/D2/D3 一次性折入）。D1 numeric 追加 benchmark_device 组冻结中端基准机口径：实验室=playwright chromium + 4x CPU throttle + 390x844/360x640；真机单列注明设备型号与 UA（content.benchmark）。D2 acceptance 追加 acc-a7「冷启动首触即放置」（tests/audio/events.test.ts）+ world 实现约束「首触手势内完成 AudioContext 解锁与播放，闸门不得吞掉或延后首次出声（仍受 50ms 约束）」，不设 iOS 豁免条款。D3 content.evidence 增全局证据条款「每条冒烟留文件名+日期+命令+输出摘要」+ BGM 接缝双轨证据（听测留档 + tests/audio/bgm-loop.test.ts 调度连续性断言并行，均不可省）。v1 起冻结数值七键 diff 为空；levels/entities/assets/既有 22 条 acceptance/world 既有规则逐字保留，本版只增不改。版本链仅此一版：沿 v3 POST revisions version+1 单版落账，不产生 v1.2。挂账：tests/audio/* 两用例落盘属 D4（主人答复 D5 前冻结），落账前走契约 not-runnable 通道显式挂起；登记后 D4 落盘时需同步 src/kernel/numeric.ts 镜像 benchmark_device 组（契约 e07 数值总闸全量深比）。"
 }
