@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scripts/log_spawner.gd" id="4_log_spawner"]
 [ext_resource type="Script" path="res://scripts/hud.gd" id="5_hud"]
 [ext_resource type="Script" path="res://scripts/restart_button.gd" id="6_restart"]
+[ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="7_joystick"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_restart"]
 radius = 40.0
@@ -144,3 +145,24 @@ offset_bottom = 14.0
 theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.92, 0.95, 0.85, 1)
 text = "重新开始"
+
+[node name="MuteButton" type="Button" parent="Hud"]
+unique_name_in_owner = true
+offset_left = 816.0
+offset_top = 484.0
+offset_right = 944.0
+offset_bottom = 522.0
+theme_override_font_sizes/font_size = 16
+text = "音效:开"
+
+[node name="TouchUI" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="JoystickAnchor" type="Control" parent="TouchUI"]
+unique_name_in_owner = true
+offset_left = 24.0
+offset_top = 372.0
+offset_right = 136.0
+offset_bottom = 484.0
+mouse_filter = 0
+script = ExtResource("7_joystick")

@@ -24,12 +24,30 @@ func _physics_process(_delta: float) -> void:
 	if frozen:
 		velocity = Vector2.ZERO
 		return
-	var direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	velocity = direction * SPEED
+	var direction := _get_move_vector()
+	var speed := SPEED
+	if GameState.slow_left > 0.0:
+		# 坏水果减速 debuff（迭代反馈 3）：减速期移速 × SLOW_FACTOR，只读 GameState 状态。
+		speed *= GameState.SLOW_FACTOR
+	velocity = direction * speed
 	move_and_slide()
 	global_position = clamped_position(global_position)
 	if direction != Vector2.ZERO:
 		moved.emit(global_position)
+
+
+## 统一移动向量出口（知识 82e419bb §二.3 落地点）：所有移动代码只读这一个函数。
+## 键盘（InputMap 动作）与触屏摇杆（VirtualJoystick.vector）在此汇合：
+##   - 键盘：Input.get_vector 已按动作 deadzone 归一；
+##   - 摇杆：经 "joystick" 组取当前向量（非触屏端恒为 ZERO，摇杆只写状态不移动角色）；
+##   - 合成后 limit_length(1.0)：防对角线 √2 倍速，同时保证「同非零取合成不超速」的固定口径。
+func _get_move_vector() -> Vector2:
+	var keyboard := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	var joystick := Vector2.ZERO
+	var joystick_node := get_tree().get_first_node_in_group("joystick")
+	if joystick_node is VirtualJoystick:
+		joystick = (joystick_node as VirtualJoystick).vector
+	return (keyboard + joystick).limit_length(1.0)
 
 
 ## 边界 clamp：以当前视口（960x540 设计分辨率）为界，永不越界。

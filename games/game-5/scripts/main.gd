@@ -11,12 +11,17 @@ signal match_ended(reason: StringName)
 
 const REASON_TIME_UP: StringName = &"time_up"
 const REASON_HIT_LOG: StringName = &"hit_log"
-## 飘分颜色：基础 +10 与连击加分区分（知识 6e91a11d §三）。
+## 飘分颜色：基础 +10 与连击加分区分（知识 6e91a11d §三）；扣分用坏水果色系。
 const POPUP_BASE_COLOR: Color = Color(1, 1, 1)
 const POPUP_COMBO_COLOR: Color = Color(1, 0.62, 0.15)
+const POPUP_PENALTY_COLOR: Color = Color(0.62, 0.85, 0.4)
+## 倒计时告警：最后 5 秒逐秒 tick + HUD 时间变警示色（迭代反馈 2）。
+const ALERT_SECONDS: int = 5
 
 var time_left: float = GameState.MATCH_SECONDS
 var match_over: bool = false
+## 已tick过的秒数（每秒只告警一次）。
+var _last_alert_second: int = -1
 
 @onready var player: Player = $Player
 @onready var fruit_spawner: FruitSpawner = $FruitSpawner
@@ -42,9 +47,20 @@ func _physics_process(delta: float) -> void:
 	time_left -= delta
 	log_spawner.time_left = time_left
 	time_changed.emit(time_left)
+	_tick_countdown_alert()
 	if time_left <= 0.0:
 		time_left = 0.0
 		_end_match(REASON_TIME_UP)
+
+
+## 倒计时最后 5 秒：每跨过 1 秒播一次告警音，并把 HUD 时间染成警示色。
+func _tick_countdown_alert() -> void:
+	var second: int = int(ceilf(maxf(time_left, 0.0)))
+	var urgent := second <= ALERT_SECONDS and second >= 1
+	if urgent and second != _last_alert_second:
+		_last_alert_second = second
+		Juice.sfx(&"tick")
+	hud.set_time_urgent(urgent)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -58,6 +74,7 @@ func start_match(fruit_seed: int = -1, log_seed: int = -1) -> void:
 	GameState.reset()
 	time_left = GameState.MATCH_SECONDS
 	match_over = false
+	_last_alert_second = -1
 	player.reset_for_new_match()
 	fruit_spawner.start_match(fruit_seed if fruit_seed >= 0 else randi())
 	log_spawner.start_match(log_seed if log_seed >= 0 else randi())
@@ -85,15 +102,25 @@ func _end_match(reason: StringName) -> void:
 		Juice.hit_stop(0.08)
 		Juice.sfx(&"hit")
 		Juice.sfx(&"fail")
-	else:
-		Juice.sfx(&"confirm")
 	hud.show_result(title, GameState.score, GameState.fruits_collected, GameState.best_score)
+	# 结算音（迭代反馈 2）：两条终局路径进面板时都播一次 settle 失败局在前已有撞击音。
+	Juice.sfx(&"settle")
 	match_ended.emit(reason)
 
 
+## 收集分流（迭代反馈 3）：普通/金水果走加分入口，坏水果走惩罚入口（扣分 + 减速）。
 func _on_fruit_collected(fruit: Fruit) -> void:
-	var gained: int = GameState.add_score()
-	Juice.sfx(&"score")
+	if fruit.is_bad():
+		var lost: int = GameState.apply_penalty()
+		Juice.sfx(&"bad")
+		Juice.flash(player, Color(0.55, 0.75, 0.4, 0.7), 0.25)
+		_spawn_penalty_popup(fruit.global_position, lost)
+		return
+	var gained: int = GameState.add_score(fruit.points_value())
+	if fruit.kind == Fruit.KIND_GOLDEN:
+		Juice.sfx(&"golden")
+	else:
+		Juice.sfx(&"score")
 	if gained > GameState.BASE_POINTS:
 		Juice.sfx(&"confirm")
 	_spawn_score_popup(fruit.global_position, gained)
@@ -113,6 +140,21 @@ func _spawn_score_popup(world_pos: Vector2, gained: int) -> void:
 	var tween := label.create_tween()
 	tween.tween_property(label, "position:y", label.position.y - 30.0, 0.5)
 	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.5).set_delay(0.15)
+	tween.tween_callback(label.queue_free)
+
+
+## 扣分飘字：跟随坏水果世界坐标，绿灰色系与得分区分（含减速提示语义）。
+func _spawn_penalty_popup(world_pos: Vector2, lost: int) -> void:
+	var label := Label.new()
+	label.text = "-%d 减速!" % lost
+	label.add_theme_font_size_override("font_size", 22)
+	label.add_theme_color_override("font_color", POPUP_PENALTY_COLOR)
+	label.z_index = 50
+	popups.add_child(label)
+	label.position = world_pos + Vector2(-30, -34)
+	var tween := label.create_tween()
+	tween.tween_property(label, "position:y", label.position.y - 26.0, 0.6)
+	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.6).set_delay(0.2)
 	tween.tween_callback(label.queue_free)
 
 

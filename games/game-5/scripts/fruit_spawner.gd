@@ -74,11 +74,23 @@ func _on_restock_timer_timeout() -> void:
 
 func _spawn_fruit() -> void:
 	var fruit: Fruit = FRUIT_SCENE.instantiate()
-	fruit.kind = _rng.randi_range(0, 1)
+	fruit.kind = _roll_kind()
 	fruit.position = _pick_spawn_position()
 	_last_spawn_pos = fruit.position
 	fruit.collected.connect(_on_fruit_collected)
 	add_child(fruit)
+
+
+## 掉落分布（迭代反馈 3：玩法丰富 —— 类型分化）：
+## 金水果 10%（高分目标）、坏水果 12%（惩罚与风险）、其余为普通水果（苹果/浆果各半）。
+## 掷骰走本生成器自己的 RNG 流 —— 与原木生成、补货计时互不影响（知识 6e91a11d §二）。
+func _roll_kind() -> int:
+	var roll: int = _rng.randi_range(0, 99)
+	if roll < 10:
+		return Fruit.KIND_GOLDEN
+	if roll < 22:
+		return Fruit.KIND_BAD
+	return Fruit.KIND_APPLE if _rng.randi_range(0, 1) == 0 else Fruit.KIND_BERRY
 
 
 ## 落点：随机 + 三重约束（边缘内边距 / 避开原木瞬时位置 / 离上一落点不过近）。

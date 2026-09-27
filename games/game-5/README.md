@@ -7,29 +7,31 @@
 
 | 项 | 值 |
 | --- | --- |
-| 单局时长 | 60 秒逐秒倒计时（`GameState.MATCH_SECONDS` 唯一定义） |
-| 基础得分 | 每个水果 +10（苹果/浆果外观不同、分值等价） |
-| 连击加成 | 3 秒窗口内每追加 1 个额外 +5（窗口刷新式，`GameState.add_score()` 唯一入口） |
+| 单局时长 | 60 秒逐秒倒计时（`GameState.MATCH_SECONDS` 唯一定义）；末 5 秒逐秒 tick 告警 + 计时变红 |
+| 基础得分 | 普通水果 +10（苹果/浆果）；金水果 +50（掉落 10%）；坏水果 -15 且减速 2.5 秒（掉落 12%） |
+| 连击加成 | 3 秒窗口内每追加 1 个额外 +5（窗口刷新式，`GameState.add_score()` 唯一入口，金水果同等生效） |
 | 原木生成 | 2~4 秒随机间隔，与水果补货计时相互独立 |
 | 原木速度 | `v(t) = lerp(1.8·v0, v0, timeLeft/60)`，v0 = 120（随剩余时间递增） |
 | 水果供给 | 初始 8~12 个；存量 < 6 时每 0.8~1.5 秒补 1 个 |
 | 边界 | 松鼠永 clamp 在场景内（视觉 14px，碰撞盒 11px ≈ 78% 宽容度） |
-| 结算 | 本局得分 + 收集数量 + 历史最高分（`user://game_5_save.cfg` 持久化，仅破纪录覆写） |
+| 结算 | 本局得分 + 收集数量 + 历史最高分（`user://game_5_save.cfg` + Web 端 localStorage 镜像，仅破纪录覆写） |
 | 重开 | 双通道：触摸「重新开始」按钮 + 键盘 Enter/Space（confirm 动作） |
+| 音效 | 收集/金果/坏果/撞击/末 5 秒告警/结算；Web 端首个手势解锁 AudioContext，右下角「音效:开/关」静音开关（持久化） |
 
 ## 操作
 
 - 桌面：WASD / 方向键移动（对角线已归一化）；结算界面 Enter / Space 重开
-- 移动端：左下虚拟摇杆移动（`virtual_joystick.gd`，动作生产者）；结算界面触摸「重新开始」
+- 移动端：左下虚拟摇杆移动（`virtual_joystick.gd`，`_input` 阶段消费 ScreenTouch/Drag、维护归一化向量，不走 InputEventAction）；结算界面触摸「重新开始」
+- 音频：Web 端首次交互（任意手势）解锁 AudioContext 并出第一声；解锁前所有音效只记账不发声；静音开关独立于解锁且持久化
 
 ## 工程结构
 
 ```
 autoload/game_state.gd   计分唯一入口 + 连击状态机 + 最高分持久化（模板协议）
-autoload/juice.gd        反馈单例：pop/flash/shake/hit_stop/sfx + feedback_fired（playtest 采样锚点）
-scripts/main.gd          单局流程：倒计时 / 双终局路径（时间到 | 被原木击中）/ 重开 / 飘分
-scripts/player.gd        松鼠：归一化移动 + 边界 clamp + moved 信号
-scripts/fruit.gd         水果 Area2D：碰松鼠 → collected 信号
+autoload/juice.gd        反馈单例：pop/flash/shake/hit_stop/sfx（音频门控：解锁/记账/静音）+ feedback_fired
+scripts/main.gd          单局流程：倒计时 / 末 5 秒告警 / 双终局路径（时间到 | 被原木击中）/ 重开 / 飘分
+scripts/player.gd        松鼠：统一移动向量出口（键盘 + 摇杆）+ 边界 clamp + 减速 debuff + moved 信号
+scripts/fruit.gd         水果 Area2D：四类型（苹果/浆果/金/坏），碰松鼠 → collected 信号
 scripts/log_roller.gd    原木 Area2D：横滚 + 出界自毁 + 碰松鼠 → hit_player
 scripts/fruit_spawner.gd 铺场 + 补货（独立计时器）
 scripts/log_spawner.gd   原木节奏 + 速度递增公式（独立计时器）
