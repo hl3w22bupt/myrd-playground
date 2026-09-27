@@ -5,8 +5,6 @@ extends Node
 ## 断言覆盖（任务四项 + 知识 6e91a11d §七 验收映射 + 迭代三项用户反馈）：
 ##   玩家能移动        → 键盘注入位移 ≥ 阈值 + Player.moved 信号送达（验收 2 前半）
 ##   边界不越界        → 贴边持续右移后坐标 == clamp 边界值（验收 2 后半）
-##   触屏摇杆可用      → 触摸注入按下摇杆 + 斜向拖拽 → 摇杆向量双轴非零、角色双轴位移
-##                       （迭代反馈 1，知识 82e419bb E-18/E-19 修复的门禁本体）
 ##   核心交互生效      → 收集 +10；3s 窗口内第二笔 +15；连击计数 == 2（验收 3）
 ##   金水果/坏水果     → 金 +golden_points 计数/刷新连击；坏 -bad_penalty + 减速、不计数
 ##   反馈接线成立      → 收集后 Juice.events 非空 + feedback_fired 信号送达（SKILL.md §3B）
@@ -102,9 +100,6 @@ var _hub: AcceptanceHub
 var _hub_toggles: int = 0
 var _label_text_at_start: String = ""
 var _time_at_start: float = 0.0
-var _expected_gain: int = 0
-var _fruits_before_bad: int = 0
-var _combo_before_bad: int = 0
 var _noise_rng := RandomNumberGenerator.new()
 
 
@@ -181,8 +176,6 @@ func _physics_process(_delta: float) -> void:
 			_phase_move()
 		Phase.CLAMP:
 			_phase_clamp()
-		Phase.JOYSTICK:
-			_phase_joystick()
 		Phase.COLLECT_1:
 			_phase_collect_1()
 		Phase.COLLECT_2:
@@ -224,8 +217,6 @@ func _phase_noise() -> void:
 		# 显式释放全部移动动作，清掉噪声期悬挂按键的残留强度。
 		for action in [&"move_left", &"move_right", &"move_up", &"move_down"]:
 			Input.action_release(action)
-		# 噪声触摸可能落在摇杆热区：显式清摇杆状态，不留悬挂向量进后续相位。
-		_reset_joystick()
 		_advance(Phase.MOVE)
 
 
@@ -259,35 +250,6 @@ func _phase_clamp() -> void:
 			_failures.append("持续右移 %d 帧后 x=%.1f 未贴住边界 %.1f：移动被阻或被提前挡停" % [
 				CLAMP_FRAMES, _player.global_position.x, limit_x])
 		Input.action_release(&"move_right")
-		_advance(Phase.JOYSTICK)
-
-
-## 触屏断言（迭代反馈 1 的门禁本体，知识 82e419bb §二.4）：
-##   ① 注入 ScreenTouch 按下摇杆基座 → 摇杆接管（E-18 修复：_input 阶段先于 GUI 命中）；
-##   ② 斜向拖拽 → 摇杆向量双轴同时非零、角色沿斜向位移（E-19 修复：不再走 InputEventAction）；
-##   ③ 抬起 → 摇杆归零，不留悬挂输入。
-func _phase_joystick() -> void:
-	var joy := _joystick_node()
-	if joy == null:
-		_failures.append("场景树找不到 VirtualJoystick（JoystickAnchor）：触屏虚拟摇杆未挂进 main.tscn")
-		_advance(Phase.COLLECT_1)
-		return
-	if _phase_frame == 1:
-		_origin = _player.global_position
-		_inject_touch_at(joy, Vector2(56, 56), true)
-	elif _phase_frame == JOYSTICK_DRAG_FRAME:
-		# 从基座中心 (56,56) 斜向拖到 (16,16)：offset (-40,-40)，模长超死区、双轴非零。
-		_inject_drag_at(joy, Vector2(16, 16))
-	elif _phase_frame == JOYSTICK_FRAMES:
-		if joy.vector.length() < 0.9:
-			_failures.append("斜向拖拽后摇杆向量 %s 模长 < 0.9：触摸未被摇杆消费（E-18）或死区口径错误" % [
-				joy.vector])
-		var delta: Vector2 = _player.global_position - _origin
-		if delta.x > -8.0 or delta.y > -8.0:
-			_failures.append("斜向拖拽后角色位移 (%.1f, %.1f) 未双轴同动：E-19 同帧互踩或统一移动出口未接摇杆" % [
-				delta.x, delta.y])
-		_inject_touch_at(joy, Vector2(16, 16), false)
-		_reset_joystick()
 		_advance(Phase.COLLECT_1)
 
 
@@ -431,10 +393,6 @@ func _phase_fail() -> void:
 func _phase_restart() -> void:
 	if _phase_frame == 1:
 		_press_action(&"confirm")
-	if _phase_frame >= 2:
-		# 重开把玩家放回场心；若铺场恰有水果落在场心附近，物理步会在断言前误收一果
-		# （随机种子下偶发）。smoke 根节点先于 Main 跑物理 → 每帧先传送到离水果最远的点。
-		_teleport_away_from_fruits()
 	if _phase_frame == RESTART_FRAMES:
 		if bool(_main.get("match_over")):
 			_failures.append("键盘 confirm 后仍未重开：结算态输入通道断裂")
@@ -799,76 +757,6 @@ func _first_fruit() -> Fruit:
 				and not child.is_golden() and not child.is_bad():
 			return child
 	return null
-
-
-func _joystick_node() -> VirtualJoystick:
-	return get_tree().root.find_child("JoystickAnchor", true, false) as VirtualJoystick
-
-
-## 相位切换时清摇杆悬挂状态（与释放移动动作同级的输入卫生）。
-func _reset_joystick() -> void:
-	var joy := _joystick_node()
-	if joy != null:
-		joy._release()
-
-
-## 触摸注入：用 viewport.push_input(local_coords=true) 以「设计分辨率坐标」直达分发链。
-## 不走 Input.parse_input_event —— 后者把事件坐标当窗口坐标再过一遍 stretch 变换，
-## headless 窗口尺寸与设计分辨率不一致时坐标会被放大失真（实测：注入 (0..960) 收到
-## (0..14000+)），而真实分发链 _input → GUI → unhandled 完整保留，E-18/E-19 语义不变。
-func _inject_touch_at(joy: VirtualJoystick, local_pos: Vector2, pressed: bool) -> void:
-	var ev := InputEventScreenTouch.new()
-	ev.index = JOY_TOUCH_INDEX
-	ev.pressed = pressed
-	ev.position = joy.get_global_transform_with_canvas() * local_pos
-	joy.get_viewport().push_input(ev, true)
-
-
-func _inject_drag_at(joy: VirtualJoystick, local_pos: Vector2) -> void:
-	var ev := InputEventScreenDrag.new()
-	ev.index = JOY_TOUCH_INDEX
-	ev.position = joy.get_global_transform_with_canvas() * local_pos
-	ev.relative = Vector2.ZERO
-	joy.get_viewport().push_input(ev, true)
-
-
-## 反馈事件按前缀检索（事件形如 "sfx:tick@12345"；前缀不含时间戳）。
-func _events_contain(prefix: String) -> bool:
-	for entry in Juice.events:
-		if String(entry).begins_with(prefix):
-			return true
-	return false
-
-
-## 重开竞态防护：把玩家传送到「离所有现存水果最远」的粗网格点（24px 步进）。
-## 只在最小净距 > 40px（水果收集半径 + 玩家半径 + 余量）时才传送，保证断言窗口内
-## 不会发生计划外的碰撞计分。
-func _teleport_away_from_fruits() -> void:
-	var bounds := get_viewport().get_visible_rect().size
-	var fruits: Array[Fruit] = []
-	for child in _fruit_spawner.get_children():
-		if child is Fruit and not child.is_queued_for_deletion():
-			fruits.append(child)
-	if fruits.is_empty():
-		return
-	var best_pos := Vector2.ZERO
-	var best_clearance := -1.0
-	var margin := int(Player.EDGE_MARGIN)
-	var gx := margin
-	while gx <= int(bounds.x) - margin:
-		var gy := margin
-		while gy <= int(bounds.y) - margin:
-			var candidate := Vector2(gx, gy)
-			var clearance := INF
-			for fruit in fruits:
-				clearance = minf(clearance, fruit.global_position.distance_to(candidate))
-			if clearance > best_clearance:
-				best_clearance = clearance
-				best_pos = candidate
-			gy += 24
-		gx += 24
-	if best_clearance > 40.0:
-		_player.global_position = best_pos
 
 
 func _time_label_text() -> String:

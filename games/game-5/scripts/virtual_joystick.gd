@@ -20,14 +20,19 @@ extends Control
 
 const BASE_RADIUS: float = 56.0
 const STICK_RADIUS: float = 26.0
-## 摇杆死区（知识 82e419bb §二.2 建议 0.15~0.25）：死区内视为无输入，防手抖漂移。
-const DEADZONE_RATIO: float = 0.2
+## 摇杆偏离超过该比例视为有效输入（复用 InputMap 默认 deadzone 概念）。
+const DEADZONE_RATIO: float = 0.25
 
-## 触点相对基座中心的归一化向量（y 向下为正，与 Input.get_vector 口径一致）。
-## 键盘照常独立工作；Player 侧 (键盘 + 摇杆).limit_length(1.0) 汇合，非零者生效。
-var vector: Vector2 = Vector2.ZERO
+## 移动动作名，与 project.godot [input] 注册保持一致。
+const MOVE_ACTIONS := {
+	"left": &"move_left",
+	"right": &"move_right",
+	"up": &"move_up",
+	"down": &"move_down",
+}
 
 var _touch_index: int = -1
+var _output: Vector2 = Vector2.ZERO
 
 @onready var _center: Vector2 = size / 2.0
 
@@ -69,7 +74,7 @@ func _to_local(viewport_pos: Vector2) -> Vector2:
 
 
 func _notification(what: int) -> void:
-	# 场景树退出时清零向量，避免残留输入卡住移动。
+	# 场景树退出时清空动作状态，避免残留 pressed 事件卡住移动。
 	if what == NOTIFICATION_EXIT_TREE:
 		_release()
 
@@ -81,14 +86,14 @@ func _update_output(touch_pos: Vector2) -> void:
 		offset = offset.normalized() * BASE_RADIUS
 		length = BASE_RADIUS
 	var ratio: float = length / BASE_RADIUS
-	# 死区外输出归一化向量（模长 ≤ 1）；死区内归零。y 向下为正，交 Player 统一消费。
-	vector = offset / BASE_RADIUS if ratio >= DEADZONE_RATIO else Vector2.ZERO
+	_output = offset / BASE_RADIUS if ratio >= DEADZONE_RATIO else Vector2.ZERO
 	queue_redraw()
+	_emit_move_actions()
 
 
 func _release() -> void:
 	_touch_index = -1
-	vector = Vector2.ZERO
+	_output = Vector2.ZERO
 	queue_redraw()
 	_emit_move_actions()
 
@@ -114,4 +119,4 @@ func _draw() -> void:
 	var stick_color := Color(1.0, 1.0, 1.0, 0.45)
 	draw_circle(_center, BASE_RADIUS, base_color)
 	draw_arc(_center, BASE_RADIUS, 0.0, TAU, 48, Color(1.0, 1.0, 1.0, 0.35), 2.0)
-	draw_circle(_center + vector * (BASE_RADIUS - STICK_RADIUS), STICK_RADIUS, stick_color)
+	draw_circle(_center + _output * BASE_RADIUS, STICK_RADIUS, stick_color)

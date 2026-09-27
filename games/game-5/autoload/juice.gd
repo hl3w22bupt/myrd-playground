@@ -50,23 +50,10 @@ var muted: bool = false
 const EVENTS_CAP: int = 512
 const SFX_POOL_SIZE: int = 4
 
-## ── Web 音频门控三件套（知识 82e419bb §三：解锁 / 记账 / 再解锁）──
-## GDScript 置「已解锁」标志 ≠ 浏览器真的放行了音频管线；引擎只在真实输入回调里
-## resume AudioContext。因此：解锁只允许发生在 _input 捕获到的首个用户手势里；
-## 解锁前所有 play 只记账不发声；静音是独立于解锁的用户开关（持久化）。
-var audio_unlocked: bool = false
-var muted: bool = false
-
-const MUTE_SAVE_SECTION: String = "audio"
-const MUTE_SAVE_KEY: String = "muted"
-
 var _sfx_pool: Array[AudioStreamPlayer] = []
 var _sfx_next: int = 0
 var _shake_tween: Tween
 var _noise := RandomNumberGenerator.new()
-## Web 端退后台（focus 丢失）后 AudioContext 可能进入 interrupted：标记待再解锁，
-## 下一个真实手势再次 unlock（unlock_audio 幂等，重开一局不重置解锁状态）。
-var _await_reunlock: bool = false
 
 
 func _ready() -> void:
@@ -189,7 +176,6 @@ func sfx(name: StringName, volume_db: float = 0.0) -> void:
 	player.volume_db = volume_db
 	player.play()
 	_record(StringName("sfx:%s" % name), null)
-	return true
 
 
 ## 测试辅助：清空反馈记录（playtest 每局开头会调）。账本 sfx_counts / 解锁状态不清。

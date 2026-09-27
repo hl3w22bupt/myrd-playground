@@ -9,12 +9,10 @@ signal score_changed(score: int)
 signal fruits_changed(count: int)
 signal combo_changed(combo: int, window_left: float)
 signal best_changed(best: int)
-signal slow_changed(slow_left: float)
 
 ## 连击窗口：以「每次收集成功」为锚点刷新（窗口刷新式，不是固定总窗）。
 const COMBO_WINDOW: float = 3.0
-## 基础得分：普通水果 +10；窗口内每追加 1 个额外 +5（连击数 - 1，下限 0）。
-## 金水果走同一条 add_score 入口，只是基础分不同（+50）—— 连击加成同等生效。
+## 基础得分：每个水果 +10；窗口内每追加 1 个额外 +5（连击数 - 1，下限 0）。
 const BASE_POINTS: int = 10
 const COMBO_BONUS: int = 5
 ## 金水果：固定高分（不吃连击加成，但仍刷新连击窗口并计入水果数）。
@@ -24,14 +22,7 @@ var bad_penalty: int = 15
 ## 单局时长（需求硬性：60 秒倒计时）。全局唯一事实源，Main / LogSpawner / HUD 都引用这里。
 const MATCH_SECONDS: float = 60.0
 
-## 坏水果惩罚：扣分（分数下限 0，不出负分）+ 短暂减速（迭代反馈：金水果高分 / 坏水果扣分或减速）。
-const BAD_FRUIT_PENALTY: int = 15
-const SLOW_DURATION: float = 2.5
-const SLOW_FACTOR: float = 0.5
-
 ## 历史最高分存档（user:// 跨刷新持久化，验收 5）。
-## Web 端 user:// 由引擎落 IndexedDB；另镜像一份到浏览器 localStorage（同步写，
-## 防止 Web 导出 IDBFS 在标签页被直接杀掉时丢档），两处互为兜底。
 const SAVE_PATH: String = "user://game_5_save.cfg"
 ## Web 端 localStorage 镜像键（用户反馈口径「localStorage 最佳成绩」；
 ## user:// 在 Web 落 IndexedDB，镜像到 localStorage 双保险，两处取 max）。
@@ -42,8 +33,6 @@ var fruits_collected: int = 0
 var combo_count: int = 0
 var combo_window_left: float = 0.0
 var best_score: int = 0
-## 坏水果减速剩余时间；> 0 期间 Player 移速 × SLOW_FACTOR。Player 只读这里，不各自计时。
-var slow_left: float = 0.0
 
 ## ── 数值调参区（SKILL.md §3C 调参工作台的对接面）──
 ## 默认值 = 知识 6e91a11d §一/§四 的建议基线；试玩调参经 apply_tuning 覆盖，
@@ -76,20 +65,16 @@ func _process(delta: float) -> void:
 		if combo_window_left <= 0.0:
 			combo_count = 0
 			combo_changed.emit(combo_count, combo_window_left)
-	if slow_left > 0.0:
-		slow_left = maxf(slow_left - delta, 0.0)
-		slow_changed.emit(slow_left)
 
 
-## 唯一计分入口：收集一个好水果。返回本笔实际得分（+10 / 连击中 +15、+20…；
-## 金水果基础分 50，连击加成同等生效 —— 计分收口在本函数，UI 层禁止各自算分）。
-func add_score(base_points: int = BASE_POINTS) -> int:
+## 唯一计分入口：收集一个水果。返回本笔实际得分（+10 / 连击中 +15、+20…）。
+func add_score() -> int:
 	if combo_window_left > 0.0:
 		combo_count += 1
 	else:
 		combo_count = 1
 	combo_window_left = COMBO_WINDOW
-	var gained: int = base_points + COMBO_BONUS * (combo_count - 1)
+	var gained: int = BASE_POINTS + COMBO_BONUS * (combo_count - 1)
 	score += gained
 	fruits_collected += 1
 	score_changed.emit(score)
@@ -138,11 +123,9 @@ func reset() -> void:
 	fruits_collected = 0
 	combo_count = 0
 	combo_window_left = 0.0
-	slow_left = 0.0
 	score_changed.emit(score)
 	fruits_changed.emit(fruits_collected)
 	combo_changed.emit(combo_count, combo_window_left)
-	slow_changed.emit(slow_left)
 
 
 func load_best_score() -> void:

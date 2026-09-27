@@ -29,25 +29,6 @@ const KIND_COLORS: Array[Color] = [
 	Color(0.42, 0.3, 0.18),   # 坏水果（腐褐）
 ]
 
-## 分值表：金水果基础分（连击加成在 GameState.add_score 里按同规则叠加）。
-const GOLDEN_POINTS: int = 50
-
-## kind 用 setter：冒烟断言可在运行期改类型（连视觉一起刷新），实现与断言同口径。
-var kind: int = KIND_APPLE:
-	set(value):
-		kind = clampi(value, KIND_APPLE, KIND_BAD)
-		if is_node_ready():
-			_apply_visual()
-
-## 本水果的基础分（坏水果返回 0 —— 惩罚路径不走这里）。
-func points_value() -> int:
-	return GOLDEN_POINTS if kind == KIND_GOLDEN else GameState.BASE_POINTS
-
-
-func is_bad() -> bool:
-	return kind == KIND_BAD
-
-
 @onready var _visual: Polygon2D = $Visual
 
 

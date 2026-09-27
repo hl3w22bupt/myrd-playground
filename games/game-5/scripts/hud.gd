@@ -13,8 +13,6 @@ const COMBO_WINDOW: float = 3.0
 ## 窗口将尽（< 1 秒）的警示色（知识 6e91a11d §三：让玩家知道「再快一点就能续上」）。
 const COMBO_URGENT_COLOR: Color = Color(1.0, 0.45, 0.2)
 const COMBO_BAR_IDLE_ALPHA: float = 0.35
-## 末 5 秒告警的时间文字警示色（迭代反馈 2：倒计时告警可感知）。
-const TIME_URGENT_COLOR: Color = Color(1.0, 0.35, 0.25)
 
 @onready var time_label: Label = %TimeLabel
 @onready var score_label: Label = %ScoreLabel
@@ -36,8 +34,6 @@ const MUTE_TEXT_OFF: String = "🔇 音效：关"
 
 func _ready() -> void:
 	restart_button.pressed.connect(_on_restart_button_pressed)
-	mute_button.pressed.connect(_on_mute_button_pressed)
-	_refresh_mute_label()
 	result_panel.visible = false
 	combo_bar.max_value = COMBO_WINDOW
 	combo_bar.value = 0.0
@@ -67,23 +63,6 @@ func _process(_delta: float) -> void:
 
 func on_time_changed(time_left: float) -> void:
 	time_label.text = "剩余时间 %d" % int(ceilf(maxf(time_left, 0.0)))
-
-
-## 末 5 秒警示态：时间文字变红（音效 tick 由 Main 触发，显示由这里承担）。
-func set_time_urgent(urgent: bool) -> void:
-	time_label.add_theme_color_override(
-		"font_color", TIME_URGENT_COLOR if urgent else Color.WHITE)
-
-
-## 静音开关（迭代反馈 2）：触摸可点 + 状态持久化在 Juice.set_muted；文案随状态刷新。
-func _on_mute_button_pressed() -> void:
-	Juice.set_muted(not Juice.muted)
-	_refresh_mute_label()
-	Juice.pop(mute_button, 1.12, 0.12)
-
-
-func _refresh_mute_label() -> void:
-	mute_button.text = "音效:开" if not Juice.muted else "音效:关"
 
 
 func on_score_changed(score: int) -> void:

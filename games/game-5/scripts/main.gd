@@ -21,8 +21,6 @@ const TICK_LAST_SECONDS: int = 5
 
 var time_left: float = GameState.MATCH_SECONDS
 var match_over: bool = false
-## 已tick过的秒数（每秒只告警一次）。
-var _last_alert_second: int = -1
 
 ## 末 5 秒 tick 的去重游标（同一整秒只响一次；-1 = 本局尚未响过）。
 var _tick_second: int = -1
@@ -124,12 +122,9 @@ func _end_match(reason: StringName) -> void:
 	# 结算音（两条终局路径共用，用户反馈「结算」音效；HUD 不再重复播）。
 	Juice.sfx(&"settle")
 	hud.show_result(title, GameState.score, GameState.fruits_collected, GameState.best_score)
-	# 结算音（迭代反馈 2）：两条终局路径进面板时都播一次 settle 失败局在前已有撞击音。
-	Juice.sfx(&"settle")
 	match_ended.emit(reason)
 
 
-## 收集分流（迭代反馈 3）：普通/金水果走加分入口，坏水果走惩罚入口（扣分 + 减速）。
 func _on_fruit_collected(fruit: Fruit) -> void:
 	if fruit.is_golden():
 		# 金水果：固定高分 + 专属音效 + 金色大字飘分（仍是成功收集，计入水果数/刷新连击）。
@@ -167,21 +162,6 @@ func _spawn_score_popup(world_pos: Vector2, value: int, color: Color, font_size:
 	var tween := label.create_tween()
 	tween.tween_property(label, "position:y", label.position.y - 30.0, 0.5)
 	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.5).set_delay(0.15)
-	tween.tween_callback(label.queue_free)
-
-
-## 扣分飘字：跟随坏水果世界坐标，绿灰色系与得分区分（含减速提示语义）。
-func _spawn_penalty_popup(world_pos: Vector2, lost: int) -> void:
-	var label := Label.new()
-	label.text = "-%d 减速!" % lost
-	label.add_theme_font_size_override("font_size", 22)
-	label.add_theme_color_override("font_color", POPUP_PENALTY_COLOR)
-	label.z_index = 50
-	popups.add_child(label)
-	label.position = world_pos + Vector2(-30, -34)
-	var tween := label.create_tween()
-	tween.tween_property(label, "position:y", label.position.y - 26.0, 0.6)
-	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.6).set_delay(0.2)
 	tween.tween_callback(label.queue_free)
 
 
