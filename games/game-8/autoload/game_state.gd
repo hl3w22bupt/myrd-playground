@@ -19,8 +19,16 @@ const TARGET_SCORE: int = 20
 const TIME_LIMIT: float = 60.0
 ## 场上同屏可收集物上限（少于该数时由生成器补充）。
 const MAX_COLLECTIBLES: int = 6
-## 可收集物补充刷新间隔秒数（定时/随机刷新）。
-const SPAWN_INTERVAL: float = 0.8
+## 可收集物补充刷新间隔秒数（开局值；随难度梯度收紧到 SPAWN_INTERVAL_MIN）。
+const SPAWN_INTERVAL_START: float = 0.8
+## 刷新间隔下限（难度封顶时的值，保证后期仍可读、可反应）。
+const SPAWN_INTERVAL_MIN: float = 0.45
+## 可收集物寿命（开局值，秒）：超时未收集即过期消失，逼玩家主动追着收。
+const LIFETIME_START: float = 6.0
+## 可收集物寿命下限（秒）：难度封顶时仍留出可追的距离。
+const LIFETIME_MIN: float = 3.0
+## 物品临期闪烁警示的剩余寿命阈值（秒）。
+const LIFETIME_WARN_SECONDS: float = 1.5
 ## 持久化文件（收集进度与历史最高分）。
 const SAVE_PATH: String = "user://niuniu_game8_save.json"
 
@@ -79,6 +87,23 @@ func start_run() -> void:
 	score_changed.emit(score)
 	time_changed.emit(time_left)
 	phase_changed.emit(phase)
+
+
+## ── 难度梯度 ──
+## 以「本局已收集数」为自变量的线性爬坡：0 → 宽松（开局值），TARGET_SCORE → 紧张（下限值）。
+## 做成纯函数便于冒烟无头断言（难度单调递增、有界），也便于后续数值表化。
+func difficulty_ratio() -> float:
+	return clampf(float(score) / float(maxi(TARGET_SCORE - 1, 1)), 0.0, 1.0)
+
+
+## 当前难度下的可收集物补充刷新间隔（秒）：收集越多刷得越快，节奏逐级收紧。
+func spawn_interval_now() -> float:
+	return lerpf(SPAWN_INTERVAL_START, SPAWN_INTERVAL_MIN, difficulty_ratio())
+
+
+## 当前难度下新生成可收集物的寿命（秒）：收集越少留存越久，后期必须主动追着收。
+func collectible_lifetime_now() -> float:
+	return lerpf(LIFETIME_START, LIFETIME_MIN, difficulty_ratio())
 
 
 func _set_phase(next_phase: int) -> void:

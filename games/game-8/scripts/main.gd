@@ -1,3 +1,4 @@
+class_name GameMain
 extends Node2D
 ## 《牛牛打游戏》主场景控制器：装配 HUD/结算面板、驱动生成器与限时、处理一键重开。
 ##
@@ -13,7 +14,12 @@ const COLLECTIBLE_SCENE: PackedScene = preload("res://scenes/collectible.tscn")
 const SPAWN_MARGIN: float = 48.0
 ## 刷点与牛牛保持的最小间距（px）：避免物品生成在角色身上被「贴脸白捡」，
 ## 也避免重开瞬间（归位后无输入）被判定收集，保证开局计数的确定性。
+## 余量推导：拾取半径 22 + 物品半径 14 = 36px 即可触发判定，96px 留 2.6 倍余量。
 const SPAWN_CLEARANCE: float = 96.0
+## 剩余时间低于该秒数时 HUD 进入红色倒计时警示（需求：失败反馈明确）。
+const TIME_WARN_SECONDS: float = 10.0
+## 「+1」浮字从生成到完全消失的秒数。
+const FLOAT_TEXT_LIFETIME: float = 0.55
 
 @onready var player: Player = $Player
 @onready var collectibles_root: Node2D = $Collectibles
@@ -34,7 +40,7 @@ func _ready() -> void:
 		touch_ui.visible = true
 		_move_hint = "摇杆移动 · 收集青草垛"
 	_spawn_origin = player.global_position
-	spawn_timer.wait_time = GameState.SPAWN_INTERVAL
+	spawn_timer.wait_time = GameState.spawn_interval_now()
 	# 信号连接：订阅方（本场景）写连接代码，发布方（player / GameState）只 emit。
 	if not player.moved.is_connected(_on_player_moved):
 		player.moved.connect(_on_player_moved)
@@ -63,12 +69,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		_restart_run()
 
 
-## 一键重开：状态归零 + 牛牛归位 + 场上可收集物重新铺满 + 收起结算面板。
+## 一键重开：状态归零 + 牛牛归位 + 场上可收集物重新铺满 + 刷新节奏复位 + 收起结算面板。
 func _restart_run() -> void:
 	GameState.start_run()
 	player.global_position = _spawn_origin
 	_clear_collectibles()
 	_fill_collectibles()
+	# 难度梯度复位：新的一局从最宽松的节奏重新爬坡。
+	spawn_timer.wait_time = GameState.spawn_interval_now()
 	result_panel.visible = false
 	_update_hud()
 
@@ -95,12 +103,16 @@ func _collectible_count() -> int:
 	return count
 
 
-## 定时/随机刷新一个可收集物（位置在场地内取随机点，避开边缘）。
-func _spawn_collectible() -> void:
+## 定时/随机刷新一个可收集物（位置在场地内取随机点，避开边缘；寿命取当前难度值）。
+## 返回本体供调用方跟踪（冒烟用短寿命物品断言过期路径）。
+func _spawn_collectible() -> Collectible:
 	var collectible: Collectible = COLLECTIBLE_SCENE.instantiate()
 	collectible.position = _random_spawn_position()
+	collectible.lifetime = GameState.collectible_lifetime_now()
 	collectible.collected.connect(_on_collectible_collected)
+	collectible.expired.connect(_on_collectible_expired)
 	collectibles_root.add_child(collectible)
+	return collectible
 
 
 func _random_spawn_position() -> Vector2:
@@ -128,11 +140,34 @@ func _random_spawn_position() -> Vector2:
 	return farthest
 
 
-## 收集判定命中：计数 +1、回收该物品（生成器稍后自动补充）。
+## 收集判定命中：计数 +1、弹出 +1 反馈、回收该物品，并按当前难度收紧刷新节奏。
 func _on_collectible_collected(collectible: Collectible) -> void:
 	GameState.add_score(1)
+	_spawn_float_text(collectible.global_position, "+1")
+	# 难度梯度：收集越多，后续补充越快（Timer 运行中改 wait_time，下一轮生效）。
+	spawn_timer.wait_time = GameState.spawn_interval_now()
 	collectible.queue_free()
 	_update_hud()
+
+
+## 物品寿命耗尽未被收集：回收但不计分（难度梯度的「错过惩罚」，与收集路径区分）。
+func _on_collectible_expired(collectible: Collectible) -> void:
+	collectible.queue_free()
+	_update_hud()
+
+
+## 收集反馈：在世界坐标弹出一个上浮渐隐的「+1」小字（纯代码节点，不进 .tscn）。
+func _spawn_float_text(pos: Vector2, text: String) -> void:
+	var label := Label.new()
+	label.text = text
+	label.position = pos + Vector2(-12.0, -26.0)
+	label.z_index = 5
+	add_child(label)
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(label, "position:y", label.position.y - 26.0, FLOAT_TEXT_LIFETIME)
+	tween.tween_property(label, "modulate:a", 0.0, FLOAT_TEXT_LIFETIME)
+	tween.chain().tween_callback(label.queue_free)
 
 
 func _on_spawn_timer_timeout() -> void:
@@ -174,3 +209,11 @@ func _update_hud() -> void:
 		_move_hint, ceili(GameState.time_left), GameState.score,
 		GameState.TARGET_SCORE, GameState.best_score,
 	]
+	# 限时尾段红色警示 + 文案提示：失败不是因为没看见（需求：失败反馈明确）。
+	var time_low: bool = (
+		GameState.phase == GameState.Phase.RUNNING
+		and GameState.time_left <= TIME_WARN_SECONDS
+	)
+	hud_label.add_theme_color_override(
+		"font_color", Color(1.0, 0.35, 0.3) if time_low else Color.WHITE
+	)
