@@ -1,0 +1,281 @@
+{
+  "schemaVersion": "1.0",
+  "meta": {
+    "name": "复刻天天酷跑",
+    "gameId": "game-6",
+    "genre": "休闲收集跑酷（endless runner）",
+    "reference": "天天酷跑（腾讯天美，2013）：自动横版跑酷 + 跳跃/二段跳/滑铲 + 金币道具 + 角色/坐骑/宠物养成 + 好友排行",
+    "platform": "Godot 4 Web 导出（桌面 + 移动浏览器），AppHost liveUrl /apps/game-6",
+    "targetPlayer": "休闲玩家，碎片时间单局 60–120 秒，一键重开",
+    "loop": "自动奔跑 → 跳/二段跳/滑铲躲避 → 吃金币与道具 → 碰撞或坠坑死亡 → 结算（距离/金币/得分/最高分）→ 一键重开",
+    "scopeIn": [
+      "自动奔跑 + 跳跃/二段跳/滑铲（键盘 + 触屏双输入）",
+      "程序化无限赛道：地面/浮空平台/坑洞/地面障碍/空中障碍，chunk 预制件按距离难度池抽取",
+      "金币（成串/成弧线）+ 3 种道具：磁铁/护盾/冲刺",
+      "结算：距离、金币、得分、历史最高分；最高分与累计金币本地持久化",
+      "Q 版卡通表现：三层视差背景、金币拾取动效、得分飘字、死亡与重开",
+      "数值调参工作台（?tuning=1），数值唯一来源 spec.numeric"
+    ],
+    "scopeOut": [
+      "坐骑/宠物/精灵/时装养成系统（P2）",
+      "角色与坐骑升级、钻石等付费货币（P2）",
+      "好友排行/社交分享/每日任务（P2）",
+      "进击模式（下滑改攻击）与 BOSS 战（P2）",
+      "账号体系与云存档（P3）"
+    ],
+    "requirementId": "cmuj6vls40010m9hcmj2lscuh",
+    "goalId": "cmuj6p1q2000em9hc4srodpkt"
+  },
+  "world": {
+    "premise": "糖果小镇的邮差「酷跑小子」晨跑时金币袋被街角的零食怪撞翻，金币撒满长街——他一路追着怪群跑，把金币一颗颗捡回来，顺便把拦路的怪踩个稀巴烂。",
+    "tone": "Q 版卡通、明快糖果色、无血腥；死亡表现为弹飞 + 星星眩晕，不出现残缺画面",
+    "artDirectives": {
+      "palette": {
+        "skyTop": "#7EC8F5",
+        "skyBottom": "#FFE9C7",
+        "ground": "#F6A821",
+        "accent": "#FF5A5F",
+        "coin": "#FFC93C",
+        "obstacle": "#7B5E3B"
+      },
+      "character": "2.5 头身 Q 版，圆角轮廓 + 粗描边；奔跑 4 帧、跳跃 1 帧、二段跳 1 帧、滑铲 1 帧、死亡 1 帧",
+      "parallax": "3 层：远景糖果山（0.2x）/ 中景糖果屋街区（0.5x）/ 近景地面与前景装饰（1.0x），另有 0.1x 云层",
+      "fx": "金币拾取（金色圈扩散 + 飘字 +10）、道具拾取（对应色光环）、碾怪（星星爆点）、死亡（弹飞 + 慢动作 0.3s）",
+      "uiFont": "圆润无衬线，得分数字用等宽变体避免跳动"
+    },
+    "assetDerivationRule": "美术提示词一律从本段 palette/character/parallax/fx 派生，禁止逐图另编世界观"
+  },
+  "entities": [
+    {
+      "id": "player",
+      "name": "酷跑小子",
+      "kind": "character",
+      "script": "games/game-6/scripts/player.gd",
+      "scene": "games/game-6/scenes/player.tscn",
+      "role": "唯一受控实体：自动向右奔跑，接受跳跃/二段跳/滑铲意图；判定碰撞与坠坑；持有道具状态（磁铁/护盾/冲刺）与无敌帧"
+    },
+    {
+      "id": "game-state",
+      "name": "全局状态与数值表",
+      "kind": "autoload",
+      "script": "games/game-6/autoload/game_state.gd",
+      "scene": null,
+      "role": "spec.numeric 唯一代码落点：数值常量 + TUNING_META（min/max/step）成对声明；存档读写（bestScore/totalCoins/bestDistance）；apply_tuning() 唯一应用入口"
+    },
+    {
+      "id": "track-builder",
+      "name": "赛道生成器",
+      "kind": "system",
+      "script": "games/game-6/scripts/track_builder.gd",
+      "scene": "games/game-6/scenes/main.tscn",
+      "role": "按距离难度权重从 chunk 池抽取预制件、接缝对齐、离屏回收；只从 levels 声明的 3 个 chunk 场景实例化，保证可通行性由构造保证"
+    },
+    {
+      "id": "coin",
+      "name": "金币",
+      "kind": "collectible",
+      "script": "games/game-6/scripts/coin.gd",
+      "scene": "games/game-6/scenes/coin.tscn",
+      "role": "拾取 +1 金币 +10 分；被磁铁/冲刺半径吸附；对象池复用"
+    },
+    {
+      "id": "powerup-magnet",
+      "name": "磁铁",
+      "kind": "powerup",
+      "script": "games/game-6/scripts/powerup_magnet.gd",
+      "scene": "games/game-6/scenes/powerup_magnet.tscn",
+      "role": "拾取后 magnetDurationSeconds 内把 magnetRadiusPx 范围内金币吸向玩家"
+    },
+    {
+      "id": "powerup-shield",
+      "name": "护盾",
+      "kind": "powerup",
+      "script": "games/game-6/scripts/powerup_shield.gd",
+      "scene": "games/game-6/scenes/powerup_shield.tscn",
+      "role": "抵挡一次碰撞（含坠坑除外），触发后 hurtInvincibleSeconds 无敌帧并播放破盾动效"
+    },
+    {
+      "id": "powerup-dash",
+      "name": "冲刺坐骑",
+      "kind": "powerup",
+      "script": "games/game-6/scripts/powerup_dash.gd",
+      "scene": "games/game-6/scenes/powerup_dash.tscn",
+      "role": "dashDurationSeconds 内速度 ×dashSpeedMultiplier、全程无敌、碰撞碾毁障碍得 30 分并吸附金币"
+    },
+    {
+      "id": "obstacle-ground",
+      "name": "地面障碍（零食怪/糖果箱）",
+      "kind": "hazard",
+      "script": "games/game-6/scripts/obstacle_ground.gd",
+      "scene": "games/game-6/scenes/obstacle_ground.tscn",
+      "role": "地面碰撞体 64×56，跳跃越过或冲刺碾毁（+30 分）"
+    },
+    {
+      "id": "obstacle-air",
+      "name": "空中障碍（飞行怪）",
+      "kind": "hazard",
+      "script": "games/game-6/scripts/obstacle_air.gd",
+      "scene": "games/game-6/scenes/obstacle_air.tscn",
+      "role": "低空型 hoverY=96（滑铲通过）与高空型 hoverY=208（贴地通过、跳跃会撞）两种参数实例"
+    },
+    {
+      "id": "hud",
+      "name": "局内 HUD",
+      "kind": "ui",
+      "script": "games/game-6/scripts/hud.gd",
+      "scene": "games/game-6/scenes/hud.tscn",
+      "role": "距离/金币/得分实时显示（低频 DOM 或 Label 直写）、道具剩余时间条、得分飘字挂点"
+    },
+    {
+      "id": "settle-panel",
+      "name": "结算面板",
+      "kind": "ui",
+      "script": "games/game-6/scripts/settle_panel.gd",
+      "scene": "games/game-6/scenes/settle_panel.tscn",
+      "role": "展示本局距离/金币/得分/历史最高分；「重新开始」按钮即时重置新局；写存档"
+    },
+    {
+      "id": "parallax-bg",
+      "name": "三层视差背景",
+      "kind": "visual",
+      "script": "games/game-6/scripts/parallax_bg.gd",
+      "scene": "games/game-6/scenes/parallax_bg.tscn",
+      "role": "按 world.artDirectives.palette 上色，随速度滚动的 4 层（0.1x/0.2x/0.5x/1.0x）背景"
+    }
+  ],
+  "levels": [
+    {
+      "id": "l1",
+      "name": "糖果街区 · 新手段",
+      "scene": "games/game-6/scenes/chunks/chunk_candy_street.tscn",
+      "distanceRangeMeters": [0, 500],
+      "generatorWeight": { "min": 0.55, "max": 1.0, "rule": "权重 = 1.0 - (distanceM / 1000)，低于 min 时不再进池" },
+      "elements": [
+        { "id": "l1/e1", "type": "ground", "offsetX": 0, "offsetY": 0, "width": 1280, "note": "整段完整地面，无坑洞" },
+        { "id": "l1/e2", "type": "powerup_box", "offsetX": 120, "offsetY": 0, "note": "开局教学位：随机磁铁/护盾/冲刺其一" },
+        { "id": "l1/e3", "type": "obstacle_ground", "offsetX": 560, "offsetY": 0, "width": 64, "height": 56 },
+        { "id": "l1/e4", "type": "coin_arc", "offsetX": 680, "offsetY": 60, "count": 5, "apexHeight": 140, "note": "跨过 e3 的奖励弧线" },
+        { "id": "l1/e5", "type": "obstacle_air", "offsetX": 1040, "offsetY": 96, "variant": "low", "note": "低飞怪：滑铲通过" }
+      ]
+    },
+    {
+      "id": "l2",
+      "name": "黄昏屋顶 · 提速段",
+      "scene": "games/game-6/scenes/chunks/chunk_dusk_rooftop.tscn",
+      "distanceRangeMeters": [500, 1500],
+      "generatorWeight": { "min": 0.0, "max": 0.8, "rule": "权重 = clamp((distanceM - 300) / 700, 0, 1) × 0.8" },
+      "elements": [
+        { "id": "l2/e1", "type": "ground", "offsetX": 0, "offsetY": 0, "width": 1280 },
+        { "id": "l2/e2", "type": "powerup_box", "offsetX": 120, "offsetY": 0 },
+        { "id": "l2/e3", "type": "pit", "offsetX": 280, "offsetY": 0, "width": 160, "note": "坑宽 160 ≤ 192 上限；左沿 280 ≥ 96 安全区" },
+        { "id": "l2/e4", "type": "platform", "offsetX": 520, "offsetY": 150, "width": 240, "height": 24, "note": "浮空平台，单跳高度 168 > 150 可直接跳上" },
+        { "id": "l2/e5", "type": "coin_arc", "offsetX": 540, "offsetY": 200, "count": 5, "apexHeight": 280, "note": "站上平台再跳可全额收取" },
+        { "id": "l2/e6", "type": "obstacle_ground", "offsetX": 900, "offsetY": 0, "width": 64, "height": 56 },
+        { "id": "l2/e7", "type": "obstacle_air", "offsetX": 1140, "offsetY": 96, "variant": "low", "note": "与 e6 间距 240 ≥ 224 反应下限" }
+      ]
+    },
+    {
+      "id": "l3",
+      "name": "夜色高速 · 高强度段",
+      "scene": "games/game-6/scenes/chunks/chunk_night_highway.tscn",
+      "distanceRangeMeters": [1500, 99999],
+      "generatorWeight": { "min": 0.0, "max": 1.0, "rule": "权重 = clamp((distanceM - 1200) / 800, 0, 1)" },
+      "elements": [
+        { "id": "l3/e1", "type": "ground", "offsetX": 0, "offsetY": 0, "width": 1280 },
+        { "id": "l3/e2", "type": "pit", "offsetX": 180, "offsetY": 0, "width": 192, "note": "满速单跳距离 540px，裕度 348px" },
+        { "id": "l3/e3", "type": "obstacle_ground", "offsetX": 500, "offsetY": 0, "width": 64, "height": 56, "note": "距 e2 右沿 128 = 落地缓冲下限" },
+        { "id": "l3/e4", "type": "obstacle_air", "offsetX": 800, "offsetY": 96, "variant": "low", "note": "与 e3 间距 300 ≥ 224" },
+        { "id": "l3/e5", "type": "pit", "offsetX": 1024, "offsetY": 0, "width": 160, "note": "与 e4 间距 224（达标下限）；右沿 1184 ≤ 1184 接缝安全上限" },
+        { "id": "l3/e6", "type": "coin_line", "offsetX": 1024, "offsetY": 60, "count": 3, "note": "悬在 e5 坑口上方的过桥奖励" }
+      ]
+    }
+  ],
+  "numeric": {
+    "pixelsPerMeter": 40,
+    "chunkWidthPx": 1280,
+    "chunkSafetyMarginPx": 96,
+    "runSpeedBasePxPerSec": 320,
+    "runSpeedGainPerMeter": 0.3,
+    "runSpeedMaxPxPerSec": 720,
+    "gravityPxPerSec2": 2400,
+    "jumpVelocityPxPerSec": -900,
+    "doubleJumpVelocityPxPerSec": -820,
+    "coyoteTimeSeconds": 0.08,
+    "jumpBufferSeconds": 0.1,
+    "slideDurationSeconds": 0.6,
+    "hitboxStandWidthPx": 44,
+    "hitboxStandHeightPx": 64,
+    "hitboxSlideHeightPx": 36,
+    "pitWidthMinPx": 96,
+    "pitWidthMaxPx": 192,
+    "pitLandingBufferPx": 128,
+    "reactionGapMinPx": 224,
+    "coinValue": 1,
+    "scorePerMeter": 2,
+    "scorePerCoin": 10,
+    "scorePerObstacleSmash": 30,
+    "magnetDurationSeconds": 8,
+    "magnetRadiusPx": 200,
+    "shieldCharges": 1,
+    "hurtInvincibleSeconds": 1.0,
+    "dashDurationSeconds": 4,
+    "dashSpeedMultiplier": 1.8,
+    "powerupBoxCooldownChunks": 1,
+    "deathFallPx": 200,
+    "deathSlowMotionSeconds": 0.3,
+    "inputLatencyBudgetFrames": 3,
+    "fpsTarget": 60,
+    "fpsFloor": 30,
+    "sessionTargetSeconds": 90,
+    "acceptanceDistanceMeters": 1000,
+    "passabilitySampleSeeds": 10,
+    "saveKey": "game6_save_v1"
+  },
+  "acceptance": [
+    {
+      "id": "acc-01-input-map",
+      "statement": "输入只走 InputMap 动作（jump / slide / restart），键盘 ↑/空格 = 跳跃与二段跳、↓ = 滑铲；触屏点按/上滑 = 跳跃、下滑 = 滑铲；游戏逻辑代码零 KEY_ 常量",
+      "check": "games/game-6/tests/contracts/input_contract.gd"
+    },
+    {
+      "id": "acc-02-controls-semantics",
+      "statement": "手感语义可断言：地面起跳仅可二段跳一次；滑铲持续 slideDurationSeconds 且碰撞盒高度降为 hitboxSlideHeightPx；coyote 与输入缓冲按 numeric 生效",
+      "check": "games/game-6/tests/contracts/player_move_contract.gd"
+    },
+    {
+      "id": "acc-03-track-passability",
+      "statement": "赛道可无限延伸且无必死：10 个固定种子（1..10）机器人自动跑 ≥1000m 不坠坑不撞死；全部 chunk 满足「坑宽 ≤192、坑后首个威胁距坑沿 ≥128、相邻威胁点间距 ≥224、chunk 首尾安全区 ≥96」",
+      "check": "games/game-6/tests/contracts/track_passability_contract.gd"
+    },
+    {
+      "id": "acc-04-powerups",
+      "statement": "磁铁（8s / 200px 吸附）、护盾（抵挡 1 次 + 1s 无敌）、冲刺（4s × 1.8 倍速无敌并碾怪 +30 分）三种道具拾取后效果与 numeric 一致",
+      "check": "games/game-6/tests/contracts/powerup_contract.gd"
+    },
+    {
+      "id": "acc-05-score-settle",
+      "statement": "得分 = ⌊距离 m⌋×2 + 金币×10 + 碾怪×30；结算页金币数与本局实际拾取数完全一致；点击「重新开始」立即开始新局（无重启加载）",
+      "check": "games/game-6/tests/contracts/score_settle_contract.gd"
+    },
+    {
+      "id": "acc-06-persistence",
+      "statement": "最高分、累计金币、最远距离写入本地存储（key=game6_save_v1），模拟「关闭再打开」（重载 autoload 状态）后数据不丢失",
+      "check": "games/game-6/tests/contracts/save_contract.gd"
+    },
+    {
+      "id": "acc-07-smoke-gate",
+      "statement": "仓库门禁通过：preflight 退出码 0；无头冒烟含 GODOT_SMOKE: PASS（含对抗输入噪声相位，噪声后跳跃/滑铲仍生效）；input-fuzz 含 GODOT_FUZZ: PASS",
+      "check": "std-skills/godot-game-dev/scripts/smoke.sh"
+    },
+    {
+      "id": "acc-08-feel-budget",
+      "statement": "手感预算：输入到角色状态变化 ≤3 帧（60FPS 下 50ms，低于 100ms 需求上限）；性能预算以实体池上限与离屏回收断言为代理，真机 FPS 记录回填 games/game-6/qa/device-notes.md（人工项：中端机 ≥30FPS）",
+      "check": "games/game-6/tests/contracts/input_latency_contract.gd"
+    },
+    {
+      "id": "acc-09-tuning",
+      "statement": "调参协议可判：game_state.gd 的 TUNING_META 键集 == spec.numeric 键集；apply_tuning 应用已声明键、拒绝未声明键、按 max 钳制",
+      "check": "games/game-6/tests/contracts/tuning_contract.gd"
+    }
+  ]
+}
