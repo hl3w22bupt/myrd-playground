@@ -14,6 +14,7 @@
 - **处置裁定（主策划，非降级为纸面件）**：①本冲刺风格卡/基准四联图/P0 资产产物一律落 git 仓库文件（`games/stack-tower/assets/reference/` 等）+ 黑板登记，**不依赖 OD 画布承载验收物**——OD 不可达不阻塞本轮执行面；②按纪律升级主人：请修复 OD 守护进程（`pnpm tools-dev` 或等效方式）；恢复前 N2 风格卡以「repo 文件 + hash」为准，恢复后可回流 OD 复核（不构成新门禁）。
 - **平台 API 通道修复（E1，本轮打通）**：前端代理会剥 `Authorization` 头 → Bearer 通道 UNAUTHORIZED（本地 3001 与远程 tailnet 双复现）；改走 **cookie `token` 通道**（引擎注入的 `MYRD_TOKEN` 工作流代行身份，via=workflow-node）→ 本地/远程 `/api/v1/auth/me` 双 200。本轮 spec v1.2 登记全部走此通道，全程留痕。历史「平台 API 鉴权恢复」的成因就此闭环：非 token 失效，是通道差异。
 - **美术线复检轮复核（2026-09-27，T3 美术，开工首笔）**：①OD 守护进程 `127.0.0.1:7456` **仍不可达**——open-design MCP `get_active_context` 独立复现（报错原文同上），跨轮累计**第 3 次**，维持升级主人待修；本轮资产产物继续以 repo 文件 + hash 为准（风格卡回流 OD 复核项继续挂起，不构成新门禁）。②cwd 非 repo root：**未复现**（本轮 shell 初始即 repo root；执行中差异系美术自查主动切目录，非环境异常，不冒领）。取证 `gate-logs/r4-neon-juice-20260927-art-recheck/README.md` §1。
+- **美术线复核·第 4 次（同日第二轮开工首笔）**：OD 守护进程 `127.0.0.1:7456` 仍不可达（open-design MCP 原文报错同上）——**异常持续，维持升级主人**；cwd = repo root 未复现。资产面在 §E3 落树后重证零漂移 + 门禁全绿（见 assets.md §r4 复检增记）。
 
 ## E0b · 程序线复跑与裸调用契约门禁修复（r4 · 2026-09-27 11:07–11:14，程序）
 
