@@ -1,6 +1,6 @@
 # 前置一致性检查清单（preflight checklist）
 
-> 对应 `scripts/preflight.py`（13 类，全部机判）+ 三项只能人工核对的内容。
+> 对应 `scripts/preflight.py`（14 类，全部机判）+ 三项只能人工核对的内容。
 > 原则（OpenGame M4 / Proactive Check）：**能在运行前拦下的，绝不留到运行后**；
 > 反过来，只有运行期才能证实的（输入真的生效、信号真的送达），交给无头冒烟门禁。
 
@@ -21,10 +21,11 @@
 | P11 | 无 Godot 3 残留语法（`onready var` / `export(...)` / `yield()` / 旧式 `connect("sig", …)`） | 解析错误 |
 | P12 | `.gd` 里 `connect(方法名)` 的目标方法在同文件中存在（`queue_free`/`hide` 等内建 callable 豁免） | 信号连接静默失效（实测盲区：场景级能查、代码级只有运行期才暴露） |
 | P13 | 工程含会渲染的中文文案（`.gd` 剥注释后 / `.tscn` / `.tres`）时，`[gui] theme/custom_font` 已设置且字体文件存在 | Web 导出沙箱拿不到系统字体，中文全部渲染成缺字方块（上线后用户看到乱码） |
+| P14 | 脚本引用了 Juice 反馈单例（`Juice.`）时，`[autoload]` 已注册 Juice（模板默认注册；反向「注册了但暂无调用点」不判错） | GDScript 解析期 `Identifier not found`（无头冒烟才暴露） |
 
 **退出码**：`0` 通过；`1` 有不一致（逐条打印 `PREFLIGHT: FAIL [Pn] …`）；`2` 不是 Godot 工程。
 
-> 改完 `preflight.py` 必须跑 `python3 scripts/preflight_selftest.py`：19 个合成工程用例，
+> 改完 `preflight.py` 必须跑 `python3 scripts/preflight_selftest.py`：26 个合成工程用例，
 > 同时断言「该拦的拦下」与「不该拦的不误报」。审查实测发现过两类验证器自身缺陷——
 > 按属性顺序硬编码的正则在「编辑器保存过一次」后集体失效、场景级连接检查因路径形态
 > 不一致整段死代码 —— 都是被这类用例按住的（见 `error-signatures.md` E-15）。

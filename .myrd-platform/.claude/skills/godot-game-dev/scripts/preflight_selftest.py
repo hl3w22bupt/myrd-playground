@@ -374,6 +374,28 @@ CASES: list[dict] = [
         },
         "expect": "must_pass",
     },
+    {
+        # P14：脚本引用 Juice. 但 [autoload] 未注册 Juice —— 解析期 Identifier not found，提前拦
+        "name": "p14-juice-used-without-autoload",
+        "files": {
+            "project.godot": PROJECT_GODOT,
+            "scenes/main.tscn": MAIN_TSCN_SCRIPT_ONLY,
+            "scripts/main.gd": "extends Node2D\nfunc _on_score(score: int) -> void:\n\tJuice.pop(self)\n\tprint(score)\n",
+            "autoload/game_state.gd": "extends Node\n",
+        },
+        "expect": "must_fail:P14",
+    },
+    {
+        # P14 防误报：Juice. 只出现在 # 注释里（规范/迁移说明）不触发
+        "name": "p14-juice-comment-only-ok",
+        "files": {
+            "project.godot": PROJECT_GODOT,
+            "scenes/main.tscn": MAIN_TSCN_SCRIPT_ONLY,
+            "scripts/main.gd": "extends Node2D\n# 反馈统一走 Juice.pop / Juice.sfx（本工程暂未接入反馈单例）\nfunc _ready() -> void:\n\tprint(\"ok\")\n",
+            "autoload/game_state.gd": "extends Node\n",
+        },
+        "expect": "must_pass",
+    },
 ]
 
 
