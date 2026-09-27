@@ -12,10 +12,11 @@
 | 试玩地址（liveUrl） | https://leomac-studio.tail49399e.ts.net/apps/game-5/ |
 | 验收中枢页（hubUrl） | https://leomac-studio.tail49399e.ts.net/apps/game-5/?hub=1 |
 | 调参工作台 | https://leomac-studio.tail49399e.ts.net/apps/game-5/?tuning=1 |
-| 部署 | hostedAppId=cmuipis4f0063m9l6hagvvvd4（slug: game-5），deploymentId=cmujqozv00089m99imslrxmo2（v6），commit af26fc6，gitRef=myrd/games-goal-cmuipis4g0065m9l69hew4nng |
+| 部署 | hostedAppId=cmuipis4f0063m9l6hagvvvd4（slug: game-5），deploymentId=cmujrk7lc009rm99i1p2madip（v7），commit 7f85c40e，gitRef=myrd/games-goal-cmuipis4g0065m9l69hew4nng |
 | 线上-仓库一致性 | 线上 `api/public/assets/index.pck.gz.b64` 解压后 sha256=021250af…57ca7d，与仓库 `games/game-5/export/web/index.pck` **逐字节一致**（部署内容即 HEAD 构建） |
 | 机判门禁 | 本地 verify.sh 全绿（preflight 13 类 PASS + GODOT_SMOKE 240 帧 PASS + GODOT_FUZZ PASS + GODOT_PLAYTEST 3 局 PASS）；部署自检 /health、壳资产链路全 200 |
 | 复验（2026-09-27，HEAD 245dad1） | 与门禁同源四项在本 HEAD 重跑全绿（preflight 13 类 / smoke 240 帧 / fuzz / playtest 3 局）；既有 4 个 URL 逐一探活：liveUrl、hubUrl、`?tuning=1` 308→200，`/health` 200；线上 `index.pck` 解压后 sha256=021250af…57ca7d 与仓库 HEAD `games/game-5/export/web/index.pck` 逐字节一致（245dad1 仅改 docs，不进 pck，无需重导出重部署） |
+| 复验（2026-09-27，v7 重部署） | 仓库可用（remote fetch 成功、本地 HEAD==远端 tip 7f85c40e）；四门禁本 HEAD 重跑全绿（preflight 13 类 / smoke 240 帧 / fuzz seed=20260913 / playtest 3 局 score=25/60/50）；Web 导出重跑与仓库既有产物逐字节一致（pck sha256=021250af…57ca7d）；重部署 v7（deploymentId=cmujrk7lc009rm99i1p2madip，commitHash=7f85c40e4056…7502）后既有 4 个 URL 全 200（liveUrl、/health、?hub=1、?tuning=1）+ 资产链路 index.js / index.pck.gz.b64 / index.wasm.gz.b64 全 200；线上 pck 解压 sha256=021250af…57ca7d 与仓库 HEAD 逐字节一致 |
 | 桌面操作 | WASD / 方向键移动（对角线归一化）；结算界面 Enter / Space 重开；**M 键静音开关** |
 | 移动端操作 | 左下虚拟摇杆移动（`_input` 阶段接管触点，支持斜向）；右下「确认」按钮；结算界面触摸「重新开始」；**右上「音效」按钮静音** |
 
