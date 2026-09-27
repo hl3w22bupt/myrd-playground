@@ -1,0 +1,26 @@
+{
+  "speed": { "base": 100.0, "step": 0.10, "cap": 2.0, "capBonusScore": 50 },
+  "hit": { "hp": 3, "invincibleSec": 1.0 },
+  "run": { "timeLimitSec": 120.0, "scorePerSecAtBase": 10.0 },
+  "player": { "moveSpeed": 260.0, "marginPx": 16.0 },
+  "crystal": { "spawnIntervalSec": 1.1, "spawnJitterSec": 0.4, "tightenSlope": 0.10, "fallFactor": 1.0 },
+  "meteor": {
+    "spawnIntervalSec": 0.8,
+    "spawnJitterSec": 0.3,
+    "tightenSlope": 0.06,
+    "shipClearancePx": 80.0,
+    "types": [
+      { "key": "red", "color": "#FF4D5E", "radiusMin": 22.0, "radiusMax": 28.0, "relativeSpeed": 0.85, "swayAmpPx": 0.0, "swayFreqHz": 0.0, "weight": 0.40 },
+      { "key": "yellow", "color": "#FFD24A", "radiusMin": 14.0, "radiusMax": 18.0, "relativeSpeed": 1.0, "swayAmpPx": 40.0, "swayFreqHz": 1.6, "weight": 0.35 },
+      { "key": "blue", "color": "#4DB8FF", "radiusMin": 10.0, "radiusMax": 14.0, "relativeSpeed": 1.3, "swayAmpPx": 0.0, "swayFreqHz": 0.0, "weight": 0.25 }
+    ]
+  },
+  "visual": {
+    "bg": "#0B0B22",
+    "band1": "#1B1040",
+    "band2": "#122A4D",
+    "meteorOutline": "#0E0E20",
+    "crystal": "#7FF6E8",
+    "starCount": 90
+  }
+}

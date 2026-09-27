@@ -1,0 +1,141 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
+[ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="3_joystick"]
+[ext_resource type="Script" path="res://scripts/touch_confirm_button.gd" id="4_confirm"]
+[ext_resource type="Script" path="res://scripts/starfield.gd" id="5_starfield"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_confirm"]
+radius = 44.0
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Starfield" type="Node2D" parent="."]
+script = ExtResource("5_starfield")
+
+[node name="Entities" type="Node2D" parent="."]
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(320, 260)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="TitleLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_top = 6.0
+offset_right = 640.0
+offset_bottom = 24.0
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.62, 0.65, 0.85, 0.85)
+horizontal_alignment = 1
+text = "星云穿行 · 一只小飞船在星云里穿行，躲开彩色陨石，收集能量水晶，收集越多飞得越快"
+
+[node name="StatsLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 28.0
+offset_right = 430.0
+offset_bottom = 50.0
+theme_override_font_sizes/font_size = 15
+text = "生命 3/3 · 档位 1.0x · 水晶 0 · 得分 0"
+
+[node name="TimeLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 440.0
+offset_top = 28.0
+offset_right = 624.0
+offset_bottom = 50.0
+theme_override_font_sizes/font_size = 15
+horizontal_alignment = 2
+text = "0.0 / 120 s"
+
+[node name="MoveHint" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 336.0
+offset_right = 520.0
+offset_bottom = 354.0
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.7, 0.72, 0.8, 0.7)
+text = "WASD / 方向键移动 · 空格/回车 重开"
+
+[node name="ResultPanel" type="Panel" parent="UI"]
+unique_name_in_owner = true
+visible = false
+offset_left = 110.0
+offset_top = 110.0
+offset_right = 530.0
+offset_bottom = 250.0
+
+[node name="ResultTitle" type="Label" parent="UI/ResultPanel"]
+unique_name_in_owner = true
+offset_top = 14.0
+offset_right = 420.0
+offset_bottom = 44.0
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+text = "到达终点！"
+
+[node name="ResultStats" type="Label" parent="UI/ResultPanel"]
+unique_name_in_owner = true
+offset_top = 54.0
+offset_right = 420.0
+offset_bottom = 100.0
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+text = "存活 0 s · 水晶 0 · 最高速度 1.0x · 总分 0"
+
+[node name="ResultHint" type="Label" parent="UI/ResultPanel"]
+unique_name_in_owner = true
+offset_top = 104.0
+offset_right = 420.0
+offset_bottom = 124.0
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.75, 0.78, 0.9, 0.9)
+horizontal_alignment = 1
+text = "按 空格 / 回车 或点右下按钮 重新开始"
+
+[node name="TouchUI" type="CanvasLayer" parent="."]
+layer = 10
+visible = false
+
+[node name="JoystickAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -160.0
+offset_right = 160.0
+offset_bottom = -24.0
+grow_vertical = 0
+script = ExtResource("3_joystick")
+
+[node name="ConfirmAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -140.0
+offset_top = -140.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="ConfirmButton" type="TouchScreenButton" parent="TouchUI/ConfirmAnchor"]
+position = Vector2(58, 58)
+shape = SubResource("CircleShape2D_confirm")
+script = ExtResource("4_confirm")
+
+[node name="ConfirmLabel" type="Label" parent="TouchUI/ConfirmAnchor/ConfirmButton"]
+unique_name_in_owner = true
+offset_left = -40.0
+offset_top = -14.0
+offset_right = 40.0
+offset_bottom = 14.0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 0.9)
+text = "确认"
