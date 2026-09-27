@@ -5,6 +5,8 @@
 # （apphost.toml 的 assets_dir 指向它，部署时平台把该目录上传对象存储），必须入库
 /export/*
 !/export/web/
+# 导出目录里 Godot 扫资产时再生的 .import 元数据不入库（门禁每跑一次都会重建）
+/export/web/*.import
 *.exe
 *.zip
 
