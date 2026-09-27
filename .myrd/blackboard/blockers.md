@@ -16,6 +16,7 @@
 - **美术线复检轮复核（2026-09-27，T3 美术，开工首笔）**：①OD 守护进程 `127.0.0.1:7456` **仍不可达**——open-design MCP `get_active_context` 独立复现（报错原文同上），跨轮累计**第 3 次**，维持升级主人待修；本轮资产产物继续以 repo 文件 + hash 为准（风格卡回流 OD 复核项继续挂起，不构成新门禁）。②cwd 非 repo root：**未复现**（本轮 shell 初始即 repo root；执行中差异系美术自查主动切目录，非环境异常，不冒领）。取证 `gate-logs/r4-neon-juice-20260927-art-recheck/README.md` §1。
 - **美术线复核·第 4 次（同日第二轮开工首笔）**：OD 守护进程 `127.0.0.1:7456` 仍不可达（open-design MCP 原文报错同上）——**异常持续，维持升级主人**；cwd = repo root 未复现。资产面在 §E3 落树后重证零漂移 + 门禁全绿（见 assets.md §r4 复检增记）。
 - **美术线复核·第 5 次（同日第三轮开工首笔）**：OD 守护进程 `127.0.0.1:7456` 仍不可达（open-design MCP 原文报错同上）——**异常持续（第 5 次跨轮复现），维持升级主人**；cwd = repo root 未复现。资产面重证零漂移 + 门禁全绿（assets.md §r4 复检增记·第三轮）。
+- **deploy 节点·第 6 次（2026-09-27 发布轮开工首笔，程序/deploy）**：OD 守护进程 `127.0.0.1:7456` 仍不可达——curl 直探 `/` 返回 `000 / exit 7`（connection refused），**第 6 次跨轮复现，维持升级主人待修**；本轮发布面导出走 repo 文件（E0 处置裁定继续有效），不依赖 OD。cwd 非 repo root：**未复现**（`pwd` = `git rev-parse --show-toplevel` = run 工作区根，不冒领）。部署通道预检：`PLATFORM_API_URL=http://localhost:3111`，`MYRD_TOKEN`/`MYRD_TEAM_ID`/`MYRD_RUN_ID` 均在位；目标坑沿用 §B7 登记 `cmugttipt000km9299oej5z9b`（platformSlug `stack-tower-3`），manifestPath 恒为 `games/stack-tower/apphost.toml`、sourceId `stack-tower`，不建新坑不挤占。
 
 ## E0b · 程序线复跑与裸调用契约门禁修复（r4 · 2026-09-27 11:07–11:14，程序）
 
