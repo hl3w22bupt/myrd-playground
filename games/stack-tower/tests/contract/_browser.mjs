@@ -57,3 +57,19 @@ export async function startServer() {
 export function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
+
+/**
+ * 打开实验室口径测量页（spec numeric.benchmark_device）：无缓存全新 context + CDP CPU 节流注入。
+ * Emulation.setCPUThrottlingRate 对页面全局生效，须在 goto 前注入——该页后续加载/执行全程按
+ * throttleX 降速；performance.now() 仍为墙钟，测得的是节流下的用户体感冷启动时长。
+ * 返回 { context, page }；用毕由调用方 close context。
+ */
+export async function newBenchmarkPage(browser, { width, height, throttleX }) {
+  const context = await browser.newContext({ viewport: { width, height } }); // 全新上下文 = 无缓存首访
+  const page = await context.newPage();
+  if (throttleX && throttleX > 1) {
+    const session = await context.newCDPSession(page);
+    await session.send('Emulation.setCPUThrottlingRate', { rate: throttleX });
+  }
+  return { context, page };
+}

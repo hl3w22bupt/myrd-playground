@@ -24,8 +24,32 @@
   ③ e09 开局摆位为 levels 元素、断言按 spec revision_note 显式折入 e01/e03/e08（无独立 acceptance）→ C 段反向映射误判孤儿；acc-a7（spec 内置 D4 冻结）无显式 not-runnable 通道。
 - **修复（只动门禁工具，零游戏代码/零设计变更）**：①③字段与折入口径对齐 v1.2；② 锚点实体双闸核验（expect 非空 + expect 具名落点 repo/游戏工程双根存在 + 契约文件可追溯）；并加两条**新护栏**：not-runnable 挂起必须有 spec 原文挂账条款背书（无据挂起 = FAIL）；每个契约文件必须列入 run-all 门禁清单（「文件在、门禁不跑」= 假绿）。
 - **复跑（8 道门禁全绿，证据 `gate-logs/r4-neon-juice-20260927-prog-recheck/`）**：typecheck / run-all 31 条 / P0 查表 13 件 / perf 相对判（+8.73%，容差 ±10%）/ M2.1 资产运行时 / 端到端冒烟 / 壳形态模拟（U7 NOTE 维持立案）/ **裸调用契约门禁 PASS**（A 段 platformSpecId=cmuj5f6ik00hkm9l64r5uickm v4 approved；B 段 31/32 + acc-a7 显式挂起；C 段 8↔9 元素 + 23↔31 契约 + run-all 聚合全量核对；D 段 20/20 实体 + kernel 纯净；E 段 20/20 资产）。
-- **acc-j1 负载敏感性（如实记录，判据零放松）**：裸调用首跑曾现 1 次 acc-j1 瞬时 FAIL（页内时钟 >3000ms），与同期门禁 4 观测的负载尖峰（perf +8.73%，较 N5 首跑 -12.73%）同源；独立复跑 5/5 PASS 后取证。预算仍 3000ms、无重试，测试实现与 spec 语句一致——环境抖动记录，不构成豁免。
+- **acc-j1 负载敏感性（2026-09-27 驳回①更正本条表述）**：裸调用首跑曾现 1 次 acc-j1 瞬时 FAIL（页内时钟 >3000ms），与同期门禁 4 观测的负载尖峰（perf +8.73%，较 N5 首跑 -12.73%）同源；独立复跑 5/5 PASS 后取证。预算仍 3000ms、无重试。**原「测试实现与 spec 语句一致」表述失实**：当时实现缺 4x CPU 节流注入、仅 390x844 单视口，不符合 spec acc-j1 + numeric.benchmark_device 实验口径——已按驳回①修复并按 spec 口径复测（见 §E3）。
 - **E0 复核（11:11:53，双通道）**：OD 守护进程 127.0.0.1:7456 仍不可达（curl `http_code=000` + open-design MCP 原文报错）→ **维持升级主人待修**；本轮产物继续以 repo 文件 + hash 为准。cwd 非 repo root 异常：未复现（`pwd` = `git rev-parse --show-toplevel`）。
+
+## E3 · 驳回三项处置（一致性 acc-j1 / N6 物证 / 证据条款 · 2026-09-27 11:20–11:55，程序）
+
+- **① 一致性 acc-j1 → 成立，已按 spec 口径修复（程序不得反向私改语义）**：spec acc-j1 语句明载
+  「实验口径 playwright chromium + 4x throttle（numeric.benchmark_device）」，且 `content.benchmark.freeze`
+  冻结条款写明「换节流档位/换视口必须先升策划案版本再改测试」→ 修复方向 = 测试就范于 spec。
+  - `_browser.mjs` 新增 `newBenchmarkPage()`（CDP `Emulation.setCPUThrottlingRate`，goto 前注入全局生效）；
+  - `juice-acc-j1-first-block.spec.mjs` 重写：口径参数自 `loadSpec().spec.numeric.benchmark_device` 读入
+    （LAB_CPU_THROTTLE_X=4 + LAB_VIEWPORTS_PX 两档 390x844/360x640），逐档测量逐档断言，两档全过才计绿；
+  - spec 口径复测：**419ms/163ms（单测）、310ms/166ms（run-all 内）@4x throttle，判据 ≤3000ms 成立**；
+    节流真实生效反证 = 20x 档探针 242ms→599ms（注入若失效两者应相等）；
+  - 复跑：run-all **31/31**（`prog-recheck/9-run-all-post-rejection1.log`）+ 裸调用契约门禁 **PASS**
+    （`10-contract-check-bare-post-rejection1.log`）。四判据冒烟全绿的 acc-j1 一条自此在 spec 口径下证立。
+  - 失实表述两处同步更正：§E0b acc-j1 行 + `prog-recheck/README.md` acc-j1 节（原「测试实现与 spec 语句一致」不成立）。
+- **② N6 物证标识 → 成立，已更正**：`docs/n6-master-decision-memo-r4.md` §二.1 首图定稿对象 sha256
+  由作废 `01ea413e15e4c6ed…` 更正为现行 **`098e28b7f1a29479…`**（三处一致基准：manifest.json + 磁盘实算
+  + 风格卡 §5 勘误 + assets.md §r4 复检记录），备忘补「全值见 .manifest.json」指针。可呈主人拍板。
+- **③ 证据条款 → 成立，已补正**：N5 `1-typecheck.log` 原件 0 字节无效（缺命令/日期/摘要）——原件保留
+  + 文件内补记行，**typecheck 四要素证据转移至 `prog-recheck/1-typecheck.log`（11:08:08 exit=0）**；
+  N5 README 重写为「四要素补正版」（2–7 号命令补录 + 证据转移登记 + acc-j1 特别登记）；本文件头部
+  「七文件每文件含命令+日期+输出摘要」失实表述已更正（见上）。
+- **附带观测（如实）**：浏览器级契约在门禁机连续重负载窗口存在偶发抖动（acc-j1 负载敏感 + acc-j5 于
+  门禁 10 第一次复跑瞬败 1 次，状态断言非时序判据，独立 3/3 PASS）。未对任何测试加重试/豁免，判据语义零变更；
+  建议 QA 空载窗口复核一轮浏览器级判据。
 
 ## r4 当前基线（霓虹夜塔冲刺 · N5 收口后状态）
 
@@ -34,7 +58,7 @@
 - **spec 版本号：v1.2（平台 v4）· approved**（platformSpecId `cmuj5f6ik00hkm9l64r5uickm`，2026-09-27 API 实查 approved 唯一；v3 `cmugok2uz000xm9ilx42t8pnl` superseded）
 - 契约与 QA 共同输入 = `.myrd/spec/stack-tower-spec.json`（approved v4 导出件）+ `.myrd/spec/design-spec.json`（任务书指定路径同内容第二落点，README 已留痕）
 - 冲刺目标达成度：spec v1.2 approved ✓ / 四判据冒烟全绿 ✓ / P0 资产对照过检 13/13 ✓ / **N6 人工拍板待主人（未过不算完）**
-- 门禁：7/7 全绿（typecheck / run-all 31 条 / P0 查表 13 件 / perf 相对判 / M2.1 资产运行时 / 端到端冒烟 / 壳形态模拟），证据 = `.myrd/blackboard/gate-logs/r4-neon-juice-20260927-n5/`（七文件，每文件含命令+日期+输出摘要）；QA 回执 = `games/stack-tower/docs/qa-r4-neon-juice.md`（QA-R4-NEON-20260927-01）
+- 门禁：7/7 全绿（typecheck / run-all 31 条 / P0 查表 13 件 / perf 相对判 / M2.1 资产运行时 / 端到端冒烟 / 壳形态模拟），证据 = `.myrd/blackboard/gate-logs/r4-neon-juice-20260927-n5/`（**2026-09-27 驳回③更正：原「七文件每文件含命令+日期+输出摘要」表述失实**——1 号原件 0 字节无效、2–7 号缺命令/时刻头；四要素补正登记见该目录 README「证据条款补正」节，完整四要素复跑链 = `gate-logs/r4-neon-juice-20260927-prog-recheck/`）；QA 回执 = `games/stack-tower/docs/qa-r4-neon-juice.md`（QA-R4-NEON-20260927-01）
 
 ### r4 · 9/24、9/25 正式销案台账（账务结论，2026-09-27；每案保留一次代码级复核权）
 
