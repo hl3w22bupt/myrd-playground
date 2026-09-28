@@ -6,6 +6,14 @@
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：**等主人两项拍板**——①下发正式 AppID + 类目/资质材料（解锁真机轨复跑与提审）；②是否提审（不点头 B0 不闭环）
 
+### B0 收口态 deploy（第 7 次 · 2026-09-28 · 程序/deploy）— **已发布，AppHost 浏览器可玩**
+- **坑（沿用不新建）**：appId `cmugttipt000km9299oej5z9b` · slug `stack-tower-3` · sourceId `stack-tower`（防挤占校验过：绑定即本游戏）· manifestPath `games/stack-tower/apphost.toml`。
+- **liveUrl**：`https://leomac-studio.tail49399e.ts.net/apps/stack-tower-3/`（/health 200；/ 308→200 出壳）。
+- **本轮 gitRef**：`myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `3ff05c3`（远端=本地，ls-remote 实证）；部署单 `cmul7cf4r000om9lftgu63lmw` status=running（本平台在服形态）。⚠️ 通道事实：deployments POST 经代理 30s 截断回 504 但服务端已受理，**504≠失败**，必须 GET 复查（本轮重试产生第二张同载荷单 `cmul7blzr000mm9lfcqhz6gd3`，已被 superseded，无副作用）。
+- **导出对齐**：`npm run build` 多出 4 个 wx 适配模块，`export/web/build` 本轮补齐，恢复 `build/ ≡ export/web/build/` **34 文件逐字节全等**（web 入口对 4 模块零静态引用 → 行为零变化）；commit `3ff05c3`。
+- **自测**：部署前门禁 4/4 绿（根契约 / numeric ≡ `c3af773b…` / wx 体积分列 / smoke browser）+ 线上 4/4 模块指纹全等 ≡ `3ff05c3` + live-smoke **核心循环 PASS**（画布 480×720 / 分数 0→45→复位 / PNG·M4A 字节通道 / 音频可解码）。
+- **FAIL 三项 = 既有立案 U6/R2（非本轮回归）**：SW scope 缺陷（壳层 `server/` 成因，待主人三选一裁决），v16 线上同形态，本轮不改壳。证据：`gate-logs/b0-deploy-20260928/README.md`。
+
 ### N4 · 提审包与材料回流对照（2026-09-28）
 - **接续复核轮（同日 · 程序）**：上轮收口态全量复核 **9/9 绿零漂移**——根契约 PASS / wx-GATE 6/6 / 体积分列 PASS / numeric 三向对账 ≡ `c3af773b…74957d` / 双 typecheck / 冒烟 (browser) / run-all 31/31 / **提审包 sha256 复算 ≡ `7ee13ab7…8225f`**；零代码改动（`git status` 干净）。证据 `gate-logs/b0-wx-port-20260928/recheck-20260928-prog/`（9 份日志 + README，四要素齐）。
 - **提审包 = `games/stack-tower/export/wx/`，整包复合 sha256 = `7ee13ab741fc3586b7477e43f89e94f6d2a3c32eafd49357cbd0c8b19208225f`**（= sha256(manifest.json)；62 件逐件 sha256 经磁盘一致性校验）；主包 317.8KB≤4MB / 开放数据域 5.7KB≤1MB 分列 PASS。
