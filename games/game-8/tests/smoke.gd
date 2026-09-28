@@ -11,7 +11,9 @@ extends Node
 ## 覆盖面（模板五项断言逐项保留 + 收集玩法与难度梯度的机判断言）：
 ##   1. 场景可实例化（main.tscn → player.tscn / collectible.tscn 接线未断裂）
 ##   2. autoload 已注册且带约定信号
-##   3. InputMap 动作已注册、物理键绑定正确（键位契约），注入输入后牛牛真的动了
+##   3. InputMap 动作已注册、物理键绑定正确（键位契约），注入输入后牛牛真的动了，
+##      且移动方向符号正确：A/← 输入后 position.x 减小、D/→ 输入后 position.x 增大
+##      （需求 cmuktc8jk000hm97zm6l1gp4u 基线：方向反向即 FAIL）
 ##   4. 信号真的到达订阅方（Player.moved / GameState.score_changed）
 ##   5. 收集判定：触碰后物品消失且计数 +1（需求验收基线 2）
 ##   6. 连续 50 次触碰判定一致性：跨 3 局累计 50 次真实触碰，每次恰好 +1（验收基线 2）
@@ -28,8 +30,13 @@ extends Node
 
 ## ── 噪声相位：确定种子对抗输入（悬挂手势/孤儿释放/乱键），断言仍全过 = 输入管线没被楔死 ──
 const NOISE_FRAMES: int = 24
-## 阶段一：按住 move_right 让牛牛移动的帧数。
-const MOVE_FRAMES: int = 10
+## 阶段一（方向符号断言）：单方向持续按住的物理帧数。
+## 220px/s ≈ 3.67px/物理帧 → 6 帧 ≈ 18~22px 位移，远超 MIN_MOVE_DISTANCE 且帧开销极小
+## （A/← 与 D/→ 背靠背共 13 帧，对照原先单向 11 帧，只多 2 帧，保住 240 帧预算）。
+const DIR_HOLD_FRAMES: int = 6
+## 方向符号断言基准点：视口正中（640x360）。距左右边各 300px，双向 ~20px 位移
+## 不会触 PLAY_RECT(20px 边距) 钳制 —— 钳制会吃掉位移、把方向断言打成假失败。
+const DIR_CHECK_POSITION: Vector2 = Vector2(320.0, 180.0)
 ## 阶段二：传送到收集物上后等待 area_entered 的帧数。
 const COLLECT_FRAMES: int = 4
 ## 注入 confirm 后等待结算/重开生效的帧数。
@@ -42,9 +49,12 @@ const RESPAWN_MAX_FRAMES: int = 90
 const NO_MISJUDGE_FRAMES: int = 4
 ## 过期断言用的短寿命（秒）：0.2s ≈ 12 物理帧。
 const SHORT_LIFETIME: float = 0.2
-## 大批量收集时，非目标物品的统一停放点（视口内远角，与牛牛活动区保持距离）：
+## 大批量收集时，非目标物品的统一停放点：
+## 必须在牛牛可达区（PLAY_RECT 钳制 [20..620, 20..340]）之外，且距可达区最近点 >36px
+## （拾取判定 = 玩家半径 22 + 物品半径 14；(700,420) 距可达角 (620,340) ≈113px = 3 倍余量）。
+## 旧值 (620,340) 恰好压在钳制角上（距离 0）：目标刷点一靠近，传送即整堆误收（实测 score 单触 +6）。
 ## 每次只把目标物品摆到牛牛脚下、其余全部停走 → 单触单收确定性，50 连击不被双收污染。
-const PARK_POSITION: Vector2 = Vector2(620.0, 340.0)
+const PARK_POSITION: Vector2 = Vector2(700.0, 420.0)
 ## 整体帧预算兜底（超过直接判失败，防死循环；smoke.sh 另有 --quit-after 兜底）。
 const TOTAL_FRAME_BUDGET: int = 600
 ## 判定「真的移动了」的最小位移（像素）。
@@ -83,6 +93,8 @@ var _finished: bool = false
 var _player: Player
 var _main_node: GameMain
 var _origin: Vector2 = Vector2.ZERO
+## 方向符号断言的 x 基准：每次断言后滚动更新为当前 x（先 ← 后 → 各比对一次基准）。
+var _dir_base_x: float = 0.0
 var _collect_target: Collectible
 var _expire_target: Collectible
 var _moved_seen: bool = false
@@ -169,15 +181,27 @@ func _advance_phase() -> void:
 					Input.action_release(action)
 				_to_phase(SmokePhase.MOVE)
 		SmokePhase.MOVE:
+			# 方向符号断言（需求 cmuktc8jk000hm97zm6l1gp4u 基线）：
+			# A/← 输入后 position.x 必须减小，D/→ 输入后必须增大 —— 以输入前后 x 符号差判定。
+			# 布置帧先把牛牛瞬移到视口正中（双方位移都不触边钳制）、把在场物品停走
+			# （杜绝 13 帧窗口内顺路收集污染判定），再背靠背注入 ← / → 两个方向。
 			if _phase_frames == 1:
+				_park_all_others(null)
+				# _advance_phase 只在零失败时推进（_physics_process 已守卫），此处 _player 必非空。
+				_player.global_position = DIR_CHECK_POSITION
+				_dir_base_x = _player.global_position.x
+				Input.action_press(&"move_left")
+			elif _phase_frames == DIR_HOLD_FRAMES + 1:
+				Input.action_release(&"move_left")
+				_assert_direction_sign(-1)
 				Input.action_press(&"move_right")
-			elif _phase_frames > MOVE_FRAMES:
+			elif _phase_frames >= DIR_HOLD_FRAMES * 2 + 1:
 				Input.action_release(&"move_right")
-				_assert_player_moved()
+				_assert_direction_sign(1)
 				_to_phase(SmokePhase.COLLECT)
 		SmokePhase.COLLECT:
 			if _phase_frames == 1:
-				_teleport_onto_collectible()
+				_place_target_under_player()
 			elif _phase_frames >= COLLECT_FRAMES:
 				_assert_collected()
 				_assert_spawn_tightened()
@@ -356,14 +380,25 @@ func _assert_touch_ledger() -> void:
 		_failures.append("连续触碰判定总数 %d != 50（验收基线 2：连续收集 50 次一致性断言未跑满）" % _touch_count)
 
 
-func _assert_player_moved() -> void:
+## 方向符号断言：expected_sign=-1 断言 A/←（move_left）输入后 x 较基准**减小**；
+## expected_sign=+1 断言 D/→（move_right）输入后 x 较基准**增大**。
+## 判定 = 符号正确 且 |Δx| ≥ MIN_MOVE_DISTANCE（同「真的动了」口径）。
+## 任一方向符号反了（如 ← 后 x 增大）→ 带方向签名的 FAIL，需求 cmuktc8jk000hm97zm6l1gp4u。
+func _assert_direction_sign(expected_sign: int) -> void:
 	if _player == null:
 		return
-	var travelled: float = _player.global_position.distance_to(_origin)
-	if travelled < MIN_MOVE_DISTANCE:
+	var delta: float = _player.global_position.x - _dir_base_x
+	_dir_base_x = _player.global_position.x
+	if expected_sign < 0 and delta > -MIN_MOVE_DISTANCE:
 		_failures.append(
-			"牛牛 %d 帧内位移 %.2fpx < %.2fpx：InputMap 动作未生效或 _physics_process 未驱动 velocity" % [
-				MOVE_FRAMES, travelled, MIN_MOVE_DISTANCE,
+			"方向符号断言 FAIL：模拟 A/← 输入 %d 帧后 position.x 未减小（Δx=%+.1fpx，期望 ≤-%.0fpx）—— 方向反向或移动未生效" % [
+				DIR_HOLD_FRAMES, delta, MIN_MOVE_DISTANCE,
+			]
+		)
+	elif expected_sign > 0 and delta < MIN_MOVE_DISTANCE:
+		_failures.append(
+			"方向符号断言 FAIL：模拟 D/→ 输入 %d 帧后 position.x 未增大（Δx=%+.1fpx，期望 ≥+%.0fpx）—— 方向反向或移动未生效" % [
+				DIR_HOLD_FRAMES, delta, MIN_MOVE_DISTANCE,
 			]
 		)
 
@@ -465,9 +500,11 @@ func _assert_respawn_and_expiry() -> void:
 		])
 
 
-## 首触布置：挑一个富余寿命的物品、停走其余、把牛牛瞬移到它身上 ——
-## 与 MASS 阶段同一套确定性摆放，保证首触也是单触单收（score 恰好 +1）。
-func _teleport_onto_collectible() -> void:
+## 首触布置：挑一个富余寿命的物品、停走其余、把目标物品摆到牛牛脚下 ——
+## 与 MASS 阶段同一套确定性摆放（物品→玩家，物理重叠对称），保证首触也是单触单收。
+## ⚠️ 必须移动「物品」而不是「玩家」：玩家每帧被 PLAY_RECT 钳制，传送到钳制区外的
+## 停靠点会在下一物理帧被拉回，物品停在 113px 外永不重叠（实测 score 恒 0 假失败）。
+func _place_target_under_player() -> void:
 	if _player == null:
 		return
 	var container := get_tree().root.find_child("Collectibles", true, false)
@@ -480,7 +517,7 @@ func _teleport_onto_collectible() -> void:
 		return
 	_park_all_others(target)
 	_collect_target = target
-	_player.global_position = target.global_position
+	target.global_position = _player.global_position
 
 
 func _collectible_count() -> int:
@@ -588,7 +625,7 @@ func _key_labels(keys: Array) -> String:
 
 func _report() -> void:
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/输入映射/移动/收集判定/50 连击一致性/难度梯度/过期回收/胜负/一键重开/持久化 全部通过")
+		print("GODOT_SMOKE: PASS 场景实例化/输入映射/移动方向符号(A/←减小,D/→增大)/收集判定/50 连击一致性/难度梯度/过期回收/胜负/一键重开/持久化 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:
