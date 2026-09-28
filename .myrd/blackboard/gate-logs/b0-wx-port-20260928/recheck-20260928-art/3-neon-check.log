@@ -1,0 +1,5 @@
+# 命令: node tests/assets-neon-check.mjs（同轮 · 10:22:47）
+PASS  a19-ui-panel-hud
+PASS  a20-ui-icon-sound
+RESULT: PASS (13/13) — P0 资产逐件查表
+# exit=0（10:22:47）

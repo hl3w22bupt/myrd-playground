@@ -19,6 +19,16 @@
 | 6 | wx-friend-rank-ui | assets/wx/friend-rank-ui.png | 460×560 | PASS |
 | 7 | wx-icon | assets/wx/icon.png | 120×120 | PASS |
 
+### B0 · 美术线收口复核（2026-09-28 · 游戏美术 · 只检不新做，全部 PASS）
+
+> 上轮复核（`f64657d`）仅登记程序线（levels.md）；本轮补美术面独立复核，证据 `gate-logs/b0-wx-port-20260928/recheck-20260928-art/`（5 日志四要素齐）。
+- **零漂移**：重跑 `tools/gen-wx-assets.mjs` → 7/7 逐字节一致，`git diff` 空；`assets/wx/manifest.json` 逐件 sha256 独立复算 7/7 全等。
+- **查表复跑**：`tests/wx/assets-wx-check.mjs` **7/7 PASS**（sha256 + PNG 头 + 尺寸 = 定稿 + 派生色 `#0b1026` 精确命中）；r4 P0 13 件查表 13/13（未被本轮触碰）。
+- **门禁复跑**：wx-GATE **6/6 PASS**（含素材查表项）；根契约 `scripts/contract-check.mjs` **RESULT: PASS**（31/32 + acc-a7 not-runnable 具 spec 挂账背书，与 f64657d 基线口径逐字一致）。
+- **风格派生纪律核验**：manifest `derivedFrom` = 霓虹夜塔参考卡 v1.0 + theme.ts NEON 表唯一色源；零新编风格 ✓。接线面：`src/platform/share.ts` 分享卡常量（真源 manifest）+ `tools/build-wx.mjs` 镜像 3 件入 `export/wx/assets/wx/` + icon 入组包配置。
+- **计数口径维持**：spec 定稿 id 7 项为准；任务书「8 项」差额维持挂账主人指认，未擅自新编（风格统一 > 凑数）。
+- **美术线 B0 收口态**：7 id 平台素材全过检零漂移，无新做项；后续唯一触发条件 = 主人指认增补 id 或对色板给方向（升卡 → 改 theme.ts → 重生成 → hash 留痕）。
+
 - 生成链：`tools/gen-wx-assets.mjs`（解析 theme.ts NEON 表取值，解析失败即失败；无随机数，重跑逐字节一致）；manifest = `assets/wx/manifest.json`（逐件 sha256）。
 - 查表执行器：`tests/wx/assets-wx-check.mjs`（sha256 + PNG 头 + 尺寸 = 定稿 + ≥1 像素精确命中 NEON 表），N3 证据 `gate-logs/b0-wx-port-20260928/wx-track/6-assets-wx-check.log`。
 - 附：wx BGM 环素材 `assets/bgm/neon-loop.m4a`（`tools/gen-bgm.mjs`，f0 锁相无缝环 9600ms，与 `src/audio/bgm.ts` LOOP_MS 同值断言）——wx-runtime 实现件，非平台素材 id 清单项。
