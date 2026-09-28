@@ -1,0 +1,44 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/player.gd" id="1_player"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(28, 22)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pickup"]
+radius = 22.0
+
+[node name="Player" type="CharacterBody2D"]
+script = ExtResource("1_player")
+
+[node name="Body" type="Polygon2D" parent="."]
+color = Color(0.96, 0.94, 0.9, 1)
+polygon = PackedVector2Array(-14, -11, 14, -11, 14, 11, -14, 11)
+
+[node name="Spot1" type="Polygon2D" parent="."]
+color = Color(0.15, 0.15, 0.15, 1)
+polygon = PackedVector2Array(-9, -6, -3, -6, -3, 0, -9, 0)
+
+[node name="Spot2" type="Polygon2D" parent="."]
+color = Color(0.15, 0.15, 0.15, 1)
+polygon = PackedVector2Array(3, 3, 9, 3, 9, 9, 3, 9)
+
+[node name="Horn1" type="Polygon2D" parent="."]
+color = Color(0.85, 0.7, 0.4, 1)
+polygon = PackedVector2Array(-12, -11, -8, -11, -10, -17)
+
+[node name="Horn2" type="Polygon2D" parent="."]
+color = Color(0.85, 0.7, 0.4, 1)
+polygon = PackedVector2Array(8, -11, 12, -11, 10, -17)
+
+[node name="Muzzle" type="Polygon2D" parent="."]
+color = Color(0.95, 0.75, 0.75, 1)
+polygon = PackedVector2Array(-5, 11, 5, 11, 5, 16, -5, 16)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_body")
+
+[node name="PickupArea" type="Area2D" parent="." groups=["player_pickup"]]
+
+[node name="PickupShape" type="CollisionShape2D" parent="PickupArea"]
+shape = SubResource("CircleShape2D_pickup")
