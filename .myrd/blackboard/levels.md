@@ -2,9 +2,18 @@
 
 ## B0 · 微信小游戏移植轮（2026-09-28 开工 · 主策划）
 
-> 更新时间：2026-09-28（B0 开工首笔 · 主策划）
+> 更新时间：2026-09-28（B0 接续复核轮 · 程序——上轮 N1→N4 收口态全量复核 9/9 绿，证据 `gate-logs/b0-wx-port-20260928/recheck-20260928-prog/`）
 > 负责人：主策划（整合人）· 程序线维护实现状态列 · QA 线维护核销列
-> 下一步：N1 spec v1.3（platform 段四条目）→ N1.5 QA 预检 → N2 程序‖美术 → N3 三轨门禁 → N4 提审包回流 → 主人拍板是否提审
+> 下一步：**等主人两项拍板**——①下发正式 AppID + 类目/资质材料（解锁真机轨复跑与提审动作）；②是否提审（提审包 `export/wx/` sha256 `7ee13ab7…8225f` 已在档；不点头 B0 不闭环）
+
+### B0 · 程序线实现落点登记（N2 · 接续轮逐项在盘复核 2026-09-28）
+
+- **wx 装配体**：`src/platform/wx.ts`（Platform 接口平台无关 + onShow/onHide 生命周期）· `wx/game.js` / `wx/game.json` / `wx/project.config.json`（touristappid 测试号占位）· `tools/build-wx.mjs` 组包 → `export/wx/`（62 件）
+- **BGM 环**：`src/audio/bgm.ts`（LOOP_MS ≡ `assets/bgm/neon-loop.m4a` 9600ms 同值断言；web 侧不接线 → 零行为变化）
+- **分享闭环**：`src/platform/share.ts`（会话 5:4 主判据卡 + 朋友圈 1:1 附带项）
+- **开放数据域子包**：`wx/open-data-context/index.js` / `rank.js`（token 引主包同一份变量文件，构建期单源；查表器曾揪出 hex 兜底字面量已修复）
+- **门禁脚本**：根 `scripts/contract-check.mjs` + `scripts/check-wx-bundle-size.mjs`（分列断言）+ `scripts/check-numeric-freeze.mjs`（只复算 N1 存档 sha256）
+- **spec 四条目 ↔ 落点/契约**：wx-runtime / wx-share-loop / wx-open-data-rank / wx-submission-kit 各带 spec 落点与可执行 check，契约面 = `tests/wx/*.spec.mjs` 66 断言（16+12+11+13+14）+ 素材查表 7/7，本轮复跑 wx-GATE PASS (6/6)
 
 - **移植轮红线：关卡面零改动**——world/entities/levels/numeric 四段与 v1.2 逐字节一致（N1 冻结守卫机械断言）；web 行为零变化（v1.2 四判据 + 31 条契约全量重跑）。wx 侧新增面全部走 platform 适配层（`src/platform/wx.ts` 装配体 + `src/audio/bgm.ts` 环 + `wx/` 包骨架 + 开放数据域子包），内核零触碰。
 - B0 验收主判据 = **会话分享 5:4 卡**（N3 wx 轨）；朋友圈分享 = 附带项；开放数据域不卡「真机看到真实好友分」。

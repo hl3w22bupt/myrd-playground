@@ -1,0 +1,11 @@
+# 命令: node games/stack-tower/tests/wx/run-wx-gate.mjs
+# 时刻: 2026-09-28 10:15:28
+===== wx 轨门禁聚合（可机跑面）=====
+[PASS]  wx-runtime-surface（wx-runtime 条目）   RESULT: PASS  — wx 运行时表面 16 项断言全绿
+[PASS]  wx-share-loop（wx-share-loop 条目）   RESULT: PASS  — 分享闭环 12 项断言全绿（主判据面 5:4 卡就绪）
+[PASS]  wx-open-data-rank（wx-open-data-rank 条目）   RESULT: PASS  — 开放数据域 11 项断言全绿（token 单源 + 管线就绪）
+[PASS]  wx-submission-kit（wx-submission-kit 条目）   RESULT: PASS  — 提审包与材料 13 项断言全绿
+[PASS]  bgm-loop wx 冒烟（拒绝线正面闭环）   RESULT: PASS  — bgm-loop wx 结果就绪（14 断言，被测=export/wx/build-wx 同一份代码）
+[PASS]  平台素材查表（7 id 定稿）   RESULT: PASS  — 平台素材查表 7/7（sha256 + 尺寸 + NEON 派生）
+wx-GATE: PASS (6/6)
+EXIT=0

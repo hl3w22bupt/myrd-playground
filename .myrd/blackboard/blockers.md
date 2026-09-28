@@ -7,6 +7,7 @@
 > 下一步：**等主人两项拍板**——①下发正式 AppID + 类目/资质材料（解锁真机轨复跑与提审）；②是否提审（不点头 B0 不闭环）
 
 ### N4 · 提审包与材料回流对照（2026-09-28）
+- **接续复核轮（同日 · 程序）**：上轮收口态全量复核 **9/9 绿零漂移**——根契约 PASS / wx-GATE 6/6 / 体积分列 PASS / numeric 三向对账 ≡ `c3af773b…74957d` / 双 typecheck / 冒烟 (browser) / run-all 31/31 / **提审包 sha256 复算 ≡ `7ee13ab7…8225f`**；零代码改动（`git status` 干净）。证据 `gate-logs/b0-wx-port-20260928/recheck-20260928-prog/`（9 份日志 + README，四要素齐）。
 - **提审包 = `games/stack-tower/export/wx/`，整包复合 sha256 = `7ee13ab741fc3586b7477e43f89e94f6d2a3c32eafd49357cbd0c8b19208225f`**（= sha256(manifest.json)；62 件逐件 sha256 经磁盘一致性校验）；主包 317.8KB≤4MB / 开放数据域 5.7KB≤1MB 分列 PASS。
 - 提审材料按 id 逐项对照：**7/7 三向一致**（spec v1.3 content.platform ↔ assets/wx/manifest.json ↔ 磁盘，`wx-submission-kit.spec.mjs` 13 断言 PASS）——wx-share-card-5x4（主判据 5:4 卡）/ wx-share-timeline-1x1 / wx-store-screenshot-01..03 / wx-friend-rank-ui / wx-icon。
 - 非素材待主人下发项：正式 AppID（现 touristappid 测试号占位）/ 类目与资质材料 / 服务域名与服务账号口径（预计「无/无需」）——全清单见 `games/stack-tower/docs/wx-submission-kit-b0.md` §三。
