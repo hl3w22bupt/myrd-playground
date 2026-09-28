@@ -10,12 +10,11 @@ extends CharacterBody2D
 ## 玩家位置变化时发出；参数用类型标注（Vector2），订阅方可静态核对。
 signal moved(position: Vector2)
 
-const SPEED: float = 220.0
-
 
 func _physics_process(delta: float) -> void:
 	var direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	velocity = direction * SPEED
+	# 移动速度是可调数值：只读 GameState 调参区（spec.numeric 对接面），禁止在这里写魔数。
+	velocity = direction * GameState.move_speed
 	move_and_slide()
 	if direction != Vector2.ZERO:
 		moved.emit(global_position)
