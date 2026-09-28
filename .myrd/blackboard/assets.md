@@ -9,6 +9,20 @@
 - **风格派生纪律（本轮红线）**：全部平台素材从「霓虹夜塔」参考卡派生（`docs/style-card-neon-night-v1.md` + 基准四联图 @ `098e28b7…` + theme.ts NEON 色板唯一色值源），**零新编风格**；生成链沿用确定性 PNG 管线（pnglib.mjs），逐件 sha256 入 manifest。
 - **平台素材 id 预定稿（spec v1.3 落段后为准）**：wx-share-card-5x4（会话分享卡 500×400）/ wx-share-timeline-1x1（朋友圈 500×500）/ wx-store-screenshot-01..03（商店截图）/ wx-friend-rank-ui（好友排行 UI）/ wx-icon（应用图标）。**计数注记**：任务书口径「8 项」与定稿 id 清单 7 项差 1——按「素材 id 一步定稿」原则以 id 清单为准执行，差额待主人指认增补 id，不擅自新编。
 
+### B0 · 平台素材交付登记（N2 美术线 · 2026-09-28，查表 7/7 PASS）
+
+| # | spec id | 落点 | 尺寸 | 查表 |
+|---|---|---|---|---|
+| 1 | wx-share-card-5x4 | assets/wx/share-card-5x4.png | 500×400 | PASS（主判据素材，sha256+尺寸+NEON 派生色命中） |
+| 2 | wx-share-timeline-1x1 | assets/wx/share-timeline-1x1.png | 500×500 | PASS |
+| 3–5 | wx-store-screenshot-01..03 | assets/wx/store-screenshot-0{1..3}.png | 1242×2208 | PASS ×3 |
+| 6 | wx-friend-rank-ui | assets/wx/friend-rank-ui.png | 460×560 | PASS |
+| 7 | wx-icon | assets/wx/icon.png | 120×120 | PASS |
+
+- 生成链：`tools/gen-wx-assets.mjs`（解析 theme.ts NEON 表取值，解析失败即失败；无随机数，重跑逐字节一致）；manifest = `assets/wx/manifest.json`（逐件 sha256）。
+- 查表执行器：`tests/wx/assets-wx-check.mjs`（sha256 + PNG 头 + 尺寸 = 定稿 + ≥1 像素精确命中 NEON 表），N3 证据 `gate-logs/b0-wx-port-20260928/wx-track/6-assets-wx-check.log`。
+- 附：wx BGM 环素材 `assets/bgm/neon-loop.m4a`（`tools/gen-bgm.mjs`，f0 锁相无缝环 9600ms，与 `src/audio/bgm.ts` LOOP_MS 同值断言）——wx-runtime 实现件，非平台素材 id 清单项。
+
 > 前轮纪要：2026-09-27（**r4 美术线复检轮 · T3 美术**：N2/N3 交付「只检不新做」独立复检——**风格卡/查表/hash 全部过检，捡出并修复 1 件物证缺陷 F1**（四联图塔吊剪影 2→3 道对齐风格卡 §3，详见 §r4 复检记录）；开工首笔环境复核：OD 守护进程仍不可达（本轮 MCP 通道第 3 次独立复现，维持升级主人）、cwd 非 repo root 异常未复现）
 > 本轮前纪要：2026-09-27（**r4 开工 · 主策划**：换装「霓虹夜塔」+ P0 资产 13 项。开工首笔：①**风格卡冻结纪律生效**——A1「霓虹夜塔」参考卡冻结 v1.0 前，任何 r4 新资产不得进验收；②OD 守护进程 127.0.0.1:7456 不可达（两通道四次复现，留痕见 blockers.md §E0）——本冲刺资产产物一律落 repo 文件 + hash，不落 OD 画布，不降级为纸面件；③P0 13 项清单与拆分口径见 §r4-P0）
 > 前轮纪要：2026-09-26（**正式发布轮 r3**：发布对象变更 → 当前分支 HEAD `436be68`，T3 美术线按「只检不新做」对 HEAD 发布面独立复检四项——**全 PASS**，资产面相对 9/25 基线/r1/r2 **逐字节零漂移**；终检记录落 `gate-logs/release-m21-20260926-r3/art-final-check.md`；资产核对状态 = **终检完成（r3 四项全 PASS）**，`sfx-<事件id>` 注册表**双签完成**（程序侧 healthcheck §5 + 美术侧 r3 §复签）；U6/U7 属壳/注册链路，非素材面，U7 美术面口径见 r3 记录 §已知未收口项）

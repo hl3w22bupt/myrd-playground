@@ -1,0 +1,16 @@
+# 命令: node tests/wx/wx-share-loop.spec.mjs（B0 N3 wx 轨 · 2026-09-28 10:05:18）
+  PASS  spec 原文：主判据 = 会话分享 5:4 卡
+  PASS  spec 原文：朋友圈 = 附带项（不作放行判据）
+  PASS  wx-share-card-5x4 落包且 sha256 一致
+  PASS  wx-share-card-5x4 尺寸 500x400 = 定稿 500x400
+  PASS  wx-share-timeline-1x1 落包且 sha256 一致
+  PASS  wx-share-timeline-1x1 尺寸 500x500 = 定稿 500x500
+  PASS  share.js：会话卡路径 assets/wx/share-card-5x4.png（5:4）
+  PASS  share.js：朋友圈路径 assets/wx/share-timeline-1x1.png（1:1）
+  PASS  wx.ts：分享注册面导出（createWxShareRegistrar → onShareAppMessage）
+  PASS  boot-wx：installShareMenu(createWxShareRegistrar) 安装
+  PASS  载荷 query 携带 sid=（encodeURIComponent）
+  PASS  分享载荷零 PII（无 nickname/avatar/deviceId/openId）
+  PASS  会话卡 5:4 比例（500×400）
+RESULT: PASS  — 分享闭环 12 项断言全绿（主判据面 5:4 卡就绪）
+# exit=0（10:05:18）

@@ -1,10 +1,22 @@
 # 阻塞项黑板 — stack-tower（M2 首卡 → M2.1「有声可装」→ 正式发布轮 → 霓虹夜塔冲刺 → **B0 微信小游戏移植轮**）
 
-## B0 · 微信小游戏移植轮（2026-09-28 开工 · 主策划）
+## B0 · 微信小游戏移植轮（2026-09-28 开工 · 主策划 · **N4 收口态**）
 
-> 更新时间：2026-09-28（B0 开工首笔 · 主策划）
+> 更新时间：2026-09-28（N3 三轨门禁 + N4 回流完成 · 主策划）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：N1 spec v1.3（platform 段四条目）→ N1.5 QA 预检 → N2 程序‖美术并行 → N3 三轨门禁 → N4 提审包回流 → **主人拍板是否提审（不点头 B0 不闭环）**
+> 下一步：**等主人两项拍板**——①下发正式 AppID + 类目/资质材料（解锁真机轨复跑与提审）；②是否提审（不点头 B0 不闭环）
+
+### N4 · 提审包与材料回流对照（2026-09-28）
+- **提审包 = `games/stack-tower/export/wx/`，整包复合 sha256 = `7ee13ab741fc3586b7477e43f89e94f6d2a3c32eafd49357cbd0c8b19208225f`**（= sha256(manifest.json)；62 件逐件 sha256 经磁盘一致性校验）；主包 317.8KB≤4MB / 开放数据域 5.7KB≤1MB 分列 PASS。
+- 提审材料按 id 逐项对照：**7/7 三向一致**（spec v1.3 content.platform ↔ assets/wx/manifest.json ↔ 磁盘，`wx-submission-kit.spec.mjs` 13 断言 PASS）——wx-share-card-5x4（主判据 5:4 卡）/ wx-share-timeline-1x1 / wx-store-screenshot-01..03 / wx-friend-rank-ui / wx-icon。
+- 非素材待主人下发项：正式 AppID（现 touristappid 测试号占位）/ 类目与资质材料 / 服务域名与服务账号口径（预计「无/无需」）——全清单见 `games/stack-tower/docs/wx-submission-kit-b0.md` §三。
+- 回执：`games/stack-tower/docs/qa-wx-b0.md`（三轨 + 六条拒绝线逐条判定）；证据链 `.myrd/blackboard/gate-logs/b0-wx-port-20260928/`（web 回归 4 份 + wx 轨 9 份）。
+
+### N3 · 三轨门禁结论（2026-09-28）
+- 轨1 web 回归：**PASS**——run-all **31/31**（四判据全绿，0 FAIL 0 not-runnable）+ typecheck + P0 查表 + 零页面错误冒烟；web 链路源码零触碰（既有 tracked 文件零改动）。
+- 轨2 wx devtools（可机跑面）：**PASS 6/6**——四条目查（16+12+11+13 断言）+ **bgm-loop wx 冒烟 14 断言（有 wx 结果，拒绝线③正面闭环）** + 素材查表 7/7；两脚本（分列体积 / numeric 只复算存档）双 PASS。
+- 轨3 真机：**BLOCKED**（AppID / devtools CLI / 真机设备三缺）——按红线不执行不造假，升级主人；挂起清单见回执 §一.轨3。
+- **六条拒绝线零命中**（numeric 不一致 / 差集非空 / bgm-loop 无 wx 结果 / 超预算 / web 回归失败 / 条目缺落点或缺 check，逐条判定见回执 §二）。
 
 ### 🚨 阻塞升级（立即 · 2026-09-28）：AppID + 类目/资质材料未到位
 - **需主人一句话下发**：①微信小游戏 **AppID**（正式号）；②**类目与资质材料**（软著/备案/类目证明等提审必需项）。
@@ -13,9 +25,15 @@
 
 ### B0 当前基线（黑板路径 + spec 版本号）
 - **工程注册：stack-tower = `games/stack-tower/`**（仓库根 = 本 run 工作区根；cwd ≠ repo root 异常本轮未复现，`pwd` = `git rev-parse --show-toplevel`）。黑板 = `.myrd/blackboard/`（levels.md / assets.md / blockers.md 三份）。派活单与 QA 三轨门禁一律锚定此两路径（派活单：`.myrd/blackboard/b0-work-orders.md`）。
-- **spec 基线：v1.2（平台 v4）· approved**（platformSpecId `cmuj5f6ik00hkm9l64r5uickm`，2026-09-28 API 实查 approved 唯一）——B0 冻结基线；**numeric 段 sha256 = `c3af773b6483164c22ca0a039623967cb3b67ff9b2b658749f927baeee74957d`**（sortKeys 规范化，N1 存档唯一冻结锚）。
-- 契约与 QA 共同输入：`.myrd/spec/stack-tower-spec.json` + `.myrd/spec/design-spec.json`（v1.2 approved 导出件，八段与平台侧逐段深比一致，2026-09-28 实查 MATCH×8）。
-- B0 目标：产出**可提审微信小游戏包**（wx 运行时适配 + 分享/好友排行最小闭环 + 平台素材 + devtools/真机双档门禁），numeric 零漂移，提审材料清单回流；**是否提审由主人拍板**。
+- **spec 版本号：v1.3（平台 v5）· approved**（platformSpecId `cmukkjc10001ym9nb3dnc5kt6`，2026-09-28 API 实查 approved 唯一；v4 及更早全 superseded）；**numeric 段 sha256 = `c3af773b6483164c22ca0a039623967cb3b67ff9b2b658749f927baeee74957d`**（sortKeys 规范化，N1 存档唯一冻结锚，check-numeric-freeze 只复算本档）。
+- 契约与 QA 共同输入：`.myrd/spec/stack-tower-spec.json` + `.myrd/spec/design-spec.json`（v1.3 approved 导出件双落点，2026-09-28 以接口为准回写并复核）。
+- B0 目标达成度：spec v1.3 approved ✓ / wx 适配+分享+开放数据域+BGM 环落码 ✓ / 平台素材 7 id ✓ / 提审包+材料清单回流 ✓ / **真机轨 BLOCKED（AppID 未到位）** / **是否提审待主人拍板（不点头 B0 不闭环）**。
+
+### B0 · 版本链登记
+| 版本 | 平台 id | 内容 | 状态 |
+|---|---|---|---|
+| v1.2 = 平台 v4 | `cmuj5f6ik00hkm9l64r5uickm` | 霓虹夜塔 juice 冲刺（B0 冻结基线） | superseded |
+| **v1.3 = 平台 v5** | `cmukkjc10001ym9nb3dnc5kt6` | B0 微信移植轮：仅新增 content.platform 四条目（wx-runtime / wx-share-loop / wx-open-data-rank / wx-submission-kit，各带落点+可执行 check；schema v0 白名单 422 实证后落 content.platform，条目结构不变）+ 素材 id 7 项定稿 + QA 两条验收口径原文写死 + numeric 存档冻结锚；四段与 v1.2 逐字节一致；acceptance 32 条零增改 | **approved（唯一）** |
 
 > 前轮纪要：2026-09-27（**霓虹夜塔视觉与 juice 冲刺 r4 · N5 收口**：spec v1.2（平台 v4）approved；门禁 7/7 全绿（run-all 31 条含四判据+首局无弹窗+埋点三要素+P0 查表+数值闸）；9/24、9/25 正式销案记账完成（案 A–E，见 §销案台账）；**N6 人工拍板待主人**。开工首笔：环境异常留痕 §E0 / 平台 API 通道修复 §E1。deploy 节点：**v16 已发布**（commit `af04fe9`，线上自测全绿 + 新版本指纹 4/4，证据 §B7）。前轮纪要：2026-09-26（**复验轮（r2）收口 + r3 对象对齐轮收口**：r2 = U6 工程修复全量落码（`6a6b4a8` = tag `stack-tower-m2.1-release-r2`）+ 八道门禁全绿 + deploy 成功 + **N6 FAIL（R2 平台层缺陷，三层实测）** → R2 升级主人；r3 = 响应驳回：发布对象对齐 run 分支 HEAD（`a15f66b` 快进至含 U6 修复树，tag `stack-tower-m2.1-release-r3` @ `26a53d7`）+ 程序侧发布链补全（11 项门禁全绿 + 对内回执 QA-REL-M21-20260926-05 PASS）+ **N6 未复跑（R2 未解，两轮 FAIL 后不硬推）** → notes 维持 HELD。过程见 `docs/release-healthcheck-m21-r3.md` 与 `docs/qa-release-receipt-m21-r3.md`）
 > 前轮纪要：2026-09-26 上午（r1）：N1 体检→N2 对内 PASS（QA-REL-M21-20260926-01）→N3 素材终检→N4 notes HELD→N5 deploy 成功（tag `stack-tower-m2.1-release` @ `5a3284f`）→ N6 对外 FAIL（U6 线上 SW scope 缺陷）→ R1 立案；2026-09-25（M2.1 复验轮）：六道门禁全绿取证

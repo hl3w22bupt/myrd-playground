@@ -1,0 +1,16 @@
+# 命令: node tests/wx/wx-open-data-rank.spec.mjs（B0 N3 wx 轨 · 2026-09-28 10:05:18）
+  PASS  开放数据域入口落包（index.js）
+  PASS  渲染器落包（rank.js）
+  PASS  tokens.js 带 GENERATED 头（构建期生成，禁手抄）
+  PASS  子包 token ≡ 主包 NEON 表（sha256 相等）
+  PASS  子包 token ≡ 主包 BLOCK_NEON_CYCLE（色循环同源）
+  PASS  rank.js 零色值字面量（token 单源纪律）
+  PASS  index.js 零色值字面量
+  PASS  sharedCanvas 直绘入口
+  PASS  好友数据仅来自 wx.getFriendCloudStorage（开放数据域内）
+  PASS  主包消息触发：wx.onMessage（只收指令不收好友数据）
+  PASS  渲染器纯函数导出（module.exports.renderRank）
+  PASS  主包零好友数据落点（getFriendCloudStorage/KVDataList 不出现）
+  PASS  渲染兜底：无好友数据时占位渲染（devtools 合成数据口径）
+RESULT: PASS  — 开放数据域 11 项断言全绿（token 单源 + 管线就绪）
+# exit=0（10:05:18）
