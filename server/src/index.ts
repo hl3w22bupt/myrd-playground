@@ -2,15 +2,19 @@ import { Hono } from "hono";
 import { ctx } from "#apphost";
 import { getAsset } from "./lib/asset-store";
 import { GAME_PAGE_HTML } from "./game-page";
+import { BUILD_VERSION } from "./build-info";
 
 const app = new Hono();
 
 // 平台契约：健康检查（编排健康探针依据，部署后 30s 内必须 200）。
 // 资产走懒加载（首请求才拉取），/health 不等待资产就绪。
+// version = 构建版本号（build-info.ts，随发布提交更新）：线上核对部署新旧、
+// 区分缓存旧版的唯一锚点（资产端点带 max-age=300，无版本锚点无法证伪）。
 app.get("/health", (c) =>
   c.json({
     ok: true,
     app: "farm-yard",
+    version: BUILD_VERSION,
     env: ctx.environment,
     assets: "lazy/object-storage",
   }),

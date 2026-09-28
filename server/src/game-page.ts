@@ -18,6 +18,8 @@
  * （capture+passive 不消费事件）+ window.__audioDebug() 真机取证出口。
  * 根因取证与修复方案：games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md（F1 手势解锁 / F2 worklet 防御）。
  */
+import { BUILD_VERSION } from "./build-info";
+
 export const GAME_PAGE_HTML = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -49,7 +51,7 @@ body { color: #fff; background: #20301c; overflow: hidden; touch-action: none; f
 <canvas id="canvas">你的浏览器不支持 canvas。</canvas>
 <div id="boot">
   <h1>田园小院</h1>
-  <div class="sub">Farm Yard · MyRD 小游戏工坊</div>
+  <div class="sub">Farm Yard · MyRD 小游戏工坊 · build ${BUILD_VERSION}</div>
   <div id="bar-wrap"><div id="bar"></div></div>
   <div id="boot-msg">正在打理小院…</div>
   <div id="keys"><span><kbd>点按</kbd> 种植 / 收获 / 建造</span><span><kbd>空格</kbd> 一键收获成熟物</span><span><kbd>M</kbd> 静音开关</span></div>
@@ -61,6 +63,8 @@ body { color: #fff; background: #20301c; overflow: hidden; touch-action: none; f
      TUNING_META 钳制应用 —— 试玩调好的参数可用 URL 精确复现，调参回写不断裂。 -->
 <script>
 (function () {
+  // 构建版本号暴露：线上冒烟用它核对「访问到的是本次构建而非缓存旧版」。
+  window.__BUILD_VERSION__ = '${BUILD_VERSION}';
   var raw = new URLSearchParams(location.search).get('tuning');
   if (raw) {
     try {
