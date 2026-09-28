@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "name": "田园小院",
+    "version": 1,
+    "status": "approved",
+    "updatedAt": "2026-09-28",
+    "source": "需求 cmul7efx0000ym9lfpkugedlp；create_design_spec 平台操作未支持（节点 sg-spec failed），由实现节点 sg-impl 依据需求固化本规格并作为唯一事实源",
+    "engine": "godot-4.3",
+    "resolution": [720, 1280],
+    "orientation": "portrait",
+    "projectDir": "games/farm-yard"
+  },
+  "world": {
+    "summary": "玩家经营一座田园小院：种植→养殖→加工→出售/交付订单形成经营闭环，用收益扩建庭院、升级设施、提升等级。治愈系暖色田园画面（草地/木屋/栅栏/花田）+ 昼夜循环 + 轻快 BGM。",
+    "regions": [
+      { "id": "r-garden", "name": "菜园", "objects": "6 块耕地（初始 3 块开放，其余花金币开垦），种 5 种作物" },
+      { "id": "r-orchard", "name": "果园", "objects": "3 棵果树（苹果树初始就有，梨树/桃树花金币栽种），周期性结果可采摘" },
+      { "id": "r-coop", "name": "鸡鸭鹅舍", "objects": "3 座养殖舍（鸡舍初始就有，鸭舍/鹅舍花金币建造），按周期自动产蛋，点击收取" },
+      { "id": "r-flower", "name": "小花园", "objects": "4 个花圃（初始 2 个开放），种 3 种花" },
+      { "id": "r-leisure", "name": "休闲天地", "objects": "工坊小屋（加工食谱）+ 喷泉 + 秋千（升级提升全局售价）" }
+    ],
+    "ui": "顶部常驻 HUD（金币/等级经验/仓库集市订单/静音开关/任务横幅），点击对象弹出对应弹层（种植菜单/集市出售/订单交付/建造升级）"
+  },
+  "entities": [
+    { "id": "e-yard", "name": "庭院主场景", "scene": "res://scenes/main.tscn", "script": "res://scripts/main.gd" },
+    { "id": "e-yard-view", "name": "庭院视图（绘制+命中测试+昼夜）", "script": "res://scripts/yard_view.gd" },
+    { "id": "e-ui", "name": "HUD 与弹层（种植菜单/集市/订单/建造）", "script": "res://scripts/ui_layer.gd" },
+    { "id": "e-state", "name": "经营状态机（经济/生长/存档/任务）", "script": "res://autoload/game_state.gd" },
+    { "id": "e-data", "name": "数值配置表（作物/果树/养殖/食谱/任务）", "script": "res://autoload/farm_data.gd" },
+    { "id": "e-juice", "name": "反馈单例（弹跳/音效/飘字）", "script": "res://autoload/juice.gd" },
+    { "id": "e-tuning", "name": "调参面板", "script": "res://scripts/tuning_panel.gd" }
+  ],
+  "levels": [
+    {
+      "id": "l1",
+      "name": "田园小院",
+      "scene": "res://scenes/main.tscn",
+      "elements": [
+        { "id": "l1/e1", "kind": "region", "ref": "r-garden" },
+        { "id": "l1/e2", "kind": "region", "ref": "r-orchard" },
+        { "id": "l1/e3", "kind": "region", "ref": "r-coop" },
+        { "id": "l1/e4", "kind": "region", "ref": "r-flower" },
+        { "id": "l1/e5", "kind": "region", "ref": "r-leisure" }
+      ]
+    }
+  ],
+  "numeric": {
+    "crops": {
+      "wheat":   { "name": "小麦",   "seedCost": 2,  "sellPrice": 6,  "growSec": 10, "xp": 2 },
+      "carrot":  { "name": "胡萝卜", "seedCost": 4,  "sellPrice": 12, "growSec": 18, "xp": 3 },
+      "tomato":  { "name": "番茄",   "seedCost": 8,  "sellPrice": 22, "growSec": 30, "xp": 5 },
+      "pumpkin": { "name": "南瓜",   "seedCost": 15, "sellPrice": 42, "growSec": 45, "xp": 8 },
+      "corn":    { "name": "玉米",   "seedCost": 25, "sellPrice": 70, "growSec": 60, "xp": 12 }
+    },
+    "flowers": {
+      "daisy":     { "name": "雏菊",   "seedCost": 3,  "sellPrice": 9,  "growSec": 12, "xp": 2 },
+      "tulip":     { "name": "郁金香", "seedCost": 6,  "sellPrice": 18, "growSec": 22, "xp": 4 },
+      "sunflower": { "name": "向日葵", "seedCost": 12, "sellPrice": 36, "growSec": 40, "xp": 7 }
+    },
+    "trees": {
+      "apple": { "name": "苹果树", "buildCost": 0,   "fruit": "apple", "fruitName": "苹果", "fruitPrice": 14, "cycleSec": 22, "xp": 4 },
+      "pear":  { "name": "梨树",   "buildCost": 60,  "fruit": "pear",  "fruitName": "梨",   "fruitPrice": 24, "cycleSec": 32, "xp": 6 },
+      "peach": { "name": "桃树",   "buildCost": 110, "fruit": "peach", "fruitName": "桃",   "fruitPrice": 40, "cycleSec": 45, "xp": 9 }
+    },
+    "coops": {
+      "chicken": { "name": "鸡舍", "buildCost": 0,   "product": "egg",       "productName": "鸡蛋", "productPrice": 8,  "intervalSec": 12, "xp": 2 },
+      "duck":    { "name": "鸭舍", "buildCost": 80,  "product": "duck_egg",  "productName": "鸭蛋", "productPrice": 15, "intervalSec": 20, "xp": 4 },
+      "goose":   { "name": "鹅舍", "buildCost": 140, "product": "goose_egg", "productName": "鹅蛋", "productPrice": 26, "intervalSec": 30, "xp": 7 }
+    },
+    "recipes": {
+      "bread":     { "name": "面包",   "inputs": { "wheat": 2 },           "output": "bread",     "outputName": "面包",   "sellPrice": 18, "craftSec": 8,  "xp": 4 },
+      "cake":      { "name": "蛋糕",   "inputs": { "egg": 2, "wheat": 1 }, "output": "cake",      "outputName": "蛋糕",   "sellPrice": 45, "craftSec": 12, "xp": 8 },
+      "apple_pie": { "name": "苹果派", "inputs": { "apple": 2, "wheat": 1 }, "output": "apple_pie", "outputName": "苹果派", "sellPrice": 52, "craftSec": 15, "xp": 10 }
+    },
+    "build": {
+      "plotUnlockCosts": [0, 0, 0, 40, 80, 150],
+      "bedUnlockCosts": [0, 0, 60, 120],
+      "workshopBuildCost": 80,
+      "workshopUpgradeCosts": [80, 130, 200],
+      "coopUpgradeCosts": [60, 120],
+      "leisure": {
+        "fountain": { "name": "喷泉", "buildCost": 60,  "upgradeCosts": [100, 160] },
+        "swing":    { "name": "秋千", "buildCost": 100, "upgradeCosts": [150, 240] }
+      },
+      "maxFacilityLevel": 3,
+      "priceBonusPerLevelPct": 4
+    },
+    "economy": {
+      "startCoins": 30,
+      "craftSpeedPerLevel": 0.75,
+      "coopSpeedPerLevel": 0.8,
+      "orderPriceFactor": 1.35,
+      "orderBonusCoins": 8,
+      "orderBaseXp": 6
+    },
+    "growth": {
+      "xpToNextBase": 25,
+      "xpToNextStep": 15,
+      "levelUpCoinReward": 15,
+      "dayCycleSec": 90
+    },
+    "quests": [
+      { "id": "q1", "name": "种下第一株作物", "target": "plant_crop",      "rewardCoins": 10, "rewardXp": 5 },
+      { "id": "q2", "name": "收获第一份作物", "target": "harvest_crop",   "rewardCoins": 15, "rewardXp": 5 },
+      { "id": "q3", "name": "在集市卖出任意商品", "target": "sell_item",   "rewardCoins": 20, "rewardXp": 8 },
+      { "id": "q4", "name": "建造工坊",       "target": "build_workshop", "rewardCoins": 30, "rewardXp": 10 },
+      { "id": "q5", "name": "制作一份面包",   "target": "craft_bread",    "rewardCoins": 40, "rewardXp": 10 },
+      { "id": "q6", "name": "完成一张订单",   "target": "deliver_order",  "rewardCoins": 50, "rewardXp": 12 },
+      { "id": "q7", "name": "等级达到 3 级",  "target": "reach_level_3",  "rewardCoins": 60, "rewardXp": 0 }
+    ]
+  },
+  "acceptance": [
+    { "id": "ac-loop",     "check": "tests/smoke.gd 断言：种植→生长→收获→出售→金币增加 全链路结算正确", "headless": true },
+    { "id": "ac-numbers",  "check": "tests/smoke.gd 断言：金币不足购买被拒绝、金币/库存永不为负、加工原料校验", "headless": true },
+    { "id": "ac-idempotent","check": "tests/smoke.gd 断言：成熟物重复收获只结算一次（第二次收获拒绝）", "headless": true },
+    { "id": "ac-save",     "check": "tests/smoke.gd 断言：save→load 往返后金币/地块/库存/任务/静音完整恢复", "headless": true },
+    { "id": "ac-regions",  "check": "tests/smoke.gd 断言：五大区域各有 ≥1 可交互对象（ yard_view 命中表逐区命中）", "headless": true },
+    { "id": "ac-quest",    "check": "tests/smoke.gd 断言：7 阶段任务链按事件推进并发放奖励", "headless": true },
+    { "id": "ac-tap",      "check": "tests/smoke.gd 断言：注入点击事件→点空地弹种植菜单→点菜单项种下对应作物", "headless": true },
+    { "id": "ac-feedback", "check": "tests/smoke.gd 断言：结果性事件触发 Juice 反馈（收获/出售/建造）", "headless": true },
+    { "id": "ac-tuning",   "check": "tests/smoke.gd 断言：TUNING_META 非空、apply_tuning 钳制与未知键拒绝", "headless": true },
+    { "id": "ac-audio",    "check": "spec.assets：1 条 BGM + 种植/收获/鸡鸭鹅叫声等 ≥3 类交互音效全部入库且被注册；静音开关持久化进存档（smoke 断言）", "headless": "partial（注册与静音持久化无头可判，真机出声留真机验收）" },
+    { "id": "ac-feel",     "check": "治愈感（画面美观/节奏舒适）不可无头判定 → 留人工试玩评审，实现侧以昼夜循环+暖色板+反馈密度保底", "headless": false }
+  ],
+  "content": {
+    "sessionSeconds": 150,
+    "levelCount": 1,
+    "questCount": 7,
+    "replayHooks": [
+      "扩张线：开垦全部 6 块耕地 / 栽齐 3 棵果树 / 建齐 3 座养殖舍",
+      "经营线：工坊与养殖舍升满 3 级，产出周期缩短 25%/20%",
+      "休闲线：喷泉与秋千升满，全局售价 +8%",
+      "订单刷新：交付后生成新订单，组合随机"
+    ],
+    "onboarding": "任务横幅常驻当前阶段目标与引导提示，点击横幅可查看说明；q1~q3 走通首个完整闭环"
+  },
+  "assets": [
+    { "id": "font-cjk", "kind": "font", "file": "assets/fonts/NotoSansSC-Regular.otf", "source": "licensed", "license": "OFL（Noto Sans CJK SC 子集），见 assets/fonts/OFL.txt", "referenced": true },
+    { "id": "sfx-plant",   "kind": "sfx", "file": "assets/sfx/plant.wav",   "source": "generated", "generator": "procedural:tools/gen_sfx.gd", "license": "工程内生成，随工程分发", "referenced": true },
+    { "id": "sfx-harvest", "kind": "sfx", "file": "assets/sfx/harvest.wav", "source": "generated", "generator": "procedural:tools/gen_sfx.gd", "license": "工程内生成，随工程分发", "referenced": true },
+    { "id": "sfx-coin",    "kind": "sfx", "file": "assets/sfx/coin.wav",    "source": "generated", "generator": "procedural:tools/gen_sfx.gd", "license": "工程内生成，随工程分发", "referenced": true },
+    { "id": "sfx-cluck",   "kind": "sfx", "file": "assets/sfx/cluck.wav",   "source": "generated", "generator": "procedural:tools/gen_sfx.gd", "license": "工程内生成，随工程分发", "referenced": true },
+    { "id": "sfx-quack",   "kind": "sfx", "file": "assets/sfx/quack.wav",   "source": "generated", "generator": "procedural:tools/gen_sfx.gd", "license": "工程内生成，随工程分发", "referenced": true },
+    { "id": "sfx-honk",    "kind": "sfx", "file": "assets/sfx/honk.wav",    "source": "generated", "generator": "procedural:tools/gen_sfx.gd", "license": "工程内生成，随工程分发", "referenced": true },
+    { "id": "sfx-click",   "kind": "sfx", "file": "assets/sfx/click.wav",   "source": "generated", "generator": "procedural:tools/gen_sfx.gd", "license": "工程内生成，随工程分发", "referenced": true },
+    { "id": "sfx-confirm", "kind": "sfx", "file": "assets/sfx/confirm.wav", "source": "generated", "generator": "procedural:tools/gen_sfx.gd", "license": "工程内生成，随工程分发", "referenced": true },
+    { "id": "sfx-upgrade", "kind": "sfx", "file": "assets/sfx/upgrade.wav", "source": "generated", "generator": "procedural:tools/gen_sfx.gd", "license": "工程内生成，随工程分发", "referenced": true },
+    { "id": "sfx-fail",    "kind": "sfx", "file": "assets/sfx/fail.wav",    "source": "generated", "generator": "procedural:tools/gen_sfx.gd", "license": "工程内生成，随工程分发", "referenced": true },
+    { "id": "bgm-meadow",  "kind": "music", "file": "assets/audio/bgm_meadow.wav", "source": "generated", "generator": "procedural:tools/gen_bgm.gd", "license": "工程内生成，随工程分发", "referenced": true }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "_provenance": {
+    "tool": "tools/gen_sfx.gd",
+    "method": "procedural-synthesis",
+    "note": "资产治理协议 SKILL.md §7B：生成资产入库 spec.assets（source=generated, generator=procedural:tools/gen_sfx.gd）；改配方重跑工具即再生成，同配方同产物（确定种子）"
+  },
+  "sample_rate": 22050,
+  "effects": [
+    { "name": "plant",   "kind": "noise", "duration": 0.09, "volume": 0.5,  "decay": 26.0 },
+    { "name": "harvest", "kind": "sweep", "from": 660.0, "to": 990.0, "duration": 0.13, "volume": 0.55, "wave": "sine", "decay": 10.0 },
+    { "name": "coin",    "kind": "sweep", "from": 988.0, "to": 1319.0, "duration": 0.14, "volume": 0.5, "wave": "triangle", "decay": 9.0 },
+    { "name": "cluck",   "kind": "sweep", "from": 950.0, "to": 480.0, "duration": 0.09, "volume": 0.5, "wave": "square", "decay": 18.0 },
+    { "name": "quack",   "kind": "sweep", "from": 420.0, "to": 220.0, "duration": 0.16, "volume": 0.5, "wave": "sawtooth", "decay": 12.0 },
+    { "name": "honk",    "kind": "sweep", "from": 330.0, "to": 262.0, "duration": 0.28, "volume": 0.5, "wave": "square", "decay": 8.0 },
+    { "name": "click",   "kind": "blip",  "freq": 520.0, "duration": 0.05, "volume": 0.4, "wave": "sine", "decay": 22.0 },
+    { "name": "confirm", "kind": "blip",  "freq": 660.0, "duration": 0.1, "volume": 0.5, "wave": "square", "decay": 14.0 },
+    { "name": "upgrade", "kind": "sweep", "from": 523.0, "to": 1046.0, "duration": 0.25, "volume": 0.5, "wave": "triangle", "decay": 5.0 },
+    { "name": "fail",    "kind": "sweep", "from": 392.0, "to": 196.0, "duration": 0.28, "volume": 0.5, "wave": "sawtooth", "decay": 6.0 }
+  ]
+}

@@ -1,0 +1,10 @@
+# Godot 本机导入缓存：由 `godot --headless --path . --import` 重新生成，不进版本库
+.godot/
+
+# 导出产物 games/farm-yard/export/web/ 「要」进版本库：AppHost 部署按 gitRef 克隆本仓库构建，
+# apphost.toml 的 assets_dir 指向该目录（wasm/pck 由平台上传对象存储，不受 bundle 25MB 约束）。
+*.exe
+*.zip
+
+# 系统
+.DS_Store
