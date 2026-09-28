@@ -8,7 +8,21 @@ import tseslint from 'typescript-eslint';
  * 3) three 只允许在 src/render 内 import。
  */
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'coverage', 'docs'] },
+  {
+    // 只 lint 仓库自维护源码；生成物与平台注入副本不是本仓库源：
+    // - games/**/export/** = Godot Web 导出产物（引擎压缩代码，永不手改）
+    // - games/game/qa/**   = QA 取证脚本（CommonJS 一次性证据）
+    // - .myrd-platform/**  = 平台注入的技能阅读副本（判定/规范资产，不得改动）
+    ignores: [
+      'dist',
+      'node_modules',
+      'coverage',
+      'docs',
+      '.myrd-platform/**',
+      'games/**/export/**',
+      'games/game/qa/**',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

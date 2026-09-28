@@ -68,6 +68,8 @@ const ORDER_BASE_XP: int = 6
 const XP_TO_NEXT_BASE: int = 25             # 升到下一级所需经验 = base + step ×(level-1)
 const XP_TO_NEXT_STEP: int = 15
 const LEVEL_UP_COIN_REWARD: int = 15
+const WELCOME_REWARD_COINS: int = 10        # 首奖励：进入院落 3~5s 必发的开工奖励（新手正反馈锚点）
+const WELCOME_REWARD_XP: int = 5
 const DAY_CYCLE_SEC: float = 90.0           # 昼夜循环周期（治愈系视觉，不影响数值）
 const ACTIVE_ORDER_COUNT: int = 3
 const SAVE_PATH: String = "user://farm_save.json"

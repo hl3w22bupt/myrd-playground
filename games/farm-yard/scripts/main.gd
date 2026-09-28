@@ -13,6 +13,11 @@ extends Node2D
 
 const COOP_SFX: Array[StringName] = [&"cluck", &"quack", &"honk"]
 
+var _welcome_granted: bool = false        # 首奖励每局/每次进院只发一次
+var _welcome_elapsed: float = 0.0         # 进院累计秒（游戏时间，与 tick 同源）
+var _last_feedback_msec: int = 0          # 最近一条反馈事件的墙钟时刻（心跳兜底基准）
+var _ambient_index: int = 0               # 环境鸣叫轮换（鸡/鸭/鹅）
+
 
 func _ready() -> void:
 	# 信号连接：订阅方（本场景）写连接代码，发布方（yard_view / GameState）只 emit。
@@ -20,6 +25,9 @@ func _ready() -> void:
 	GameState.toast.connect(_on_game_toast)
 	GameState.quest_completed.connect(_on_quest_completed)
 	GameState.leveled_up.connect(_on_leveled_up)
+	GameState.produce_ready.connect(_on_produce_ready)
+	Juice.feedback_fired.connect(_on_feedback_fired)
+	_last_feedback_msec = Time.get_ticks_msec()
 	_start_bgm()
 	_apply_mute()
 	# 调参工作台（SKILL.md §3C）：网页 + URL 带 ?tuning 参数才创建，其余环境零成本。
@@ -29,6 +37,8 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	GameState.tick(delta)
+	_welcome_tick(delta)
+	_ambient_heartbeat_tick()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -126,6 +136,45 @@ func _harvest_all_ready() -> void:
 
 
 ## ── 结果反馈（挂在结果事件的处理函数上）──
+
+## 首奖励：进入院落后 welcome_reward_sec（3~5s，调参区钳制）秒必发，不依赖玩家触发特定交互。
+## 发放时同步 音效 + 飘字（toast）+ 高亮动效（金币标签弹跳闪金）—— 治愈系正反馈锚点。
+func _welcome_tick(delta: float) -> void:
+	if _welcome_granted:
+		return
+	_welcome_elapsed += delta
+	if _welcome_elapsed < GameState.welcome_reward_sec:
+		return
+	_welcome_granted = true
+	GameState.grant_welcome_reward()   # 经济入账 + toast（score_changed 同步发出）
+	Juice.sfx(&"coin")                 # 反馈：到账音效
+	Juice.pop(yard, 1.04, 0.16)        # 反馈：庭院轻微弹跳
+	ui.call("pulse_coins")             # 反馈：金币标签高亮动效
+	print("[welcome] 首奖励已发放（进院 %.1fs，+%d 金币）" % [
+		_welcome_elapsed, FarmData.WELCOME_REWARD_COINS])
+
+
+## 生长 tick 反馈：作物/花卉成熟、果树挂果、禽舍产蛋 —— 轻提示音（低音量，不打扰）。
+func _on_produce_ready(what: String) -> void:
+	Juice.sfx(&"confirm", -16.0)
+	print("[produce] %s 已就绪" % what)
+
+
+## 反馈心跳兜底（ambient_heartbeat_sec，默认 8s < 10s 窗口）：放置/等待期没有交互也有生命感 ——
+## 动物走动鸣叫（鸡/鸭/鹅轮换，低音量）作为环境反馈，保证任意 10s 窗口至少 1 条反馈事件。
+func _ambient_heartbeat_tick() -> void:
+	var now := Time.get_ticks_msec()
+	if now - _last_feedback_msec < int(GameState.ambient_heartbeat_sec * 1000.0):
+		return
+	_last_feedback_msec = now
+	Juice.sfx(COOP_SFX[_ambient_index % COOP_SFX.size()], -14.0)
+	_ambient_index += 1
+
+
+func _on_feedback_fired(_kind: StringName) -> void:
+	_last_feedback_msec = Time.get_ticks_msec()
+
+
 func _on_game_toast(_text: String, ok: bool) -> void:
 	ui.call("show_toast", _text, ok)
 	if not ok:

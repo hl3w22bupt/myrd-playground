@@ -499,6 +499,12 @@ func _on_coins_changed(coins: int) -> void:
 		open_plant_menu(_plant_kind, _plant_index)
 
 
+## 金币标签高亮动效（首奖励/大额入账的结果反馈，SKILL.md §3B）：弹跳 + 闪金光。
+func pulse_coins() -> void:
+	Juice.pop(_coin_label, 1.35, 0.28)
+	Juice.flash(_coin_label, Color(1.0, 0.9, 0.45, 0.85), 0.4)
+
+
 func _on_xp_changed(level: int, xp: int, xp_to_next: int) -> void:
 	_level_label.text = "Lv.%d" % level
 	_xp_bar.max_value = float(maxi(xp_to_next, 1))

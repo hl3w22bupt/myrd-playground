@@ -1,0 +1,8 @@
+{
+  "frames_per_run": 900,
+  "thresholds": {
+    "first_reward_seconds_max": 5.0,
+    "feedback_gap_seconds_max": 9.0,
+    "feedback_events_min_per_run": 2
+  }
+}

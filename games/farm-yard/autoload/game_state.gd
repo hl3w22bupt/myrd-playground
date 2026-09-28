@@ -9,6 +9,8 @@ extends Node
 ##   重复点击同一收获物只结算一次 —— 目标验收硬口径）。
 
 signal coins_changed(coins: int)
+signal score_changed(score: int)      ## 本局经营进账（playtest 首奖励锚点 + 得分时间序列）
+signal produce_ready(what: String)    ## 生长 tick 反馈：作物/花卉成熟、果树挂果、禽舍产蛋
 signal xp_changed(level: int, xp: int, xp_to_next: int)
 signal leveled_up(level: int)
 signal inventory_changed
@@ -22,11 +24,15 @@ signal toast(text: String, ok: bool)
 var grow_speed: float = 1.0          # 生长/产出/加工速度倍率（调参用，1 = spec 定稿）
 var day_cycle_sec: float = FarmData.DAY_CYCLE_SEC
 var autosave_sec: float = 5.0
+var welcome_reward_sec: float = 3.5  # 进入院落后首奖励必发延时（3~5s，不依赖玩家交互）
+var ambient_heartbeat_sec: float = 8.0  # 反馈心跳兜底：无反馈超过该秒数补一条环境反馈（<10s 窗口）
 
 const TUNING_META: Dictionary = {
 	&"grow_speed": {"min": 0.25, "max": 4.0, "step": 0.25},
 	&"day_cycle_sec": {"min": 30.0, "max": 300.0, "step": 5.0},
 	&"autosave_sec": {"min": 2.0, "max": 30.0, "step": 1.0},
+	&"welcome_reward_sec": {"min": 3.0, "max": 5.0, "step": 0.5},
+	&"ambient_heartbeat_sec": {"min": 4.0, "max": 9.0, "step": 0.5},
 }
 
 ## ── 核心状态 ──
@@ -35,6 +41,7 @@ var xp: int = 0
 var level: int = 1
 var muted: bool = false
 var play_sec: float = 0.0
+var score: int = 0                    # 本局经营进账累计（首奖励/收获/售出/订单/任务奖励）
 
 ## 地块/花圃：{state: "locked"|"empty"|"growing"|"mature", crop: String, remain: float, total: float}
 var plots: Array[Dictionary] = []
@@ -74,9 +81,9 @@ func tick(delta: float) -> void:
 	play_sec += delta
 	var speed := maxf(grow_speed, 0.05)
 	for i in plots.size():
-		_advance_slot(plots[i], delta * speed)
+		_advance_slot(plots[i], delta * speed, "crop")
 	for i in beds.size():
-		_advance_slot(beds[i], delta * speed)
+		_advance_slot(beds[i], delta * speed, "flower")
 	for id: String in trees:
 		var tree: Dictionary = trees[id]
 		if tree["built"] and not tree["ready"]:
@@ -85,6 +92,7 @@ func tick(delta: float) -> void:
 				tree["ready_in"] = 0.0
 				tree["ready"] = true
 				yards_changed.emit()
+				produce_ready.emit("tree")     # 生长 tick 反馈：果树挂果
 	for id: String in coops:
 		var coop: Dictionary = coops[id]
 		if coop["level"] > 0:
@@ -94,6 +102,7 @@ func tick(delta: float) -> void:
 				coop["ready_in"] += interval * ceilf(-coop["ready_in"] / interval)
 				coop["stock"] += 1
 				yards_changed.emit()
+				produce_ready.emit("coop")     # 生长 tick 反馈：禽舍产蛋
 	if crafting_recipe != "":
 		craft_remain -= delta * speed
 		if craft_remain <= 0.0:
@@ -104,13 +113,14 @@ func tick(delta: float) -> void:
 		save_game()
 
 
-func _advance_slot(slot: Dictionary, amount: float) -> void:
+func _advance_slot(slot: Dictionary, amount: float, what: String) -> void:
 	if slot["state"] == "growing":
 		slot["remain"] -= amount
 		if slot["remain"] <= 0.0:
 			slot["remain"] = 0.0
 			slot["state"] = "mature"
 			yards_changed.emit()
+			produce_ready.emit(what)       # 生长 tick 反馈：作物/花卉成熟
 
 
 ## ── 昼夜相位（0~1，0 = 清晨；yard_view 据此插值天色，纯视觉不改数值）──
@@ -233,7 +243,9 @@ func _add_coins(amount: int) -> void:
 	if amount <= 0:
 		return
 	coins += amount
+	score += amount                 # 本局经营进账同步入分（playtest 得分时间序列）
 	coins_changed.emit(coins)
+	score_changed.emit(score)
 
 
 func _add_xp(amount: int) -> void:
@@ -548,6 +560,16 @@ func toggle_mute() -> bool:
 	return muted
 
 
+## ── 首奖励（playtest 锚点 + 新手正反馈）：进入院落后 welcome_reward_sec 秒必发，不依赖玩家交互 ──
+## 定时由 main.gd 场景侧驱动（每局/每次进院只发一次）；这里只做经济入账 + toast。
+## 入账走 _add_coins() → score_changed 同步发出（playtest 首奖励时间序列的采集点）。
+func grant_welcome_reward() -> void:
+	_add_coins(FarmData.WELCOME_REWARD_COINS)
+	_add_xp(FarmData.WELCOME_REWARD_XP)
+	quest_progress("welcome_reward")
+	_notify("欢迎来到田园小院！开工奖励 +%d 金币" % FarmData.WELCOME_REWARD_COINS, true)
+
+
 ## ── 新局初始化：苹果树与鸡舍初始就有（保证五大区域开局即有可交互对象），订单发 3 张 ──
 func new_game() -> void:
 	coins = FarmData.START_COINS
@@ -555,6 +577,7 @@ func new_game() -> void:
 	level = 1
 	muted = false
 	play_sec = 0.0
+	score = 0
 	inventory = {}
 	order_seq = 0
 	quest_index = 0
