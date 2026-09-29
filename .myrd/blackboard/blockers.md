@@ -9,9 +9,19 @@
 
 ## B1 · 上头循环轮（2026-09-29 开工 · 主策划）
 
-> 更新时间：2026-09-29（N0 完成回写 · 主策划）
+> 更新时间：2026-09-29（**B1 收口态 · N4 门禁全绿 + deploy 已发布 · 主策划**）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：N1 spec v1.4（窄口径）登记+approve → N2 资产 ∥ N3 实现 → N4 门禁 → deploy（仅 PWA）
+> 下一步：**等主人两项拍板**——①「好不好玩」试玩终裁（连胜/每日挑战激励强度人工判定）；②U6/R2 壳层缺陷三选一裁决（B0 挂账延续）。missions 运行时顺延下一轮（附录 A schema 已定稿）
+
+### B1 收口态 deploy（2026-09-29 · deploy）— **已发布，仅 PWA 增量**
+
+- **部署单** `cmum141az006tm9lfwrc7c6a2` · commitHash **`c0a31f6`** · status=running（在服形态）· app `cmugttipt000km9299oej5z9b`（stack-tower-3）current 已切 · app status=ready · liveUrl `https://leomac-studio.tail49399e.ts.net/apps/stack-tower-3/`。
+- **通道坑位（三条，如实留痕 `gate-logs/b1-mental-loop-20260929/11-deploy.log`）**：① 真 POST 通道 = `/api/v1/apphost/apps/:id/deployments`（`/api/v1/deployments` 404、apphost/deployments POST 405）；② 一次 504@30s 代理截断——GET 复查**无单**（未受理，与 B0「504≠失败」案例不同形态：那是有单，这次无单）→ 修正 body（mode/commitHash 字段名对齐 B0 单）重发，非盲目重试；③ **部署输入 = gitRef 远端 HEAD**——首两次构建的都是远端 487640c，push（`487640c..c0a31f6`，ls-remote 实证）后重发才发布 B1 产物。
+- **线上自测全绿**：/health 200 · / 308→200 出壳 · **线上 sw.js = st-precache-v2 + META_CACHE_EPOCH=1 + index network-first** · 模块指纹 **8/8 全等**（main + meta 六模块 + telemetry-meta）· assets/meta/manifest.json 200 · live-smoke **核心循环 7/7**（画布/分数 0→45/重开复位/PNG·M4A/音频可解码）。
+- **FAIL 三项 = B0 已立案 U6/R2 既有态**（SW 未控制页面 / 断网 reload / SW scope 壳层成因）——非本轮回归，沿 B0 裁定不碰壳，维持升级主人。
+- **产物区**：products POST 201（B1 条目 `hostedAppSlug=stack-tower-3`）；artifacts 端点 404 未复现（B0 形态已变，非阻塞）。
+- **门禁**：run-all **39/39** + 根 contract-check PASS + numeric ≡ `c3af773b…` + wx 体积分列 PASS + 冒烟 browser PASS + wx 目录 git diff 零变更。QA 回执 `games/stack-tower/docs/qa-b1.md`（8 条拒绝线零命中）。
+
 
 ### N0 · 数据盘点结论（2026-09-29 当日完成 · 全文见 `n0-data-audit-b1.md`）
 
