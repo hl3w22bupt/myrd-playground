@@ -1,4 +1,32 @@
-# 阻塞项黑板 — stack-tower（M2 首卡 → M2.1「有声可装」→ 正式发布轮 → 霓虹夜塔冲刺 → **B0 微信小游戏移植轮**）
+# 阻塞项黑板 — stack-tower（M2 首卡 → M2.1「有声可装」→ 正式发布轮 → 霓虹夜塔冲刺 → B0 微信移植轮 → **B1 上头循环（PWA 先行，wx 不动）**）
+
+## 当前基线（B1 · 2026-09-29 开工 · 主策划）
+
+- **黑板路径**：`.myrd/blackboard/`（levels.md / assets.md / blockers.md + gate-logs/）
+- **spec 版本号**：v1.3 · approved（平台 v5 `cmukkjc10001ym9nb3dnc5kt6`；导出件 `.myrd/spec/stack-tower-spec.json` 主 + `design-spec.json` 镜像）；B1 目标 = v1.4（走 revisions version+1，numeric 四段逐字节冻结）
+- **numeric 冻结锚**：sha256(sortKeys) = `c3af773b6483164c22ca0a039623967cb3b67ff9b2b658749f927baeee74957d`（存档 `.myrd/spec/stack-tower-spec-v1.3-numeric-sha256.txt`，check 只复算本档）
+- **wx 提审包红线**：`games/stack-tower/export/wx/` 整包 sha256 = `7ee13ab741fc3586b7477e43f89e94f6d2a3c32eafd49357cbd0c8b19208225f`（B0 在案基线，B1 零变更，N4 以 git diff 留证）
+
+## B1 · 上头循环轮（2026-09-29 开工 · 主策划）
+
+> 更新时间：2026-09-29（N0 完成回写 · 主策划）
+> 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：N1 spec v1.4（窄口径）登记+approve → N2 资产 ∥ N3 实现 → N4 门禁 → deploy（仅 PWA）
+
+### N0 · 数据盘点结论（2026-09-29 当日完成 · 全文见 `n0-data-audit-b1.md`）
+
+- **三行门槛（85% / 3局 / 20%）实测全部无数据，样本量 0**——采集通道未建成（sink no-op + 服务端无端点 + 无事件持久化，三条实证可复现）→ **不足以决策三钩子全量**。
+- **主策划拍板（锁定决策①分支）**：scope_gate = 窄口径，B1 仅 `daily-challenge` + `streak-display`；`missions` 顺延下一轮，JSON 校验器/幂等发奖/`mission-panel` 资产 id 作预留登记。
+- **SW 现状**：cache-first + index 在 precache（旧壳滞留风险）；版本递增与 numeric 冻结冲突 → 拍板工具侧 `META_CACHE_EPOCH` 叠加（v2），PRECACHE_REVISION 维持 1 冻结，口径进 v1.4 附录。
+- **存档现状**：仅 muted + anonId 两键、无版本 → B1 迁移 = 新增 `st.meta.save.v2`（带 schemaVersion），既有键零触碰。
+- **三钩子就绪度（给美术）**：daily-challenge 🟢 / streak-display 🟢 / missions 🟡（顺延）——美术按「两种范围通用」先做参考卡 meta 扩展与四件套。
+
+### 首批阻塞（继承，不新增）
+
+1. **wx 提审拍板（归主人）**：正式 AppID + 类目/资质材料未下发；是否提审未拍板。B1 不解锁 wx 任何动作（包零变更），不阻塞 B1 主链。
+2. **抖音移植（backlog）**：等 wx 提审结果再议，B1 不动。
+
+
 
 ## B0 · 微信小游戏移植轮（2026-09-28 开工 · 主策划 · **N4 收口态**）
 

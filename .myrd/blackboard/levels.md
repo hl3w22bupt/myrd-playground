@@ -1,4 +1,20 @@
-# 关卡状态黑板 — stack-tower（霓虹夜塔冲刺 r4 → **B0 微信小游戏移植轮**）
+# 关卡状态黑板 — stack-tower（霓虹夜塔冲刺 r4 → B0 微信移植轮 → **B1 上头循环（meta 留存层，PWA 先行）**）
+
+## B1 · 上头循环轮（2026-09-29 开工 · 主策划）
+
+> 更新时间：2026-09-29（B1 开工首笔 · 主策划）
+> 负责人：主策划（整合人）· 程序线维护实现状态列 · QA 线维护核销列
+> 下一步：N0 数据盘点（只读，今日）→ 结论上黑板 → N1 spec v1.4 一次登记成型
+
+### B1 节点链与关卡面口径
+
+- **三个留存钩子**：daily-challenge（每日挑战，UTC+8 日期字符串 seed）/ missions（连击任务）/ streak-display（连胜展示）。**scope_gate**（主策划拍板，v1.4 落死）：N0 三门槛达标 → 三钩子全量；未达标或样本不足 → 仅 daily-challenge + streak-display，missions 顺延下一轮。
+- **数值红线**：numeric 段（含 v1 冻结七键）逐字节冻结，`c3af773b…` 锚不变；meta 层一切新数值走 content.meta 新段，不触碰 numeric。
+- **时区红线**：seed 输入 = UTC+8 日期字符串 `YYYY-MM-DD`；「UTC 23:30 vs 该时区 00:30」边界用例进契约测试。
+- **范围护栏**：不夹带玩法数值调优；不动 `games/stack-tower/wx/` 与 `export/wx/`（B0 提审包 `7ee13ab7…` 基线）；抖音进 backlog；不开新产品。
+- **关卡面不变**：world/entities/levels 零改动；e01–e08 玩法契约原样重跑；「好不好玩」终裁仍归主人试玩。
+
+
 
 ## B0 · 微信小游戏移植轮（2026-09-28 开工 · 主策划）
 

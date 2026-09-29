@@ -1,15 +1,16 @@
 # .myrd/spec/ — 策划案导出件索引（分游戏独立路径，2026-09-25 M2.1 起施行）
 
-> 更新时间：2026-09-28（**B0 微信小游戏移植轮 · N1 spec v1.3 登记+approve 完成 · 主策划**：平台 v5 `cmukkjc10001ym9nb3dnc5kt6` approved 唯一；四条目落 content.platform（schema v0 白名单 422 实证留痕）；world/entities/levels/numeric 四段与 v1.2 逐字节一致；numeric sha256 `c3af773b…74957d` 存档为唯一冻结基线）
+> 更新时间：2026-09-29（**B1 上头循环轮 · N1 spec v1.4 登记+approve 完成 · 主策划**：平台 v6 `cmulzwv6c005km9lfo3zek574` approved 唯一，v5 superseded；content.retention 新段（scope_gate=narrow 落死：仅 daily-challenge + streak-display，missions 顺延——N0 三门槛实测样本量 0）+ assets 追加 4 项 meta 四件套 + acceptance 追加 8 条 acc-b1..b8（总 40）；world/entities/levels/numeric 四段与 v1.3 逐字节一致，numeric sha256 `c3af773b…74957d` 沿用 v1.3 存档锚；基线契约 31/31 全绿零回归）
 > 负责人：主策划（版本链唯一看护；任何内容修订必须走版本链 version+1，禁止覆盖旧版）
-> 下一步：N2 程序（wx adapter/开放数据域/三脚本/BGM 环）‖ 美术（平台素材 7 id）→ N3 三轨门禁 → N4 提审包回流 → 主人拍板是否提审
+> 下一步：N2 美术（meta 四件套 + 参考卡 meta 扩展）‖ N3 程序（sfc32 seed / 存档迁移 / 埋点三类 / SW v2）→ N4 门禁 → deploy（仅 PWA）
 
 ## 导出件一览（一游戏一文件，终结撞车史）
 
 | 文件 | 游戏 | 版本/状态 | 契约测试调用 |
 |---|---|---|---|
-| `stack-tower-spec.json` | **Stack Tower 叠塔（`games/stack-tower/`）** | **v1.3（平台 v5）· approved**（platformSpecId `cmukkjc10001ym9nb3dnc5kt6`；v4 `cmuj5f6ik00hkm9l64r5uickm` superseded；v3 及更早 superseded）。v1.3 = B0 微信移植轮：仅新增 content.platform 四条目（wx-runtime/wx-share-loop/wx-open-data-rank/wx-submission-kit，各带落点+可执行 check）+ 素材 id 7 项定稿；四段（world/entities/levels/numeric）与 v1.2 逐字节一致；acceptance 32 条零增改 | `node games/stack-tower/tests/contract/run-all.mjs`（runner 自动读本文件） |
+| `stack-tower-spec.json` | **Stack Tower 叠塔（`games/stack-tower/`）** | **v1.4（平台 v6）· approved**（platformSpecId `cmulzwv6c005km9lfo3zek574`；v5 `cmukkjc10001ym9nb3dnc5kt6` superseded）。v1.4 = B1 上头循环轮：仅新增 content.retention 段（scope_gate=narrow 落死 + items 七条各带 id+落点+check + 双附录 A/B + N0 摘要）+ assets 追加 4 项 meta 四件套（daily-challenge-card/mission-panel/streak-badge/icon-badge）+ acceptance 追加 8 条 acc-b1..b8；四段（world/entities/levels/numeric）与 v1.3 逐字节一致；numeric sha256 `c3af773b…74957d` 沿用 v1.3 存档锚；既有 32 条 acceptance 零增改 | `node games/stack-tower/tests/contract/run-all.mjs`（runner 自动读本文件） |
 | `design-spec.json` | **Stack Tower 叠塔（r4 起）** | 同上（v1.3 approved 同内容第二落点，2026-09-28 以接口为准回写）——原糖果线遗留内容 2026-09-25 前已丢失（git 不可回滚），本文件自此为 stack-tower 专属，糖果线契约不得引用 | 同上（只读镜像） |
+| `stack-tower-spec-v1.4-payload.json` | 同上（v1.4 建版载荷） | POST /revisions 载荷 `{spec, detail}`；复现链 `node games/stack-tower/tools/build-spec-v14.mjs`（四段冻结守卫 + numeric≡v1.3 存档锚断言，违反即拒绝产出）；新增文件清单存档 `stack-tower-spec-v1.4-new-files.txt`（23 项） | 只读审计 |
 | `stack-tower-spec-v1.3-payload.json` | 同上（v1.3 建版载荷） | POST /revisions 载荷 `{spec, detail}`；复现链 `node games/stack-tower/tools/build-spec-v13.mjs`（四段冻结守卫，违反即拒绝产出） | 只读审计 |
 | `stack-tower-spec-v1.3-numeric-sha256.txt` | 同上（**唯一冻结基线存档**） | `c3af773b6483164c22ca0a039623967cb3b67ff9b2b658749f927baeee74957d`（sortKeys 规范化）；`scripts/check-numeric-freeze.mjs` **只复算本档，禁止现场自算** | `node games/stack-tower/scripts/check-numeric-freeze.mjs` |
 | `stack-tower-spec-v1.3-new-files.txt` | 同上（B0 新增文件全清单存档，30 项） | N1 detail ② 同源 | 只读审计 |
