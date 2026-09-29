@@ -1,14 +1,18 @@
 /**
  * Stack Tower SW（生成于 tools/gen-sw.mjs，勿手改）— 版本化 precache。
- * REVISION = 1（spec v3 numeric.deploy.PRECACHE_REVISION）
+ * REVISION = 1（spec numeric.deploy.PRECACHE_REVISION，冻结基线值）
+ * META_CACHE_EPOCH = 1（spec v1.4 content.retention sw-cache-bump：工具侧递增）
+ * 上一版缓存 st-precache-v1（B0 基线）由 activate 清理逻辑淘汰。
  */
-const CACHE = 'st-precache-v1';
+const CACHE = 'st-precache-v2';
 const PRECACHE = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
+  "./build/app/boot-wx.js",
   "./build/app/main.js",
   "./build/audio/audio-manager.js",
+  "./build/audio/bgm.js",
   "./build/audio/sfx.js",
   "./build/audio/voices.js",
   "./build/kernel/block.js",
@@ -22,9 +26,16 @@ const PRECACHE = [
   "./build/kernel/tower.js",
   "./build/kernel/types.js",
   "./build/main.js",
+  "./build/meta/claim.js",
+  "./build/meta/daily.js",
+  "./build/meta/save.js",
+  "./build/meta/seed.js",
+  "./build/meta/streak.js",
   "./build/platform/browser.js",
   "./build/platform/index.js",
   "./build/platform/input.js",
+  "./build/platform/share.js",
+  "./build/platform/wx.js",
   "./build/render/assets.js",
   "./build/render/backdrop.js",
   "./build/render/palette.js",
@@ -33,13 +44,22 @@ const PRECACHE = [
   "./build/render/textures.js",
   "./build/render/theme.js",
   "./build/telemetry/emitter.js",
+  "./build/telemetry/meta.js",
   "./build/ui/fps-overlay.js",
   "./build/ui/hud.js",
+  "./build/ui/meta-badge.js",
   "./build/ui/rotate-overlay.js",
   "./build/ui/style.js",
+  "./assets/bgm/manifest.json",
+  "./assets/bgm/neon-loop.m4a",
   "./assets/icons/apple-touch-icon-180.png",
   "./assets/icons/icon-192-maskable.png",
   "./assets/icons/icon-512-maskable.png",
+  "./assets/meta/daily-challenge-card.png",
+  "./assets/meta/icon-badge.png",
+  "./assets/meta/manifest.json",
+  "./assets/meta/mission-panel.png",
+  "./assets/meta/streak-badge.png",
   "./assets/neon/bg-night-gradient.png",
   "./assets/neon/block-skin-base-01.png",
   "./assets/neon/block-skin-base-02.png",
@@ -77,7 +97,15 @@ const PRECACHE = [
   "./assets/sprites/e06-tower-ripple.png",
   "./assets/tileset/blocks-tower.png",
   "./assets/ui/e07-score-hud.png",
-  "./assets/ui/e08-fail-recover.png"
+  "./assets/ui/e08-fail-recover.png",
+  "./assets/wx/friend-rank-ui.png",
+  "./assets/wx/icon.png",
+  "./assets/wx/manifest.json",
+  "./assets/wx/share-card-5x4.png",
+  "./assets/wx/share-timeline-1x1.png",
+  "./assets/wx/store-screenshot-01.png",
+  "./assets/wx/store-screenshot-02.png",
+  "./assets/wx/store-screenshot-03.png"
 ];
 
 self.addEventListener('install', (event) => {
@@ -95,9 +123,25 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+const NAV_PRELOAD = './index.html';
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
+  // B1（acc-b8）：导航请求（index.html）改 network-first——增量发布可见性由 index 可达性保证；
+  // 网络失败/超时回退缓存副本（离线仍可玩）。其余静态资源维持 cache-first + 网络回填。
+  if (req.mode === 'navigate') {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE).then((cache) => cache.put(NAV_PRELOAD, copy));
+          return res;
+        })
+        .catch(() => caches.match(NAV_PRELOAD, { ignoreSearch: true }).then((hit) => hit ?? Response.error())),
+    );
+    return;
+  }
   event.respondWith(
     caches.match(req, { ignoreSearch: true }).then((hit) => {
       if (hit) return hit;
@@ -107,7 +151,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE).then((cache) => cache.put(req, copy));
           return res;
         })
-        .catch(() => caches.match('./index.html'));
+        .catch(() => caches.match(NAV_PRELOAD));
     }),
   );
 });
