@@ -19,6 +19,20 @@
 
 - **关卡面零改动实证**：e01–e08 / juice / m21 / telemetry 契约 31 条全绿零回归；「好不好玩」终裁仍归主人。
 
+### B1 程序线复核轮（2026-09-29 · 程序 · 收口后独立复跑）
+
+- **七项核对全过，零新缺陷、零代码改动**（复核非重做：工作区在 c5ce12f 收口态干净起步）：
+  ① `node scripts/contract-check.mjs` → **PASS**，39/40 实跑（acc-a7 not-runnable 挂账真实性实查：
+  `tests/audio/` 不存在，判定成立）；
+  ② acc-b1..b8 逐条实跑 **8/8 PASS**；
+  ③ numeric 冻结复算：v1.4 payload sortKeys sha256 `c3af773b…74957d` **≡ v1.3 锚**，深比 diff 空；
+  ④ wx 零变更复算：`git diff --stat 487640c..HEAD -- …/wx …/export/wx` **输出为空**（B1 六提交零触碰）；
+  ⑤ retention 七条目 11 落点文件 + meta 四件套资产逐件在位；
+  ⑥ 冒烟复现：`node games/stack-tower/tests/smoke.mjs` → **PASS (browser)**（3 次点击落块分数 45 / R 重开分数 0 / 零 pageerror）；
+  ⑦ 红线抽验：`Math.random` 仅 anon_id 降级兜底（主路径 crypto.getRandomValues 标准 UUID v4），
+  kernel 与 meta seed 链路零调用；SW `st-precache-v2` + index network-first 口径不变。
+- 证据档案：`gate-logs/b1-recheck-20260929-prog/README.md`（七项各带命令+输出摘要）。
+
 
 ### B1 节点链与关卡面口径
 
