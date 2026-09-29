@@ -16,6 +16,7 @@
 | N3 实现 | src/meta 五模块 + telemetry/meta + meta-badge + SW v2 network-first + 8 契约 | run-all **39/39**；冒烟 browser PASS；契约抓出并关闭 3 处实现缺陷 | ✅ |
 | N4 门禁 | QA 回执 `docs/qa-b1.md` + 证据 11 份 | **8 条拒绝线零命中**；wx git diff 零变更留证 | ✅ |
 | deploy | 部署单 `cmum141az…` @ c0a31f6 | 线上 SW v2 + 指纹 8/8 + live-smoke 核心循环 7/7 | ✅ |
+| deploy 追加（09-30） | 部署单 `cmumy0u0g…` **v23 @ 885324a**（N2 美术接线增量上坑，坑复用 stack-tower-3） | 指纹 17/17 全等 + live-smoke 核心循环 7/7 + 基线 contract-check PASS；证据 `gate-logs/b1-redeploy-20260930-deploy/` | ✅ |
 
 - **关卡面零改动实证**：e01–e08 / juice / m21 / telemetry 契约 31 条全绿零回归；「好不好玩」终裁仍归主人。
 

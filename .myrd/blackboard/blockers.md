@@ -13,6 +13,17 @@
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：**等主人两项拍板**——①「好不好玩」试玩终裁（连胜/每日挑战激励强度人工判定）；②U6/R2 壳层缺陷三选一裁决（B0 挂账延续）。missions 运行时顺延下一轮（附录 A schema 已定稿）
 
+### B1 追加 deploy（2026-09-30 01:27 UTC+8 · deploy）— **v23 已发布（N2 美术接线增量上坑）**
+
+- **部署单** `cmumy0u0g0134m9lfql75zkkq` · **version 23** · commitHash **`885324a`**（= 本轮分支 HEAD，`git ls-remote` 预核对一致）· status=running（在服形态，同 v22）· `durationMs=824` · errorMessage=null · app `cmugttipt000km9299oej5z9b`（stack-tower-3）current 已切 · appStatus=ready。v22（`cmum141az…` @ c0a31f6）被 superseded。**坑复用不新建**：sourceId=`stack-tower` 绑定即本游戏（GET 实证）。
+- **本轮增量**：自 c0a31f6 起仅 N2 美术线接线（`main.ts`/`assets.ts`/`meta-daily-card.ts` + build/export 镜像 + sw.js 一行，59271a2）——范围与 B1「仅 PWA 增量」口径一致，wx 零触碰。
+- **导出面**：`npm run build` 后 `diff -rq build export/web/build` **空** + index/sw/manifest 相等 → **无新增导出提交**（产物 ≡ 代码）；发布前基线 `node scripts/contract-check.mjs` **PASS**（39/40 可跑）。
+- **通道实录**：POST 返回 504@30s 代理截断，GET 复查**有单**（已受理，version 23 building）→ 未重发、无双单；轮询 building→deploying→running。
+- **线上自测**：/health 200 · / 308→200 出壳 · 指纹 **17/17 全等**（含本轮新增 `build/ui/meta-daily-card.js` + meta 五模块 + meta 四件套资产；二进制经平台 base64 封装传输，解码后比对）· live-smoke **核心循环 7/7**。FAIL 3 项 = U6/R2 已立案既有态复现（同形态，非回归，不碰壳）。
+- **产物区**：artifacts POST **201**（`cmugut4ck000vm929ufwgefhl` · hostedAppSlug=stack-tower-3，幂等命中）。
+- **证据**：`gate-logs/b1-redeploy-20260930-deploy/deploy-evidence.md`（前置核对/导出一致性/通道/指纹/live-smoke 全记录）。
+- **挂账不变**：META_CACHE_EPOCH 1→2（回头用户触达）仍待主策划拍板；U6/R2 三选一、wx 提审拍板归主人。
+
 ### B1 收口态 deploy（2026-09-29 · deploy）— **已发布，仅 PWA 增量**
 
 - **部署单** `cmum141az006tm9lfwrc7c6a2` · commitHash **`c0a31f6`** · status=running（在服形态）· app `cmugttipt000km9299oej5z9b`（stack-tower-3）current 已切 · app status=ready · liveUrl `https://leomac-studio.tail49399e.ts.net/apps/stack-tower-3/`。
