@@ -48,6 +48,7 @@ const PRECACHE = [
   "./build/ui/fps-overlay.js",
   "./build/ui/hud.js",
   "./build/ui/meta-badge.js",
+  "./build/ui/meta-daily-card.js",
   "./build/ui/rotate-overlay.js",
   "./build/ui/style.js",
   "./assets/bgm/manifest.json",

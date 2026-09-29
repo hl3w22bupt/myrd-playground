@@ -11,13 +11,14 @@ import type { AudioManager } from '../audio/audio-manager.js';
 import { createAudioManager } from '../audio/audio-manager.js';
 import { semitonesForCombo } from '../audio/audio-manager.js';
 import { Renderer } from '../render/renderer.js';
-import { loadGameAssets } from '../render/assets.js';
+import { loadGameAssets, loadMetaAssets } from '../render/assets.js';
 import { mountHud } from '../ui/hud.js';
 import { createRotateOverlay } from '../ui/rotate-overlay.js';
 import { createTelemetryEmitter, browserTelemetryDeps } from '../telemetry/emitter.js';
 import { createMetaTelemetry, browserMetaTelemetryDeps } from '../telemetry/meta.js';
 import { createFpsOverlay } from '../ui/fps-overlay.js';
 import { createStreakBadge } from '../ui/meta-badge.js';
+import { createDailyCard } from '../ui/meta-daily-card.js';
 import { migrateV13, loadMetaSave, saveMetaSave, type StorageLike } from '../meta/save.js';
 import { applyMatchResult } from '../meta/streak.js';
 import { claimDailyReward } from '../meta/claim.js';
@@ -198,7 +199,22 @@ export function boot(platform: Platform, opts?: { seed?: number; telemetrySink?:
     metaTelemetry.emit('daily_challenge_start', { challengeDate: daily.challengeDate });
     const badge = createStreakBadge(document, { appendChild: (n) => document.getElementById('stage')?.appendChild(n as Node) });
     badge.update(metaSave);
-    // 徽章即插即换：N2 streak-badge 资产过检后经 assets 通道注入
+    // 每日挑战卡（纯呈现：日期 + 领取态；非交互零弹窗，acc-j5 红线）
+    const card = createDailyCard(document, { appendChild: (n) => document.getElementById('stage')?.appendChild(n as Node) });
+    const refreshCard = (): void => {
+      card.update(daily.challengeDate, metaSave.daily.claimedDates.includes(daily.challengeDate));
+    };
+    refreshCard();
+    // N2 meta 资产即插即换（窄口径 3 件：streak-badge / daily-challenge-card / icon-badge；
+    // mission-panel = missions-deferred 预留件不接线）：装载失败静默回主题令牌态，绝不抛错
+    if (platform.assets) {
+      void loadMetaAssets((url) => platform.assets!.loadImage(url), (msg) => console.info(msg)).then((metaAssets) => {
+        if (metaAssets.streakBadge) badge.applyBadgeSkin(metaAssets.streakBadge.src);
+        if (metaAssets.dailyChallengeCard) card.applyCardSkin(metaAssets.dailyChallengeCard.src);
+        if (metaAssets.iconBadge) card.applyIconSkin(metaAssets.iconBadge.src);
+        refreshCard(); // 皮肤化后重算角标形态（字形 ✓ ↔ icon-badge 图）
+      });
+    }
     metaLayer = {
       onMatchOutcome(outcome: 'level-clear' | 'game-over'): void {
         applyMatchResult(metaSave, outcome);
@@ -217,6 +233,7 @@ export function boot(platform: Platform, opts?: { seed?: number; telemetrySink?:
           /* 存储不可用 → 会话态 */
         }
         badge.update(metaSave);
+        refreshCard();
       },
     };
   } catch {

@@ -22,6 +22,10 @@
 - **产物区**：products POST 201（B1 条目 `hostedAppSlug=stack-tower-3`）；artifacts 端点 404 未复现（B0 形态已变，非阻塞）。
 - **门禁**：run-all **39/39** + 根 contract-check PASS + numeric ≡ `c3af773b…` + wx 体积分列 PASS + 冒烟 browser PASS + wx 目录 git diff 零变更。QA 回执 `games/stack-tower/docs/qa-b1.md`（8 条拒绝线零命中）。
 
+### 美术线增账（2026-09-29 · N2 接线收口 · 非阻塞）
+
+3. **meta 接线增量的回头用户触达（归主策划）**：四件套已按窄口径接线（streak-badge / daily-challenge-card / icon-badge；mission-panel 预留），发布面已镜像全等、新装用户即刻生效；但 SW CACHE 冻结 `st-precache-v2`（acc-b8 断言字面 REVISION=1+EPOCH=1）→ **已缓存 v2 的回头用户暂拿不到 main.js 增量**。如需触达：`META_CACHE_EPOCH` 1→2（CACHE→v3），牵动 acc-b8 断言与 spec sw-cache-bump 条款改口，须主策划拍板后由程序/QA 协同改口，美术不擅动门禁/spec。证据 `gate-logs/b1-art-wiring-20260929/`。
+
 
 ### N0 · 数据盘点结论（2026-09-29 当日完成 · 全文见 `n0-data-audit-b1.md`）
 

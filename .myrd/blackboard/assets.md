@@ -26,6 +26,25 @@
 
 - manifest 逐件 sha256 在 `assets/meta/manifest.json`（derivedFrom = 参考卡 v1.0 + theme.ts NEON 表唯一色源，零新编风格）。
 
+### B1 · meta 四件套接线登记（N2 美术线收口 · 2026-09-29，查表 48/48 PASS）
+
+> 更新时间：2026-09-29（N2「即插即换」接线收口 · 游戏美术）· 证据 `gate-logs/b1-art-wiring-20260929/`（10 项门禁四要素齐）
+> 窄口径落死（spec v1.4 scope_gate=narrow）：**3 件接线 + mission-panel 产出在档不接线**（查表有专项断言防误接）
+
+| spec id | 资产落点 | 接线点（呈现层） | 接线形态 |
+|---|---|---|---|
+| streak-badge | assets/meta/streak-badge.png | `src/ui/meta-badge.ts applyBadgeSkin()` ← `src/app/main.ts` meta 段 | 装载成功 → 徽章背景即插即换 |
+| daily-challenge-card | assets/meta/daily-challenge-card.png | `src/ui/meta-daily-card.ts applyCardSkin()`（新卡面呈现） | **9-slice slice 24 fill**（spec 四角 24px 安全区）；缺项回 theme 令牌底 |
+| icon-badge | assets/meta/icon-badge.png | `src/ui/meta-daily-card.ts applyIconSkin()`（当日已领取角标） | 皮肤化 → 角标图；缺项 → NEON 令牌 ✓ 字形 |
+| mission-panel | assets/meta/mission-panel.png | **无（missions-deferred 预留，下一轮接线）** | 查表断言「不接线」防误接 |
+
+- **接线纪律自证（acc-t1 / assets.md 红线同规）**：新呈现面零色值字面量——`DAILY_CARD_TOKENS` 全量派生 `render/theme.ts` NEON 表（α 通道由 `UI_PANEL_HUD_ALPHA` 计算，查表断言「fallback 底色 = theme 令牌派生」逐字比对）。
+- **三态语义复用**：`loadMetaAssets`（`src/render/assets.ts`，与 `loadGameAssets` 同源）——无加载器（headless）→ 空；单项 404/解码失败 → null → 令牌态；**绝不抛错**。404 负面用例实证：`assets:check` 资产全 404 下核心循环可玩、零代码错误。
+- **既有契约零触碰**：核心 9 项 `ASSET_MANIFEST` 一字未动（`tests/assets-check.mjs` 硬断言 9 项契约原样 PASS (browser)）；meta 走独立 `META_ASSET_MANIFEST` 导出。
+- **交付链**：`sw:generate` 目录扫描确定性产出 → precache 100→**101**（+`build/ui/meta-daily-card.js`，离线导入链完整——acc-d2 断网全链路 PASS）；`export/web/` 镜像 `diff -r` 逐字节全等。
+- **门禁全绿（本轮美术侧取证）**：查表 48/48 / assets:check PASS (browser) / run-all 39/39 / 根 contract-check PASS / smoke PASS (browser) / acc-b8 4-4 / acc-d2 2-2；wx/numeric 目录 git diff **0 文件**。
+- **挂账主策划（非阻塞）**：SW CACHE 维持 `st-precache-v2`（acc-b8 冻结断言字面）→ 已缓存 v2 的回头用户暂拿不到本轮 main.js 增量（新装即刻生效）；触达回头用户须 `META_CACHE_EPOCH` 1→2，牵动 acc-b8/spec 条款，不擅动。
+
 
 
 
