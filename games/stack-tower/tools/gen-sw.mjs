@@ -21,6 +21,11 @@ if (!Number.isInteger(REVISION)) {
   console.error(`FAIL PRECACHE_REVISION 不可读（${specPath}）——禁止私设版本号`);
   process.exit(1);
 }
+// B1 上头循环轮（spec v1.4 content.retention sw-cache-bump）：numeric 段冻结不可动，
+// 缓存版本递增改由工具侧 META_CACHE_EPOCH 承担：CACHE = st-precache-v{REVISION + EPOCH} = v2。
+// 上一版缓存 st-precache-v1（B0 基线）由 activate 的旧缓存清理逻辑自然淘汰。
+const META_CACHE_EPOCH = 1;
+const CACHE_VERSION = REVISION + META_CACHE_EPOCH;
 
 function walk(dir, acc = []) {
   for (const name of readdirSync(dir).sort()) {
@@ -36,9 +41,11 @@ const PRECACHE = ['./', './index.html', './manifest.webmanifest', ...inBuild, ..
 
 const sw = `/**
  * Stack Tower SW（生成于 tools/gen-sw.mjs，勿手改）— 版本化 precache。
- * REVISION = ${REVISION}（spec v3 numeric.deploy.PRECACHE_REVISION）
+ * REVISION = ${REVISION}（spec numeric.deploy.PRECACHE_REVISION，冻结基线值）
+ * META_CACHE_EPOCH = ${META_CACHE_EPOCH}（spec v1.4 content.retention sw-cache-bump：工具侧递增）
+ * 上一版缓存 st-precache-v${REVISION}（B0 基线）由 activate 清理逻辑淘汰。
  */
-const CACHE = 'st-precache-v${REVISION}';
+const CACHE = 'st-precache-v${CACHE_VERSION}';
 const PRECACHE = ${JSON.stringify(PRECACHE, null, 2)};
 
 self.addEventListener('install', (event) => {
@@ -56,9 +63,25 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+const NAV_PRELOAD = './index.html';
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
+  // B1（acc-b8）：导航请求（index.html）改 network-first——增量发布可见性由 index 可达性保证；
+  // 网络失败/超时回退缓存副本（离线仍可玩）。其余静态资源维持 cache-first + 网络回填。
+  if (req.mode === 'navigate') {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE).then((cache) => cache.put(NAV_PRELOAD, copy));
+          return res;
+        })
+        .catch(() => caches.match(NAV_PRELOAD, { ignoreSearch: true }).then((hit) => hit ?? Response.error())),
+    );
+    return;
+  }
   event.respondWith(
     caches.match(req, { ignoreSearch: true }).then((hit) => {
       if (hit) return hit;
@@ -68,11 +91,11 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE).then((cache) => cache.put(req, copy));
           return res;
         })
-        .catch(() => caches.match('./index.html'));
+        .catch(() => caches.match(NAV_PRELOAD));
     }),
   );
 });
 `;
 writeFileSync(join(GAME, 'sw.js'), sw);
-console.log(`  ok    precache 清单 ${PRECACHE.length} 项（REVISION=${REVISION}，CACHE=st-precache-v${REVISION}）`);
+console.log(`  ok    precache 清单 ${PRECACHE.length} 项（REVISION=${REVISION} + EPOCH=${META_CACHE_EPOCH}，CACHE=st-precache-v${CACHE_VERSION}，index network-first）`);
 console.log('RESULT: PASS (sw.js generated)');

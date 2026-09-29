@@ -15,7 +15,23 @@ import { loadGameAssets } from '../render/assets.js';
 import { mountHud } from '../ui/hud.js';
 import { createRotateOverlay } from '../ui/rotate-overlay.js';
 import { createTelemetryEmitter, browserTelemetryDeps } from '../telemetry/emitter.js';
+import { createMetaTelemetry, browserMetaTelemetryDeps } from '../telemetry/meta.js';
 import { createFpsOverlay } from '../ui/fps-overlay.js';
+import { createStreakBadge } from '../ui/meta-badge.js';
+import { migrateV13, loadMetaSave, saveMetaSave, type StorageLike } from '../meta/save.js';
+import { applyMatchResult } from '../meta/streak.js';
+import { claimDailyReward } from '../meta/claim.js';
+import { createDailyChallenge } from '../meta/daily.js';
+
+/** localStorage 不可用（隐私模式/无头）时的空存储（meta 全部退化为会话态，不抛错） */
+function safeStorage(): StorageLike {
+  try {
+    if (typeof localStorage !== 'undefined') return localStorage;
+  } catch {
+    /* fallthrough */
+  }
+  return { getItem: () => null, setItem: () => {} };
+}
 
 export interface BootSession {
   /** 全量重开（同 seed；HUD 按钮 / 键盘 R 共用入口，source 区分契约载荷） */
@@ -74,6 +90,8 @@ export function boot(platform: Platform, opts?: { seed?: number; telemetrySink?:
   /** acc-j3 可测点：play 调用毫秒（与 dispatch 同源时钟） */
   const play_msOf = (ms: number): number => ms;
   let lastStatus = sim.snapshot().status;
+  /** B1 meta 层挂载结果（初始化失败为 null；onMatchOutcome 由事件翻译站驱动） */
+  let metaLayer: { onMatchOutcome(outcome: 'level-clear' | 'game-over'): void } | null = null;
   const handleEvents = (events: KernelEvent[], combo: number, status: string): void => {
     const semis = semitonesForCombo(combo);
     const dispatchMs = platform.clock.now(); // acc-j3 起点：事件进入翻译站（dispatch）
@@ -91,12 +109,16 @@ export function boot(platform: Platform, opts?: { seed?: number; telemetrySink?:
         // critical：完全脱靶=miss，切损触底=game-over（满载不挤占）
         audio.play(e.reason === 'total-miss' ? 'miss' : 'game-over', 0);
         telemetry.emit('game_over', { data: { reason: e.reason } });
+        metaLayer?.onMatchOutcome('game-over'); // B1：连胜清零（acc-b4）
       } else if (e.type === 'restart') {
         audio.play('restart', 0);
         telemetry.emit('restart');
       }
     }
-    if (status === 'level-clear' && lastStatus !== 'level-clear') audio.play('level-clear', 0);
+    if (status === 'level-clear' && lastStatus !== 'level-clear') {
+      audio.play('level-clear', 0);
+      metaLayer?.onMatchOutcome('level-clear'); // B1：连胜 +1 / 当日挑战完成记账（acc-b4/b7）
+    }
     lastStatus = status as typeof lastStatus;
   };
 
@@ -152,6 +174,53 @@ export function boot(platform: Platform, opts?: { seed?: number; telemetrySink?:
       renderer.applyAssets(assets);
       if (assets.restartButton) hud.applyRestartSkin(assets.restartButton.src);
     });
+  }
+
+  // —— B1 上头循环（spec v1.4 content.retention：daily-challenge / streak-display / meta 埋点）——
+  // 红线：meta 全部 try/catch 隔离；数值零取自 numeric（完成判定由内核 status 驱动）；失败不阻断游戏。
+  try {
+    const metaStorage = safeStorage();
+    migrateV13(metaStorage, new Date().toISOString()); // v1.3 → v2 迁移（既有键零触碰，幂等）
+    const metaSave = loadMetaSave(metaStorage, new Date().toISOString());
+    const persistMeta = (): void => saveMetaSave(metaStorage, metaSave, new Date().toISOString());
+    const metaTelemetry = createMetaTelemetry(
+      opts?.telemetrySink
+        ? {
+            ...browserMetaTelemetryDeps(telemetry.anonId, () => platform.clock.now()),
+            sender: (p) => {
+              opts?.telemetrySink?.(p);
+              return true;
+            },
+          }
+        : browserMetaTelemetryDeps(telemetry.anonId, () => platform.clock.now()),
+    );
+    const daily = createDailyChallenge(new Date().toISOString());
+    metaTelemetry.emit('daily_challenge_start', { challengeDate: daily.challengeDate });
+    const badge = createStreakBadge(document, { appendChild: (n) => document.getElementById('stage')?.appendChild(n as Node) });
+    badge.update(metaSave);
+    // 徽章即插即换：N2 streak-badge 资产过检后经 assets 通道注入
+    metaLayer = {
+      onMatchOutcome(outcome: 'level-clear' | 'game-over'): void {
+        applyMatchResult(metaSave, outcome);
+        metaTelemetry.emit('streak_update', { streak: metaSave.streak.current, reason: outcome });
+        if (outcome === 'level-clear') {
+          try {
+            claimDailyReward(metaSave, daily.challengeDate, persistMeta);
+            metaTelemetry.emit('daily_challenge_result', { challengeDate: daily.challengeDate, layers: sim.snapshot().layers, claimed: true });
+          } catch {
+            /* 崩溃注入路径：落盘失败由下次对局重试（幂等，acc-b7） */
+          }
+        }
+        try {
+          persistMeta();
+        } catch {
+          /* 存储不可用 → 会话态 */
+        }
+        badge.update(metaSave);
+      },
+    };
+  } catch {
+    metaLayer = null; // meta 整层故障不影响核心玩法
   }
 
   // M2.1：Service Worker 注册（PWA 可安装壳；失败不抛错）

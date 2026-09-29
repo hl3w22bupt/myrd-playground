@@ -46,6 +46,15 @@ const CONTRACTS = [
   'theme-acc-t1-constants-source.spec.mjs',
   'assets-acc-a8-p0-table.spec.mjs', // asset-check 并入 contract-check 同门（N4 两层制）
   'numeric-acc-num-frozen-gate.spec.mjs',
+  // —— B1 上头循环契约族（spec v1.4 增量 8 条：acc-b1~b8，scope_gate 窄口径）——
+  'b1-acc-b1-scope-gate.spec.mjs',
+  'b1-acc-b2-daily-seed.spec.mjs',
+  'b1-acc-b3-daily-utc-boundary.spec.mjs',
+  'b1-acc-b4-streak.spec.mjs',
+  'b1-acc-b5-save-migration.spec.mjs',
+  'b1-acc-b6-telemetry-meta.spec.mjs',
+  'b1-acc-b7-idempotent-claim.spec.mjs',
+  'b1-acc-b8-sw-version.spec.mjs',
 ];
 
 const tally = { pass: 0, fail: 0, notRunnable: 0 };
