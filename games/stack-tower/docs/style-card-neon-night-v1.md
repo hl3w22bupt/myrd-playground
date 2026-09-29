@@ -48,3 +48,20 @@
 ## §6 冻结登记（写回黑板）
 
 - 冻结当日（2026-09-27）已写回 `.myrd/blackboard/assets.md` §r4 风格卡区；验收入口 = `tests/assets-neon-check.mjs`（13/13）→ contract `acc-a8` 同门。
+
+## §7 B1 meta 四件套扩展（2026-09-29 · 上头循环轮 · 两种 scope 通用）
+
+> 扩展性质：**派生扩展**，非新编风格——本卡 §1 光照/§2 色板全部沿用；本节只登记 meta 层新增四 id 的交付规格。
+> 范围通用性：scope_gate 两种分支（三钩子全量 / 窄口径）下本节全部有效——`mission-panel` 为 missions-deferred 预留件，窄口径下产出在档不接线。
+
+| id | 尺寸 | kind | 9-slice | 透明度 | 构图（抽象形，无文字） | 派生关系 |
+|---|---|---|---|---|---|---|
+| daily-challenge-card | 360×160 | ui-panel | 四角 24px 安全区 | 透明底（四角 α=0）+ 面板底 UI_PANEL_HUD_ALPHA | 日历挂耳 + 页头横带 + 标题抽象条 + 三段进度（完成段 PERFECT_GLOW 高亮） | §2 NEON 表；切角 14px 霓虹切角面板形 |
+| mission-panel | 360×200 | ui-panel | 四角 24px 安全区 | 同上 | 三条目行（行高 48px：点标 + 任务条 + 奖励角标位） | 同上 |
+| streak-badge | 96×96 | icon | — | 透明底 | 菱形核心（UI_BTN_PRIMARY）+ PERFECT_GLOW 光晕 + 双尾迹线（RIPPLE_RING） | 发光填充形态（§1 禁描边线纪律） |
+| icon-badge | 64×64 | icon | — | 透明底 | 圆盘（CUT_FACE）+ UI_BTN_PRIMARY 外环 + BLOCK_NEON_01 对勾抽象 | 同上 |
+
+- **复现链**：`node games/stack-tower/tools/gen-meta-assets.mjs`（真源 theme.ts NEON 表解析，解析失败即失败；确定性重跑逐字节一致）。
+- **查表入口**：`node games/stack-tower/tests/meta/assets-meta-check.mjs`（sha256 三向 + PNG 签名 + 尺寸 + 透明底四角 + NEON 派生色精确命中 + 9-slice 登记）。
+- **接线纪律**：N3 程序以主题令牌占位渲染，资产过检后即插即换；缺失走程序化 fallback 绝不抛错。
+- **改图纪律**：改构图/色值 → 先升本卡版本 → 再重生成 → hash 留痕（§5 同规）。

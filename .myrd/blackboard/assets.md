@@ -12,6 +12,21 @@
 - **meta 四件套预定 id（spec v1.4 落段后为准）**：`daily-challenge-card`（每日挑战面板卡）/ `mission-panel`（连击任务面板）/ `streak-badge`（连胜徽章）/ `icon-badge`（奖励角标图标）。尺寸与 9-slice/透明度交付规格在 N2 参考卡 meta 扩展中定稿。
 - **UI 接线纪律**：N3 程序先以主题令牌（theme token）占位渲染，N2 资产就绪后即插即换；资产缺失走程序化 fallback，绝不抛错。
 
+### B1 · meta 四件套交付登记（N2 美术线 · 2026-09-29，查表 34/34 PASS）
+
+> 更新时间：2026-09-29（N2 完成 · 主策划）· 复现链 `tools/gen-meta-assets.mjs`（确定性重跑逐字节一致实证）· 查表 `tests/meta/assets-meta-check.mjs`
+> 参考卡 §7 meta 扩展已登记（`docs/style-card-neon-night-v1.md`，两种 scope 通用）
+
+| # | spec id | 落点 | 尺寸 | 9-slice | 查表 |
+|---|---|---|---|---|---|
+| 1 | daily-challenge-card | assets/meta/daily-challenge-card.png | 360×160 | 24px | PASS（sha256+尺寸+透明底四角+NEON 派生色命中） |
+| 2 | mission-panel | assets/meta/mission-panel.png | 360×200 | 24px | PASS（missions-deferred 预留件，产出在档不接线） |
+| 3 | streak-badge | assets/meta/streak-badge.png | 96×96 | — | PASS |
+| 4 | icon-badge | assets/meta/icon-badge.png | 64×64 | — | PASS |
+
+- manifest 逐件 sha256 在 `assets/meta/manifest.json`（derivedFrom = 参考卡 v1.0 + theme.ts NEON 表唯一色源，零新编风格）。
+
+
 
 
 ## B0 · 微信小游戏移植轮（2026-09-28 开工 · 主策划）
