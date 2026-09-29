@@ -1,0 +1,18 @@
+# 1 · numeric 零漂移（日期 2026-09-29）
+$ node scripts/check-numeric-freeze.mjs
+[freeze] 存档   = c3af773b6483164c22ca0a039623967cb3b67ff9b2b658749f927baeee74957d
+[freeze] 现行   = c3af773b6483164c22ca0a039623967cb3b67ff9b2b658749f927baeee74957d
+[freeze] v1.2   = c3af773b6483164c22ca0a039623967cb3b67ff9b2b658749f927baeee74957d
+[freeze] PASS  存档可解析（64 hex）
+[freeze] PASS  现行导出件 numeric ≡ 存档
+[freeze] PASS  v1.2 载荷 numeric ≡ 存档（存档来源可追溯）
+RESULT: PASS
+
+$ node tests/contract/numeric-acc-num-frozen-gate.spec.mjs
+  ok    numeric.js 与 spec.numeric 全量镜像（键序无关深比）
+  ok    opening 组两侧同构（STACK_MIN=3 / STACK_MAX=5 / JITTER=6）
+RESULT: PASS (3/3)
+
+$ v1.3 vs v1.4 numeric 段深比（python sortKeys）
+numeric 深比 diff 为空： True
+assets 追加数： 24

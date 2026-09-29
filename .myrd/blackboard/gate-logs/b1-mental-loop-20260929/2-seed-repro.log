@@ -1,0 +1,14 @@
+# 2 · seed 复现（2026-09-29）
+$ node tests/contract/b1-acc-b2-daily-seed.spec.mjs
+[contract] acc-b2 · lvl-01-stack-tower/e-meta-daily
+  ok    同日同 seed：challengeDate→seed 两次相等；sfc32 前 64 值逐值相等
+  ok    跨日 seed 必变 + 随机流互异
+  ok    确定性红线：meta 构建产物无 Math.random()/Date.now() 调用形态
+RESULT: PASS (3/3)
+
+$ node tests/contract/b1-acc-b3-daily-utc-boundary.spec.mjs
+[contract] acc-b3 · lvl-01-stack-tower/e-meta-daily-tz
+  ok    UTC 23:30 vs 该时区 00:30 归入不同挑战日（任务书原文用例）
+  ok    challengeDate 形如 YYYY-MM-DD；TZ_OFFSET=480（UTC+8）
+  ok    实现内零时钟读取：daily.js 无 Date.now() 调用 / 无参 new Date()
+RESULT: PASS (3/3)
