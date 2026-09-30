@@ -58,7 +58,7 @@ const PANEL_ALPHA = Math.round(Number((/UI_PANEL_HUD_ALPHA:\s*([0-9.]+)/.exec(TH
 const manifest = {
   specSource: 'spec v1.5 content.platform items[].assets（dy 素材 id 5 项）',
   derivedFrom: '霓虹夜塔参考卡 v1.0（docs/style-card-neon-night-v1.md）· 色源 theme.ts NEON 表',
-  generator: 'tools/gen-tt-assets.mjs（确定性，重跑逐字节一致；风格四要素零漂移，仅规格裁切）',
+  generator: 'tools/gen-tt-assets.mjs（C 轮 N3 美术线覆写：涟漪/辉光/切面对齐冻结四联图 P1/P3 画法，构图缺陷修正；确定性，重跑逐字节一致；风格四要素零漂移，仅规格裁切）',
   items: [],
 };
 
@@ -108,16 +108,42 @@ function tower(r, cx, baseY, blocks, bw, bh) {
   return baseY - blocks * (bh + 2);
 }
 
-/** 涟漪环（中心对称，alpha 随半径衰减——a16 同构） */
+/** 涟漪环（中心对称椭圆环带，径向 alpha 衰减——a16 同构 · 冻结四联图 P3 同法：亮环带暗隙非实心盘） */
 function ripple(r, cx, cy, radius, rings = 3) {
   for (let k = 0; k < rings; k++) {
     const rr = radius * (0.55 + k * 0.35);
-    const alpha = Math.round(160 * (1 - k / rings));
-    const steps = Math.max(90, Math.round(rr * 4));
-    for (let s = 0; s < steps; s++) {
-      const a = (s / steps) * Math.PI * 2;
-      r.blend(Math.round(cx + Math.cos(a) * rr), Math.round(cy + Math.sin(a) * rr), hexToRgb(N.RIPPLE), alpha);
+    const rw = Math.max(2, Math.round(rr));
+    const rh = Math.max(2, Math.round(rr * 0.28)); // 透视压扁（物证 70×20 同比例）
+    const base = Math.round(165 * (1 - k / rings));
+    for (let y = -rh; y <= rh; y++) {
+      for (let x = -rw; x <= rw; x++) {
+        const d = Math.sqrt((x / rw) ** 2 + (y / rh) ** 2);
+        if (d >= 0.86 && d <= 1.0) {
+          const a = Math.min(255, Math.round((base * (2 - d)) / 6) * 6); // alpha 6 级量化（压 PNG 熵）
+          r.blend(cx + x, cy + y, hexToRgb(N.RIPPLE), a);
+        }
+      }
     }
+  }
+}
+
+/** 完美辉光（additive 琥珀白心：径向二次衰减，中心最亮——a17 同构 · 冻结四联图 P3 同法） */
+function perfectGlow(r, cx, cy, radius) {
+  const g = hexToRgb(N.GLOW);
+  for (let y = -radius; y <= radius; y++) {
+    for (let x = -radius; x <= radius; x++) {
+      const d = Math.sqrt(x * x + y * y) / radius;
+      const a = Math.round((210 * Math.max(0, 1 - d) ** 2) / 8) * 8; // alpha 8 级量化（压 PNG 熵）
+      if (a > 0) r.blend(cx + x, cy + y, g, a);
+    }
+  }
+}
+
+/** 切面白光带（塔顶层上缘，中心加权——a15 同构 · 风格卡 §1「切面 = 唯一高亮判定物」） */
+function cutFaceBand(r, cx, halfW, y) {
+  for (let x = -halfW; x <= halfW; x++) {
+    const t = 1 - Math.abs(x) / halfW;
+    r.blend(cx + x, y, hexToRgb(N.CUT_FACE), Math.round(110 + 135 * t));
   }
 }
 
@@ -142,31 +168,39 @@ function hudBars(r, x, y, w, rows) {
 // 2-4) dy-store-screenshot-01..03 —— 商店截图（提审材料，不入包）
 {
   const { w: W, h: H } = specSize('dy-store-screenshot-01');
-  // 01 开局首屏（参考卡面板一派生）
+  // 01 开局首屏（参考卡面板一派生：塔基 + 摆动块悬停 + 首局引导虚线——与 dy-share-card P1 同构）
   {
     const r = sky(W, H);
-    tower(r, Math.round(W / 2), Math.round(H * 0.86), 8, 420, 66);
+    const cx = Math.round(W / 2);
+    const topY = tower(r, cx, Math.round(H * 0.86), 8, 420, 66);
+    block(r, cx - 210 + 96, topY - 106, 420, 66, 2); // 摆动块（偏置悬停，colorIdx 与 share-card 同源）
+    for (let y = topY - 34; y < topY - 4; y += 12) r.fillRect(cx - 2, y, 4, 6, hexToRgb(N.BTN), 120); // 引导虚线
     hudBars(r, 40, 60, 420, 4);
     r.fillRect(60, H - 260, W - 120, 120, hexToRgb(N.PANEL), PANEL_ALPHA);
     r.fillRect(84, H - 236, 300, 16, hexToRgb(N.BTN), 235);
     emit('dy-store-screenshot-01', 'store-screenshot-01.png', r, { use: '商店截图一：开局首屏', ratio: '9:16', panel: '参考卡面板一' });
   }
-  // 02 perfect 涟漪时刻（参考卡面板三派生）
+  // 02 perfect 涟漪时刻（参考卡面板三派生：粗亮青环 + 切面白光带 + 完美辉光琥珀白心——冻结物证 P3 同法）
   {
     const r = sky(W, H);
-    const topY = tower(r, Math.round(W / 2), Math.round(H * 0.86), 10, 400, 62);
-    ripple(r, Math.round(W / 2), topY - 20, 320, 5);
-    r.fillRect(Math.round(W / 2) - 210, topY - 130, 420, 62, hexToRgb(N.GLOW), 90);
+    const cx = Math.round(W / 2);
+    const topY = tower(r, cx, Math.round(H * 0.86), 10, 400, 62);
+    const cy = topY - 31; // 塔顶层切面中线
+    cutFaceBand(r, cx, 200, topY);
+    perfectGlow(r, cx, cy, 150);
+    ripple(r, cx, cy, 320, 3);
     emit('dy-store-screenshot-02', 'store-screenshot-02.png', r, { use: '商店截图二：perfect 涟漪时刻', ratio: '9:16', panel: '参考卡面板三·perfect' });
   }
-  // 03 竖屏对局构图（安全区内：刘海/手势条避让框可见，参考卡派生）
+  // 03 竖屏对局构图（安全区内：刘海/手势条避让为留白布局约束，不画参考框进成品——N3 美术线裁定）
   {
     const r = sky(W, H);
-    const safeTop = 132, safeBottom = 96, side = 60; // 1242×2208 典型竖屏安全区（表现层布局输入）
-    r.fillRect(side, safeTop, W - side * 2, H - safeTop - safeBottom, hexToRgb(N.PANEL), 26); // 安全区参考框（仅构图示意）
-    tower(r, Math.round(W / 2), Math.round((H - safeBottom) * 0.88), 9, 380, 60);
+    const safeTop = 132, safeBottom = 96, side = 60; // 1242×2208 典型竖屏安全区（表现层布局输入，程序化核验见门禁输出）
+    const cx = Math.round(W / 2);
+    const baseY = Math.round((H - safeBottom) * 0.88);
+    const topY = tower(r, cx, baseY, 9, 380, 60);
+    block(r, cx - 190 + 88, topY - 98, 380, 60, 3); // 对局中摆动块（塔顶上方一层高）
     hudBars(r, side + 24, safeTop + 24, 400, 4);
-    ripple(r, Math.round(W / 2), Math.round((H - safeBottom) * 0.88) - 260, 240, 3);
+    ripple(r, cx, topY - 30, 240, 3);
     emit('dy-store-screenshot-03', 'store-screenshot-03.png', r, { use: '商店截图三：竖屏对局构图（安全区内）', ratio: '9:16', panel: '参考卡派生·安全区' });
   }
 }

@@ -2,9 +2,9 @@
 
 ## C · 抖音小游戏移植轮（2026-09-30 开工 · 主策划）
 
-> 更新时间：2026-09-30（**C 轮 dy 平台素材 5 件产出登记 · N2 程序线产线**；B-C-001 已解除）
+> 更新时间：2026-09-30（**C 轮 N3 美术线覆写产出登记 · 5 件 dy 素材构图对齐冻结物证 + 机器审计全绿**；B-C-001 已解除）
 > 负责人：主策划（整合人）· 美术线维护产出登记 · QA 线维护查表核销
-> 下一步：N3 美术可覆写重生成（id/manifest 口径不变）；N4 查表核销以 `assets/tt/manifest.json` + tt-GATE 为准
+> 下一步：N4 查表核销以 `assets/tt/manifest.json`（N3 覆写版 sha256）+ tt-GATE + ART-AUDIT 为准
 
 ### C 轮风格卡（顶部，全轮唯一风格源，沿 B0/B1 红线不变）
 
@@ -15,25 +15,40 @@
 
 | # | spec id | 所属条目 | 落点（以 repo 根为基准） | 尺寸 | optional | 状态 |
 |---|---|---|---|---|---|---|
-| 1 | dy-share-card | dy-share-loop | `games/stack-tower/assets/tt/share-card.png` | 500×400 | **否（必选，主判据配图）** | ✅ 已产出（N2 产线） |
-| 2 | dy-store-screenshot-01 | dy-submission-kit | `games/stack-tower/assets/tt/store-screenshot-01.png` | 1242×2208 | 否（必选） | ✅ 已产出（N2 产线） |
-| 3 | dy-store-screenshot-02 | dy-submission-kit | `games/stack-tower/assets/tt/store-screenshot-02.png` | 1242×2208 | 否（必选） | ✅ 已产出（N2 产线） |
-| 4 | dy-store-screenshot-03 | dy-submission-kit | `games/stack-tower/assets/tt/store-screenshot-03.png` | 1242×2208 | 否（必选） | ✅ 已产出（N2 产线） |
-| 5 | dy-icon | dy-submission-kit | `games/stack-tower/assets/tt/icon.png` | 512×512 | 否（必选） | ✅ 已产出（N2 产线） |
+| 1 | dy-share-card | dy-share-loop | `games/stack-tower/assets/tt/share-card.png` | 500×400 | **否（必选，主判据配图）** | ✅ 已产出（N3 美术覆写版） |
+| 2 | dy-store-screenshot-01 | dy-submission-kit | `games/stack-tower/assets/tt/store-screenshot-01.png` | 1242×2208 | 否（必选） | ✅ 已产出（N3 美术覆写版） |
+| 3 | dy-store-screenshot-02 | dy-submission-kit | `games/stack-tower/assets/tt/store-screenshot-02.png` | 1242×2208 | 否（必选） | ✅ 已产出（N3 美术覆写版） |
+| 4 | dy-store-screenshot-03 | dy-submission-kit | `games/stack-tower/assets/tt/store-screenshot-03.png` | 1242×2208 | 否（必选） | ✅ 已产出（N3 美术覆写版） |
+| 5 | dy-icon | dy-submission-kit | `games/stack-tower/assets/tt/icon.png` | 512×512 | 否（必选） | ✅ 已产出（N3 美术覆写版） |
 | 6 | dy-record-highlight-cover | dy-share-loop（能力，非图片资产） | —（录屏帧派生，无独立素材文件） | — | **是（optional，缺失不构成打回项）** | ⏸ 未产件（optional，spec 口径③不判缺陷） |
 
-### C 轮 dy 素材产出登记（2026-09-30 · N2 程序线产线，N3 可覆写）
+### C 轮 dy 素材产出登记（2026-09-30 · N2 程序线初版 → **N3 美术线覆写版（当前有效）**）
 
-- **产线**：`node games/stack-tower/tools/gen-tt-assets.mjs`（确定性，重跑逐字节一致；规格唯一来源 = approved spec `items[].assets.size`，生成器不自定规格；色值唯一真源 = `src/render/theme.ts` NEON 表解析，解析失败即失败）。
+- **产线**：`node games/stack-tower/tools/gen-tt-assets.mjs`（确定性，重跑逐字节一致；规格唯一来源 = approved spec `items[].assets.size`，生成器不自定规格；色值唯一真源 = `src/render/theme.ts` NEON 表解析，解析失败即失败，生成器内 **hex 字面量 = 0**〔grep 断言，见 03-art-audit.log 头注〕）。
 - **机读清单**：`games/stack-tower/assets/tt/manifest.json`（5 件 id/file/bytes/sha256/size/use）。
-- **逐件 sha256（N4 三向核对口径）**：
-  - dy-share-card（3424B）：`2a5dc3ec21943edc1c06a022de9a90df85e5f6220304cbe715624682a00061be`
-  - dy-store-screenshot-01（16864B）：`5b32b16d3088e18b78536f1e106c88dff1546cc2d42be4fe15f41fc4524bde74`
-  - dy-store-screenshot-02（28869B）：`1e18613946f0a4d012359509e0d24b325fd8825b37a6f5bcb6a2a7983eb84392`
-  - dy-store-screenshot-03（26643B）：`d0e4bd6a7925e163ff8417bd6c1599f8209c49a4d26fe6256f64f8fcca7ab1a0`
-  - dy-icon（3889B）：`8c7a9d9df5c93aa5a64c252ab600f6d7adf418833cf62a7297da6f246219dcaa`
-- **核对证据**：tt-GATE `dy-submission-kit` 条目查「材料 5 件 spec↔manifest↔磁盘 三向一致」全 PASS（`gate-logs/c2-tt-port-20260930/01-tt-gate.log`）；入包口径 = 运行时件仅 dy-share-card + dy-icon 落包，商店截图留仓库不入包（wx B0 判例同构）。
-- **可覆写口径**：N3 美术覆写 = 重跑/替换 `assets/tt/*.png` 后同步 `manifest.json`（工具自动逐件重算 sha256），再跑 `node games/stack-tower/tests/tt/run-tt-gate.mjs` 复证；id 与落点不得改（spec 唯一真源）。
+- **逐件 sha256（N4 三向核对口径 · N3 覆写版）**：
+  - dy-share-card（3411B）：`7055ecae8d36c6a64f0612dbc027f9d0f99353564dbac41da4150872b3e26431`
+  - dy-store-screenshot-01（17141B）：`ebd85034b1ee74d9695215392c99b2696177ac16c9cb4b33e01674f2b9d17551`
+  - dy-store-screenshot-02（28345B）：`0aba4ae3d67bec798104379d4cacbb28362ebf3a5d4fcc794bba691cf2aed568`
+  - dy-store-screenshot-03（20413B）：`c553f5a43bbe09353243d649e82ffba60ad57e0438fc3c0b4743e4d9f4225a59`
+  - dy-icon（3723B）：`e0a6c8fa6633f84ab43ba61656464fe46fbbf4e44e6b56940426c25dd6ac308f`
+- **核对证据**：tt-GATE `dy-submission-kit` 条目查「材料 5 件 spec↔manifest↔磁盘 三向一致」全 PASS（N2 初版：`gate-logs/c2-tt-port-20260930/01-tt-gate.log`；N3 覆写复证：`gate-logs/c3-art-overwrite-20260930/01-tt-gate.log`）；入包口径 = 运行时件仅 dy-share-card + dy-icon 落包，商店截图留仓库不入包（wx B0 判例同构）。
+- **可覆写口径**：N3 美术覆写 = 重跑/替换 `assets/tt/*.png` 后同步 `manifest.json`（工具自动逐件重算 sha256），再跑 `node games/stack-tower/tests/tt/run-tt-gate.mjs` 复证；id 与落点不得改（spec 唯一真源）。**本口径已于 2026-09-30 由 N3 行使一次（见下节）。**
+
+### C 轮 N3 美术线覆写登记（2026-09-30 · 游戏美术 · 依据「N3 可覆写」口径行使）
+
+- **覆写动机（美术亲审 N2 初版 5 图 + 冻结四联图物证比对，三处构图要素缺陷）**：
+  1. `store-screenshot-02`（P3 perfect 时刻）：完美辉光被画成 `PERFECT_GLOW` α90 平涂条 → 目视读作**暗橄榄死块**，与风格卡 §1「熄灭态=死物（DEBRIS）、perfect=最活帧」语义反转；且点状涟漪与物证 P3「粗亮青环 + 琥珀白心」相差悬殊；
+  2. `store-screenshot-01`（P1 开局首屏）：缺摆动块 + 悬停引导虚线（物证 P1 要素），与**同批** `share-card` 的 P1 画法互漂（批内不一致）；
+  3. `store-screenshot-03`：安全区参考框被画进成品（构图辅助线不得出现在交付物）。
+- **覆写内容（生成器 4 处，色值仍 100% 解析自 theme.ts，确定性不变）**：① `ripple()` 升级为物证同法椭圆亮环带（透视压扁 0.28 比例 + 径向衰减 + α6 级量化压 PNG 熵）；② 新增 `perfectGlow()`（径向二次衰减琥珀白心）+ `cutFaceBand()`（切面白光带中心加权），screenshot-02 改用物证 P3 三件套；③ screenshot-01 补摆动块（colorIdx 与 share-card 同源）+ 引导虚线；④ screenshot-03 去参考框、改留白布局 + 补对局中摆动块。体积回落风格卡 §4 预算：5 件 max 28.3KB ≤ 50KB。
+- **风格四要素复核（机器审计全绿，`gate-logs/c3-art-overwrite-20260930/03-art-audit.log`，脚本同目录 `art-audit.py`）**：色板（六色三面 1.0/0.88/0.76 全存在 + 生成器零私设 hex）✓ / 光照（夜空渐变端点逐像素精确 + perfect 加色语义恢复）✓ / 线条（无描边，发光填充）✓ / 比例（500×400、1242×2208×3、512×512 全对 spec 定稿）✓。
+- **竖屏构图安全区检查（spec 口径：仅 screenshot-03 expect 写「安全区内」→ 硬门）**：screenshot-03 内容 bbox `[84,168,921,1856]` ⊂ 安全区 `[60,132]..[1182,2112]`（1242×2208 典型竖屏：刘海 132 / 手势条 96 / 侧 60）PASS；share-card / 01 / 02 为会话卡与全幅商店图，不适用竖屏安全区，edge margin 14/50/220px 记信息项（B0 同构边距）。
+- **combo 录屏高光标记（optional 能力的美术侧定义，零新资产，符合口径③）**：高光时刻 = perfect 命中帧（连击递增事件），标记视觉 = `RIPPLE_RING` 扩散环 + `PERFECT_GLOW` 辉光心 + `CUT_FACE` 切面白光带三锚同帧（screenshot-02 即该帧的定格构图）；未来接 `tt.getGameRecorder` 时以此帧事件为高光打点，封面卡从录屏帧派生并复用 NEON 色板（spec 禁新编风格已落死）。三锚存在性已机审（glow 12386px / ripple 精确 3008px / 切面近白 368px）。**本轮不产件不接线**（门禁断言 manifest 无 recorder/highlight id，`tt-share-loop.spec.mjs` ③）。
+- **编号三方对齐（spec ↔ 资产 ↔ 接线）**：spec v1.5 `items[].assets` dy 前缀 5 id ↔ `assets/tt/manifest.json` 5 items ↔ 磁盘 5 png 逐件 sha256 相等；接线面 = `src/platform/share.ts` 会话卡路径 `assets/tt/share-card.png`（`tt-share-loop.spec.mjs` 断言）+ `tools/build-tt.mjs` 落包 `export/tt/assets/tt/{share-card,icon}.png`（落包字节相等断言 PASS）。**5/5 对齐，零缺件、零多余 id。**
+- **门禁复证（覆写后全量）**：tt-GATE PASS（5/5，109 断言）+ `contract-check-stack-tower.mjs` PASS + 根 `contract-check.mjs` PASS → `gate-logs/c3-art-overwrite-20260930/{01-tt-gate,02-contract,02b-root-contract,03-art-audit}.log`。包已重建：主包 293.2KB / 4MB PASS。
+- **备忘（视觉意见，非阻塞，留给主策划/下轮）**：wx B0 商店 `store-screenshot-02` 与 N2 初版 dy 同构（同一点状环 + α 平涂辉光条 idiom），与冻结物证 P3 画法存在同款差异；本轮已将 **dy** 侧对齐物证，wx 侧资产属 B0 已交付范围、C 轮不动，建议下轮 wx 资产再生时以 `gen-neon-reference.mjs` P3 同法一并对齐（生成器改法可直接复用本轮 `gen-tt-assets.mjs` 的 ripple/perfectGlow/cutFaceBand 三原语）。
+- **观察项（非阻塞）**：根 `contract-check.mjs` 首跑曾出现 acc-m3（横屏视口）单条偶发 FAIL，同工作树两次复跑全绿（HEAD 样本亦绿），判定为时序偶发不构成本轮回归，留 QA 观察。
 
 - **QA 对抗互查口径（原文，N4 执行）**：上表 optional 列即 spec 标注真源——未标注 optional 而缺失，按 spec 缺陷打回；已标注 optional 者缺失不构成打回项。
 - 录屏分享（能力，`tt.getGameRecorder` 系）与高光封面卡：能力级 optional，实现时素材从本局录屏帧派生，禁新编风格，不新增独立素材 id。

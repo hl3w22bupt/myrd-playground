@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-30T01:40:05.839Z",
+  "generatedAt": "2026-09-30T02:09:52.797Z",
   "spec": {
     "id": "cmunf6r1e014cm9lfamzllk2h",
     "version": 7,
@@ -11,7 +11,7 @@
     "openDataContextMaxBytes": 1048576
   },
   "sizes": {
-    "mainBytes": 300401,
+    "mainBytes": 300222,
     "subpackageBytes": 0,
     "mainWithinBudget": true
   },
@@ -93,13 +93,13 @@
     },
     {
       "path": "assets/tt/icon.png",
-      "bytes": 3889,
-      "sha256": "8c7a9d9df5c93aa5a64c252ab600f6d7adf418833cf62a7297da6f246219dcaa"
+      "bytes": 3723,
+      "sha256": "e0a6c8fa6633f84ab43ba61656464fe46fbbf4e44e6b56940426c25dd6ac308f"
     },
     {
       "path": "assets/tt/share-card.png",
-      "bytes": 3424,
-      "sha256": "2a5dc3ec21943edc1c06a022de9a90df85e5f6220304cbe715624682a00061be"
+      "bytes": 3411,
+      "sha256": "7055ecae8d36c6a64f0612dbc027f9d0f99353564dbac41da4150872b3e26431"
     },
     {
       "path": "build-tt/app/boot-tt.js",
