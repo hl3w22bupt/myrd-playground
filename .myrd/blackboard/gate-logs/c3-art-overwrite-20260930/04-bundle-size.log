@@ -1,0 +1,12 @@
+# 文件名：04-bundle-size.log
+# 日期：2026-09-30 10:35:34 +0800（UTC+8）
+# 命令：node games/stack-tower/scripts/check-tt-bundle-size.mjs
+# 执行目录：/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmunesx300146m9lfeoyat8w7（repo 根 = git rev-parse --show-toplevel）
+# 角色：游戏美术（N3 覆写重建包）+ 游戏程序（N2 补档）：tt 包体积分列断言（重建包 300,222B 独立留档）
+# ── 以下为命令原始输出（无删节） ──
+[size] 主包 293.2KB / 4MB —— PASS
+[size] 子包 0B —— PASS（分列口径：抖音无开放数据域独立子包机制）
+[size] manifest 一致性：63 件，漂移 0
+RESULT: PASS
+# ── 输出摘要 ──
+# exit=0 · RESULT: PASS 

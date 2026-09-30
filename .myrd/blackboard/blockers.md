@@ -34,17 +34,24 @@
 ### C 轮 N2 程序线收口台账（2026-09-30 · 游戏程序 · 可核对证据）
 
 - **落点与 spec 对齐**：dy 三条目声明落点全部落盘且逐字对齐（`tests/tt/tt-runtime-surface.spec.mjs` ① 段断言「落点在盘 repo 根相对逐字」6/6 PASS）；对称新增件（非穷举声明面，wx B0 判例同构——`src/app/boot-wx.ts` 亦不在 wx 条目 files 内而工程在档）：`src/app/boot-tt.ts` / `tsconfig.tt.json` / `tools/gen-tt-assets.mjs` / `tests/tt/*`（3 条目查 + 1 聚合器 + 1 harness）。
-- **门禁四件（任务书口径）**：①API 冒烟 devtools/真机双档（devtools=机跑 fake tt 宿主行为冒烟；真机=显式 blocked 不造假数据）②numeric 逐字节零漂移断言（≡ v1.3 存档锚 `c3af773b…`）③UTC+8 seed 边界用例（15:59:59Z/16:00:00Z 翻日 + meta 存档同键跨边界）④`dy-*` 编号核对（spec 条目 3 ↔ 素材 5 ↔ 接线面三方对齐）——全部落 `tests/tt/` 三份条目查，**tt-GATE 5/5 PASS（109 项断言）**。
+- **门禁四件（任务书口径）**：①API 冒烟 devtools/真机双档（devtools=机跑 fake tt 宿主行为冒烟；真机=显式 blocked 不造假数据）②numeric 逐字节零漂移断言（≡ v1.3 存档锚 `c3af773b…`）③UTC+8 seed 边界用例（15:59:59Z/16:00:00Z 翻日 + meta 存档同键跨边界）④`dy-*` 编号核对（spec 条目 3 ↔ 素材 5 ↔ 接线面三方对齐）——全部落 `tests/tt/` 三份条目查，**tt-GATE 5/5 PASS（111 项断言，r2 轮）**。
 - **平台适配（逻辑层零裸调用）**：`src/platform/tt.ts` 只实现 `platform/index.ts` 的 Platform 接口（tt 全局面仅 tt.ts/boot-tt.ts 消费，内核零改动、零 import）；存储同源（`MUTED_STORAGE_KEY`/`META_SAVE_KEY` 常量单源 import，tt.ts 零字面键名重抄）；系统信息/安全区仅作表现层布局输入（tt.js 零 kernel 触碰，门禁断言）。
-- **好友榜落死条款**：tt 云存储单通道 `resolveDyFriendRank`（接入=cloud / 显式降级三因 missing-api·auth-denied·no-tt-container）；门禁输出可见行实测：`DY_FRIEND_RANK=degraded reason=no-tt-container`、`reason=missing-api`、`DY_FRIEND_RANK=cloud`（`01-tt-gate.log`）；主包零好友数据落点（行为断言：读取不写任何存储键）。
+- **好友榜落死条款**：tt 云存储单通道 `resolveDyFriendRank`（接入=cloud / 显式降级三因 missing-api·auth-denied·no-tt-container）；门禁输出可见行实测：`DY_FRIEND_RANK=degraded reason=no-tt-container`、`reason=missing-api`、`DY_FRIEND_RANK=cloud`（r2 轮档 `gate-logs/c2-tt-port-20260930-r2/01-tt-gate.log` 实测三行在档：missing-api / no-tt-container / cloud；r1 档因聚合器只留 RESULT 行缺三行，驳回②已修——聚合器子门 stdout 全量透传）。主包零好友数据落点（行为断言：读取不写任何存储键）。
 - **分享闭环主判据**：`tt.shareAppMessage`（主动 shareNow）+ `onShareAppMessage`（被动）双通道，配图绑 `dy-share-card`（500×400，spec↔manifest↔磁盘↔包内四向 sha256 一致）；载荷 `sid=`（零 PII 正则断言）；不可用/失败两路静默降级保留入口（行为断言）。
-- **埋点合规巡检（只读，零调优建议）**：tt 面零网络调用（tt.request/uploadFile/connectSocket/fetch/XHR 均无）、零 PII、会话五钩子仍由共享组装根承载未重抄（`01-tt-gate.log` 巡检段 4/4 PASS）。
-- **提审包**：`export/tt/` 63 件（`tools/build-tt.mjs`），主包 300,401B ≤ 4MB 分列 PASS、子包 0B；manifest 逐件 sha256 零漂移；包指纹（game.js）`580991cc…` 入 `docs/dy-submission-kit-c3.md`；材料清单 5 id 三向一致（§2 表）。
+- **埋点合规巡检（只读，零调优建议）**：tt 面零网络调用（tt.request/uploadFile/connectSocket/fetch/XHR 均无）、零 PII、会话五钩子仍由共享组装根承载未重抄（r2 轮档 `…c2-tt-port-20260930-r2/01-tt-gate.log` 巡检段 4/4 PASS）。
+- **提审包**：`export/tt/` 63 件（`tools/build-tt.mjs`），主包 300,222B（N3 覆写素材重建包）≤ 4MB 分列 PASS、子包 0B；manifest 逐件 sha256 零漂移；包指纹（game.js）`580991cc…` 入 `docs/dy-submission-kit-c3.md`；材料清单 5 id 三向一致（§2 表）。
 - **挂账（N2 线，归主人/N4）**：①真机档 + IDE 上传 = AppID + 类目/资质到位后主人侧执行；②是否提审拍板归主人；③`export/web/build` 镜像已同步（`diff -rq build export/web/build` 空，`MIRROR-EQUAL` 留证），deploy 动作归 deploy 节点。
 - **判例偏离留痕（N2 决策，可复核）**：dy 平台素材 5 件由 N2 以确定性生成器 `tools/gen-tt-assets.mjs` 产出（NEON 表唯一色值源、仅规格裁切、重跑逐字节一致）——沿 wx B0 同构判例（`tools/gen-wx-assets.mjs` 同为程序线产线件）；N3 美术可覆写重生成（id / manifest 口径不变，覆写后重跑 tt-GATE 即可再证）。
 - **wx 轨测试作用域修正（1 行，非包非 spec 变更）**：`tests/wx/wx-submission-kit.spec.mjs` 的「提审材料 id 全集」原把 spec **全平台**素材 id 当 wx 单轨口径，spec v1.5 新增 5 个 dy id 后该假设失真（FAIL 12/18）；已收窄为 `id.startsWith('wx-')` 轨内作用域 → wx-GATE 恢复 **6/6**，`export/wx/` 零触碰（`git status --porcelain export/wx wx/` = 空）。
 
 
+
+### C 轮 N2 驳回收口台账（2026-09-30 · 游戏程序 · QA 三项驳回修复回流）
+
+- **驳回①（kit 文书失真）→ 已修**：`docs/dy-submission-kit-c3.md` §1 主包体积 300,401B→**300,222B**、§2 五件 sha256 全部刷新为 N3 覆写版磁盘真源（≡ `assets/tt/manifest.json`，逐件核对 5/5）；`tests/tt/tt-submission-kit.spec.mjs` 增补两条防漂移断言（「文书材料 sha256 ≡ assets/tt/manifest.json 逐件相等」+「文书主包体积 ≡ export/tt/manifest.json sizes.mainBytes 且禁 300,401 旧值回潮」）——条目查断言 29→31。
+- **驳回②（门禁输出可见存档缺失）→ 已修**：`tests/tt/run-tt-gate.mjs` 子门 stdout **全量透传**（原仅留 RESULT 行）；`tests/tt/tt-runtime-surface.spec.mjs` 补 `DY_FRIEND_RANK=cloud` 行打印（原只断言未输出）。r2 档 `gate-logs/c2-tt-port-20260930-r2/01-tt-gate.log` 实测三行在档：`reason=missing-api` / `reason=no-tt-container` / `DY_FRIEND_RANK=cloud`（grep 可复现）。本台账「好友榜落死条款」行指认已同步更正为 r2 档。
+- **驳回③（证据条款 D3 四要素）→ 已修**：r2 轮日志统一四要素头（文件名/日期/命令/执行目录 + 输出摘要尾注）；`c3-art-overwrite-20260930/02b-root-contract.log` 重写为带头独立留档（根分发器 `scripts/contract-check.mjs`，头部显式说明与 02-contract.log（游戏工程版直呼）的 dispatch 同源对应）；新增 `c3-art-overwrite-20260930/04-bundle-size.log`（N3 重建包 300,222B 独立体积分列留档）。
+- **复跑证据（r2 档，四要素齐备）**：`01-tt-gate.log` tt-GATE **PASS 5/5**（55+25+31 断言）· `02-root-contract.log` 根契约 **PASS**（39/40+acc-a7 单列）· `03-bundle-size.log` 分列 **PASS**（300,222B ≤ 4MB）· `04-smoke.log` 冒烟 **PASS (browser)**。
 
 ### 🚨 B-C-001 实查与升级（2026-09-30 · 已升级主人）→ **✅ 解除（2026-09-30 · N2 依任务书放行）**
 

@@ -12,7 +12,7 @@
 | 项 | 值 |
 |---|---|
 | 组包命令 | `node games/stack-tower/tools/build-tt.mjs`（tsc CJS 主包 + 骨架 + 运行时资产 + manifest） |
-| 主包体积 | 300,401 B（293.4KB）≤ 4,194,304 B（4MB）—— **分列断言 PASS**（`node games/stack-tower/scripts/check-tt-bundle-size.mjs`） |
+| 主包体积 | 300,222 B（293.2KB）≤ 4,194,304 B（4MB）—— **分列断言 PASS**（`node games/stack-tower/scripts/check-tt-bundle-size.mjs`；N3 覆写素材重建包口径，与 `export/tt/manifest.json` sizes.mainBytes 逐字节一致） |
 | 子包分列 | 0 B（抖音无开放数据域独立子包机制；好友榜收敛 tt 云存储单通道，dy-runtime 口径①） |
 | manifest | `export/tt/manifest.json`（逐件 sha256 + 主包/子包分列体积；自指排除 manifest 本身） |
 | 入口链 | `tt/game.js` → `require('./build-tt/app/boot-tt.js')`（DOM/localStorage shim + Platform 装配 + boot + 分享闭环） |
@@ -23,15 +23,15 @@
 
 ## 2. 提审材料清单（按 id 逐项对照；N4 三向核对输入）
 
-素材产线：`node games/stack-tower/tools/gen-tt-assets.mjs`（确定性，重跑逐字节一致；色源唯一真源 = `src/render/theme.ts` NEON 表；风格四要素零漂移，仅规格裁切）。
+素材产线：`node games/stack-tower/tools/gen-tt-assets.mjs`（确定性，重跑逐字节一致；色源唯一真源 = `src/render/theme.ts` NEON 表；风格四要素零漂移，仅规格裁切）。**本表 sha256 = N3 美术线覆写版磁盘真源**（与 `assets/tt/manifest.json` 逐件全等；覆写证据 `gate-logs/c3-art-overwrite-20260930/`），kit 文书材料 sha256 由 `tests/tt/tt-submission-kit.spec.mjs`「文书 ≡ manifest」断言防漂移。
 
 | id | 落点（repo 根相对） | 规格 | sha256 | 用途 / 派生 |
 |---|---|---|---|---|
-| dy-share-card | `games/stack-tower/assets/tt/share-card.png` | 500×400（5:4） | `2a5dc3ec21943edc1c06a022de9a90df85e5f6220304cbe715624682a00061be` | 会话分享卡（dy-share-loop **主判据配图**）；参考卡面板一·开局首屏 |
-| dy-store-screenshot-01 | `games/stack-tower/assets/tt/store-screenshot-01.png` | 1242×2208 | `5b32b16d3088e18b78536f1e106c88dff1546cc2d42be4fe15f41fc4524bde74` | 商店截图一：开局首屏（参考卡面板一派生） |
-| dy-store-screenshot-02 | `games/stack-tower/assets/tt/store-screenshot-02.png` | 1242×2208 | `1e18613946f0a4d012359509e0d24b325fd8825b37a6f5bcb6a2a7983eb84392` | 商店截图二：perfect 涟漪时刻（参考卡面板三派生） |
-| dy-store-screenshot-03 | `games/stack-tower/assets/tt/store-screenshot-03.png` | 1242×2208 | `d0e4bd6a7925e163ff8417bd6c1599f8209c49a4d26fe6256f64f8fcca7ab1a0` | 商店截图三：竖屏对局构图（安全区内，参考卡派生） |
-| dy-icon | `games/stack-tower/assets/tt/icon.png` | 512×512 | `8c7a9d9df5c93aa5a64c252ab600f6d7adf418833cf62a7297da6f246219dcaa` | 应用图标：塔块霓虹剪影（参考卡块皮同源，禁新编风格） |
+| dy-share-card | `games/stack-tower/assets/tt/share-card.png` | 500×400（5:4） | `7055ecae8d36c6a64f0612dbc027f9d0f99353564dbac41da4150872b3e26431` | 会话分享卡（dy-share-loop **主判据配图**）；参考卡面板一·开局首屏 |
+| dy-store-screenshot-01 | `games/stack-tower/assets/tt/store-screenshot-01.png` | 1242×2208 | `ebd85034b1ee74d9695215392c99b2696177ac16c9cb4b33e01674f2b9d17551` | 商店截图一：开局首屏（参考卡面板一派生） |
+| dy-store-screenshot-02 | `games/stack-tower/assets/tt/store-screenshot-02.png` | 1242×2208 | `0aba4ae3d67bec798104379d4cacbb28362ebf3a5d4fcc794bba691cf2aed568` | 商店截图二：perfect 涟漪时刻（参考卡面板三派生） |
+| dy-store-screenshot-03 | `games/stack-tower/assets/tt/store-screenshot-03.png` | 1242×2208 | `c553f5a43bbe09353243d649e82ffba60ad57e0438fc3c0b4743e4d9f4225a59` | 商店截图三：竖屏对局构图（安全区内，参考卡派生） |
+| dy-icon | `games/stack-tower/assets/tt/icon.png` | 512×512 | `e0a6c8fa6633f84ab43ba61656464fe46fbbf4e44e6b56940426c25dd6ac308f` | 应用图标：塔块霓虹剪影（参考卡块皮同源，禁新编风格） |
 
 - 入包口径：运行时件仅 `dy-share-card` + `dy-icon` 落包；商店截图属提审材料，留仓库不入包（wx B0 判例同构）。
 - 材料清单机读面：`games/stack-tower/assets/tt/manifest.json`（逐件 id/file/bytes/sha256/size/use）。

@@ -1,8 +1,8 @@
-# 文件名：02b-root-contract.log
-# 日期：2026-09-30 10:35:34 +0800（UTC+8）
+# 文件名：02-root-contract.log
+# 日期：2026-09-30 10:35:12 +0800（UTC+8）
 # 命令：node scripts/contract-check.mjs
 # 执行目录：/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmunesx300146m9lfeoyat8w7（repo 根 = git rev-parse --show-toplevel）
-# 角色：游戏程序（N2 · 驳回③补档）：根分发器独立留档（scripts/contract-check.mjs 裸调用 = dispatch 至 contract-check-stack-tower.mjs，分发器零独立逻辑；与 02-contract.log（游戏工程版直呼，N3 轮留档）同源对应——补四要素头与对应说明）
+# 角色：游戏程序（N2 · 驳回收口轮）：根分发器独立留档（scripts/contract-check.mjs 裸调用 = dispatch 至 contract-check-stack-tower.mjs，分发器零独立逻辑；与 N3 轮 02-contract.log（游戏工程版直呼）同源对应，特此说明）
 # ── 以下为命令原始输出（无删节） ──
 [A] spec 基线：.myrd/spec/stack-tower-spec.json · platformSpecId=cmunf6r1e014cm9lfamzllk2h v7 status=approved acceptance=40 levels=1 entities=20 assets=24
 [B] acceptance 命令化 + 实跑：39/40 PASS（not-runnable 1：acc-a7（check=npx vitest run tests/audio/events.test.ts），单列不计绿）

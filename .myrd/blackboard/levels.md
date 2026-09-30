@@ -4,15 +4,15 @@
 
 > 更新时间：2026-09-30（**C 轮 N2 程序线收口 · 游戏程序**；B-C-001 解除）
 > 负责人：主策划（整合人）· 程序线维护实现状态列 · QA 线维护核销列
-> 下一步：**N4 QA 对抗互查**（三份输入齐备：spec v1.5 approved + `games/stack-tower/docs/dy-submission-kit-c3.md` + `gate-logs/c2-tt-port-20260930/` 机器证据）；主人侧 = 正式 AppID/类目资质下发 + 是否提审拍板
+> 下一步：**N4 QA 对抗互查**（三份输入齐备：spec v1.5 approved + `games/stack-tower/docs/dy-submission-kit-c3.md` + `gate-logs/c2-tt-port-20260930-r2/` 机器证据（QA 驳回三项已修复回流））；主人侧 = 正式 AppID/类目资质下发 + 是否提审拍板
 
 ### C 轮节点链台账
 
 | 节点 | 产物 | 验收 | 状态 |
 |---|---|---|---|
 | N1 spec v1.5 | `tools/build-spec-v15.mjs`（守卫五道全绿）→ `.myrd/spec/stack-tower-spec-v1.5-payload.json` → **平台 v7 `cmunf6r1e014cm9lfamzllk2h` approved（2026-09-30，代持沿 B3 判例）** | 仅 platform 段增量三条（dy-runtime / dy-share-loop / dy-submission-kit）：payload↔v1.4 精确 diff 三处（items 追加 / revision_note 前缀追加 / meta.version=1.5 新增）；六面（world/levels/numeric/entities/assets/acceptance 顶层）ZERO-DIFF；sha256(numeric) ≡ v1.3 存档锚；QA 四条口径原文进条目 acceptance；三件套一次给全；落盘后基线复核 numeric-freeze PASS + contract-check PASS（v7 自动识别 39/40，acc-a7 既有态单列） | ✅ |
-| N2 程序 | platform adapter wx/tt 双实现（`src/platform/tt.ts` 只实现 Platform 接口，逻辑层零裸调用、内核零改动）+ 门禁四件测试（`tests/tt/` 三条目查：API 冒烟双档 / numeric 逐字节零漂移 / UTC+8 seed 边界 / dy-* 编号核对）+ 提审包 `export/tt/`（63 件，主包 293.4KB ≤ 4MB 分列）+ 只读埋点合规巡检（零调优建议）+ kit 文书 `docs/dy-submission-kit-c3.md` | **tt-GATE 5/5 PASS（109 项断言，`gate-logs/c2-tt-port-20260930/01-tt-gate.log`）**；根契约 PASS（39/40+acc-a7 单列）；web 契约 39/39；冒烟 browser PASS；numeric ≡ `c3af773b…` 存档锚；`export/wx/` 零触碰 + wx-GATE 6/6 | ✅ |
-| N3 美术 | dy-icon / dy-store-screenshot-01..03 / dy-share-card 已由 N2 确定性生成器先行落位（`tools/gen-tt-assets.mjs`，NEON 表唯一色值源，风格四要素零漂移仅规格裁切，5 件 sha256 入 `assets/tt/manifest.json`；wx B0 `gen-wx-assets.mjs` 同构判例） | 编号三方对齐已由 tt-GATE 断言（spec 条目 3 ↔ 素材 5 ↔ 接线面）；**N3 可覆写重生成**（id/manifest 口径不变，覆写后重跑 tt-GATE 再证）；optional 能力（录屏分享/高光封面卡）未产件，spec 口径③缺失不构成打回 | ⏸ 待 N3（可覆写/可选） |
+| N2 程序 | platform adapter wx/tt 双实现（`src/platform/tt.ts` 只实现 Platform 接口，逻辑层零裸调用、内核零改动）+ 门禁四件测试（`tests/tt/` 三条目查：API 冒烟双档 / numeric 逐字节零漂移 / UTC+8 seed 边界 / dy-* 编号核对）+ 提审包 `export/tt/`（63 件，主包 293.2KB=300,222B ≤ 4MB 分列，N3 覆写素材重建包口径）+ 只读埋点合规巡检（零调优建议）+ kit 文书 `docs/dy-submission-kit-c3.md` | **tt-GATE 5/5 PASS（111 项断言，`gate-logs/c2-tt-port-20260930-r2/01-tt-gate.log`，r2 轮含 DY_FRIEND_RANK 三行透传档）**；根契约 PASS（39/40+acc-a7 单列）；web 契约 39/39；冒烟 browser PASS；numeric ≡ `c3af773b…` 存档锚；`export/wx/` 零触碰 + wx-GATE 6/6 | ✅ |
+| N3 美术 | dy 5 件产线 = `tools/gen-tt-assets.mjs`（确定性，NEON 表唯一色值源，风格四要素零漂移仅规格裁切，逐件 sha256 入 `assets/tt/manifest.json`；wx B0 `gen-wx-assets.mjs` 同构判例）；N3 覆写收口（commit c9871f5：涟漪/辉光/切面对齐冻结四联图 P1/P3 画法，P3 perfect 语义修复 + P1 要素补齐 + 安全区留白；体积回落风格卡 §4 预算 5 件 max 28.3KB） | 编号三方对齐已由 tt-GATE 断言（spec 条目 3 ↔ 素材 5 ↔ 接线面）；**N3 可覆写重生成**（id/manifest 口径不变，覆写后重跑 tt-GATE 再证）；optional 能力（录屏分享/高光封面卡）未产件，spec 口径③缺失不构成打回。覆写证据 `gate-logs/c3-art-overwrite-20260930/`（tt-GATE 5/5 + ART-AUDIT + 契约）| ✅ 覆写收口 |
 | N4 QA 对抗互查 | 结论仅 JSON（verdict/feedback/evidence） | 三份输入缺一停审；optional 未标注而缺失按 spec 缺陷打回 | ⏸ 待开审（N2 三份输入已齐，等 QA 线接审） |
 | N5 → deploy | 提审包 + 材料清单回流 | deploy 节点交平台执行；**是否提审由主人拍板** | ⛓ 待前置 |
 

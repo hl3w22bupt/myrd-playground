@@ -87,7 +87,9 @@ try {
   check('好友榜降级·非抖音容器：reason=no-tt-container（门禁输出可见）', lineNoHost === 'DY_FRIEND_RANK=degraded reason=no-tt-container');
   // 好友榜：接入档（云存储 API 在位）→ cloud；读取行零好友身份数据、零存储落点
   const rankCloud = ttMod.resolveDyFriendRank(host);
-  check('好友榜接入档：mode=cloud（API 在位）', rankCloud.mode === 'cloud' && ttMod.describeDyFriendRank(rankCloud) === 'DY_FRIEND_RANK=cloud');
+  const lineCloud = ttMod.describeDyFriendRank(rankCloud);
+  console.log(`[gate] ${lineCloud}`);
+  check('好友榜接入档：mode=cloud（API 在位）', rankCloud.mode === 'cloud' && lineCloud === 'DY_FRIEND_RANK=cloud');
   let friendRows = null;
   rankCloud.readFriendScores((rows) => { friendRows = rows; });
   check('好友榜读取：tt 云存储单通道返回分数行（降序）', Array.isArray(friendRows) && friendRows[0].score === 72 && friendRows[1].score === 45);

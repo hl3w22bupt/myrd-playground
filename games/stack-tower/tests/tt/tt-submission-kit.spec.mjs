@@ -95,6 +95,13 @@ if (!existsSync(kitDocPath)) {
   check('kit 文书含 N4 三份输入口径（approved spec + repo 根/黑板指针 + 机器证据）', doc.includes('三份输入') && doc.includes('机器证据'));
   check('kit 文书含 QA 四条验收口径对照（①好友榜②主判据③optional④停审）', ['①', '②', '③', '④'].every((k) => doc.includes(k)));
   check('kit 文书含材料清单（5 id 逐项，含 sha256）', specDyAssets.every((a) => doc.includes(a.id)));
+  // 防漂移（QA 驳回①回流）：文书材料 sha256 必须 ≡ assets/tt/manifest.json（磁盘真源）——
+  // 仅断 id 在文拦不住「素材覆写后文书仍留初版 sha」的失真（N4 三向核对输入必须逐件相等）
+  const staleShas = assetManifest.items.filter((a) => !doc.includes(a.sha256));
+  check(`kit 文书材料 sha256 ≡ assets/tt/manifest.json（${assetManifest.items.length} 件逐件相等${staleShas.length ? `，漂移：${staleShas.map((s) => s.id).join(',')}` : ''}）`, staleShas.length === 0);
+  // 防漂移（QA 驳回①回流）：文书主包体积必须 ≡ export/tt/manifest.json sizes.mainBytes
+  const mainBytesStr = exportManifest.sizes.mainBytes.toLocaleString('en-US');
+  check(`kit 文书主包体积 ≡ export/tt/manifest.json（${exportManifest.sizes.mainBytes}B）`, doc.includes(mainBytesStr) && !/300,401/.test(doc));
   check('kit 文书带 repo 根/黑板指针（N4 产物定位输入）', doc.includes('repo 根') && doc.includes('.myrd/blackboard'));
 }
 

@@ -22,10 +22,18 @@ const results = [];
 for (const [name, rel] of GATES) {
   try {
     const out = execFileSync('node', [path.join(GAME, rel)], { encoding: 'utf8', timeout: 120000 });
+    // 子门 stdout 全量透传（QA 驳回②回流）：dy-runtime 口径①「接入或显式降级且门禁输出可见，
+    // 输出不可见即打回」——聚合留档必须携带 DY_FRIEND_RANK=… 等原始输出行，不得只留 RESULT 行
+    console.log(`----- [gate] ${name}（${rel}）stdout 开始 -----`);
+    console.log(out.trimEnd());
+    console.log(`----- [gate] ${name} stdout 结束 -----`);
     const last = out.trim().split('\n').filter((l) => l.startsWith('RESULT:')).pop() || '';
     results.push([name, last.includes('RESULT: PASS') ? 'PASS' : 'FAIL', last]);
   } catch (e) {
     const out = String(e.stdout || '');
+    console.log(`----- [gate] ${name}（${rel}）stdout 开始（异常退出 exit=${e.status}）-----`);
+    console.log(out.trimEnd());
+    console.log(`----- [gate] ${name} stdout 结束 -----`);
     const last = out.trim().split('\n').filter((l) => l.startsWith('RESULT:')).pop() || `RESULT: FAIL (异常退出 exit=${e.status})`;
     results.push([name, last.includes('RESULT: PASS') ? 'PASS' : 'FAIL', last]);
   }
