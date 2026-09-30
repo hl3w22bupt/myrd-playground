@@ -1,0 +1,11 @@
+{
+  "description": "Stack Tower（霓虹夜塔）· C 抖音小游戏移植轮。AppID 未到位：以 tt-test-appid-placeholder 占位推进抖音开发者工具（IDE）侧结构面（spec v1.5 content.platform dy-submission-kit.notes / wx B0 touristappid 判例同构）；正式 AppID + 类目/资质到位后由主人下发替换，真机轨与提审动作在此之前不执行、不造假数据。",
+  "appid": "tt-test-appid-placeholder",
+  "compileType": "game",
+  "projectname": "stack-tower-neon-night",
+  "setting": {
+    "es6": true,
+    "urlCheck": false,
+    "minified": true
+  }
+}

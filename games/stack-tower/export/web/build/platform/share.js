@@ -12,6 +12,9 @@
 export const SHARE_CARD_SESSION = 'assets/wx/share-card-5x4.png';
 /** 朋友圈方图（1:1 = 500×500，wx-share-timeline-1x1） */
 export const SHARE_CARD_TIMELINE = 'assets/wx/share-timeline-1x1.png';
+export const WX_SHARE_CARDS = { session: SHARE_CARD_SESSION, timeline: SHARE_CARD_TIMELINE };
+/** dy-share-card（500×400 会话分享卡，dy-share-loop 主判据配图） */
+export const TT_SHARE_CARDS = { session: 'assets/tt/share-card.png', timeline: 'assets/tt/share-card.png' };
 /** 分享标题（与线上版一致的一句话卖点，非玩法文案新增面） */
 export const SHARE_TITLE = '霓虹夜塔：看准切面点下去，完美对齐激起塔身涟漪';
 /** 构造会话分享载荷（主判据面）：query 携带 sessionId 供回环归因 */
@@ -25,5 +28,16 @@ export function buildTimelineShare(sessionId) {
 export function installShareMenu(registrar, sessionId) {
     registrar.onShareAppMessage(() => buildSessionShare(sessionId));
     registrar.onShareTimeline(() => buildTimelineShare(sessionId));
+    registrar.showShareMenu();
+}
+// ---------- 平台卡片参数化（C 抖音移植轮 · dy-share-loop 加法面，wx 缺省行为不变） ----------
+/** 指定卡片集构造会话分享载荷（query 携带 sid=，零 PII 口径与 buildSessionShare 一致） */
+export function buildSessionShareWith(cards, sessionId) {
+    return { title: SHARE_TITLE, imageUrl: cards.session, query: `sid=${encodeURIComponent(sessionId)}` };
+}
+/** 指定卡片集安装分享菜单（wx = installShareMenu 别名缺省；tt = TT_SHARE_CARDS） */
+export function installShareMenuWith(registrar, sessionId, cards) {
+    registrar.onShareAppMessage(() => buildSessionShareWith(cards, sessionId));
+    registrar.onShareTimeline(() => buildSessionShareWith(cards, sessionId));
     registrar.showShareMenu();
 }

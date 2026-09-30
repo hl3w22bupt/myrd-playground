@@ -32,11 +32,15 @@ check('check-wx-bundle-size（主包/子包分列断言）PASS', runGate('script
 check('check-numeric-freeze（只复算 N1 存档）PASS', runGate('scripts/check-numeric-freeze.mjs'));
 
 // ② 提审材料按 id 逐项对照（spec ↔ assets manifest ↔ 磁盘）
+// 作用域 = wx 轨（id 前缀 wx-）：素材 id 全集按平台分轨——spec v1.5 起 platform.items 含 dy-* 条目，
+// 其素材 id 归 assets/tt/manifest.json（tt 轨门禁对照），不进 wx 三向核对面。
 const spec = JSON.parse(readFileSync(path.join(ROOT, '.myrd/spec/stack-tower-spec.json'), 'utf8')).spec;
 const kitItem = spec.content.platform.items.find((i) => i.id === 'wx-submission-kit');
 const assetsManifest = JSON.parse(readFileSync(path.join(GAME, 'assets/wx/manifest.json'), 'utf8'));
-const allIds = spec.content.platform.items.flatMap((i) => i.assets.map((a) => a.id));
-check(`提审材料 id 全集 ${allIds.length} 项在 spec 登记`, kitItem.assets.length + 3 === allIds.length);
+const allIds = spec.content.platform.items
+  .filter((i) => i.id.startsWith('wx-'))
+  .flatMap((i) => i.assets.map((a) => a.id));
+check(`提审材料 id 全集 ${allIds.length} 项在 spec 登记（wx 轨作用域）`, kitItem.assets.length + 3 === allIds.length);
 for (const id of allIds) {
   const m = assetsManifest.items.find((a) => a.id === id);
   const specAsset = spec.content.platform.items.flatMap((i) => i.assets).find((a) => a.id === id);

@@ -1,0 +1,6 @@
+"use strict";
+/**
+ * 内核类型 — 确定性内核与表现层之间唯一的形状约定。
+ * 内核零 DOM / 零 Canvas；表现层只读快照。
+ */
+Object.defineProperty(exports, "__esModule", { value: true });

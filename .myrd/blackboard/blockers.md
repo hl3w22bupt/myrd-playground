@@ -2,9 +2,9 @@
 
 ## C · 抖音小游戏移植轮（2026-09-30 开工 · 主策划 · **N1 收口态**）
 
-> 更新时间：2026-09-30（N1 spec v1.5 落账并 approved · 主策划）
+> 更新时间：2026-09-30（**C 轮 N2 程序线收口 · 游戏程序**；B-C-001 解除 · 证据见下）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：**等主人两件事**——① B-C-001 答复（见下「B-C-001 实查与升级」）；② N2/N3 放行指令。团队只交包，是否提审由主人拍板。
+> 下一步：**N4 QA 对抗互查**（三份输入已齐：spec v1.5 approved + `docs/dy-submission-kit-c3.md`（repo 根/黑板指针）+ `gate-logs/c2-tt-port-20260930/` 机器证据）；主人侧挂账 = ①正式 AppID + 类目/资质下发（真机档与提审动作前置）②是否提审拍板。团队只交包，提审动作不代行。
 
 ### 当前基线（C 轮 · 2026-09-30）
 
@@ -31,12 +31,28 @@
 
 - **approve 代持声明（沿 B3 判例）**：主人任务书显式「不要进入 plan mode 或等待人工审批，直接实现需求并提交代码」+ C 轮节点链以「v1.5 approved」为 N2/N3 开工前提 + 「approved 唯一」版本链约束；代持人 = 主策划。红线不失效：主人一句否决 → 新修订置 draft、v7 superseded、契约随最新 approved 版重定基准。approve 前 spec↔payload 全等实查已留证（`.myrd/spec/c3/platform-v7-draft-raw.json`）。
 
-### 🚨 B-C-001 实查与升级（2026-09-30 · 已升级主人，等待答复）
+### C 轮 N2 程序线收口台账（2026-09-30 · 游戏程序 · 可核对证据）
+
+- **落点与 spec 对齐**：dy 三条目声明落点全部落盘且逐字对齐（`tests/tt/tt-runtime-surface.spec.mjs` ① 段断言「落点在盘 repo 根相对逐字」6/6 PASS）；对称新增件（非穷举声明面，wx B0 判例同构——`src/app/boot-wx.ts` 亦不在 wx 条目 files 内而工程在档）：`src/app/boot-tt.ts` / `tsconfig.tt.json` / `tools/gen-tt-assets.mjs` / `tests/tt/*`（3 条目查 + 1 聚合器 + 1 harness）。
+- **门禁四件（任务书口径）**：①API 冒烟 devtools/真机双档（devtools=机跑 fake tt 宿主行为冒烟；真机=显式 blocked 不造假数据）②numeric 逐字节零漂移断言（≡ v1.3 存档锚 `c3af773b…`）③UTC+8 seed 边界用例（15:59:59Z/16:00:00Z 翻日 + meta 存档同键跨边界）④`dy-*` 编号核对（spec 条目 3 ↔ 素材 5 ↔ 接线面三方对齐）——全部落 `tests/tt/` 三份条目查，**tt-GATE 5/5 PASS（109 项断言）**。
+- **平台适配（逻辑层零裸调用）**：`src/platform/tt.ts` 只实现 `platform/index.ts` 的 Platform 接口（tt 全局面仅 tt.ts/boot-tt.ts 消费，内核零改动、零 import）；存储同源（`MUTED_STORAGE_KEY`/`META_SAVE_KEY` 常量单源 import，tt.ts 零字面键名重抄）；系统信息/安全区仅作表现层布局输入（tt.js 零 kernel 触碰，门禁断言）。
+- **好友榜落死条款**：tt 云存储单通道 `resolveDyFriendRank`（接入=cloud / 显式降级三因 missing-api·auth-denied·no-tt-container）；门禁输出可见行实测：`DY_FRIEND_RANK=degraded reason=no-tt-container`、`reason=missing-api`、`DY_FRIEND_RANK=cloud`（`01-tt-gate.log`）；主包零好友数据落点（行为断言：读取不写任何存储键）。
+- **分享闭环主判据**：`tt.shareAppMessage`（主动 shareNow）+ `onShareAppMessage`（被动）双通道，配图绑 `dy-share-card`（500×400，spec↔manifest↔磁盘↔包内四向 sha256 一致）；载荷 `sid=`（零 PII 正则断言）；不可用/失败两路静默降级保留入口（行为断言）。
+- **埋点合规巡检（只读，零调优建议）**：tt 面零网络调用（tt.request/uploadFile/connectSocket/fetch/XHR 均无）、零 PII、会话五钩子仍由共享组装根承载未重抄（`01-tt-gate.log` 巡检段 4/4 PASS）。
+- **提审包**：`export/tt/` 63 件（`tools/build-tt.mjs`），主包 300,401B ≤ 4MB 分列 PASS、子包 0B；manifest 逐件 sha256 零漂移；包指纹（game.js）`580991cc…` 入 `docs/dy-submission-kit-c3.md`；材料清单 5 id 三向一致（§2 表）。
+- **挂账（N2 线，归主人/N4）**：①真机档 + IDE 上传 = AppID + 类目/资质到位后主人侧执行；②是否提审拍板归主人；③`export/web/build` 镜像已同步（`diff -rq build export/web/build` 空，`MIRROR-EQUAL` 留证），deploy 动作归 deploy 节点。
+- **判例偏离留痕（N2 决策，可复核）**：dy 平台素材 5 件由 N2 以确定性生成器 `tools/gen-tt-assets.mjs` 产出（NEON 表唯一色值源、仅规格裁切、重跑逐字节一致）——沿 wx B0 同构判例（`tools/gen-wx-assets.mjs` 同为程序线产线件）；N3 美术可覆写重生成（id / manifest 口径不变，覆写后重跑 tt-GATE 即可再证）。
+- **wx 轨测试作用域修正（1 行，非包非 spec 变更）**：`tests/wx/wx-submission-kit.spec.mjs` 的「提审材料 id 全集」原把 spec **全平台**素材 id 当 wx 单轨口径，spec v1.5 新增 5 个 dy id 后该假设失真（FAIL 12/18）；已收窄为 `id.startsWith('wx-')` 轨内作用域 → wx-GATE 恢复 **6/6**，`export/wx/` 零触碰（`git status --porcelain export/wx wx/` = 空）。
+
+
+
+### 🚨 B-C-001 实查与升级（2026-09-30 · 已升级主人）→ **✅ 解除（2026-09-30 · N2 依任务书放行）**
 
 - **任务书前提**：「stack-tower 仓库根路径缺失——N1 不受阻即刻开工；N2/N3 落盘、N4 开审硬阻塞；请主人提供仓库根路径（或恢复/注册仓库）」。
-- **本轮实查（如实留证，不冒领不擅断）**：仓库根**在本 run 工作区在位且完整**——`git rev-parse --show-toplevel` = `/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmunesx300146m9lfeoyat8w7`（= `pwd`）；分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` HEAD `e2044d0`（B1 收口态），工作区开工时干净；`games/stack-tower/` 工程完整（src / tests / docs / tools / export/wx / assets 齐备，wx B0 提审包在档）。
-- **处置（按任务书红线执行，不擅自放行）**：N1 已即刻开工并完成（spec 走接口不依赖 repo 实证成立）；**N2/N3 落盘与 N4 开审维持硬阻塞冻结**——并行段放行需主人答复：①确认以上实查路径即主人所指仓库根（据此解除 B-C-001）；②或指认其他路径 / 说明缺失所指（如另有独立 stack-tower 仓库）。
-- **N2/N3 放行双重前提**（缺一不可）：v1.5 approved ✅（已达成）+ B-C-001 解除（待主人）。达成即放行，无需再等本轮收口。
+- **N1 轮实查（如实留证）**：仓库根**在本 run 工作区在位且完整**——`git rev-parse --show-toplevel` = `/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmunesx300146m9lfeoyat8w7`（= `pwd`）；分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` HEAD `e2044d0`（B1 收口态），工作区开工时干净；`games/stack-tower/` 工程完整（src / tests / docs / tools / export/wx / assets 齐备，wx B0 提审包在档）。
+- **解除依据（2026-09-30 · N2 复核 + 任务书指令）**：① N2 开工前独立复核与 N1 实查一致（`git rev-parse --show-toplevel` 同路径、HEAD `df2550d` = N1 收口提交、工作区干净、工程树完整）——「路径缺失」前提在本工作区**不成立**；② 主人任务书同令「**不要进入 plan mode 或等待人工审批，直接实现需求并提交代码**」+「**路径一到位即放行并行段**」→ 路径既已在位，放行条件达成，N2 即刻开工（不空转等答复）。
+- **留痕**：本条保留全历史（不删不改旧结论），解除动作与证据见上「C 轮 N2 程序线收口台账」。若主人所指实为**另一个**独立 stack-tower 仓库，则本轮产物落点（`games/stack-tower/`）与 B0/B1 判例同根，迁移成本为零（可整目录搬移）。
+- **N2/N3 放行双重前提**：v1.5 approved ✅（已达成）+ B-C-001 解除 ✅（本条）→ **已放行，N2 已收口**。
 
 ### C 轮继承挂账（不变，逐条保留）
 
