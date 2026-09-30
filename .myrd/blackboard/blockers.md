@@ -1,4 +1,50 @@
-# 阻塞项黑板 — stack-tower（M2 首卡 → M2.1「有声可装」→ 正式发布轮 → 霓虹夜塔冲刺 → B0 微信移植轮 → **B1 上头循环（PWA 先行，wx 不动）**）
+# 阻塞项黑板 — stack-tower（M2 首卡 → M2.1「有声可装」→ 正式发布轮 → 霓虹夜塔冲刺 → B0 微信移植轮 → B1 上头循环 → **C 抖音小游戏移植轮（提审包 + 材料清单回流）**）
+
+## C · 抖音小游戏移植轮（2026-09-30 开工 · 主策划 · **N1 收口态**）
+
+> 更新时间：2026-09-30（N1 spec v1.5 落账并 approved · 主策划）
+> 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：**等主人两件事**——① B-C-001 答复（见下「B-C-001 实查与升级」）；② N2/N3 放行指令。团队只交包，是否提审由主人拍板。
+
+### 当前基线（C 轮 · 2026-09-30）
+
+- **黑板路径**：`.myrd/blackboard/`（levels.md / assets.md / blockers.md + gate-logs/）
+- **spec 版本号**：**v1.5 · approved（平台 v7 `cmunf6r1e014cm9lfamzllk2h`，2026-09-30 API 实查 approved 唯一；v6 `cmulzwv6c005km9lfo3zek574` 及更早全 superseded）；`meta.version="1.5"` 显式落账（1.4 及以前版本标识仅存 revision_note，本版起补显式字段，平台已保留该字段——实查回读全等）**
+- **导出件双落点**：`.myrd/spec/stack-tower-spec.json` 主 + `.myrd/spec/design-spec.json` 镜像（wrapped 形状 `{schemaVersion, spec, _platform}`，`_platform` 已刷新为 v7 approved；2026-09-30 以接口实查回写，v7 回读与 payload sortKeys 全等）
+- **numeric 冻结锚**：sha256(sortKeys) = `c3af773b6483164c22ca0a039623967cb3b67ff9b2b658749f927baeee74957d` ≡ v1.3 唯一存档锚（`.myrd/spec/stack-tower-spec-v1.3-numeric-sha256.txt`，**未新建 v1.5 存档文件**——check-numeric-freeze 只复算本档的机制不变，避免多锚漂移）；落账后复跑 `check-numeric-freeze.mjs` **PASS** + 根 `contract-check.mjs` **PASS**（A 段自动识别 v7 approved，39/40 实跑 + acc-a7 not-runnable 既有态单列）
+- **C 轮目标**：可提审抖音小游戏包 + 材料清单回流；**是否提审由主人拍板，团队只交包**
+
+### C 轮 N1 · spec v1.5 落账台账（2026-09-30 · 游戏策划）
+
+- **建版器**：`games/stack-tower/tools/build-spec-v15.mjs`（守卫五道：B 锚复算 / 幂等 / 编号三方自洽 / C' retention 一字不动 / A' 六面修改后深比——真守卫设计：修改前快照 + 落盘前复比，杜绝 copy 前自比恒真）
+- **payload**：`.myrd/spec/stack-tower-spec-v1.5-payload.json`；**落点声明**：`.myrd/spec/stack-tower-spec-v1.5-dy-files.txt`（dy 文件均由 N2 产出，N1 时点不存在，spec 先行声明沿 wx B0 判例）
+- **变更面（payload ↔ v1.4 payload 精确 diff 实证，仅三处）**：① `content.platform.items` 追加 dy 三条目（`dy-runtime` / `dy-share-loop` / `dy-submission-kit`，wx 四条目逐条零 diff、容器其余字段零 diff）；② `meta.revision_note` 前缀追加 v1.5 段；③ `meta.version` 新增 `"1.5"`。
+- **零漂移实证**：world / levels / numeric / entities / assets（顶层）/ acceptance（顶层 40 条）六面 **ZERO-DIFF**；零数值改动；missions（content.retention）一字不动；scope_gate 不抢跑（留存评估顺延 ≥7 天真实样本，主策划发起）。
+- **三件套一次给全**：稳定 id（条目 3 + 素材 5：dy-share-card / dy-store-screenshot-01..03 / dy-icon + 能力 optional 1：录屏分享/高光封面卡）；落点一律「以 repo 根为基准的相对路径」（`games/stack-tower/…` 前缀，建版器 FILE/ASSET GUARD 机械断言）；口径 = QA 四条验收口径原文收录条目 acceptance（①好友榜 tt 云存储「接入或显式降级且门禁输出可见」落死不写「视情况」②tt.shareAppMessage 最小闭环配图绑 dy-share-card ③录屏分享/高光封面卡显式标 optional、未标注 optional 而缺失按 spec 缺陷打回 ④N4 三份输入缺一停审、结论仅 JSON）。
+- **版本链（revisions 保序，未覆盖任何旧版）**：
+
+| 版本 | 平台 id | 内容 | 状态 |
+|---|---|---|---|
+| v1.3 = 平台 v5 | `cmukkjc10001ym9nb3dnc5kt6` | B0 微信移植轮（platform 四条目 + 素材 7 id） | superseded |
+| v1.4 = 平台 v6 | `cmulzwv6c005km9lfo3zek574` | B1 上头循环（retention 段 + meta 四件套 + acc-b1..b8） | superseded |
+| **v1.5 = 平台 v7** | `cmunf6r1e014cm9lfamzllk2h` | C 抖音移植轮：仅 platform 段增量 dy 三条目 + QA 四条口径 + meta.version 显式落账；六面零 diff | **approved（唯一）** |
+
+- **approve 代持声明（沿 B3 判例）**：主人任务书显式「不要进入 plan mode 或等待人工审批，直接实现需求并提交代码」+ C 轮节点链以「v1.5 approved」为 N2/N3 开工前提 + 「approved 唯一」版本链约束；代持人 = 主策划。红线不失效：主人一句否决 → 新修订置 draft、v7 superseded、契约随最新 approved 版重定基准。approve 前 spec↔payload 全等实查已留证（`.myrd/spec/c3/platform-v7-draft-raw.json`）。
+
+### 🚨 B-C-001 实查与升级（2026-09-30 · 已升级主人，等待答复）
+
+- **任务书前提**：「stack-tower 仓库根路径缺失——N1 不受阻即刻开工；N2/N3 落盘、N4 开审硬阻塞；请主人提供仓库根路径（或恢复/注册仓库）」。
+- **本轮实查（如实留证，不冒领不擅断）**：仓库根**在本 run 工作区在位且完整**——`git rev-parse --show-toplevel` = `/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmunesx300146m9lfeoyat8w7`（= `pwd`）；分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` HEAD `e2044d0`（B1 收口态），工作区开工时干净；`games/stack-tower/` 工程完整（src / tests / docs / tools / export/wx / assets 齐备，wx B0 提审包在档）。
+- **处置（按任务书红线执行，不擅自放行）**：N1 已即刻开工并完成（spec 走接口不依赖 repo 实证成立）；**N2/N3 落盘与 N4 开审维持硬阻塞冻结**——并行段放行需主人答复：①确认以上实查路径即主人所指仓库根（据此解除 B-C-001）；②或指认其他路径 / 说明缺失所指（如另有独立 stack-tower 仓库）。
+- **N2/N3 放行双重前提**（缺一不可）：v1.5 approved ✅（已达成）+ B-C-001 解除（待主人）。达成即放行，无需再等本轮收口。
+
+### C 轮继承挂账（不变，逐条保留）
+
+1. wx 提审拍板（归主人）：正式 AppID + 类目/资质材料未下发，B0 挂账延续；C 轮 wx 包零触碰。
+2. U6/R2 壳层缺陷三选一裁决（归主人，B0 挂账延续）；「好不好玩」试玩终裁（归主人，B1 挂账延续）。
+3. META_CACHE_EPOCH 1→2 回头用户触达（归主策划拍板，B1 挂账延续）。
+
+
 
 ## 当前基线（B1 · 2026-09-29 开工 · 主策划）
 

@@ -1,4 +1,27 @@
-# 关卡状态黑板 — stack-tower（霓虹夜塔冲刺 r4 → B0 微信移植轮 → **B1 上头循环（meta 留存层，PWA 先行）**）
+# 关卡状态黑板 — stack-tower（霓虹夜塔冲刺 r4 → B0 微信移植轮 → B1 上头循环 → **C 抖音小游戏移植轮（提审包 + 材料清单回流）**）
+
+## C · 抖音小游戏移植轮（2026-09-30 开工 · 主策划）
+
+> 更新时间：2026-09-30（**C 轮 N1 收口 · 主策划**）
+> 负责人：主策划（整合人）· 程序线维护实现状态列 · QA 线维护核销列
+> 下一步：**等主人两件事**——① B-C-001 答复（仓库根路径确认/指认，实查证据见 blockers.md）；② N2/N3 放行指令。spec 已就绪（v1.5 approved），路径一到位即放行并行段
+
+### C 轮节点链台账
+
+| 节点 | 产物 | 验收 | 状态 |
+|---|---|---|---|
+| N1 spec v1.5 | `tools/build-spec-v15.mjs`（守卫五道全绿）→ `.myrd/spec/stack-tower-spec-v1.5-payload.json` → **平台 v7 `cmunf6r1e014cm9lfamzllk2h` approved（2026-09-30，代持沿 B3 判例）** | 仅 platform 段增量三条（dy-runtime / dy-share-loop / dy-submission-kit）：payload↔v1.4 精确 diff 三处（items 追加 / revision_note 前缀追加 / meta.version=1.5 新增）；六面（world/levels/numeric/entities/assets/acceptance 顶层）ZERO-DIFF；sha256(numeric) ≡ v1.3 存档锚；QA 四条口径原文进条目 acceptance；三件套一次给全；落盘后基线复核 numeric-freeze PASS + contract-check PASS（v7 自动识别 39/40，acc-a7 既有态单列） | ✅ |
+| N2 程序 ‖ N3 美术 | platform adapter wx/tt 双实现（逻辑层零裸调用）+ 门禁四件测试；dy-icon / dy-store-screenshot-01..03 / dy-share-card（风格四要素零漂移仅规格裁切）+ 编号三方对齐 | **B-C-001 硬阻塞：N2/N3 落盘冻结**；且须 v1.5 approved 后方能动工 | ⛔ 阻塞 |
+| N4 QA 对抗互查 | 结论仅 JSON（verdict/feedback/evidence） | 三份输入缺一停审；optional 未标注而缺失按 spec 缺陷打回 | ⛔ 阻塞 |
+| N5 → deploy | 提审包 + 材料清单回流 | deploy 节点交平台执行；**是否提审由主人拍板** | ⛓ 待前置 |
+
+### C 轮红线（任务书原文，全程有效）
+
+- 零数值改动（numeric 四段逐字节冻结）；missions 一字不动；scope_gate 不抢跑（留存评估顺延至 ≥7 天真实样本，由主策划发起）；spec v1.5 仅经接口产生、approved 唯一；机器不替人判断「好不好玩」，人工验收始终最终裁决。
+- 好友榜条款在 dy-runtime 条目内落死：tt 云存储「接入或显式降级且门禁输出可见」，不写「视情况」。
+- 录屏分享/高光封面卡标 optional；未标注 optional 而缺失 → 按 spec 缺陷打回。
+
+
 
 ## B1 · 上头循环轮（2026-09-29 开工 · 主策划）
 

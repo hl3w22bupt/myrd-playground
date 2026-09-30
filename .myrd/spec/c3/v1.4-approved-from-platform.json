@@ -1,5 +1,12 @@
 {
+  "createdAt": "2026-09-29T01:26:29.844Z",
+  "createdByUserId": "cmoqv70b80000m9d4b58k27zt",
+  "goalId": null,
+  "id": "cmulzwv6c005km9lfo3zek574",
+  "parentSpecId": "cmukkjc10001ym9nb3dnc5kt6",
+  "projectId": "cmto0g28j0002m9sqnvjdy8o7",
   "schemaVersion": "v0",
+  "sourceTrajectoryId": null,
   "spec": {
     "acceptance": [
       {
@@ -598,98 +605,6 @@
             "id": "wx-submission-kit",
             "notes": "AppID + 类目/资质材料到位前：包与材料做到「工具到位即可提审」，提审动作本身待主人拍板",
             "title": "提审包与材料清单（N4 回流）"
-          },
-          {
-            "acceptance": [
-              "生命周期：tt.onShow 恢复、tt.onHide 暂停 BGM 环，调度连续性断言随 bgm-loop 冒烟同门执行（acc-a7 同口径，首触手势内完成音频解锁，不设豁免条款）",
-              "存储：tt.getStorage/setStorage 与 web 存档同源（st.settings.muted + st.meta.save.v2 带 schemaVersion），键名与读写路径零分叉",
-              "系统信息：tt.getSystemInfoSync 取视口与安全区，仅作表现层布局输入，禁止触碰 numeric 冻结段",
-              "web 回归零行为变化：tt.ts 只实现 platform/index.ts 的 Platform 接口且不接入 browser 装配体，web 契约与四判据全量重跑零漂移",
-              "QA 验收口径原文①（好友榜，落死）：tt 云存储（tt.setUserCloudStorage 写 / tt.getFriendCloudStorage 读）接入或显式降级且门禁输出可见——接入时好友分仅经 tt 云存储 API、主包零好友数据落点；显式降级时门禁输出必须打印 DY_FRIEND_RANK=degraded 与降级原因（缺 API/缺授权/非抖音容器三者之一），输出不可见即打回；本条款禁止「视情况」表述"
-            ],
-            "assets": [],
-            "check": "node games/stack-tower/tests/tt/tt-runtime-surface.spec.mjs",
-            "files": [
-              "games/stack-tower/src/platform/tt.ts",
-              "games/stack-tower/src/audio/bgm.ts",
-              "games/stack-tower/tt/game.json",
-              "games/stack-tower/tt/game.js",
-              "games/stack-tower/tt/project.config.json",
-              "games/stack-tower/tools/build-tt.mjs"
-            ],
-            "id": "dy-runtime",
-            "notes": "接口平台无关：tt.ts 只实现 Platform 接口（wx B0 判例同构，逻辑层零裸调用）；抖音无开放数据域独立子包机制，好友榜数据通道收敛为 tt 云存储单通道，条款在 acceptance 内落死",
-            "title": "tt 运行时适配（装配体 + 生命周期 + 存储 + 系统信息 + 好友榜条款）"
-          },
-          {
-            "acceptance": [
-              "QA 验收口径原文②（主判据）：tt.shareAppMessage 最小闭环——分享回调返回 imageUrl 使用 dy-share-card（500×400），卡片可被会话实收；主判据不过即 N4 打回",
-              "QA 验收口径原文③（optional 标注）：录屏分享（tt.getGameRecorder 系）与高光封面卡为能力级 optional——缺失不构成打回项；实现时封面素材从本局录屏帧派生并复用 NEON 色板，禁新编风格；反向口径：凡 spec 条目未标注 optional 的素材/能力缺件，一律按 spec 缺陷打回",
-              "分享载荷携带 sessionId（anon_id 同源，零 PII），回环进入对局不依赖登录态",
-              "分享失败降级：tt.shareAppMessage 不可用时静默降级并保留入口，不抛错不阻塞对局"
-            ],
-            "assets": [
-              {
-                "expect": "会话分享卡：霓虹夜塔开局首屏派生构图（参考卡四联图面板一），NEON 色板唯一色值源，风格四要素零漂移仅规格裁切",
-                "file": "games/stack-tower/assets/tt/share-card.png",
-                "id": "dy-share-card",
-                "size": "500x400"
-              }
-            ],
-            "check": "node games/stack-tower/tests/tt/tt-share-loop.spec.mjs",
-            "files": [
-              "games/stack-tower/src/platform/share.ts",
-              "games/stack-tower/tt/game.js"
-            ],
-            "id": "dy-share-loop",
-            "notes": "QA 验收口径原文（主判据）：tt.shareAppMessage 最小闭环 + 配图绑 dy-share-card；录屏分享/高光封面卡 = optional（显式标注）",
-            "title": "分享闭环（tt.shareAppMessage 最小闭环；录屏分享/高光封面卡 optional）"
-          },
-          {
-            "acceptance": [
-              "提审包 = export/tt/ 全量，manifest.json 逐件 sha256 与磁盘一致；包 sha256 入 docs/dy-submission-kit-c3.md",
-              "提审材料按 id 逐项对照（本 items[].assets 全集 + dy-share-card）入清单；缺件即 N4 不齐",
-              "QA 验收口径原文④（N4 开审三份输入缺一停审）：approved spec + 产物带 repo 根/黑板指针 + 机器证据，三份缺一即停审不判；结论仅输出 JSON（verdict/feedback/evidence）",
-              "主包 ≤4MB 分列断言 PASS；numeric 零漂移（只复算 N1 存档锚，禁止现场自算）",
-              "是否提审由主人拍板：包与材料做到「工具到位即可提审」，团队只交包，提审动作不代行"
-            ],
-            "assets": [
-              {
-                "expect": "商店截图一：开局首屏（参考卡面板一派生）",
-                "file": "games/stack-tower/assets/tt/store-screenshot-01.png",
-                "id": "dy-store-screenshot-01",
-                "size": "1242x2208"
-              },
-              {
-                "expect": "商店截图二：perfect 涟漪时刻（参考卡面板三派生）",
-                "file": "games/stack-tower/assets/tt/store-screenshot-02.png",
-                "id": "dy-store-screenshot-02",
-                "size": "1242x2208"
-              },
-              {
-                "expect": "商店截图三：竖屏对局构图（安全区内，参考卡派生）",
-                "file": "games/stack-tower/assets/tt/store-screenshot-03.png",
-                "id": "dy-store-screenshot-03",
-                "size": "1242x2208"
-              },
-              {
-                "expect": "应用图标：塔块霓虹剪影，参考卡派生，禁新编风格",
-                "file": "games/stack-tower/assets/tt/icon.png",
-                "id": "dy-icon",
-                "size": "512x512"
-              }
-            ],
-            "check": "node games/stack-tower/tests/tt/tt-submission-kit.spec.mjs",
-            "files": [
-              "games/stack-tower/export/tt/",
-              "games/stack-tower/export/tt/manifest.json",
-              "games/stack-tower/scripts/check-tt-bundle-size.mjs",
-              "games/stack-tower/scripts/check-numeric-freeze.mjs",
-              "games/stack-tower/docs/dy-submission-kit-c3.md"
-            ],
-            "id": "dy-submission-kit",
-            "notes": "抖音开放平台 AppID 未到位前以测试占位推进结构面，真机轨与提审动作不造假数据（wx B0 判例同构）；落点一律以 repo 根为基准的相对路径",
-            "title": "提审包与材料清单（N4 回流；是否提审由主人拍板）"
           }
         ],
         "name": "wechat-minigame",
@@ -1216,9 +1131,8 @@
       "lineage": "T1 终裁（2026-09-25）首卡拍板 stack-tower；M2 生产就绪冲刺建版；spec 结构沿用 transport-ship-3d v3（platformSpecId cmue00o2z003tm9y3159fb6xl）八段范式",
       "oneLiner": "一块一块往上叠：看准摆动块的切面，在它扫过塔顶的瞬间点下去，切得越准塔越高，完美对齐会激起一圈塔身涟漪。",
       "platform": "Web 单页（免安装客户端，Canvas2D 即开即玩）",
-      "revision_note": "v1.1（登记就绪版）：将主策划已拍板的 QA 三处缺陷修复一次性折入，含 QA 三处缺陷修复——D1 numeric 追加 benchmark_device 组，冻结中端基准机口径：实验室=playwright chromium + 4x CPU throttle + 390x844/360x640；真机单列注明设备型号与 UA（content.benchmark，禁止「中端机」泛称）；D2 acceptance 追加 acc-a7「冷启动首触即放置」（tests/audio/events.test.ts）+ world 实现约束「首触手势内完成 AudioContext 解锁与播放，闸门不得吞掉或延后首次出声（仍受 50ms 约束）」，不设 iOS 豁免条款；D3 content.evidence 增全局证据条款「每条冒烟留文件名+日期+命令+输出摘要」+ BGM 接缝双轨证据（听测留档 + tests/audio/bgm-loop.test.ts 调度连续性断言并行，均不可省）。v1 起冻结数值七键 diff 为空，v3 三组/levels/entities/assets/既有 22 条 acceptance/world 既有规则逐字保留，本版只增不改。版本链仅此一版：平台登记沿 v3 → POST revisions version+1 单版落账（任务书口径 v1.1 ≡ 平台链 v3 下一版），不产生 v1.2。挂账：tests/audio/events.test.ts 与 tests/audio/bgm-loop.test.ts 落盘属 D4（主人答复 D5 前冻结），落账前由契约 not-runnable 通道显式挂起，不计绿不核销。 ‖ v1.2（2026-09-27，霓虹夜塔视觉与 juice 冲刺）：换装「霓虹夜塔」+ juice 四判据。增量=acceptance +9（acc-j1 首块≤3s / acc-j2 juice≤100ms / acc-j3 音画≤50ms 采纳 QA 重定义 perfect_hit dispatch→AudioContext 播放调用 / acc-j4 重开≤1.5s / acc-j5 首局无弹窗 / acc-e1 数据事件三要素 / acc-t1 theme 单一常量源 / acc-a8 P0 资产 13 项查表 / acc-num 冻结数值机械断言）+ levels e09 开局 3–5 块初始摆位（落点 kernel/tower.ts buildOpeningStack() + numeric.opening）+ content.analytics（统计三行 85%/3局/20% 标注 B 轮启动门槛，本轮验收范围=埋点完整性与字段合规）+ entities +3 + assets +13（a08..a20）+ world 规则 +2 + numeric.opening 组。唯二显式修订：①e08 语句「塔回单块」→「塔回开局初始摆位」（与新特性互斥，spec 不留自相矛盾条款，其余语义逐字保留）；②本 note。版本映射：平台 v4 ≡ 任务书口径 v1.2，v1.1-ready（D1/D2/D3）未单独登记、其内容完整折入本版零丢失；v1 冻结七键机械断言（深比+sha256）随 acc-num 进门禁。P0 资产计数口径：bg(1)+block-skin(6)+cut-face fx 三件套(3)+UI(3)=13。 ‖ v1.3（2026-09-28，B0 微信小游戏移植轮）：仅新增 content.platform 段四条目（wx-runtime / wx-share-loop / wx-open-data-rank / wx-submission-kit；平台 schemaVersion v0 段落白名单不含顶层 platform——422 实证留痕于建版器，四条目原样落 content.platform，id/落点/check 结构不变），每条带落点文件 + 可执行 check；素材 id 一步定稿 7 项（wx-share-card-5x4 / wx-share-timeline-1x1 / wx-store-screenshot-01..03 / wx-friend-rank-ui / wx-icon；任务书「8 项」与定稿清单差 1，以定稿 id 清单为准，差额待主人指认）；QA 两条验收口径原文写死（主判据=会话分享 5:4 卡，朋友圈=附带项；开放数据域不卡「真机看到真实好友分」）；numeric 段 sha256 存档为唯一冻结基线（c3af773b6483…74957d，check-numeric-freeze 只复算存档）；world/entities/levels/numeric 四段与 v1.2 逐字节一致（建版守卫机械断言）；acceptance 32 条零增改。AppID 未到位以测试号 touristappid 占位推进 devtools 侧，真机轨与提审不造假数据。 ‖ v1.4（2026-09-29，B1 上头循环轮）：仅新增 content.retention 段（scope_gate 窄口径落死 + items 七条各带 id+落点+可执行 check + saveSchema 语义 + 双附录）+ assets 追加 4 项 meta 四件套（daily-challenge-card / mission-panel / streak-badge / icon-badge）+ acceptance 追加 8 条 acc-b1..b8。scope_gate：N0 三门槛（85%/3局/20%）实测样本量 0（采集通道未建成），不足以决策全量 → 仅 daily-challenge + streak-display，missions 顺延下一轮（附录 A mission JSON schema 先行定稿，id 必填全局去重）。时区 = UTC+8，seed 输入 = UTC+8 日期字符串，UTC 23:30 vs 该时区 00:30 边界进契约（acc-b3）。numeric/world/entities/levels 四段与 v1.3 逐字节一致（建版守卫深比 + sha256≡v1.3 存档锚双通道）；SW 缓存版本递增走工具侧 META_CACHE_EPOCH（CACHE=st-precache-v2），PRECACHE_REVISION 维持 1 冻结；index.html 改 network-first。埋点：meta 独立事件族五事件枚举封闭 + dedupe_id 必填 + 断网队列/补报/白名单双向断言，acc-e1 核心六事件不动。wx 包零变更（B0 提审包 sha256=7ee13ab7…8225f 基线保持）。 ‖ v1.5（2026-09-30，C 抖音小游戏移植轮）：仅新增 content.platform.items 三条目（dy-runtime / dy-share-loop / dy-submission-kit，wx 四条目同构：稳定 id + 落点文件 + 可执行 check + 条目 acceptance + 素材 id），每条落点一律「以 repo 根为基准的相对路径」。素材 id 五项定稿（dy-share-card / dy-store-screenshot-01..03 / dy-icon）+ 能力级 optional 一项（录屏分享/高光封面卡，不新增独立素材 id）；QA 四条验收口径原文收录条目 acceptance（①好友榜 tt 云存储接入或显式降级且门禁输出可见、不写「视情况」，②tt.shareAppMessage 最小闭环配图绑 dy-share-card，③录屏分享/高光封面卡显式标 optional、未标注 optional 而缺失按 spec 缺陷打回，④N4 三份输入缺一停审、结论仅 JSON）。world/levels/numeric/entities/assets/acceptance 顶层六面与 v1.4 逐字节一致（建版守卫深比）；numeric 段 sha256 ≡ v1.3 唯一冻结锚（c3af773b6483…74957d，只复算存档）；missions/content.retention 一字不动，scope_gate 不抢跑（留存评估顺延 ≥7 天真实样本，主策划发起）。meta.version 本版起显式落 \"1.5\"（1.4 及以前版本标识仅存 revision_note，属本版增量登记；若平台 meta 白名单规范化丢弃该字段，以接口实查为准记录偏差，版本真源仍为 revision_note + 平台 record.version）。是否提审由主人拍板，团队只交包。",
-      "title": "Stack Tower（叠塔）",
-      "version": "1.5"
+      "revision_note": "v1.1（登记就绪版）：将主策划已拍板的 QA 三处缺陷修复一次性折入，含 QA 三处缺陷修复——D1 numeric 追加 benchmark_device 组，冻结中端基准机口径：实验室=playwright chromium + 4x CPU throttle + 390x844/360x640；真机单列注明设备型号与 UA（content.benchmark，禁止「中端机」泛称）；D2 acceptance 追加 acc-a7「冷启动首触即放置」（tests/audio/events.test.ts）+ world 实现约束「首触手势内完成 AudioContext 解锁与播放，闸门不得吞掉或延后首次出声（仍受 50ms 约束）」，不设 iOS 豁免条款；D3 content.evidence 增全局证据条款「每条冒烟留文件名+日期+命令+输出摘要」+ BGM 接缝双轨证据（听测留档 + tests/audio/bgm-loop.test.ts 调度连续性断言并行，均不可省）。v1 起冻结数值七键 diff 为空，v3 三组/levels/entities/assets/既有 22 条 acceptance/world 既有规则逐字保留，本版只增不改。版本链仅此一版：平台登记沿 v3 → POST revisions version+1 单版落账（任务书口径 v1.1 ≡ 平台链 v3 下一版），不产生 v1.2。挂账：tests/audio/events.test.ts 与 tests/audio/bgm-loop.test.ts 落盘属 D4（主人答复 D5 前冻结），落账前由契约 not-runnable 通道显式挂起，不计绿不核销。 ‖ v1.2（2026-09-27，霓虹夜塔视觉与 juice 冲刺）：换装「霓虹夜塔」+ juice 四判据。增量=acceptance +9（acc-j1 首块≤3s / acc-j2 juice≤100ms / acc-j3 音画≤50ms 采纳 QA 重定义 perfect_hit dispatch→AudioContext 播放调用 / acc-j4 重开≤1.5s / acc-j5 首局无弹窗 / acc-e1 数据事件三要素 / acc-t1 theme 单一常量源 / acc-a8 P0 资产 13 项查表 / acc-num 冻结数值机械断言）+ levels e09 开局 3–5 块初始摆位（落点 kernel/tower.ts buildOpeningStack() + numeric.opening）+ content.analytics（统计三行 85%/3局/20% 标注 B 轮启动门槛，本轮验收范围=埋点完整性与字段合规）+ entities +3 + assets +13（a08..a20）+ world 规则 +2 + numeric.opening 组。唯二显式修订：①e08 语句「塔回单块」→「塔回开局初始摆位」（与新特性互斥，spec 不留自相矛盾条款，其余语义逐字保留）；②本 note。版本映射：平台 v4 ≡ 任务书口径 v1.2，v1.1-ready（D1/D2/D3）未单独登记、其内容完整折入本版零丢失；v1 冻结七键机械断言（深比+sha256）随 acc-num 进门禁。P0 资产计数口径：bg(1)+block-skin(6)+cut-face fx 三件套(3)+UI(3)=13。 ‖ v1.3（2026-09-28，B0 微信小游戏移植轮）：仅新增 content.platform 段四条目（wx-runtime / wx-share-loop / wx-open-data-rank / wx-submission-kit；平台 schemaVersion v0 段落白名单不含顶层 platform——422 实证留痕于建版器，四条目原样落 content.platform，id/落点/check 结构不变），每条带落点文件 + 可执行 check；素材 id 一步定稿 7 项（wx-share-card-5x4 / wx-share-timeline-1x1 / wx-store-screenshot-01..03 / wx-friend-rank-ui / wx-icon；任务书「8 项」与定稿清单差 1，以定稿 id 清单为准，差额待主人指认）；QA 两条验收口径原文写死（主判据=会话分享 5:4 卡，朋友圈=附带项；开放数据域不卡「真机看到真实好友分」）；numeric 段 sha256 存档为唯一冻结基线（c3af773b6483…74957d，check-numeric-freeze 只复算存档）；world/entities/levels/numeric 四段与 v1.2 逐字节一致（建版守卫机械断言）；acceptance 32 条零增改。AppID 未到位以测试号 touristappid 占位推进 devtools 侧，真机轨与提审不造假数据。 ‖ v1.4（2026-09-29，B1 上头循环轮）：仅新增 content.retention 段（scope_gate 窄口径落死 + items 七条各带 id+落点+可执行 check + saveSchema 语义 + 双附录）+ assets 追加 4 项 meta 四件套（daily-challenge-card / mission-panel / streak-badge / icon-badge）+ acceptance 追加 8 条 acc-b1..b8。scope_gate：N0 三门槛（85%/3局/20%）实测样本量 0（采集通道未建成），不足以决策全量 → 仅 daily-challenge + streak-display，missions 顺延下一轮（附录 A mission JSON schema 先行定稿，id 必填全局去重）。时区 = UTC+8，seed 输入 = UTC+8 日期字符串，UTC 23:30 vs 该时区 00:30 边界进契约（acc-b3）。numeric/world/entities/levels 四段与 v1.3 逐字节一致（建版守卫深比 + sha256≡v1.3 存档锚双通道）；SW 缓存版本递增走工具侧 META_CACHE_EPOCH（CACHE=st-precache-v2），PRECACHE_REVISION 维持 1 冻结；index.html 改 network-first。埋点：meta 独立事件族五事件枚举封闭 + dedupe_id 必填 + 断网队列/补报/白名单双向断言，acc-e1 核心六事件不动。wx 包零变更（B0 提审包 sha256=7ee13ab7…8225f 基线保持）。",
+      "title": "Stack Tower（叠塔）"
     },
     "numeric": {
       "DEFAULT_SEED": 20260925,
@@ -1304,13 +1218,8 @@
       "reference": "T1 终裁锚点（首卡 stack-tower）；范式基准 transport-ship-3d spec v3（确定性内核 + 契约测试 + 代持拍板）"
     }
   },
-  "_platform": {
-    "platformSpecId": "cmunf6r1e014cm9lfamzllk2h",
-    "version": 7,
-    "status": "approved",
-    "title": "Stack Tower（叠塔）",
-    "parentSpecId": "cmulzwv6c005km9lfo3zek574",
-    "exportedAt": "2026-09-30",
-    "note": "C 抖音移植轮 approved 唯一版（v1.5，meta.version=1.5）；v6 及更早 superseded；numeric 冻结锚 c3af773b…74957d 沿用 v1.3 存档（未新建存档文件，唯一锚口径不变）；变更面仅 content.platform.items +dy 三条目 + revision_note 追加 + meta.version 显式落账，六面零 diff"
-  }
+  "status": "approved",
+  "title": "Stack Tower（叠塔）",
+  "updatedAt": "2026-09-29T01:26:55.575Z",
+  "version": 6
 }

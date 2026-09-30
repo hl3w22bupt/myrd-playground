@@ -1,5 +1,4 @@
 {
-  "schemaVersion": "v0",
   "spec": {
     "acceptance": [
       {
@@ -600,15 +599,8 @@
             "title": "提审包与材料清单（N4 回流）"
           },
           {
-            "acceptance": [
-              "生命周期：tt.onShow 恢复、tt.onHide 暂停 BGM 环，调度连续性断言随 bgm-loop 冒烟同门执行（acc-a7 同口径，首触手势内完成音频解锁，不设豁免条款）",
-              "存储：tt.getStorage/setStorage 与 web 存档同源（st.settings.muted + st.meta.save.v2 带 schemaVersion），键名与读写路径零分叉",
-              "系统信息：tt.getSystemInfoSync 取视口与安全区，仅作表现层布局输入，禁止触碰 numeric 冻结段",
-              "web 回归零行为变化：tt.ts 只实现 platform/index.ts 的 Platform 接口且不接入 browser 装配体，web 契约与四判据全量重跑零漂移",
-              "QA 验收口径原文①（好友榜，落死）：tt 云存储（tt.setUserCloudStorage 写 / tt.getFriendCloudStorage 读）接入或显式降级且门禁输出可见——接入时好友分仅经 tt 云存储 API、主包零好友数据落点；显式降级时门禁输出必须打印 DY_FRIEND_RANK=degraded 与降级原因（缺 API/缺授权/非抖音容器三者之一），输出不可见即打回；本条款禁止「视情况」表述"
-            ],
-            "assets": [],
-            "check": "node games/stack-tower/tests/tt/tt-runtime-surface.spec.mjs",
+            "id": "dy-runtime",
+            "title": "tt 运行时适配（装配体 + 生命周期 + 存储 + 系统信息 + 好友榜条款）",
             "files": [
               "games/stack-tower/src/platform/tt.ts",
               "games/stack-tower/src/audio/bgm.ts",
@@ -617,11 +609,25 @@
               "games/stack-tower/tt/project.config.json",
               "games/stack-tower/tools/build-tt.mjs"
             ],
-            "id": "dy-runtime",
-            "notes": "接口平台无关：tt.ts 只实现 Platform 接口（wx B0 判例同构，逻辑层零裸调用）；抖音无开放数据域独立子包机制，好友榜数据通道收敛为 tt 云存储单通道，条款在 acceptance 内落死",
-            "title": "tt 运行时适配（装配体 + 生命周期 + 存储 + 系统信息 + 好友榜条款）"
+            "check": "node games/stack-tower/tests/tt/tt-runtime-surface.spec.mjs",
+            "acceptance": [
+              "生命周期：tt.onShow 恢复、tt.onHide 暂停 BGM 环，调度连续性断言随 bgm-loop 冒烟同门执行（acc-a7 同口径，首触手势内完成音频解锁，不设豁免条款）",
+              "存储：tt.getStorage/setStorage 与 web 存档同源（st.settings.muted + st.meta.save.v2 带 schemaVersion），键名与读写路径零分叉",
+              "系统信息：tt.getSystemInfoSync 取视口与安全区，仅作表现层布局输入，禁止触碰 numeric 冻结段",
+              "web 回归零行为变化：tt.ts 只实现 platform/index.ts 的 Platform 接口且不接入 browser 装配体，web 契约与四判据全量重跑零漂移",
+              "QA 验收口径原文①（好友榜，落死）：tt 云存储（tt.setUserCloudStorage 写 / tt.getFriendCloudStorage 读）接入或显式降级且门禁输出可见——接入时好友分仅经 tt 云存储 API、主包零好友数据落点；显式降级时门禁输出必须打印 DY_FRIEND_RANK=degraded 与降级原因（缺 API/缺授权/非抖音容器三者之一），输出不可见即打回；本条款禁止「视情况」表述"
+            ],
+            "assets": [],
+            "notes": "接口平台无关：tt.ts 只实现 Platform 接口（wx B0 判例同构，逻辑层零裸调用）；抖音无开放数据域独立子包机制，好友榜数据通道收敛为 tt 云存储单通道，条款在 acceptance 内落死"
           },
           {
+            "id": "dy-share-loop",
+            "title": "分享闭环（tt.shareAppMessage 最小闭环；录屏分享/高光封面卡 optional）",
+            "files": [
+              "games/stack-tower/src/platform/share.ts",
+              "games/stack-tower/tt/game.js"
+            ],
+            "check": "node games/stack-tower/tests/tt/tt-share-loop.spec.mjs",
             "acceptance": [
               "QA 验收口径原文②（主判据）：tt.shareAppMessage 最小闭环——分享回调返回 imageUrl 使用 dy-share-card（500×400），卡片可被会话实收；主判据不过即 N4 打回",
               "QA 验收口径原文③（optional 标注）：录屏分享（tt.getGameRecorder 系）与高光封面卡为能力级 optional——缺失不构成打回项；实现时封面素材从本局录屏帧派生并复用 NEON 色板，禁新编风格；反向口径：凡 spec 条目未标注 optional 的素材/能力缺件，一律按 spec 缺陷打回",
@@ -630,22 +636,25 @@
             ],
             "assets": [
               {
-                "expect": "会话分享卡：霓虹夜塔开局首屏派生构图（参考卡四联图面板一），NEON 色板唯一色值源，风格四要素零漂移仅规格裁切",
-                "file": "games/stack-tower/assets/tt/share-card.png",
                 "id": "dy-share-card",
-                "size": "500x400"
+                "file": "games/stack-tower/assets/tt/share-card.png",
+                "size": "500x400",
+                "expect": "会话分享卡：霓虹夜塔开局首屏派生构图（参考卡四联图面板一），NEON 色板唯一色值源，风格四要素零漂移仅规格裁切"
               }
             ],
-            "check": "node games/stack-tower/tests/tt/tt-share-loop.spec.mjs",
-            "files": [
-              "games/stack-tower/src/platform/share.ts",
-              "games/stack-tower/tt/game.js"
-            ],
-            "id": "dy-share-loop",
-            "notes": "QA 验收口径原文（主判据）：tt.shareAppMessage 最小闭环 + 配图绑 dy-share-card；录屏分享/高光封面卡 = optional（显式标注）",
-            "title": "分享闭环（tt.shareAppMessage 最小闭环；录屏分享/高光封面卡 optional）"
+            "notes": "QA 验收口径原文（主判据）：tt.shareAppMessage 最小闭环 + 配图绑 dy-share-card；录屏分享/高光封面卡 = optional（显式标注）"
           },
           {
+            "id": "dy-submission-kit",
+            "title": "提审包与材料清单（N4 回流；是否提审由主人拍板）",
+            "files": [
+              "games/stack-tower/export/tt/",
+              "games/stack-tower/export/tt/manifest.json",
+              "games/stack-tower/scripts/check-tt-bundle-size.mjs",
+              "games/stack-tower/scripts/check-numeric-freeze.mjs",
+              "games/stack-tower/docs/dy-submission-kit-c3.md"
+            ],
+            "check": "node games/stack-tower/tests/tt/tt-submission-kit.spec.mjs",
             "acceptance": [
               "提审包 = export/tt/ 全量，manifest.json 逐件 sha256 与磁盘一致；包 sha256 入 docs/dy-submission-kit-c3.md",
               "提审材料按 id 逐项对照（本 items[].assets 全集 + dy-share-card）入清单；缺件即 N4 不齐",
@@ -655,41 +664,31 @@
             ],
             "assets": [
               {
-                "expect": "商店截图一：开局首屏（参考卡面板一派生）",
-                "file": "games/stack-tower/assets/tt/store-screenshot-01.png",
                 "id": "dy-store-screenshot-01",
-                "size": "1242x2208"
+                "file": "games/stack-tower/assets/tt/store-screenshot-01.png",
+                "size": "1242x2208",
+                "expect": "商店截图一：开局首屏（参考卡面板一派生）"
               },
               {
-                "expect": "商店截图二：perfect 涟漪时刻（参考卡面板三派生）",
-                "file": "games/stack-tower/assets/tt/store-screenshot-02.png",
                 "id": "dy-store-screenshot-02",
-                "size": "1242x2208"
+                "file": "games/stack-tower/assets/tt/store-screenshot-02.png",
+                "size": "1242x2208",
+                "expect": "商店截图二：perfect 涟漪时刻（参考卡面板三派生）"
               },
               {
-                "expect": "商店截图三：竖屏对局构图（安全区内，参考卡派生）",
-                "file": "games/stack-tower/assets/tt/store-screenshot-03.png",
                 "id": "dy-store-screenshot-03",
-                "size": "1242x2208"
+                "file": "games/stack-tower/assets/tt/store-screenshot-03.png",
+                "size": "1242x2208",
+                "expect": "商店截图三：竖屏对局构图（安全区内，参考卡派生）"
               },
               {
-                "expect": "应用图标：塔块霓虹剪影，参考卡派生，禁新编风格",
-                "file": "games/stack-tower/assets/tt/icon.png",
                 "id": "dy-icon",
-                "size": "512x512"
+                "file": "games/stack-tower/assets/tt/icon.png",
+                "size": "512x512",
+                "expect": "应用图标：塔块霓虹剪影，参考卡派生，禁新编风格"
               }
             ],
-            "check": "node games/stack-tower/tests/tt/tt-submission-kit.spec.mjs",
-            "files": [
-              "games/stack-tower/export/tt/",
-              "games/stack-tower/export/tt/manifest.json",
-              "games/stack-tower/scripts/check-tt-bundle-size.mjs",
-              "games/stack-tower/scripts/check-numeric-freeze.mjs",
-              "games/stack-tower/docs/dy-submission-kit-c3.md"
-            ],
-            "id": "dy-submission-kit",
-            "notes": "抖音开放平台 AppID 未到位前以测试占位推进结构面，真机轨与提审动作不造假数据（wx B0 判例同构）；落点一律以 repo 根为基准的相对路径",
-            "title": "提审包与材料清单（N4 回流；是否提审由主人拍板）"
+            "notes": "抖音开放平台 AppID 未到位前以测试占位推进结构面，真机轨与提审动作不造假数据（wx B0 判例同构）；落点一律以 repo 根为基准的相对路径"
           }
         ],
         "name": "wechat-minigame",
@@ -1304,13 +1303,5 @@
       "reference": "T1 终裁锚点（首卡 stack-tower）；范式基准 transport-ship-3d spec v3（确定性内核 + 契约测试 + 代持拍板）"
     }
   },
-  "_platform": {
-    "platformSpecId": "cmunf6r1e014cm9lfamzllk2h",
-    "version": 7,
-    "status": "approved",
-    "title": "Stack Tower（叠塔）",
-    "parentSpecId": "cmulzwv6c005km9lfo3zek574",
-    "exportedAt": "2026-09-30",
-    "note": "C 抖音移植轮 approved 唯一版（v1.5，meta.version=1.5）；v6 及更早 superseded；numeric 冻结锚 c3af773b…74957d 沿用 v1.3 存档（未新建存档文件，唯一锚口径不变）；变更面仅 content.platform.items +dy 三条目 + revision_note 追加 + meta.version 显式落账，六面零 diff"
-  }
+  "detail": "v1.5 建版载荷（C 抖音小游戏移植轮，一次登记成型）。变更面 = content.platform.items 追加 dy 三条目（dy-runtime / dy-share-loop / dy-submission-kit，wx B0 同构）+ meta.revision_note 追加 v1.5 段 + meta.version 显式落 \"1.5\"。三件套一次给全：稳定 id（条目 3 + 素材 5 + 能力 optional 1）+ 落点（一律以 repo 根为基准的相对路径，games/stack-tower/ 前缀）+ 口径（QA 四条验收口径原文收录条目 acceptance）。① 冻结面：world/levels/numeric/entities/assets/acceptance 顶层六面与 v1.4 逐字节一致（守卫深比全绿）；sha256(numeric sortKeys)=c3af773b6483164c22ca0a039623967cb3b67ff9b2b658749f927baeee74957d ≡ v1.3 唯一冻结锚，check-numeric-freeze 只复算存档的机制不变。② 红线：零数值改动；missions/content.retention 一字不动；scope_gate 不抢跑（留存评估顺延至 ≥7 天真实样本，由主策划发起）；spec 仅经接口产生、approved 唯一。③ N2/N3 在 v1.5 approved 前不动工；N4 对抗互查三份输入缺一停审；提审包 + 材料清单回流后是否提审由主人拍板。④ B-C-001（已升级主人）：N1 不受阻即刻开工（spec 走接口不依赖 repo）；N2/N3 落盘、N4 开审硬阻塞，黑板 blockers.md 登记在案。"
 }

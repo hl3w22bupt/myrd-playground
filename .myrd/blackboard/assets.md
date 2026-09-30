@@ -1,4 +1,31 @@
-# 资产清单黑板 — stack-tower（霓虹夜塔冲刺 r4 → B0 微信移植轮 → **B1 上头循环 meta 资产**）
+# 资产清单黑板 — stack-tower（霓虹夜塔冲刺 r4 → B0 微信移植轮 → B1 上头循环 meta 资产 → **C 抖音移植轮平台素材**）
+
+## C · 抖音小游戏移植轮（2026-09-30 开工 · 主策划）
+
+> 更新时间：2026-09-30（C 轮开工首笔 · 主策划）
+> 负责人：主策划（整合人）· 美术线维护产出登记 · QA 线维护查表核销
+> 下一步：N2/N3 素材产出 **B-C-001 硬阻塞中**（见 blockers.md）；spec v1.5 已在 N1 定稿素材 id（见下表）
+
+### C 轮风格卡（顶部，全轮唯一风格源，沿 B0/B1 红线不变）
+
+- **风格派生纪律**：dy 平台素材全部从「霓虹夜塔」参考卡派生（`docs/style-card-neon-night-v1.md` + 基准四联图 + `src/render/theme.ts` NEON 色板唯一色值源），**风格四要素零漂移，仅规格裁切**；生成链沿用确定性 PNG 管线（pnglib.mjs），逐件 sha256 入 manifest；禁新编风格。
+- **UI 接线纪律**：资产缺失走程序化 fallback，绝不抛错（沿 B1 判例）。
+
+### C 轮 dy 平台素材预定 id（spec v1.5 条目内 assets 定稿，产出后逐件登记）
+
+| # | spec id | 所属条目 | 落点（以 repo 根为基准） | 尺寸 | optional | 状态 |
+|---|---|---|---|---|---|---|
+| 1 | dy-share-card | dy-share-loop | `games/stack-tower/assets/tt/share-card.png` | 500×400 | **否（必选，主判据配图）** | ⏸ 待 N3 |
+| 2 | dy-store-screenshot-01 | dy-submission-kit | `games/stack-tower/assets/tt/store-screenshot-01.png` | 1242×2208 | 否（必选） | ⏸ 待 N3 |
+| 3 | dy-store-screenshot-02 | dy-submission-kit | `games/stack-tower/assets/tt/store-screenshot-02.png` | 1242×2208 | 否（必选） | ⏸ 待 N3 |
+| 4 | dy-store-screenshot-03 | dy-submission-kit | `games/stack-tower/assets/tt/store-screenshot-03.png` | 1242×2208 | 否（必选） | ⏸ 待 N3 |
+| 5 | dy-icon | dy-submission-kit | `games/stack-tower/assets/tt/icon.png` | 512×512 | 否（必选） | ⏸ 待 N3 |
+| 6 | dy-record-highlight-cover | dy-share-loop（能力，非图片资产） | —（录屏帧派生，无独立素材文件） | — | **是（optional，缺失不构成打回项）** | ⏸ 待 N3（可选） |
+
+- **QA 对抗互查口径（原文，N4 执行）**：上表 optional 列即 spec 标注真源——未标注 optional 而缺失，按 spec 缺陷打回；已标注 optional 者缺失不构成打回项。
+- 录屏分享（能力，`tt.getGameRecorder` 系）与高光封面卡：能力级 optional，实现时素材从本局录屏帧派生，禁新编风格，不新增独立素材 id。
+
+
 
 ## B1 · 上头循环轮（2026-09-29 开工 · 主策划）
 
