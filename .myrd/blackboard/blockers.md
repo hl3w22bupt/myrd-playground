@@ -2,7 +2,7 @@
 
 ## C · 抖音小游戏移植轮（2026-09-30 开工 · 主策划 · **N1 收口态**）
 
-> 更新时间：2026-09-30（**C 轮 N2 程序线收口 · 游戏程序**；B-C-001 解除 · 证据见下）
+> 更新时间：2026-09-30（**C 轮 N2 收口 + deploy 上线 · AppHost v24 · commit `b7b22ae` · 游戏程序**；B-C-001 解除 · 证据见下）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：**N4 QA 对抗互查**（三份输入已齐：spec v1.5 approved + `docs/dy-submission-kit-c3.md`（repo 根/黑板指针）+ `gate-logs/c2-tt-port-20260930/` 机器证据）；主人侧挂账 = ①正式 AppID + 类目/资质下发（真机档与提审动作前置）②是否提审拍板。团队只交包，提审动作不代行。
 
@@ -52,6 +52,17 @@
 - **驳回②（门禁输出可见存档缺失）→ 已修**：`tests/tt/run-tt-gate.mjs` 子门 stdout **全量透传**（原仅留 RESULT 行）；`tests/tt/tt-runtime-surface.spec.mjs` 补 `DY_FRIEND_RANK=cloud` 行打印（原只断言未输出）。r2 档 `gate-logs/c2-tt-port-20260930-r2/01-tt-gate.log` 实测三行在档：`reason=missing-api` / `reason=no-tt-container` / `DY_FRIEND_RANK=cloud`（grep 可复现）。本台账「好友榜落死条款」行指认已同步更正为 r2 档。
 - **驳回③（证据条款 D3 四要素）→ 已修**：r2 轮日志统一四要素头（文件名/日期/命令/执行目录 + 输出摘要尾注）；`c3-art-overwrite-20260930/02b-root-contract.log` 重写为带头独立留档（根分发器 `scripts/contract-check.mjs`，头部显式说明与 02-contract.log（游戏工程版直呼）的 dispatch 同源对应）；新增 `c3-art-overwrite-20260930/04-bundle-size.log`（N3 重建包 300,222B 独立体积分列留档）。
 - **复跑证据（r2 档，四要素齐备）**：`01-tt-gate.log` tt-GATE **PASS 5/5**（55+25+31 断言）· `02-root-contract.log` 根契约 **PASS**（39/40+acc-a7 单列）· `03-bundle-size.log` 分列 **PASS**（300,222B ≤ 4MB）· `04-smoke.log` 冒烟 **PASS (browser)**。
+
+### C 轮 deploy 台账（2026-09-30 · 游戏程序/deploy · C 轮成果上 AppHost）
+
+- **坑（沿用不新建，黑板 appId 优先）**：appId `cmugttipt000km9299oej5z9b` · platformSlug `stack-tower-3` · sourceId `stack-tower`（GET 实查 `sourceType=game-studio` 绑定即本游戏，防挤占校验通过）；manifestPath 恒为 `games/stack-tower/apphost.toml`。
+- **本轮部署**：deploymentId `cmuo5gf3h01d1m9lfogqku3s9`（**version 24**，mode=bundle，deployedBy=workflow，durationMs 833，errorMessage null）· gitRef `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` = commit **`b7b22ae`**（部署前 `git ls-remote` 实证与远端全等；工作区干净）。上一生产版 version 23（`cmumy0u0g0134m9lfql75zkkq` · commit `885324a` · 2026-09-29）被本次 superseded——`git merge-base --is-ancestor` 实证 `885324a` 为 HEAD 祖先，即 C 轮 N2/N3/QA 三笔成果首次上发布面。
+- **导出复核（产物 ≡ 代码）**：`npm run build`（tsc）后 `diff -rq build export/web/build` = 空（MIRROR-EQUAL）+ `index.html`/`sw.js`/`manifest.webmanifest` 三件 EQUAL → **零漂移，无需新导出提交**；发布面增量 4 文件（`build/app/boot-tt.js` +230 / `build/platform/tt.js` +275 / `build/platform/share.js` +14 / `build/audio/bgm.js` ±4）系 C 轮 N2 tt 装配体首次入生产（上一生产版先于 N2 提交）。
+- **部署前门禁（同轮取证）**：根契约 `contract-check.mjs --spec .myrd/spec/stack-tower-spec.json` **PASS 82/82** · tt-GATE **PASS 5/5** · 游戏契约 `run-all.mjs` **PASS 39/0/0**（not-runnable 0）· 冒烟 **PASS (browser)**。
+- **通道留痕**（`gate-logs/c3-deploy-20260930/`）：POST HTTP=**504**（代理 30s 截断，B1 判例同形态）→ 依判例**先 GET 复查再决定**：部署单**已受理**（v24 building）→ 轮询 70s 至 running，非盲目重发（`01-deploy-post.log` + `02-deploy-poll-selftest.log`，四要素头）。
+- **自测（2026-09-30 实测）**：liveUrl `https://leomac-studio.tail49399e.ts.net/apps/stack-tower-3/gw` —— `/health` **200** `{"ok":true,"app":"stack-tower",…}`；`/` **308→200** text/html（壳 index.html，`<base href="api/public/assets/">`）；**新版本指纹 4/4 = 200**（`/api/public/assets/` 路由：`sw.js` / `build/platform/tt.js` / `build/app/boot-tt.js` / `build/main.js`）= 新部署实际生效，非旧缓存。
+- **团队产物区入口**：artifacts POST 幂等命中 `cmugut4ck000vm929ufwgefhl`（hostedAppSlug `stack-tower-3`，status ready）。
+- **注**：deploy 成功 ≠ 发布成功；抖音侧「真机档 + IDE 上传 + 是否提审」仍归主人（B-C 挂账不变，本段只交 Web 发布面与提审包）。
 
 ### 🚨 B-C-001 实查与升级（2026-09-30 · 已升级主人）→ **✅ 解除（2026-09-30 · N2 依任务书放行）**
 
