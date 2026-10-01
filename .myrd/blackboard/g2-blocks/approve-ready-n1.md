@@ -45,6 +45,8 @@ approve 后：冻结值相关实现与门禁才开工（11 条 PENDING-APPROVE �
 2. **`#FFC94A` 否决依据是语义 + 量化**（饱和顶格通道裁切 / L\*83.7 全板最亮 / 柠檬观感），数值门禁不构成否决 → 余烬金观感请主人人工确认。
 3. **落点偏差两处（显式记录）**：spec 导出件落 `.myrd/spec/g2-blocks/`（顶层 design-spec.json 是一号在用件）；黑板落 `.myrd/blackboard/g2-blocks/`（顶层三件是一号在用台账）。
 4. **门 A 判据为策划定值并已冻结**（首轮 0.18/0.15 过严 → 重定 0.10/0.08，全程留痕）。
+5. **【R2 驳回③ · 措辞二义，请主人裁定】** 链上 v1 `ac-11` 的 statement/note 写「theme.js（运行时单源）」，与同文档 `assets.a01`、`entities.e-renderer.script`（均声明 `g2-blocks/src/render/theme.ts`）及 `tests/theme.spec.mjs` 断言（按 theme.ts）不一致。**实查平台 `PUT`/`PATCH` /game-design-specs/{id} 均 405** → 无 draft 原位更正通道，改措辞只能产生 v2（违反「一次成链」纪律）→ 批前显式披露：请主人 approve 时一并裁定「theme.js → theme.ts」是否随 approve 备注修正（执行面无歧义：实现/测试/实体/资产四方均按 theme.ts）。
+6. **【R2 驳回⑤ · 交付件注记漂移，归美术线，待下轮 spec 修订】** 美术交付件 `palette-n1-final.json` 的 block-02 intent 写「L\*≈64」，实测 L\*=66.6（`05-lstar-table.log` / assets.md / `04-rejected-ffc94a.log` 三处一致）。**不可静默改该文件**：`tools/build-spec-v1.mjs` 强制校验 spec `numeric.palette.sourceSha256` == 该文件哈希，且链上 v1 已锚定 `7bc2ca03…`，改注记即破坏链上锚 → 登记待下轮 spec 修订由美术线随 `sourceSha256` 一并更正（色值、门禁结论均不受影响）。
 
 ## 六、approve 之后的下一步（供主人预览，本轮未做）
 

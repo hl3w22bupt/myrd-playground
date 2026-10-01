@@ -1,7 +1,8 @@
 # 阻塞项黑板 — g2-blocks（**N1 修复轮闭合**：色板双门禁定稿 + spec v1 一次入链 + N3 前置工单 + round-2 复检）
 
-> 更新时间：2026-10-01（**线3 契约收口 · 程序线**：ac-14 声明落点补位 + acceptance.check 落点契约守卫，
-> 六件门禁全绿，commit 05a644e；B1/B2 维持解除，approve-ready 不变，仍等主人拍板）
+> 更新时间：2026-10-01（**R2 驳回修复 · 程序线主导**：非阻断 5 条中 ①②④ 已修 + 备忘索引已补；
+> ③⑤ 因「平台无 draft 原位更正通道 / 改文件破坏链上 sourceSha256 锚」走呈批件披露项挂账交主人裁定；
+> B1/B2 维持解除，approve-ready 不变，仍等主人拍板）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：**等主人拍板 approve**（呈批件 `.myrd/blackboard/g2-blocks/approve-ready-n1.md`）；团队不代拍，
 > v1 未 approve 前零冻结值实现投入。B1/B2 本轮内闭合 ✅，升级条款未触发。
@@ -43,6 +44,7 @@
 | 线3 契约收口 | 程序 | `tests/kernel-purity.spec.mjs`（**ac-14 spec 声明落点补位**，7 断言）+ `tests/acceptance-map.spec.mjs`（18 条 `acceptance.check` 落点契约守卫：存在或显式冻结白名单，白名单反过期/反幽灵）+ run-all 扩六件门禁 + CI 增两步 + package.json `test:kernel`/`test:acmap` | **缺陷发现并闭合**：ac-14 声明落点 `tests/kernel-purity.spec.mjs` 此前缺位（断言寄生 framework.spec.mjs）→ 补位；六件门禁全绿；反向探针三路实测会红（守卫越界/acmap 落点缺位/AC-11 错值与多源）；一号 `node scripts/contract-check.mjs` PASS；commit **05a644e**；证据 `gate-logs/n1-prog-contract-20261001/`（9 log + README） | ✅ |
 | 线4 round-2 | QA | `tools/qa-round2.mjs`(27 断言) + 证据 `gate-logs/n1-round2-20261001/` + 回执 QA-G2-N1-R2-20261001-01 + 证据一行式模板 | 五项关闭逐条核对 + 无新红 → **approve-ready**；判据自纠 1 条留痕；commit ff7d34c | ✅ |
 | 主人拍板 approve | 主人 | — | 人工验收最终裁决 | ⏸ **等拍板** |
+| R2 驳回修复（非阻断 5 条 + 备忘） | 程序线主导 | ① `kernel-purity.spec.mjs` 硬编码 seed（= DEFAULT_SEED）→ 改 `defaultSeed()` 派生 + 新增 `ac-14/h` 零硬编码自证门禁（8/8 PASS）；② `palette-gate.mjs` 门 A 注释 0.18/0.15 → 更正为生效值 0.10/0.08；④ 证据 README 09 行摘要与日志实况对齐（改结构化采集，不写死行数）；备忘：QA 回执补 §六 门禁复跑索引 | ①②④✅ 已修（见 `gate-logs/n1-prog-contract-20261001/README.md` §4）；③ ac-11「theme.js」措辞二义（平台 PUT/PATCH 405，无 draft 原位更正通道）→ 呈批件披露 §五.5 交主人裁定；⑤ palette intent「L\*≈64」vs 实测 66.6（改文件破坏链上 `sourceSha256` 锚）→ 呈批件披露 §五.6 待美术线下轮 spec 修订更正 | ✅ 修毕（③⑤披露挂账） |
 
 ## 升级条款（主策划已定，本轮生效）
 

@@ -67,7 +67,8 @@ PASS  ac-14/d 异 seed 序列必异
 PASS  ac-14/e 纯函数隔离（无共享内部状态，可复现）
 PASS  ac-14/f uniformInt 值域/边界/非法入参
 PASS  ac-14/g rng 值域 [0,1) 且类型 number
-# 结果: PASS=7 RED=0 PENDING-APPROVE=0
+PASS  ac-14/h 本件零冻结 seed 字面量（自证）
+# 结果: PASS=8 RED=0 PENDING-APPROVE=0
 
 === ⑥ acceptance.check 声明落点契约守卫 ===
 $ node tests/acceptance-map.spec.mjs

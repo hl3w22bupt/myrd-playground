@@ -39,6 +39,14 @@
 - **前轮记录缺口披露**：本工作区无前轮色值记录，冻结 4 色基线值由本轮一次性登记冻结（检索留痕见 blockers.md）。
 - 移交：① 策划线并入 spec `numeric.palette`（含 gate 判据 + thresholdDeltaE=25）；② 程序线注意
   block-06 暗块必须接线 1px 内描边 + 顶部高光条（风格卡要素 2/3），不得省略。
+- **R2 纠偏注记（2026-10-01 · 交付件 intent 与实测值）**：交付件 block-02 intent 内写「L\*≈64」，
+  **实测 L\*=66.6**（本表上方色板表 / `05-lstar-table.log` / `04-rejected-ffc94a.log` 三处一致）。
+  因 `tools/build-spec-v1.mjs` 强制校验 spec `sourceSha256` == 该文件哈希且链上 v1 已锚定
+  `7bc2ca03…`，**不在本交付件上静默改注记**（会破坏链上锚）→ 已在呈批件披露项 §五.6 登记，
+  待下轮 spec 修订由美术线随 `sourceSha256` 一并更正；色值 `#C89C19` 与门禁结论不受影响。
+- **R2 命名口径（执行面）**：运行时单源件统一按 **`theme.ts`**（= `assets.a01`、`entities.e-renderer.script`
+  与 `tests/theme.spec.mjs` 断言）；链上 `ac-11` statement 的「theme.js」为措辞二义，已呈批件披露 §五.5
+  交主人裁定，approve 前执行面不按其行事。
 
 ## 资产清单（登记制，spec assets 段派生 · 2026-10-01 与链上 v1 assets 段对齐）
 

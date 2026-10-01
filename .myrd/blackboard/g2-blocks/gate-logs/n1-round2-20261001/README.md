@@ -43,3 +43,13 @@
 3. **导出件落点偏差（显式记录）**：任务书要求导出到 `.myrd/spec/design-spec.json`，该路径是一号仓库（stack-tower v1.5 approved 镜像）在用件 → 按红线「一号零接触」改落 `.myrd/spec/g2-blocks/design-spec.json`（沿正式发布轮 B4 冻结撞车件判例，记显式偏差）。
 4. **黑板落点偏差（显式记录）**：顶层 `blockers.md/levels.md/assets.md` 是一号线在用台账 → g2 线落 `.myrd/blackboard/g2-blocks/`（同结构独立目录）。
 5. **门 A 判据为策划定值**（ΔH≥25°/ΔL≥0.10/ΔS≥0.08 三选二）：已随 spec 冻结；首轮试用 0.18/0.15 过严（冻结 4 色自身不可过）→ 重定为可判别且有裕度的档位，全程留痕于工具与 spec。
+
+## 六、门禁复跑索引（R2 驳回备忘项 · 程序线补记，不改上文 QA 判定）
+
+- 本回执出具于线3 契约收口 commit `05a644e` **之前**；经核 `05a644e` 及其后续 R2 修 commit
+  **未改链上 spec 内容**（链上仍 v1 draft `cmuovwra0004gm97tinha15zq`，numeric 冻结锚 `302e6336…` 不变）
+  → 本回执 27 断言判定继续有效。
+- `05a644e` 后六件门禁复跑留证：`../n1-prog-contract-20261001/01-run-all-six-gates.log`
+  （①守卫 ②色板 21 对 ③theme PENDING-APPROVE ④零冻结值面 ⑤ac-14 ⑥acmap，全绿）。
+- R2 修后复跑：`05-kernel-purity.log` 8/8 PASS（含新增 ac-14/h 零硬编码自证）；实跑时点与命令见该目录 README §1。
+- 本节为程序线对备忘项的索引补记，回执 §一–§五 的 QA 判定原文维持不变。
