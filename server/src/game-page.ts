@@ -1,5 +1,5 @@
 /**
- * 自定义游戏落地页（伺服于 /）。
+ * game-9《推箱子点亮方块解谜》自定义落地页（伺服于 /）。
  *
  * 与 Godot 默认壳的差异：所有二进制资产必须经 M1 文本网关中转 ——
  * 页面先从 api/public/assets/* 拉 base64 文本，还原出 wasm/pck 真实字节，
@@ -9,7 +9,7 @@
  * 单独补丁把相对文件名改写到 api/public/assets/ 下。
  *
  * 注意：页面里拉资源的路径一律不带前导斜杠（相对路径），
- * 经公网入口 /apps/game 访问时才能解析到网关子路径。
+ * 经公网入口 /apps/game-9 访问时才能解析到网关子路径。
  *
  * 移动端音频手势解锁器（脚本最前段，必须先于引擎加载安装）：
  * iOS/Android WebKit 的 AudioContext 创建即 suspended、打断后 interrupted（引擎不识别），
@@ -17,53 +17,68 @@
  * 实现：包 AudioContext 构造器捕获实例 + document 级手势监听内同步 resume
  * （capture+passive 不消费事件）+ window.__audioDebug() 真机取证出口。
  * 根因取证与修复方案：games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md（F1 手势解锁 / F2 worklet 防御）。
+ *
+ * §3C 调参桥（脚本最前段，必须先于引擎加载安装）：
+ * URL ?tuning=<urlencoded json> → window.__GAME_TUNING__；
+ * 游戏侧 GameState._apply_tuning_overrides() 启动时读它（只认 TUNING_META 键、min/max 钳制），
+ * 让「试玩调好的参数用 URL 复现」。
  */
 export const GAME_PAGE_HTML = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
-<title>糖果粉碎传奇</title>
+<title>推箱子点亮方块解谜</title>
 <style>
 html, body, #canvas { margin: 0; padding: 0; border: 0; }
-body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { color: #f5efe0; background: #17130e; overflow: hidden; touch-action: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 #canvas { display: block; width: 100vw; height: 100vh; }
 #canvas:focus { outline: none; }
 #boot { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
-  background: radial-gradient(circle at 50% 35%, #3d1d5c 0%, #241040 55%, #170b2b 100%); z-index: 10; transition: opacity .4s; }
+  background: radial-gradient(circle at 50% 30%, #4a3413 0%, #2a1d0c 55%, #17110a 100%); z-index: 10; transition: opacity .4s; }
 #boot.hidden { opacity: 0; pointer-events: none; }
-#boot h1 { margin: 0; font-size: 2rem; letter-spacing: .12em; color: #ffd7ef;
-  text-shadow: 0 2px 0 #a12c6b, 0 0 18px rgba(255,120,200,.55); }
-#boot .sub { color: #b9a6d8; font-size: .85rem; margin-top: -10px; }
-#bar-wrap { width: min(420px, 70vw); height: 14px; border-radius: 999px; background: #2c1547; overflow: hidden; border: 1px solid #5b2f86; }
-#bar { height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(90deg, #ff7ab8, #ffd166, #7ae0c3); transition: width .2s; }
-#boot-msg { color: #9d8cc0; font-size: .8rem; }
+#boot h1 { margin: 0; font-size: 1.9rem; letter-spacing: .1em; color: #ffd97a;
+  text-shadow: 0 2px 0 #8a5a12, 0 0 18px rgba(255,190,80,.5); }
+#boot .sub { color: #c7b18a; font-size: .85rem; margin-top: -10px; }
+#bar-wrap { width: min(420px, 70vw); height: 14px; border-radius: 999px; background: #33240e; overflow: hidden; border: 1px solid #6b4c1a; }
+#bar { height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(90deg, #ffb347, #ffe08a, #7ae0c3); transition: width .2s; }
+#boot-msg { color: #b39a6e; font-size: .8rem; }
 #hint { position: fixed; left: 50%; transform: translateX(-50%); bottom: 10px; z-index: 5;
-  color: #cbb8ea; background: rgba(24,12,44,.72); border: 1px solid #4a2670; border-radius: 999px;
-  padding: 6px 16px; font-size: 12px; letter-spacing: .05em; pointer-events: none; }
-#boot kbd { background: #38205c; border: 1px solid #6a3f9c; border-bottom-width: 2px; border-radius: 5px; padding: 1px 7px; font-family: inherit; font-size: .92em; color: #ffd7ef; }
-#keys { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; color: #b9a6d8; font-size: .82rem; }
+  color: #e8d5ac; background: rgba(26,18,8,.75); border: 1px solid #6b4c1a; border-radius: 999px;
+  padding: 6px 16px; font-size: 12px; letter-spacing: .04em; pointer-events: none; }
+#boot kbd { background: #3d2c12; border: 1px solid #7a5a24; border-bottom-width: 2px; border-radius: 5px; padding: 1px 7px; font-family: inherit; font-size: .92em; color: #ffd97a; }
+#keys { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; color: #c7b18a; font-size: .82rem; max-width: 90vw; }
 </style>
 </head>
 <body>
 <canvas id="canvas">你的浏览器不支持 canvas。</canvas>
 <div id="boot">
-  <h1>糖果粉碎传奇</h1>
-  <div class="sub">Candy Crush Legend · MyRD 小游戏工坊</div>
+  <h1>推箱子点亮方块解谜</h1>
+  <div class="sub">把箱子推到目标点，点亮所有方块 · MyRD 小游戏工坊 game-9</div>
   <div id="bar-wrap"><div id="bar"></div></div>
-  <div id="boot-msg">正在准备糖果…</div>
-  <div id="keys"><span><kbd>←↑↓→</kbd> 移动光标</span><span><kbd>空格</kbd> 选中 / 交换</span><span><kbd>R</kbd> 重开</span><span><kbd>Enter</kbd> 过关后下一关</span></div>
+  <div id="boot-msg">正在准备仓库…</div>
+  <div id="keys"><span><kbd>←↑↓→</kbd>/<kbd>WASD</kbd> 移动 · 推动</span><span><kbd>Z</kbd> 撤销</span><span><kbd>R</kbd> 重开</span><span><kbd>N</kbd>/<kbd>P</kbd> 切关</span><span>📱 触屏滑动同样可玩</span></div>
 </div>
-<div id="hint" style="display:none">方向键移动 · 空格交换 · R 重开 · Enter 下一关</div>
+<div id="hint" style="display:none">方向键/WASD 移动推动 · Z 撤销 · R 重开 · N/P 切关 · 触屏滑动</div>
 <noscript>你的浏览器不支持 JavaScript。</noscript>
 <!-- 引擎引导脚本由启动脚本按 BASE_PATH 动态注入（静态 src 在无尾斜杠入口下会 404） -->
 <script>
 (function () {
-  // ---- 移动端音频手势解锁器（必须在引擎加载前安装，见文件尾注释）----
-  // 根因（games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md F1/F2 取证）：
-  // iOS/Android WebKit 下 AudioContext 创建即 suspended，锁屏/来电/切后台/静音键
-  // 会打成 interrupted（引擎状态机不识别 interrupted，落入 default 被丢弃），
-  // 引擎只在自己的输入回调里 resume —— 壳页没有第二次兜底 = 移动端无声而桌面正常。
+  // ---- §3C 调参桥（必须在引擎加载前安装）：URL ?tuning=<json> → window.__GAME_TUNING__ ----
+  // 游戏侧 GameState 启动时读取（只认 TUNING_META 声明的键、按 min/max 钳制）。
+  var tuningRaw = null;
+  try { tuningRaw = new URLSearchParams(location.search).get('tuning'); } catch (e) { /* 老内核无 URLSearchParams：调参不可用，不影响游戏 */ }
+  if (tuningRaw) {
+    try {
+      var t = JSON.parse(tuningRaw);
+      if (t && typeof t === 'object' && !Array.isArray(t)) window.__GAME_TUNING__ = t;
+    } catch (e) { /* tuning 参数非法：忽略，按默认参数启动 */ }
+  }
+
+  // ---- 移动端音频手势解锁器（必须在引擎加载前安装）----
+  // iOS/Android WebKit 下 AudioContext 创建即 suspended，锁屏/来电/切后台会打成 interrupted
+  // （引擎状态机不识别 interrupted）；引擎只在自身输入回调里 resume ——
+  // 壳页没有第二次兜底 = 移动端无声而桌面正常（games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md）。
   var audioCtx = null;
   var audioLog = [];
   var audioAddModules = 0;
@@ -97,8 +112,7 @@ body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; f
     // capture + passive：先于引擎输入管线触发，且不消费事件（游戏触摸交互零感知）。
     document.addEventListener(type, unlockAudio, { capture: true, passive: true });
   });
-  // 打断再解锁：Webkit 在锁屏/来电后即使回前台也可能停在 interrupted，多给一次恢复机会
-  //（非手势路径可能被拒，被拒即无操作；真正兜底仍是用户下一次点按）。
+  // 打断再解锁：Webkit 在锁屏/来电后即使回前台也可能停在 interrupted，多给一次恢复机会。
   document.addEventListener('visibilitychange', function () {
     if (!document.hidden) unlockAudio();
   }, { passive: true });
@@ -107,8 +121,8 @@ body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; f
     return { state: audioCtx ? audioCtx.state : 'no-ctx', addModules: audioAddModules, log: audioLog };
   };
 
-  // 资产基路径：公网入口 /apps/game（无尾斜杠）下，裸相对路径会解析到 /apps/*（网关 404）。
-  // 以页面路径推导：/apps/game → /apps/game/ → /apps/game/api/public/assets/*。
+  // 资产基路径：公网入口 /apps/game-9（无尾斜杠）下，裸相对路径会解析到 /apps/*（网关 404）。
+  // 以页面路径推导：/apps/game-9 → /apps/game-9/ → /apps/game-9/api/public/assets/*。
   var BASE_PATH = (function () {
     var p = location.pathname.replace(/index\\.html$/, '');
     return p.charAt(p.length - 1) === '/' ? p : p + '/';
@@ -142,8 +156,7 @@ body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; f
   }
 
   // 音频 worklet 由浏览器内部加载（不经 window.fetch），单独补丁改写到相对资产端点。
-  // F2 防御（MOBILE_AUDIO_ROOT_CAUSE.md）：worklet 是音频单一故障点 —— Godot 4.6 的
-  // position worklet 起播被 await 门控、addModule 的 promise 无 .catch，失败即全部事件音
+  // F2 防御：worklet 是音频单一故障点 —— addModule 的 promise 无 .catch，失败即全部事件音
   // 静默且几乎无报错。故：真实 URL 优先，失败降级原路径重试一次，仍失败显式 console.error。
   if (window.AudioWorkletNode && window.AudioWorklet && AudioWorklet.prototype.addModule) {
     var origAddModule = AudioWorklet.prototype.addModule;
@@ -155,10 +168,10 @@ body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; f
         audioAddModules += 1;
         var realUrl = BASE_PATH + 'api/public/assets/' + file;
         return origAddModule.call(self, realUrl, options).catch(function (err) {
-          console.error('[candy-shell] audio worklet 资产通道加载失败，降级原路径重试', file, err);
+          console.error('[game9-shell] audio worklet 资产通道加载失败，降级原路径重试', file, err);
           audioLog.push({ t: Date.now(), state: 'worklet-fallback:' + file });
           return origAddModule.call(self, url, options).catch(function (err2) {
-            console.error('[candy-shell] audio worklet 兜底加载也失败（移动端将无声）', file, err2);
+            console.error('[game9-shell] audio worklet 兜底加载也失败（移动端将无声）', file, err2);
             audioLog.push({ t: Date.now(), state: 'worklet-dead:' + file });
             throw err2;
           });

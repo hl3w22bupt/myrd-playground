@@ -23,20 +23,31 @@ signal level_won(level_index: int, steps: int)
 signal deadlock_changed(deadlocked: bool)
 
 # ── 调参区（与策划案 spec.numeric 对应，改数值先改 spec 再同步这里）──
-## numeric.grid.cellSizePx：单格边长（像素）。
+## numeric.grid.cellSizePx：单格边长（像素）。布局常量，被 board_view 的 const 初始化器引用，不开放 URL 调参。
 const CELL_SIZE_PX: int = 48
-## numeric.grid.moveAnimMs：角色一步的移动动画时长。
-const MOVE_ANIM_MS: int = 110
-## numeric.grid.pushAnimMs：方块被推动一步的移动动画时长（与角色同节奏，推起来不脱节）。
-const PUSH_ANIM_MS: int = 110
-## numeric.input.keyRepeatIntervalMs：长按方向的重复步进间隔。
-const KEY_REPEAT_INTERVAL_MS: int = 150
+## numeric.grid.moveAnimMs：角色一步的移动动画时长（可被 URL ?tuning= 覆盖）。
+var MOVE_ANIM_MS: int = 110
+## numeric.grid.pushAnimMs：方块被推动一步的移动动画时长（与角色同节奏，推起来不脱节；可被覆盖）。
+var PUSH_ANIM_MS: int = 110
+## numeric.input.keyRepeatIntervalMs：长按方向的重复步进间隔（可被覆盖）。
+var KEY_REPEAT_INTERVAL_MS: int = 150
 ## numeric.undo.historyLimit：撤销历史上限（单步撤销，scope=single-step）。
 const HISTORY_LIMIT: int = 1000
-## numeric.win.overlayDelayMs：通关弹层延迟（≤ overlayMaxDelayMs=1000）。
-const WIN_OVERLAY_DELAY_MS: int = 300
+## numeric.win.overlayDelayMs：通关弹层延迟（≤ overlayMaxDelayMs=1000；可被覆盖）。
+var WIN_OVERLAY_DELAY_MS: int = 300
 ## 视口布局常量：棋盘原点（project.godot 视口 800x560，按最大 10 列棋盘水平居中、顶部留 HUD）。
 const BOARD_ORIGIN_PX: Vector2 = Vector2(160.0, 60.0)
+
+## §3C 调参桥白名单：壳页把 URL ?tuning=<json> 解析进 window.__GAME_TUNING__，
+## 本表声明可覆盖的键与 min/max 钳制 —— 不在表里的键一律忽略（防越权改布局/玩法结构）。
+const TUNING_META: Dictionary = {
+	"move_anim_ms": {"min": 0.0, "max": 400.0},
+	"push_anim_ms": {"min": 0.0, "max": 400.0},
+	"key_repeat_interval_ms": {"min": 50.0, "max": 600.0},
+	"win_overlay_delay_ms": {"min": 0.0, "max": 1000.0},
+}
+## 生效中的调参覆盖（键 -> 钳制后的整数值）；未覆盖的键不存在，代码读调参区默认值。
+var tuning: Dictionary = {}
 
 ## 当前关卡下标（SokobanLevels.LEVELS 的下标）。
 var level_index: int = 0
@@ -53,6 +64,40 @@ var best_steps: Dictionary = {}
 var board: SokobanBoard = SokobanBoard.new()
 
 var _history: Array[Dictionary] = []
+
+
+func _ready() -> void:
+	_apply_tuning_overrides()
+
+
+## §3C 调参桥（游戏侧）：壳页在引擎加载前把 URL ?tuning=<json> 解析进 window.__GAME_TUNING__，
+## 这里启动时读一次 —— 只认 TUNING_META 声明的键，按 min/max 钳制后落到调参区成员，
+## 让「试玩调好的参数用 URL 复现」。非 Web（无头冒烟 / 桌面）直接跳过，行为与默认值一致。
+func _apply_tuning_overrides() -> void:
+	if not OS.has_feature("web"):
+		return
+	var raw_text: String = str(JavaScriptBridge.eval("JSON.stringify(window.__GAME_TUNING__ || null)", true))
+	if raw_text.is_empty() or raw_text == "null" or raw_text == "undefined":
+		return
+	var parsed: Variant = JSON.parse_string(raw_text)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return
+	var overrides: Dictionary = parsed
+	for key: String in TUNING_META:
+		if not overrides.has(key):
+			continue
+		var lo: float = float(TUNING_META[key]["min"])
+		var hi: float = float(TUNING_META[key]["max"])
+		var value: int = int(round(clampf(float(overrides[key]), lo, hi)))
+		tuning[key] = value
+	if tuning.has("move_anim_ms"):
+		MOVE_ANIM_MS = int(tuning["move_anim_ms"])
+	if tuning.has("push_anim_ms"):
+		PUSH_ANIM_MS = int(tuning["push_anim_ms"])
+	if tuning.has("key_repeat_interval_ms"):
+		KEY_REPEAT_INTERVAL_MS = int(tuning["key_repeat_interval_ms"])
+	if tuning.has("win_overlay_delay_ms"):
+		WIN_OVERLAY_DELAY_MS = int(tuning["win_overlay_delay_ms"])
 
 
 func level_count() -> int:
