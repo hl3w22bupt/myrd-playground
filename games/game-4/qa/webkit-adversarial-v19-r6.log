@@ -1,0 +1,18 @@
+PASS P0·引擎启动完成（QA 自检激活日志）
+PASS P3·T5 双指抢控 —— WebKit 驱动受限（TypeError: Illegal constructor）→ 无法复现，真机复测步骤归档 ADVERSARIAL_FINDINGS §五
+PASS P3·T4 悬挂期间零页面错误
+PASS P4·T8 12 步序列终态（截图存档；通关判定由终局报告 moves=12/solved 对账） —— bytes=139074
+PASS 终局·报告 JSON 导出（GUANGLU_QA_REPORT 投 console）
+PASS 对账·T7 星级语义 3 星（best_stars[0]=3） —— best_stars[0]=3
+PASS 对账·T3 下一关首点路由与应用一致（hit=true 样本存在） —— [[[1,2],[1,2],true],[[1,2],[-99,-99],false],[[1,2],[-99,-99],false],[[1,2],[1,2],true],[[1,2],[1,2],true],[[1,2],[1,2],true],[[1,2],[1,2],true],[[1,2],[1,2],true],[[1,2],[1,2],true],[[1,2],[1,2],true],[[1,2],[1,2],true]]
+PASS 对账·T6+只升不降（1★ 通关未覆盖历史 3★：best_stars[1]=3） —— best_stars[1]=3（若星级可降则此处变 1）
+PASS 对账·T1 连点 4 次全部应用（applied=A 样本 ≥4） —— A 目标样本 11，applied=9
+PASS 对账·T1 连点无错路由（全部 routed=A） —— [[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2],[1,2]]
+PASS 对账·T4 悬挂释放后首点应用（E 格 applied） —— [[[3,2],[3,2],true],[[3,2],[3,2],true],[[3,2],[3,2],true],[[3,2],[3,2],true],[[3,2],[3,2],true]]
+PASS 对账·T2 结算瞬间点击被屏蔽（routed=A 但 applied 无 ≥2 条） —— 屏蔽样本 2 条
+PASS 对账·T8 星级语义 2 星（12 ∈ (8, 12]，stars_for(12,8)=2） —— best_stars[2]=2
+PASS 对账·星级只升不降全程（0:3 / 1:3 / 2:2） —— {"0":3,"1":3,"2":2}
+PASS 对账·终局关卡状态（index=2 第 3 关、moves=12、solved=true） —— {"index":2,"moves":12,"name":"转角初见","solved":true}
+PASS 终局·全程零页面错误（8 用例无崩溃）
+
+ADVERSARIAL_CHECK: PASS（16/16 项通过）
