@@ -1,0 +1,777 @@
+{
+  "audio": {
+    "audio_context_state": "running",
+    "note": "suspended=待首次手势解锁（点一下屏幕即恢复）；no-shell=壳页取证口缺失",
+    "pending_unlock": false,
+    "running": true,
+    "state_log": [
+      {
+        "state": "interrupted",
+        "t": 1790883248355
+      },
+      {
+        "state": "running",
+        "t": 1790883250283
+      }
+    ],
+    "worklets_loaded": 1
+  },
+  "device": {
+    "available": true,
+    "cores": 8,
+    "dpr": 1,
+    "language": "zh-CN",
+    "online": true,
+    "platform": "MacIntel",
+    "screen": [
+      1280,
+      800
+    ],
+    "touchPoints": 0,
+    "ts": 1790883263052,
+    "tz": -480,
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15",
+    "viewport": [
+      1280,
+      800
+    ]
+  },
+  "engine": {
+    "audio_driver": "AudioWorklet",
+    "audio_mix_rate": 48000,
+    "audio_output_device": "Default",
+    "locale": "zh_CN",
+    "platform": "Web",
+    "sfx_bank_size": 4,
+    "touchscreen": true,
+    "version": "4.3-stable (official)",
+    "viewport": [
+      1280,
+      720
+    ]
+  },
+  "game": "光路谜阵",
+  "generated_at": "2026-10-01T19:34:23",
+  "level": {
+    "index": 2,
+    "moves": 12,
+    "name": "转角初见",
+    "solved": true
+  },
+  "qa_url_flags": {
+    "qa": "1",
+    "tuning": "1"
+  },
+  "rotation_latency": {
+    "budget_ms": 120,
+    "stats": {
+      "count": 33,
+      "max_ms": 48,
+      "mean_ms": 39.21,
+      "p50_ms": 40,
+      "p95_ms": 48
+    }
+  },
+  "schema": "guanglu-qa-report/1",
+  "survey_snapshot": {
+    "answers": {},
+    "game": "光路谜阵",
+    "meta": {},
+    "progress": {
+      "best_stars": {
+        "0": 3,
+        "1": 3,
+        "2": 2
+      },
+      "level_index": 2,
+      "moves": 12,
+      "score": 8,
+      "unlocked_max": 3
+    },
+    "schema": "guanglu-survey/1",
+    "tuning": {
+      "beam_core_width": 6,
+      "beam_glow_width": 16
+    }
+  },
+  "touch": {
+    "budget": {
+      "hit_rate_min": 1
+    },
+    "rows": [
+      {
+        "applied_cell": [
+          1,
+          2
+        ],
+        "hit": true,
+        "latency_ms": 13,
+        "routed_cell": [
+          1,
+          2
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          1,
+          2
+        ],
+        "ts": 2321,
+        "x": 544,
+        "y": 466
+      },
+      {
+        "applied_cell": [
+          -99,
+          -99
+        ],
+        "hit": false,
+        "latency_ms": 37,
+        "routed_cell": [
+          1,
+          2
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          1,
+          2
+        ],
+        "ts": 2570,
+        "x": 544,
+        "y": 466
+      },
+      {
+        "applied_cell": [
+          -99,
+          -99
+        ],
+        "hit": false,
+        "latency_ms": 36,
+        "routed_cell": [
+          1,
+          2
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          1,
+          2
+        ],
+        "ts": 2772,
+        "x": 544,
+        "y": 466
+      },
+      {
+        "applied_cell": [
+          -99,
+          -99
+        ],
+        "hit": false,
+        "latency_ms": 41,
+        "routed_cell": [
+          -99,
+          -99
+        ],
+        "should_rotate": false,
+        "target_cell": [
+          -1,
+          -1
+        ],
+        "ts": 3022,
+        "x": 1183,
+        "y": 641
+      },
+      {
+        "applied_cell": [
+          1,
+          2
+        ],
+        "hit": true,
+        "latency_ms": 36,
+        "routed_cell": [
+          1,
+          2
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          1,
+          2
+        ],
+        "ts": 3854,
+        "x": 544,
+        "y": 466
+      },
+      {
+        "applied_cell": [
+          3,
+          2
+        ],
+        "hit": true,
+        "latency_ms": 41,
+        "routed_cell": [
+          3,
+          2
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          3,
+          2
+        ],
+        "ts": 4105,
+        "x": 736,
+        "y": 466
+      },
+      {
+        "applied_cell": [
+          -99,
+          -99
+        ],
+        "hit": false,
+        "latency_ms": 34,
+        "routed_cell": [
+          -99,
+          -99
+        ],
+        "should_rotate": false,
+        "target_cell": [
+          -1,
+          -1
+        ],
+        "ts": 4705,
+        "x": 1040,
+        "y": 641
+      },
+      {
+        "applied_cell": [
+          1,
+          2
+        ],
+        "hit": true,
+        "latency_ms": 38,
+        "routed_cell": [
+          1,
+          2
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          1,
+          2
+        ],
+        "ts": 5521,
+        "x": 544,
+        "y": 466
+      },
+      {
+        "applied_cell": [
+          2,
+          2
+        ],
+        "hit": true,
+        "latency_ms": 44,
+        "routed_cell": [
+          2,
+          2
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          2,
+          2
+        ],
+        "ts": 5738,
+        "x": 640,
+        "y": 466
+      },
+      {
+        "applied_cell": [
+          -99,
+          -99
+        ],
+        "hit": false,
+        "latency_ms": 36,
+        "routed_cell": [
+          -99,
+          -99
+        ],
+        "should_rotate": false,
+        "target_cell": [
+          -1,
+          -1
+        ],
+        "ts": 5937,
+        "x": 897,
+        "y": 641
+      },
+      {
+        "applied_cell": [
+          2,
+          2
+        ],
+        "hit": true,
+        "latency_ms": 48,
+        "routed_cell": [
+          2,
+          2
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          2,
+          2
+        ],
+        "ts": 6156,
+        "x": 640,
+        "y": 466
+      },
+      {
+        "applied_cell": [
+          2,
+          2
+        ],
+        "hit": true,
+        "latency_ms": 41,
+        "routed_cell": [
+          2,
+          2
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          2,
+          2
+        ],
+        "ts": 6355,
+        "x": 640,
+        "y": 466
+      },
+      {
+        "applied_cell": [
+          3,
+          2
+        ],
+        "hit": true,
+        "latency_ms": 34,
+        "routed_cell": [
+          3,
+          2
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          3,
+          2
+        ],
+        "ts": 6555,
+        "x": 736,
+        "y": 466
+      },
+      {
+        "applied_cell": [
+          -99,
+          -99
+        ],
+        "hit": false,
+        "latency_ms": 44,
+        "routed_cell": [
+          -99,
+          -99
+        ],
+        "should_rotate": false,
+        "target_cell": [
+          -1,
+          -1
+        ],
+        "ts": 7205,
+        "x": 1183,
+        "y": 641
+      },
+      {
+        "applied_cell": [
+          1,
+          2
+        ],
+        "hit": true,
+        "latency_ms": 33,
+        "routed_cell": [
+          1,
+          2
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          1,
+          2
+        ],
+        "ts": 8438,
+        "x": 544,
+        "y": 466
+      },
+      {
+        "applied_cell": [
+          1,
+          2
+        ],
+        "hit": true,
+        "latency_ms": 45,
+        "routed_cell": [
+          1,
+          2
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          1,
+          2
+        ],
+        "ts": 8656,
+        "x": 544,
+        "y": 466
+      },
+      {
+        "applied_cell": [
+          1,
+          2
+        ],
+        "hit": true,
+        "latency_ms": 37,
+        "routed_cell": [
+          1,
+          2
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          1,
+          2
+        ],
+        "ts": 8855,
+        "x": 544,
+        "y": 466
+      },
+      {
+        "applied_cell": [
+          1,
+          2
+        ],
+        "hit": true,
+        "latency_ms": 43,
+        "routed_cell": [
+          1,
+          2
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          1,
+          2
+        ],
+        "ts": 9071,
+        "x": 544,
+        "y": 466
+      },
+      {
+        "applied_cell": [
+          -99,
+          -99
+        ],
+        "hit": false,
+        "latency_ms": 41,
+        "routed_cell": [
+          -99,
+          -99
+        ],
+        "should_rotate": false,
+        "target_cell": [
+          -1,
+          -1
+        ],
+        "ts": 9938,
+        "x": 640,
+        "y": -20
+      },
+      {
+        "applied_cell": [
+          3,
+          2
+        ],
+        "hit": true,
+        "latency_ms": 45,
+        "routed_cell": [
+          3,
+          2
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          3,
+          2
+        ],
+        "ts": 10955,
+        "x": 736,
+        "y": 466
+      },
+      {
+        "applied_cell": [
+          -99,
+          -99
+        ],
+        "hit": false,
+        "latency_ms": 38,
+        "routed_cell": [
+          -99,
+          -99
+        ],
+        "should_rotate": false,
+        "target_cell": [
+          -1,
+          -1
+        ],
+        "ts": 11189,
+        "x": 1040,
+        "y": 641
+      },
+      {
+        "applied_cell": [
+          2,
+          1
+        ],
+        "hit": true,
+        "latency_ms": 45,
+        "routed_cell": [
+          2,
+          1
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          2,
+          1
+        ],
+        "ts": 12006,
+        "x": 640,
+        "y": 370
+      },
+      {
+        "applied_cell": [
+          2,
+          1
+        ],
+        "hit": true,
+        "latency_ms": 38,
+        "routed_cell": [
+          2,
+          1
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          2,
+          1
+        ],
+        "ts": 12205,
+        "x": 640,
+        "y": 370
+      },
+      {
+        "applied_cell": [
+          2,
+          1
+        ],
+        "hit": true,
+        "latency_ms": 32,
+        "routed_cell": [
+          2,
+          1
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          2,
+          1
+        ],
+        "ts": 12405,
+        "x": 640,
+        "y": 370
+      },
+      {
+        "applied_cell": [
+          2,
+          1
+        ],
+        "hit": true,
+        "latency_ms": 42,
+        "routed_cell": [
+          2,
+          1
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          2,
+          1
+        ],
+        "ts": 12622,
+        "x": 640,
+        "y": 370
+      },
+      {
+        "applied_cell": [
+          1,
+          2
+        ],
+        "hit": true,
+        "latency_ms": 35,
+        "routed_cell": [
+          1,
+          2
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          1,
+          2
+        ],
+        "ts": 12822,
+        "x": 544,
+        "y": 466
+      },
+      {
+        "applied_cell": [
+          1,
+          2
+        ],
+        "hit": true,
+        "latency_ms": 48,
+        "routed_cell": [
+          1,
+          2
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          1,
+          2
+        ],
+        "ts": 13039,
+        "x": 544,
+        "y": 466
+      },
+      {
+        "applied_cell": [
+          1,
+          1
+        ],
+        "hit": true,
+        "latency_ms": 44,
+        "routed_cell": [
+          1,
+          1
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          1,
+          1
+        ],
+        "ts": 13239,
+        "x": 544,
+        "y": 370
+      },
+      {
+        "applied_cell": [
+          3,
+          1
+        ],
+        "hit": true,
+        "latency_ms": 36,
+        "routed_cell": [
+          3,
+          1
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          3,
+          1
+        ],
+        "ts": 13437,
+        "x": 736,
+        "y": 370
+      },
+      {
+        "applied_cell": [
+          3,
+          1
+        ],
+        "hit": true,
+        "latency_ms": 45,
+        "routed_cell": [
+          3,
+          1
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          3,
+          1
+        ],
+        "ts": 13656,
+        "x": 736,
+        "y": 370
+      },
+      {
+        "applied_cell": [
+          3,
+          2
+        ],
+        "hit": true,
+        "latency_ms": 38,
+        "routed_cell": [
+          3,
+          2
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          3,
+          2
+        ],
+        "ts": 13856,
+        "x": 736,
+        "y": 466
+      },
+      {
+        "applied_cell": [
+          3,
+          2
+        ],
+        "hit": true,
+        "latency_ms": 46,
+        "routed_cell": [
+          3,
+          2
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          3,
+          2
+        ],
+        "ts": 14072,
+        "x": 736,
+        "y": 466
+      },
+      {
+        "applied_cell": [
+          2,
+          1
+        ],
+        "hit": true,
+        "latency_ms": 40,
+        "routed_cell": [
+          2,
+          1
+        ],
+        "should_rotate": true,
+        "target_cell": [
+          2,
+          1
+        ],
+        "ts": 14270,
+        "x": 640,
+        "y": 370
+      }
+    ],
+    "summary": {
+      "hit_rate": 0.758,
+      "hits": 25,
+      "misses": 8,
+      "samples": 33
+    }
+  },
+  "verdict": {
+    "audio_pending_unlock": false,
+    "audio_running": true,
+    "pass": false,
+    "rotation_latency_ok": true,
+    "touch_hit_ok": false
+  }
+}
