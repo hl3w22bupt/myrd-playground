@@ -1,149 +1,968 @@
 {
+  "acceptance": [
+    {
+      "check": "GODOT_SMOKE 冒烟 + 加载计时断言",
+      "checkKind": "auto",
+      "id": "ac1",
+      "statement": "冷启动 5 秒内完成加载并进入庭院主界面，控制台无阻塞性错误；1280×720 与 390×844 均正常显示"
+    },
+    {
+      "check": "经济结算单测：逐表断言 + 防负数断言",
+      "checkKind": "auto",
+      "id": "ac2",
+      "statement": "单次会话内完成 种植→生长→收获→加工→出售/交付订单 全流程，金币与经验按 numeric 表正确结算，无负数或丢失"
+    },
+    {
+      "check": "设施升级前后数值 diff 断言",
+      "checkKind": "auto",
+      "id": "ac3",
+      "statement": "可建造/升级至少 3 类设施（地块、禽舍、工坊），升级后产出效率或售价提升数值可见且实际生效"
+    },
+    {
+      "check": "存档 roundtrip 单测",
+      "checkKind": "auto",
+      "id": "ac4",
+      "statement": "刷新或关闭页面后重新打开，庭院布局、金币、等级、作物/养殖进度完整恢复，与关闭前一致"
+    },
+    {
+      "check": "人工试玩回填（owner 拍板，机器不代行）",
+      "checkKind": "manual",
+      "id": "ac5",
+      "statement": "完成约 10 分钟连续试玩，新手引导可走通，全程无卡死、无存档丢失、无不可完成的任务目标"
+    },
+    {
+      "check": "遍历 _hotspots 断言尺寸/间距/偏差 + 截图采样测占格比",
+      "checkKind": "auto",
+      "id": "ac6",
+      "statement": "所有可交互物件视觉主体相对 v1 放大1.5~2.0倍、占格比≥70%，点击热区短边≥88px且与视觉包围盒偏差≤12px"
+    },
+    {
+      "check": "截图像素采样统计（空白窗判定口径见 A2）",
+      "checkKind": "auto",
+      "id": "ac7",
+      "statement": "无空白纯色块：区域内空白窗占比≤15%（天空≤20%），任意256×256窗≥2个视觉锚点，地面≥3档色阶"
+    },
+    {
+      "check": "冒烟脚本逐项触发 + 时序采样断言",
+      "checkKind": "auto",
+      "id": "ac8",
+      "statement": "动效 m1~m12 全部存在且参数达标，动效期间输入不锁、移动端≥30fps"
+    },
+    {
+      "check": "噪点/描边像素统计断言 + owner 看截图/试玩拍板",
+      "checkKind": "manual",
+      "id": "ac9",
+      "statement": "暖色手绘质感达标：3px暖褐描边+顶点抖动、大填充带噪点、无直角物件外形"
+    },
+    {
+      "check": "每视口跑 ac6 断言 + UI 包围盒两两不相交断言",
+      "checkKind": "auto",
+      "id": "ac10",
+      "statement": "四视口（1280×720/1920×1080/720×1280/390×844）布局不破、热区全部≥88设计像素、横竖屏切换无重叠"
+    },
+    {
+      "check": "冒烟脚本：雇帮工挂机/点一键生产/注入划动路径，逐项断言结算",
+      "checkKind": "auto",
+      "id": "ac11",
+      "statement": "P0 三件套可玩且数值正确：帮工60s离手全自动、一键订单免操作备齐、划动结算与逐点零偏差"
+    },
+    {
+      "check": "接口存在性断言 + owner 试玩拍板",
+      "checkKind": "manual",
+      "id": "ac12",
+      "statement": "P1 两项：已交付按 B4/B5 规格验收；未交付须有入口占位与数据 hooks，owner 拍板「接受缺省」或「补做」"
+    }
+  ],
+  "content": {
+    "gameplayDepth": {
+      "compatibility": "v1 numeric 全部键值不变，v2 仅新增键；实现先过 v1 契约再叠加 v2",
+      "p0": [
+        {
+          "acceptance": "ac11",
+          "id": "B1",
+          "name": "自动化帮工",
+          "specRef": "design-spec-v2.md §2.B1"
+        },
+        {
+          "acceptance": "ac11",
+          "id": "B2",
+          "name": "一键订单生产链",
+          "specRef": "design-spec-v2.md §2.B2"
+        },
+        {
+          "acceptance": "ac11",
+          "id": "B3",
+          "name": "划动批量操作",
+          "specRef": "design-spec-v2.md §2.B3"
+        }
+      ],
+      "p0Rule": "缺任一 P0 项即 v2 验收不通过；P1 不交付不判死，但须留入口占位与数据 hooks",
+      "p1": [
+        {
+          "acceptance": "ac12",
+          "id": "B4",
+          "name": "动物互动",
+          "specRef": "design-spec-v2.md §2.B4"
+        },
+        {
+          "acceptance": "ac12",
+          "id": "B5",
+          "name": "休闲天地轻玩法",
+          "specRef": "design-spec-v2.md §2.B5"
+        }
+      ]
+    },
+    "visualQuality": {
+      "animation": [
+        {
+          "id": "m1",
+          "ms": 240,
+          "name": "生长阶段过渡"
+        },
+        {
+          "deg": 2,
+          "id": "m2",
+          "name": "植物待机摇摆",
+          "periodSec": 2.8
+        },
+        {
+          "id": "m3",
+          "name": "成熟呼吸光",
+          "pct": 5,
+          "periodSec": 1.6
+        },
+        {
+          "id": "m4",
+          "intervalSec": [
+            6,
+            10
+          ],
+          "name": "动物待机行为"
+        },
+        {
+          "id": "m5",
+          "ms": 600,
+          "name": "动物产蛋"
+        },
+        {
+          "id": "m6",
+          "ms": 500,
+          "name": "动物互动反馈",
+          "particles": 6
+        },
+        {
+          "id": "m7",
+          "ms": 120,
+          "name": "收获弹跳"
+        },
+        {
+          "id": "m8",
+          "ms": 600,
+          "name": "收获粒子",
+          "particles": 16
+        },
+        {
+          "id": "m9",
+          "ms": 400,
+          "name": "收获飞行"
+        },
+        {
+          "id": "m10",
+          "ms": 200,
+          "name": "一键生产脉冲"
+        },
+        {
+          "fadeMs": 300,
+          "id": "m11",
+          "name": "划动轨迹"
+        },
+        {
+          "id": "m12",
+          "name": "帮工工作循环",
+          "speedPxSec": 120
+        }
+      ],
+      "art": {
+        "cornerRadiusMinPx": 6,
+        "fillNoiseAlphaMax": 0.08,
+        "fillNoisePx": [
+          2,
+          3
+        ],
+        "grassShades": [
+          "#B7D194",
+          "#A8C686",
+          "#96B475"
+        ],
+        "outlineColor": "#6B5B45",
+        "outlineWidthPx": 3,
+        "outlineWobbleMaxPx": 2,
+        "soilShades": [
+          "#9B7B55",
+          "#8A6F4D",
+          "#7A5F42"
+        ],
+        "solidFillMaxPx": 128,
+        "textureStyle": "程序化手绘（无外部素材）",
+        "webExportBudgetMb": 1
+      },
+      "cellCoverageMin": 0.7,
+      "fpsFloor": {
+        "desktop": 55,
+        "mobile": 30
+      },
+      "hitzone": {
+        "centerOffsetMaxPx": 12,
+        "coverageMin": 0.9,
+        "gapMinPx": 8,
+        "minShortEdgePx": 88
+      },
+      "layout": {
+        "anchorMinPer256Window": 2,
+        "blankAreaRatioMax": 0.15,
+        "decorationDensityMinPer512": 1,
+        "groundShadeLevelsMin": 3,
+        "regionGapMaxPx": 12,
+        "skyBlankAreaRatioMax": 0.2,
+        "skyLayersMin": 3
+      },
+      "matureHeightMinRatio": 0.85,
+      "objectScaleRatio": [
+        1.5,
+        2
+      ],
+      "particleCapOnScreen": 120,
+      "responsive": {
+        "landscapeDesign": "1280x720",
+        "landscapeLayout": "左栏62%田区(菜园+果园+花园+禽舍)｜右栏38%氛围区(休闲+工坊+农舍)",
+        "layoutBreakpointAspect": 1,
+        "mobileZoom": "等比缩放适配（非双指缩放，固定全景镜头沿 v1）",
+        "portraitDesign": "720x1280",
+        "safeHotzonePx": 88,
+        "scaleRange": [
+          0.75,
+          1.6
+        ],
+        "testViewports": [
+          "1280x720",
+          "1920x1080",
+          "720x1280",
+          "390x844"
+        ]
+      }
+    }
+  },
+  "entities": [
+    {
+      "id": "e1",
+      "kind": "autoload",
+      "name": "GameState",
+      "notes": "全部 numeric 调参集中地，键名与 spec.numeric 一致",
+      "script": "games/farm-yard/autoload/game_state.gd"
+    },
+    {
+      "id": "e2",
+      "kind": "service",
+      "name": "SaveSystem",
+      "notes": "JSON 本地持久化（ac4）",
+      "script": "games/farm-yard/scripts/save_system.gd"
+    },
+    {
+      "id": "e3",
+      "kind": "scene",
+      "name": "Yard",
+      "notes": "庭院主场景，承载五大区域",
+      "scene": "games/farm-yard/scenes/main.tscn"
+    },
+    {
+      "id": "e4",
+      "kind": "entity",
+      "name": "Plot",
+      "notes": "可开垦地块（菜园/花圃共用）",
+      "scene": "games/farm-yard/scenes/plot.tscn",
+      "script": "games/farm-yard/scripts/plot.gd"
+    },
+    {
+      "id": "e5",
+      "kind": "entity",
+      "name": "Crop",
+      "notes": "作物生长三阶段+成熟呼吸光",
+      "script": "games/farm-yard/scripts/crop.gd"
+    },
+    {
+      "id": "e6",
+      "kind": "entity",
+      "name": "Coop",
+      "notes": "禽舍，产蛋循环+喂食",
+      "scene": "games/farm-yard/scenes/coop.tscn",
+      "script": "games/farm-yard/scripts/coop.gd"
+    },
+    {
+      "id": "e7",
+      "kind": "entity",
+      "name": "OrchardTree",
+      "notes": "果树，周期产果",
+      "script": "games/farm-yard/scripts/orchard_tree.gd"
+    },
+    {
+      "id": "e8",
+      "kind": "entity",
+      "name": "FlowerBed",
+      "notes": "花圃，复用 Plot 生长逻辑",
+      "script": "games/farm-yard/scripts/flower_bed.gd"
+    },
+    {
+      "id": "e9",
+      "kind": "entity",
+      "name": "Workshop",
+      "notes": "工坊，配方加工+并行工单",
+      "scene": "games/farm-yard/scenes/workshop.tscn",
+      "script": "games/farm-yard/scripts/workshop.gd"
+    },
+    {
+      "id": "e10",
+      "kind": "entity",
+      "name": "LeisureFacility",
+      "notes": "休闲天地增益设施",
+      "script": "games/farm-yard/scripts/leisure_facility.gd"
+    },
+    {
+      "id": "e11",
+      "kind": "service",
+      "name": "OrderBoard",
+      "notes": "订单生成/刷新/交付结算",
+      "script": "games/farm-yard/scripts/order_board.gd"
+    },
+    {
+      "id": "e12",
+      "kind": "service",
+      "name": "Warehouse",
+      "notes": "仓库库存与直售",
+      "script": "games/farm-yard/scripts/warehouse.gd"
+    },
+    {
+      "id": "e13",
+      "kind": "service",
+      "name": "QuestManager",
+      "notes": "任务五阶段链",
+      "script": "games/farm-yard/scripts/quest_manager.gd"
+    },
+    {
+      "id": "e14",
+      "kind": "ui",
+      "name": "Hud",
+      "notes": "金币/等级/经验/任务/仓库入口",
+      "scene": "games/farm-yard/scenes/hud.tscn"
+    },
+    {
+      "id": "e15",
+      "kind": "service",
+      "name": "AudioManager",
+      "notes": "BGM/SFX/Ambience 三总线与静音开关",
+      "script": "games/farm-yard/scripts/audio_manager.gd"
+    }
+  ],
+  "levels": [
+    {
+      "elements": [
+        {
+          "eid": "e3",
+          "zone": "root"
+        },
+        {
+          "eid": "e4",
+          "slots": 16,
+          "zone": "z1"
+        },
+        {
+          "eid": "e8",
+          "slots": 8,
+          "zone": "z4"
+        },
+        {
+          "eid": "e6",
+          "zone": "z3"
+        },
+        {
+          "eid": "e7",
+          "slots": 4,
+          "zone": "z2"
+        },
+        {
+          "eid": "e10",
+          "slots": 3,
+          "zone": "z5"
+        },
+        {
+          "eid": "e9",
+          "zone": "z6"
+        },
+        {
+          "eid": "e14",
+          "zone": "hud"
+        }
+      ],
+      "entry": "冷启动默认进入，5 秒内可交互（ac1）",
+      "id": "l1",
+      "name": "主庭院",
+      "scene": "games/farm-yard/scenes/main.tscn"
+    },
+    {
+      "elements": [
+        {
+          "eid": "e13",
+          "zone": "overlay"
+        },
+        {
+          "eid": "e11",
+          "zone": "overlay"
+        },
+        {
+          "eid": "e4",
+          "slots": 4,
+          "zone": "z1"
+        }
+      ],
+      "entry": "l1 的引导态（tutorial 参数），目标 150 秒走完 §1.2 脚本（ac5）",
+      "id": "l2",
+      "name": "首个闭环引导",
+      "scene": "games/farm-yard/scenes/main.tscn"
+    }
+  ],
   "meta": {
-    "title": "田园小院",
-    "genre": "休闲经营（放置式田园经营）",
-    "version": "1.0.0",
-    "status": "draft",
     "author": "主策划（agent）",
+    "coreLoopSeconds": [
+      120,
+      180
+    ],
     "createdAt": "2026-09-28",
-    "requirementId": "cmul7efx0000ym9lfpkugedlp",
-    "goalId": "cmul76aje000cm9lf0lxagqhh",
-    "projectDir": "games/farm-yard",
+    "doc": "docs/games/farm-yard/design-spec-v2.md",
     "engine": "Godot 4 (Web 导出)",
-    "doc": "docs/games/farm-yard/design-spec-v1.md",
-    "coreLoopSeconds": [120, 180],
+    "genre": "休闲经营（放置式田园经营）",
+    "goalId": "cmul76aje000cm9lf0lxagqhh",
     "pillars": [
       "永远有事做，但永远不催你",
       "数字看得见地变大",
       "画面即治愈"
     ],
-    "scopeCut": ["无联网/排行榜/内购", "无离线收益结算", "单存档位"]
-  },
-  "world": {
-    "grid": { "cols": 12, "rows": 8, "cellPx": 64, "designResolution": "1280x720", "stretch": "canvas_items/expand" },
-    "hud": ["coins", "level", "xp", "questEntry", "warehouseEntry"],
-    "camera": "固定全景，v1 不缩放不平移；移动端竖屏 HUD 折叠两行",
-    "zones": [
-      { "id": "z1", "name": "菜园", "role": "种植主力，短平快现金流", "capacity": "4 → 16 格" },
-      { "id": "z2", "name": "果园", "role": "永久果树，长周期稳定回报", "capacity": "2 → 4 株" },
-      { "id": "z3", "name": "禽舍", "role": "持续产蛋，可加工增值", "capacity": "1 舍，鸡位 3→5→8" },
-      { "id": "z4", "name": "小花园", "role": "花卉高价低量，订单核心原料", "capacity": "2 → 8 格" },
-      { "id": "z5", "name": "休闲天地", "role": "只产增益（刷新/售价/经验），情绪出口", "capacity": "3 设施位" },
-      { "id": "z6", "name": "工坊小屋（附属位）", "role": "原料→高价商品加工", "capacity": "并行工单 1→2→3" }
+    "projectDir": "games/farm-yard",
+    "requirementId": "cmul7efx0000ym9lfpkugedlp",
+    "revisedAt": "2026-10-02",
+    "revisionReason": "owner 两条硬意见：①画面品质不达标（物件偏小/构图空旷纯色块/缺生长动物收获动效/缺手绘质感/适配不全）；②玩法深度不足（自动化/一键订单生产链/批量操作缺失）",
+    "scopeCut": [
+      "无联网/排行榜/内购",
+      "无离线收益结算",
+      "单存档位"
     ],
-    "quests": [
-      { "id": "q1", "name": "第一次收成", "goal": "收获任意作物×1", "reward": { "coins": 30, "exp": 10 } },
-      { "id": "q2", "name": "小有积蓄", "goal": "累计持有金币≥150", "reward": { "coins": 40, "exp": 15 } },
-      { "id": "q3", "name": "开个养殖场", "goal": "建造鸡舍", "reward": { "coins": 0, "exp": 20, "items": { "egg": 1 } } },
-      { "id": "q4", "name": "加工增值", "goal": "工坊产出第1个蛋糕", "reward": { "coins": 60, "exp": 25 } },
-      { "id": "q5", "name": "悠闲时光", "goal": "建造任意1座休闲天地设施", "reward": { "coins": 100, "exp": 30 } }
-    ]
+    "status": "draft",
+    "supersedes": "cmulah8f5002im9lfnzx1ycx7",
+    "supersedesVersion": "1.0.0",
+    "title": "田园小院",
+    "version": "2.0.0"
   },
-  "entities": [
-    { "id": "e1", "name": "GameState", "kind": "autoload", "script": "games/farm-yard/autoload/game_state.gd", "notes": "全部 numeric 调参集中地，键名与 spec.numeric 一致" },
-    { "id": "e2", "name": "SaveSystem", "kind": "service", "script": "games/farm-yard/scripts/save_system.gd", "notes": "JSON 本地持久化（ac4）" },
-    { "id": "e3", "name": "Yard", "kind": "scene", "scene": "games/farm-yard/scenes/main.tscn", "notes": "庭院主场景，承载五大区域" },
-    { "id": "e4", "name": "Plot", "kind": "entity", "script": "games/farm-yard/scripts/plot.gd", "scene": "games/farm-yard/scenes/plot.tscn", "notes": "可开垦地块（菜园/花圃共用）" },
-    { "id": "e5", "name": "Crop", "kind": "entity", "script": "games/farm-yard/scripts/crop.gd", "notes": "作物生长三阶段+成熟呼吸光" },
-    { "id": "e6", "name": "Coop", "kind": "entity", "script": "games/farm-yard/scripts/coop.gd", "scene": "games/farm-yard/scenes/coop.tscn", "notes": "禽舍，产蛋循环+喂食" },
-    { "id": "e7", "name": "OrchardTree", "kind": "entity", "script": "games/farm-yard/scripts/orchard_tree.gd", "notes": "果树，周期产果" },
-    { "id": "e8", "name": "FlowerBed", "kind": "entity", "script": "games/farm-yard/scripts/flower_bed.gd", "notes": "花圃，复用 Plot 生长逻辑" },
-    { "id": "e9", "name": "Workshop", "kind": "entity", "script": "games/farm-yard/scripts/workshop.gd", "scene": "games/farm-yard/scenes/workshop.tscn", "notes": "工坊，配方加工+并行工单" },
-    { "id": "e10", "name": "LeisureFacility", "kind": "entity", "script": "games/farm-yard/scripts/leisure_facility.gd", "notes": "休闲天地增益设施" },
-    { "id": "e11", "name": "OrderBoard", "kind": "service", "script": "games/farm-yard/scripts/order_board.gd", "notes": "订单生成/刷新/交付结算" },
-    { "id": "e12", "name": "Warehouse", "kind": "service", "script": "games/farm-yard/scripts/warehouse.gd", "notes": "仓库库存与直售" },
-    { "id": "e13", "name": "QuestManager", "kind": "service", "script": "games/farm-yard/scripts/quest_manager.gd", "notes": "任务五阶段链" },
-    { "id": "e14", "name": "Hud", "kind": "ui", "scene": "games/farm-yard/scenes/hud.tscn", "notes": "金币/等级/经验/任务/仓库入口" },
-    { "id": "e15", "name": "AudioManager", "kind": "service", "script": "games/farm-yard/scripts/audio_manager.gd", "notes": "BGM/SFX/Ambience 三总线与静音开关" }
-  ],
-  "levels": [
-    {
-      "id": "l1",
-      "name": "主庭院",
-      "scene": "games/farm-yard/scenes/main.tscn",
-      "entry": "冷启动默认进入，5 秒内可交互（ac1）",
-      "elements": [
-        { "eid": "e3", "zone": "root" },
-        { "eid": "e4", "zone": "z1", "slots": 16 },
-        { "eid": "e8", "zone": "z4", "slots": 8 },
-        { "eid": "e6", "zone": "z3" },
-        { "eid": "e7", "zone": "z2", "slots": 4 },
-        { "eid": "e10", "zone": "z5", "slots": 3 },
-        { "eid": "e9", "zone": "z6" },
-        { "eid": "e14", "zone": "hud" }
-      ]
-    },
-    {
-      "id": "l2",
-      "name": "首个闭环引导",
-      "scene": "games/farm-yard/scenes/main.tscn",
-      "entry": "l1 的引导态（tutorial 参数），目标 150 秒走完 §1.2 脚本（ac5）",
-      "elements": [
-        { "eid": "e13", "zone": "overlay" },
-        { "eid": "e11", "zone": "overlay" },
-        { "eid": "e4", "zone": "z1", "slots": 4 }
-      ]
-    }
-  ],
   "numeric": {
-    "start": { "coins": 60, "level": 1, "plots": { "z1": 4, "z4": 2 } },
+    "animalInteraction": {
+      "buffEffect": "eggIntervalMultiplier: 0.9",
+      "cooldownSec": 30,
+      "hooks": "animalAffection 字段必须预留",
+      "tapsForBuff": 5,
+      "tier": "P1"
+    },
+    "autoOrder": {
+      "capacityBound": true,
+      "disabledReasons": [
+        "缺金币",
+        "缺工坊",
+        "缺解锁"
+      ],
+      "enabled": true,
+      "planPersist": true,
+      "progressRing": "n/m",
+      "readyDeadlineSec": "最慢作物growSec+30"
+    },
+    "batch": {
+      "enabled": true,
+      "insufficientFunds": "停止后续格 + fail 音效，已执行格不回滚",
+      "minHotzonePx": 88,
+      "oncePerCell": true,
+      "repeatGapMs": 60,
+      "settlement": "与逐点点击完全一致（金币/经验/库存零偏差）"
+    },
+    "coop": {
+      "buildCost": 120,
+      "eggExp": 3,
+      "eggPrice": 8,
+      "eggSec": 60,
+      "feedCost": 2,
+      "levels": [
+        {
+          "chickens": 3,
+          "lv": 1,
+          "upgradeCost": null
+        },
+        {
+          "chickens": 5,
+          "lv": 2,
+          "upgradeCost": 250
+        },
+        {
+          "chickens": 8,
+          "lv": 3,
+          "upgradeCost": 600
+        }
+      ],
+      "unfedIntervalMultiplier": 2,
+      "unlockLevel": 2
+    },
     "crops": [
-      { "id": "carrot", "name": "胡萝卜", "unlockLevel": 1, "growSec": 20, "seedCost": 5, "yield": 2, "unitPrice": 4, "exp": 2 },
-      { "id": "wheat", "name": "小麦", "unlockLevel": 1, "growSec": 45, "seedCost": 12, "yield": 3, "unitPrice": 7, "exp": 4 },
-      { "id": "tomato", "name": "番茄", "unlockLevel": 2, "growSec": 90, "seedCost": 25, "yield": 3, "unitPrice": 15, "exp": 8 },
-      { "id": "strawberry", "name": "草莓", "unlockLevel": 3, "growSec": 150, "seedCost": 45, "yield": 4, "unitPrice": 20, "exp": 12 },
-      { "id": "pumpkin", "name": "南瓜", "unlockLevel": 5, "growSec": 240, "seedCost": 70, "yield": 2, "unitPrice": 65, "exp": 18 },
-      { "id": "corn", "name": "玉米", "unlockLevel": 6, "growSec": 360, "seedCost": 100, "yield": 3, "unitPrice": 62, "exp": 25 }
+      {
+        "exp": 2,
+        "growSec": 20,
+        "id": "carrot",
+        "name": "胡萝卜",
+        "seedCost": 5,
+        "unitPrice": 4,
+        "unlockLevel": 1,
+        "yield": 2
+      },
+      {
+        "exp": 4,
+        "growSec": 45,
+        "id": "wheat",
+        "name": "小麦",
+        "seedCost": 12,
+        "unitPrice": 7,
+        "unlockLevel": 1,
+        "yield": 3
+      },
+      {
+        "exp": 8,
+        "growSec": 90,
+        "id": "tomato",
+        "name": "番茄",
+        "seedCost": 25,
+        "unitPrice": 15,
+        "unlockLevel": 2,
+        "yield": 3
+      },
+      {
+        "exp": 12,
+        "growSec": 150,
+        "id": "strawberry",
+        "name": "草莓",
+        "seedCost": 45,
+        "unitPrice": 20,
+        "unlockLevel": 3,
+        "yield": 4
+      },
+      {
+        "exp": 18,
+        "growSec": 240,
+        "id": "pumpkin",
+        "name": "南瓜",
+        "seedCost": 70,
+        "unitPrice": 65,
+        "unlockLevel": 5,
+        "yield": 2
+      },
+      {
+        "exp": 25,
+        "growSec": 360,
+        "id": "corn",
+        "name": "玉米",
+        "seedCost": 100,
+        "unitPrice": 62,
+        "unlockLevel": 6,
+        "yield": 3
+      }
     ],
     "flowers": [
-      { "id": "sunflower", "name": "向日葵", "unlockLevel": 1, "growSec": 60, "seedCost": 15, "yield": 1, "unitPrice": 26, "exp": 5 },
-      { "id": "rose", "name": "玫瑰", "unlockLevel": 4, "growSec": 180, "seedCost": 40, "yield": 1, "unitPrice": 68, "exp": 10 },
-      { "id": "tulip", "name": "郁金香", "unlockLevel": 5, "growSec": 300, "seedCost": 60, "yield": 1, "unitPrice": 105, "exp": 15 }
+      {
+        "exp": 5,
+        "growSec": 60,
+        "id": "sunflower",
+        "name": "向日葵",
+        "seedCost": 15,
+        "unitPrice": 26,
+        "unlockLevel": 1,
+        "yield": 1
+      },
+      {
+        "exp": 10,
+        "growSec": 180,
+        "id": "rose",
+        "name": "玫瑰",
+        "seedCost": 40,
+        "unitPrice": 68,
+        "unlockLevel": 4,
+        "yield": 1
+      },
+      {
+        "exp": 15,
+        "growSec": 300,
+        "id": "tulip",
+        "name": "郁金香",
+        "seedCost": 60,
+        "unitPrice": 105,
+        "unlockLevel": 5,
+        "yield": 1
+      }
     ],
-    "coop": {
-      "buildCost": 120, "unlockLevel": 2, "eggSec": 60, "eggPrice": 8, "eggExp": 3, "feedCost": 2,
-      "unfedIntervalMultiplier": 2,
-      "levels": [ { "lv": 1, "upgradeCost": null, "chickens": 3 }, { "lv": 2, "upgradeCost": 250, "chickens": 5 }, { "lv": 3, "upgradeCost": 600, "chickens": 8 } ]
+    "guards": {
+      "insufficientFunds": "按钮置灰 + fail 音效",
+      "noNegativeCoins": true,
+      "noNegativeExp": true
     },
-    "workshop": {
-      "unlockLevel": 3, "levels": [ { "lv": 1, "upgradeCost": null, "slots": 1 }, { "lv": 2, "upgradeCost": 400, "slots": 2 }, { "lv": 3, "upgradeCost": 900, "slots": 3 } ],
-      "recipes": [
-        { "id": "cake", "name": "蛋糕", "unlockLevel": 3, "input": { "egg": 3, "wheat": 1 }, "craftSec": 30, "unitPrice": 55, "exp": 20 },
-        { "id": "jam", "name": "果酱", "unlockLevel": 6, "input": { "apple": 2, "strawberry": 1 }, "craftSec": 60, "unitPrice": 130, "exp": 35 }
-      ]
-    },
-    "orchard": [
-      { "id": "apple", "name": "苹果树", "unlockLevel": 4, "buildCost": 200, "cycleSec": 300, "yield": 3, "unitPrice": 30, "exp": 15, "upgrades": [300, 700], "yieldPerUpgrade": 1 },
-      { "id": "orange", "name": "橘树", "unlockLevel": 5, "buildCost": 450, "cycleSec": 480, "yield": 4, "unitPrice": 42, "exp": 22, "upgrades": [500, 1100], "yieldPerUpgrade": 1 }
-    ],
-    "plotCosts": [50, 75, 110, 160, 230, 330, 470, 670, 950, 1350, 1900, 2700, 3800, 5400, 7600, 10800, 15200, 21400, 30000, 42000],
-    "plotCap": { "z1": 16, "z4": 8 },
-    "orders": {
-      "rewardMultiplier": 1.3, "expMultiplier": 1.2, "refreshSec": 90, "maxPending": 3,
-      "slots": [ { "level": 1, "count": 1 }, { "level": 4, "count": 2 }, { "level": 7, "count": 3 } ],
-      "itemCount": [2, 3]
-    },
-    "xpCurve": [30, 80, 160, 280, 450, 680, 980, 1350, 1800, 2400],
-    "maxLevel": 10,
-    "levelUnlocks": {
-      "2": ["tomato", "coop"],
-      "3": ["strawberry", "workshop"],
-      "4": ["apple", "rose", "orderSlot2"],
-      "5": ["pumpkin", "tulip", "orange", "leisure"],
-      "6": ["corn", "jam", "orchardSlot2"]
+    "helpers": {
+      "actionGapSec": 2,
+      "boundaries": "不自动交付订单、不自动买地/升级；金币不足停手+toast，不产生负数；与玩家手动动作走同一结算函数",
+      "duties": [
+        "plant",
+        "harvest",
+        "feed"
+      ],
+      "helperHouseCost": 800,
+      "hireCost": 300,
+      "scanIntervalSec": 5,
+      "slots": [
+        {
+          "count": 1,
+          "lv": 1,
+          "upgradeCost": null
+        },
+        {
+          "count": 2,
+          "lv": 2,
+          "upgradeCost": 1500
+        },
+        {
+          "count": 3,
+          "lv": 3,
+          "upgradeCost": 3000
+        }
+      ],
+      "unlockLevel": 4,
+      "wagePer10Min": 60
     },
     "leisure": [
-      { "id": "fountain", "name": "喷泉", "unlockLevel": 5, "cost": 500, "effect": "orderRefreshSec: 90→75" },
-      { "id": "teahouse", "name": "茶亭", "unlockLevel": 5, "cost": 900, "effect": "globalPriceMultiplier: +5%" },
-      { "id": "bench", "name": "长椅", "unlockLevel": 5, "cost": 600, "effect": "harvestExpMultiplier: +10%" }
+      {
+        "cost": 500,
+        "effect": "orderRefreshSec: 90→75",
+        "id": "fountain",
+        "name": "喷泉",
+        "unlockLevel": 5
+      },
+      {
+        "cost": 900,
+        "effect": "globalPriceMultiplier: +5%",
+        "id": "teahouse",
+        "name": "茶亭",
+        "unlockLevel": 5
+      },
+      {
+        "cost": 600,
+        "effect": "harvestExpMultiplier: +10%",
+        "id": "bench",
+        "name": "长椅",
+        "unlockLevel": 5
+      }
     ],
-    "guards": { "noNegativeCoins": true, "noNegativeExp": true, "insufficientFunds": "按钮置灰 + fail 音效" }
+    "leisurePlay": {
+      "bench": {
+        "perSessionLimit": 3,
+        "restSec": 10,
+        "yieldMultiplier": 1.15
+      },
+      "fountain": {
+        "cooldownSec": 60,
+        "effect": "订单刷新立即完成",
+        "tossCoins": 20
+      },
+      "teahouse": {
+        "cooldownSec": 120,
+        "gift": "随机1件已解锁低价原料"
+      },
+      "tier": "P1"
+    },
+    "levelUnlocks": {
+      "2": [
+        "tomato",
+        "coop"
+      ],
+      "3": [
+        "strawberry",
+        "workshop"
+      ],
+      "4": [
+        "apple",
+        "rose",
+        "orderSlot2"
+      ],
+      "5": [
+        "pumpkin",
+        "tulip",
+        "orange",
+        "leisure"
+      ],
+      "6": [
+        "corn",
+        "jam",
+        "orchardSlot2"
+      ]
+    },
+    "maxLevel": 10,
+    "orchard": [
+      {
+        "buildCost": 200,
+        "cycleSec": 300,
+        "exp": 15,
+        "id": "apple",
+        "name": "苹果树",
+        "unitPrice": 30,
+        "unlockLevel": 4,
+        "upgrades": [
+          300,
+          700
+        ],
+        "yield": 3,
+        "yieldPerUpgrade": 1
+      },
+      {
+        "buildCost": 450,
+        "cycleSec": 480,
+        "exp": 22,
+        "id": "orange",
+        "name": "橘树",
+        "unitPrice": 42,
+        "unlockLevel": 5,
+        "upgrades": [
+          500,
+          1100
+        ],
+        "yield": 4,
+        "yieldPerUpgrade": 1
+      }
+    ],
+    "orders": {
+      "expMultiplier": 1.2,
+      "itemCount": [
+        2,
+        3
+      ],
+      "maxPending": 3,
+      "refreshSec": 90,
+      "rewardMultiplier": 1.3,
+      "slots": [
+        {
+          "count": 1,
+          "level": 1
+        },
+        {
+          "count": 2,
+          "level": 4
+        },
+        {
+          "count": 3,
+          "level": 7
+        }
+      ]
+    },
+    "plotCap": {
+      "z1": 16,
+      "z4": 8
+    },
+    "plotCosts": [
+      50,
+      75,
+      110,
+      160,
+      230,
+      330,
+      470,
+      670,
+      950,
+      1350,
+      1900,
+      2700,
+      3800,
+      5400,
+      7600,
+      10800,
+      15200,
+      21400,
+      30000,
+      42000
+    ],
+    "start": {
+      "coins": 60,
+      "level": 1,
+      "plots": {
+        "z1": 4,
+        "z4": 2
+      }
+    },
+    "workshop": {
+      "levels": [
+        {
+          "lv": 1,
+          "slots": 1,
+          "upgradeCost": null
+        },
+        {
+          "lv": 2,
+          "slots": 2,
+          "upgradeCost": 400
+        },
+        {
+          "lv": 3,
+          "slots": 3,
+          "upgradeCost": 900
+        }
+      ],
+      "recipes": [
+        {
+          "craftSec": 30,
+          "exp": 20,
+          "id": "cake",
+          "input": {
+            "egg": 3,
+            "wheat": 1
+          },
+          "name": "蛋糕",
+          "unitPrice": 55,
+          "unlockLevel": 3
+        },
+        {
+          "craftSec": 60,
+          "exp": 35,
+          "id": "jam",
+          "input": {
+            "apple": 2,
+            "strawberry": 1
+          },
+          "name": "果酱",
+          "unitPrice": 130,
+          "unlockLevel": 6
+        }
+      ],
+      "unlockLevel": 3
+    },
+    "xpCurve": [
+      30,
+      80,
+      160,
+      280,
+      450,
+      680,
+      980,
+      1350,
+      1800,
+      2400
+    ]
   },
-  "acceptance": [
-    { "id": "ac1", "statement": "冷启动 5 秒内完成加载并进入庭院主界面，控制台无阻塞性错误；1280×720 与 390×844 均正常显示", "check": "GODOT_SMOKE 冒烟 + 加载计时断言", "checkKind": "auto" },
-    { "id": "ac2", "statement": "单次会话内完成 种植→生长→收获→加工→出售/交付订单 全流程，金币与经验按 numeric 表正确结算，无负数或丢失", "check": "经济结算单测：逐表断言 + 防负数断言", "checkKind": "auto" },
-    { "id": "ac3", "statement": "可建造/升级至少 3 类设施（地块、禽舍、工坊），升级后产出效率或售价提升数值可见且实际生效", "check": "设施升级前后数值 diff 断言", "checkKind": "auto" },
-    { "id": "ac4", "statement": "刷新或关闭页面后重新打开，庭院布局、金币、等级、作物/养殖进度完整恢复，与关闭前一致", "check": "存档 roundtrip 单测", "checkKind": "auto" },
-    { "id": "ac5", "statement": "完成约 10 分钟连续试玩，新手引导可走通，全程无卡死、无存档丢失、无不可完成的任务目标", "check": "人工试玩回填（owner 拍板，机器不代行）", "checkKind": "manual" }
-  ]
+  "world": {
+    "camera": "固定全景，v1 不缩放不平移；移动端竖屏 HUD 折叠两行",
+    "grid": {
+      "cellPx": 64,
+      "cols": 12,
+      "designResolution": "1280x720",
+      "rows": 8,
+      "stretch": "canvas_items/expand"
+    },
+    "hud": [
+      "coins",
+      "level",
+      "xp",
+      "questEntry",
+      "warehouseEntry"
+    ],
+    "quests": [
+      {
+        "goal": "收获任意作物×1",
+        "id": "q1",
+        "name": "第一次收成",
+        "reward": {
+          "coins": 30,
+          "exp": 10
+        }
+      },
+      {
+        "goal": "累计持有金币≥150",
+        "id": "q2",
+        "name": "小有积蓄",
+        "reward": {
+          "coins": 40,
+          "exp": 15
+        }
+      },
+      {
+        "goal": "建造鸡舍",
+        "id": "q3",
+        "name": "开个养殖场",
+        "reward": {
+          "coins": 0,
+          "exp": 20,
+          "items": {
+            "egg": 1
+          }
+        }
+      },
+      {
+        "goal": "工坊产出第1个蛋糕",
+        "id": "q4",
+        "name": "加工增值",
+        "reward": {
+          "coins": 60,
+          "exp": 25
+        }
+      },
+      {
+        "goal": "建造任意1座休闲天地设施",
+        "id": "q5",
+        "name": "悠闲时光",
+        "reward": {
+          "coins": 100,
+          "exp": 30
+        }
+      }
+    ],
+    "zones": [
+      {
+        "capacity": "4 → 16 格",
+        "id": "z1",
+        "name": "菜园",
+        "role": "种植主力，短平快现金流"
+      },
+      {
+        "capacity": "2 → 4 株",
+        "id": "z2",
+        "name": "果园",
+        "role": "永久果树，长周期稳定回报"
+      },
+      {
+        "capacity": "1 舍，鸡位 3→5→8",
+        "id": "z3",
+        "name": "禽舍",
+        "role": "持续产蛋，可加工增值"
+      },
+      {
+        "capacity": "2 → 8 格",
+        "id": "z4",
+        "name": "小花园",
+        "role": "花卉高价低量，订单核心原料"
+      },
+      {
+        "capacity": "3 设施位",
+        "id": "z5",
+        "name": "休闲天地",
+        "role": "只产增益（刷新/售价/经验），情绪出口"
+      },
+      {
+        "capacity": "并行工单 1→2→3",
+        "id": "z6",
+        "name": "工坊小屋（附属位）",
+        "role": "原料→高价商品加工"
+      }
+    ]
+  }
 }
