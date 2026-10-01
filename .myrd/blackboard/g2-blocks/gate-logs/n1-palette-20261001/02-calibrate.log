@@ -1,0 +1,15 @@
+# 文件名: 02-calibrate.log
+# 日期: 2026-10-01 (UTC+8)
+# 命令: node tools/palette-gate.mjs calibrate --palette assets/palette/palette-n1-final.json --ids block-01,block-03,block-04,block-05
+# 目录: g2-blocks 仓库根
+# 输出摘要: 已冻结 4 色 6 对 ΔE 全录；min 决定阈值 floor(min/5)*5
+
+# 校准集: block-01/block-03/block-04/block-05 → 6 对
+  block-01|block-03  dE=54.327  dH=67.8  dL=0.120  dS=0.097  HSL通过=3/3
+  block-01|block-04  dE=49.151  dH=156.0  dL=0.222  dS=0.060  HSL通过=2/3
+  block-01|block-05  dE=28.506  dH=54.3  dL=0.280  dS=0.165  HSL通过=3/3
+  block-03|block-04  dE=56.503  dH=136.2  dL=0.102  dS=0.157  HSL通过=3/3
+  block-03|block-05  dE=46.227  dH=122.1  dL=0.161  dS=0.068  HSL通过=2/3
+  block-04|block-05  dE=38.223  dH=101.7  dL=0.059  dS=0.225  HSL通过=2/3
+# dE min=28.506 max=56.503
+# 建议阈值 = floor(min/5)*5 = 25

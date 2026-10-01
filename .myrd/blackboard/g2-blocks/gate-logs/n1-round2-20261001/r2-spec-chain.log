@@ -1,0 +1,34 @@
+# 文件名: r2-spec-chain.log
+# 日期: 2026-10-01 (UTC+8)
+# 命令: node tools/qa-round2.mjs
+# 目录: g2-blocks 仓库根
+# 输出摘要: 27 断言无红（版本链 v1 draft 唯一 / 导出件≡链上 / 5+1 逐字锚 9 项 / el-hint reason 132 字 / 链上 21 对全绿 / numeric 锚 302e6336… / 一号零接触 / 红线巡检 4 项）
+
+PASS R0 CIEDE2000 自证 :: 18/18
+PASS R2/a 链上 g2-blocks 版本数 = 1（一次成链） :: count=1
+PASS R2/b version = 1 :: version=1
+PASS R2/c status = draft（approve 是主人拍板位，不得出现 approved/superseded） :: status=draft
+PASS R2/d 链上 spec 可回读 :: id=cmuovwra0004gm97tinha15zq http=200
+PASS R2/e 导出件 ≡ 链上（sortKeys 全等） :: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmuouq3u0003im97tyhjci0kc/.myrd/spec/g2-blocks/design-spec.json
+PASS R2/f 导出件平台元数据一致 :: id=cmuovwra0004gm97tinha15zq v1 draft
+PASS R3 ① spawn.orientation uniform_random :: ""uniform_random""
+PASS R3 ① seeded RNG 测试钩子 :: "seededRng"
+PASS R3 ② AC-06 四手向量 :: "消/消/不消/消 → +0/+50/归0/+0"
+PASS R3 ③ AC-07 炉冷双判 :: "落定结算后+补手后各判一次，任一为真即炉冷"
+PASS R3 ③ AC-07 全穷举 :: "64格×7块×≤4向全穷举"
+PASS R3 ④ level-1 el-hint + 理由 :: "el-hint"
+PASS R3 ⑤ J1 标记名 start :: "j1_settle_start"
+PASS R3 ⑤ J1 标记名 done :: "j1_feedback_done"
+PASS R3 ⑥(+1) 色板并入（7 hex） :: "#C89C19"
+PASS R3 el-hint 带 reason（≥40 字） :: reasonLen=132
+PASS R3 el-hint 不出现在 level-2（元素 id 口径） :: level-2 元素 id 含 el-hint 数=0
+PASS R4/a 链上 7 hex ≡ 美术交付件 :: #21458C,#38B279,#DB6B43,#A472CA,#C89C19,#4B2B25,#E3B5BF
+PASS R4/b 阈值 = floor(min/5)*5（冻结 6 对重算） :: minΔE=28.506 阈值=25
+PASS R4/c 链上 21 对双门禁复跑全绿 :: 红对=0/21
+PASS R4/d numeric 冻结锚 = 导出件记录 :: 302e63367f3dea63
+PASS R5 一号仓库零接触（白名单外零条目） :: status 行=3 白名单外=0
+PASS R6/a missions 不激活 :: content.note 声明在链
+PASS R6/b scope_gate 挂起 :: 同上
+PASS R6/c acceptance = 18 条 :: count=18
+PASS R6/d 冻结值实现件缺位（红线：approve 前不写） :: theme.ts / board.ts 均未产出
+# round-2 复检结论: 无红（共 27 断言）
