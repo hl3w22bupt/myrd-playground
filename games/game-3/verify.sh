@@ -105,5 +105,5 @@ fi
 
 echo ""
 echo "verify: PASS preflight + smoke + input-fuzz + playtest 全部通过"
-echo "verify: 可玩验收覆盖（冒烟断言）：自动奔跑移动 / 跳跃+二段跳 / 收集飞镖加分 / 撞刺失败判定 / 重开复位 / 跑到底过关 / Juice 反馈总线"
+echo "verify: 可玩验收覆盖（冒烟断言）：自动奔跑移动 / 跳跃+二段跳 / 收集飞镖加分 / 撞刺失败判定 / 重开复位 / 跑到底过关 / Juice 反馈总线 / 音效资产协议"
 echo "verify: 试玩节奏覆盖（playtest 指标）：首次得分时间 / 最长无反馈窗口 / 反馈密度 / 局间结果方差（明细见 GODOT_PLAYTEST_METRICS 行）"

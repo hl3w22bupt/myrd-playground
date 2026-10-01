@@ -9,17 +9,26 @@ extends Node
 ## 且挂在**结果事件的处理函数**上（如 `_on_game_lost`），不挂在输入处理上；
 ## 移动类连续输入由游戏表现本身承担反馈，不强制挂 Juice。
 ##
-## 音效：SFX_BANK 留空 = 调用合法空转（不报错）。本工程调用点已钉
-## &"score" / &"fail" / &"confirm"，音效资产后补时在注册表各加一行即全局出声
-## （参照模板 tools/gen_sfx.gd 程序化合成，或替换为音频文件）。
+## 音效：本工程调用点 &"score" / &"fail" / &"confirm" / &"hit" / &"jump"（资产就位前钉调用点，
+## 2026-10-02 资产后补：模板配方 tools/gen_sfx.gd + tests/sfx-recipes.json 程序化合成，
+## 16-bit PCM 确定种子可复现；换音效 = 改配方重跑
+## `godot --headless --path . -s res://tools/gen_sfx.gd`，调用点零改动。
+## Web 导出记得壳页面的音频手势解锁（部署节点硬契约，headless 全绿 ≠ 移动端有声音）。
 
 ## 反馈触发信号：想对反馈做统计 / 连击 UI 的场景可以订阅；
 ## 机器人试玩门禁（scripts/playtest.sh + playtest_driver.gd）以它为反馈事件采样锚点。
 signal feedback_fired(kind: StringName)
 
-## 音效注册表：名 → AudioStream。留空时 sfx() 静默空转（不报错）——调用点先钉、资产后补。
-## 资产就位后形如：&"score": preload("res://assets/sfx/score.wav")。
-const SFX_BANK: Dictionary = {}
+## 音效注册表：名 → AudioStream（assets/sfx/*.wav，tests/sfx-recipes.json 程序化合成）。
+## 未注册的名 sfx() 合法空转（不报错）；注册表非空由 tests/smoke.gd 的音效协议断言钉住 ——
+## 清空这里 = 「收集/失败/过关在真机上没有声音」的反馈缺失回归，冒烟会拦。
+const SFX_BANK: Dictionary = {
+	&"score": preload("res://assets/sfx/score.wav"),
+	&"confirm": preload("res://assets/sfx/confirm.wav"),
+	&"hit": preload("res://assets/sfx/hit.wav"),
+	&"fail": preload("res://assets/sfx/fail.wav"),
+	&"jump": preload("res://assets/sfx/jump.wav"),
+}
 
 ## 本局反馈记录（"kind@ms"），冒烟断言只看是否非空；环形上限防长局内存膨胀。
 var events: PackedStringArray = []

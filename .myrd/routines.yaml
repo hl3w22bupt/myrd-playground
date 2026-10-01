@@ -28,7 +28,10 @@ routines:
   description: 对 Godot 工程跑前置一致性检查 + 无头运行冒烟，断言退出码与 GODOT_SMOKE 标记 —— 「游戏能不能跑且玩得动」的机判门禁
   gate: false
   params:
-    gamePath: games/godot-coin-rush
+    # 默认被测工程（相对仓库根）：本仓现役游戏 = games/game-3（疾风忍者跑）。
+    # 工作流节点用 preHookParams 按工程覆盖；此处默认值必须指向真实存在的工程，
+    # 否则不带覆盖的例行运行会静默测一个不存在的路径（参照 godot-smoke-routine.md 的参数化要求）。
+    gamePath: games/game-3
     smokeFrames: 240
     playtestFrames: 1200
   steps:

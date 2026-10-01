@@ -40,6 +40,9 @@ var _move_hint: String = "空格/W 跳跃（空中再按=二段跳） · R 重�
 var _shake_left: int = 0
 ## 震屏总时长（衰减比例的分母）。
 var _shake_total: int = 0
+## 本局已收集飞镖数（结算文案用「枚」的真实计数；分数 ≠ 枚数 —— URL ?tuning=
+## 可把每枚飞镖调成 1~10 分，拿分数冒充枚数会失真）。重开时清零。
+var _darts_this_run: int = 0
 
 
 func _ready() -> void:
@@ -55,6 +58,8 @@ func _ready() -> void:
 	# ── 订阅：游戏对象只 emit，这里集中接线 ──
 	if not player.moved.is_connected(_on_player_moved):
 		player.moved.connect(_on_player_moved)
+	if not player.jumped.is_connected(_on_player_jumped):
+		player.jumped.connect(_on_player_jumped)
 	if not player.died.is_connected(_on_player_died):
 		player.died.connect(_on_player_died)
 	if not level.hazard_hit.is_connected(_on_level_hazard_hit):
@@ -103,9 +108,10 @@ func restart_run() -> void:
 	level.reset()
 	player.respawn()
 	GameState.reset()
+	_darts_this_run = 0
 	state_label.visible = false
 	_refresh_hud()
-	# §3B 确认类反馈：重开指令已被受理（音效资产后补，事件流始终有记录）。
+	# §3B 确认类反馈：重开指令已被受理（confirm 音效 + 事件流留痕）。
 	Juice.sfx(&"confirm")
 
 
@@ -120,6 +126,13 @@ func _on_player_moved(_position: Vector2) -> void:
 	_refresh_hud()
 
 
+func _on_player_jumped(_jump_count: int) -> void:
+	# 起跳听感确认：点按 → 立即有声音 = 「输入被受理」的即时反馈（跳本身是移动输入，
+	# §3B 不强制挂反馈；但自动跑酷里跳跃是唯一主动操作，移动端无听感确认会觉得「按了没反应」，
+	# qa/ios-safari-checklist.md C8 的音频手势解锁项也以此为锚）。
+	Juice.sfx(&"jump", -6.0)
+
+
 func _on_score_changed(_score: int) -> void:
 	_refresh_hud()
 
@@ -129,14 +142,17 @@ func _on_player_died(_cause: String) -> void:
 
 
 func _on_level_hazard_hit(_kind: String) -> void:
+	# 撞刺的冲击音（noise 短促）与坠坑的失败下坠音（saw 下滑）区分 —— 两种死因反馈可分辨。
+	Juice.sfx(&"hit")
 	GameState.register_loss()
 
 
 func _on_dart_collected(dart: Dart) -> void:
 	# 生效分值：URL ?tuning= 可覆盖（game_state.gd TUNING_META 钳制），未调参时等于 DART_SCORE。
 	GameState.add_score(GameState.dart_score_value())
+	_darts_this_run += 1
 	dart.collect()
-	# §3B 结果反馈：HUD 分数弹跳 + 得分音效（音效资产后补，SFX_BANK 注册即出声）。
+	# §3B 结果反馈：HUD 分数弹跳 + 得分音效（assets/sfx/score.wav，SFX_BANK 已注册）。
 	Juice.pop(hud_label)
 	Juice.sfx(&"score")
 
@@ -148,7 +164,9 @@ func _on_goal_reached() -> void:
 func _on_game_won(final_score: int) -> void:
 	player.freeze()
 	_start_shake(SHAKE_FRAMES_WIN)
-	state_label.text = "胜利！坚持跑到底 · 本局 %d 分\n按 R / 回车 重开一局" % final_score
+	state_label.text = "胜利！坚持跑到底 · 飞镖 %d/%d 枚 · 本局 %d 分\n按 R / 回车 重开一局" % [
+		_darts_this_run, level.darts.size(), final_score,
+	]
 	state_label.visible = true
 	# §3B 结果反馈：结算弹层弹跳 + 确认音效（过关 = 确认类结果）。
 	Juice.pop(state_label)
@@ -158,7 +176,10 @@ func _on_game_won(final_score: int) -> void:
 func _on_game_lost(final_score: int) -> void:
 	player.freeze()
 	_start_shake(SHAKE_FRAMES_LOSS)
-	state_label.text = "失败…本局收集飞镖 %d 枚\n按 R / 回车 重开一局" % final_score
+	# 枚数用真实计数（分数 ≠ 枚数，见 _darts_this_run 注释），分数单列 —— 调参改分值不失真。
+	state_label.text = "失败…本局收集飞镖 %d 枚 · %d 分\n按 R / 回车 重开一局" % [
+		_darts_this_run, final_score,
+	]
 	state_label.visible = true
 	# §3B 结果反馈：结算弹层闪红 + 失败音效（震屏仍由上方 _start_shake 驱动，冒烟断言依赖）。
 	Juice.flash(state_label, Color(1.0, 0.35, 0.3, 0.85))

@@ -27,6 +27,8 @@ extends Node
 ##  13. 反馈总线（§3B / playtest 协议）：autoload Juice 已注册且带 feedback_fired 信号与
 ##      clear_events；收集与失败两条结果事件后 Juice.events 非空（反馈接线断了 = FAIL）
 ##  14. 重开防误触：奔跑中（PLAYING）按 restart 不重置（进度不丢），结算后（LOST，见第 10 项）才受理
+##  15. 音效资产协议：Juice.SFX_BANK 非空，调用点钉住的名全部注册且为已加载 AudioStream
+##      （注册表被清空 = 真机收集/撞刺/失败/过关全程无声）
 ##
 ## ⚠️ 输入注入全部走 InputEventAction（不与 Input.action_press 混帧，E-08）；
 ##    噪声相位只注入原始事件（Key/Mouse/Touch），不污染动作级断言（模板既有约定）。
@@ -77,6 +79,10 @@ const GROUND_CENTER_Y: float = 200.0 - 13.0  # 站在地面上的玩家中心 y�
 const REQUIRED_ACTIONS: Array[StringName] = [
 	&"move_left", &"move_right", &"move_up", &"move_down", &"confirm", &"jump", &"restart",
 ]
+
+## 音效协议：调用点已钉住的注册名（scripts/main.gd 的 Juice.sfx(...) 调用点；
+## 新增调用点必须同步这里与 Juice.SFX_BANK 各一行）。
+const PINNED_SFX: Array[StringName] = [&"score", &"confirm", &"hit", &"fail", &"jump"]
 
 ## 键位契约：动作 → 键表承诺的物理键，**必须全部绑定**（AND 语义，见模板 E-12 说明）。
 const KEY_CONTRACT: Dictionary = {
@@ -161,6 +167,7 @@ func _ready() -> void:
 			_failures.append("autoload Juice 缺少信号 feedback_fired（机器人试玩的反馈采样锚点）")
 		if not _juice.has_method("clear_events"):
 			_failures.append("autoload Juice 缺少 clear_events（试玩每局清窗 / 冒烟按时间窗断言依赖）")
+		_check_sfx_bank()
 
 	_main = get_node_or_null("Main") as Node2D
 	if _main == null:
@@ -495,7 +502,7 @@ func _assert_juice_fired(context: String) -> void:
 func _report() -> void:
 	_finished = true
 	if _failures.is_empty() and _coyote_checked and _buffer_checked:
-		print("GODOT_SMOKE: PASS 关卡几何/场景实例化/autoload/键位契约/手感契约(v2=12帧)/自动奔跑/跳跃二段跳/土狼跳/跳跃缓冲/收集飞镖+反馈/撞刺失败+震屏/重开复位/跑底过关+留存/冻结停跑/Juice反馈总线/重开防误触 全部通过")
+		print("GODOT_SMOKE: PASS 关卡几何/场景实例化/autoload/键位契约/手感契约(v2=12帧)/自动奔跑/跳跃二段跳/土狼跳/跳跃缓冲/收集飞镖+反馈/撞刺失败+震屏/重开复位/跑底过关+留存/冻结停跑/Juice反馈总线/音效资产协议/重开防误触 全部通过")
 		get_tree().quit(0)
 	else:
 		if not _coyote_checked and _failures.is_empty():
@@ -566,6 +573,32 @@ func _check_feel_contract() -> void:
 		if row[0] != row[1]:
 			_failures.append("手感契约：%s = %d，spec v2 拍板默认为 %d（输入容错窗口回退 = 真机「按了没反应」缺陷回归）" % [
 				row[2], row[0], row[1]])
+
+
+## A3. 音效资产协议（§3B「调用点先钉、资产后补」的闭环断言）：
+## 调用点钉住的名必须在 Juice.SFX_BANK 注册且指向已加载的 AudioStream。
+## 注册表被清空/改名 = 收集、撞刺、失败、过关在真机全程无声（headless 不断言「出声」，
+## 只断言「注册表接线完整」—— 声音是否真放出来归真机口径 qa/ios-safari-checklist.md）。
+func _check_sfx_bank() -> void:
+	var script: Script = _juice.get_script()
+	if script == null:
+		_failures.append("autoload Juice 没有挂脚本：SFX_BANK 注册表无从核对")
+		return
+	var constants: Dictionary = script.get_script_constant_map()
+	if not constants.has("SFX_BANK") or not (constants["SFX_BANK"] is Dictionary):
+		_failures.append("autoload Juice 缺少 SFX_BANK 注册表（音效协议面缺失）")
+		return
+	var bank: Dictionary = constants["SFX_BANK"]
+	if bank.is_empty():
+		_failures.append("音效资产协议：Juice.SFX_BANK 为空 —— 调用点已钉但资产未注册，" +
+			"收集/撞刺/失败/过关在真机全程无声（§3B「资产后补」步骤未完成，跑 tools/gen_sfx.gd 后注册）")
+		return
+	for key: StringName in PINNED_SFX:
+		if not bank.has(key):
+			_failures.append("音效资产协议：调用点 &\"%s\" 未在 Juice.SFX_BANK 注册（该结果事件真机无声）" % key)
+		elif not (bank[key] is AudioStream):
+			_failures.append("音效资产协议：SFX_BANK[&\"%s\"] 不是 AudioStream（实际 %s）—— assets/sfx/ 资产缺失或未导入" % [
+				key, type_string(typeof(bank[key]))])
 
 
 ## 键码 → 可读键名（附数值，未映射键名会打印成私有区字形）。

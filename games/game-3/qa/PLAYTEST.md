@@ -89,7 +89,7 @@ bash games/game-3/verify.sh
 
 | 交付物 | 内容 |
 |---|---|
-| `autoload/juice.gd`（新增） | 模板反馈单例：`feedback_fired` 信号 + `events` 环形记录 + `pop/flash/shake/hit_stop/sfx` API；`SFX_BANK` 留空 = 调用点先钉、音效资产后补（`&"score"/&"fail"/&"confirm"` 三处调用点已落） |
+| `autoload/juice.gd`（新增） | 模板反馈单例：`feedback_fired` 信号 + `events` 环形记录 + `pop/flash/shake/hit_stop/sfx` API；`SFX_BANK` 调用点先钉（接入时留空，**2026-10-02 资产后补**：`&"score"/&"confirm"/&"hit"/&"fail"/&"jump"` 五名已注册到程序化合成 wav，见 §十二） |
 | `project.godot` | `[autoload]` 注册 `Juice`（模板固定接线项） |
 | `scripts/main.gd` | 四类结果事件挂反馈：收集 → HUD 弹跳+score 音效；失败 → 结算弹层闪红+fail 音效（震屏仍由原 `_start_shake` 驱动，冒烟断言依赖）；胜利 → 弹层弹跳+confirm 音效；重开受理 → confirm 音效 |
 | `tests/playtest.json`（新增） | 阈值显式钉住（= 内置默认，不放松） |
@@ -98,8 +98,10 @@ bash games/game-3/verify.sh
 
 ## 八、遗留与后续
 
-1. **音效资产**：`SFX_BANK` 留空（headless 全绿 ≠ 有声）。资产后补 = 注册表加行即全局出声；
-   Web 端记得壳页音频手势解锁已具备（`server/src/game-page.ts`）。
+1. **音效资产**：~~`SFX_BANK` 留空（headless 全绿 ≠ 有声）~~ **已补齐（2026-10-02，见 §十二）**：
+   模板配方程序化合成 5 个 wav 落 `assets/sfx/`（含新增 jump 起跳音），`SFX_BANK` 注册即全局出声；
+   headless 只机判「注册表接线完整」（冒烟第 15 组断言），「真机出声」仍按
+   `ios-safari-checklist.md` 的音效项人工核（壳页音频手势解锁已具备，`server/src/game-page.ts`）。
 2. **重玩性方差**：`seed_outcomes_min_distinct` 暂为 1（只记录）。当前三局结果签名已互异
    （fb=24/25/28）；若策划案定稿「每局赛道随机化」类 replayHooks，把该阈值设 2 硬判。
 3. **调参联动**：playtest 的 METRICS 行是调参轮的机判底座——URL `?tuning=` 改手感参数后
@@ -188,3 +190,44 @@ max_gap 3.00→5.88s 以内、fb 密度略降 —— 窗口放宽后 bot 的确�
 ≥2 条）内且有余量，`GODOT_PLAYTEST: PASS` 无回归。冒烟侧新增 `_check_feel_contract()`
 手感契约断言（两常量 ≠12 即 FAIL），负例探针（退回 6 → smoke FAIL 逐字命中该断言 →
 恢复 12 → PASS）见 spec-numeric-verification §九。
+
+## 十二、音效资产补齐（2026-10-02 · 实现节点）
+
+§八遗留第 1 项闭环 + iOS 清单 C8 的前提补齐：模板 §3B「调用点先钉、资产后补」的后半步落地。
+资产走模板自带生成器（SKILL.md §7B 程序化合成，确定种子可复现），不引入外部素材：
+
+- `tools/gen_sfx.gd` + `tests/sfx-recipes.json`（随模板复制，含 `.uid`）→
+  `godot --headless --path . -s res://tools/gen_sfx.gd` 生成 `assets/sfx/` 五个 wav
+  （score / confirm / hit / fail + jump，16-bit PCM mono 22050Hz，`.import` 已入库；
+  模板四音效之外新增 jump 配方，见下）。
+- `autoload/juice.gd`：`SFX_BANK` 注册五名，原三处调用点零改动。
+- `scripts/main.gd`：
+  - 撞刺补 `&"hit"` 冲击音（与坠坑 `&"fail"` 下滑音区分死因）；
+  - 订阅 `player.jumped` 播 `&"jump"`（-6dB 轻量起跳音）：跳跃是本作唯一主动操作，
+    「点按 → 立即有声音」是输入被受理的即时听感反馈，也是 `ios-safari-checklist.md` C8
+    （首次手势解锁应听到起跳音效）此前无法通过的原因 —— 该清单项写了起跳音效，工程里却没有；
+  - 结算文案口径修正：枚数用真实计数 `_darts_this_run`、分数单列（URL `?tuning=` 可把每枚
+    飞镖调成 1~10 分，旧文案拿分数冒充「枚」在调参后失真）。
+- `tests/smoke.gd`：新增第 15 组「音效资产协议」断言 —— `SFX_BANK` 非空、五个调用名全部
+  注册且为已加载 `AudioStream`。headless 判不了「出声」，判「注册表接线完整」；
+  真机出声仍归 `ios-safari-checklist.md`。
+- `export/web/`：Web 产物重导出（index.pck 2557728 → 2604656 字节，含五个 wav；
+  index.wasm/js 无变化）—— 部署输入即仓库内该目录，不重导出 = 线上无声。
+
+**负例探针（断言「拦得住」）**：临时把 `SFX_BANK` 清空 → smoke 立即
+`FAIL 音效资产协议：Juice.SFX_BANK 为空 —— 调用点已钉但资产未注册…`；恢复注册表 → 复绿。
+
+**门禁复跑（判定器与阈值零改动）**：
+
+| 步骤 | 结果 |
+|---|---|
+| preflight（13 类） | PASS（70 文件） |
+| smoke（240 帧） | PASS（15 组断言，含新增「音效资产协议」，无脚本错误） |
+| input-fuzz | PASS（seed=20260913，batches=6，239 帧） |
+| playtest（1200 帧/局） | PASS：fb=56/59/53，first=2.80/2.67/2.92s，gap≤1.35s，score=0/0/0 |
+
+与 §十一 存档（fb=23/23/20，gap≤5.88s）对照：**反馈密度翻倍、最长无反馈窗口 5.88s → 1.35s**
+—— 起跳音把「移动类输入」也纳入了反馈事件流，节奏指标全面改善（仍在同一阈值内，无回归）；
+score=0 为随机 bot 技术上限（§四已述，收集机制由冒烟断言 8 单独证明）。
+`.myrd/routines.yaml` 顺带修正陈旧默认 `gamePath: games/godot-coin-rush`（该路径在本仓不存在）
+→ `games/game-3`，消除「不带 preHookParams 的例行运行静默测不存在的工程」的隐患（判定器未动）。
