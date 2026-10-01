@@ -1,0 +1,159 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
+[ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="3_joystick"]
+[ext_resource type="Script" path="res://scripts/touch_action_button.gd" id="4_touch_action"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_action"]
+radius = 34.0
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(280, 180)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HudLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 784.0
+offset_bottom = 40.0
+theme_override_font_sizes/font_size = 15
+text = "WASD / 方向键移动 · Z 撤销 · R 重开 · N/P 换关"
+
+[node name="WinOverlay" type="CanvasLayer" parent="."]
+unique_name_in_owner = true
+layer = 5
+visible = false
+
+[node name="Dim" type="ColorRect" parent="WinOverlay"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.55)
+
+[node name="WinLabel" type="Label" parent="WinOverlay"]
+unique_name_in_owner = true
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -64.0
+offset_right = 300.0
+offset_bottom = 64.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 26
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "通关！"
+
+[node name="TouchUI" type="CanvasLayer" parent="."]
+layer = 10
+visible = false
+
+[node name="JoystickAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -160.0
+offset_right = 160.0
+offset_bottom = -24.0
+grow_vertical = 0
+script = ExtResource("3_joystick")
+
+[node name="UndoAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -320.0
+offset_top = -128.0
+offset_right = -240.0
+offset_bottom = -48.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="UndoButton" type="TouchScreenButton" parent="TouchUI/UndoAnchor"]
+position = Vector2(40, 40)
+shape = SubResource("CircleShape2D_action")
+emit_action = &"undo"
+script = ExtResource("4_touch_action")
+
+[node name="Label" type="Label" parent="TouchUI/UndoAnchor/UndoButton"]
+offset_left = -34.0
+offset_top = -12.0
+offset_right = 34.0
+offset_bottom = 12.0
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "撤销"
+
+[node name="RestartAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -220.0
+offset_top = -128.0
+offset_right = -140.0
+offset_bottom = -48.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="RestartButton" type="TouchScreenButton" parent="TouchUI/RestartAnchor"]
+position = Vector2(40, 40)
+shape = SubResource("CircleShape2D_action")
+emit_action = &"restart"
+script = ExtResource("4_touch_action")
+
+[node name="Label" type="Label" parent="TouchUI/RestartAnchor/RestartButton"]
+offset_left = -34.0
+offset_top = -12.0
+offset_right = 34.0
+offset_bottom = 12.0
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "重开"
+
+[node name="NextAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -128.0
+offset_right = -40.0
+offset_bottom = -48.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="NextButton" type="TouchScreenButton" parent="TouchUI/NextAnchor"]
+position = Vector2(40, 40)
+shape = SubResource("CircleShape2D_action")
+emit_action = &"next_level"
+script = ExtResource("4_touch_action")
+
+[node name="Label" type="Label" parent="TouchUI/NextAnchor/NextButton"]
+offset_left = -34.0
+offset_top = -12.0
+offset_right = 34.0
+offset_bottom = 12.0
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "下一关"
