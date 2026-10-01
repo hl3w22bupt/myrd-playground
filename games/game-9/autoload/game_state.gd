@@ -19,12 +19,16 @@ signal steps_changed(steps: int)
 signal lit_changed(lit_count: int, total: int)
 ## 本关通关（最后一个接线槽点亮）。
 signal level_won(level_index: int, steps: int)
+## 死锁状态变化：true = 本关已无通关路径（方块被顶进角），UI 据此给失败反馈。
+signal deadlock_changed(deadlocked: bool)
 
 # ── 调参区（与策划案 spec.numeric 对应，改数值先改 spec 再同步这里）──
 ## numeric.grid.cellSizePx：单格边长（像素）。
 const CELL_SIZE_PX: int = 48
 ## numeric.grid.moveAnimMs：角色一步的移动动画时长。
 const MOVE_ANIM_MS: int = 110
+## numeric.grid.pushAnimMs：方块被推动一步的移动动画时长（与角色同节奏，推起来不脱节）。
+const PUSH_ANIM_MS: int = 110
 ## numeric.input.keyRepeatIntervalMs：长按方向的重复步进间隔。
 const KEY_REPEAT_INTERVAL_MS: int = 150
 ## numeric.undo.historyLimit：撤销历史上限（单步撤销，scope=single-step）。
@@ -40,6 +44,11 @@ var level_index: int = 0
 var steps: int = 0
 ## 本关是否已通关（通关后移动停住，Undo / Restart / 换关可离开该状态）。
 var won: bool = false
+## 本关是否已死锁（无可通关路径）；Undo / Restart / 换关会重新评估。
+var deadlocked: bool = false
+## 各关最佳（最少）步数记录：level_index -> steps。通关时写入，用于结算评级与 HUD 展示
+## （spec.content.replayHooks：最优步数挑战 / 步数评级）。
+var best_steps: Dictionary = {}
 ## 棋盘（纯逻辑，见 scripts/sokoban_board.gd）。
 var board: SokobanBoard = SokobanBoard.new()
 
@@ -61,6 +70,7 @@ func load_level(index: int) -> void:
 	steps = 0
 	won = false
 	_history = []
+	_set_deadlocked(board.is_deadlocked())
 	level_loaded.emit(level_index)
 	lit_changed.emit(board.lit_count(), board.target_count())
 	steps_changed.emit(steps)
@@ -87,6 +97,7 @@ func undo() -> bool:
 	board.restore(snapshot)
 	steps = snapshot["steps"]
 	won = snapshot["won"]
+	_set_deadlocked(board.is_deadlocked())
 	steps_changed.emit(steps)
 	lit_changed.emit(board.lit_count(), board.target_count())
 	board_changed.emit(true)
@@ -111,7 +122,44 @@ func try_move(dir: Vector2i) -> bool:
 	board_changed.emit(false)
 	if board.lit_count() != int(snapshot["lit"].size()):
 		lit_changed.emit(board.lit_count(), board.target_count())
+	_set_deadlocked(board.is_deadlocked())
 	if board.is_solved():
 		won = true
+		_record_best_steps()
 		level_won.emit(level_index, steps)
 	return true
+
+
+## 本关目标步数（spec.numeric.difficulty.parMoves）。
+func level_par() -> int:
+	return int(level_meta()["par_moves"])
+
+
+## 步数评级（spec.content.replayHooks：≤par ⚡⚡⚡，≤par×1.5 ⚡⚡，其余 ⚡）。
+func rating_for(steps_value: int, par: int) -> String:
+	if steps_value <= par:
+		return "⚡⚡⚡"
+	if steps_value <= int(ceil(par * 1.5)):
+		return "⚡⚡"
+	return "⚡"
+
+
+## 已通关关卡的最佳步数（未通关返回 -1）。
+func best_steps_at(level: int) -> int:
+	if best_steps.has(level):
+		return int(best_steps[level])
+	return -1
+
+
+func _record_best_steps() -> void:
+	var previous: int = best_steps_at(level_index)
+	if previous < 0 or steps < previous:
+		best_steps[level_index] = steps
+
+
+## 死锁状态收口：只在变化时发信号，UI 侧不用每步轮询。
+func _set_deadlocked(value: bool) -> void:
+	if deadlocked == value:
+		return
+	deadlocked = value
+	deadlock_changed.emit(deadlocked)

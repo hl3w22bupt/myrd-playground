@@ -11,7 +11,7 @@ extends RefCounted
 ##   - 目标格是方块 → 方块前方是墙或另一方块 → 本次移动无效、双方均不位移；
 ##   - 方块只能推不能拉（block.pullable=false），推动同步移动 1 格（pushDistanceCells=1）；
 ##   - 方块进入接线槽（点亮目标格）该格立即点亮且保持常亮（lightOnEnterMs=0、onceLitStaysLit=true）；
-##   - 全部接线槽点亮 = 通关（is_solved）。
+##   - 全部接线槽都有方块驻留 = 通关（is_solved，与求解器/spec parMoves 同口径）。
 
 const CHAR_WALL: String = "#"
 const CHAR_FLOOR: String = "."
@@ -92,13 +92,47 @@ func lit_count() -> int:
 	return lit.size()
 
 
-## 通关判定：全部接线槽都已点亮（点亮后不熄灭，方块离开也不影响）。
+## 通关判定：全部接线槽都有方块驻留（合闸完成）。
+##
+## 判据口径必须与策划案 AC4 / parMoves 的求解器（tools/level_solver.py）一致：
+## 「每关存在一条把所有方块推上接线槽的通关路径」，最优步数以驻留口径计。
+## 点亮（lit）是入场即常亮的视觉记忆（onceLitStaysLit），方块被推离后该槽依然亮着，
+## 但不参与通关判定 —— 否则最优路径中途「全部点亮过一次」就会被误判通关提前停走
+## （level-05 见证解第 35 步即触发，冒烟回放断言实测拦下）。
 func is_solved() -> bool:
-	return target_count() > 0 and lit_count() == target_count()
+	if targets.is_empty():
+		return false
+	for cell: Variant in targets:
+		if not boxes.has(cell):
+			return false
+	return true
 
 
 func is_lit(cell: Vector2i) -> bool:
 	return lit.has(cell)
+
+
+## 角死锁判定（单格）：该格上的方块被两面正交的不可通行格夹住且不在接线槽上。
+##
+## 可靠性论证（无假阳性，冒烟负例断言依赖它）：推箱子的唯一失败态是「局面已不可通关」，
+## 这里只判可证明无解的情形 —— 方块要被推动，玩家必须站在推方向的另一侧、且目标格可通行；
+## 若方块上/下任一侧与左/右任一侧都不可通行（角），则上下两个推方向的目标格是墙、
+## 左右两个推方向的发力位是墙，四个方向全部不可能，方块永远无法再动。
+## 不在槽上的角死锁方块 ⇒ 本关再无通关路径。
+func is_deadlocked_cell(cell: Vector2i) -> bool:
+	if not boxes.has(cell) or targets.has(cell):
+		return false
+	var vertical_blocked := not is_playable(cell + Vector2i.UP) or not is_playable(cell + Vector2i.DOWN)
+	var horizontal_blocked := not is_playable(cell + Vector2i.LEFT) or not is_playable(cell + Vector2i.RIGHT)
+	return vertical_blocked and horizontal_blocked
+
+
+## 本局是否已死锁：存在一个不在接线槽上的角死锁方块（AC 口径的「失败反馈」依据）。
+func is_deadlocked() -> bool:
+	for cell: Variant in boxes:
+		if is_deadlocked_cell(cell):
+			return true
+	return false
 
 
 ## 尝试向 dir 移动 1 格。返回 true = 本次移动生效（含推动）。

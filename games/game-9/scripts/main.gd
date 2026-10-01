@@ -41,6 +41,8 @@ func _ready() -> void:
 		GameState.level_won.connect(_on_level_won)
 	if not GameState.board_changed.is_connected(_on_board_changed):
 		GameState.board_changed.connect(_on_board_changed)
+	if not GameState.deadlock_changed.is_connected(_on_deadlock_changed):
+		GameState.deadlock_changed.connect(_on_deadlock_changed)
 	GameState.load_level(0)
 	_update_hud()
 
@@ -51,7 +53,10 @@ func _process(delta: float) -> void:
 	_win_countdown -= delta
 	if _win_countdown <= 0.0:
 		_win_countdown = -1.0
-		win_label.text = "%s\n本关步数：%d" % [WIN_HINT, _win_steps]
+		var par: int = GameState.level_par()
+		win_label.text = "%s\n本关步数：%d（目标步数 %d · 评级 %s）" % [
+			WIN_HINT, _win_steps, par, GameState.rating_for(_win_steps, par),
+		]
 		win_overlay.visible = true
 
 
@@ -102,11 +107,24 @@ func _on_level_won(_level_index: int, steps: int) -> void:
 
 func _update_hud() -> void:
 	var meta := GameState.level_meta()
-	hud_label.text = "%s · %s · 步数 %d · 点亮 %d/%d" % [
+	var par: int = GameState.level_par()
+	var text: String = "%s · %s · 步数 %d · 目标步数 %d · 点亮 %d/%d" % [
 		_move_hint,
 		meta["name"],
 		GameState.steps,
+		par,
 		GameState.board.lit_count(),
 		GameState.board.target_count(),
 	]
+	var best: int = GameState.best_steps_at(GameState.level_index)
+	if best >= 0:
+		text += " · 最佳 %d" % best
+	if GameState.deadlocked:
+		# 失败反馈：推箱子的失败态 = 方块被顶进角、本关再无通关路径。
+		text += " ｜ ⚠ 方块卡死，本关已不可通关：按 R 重开（或 Z 撤销）"
+	hud_label.text = text
+
+
+func _on_deadlock_changed(_deadlocked: bool) -> void:
+	_update_hud()
 

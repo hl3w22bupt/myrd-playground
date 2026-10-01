@@ -1,0 +1,788 @@
+{
+  "acceptance": [
+    {
+      "check": "tests/contract/ac1-push-rules.spec.ts",
+      "id": "ac1",
+      "statement": "推动生效：角色朝相邻格移动时，若该格为蓄能方块，则角色与方块各同步移动 1 格；若方块前方是墙体或另一方块，则本次移动无效、角色不位移；方块不可被拉动（numeric.block.pullable=false）。须覆盖 level-01 至 level-05 全部方向与边界情形。"
+    },
+    {
+      "check": "tests/contract/ac2-light-and-win.spec.ts",
+      "id": "ac2",
+      "statement": "点亮与通关判定：方块进入接线槽的同一帧（numeric.target.lightOnEnterMs=0）该格立即渲染为点亮态，且一旦点亮不再熄灭（onceLitStaysLit=true）；最后一个接线槽点亮后，通关弹窗须在 ≤1000ms（设计值 300ms，numeric.win.overlayDelayMs）内出现并展示本关步数。"
+    },
+    {
+      "check": "tests/contract/ac3-undo-restart.spec.ts",
+      "id": "ac3",
+      "statement": "撤销与重开：任意局面执行 Undo 精确回退 1 步，角色位置、方块位置、点亮状态、步数四项同步还原（历史上限 1000 步）；执行 Restart 完整恢复本关初始布局（levels.elements 定义的初始坐标）并清空步数与撤销历史。"
+    },
+    {
+      "check": "tests/contract/ac4-level-solvable.spec.mjs",
+      "id": "ac4",
+      "statement": "关卡可解性：内置 5 关（numeric content.levelCount=5），网格布局、方块与接线槽坐标以 levels[].elements 为准；每关经推箱求解器（tools/level-solver.mjs，BFS）验证存在至少一条通关路径，最优步数等于 numeric.difficulty.parMoves 记录值；难度单调递增（方块数 1→2→3→4→5，par 逐步上升），不存在不可通关关卡。"
+    },
+    {
+      "check": "tests/contract/ac5-compat-perf.spec.ts",
+      "id": "ac5",
+      "statement": "兼容与响应：Chrome / Safari / Edge 最新版与移动端触屏（滑动阈值 numeric.input.touchSwipeThresholdPx=24）均可完成移动、推动、撤销、重开与关卡选择；键盘支持方向键与 WASD；单次操作界面响应延迟 <200ms（numeric.perf.maxInputResponseMs=200）。"
+    }
+  ],
+  "assets": [
+    {
+      "file": "assets/tileset-base.png",
+      "generator": "程序化像素绘制（48px 格：墙/地面/接线槽/蓄能方块/角色，8px 像素对齐）",
+      "id": "tileset-base",
+      "kind": "image",
+      "source": "generated"
+    },
+    {
+      "file": "assets/bg-machine-room.png",
+      "generator": "程序化暗色渐变 + 网格纹理背景",
+      "id": "bg-machine-room",
+      "kind": "image",
+      "source": "generated"
+    },
+    {
+      "file": "assets/sfx-step.ogg",
+      "generator": "WebAudio 合成（短促方波脚步声）",
+      "id": "sfx-step",
+      "kind": "audio",
+      "source": "generated"
+    },
+    {
+      "file": "assets/sfx-push.ogg",
+      "generator": "WebAudio 合成（低频推移摩擦声）",
+      "id": "sfx-push",
+      "kind": "audio",
+      "source": "generated"
+    },
+    {
+      "file": "assets/sfx-light-on.ogg",
+      "generator": "WebAudio 合成（上行三连音合闸声）",
+      "id": "sfx-light-on",
+      "kind": "audio",
+      "source": "generated"
+    },
+    {
+      "file": "assets/sfx-win.ogg",
+      "generator": "WebAudio 合成（通关和弦）",
+      "id": "sfx-win",
+      "kind": "audio",
+      "source": "generated"
+    },
+    {
+      "file": "assets/fonts/ui.woff2",
+      "id": "font-ui",
+      "kind": "font",
+      "license": "SIL OFL 1.1（Noto Sans SC 子集化）",
+      "source": "licensed"
+    }
+  ],
+  "content": {
+    "levelCount": 5,
+    "replayHooks": [
+      "最优步数挑战：追平或低于各关 parMoves（见 numeric.difficulty.parMoves）",
+      "无撤销通关：单关全程不使用 Undo，点亮「稳手电工」徽章",
+      "步数评级：≤par 为 ⚡⚡⚡，≤par×1.5 为 ⚡⚡，其余 ⚡"
+    ],
+    "sessionSeconds": 600,
+    "unlocks": [
+      {
+        "id": "level-01",
+        "name": "01 · 通电初试（默认解锁）"
+      },
+      {
+        "id": "level-02",
+        "name": "02 · 绕后接线（通关 level-01 解锁）"
+      },
+      {
+        "id": "level-03",
+        "name": "03 · 双轴调度（通关 level-02 解锁）"
+      },
+      {
+        "id": "level-04",
+        "name": "04 · 四路合闸（通关 level-03 解锁）"
+      },
+      {
+        "id": "level-05",
+        "name": "05 · 总控机房（通关 level-04 解锁）"
+      },
+      {
+        "id": "badge-all-par",
+        "name": "满电勋章：全部关卡以 par 步数通关"
+      }
+    ]
+  },
+  "entities": [
+    {
+      "id": "player",
+      "name": "值班电工·小安",
+      "scene": "src/scenes/GameScene.ts",
+      "script": "src/entities/Player.ts",
+      "tags": [
+        "controllable",
+        "grid-movable"
+      ]
+    },
+    {
+      "id": "wall",
+      "name": "墙体",
+      "scene": "src/scenes/GameScene.ts",
+      "script": "src/entities/Wall.ts",
+      "tags": [
+        "blocking",
+        "static"
+      ]
+    },
+    {
+      "id": "floor",
+      "name": "地面",
+      "scene": "src/scenes/GameScene.ts",
+      "script": "src/entities/Floor.ts",
+      "tags": [
+        "walkable",
+        "static"
+      ]
+    },
+    {
+      "id": "block",
+      "name": "蓄能方块",
+      "scene": "src/scenes/GameScene.ts",
+      "script": "src/entities/Block.ts",
+      "tags": [
+        "pushable",
+        "blocking"
+      ]
+    },
+    {
+      "id": "target",
+      "name": "接线槽（点亮格）",
+      "scene": "src/scenes/GameScene.ts",
+      "script": "src/entities/Target.ts",
+      "tags": [
+        "goal",
+        "light-source"
+      ]
+    },
+    {
+      "id": "hud",
+      "name": "步数与操作面板（步数 / Undo / Restart / 关卡选择）",
+      "scene": "src/scenes/GameScene.ts",
+      "script": "src/ui/Hud.ts",
+      "tags": [
+        "ui",
+        "steps",
+        "undo",
+        "restart",
+        "level-select"
+      ]
+    }
+  ],
+  "levels": [
+    {
+      "elements": [
+        {
+          "h": 3,
+          "id": "l1-floor",
+          "ref": "floor",
+          "w": 5,
+          "x": 1,
+          "y": 1
+        },
+        {
+          "h": 1,
+          "id": "l1-wall-top",
+          "ref": "wall",
+          "w": 7,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "h": 1,
+          "id": "l1-wall-bottom",
+          "ref": "wall",
+          "w": 7,
+          "x": 0,
+          "y": 4
+        },
+        {
+          "h": 3,
+          "id": "l1-wall-left",
+          "ref": "wall",
+          "w": 1,
+          "x": 0,
+          "y": 1
+        },
+        {
+          "h": 3,
+          "id": "l1-wall-right",
+          "ref": "wall",
+          "w": 1,
+          "x": 6,
+          "y": 1
+        },
+        {
+          "id": "l1-player",
+          "ref": "player",
+          "x": 2,
+          "y": 2
+        },
+        {
+          "id": "l1-block-a",
+          "ref": "block",
+          "x": 3,
+          "y": 2
+        },
+        {
+          "id": "l1-target-a",
+          "ref": "target",
+          "x": 5,
+          "y": 2
+        }
+      ],
+      "goal": "胜利条件：把全部 1 个蓄能方块推上接线槽，全部点亮即通关（方块只能推不能拉，推入墙体或另一方块则该次移动无效、角色不位移）。最后一块点亮后 ≤1000ms（设计值 300ms）内弹出通关提示并显示本关步数。网格 7×5，求解器已验证可通，参考最优 2 步；Undo 单步回退、Restart 复位初始布局。布局（# 墙 . 地面 $ 蓄能方块 + 接线槽 @ 玩家）：\n#######\n#.....#\n#.@$.+#\n#.....#\n#######",
+      "id": "level-01",
+      "name": "01 · 通电初试"
+    },
+    {
+      "elements": [
+        {
+          "h": 5,
+          "id": "l2-floor",
+          "ref": "floor",
+          "w": 6,
+          "x": 1,
+          "y": 1
+        },
+        {
+          "h": 1,
+          "id": "l2-wall-top",
+          "ref": "wall",
+          "w": 8,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "h": 1,
+          "id": "l2-wall-bottom",
+          "ref": "wall",
+          "w": 8,
+          "x": 0,
+          "y": 6
+        },
+        {
+          "h": 5,
+          "id": "l2-wall-left",
+          "ref": "wall",
+          "w": 1,
+          "x": 0,
+          "y": 1
+        },
+        {
+          "h": 5,
+          "id": "l2-wall-right",
+          "ref": "wall",
+          "w": 1,
+          "x": 7,
+          "y": 1
+        },
+        {
+          "id": "l2-player",
+          "ref": "player",
+          "x": 2,
+          "y": 2
+        },
+        {
+          "id": "l2-block-a",
+          "ref": "block",
+          "x": 2,
+          "y": 4
+        },
+        {
+          "id": "l2-block-b",
+          "ref": "block",
+          "x": 3,
+          "y": 2
+        },
+        {
+          "id": "l2-target-a",
+          "ref": "target",
+          "x": 5,
+          "y": 2
+        },
+        {
+          "id": "l2-target-b",
+          "ref": "target",
+          "x": 5,
+          "y": 4
+        }
+      ],
+      "goal": "胜利条件：把全部 2 个蓄能方块推上接线槽，全部点亮即通关（方块只能推不能拉，推入墙体或另一方块则该次移动无效、角色不位移）。最后一块点亮后 ≤1000ms（设计值 300ms）内弹出通关提示并显示本关步数。网格 8×7，求解器已验证可通，参考最优 10 步；Undo 单步回退、Restart 复位初始布局。布局（# 墙 . 地面 $ 蓄能方块 + 接线槽 @ 玩家）：\n########\n#......#\n#.@$.+.#\n#......#\n#.$..+.#\n#......#\n########",
+      "id": "level-02",
+      "name": "02 · 绕后接线"
+    },
+    {
+      "elements": [
+        {
+          "h": 8,
+          "id": "l3-floor",
+          "ref": "floor",
+          "w": 8,
+          "x": 1,
+          "y": 1
+        },
+        {
+          "h": 1,
+          "id": "l3-wall-top",
+          "ref": "wall",
+          "w": 10,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "h": 1,
+          "id": "l3-wall-bottom",
+          "ref": "wall",
+          "w": 10,
+          "x": 0,
+          "y": 9
+        },
+        {
+          "h": 8,
+          "id": "l3-wall-left",
+          "ref": "wall",
+          "w": 1,
+          "x": 0,
+          "y": 1
+        },
+        {
+          "h": 8,
+          "id": "l3-wall-right",
+          "ref": "wall",
+          "w": 1,
+          "x": 9,
+          "y": 1
+        },
+        {
+          "id": "l3-player",
+          "ref": "player",
+          "x": 2,
+          "y": 2
+        },
+        {
+          "id": "l3-block-a",
+          "ref": "block",
+          "x": 3,
+          "y": 2
+        },
+        {
+          "id": "l3-block-b",
+          "ref": "block",
+          "x": 4,
+          "y": 3
+        },
+        {
+          "id": "l3-block-c",
+          "ref": "block",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "id": "l3-target-a",
+          "ref": "target",
+          "x": 3,
+          "y": 8
+        },
+        {
+          "id": "l3-target-b",
+          "ref": "target",
+          "x": 4,
+          "y": 4
+        },
+        {
+          "id": "l3-target-c",
+          "ref": "target",
+          "x": 6,
+          "y": 3
+        }
+      ],
+      "goal": "胜利条件：把全部 3 个蓄能方块推上接线槽，全部点亮即通关（方块只能推不能拉，推入墙体或另一方块则该次移动无效、角色不位移）。最后一块点亮后 ≤1000ms（设计值 300ms）内弹出通关提示并显示本关步数。网格 10×10，求解器已验证可通，参考最优 18 步；Undo 单步回退、Restart 复位初始布局。布局（# 墙 . 地面 $ 蓄能方块 + 接线槽 @ 玩家）：\n##########\n#........#\n#.@$.....#\n#...$.+..#\n#...+....#\n#........#\n#.....$..#\n#........#\n#..+.....#\n##########",
+      "id": "level-03",
+      "name": "03 · 双轴调度"
+    },
+    {
+      "elements": [
+        {
+          "h": 8,
+          "id": "l4-floor",
+          "ref": "floor",
+          "w": 8,
+          "x": 1,
+          "y": 1
+        },
+        {
+          "h": 1,
+          "id": "l4-wall-top",
+          "ref": "wall",
+          "w": 10,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "h": 1,
+          "id": "l4-wall-bottom",
+          "ref": "wall",
+          "w": 10,
+          "x": 0,
+          "y": 9
+        },
+        {
+          "h": 8,
+          "id": "l4-wall-left",
+          "ref": "wall",
+          "w": 1,
+          "x": 0,
+          "y": 1
+        },
+        {
+          "h": 8,
+          "id": "l4-wall-right",
+          "ref": "wall",
+          "w": 1,
+          "x": 9,
+          "y": 1
+        },
+        {
+          "h": 1,
+          "id": "l4-wall-inner-1",
+          "ref": "wall",
+          "w": 1,
+          "x": 1,
+          "y": 4
+        },
+        {
+          "h": 1,
+          "id": "l4-wall-inner-2",
+          "ref": "wall",
+          "w": 1,
+          "x": 2,
+          "y": 4
+        },
+        {
+          "h": 1,
+          "id": "l4-wall-inner-3",
+          "ref": "wall",
+          "w": 1,
+          "x": 3,
+          "y": 4
+        },
+        {
+          "h": 1,
+          "id": "l4-wall-inner-4",
+          "ref": "wall",
+          "w": 1,
+          "x": 6,
+          "y": 4
+        },
+        {
+          "h": 1,
+          "id": "l4-wall-inner-5",
+          "ref": "wall",
+          "w": 1,
+          "x": 7,
+          "y": 4
+        },
+        {
+          "h": 1,
+          "id": "l4-wall-inner-6",
+          "ref": "wall",
+          "w": 1,
+          "x": 8,
+          "y": 4
+        },
+        {
+          "id": "l4-player",
+          "ref": "player",
+          "x": 5,
+          "y": 7
+        },
+        {
+          "id": "l4-block-a",
+          "ref": "block",
+          "x": 2,
+          "y": 2
+        },
+        {
+          "id": "l4-block-b",
+          "ref": "block",
+          "x": 3,
+          "y": 6
+        },
+        {
+          "id": "l4-block-c",
+          "ref": "block",
+          "x": 6,
+          "y": 6
+        },
+        {
+          "id": "l4-block-d",
+          "ref": "block",
+          "x": 7,
+          "y": 2
+        },
+        {
+          "id": "l4-target-a",
+          "ref": "target",
+          "x": 2,
+          "y": 8
+        },
+        {
+          "id": "l4-target-b",
+          "ref": "target",
+          "x": 4,
+          "y": 1
+        },
+        {
+          "id": "l4-target-c",
+          "ref": "target",
+          "x": 4,
+          "y": 3
+        },
+        {
+          "id": "l4-target-d",
+          "ref": "target",
+          "x": 7,
+          "y": 8
+        }
+      ],
+      "goal": "胜利条件：把全部 4 个蓄能方块推上接线槽，全部点亮即通关（方块只能推不能拉，推入墙体或另一方块则该次移动无效、角色不位移）。最后一块点亮后 ≤1000ms（设计值 300ms）内弹出通关提示并显示本关步数。网格 10×10，求解器已验证可通，参考最优 40 步；Undo 单步回退、Restart 复位初始布局。布局（# 墙 . 地面 $ 蓄能方块 + 接线槽 @ 玩家）：\n##########\n#...+....#\n#.$....$.#\n#...+....#\n####..####\n#........#\n#..$..$..#\n#....@...#\n#.+....+.#\n##########",
+      "id": "level-04",
+      "name": "04 · 四路合闸"
+    },
+    {
+      "elements": [
+        {
+          "h": 6,
+          "id": "l5-floor",
+          "ref": "floor",
+          "w": 7,
+          "x": 1,
+          "y": 1
+        },
+        {
+          "h": 1,
+          "id": "l5-wall-top",
+          "ref": "wall",
+          "w": 9,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "h": 1,
+          "id": "l5-wall-bottom",
+          "ref": "wall",
+          "w": 9,
+          "x": 0,
+          "y": 7
+        },
+        {
+          "h": 6,
+          "id": "l5-wall-left",
+          "ref": "wall",
+          "w": 1,
+          "x": 0,
+          "y": 1
+        },
+        {
+          "h": 6,
+          "id": "l5-wall-right",
+          "ref": "wall",
+          "w": 1,
+          "x": 8,
+          "y": 1
+        },
+        {
+          "h": 1,
+          "id": "l5-wall-inner-1",
+          "ref": "wall",
+          "w": 1,
+          "x": 3,
+          "y": 5
+        },
+        {
+          "h": 1,
+          "id": "l5-wall-inner-2",
+          "ref": "wall",
+          "w": 1,
+          "x": 4,
+          "y": 4
+        },
+        {
+          "h": 1,
+          "id": "l5-wall-inner-3",
+          "ref": "wall",
+          "w": 1,
+          "x": 5,
+          "y": 5
+        },
+        {
+          "id": "l5-player",
+          "ref": "player",
+          "x": 4,
+          "y": 3
+        },
+        {
+          "id": "l5-block-a",
+          "ref": "block",
+          "x": 2,
+          "y": 2
+        },
+        {
+          "id": "l5-block-b",
+          "ref": "block",
+          "x": 2,
+          "y": 4
+        },
+        {
+          "id": "l5-block-c",
+          "ref": "block",
+          "x": 4,
+          "y": 2
+        },
+        {
+          "id": "l5-block-d",
+          "ref": "block",
+          "x": 6,
+          "y": 2
+        },
+        {
+          "id": "l5-block-e",
+          "ref": "block",
+          "x": 6,
+          "y": 4
+        },
+        {
+          "id": "l5-target-a",
+          "ref": "target",
+          "x": 2,
+          "y": 6
+        },
+        {
+          "id": "l5-target-b",
+          "ref": "target",
+          "x": 3,
+          "y": 6
+        },
+        {
+          "id": "l5-target-c",
+          "ref": "target",
+          "x": 4,
+          "y": 6
+        },
+        {
+          "id": "l5-target-d",
+          "ref": "target",
+          "x": 5,
+          "y": 6
+        },
+        {
+          "id": "l5-target-e",
+          "ref": "target",
+          "x": 6,
+          "y": 6
+        }
+      ],
+      "goal": "胜利条件：把全部 5 个蓄能方块推上接线槽，全部点亮即通关（方块只能推不能拉，推入墙体或另一方块则该次移动无效、角色不位移）。最后一块点亮后 ≤1000ms（设计值 300ms）内弹出通关提示并显示本关步数。网格 9×8，求解器已验证可通，参考最优 58 步；Undo 单步回退、Restart 复位初始布局。布局（# 墙 . 地面 $ 蓄能方块 + 接线槽 @ 玩家）：\n#########\n#.......#\n#.$.$.$.#\n#...@...#\n#.$.#.$.#\n#..#.#..#\n#.+++++.#\n#########",
+      "id": "level-05",
+      "name": "05 · 总控机房"
+    }
+  ],
+  "meta": {
+    "engine": "HTML5 Canvas + TypeScript（Vite 构建，无运行时框架依赖）",
+    "genre": "解谜 / 推箱子（Sokoban-like Grid Puzzle）",
+    "oneLiner": "把蓄能方块推上接线槽，点亮整层机房的网格推箱解谜。",
+    "platform": "Web 浏览器（桌面 Chrome / Safari / Edge 最新版 + 移动端触屏）",
+    "title": "推箱子点亮方块解谜（game-9）"
+  },
+  "numeric": {
+    "block": {
+      "pullable": false,
+      "pushDistanceCells": 1,
+      "pushable": true
+    },
+    "difficulty": {
+      "blockCount": {
+        "level-01": 1,
+        "level-02": 2,
+        "level-03": 3,
+        "level-04": 4,
+        "level-05": 5
+      },
+      "gridSize": {
+        "level-01": "7x5",
+        "level-02": "8x7",
+        "level-03": "10x10",
+        "level-04": "10x10",
+        "level-05": "9x8"
+      },
+      "parMoves": {
+        "level-01": 2,
+        "level-02": 10,
+        "level-03": 18,
+        "level-04": 40,
+        "level-05": 58
+      },
+      "parSource": "BFS 推箱求解器离线验证（2026-10-02），随 levels 元素布局锁定"
+    },
+    "grid": {
+      "cellSizePx": 48,
+      "moveAnimMs": 110,
+      "pushAnimMs": 110
+    },
+    "input": {
+      "keyRepeatIntervalMs": 150,
+      "keyboard": [
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+        "KeyW",
+        "KeyA",
+        "KeyS",
+        "KeyD"
+      ],
+      "touchSwipeThresholdPx": 24
+    },
+    "perf": {
+      "maxInputResponseMs": 200
+    },
+    "player": {
+      "canPullBlocks": false,
+      "moveDistanceCells": 1
+    },
+    "target": {
+      "lightOnEnterMs": 0,
+      "onceLitStaysLit": true
+    },
+    "undo": {
+      "historyLimit": 1000,
+      "scope": "single-step"
+    },
+    "win": {
+      "offersNextLevel": true,
+      "overlayDelayMs": 300,
+      "overlayMaxDelayMs": 1000,
+      "showsStepCount": true
+    }
+  },
+  "world": {
+    "premise": "玩家扮演值班电工「小安」，把散落的蓄能方块推回接线槽：每接通一格，机房亮起一格；全部接线槽合闸即恢复整层供电，开门进入下一层（下一关）。",
+    "setting": "深夜老计算中心「暗灯机房」：大楼突然断电，一层层机房陷入黑暗，只剩应急灯微光。",
+    "terms": {
+      "合闸": "方块进入接线槽触发点亮且保持常亮的状态",
+      "接线槽": "点亮目标格，方块进入即合闸点亮（target）",
+      "步数": "角色每位移一格计 1 步，推动与普通移动同价",
+      "蓄能方块": "可推动、不可拉动的方块（block）"
+    },
+    "tone": "复古像素 + 温暖灯光反馈；安静纯粹的推箱解谜，无计时压力，失败只有重开没有惩罚。"
+  }
+}

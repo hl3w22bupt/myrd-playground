@@ -8,16 +8,23 @@ extends Node
 ##   通过 → stdout 打印 `GODOT_SMOKE: PASS ...`，进程退出码 0
 ##   失败 → stderr 打印 `GODOT_SMOKE: FAIL <原因>`（每条一行），进程退出码 1
 ##
-## 覆盖面（模板五项 + 本玩法验收口径 AC1–AC4，逐条可无头判定）：
+## 覆盖面（模板五项 + 本玩法验收口径 AC1–AC5，逐条可无头判定）：
 ##   1. 场景可实例化（main.tscn → player.tscn / BoardView 接线未断裂）
 ##   2. autoload GameState 已注册且带约定信号；关卡数 ≥ 5（AC4）
 ##   3. InputMap 动作已注册、物理键绑定逐键核对（键位契约），且注入输入后角色真的动了
-##   4. 信号真的到达订阅方（Player.moved / GameState.steps·lit·won）
+##   4. 信号真的到达订阅方（Player.moved / GameState.steps·lit·won·deadlock）
 ##   5. AC1 推动规则：推动双方各进 1 格；顶墙 / 顶方块无效且角色不位移；不可拉动
 ##   6. AC2 点亮与通关：方块入槽同帧点亮且保持常亮；全部点亮即 won，
-##      通关弹层在 ≤1000ms（设计值 300ms）内出现
+##      通关弹层在 ≤1000ms（设计值 300ms）内出现，且结算展示步数与评级
 ##   7. AC3 撤销与重开：Undo 精确回退一步（角色/方块/点亮/步数同步还原），
 ##      Restart 完整恢复初始布局；通关后 confirm 进入下一关
+##   8. AC4 关卡可解性（引擎内机判）：逐关回放 sokoban_levels.gd 落盘的见证解
+##      （tools/level_solver.py --paths 生成），每关必须通关、步数 == par、
+##      回放全程不得误报死锁
+##   9. 死锁判定（失败反馈）：角死锁必报、在槽角不报、开阔局面不报；
+##      真实关卡里把方块顶进角后 deadlock_changed 通知 UI，Undo 可脱离死锁态
+##  10. AC5 响应延迟：移动输入 → 步数/HUD 刷新 ≤ 12 帧（200ms，spec.numeric.perf）
+##  11. 触屏滑动：越过 24px 阈值的一次滑动恰好步进 1 格（touchSwipeThresholdPx）
 ##
 ## ⚠️ 输入注入分阶段、互不重叠（error-signatures E-08）：
 ##   headless 下 `Input.parse_input_event()` 的缓冲冲刷会清掉 `Input.action_press()`
@@ -26,15 +33,26 @@ extends Node
 ## ── 阶段划分 ──
 const PHASE_NOISE: int = 0
 const PHASE_MOVE: int = 1
-const PHASE_LOGIC: int = 2
-const PHASE_WIN_WAIT: int = 3
-const PHASE_NEXT: int = 4
-const PHASE_DONE: int = 5
+const PHASE_SWIPE: int = 2
+const PHASE_LOGIC: int = 3
+const PHASE_WIN_WAIT: int = 4
+const PHASE_NEXT: int = 5
+const PHASE_DONE: int = 6
 
 ## 噪声相位帧数：正式断言前注入确定种子的对抗输入（悬挂手势 / 孤儿释放 / 乱键）。
 const NOISE_FRAMES: int = 30
 ## 阶段一：按住 move_right 让角色步进的帧数。
 const MOVE_FRAMES: int = 12
+## AC5 响应预算：spec.numeric.perf.maxInputResponseMs = 200ms ≈ 60FPS 下 12 帧。
+const RESPONSE_BUDGET_FRAMES: int = 12
+## 阶段二：触屏滑动断言的相位帧数（注入 press → 第 2 帧注入 drag → 等待释放与步进）。
+const SWIPE_FRAMES: int = 12
+## 滑动注入的触点下标：避开噪声相位使用的 0/1，防止互相回收触点。
+const SWIPE_TOUCH_INDEX: int = 7
+## 滑动起点：屏幕中上（远离左下摇杆热区 24..160 × 400..536 与右下按钮排）。
+const SWIPE_START: Vector2 = Vector2(500.0, 280.0)
+## 滑动位移（像素）：> spec.numeric.input.touchSwipeThresholdPx = 24。
+const SWIPE_DRAG_PX: float = 48.0
 ## 通关弹层出现预算：300ms 设计值 + 余量，门禁口径 ≤1000ms ≈ 60 帧。
 const WIN_WAIT_FRAMES: int = 60
 ## 注入 confirm 后等待「进入下一关」生效的帧数。
@@ -70,14 +88,24 @@ var _finished: bool = false
 var _main: Node2D
 var _player: Player
 var _win_overlay: CanvasLayer
+var _touch_ui: CanvasLayer
+var _hud_label: Label
+var _win_label: Label
 var _origin_cell: Vector2i = Vector2i.ZERO
 var _origin_position: Vector2 = Vector2.ZERO
 var _target_level_index: int = 0
+## AC5：动作注入帧 → 首次步进帧（二者差 = 响应延迟帧数）。
+var _press_frame: int = -1
+var _first_step_frame: int = -1
+## 滑动相位计数与起点格。
+var _swipe_frame: int = 0
+var _swipe_origin_cell: Vector2i = Vector2i.ZERO
 
 var _moved_seen: bool = false
 var _steps_seen: bool = false
 var _lit_seen: bool = false
 var _won_seen: bool = false
+var _deadlock_seen: bool = false
 var _noise_rng := RandomNumberGenerator.new()
 
 
@@ -95,7 +123,7 @@ func _ready() -> void:
 	if game_state == null:
 		_failures.append("autoload GameState 未注册（project.godot [autoload] 缺失）")
 	else:
-		for signal_name in ["level_loaded", "board_changed", "steps_changed", "lit_changed", "level_won"]:
+		for signal_name in ["level_loaded", "board_changed", "steps_changed", "lit_changed", "level_won", "deadlock_changed"]:
 			if not game_state.has_signal(signal_name):
 				_failures.append("autoload GameState 缺少信号 %s" % signal_name)
 		if game_state.level_count() < 5:
@@ -103,6 +131,7 @@ func _ready() -> void:
 		game_state.steps_changed.connect(_on_steps_changed)
 		game_state.lit_changed.connect(_on_lit_changed)
 		game_state.level_won.connect(_on_level_won)
+		game_state.deadlock_changed.connect(_on_deadlock_changed)
 
 	_main = get_tree().root.find_child("Main", true, false) as Node2D
 	if _main == null:
@@ -115,6 +144,15 @@ func _ready() -> void:
 	_win_overlay = _main.get_node_or_null("%WinOverlay") as CanvasLayer
 	if _win_overlay == null:
 		_failures.append("Main 缺少 %%WinOverlay（通关弹层未在 main.tscn 里声明或未设 unique_name_in_owner）")
+	_win_label = _main.get_node_or_null("%WinLabel") as Label
+	if _win_label == null:
+		_failures.append("Main 缺少 %%WinLabel（结算文本节点缺失，无法断言步数与评级展示）")
+	_hud_label = _main.get_node_or_null("%HudLabel") as Label
+	if _hud_label == null:
+		_failures.append("Main 缺少 %%HudLabel（HUD 文本节点缺失，无法断言步数 / par / 失败反馈展示）")
+	_touch_ui = _main.get_node_or_null("TouchUI") as CanvasLayer
+	if _touch_ui == null:
+		_failures.append("Main 缺少 TouchUI（触摸层缺失，触屏滑动断言无法执行）")
 	_player.moved.connect(_on_player_moved)
 
 
@@ -132,8 +170,16 @@ func _physics_process(_delta: float) -> void:
 			if _frames >= _phase_deadline:
 				_enter_move_phase()
 		PHASE_MOVE:
+			if _first_step_frame < 0 and GameState.steps > 0:
+				_first_step_frame = _frames  # AC5：从注入到生效的延迟采样点
 			if _frames >= _phase_deadline:
 				_finish_move_phase()
+		PHASE_SWIPE:
+			_swipe_frame += 1
+			if _swipe_frame == 2:
+				_inject_swipe_drag()
+			if _frames >= _phase_deadline:
+				_finish_swipe_phase()
 		PHASE_LOGIC:
 			_run_logic_assertions()
 			if _failures.is_empty():
@@ -196,8 +242,11 @@ func _inject_noise_frame() -> void:
 ## ── 阶段一：注入移动输入，断言角色真的动了 ──
 func _enter_move_phase() -> void:
 	GameState.load_level(0)  # 噪声相位可能按过 R/N/P，先把局面拉回 level-01 初始态
+	_release_move_actions()  # 噪声相位可能留下悬挂的移动动作（摇杆/滑动层），先清零
 	_origin_cell = GameState.board.player
 	_origin_position = _player.global_position
+	_press_frame = _frames
+	_first_step_frame = -1
 	_phase_deadline = _frames + MOVE_FRAMES
 	_phase = PHASE_MOVE
 	Input.action_press(&"move_right")
@@ -220,17 +269,146 @@ func _finish_move_phase() -> void:
 		_failures.append("信号 Player.moved 未到达订阅方：连接断裂或从未 emit")
 	if not _steps_seen:
 		_failures.append("信号 GameState.steps_changed 未到达订阅方：连接断裂或从未 emit")
+	# AC5 响应延迟：注入动作 → 首次步进 ≤ 12 帧（200ms，spec.numeric.perf.maxInputResponseMs）
+	if _first_step_frame < 0:
+		_failures.append("AC5：注入移动输入后 %d 帧内未见步数变化，无法度量响应延迟" % MOVE_FRAMES)
+	elif _first_step_frame - _press_frame > RESPONSE_BUDGET_FRAMES:
+		_failures.append("AC5 响应延迟：%d 帧（≈%.0fms）> 预算 %d 帧（200ms）" % [
+			_first_step_frame - _press_frame,
+			(_first_step_frame - _press_frame) * 1000.0 / 60.0,
+			RESPONSE_BUDGET_FRAMES,
+		])
+	# AC5 界面响应：HUD 步数与目标步数必须已随移动刷新（信号驱动的同步更新）
+	if _hud_label != null:
+		if not _hud_label.text.contains(str(GameState.steps)):
+			_failures.append("AC5 界面响应：HUD 未随移动刷新步数（文本未包含 %d）" % GameState.steps)
+		if not _hud_label.text.contains("目标步数"):
+			_failures.append("HUD 未展示目标步数（spec.numeric.difficulty.parMoves 的展示依据，最优步数挑战 / 结算评级都靠它）")
+	if _failures.is_empty():
+		_enter_swipe_phase()
+	else:
+		_finish()
+
+
+## 释放全部移动动作：噪声 / 摇杆 / 滑动层可能留下按住状态，进入断言相位前必须清零。
+func _release_move_actions() -> void:
+	for action: StringName in [&"move_left", &"move_right", &"move_up", &"move_down"]:
+		Input.action_release(action)
+
+
+## ── 阶段二：触屏滑动 → 恰好 1 步（spec.numeric.input.touchSwipeThresholdPx = 24）──
+## level-01 初始局面：玩家 (2,2)，正上方 (2,1) 是空地 → 向上滑动应恰好走到 (2,1)。
+func _enter_swipe_phase() -> void:
+	GameState.load_level(0)
+	_release_move_actions()
+	_swipe_origin_cell = GameState.board.player
+	if _touch_ui != null:
+		_touch_ui.visible = true  # headless 桌面环境默认隐藏；滑动断言需要触摸层参与输入
+	_swipe_frame = 0
+	_enter_phase(PHASE_SWIPE, SWIPE_FRAMES)
+	var press := InputEventScreenTouch.new()
+	press.index = SWIPE_TOUCH_INDEX
+	press.position = SWIPE_START
+	press.pressed = true
+	Input.parse_input_event(press)
+
+
+func _inject_swipe_drag() -> void:
+	var drag := InputEventScreenDrag.new()
+	drag.index = SWIPE_TOUCH_INDEX
+	drag.position = SWIPE_START + Vector2(0.0, -SWIPE_DRAG_PX)
+	drag.relative = Vector2(0.0, -SWIPE_DRAG_PX)
+	Input.parse_input_event(drag)
+
+
+func _finish_swipe_phase() -> void:
+	var release := InputEventScreenTouch.new()
+	release.index = SWIPE_TOUCH_INDEX
+	release.position = SWIPE_START + Vector2(0.0, -SWIPE_DRAG_PX)
+	release.pressed = false
+	Input.parse_input_event(release)
+	if _touch_ui != null:
+		_touch_ui.visible = false  # 还原桌面默认隐藏，后续相位不再有触摸输入
+	var expected: Vector2i = _swipe_origin_cell + Vector2i.UP
+	if GameState.board.player != expected:
+		_failures.append("触屏滑动：向上滑动 %.0fpx（阈值 24px）后角色应在 %s，实际 %s（滑动阈值或手势层接线失效）" % [
+			SWIPE_DRAG_PX, expected, GameState.board.player,
+		])
+	if GameState.steps != 1:
+		_failures.append("触屏滑动：一次滑动应恰好步进 1 步，实际 %d 步（press 保持帧数须远小于 150ms 长按间隔）" % GameState.steps)
 	if _failures.is_empty():
 		_enter_phase(PHASE_LOGIC, 1)
 	else:
 		_finish()
 
 
-## ── 阶段二：玩法规则断言（纯逻辑 + GameState，逐条对应 AC）──
+## ── 阶段三：玩法规则断言（纯逻辑 + GameState，逐条对应 AC）──
 func _run_logic_assertions() -> void:
 	_assert_push_rules()
+	_assert_deadlock_rules()
 	_assert_win_and_undo_restart()
 	_assert_level_roster()
+	_assert_level_solutions()
+
+
+## 死锁判定（失败反馈的机判依据）：角死锁必报、在槽角不报、开阔局面不报。
+func _assert_deadlock_rules() -> void:
+	# ① 角死锁：方块上/下与左/右各有一面墙、且不在槽上 → 必须判死锁
+	var board := SokobanBoard.new()
+	board.setup("#######\n#$....#\n#.....#\n#..@..#\n#######")
+	_assert(board.boxes.has(Vector2i(1, 1)), "前置：角死锁布局解析失败，方块应在 (1,1)")
+	_assert(board.is_deadlocked_cell(Vector2i(1, 1)), "角死锁：上左两面墙夹住的方块应判死锁")
+	_assert(board.is_deadlocked(), "角死锁：存在不在槽上的死锁方块时，本关应判不可通关")
+	# ② 同一个格子若在槽上（方块已点亮，无需再动）不得误报
+	board.setup("#######\n#*....#\n#.....#\n#..@..#\n#######")
+	_assert(board.boxes.has(Vector2i(1, 1)) and board.is_lit(Vector2i(1, 1)), "前置：槽上方块布局解析失败")
+	_assert(not board.is_deadlocked_cell(Vector2i(1, 1)), "在槽上的方块即使贴角也不得误报死锁（onceLitStaysLit）")
+	# ③ 开阔局面不得误报（否则可解关卡会被误判成失败）
+	board.setup("#######\n#.....#\n#.@$.+#\n#.....#\n#######")
+	_assert(not board.is_deadlocked(), "开阔局面不得误报死锁（推箱子的失败判定必须无假阳性）")
+	# ④ 真实关卡：把 level-05 的方块顶进左上角 → 实时判死锁并给 UI 反馈，Undo 可脱离
+	GameState.load_level(4)
+	_deadlock_seen = false
+	for direction: Vector2i in [Vector2i.LEFT, Vector2i.UP, Vector2i.LEFT, Vector2i.DOWN, Vector2i.LEFT, Vector2i.UP]:
+		_assert(GameState.try_move(direction), "死锁铺路序列中的 %s 步应生效" % direction)
+		if not _failures.is_empty():
+			return
+	_assert(GameState.deadlocked, "方块被顶进左上角（上左两面墙）后应实时判死锁")
+	_assert(_deadlock_seen, "信号 GameState.deadlock_changed 未到达订阅方：失败状态没有通知 UI")
+	if _hud_label != null:
+		_assert(_hud_label.text.contains("卡死"), "死锁后 HUD 未给出失败反馈文案（按 R 重开 / Z 撤销）")
+	_assert(not GameState.won, "死锁不是通关：won 不得被置位")
+	_assert(GameState.undo(), "死锁局面下 Undo 应可回退")
+	_assert(not GameState.deadlocked, "Undo 脱离死锁步后不得仍处于死锁态")
+
+
+## AC4 关卡可解性（引擎内机判）：逐关回放落盘的见证解，通关、步数 == par、全程无误报死锁。
+func _assert_level_solutions() -> void:
+	for index: int in GameState.level_count():
+		var meta := SokobanLevels.level_at(index)
+		var par: int = int(meta["par_moves"])
+		var moves: Array[Vector2i] = SokobanLevels.parse_solution(meta["solution"])
+		_assert(moves.size() == par, "关卡 %d 见证解长度 %d != par %d（落盘数据与求解器输出不一致）" % [
+			index + 1, moves.size(), par,
+		])
+		GameState.load_level(index)
+		var rejected_at: int = -1
+		var false_deadlock: bool = false
+		for step: int in moves.size():
+			if not GameState.try_move(moves[step]):
+				rejected_at = step
+				break
+			if GameState.board.is_deadlocked():
+				false_deadlock = true  # 见证解全程可解 → 死锁判定中途报警即为误报
+				break
+		_assert(rejected_at < 0, "关卡 %d 见证解在第 %d 步被拒：推动规则与求解器规则不一致" % [index + 1, rejected_at + 1])
+		_assert(not false_deadlock, "关卡 %d 见证解回放中途误报死锁：死锁判定不可靠" % (index + 1))
+		_assert(GameState.won, "关卡 %d 见证解回放后未通关（AC4：每关必须存在通关路径）" % (index + 1))
+		_assert(GameState.steps == par, "关卡 %d 回放步数 %d != par %d（难度梯度失真）" % [
+			index + 1, GameState.steps, par,
+		])
+		_assert(GameState.board.lit_count() == GameState.board.target_count(),
+			"关卡 %d 通关时点亮数应等于接线槽总数" % (index + 1))
 
 
 ## AC1 推动规则：在合成棋盘上逐情形核对（不依赖任何关卡布局的偶然性）。
@@ -346,6 +524,12 @@ func _finish_win_wait_phase() -> void:
 		_failures.append("通关弹层在 %d 帧内未出现（要求 ≤1000ms ≈ 60 帧，设计值 300ms）" % WIN_WAIT_FRAMES)
 	if not _lit_seen:
 		_failures.append("信号 GameState.lit_changed 未到达订阅方：点亮进度没有通知 UI")
+	# 结算展示（spec.numeric.win.showsStepCount + content.replayHooks 步数评级）
+	if _win_label != null:
+		if not _win_label.text.contains(str(GameState.steps)):
+			_failures.append("通关结算未展示本关步数 %d（spec.numeric.win.showsStepCount = true）" % GameState.steps)
+		if not _win_label.text.contains("⚡"):
+			_failures.append("通关结算未展示步数评级 ⚡（spec.content.replayHooks：≤par ⚡⚡⚡ / ≤par×1.5 ⚡⚡ / 其余 ⚡）")
 	if not _failures.is_empty():
 		_finish()
 		return
@@ -416,7 +600,7 @@ func _finish() -> void:
 		return
 	_finished = true
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化 / autoload / 键位契约 / 移动输入 / 推动规则 / 点亮通关 / Undo·Restart / 关卡切换 全部通过")
+		print("GODOT_SMOKE: PASS 场景实例化 / autoload / 键位契约 / 移动输入 / 推动规则 / 死锁判定 / 点亮通关 / Undo·Restart / 关卡切换 / 见证解回放(AC4) / 响应延迟(AC5) / 触屏滑动 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:
@@ -438,3 +622,7 @@ func _on_lit_changed(_lit_count: int, _total: int) -> void:
 
 func _on_level_won(_level_index: int, _steps: int) -> void:
 	_won_seen = true
+
+
+func _on_deadlock_changed(_deadlocked: bool) -> void:
+	_deadlock_seen = true

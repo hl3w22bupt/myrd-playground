@@ -24,6 +24,7 @@ from collections import deque
 from pathlib import Path
 
 DIRS = ((0, -1), (0, 1), (-1, 0), (1, 0))
+MOVE_CHARS = ("U", "D", "L", "R")  # 与 DIRS 一一对应：上 / 下 / 左 / 右
 EXPANSION_CAP = 4_000_000
 MAX_DEPTH = 200
 
@@ -79,10 +80,21 @@ def solved(boxes, targets) -> bool:
     return boxes & targets == targets and len(targets) > 0
 
 
-def solve_bfs(walls, targets, boxes, player):
+def reconstruct(parents: dict, state) -> str:
+    """沿父指针回溯到初始态，得到玩家移动串（U/D/L/R）。"""
+    moves: list = []
+    while state in parents:
+        state, move = parents[state]
+        moves.append(move)
+    return "".join(reversed(moves))
+
+
+def solve_bfs(walls, targets, boxes, player, want_path: bool = False):
+    """BFS 求最优玩家步数；want_path=True 时额外返回移动串（父指针回溯）。"""
     alive = alive_squares(walls, targets)
     if not boxes <= alive:
-        return None, 0
+        return None, 0, None
+    parents: dict = {} if want_path else None
     seen = {(player, boxes)}
     queue = deque([(player, boxes, 0)])
     expanded = 0
@@ -90,10 +102,10 @@ def solve_bfs(walls, targets, boxes, player):
         pos, cur, depth = queue.popleft()
         expanded += 1
         if expanded > EXPANSION_CAP or depth >= MAX_DEPTH:
-            return None, expanded
+            return None, expanded, None
         if solved(cur, targets):
-            return depth, expanded
-        for dx, dy in DIRS:
+            return depth, expanded, (reconstruct(parents, (pos, cur)) if want_path else None)
+        for index, (dx, dy) in enumerate(DIRS):
             nxt = (pos[0] + dx, pos[1] + dy)
             if nxt in walls:
                 continue
@@ -107,11 +119,13 @@ def solve_bfs(walls, targets, boxes, player):
             if state in seen:
                 continue
             seen.add(state)
+            if parents is not None:
+                parents[state] = ((pos, cur), MOVE_CHARS[index])
             queue.append((nxt, nboxes, depth + 1))
-    return None, expanded
+    return None, expanded, None
 
 
-def solve_astar(walls, targets, boxes, player):
+def solve_astar(walls, targets, boxes, player, want_path: bool = False):
     alive = alive_squares(walls, targets)
     infinity = 10 ** 9
     pull_dist = {cell: infinity for cell in alive}
@@ -135,20 +149,21 @@ def solve_astar(walls, targets, boxes, player):
         return sum(pull_dist.get(box, infinity // 2) for box in boxes_)
 
     if heuristic(boxes) >= infinity // 2:
-        return None, 0
+        return None, 0, None
     best = {(player, boxes): 0}
+    came: dict = {} if want_path else None  # state -> (父 state, 移动字符)
     queue = [(heuristic(boxes), 0, player, boxes)]
     expanded = 0
     while queue:
         _, cost, pos, cur = heapq.heappop(queue)
         expanded += 1
         if expanded > EXPANSION_CAP:
-            return None, expanded
+            return None, expanded, None
         if solved(cur, targets):
-            return cost, expanded
+            return cost, expanded, (reconstruct(came, (pos, cur)) if want_path else None)
         if best.get((pos, cur), infinity) < cost:
             continue
-        for dx, dy in DIRS:
+        for index, (dx, dy) in enumerate(DIRS):
             nxt = (pos[0] + dx, pos[1] + dy)
             if nxt in walls:
                 continue
@@ -163,8 +178,10 @@ def solve_astar(walls, targets, boxes, player):
             if best.get(state, infinity) <= nxt_cost:
                 continue
             best[state] = nxt_cost
+            if came is not None:
+                came[state] = ((pos, cur), MOVE_CHARS[index])
             heapq.heappush(queue, (nxt_cost + heuristic(nboxes), nxt_cost, nxt, nboxes))
-    return None, expanded
+    return None, expanded, None
 
 
 def load_levels(project_dir: Path):
@@ -180,18 +197,41 @@ def load_levels(project_dir: Path):
     return [(level_id, int(par), layout.encode().decode("unicode_escape")) for level_id, par, layout in entries]
 
 
+def replay(layout: str, moves: str) -> bool:
+    """按 SokobanBoard 同一套推动规则重放移动串，通关返回 True（见证解自证）。"""
+    walls, targets, boxes, player = parse_layout(layout)
+    boxes = set(boxes)
+    for move in moves:
+        dx, dy = DIRS[MOVE_CHARS.index(move)]
+        nxt = (player[0] + dx, player[1] + dy)
+        if nxt in walls:
+            return False
+        if nxt in boxes:
+            dst = (nxt[0] + dx, nxt[1] + dy)
+            if dst in walls or dst in boxes:
+                return False
+            boxes.remove(nxt)
+            boxes.add(dst)
+        player = nxt
+    return solved(frozenset(boxes), targets)
+
+
 def main() -> int:
-    project_dir = Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
+    args = [arg for arg in sys.argv[1:] if arg.strip()]
+    want_path = "--paths" in args
+    paths = [arg for arg in args if arg != "--paths"]
+    project_dir = Path(paths[0] if paths else ".").resolve()
     levels = load_levels(project_dir)
     print(f"解析到 {len(levels)} 个关卡（{project_dir / 'scripts' / 'sokoban_levels.gd'}）")
+    print("模式：" + ("求解 + 见证解路径（--paths）" if want_path else "仅可解性与最优步数（加 --paths 输出路径）"))
     all_solvable = True
     for level_id, par, layout in levels:
         walls, targets, boxes, player = parse_layout(layout)
         if len(boxes) <= 3:
-            best, expanded = solve_bfs(walls, targets, boxes, player)
+            best, expanded, path = solve_bfs(walls, targets, boxes, player, want_path)
             solver = "BFS"
         else:
-            best, expanded = solve_astar(walls, targets, boxes, player)
+            best, expanded, path = solve_astar(walls, targets, boxes, player, want_path)
             solver = "A*"
         if best is None:
             all_solvable = False
@@ -200,6 +240,16 @@ def main() -> int:
         par_note = "par 一致" if best == par else f"⚠️ par 漂移（spec 记录 {par}）"
         print(f"[PASS] {level_id}: 可解，最优 {best} 步 / {par_note} / {solver} 展开 {expanded} 态 / "
               f"网格 {len(layout.split(chr(10))[0])}x{len(layout.split(chr(10)))} / 方块 {len(boxes)}")
+        if want_path:
+            if len(path) != best:
+                all_solvable = False
+                print(f"[FAIL] {level_id}: 路径长度 {len(path)} != 最优步数 {best}（重建逻辑缺陷）")
+                continue
+            if not replay(layout, path):
+                all_solvable = False
+                print(f"[FAIL] {level_id}: 见证解 {path} 重放未通关（重建逻辑缺陷）")
+                continue
+            print(f"       solution[{level_id}] = \"{path}\"（重放验证 ✓，可直接落盘 sokoban_levels.gd）")
     if len({par for _, par, _ in levels}) < len(levels):
         all_solvable = False
         print("[FAIL] par_moves 未随难度单调递增（AC4）")

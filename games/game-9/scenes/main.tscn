@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
 [ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="3_joystick"]
 [ext_resource type="Script" path="res://scripts/touch_action_button.gd" id="4_touch_action"]
+[ext_resource type="Script" path="res://scripts/touch_swipe.gd" id="5_swipe"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_action"]
 radius = 34.0
@@ -59,6 +60,15 @@ text = "通关！"
 [node name="TouchUI" type="CanvasLayer" parent="."]
 layer = 10
 visible = false
+
+[node name="SwipeLayer" type="Control" parent="TouchUI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("5_swipe")
 
 [node name="JoystickAnchor" type="Control" parent="TouchUI"]
 anchors_preset = 2

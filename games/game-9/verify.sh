@@ -80,5 +80,5 @@ fi
 
 echo ""
 echo "verify: PASS preflight + smoke + input-fuzz 全部通过"
-echo "verify: 冒烟断言覆盖（AC1–AC4）：角色移动 / 推动规则（推墙·顶方块无效、不可拉动）/ 点亮与通关判定 / Undo·Restart / 关卡切换与通关弹层"
-echo "verify: 关卡可解性证据：python3 ${GAME_DIR}/tools/level_solver.py ${GAME_DIR}"
+echo "verify: 冒烟断言覆盖（AC1–AC5）：角色移动 / 推动规则（推墙·顶方块无效、不可拉动）/ 点亮与通关判定 / Undo·Restart / 死锁失败反馈 / 关卡切换与通关弹层 / 见证解逐关回放(AC4) / 响应延迟≤200ms 与触屏滑动(AC5)"
+echo "verify: 关卡可解性证据：python3 ${GAME_DIR}/tools/level_solver.py ${GAME_DIR}（加 --paths 输出见证解并重放自证）"
