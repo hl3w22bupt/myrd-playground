@@ -44,6 +44,20 @@
   因 `tools/build-spec-v1.mjs` 强制校验 spec `sourceSha256` == 该文件哈希且链上 v1 已锚定
   `7bc2ca03…`，**不在本交付件上静默改注记**（会破坏链上锚）→ 已在呈批件披露项 §五.6 登记，
   待下轮 spec 修订由美术线随 `sourceSha256` 一并更正；色值 `#C89C19` 与门禁结论不受影响。
+- **【美术线更正案 · 已备妥待触发（2026-10-01 美术线）】** 上项的执行面落定如下，触发条件 =
+  **approve 后首轮 spec 修订**（或主人改稿轮顺带）；触发前本交付件与链上锚**零改动**。
+  - **改动面（已实查，仅此两处）**：① 交付件 `block-02.intent` 一处子串
+    `（L\*≈64，读作「烧过的金」）` → `（L\*66.6，读作「烧过的金」）`（其余字符零改动，改法 =
+    改 `tools/palette-design.mjs` EMBER.intent 后重跑，**不手改 JSON**，保确定性单源）；
+    ② spec 随动字段仅 `numeric.palette.sourceSha256`（已实查链上 palette 块不嵌 intent 文本，
+    colors/gate/calibration/rejectedHex 均不变 → **色值、门禁判据、21 对结论零影响**）。
+  - **触发后顺序（6 步，不可倒序）**：
+    1. 改 `tools/palette-design.mjs` EMBER.intent 子串（≈64 → 66.6）；
+    2. `node tools/palette-design.mjs` 重出交付件，记录新 sha256（`shasum -a 256 assets/palette/palette-n1-final.json`）；
+    3. `npm run gate:palette` 复跑，必须仍 `ALL-GREEN 0红/21对 minΔE=26.555 阈值=25`（色值未动，结论若变即停手上报）；
+    4. 策划线重跑 `npm run spec:build` → `numeric.palette.sourceSha256` 随动为新哈希；
+    5. 修订件走主人既定通道入链（**非 draft 原位改**；平台 PUT/PATCH 405 已实测）；
+    6. QA `node tools/qa-round2.mjs` R4/a–R4/d 复跑全绿 + 本文件 a02 行哈希同步 → 更正案销账。
 - **R2 命名口径（执行面）**：运行时单源件统一按 **`theme.ts`**（= `assets.a01`、`entities.e-renderer.script`
   与 `tests/theme.spec.mjs` 断言）；链上 `ac-11` statement 的「theme.js」为措辞二义，已呈批件披露 §五.5
   交主人裁定，approve 前执行面不按其行事。
@@ -60,3 +74,18 @@
 > （`tests/kernel-purity.spec.mjs` / `tests/acceptance-map.spec.mjs` / run-all / CI），三件资产落点与
 > 产出状态不变；AC-11 单源断言机已在 /tmp 合成树上实测会咬（证据
 > `gate-logs/n1-prog-contract-20261001/README.md` §2），approve 后 codegen 生成 theme.ts 即被门禁覆盖。
+
+## 美术线复验台账（R2 驳回修复后 · 2026-10-01 美术线独立复跑）
+
+> 口径 = `evidence-one-line-template.md`；结论：**R2 修复未伤及资产面，交付件锚定关系完好，全绿**。
+
+```
+[PASS] | 线1 美术 | （复验·双门禁） | 2026-10-01 | npm run gate:palette | ALL-GREEN 0红/21对 minΔE=26.555 阈值=25 margin=+1.555 selftest=18/18 | g2-blocks 仓库根
+[PASS] | 线1 美术 | （复验·确定性） | 2026-10-01 | node tools/palette-design.mjs && git status --porcelain | 零 diff，交付件 sha256=7bc2ca033ee8d7f7…（=链上 sourceSha256 锚） | g2-blocks 仓库根
+[PASS] | 线1 美术 | （复验·六件门禁） | 2026-10-01 | npm run gate | ①②④⑤⑥ PASS + ③ PENDING-APPROVE（非装绿）；kernel-purity 8/8（含新增 ac-14/h 零硬编码自证） | g2-blocks 仓库根
+[PENDING-APPROVE] | 线1 美术 | （挂账·intent 更正案） | 2026-10-01 | 见上「美术线更正案」6 步（触发前零改动） | 触发条件=approve 后首轮 spec 修订；随动字段仅 numeric.palette.sourceSha256；色值/门禁结论零影响 | 本文件色板节
+```
+
+> **美术线状态**：无阻塞性待办；唯一在册挂账 = intent 更正案（触发条件明确，非本轮动作）。
+> approve 后美术侧首件 = `a01-block-palette` codegen（真源=spec numeric.palette，含 block-06 暗块
+> 1px 内描边 + 顶部高光条接线要求）。
