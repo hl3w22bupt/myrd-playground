@@ -1,0 +1,43 @@
+# 《光路谜阵》零缺陷核销 · R4 复认轮（game-4 · exp-verify 修复清单执行节点）
+
+- 复认时间：2026-10-02
+- 性质：R1（`ZERO_DEFECT_CLOSURE.md`，commit `654f5d4`）、R2（`ZERO_DEFECT_CLOSURE_R2.md`，commit `75da71e`）、R3（`ZERO_DEFECT_CLOSURE_R3.md`，commit `183dcf0`）之后的本节点第四轮复跑复认 —— exp-verify 修复清单维持零确认缺陷，按任务降级路径**只复跑门禁 + 复验线上，零代码改动、不重导出、不重部署**
+- 输入：`qa/ADVERSARIAL_FINDINGS.md` §五修复清单原文口径「零确认缺陷 → 无需修复项，无代码变更」（0 缺陷 / 0 误报 / 1 项 T5 双指 WebKit 驱动受限待真机，外部依赖不变）
+- 分支：`myrd/game-4-goal-cmuieqj7o0031m9gyf4pbwptg`（实现基线）；线上 v19 构建基线 `aa2ec1e`（deploymentId `cmuixl00c00fsm9l6ac95ss6f`，status=running，gitRef=`myrd/games-goal-cmuieqj7o0031m9gyf4pbwptg`）
+- 线上入口：<https://leomac-studio.tail49399e.ts.net/apps/game-4/gw?qa=1&tuning=1>
+- 门禁在位性（本节点硬约束前置）：仓库内 `std-skills/godot-game-dev/scripts/{preflight.py, smoke.sh, input-fuzz.sh, playtest.sh, resolve-godot.sh}` 五件全在位；`.myrd/routines.yaml` 含 `id: godot-smoke` 例程 —— 全部只读调用，零改动
+
+## 一、四门禁复跑（同源判定脚本，仓库内 `std-skills/godot-game-dev/scripts/`，零改动只读调用）
+
+| 门禁 | 结果（本轮实测） | 退出码 | 日志 |
+|---|---|---|---|
+| preflight | `PREFLIGHT: PASS 13 类前置一致性检查全部通过（143 个工程文件，不含 .godot/ 导入缓存）` | 0 | `gate-r4-preflight.log` |
+| smoke（240 帧） | `godot-smoke: PASS 冒烟场景通过：tests/smoke.tscn（退出码 0，断言标记齐全，日志无脚本错误）`，SCRIPT ERROR 计数 0 | 0 | `gate-r4-smoke.log` |
+| input-fuzz | `GODOT_FUZZ: PASS seed=20260913 batches=6 total_frames=239` | 0 | `gate-r4-fuzz.log` |
+| playtest | `GODOT_PLAYTEST: PASS 3 局全部通过`；METRICS：3 局 score=6/6/6，feedback_events=156/147/173，最大反馈间隔 0.95s（阈值 10s），900 帧/局 | 0 | `gate-r4-playtest.log` |
+
+环境：Godot 4.3.stable.official.77dcf97d8（`resolve-godot.sh` 实测解析）；调用口径逐字照抄 `.myrd/routines.yaml` `godot-smoke` 例程各 step。
+
+## 二、线上 v19 复验（全绿，产物零漂移）
+
+| 核验 | 结果 |
+|---|---|
+| `GET /apps/game-4/gw/health` | 200 `{"ok":true,"app":"light-path-labyrinth","env":"development","assets":"lazy/object-storage"}` |
+| 线上落地页（跟随跳转） | 200 `text/html` 14,310B |
+| 线上 `index.js`（raw 文本资产） | 331,495B，`text/javascript`，sha256 `8b649683883a8be172e229a0479503d50cd5245ebf87aa71fda70bf720824075` = 仓内 `export/web/index.js` **逐字节一致** |
+| 线上 `index.pck`（gzip+b64 文本通道） | 原始响应 3,454,988B（`text/plain` b64）；解码 + gunzip 后 2,609,840B、魔数 `GDPC`、sha256 `2cb785e5576e975b9ffaa5739fe225d7f9f096d69570bda2baf7fd78720c670e` = 仓内 pck **逐字节一致** |
+| 线上 `index.wasm`（gzip+b64 文本通道） | b64 响应体 10,696,408B（`text/plain` b64）；解码 + gunzip 后 35,376,909B、魔数 `\0asm`、sha256 `fe5cebc590758c10bc4469be5a591e28edbde5ec8f458f21baeb83db50d028b9` = 仓内 wasm **逐字节一致** |
+| `.wasm` 直连路由硬约束 | `GET …/api/public/assets/index.wasm` → 200，`Content-Type: application/wasm`（部署硬约束达标，与 R3 一致） |
+| 平台侧 deployment 状态 | `cmuixl00c00fsm9l6ac95ss6f`（v19）status=`running`，gitRef=`myrd/games-goal-cmuieqj7o0031m9gyf4pbwptg` |
+| HEAD 相对 v19 基线 `aa2ec1e` 改动范围 | `git diff --name-only aa2ec1e..HEAD -- ':!games/game-4/qa'` 为空 —— 全部改动均落在 `qa/` 取证文档，gameplay 资产/场景/导出产物零改动 |
+
+> 通道口径备注（同 R2/R3）：pck/wasm 走「资产出 bundle」的 gzip+base64 文本通道（M1 网关只透传文本响应），HTTP 响应体是 b64 文本而非原始二进制 —— **先解码再比对**才等于真实指纹；index.js 为 raw 文本资产，可直比。三产物指纹与 R2/R3 记录完全相同，证明 v19 产物自 R2 以来零漂移。
+
+## 三、本轮收口结论
+
+1. **修复清单核销维持**：exp-verify 零确认缺陷结论在 R4 复认轮不反转，无修复项可执行，无代码变更。
+2. **四门禁复跑全绿**（§一）：preflight / smoke(240) / input-fuzz / playtest 均 exit 0 且 PASS 标记齐全。
+3. **线上 v19 仍全绿且零漂移**（§二）：health 200 + 落地页 200 + wasm 直连 Content-Type 达标 + js/pck/wasm 三产物 sha256 与仓内逐字节一致。
+4. **不重导出、不重部署**：产物零漂移 + 无代码变更，重导出重部署属无意义改动，按任务降级路径跳过。
+5. **试玩验收包状态**：既有验收包（`games/game-4/PLAYTEST_KIT.md`，playtest-kit-v9 条目）与线上入口/调参工作台（`<liveUrl>?tuning=1`）不受本轮影响，继续有效；四问结构化量表维持「**待用户试玩回填**」——本轮未收到用户量表结论与调参 URL，按纪律不伪造试玩结论、不触发 spec 回写（spec 已在 v3 拍板，tuning_applied=true，见 artifacts `cmuiwi0va00eum9l6m9r6aapt`）。
+6. **遗留待办（外部依赖，不阻塞）**：T5 双指真机复测（步骤归档于 `ADVERSARIAL_FINDINGS.md` §五）；iPhone 实测卡已发用户频道（`qa/IPHONE_QA_CARD.md`），真机回填后按 `ios-safari-realdevice-qa.md` §四登记。
