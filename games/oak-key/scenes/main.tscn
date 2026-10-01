@@ -1,0 +1,145 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
+[ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="3_joystick"]
+[ext_resource type="Script" path="res://scripts/touch_action_button.gd" id="4_action"]
+[ext_resource type="PackedScene" path="res://scenes/key_fragment.tscn" id="5_fragment"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_action"]
+radius = 44.0
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(320, 180)
+
+[node name="Fragments" type="Node2D" parent="."]
+
+[node name="FragmentOA" parent="Fragments" instance=ExtResource("5_fragment")]
+position = Vector2(360, 180)
+chunk = "OA"
+
+[node name="FragmentK" parent="Fragments" instance=ExtResource("5_fragment")]
+position = Vector2(360, 120)
+chunk = "K7"
+
+[node name="Fragment42" parent="Fragments" instance=ExtResource("5_fragment")]
+position = Vector2(420, 120)
+chunk = "42"
+
+[node name="FragmentDecoy" parent="Fragments" instance=ExtResource("5_fragment")]
+position = Vector2(200, 260)
+chunk = "X9"
+is_decoy = true
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HudLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 624.0
+offset_bottom = 40.0
+text = "WASD / 方向键移动 · 空格探测 · R 重开"
+
+[node name="KeyLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 44.0
+offset_right = 624.0
+offset_bottom = 96.0
+theme_override_font_sizes/font_size = 13
+text = "组装中 key：oak-??-??-??"
+
+[node name="ResultPanel" type="Panel" parent="UI"]
+unique_name_in_owner = true
+visible = false
+offset_left = 150.0
+offset_top = 110.0
+offset_right = 490.0
+offset_bottom = 250.0
+
+[node name="ResultLabel" type="Label" parent="UI/ResultPanel"]
+unique_name_in_owner = true
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 328.0
+offset_bottom = 128.0
+theme_override_font_sizes/font_size = 15
+text = "探测结果："
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="TouchUI" type="CanvasLayer" parent="."]
+layer = 10
+visible = false
+
+[node name="JoystickAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -160.0
+offset_right = 160.0
+offset_bottom = -24.0
+grow_vertical = 0
+script = ExtResource("3_joystick")
+
+[node name="ProbeAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -140.0
+offset_top = -140.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="ActionButton" type="TouchScreenButton" parent="TouchUI/ProbeAnchor"]
+position = Vector2(58, 58)
+action = &"confirm"
+shape = SubResource("CircleShape2D_action")
+script = ExtResource("4_action")
+
+[node name="Label" type="Label" parent="TouchUI/ProbeAnchor/ActionButton"]
+offset_left = -40.0
+offset_top = -14.0
+offset_right = 40.0
+offset_bottom = 14.0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 0.9)
+text = "探测"
+
+[node name="RestartAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -280.0
+offset_top = -140.0
+offset_right = -164.0
+offset_bottom = -24.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="RestartButton" type="TouchScreenButton" parent="TouchUI/RestartAnchor"]
+position = Vector2(58, 58)
+action = &"restart"
+shape = SubResource("CircleShape2D_action")
+script = ExtResource("4_action")
+
+[node name="Label" type="Label" parent="TouchUI/RestartAnchor/RestartButton"]
+offset_left = -40.0
+offset_top = -14.0
+offset_right = 40.0
+offset_bottom = 14.0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 0.9)
+text = "重开"
