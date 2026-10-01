@@ -40,9 +40,15 @@
 - 移交：① 策划线并入 spec `numeric.palette`（含 gate 判据 + thresholdDeltaE=25）；② 程序线注意
   block-06 暗块必须接线 1px 内描边 + 顶部高光条（风格卡要素 2/3），不得省略。
 
-## 资产清单（登记制，spec assets 段派生）
+## 资产清单（登记制，spec assets 段派生 · 2026-10-01 与链上 v1 assets 段对齐）
 
 | id | 落点 | 来源 | 说明 |
 |---|---|---|---|
-| a01-block-palette | `g2-blocks/src/render/palette.ts`（真源=spec numeric.palette） | generated:constant-table | 7 色常量表，运行时单源 |
-| a02-theme-frozen | `.myrd/spec/g2-blocks/design-spec.json` → `spec.numeric.palette` | platform:game-design-specs v1 | 冻结值真源（线2 入链后生效） |
+| a01-block-palette | `g2-blocks/src/render/theme.ts`（真源=spec numeric.palette） | generated:constant-table | 7 色常量表，运行时单源；**approve 后 codegen 产出**（现缺位 → AC-11 显式 PENDING-APPROVE） |
+| a02-palette-artifact | `g2-blocks/assets/palette/palette-n1-final.json` | g2-blocks/tools/palette-design.mjs | 美术交付件，sha256 `7bc2ca03…`（= numeric.palette.sourceSha256）；**已产出** |
+| a03-sfx-pack | `g2-blocks/assets/audio/` | procedural | 消除/连击/炉冷/重开四类；**approve 后产出** |
+
+> **资产面本轮变动（线3 契约收口，2026-10-01）：无新增/无修改资产**。本轮只动测试与门禁面
+> （`tests/kernel-purity.spec.mjs` / `tests/acceptance-map.spec.mjs` / run-all / CI），三件资产落点与
+> 产出状态不变；AC-11 单源断言机已在 /tmp 合成树上实测会咬（证据
+> `gate-logs/n1-prog-contract-20261001/README.md` §2），approve 后 codegen 生成 theme.ts 即被门禁覆盖。

@@ -1,6 +1,7 @@
 # 阻塞项黑板 — g2-blocks（**N1 修复轮闭合**：色板双门禁定稿 + spec v1 一次入链 + N3 前置工单 + round-2 复检）
 
-> 更新时间：2026-10-01（**N1 修复轮收口 · 主策划**：B1/B2 解除 · 四条线全闭环 · approve-ready 已呈批）
+> 更新时间：2026-10-01（**线3 契约收口 · 程序线**：ac-14 声明落点补位 + acceptance.check 落点契约守卫，
+> 六件门禁全绿，commit 05a644e；B1/B2 维持解除，approve-ready 不变，仍等主人拍板）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：**等主人拍板 approve**（呈批件 `.myrd/blackboard/g2-blocks/approve-ready-n1.md`）；团队不代拍，
 > v1 未 approve 前零冻结值实现投入。B1/B2 本轮内闭合 ✅，升级条款未触发。
@@ -39,6 +40,7 @@
 | 线1 色板定稿 | 美术 | `tools/color.mjs`(18/18 自证) + `tools/palette-design.mjs` + `tools/palette-gate.mjs` + `assets/palette/palette-n1-final.json`（sha256 7bc2ca03…） | 21 对双门禁 ALL-GREEN；弃用值反证留痕；确定性重跑逐字节一致；g2 仓库 commit d401cab | ✅ |
 | 线2 spec v1 | 策划 | `tools/spec-content.mjs` + `build-spec-v1.mjs`(八道守卫) + `post-spec-v1.mjs`(幂等防线) + 平台 v1 + 导出件 | 一次成链；回读全等；numeric 锚落账；commit 19abac4 | ✅ |
 | 线3 N3 前置 | 程序 | 脚手架 + `ci/scope-policy.json`+`guard-repo-scope.mjs`(AC-18/AC-17) + CI job + `tests/harness.mjs` + `src/kernel/{spec-source,rng}.ts` + `tests/theme.spec.mjs` + `tests/run-all.mjs` | run-all 绿（①②④ PASS + ③ PENDING-APPROVE 非装绿）；守卫反向探针实测会红；零冻结值硬编码；commits 1a47805 | ✅ |
+| 线3 契约收口 | 程序 | `tests/kernel-purity.spec.mjs`（**ac-14 spec 声明落点补位**，7 断言）+ `tests/acceptance-map.spec.mjs`（18 条 `acceptance.check` 落点契约守卫：存在或显式冻结白名单，白名单反过期/反幽灵）+ run-all 扩六件门禁 + CI 增两步 + package.json `test:kernel`/`test:acmap` | **缺陷发现并闭合**：ac-14 声明落点 `tests/kernel-purity.spec.mjs` 此前缺位（断言寄生 framework.spec.mjs）→ 补位；六件门禁全绿；反向探针三路实测会红（守卫越界/acmap 落点缺位/AC-11 错值与多源）；一号 `node scripts/contract-check.mjs` PASS；commit **05a644e**；证据 `gate-logs/n1-prog-contract-20261001/`（9 log + README） | ✅ |
 | 线4 round-2 | QA | `tools/qa-round2.mjs`(27 断言) + 证据 `gate-logs/n1-round2-20261001/` + 回执 QA-G2-N1-R2-20261001-01 + 证据一行式模板 | 五项关闭逐条核对 + 无新红 → **approve-ready**；判据自纠 1 条留痕；commit ff7d34c | ✅ |
 | 主人拍板 approve | 主人 | — | 人工验收最终裁决 | ⏸ **等拍板** |
 

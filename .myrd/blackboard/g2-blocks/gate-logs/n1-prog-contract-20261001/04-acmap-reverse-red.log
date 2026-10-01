@@ -1,0 +1,11 @@
+# acceptance.check 声明落点 ↔ 工程文件对应（契约守卫）
+# spec: id=cmuovwra0004gm97tinha15zq v1 status=draft anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmuouq3u0003im97tyhjci0kc/.myrd/spec/g2-blocks/design-spec.json
+# spec acceptance 共 18 条；冻结值缺位白名单 13 条（approve 后解冻）
+PASS  acmap/a acceptance 非空且 id 唯一
+PASS  acmap/b 每条 check 都声明 g2-blocks 仓库内落点
+#   声明落点缺位但属冻结面（PENDING-APPROVE）= 13 条
+RED  acmap/c 声明落点存在或显式 PENDING-APPROVE（缺位即漂移） :: {"drift":["ac-14-deterministic-kernel 声明落点缺位且不在冻结白名单: g2-blocks/tests/kernel-purity.spec.mjs"]}
+PASS  acmap/d 白名单无过期条目（文件已存在者必须移出）
+PASS  acmap/e 白名单与 spec id 对齐（无幽灵条目）
+# 结果: PASS=4 RED=1 PENDING-APPROVE=0
