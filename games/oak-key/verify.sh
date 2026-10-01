@@ -81,4 +81,4 @@ if [ "${FUZZ_EXIT}" -ne 0 ]; then
 fi
 
 echo ""
-echo "verify: PASS preflight + smoke + input-fuzz 全部通过（可玩闭环：移动/拾取片段/本地校验/有效无效反馈/重开/取证标记）"
+echo "verify: PASS preflight + smoke + input-fuzz 全部通过（可玩闭环：三波收集/本地校验/有效无效反馈/信度/结算/重开/取证标记）"
