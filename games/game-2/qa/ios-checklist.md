@@ -104,4 +104,3 @@
 
 - **P0 项（A1-A8、B1-B4、C1-C3、D2-D3、E1-E2）全部 pass ⇒ 真机验收通过**；任一 fail ⇒ 记录机型+复现步骤，按 `real-device-pending.md` 回填，工程侧修复后复测失败项。
 - 结果回填：把 `real-device-pending.md` 的模板复制填写，连同录屏/`__audioDebug()` JSON 一起回贴到试玩记录。
-
