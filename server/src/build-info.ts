@@ -5,4 +5,4 @@
  * 而非缓存旧版（AppHost 资产端点带 max-age=300 缓存，必须有唯一版本锚点）。
  * 对应关系：本字段唯一标识一次部署；对应 commit 记录在该次部署的产物 detail 里。
  */
-export const BUILD_VERSION = "fy-20260928-2200-fix1";
+export const BUILD_VERSION = "fy-20261002-v2-001";

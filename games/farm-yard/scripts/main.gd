@@ -22,10 +22,12 @@ var _ambient_index: int = 0               # 环境鸣叫轮换（鸡/鸭/鹅）
 func _ready() -> void:
 	# 信号连接：订阅方（本场景）写连接代码，发布方（yard_view / GameState）只 emit。
 	yard.tapped.connect(_on_yard_tapped)
+	yard.swiped.connect(_on_yard_swiped)
 	GameState.toast.connect(_on_game_toast)
 	GameState.quest_completed.connect(_on_quest_completed)
 	GameState.leveled_up.connect(_on_leveled_up)
 	GameState.produce_ready.connect(_on_produce_ready)
+	GameState.helper_swept.connect(_on_helper_swept)
 	Juice.feedback_fired.connect(_on_feedback_fired)
 	_last_feedback_msec = Time.get_ticks_msec()
 	_start_bgm()
@@ -39,6 +41,14 @@ func _process(delta: float) -> void:
 	GameState.tick(delta)
 	_welcome_tick(delta)
 	_ambient_heartbeat_tick()
+
+
+## 任何玩家输入（点按/触摸/按键）都给 GameState 打点 —— v2 B1 帮工的「离手」判定基准。
+## _input 在 GUI 消费之前触发，弹层里的按钮操作同样会计入。
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton or event is InputEventScreenTouch \
+			or event is InputEventScreenDrag or event is InputEventKey:
+		GameState.note_player_input()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -133,6 +143,49 @@ func _harvest_all_ready() -> void:
 	if harvested > 0:
 		Juice.sfx(&"harvest")
 		Juice.pop(yard)
+
+
+## ── v2 B3 划动批量：划过的对象逐个套用当前动作（与点击同语义、同一结算函数）──
+## 划到成熟物=收、划到空地=按上次种过的作物补种（没记过就不乱种）、划到待收果树/禽舍=收。
+## 空地菜单、建造类动作不进批量手势，避免划动误建。
+func _on_yard_swiped(kind: String, index: int) -> void:
+	match kind:
+		"plot":
+			_swipe_slot(index, false)
+		"bed":
+			_swipe_slot(index, true)
+		"tree":
+			var tree_id := String(FarmData.TREES.keys()[index])
+			var tree: Dictionary = GameState.trees[tree_id]
+			if bool(tree["built"]) and bool(tree["ready"]) and GameState.harvest_tree(tree_id):
+				Juice.sfx(&"harvest")
+		"coop":
+			var coop_id := String(FarmData.COOPS.keys()[index])
+			var coop: Dictionary = GameState.coops[coop_id]
+			if int(coop["level"]) > 0 and int(coop["stock"]) > 0 and GameState.collect_coop(coop_id):
+				Juice.sfx(COOP_SFX[index] if index < COOP_SFX.size() else &"cluck")
+
+
+func _swipe_slot(index: int, is_bed: bool) -> void:
+	var slots: Array[Dictionary] = GameState.beds if is_bed else GameState.plots
+	if index < 0 or index >= slots.size():
+		return
+	match String(slots[index]["state"]):
+		"mature":
+			if GameState.harvest(index, is_bed):
+				Juice.sfx(&"harvest")
+				Juice.shake(1.5, 0.1)
+		"empty":
+			var crop := GameState.last_flower_planted if is_bed else GameState.last_crop_planted
+			if crop != "" and GameState.plant(index, crop, is_bed):
+				Juice.sfx(&"plant")
+
+
+## v2 B1 帮工代收完成：音效 + 轻弹反馈 + 取证日志。
+func _on_helper_swept(harvested: int, collected: int) -> void:
+	Juice.sfx(&"harvest", -6.0)
+	Juice.pop(yard, 1.04, 0.14)
+	print("[helper] 帮工代收 %d 份作物、%d 份产出" % [harvested, collected])
 
 
 ## ── 结果反馈（挂在结果事件的处理函数上）──

@@ -75,6 +75,17 @@ const ACTIVE_ORDER_COUNT: int = 3
 const SAVE_PATH: String = "user://farm_save.json"
 const SAVE_VERSION: int = 1
 
+## ── v2 玩法深度（spec v2 numeric.helpers / numeric.batch / numeric.autoOrder，纯新增不改 v1）──
+## B1 自动化帮工：玩家离手 helper_idle_sec 秒后，帮工按 helper_sweep_sec 周期自动
+## 收获成熟作物/花卉、摘果、收蛋（增益型自动化，免费、不抢玩家结算口径 —— 走同一套函数）。
+const HELPER_IDLE_SEC: float = 60.0
+const HELPER_SWEEP_SEC: float = 6.0
+## B3 划动批量操作：划动位移超过该像素即进入批量手势，划过的对象逐个套用当前动作。
+const BATCH_SWIPE_MIN_PX: float = 24.0
+const BATCH_HIT_RADIUS_PX: float = 48.0
+## B2 一键订单生产链：订单卡「一键备货」把缺的原料自动 种下去/摘下来/送去加工。
+const ONE_CLICK_ORDER_ENABLED: bool = true
+
 ## ── 任务链（7 阶段，覆盖新手引导首个完整闭环）──
 ## target 为状态机事件名；quest_progress(target) 命中即完成当前阶段。
 const QUESTS: Array[Dictionary] = [

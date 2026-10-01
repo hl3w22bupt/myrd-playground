@@ -142,7 +142,18 @@ func _physics_process(_delta: float) -> void:
 		NOISE_FRAMES + 17:
 			_phase = 13
 			_assert_feedback_and_signals()
-	if _frames >= TOTAL_FRAMES or not _failures.is_empty() or _phase >= 13:
+		NOISE_FRAMES + 18:
+			_phase = 14
+			_check_v2_features()    # v2：热区≥88 / 物件放大 / 帮工离手 / 批量零偏差 / 一键订单
+		NOISE_FRAMES + 19:
+			_phase = 15
+			_inject_swipe_gesture() # v2 B3：真实输入路径 —— 空白处按下起手势
+		NOISE_FRAMES + 20:
+			_swipe_motion_now()     # 划过两块成熟地块中心
+		NOISE_FRAMES + 22:
+			_phase = 16
+			_assert_swipe_gesture()
+	if _frames >= TOTAL_FRAMES or not _failures.is_empty() or _phase >= 16:
 		_finish()
 
 
@@ -578,6 +589,156 @@ func _check_tuning_protocol() -> void:
 		_failures.append("调参协议：grow_speed=%s 超出 TUNING_META.max=4.0（钳制缺失）" % [speed])
 	if applied.has("grow_speed") and original_speed != null:
 		GameState.set("grow_speed", original_speed)
+
+
+## ═══════════════ v2 断言（spec v2 P0：A1 热区/放大 · B1 帮工 · B2 一键订单 · B3 批量）═══════════════
+
+var _helper_swept_seen := false
+var _swipe_plots: Array[int] = []
+var _swipe_wheat_before := 0
+
+
+## v2 A1+B1+B2+B3（直接状态断言，全部确定性强、不依赖真实时钟）
+func _check_v2_features() -> void:
+	GameState.quest_index = FarmData.QUESTS.size()   # 冻结任务链，隔离奖励干扰
+	GameState.helper_swept.connect(func(_h: int, _c: int) -> void: _helper_swept_seen = true)
+	# ── A1：热区短边 ≥88px 且两两不重叠；物件放大系数落在 1.5~2.0 带内 ──
+	var violations: PackedStringArray = _yard.call("hotzone_violations")
+	if not violations.is_empty():
+		_failures.append("v2 热区：%s" % [", ".join(violations)])
+	var report: Dictionary = _yard.call("object_scale_report")
+	var scale_ratio := float(report["object_scale_ratio"])
+	if scale_ratio < 1.5 or scale_ratio > 2.0:
+		_failures.append("v2 放大：object_scale_ratio=%0.2f 不在 spec v2 的 1.5~2.0 带内" % scale_ratio)
+	if float(report["icon_cell_ratio"]) < 0.85:
+		_failures.append("v2 放大：成熟作物视觉高/单元短边 %0.2f < 0.85（物件不够大）" % float(report["icon_cell_ratio"]))
+	# ── 环境归零：全部已开垦地块置空、清小麦、金币给足 ──
+	for i in GameState.plots.size():
+		if String(GameState.plots[i]["state"]) != "locked":
+			GameState.plots[i]["state"] = "empty"
+			GameState.plots[i]["crop"] = ""
+	GameState.inventory["wheat"] = 0
+	GameState.coins = 300
+	# ── B1 帮工：离手 helper_idle_sec 秒后自动代收（走同一结算函数 → 经济口径不变）──
+	var helper_plot := _first_slot_index("empty", false)
+	if helper_plot < 0 or not GameState.plant(helper_plot, "wheat", false):
+		_failures.append("v2 帮工：准备阶段种植失败")
+		return
+	GameState.tick(float(FarmData.CROPS["wheat"]["grow_sec"]) + 1.0)
+	GameState.helper_idle_sec = 1.0
+	GameState.idle_sec = 1.0
+	GameState._helper_accum = 0.0
+	GameState.tick(FarmData.HELPER_SWEEP_SEC + 1.0)
+	if not _helper_swept_seen:
+		_failures.append("v2 帮工：离手超时后 helper_swept 信号未发出（B1 未生效）")
+	if GameState.helper_harvest_count < 1:
+		_failures.append("v2 帮工：代收计数 %d < 1（帮工没有真的收获）" % GameState.helper_harvest_count)
+	if int(GameState.inventory.get("wheat", 0)) != 1:
+		_failures.append("v2 帮工：代收后小麦库存 %d ≠ 1（帮工收获未入库）" % int(GameState.inventory.get("wheat", 0)))
+	if String(GameState.plots[helper_plot]["state"]) != "empty":
+		_failures.append("v2 帮工：代收后地块状态 %s ≠ empty" % String(GameState.plots[helper_plot]["state"]))
+	# 还原帮工阈值，避免干扰后续相位；结算期间金币不变（帮工免费增益）
+	GameState.helper_idle_sec = FarmData.HELPER_IDLE_SEC
+	GameState.note_player_input()
+	# ── B3 批量：划动结算与逐点点击零偏差（同一函数逐个结算，金币/库存增量精确）──
+	var empty_plots: Array[int] = []
+	for i in GameState.plots.size():
+		if String(GameState.plots[i]["state"]) == "empty":
+			empty_plots.append(i)
+	if empty_plots.size() < 2:
+		_failures.append("v2 批量：空地块 %d < 2，无法验证划动批量" % empty_plots.size())
+		return
+	var coins_before := GameState.coins
+	var planted: int = GameState.call("batch_plant", empty_plots, "wheat", false)
+	if planted != empty_plots.size():
+		_failures.append("v2 批量：batch_plant 成功 %d ≠ 划过 %d（批量结算丢件）" % [planted, empty_plots.size()])
+	if GameState.coins != coins_before - empty_plots.size() * int(FarmData.CROPS["wheat"]["seed_cost"]):
+		_failures.append("v2 批量：批量播种金币结算与逐点不一致（%d → %d）" % [coins_before, GameState.coins])
+	GameState.tick(float(FarmData.CROPS["wheat"]["grow_sec"]) + 1.0)
+	var wheat_before := int(GameState.inventory.get("wheat", 0))
+	var harvested: int = GameState.call("batch_harvest", empty_plots, false)
+	if harvested != empty_plots.size():
+		_failures.append("v2 批量：batch_harvest 收获 %d ≠ 划过 %d（批量收获丢件）" % [harvested, empty_plots.size()])
+	if int(GameState.inventory.get("wheat", 0)) != wheat_before + empty_plots.size():
+		_failures.append("v2 批量：批量收获库存增量与逐点零偏差不成立（%d → %d）" % [
+			wheat_before, int(GameState.inventory.get("wheat", 0))])
+	# ── B2 一键订单：缺作物 → 自动种下并标记在途；缺工坊品 → 原料齐自动送加工 ──
+	GameState.inventory["wheat"] = 0
+	GameState.orders[0] = {"id": 901, "needs": {"wheat": 2}, "reward_coins": 10, "reward_xp": 3}
+	var fill_report: Dictionary = GameState.call("auto_fill_order", 0)
+	if int(fill_report["planted"]) < 1:
+		_failures.append("v2 一键订单：缺小麦时 auto_fill 没有种下任何作物（B2 未生效）")
+	var missing: PackedStringArray = fill_report["missing"]
+	if missing.size() != 0:
+		_failures.append("v2 一键订单：已安排在途的小麦仍被记为缺口 %s" % [", ".join(missing)])
+	var growing_wheat := 0
+	for i in GameState.plots.size():
+		if String(GameState.plots[i]["state"]) == "growing" and String(GameState.plots[i]["crop"]) == "wheat":
+			growing_wheat += 1
+	if growing_wheat < 1:
+		_failures.append("v2 一键订单：一键备货后没有任何生长中的小麦（种植未落库）")
+	if not GameState.workshop_built:
+		GameState.coins = 600
+		GameState.build_workshop()
+	GameState.inventory["bread"] = 0   # 清掉早前相位的成品，制造真实缺口
+	GameState.inventory["wheat"] = 6
+	GameState.inventory["egg"] = 4
+	GameState.orders[1] = {"id": 902, "needs": {"bread": 1}, "reward_coins": 10, "reward_xp": 3}
+	var craft_report: Dictionary = GameState.call("auto_fill_order", 1)
+	if String(craft_report["crafting"]) != "bread":
+		_failures.append("v2 一键订单：缺面包且原料齐/工坊闲时未送加工（crafting=%s）" % String(craft_report["crafting"]))
+	# 面包配方 = 小麦×2（无蛋）：与逐点 start_craft 的扣料完全一致
+	if int(GameState.inventory.get("wheat", 0)) != 4 or int(GameState.inventory.get("egg", 0)) != 4:
+		_failures.append("v2 一键订单：加工扣料与逐点不一致（wheat=%d egg=%d ≠ 4/4）" % [
+			int(GameState.inventory.get("wheat", 0)), int(GameState.inventory.get("egg", 0))])
+	# ── 为 B3 手势相位准备两块成熟地块（真实输入路径用）──
+	GameState.tick(float(FarmData.CROPS["wheat"]["grow_sec"]) + 1.0)
+	_swipe_plots.clear()
+	for i in GameState.plots.size():
+		if String(GameState.plots[i]["state"]) == "mature" and String(GameState.plots[i]["crop"]) == "wheat":
+			_swipe_plots.append(i)
+		if _swipe_plots.size() >= 2:
+			break
+	if _swipe_plots.size() < 2:
+		_failures.append("v2 手势：成熟小麦地块 %d < 2，划动手势无法验证" % _swipe_plots.size())
+		return
+	_swipe_wheat_before = int(GameState.inventory.get("wheat", 0))
+
+
+## B3 真实输入路径：在无对象处按下 → 划过两块成熟地块中心（MouseMotion + 左键掩码）
+func _inject_swipe_gesture() -> void:
+	if _swipe_plots.size() < 2:
+		return
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	press.position = Vector2(8.0, 8.0)   # 天空区空白处：只起手势，不触发点击
+	get_viewport().push_input(press, true)
+
+
+func _swipe_motion_now() -> void:
+	if _swipe_plots.size() < 2:
+		return
+	var from: Vector2 = _yard.hotspot_center("plot", _swipe_plots[0])
+	var to: Vector2 = _yard.hotspot_center("plot", _swipe_plots[1])
+	for step in 7:
+		var motion := InputEventMouseMotion.new()
+		motion.button_mask = MOUSE_BUTTON_MASK_LEFT
+		motion.position = from.lerp(to, float(step) / 6.0)
+		motion.relative = (to - from) / 6.0
+		get_viewport().push_input(motion, true)
+
+
+func _assert_swipe_gesture() -> void:
+	if _swipe_plots.size() < 2:
+		return
+	for index in _swipe_plots:
+		if String(GameState.plots[index]["state"]) != "empty":
+			_failures.append("v2 手势：划过的成熟地块 %d 状态 %s ≠ empty（划动批量未生效）" % [
+				index, String(GameState.plots[index]["state"])])
+	if int(GameState.inventory.get("wheat", 0)) != _swipe_wheat_before + _swipe_plots.size():
+		_failures.append("v2 手势：划动收获入库 %d ≠ %d（与逐点结算偏差）" % [
+			int(GameState.inventory.get("wheat", 0)), _swipe_wheat_before + _swipe_plots.size()])
 
 
 func _finish() -> void:

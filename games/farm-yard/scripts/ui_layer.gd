@@ -19,6 +19,7 @@ var _level_label: Label
 var _xp_bar: ProgressBar
 var _quest_label: Label
 var _mute_button: Button
+var _helper_button: Button
 var _orders_badge: Label
 var _toast_label: Label
 var _toast_tween: Tween
@@ -87,6 +88,9 @@ func _build_top_bar() -> void:
 	_mute_button = _text_button("音效:开", 16)
 	_mute_button.pressed.connect(_on_mute_pressed)
 	row.add_child(_mute_button)
+	_helper_button = _text_button("帮工:开", 16)
+	_helper_button.pressed.connect(_on_helper_pressed)
+	row.add_child(_helper_button)
 	var build_button := _text_button("庭院", 16)
 	build_button.pressed.connect(open_build)
 	row.add_child(build_button)
@@ -324,7 +328,36 @@ func open_orders() -> void:
 		deliver.disabled = not done
 		deliver.pressed.connect(_on_deliver.bind(GameState.orders.find(order)))
 		row.add_child(deliver)
+		# v2 B2 一键订单生产链：缺什么种什么/摘什么/送加工，免逐项操作
+		if FarmData.ONE_CLICK_ORDER_ENABLED:
+			var auto_fill := _text_button("一键备货", 15)
+			auto_fill.pressed.connect(_on_auto_fill.bind(GameState.orders.find(order)))
+			row.add_child(auto_fill)
 	_show_modal()
+
+
+## v2 B2：一键备货 → 汇总报告一条 toast（种下/收取/送加工/确实无计可施的缺口）。
+func _on_auto_fill(order_index: int) -> void:
+	var report: Dictionary = GameState.auto_fill_order(order_index)
+	var planted := int(report["planted"])
+	var collected := int(report["collected"])
+	var crafting := String(report["crafting"])
+	var missing: PackedStringArray = report["missing"]
+	var summary := "一键备货：种下 %d 处、收取 %d 份" % [planted, collected]
+	if crafting != "":
+		summary += "、送加工%s" % FarmData.RECIPES[crafting]["name"]
+	if missing.size() > 0:
+		var names := PackedStringArray()
+		for item_id in missing:
+			names.append(String(FarmData.item_catalog()[String(item_id)]["name"]))
+		summary += "；还缺 %s（没空地或工坊忙，稍后再点）" % "、".join(names)
+	GameState.toast.emit(summary, missing.size() == 0)
+	if planted > 0:
+		Juice.sfx(&"plant")
+	if collected > 0 or crafting != "":
+		Juice.sfx(&"confirm")
+	Juice.pop(_modal, 1.04, 0.12)
+	_refresh_all()
 
 
 func _on_deliver(order_index: int) -> void:
@@ -467,6 +500,7 @@ func _refresh_all() -> void:
 	_on_quest_changed(GameState.current_quest())
 	_refresh_panels()
 	_on_mute_changed()
+	_on_helper_changed()
 
 
 func _refresh_panels() -> void:
@@ -526,6 +560,18 @@ func _on_mute_pressed() -> void:
 
 func _on_mute_changed() -> void:
 	_mute_button.text = "音效:关" if GameState.muted else "音效:开"
+
+
+## v2 B1：帮工开关（离手 60s 自动代收；存档持久化偏好）。
+func _on_helper_pressed() -> void:
+	GameState.helper_enabled = not GameState.helper_enabled
+	GameState.note_player_input()
+	_on_helper_changed()
+	Juice.sfx(&"click")
+
+
+func _on_helper_changed() -> void:
+	_helper_button.text = "帮工:开" if GameState.helper_enabled else "帮工:关"
 
 
 func show_toast(text: String, ok: bool) -> void:

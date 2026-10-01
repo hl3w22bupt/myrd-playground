@@ -12,6 +12,8 @@ extends Node2D
 
 ## 点击命中：kind ∈ plot/bed/tree/coop/workshop/fountain/swing
 signal tapped(kind: String, index: int)
+## v2 B3 划动批量：手势划过的每个对象逐个发出（main 侧与 tapped 同语义处理）
+signal swiped(kind: String, index: int)
 
 ## ── 田园暖色板（治愈系视觉基调）──
 const COL_GRASS := Color("7fbf5f")
@@ -30,10 +32,19 @@ const COL_LOCKED := Color("9aa08f", 0.55)
 
 const DESIGN_WIDTH: float = 720.0
 ## 区域高度（自上而下）：菜园/果园/鸡鸭鹅舍/小花园/休闲天地
-const REGION_HEIGHTS: Array[float] = [268.0, 218.0, 202.0, 182.0, 246.0]
+## v2 A2 紧凑拼贴：总高度按「放大后的物件」重排，区域间距压缩到 8px（spec 上限 12px），
+## 交界由木栅栏 + 灌木花带填充，不再出现纯色分隔带。
+const REGION_HEIGHTS: Array[float] = [292.0, 200.0, 212.0, 184.0, 216.0]
 const REGION_NAMES: Array[String] = ["菜园", "果园", "鸡鸭鹅舍", "小花园", "休闲天地"]
 const TOP_RESERVE: float = 118.0
 const BOTTOM_RESERVE: float = 26.0
+## v2 A1：热区与物件几何下限（spec hitzone.minShortEdgePx / gapMin）
+const HOTZONE_MIN_EDGE: float = 88.0
+const HOTZONE_GAP_MIN: float = 8.0
+## v1 基线（物件视觉高/单元短边 ≈ 0.46）——objectScaleRatio 的对照基准
+const V1_ICON_CELL_RATIO: float = 0.46
+## v2 物件视觉高目标 = 单元短边 × 0.85（spec matureHeightMin）
+const ICON_CELL_TARGET: float = 0.85
 
 var _hotspots: Array[Dictionary] = []
 var _region_rects: Array[Rect2] = []
@@ -43,12 +54,30 @@ var _stars: Array[Vector2] = []
 var _anim_t := 0.0
 var _tint := Color(1, 1, 1)          # 昼夜对「地面与物件」的染色，天空单独配色
 var _star_rng := RandomNumberGenerator.new()
+## v2 A2/A3：装饰、动效与手势状态
+var _decor: Array[Dictionary] = []   # {kind: tuft/flower/stone, pos, size, hue}
+var _clouds: Array[Dictionary] = []  # {pos, speed, scale}
+var _mature_at: Dictionary = {}      # "plot-i"/"bed-i" → 变成熟时刻（生长完成弹跳 m1）
+var _prev_slot_state: Dictionary = {} # 同键上一帧状态（mature→empty 触发收获粒子 m8）
+var _fx: Array[Dictionary] = []      # 收获叶片粒子 {pos, vel, born}
+var _last_stock: Dictionary = {}     # coop id → 上帧 stock（产蛋弹出 m5）
+var _egg_pop_at: Dictionary = {}     # coop id → 产蛋时刻
+var _gesture_active := false
+var _gesture_start := Vector2.ZERO
+var _gesture_crossed: Array[Dictionary] = []
 
 
 func _ready() -> void:
 	_star_rng.seed = 20260928
 	for i in 42:
 		_stars.append(Vector2(_star_rng.randf_range(0.0, DESIGN_WIDTH), _star_rng.randf_range(4.0, 96.0)))
+	_star_rng.seed = 20261002
+	for i in 4:
+		_clouds.append({
+			"pos": Vector2(_star_rng.randf_range(40.0, DESIGN_WIDTH - 40.0), _star_rng.randf_range(16.0, 78.0)),
+			"speed": _star_rng.randf_range(6.0, 14.0),
+			"scale": _star_rng.randf_range(0.8, 1.3),
+		})
 	get_viewport().size_changed.connect(_relayout)
 	_relayout()
 
@@ -56,7 +85,42 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_anim_t += delta
 	_update_day_night()
+	_update_view_state()
 	queue_redraw()
+
+
+## v2 A3 动效状态追踪：变熟时刻（m1 弹跳）、成熟→空（m8 收获粒子）、产蛋时刻（m5 弹出）。
+func _update_view_state() -> void:
+	for i in GameState.plots.size():
+		_track_slot("plot", i, GameState.plots[i])
+	for i in GameState.beds.size():
+		_track_slot("bed", i, GameState.beds[i])
+	for id: String in GameState.coops:
+		var stock := int(GameState.coops[id]["stock"])
+		if _last_stock.has(id) and stock > int(_last_stock[id]):
+			_egg_pop_at[id] = _anim_t
+		_last_stock[id] = stock
+	while not _fx.is_empty() and _anim_t - float(_fx[0]["born"]) > 0.7:
+		_fx.remove_at(0)
+
+
+func _track_slot(key: String, index: int, slot: Dictionary) -> void:
+	var id := "%s-%d" % [key, index]
+	var state := String(slot["state"])
+	var prev := String(_prev_slot_state.get(id, ""))
+	if state == "mature" and prev != "mature":
+		_mature_at[id] = _anim_t
+	if prev == "mature" and state == "empty":
+		var center := hotspot_center(key, index)
+		var rng := RandomNumberGenerator.new()
+		rng.seed = index * 131 + int(_anim_t * 60.0)
+		for p in 6:
+			_fx.append({
+				"pos": center + Vector2(rng.randf_range(-16.0, 16.0), rng.randf_range(-20.0, 6.0)),
+				"vel": Vector2(rng.randf_range(-52.0, 52.0), rng.randf_range(-130.0, -60.0)),
+				"born": _anim_t,
+			})
+	_prev_slot_state[id] = state
 
 
 ## ── 布局：按视口实际尺寸纵向排布五大区域（stretch=expand 时视口高度会变）──
@@ -82,38 +146,40 @@ func _rebuild_hotspots() -> void:
 	_hotspots.clear()
 	if _region_rects.size() < REGION_HEIGHTS.size():
 		return
-	# 菜园：3 列 × 2 行地块
+	# 菜园：3 列 × 2 行地块（v2 A1：单元 146×120，热区短边 ≥88、间隙 ≥8）
 	var garden := _region_rects[0]
-	var cell := Vector2(118.0, 96.0)
-	var grid_origin := Vector2(garden.get_center().x - cell.x * 1.5 - 10.0, garden.position.y + 34.0)
+	var cell := Vector2(146.0, 120.0)
+	var grid_origin := Vector2(garden.get_center().x - cell.x * 1.5 - 10.0, garden.position.y + 36.0)
 	for i in FarmData.PLOT_COUNT:
 		var col := i % 3
 		var row := i / 3
-		var rect := Rect2(grid_origin + Vector2(col * (cell.x + 10.0), row * (cell.y + 12.0)), cell)
+		var rect := Rect2(grid_origin + Vector2(col * (cell.x + 10.0), row * (cell.y + 10.0)), cell)
 		_hotspots.append({"kind": "plot", "index": i, "rect": rect})
-	# 果树：3 棵横向均布
+	# 果树：3 棵横向均布（热区 190×150）
 	var orchard := _region_rects[1]
 	for i in FarmData.TREES.size():
-		var cx := orchard.get_center().x + (float(i) - 1.0) * 212.0
-		_hotspots.append({"kind": "tree", "index": i, "rect": Rect2(cx - 78.0, orchard.position.y + 30.0, 156.0, orchard.size.y - 44.0)})
-	# 养殖舍：3 座横向均布
+		var cx := orchard.get_center().x + (float(i) - 1.0) * 220.0
+		_hotspots.append({"kind": "tree", "index": i, "rect": Rect2(cx - 95.0, orchard.position.y + 36.0, 190.0, orchard.size.y - 50.0)})
+	# 养殖舍：3 座横向均布（热区 200×162）
 	var coop_region := _region_rects[2]
 	for i in FarmData.COOPS.size():
-		var cx := coop_region.get_center().x + (float(i) - 1.0) * 212.0
-		_hotspots.append({"kind": "coop", "index": i, "rect": Rect2(cx - 82.0, coop_region.position.y + 30.0, 164.0, coop_region.size.y - 44.0)})
-	# 花圃：4 块一行
+		var cx := coop_region.get_center().x + (float(i) - 1.0) * 220.0
+		_hotspots.append({"kind": "coop", "index": i, "rect": Rect2(cx - 100.0, coop_region.position.y + 36.0, 200.0, coop_region.size.y - 50.0)})
+	# 花圃：4 块一行（单元 158×118）
 	var flower := _region_rects[3]
-	var bed_cell := Vector2(146.0, 108.0)
-	var bed_origin := Vector2(flower.get_center().x - bed_cell.x * 2.0 - 15.0, flower.position.y + 34.0)
+	var bed_cell := Vector2(158.0, 118.0)
+	var bed_origin := Vector2(flower.get_center().x - bed_cell.x * 2.0 - 18.0, flower.position.y + 36.0)
 	for i in FarmData.BED_COUNT:
-		var rect := Rect2(bed_origin + Vector2(float(i) * (bed_cell.x + 10.0), 0.0), bed_cell)
+		var rect := Rect2(bed_origin + Vector2(float(i) * (bed_cell.x + 12.0), 0.0), bed_cell)
 		_hotspots.append({"kind": "bed", "index": i, "rect": rect})
-	# 休闲天地：工坊 + 喷泉 + 秋千
+	# 休闲天地：工坊 + 喷泉 + 秋千（热区 196/146 ×166）
 	var leisure := _region_rects[4]
 	var center_x := leisure.get_center().x
-	_hotspots.append({"kind": "workshop", "index": 0, "rect": Rect2(center_x - 268.0, leisure.position.y + 40.0, 176.0, leisure.size.y - 56.0)})
-	_hotspots.append({"kind": "fountain", "index": 0, "rect": Rect2(center_x - 66.0, leisure.position.y + 46.0, 132.0, leisure.size.y - 62.0)})
-	_hotspots.append({"kind": "swing", "index": 0, "rect": Rect2(center_x + 92.0, leisure.position.y + 46.0, 132.0, leisure.size.y - 62.0)})
+	var leisure_h: float = leisure.size.y - 50.0
+	_hotspots.append({"kind": "workshop", "index": 0, "rect": Rect2(center_x - 330.0, leisure.position.y + 38.0, 196.0, leisure_h)})
+	_hotspots.append({"kind": "fountain", "index": 0, "rect": Rect2(center_x - 73.0, leisure.position.y + 38.0, 146.0, leisure_h)})
+	_hotspots.append({"kind": "swing", "index": 0, "rect": Rect2(center_x + 134.0, leisure.position.y + 38.0, 146.0, leisure_h)})
+	_rebuild_decor()
 
 
 ## 供冒烟断言：指定区域（region 索引 ↔ 五大区域）内可交互对象的热区数量。
@@ -144,18 +210,100 @@ func hotspot_center(kind: String, index: int) -> Vector2:
 	return Vector2.ZERO
 
 
+## v2 A1 取证口：全部热区矩形（冒烟逐条断言短边 ≥ 88、两两不重叠）。
+func hotspot_rects() -> Array[Rect2]:
+	var rects: Array[Rect2] = []
+	for spot in _hotspots:
+		rects.append(spot["rect"])
+	return rects
+
+
+## v2 A1 断言口：返回违反热区规格（短边/间隙）的描述列表，空 = 达标。
+func hotzone_violations() -> PackedStringArray:
+	var violations := PackedStringArray()
+	var rects := hotspot_rects()
+	for i in rects.size():
+		if rects[i].size.x < HOTZONE_MIN_EDGE or rects[i].size.y < HOTZONE_MIN_EDGE:
+			violations.append("热区 %d 短边 %sx%s < %s" % [i, rects[i].size.x, rects[i].size.y, HOTZONE_MIN_EDGE])
+		for j in range(i + 1, rects.size()):
+			if rects[i].intersects(rects[j]):
+				violations.append("热区 %d 与 %d 重叠（间隙不足 %s）" % [i, j, HOTZONE_GAP_MIN])
+	return violations
+
+
+## v2 A1 取证口：物件放大系数（成熟作物视觉高/单元短边，及相对 v1 基线的倍数）。
+func object_scale_report() -> Dictionary:
+	var ratio := ICON_CELL_TARGET / V1_ICON_CELL_RATIO
+	return {"icon_cell_ratio": ICON_CELL_TARGET, "object_scale_ratio": ratio}
+
+
+## v2 A2 装饰布点：草丛/小花/石子按确定种子散进各区域（画在物件下层，只补空白不挡交互）。
+func _rebuild_decor() -> void:
+	_decor.clear()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 20261002
+	for r in _region_rects.size():
+		var area := _region_rects[r]
+		for i in 14:
+			var kind: String = ["tuft", "flower", "stone"][rng.randi_range(0, 2)]
+			_decor.append({
+				"kind": kind,
+				"pos": Vector2(rng.randf_range(18.0, area.size.x - 18.0), area.position.y + rng.randf_range(10.0, area.size.y - 10.0)),
+				"size": rng.randf_range(0.7, 1.25),
+				"hue": rng.randf_range(0.0, 1.0),
+			})
+
+
+## ═══════════════ v2 B3 划动批量手势 ═══════════════
+## 按下=起点（单点语义不变，仍走 tapped）；按住移动超阈值进入批量，
+## 划过的每个对象中心进圈即发一次 swiped —— main 侧与点击同语义逐个结算。
+
 func _unhandled_input(event: InputEvent) -> void:
 	var button := event as InputEventMouseButton
-	if button == null or button.button_index != MOUSE_BUTTON_LEFT or not button.pressed:
+	if button != null and button.button_index == MOUSE_BUTTON_LEFT:
+		var local_button := make_input_local(event) as InputEventMouseButton
+		if local_button == null:
+			return
+		if local_button.pressed:
+			_gesture_active = true
+			_gesture_start = local_button.position
+			_gesture_crossed.clear()
+			_tap_at(local_button.position)
+		else:
+			_gesture_active = false
+		get_viewport().set_input_as_handled()
 		return
-	var local_event := make_input_local(event) as InputEventMouseButton
-	if local_event == null:
-		return
-	var spot := hit_at(local_event.position)
+	var motion := event as InputEventMouseMotion
+	if motion != null and _gesture_active and (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0:
+		var local_motion := make_input_local(event) as InputEventMouseMotion
+		if local_motion == null:
+			return
+		_sweep_gesture(local_motion.position)
+
+
+func _tap_at(pos: Vector2) -> void:
+	var spot := hit_at(pos)
 	if spot.is_empty():
 		return
 	tapped.emit(String(spot["kind"]), int(spot["index"]))
-	get_viewport().set_input_as_handled()
+
+
+func _sweep_gesture(pos: Vector2) -> void:
+	if pos.distance_to(_gesture_start) < FarmData.BATCH_SWIPE_MIN_PX:
+		return
+	for spot in _hotspots:
+		var rect: Rect2 = spot["rect"]
+		if rect.get_center().distance_to(pos) > FarmData.BATCH_HIT_RADIUS_PX:
+			continue
+		var seen := false
+		for crossed in _gesture_crossed:
+			if String(crossed["kind"]) == String(spot["kind"]) and int(crossed["index"]) == int(spot["index"]):
+				seen = true
+				break
+		if seen:
+			continue
+		_gesture_crossed.append(spot)
+		swiped.emit(String(spot["kind"]), int(spot["index"]))
 
 
 ## ── 昼夜循环（纯视觉）：按 GameState.day_phase 插值天空色与地面染色 ──
@@ -208,6 +356,19 @@ func _draw() -> void:
 				_draw_fountain(rect)
 			"swing":
 				_draw_swing(rect)
+	_draw_fx()
+
+
+## v2 m8 收获粒子：叶片上抛 + 重力下落 + 淡出（0.6s）。
+func _draw_fx() -> void:
+	for particle in _fx:
+		var age: float = _anim_t - float(particle["born"])
+		if age < 0.0 or age > 0.6:
+			continue
+		var pos: Vector2 = particle["pos"]
+		var vel: Vector2 = particle["vel"]
+		var p := pos + vel * age + Vector2(0.0, 260.0 * age * age)
+		draw_circle(p, 3.0, Color(0.45, 0.75, 0.35, clampf(1.0 - age / 0.6, 0.0, 1.0)))
 
 
 func _draw_sky(size: Vector2) -> void:
@@ -238,12 +399,36 @@ func _draw_sky(size: Vector2) -> void:
 		var moon_pos := Vector2(size.x * moon_t, arc_y - sin(moon_t * PI) * (arc_y - 30.0))
 		draw_circle(moon_pos, 19.0, Color(0.96, 0.96, 0.9, clampf(night + 0.15, 0.0, 1.0)))
 		draw_circle(moon_pos + Vector2(7.0, -4.0), 16.0, top.lerp(Color(0, 0, 0), 0.15))
+	# v2 A2：飘云（缓速横移 + 夜间压暗）与远处飞鸟
+	for cloud in _clouds:
+		var cpos: Vector2 = cloud["pos"]
+		var drift: Vector2 = Vector2(fposmod(cpos.x + _anim_t * float(cloud["speed"]), size.x + 220.0) - 110.0, cpos.y)
+		var s: float = cloud["scale"]
+		var cloud_col := Color(1, 1, 1, 0.85).lerp(Color(0.62, 0.68, 0.85, 0.8), night)
+		draw_circle(drift, 15.0 * s, cloud_col)
+		draw_circle(drift + Vector2(14.0 * s, 4.0 * s), 11.0 * s, cloud_col)
+		draw_circle(drift - Vector2(13.0 * s, 3.0 * s), 10.0 * s, cloud_col)
+		draw_circle(drift + Vector2(2.0 * s, -7.0 * s), 12.0 * s, cloud_col)
+	for b in 3:
+		var wing := sin(_anim_t * 7.0 + float(b) * 2.1) * 3.0
+		var bpos := Vector2(fposmod(float(b) * 260.0 + _anim_t * 22.0, size.x + 80.0) - 40.0, 34.0 + float(b) * 16.0)
+		var bird_col := Color(0.25, 0.27, 0.33, 0.75).lerp(Color(0.85, 0.88, 0.95, 0.6), night)
+		draw_line(bpos + Vector2(-6.0, -wing), bpos, bird_col, 1.6)
+		draw_line(bpos, bpos + Vector2(6.0, -wing), bird_col, 1.6)
 
 
 func _draw_ground(size: Vector2) -> void:
 	var grass := _lit(COL_GRASS)
 	var grass_dark := _lit(COL_GRASS_DARK)
 	draw_rect(Rect2(0.0, _sky_rect.size.y - 34.0, size.x, size.y), grass)
+	# v2 A2：草地三档色阶横带（禁止单色矩形平铺）
+	var band_colors: Array[Color] = [
+		grass.lerp(grass_dark, 0.18), grass, grass.lerp(Color("8fce6a"), 0.35), grass.lerp(grass_dark, 0.10),
+	]
+	var band_y := _sky_rect.size.y - 34.0
+	var band_h: float = (size.y - band_y) / 4.0
+	for b in band_colors.size():
+		draw_rect(Rect2(0.0, band_y + float(b) * band_h, size.x, band_h + 1.0), band_colors[b])
 	# 远处两道缓坡山丘
 	draw_circle(Vector2(size.x * 0.18, _sky_rect.size.y + 10.0), 130.0, grass_dark.lerp(grass, 0.35))
 	draw_circle(Vector2(size.x * 0.86, _sky_rect.size.y + 26.0), 170.0, grass_dark.lerp(grass, 0.2))
@@ -256,13 +441,60 @@ func _draw_ground(size: Vector2) -> void:
 		Vector2(size.x * 0.72 - 30.0, size.y),
 	])
 	draw_colored_polygon(points, Color(path, 0.85))
-	# 区域之间的木栅栏
+	# v2 A2：草地噪点碎石（确定种子，铺满下层消灭纯色块观感）
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7712026
+	for i in 90:
+		var p := Vector2(rng.randf_range(6.0, size.x - 6.0), rng.randf_range(_sky_rect.size.y - 20.0, size.y - 4.0))
+		draw_circle(p, rng.randf_range(1.2, 2.6), Color(grass_dark, rng.randf_range(0.10, 0.22)))
+	# 区域之间的木栅栏 + 灌木花带（填充区域交界，不留纯色分隔带）
 	for i in _region_rects.size():
 		var rect := _region_rects[i]
 		var fence_y := rect.position.y - 10.0
 		if fence_y < _sky_rect.size.y:
 			continue
 		_draw_fence(Vector2(14.0, fence_y), size.x - 28.0)
+		_draw_hedge(Vector2(14.0, fence_y + 4.0), size.x - 28.0)
+	# 装饰：草丛/小花/石子（画在物件下层）
+	_draw_decor()
+
+
+## v2 A2 灌木花带：栅栏脚下的一排圆灌木 + 点缀小花，填充区域间隙。
+func _draw_hedge(origin: Vector2, width: float) -> void:
+	var leaf := _lit(Color("55913f"))
+	var leaf_light := _lit(Color("6fae52"))
+	var x := origin.x + 8.0
+	var i := 0
+	while x < origin.x + width:
+		var r := 11.0 + fposmod(float(i) * 7.0, 5.0)
+		draw_circle(Vector2(x, origin.y + 6.0), r, leaf)
+		draw_circle(Vector2(x - r * 0.3, origin.y + 3.0), r * 0.55, leaf_light)
+		if i % 3 == 0:
+			draw_circle(Vector2(x + 6.0, origin.y + 2.0), 2.4, _lit(Color("f6d460")))
+		x += r * 2.1
+		i += 1
+
+
+## v2 A2 装饰层：草丛（三笔草叶）/ 小花 / 石子。
+func _draw_decor() -> void:
+	for item in _decor:
+		var pos: Vector2 = item["pos"]
+		var s: float = item["size"]
+		match String(item["kind"]):
+			"tuft":
+				var blade := _lit(Color("4f9e4f").lerp(Color("8fce6a"), float(item["hue"]) * 0.5))
+				draw_line(pos + Vector2(-4.0 * s, 0.0), pos + Vector2(-6.0 * s, -9.0 * s), blade, 1.8 * s)
+				draw_line(pos, pos + Vector2(0.0, -12.0 * s), blade, 1.8 * s)
+				draw_line(pos + Vector2(4.0 * s, 0.0), pos + Vector2(6.0 * s, -8.0 * s), blade, 1.8 * s)
+			"flower":
+				var petal := _lit([Color("ffffff"), Color("f6a5c0"), Color("f6d460")][int(float(item["hue"]) * 2.99) % 3])
+				for p in 5:
+					var angle := TAU * float(p) / 5.0
+					draw_circle(pos + Vector2(cos(angle), sin(angle)) * 2.6 * s, 1.7 * s, petal)
+				draw_circle(pos, 1.6 * s, _lit(Color("f2b93b")))
+			"stone":
+				draw_circle(pos, 3.2 * s, _lit(Color("b9b3a4")))
+				draw_circle(pos + Vector2(-1.0 * s, -1.0 * s), 1.8 * s, _lit(Color("d4cec0")))
 
 
 func _draw_fence(origin: Vector2, width: float) -> void:
@@ -311,19 +543,40 @@ func _draw_plot(rect: Rect2, index: int) -> void:
 		_coin_with_price(rect.get_center() + Vector2(0.0, 16.0), FarmData.PLOT_UNLOCK_COSTS[index])
 		return
 	_panel(rect, soil, 12.0)
-	draw_rect(rect.grow(-5.0), _lit(COL_SOIL_DARK), false, 2.0)
-	# 垄沟纹理
-	for row in 3:
-		var line_y := rect.position.y + 18.0 + float(row) * 24.0
-		draw_line(Vector2(rect.position.x + 8.0, line_y), Vector2(rect.end.x - 8.0, line_y), Color(_lit(COL_SOIL_DARK), 0.6), 2.0)
+	# v2 A4 手绘感：暖褐描边 + 垄沟纹理
+	draw_rect(rect.grow(-3.0), _lit(Color("6b4423")), false, 3.0)
+	for row in 4:
+		var line_y := rect.position.y + 20.0 + float(row) * 22.0
+		draw_line(Vector2(rect.position.x + 8.0, line_y), Vector2(rect.end.x - 8.0, line_y), Color(_lit(COL_SOIL_DARK), 0.55), 2.0)
 	if slot["state"] == "growing":
 		var progress := 1.0 - float(slot["remain"]) / maxf(float(slot["total"]), 0.001)
-		_draw_crop_icon(rect.get_center(), String(slot["crop"]), 0.35 + 0.65 * progress)
+		var sway := sin(_anim_t * 2.24 + float(index) * 1.7) * 2.5   # m2 待机摇摆（相位按地块错开）
+		_draw_crop_icon(rect.get_center() + Vector2(sway, 0.0), String(slot["crop"]), _icon_scale(rect) * (0.35 + 0.65 * progress))
 		_progress_bar(rect.position + Vector2(8.0, rect.size.y - 14.0), rect.size.x - 16.0, progress)
 	elif slot["state"] == "mature":
-		var bounce := absf(sin(_anim_t * 3.2)) * 5.0
-		_draw_crop_icon(rect.get_center() + Vector2(0.0, -bounce), String(slot["crop"]), 1.0)
-		_label("收获", rect.position + Vector2(rect.size.x / 2.0, rect.size.y - 8.0), 14, _lit(Color("fff8ea")))
+		var center := rect.get_center() + Vector2(0.0, -absf(sin(_anim_t * 3.2)) * 5.0)
+		# m3 成熟呼吸光：柔和光晕随呼吸明暗
+		draw_circle(center, _icon_scale(rect) * 24.0, Color(1.0, 0.95, 0.6, 0.10 + 0.05 * sin(_anim_t * 3.9)))
+		_draw_crop_icon(center, String(slot["crop"]), _icon_scale(rect) * _mature_pop("plot", index))
+		_label("收获", rect.position + Vector2(rect.size.x / 2.0, rect.size.y - 8.0), 15, _lit(Color("fff8ea")))
+	else:
+		_label("点我播种", rect.get_center(), 15, Color(_lit(COL_TEXT_LIGHT), 0.9))
+
+
+## v2 A1：作物/花卉图标的目标缩放 —— 视觉高 ≈ 单元短边 × 0.85（spec matureHeightMin）。
+func _icon_scale(rect: Rect2) -> float:
+	return minf(rect.size.x, rect.size.y) * ICON_CELL_TARGET / 46.0
+
+
+## v2 m1 生长完成弹跳：变成熟后 0.24s 内 scale 0.92 → 1.0（ease-out）。
+func _mature_pop(key: String, index: int) -> float:
+	var id := "%s-%d" % [key, index]
+	if not _mature_at.has(id):
+		return 1.0
+	var t: float = (_anim_t - float(_mature_at[id])) / 0.24
+	if t >= 1.0:
+		return 1.0
+	return 0.92 + 0.08 * sin(clampf(t, 0.0, 1.0) * PI * 0.5)
 
 
 func _draw_bed(rect: Rect2, index: int) -> void:
@@ -334,18 +587,20 @@ func _draw_bed(rect: Rect2, index: int) -> void:
 		_coin_with_price(rect.get_center() + Vector2(0.0, 16.0), FarmData.BED_UNLOCK_COSTS[index])
 		return
 	_panel(rect, _lit(Color("6d4f8f") if index % 2 == 0 else Color("8f4f5f")), 10.0)
-	# 花圃围边
-	draw_rect(rect.grow(-4.0), _lit(COL_WOOD), false, 3.0)
+	# 花圃围边（暖褐描边）
+	draw_rect(rect.grow(-3.0), _lit(COL_WOOD_DARK), false, 3.0)
 	if slot["state"] == "growing":
 		var progress := 1.0 - float(slot["remain"]) / maxf(float(slot["total"]), 0.001)
-		_draw_crop_icon(rect.get_center(), String(slot["crop"]), 0.35 + 0.65 * progress)
+		var sway := sin(_anim_t * 2.24 + float(index) * 1.7) * 2.5
+		_draw_crop_icon(rect.get_center() + Vector2(sway, 0.0), String(slot["crop"]), _icon_scale(rect) * (0.35 + 0.65 * progress))
 		_progress_bar(rect.position + Vector2(8.0, rect.size.y - 12.0), rect.size.x - 16.0, progress)
 	elif slot["state"] == "mature":
-		var bounce := absf(sin(_anim_t * 3.2 + float(index))) * 4.0
-		_draw_crop_icon(rect.get_center() + Vector2(0.0, -bounce), String(slot["crop"]), 1.0)
-		_label("摘花", rect.position + Vector2(rect.size.x / 2.0, rect.size.y - 6.0), 13, _lit(Color("fff8ea")))
+		var center := rect.get_center() + Vector2(0.0, -absf(sin(_anim_t * 3.2 + float(index))) * 4.0)
+		draw_circle(center, _icon_scale(rect) * 24.0, Color(1.0, 0.95, 0.6, 0.10 + 0.05 * sin(_anim_t * 3.9)))
+		_draw_crop_icon(center, String(slot["crop"]), _icon_scale(rect) * _mature_pop("bed", index))
+		_label("摘花", rect.position + Vector2(rect.size.x / 2.0, rect.size.y - 6.0), 14, _lit(Color("fff8ea")))
 	else:
-		_label("点我种花", rect.get_center(), 14, Color(_lit(COL_TEXT_LIGHT), 0.85))
+		_label("点我种花", rect.get_center(), 15, Color(_lit(COL_TEXT_LIGHT), 0.9))
 
 
 func _draw_tree(rect: Rect2, index: int) -> void:
@@ -360,21 +615,28 @@ func _draw_tree(rect: Rect2, index: int) -> void:
 		return
 	var base := Vector2(rect.get_center().x, rect.end.y - 8.0)
 	var trunk := _lit(COL_WOOD_DARK)
-	draw_rect(Rect2(base + Vector2(-7.0, -46.0), Vector2(14.0, 46.0)), trunk)
+	# v2 A1：树冠 ×1.5（描边提升手绘感）
+	draw_rect(Rect2(base + Vector2(-11.0, -70.0), Vector2(22.0, 70.0)), trunk)
+	draw_rect(Rect2(base + Vector2(-11.0, -70.0), Vector2(6.0, 70.0)), _lit(Color("6b4423")))
 	var leaf := _lit(Color("4f9e4f") if tree_id != "peach" else Color("e58fb1"))
-	var sway := sin(_anim_t * 1.6 + float(index)) * 2.0
-	draw_circle(base + Vector2(-22.0 + sway, -66.0), 26.0, leaf)
-	draw_circle(base + Vector2(22.0 + sway, -64.0), 24.0, leaf)
-	draw_circle(base + Vector2(0.0 + sway, -86.0), 30.0, leaf)
+	var leaf_dark := leaf.lerp(Color(0.2, 0.35, 0.15), 0.35)
+	var sway := sin(_anim_t * 1.6 + float(index)) * 3.0
+	draw_circle(base + Vector2(-33.0 + sway, -98.0), 39.0, leaf_dark)
+	draw_circle(base + Vector2(33.0 + sway, -95.0), 36.0, leaf_dark)
+	draw_circle(base + Vector2(0.0 + sway, -128.0), 45.0, leaf_dark)
+	draw_circle(base + Vector2(-30.0 + sway, -101.0), 34.0, leaf)
+	draw_circle(base + Vector2(30.0 + sway, -98.0), 31.0, leaf)
+	draw_circle(base + Vector2(sway, -130.0), 39.0, leaf)
 	if bool(tree["ready"]):
-		var bounce := absf(sin(_anim_t * 3.0 + float(index))) * 4.0
+		var bounce := absf(sin(_anim_t * 3.0 + float(index))) * 5.0
+		draw_circle(base + Vector2(sway, -128.0), 46.0, Color(1.0, 0.95, 0.6, 0.10 + 0.05 * sin(_anim_t * 3.9)))
 		var fruit_col := _lit(Color("e23d3d") if tree_id == "apple" else (Color("cfd66a") if tree_id == "pear" else Color("f0956b")))
 		for f in 4:
 			var angle := TAU * float(f) / 4.0 + _anim_t * 0.4
-			draw_circle(base + Vector2(cos(angle) * 20.0, -66.0 + sin(angle) * 14.0 - bounce), 6.5, fruit_col)
-		_label("可摘", base + Vector2(0.0, -bounce - 118.0), 14, _lit(Color("fff8ea")))
+			draw_circle(base + Vector2(cos(angle) * 30.0, -98.0 + sin(angle) * 20.0 - bounce), 9.5, fruit_col)
+		_label("可摘", base + Vector2(0.0, -bounce - 168.0), 15, _lit(Color("fff8ea")))
 	else:
-		_label("%s · %ds" % [data["fruit_name"], int(ceil(float(tree["ready_in"])))] , base + Vector2(0.0, -112.0), 13, _lit(COL_TEXT))
+		_label("%s · %ds" % [data["fruit_name"], int(ceil(float(tree["ready_in"])))] , base + Vector2(0.0, -162.0), 14, _lit(COL_TEXT))
 
 
 func _draw_coop(rect: Rect2, index: int) -> void:
@@ -390,38 +652,47 @@ func _draw_coop(rect: Rect2, index: int) -> void:
 	var body := _lit(Color("e8c98f") if index == 0 else (Color("cfe0ef") if index == 1 else Color("efd8cf")))
 	var roof := _lit(COL_ROOF if index != 1 else Color("5f7fae"))
 	var base := Vector2(rect.get_center().x, rect.end.y - 10.0)
-	draw_rect(Rect2(base + Vector2(-52.0, -56.0), Vector2(104.0, 56.0)), body)
+	# v2 A1：禽舍 ×1.4，暖褐描边
+	draw_rect(Rect2(base + Vector2(-73.0, -80.0), Vector2(146.0, 80.0)), body)
+	draw_rect(Rect2(base + Vector2(-73.0, -80.0), Vector2(146.0, 80.0)), _lit(Color("6b4423")), false, 3.0)
 	draw_colored_polygon(PackedVector2Array([
-		base + Vector2(-62.0, -56.0), base + Vector2(0.0, -96.0), base + Vector2(62.0, -56.0),
+		base + Vector2(-86.0, -80.0), base + Vector2(0.0, -136.0), base + Vector2(86.0, -80.0),
 	]), roof)
-	draw_rect(Rect2(base + Vector2(-14.0, -30.0), Vector2(28.0, 30.0)), _lit(Color("8a6a42")))
-	# 小动物：鸡 / 鸭 / 鹅（体色与喙形区分，呆萌系）
-	var animal_x := base.x + sin(_anim_t * 1.3 + float(index) * 2.0) * 26.0
-	var animal := Vector2(animal_x, base.y - 10.0)
+	draw_rect(Rect2(base + Vector2(-20.0, -42.0), Vector2(40.0, 42.0)), _lit(Color("8a6a42")))
+	# 小动物：鸡 / 鸭 / 鹅（×1.5；啄食 m4 —— 每 ~7s 低头啄一次；踱步保留）
+	var animal_x := base.x + sin(_anim_t * 1.3 + float(index) * 2.0) * 34.0
+	var peck_phase := fposmod(_anim_t + float(index) * 3.0, 7.0)
+	var peck := (sin(peck_phase / 0.6 * PI) * 8.0) if peck_phase < 0.6 else 0.0
+	var animal := Vector2(animal_x, base.y - 12.0 + peck)
 	var feather := _lit(Color("ffffff") if index != 2 else Color("f3ede2"))
-	draw_circle(animal, 12.0, feather)                      # 身体
-	draw_circle(animal + Vector2(9.0, -9.0), 7.0, feather)  # 头
+	draw_circle(animal, 18.0, feather)                        # 身体
+	draw_circle(animal + Vector2(13.0, -13.0), 10.5, feather) # 头
 	if index == 0:
-		draw_rect(Rect2(animal + Vector2(6.0, -20.0), Vector2(5.0, 5.0)), _lit(Color("e23d3d")))   # 鸡冠
-		draw_polygon(PackedVector2Array([animal + Vector2(15.0, -9.0), animal + Vector2(22.0, -7.0), animal + Vector2(15.0, -5.0)]), PackedColorArray([_lit(Color("f2a13b"))]))
+		draw_rect(Rect2(animal + Vector2(9.0, -30.0), Vector2(7.0, 7.0)), _lit(Color("e23d3d")))   # 鸡冠
+		draw_polygon(PackedVector2Array([animal + Vector2(22.0, -13.0), animal + Vector2(33.0, -10.0), animal + Vector2(22.0, -7.0)]), PackedColorArray([_lit(Color("f2a13b"))]))
 	elif index == 1:
-		draw_polygon(PackedVector2Array([animal + Vector2(15.0, -10.0), animal + Vector2(23.0, -7.0), animal + Vector2(15.0, -4.0)]), PackedColorArray([_lit(Color("f2a13b"))]))  # 鸭嘴
+		draw_polygon(PackedVector2Array([animal + Vector2(22.0, -15.0), animal + Vector2(34.0, -10.0), animal + Vector2(22.0, -6.0)]), PackedColorArray([_lit(Color("f2a13b"))]))  # 鸭嘴
 	else:
-		draw_rect(Rect2(animal + Vector2(8.0, -24.0), Vector2(4.0, 16.0)), feather)                # 鹅颈
-		draw_circle(animal + Vector2(10.0, -25.0), 5.0, feather)
-		draw_polygon(PackedVector2Array([animal + Vector2(14.0, -26.0), animal + Vector2(20.0, -24.0), animal + Vector2(14.0, -22.0)]), PackedColorArray([_lit(Color("f2863b"))]))
-	draw_circle(animal + Vector2(10.0, -10.5), 1.6, _lit(COL_TEXT))   # 眼睛
-	# 产出提示
+		draw_rect(Rect2(animal + Vector2(12.0, -36.0), Vector2(6.0, 24.0)), feather)               # 鹅颈
+		draw_circle(animal + Vector2(15.0, -37.0), 7.5, feather)
+		draw_polygon(PackedVector2Array([animal + Vector2(21.0, -39.0), animal + Vector2(30.0, -36.0), animal + Vector2(21.0, -33.0)]), PackedColorArray([_lit(Color("f2863b"))]))
+	draw_circle(animal + Vector2(15.0, -15.0), 2.4, _lit(COL_TEXT))   # 眼睛
+	draw_line(animal + Vector2(-7.0, 17.0), animal + Vector2(-9.0, 22.0), _lit(Color("f2a13b")), 2.4)   # 脚
+	draw_line(animal + Vector2(7.0, 17.0), animal + Vector2(9.0, 22.0), _lit(Color("f2a13b")), 2.4)
+	# 产出提示（蛋 ×1.3；新蛋落地弹出 m5）
 	if int(coop["stock"]) > 0:
 		var bounce := absf(sin(_anim_t * 3.0)) * 4.0
+		var pop := 1.0
+		if _egg_pop_at.has(coop_id) and _anim_t - float(_egg_pop_at[coop_id]) < 0.3:
+			pop = 1.5 - 1.7 * ((_anim_t - float(_egg_pop_at[coop_id])) / 0.3)
 		for e in mini(int(coop["stock"]), 3):
-			draw_circle(base + Vector2(-30.0 + float(e) * 22.0, -6.0 - bounce), 7.0, _lit(Color("fff6e8")))
-			draw_circle(base + Vector2(-27.0 + float(e) * 22.0, -9.0 - bounce), 2.2, _lit(Color("f2b93b")))
-		_label("收蛋×%d" % int(coop["stock"]), base + Vector2(0.0, -110.0 - bounce), 14, _lit(Color("fff8ea")))
+			draw_circle(base + Vector2(-44.0 + float(e) * 32.0, -6.0 - bounce), 9.0 * pop, _lit(Color("fff6e8")))
+			draw_circle(base + Vector2(-40.0 + float(e) * 32.0, -10.0 - bounce), 2.8 * pop, _lit(Color("f2b93b")))
+		_label("收蛋×%d" % int(coop["stock"]), base + Vector2(0.0, -152.0 - bounce), 15, _lit(Color("fff8ea")))
 	else:
-		_label("%s · %ds" % [data["product_name"], int(ceil(float(coop["ready_in"])))], base + Vector2(0.0, -110.0), 13, _lit(COL_TEXT))
+		_label("%s · %ds" % [data["product_name"], int(ceil(float(coop["ready_in"])))], base + Vector2(0.0, -152.0), 14, _lit(COL_TEXT))
 	if int(coop["level"]) > 1:
-		_label("Lv.%d" % int(coop["level"]), base + Vector2(44.0, -78.0), 13, _lit(Color("fff8ea")))
+		_label("Lv.%d" % int(coop["level"]), base + Vector2(62.0, -110.0), 14, _lit(Color("fff8ea")))
 
 
 func _draw_workshop(rect: Rect2) -> void:
@@ -433,14 +704,16 @@ func _draw_workshop(rect: Rect2) -> void:
 		return
 	var base := Vector2(rect.get_center().x, rect.end.y - 10.0)
 	var wall := _lit(Color("f3e3c2"))
-	draw_rect(Rect2(base + Vector2(-70.0, -66.0), Vector2(140.0, 66.0)), wall)
+	# v2 A1：工坊 ×1.25，暖褐描边
+	draw_rect(Rect2(base + Vector2(-88.0, -84.0), Vector2(176.0, 84.0)), wall)
+	draw_rect(Rect2(base + Vector2(-88.0, -84.0), Vector2(176.0, 84.0)), _lit(Color("6b4423")), false, 3.0)
 	draw_colored_polygon(PackedVector2Array([
-		base + Vector2(-80.0, -66.0), base + Vector2(0.0, -112.0), base + Vector2(80.0, -66.0),
+		base + Vector2(-100.0, -84.0), base + Vector2(0.0, -140.0), base + Vector2(100.0, -84.0),
 	]), _lit(COL_ROOF))
-	draw_rect(Rect2(base + Vector2(36.0, -100.0), Vector2(12.0, 30.0)), _lit(COL_WOOD_DARK))   # 烟囱
-	draw_rect(Rect2(base + Vector2(-22.0, -34.0), Vector2(44.0, 34.0)), _lit(COL_WOOD))        # 门
-	draw_circle(base + Vector2(10.0, -18.0), 2.5, _lit(COL_COIN))
-	draw_rect(Rect2(base + Vector2(-56.0, -52.0), Vector2(22.0, 20.0)), _lit(Color("ffe9a8"))) # 窗
+	draw_rect(Rect2(base + Vector2(46.0, -126.0), Vector2(15.0, 38.0)), _lit(COL_WOOD_DARK))   # 烟囱
+	draw_rect(Rect2(base + Vector2(-28.0, -44.0), Vector2(56.0, 44.0)), _lit(COL_WOOD))        # 门
+	draw_circle(base + Vector2(13.0, -22.0), 3.0, _lit(COL_COIN))
+	draw_rect(Rect2(base + Vector2(-70.0, -66.0), Vector2(28.0, 26.0)), _lit(Color("ffe9a8"))) # 窗
 	# 加工中：烟囱冒烟 + 进度条
 	if GameState.crafting_recipe != "":
 		var recipe: Dictionary = FarmData.RECIPES[GameState.crafting_recipe]
@@ -448,13 +721,13 @@ func _draw_workshop(rect: Rect2) -> void:
 		var progress := 1.0 - clampf(GameState.craft_remain / maxf(total, 0.001), 0.0, 1.0)
 		for puff in 3:
 			var t := fposmod(_anim_t * 0.5 + float(puff) / 3.0, 1.0)
-			draw_circle(base + Vector2(42.0 + sin(t * 6.0) * 5.0, -108.0 - t * 40.0), 4.0 + t * 7.0, Color(1, 1, 1, 0.4 * (1.0 - t)))
-		_progress_bar(base + Vector2(-70.0, 6.0), 140.0, progress)
-		_label("制作中：%s" % recipe["name"], base + Vector2(0.0, -128.0), 14, _lit(Color("fff8ea")))
+			draw_circle(base + Vector2(53.0 + sin(t * 6.0) * 5.0, -132.0 - t * 40.0), 4.0 + t * 7.0, Color(1, 1, 1, 0.4 * (1.0 - t)))
+		_progress_bar(base + Vector2(-88.0, 6.0), 176.0, progress)
+		_label("制作中：%s" % recipe["name"], base + Vector2(0.0, -156.0), 14, _lit(Color("fff8ea")))
 	else:
-		_label("点我加工", base + Vector2(0.0, -128.0), 14, _lit(COL_TEXT))
+		_label("点我加工", base + Vector2(0.0, -156.0), 14, _lit(COL_TEXT))
 	if GameState.workshop_level > 1:
-		_label("Lv.%d" % GameState.workshop_level, base + Vector2(52.0, -86.0), 13, _lit(Color("fff8ea")))
+		_label("Lv.%d" % GameState.workshop_level, base + Vector2(66.0, -108.0), 14, _lit(Color("fff8ea")))
 
 
 func _draw_fountain(rect: Rect2) -> void:
@@ -465,14 +738,14 @@ func _draw_fountain(rect: Rect2) -> void:
 		_label("喷泉", rect.get_center() + Vector2(0.0, -12.0), 16, _lit(COL_TEXT))
 		_coin_with_price(rect.get_center() + Vector2(0.0, 12.0), FarmData.FOUNTAIN_BUILD_COST)
 		return
-	draw_circle(base + Vector2(0.0, -18.0), 44.0, _lit(Color("c9c3b4")))
-	draw_circle(base + Vector2(0.0, -20.0), 36.0, _lit(Color("7fc4de")))
-	draw_circle(base + Vector2(0.0, -34.0), 14.0, _lit(Color("c9c3b4")))
-	for jet in 5:
-		var angle := TAU * float(jet) / 5.0 + _anim_t * 1.4
-		var drop := Vector2(cos(angle) * 16.0, -46.0 - absf(sin(_anim_t * 3.0 + float(jet))) * 10.0)
-		draw_circle(base + drop, 2.6, _lit(Color("a8dcf0")))
-	_label("喷泉 Lv.%d" % level, base + Vector2(0.0, -78.0), 13, _lit(COL_TEXT))
+	draw_circle(base + Vector2(0.0, -20.0), 60.0, _lit(Color("c9c3b4")))
+	draw_circle(base + Vector2(0.0, -22.0), 50.0, _lit(Color("7fc4de")))
+	draw_circle(base + Vector2(0.0, -46.0), 18.0, _lit(Color("c9c3b4")))
+	for jet in 6:
+		var angle := TAU * float(jet) / 6.0 + _anim_t * 1.4
+		var drop := Vector2(cos(angle) * 22.0, -64.0 - absf(sin(_anim_t * 3.0 + float(jet))) * 14.0)
+		draw_circle(base + drop, 3.2, _lit(Color("a8dcf0")))
+	_label("喷泉 Lv.%d" % level, base + Vector2(0.0, -108.0), 14, _lit(COL_TEXT))
 	_bonus_label(base + Vector2(0.0, 18.0))
 
 
@@ -485,14 +758,14 @@ func _draw_swing(rect: Rect2) -> void:
 		_coin_with_price(rect.get_center() + Vector2(0.0, 12.0), FarmData.SWING_BUILD_COST)
 		return
 	var wood := _lit(COL_WOOD)
-	var sway := sin(_anim_t * 1.5) * 5.0
-	draw_line(base + Vector2(-30.0, 0.0), base + Vector2(0.0, -78.0), wood, 5.0)
-	draw_line(base + Vector2(30.0, 0.0), base + Vector2(0.0, -78.0), wood, 5.0)
-	draw_line(base + Vector2(-26.0, -70.0), base + Vector2(26.0, -70.0), wood, 5.0)
-	draw_line(base + Vector2(0.0, -78.0), base + Vector2(sway, -34.0), _lit(COL_WOOD_DARK), 2.0)
-	draw_line(base + Vector2(0.0, -78.0), base + Vector2(-sway, -34.0), _lit(COL_WOOD_DARK), 2.0)
-	draw_rect(Rect2(base + Vector2(-14.0 + minf(sway, 0.0) - 0.0, -34.0), Vector2(28.0, 6.0)), _lit(COL_ROOF))
-	_label("秋千 Lv.%d" % level, base + Vector2(0.0, -96.0), 13, _lit(COL_TEXT))
+	var sway := sin(_anim_t * 1.5) * 7.0
+	draw_line(base + Vector2(-42.0, 0.0), base + Vector2(0.0, -112.0), wood, 7.0)
+	draw_line(base + Vector2(42.0, 0.0), base + Vector2(0.0, -112.0), wood, 7.0)
+	draw_line(base + Vector2(-36.0, -100.0), base + Vector2(36.0, -100.0), wood, 7.0)
+	draw_line(base + Vector2(0.0, -112.0), base + Vector2(sway, -46.0), _lit(COL_WOOD_DARK), 3.0)
+	draw_line(base + Vector2(0.0, -112.0), base + Vector2(-sway, -46.0), _lit(COL_WOOD_DARK), 3.0)
+	draw_rect(Rect2(base + Vector2(-19.0 + minf(sway, 0.0), -46.0), Vector2(38.0, 8.0)), _lit(COL_ROOF))
+	_label("秋千 Lv.%d" % level, base + Vector2(0.0, -134.0), 14, _lit(COL_TEXT))
 	_bonus_label(base + Vector2(0.0, 18.0))
 
 

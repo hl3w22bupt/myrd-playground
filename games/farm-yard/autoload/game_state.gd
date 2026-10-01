@@ -19,6 +19,7 @@ signal orders_changed
 signal quest_changed(quest: Dictionary)
 signal quest_completed(quest: Dictionary)
 signal toast(text: String, ok: bool)
+signal helper_swept(harvested: int, collected: int)   ## v2 B1：帮工代收完成（main 挂反馈）
 
 ## ── 数值调参区（SKILL.md §3C）：只放「手感/节奏」键，不动经济结算口径 ──
 var grow_speed: float = 1.0          # 生长/产出/加工速度倍率（调参用，1 = spec 定稿）
@@ -26,6 +27,7 @@ var day_cycle_sec: float = FarmData.DAY_CYCLE_SEC
 var autosave_sec: float = 5.0
 var welcome_reward_sec: float = 3.5  # 进入院落后首奖励必发延时（3~5s，不依赖玩家交互）
 var ambient_heartbeat_sec: float = 8.0  # 反馈心跳兜底：无反馈超过该秒数补一条环境反馈（<10s 窗口）
+var helper_idle_sec: float = FarmData.HELPER_IDLE_SEC  # v2 B1：离手多少秒后帮工开始代收
 
 const TUNING_META: Dictionary = {
 	&"grow_speed": {"min": 0.25, "max": 4.0, "step": 0.25},
@@ -33,6 +35,7 @@ const TUNING_META: Dictionary = {
 	&"autosave_sec": {"min": 2.0, "max": 30.0, "step": 1.0},
 	&"welcome_reward_sec": {"min": 3.0, "max": 5.0, "step": 0.5},
 	&"ambient_heartbeat_sec": {"min": 4.0, "max": 9.0, "step": 0.5},
+	&"helper_idle_sec": {"min": 10.0, "max": 120.0, "step": 5.0},
 }
 
 ## ── 核心状态 ──
@@ -62,6 +65,15 @@ var orders: Array[Dictionary] = []
 var order_seq: int = 0
 var quest_index: int = 0              # 指向 FarmData.QUESTS；== size() 表示全部完成
 var sold_count: int = 0
+
+## ── v2 玩法深度状态（helpers / batch / autoOrder）──
+var helper_enabled: bool = true       # 帮工总开关（顶栏可切，存档持久化）
+var helper_harvest_count: int = 0     # 帮工代收累计（冒烟/试玩取证用）
+var helper_collect_count: int = 0
+var last_crop_planted: String = ""    # 划动批量空地补种用的「上次种过的作物」
+var last_flower_planted: String = ""
+var idle_sec: float = 0.0             # 距玩家最近一次输入的游戏秒数（tick 驱动）
+var _helper_accum: float = 0.0
 
 var _dirty: bool = false
 var _autosave_accum: float = 0.0
@@ -108,9 +120,46 @@ func tick(delta: float) -> void:
 		if craft_remain <= 0.0:
 			craft_remain = 0.0
 			_finish_craft()
+	# v2 B1 自动化帮工：玩家离手 helper_idle_sec 秒后，帮工按周期代收成熟物（免费增益）。
+	# 结算走同一套 harvest/collect 函数 —— 经济口径、任务推进、幂等性与手点完全一致。
+	idle_sec += delta
+	if helper_enabled and idle_sec >= helper_idle_sec:
+		_helper_accum += delta
+		if _helper_accum >= FarmData.HELPER_SWEEP_SEC:
+			_helper_accum = 0.0
+			_helper_sweep()
 	_autosave_accum += delta
 	if _dirty and _autosave_accum >= autosave_sec:
 		save_game()
+
+
+## 玩家任意输入（点按/划动/按键/菜单操作）都打到这里：帮工的「离手」判定基准。
+func note_player_input() -> void:
+	idle_sec = 0.0
+	_helper_accum = 0.0
+
+
+## 帮工巡场一轮：收作物/花卉 → 摘果 → 收蛋。静默结算，汇总一条 toast（避免刷屏）。
+func _helper_sweep() -> void:
+	var harvested := 0
+	var collected := 0
+	for i in plots.size():
+		if String(plots[i]["state"]) == "mature" and harvest(i, false, true):
+			harvested += 1
+	for i in beds.size():
+		if String(beds[i]["state"]) == "mature" and harvest(i, true, true):
+			harvested += 1
+	for id: String in trees:
+		if trees[id]["built"] and bool(trees[id]["ready"]) and harvest_tree(id, true):
+			collected += 1
+	for id: String in coops:
+		if int(coops[id]["level"]) > 0 and int(coops[id]["stock"]) > 0 and collect_coop(id, true):
+			collected += 1
+	if harvested > 0 or collected > 0:
+		helper_harvest_count += harvested
+		helper_collect_count += collected
+		helper_swept.emit(harvested, collected)
+		_notify("帮工替你收了 %d 份作物、%d 份产出" % [harvested, collected], true)
 
 
 func _advance_slot(slot: Dictionary, amount: float, what: String) -> void:
@@ -155,6 +204,10 @@ func plant(index: int, crop_id: String, is_bed: bool) -> bool:
 	slot["crop"] = crop_id
 	slot["total"] = float(crop["grow_sec"])
 	slot["remain"] = float(crop["grow_sec"])
+	if is_bed:
+		last_flower_planted = crop_id
+	else:
+		last_crop_planted = crop_id
 	yards_changed.emit()
 	quest_progress("plant_crop")
 	_mark_dirty()
@@ -163,14 +216,16 @@ func plant(index: int, crop_id: String, is_bed: bool) -> bool:
 
 
 ## ── 收获：先改状态再发奖励（幂等 —— 重复点击同一成熟物只结算一次）──
-func harvest(index: int, is_bed: bool) -> bool:
+## quiet=true（帮工/批量路径）时不发单条 toast，由调用方汇总播报。
+func harvest(index: int, is_bed: bool, quiet: bool = false) -> bool:
 	var slots := beds if is_bed else plots
 	var table := FarmData.FLOWERS if is_bed else FarmData.CROPS
 	if index < 0 or index >= slots.size():
 		return false
 	var slot := slots[index]
 	if slot["state"] != "mature":
-		_notify("还没成熟呢", false)
+		if not quiet:
+			_notify("还没成熟呢", false)
 		return false
 	var crop_id := String(slot["crop"])
 	var crop: Dictionary = table[crop_id]
@@ -183,16 +238,18 @@ func harvest(index: int, is_bed: bool) -> bool:
 	yards_changed.emit()
 	quest_progress("harvest_crop")
 	_mark_dirty()
-	_notify("收获了%s" % crop["name"], true)
+	if not quiet:
+		_notify("收获了%s" % crop["name"], true)
 	return true
 
 
-func harvest_tree(tree_id: String) -> bool:
+func harvest_tree(tree_id: String, quiet: bool = false) -> bool:
 	if not trees.has(tree_id):
 		return false
 	var tree: Dictionary = trees[tree_id]
 	if not tree["built"] or not tree["ready"]:
-		_notify("果子还没熟", false)
+		if not quiet:
+			_notify("果子还没熟", false)
 		return false
 	var data: Dictionary = FarmData.TREES[tree_id]
 	tree["ready"] = false
@@ -202,16 +259,18 @@ func harvest_tree(tree_id: String) -> bool:
 	yards_changed.emit()
 	quest_progress("harvest_crop")
 	_mark_dirty()
-	_notify("摘了 %d 个%s" % [2, data["fruit_name"]], true)
+	if not quiet:
+		_notify("摘了 %d 个%s" % [2, data["fruit_name"]], true)
 	return true
 
 
-func collect_coop(coop_id: String) -> bool:
+func collect_coop(coop_id: String, quiet: bool = false) -> bool:
 	if not coops.has(coop_id):
 		return false
 	var coop: Dictionary = coops[coop_id]
 	if coop["level"] <= 0 or int(coop["stock"]) <= 0:
-		_notify("还没有蛋可收", false)
+		if not quiet:
+			_notify("还没有蛋可收", false)
 		return false
 	var data: Dictionary = FarmData.COOPS[coop_id]
 	var taken := int(coop["stock"])
@@ -220,8 +279,32 @@ func collect_coop(coop_id: String) -> bool:
 	_add_xp(int(data["xp"]) * taken)
 	yards_changed.emit()
 	_mark_dirty()
-	_notify("收了 %d 个%s" % [taken, data["product_name"]], true)
+	if not quiet:
+		_notify("收了 %d 个%s" % [taken, data["product_name"]], true)
 	return true
+
+
+## ── v2 B3 划动批量：一次手势对划过的每个对象结算一次（与逐点点击走同一函数 → 零偏差）──
+func batch_harvest(indices: Array, is_bed: bool) -> int:
+	var done := 0
+	for index in indices:
+		if harvest(int(index), is_bed, true):
+			done += 1
+	if done > 0:
+		_notify("一口气收了 %d 份作物" % done, true)
+	return done
+
+
+func batch_plant(indices: Array, crop_id: String, is_bed: bool) -> int:
+	if not ((FarmData.FLOWERS if is_bed else FarmData.CROPS).has(crop_id)):
+		return 0
+	var done := 0
+	for index in indices:
+		if plant(int(index), crop_id, is_bed):
+			done += 1
+	if done > 0:
+		_notify("批量种下 %d 处%s" % [done, (FarmData.FLOWERS if is_bed else FarmData.CROPS)[crop_id]["name"]], true)
+	return done
 
 
 func _notify(text: String, ok: bool) -> void:
@@ -510,6 +593,77 @@ func order_progress(order: Dictionary) -> Dictionary:
 	return progress
 
 
+## ── v2 B2 一键订单生产链：把缺的原料自动安排到「在途」，玩家免逐项操作 ──
+## 动作顺序：先白拿现成的（果树有果/禽舍有蛋）→ 缺的作物/花卉直接种进空地 →
+## 缺的工坊品在原料齐时送加工。一切扣费与校验走既有函数 —— 金币不足自动停在能做的范围。
+## 返回报告 {planted, collected, crafting, missing}：missing = 本单确实无计可施的物品 id。
+func auto_fill_order(order_index: int) -> Dictionary:
+	var report := {"planted": 0, "collected": 0, "crafting": "", "missing": PackedStringArray()}
+	if order_index < 0 or order_index >= orders.size():
+		return report
+	var order := orders[order_index]
+	# ① 现成产出先收进来（免费、零风险）
+	for id: String in trees:
+		if trees[id]["built"] and bool(trees[id]["ready"]) and harvest_tree(id, true):
+			report["collected"] += 1
+	for id: String in coops:
+		if int(coops[id]["level"]) > 0 and int(coops[id]["stock"]) > 0 and collect_coop(id, true):
+			report["collected"] += 1
+	var missing: Dictionary = {}
+	for item_id: String in order["needs"]:
+		var lack := int(order["needs"][item_id]) - int(inventory.get(item_id, 0))
+		if lack > 0:
+			missing[item_id] = lack
+	if missing.is_empty():
+		return report
+	# ② 能种的直接种（作物进菜园、花卉进花圃）；种下即在途
+	var pending := {}
+	for item_id: String in missing:
+		if FarmData.CROPS.has(item_id) or FarmData.FLOWERS.has(item_id):
+			var is_bed := FarmData.FLOWERS.has(item_id)
+			while report["planted"] < 64 and int(missing[item_id]) > int(inventory.get(item_id, 0)) \
+					and _plant_first_empty(item_id, is_bed):
+				report["planted"] += 1
+				pending[item_id] = true
+	# ③ 缺工坊品：工坊闲 + 原料齐 → 送加工；果树/禽舍在建 → 周期在途不算缺
+	if crafting_recipe == "" and workshop_built:
+		for item_id: String in missing:
+			var recipe_id := _recipe_of_output(item_id)
+			if recipe_id != "" and craft_available(recipe_id) and start_craft(recipe_id):
+				report["crafting"] = recipe_id
+				pending[item_id] = true
+				break
+	for item_id: String in FarmData.TREES:
+		if missing.has(String(FarmData.TREES[item_id]["fruit"])) and trees[item_id]["built"]:
+			pending[String(FarmData.TREES[item_id]["fruit"])] = true
+	for item_id: String in FarmData.COOPS:
+		if missing.has(String(FarmData.COOPS[item_id]["product"])) and int(coops[item_id]["level"]) > 0:
+			pending[String(FarmData.COOPS[item_id]["product"])] = true
+	# ④ 其余如实上报缺口（没空地可种 / 工坊忙或原料不够 / 设施未建）
+	for item_id: String in missing:
+		if not pending.has(item_id):
+			var gap: PackedStringArray = report["missing"]
+			gap.append(item_id)
+			report["missing"] = gap
+	_mark_dirty()
+	return report
+
+
+func _plant_first_empty(crop_id: String, is_bed: bool) -> bool:
+	var slots: Array[Dictionary] = beds if is_bed else plots
+	for i in slots.size():
+		if String(slots[i]["state"]) == "empty" and plant(i, crop_id, is_bed):
+			return true
+	return false
+
+
+func _recipe_of_output(item_id: String) -> String:
+	for id: String in FarmData.RECIPES:
+		if String(FarmData.RECIPES[id]["output"]) == item_id:
+			return id
+	return ""
+
+
 func _make_order() -> Dictionary:
 	order_seq += 1
 	_order_rng.seed = hash("order-%d" % order_seq)
@@ -582,6 +736,13 @@ func new_game() -> void:
 	order_seq = 0
 	quest_index = 0
 	sold_count = 0
+	helper_enabled = true
+	helper_harvest_count = 0
+	helper_collect_count = 0
+	last_crop_planted = ""
+	last_flower_planted = ""
+	idle_sec = 0.0
+	_helper_accum = 0.0
 	plots = []
 	for i in FarmData.PLOT_COUNT:
 		plots.append(_slot("locked" if FarmData.PLOT_UNLOCK_COSTS[i] > 0 else "empty"))
@@ -648,6 +809,11 @@ func save_game() -> bool:
 		"order_seq": order_seq,
 		"quest_index": quest_index,
 		"sold_count": sold_count,
+		"helper_enabled": helper_enabled,
+		"helper_harvest_count": helper_harvest_count,
+		"helper_collect_count": helper_collect_count,
+		"last_crop_planted": last_crop_planted,
+		"last_flower_planted": last_flower_planted,
 	}
 	var file := FileAccess.open(FarmData.SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -706,6 +872,14 @@ func load_game() -> bool:
 	order_seq = int(data.get("order_seq", orders.size()))
 	quest_index = clampi(int(data.get("quest_index", 0)), 0, FarmData.QUESTS.size())
 	sold_count = int(data.get("sold_count", 0))
+	# v2 新增字段：老存档没有这些键时走默认值（不升 SAVE_VERSION，玩家进度不受部署影响）
+	helper_enabled = bool(data.get("helper_enabled", true))
+	helper_harvest_count = int(data.get("helper_harvest_count", 0))
+	helper_collect_count = int(data.get("helper_collect_count", 0))
+	last_crop_planted = String(data.get("last_crop_planted", ""))
+	last_flower_planted = String(data.get("last_flower_planted", ""))
+	idle_sec = 0.0
+	_helper_accum = 0.0
 	_emit_all()
 	return true
 
