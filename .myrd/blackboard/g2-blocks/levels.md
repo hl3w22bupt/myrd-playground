@@ -19,7 +19,7 @@
 | 线1 色板定稿 | 美术 | 余烬金 `#C89C19` + 暖区 06/07 + 门禁工具 + 21 对证据 | 21 对双门禁 ALL-GREEN（minΔE 26.555 / 阈值 25）；commit d401cab | ✅ |
 | 线2 spec v1 | 策划 | 八道守卫 + 平台 v1 `cmuovwra0004gm97tinha15zq` + 导出件 | 一次成链；回读全等；5+1 逐字在链；commit 19abac4 | ✅ |
 | 线3 N3 前置 | 程序 | 守卫+CI + harness + seededRng 骨架 + theme.spec 框架 | run-all 绿；PENDING-APPROVE 显式非装绿；commit 1a47805 | ✅ |
-| 线3 契约收口 | 程序 | `tests/kernel-purity.spec.mjs`（ac-14 声明落点补位，7 断言）+ `tests/acceptance-map.spec.mjs`（18 条 check 落点契约守卫）+ run-all 六件门禁 + CI 两步 | 六件门禁全绿；反向探针三路实测会红；commit 05a644e；证据 `gate-logs/n1-prog-contract-20261001/` | ✅ |
+| 线3 契约收口 | 程序 | `tests/kernel-purity.spec.mjs`（ac-14 声明落点补位，**8 断言含 ac-14/h 零硬编码自证**）+ `tests/acceptance-map.spec.mjs`（18 条 check 落点契约守卫）+ run-all 六件门禁 + CI 两步 | 六件门禁全绿；反向探针三路实测会红；commit 05a644e + **edc414f**（R2 驳回①②修复：seed 改 defaultSeed() 派生 + 门 A 注释对齐生效值）；证据 `gate-logs/n1-prog-contract-20261001/` | ✅ |
 | 线4 round-2 | QA | qa-round2 27 断言 + 回执 QA-G2-N1-R2-20261001-01 + 证据模板 | 无红 → approve-ready；commit ff7d34c | ✅ |
 | 主人拍板 | 主人 | approve | 人工验收最终裁决 | ⏸ 团队不代拍 |
 
