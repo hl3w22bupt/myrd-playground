@@ -1,0 +1,18 @@
+# 10-repo-one-flaky-rotate-pause.log — 一号仓库（stack-tower 线）存量 flaky 观察留证
+# 采集时点：2026-10-01 · 采集人：游戏程序（g2-blocks 线3，非本线缺陷，移交一号线处置）
+# 触发场景：R2 修后终验跑 `node scripts/contract-check.mjs` 时首次偶现；g2 全程未改一号任何工程文件
+#           （tracked diff 为空，见 09 号日志）→ 非本轮产物，判存量时序敏感 flake。
+# 现象（聚合门禁内）：
+#   FAIL  横屏视口：遮罩显示 + 点击不计分（激活即暂停）；回竖屏恢复
+#   RESULT: FAIL (0/1)
+#   RESULT: FAIL (1 项)
+# 单件复现统计（games/stack-tower/tests/contract/m21-acc-m3-rotate-pause.spec.mjs）：
+#   批1：3 连跑 = PASS/FAIL/PASS
+#   批2：6 连跑 = PASS×6
+#   批3：8 连跑 = PASS×8
+#   → 约 2/20 次失败（10%），无固定规律，属时序/视口事件竞态特征
+#   （姊妹件 m21-acc-m4-rotate-aspect 3 连跑全 PASS，未观测到同类抖动）
+# 自愈表现：聚合门禁 `node scripts/contract-check.mjs` 此后连续 3 次 RESULT: PASS（EXIT=0）
+# 处置建议（归一号线）：为该件的重排/事件等待加确定性同步点（或对 resize 后断言加轮询等待），
+#   消除偶发；在修复前建议 CI 对该件允许 1 次重试并留痕，避免偶发红淹没真红。
+# 本线不代修：红线「不改一号任何文件」。

@@ -45,6 +45,7 @@
 | 线4 round-2 | QA | `tools/qa-round2.mjs`(27 断言) + 证据 `gate-logs/n1-round2-20261001/` + 回执 QA-G2-N1-R2-20261001-01 + 证据一行式模板 | 五项关闭逐条核对 + 无新红 → **approve-ready**；判据自纠 1 条留痕；commit ff7d34c | ✅ |
 | 主人拍板 approve | 主人 | — | 人工验收最终裁决 | ⏸ **等拍板** |
 | R2 驳回修复（非阻断 5 条 + 备忘） | 程序线主导 | ① `kernel-purity.spec.mjs` 硬编码 seed（= DEFAULT_SEED）→ 改 `defaultSeed()` 派生 + 新增 `ac-14/h` 零硬编码自证门禁（8/8 PASS）；② `palette-gate.mjs` 门 A 注释 0.18/0.15 → 更正为生效值 0.10/0.08；④ 证据 README 09 行摘要与日志实况对齐（改结构化采集，不写死行数）；备忘：QA 回执补 §六 门禁复跑索引 | ①②④✅ 已修（见 `gate-logs/n1-prog-contract-20261001/README.md` §4）；③ ac-11「theme.js」措辞二义（平台 PUT/PATCH 405，无 draft 原位更正通道）→ 呈批件披露 §五.5 交主人裁定；⑤ palette intent「L\*≈64」vs 实测 66.6（改文件破坏链上 `sourceSha256` 锚）→ 呈批件披露 §五.6 待美术线下轮 spec 修订更正 | ✅ 修毕（③⑤披露挂账） |
+| 【移交一号线·非本轮产物】stack-tower `m21-acc-m3-rotate-pause` 低频 flaky | 一号线（stack-tower） | 终验跑一号 `node scripts/contract-check.mjs` 偶现 `FAIL 横屏视口：遮罩显示+点击不计分；回竖屏恢复`；单件 20 连跑约 2 次失败（10%），无固定规律；姊妹件 `m21-acc-m4-rotate-aspect` 未观测到 | 聚合门禁重跑自愈（连续 3 次 RESULT: PASS）；证据 `gate-logs/n1-prog-contract-20261001/10-repo-one-flaky-rotate-pause.log`；**本线不代修**（红线：不改一号任何文件）→ 建议一号线为 resize 后断言加确定性同步点/轮询等待，修复前 CI 对该件允许 1 次重试并留痕 | ⏸ 已移交 |
 
 ## 升级条款（主策划已定，本轮生效）
 

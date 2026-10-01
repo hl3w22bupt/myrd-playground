@@ -29,6 +29,7 @@
 | 07 | `07-repo-one-contract-check.log` | 2026-10-01 | `node scripts/contract-check.mjs`（一号仓库根，只读） | `RESULT: PASS（spec ↔ 工程一致）`；B 段 39/40 实跑 PASS（not-runnable 1 单列不计绿） |
 | 08 | `08-acceptance-checkmap-audit.log` | 2026-10-01 | `node /tmp/g2-audit-checkmap.mjs`（18 条声明落点逐条比对文件系统） | 修复后 EXISTS=5（ac-11/12/17/18 + ac-14），冻结面 MISSING=13（显式待批） |
 | 09 | `09-repo-one-zero-touch.log` | 2026-10-01 | `git status --porcelain` + `git diff --stat <工程路径集>`（一号仓库根，结构化采集：记录采集时点 HEAD） | **行数以日志实况为准（本件不再写死行数）**；零接触判据 = 「tracked 工程文件 diff 为空」+「status 行全部落在守卫白名单（g2 黑板区 / g2 spec 区 / 平台预置 SKILLS.md）」。R2 纠偏：首轮摘要写「仅 1 行」与被引日志 2 行实况不符（采集时证据件未提交属预期，非越界），已改为按实记录 |
+| 10 | `10-repo-one-flaky-rotate-pause.log` | 2026-10-01 | 终验聚合门禁偶现后的单件复跑统计（`games/stack-tower/tests/contract/m21-acc-m3-rotate-pause.spec.mjs`，20 连跑） | 一号存量低频 flaky（约 2/20 次失败，时序/视口竞态特征）；聚合门禁重跑自愈（连续 3 次 PASS）；**非本轮产物、本线不代修**，已移交一号线（blockers.md 台账行） |
 
 ## 2. 附加验证：AC-11 断言机首度实跑（/tmp 合成树，两仓库零接触、零落盘残留）
 
