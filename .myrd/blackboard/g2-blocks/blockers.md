@@ -98,3 +98,26 @@
 
 - 不代拍 approve；不写冻结值相关代码（线3 只做零冻结值依赖件）；不改一号任何文件；
   不出 wx/dy 包；missions 不激活；scope_gate 挂起不激活。
+
+## N1 部署登记（deploy 节点 · run `cmuouq3u0003im97tyhjci0kc` · 2026-10-01）
+
+> 部署面 = 本续接分支上**已可玩的游戏产物**（stack-tower 线，历轮同一坑位复用，未建新坑）。
+> **g2-blocks 本轮为 spec 轮，无可玩产物，未建坑、未部署**——approve 是主人拍板位，approve 前零冻结值实现投入；
+> g2-blocks 专属坑留给 approve 后实现轮（届时按 slug 精确检索 → 无则新建，返回 app.id 记回本节）。
+
+| 项 | 值 |
+|---|---|
+| appId（复用，不新建） | `cmugttipt000km9299oej5z9b` |
+| slug / sourceId | `stack-tower-3` / `stack-tower`（GET 实查 `sourceType=game-studio` 绑定即本游戏，防挤占通过；slug 精确检索命中的 `cmugts0ip000gm929wcnap4x9` 为 suspended 软删占位，已避开） |
+| manifestPath | `games/stack-tower/apphost.toml` |
+| 本轮 gitRef / commit | `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` / `25b541d`（远端已同步，无领先提交） |
+| deploymentId / version | `cmup4pal9000am94pplui7hwo` / **v25**（status=running，durationMs 842，errorMessage null，已切 current；首发 504 为代理截断，GET 复查已受理，未盲目重发） |
+| liveUrl | `https://leomac-studio.tail49399e.ts.net/apps/stack-tower-3/gw` |
+| 自测 | `/health` 200 `{"ok":true,"app":"stack-tower"}`；`/` 308→`-L` 200 text/html；指纹 4 件 200；线上 `sw.js`/`build/main.js` 与 HEAD 导出件**逐字节一致**（非旧缓存） |
+| 产物一致性 | `diff -rq build export/web/build` BYTE-EQUAL + 入口三件 EQUAL；web 输入面自 `5ed680b` 后零变化（`b7b22ae..HEAD` 34 files 全为 `.myrd/` 文档面）→ 零新导出提交 |
+| 团队产物区入口 | artifact `cmugut4ck000vm929ufwgefhl` → hostedAppSlug `stack-tower-3`（幂等命中既有件，success:true） |
+| 一号零触碰 | `git status --porcelain` 0 行；一号 tracked 工程面 diff 空；本轮新增文件仅 `.myrd/blackboard/g2-blocks/` 产品区 |
+| 证据 | `gate-logs/n1-deploy-20261001/deploy-evidence.md` |
+
+- **下一轮复用指引**：部署坑位按本表 appId 复用，manifestPath 恒为 `games/stack-tower/apphost.toml`、
+  sourceId `stack-tower`；g2-blocks 实现轮（approve 后）再按其 slug 走「检索 → 命中复用 / 未命中新建」。
