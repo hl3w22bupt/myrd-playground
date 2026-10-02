@@ -44,3 +44,39 @@
 - 导出前先 `mkdir -p export/web`：Godot 不自建目标目录，缺目录报「目标文件夹不存在或无法访问」。
 - 平台 `POST .../deployments` 可能回 504（同步响应被网关掐断），部署仍在服务端启动 ——
   先 GET 应用查 deployments 再决定是否重试，**不要盲目重发**（会造出重复构建）。
+
+---
+
+# 发布节点复验与调参桥接通（2026-10-02 第二轮）
+
+## 1. 门禁复跑（两轮，判定器仍只来自仓库内 std-skills/godot-game-dev/scripts/）
+
+| 轮次 | preflight | smoke（240 帧） | fuzz |
+|---|---|---|---|
+| HEAD `ad61b92`（复验前次修复） | PASS（43 文件） | PASS（退出码 0，断言标记齐全） | PASS（seed=20260913） |
+| HEAD `0b5f4bd`（调参桥落地后） | PASS（43 文件） | PASS（含新增 `_check_tuning_bridge` 断言） | PASS（seed=20260913） |
+
+注：冒烟的 `GODOT_SMOKE: PASS` 标记写在脚本内部 mktemp 日志里（trap 删除），stdout 只出
+`godot-smoke: PASS` 摘要行 —— 退出码 0 + 「断言标记齐全」即脚本已核过标记，无需自跑 godot 替代判定。
+
+## 2. 本轮新增改动（发布节点职责内，非晃动逻辑变更）
+
+- **调参桥接通**（此前壳与游戏两侧都缺失，违反 §3C 硬契约）：
+  - 游戏侧 `GameState`：`TUNING_META` 只暴露晃动 5 键，钳制上界 = 验收上界（加速 ≤3.0px / ≤6Hz、
+    终局 ≤0.5s）—— 调参桥覆盖写不出破坏验收标准的值；`apply_tuning` / `clear_tuning` 唯一入口；
+    `shake_params` 返回「默认 + 运行期覆盖」副本，`SHAKE_CONFIG` 常量不被改写。
+  - 壳侧：引擎加载前解析 URL `?tuning=<JSON>` → `window.__GAME_TUNING__`（非法 JSON 静默忽略）。
+  - 冒烟断言覆盖桌面可机判的一半：白名单/类型过滤、钳到上界、未覆盖键不动、常量不可变、复位。
+- **壳页模板残留清理**：落地页标题/副标题/按键提示原是上一款游戏（糖果粉碎）文案；`/health`
+  的 `app` 字段、server 包名、`[candy-shell]` 日志标签同源残留 → 全部改为本游戏（`game-10`）。
+
+## 3. 本轮部署证据（deployment `cmuqluevu001gm9bx9i2ndqb3`）
+
+- gitRef `myrd/game-10-goal-cmuqjy7dk000mm9bf5jef68ay`，commit `0b5f4bd`，deployedBy=workflow，
+  triggeredById=sourceId=`cmuqjy7dk000mm9bf5jef68ay`（应用专属绑定）→ status **running**
+- `/health` 200 `{"ok":true,"app":"game-10",...}`；`/` 200（12167B，title=复现天天酷跑，
+  含 `__GAME_TUNING__` 与 `__audioDebug`，资产走相对路径 `api/public/assets/*`，candy 残留 0 处）
+- 一致性：线上 `index.js` sha256 `8b649683…` == 本地导出；线上 pck（b64+gzip 还原）
+  sha256 `62ed35a4…` == 本地 `export/web/index.pck`（2507360B）；`index.wasm.gz.b64` 200 text/plain
+- 待验（外部依赖）：调参桥 web 半程（`JavaScriptBridge.eval` 读 `__GAME_TUNING__`）与移动端音效
+  需真机/浏览器实测；桌面与无头无法覆盖。晃动手感的「不头晕 / 结束感干脆」仍以主人试玩为准。
