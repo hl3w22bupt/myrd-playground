@@ -11,6 +11,22 @@ bash games/game-10/verify.sh        # preflight → smoke(240帧) → input-fuzz
 
 判定器唯一来源：仓库内 `std-skills/godot-game-dev/scripts/`（本工程不自带判定逻辑）。
 
+## Web 导出与部署
+
+`apphost.toml` 的 `assets_dir = "games/game-10/export/web"`，该目录是 AppHost 构建输入，
+**必须入库**（`.gitignore` 已放行 `!/export/web/`，桌面端产物仍忽略）。导出步骤：
+
+```bash
+mkdir -p games/game-10/export/web   # Godot 不自建目标目录，缺了会报「目标文件夹不存在」
+GODOT_BIN="$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)"
+"$GODOT_BIN" --headless --path games/game-10 --import
+"$GODOT_BIN" --headless --path games/game-10 --export-release "Web" export/web/index.html
+```
+
+预设 `export_presets.cfg`：`variant/thread_support=false`（壳页以 `threads:false` 探测特性）、
+默认 HTML 壳 —— 生产落地页由仓库 `server/src/game-page.ts` 伺服（含移动端音频手势解锁器
+与 `.gz.b64` 资产通道），导出的 `index.html` 仅用于本地静态预览。
+
 ## 晃动调参手册（需求：加速降晃 + 终局单晃）
 
 全部晃动参数集中在 `autoload/game_state.gd` 的 `SHAKE_CONFIG`，**改配置即可生效，
