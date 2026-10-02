@@ -126,6 +126,22 @@ workflow-node token 无 `actFor=<goal 属主>` 且非项目成员 → `effective
 token 自身 userId，与 goal.userId / 应用所有者都不匹配 → 部署 API 与 goal 读写全 403。
 详见 `qa/playtest-writeback-blocked-2026-10-02.md` §四。
 
+### 产物回写通道（本轮收尾复测 2026-10-02T00:41Z）
+
+| 探测 | 结果 |
+|---|---|
+| `GET /api/v1/goals/cmuieq51k002cm9gysxbyppv7`（读现有 artifacts 的前置） | `403 无权访问`，requestId `req_1790901287444` |
+| `PATCH /api/v1/goals/cmuieq51k002cm9gysxbyppv7`（鉴权探针，body 非法不会改动数据） | `403 无权操作`，requestId `req_1790901287465` |
+
+读不到现有 artifacts → 按「不要覆盖丢失已有条目」纪律**不做盲 PATCH**（盲写可能把目标卡片
+已有产物条目整体覆盖掉）。本文件继续代持产物回写内容；放权后按下方 runbook 补写：
+
+```json
+{"op":"run_workflow","artifactId":"cmuieq51i002am9gyfxqx06rl","artifactType":"hosted_app",
+ "url":"/apps/game-3/gw","title":"《疾风忍者跑》已部署","status":"completed",
+ "detail":"liveUrl=<补>；deploymentId=<补>；冒烟结论=<补>"}
+```
+
 ## 部署形态说明（供验收）
 
 首选形态 a（已配置）：`assets_dir` 出 bundle —— 平台把 `games/game-3/export/web` 上传对象存储
