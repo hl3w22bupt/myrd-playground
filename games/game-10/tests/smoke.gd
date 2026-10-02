@@ -89,6 +89,7 @@ func _ready() -> void:
 			_failures.append("InputMap 缺少动作 %s（project.godot [input] 未注册）" % action)
 	_check_key_bindings()
 	_check_shake_config()
+	_check_tuning_bridge()
 
 	var game_state := get_tree().root.get_node_or_null("GameState")
 	if game_state == null:
@@ -213,6 +214,31 @@ func _check_shake_config() -> void:
 		_failures.append("加速特效时长 %.1fs < 10s（验收口径不满足）" % GameState.ACCEL_DURATION_S)
 	if float(terminal.get("duration_s", 1.0)) > 0.5:
 		_failures.append("终局单晃时长 %.2fs > 0.5s：不够短促" % float(terminal.get("duration_s", 1.0)))
+
+
+## ── 调参桥（§3C）桌面可机判的一半：白名单 + 钳制 + 副本语义 + 复位 ──
+func _check_tuning_bridge() -> void:
+	var applied: PackedStringArray = GameState.apply_tuning({
+		"shake_accel_amplitude_px": 99.0,
+		"shake_accel_frequency_hz": 2.0,
+		"not_a_tuning_key": 1.0,
+		"shake_game_over_duration_s": "x",
+	})
+	if applied.size() != 2:
+		_failures.append("调参桥白名单/类型过滤失效（applied=%s，应只收 2 个数值键）" % [applied])
+	var accel: Dictionary = GameState.shake_params(&"accel")
+	if not is_equal_approx(float(accel.get("amplitude_px", 0.0)), 3.0):
+		_failures.append("调参覆盖未钳到验收上界（accel amplitude=%.2f ≠ 3.0）" % float(accel.get("amplitude_px", 0.0)))
+	if not is_equal_approx(float(accel.get("frequency_hz", 0.0)), 2.0):
+		_failures.append("调参覆盖未生效（accel frequency=%.1f ≠ 2.0）" % float(accel.get("frequency_hz", 0.0)))
+	var default_duration: float = float(GameState.SHAKE_CONFIG["game_over"]["duration_s"])
+	if not is_equal_approx(float(GameState.shake_params(&"game_over").get("duration_s", 0.0)), default_duration):
+		_failures.append("未覆盖键被意外改动（duration_s 应保持 %s）" % str(default_duration))
+	if not is_equal_approx(float(GameState.SHAKE_CONFIG["accel"]["amplitude_px"]), 1.2):
+		_failures.append("SHAKE_CONFIG 常量被调参改写（覆盖必须落在副本上）")
+	GameState.clear_tuning()
+	if not is_equal_approx(float(GameState.shake_params(&"accel").get("amplitude_px", 0.0)), 1.2):
+		_failures.append("clear_tuning 未恢复默认（accel amplitude ≠ 1.2）")
 
 
 ## ── 加速微抖观测窗 ──

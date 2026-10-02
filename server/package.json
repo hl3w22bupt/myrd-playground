@@ -1,5 +1,5 @@
 {
-  "name": "candy-crush-legend-server",
+  "name": "game-10-server",
   "private": true,
   "type": "module",
   "scripts": {

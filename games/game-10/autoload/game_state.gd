@@ -54,6 +54,18 @@ const SHAKE_CONFIG: Dictionary = {
 	},
 }
 
+## ── 可调键元数据（SKILL.md §3C 调参工作台对接面；键名 → {min, max, step}）──
+## 只暴露晃动参数。钳制上界即验收上界：加速幅度 ≤ 基线 50%（3.0px）、加速频率 ≤ 6Hz、
+## 终局单晃 ≤ 0.5s —— 调参桥再怎么覆盖也写不出破坏验收标准的值。
+## 新增可调键 = 这里加一行 + shake_params() 的覆盖前缀对得上，两处都在本文件。
+const TUNING_META: Dictionary = {
+	&"shake_accel_amplitude_px": {"min": 0.0, "max": 3.0, "step": 0.1},
+	&"shake_accel_frequency_hz": {"min": 0.0, "max": 6.0, "step": 0.5},
+	&"shake_game_over_amplitude_px": {"min": 0.0, "max": 12.0, "step": 0.5},
+	&"shake_game_over_frequency_hz": {"min": 1.0, "max": 24.0, "step": 0.5},
+	&"shake_game_over_duration_s": {"min": 0.1, "max": 0.5, "step": 0.05},
+}
+
 var state: State = State.READY
 var score: int = 0
 var distance_m: float = 0.0
@@ -61,12 +73,64 @@ var speed_multiplier: float = 1.0
 var game_over_count: int = 0
 
 var _speeding_left_s: float = 0.0
+## 运行期调参覆盖（URL ?tuning= 或调参面板写入；SHAKE_CONFIG 常量保持为默认定稿）。
+var _shake_overrides: Dictionary = {}
 
 
-## 读取晃动参数（唯一入口；scene_shake.gd 与冒烟断言都经由它取参）。
+func _ready() -> void:
+	_apply_web_tuning()
+
+
+## 读取晃动参数（唯一入口；screen_shake.gd 与冒烟断言都经由它取参）。
+## 返回默认配置叠加运行期覆盖的副本 —— 不改写 SHAKE_CONFIG 常量本身。
 func shake_params(kind: StringName) -> Dictionary:
-	var params: Variant = SHAKE_CONFIG.get(String(kind), {})
-	return params as Dictionary
+	var params: Dictionary = (SHAKE_CONFIG.get(String(kind), {}) as Dictionary).duplicate()
+	var prefix := "shake_%s_" % String(kind)
+	for key: String in _shake_overrides:
+		var short_key: String = key.trim_prefix(prefix)
+		if short_key != key and params.has(short_key):
+			params[short_key] = _shake_overrides[key]
+	return params
+
+
+## 应用调参覆盖（调参面板与壳页面 __GAME_TUNING__ 桥共用的唯一入口）：
+## 只认 TUNING_META 声明的键、按 min/max 钳制；返回实际生效的键名列表。
+func apply_tuning(overrides: Dictionary) -> PackedStringArray:
+	var applied := PackedStringArray()
+	for key: String in overrides:
+		var meta: Dictionary = TUNING_META.get(StringName(key), {})
+		if meta.is_empty():
+			continue
+		var raw: Variant = overrides[key]
+		if not (raw is float or raw is int):
+			continue
+		_shake_overrides[key] = clampf(float(raw), meta["min"], meta["max"])
+		applied.append(key)
+	return applied
+
+
+## 清空调参覆盖，恢复 SHAKE_CONFIG 默认定稿（调参面板「恢复默认」/ 冒烟复位共用）。
+func clear_tuning() -> void:
+	_shake_overrides = {}
+
+
+## Web 调参桥读入：壳页面在引擎加载前把 URL ?tuning=<JSON> 解析到 window.__GAME_TUNING__，
+## 这里在启动时应用。桌面/无头环境 eval 恒为 null，自动跳过（冒烟不受影响）。
+## 注意：JavaScriptBridge 在桌面二进制也存在但 eval 恒为 null —— 判空而非只判注册；
+## 经 Engine.get_singleton 动态取用，不做编译期平台引用。
+func _apply_web_tuning() -> void:
+	if not Engine.has_singleton("JavaScriptBridge"):
+		return
+	var bridge: Object = Engine.get_singleton("JavaScriptBridge")
+	var result: Variant = bridge.call("eval", "JSON.stringify(window.__GAME_TUNING__ || null)")
+	if result == null:
+		return
+	var raw := str(result)
+	if raw.is_empty() or raw == "null":
+		return
+	var parsed: Variant = JSON.parse_string(raw)
+	if parsed is Dictionary:
+		apply_tuning(parsed)
 
 
 func is_speeding() -> bool:

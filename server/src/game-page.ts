@@ -23,7 +23,7 @@ export const GAME_PAGE_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
-<title>糖果粉碎传奇</title>
+<title>复现天天酷跑</title>
 <style>
 html, body, #canvas { margin: 0; padding: 0; border: 0; }
 body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -48,17 +48,30 @@ body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; f
 <body>
 <canvas id="canvas">你的浏览器不支持 canvas。</canvas>
 <div id="boot">
-  <h1>糖果粉碎传奇</h1>
-  <div class="sub">Candy Crush Legend · MyRD 小游戏工坊</div>
+  <h1>复现天天酷跑</h1>
+  <div class="sub">天天酷跑 · MyRD 小游戏工坊</div>
   <div id="bar-wrap"><div id="bar"></div></div>
-  <div id="boot-msg">正在准备糖果…</div>
-  <div id="keys"><span><kbd>←↑↓→</kbd> 移动光标</span><span><kbd>空格</kbd> 选中 / 交换</span><span><kbd>R</kbd> 重开</span><span><kbd>Enter</kbd> 过关后下一关</span></div>
+  <div id="boot-msg">正在加载跑道…</div>
+  <div id="keys"><span><kbd>摇杆</kbd> / <kbd>←↑↓→</kbd> 移动</span><span><kbd>空格</kbd> / <kbd>↑</kbd> 跳跃</span><span><kbd>点按</kbd> 开始 / 重开</span></div>
 </div>
-<div id="hint" style="display:none">方向键移动 · 空格交换 · R 重开 · Enter 下一关</div>
+<div id="hint" style="display:none">摇杆或方向键移动 · 空格 / ↑ 跳跃 · 点按屏幕开始或重开</div>
 <noscript>你的浏览器不支持 JavaScript。</noscript>
 <!-- 引擎引导脚本由启动脚本按 BASE_PATH 动态注入（静态 src 在无尾斜杠入口下会 404） -->
 <script>
 (function () {
+  // ---- 调参桥（§3C 调参工作台硬契约，必须在引擎加载前写入全局）----
+  // 壳页把 URL ?tuning=<JSON> 解析成对象挂到 window.__GAME_TUNING__，
+  // 引擎内 GameState 启动时读它覆盖调参区数值（只认 TUNING_META 声明的键、按 min/max 钳制）。
+  // 缺这一层 = 试玩调好的参数无法用 URL 复现，调参回写流程断裂。
+  var rawTuning = null;
+  try { rawTuning = new URLSearchParams(location.search).get('tuning'); } catch (e) { /* 老内核无 URLSearchParams */ }
+  if (rawTuning) {
+    try {
+      var tuning = JSON.parse(rawTuning);
+      if (tuning && typeof tuning === 'object' && !Array.isArray(tuning)) window.__GAME_TUNING__ = tuning;
+    } catch (e) { /* 非法 JSON 静默忽略：调参失败不应阻断游戏启动 */ }
+  }
+
   // ---- 移动端音频手势解锁器（必须在引擎加载前安装，见文件尾注释）----
   // 根因（games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md F1/F2 取证）：
   // iOS/Android WebKit 下 AudioContext 创建即 suspended，锁屏/来电/切后台/静音键
@@ -155,10 +168,10 @@ body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; f
         audioAddModules += 1;
         var realUrl = BASE_PATH + 'api/public/assets/' + file;
         return origAddModule.call(self, realUrl, options).catch(function (err) {
-          console.error('[candy-shell] audio worklet 资产通道加载失败，降级原路径重试', file, err);
+          console.error('[game-shell] audio worklet 资产通道加载失败，降级原路径重试', file, err);
           audioLog.push({ t: Date.now(), state: 'worklet-fallback:' + file });
           return origAddModule.call(self, url, options).catch(function (err2) {
-            console.error('[candy-shell] audio worklet 兜底加载也失败（移动端将无声）', file, err2);
+            console.error('[game-shell] audio worklet 兜底加载也失败（移动端将无声）', file, err2);
             audioLog.push({ t: Date.now(), state: 'worklet-dead:' + file });
             throw err2;
           });
