@@ -1,0 +1,173 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
+[ext_resource type="Script" path="res://scripts/pointer_follow_zone.gd" id="3_pointer"]
+[ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="4_joystick"]
+[ext_resource type="Script" path="res://scripts/touch_confirm_button.gd" id="5_confirm"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_confirm"]
+radius = 44.0
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Backdrop" type="Polygon2D" parent="."]
+color = Color(0.93, 0.96, 0.88, 1)
+polygon = PackedVector2Array(0, 0, 640, 0, 640, 360, 0, 360)
+
+[node name="Ground" type="Polygon2D" parent="."]
+color = Color(0.76, 0.6, 0.42, 1)
+polygon = PackedVector2Array(0, 344, 640, 344, 640, 360, 0, 360)
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(320, 320)
+
+[node name="Apples" type="Node2D" parent="."]
+
+[node name="SpawnTimer" type="Timer" parent="."]
+wait_time = 1.1
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="PointerFollowZone" type="Control" parent="UI"]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_pointer")
+
+[node name="HudLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 10.0
+offset_right = 624.0
+offset_bottom = 34.0
+theme_override_font_sizes/font_size = 15
+text = "得分 0 · 最高分 0 · 生命 3"
+
+[node name="StartPanel" type="Control" parent="UI"]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelBackdrop" type="ColorRect" parent="UI/StartPanel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 1, 0.96, 0.55)
+
+[node name="TitleLabel" type="Label" parent="UI/StartPanel"]
+offset_left = 20.0
+offset_top = 108.0
+offset_right = 620.0
+offset_bottom = 140.0
+theme_override_font_sizes/font_size = 20
+text = "浏览器诊断：做一个接住掉落苹果的小游戏"
+horizontal_alignment = 1
+
+[node name="StartHintLabel" type="Label" parent="UI/StartPanel"]
+unique_name_in_owner = true
+offset_left = 20.0
+offset_top = 152.0
+offset_right = 620.0
+offset_bottom = 196.0
+theme_override_font_sizes/font_size = 13
+text = "←/→ 或 A/D 移动果篮 · 鼠标水平移动跟随 · Enter / 空格 开始"
+horizontal_alignment = 1
+
+[node name="StartButton" type="Button" parent="UI/StartPanel"]
+unique_name_in_owner = true
+offset_left = 250.0
+offset_top = 224.0
+offset_right = 390.0
+offset_bottom = 262.0
+theme_override_font_sizes/font_size = 18
+text = "开始游戏"
+
+[node name="GameOverPanel" type="Control" parent="UI"]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelBackdrop" type="ColorRect" parent="UI/GameOverPanel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.35)
+
+[node name="ResultLabel" type="Label" parent="UI/GameOverPanel"]
+unique_name_in_owner = true
+offset_left = 20.0
+offset_top = 128.0
+offset_right = 620.0
+offset_bottom = 164.0
+theme_override_font_sizes/font_size = 20
+text = "本局得分 0 · 历史最高分 0"
+horizontal_alignment = 1
+
+[node name="RestartButton" type="Button" parent="UI/GameOverPanel"]
+unique_name_in_owner = true
+offset_left = 250.0
+offset_top = 206.0
+offset_right = 390.0
+offset_bottom = 244.0
+theme_override_font_sizes/font_size = 18
+text = "再来一局"
+
+[node name="TouchUI" type="CanvasLayer" parent="."]
+layer = 10
+visible = false
+
+[node name="JoystickAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -160.0
+offset_right = 160.0
+offset_bottom = -24.0
+grow_vertical = 0
+script = ExtResource("4_joystick")
+
+[node name="ConfirmAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -140.0
+offset_top = -140.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="ConfirmButton" type="TouchScreenButton" parent="TouchUI/ConfirmAnchor"]
+position = Vector2(58, 58)
+shape = SubResource("CircleShape2D_confirm")
+script = ExtResource("5_confirm")
+
+[node name="ConfirmLabel" type="Label" parent="TouchUI/ConfirmAnchor/ConfirmButton"]
+unique_name_in_owner = true
+offset_left = -40.0
+offset_top = -14.0
+offset_right = 40.0
+offset_bottom = 14.0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 0.9)
+text = "开始"
