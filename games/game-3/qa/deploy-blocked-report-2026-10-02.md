@@ -37,6 +37,10 @@ curl -X POST "$PLATFORM_API_URL/api/v1/apphost/apps/cmuieq51i002am9gyfxqx06rl/de
 - `GET /api/v1/apphost/apps/cmuieq51i002am9gyfxqx06rl` → 403 同上
 - `GET /api/v1/goals/cmuieq51k002cm9gysxbyppv7` → `{"code":"FORBIDDEN","message":"无权访问"}`（目标不可见 → 产物回写同样被拦）
 - `GET /api/v1/goals` → `{"data":{"goals":[]}}`
+- `PATCH /api/v1/goals/cmuieq51k002cm9gysxbyppv7`（鉴权探针，body 非法且不会改动数据）→
+  `{"code":"FORBIDDEN","message":"无权操作"}` —— 产物回写被同一授权层拦截；
+  按「不要覆盖丢失已有条目」纪律未做盲 PATCH，blocked 报告以本文件代持，
+  授权修复后按恢复 runbook 补写目标卡片。
 - token 本身有效：JWT payload `{"userId":"cmt428ptv004bm9seap9ankcc","role":"developer","via":"workflow-node"}`，未过期
 
 ## 需要谁做什么（运维）
