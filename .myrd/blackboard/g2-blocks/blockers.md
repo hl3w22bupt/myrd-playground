@@ -12,8 +12,9 @@
 - **numeric 冻结锚**：sha256(sortKeys) = `302e63367f3dea63212ad689a33703d83886d145862db0d724df98e97fea2d89`（v1 ≡ v1.1 逐字节全等，QA G1/c 机判）
 - **导出件**：`.myrd/spec/g2-blocks/design-spec.json`（= 链上 v2 回读全等，QA G1/g 机判）
 - **g2-blocks 仓库**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks`
-  R2 轮提交链：`19ed02c`（N1 v1.1）→ `e6ba6fb`（M0 红态）→ `4e510b6`（N2+N3）→ `743fb77`（N4 复检器）→ amend（N4 收口）
-- **一号仓库**：零接触（QA G6/a 对 2 个 run 候选全过；本 run `git status` 白名单内 5 行、tracked 工程面 diff 空）
+  R2 轮提交链：`19ed02c`（N1 v1.1）→ `e6ba6fb`（M0 红态）→ `4e510b6`（N2+N3）→ `743fb77`（N4 复检器）→ `4a9cadb`（N4 收口）→ `c07ac4e` + `8249249`（2026-10-02 复证轮：J1 新鲜证据 + QA verdict 归档，HEAD 树净）
+- **复证轮实录（2026-10-02 · 程序线）**：契约 18/18 EXIT=0 + 冒烟 SMOKE: PASS（J1=179.1ms）+ QA round-3 重跑 VERDICT: APPROVE-READY（24/24 gates · R1–R7 零打回）+ numeric 锚独立重算 ANCHOR MATCH——全部显式钉本 run（`G2_SPEC_PATH`/`G2_REPO_ONE_ROOT` = `run-cmuq9pz86001vm9zrmqyfm59c`），原文见 levels.md 复证轮实录与 `g2-blocks/docs/evidence/qa-round3-run.log`
+- **一号仓库**：零接触（复证轮守卫 self-check 对本 run `git status` 机判 PASS：仅 `.myrd-platform/.claude/skills/SKILLS.md` 1 行，属策略 `allowedPreExistingModifiedPaths`；黑板更新走 `allowedNewPaths` 白名单路径，均不触 `games/` 等禁区）
 
 ## 阻塞项（R2 轮 · 全部闭合 ✅）
 

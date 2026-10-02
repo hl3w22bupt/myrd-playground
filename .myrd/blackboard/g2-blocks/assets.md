@@ -76,13 +76,15 @@
   与 `tests/theme.spec.mjs` 断言）；链上 `ac-11` statement 的「theme.js」为措辞二义，已呈批件披露 §五.5
   交主人裁定，approve 前执行面不按其行事。
 
-## 资产清单（登记制，spec assets 段派生 · 2026-10-01 与链上 v1 assets 段对齐）
+## 资产清单（登记制，spec assets 段派生 · 2026-10-01 与链上 v1 assets 段对齐；2026-10-02 复证轮状态刷新）
 
 | id | 落点 | 来源 | 说明 |
 |---|---|---|---|
-| a01-block-palette | `g2-blocks/src/render/theme.ts`（真源=spec numeric.palette） | generated:constant-table | 7 色常量表，运行时单源；**approve 后 codegen 产出**（现缺位 → AC-11 显式 PENDING-APPROVE） |
-| a02-palette-artifact | `g2-blocks/assets/palette/palette-n1-final.json` | g2-blocks/tools/palette-design.mjs | 美术交付件，sha256 `7bc2ca03…`（= numeric.palette.sourceSha256）；**已产出** |
-| a03-sfx-pack | `g2-blocks/assets/audio/` | procedural | 消除/连击/炉冷/重开四类；**approve 后产出** |
+| a01-block-palette | `g2-blocks/src/render/theme.ts`（真源=spec numeric.palette） | generated:constant-table（`tools/gen-theme.mjs`） | 7 色常量表，运行时单源；**已产出已接线**（ac-11 契约机判 7 键逐字等于冻结块 + 全仓 16 处 hex 溯源 theme 单源） |
+| a02-palette-artifact | `g2-blocks/assets/palette/palette-n1-final.json` | g2-blocks/tools/palette-design.mjs | 美术交付件，sha256 `7bc2ca03…`（= numeric.palette.sourceSha256）；**已产出**（复证轮零触碰） |
+| a03-sfx-pack | `g2-blocks/assets/audio/` → 执行面 = `src/audio.ts`（WebAudio 合成） | procedural | 消除/连击/炉冷/重开四类；**已产出**（零音频文件与 ac-13 零贴图同红线一致；ac-15 契约机判同帧发起 + 缺失零阻塞） |
+
+- 复证轮补核（2026-10-02）：`node tools/qa-round3.mjs` G5/a–d 现场复跑全 PASS（映射表 6 件全在盘 · 块 tile id ↔ 色板七枚全等 · 三向绑定齐 · 黑板总表可达），证据 `g2-blocks/docs/evidence/qa-round3-run.log`（commit `8249249` 归档）。
 
 > **资产面本轮变动（线3 契约收口，2026-10-01）：无新增/无修改资产**。本轮只动测试与门禁面
 > （`tests/kernel-purity.spec.mjs` / `tests/acceptance-map.spec.mjs` / run-all / CI），三件资产落点与

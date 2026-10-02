@@ -1,8 +1,21 @@
 # 关卡状态黑板 — g2-blocks（R2「spec v1 → 首个可玩构建」轮）
 
-> 更新时间：2026-10-02（R2 轮 N1–N5 全链核销 · 主策划）
+> 更新时间：2026-10-02（程序线复证轮：契约+冒烟+QA 全量重跑，证据重锚本 run 工作区）
 > 负责人：主策划（整合人）· 程序线维护实现状态列 · QA 线维护核销列
 > 下一步：等主人拍板（approve-ready-r2 包：spec v1.1 approve 追认 + 构建人工验收）
+
+## 复证轮实录（2026-10-02 · 程序线独立重跑，全部锚定本 run 工作区 `run-cmuq9pz86001vm9zrmqyfm59c`）
+
+| 检查 | 命令/口径 | 结果（原文摘要） |
+|---|---|---|
+| 契约全量 | `node scripts/contract-check.mjs`（`G2_SPEC_PATH`+`G2_REPO_ONE_ROOT` 显式钉本 run） | **18 PASS / 0 FAIL · CONTRACT: PASS · EXIT=0**（ac-17 detail 打印 `root=run-cmuq9pz86001vm9zrmqyfm59c`） |
+| 冒烟 | `node tools/smoke.mjs` | **SMOKE: PASS**：浏览器可开 + 核心循环可玩（就绪/得分 0→160→240/连击 chain2/重开复位）+ SW 激活 + manifest 可达 + 控制台零错误 |
+| J1 实测 | 冒烟内 CDP 机判（4x throttle · 390x844） | **179.1ms ≤ 400ms**（复检器复跑 179.7ms），证据 `tests/contract/.j1-evidence.json`（specVersion 2 approved）已入库（commit `c07ac4e`） |
+| QA 对抗复检 | `node tools/qa-round3.mjs`（G2/G3 为复检器现场复跑） | **VERDICT: APPROVE-READY · gates 24/24 · R1–R7 零打回**，verdict JSON 实现锚 = `c07ac4e`，证据归档 commit `8249249` |
+| numeric 锚 | 工程 spec-source 装载本 run 导出件后独立重算 sha256(sortKeys) | **ANCHOR MATCH**：`302e63367f3dea63…` ≡ 导出件 `_platform.numericAnchorSha256`（v2 approved `cmuqa2mu50023m9zr8mh60uph`） |
+| 一号仓库零接触 | 守卫 self-check 对本 run `git status` 机判 | PASS（本 run 工作树仅 `.myrd-platform/.claude/skills/SKILLS.md` 1 行 = 白名单内） |
+
+- 关卡面实现零改动（本轮无新增代码 diff，只重跑门禁 + 归档新鲜证据）。
 
 ## 关卡面（spec v1.1 = 链 v2 approved；levels 段与 v1 零 diff）
 
@@ -29,7 +42,7 @@
 
 ## 提交链（g2-blocks 仓库 · R2 轮）
 
-`19ed02c` N1 spec v1.1 → `e6ba6fb` M0 契约红态 → `4e510b6` N2+N3 实现 → QA 修正系列 → `743fb77` N4 复检器 → N4 收口 amend。
+`19ed02c` N1 spec v1.1 → `e6ba6fb` M0 契约红态 → `4e510b6` N2+N3 实现 → QA 修正系列 → `743fb77` N4 复检器 → `4a9cadb` N4 收口 → `c07ac4e` 复证轮 J1 新鲜证据 → `8249249` 复证轮 QA verdict+run.log 归档（HEAD，树净）。
 
 ---
 
