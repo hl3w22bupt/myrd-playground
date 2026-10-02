@@ -4,7 +4,17 @@
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：**等主人拍板**（approve-ready-r2 包）；blockers 清零，无未闭环项
 
-## 当前基线（R2 轮收口 · 2026-10-02）
+## 当前基线（R2 轮收口 · 2026-10-02 · 部署轮追加）
+
+- **部署轮追加（2026-10-02 · 程序线）**：首个可玩构建已上 AppHost——专属坑
+  `cmuqelj2r0046m9zr4emgdgdg` / slug `g2-blocks-2` / liveUrl
+  `https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/` / gitRef
+  `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `8d40c39`；
+  导出产物 `games/g2-blocks/export/web/`（17 文件，= 源仓 `g2-blocks@0c3aa95` build/ 逐字节相等）；
+  部署前门禁复跑全绿（contract-check 18/18 EXIT=0 · 七件套 EXIT=0 · 冒烟 PASS J1=183.8ms），
+  线上真浏览器自测 **LIVE-SMOKE: PASS**。全文见 `apphost-app.md` + `gate-logs/deploy-20261002/`。
+  numeric 锚零改动（`302e6336…`），spec 链零改动，一号工程面（games/stack-tower、games/game、根 apphost.toml）零触碰；
+  源仓守卫策略 `ci/scope-policy.json` 白名单新增 `games/g2-blocks/`（部署面新路径，ac-17 自检复跑 PASS，commit `ac47c4f`）。
 
 - **黑板路径**：`.myrd/blackboard/g2-blocks/`（levels.md / assets.md / blockers.md 三件套 + approve-ready-r2.md + gate-logs/）
 - **spec 版本号**：**v1.1 = 链 v2 · approved（唯一）**，平台 id `cmuqa2mu50023m9zr8mh60uph`；v1 `cmuovwra0004gm97tinha15zq` superseded 未覆盖
@@ -64,7 +74,11 @@
 
 1. **spec v1.1（链 v2）approve 追认** + 链上 approve 动作披露的追认/否决。
 2. **首个可玩构建人工验收**（「好不好玩」终裁归主人）：本地构建 `build/`，冒烟已机判可玩；人工试玩路径 = `npx serve g2-blocks/build`（或任意静态服务器）→ 浏览器打开 → 点选相邻两块交换。
-3. 部署坑位（是否为 g2-blocks 建 apphost 坑并发布）：待主人指令，本轮未部署。
+3. ~~部署坑位（是否为 g2-blocks 建 apphost 坑并发布）~~：✅ **已建坑并发布（2026-10-02 部署轮）**——
+   专属坑 `cmuqelj2r0046m9zr4emgdgdg`（slug `g2-blocks-2` · sourceId `g2-blocks` · projectId GameAppStore），
+   liveUrl `https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/`（玩法入口 `/gw`），
+   gitRef `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `8d40c39`；线上真浏览器自测 LIVE-SMOKE: PASS。
+   登记全文见 `apphost-app.md`，证据 `gate-logs/deploy-20261002/`。**人工「好不好玩」终裁仍归主人。**
 
 ---
 
