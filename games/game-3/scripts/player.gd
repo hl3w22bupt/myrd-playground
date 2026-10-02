@@ -39,7 +39,11 @@ const COYOTE_FRAMES: int = 12
 ## 跳跃缓冲（物理帧，60fps 下 ≈ 0.20s）：无可用地跳时的按跳保留多久，落地即消费。
 ## 12 = spec v2 拍板默认（与土狼时间同批放宽）；钳制区间见 game_state.gd TUNING_META [0,20]。
 const JUMP_BUFFER_FRAMES: int = 12
-## 坠落判定线：低于它视为掉进深坑（相机下缘在 340，本线在其下方，坠落全程可见）。
+## 坠落判定线（spec.world 锁定值 420，不得随表现层改动）：
+## 相机下缘在 y=340（main.gd 的 camera.limit_bottom），本线在其**下方 80px** ——
+## 忍者坠出画面下缘后约 7 个物理帧（≈0.12s）才判死。这条线是「物理兜底」（保证坠坑
+## 必然结算、不会无限下坠），不是表现层事件：坠落的可感知反馈 = 忍者消失 + 结算弹层 + 震屏。
+## 若要把死亡判定收进画面内（判死瞬间忍者仍可见），那是 spec 数值变更，须走策划案修订。
 const FALL_LIMIT_Y: float = 420.0
 ## 出生点（Level 赛道的起始平台上方）。
 const START_POSITION: Vector2 = Vector2(60, 150)
@@ -51,7 +55,10 @@ const PLAYER_HALF_WIDTH: float = 11.0
 const JUMP_AIR_TIME: float = -2.0 * JUMP_VELOCITY / GRAVITY
 ## 单跳水平跨距 = 滞空 × RUN_SPEED ≈ 178px。
 const SINGLE_JUMP_RANGE: float = JUMP_AIR_TIME * RUN_SPEED
-## 二段跳（第二跳在最高点按）滞空 ≈ 2 × 单跳滞空 → 水平跨距 ≈ 357px。
+## 二段跳水平跨距 ≈ 2 × 单跳滞空 × RUN_SPEED ≈ 357px（解析式），引擎实测 ≈352px（逐帧离散）。
+## ⚠️ 「≈2 × 单跳」成立的前提是第二跳按在**第一跳回落到起跳高度的瞬间**（≈0.70s 处）——
+##    不是最高点：实测最高点按（≈0.37s）总滞空只有 ≈1.25s → 跨距 ≈300px，比最优短 ≈52px。
+##    （tests/smoke.gd 的「跨坑物理实证」断言用真实引擎物理复测这条结论，公式失真会被拦下。）
 const DOUBLE_JUMP_RANGE: float = 2.0 * SINGLE_JUMP_RANGE
 ## 跨坑上限 = 水平跨距 + 落点压边宽容：单跳 ≈ 189px、二段跳 ≈ 368px。
 ## 关卡坑宽必须低于对应上限并留余量（余量承诺见 level.gd 赛道数据区注释）。
@@ -82,11 +89,13 @@ var _jump_buffer_left: int = 0
 
 func _ready() -> void:
 	# GameState（autoload）先于场景 _ready，URL 调参此刻已就绪且已按 TUNING_META 钳制。
-	_apply_tuning(GameState.tuning)
+	apply_tuning(GameState.tuning)
 
 
-## 把生效调参写进运行期手感值：只取 TUNING_META 声明过的键，未声明的键保持默认。
-func _apply_tuning(t: Dictionary) -> void:
+## 把生效调参写进运行期手感值（全量重置语义：未声明/缺失的键一律回常量默认）。
+## 入口是公开的：Main 在「重开一局」里于 GameState.reset() 重读调参之后调用它 ——
+## 否则调参工作台「拖动 → R 重开一局即生效」的承诺是断的（重读结果没人消费）。
+func apply_tuning(t: Dictionary) -> void:
 	live_run_speed = float(t.get("run_speed", RUN_SPEED))
 	live_jump_velocity = -absf(float(t.get("jump_velocity_abs", absf(JUMP_VELOCITY))))
 	live_gravity = float(t.get("gravity", GRAVITY))

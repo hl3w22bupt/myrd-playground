@@ -11,6 +11,16 @@ extends Node
 ## 覆盖面（玩法验收 + SKILL.md 五项基线，新增交互必有新增断言）：
 ##   A. 关卡几何（静态）：坑宽逐坑对「跨坑推导上限」断言（可达性）、坑宽严格递增（难度梯度）、
 ##      一段跳坑与二段跳坑两档都存在、尖刺都在实心平台内、飞镖都在可达带内、终点在末段平台内
+##   A2. 跨坑物理实证：用真实引擎物理 + 真实 Player 脚本，在赛道外搭建「两平台夹一坑」的
+##       实证 rig，分别实测「最宽的一段跳坑」「最宽的坑（二段跳）」能否真的落到对岸 ——
+##       静态几何断言用的是与关卡同源的推导公式（公式错 = 自证通过），这条断言把它升级成
+##       端到端物理证明：跳跃参数与坑宽一旦失配，这里必然拦下
+##   A3. 碰撞盒契约：player.tscn 实际碰撞盒宽 = PLAYER_HALF_WIDTH × 2（跨坑余量的
+##       「压边宽容 11px」承诺建立在这个半宽上，碰撞盒改动必须连带复算关卡与断言）
+##   A4. 调参协议（§3C）：TUNING_META 结构合法、手感键齐全；apply_tuning 把声明键映射进
+##       运行期值、未知键忽略、空表回默认 —— 调参通道静默断裂（键名改动）在这里被拦下
+##   A5. 调参「重开即生效」（§3C 承诺）：重开一局时 GameState.reset() 重读的调参必须被
+##       应用回玩家运行期值（拖动 → R 重开一局即生效），否则调参只在整页刷新时生效
 ##   1. 主场景可实例化（main.tscn → player.tscn / level.gd 接线未断裂）
 ##   2. autoload GameState 已注册且带约定信号（score_changed / game_won / game_lost）
 ##   3. InputMap 动作已注册、物理键绑定逐键核对（键位契约）
@@ -64,6 +74,25 @@ const WIN_ASSERT_FRAME: int = 188        # 断言 game_won + 结算文案 + 跨�
 const FREEZE_X_FRAME: int = 189          # 记录胜利后玩家 x（断言冻结停跑）
 const FREEZE_ASSERT_FRAME: int = 193     # 断言 x 未变
 const TOTAL_FRAMES: int = 196            # 报告兜底（smoke.sh 另有 --quit-after 240）
+
+## ── A2 跨坑物理实证（与主时间线并行的独立 rig，不占阶段帧）──
+## 实证 rig 摆在赛道外远处（x=30000+）：同一物理空间、同一 Player 脚本、同一碰撞盒，
+## 但几何独立 —— 主场景的传送/输入注入不会碰到它。两个 rig 与主时间线同时跑，
+## 二段跳档滞空 ≈1.47s（≈88 帧）在 TOTAL_FRAMES(196) 内收尾，帧预算零增加。
+const PROOF_BASE_X: float = 30000.0      # 实证区起点（赛道终点 5060 之外的空白物理区）
+const PROOF_START_FRAME: int = 24        # 建 rig，随后让 rig 玩家在平台上稳定
+const PROOF_SETTLE_FRAMES: int = 3       # 建场到第一跳的稳定帧（重力把玩家压到平台上）
+const PROOF_JUMP_FRAME: int = PROOF_START_FRAME + PROOF_SETTLE_FRAMES  # 两档 rig 同时第一跳
+const PROOF_ASSERT_FRAME: int = 150      # 断言两档 rig 都已落到对岸（二段跳滞空 ≈88 帧后早已落地）
+## 二段跳延迟（物理帧）：第一跳后 ≈0.70s 按第二跳 = 实测最优（回落到起跳高度的瞬间）。
+## ⚠️ 这是实测值不是拍脑袋：最高点按（≈22 帧）跨距只剩 ≈300px；回落过起跳点后再等
+##    ≈16 帧（旧文档写的 0.26s）跨距跌回单跳 ≈176px，280px 的坑5 必撞对岸墙。
+const PROOF_SECOND_JUMP_DELAY: int = 42
+const PROOF_PLATFORM_WIDTH: float = 600.0   # 实证平台的长度（足够跑完落点确认）
+const PROOF_FELL_Y: float = 400.0           # 越过它 = 掉进实证坑里（跨坑失败）
+const PROOF_MIN_LAND_OVERLAP: float = 2.0   # 落点至少压上对岸 2px（贴唇悬停不算数）
+## 实证平台高度：与真实赛道地面同厚（视觉无关，无头运行只算碰撞）。
+const PROOF_GROUND_HEIGHT: float = 90.0
 
 ## ── 判定阈值 ──
 const MIN_RUN_DISTANCE: float = 40.0     # 20 帧自动奔跑的理论位移 = 80px
@@ -136,6 +165,31 @@ var _last_dart: Dart
 ## 噪声相位：确定种子随机事件（同种子同事件序，门禁可复现）。
 var _noise_rng := RandomNumberGenerator.new()
 
+## 跨坑实证 rig（A2）：左平台 + 待实证宽度的坑 + 右平台 + 一名真实 Player。
+class ProofRig:
+	## 被实证的玩家（实例化自 player.tscn，摘掉相机；输入处理关闭，只由本测试驱动）。
+	var player: Player
+	## 被实证的坑宽（来自关卡数据表，自动跟随关卡改动）。
+	var gap: float
+	## 对岸（右平台）左唇 x：落点必须 ≥ b_left - 半宽 + PROOF_MIN_LAND_OVERLAP。
+	var b_left: float
+	## 实测跨距的起点：出生时 = 左唇 - 半宽；第一跳瞬间重记录为当时的实际中心 x
+	## （rig 玩家自动奔跑，稳定期会向唇沿推进几像素 —— 用实际值口径跨距才不失真）。
+	var start_x: float
+	## true = 二段跳档（在 PROOF_SECOND_JUMP_DELAY 帧后补第二跳）。
+	var double_jump: bool
+	## 失败原因里的人类可读档位名（「一段跳档」「二段跳档」）。
+	var label: String
+	## 计划中的第二跳帧（-1 = 单跳档）。
+	var second_jump_frame: int = -1
+	## 落地帧记录的玩家 x（<0 = 尚未落地）。
+	var landed_x: float = -1.0
+
+## 场上两座实证 rig（一段跳档 / 二段跳档），PROOF_START_FRAME 建场。
+var _proof_rigs: Array[ProofRig] = []
+## 跨坑实证断言已执行到（PASS 门槛之一，防止阶段被前置失败打断后静默漏判）。
+var _proof_checked: bool = false
+
 
 func _ready() -> void:
 	# headless 没有垂直同步：限 60 FPS 让 process : physics ≈ 1:1，--quit-after 兜底才有意义。
@@ -146,6 +200,8 @@ func _ready() -> void:
 			_failures.append("InputMap 缺少动作 %s（project.godot [input] 未注册）" % action)
 	_check_key_bindings()
 	_check_feel_contract()
+	_check_collider_contract()
+	_check_tuning_protocol()
 
 	var game_state := get_tree().root.get_node_or_null("GameState")
 	if game_state == null:
@@ -202,6 +258,8 @@ func _physics_process(_delta: float) -> void:
 
 	if _frames <= NOISE_FRAMES:
 		_inject_noise_frame()
+	elif _frames == PROOF_START_FRAME:
+		_build_proof_rigs()
 	elif _frames == RUN_START_FRAME:
 		_run_origin_x = _player.global_position.x
 	elif _frames == RUN_END_FRAME:
@@ -212,6 +270,12 @@ func _physics_process(_delta: float) -> void:
 	elif _frames == RESTART_GUARD_FRAME:
 		# 14. 重开防误触：奔跑中按 restart 必须被忽略（此时玩家在 S1 平台 ≈220px 处）。
 		_guard_x = _player.global_position.x
+		# A5 调参「重开即生效」前置：把运行期手感值漂移出常量默认（模拟「上一局带着调参跑」）。
+		# 无头环境拿不到浏览器面板，reset() 重读恒为 {} —— 所以这里验证的是**接线本身**：
+		# 重开受理时 restart_run 必须把 GameState 当前的生效调参重新应用到玩家（A4 已证
+		# apply_tuning 的键值映射正确，两者合起来即「拖动 → R 重开一局即生效」的完整链路）。
+		# 漂移值 300px/s 会让 43–89 帧的自动奔跑更快（5px/帧），阶段帧表各断言的几何余量仍成立。
+		_player.apply_tuning({"run_speed": 300.0})
 		_press_action(&"restart")
 	elif _frames == JUMP2_FRAME:
 		_assert_first_jump()
@@ -243,6 +307,7 @@ func _physics_process(_delta: float) -> void:
 		_press_action(&"restart")
 	elif _frames == RESTART_ASSERT_FRAME:
 		_assert_restarted()
+		_assert_tuning_reapplied_on_restart()
 	elif _frames == BUFFER_TELEPORT_FRAME and _player != null:
 		# 终点台开阔段（4330–5060）：做「跳数耗尽 → 落地前按跳 → 落地兑现」的缓冲测试。
 		_teleport_player(Vector2(4480.0, GROUND_CENTER_Y))
@@ -259,6 +324,10 @@ func _physics_process(_delta: float) -> void:
 		_freeze_x = _player.global_position.x
 	elif _frames == FREEZE_ASSERT_FRAME:
 		_assert_frozen()
+	elif _frames == PROOF_JUMP_FRAME:
+		_press_proof_jumps()
+	elif _frames == PROOF_ASSERT_FRAME:
+		_assert_proof_rigs()
 
 	# 跳跃缓冲轮询：独立于阶段 elif 链（否则会挡住 GOAL/WIN 阶段）。
 	if _buffer_await and _buffer_pressed_frame < 0:
@@ -267,6 +336,8 @@ func _physics_process(_delta: float) -> void:
 	if _buffer_pressed_frame > 0 and not _buffer_checked \
 			and _frames >= _buffer_pressed_frame + 10:
 		_assert_buffered_jump()
+	# 跨坑实证 rig 驱动：独立轮询（与主时间线并行，不占阶段帧）。
+	_step_proof_rigs()
 
 	if _frames >= TOTAL_FRAMES or not _failures.is_empty():
 		_report()
@@ -319,6 +390,193 @@ func _check_level_geometry() -> void:
 	if _level.GOAL_X <= last_seg.x or _level.GOAL_X >= last_seg.y:
 		_failures.append("几何：终点 x=%.0f 不在末段平台 [%.0f, %.0f] 内" % [
 			_level.GOAL_X, last_seg.x, last_seg.y])
+
+
+## A3 碰撞盒契约：player.tscn 实际碰撞盒必须 = 22×26。
+## 跨坑余量的「压边宽容 11px」建立在 PLAYER_HALF_WIDTH(=盒宽一半) 上，GROUND_CENTER_Y(=200-13)
+## 建立在盒高一半上 —— 碰撞盒一旦被改，关卡坑宽与跨坑断言必须连带复算，这里钉死不让它静默漂移。
+func _check_collider_contract() -> void:
+	var packed: PackedScene = load("res://scenes/player.tscn") as PackedScene
+	if packed == null:
+		_failures.append("碰撞盒契约：res://scenes/player.tscn 无法加载（玩家场景缺失/损坏）")
+		return
+	var probe: Player = packed.instantiate() as Player
+	if probe == null:
+		_failures.append("碰撞盒契约：player.tscn 根节点不是 Player 脚本（场景与脚本接线断裂）")
+		return
+	var shape_node := probe.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	var rect: RectangleShape2D = (shape_node.shape if shape_node != null else null) as RectangleShape2D
+	if rect == null:
+		_failures.append("碰撞盒契约：player.tscn 缺少矩形 CollisionShape2D（碰撞几何被改动）")
+	else:
+		if not is_equal_approx(rect.size.x, Player.PLAYER_HALF_WIDTH * 2.0):
+			_failures.append("碰撞盒契约：玩家碰撞盒宽 %.1f ≠ PLAYER_HALF_WIDTH×2=%.1f（半宽常量失真，跨坑余量承诺失效）" % [
+				rect.size.x, Player.PLAYER_HALF_WIDTH * 2.0])
+		if not is_equal_approx(rect.size.y, 26.0):
+			_failures.append("碰撞盒契约：玩家碰撞盒高 %.1f ≠ 26（GROUND_CENTER_Y=200-13 的推导失真，地面吸附/缓冲断言会漂）" % rect.size.y)
+	probe.free()
+
+
+## A4 调参协议（§3C）：TUNING_META 结构合法、手感键齐全；_apply_tuning 把声明键映射进
+## 运行期值、表外键忽略、空表回常量默认。调参通道「静默断裂」（键名被改 / 映射漏键 /
+## 表外键污染）在这里被拦下 —— 断言用独立 probe 实例，不碰主玩家的运行期值。
+func _check_tuning_protocol() -> void:
+	var meta: Dictionary = GameState.TUNING_META
+	if meta.is_empty():
+		_failures.append("调参协议：GameState.TUNING_META 为空（§3C 调参工作台无键可调）")
+		return
+	for key: String in meta:
+		var bounds: Dictionary = meta[key]
+		if not bounds.has("min") or not bounds.has("max"):
+			_failures.append("调参协议：TUNING_META[%s] 缺少 min/max（钳制区间声明不完整，越界值将不被钳制）" % key)
+		elif float(bounds["min"]) > float(bounds["max"]):
+			_failures.append("调参协议：TUNING_META[%s] 的 min > max（钳制区间颠倒）" % key)
+	for key: String in ["run_speed", "jump_velocity_abs", "gravity", "max_jumps", "coyote_frames", "jump_buffer_frames"]:
+		if not meta.has(key):
+			_failures.append("调参协议：TUNING_META 缺少手感键 %s（player.gd 将永远取常量默认，调参静默失效）" % key)
+	var probe := Player.new()
+	probe.apply_tuning({
+		"run_speed": 300.0, "jump_velocity_abs": 600.0, "gravity": 1600.0,
+		"max_jumps": 3, "coyote_frames": 16, "jump_buffer_frames": 16,
+	})
+	if probe.live_run_speed != 300.0 or not is_equal_approx(probe.live_jump_velocity, -600.0) \
+			or probe.live_gravity != 1600.0 or probe.live_max_jumps != 3 \
+			or probe.live_coyote_frames != 16 or probe.live_jump_buffer_frames != 16:
+		_failures.append("调参协议：apply_tuning 未把声明键映射进运行期值（run=%.0f jump=%.0f gravity=%.0f jumps=%d coyote=%d buffer=%d）" % [
+			probe.live_run_speed, probe.live_jump_velocity, probe.live_gravity,
+			probe.live_max_jumps, probe.live_coyote_frames, probe.live_jump_buffer_frames])
+	# 表外键必须被忽略；apply_tuning 是全量重置语义，缺省键随之回常量默认（不残留上一次的值）。
+	probe.apply_tuning({"evil_key": 42, "coyote_frames": 16})
+	if probe.live_coyote_frames != 16 or probe.live_max_jumps != Player.MAX_JUMPS \
+			or probe.live_run_speed != Player.RUN_SPEED:
+		_failures.append("调参协议：apply_tuning 表外键未忽略或缺省键未回默认（evil_key 应无效；run=%.0f jumps=%d coyote=%d）" % [
+			probe.live_run_speed, probe.live_max_jumps, probe.live_coyote_frames])
+	probe.apply_tuning({})
+	if probe.live_run_speed != Player.RUN_SPEED or probe.live_coyote_frames != Player.COYOTE_FRAMES:
+		_failures.append("调参协议：空调参表未回常量默认（run_speed=%.0f coyote=%d，应 %d/%d）" % [
+			probe.live_run_speed, probe.live_coyote_frames, int(Player.RUN_SPEED), Player.COYOTE_FRAMES])
+	probe.free()
+
+
+## ── A2 跨坑物理实证 ──
+
+## 建场：从关卡数据表**现场推导**两档待实证坑宽（关卡改动自动跟随，测试不抄数字）——
+##   一段跳档 = 「设计承诺一段跳可过」里最宽的坑（gap ≤ SINGLE_JUMP_GAP_MAX 的最大值）；
+##   二段跳档 = 全关卡最宽的坑（难度梯度的天花板，跨得它就跨得过所有更窄的坑）。
+func _build_proof_rigs() -> void:
+	var gaps: Array[float] = []
+	var segments := _level.GROUND_SEGMENTS
+	for i in range(1, segments.size()):
+		gaps.append(segments[i].x - segments[i - 1].y)
+	if gaps.is_empty():
+		return  # 单平台关卡：几何断言（A）已会报「没有任何坑」，这里没有可实证对象
+	var single_gaps: Array[float] = []
+	for gap in gaps:
+		if gap <= Player.SINGLE_JUMP_GAP_MAX:
+			single_gaps.append(gap)
+	if not single_gaps.is_empty():
+		_spawn_proof_rig(single_gaps.max(), false, "一段跳档")
+	_spawn_proof_rig(gaps.max(), true, "二段跳档")
+
+
+## 造一座 rig：两座平台夹一条 gap 宽的坑 + 一名真实 Player（player.tscn 实例，摘掉相机）。
+func _spawn_proof_rig(gap: float, double_jump: bool, label: String) -> void:
+	var packed: PackedScene = load("res://scenes/player.tscn") as PackedScene
+	if packed == null:
+		_failures.append("跨坑实证：player.tscn 无法加载（碰撞盒契约已上报），%s 无法搭建" % label)
+		return
+	var player: Player = packed.instantiate() as Player
+	# 摘掉相机：rig 在赛道外远处，绝不能抢占主相机（主相机还承担震屏断言）。
+	var camera_rig := player.get_node_or_null("CameraRig") as Node2D
+	if camera_rig != null:
+		player.remove_child(camera_rig)
+		camera_rig.free()
+	# 平台几何：顶面 y 对齐真实赛道 GROUND_TOP_Y；坑左唇 = 起跳台末沿，右平台 = 对岸。
+	var base_x := PROOF_BASE_X + float(_proof_rigs.size()) * 3000.0
+	var left_lip := base_x + PROOF_PLATFORM_WIDTH
+	var b_left := left_lip + gap
+	_add_proof_platform(base_x, left_lip)
+	_add_proof_platform(b_left, b_left + PROOF_PLATFORM_WIDTH)
+	# 出生点：中心 = 左唇 - 半宽（右半身压着唇沿、仍在平台上的最晚起跳位），悬空 1px 由重力落地。
+	var start_x := left_lip - Player.PLAYER_HALF_WIDTH
+	player.position = Vector2(start_x, GameLevel.GROUND_TOP_Y - 13.0 - 1.0)
+	add_child(player)
+	# ⚠️ 关掉该节点的 _unhandled_input 必须放在 add_child **之后**：入树前设置的
+	# set_process_unhandled_input(false) 不生效（Godot 4.3 实测，探针实证：全局注入的
+	# jump 动作照样送达，rig 的第二跳被主时间线的注入提前 ≈28 帧触发 → 实证全废）。
+	# 关输入的目的：主时间线注入的 jump/restart 动作只许驱动主玩家，rig 的每次起跳
+	# 都由本测试按计划帧显式调用 try_jump()（与真实输入同一入口），时机确定可复现。
+	player.set_process_unhandled_input(false)
+	var rig := ProofRig.new()
+	rig.player = player
+	rig.gap = gap
+	rig.b_left = b_left
+	rig.start_x = start_x
+	rig.double_jump = double_jump
+	rig.label = label
+	rig.second_jump_frame = PROOF_JUMP_FRAME + PROOF_SECOND_JUMP_DELAY if double_jump else -1
+	_proof_rigs.append(rig)
+
+
+## 实证平台：StaticBody2D + 矩形碰撞，几何与 level.gd 的地面构建方式一致。
+func _add_proof_platform(from_x: float, to_x: float) -> void:
+	var width := to_x - from_x
+	var body := StaticBody2D.new()
+	body.position = Vector2(from_x + width * 0.5, GameLevel.GROUND_TOP_Y + PROOF_GROUND_HEIGHT * 0.5)
+	var shape := CollisionShape2D.new()
+	var rect := RectangleShape2D.new()
+	rect.size = Vector2(width, PROOF_GROUND_HEIGHT)
+	shape.shape = rect
+	body.add_child(shape)
+	add_child(body)
+
+
+## 第一跳（PROOF_JUMP_FRAME）：两档 rig 同时从平台起跳。起跳前必须已站稳，
+## 否则「从悬空起跳」会让实测跨距失真 —— 站不稳直接判 FAIL，不带病实证。
+func _press_proof_jumps() -> void:
+	for rig in _proof_rigs:
+		if rig.player == null:
+			continue
+		if not rig.player.is_on_floor():
+			_failures.append("跨坑实证：%s 起跳前未站在平台上（重力落地/地面吸附异常），实证无效" % rig.label)
+			continue
+		rig.start_x = rig.player.global_position.x
+		rig.player.try_jump()
+
+
+## 逐帧驱动（与主时间线并行）：到点补第二跳、落地帧记录落点。
+func _step_proof_rigs() -> void:
+	for rig in _proof_rigs:
+		if rig.player == null or rig.landed_x >= 0.0:
+			continue
+		if _frames == rig.second_jump_frame:
+			# 空中二段跳：jumps_used=1 < live_max_jumps=2 → _do_jump(2)。
+			rig.player.try_jump()
+		if _frames > PROOF_JUMP_FRAME and rig.player.is_on_floor():
+			rig.landed_x = rig.player.global_position.x
+
+
+## 实证结论：跨距 = 落点 - 起跳点（中心到中心），必须 ≥ 坑宽 + 最小压沿量才算「真的跨过去」。
+func _assert_proof_rigs() -> void:
+	_proof_checked = true
+	if _proof_rigs.is_empty():
+		_failures.append("跨坑实证：rig 未搭建（关卡坑宽数据为空或 player.tscn 缺失）")
+		return
+	for rig in _proof_rigs:
+		if rig.player == null:
+			continue
+		var need_x: float = rig.b_left - Player.PLAYER_HALF_WIDTH + PROOF_MIN_LAND_OVERLAP
+		if rig.landed_x < 0.0:
+			var where := "掉进实证坑里" if rig.player.global_position.y > PROOF_FELL_Y else "在帧预算内未落地"
+			_failures.append("跨坑物理实证：%s（坑宽 %.0fpx）跨坑失败 —— 玩家%s（y=%.0f），跳跃参数与关卡坑宽失配" % [
+				rig.label, rig.gap, where, rig.player.global_position.y])
+		elif rig.landed_x < need_x:
+			_failures.append("跨坑物理实证：%s（坑宽 %.0fpx）落点 x=%.1f 未压上对岸（需 ≥%.1f）：实测跨距不足，坑宽超出真实可达范围" % [
+				rig.label, rig.gap, rig.landed_x, need_x])
+		else:
+			var measured: float = rig.landed_x - rig.start_x
+			print("跨坑物理实证：%s 坑宽 %.0fpx → 实测跨距 %.0fpx（余量 %.0fpx）—— 真实引擎物理可越过" % [
+				rig.label, rig.gap, measured, measured - rig.gap])
 
 
 func _assert_auto_run() -> void:
@@ -433,6 +691,21 @@ func _assert_restarted() -> void:
 				d0.modulate.a if d0 != null else -1.0])
 
 
+## A5 调参「重开即生效」（§3C 承诺：拖动 → R 重开一局即生效）：
+## RESTART_GUARD_FRAME 时已把运行期 run_speed 漂移到 300，重开受理那一刻 restart_run
+## 必须把 GameState 当前的生效调参（无头下为常量默认）重新应用回玩家 —— 运行期值
+## 若仍停在 300，说明 reset() 重读的结果没有人消费（调参只在整页刷新时生效）。
+func _assert_tuning_reapplied_on_restart() -> void:
+	if _player == null:
+		return
+	if not is_equal_approx(_player.live_run_speed, Player.RUN_SPEED):
+		_failures.append("调参「重开即生效」失效：重开一局后运行期 run_speed=%.0f 未收敛回生效调参（%0.f）—— restart_run 未调用 player.apply_tuning(GameState.tuning)，GameState.reset() 重读的调参没人消费，调参工作台只在整页刷新时生效" % [
+			_player.live_run_speed, Player.RUN_SPEED])
+	if _player.live_coyote_frames != Player.COYOTE_FRAMES:
+		_failures.append("调参「重开即生效」失效：重开后土狼窗口 %d ≠ 默认 %d（同上，重开未重新应用调参）" % [
+			_player.live_coyote_frames, Player.COYOTE_FRAMES])
+
+
 ## 7. 跳跃缓冲：跳数耗尽后、落地前 ≈4 帧的那次按跳，应在落地瞬间兑现为地面起跳。
 func _assert_buffered_jump() -> void:
 	_buffer_checked = true
@@ -501,14 +774,16 @@ func _assert_juice_fired(context: String) -> void:
 
 func _report() -> void:
 	_finished = true
-	if _failures.is_empty() and _coyote_checked and _buffer_checked:
-		print("GODOT_SMOKE: PASS 关卡几何/场景实例化/autoload/键位契约/手感契约(v2=12帧)/自动奔跑/跳跃二段跳/土狼跳/跳跃缓冲/收集飞镖+反馈/撞刺失败+震屏/重开复位/跑底过关+留存/冻结停跑/Juice反馈总线/音效资产协议/重开防误触 全部通过")
+	if _failures.is_empty() and _coyote_checked and _buffer_checked and _proof_checked:
+		print("GODOT_SMOKE: PASS 关卡几何/场景实例化/autoload/键位契约/手感契约(v2=12帧)/自动奔跑/跳跃二段跳/土狼跳/跳跃缓冲/收集飞镖+反馈/撞刺失败+震屏/重开复位/跑底过关+留存/冻结停跑/Juice反馈总线/重开防误触/跨坑物理实证/碰撞盒契约/调参协议+重开即生效/音效资产协议 全部通过")
 		get_tree().quit(0)
 	else:
 		if not _coyote_checked and _failures.is_empty():
 			_failures.append("土狼跳断言未执行到（阶段帧表被前置失败打断）")
 		if not _buffer_checked and _failures.is_empty():
 			_failures.append("跳跃缓冲断言未执行到（阶段帧表被前置失败打断）")
+		if not _proof_checked and _failures.is_empty():
+			_failures.append("跨坑物理实证未执行到（阶段帧表被前置失败打断）")
 		for failure in _failures:
 			printerr("GODOT_SMOKE: FAIL %s" % failure)
 		get_tree().quit(1)

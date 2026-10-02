@@ -109,6 +109,9 @@ func restart_run() -> void:
 	player.respawn()
 	GameState.reset()
 	_darts_this_run = 0
+	# §3C 调参工作台「拖动 → R 重开一局即生效」：reset() 重读了 window.__GAME_TUNING__，
+	# 必须把重读结果应用回玩家的运行期手感值 —— 否则重读没人消费，调参只在整页刷新时生效。
+	player.apply_tuning(GameState.tuning)
 	state_label.visible = false
 	_refresh_hud()
 	# §3B 确认类反馈：重开指令已被受理（confirm 音效 + 事件流留痕）。
