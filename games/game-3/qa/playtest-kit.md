@@ -1,9 +1,34 @@
 # 《疾风忍者跑》真人试玩验收包（工坊第四步 · 试玩验收节点）
 
-> 2026-09-27 由「试玩验收」节点交付。定位与 `qa/PLAYTEST.md`（机器人试玩门禁包）互补：
+> 2026-09-27 由「试玩验收」节点交付；2026-10-02 复核仍有效（线上指纹见 §〇）。
+> 定位与 `qa/PLAYTEST.md`（机器人试玩门禁包）互补：
 > 机器只判「好玩的下限」（节奏类代理指标，已 `GODOT_PLAYTEST: PASS`），**「好不好玩」由人判**。
 > 本包把人的试玩变成可回写数值：四问量表 + 调参工作台。
-> **量表状态：待用户试玩（四问全部待回填，本包不含任何试玩结论）。**
+> **量表状态：待用户试玩（四问全部待回填，本包不含任何试玩结论；2026-10-02 复核仍未回填）。**
+
+## 〇、2026-10-02 复核（本节点实测，验收包内容不变）
+
+- **入口仍在线**：`/apps/game-3` 与 `https://leomac-studio.tail49399e.ts.net/apps/game-3/` 均 HTTP 200，
+  页面标题「疾风忍者跑」；壳契约标记 `__GAME_TUNING__` / `?tuning=1` / `__audioDebug` /
+  `AudioContext` 解锁器 / 相对路径资产 实测全部在位 → **§三 调参工作台入口有效**。
+- **线上构建指纹**：`GET /apps/game-3/api/public/assets/index.pck`（base64+gzip 包装）解码后
+  2,557,728 B，sha256 `df780d9c…` = 分支 **9ca5740** 的导出（与 §一 记载的
+  deploymentId `cmuiuk65f00d9m9l6ap7jz7dg` 一致）。
+- **量表③请注意（部署滞后，非设计缺失）**：线上构建 `SFX_BANK` 为空 —— 音效资产补齐
+  （commit `ce34959`）与导出加固（`c2dea78`）已在分支但**尚未部署**。试玩时「没有声音」
+  属预期；请把③的「音效」子项标注「未上线」再打分，勿计入设计扣分。
+  同理，分支上更新的 `b2bc346`（二段跳时机提示修正 + 调参重开即生效 + 冒烟断言升级 + 重导
+  pck 2,612,016 B）也**尚未上线**：线上仍是旧手感包络，量表④若报「第 ~16.6s 坑5 太难」，
+  请先在 `?tuning=1` 里试 `{"gravity":1600}` 或对照 §二 pit-5 新提示复跳一次再下结论。
+- **当前生效 spec**：approved 版 `cmuq5dyjb00b3m9dh7tzdkl7j`（v2 · 八段固化，2026-10-01 拍板），
+  `spec.numeric` 与 §三 表格逐键一致（run_speed 240 / jump 520 / gravity 1400 / max_jumps 2 /
+  coyote 12 / buffer 12 / dart_score 1 / win_bonus 10）。
+- **门禁资产自检（本轮）**：仓库内 `std-skills/godot-game-dev/scripts/` 五个判定脚本 +
+  `references/godot-smoke-routine.md` + `.myrd/routines.yaml`（id=godot-smoke）全部在位；
+  `preflight.py games/game-3` → **PASS**（13 类，72 文件）。此前 2026-09-26 的
+  「模板仓库未预置脚本」阻塞已解除。
+- **本节点遗留阻塞**：目标 artifacts 回写通道 403（读与写均被授权层拦截）→ 验收包暂以本文件
+  落库交付，详见 `qa/playtest-writeback-blocked-2026-10-02.md`。
 
 ## 一、试玩入口
 
@@ -97,7 +122,8 @@
 
 1. 收到「四问结论 + 调参 URL」→ 解析 `?tuning=` 的 JSON，与上表现值逐键 diff；
 2. 只认 §三 表内 8 个键，表外键忽略并在 diff 说明中标注；
-3. 数值经 `POST /api/v1/game-design-specs/cmuirjku500a6m9l67mfwor9a/revisions` 写进 `spec.numeric`（新版本，带 `sourceTrajectoryId` 溯源）→ `POST …/approve` 拍板；
+3. 数值经 `POST /api/v1/game-design-specs/cmuq5dyjb00b3m9dh7tzdkl7j/revisions` 写进 `spec.numeric`（新版本，带 `sourceTrajectoryId` 溯源）→ `POST …/approve` 拍板；
+   （2026-10-02 修订：目标 id 必须是**当前 approved 版** `cmuq5dyjb00b3m9dh7tzdkl7j`（v2 · 八段固化，2026-10-01 拍板）——旧稿写的 `cmuirjku500a6m9l67mfwor9a` 已是 superseded 代，向它提交修订单会被 API 以 409 `CONFLICT` 拒绝；执行前用 `GET /api/v1/game-design-specs/approved?goalId=cmuieq51k002cm9gysxbyppv7` 复核 id，防再换代。）
 4. 拍板结论 + 数值 diff 追加为 artifacts 的 `op=tuning_applied` 产物；下一轮工作流按新 spec 重部署（本节点不改代码默认值，spec 是唯一事实源）；
 5. **未收到用户结果 → 量表保持「待用户试玩」，第 1–4 步全部跳过，绝不代填。**
 
