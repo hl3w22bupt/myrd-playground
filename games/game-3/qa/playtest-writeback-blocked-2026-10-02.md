@@ -78,3 +78,56 @@ token 实际身份（`auth/me` + JWT claims 解码）：
 - 不伪造试玩结论：量表四问全部「待回填」，未收到用户结果前不写 spec、不改代码默认值。
 - 不自造门禁判定器：本轮五个判定脚本均取自仓库内 `std-skills/godot-game-dev/scripts/`，
   `preflight.py` 实测 PASS；未从注入目录复制、未改写仓库内脚本。
+
+## 八、重入复核（轨迹 `cmuq5tyjy00bjm9dhvqom1i8p`，2026-10-02）
+
+结论不变：**status = blocked（仅限产物回写通道）**，且本轮首次用**真实 playtest_kit 载荷**
+（`qa/artifact-playtest-kit.json`）发起 PATCH 取证，而非空体探针。
+
+### 8.1 本轮新证（含 requestId）
+
+| 探针 | 结果 | requestId |
+|---|---|---|
+| `GET /api/v1/goals/cmuieq51k002cm9gysxbyppv7` | 403 `无权访问` | req_1790901440400 |
+| `GET /api/v1/projects/cmuieq51c0026m9gyynwo0sww` | 403 `您不是该项目的成员` | req_1790901440422 |
+| `GET /api/v1/apphost/apps/cmuieq51i002am9gyfxqx06rl` | 403 `仅应用所有者或系统管理员可操作` | req_1790901440442 |
+| `PATCH /api/v1/goals/…`（**真实 playtest_kit 载荷**） | 403 `无权操作`（鉴权先于写库，零写入） | req_1790905577017 |
+| `POST /api/v1/game-design-specs/cmuq5dyjb00b3m9dh7tzdkl7j/revisions`（空体鉴权探针） | 422 schema 校验失败（校验先于鉴权，**未产生修订**） | — |
+| `GET /api/v1/game-design-specs/approved?goalId=…` | 200，仍为 **v2 / approved / 同 id** → 探针零副作用 | — |
+
+`GET /api/v1/goals`（列表）200 但 goals 为空 —— 本 token 可见目标集合仍不含该目标。
+
+### 8.2 线上复核（入口健康，构建仍滞后于分支）
+
+- `GET /apps/game-3` 与 `GET /apps/game-3/` 均 **200**（20,235 B），标题「疾风忍者跑」；
+  壳契约标记 `__GAME_TUNING__`×7 / `?tuning=1`×4 / `__audioDebug` / `AudioContext` 解锁器 /
+  相对路径资产通道全部在位 → 调参工作台入口有效。
+- 资产通道实测：`index.pck.gz.b64` 在**外网入口**（tail49399e.ts.net）200 并可解码；
+  `localhost:3111` 网关对 `/apps/game-3/api/public/assets/*` 返回 404（网关侧不路由该前缀，
+  非应用故障——玩家经外网入口不受影响）。
+- 解码指纹：2,557,728 B，sha256 `df780d9c…` = 仍为 **9ca5740** 的导出（2026-09-27 部署）。
+  分支上更新的 `ce34959`（音效五件套）与 `c2dea78`（MIME 加固 + 重导 pck `b51cfba1…`
+  2,612,016 B）**依旧未上线**；本地 HEAD 工程代码自 b2bc346 起零改动（其后 4 个提交全是 qa 文档）。
+
+### 8.3 门禁资产自检（本轮）
+
+- `std-skills/godot-game-dev/scripts/` 五个判定脚本（preflight.py / smoke.sh / input-fuzz.sh /
+  playtest.sh / resolve-godot.sh）+ `references/godot-smoke-routine.md` +
+  `.myrd/routines.yaml`（**id=godot-smoke**，playtestFrames=1200）全部在位 → §来源红线不触发 blocked。
+- 判定脚本实跑：`preflight.py games/game-3` → **PASS**（13 类，74 工程文件）。
+
+### 8.4 对 §五 修复建议 #3 的实证修正
+
+前轮建议「平台提供 host 代写通道」。本轮核对平台源码：该机制**已实现但只接了目标大师**——
+`[CHECKPOINT]` 标记解析在 `services/goal-master-agent`（`routes/goals.ts` 的 executeGoalDag 循环），
+且 op 枚举（`CHECKPOINT_CONSTRAINT`）为 `create_requirement | run_workflow | … | revise_design_spec |
+deploy_playable | deploy_tool`，**无 `playtest_kit`**。工作流节点 agent 的输出不经该解析器，
+照抄输出标记不会被摄取（属表演性行为，未采用）。可用的恢复路径仍只有 §五 的 #1/#2。
+
+### 8.5 本轮增量交付
+
+- `qa/artifact-playtest-kit.json`：**结构完整的 `op=playtest_kit` 产物载荷**（试玩指引 /
+  四问量表 / 调参工作台入口与 8 键区间 / 回收协议 / 阻塞证据俱全，量表四问「待回填」）。
+  授权修复后，有权限方可直接把它 PATCH 合并进 goal.artifacts，无需重新组织内容。
+- `qa/playtest-kit.md` §〇 增补一行本轮复核指针；其余内容不变。
+- 试玩结果回写 spec（步骤③）：**未收到用户四问结论 + 调参 URL，按纪律跳过**，量表保持待回填。

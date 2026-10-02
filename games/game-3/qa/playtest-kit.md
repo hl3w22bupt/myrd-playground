@@ -29,6 +29,11 @@
   「模板仓库未预置脚本」阻塞已解除。
 - **本节点遗留阻塞**：目标 artifacts 回写通道 403（读与写均被授权层拦截）→ 验收包暂以本文件
   落库交付，详见 `qa/playtest-writeback-blocked-2026-10-02.md`。
+- **轨迹 `cmuq5tyjy00bjm9dhvqom1i8p` 重入复核**：入口/指纹/契约标记复测与上轮一致（线上仍 9ca5740，
+  tailnet 资产通道 200，localhost 网关对该前缀 404 属网关路由而非应用故障）；首次以**真实载荷**
+  PATCH 取证 403（req_1790905577017）；spec 仍为 v2 / approved / 同 id；spec 修订空体探针 422
+  （校验先于鉴权，未产生修订）。标准化产物载荷已备好待摄取：`qa/artifact-playtest-kit.json`。
+  复核明细见 blocked 报告 §八。
 
 ## 一、试玩入口
 

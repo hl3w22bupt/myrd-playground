@@ -1,0 +1,45 @@
+{
+  "op": "playtest_kit",
+  "artifactType": "playtest_kit",
+  "title": "《疾风忍者跑》真人试玩验收包（四问量表 + 调参工作台）",
+  "status": "blocked_writeback",
+  "createdAt": "2026-10-02T09:05:00+08:00",
+  "sourceTrajectoryId": "cmuq5tyjy00bjm9dhvqom1i8p",
+  "gamePath": "games/game-3",
+  "detail": {
+    "scaleStatus": "待用户试玩（四问全部待回填，本产物不含任何试玩结论）",
+    "playtestGuide": {
+      "entry": "https://leomac-studio.tail49399e.ts.net/apps/game-3/",
+      "tuningEntry": "https://leomac-studio.tail49399e.ts.net/apps/game-3/?tuning=1",
+      "liveUrl": "/apps/game-3",
+      "deployGitRef": "myrd/games-goal-cmuieq51k002cm9gysxbyppv7",
+      "liveBuildFingerprint": { "pckBytes": 2557728, "pckSha256": "df780d9cb4abdb6092a14e50dfdc451fb04dd9e2a971644dad068abe2e1ae884", "commit": "9ca5740", "deploymentId": "cmuiuk65f00d9m9l6ap7jz7dg" },
+      "howToPlay": "开局自动奔跑；空格/W/↑（触屏右下「跳」键/点按画面）跳，空中再按=二段跳；R/回车重开（仅结算层受理，奔跑中无效）。跑到底≈20秒一局，收集17枚飞镖+过关+10，理论满分27。",
+      "milestones": "前疏后密：~2.4s 坑1(单跳) → ~3.9s 刺1 → ~5.6s 坑2 → ~9.1s 坑3(二段跳入门) → ~12.9s 坑4(二段跳) → ~16.6s 坑5(最宽280px，二段跳时机第一跳后≈0.7s最稳) → ~18.7s 刺7 → ~19.8s 终点",
+      "watchPoints": "①HUD目标可读性（分数/进度/最佳+操作提示随设备切换）②失败反馈（震屏+音效+失败文案）③收集反馈（飞镖消失+分数跳动+音效）④手感三问（土狼0.20s容错/空中变向/二段跳时机可学）⑤难度曲线（坑3教学点、坑5难度）⑥重开闭环（1秒内、完全复位）⑦节奏空段报秒数",
+      "knownCaveats": "线上=9ca5740：音效五件套(ce34959)与MIME加权重导(c2dea78)尚未部署→量表③「音效」子项请标注「未上线」再打分，勿计入设计扣分；线上面板「土狼/缓冲」默认读数显示6帧、实际生效12帧（已修待部署），以 spec v2 数值为准",
+      "fullKitDoc": "games/game-3/qa/playtest-kit.md"
+    },
+    "scale": [
+      { "no": "①", "question": "首分钟能否看懂目标与操作", "format": "是/否 + 卡点", "answer": "待回填" },
+      { "no": "②", "question": "结束时想不想再来一局", "format": "1-5分 + 原因", "answer": "待回填" },
+      { "no": "③", "question": "手感与反馈（打击感/音效/画面响应）", "format": "1-5分 + 哪项最弱", "answer": "待回填" },
+      { "no": "④", "question": "节奏有没有明显断档或无聊段", "format": "有/无 + 出现在第几秒", "answer": "待回填" }
+    ],
+    "tuningWorkbench": {
+      "url": "https://leomac-studio.tail49399e.ts.net/apps/game-3/?tuning=1",
+      "usage": "打开后画面右上角出现调参面板，拖滑杆即时改数值（按R重开一局后生效）；点「复制调参URL」得到带 ?tuning=<JSON> 的链接，发回来即一次完整调参结果",
+      "allowedKeys": { "run_speed": [240, 120, 480], "jump_velocity_abs": [520, 260, 900], "gravity": [1400, 700, 2800], "max_jumps": [2, 1, 3], "coyote_frames": [12, 0, 20], "jump_buffer_frames": [12, 0, 20], "dart_score": [1, 1, 10], "win_bonus": [10, 0, 50] },
+      "keySource": "games/game-3/autoload/game_state.gd TUNING_META（仅认这8键，表外键忽略并标注）",
+      "suggestedPresets": "起跳迟钝→{\"coyote_frames\":16,\"jump_buffer_frames\":16}；飘/难控→{\"gravity\":1800}；节奏太赶→{\"run_speed\":200}"
+    },
+    "resultProtocol": "收到用户四问结论+调参URL → 解析?tuning= JSON与现值逐键diff（只认8键）→ POST /api/v1/game-design-specs/cmuq5dyjb00b3m9dh7tzdkl7j/revisions（带sourceTrajectoryId）→ POST …/approve → 追加op=tuning_applied产物。未收到结果则本产物量表保持待回填，第3步跳过",
+    "gateAssetsVerified": "仓库内 std-skills/godot-game-dev/scripts/{preflight,smoke,input-fuzz,playtest,resolve-godot} 五判定脚本 + references/godot-smoke-routine.md + .myrd/routines.yaml(id=godot-smoke, playtestFrames=1200) 全部在位；preflight.py games/game-3 → PASS（13类/74文件）",
+    "writebackBlocked": {
+      "reason": "goal artifacts 读(GET 403 无权访问)与写(PATCH 403 无权操作)均被平台授权层拦截",
+      "evidenceRequestIds": ["req_1790901440400", "req_1790901440422", "req_1790901440442", "req_1790901440476"],
+      "rootCause": "workflow-node token 无 actFor=<goal属主>，本节点非项目成员、非属主、非admin（routes/goals.ts 判据 goal.userId!==effectiveAuthUserId(user)&&role!=='admin'）；[CHECKPOINT] host代写通道仅目标大师agent可用（services/goal-master-agent），工作流节点不可用",
+      "report": "games/game-3/qa/playtest-writeback-blocked-2026-10-02.md"
+    }
+  }
+}
