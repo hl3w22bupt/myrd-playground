@@ -2,10 +2,12 @@
 
 ## 结论
 
-- **status = blocked（授权环境问题）**：部署 API 与目标卡片回写 API 均返回 403，
+- **status = blocked（授权环境问题）**：重新部署 API 与目标卡片回写 API 均返回 403，
   当前 workflow 节点 token 的用户身份既不是托管应用 `cmuieq51i002am9gyfxqx06rl` 的所有者，
   也不是系统管理员。**不是代码问题，无需改动任何工程/壳代码。**
-- 代码侧全部就绪并已推送：分支 `myrd/games-goal-cmuieq51k002cm9gysxbyppv7`，HEAD `c2dea78`。
+- **线上并非空白**：存在 2026-09-27 的旧部署（`9ca5740`），公网可达、健康检查 200，
+  但缺本分支后续 3 个提交的修复（音效全无 + 二段跳教学口径致命）——详见「重入复核 Ⅱ」。
+- 代码侧全部就绪并已推送：分支 `myrd/games-goal-cmuieq51k002cm9gysxbyppv7`，HEAD `b2bc346`。
 
 ## 已完成且验证通过的部分
 
@@ -82,6 +84,47 @@ curl -X POST "$PLATFORM_API_URL/api/v1/apphost/apps/cmuieq51i002am9gyfxqx06rl/de
 developer，via workflow-node，名下应用列表仍为空）。继续重试只会重复失败，故停止，等运维放权。
 
 **需要运维做的事与上次完全一致（见上文「需要谁做什么」）**，三条任选其一即可解锁。
+
+## 重入复核 Ⅱ（2026-10-02T00:35Z）：线上有旧部署，阻塞的是「重新部署到最新」
+
+**上一节结论需要精化**：本应用**并非从未部署**。实测发现线上存在一份**旧部署**
+（来自分支 `9ca5740`，2026-09-27），且公网入口完全可达、健康——403 挡住的是
+**把最新 4 个提交重新部署上去**。
+
+### 线上现状实测（公网入口 `https://leomac-studio.tail49399e.ts.net`）
+
+| 探测 | 结果 |
+|---|---|
+| `GET /apps/game-3` | **200**，20235 B，标题「疾风忍者跑」，含 canvas / `__audioDebug` / `__GAME_TUNING__` / `AudioContext` 手势解锁器 / 相对路径资产通道（壳契约全在位） |
+| `GET /apps/game-3/health` | **200** `{"ok":true,"app":"ninja-run","env":"development","assets":"lazy/object-storage"}` |
+| `GET /apps/game-3/api/public/assets/index.pck` | **200**，3388012 B（b64+gzip），解码 gunzip 后 **2557728 B / sha256 `df780d9cb4abdb60`** |
+| 资产指纹对账 | `df780d9c…` = 分支 `9ca5740`（2026-09-27）那次导出 —— **不是**当前 HEAD 的产物 |
+
+### 线上落后了什么（这是本次重入真正要修的事）
+
+当前分支 HEAD `b2bc346` 的导出：`index.pck` sha256 `b51cfba1d9a17675`、2,612,016 B。
+线上 `df780d9c…`/2,557,728 B 与之**不一致**，差三个提交的修复**尚未上线**：
+
+| 未上线提交 | 修了什么 |
+|---|---|
+| `ce34959` | 音效资产补齐——程序化合成五音效入 SFX_BANK（线上壳的 SFX_BANK 仍为空，游戏无声） |
+| `c2dea78` | 资产通道 MIME 加固 + 重导 Web 产物 |
+| `b2bc346` | 二段跳时机致命注释修正（实测 0.70s，跨距 352px，旧口径过不了坑3）+ 调参重开即生效接线 + 冒烟断言 14→18 组 |
+
+**用户影响**：线上版本可玩但**无音效**，且试玩/教学文案里的二段跳时机是**实测致命的旧口径**。
+这不是「未部署」，是「部署了旧版、新版上不去」。
+
+### 重新部署被 403 挡（同上节证据，本轮 2026-10-02T00:29:47Z 复测仍拒）
+
+`POST /api/v1/apphost/apps/cmuieq51i002am9gyfxqx06rl/deployments` →
+`403 FORBIDDEN 仅应用所有者或系统管理员可操作`（requestId `req_1790900987990`）。
+需要运维放权（三选一，见上文「需要谁做什么」）后按恢复 runbook 重发部署。
+
+### 授权根因（并发的试玩验收节点 e227029 已平台源码定位，与本节点结论一致）
+
+workflow-node token 无 `actFor=<goal 属主>` 且非项目成员 → `effectiveAuthUserId` 回落为
+token 自身 userId，与 goal.userId / 应用所有者都不匹配 → 部署 API 与 goal 读写全 403。
+详见 `qa/playtest-writeback-blocked-2026-10-02.md` §四。
 
 ## 部署形态说明（供验收）
 
