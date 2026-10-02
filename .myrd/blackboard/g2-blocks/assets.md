@@ -85,6 +85,11 @@
 | a03-sfx-pack | `g2-blocks/assets/audio/` → 执行面 = `src/audio.ts`（WebAudio 合成） | procedural | 消除/连击/炉冷/重开四类；**已产出**（零音频文件与 ac-13 零贴图同红线一致；ac-15 契约机判同帧发起 + 缺失零阻塞） |
 
 - 复证轮补核（2026-10-02）：`node tools/qa-round3.mjs` G5/a–d 现场复跑全 PASS（映射表 6 件全在盘 · 块 tile id ↔ 色板七枚全等 · 三向绑定齐 · 黑板总表可达），证据 `g2-blocks/docs/evidence/qa-round3-run.log`（commit `8249249` 归档）。
+- **R3 驳回修复轮 token 补录（2026-10-02 · F3 打回 · 交付件内容变更，映射关系零变化）**：
+  - `assets/style-card.json` material 段新增 `tint`（墨 `#000000`/纸 `#FFFFFF` 版式基色）+ `innerStroke`（`#000000`@0.35）+ `topHighlight`（`#FFFFFF`@0.18）——renderer 原硬抄的 rgba 隐性值显式化入美术规格（QA F3：色值漂移+未接线打回）
+  - `assets/e-renderer-backdrop.json` backdrop 段新增 `coolScrim`（`#000000`@0.55，炉冷遮罩）
+  - 运行时面：`gen-theme.mjs` 增发 `MATERIAL` 组 + `withAlpha()` helper（唯一 rgba 入口）；`renderer.ts` 7 处 rgba 字面量清零，辉光漂移值 rgb(210,160,40) 修正为 token `#C89C19`；ac-11 扫描扩展 rgba(/rgb( 形态（红验必咬），全仓 17 色溯源单源
+  - `palette-n1-final.json` 零触碰（sha256 `7bc2ca03…` 锚不变）；spec numeric 冻结块零触碰（锚 `302e6336…` 不变，QA G6/b PASS）
 
 > **资产面本轮变动（线3 契约收口，2026-10-01）：无新增/无修改资产**。本轮只动测试与门禁面
 > （`tests/kernel-purity.spec.mjs` / `tests/acceptance-map.spec.mjs` / run-all / CI），三件资产落点与

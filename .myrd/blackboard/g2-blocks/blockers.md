@@ -12,9 +12,9 @@
 - **numeric 冻结锚**：sha256(sortKeys) = `302e63367f3dea63212ad689a33703d83886d145862db0d724df98e97fea2d89`（v1 ≡ v1.1 逐字节全等，QA G1/c 机判）
 - **导出件**：`.myrd/spec/g2-blocks/design-spec.json`（= 链上 v2 回读全等，QA G1/g 机判）
 - **g2-blocks 仓库**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks`
-  R2 轮提交链：`19ed02c`（N1 v1.1）→ `e6ba6fb`（M0 红态）→ `4e510b6`（N2+N3）→ `743fb77`（N4 复检器）→ `4a9cadb`（N4 收口）→ `c07ac4e` + `8249249`（2026-10-02 复证轮：J1 新鲜证据 + QA verdict 归档，HEAD 树净）
+  R2 轮提交链：`19ed02c`（N1 v1.1）→ `e6ba6fb`（M0 红态）→ `4e510b6`（N2+N3）→ `743fb77`（N4 复检器）→ `4a9cadb`（N4 收口）→ `c07ac4e` + `8249249`（复证轮）→ `a8a0c90`（R3 F1+F2）→ `b819be1`（R3 F3+F4+加固）→ `46a85b0`（R3 N4 复检归档，HEAD 树净）
 - **复证轮实录（2026-10-02 · 程序线）**：契约 18/18 EXIT=0 + 冒烟 SMOKE: PASS（J1=179.1ms）+ QA round-3 重跑 VERDICT: APPROVE-READY（24/24 gates · R1–R7 零打回）+ numeric 锚独立重算 ANCHOR MATCH——全部显式钉本 run（`G2_SPEC_PATH`/`G2_REPO_ONE_ROOT` = `run-cmuq9pz86001vm9zrmqyfm59c`），原文见 levels.md 复证轮实录与 `g2-blocks/docs/evidence/qa-round3-run.log`
-- **一号仓库**：零接触（复证轮守卫 self-check 对本 run `git status` 机判 PASS：仅 `.myrd-platform/.claude/skills/SKILLS.md` 1 行，属策略 `allowedPreExistingModifiedPaths`；黑板更新走 `allowedNewPaths` 白名单路径，均不触 `games/` 等禁区）
+- **一号仓库**：零接触（R3 修后守卫 self-check 对本 run `git status` 机判 PASS：tracked 工程面 diff 空，黑板更新走 `allowedNewPaths` 白名单路径，不触 `games/` 等禁区；ac-17/framework 定位已根治误锚，不设 env 自动锚本 run）
 
 ## 阻塞项（R2 轮 · 全部闭合 ✅）
 
@@ -24,6 +24,18 @@
 | B4 | 可玩构建未产出 | 程序 | contract-check 绿（18/18 EXIT=0）+ 冒烟绿（可开+可玩+SW+J1 达标）+ 原文落档 + 提交 | ✅ 闭合（QA G2/G3） |
 | B5 | 资产三批未交付 | 美术 | 三批 kebab-case + 映射表 + assets.md 总表 | ✅ 闭合（QA G5/a–d） |
 | B6 | QA round-3 未跑 | QA | 单一 verdict JSON | ✅ 闭合（VERDICT: APPROVE-READY，24/24 gates · R1–R7 零打回） |
+
+## R3 驳回轮（QA round-1 打回 F1–F4 · 全部闭合 ✅ 2026-10-02）
+
+| id | 内容 | 归属线 | 解除判据 | 状态 |
+|---|---|---|---|---|
+| B7 | F1+F2 炉冷双判退化单点 + trace 重排无效机判 + 披露与代码相反（拍板依据失真） | 程序 | sim.ts 判点一真实前移（重力落定后/补手前，含空洞盘）；trace 如实记录；ac-07/ac-08 改真实时点机判 | ✅ 闭合（`a8a0c90`；机判 filled=61/64 · QA G2/a 现场复跑绿） |
+| B8 | F3 renderer 7 处 rgba 盲区（辉光值漂移 rgb(210,160,40)≠token #C89C19） | 程序 | 全部接线 theme 单源；美术规格补录 tint/innerStroke/topHighlight/coolScrim；ac-11 扫描扩展 rgba/rgb 形态（红验必咬） | ✅ 闭合（`b819be1`；ac-11 17 色溯源 PASS） |
+| B9 | F4 level-2 玩家不可达 + parseGoals/goalEval/el-hint 零测试覆盖 | 程序 | level-2 三入口（键盘 1/`?level=`/`__G2_SET_LEVEL`）+ HUD spec 现读；levels.spec.mjs 入 run-all ⑦；smoke 补 level-2 面 | ✅ 闭合（`b819be1`；冒烟 level-2 入口可达可玩+切换回路） |
+| B10 | 附带：ac-17/framework 一号仓库定位字母序误锚旧 run（上轮已披露坑） | 程序 | 共享定位件 repo-one.mjs（spec 导出件 updatedAt 最新优先），两处统一接入 | ✅ 闭合（`b819be1`；不设 env 自动锚本 run） |
+
+- **R3 修后 N4 复检：VERDICT: APPROVE-READY（gates 24/24 · R1–R7 零打回 · J1=177.3ms）**，证据 `g2-blocks/docs/evidence/qa-round3-run.log`（commit `46a85b0`）。
+- 挂账注记①（炉冷判点一含空洞盘）随 B7 修复**与代码一致**，原披露不再失真；缺口通道未动用（spec 零改动，numeric 锚 `302e6336…` 全程不变）。
 
 ### 挂账（非本轮动作，防丢失）
 

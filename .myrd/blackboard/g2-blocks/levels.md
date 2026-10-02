@@ -1,21 +1,35 @@
 # 关卡状态黑板 — g2-blocks（R2「spec v1 → 首个可玩构建」轮）
 
-> 更新时间：2026-10-02（程序线复证轮：契约+冒烟+QA 全量重跑，证据重锚本 run 工作区）
+> 更新时间：2026-10-02（R3 驳回修复轮：QA round-1 打回 F1–F4 全部闭合，N4 复检 APPROVE-READY）
 > 负责人：主策划（整合人）· 程序线维护实现状态列 · QA 线维护核销列
-> 下一步：等主人拍板（approve-ready-r2 包：spec v1.1 approve 追认 + 构建人工验收）
+> 下一步：等主人拍板（approve-ready 包：spec v1.1 approve 追认 + 构建人工验收）
 
-## 复证轮实录（2026-10-02 · 程序线独立重跑，全部锚定本 run 工作区 `run-cmuq9pz86001vm9zrmqyfm59c`）
+## R3 驳回修复轮实录（2026-10-02 · QA round-1 打回 F1–F4 → 修复 → 复检）
 
-| 检查 | 命令/口径 | 结果（原文摘要） |
+| 打回 | 修法（可核对） | 修复后证据 |
 |---|---|---|
-| 契约全量 | `node scripts/contract-check.mjs`（`G2_SPEC_PATH`+`G2_REPO_ONE_ROOT` 显式钉本 run） | **18 PASS / 0 FAIL · CONTRACT: PASS · EXIT=0**（ac-17 detail 打印 `root=run-cmuq9pz86001vm9zrmqyfm59c`） |
-| 冒烟 | `node tools/smoke.mjs` | **SMOKE: PASS**：浏览器可开 + 核心循环可玩（就绪/得分 0→160→240/连击 chain2/重开复位）+ SW 激活 + manifest 可达 + 控制台零错误 |
-| J1 实测 | 冒烟内 CDP 机判（4x throttle · 390x844） | **179.1ms ≤ 400ms**（复检器复跑 179.7ms），证据 `tests/contract/.j1-evidence.json`（specVersion 2 approved）已入库（commit `c07ac4e`） |
-| QA 对抗复检 | `node tools/qa-round3.mjs`（G2/G3 为复检器现场复跑） | **VERDICT: APPROVE-READY · gates 24/24 · R1–R7 零打回**，verdict JSON 实现锚 = `c07ac4e`，证据归档 commit `8249249` |
-| numeric 锚 | 工程 spec-source 装载本 run 导出件后独立重算 sha256(sortKeys) | **ANCHOR MATCH**：`302e63367f3dea63…` ≡ 导出件 `_platform.numericAnchorSha256`（v2 approved `cmuqa2mu50023m9zr8mh60uph`） |
-| 一号仓库零接触 | 守卫 self-check 对本 run `git status` 机判 | PASS（本 run 工作树仅 `.myrd-platform/.claude/skills/SKILLS.md` 1 行 = 白名单内） |
+| F1 双判退化单点 | `sim.ts` 判点一「落定结算后」真实前移至**重力落定后/补手前**（盘面含消除空洞），判点二维持补手后；`SwapResult.probes[]` 记录 phase/boardHash/filled/idx | ac-07 机判：判点一 `filled=61/64`（含 3 格空洞）· boardHash ≠ 判点二 · 序号 0/1（`a8a0c90`） |
+| F1 披露失真 | blockers.md 旧挂账注记①所述语义（判点一在补手前含空洞盘）现已按代码落地 → 披露与实现一致，无需缺口通道改 spec | 本行 + blockers.md B7 闭合记录 |
+| F2 trace 重排无效机判 | 删除 `CANONICAL` 重排与 `record` 去重；trace = 真实执行序（尾部 `match` = 级联稳态确认，如实记录） | ac-08 机判真实流水 `swap→match→score→gravity→deadlock-check→refill→match→deadlock-check` + probes 交叉验证（`a8a0c90`） |
+| F3 rgba 盲区 | renderer 7 处 rgba 全接线 theme 单源（辉光弃漂移值 rgb(210,160,40) 改 `heatGlow.hex`=#C89C19；vignette 接线既有 token；描边/高光/遮罩/透明端点走 MATERIAL/BACKDROP+withAlpha）；美术规格补录 tint/innerStroke/topHighlight/coolScrim；ac-11 扫描扩展 rgba(/rgb( 三元组 | ac-11 全仓 17 色溯源 PASS；红验实测 rgba(1,2,3) 必红（`b819be1`） |
+| F4 level-2 不可达 | `?level=` URL + 键盘 1/2 + `__G2_SET_LEVEL` 三入口；HUD 显示 spec 关卡名+goal 现读；`tests/levels.spec.mjs`（run-all ⑦）补 parseGoals/goalEval/el-hint 覆盖；smoke ⑦b 补 level-2 面；顺带修 `game.ts` hintElement undefined≠null 误判 | smoke：`level-2 入口可达 ✓（HUD「升温局 · 20 手内打出 3 连击」= spec 现读）`+ 可玩 + 切换回路 ✓（`b819be1`） |
+| 附带加固 | `tests/contract/repo-one.mjs` 共享定位件（多候选取 spec 导出件 updatedAt 最新）根治 ac-17/framework 字母序误锚旧 run（N4 已披露坑） | ac-17 自动发现即锚本 run：`root=run-cmuq9pz86001vm9zrmqyfm59c`（不设 env 同样正确） |
 
-- 关卡面实现零改动（本轮无新增代码 diff，只重跑门禁 + 归档新鲜证据）。
+## R3 修后门禁原文摘要（g2-blocks @ `46a85b0`，树净）
+
+- 契约：`node scripts/contract-check.mjs` → **18 PASS / 0 FAIL · EXIT=0**
+- 工程门禁：`npm run gate` → **七件全 PASS**（①守卫 ②色板 21 对 ③theme ④零冻结值面 ⑤内核确定性 ⑥check 落点 ⑦关卡面）
+- 冒烟：**SMOKE: PASS**——可开+可玩（level-1 双手 0→160→240）+ **level-2 入口可达可玩** + SW 激活 + manifest + **控制台零错误**
+- J1：**177.3ms ≤ 400ms**（QA 复检器现场复跑 G3/b；冒烟直跑 177.7ms）
+- QA N4 复检：**VERDICT: APPROVE-READY · gates 24/24 · R1–R7 零打回**（G1–G6 含反审查污染探针），证据 `g2-blocks/docs/evidence/qa-round3-run.log`（commit `46a85b0`）
+
+## 关卡面（spec v1.1 = 链 v2 approved；levels 段与 v1 零 diff）
+
+| 关卡 | 目标 | 元素 | 实现状态（R3 修后） |
+|---|---|---|---|
+| level-1 | 教学局：3 步内完成首次三消 + 提示教学 | `el-board` / `el-spawn` / `el-hint` / `el-deadlock` | ✅ 可玩（el-hint 行为有测试：首消或 3 手后隐没，`tests/levels.spec.mjs`） |
+| level-2 | 升温局：20 手内 ≥3 连击并存活到炉冷 | `el-board` / `el-combo` / `el-deadlock` | ✅ 可玩且**玩家可达**（键盘 1 / `?level=level-2` / `__G2_SET_LEVEL`；冒烟双关全通；goal 文案 spec 现读） |
+| level-3+ | content.levelCount=2 预算外 | — | ⏸ 不做（spec 红线：零新增） |
 
 ## 关卡面（spec v1.1 = 链 v2 approved；levels 段与 v1 零 diff）
 
@@ -40,9 +54,9 @@
 | N4 对抗复检 | QA | `tools/qa-round3.mjs` + verdict JSON + 全量输出原文 | VERDICT: APPROVE-READY（24/24 gates · R1–R7 零打回 · 反审查污染探针实测会红） | ✅ |
 | N5 整合打包 | 主策划 | blockers 清零 + 黑板核销 + approve-ready-r2 提请包 | 本包 | ✅ |
 
-## 提交链（g2-blocks 仓库 · R2 轮）
+## 提交链（g2-blocks 仓库 · R2/R3 轮）
 
-`19ed02c` N1 spec v1.1 → `e6ba6fb` M0 契约红态 → `4e510b6` N2+N3 实现 → QA 修正系列 → `743fb77` N4 复检器 → `4a9cadb` N4 收口 → `c07ac4e` 复证轮 J1 新鲜证据 → `8249249` 复证轮 QA verdict+run.log 归档（HEAD，树净）。
+`19ed02c` N1 spec v1.1 → `e6ba6fb` M0 契约红态 → `4e510b6` N2+N3 实现 → QA 修正系列 → `743fb77` N4 复检器 → `4a9cadb` N4 收口 → `c07ac4e`+`8249249` 复证轮 → `a8a0c90` R3 F1+F2 内核 → `b819be1` R3 F3+F4+加固 → `46a85b0` R3 N4 复检归档（HEAD，树净）。
 
 ---
 
