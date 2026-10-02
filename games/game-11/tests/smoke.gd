@@ -37,8 +37,8 @@ const START_FRAMES: int = 6          # 注入 confirm 后等待状态翻转
 const MOVE_FRAMES: int = 10          # 按住 move_right 的帧数
 const CATCH_FRAMES: int = 10         # 等待 Area2D 重叠判定 + 信号送达
 const POINTER_CLEAN_FRAMES: int = 3  # 抬起噪声相位可能留下的悬挂触点（真实设备上手指总会离屏）
-const POINTER_MOUSE_FRAMES: int = 12 # 鼠标移动 → 果篮趋近目标（60px @ 340px/s ≈ 11 帧）
-const POINTER_TOUCH_FRAMES: int = 12 # 触屏按下 + 拖动 → 跟随；抬起 → 交还键盘
+const POINTER_MOUSE_FRAMES: int = 14 # 鼠标移动 → 果篮趋近目标（40px @ 340px/s ≈ 8 帧，留 5 帧余量）
+const POINTER_TOUCH_FRAMES: int = 14 # 触屏按下 + 拖动 → 跟随；抬起 → 交还键盘
 const EDGE_FRAMES: int = 8           # 越界摆位后等钳制在下一/下二物理帧生效
 const MISS_FRAMES_MAX: int = 45      # 等待苹果落到底线（漏接）
 const EXHAUST_FRAMES: int = 4        # 等待 game_over 信号与结算面板刷新
@@ -52,9 +52,9 @@ const MIN_MOVE_DISTANCE: float = 20.0
 ## 漏接相位的下落加速（px/s）：把等待压进帧预算，不改变玩法语义。
 ## （900 < 隧穿安全上限 1560，见 game_state.gd APPLE_FALL_SPEED_TUNNEL_SAFE。）
 const MISS_FALL_SPEED: float = 900.0
-## 指针跟随相位的目标与果篮的横向距离（px）：60px @ 340px/s ≈ 11 帧内可收完，
-## 既足以证明「真的朝目标移动」，又不撑爆帧预算。
-const POINTER_TARGET_DISTANCE: float = 60.0
+## 指针跟随相位的目标与果篮的横向距离（px）：40px @ 340px/s（钳到上限 5.67px/帧）≈ 8 帧走完，
+## 注入窗口有 13 帧 —— 余量必须留足，否则位移断言会因帧预算而非玩法本身假失败。
+const POINTER_TARGET_DISTANCE: float = 40.0
 ## 判定「已跟随到位」的容差（px）：FOLLOW_SNAP=3 直接贴合，再留 5px 给速度钳制的余量。
 const POINTER_ARRIVE_TOLERANCE: float = 8.0
 ## 漏接相位的苹果出生点 y（画面顶部之上）。
@@ -103,9 +103,11 @@ var _mouse_target_x: float = 0.0     # 鼠标相位注入的目标 x（游戏区
 var _mouse_start_x: float = 0.0      # 鼠标相位开始时的果篮 x
 var _touch_target_x: float = 0.0     # 触屏相位注入的目标 x
 var _touch_start_x: float = 0.0      # 触屏相位开始时的果篮 x
-## 指针区实际发出来的目标 x（诊断 + 断言「注入的事件真的被指针区收到」）。
+## 指针区实际发出来的目标 x 与累计发射次数：断言「注入的事件真的被指针区收到，
+## 且换算成了正确的游戏区坐标」，把输入管线本身也纳入机判（而不是只看果篮动了没）。
 var _zone_target_x: float = NAN
 var _zone_emit_count: int = 0
+var _zone_emits_before_phase: int = 0
 
 
 func _ready() -> void:
@@ -352,11 +354,13 @@ func _follow_target_from(current_x: float) -> float:
 func _begin_mouse_follow() -> void:
 	_mouse_start_x = _player.global_position.x
 	_mouse_target_x = _follow_target_from(_mouse_start_x)
+	_zone_emits_before_phase = _zone_emit_count
 
 
 func _begin_touch_follow() -> void:
 	_touch_start_x = _player.global_position.x
 	_touch_target_x = _follow_target_from(_touch_start_x)
+	_zone_emits_before_phase = _zone_emit_count
 
 
 ## ── 边界钳制相位动作：把果篮摆到区间外，验证下一物理帧被收回（不卡死角）──
@@ -389,6 +393,15 @@ func _spawn_miss_apple() -> void:
 
 
 func _exhaust_lives() -> void:
+	# 强制制造「新纪录」：把得分抬到历史最高分之上（走真实 catch_apple() 计分路径）。
+	# 不抬的话，若上一轮运行已经把 best 写到磁盘，本轮 score 不会超过 best，
+	# _save_best() 压根不会被调用，「最高分已持久化」的断言会被旧文件糊弄成假通过
+	# （变异测试实测：注释掉 _save_best() 后冒烟仍 PASS，即漏网）。
+	# 基准取「抬分前」的最高分快照：catch_apple() 每次都会把 best 同步到 score，
+	# 若直接写 while score <= best 会永远成立、死循环（实测卡死到帧预算耗尽）。
+	var best_before_raising := GameState.best
+	while GameState.score < best_before_raising + 1:
+		GameState.catch_apple()
 	# 胜负可达：把剩余生命扣完（与漏接共用同一条 miss_apple 计分路径）。
 	while GameState.lives > 0:
 		GameState.miss_apple()
@@ -466,6 +479,14 @@ func _assert_apple_missed() -> void:
 
 ## ── 指针跟随（需求第 3 条：鼠标水平移动与触屏水平拖动都要能实时驱动果篮）──
 func _assert_mouse_follow() -> void:
+	# 输入管线：注入的鼠标位移必须被指针区收到，且换算回正确的游戏区坐标。
+	# 这条单独拦「坐标空间换算错 / 事件被吞」—— 果篮没动可能是没收到，也可能是收到了换算错。
+	if _zone_emit_count <= _zone_emits_before_phase:
+		_failures.append("鼠标事件未到达指针区：注入 InputEventMouseMotion 后 follow_target_changed 零发射")
+	elif absf(_zone_target_x - _mouse_target_x) > 0.5:
+		_failures.append("鼠标坐标换算错误：指针区发出的目标 x=%.1f ≠ 注入的游戏区 x=%.1f" % [
+			_zone_target_x, _mouse_target_x,
+		])
 	var travelled: float = absf(_mouse_start_x - _player.global_position.x)
 	if travelled < POINTER_TARGET_DISTANCE * 0.5:
 		_failures.append("鼠标跟随失效：注入 InputEventMouseMotion 后果篮仅移动 %.1fpx（应 ≥ %.1fpx）" % [
@@ -479,6 +500,13 @@ func _assert_mouse_follow() -> void:
 
 
 func _assert_touch_follow() -> void:
+	# 输入管线：按下 + 拖动必须被指针区认领（单触点跟踪）并换算成正确的游戏区坐标。
+	if _zone_emit_count <= _zone_emits_before_phase:
+		_failures.append("触屏事件未到达指针区：注入 ScreenTouch+ScreenDrag 后 follow_target_changed 零发射")
+	elif absf(_zone_target_x - _touch_target_x) > 0.5:
+		_failures.append("触屏坐标换算错误：指针区发出的目标 x=%.1f ≠ 注入的游戏区 x=%.1f" % [
+			_zone_target_x, _touch_target_x,
+		])
 	var travelled: float = absf(_touch_start_x - _player.global_position.x)
 	if travelled < POINTER_TARGET_DISTANCE * 0.5:
 		_failures.append("触屏拖动跟随失效：注入 ScreenTouch+ScreenDrag 后果篮仅移动 %.1fpx（应 ≥ %.1fpx）" % [
@@ -555,6 +583,29 @@ func _assert_game_over() -> void:
 		_failures.append("最高分未更新：best %d < 本局得分 %d" % [GameState.best, _score_at_game_over])
 	if not FileAccess.file_exists(GameState.SAVE_PATH):
 		_failures.append("最高分未持久化：找不到 %s（页面刷新后最高分会丢）" % GameState.SAVE_PATH)
+	else:
+		# 只查「文件存在」不够 —— 上一轮运行留下的旧文件会让这条检查假通过。
+		# 必须核对落盘内容 ≥ 内存最高分：写入路径（_save_best）没生效时这里才会红。
+		var file := FileAccess.open(GameState.SAVE_PATH, FileAccess.READ)
+		if file == null:
+			_failures.append("最高分文件打不开：%s（%s）" % [
+				GameState.SAVE_PATH, error_string(FileAccess.get_open_error()),
+			])
+		else:
+			var stored := file.get_line().to_int()
+			file.close()
+			if stored < GameState.best:
+				_failures.append("最高分落盘内容过期：文件里 %d < 内存 %d（_save_best 未生效）" % [
+					stored, GameState.best,
+				])
+	# 上面已强制把得分抬过历史最高分，所以这一局必然是新纪录 —— 反过来说，
+	# 若 is_new_record() 为假，说明「新纪录」这条判定路径根本没被走到。
+	if not GameState.is_new_record():
+		_failures.append("新纪录路径未走到：强制抬分后 is_new_record() 仍为假（score=%d best=%d）" % [
+			GameState.score, GameState.best,
+		])
+	elif not _main.get_node("%NewRecordLabel").visible:
+		_failures.append("新纪录未在结算界面提示：NewRecordLabel 未显示")
 	# 新纪录标记必须与 GameState 的判定一致（同一事实来源，不允许界面再算一遍）。
 	if _main.get_node("%NewRecordLabel").visible != GameState.is_new_record():
 		_failures.append("新纪录标记与判定不一致：label.visible=%s，is_new_record()=%s" % [
