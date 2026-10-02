@@ -1,6 +1,6 @@
 # 资产清单黑板 — g2-blocks（R2「spec v1 → 首个可玩构建」轮）
 
-> 更新时间：2026-10-02（R2 轮 N3/N5 收口 · 主策划整合校对）
+> 更新时间：2026-10-02（R2 复证轮 · 美术线独立复跑落账；三批交付 N3/N5 收口态不变）
 > 负责人：游戏美术（资产面）/ 主策划（整合校对）
 > 下一步：等主人拍板（approve-ready 包）；色板沿用 N1 定稿零改动
 
@@ -102,6 +102,23 @@
 [PENDING-APPROVE] | 线1 美术 | （挂账·intent 更正案） | 2026-10-01 | 见上「美术线更正案」6 步（触发前零改动） | 触发条件=approve 后首轮 spec 修订；随动字段仅 numeric.palette.sourceSha256；色值/门禁结论零影响 | 本文件色板节
 ```
 
-> **美术线状态**：无阻塞性待办；唯一在册挂账 = intent 更正案（触发条件明确，非本轮动作）。
-> approve 后美术侧首件 = `a01-block-palette` codegen（真源=spec numeric.palette，含 block-06 暗块
-> 1px 内描边 + 顶部高光条接线要求）。
+## 美术线复证台账（R2 复证轮 · 2026-10-02 美术线独立复跑，锚本 run `run-cmuq9pz86001vm9zrmqyfm59c`）
+
+> 口径 = `evidence-one-line-template.md`；性质 = **复证而非重做**（三批交付件 + MAPPING.md 零触碰）；
+> 结论：**复证全绿，交付态与 QA round-3 verdict 锚（g2-blocks 仓库 `8249249`）一致**。证据原文 =
+> `gate-logs/r2-art-reverify-20261002/`（3 log + README）。
+
+```
+[PASS] | 线1 美术 | 01-gate-palette.log | 2026-10-02 | cd $G2 && npm run gate:palette | ALL-GREEN 0红/21对 minΔE=26.555 阈值=25 margin=+1.555 selftest=18/18（≡冻结记录逐字一致） | g2-blocks 仓库根
+[PASS] | 线1 美术 | 02-gate-six-pinned.log | 2026-10-02 | cd $G2 && G2_REPO_ONE_PATH=$RUN_WS npm run gate | 六门禁全绿：①②④⑤⑥ PASS；③ theme 单源 ac-11/a–c = PASS=3 RED=0 PENDING-APPROVE=0（theme.ts 已生成接线，骨架态转绿）；ac-17 一号零接触自检 PASS（钉本 run） | g2-blocks 仓库根
+[PASS] | 线1 美术 | 03-mapping-g5-and-wiring.log | 2026-10-02 | cd <证据目录> && node 03-mapping-g5-and-wiring.mjs | ALL-GREEN 7/7：G5/a–d + 接线 theme.ts 含 7/7 冻结 hex + 交付件 sha256=7bc2ca03… ≡ spec sourceSha256 锚（链 v2 approved） | 证据目录内（脚本自定位 RUN_WS）
+```
+
+- **口径披露（非缺陷，登记制）**：门 ④ 不显式钉 `G2_REPO_ONE_PATH` 时，`tests/framework.spec.mjs`
+  兄弟目录扫描会取到首个 `run-*`（本轮实测取到他线 `run-channel-cmulajp5g002km9lf73o99y95`，
+  其白名单外改动致自检红）。按既定复证口径显式钉本 run 后 5/5 PASS；建议下轮 spec 修订时由程序线
+  把 env 钉值写进门禁 README（挂账顺延，非本轮动作）。
+
+> **美术线状态**：无阻塞性待办；在册挂账两项均顺延（intent 更正案 + 上项 env 钉值登记建议），
+> 触发条件均为 approve 后首轮 spec 修订。approve 后美术侧首件 = `a01-block-palette` codegen
+> 真源=spec numeric.palette（block-06 暗块 1px 内描边 + 顶部高光条接线要求随件）。
