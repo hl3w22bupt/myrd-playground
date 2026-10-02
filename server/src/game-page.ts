@@ -17,6 +17,9 @@
  * 实现：包 AudioContext 构造器捕获实例 + document 级手势监听内同步 resume
  * （capture+passive 不消费事件）+ window.__audioDebug() 真机取证出口。
  * 根因取证与修复方案：games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md（F1 手势解锁 / F2 worklet 防御）。
+ *
+ * 调参桥（§3C 硬契约）：脚本最前段把 ?tuning=<JSON> 解析进 window.__GAME_TUNING__
+ * （先于引擎加载），游戏侧按 TUNING_META 声明的键读取；game-12 暂无调参键，桥为安全 no-op。
  */
 export const GAME_PAGE_HTML = `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -59,6 +62,20 @@ body { color: #fff; background: #101319; overflow: hidden; touch-action: none; f
 <!-- 引擎引导脚本由启动脚本按 BASE_PATH 动态注入（静态 src 在无尾斜杠入口下会 404） -->
 <script>
 (function () {
+  // ---- 调参桥（§3C 调参工作台硬契约，必须先于引擎加载执行）----
+  // 把 ?tuning=<JSON> 解析进 window.__GAME_TUNING__，试玩/调参工作台调好的参数
+  // 可用 URL 原样复现，调参回写流程才闭环。只认对象形态，解析失败静默忽略。
+  // game-12 当前未声明 TUNING_META（需求把 300ms 防重窗口钉死），此桥是安全 no-op，
+  // 但壳侧契约必须先在位 —— 后续游戏侧声明调参键后即可直接生效。
+  (function () {
+    var raw = new URLSearchParams(location.search).get('tuning');
+    if (!raw) return;
+    try {
+      var t = JSON.parse(raw);
+      if (t && typeof t === 'object' && !Array.isArray(t)) window.__GAME_TUNING__ = t;
+    } catch (e) { /* 非法 JSON：忽略，不让调参参数影响启动 */ }
+  })();
+
   // ---- 移动端音频手势解锁器（必须在引擎加载前安装，见文件尾注释）----
   // 根因（games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md F1/F2 取证）：
   // iOS/Android WebKit 下 AudioContext 创建即 suspended，锁屏/来电/切后台/静音键
