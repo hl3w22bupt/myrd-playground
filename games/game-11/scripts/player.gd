@@ -19,7 +19,7 @@ func _physics_process(_delta: float) -> void:
 	var previous_x := global_position.x
 	var direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	if direction.x != 0.0:
-		velocity.x = direction.x * GameState.BASKET_SPEED
+		velocity.x = direction.x * GameState.basket_speed
 	elif _follow_active:
 		# 指针跟随 = 实时贴合指针目标（果篮吸附在光标/触点正下方），不做渐近逼近：
 		# 比例增益式跟随只会无限逼近，指针停住后果篮仍差一截，手感也发滞 ——

@@ -47,7 +47,7 @@ const TOTAL_FRAMES: int = NOISE_FRAMES + START_FRAMES + MOVE_FRAMES + CATCH_FRAM
 		+ POINTER_CLEAN_FRAMES + POINTER_MOUSE_FRAMES + POINTER_TOUCH_FRAMES + EDGE_FRAMES \
 		+ MISS_FRAMES_MAX + EXHAUST_FRAMES + RESTART_FRAMES + 6
 
-## 判定「真的移动了」的最小位移（px）：BASKET_SPEED=340，10 帧理论位移 ≈ 57px。
+## 判定「真的移动了」的最小位移（px）：basket_speed=340，10 帧理论位移 ≈ 57px。
 const MIN_MOVE_DISTANCE: float = 20.0
 ## 漏接相位的下落加速（px/s）：把等待压进帧预算，不改变玩法语义。
 ## （900 < 隧穿安全上限 1560，见 game_state.gd APPLE_FALL_SPEED_TUNNEL_SAFE。）
@@ -134,6 +134,8 @@ func _ready() -> void:
 		game_state.score_changed.connect(_on_score_changed)
 		game_state.state_changed.connect(_on_state_changed)
 		game_state.game_over.connect(_on_game_over)
+		# 调参协议（SKILL.md §3C）在正式相位前跑：纯逻辑、无头可判，且检查完恢复原状。
+		_check_tuning_protocol(game_state)
 
 	_player = get_tree().root.find_child("Player", true, false) as Player
 	if _player == null:
@@ -256,6 +258,43 @@ func _physics_process(_delta: float) -> void:
 func _enter_phase(phase: Phase) -> void:
 	_phase = phase
 	_phase_frame = 0
+
+
+## ── 调参工作台协议（SKILL.md §3C，纯逻辑、无头可判）──
+## TUNING_META 非空；apply_tuning 应用已声明键、拒绝未声明键、按 max 钳制 ——
+## 这是「试玩调参 → 壳页 ?tuning= URL → 回写」链路的机器前提，桥断了调参结果就无法复现。
+## ⚠️ 检查完必须把调过的值恢复原状 —— 协议检查不得污染被测状态（gate-selftest D5
+## 实测：不恢复的话，本检查会把「速度被静默改掉」的缺陷用钳制值悄悄修好，让位移断言全绿放行）。
+func _check_tuning_protocol(game_state: Node) -> void:
+	var meta: Variant = game_state.get("TUNING_META")
+	if meta is Dictionary and not (meta as Dictionary).is_empty():
+		# 浮点键：应用、钳制到 max、拒绝未声明键。
+		var original_speed: Variant = game_state.get("basket_speed")
+		var applied: PackedStringArray = game_state.call(
+				"apply_tuning", {"basket_speed": 99999.0, "tuning_bogus_key": 1})
+		if not applied.has("basket_speed"):
+			_failures.append("调参协议：apply_tuning 未应用已声明键 basket_speed（应用逻辑断裂）")
+		if applied.has("tuning_bogus_key"):
+			_failures.append("调参协议：apply_tuning 应用了未声明键 tuning_bogus_key（必须只认 TUNING_META 声明的键）")
+		var speed: Variant = game_state.get("basket_speed")
+		if not (speed is float or speed is int) or float(speed) > 700.0:
+			_failures.append("调参协议：basket_speed=%s 超出 TUNING_META.max=700（钳制缺失）" % [speed])
+		if applied.has("basket_speed") and original_speed != null:
+			game_state.set("basket_speed", original_speed)
+		# 整型键：覆盖 apply_tuning 的取整分支（start_lives 必须保持 int、钳到 max）。
+		var original_lives: Variant = game_state.get("start_lives")
+		var applied_lives: PackedStringArray = game_state.call("apply_tuning", {"start_lives": 99})
+		var lives: Variant = game_state.get("start_lives")
+		if not applied_lives.has("start_lives") or not (lives is int):
+			_failures.append("调参协议：整型键 start_lives 未按 int 应用（applied=%s，类型=%s）" % [
+				applied_lives, typeof(lives),
+			])
+		elif int(lives) > 9:
+			_failures.append("调参协议：start_lives=%s 超出 TUNING_META.max=9（整型钳制缺失）" % [lives])
+		if applied_lives.has("start_lives") and original_lives != null:
+			game_state.set("start_lives", original_lives)
+	else:
+		_failures.append("调参协议：GameState.TUNING_META 为空或不可读（数值调参区必须声明至少一个可调键，见 SKILL.md §3C）")
 
 
 ## ── 噪声相位：确定种子随机事件（原始事件，不含 InputEventAction）──
@@ -451,13 +490,13 @@ func _assert_apple_caught() -> void:
 			_main.get_node("%FeedbackLabel").text,
 		])
 	# 难度递增（需求第 4 条）：得分上升后，下落速度变快、生成间隔变短。
-	if GameState.apple_fall_speed() <= GameState.APPLE_FALL_SPEED:
+	if GameState.current_fall_speed() <= GameState.apple_fall_speed:
 		_failures.append("难度曲线失效：得分 %d 时下落速度 %.1f 未高于初值 %.1f" % [
-			GameState.score, GameState.apple_fall_speed(), GameState.APPLE_FALL_SPEED,
+			GameState.score, GameState.current_fall_speed(), GameState.apple_fall_speed,
 		])
-	if GameState.spawn_interval() >= GameState.SPAWN_INTERVAL:
+	if GameState.current_spawn_interval() >= GameState.spawn_interval:
 		_failures.append("难度曲线失效：得分 %d 时生成间隔 %.3f 未短于初值 %.3f" % [
-			GameState.score, GameState.spawn_interval(), GameState.SPAWN_INTERVAL,
+			GameState.score, GameState.current_spawn_interval(), GameState.spawn_interval,
 		])
 
 
@@ -619,8 +658,8 @@ func _assert_restarted() -> void:
 		_failures.append("重开不可用：结算界面注入 confirm 后 state 仍为 %s（应为 PLAYING）" % GameState.state)
 	if GameState.score != 0:
 		_failures.append("重开未清零本局得分：score=%d（应为 0）" % GameState.score)
-	if GameState.lives != GameState.START_LIVES:
-		_failures.append("重开未重置生命：lives=%d（应为 %d）" % [GameState.lives, GameState.START_LIVES])
+	if GameState.lives != GameState.start_lives:
+		_failures.append("重开未重置生命：lives=%d（应为 %d）" % [GameState.lives, GameState.start_lives])
 	if _main.get_node("%GameOverPanel").visible:
 		_failures.append("重开后结算面板仍显示：GameOverPanel 未隐藏")
 	if _main.get_node("%NewRecordLabel").visible:
@@ -642,7 +681,7 @@ func _report() -> void:
 		# 帧预算耗尽时还没跑完所有相位：如实上报，不许伪装 PASS。
 		_failures.append("帧预算 %d 内未跑完断言相位（停在 %s）：加大 GODOT_SMOKE_FRAMES" % [TOTAL_FRAMES, _phase])
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/autoload/键位契约/移动/开局/碰撞包络/接住/漏接/指针跟随(鼠标+触屏)/边界钳制/反馈/胜负/最高分持久化/重开 全部通过")
+		print("GODOT_SMOKE: PASS 场景实例化/autoload/键位契约/调参协议/移动/开局/碰撞包络/接住/漏接/指针跟随(鼠标+触屏)/边界钳制/反馈/胜负/最高分持久化/重开 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

@@ -17,7 +17,7 @@ signal game_over(score: int, best: int)
 ## 游戏阶段：开局入口（MENU）→ 游玩（PLAYING）→ 生命耗尽结算（GAME_OVER）。
 enum State { MENU, PLAYING, GAME_OVER }
 
-## ── 调参区（集中配置，便于后续调优；单位：像素 / 秒 / 个）──
+## ── 结构性常量（几何 / 物理包络，改动会影响碰撞不变式，不进调参区）──
 const VIEWPORT_WIDTH: float = 640.0           # 与 project.godot 视口宽一致
 const VIEWPORT_HEIGHT: float = 360.0          # 与 project.godot 视口高一致
 const PLAYFIELD_MARGIN: float = 40.0          # 苹果/果篮左右留白（不贴边）
@@ -25,24 +25,40 @@ const BASKET_HALF_WIDTH: float = 30.0         # 果篮碰撞矩形半宽（= pla
 const BASKET_HEIGHT: float = 26.0             # 果篮碰撞矩形高（= player.tscn RectangleShape2D size.y）
 const APPLE_RADIUS: float = 13.0              # 苹果碰撞半径（= apple.tscn CircleShape2D.radius）
 const CATCH_MARGIN: float = 20.0              # 苹果出生点向内收的接住余量（见 spawn_range 注释）
-const BASKET_SPEED: float = 340.0             # 果篮水平速度（键盘/触屏摇杆）
 const BASKET_Y: float = 320.0                 # 果篮固定高度
 # 漏接线：苹果中心滚出视口底部，再让它整体（2 × 半径）离屏并留 10px 缓冲后才判漏接，
 # 玩家能看到苹果落地离场，而不是半途凭空消失。推导：360 + 13 × 2 + 10 = 396。
 const FLOOR_Y: float = VIEWPORT_HEIGHT + APPLE_RADIUS * 2.0 + 10.0
-const APPLE_FALL_SPEED: float = 150.0         # 苹果初始下落速度
-const APPLE_FALL_RAMP: float = 14.0           # 每得 1 分下落速度增量（难度曲线）
-const APPLE_FALL_SPEED_MAX: float = 460.0     # 下落速度上限
+const APPLE_FALL_SPEED_MAX: float = 460.0     # 下落速度上限（隧穿红线见下方安全上限）
 # 隧穿安全上限：苹果每帧位移必须小于「碰撞重叠带的一半」，否则一步就能跨过果篮矩形
 # 而不触发 body_entered（高速下漏接假阳性）。重叠带 = 苹果直径 + 果篮碰撞高
 # = 13 × 2 + 26 = 52px，取一半 26px/帧，按物理固定 60Hz 折算 = 1560px/s。
 # 调参红线：APPLE_FALL_SPEED_MAX 必须小于本值（tests/smoke.gd 有对应断言）。
 const APPLE_FALL_SPEED_TUNNEL_SAFE: float = (APPLE_RADIUS * 2.0 + BASKET_HEIGHT) * 0.5 * 60.0
-const SPAWN_INTERVAL: float = 1.10            # 初始生成间隔（秒）
-const SPAWN_RAMP: float = 0.045               # 每得 1 分生成间隔缩短量（秒）
-const SPAWN_INTERVAL_MIN: float = 0.35        # 生成间隔下限（秒）
-const START_LIVES: int = 3                    # 初始生命
-const SCORE_PER_APPLE: int = 1                # 每接住 1 个苹果得分
+const SPAWN_INTERVAL_MIN: float = 0.35        # 生成间隔下限（秒），钳住难度曲线不把间隔压成 0
+
+## ── 玩法手感调参区（SKILL.md §3C 调参工作台对接面；单位：像素 / 秒 / 个）──
+## 默认值 = 当前定稿；试玩调参经 apply_tuning 覆盖（调参面板与壳页 __GAME_TUNING__ 桥共用入口），
+## 定稿回写后更新这里。可调变量必须与 TUNING_META 键名成对声明，消费方只读变量、不散落魔数。
+var basket_speed: float = 340.0               # 果篮水平速度（键盘/触屏摇杆）
+var apple_fall_speed: float = 150.0           # 苹果初始下落速度
+var apple_fall_ramp: float = 14.0             # 每得 1 分下落速度增量（难度曲线）
+var spawn_interval: float = 1.10              # 初始生成间隔（秒）
+var spawn_ramp: float = 0.045                 # 每得 1 分生成间隔缩短量（秒）
+var start_lives: int = 3                      # 初始生命
+var score_per_apple: int = 1                  # 每接住 1 个苹果得分
+
+## 可调键的元数据：键名 → {min, max, step}。调参面板按它生成滑杆，apply_tuning 按它钳制。
+## 红线：apple_fall_speed.max + apple_fall_ramp.max ≤ APPLE_FALL_SPEED_MAX（隧穿安全）。
+const TUNING_META: Dictionary = {
+	&"basket_speed": {"min": 100.0, "max": 700.0, "step": 10.0},
+	&"apple_fall_speed": {"min": 60.0, "max": 400.0, "step": 10.0},
+	&"apple_fall_ramp": {"min": 0.0, "max": 60.0, "step": 1.0},
+	&"spawn_interval": {"min": 0.35, "max": 3.0, "step": 0.05},
+	&"spawn_ramp": {"min": 0.0, "max": 0.2, "step": 0.005},
+	&"start_lives": {"min": 1.0, "max": 9.0, "step": 1.0},
+	&"score_per_apple": {"min": 1.0, "max": 5.0, "step": 1.0},
+}
 
 ## 最高分持久化文件：Web 导出时 user:// 落在浏览器 IndexedDB（引擎内置 JS 文件系统），
 ## 页面刷新后仍在 —— 与原生平台的普通文件等价，单实现覆盖两端（见 SKILL.md Web 导出要点）。
@@ -50,18 +66,19 @@ const SAVE_PATH := "user://game_11_highscore.txt"
 
 var state: State = State.MENU
 var score: int = 0
-var lives: int = START_LIVES
+var lives: int = start_lives
 var best: int = 0
 
 
 func _ready() -> void:
 	best = _load_best()
+	_apply_web_tuning()
 
 
 ## ── 一局的生命周期 ──
 func start_game() -> void:
 	score = 0
-	lives = START_LIVES
+	lives = start_lives
 	_set_state(State.PLAYING)
 	score_changed.emit(score)
 	lives_changed.emit(lives)
@@ -75,7 +92,7 @@ func restart_game() -> void:
 func catch_apple() -> void:
 	if state != State.PLAYING:
 		return
-	score += SCORE_PER_APPLE
+	score += score_per_apple
 	if score > best:
 		best = score
 		best_changed.emit(best)
@@ -95,13 +112,54 @@ func miss_apple() -> void:
 
 
 ## 难度曲线：随得分提高下落速度（需求第 4 条，可观测递增）。
-func apple_fall_speed() -> float:
-	return minf(APPLE_FALL_SPEED + APPLE_FALL_RAMP * float(score), APPLE_FALL_SPEED_MAX)
+## 命名说明：基值是可调变量 apple_fall_speed，本函数返回「当前得分下」的实际速度。
+func current_fall_speed() -> float:
+	return minf(apple_fall_speed + apple_fall_ramp * float(score), APPLE_FALL_SPEED_MAX)
 
 
 ## 难度曲线：随得分缩短生成间隔（需求第 4 条）。
-func spawn_interval() -> float:
-	return maxf(SPAWN_INTERVAL - SPAWN_RAMP * float(score), SPAWN_INTERVAL_MIN)
+func current_spawn_interval() -> float:
+	return maxf(spawn_interval - spawn_ramp * float(score), SPAWN_INTERVAL_MIN)
+
+
+## 应用调参覆盖（调参面板与壳页面 __GAME_TUNING__ 桥共用的唯一入口，SKILL.md §3C）：
+## 只认 TUNING_META 声明的键、按 min/max 钳制；返回实际生效的键名列表。
+func apply_tuning(overrides: Dictionary) -> PackedStringArray:
+	var applied := PackedStringArray()
+	for key: String in overrides:
+		var meta: Dictionary = TUNING_META.get(StringName(key), {})
+		if meta.is_empty() or get(key) == null:
+			continue
+		var raw: Variant = overrides[key]
+		if not (raw is float or raw is int):
+			continue
+		var clamped := clampf(float(raw), meta["min"], meta["max"])
+		# 整型可调键（start_lives / score_per_apple）钳制后取整，保持属性类型不漂移。
+		if get(key) is int:
+			set(key, int(roundf(clamped)))
+		else:
+			set(key, clamped)
+		applied.append(key)
+	return applied
+
+
+## Web 调参桥读入：壳页面在引擎加载前把 URL ?tuning=<JSON> 解析到 window.__GAME_TUNING__，
+## 这里在启动时应用。桌面/无头环境桥不工作（eval 返回 null），自动跳过（冒烟不受影响）。
+## 注意：JavaScriptBridge 单例在桌面二进制也存在但 eval 恒为 null —— 判空而非只判注册；
+## 经 Engine.get_singleton 动态取用，不做编译期平台引用。
+func _apply_web_tuning() -> void:
+	if not Engine.has_singleton("JavaScriptBridge"):
+		return
+	var bridge: Object = Engine.get_singleton("JavaScriptBridge")
+	var result: Variant = bridge.call("eval", "JSON.stringify(window.__GAME_TUNING__ || null)")
+	if result == null:
+		return
+	var raw := str(result)
+	if raw.is_empty() or raw == "null":
+		return
+	var parsed: Variant = JSON.parse_string(raw)
+	if parsed is Dictionary:
+		apply_tuning(parsed)
 
 
 ## 果篮中心可达范围（player.gd 边界钳制的唯一事实来源）：

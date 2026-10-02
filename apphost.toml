@@ -1,8 +1,9 @@
-# 《糖果粉碎传奇》AppHost 应用清单（平台构建管线步骤 1 读取；M1 仅支持顶层字符串键值）
-# 壳位于仓库根：server/ 内是 Node20 + Hono 应用，游戏 Web 导出产物经 gzip+base64 内联进 bundle
-name = "candy-crush-legend"
+# 《接苹果（game-11）》AppHost 应用清单（平台构建管线步骤 1 读取；M1 仅支持顶层字符串键值）
+# 壳位于仓库根：server/ 内是 Node20 + Hono 应用，游戏 Web 导出产物经 assets_dir 走对象存储
+# 名称对应托管应用 cmuqke6ht002um9bfiom3xxra（slug: game-11）
+name = "game-11"
 runtime = "node20"
 health = "/health"
 
 # 底座 A：资产出 bundle（部署时平台把该目录上传对象存储，server 用 asset-store 懒加载）
-assets_dir = "games/game/export/web"
+assets_dir = "games/game-11/export/web"

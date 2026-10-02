@@ -76,7 +76,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _start_run() -> void:
 	clear_apples()
 	GameState.start_game()
-	spawn_timer.wait_time = GameState.SPAWN_INTERVAL
+	spawn_timer.wait_time = GameState.spawn_interval
 	spawn_timer.start()
 
 
@@ -84,7 +84,7 @@ func _start_run() -> void:
 func spawn_apple(at: Vector2) -> Apple:
 	var apple: Apple = APPLE_SCENE.instantiate()
 	apple.position = at
-	apple.fall_speed = GameState.apple_fall_speed()
+	apple.fall_speed = GameState.current_fall_speed()
 	apple.caught.connect(_on_apple_caught)
 	apple.missed.connect(_on_apple_missed)
 	apples.add_child(apple)
@@ -114,7 +114,7 @@ func _on_spawn_timer_timeout() -> void:
 	var x := randf_range(spawn_range.x, spawn_range.y)
 	spawn_apple(Vector2(x, APPLE_SPAWN_Y))
 	# 难度递增：每次生成都按当前得分重排下一次间隔。
-	spawn_timer.wait_time = GameState.spawn_interval()
+	spawn_timer.wait_time = GameState.current_spawn_interval()
 
 
 ## ── 苹果判定结果 ──
@@ -132,7 +132,7 @@ func _on_apple_missed(_apple: Apple) -> void:
 ## 接住：HUD 上方弹出「接住 +1」并做一次缩放脉冲；计数器自增供冒烟机判。
 func _play_catch_feedback() -> void:
 	catch_feedback_count += 1
-	feedback_label.text = "接住 +%d" % GameState.SCORE_PER_APPLE
+	feedback_label.text = "接住 +%d" % GameState.score_per_apple
 	feedback_label.add_theme_color_override("font_color", Color(0.16, 0.5, 0.16))
 	feedback_label.visible = true
 	feedback_label.pivot_offset = Vector2(feedback_label.size.x * 0.5, feedback_label.size.y * 0.5)

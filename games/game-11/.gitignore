@@ -1,8 +1,8 @@
 # Godot 本机导入缓存：由 `godot --headless --path . --import` 重新生成，不进版本库
 .godot/
 
-# 导出产物
-/export/
+# 导出产物要进版本库：AppHost 部署按 gitRef 克隆后把 assets_dir
+# （games/game-11/export/web）上传对象存储，不进库 = 线上无资产可加载
 *.exe
 *.zip
 
