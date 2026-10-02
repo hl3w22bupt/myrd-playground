@@ -353,8 +353,11 @@ body { color: #fff; background: #10141f; overflow: hidden; touch-action: none; f
     window.fetch = function (input, init) {
       var url = typeof input === 'string' ? input : (input && input.url) || '';
       var file = url.split('/').pop().split('?')[0];
-      if (file === 'index.wasm') return Promise.resolve(new Response(wasmBytes));
-      if (file === 'index.pck') return Promise.resolve(new Response(pckBytes));
+      // Content-Type 必须显式 application/wasm：引擎的 instantiateAsync 走
+      // WebAssembly.instantiateStreaming，响应缺正确 MIME 会先抛
+      // Invalid WebAssembly content type 再落错误降级路径（可用但控制台有噪声）。
+      if (file === 'index.wasm') return Promise.resolve(new Response(wasmBytes, { headers: { 'Content-Type': 'application/wasm' } }));
+      if (file === 'index.pck') return Promise.resolve(new Response(pckBytes, { headers: { 'Content-Type': 'application/wasm' } }));
       return realFetch(input, init);
     };
     setBar(1);

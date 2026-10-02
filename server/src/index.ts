@@ -36,7 +36,15 @@ app.get("/api/public/assets/:name", async (c) => {
   if (!asset) {
     return c.text(`asset not found: ${name}`, 404);
   }
-  const contentType = asset.encoding === "raw" ? asset.contentType : "text/plain; charset=utf-8";
+  // raw 文本资产按清单 contentType 直出；但 .js（引擎引导脚本 / audio worklet）强制
+  // text/javascript —— <script src> 与 AudioWorklet.addModule（module script）都按
+  // JS MIME 严格校验，清单若给了 application/octet-stream 之类会被浏览器/网关拒收。
+  const isJs = /\.js$/i.test(name.replace(/\.gz\.b64$/, ""));
+  const contentType = isJs
+    ? "text/javascript; charset=utf-8"
+    : asset.encoding === "raw"
+      ? asset.contentType
+      : "text/plain; charset=utf-8";
   return c.body(asset.body, 200, {
     "Content-Type": contentType,
     "Cache-Control": "public, max-age=300",
