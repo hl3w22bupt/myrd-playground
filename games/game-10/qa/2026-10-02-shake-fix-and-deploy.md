@@ -80,3 +80,42 @@
   sha256 `62ed35a4…` == 本地 `export/web/index.pck`（2507360B）；`index.wasm.gz.b64` 200 text/plain
 - 待验（外部依赖）：调参桥 web 半程（`JavaScriptBridge.eval` 读 `__GAME_TUNING__`）与移动端音效
   需真机/浏览器实测；桌面与无头无法覆盖。晃动手感的「不头晕 / 结束感干脆」仍以主人试玩为准。
+
+---
+
+# 终态收口部署与线上复核（2026-10-02 第三轮）
+
+## 1. 终态 HEAD 门禁复跑（判定器仍只来自仓库内 std-skills/godot-game-dev/scripts/）
+
+| 步骤 | 结果 |
+|---|---|
+| preflight.py | PASS（44 个工程文件，13 类检查，退出码 0） |
+| smoke.sh（240 帧） | PASS（退出码 0，断言标记齐全） |
+| input-fuzz.sh | PASS（GODOT_FUZZ: PASS seed=20260913 batches=6 total_frames=239） |
+| playtest.sh | 仓库仍无此文件，沿用前两轮口径（不自造判定器） |
+
+导出产物无需重做：游戏代码（scripts/autoload/scenes/project.godot）与 `export/web/`
+最后变更均停在 `0b5f4bd`，其后两个提交仅动 qa 文档 —— 产物与代码同步。
+
+## 2. 终局部署（deployment `cmuqmis7x001bm9ggsrfke4r6`，version 4）
+
+- POST `/api/v1/apphost/apps/cmuqjy4va000km9bfgc87bkgy/deployments`
+  `{mode:"bundle", deployedBy:"workflow", triggeredById:sourceId="cmuqjy7dk000mm9bf5jef68ay",
+  gitRef:"myrd/game-10-goal-cmuqjy7dk000mm9bf5jef68ay"}` → 网关 504（已知行为），
+  GET 复查确认服务端已创建 v4（07:10:28Z），v3 转 superseded。
+- 本次部署基于分支终态（58e02e1 及其后的 shutdown checkpoint 仅文档差异）。
+
+## 3. 线上复核（全部通过）
+
+| 项 | 实测 |
+|---|---|
+| /health | 200 `{"ok":true,"app":"game-10","assets":"lazy/object-storage"}` |
+| /（壳页） | 200（12167B），title=复现天天酷跑，`__GAME_TUNING__`×2、`__audioDebug`×1、相对路径 `api/public/assets/*`×4、candy 残留 0 |
+| index.js | 200，331495B，sha256 `8b649683…` == 本地导出 |
+| index.pck（b64+gzip 还原） | 200，还原后 2507360B，sha256 `62ed35a4…` == 本地 `export/web/index.pck`（逐字节一致） |
+
+**降晃生效判定链**：线上 pck ≡ 本地 pck（sha256 逐字节一致）→ 该 pck 即本轮冒烟实测对象
+（加速晃动峰值 1.20px、较基线 6.0px 降 80%、≈5Hz；game over 单晃 0.3s、结束后 3.5 游戏秒
+offset==ZERO 零残余；加速中触发仅单晃无叠加）→ 线上行为 ≡ 本地机判行为。
+
+待验（外部依赖，与前轮口径一致）：真机音效 / 调参桥 web 半程 / 手感主观口径归主人试玩。
