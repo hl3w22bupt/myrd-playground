@@ -28,6 +28,8 @@ const TUNING_META: Dictionary = {
 	"SPAWN_INTERVAL_MIN": {"min": 0.2, "max": 2.0, "step": 0.05},
 	"LIFETIME_START": {"min": 2.0, "max": 15.0, "step": 0.5},
 	"LIFETIME_MIN": {"min": 1.0, "max": 10.0, "step": 0.5},
+	"PLAYER_SCALE": {"min": 0.5, "max": 2.0, "step": 0.05},
+	"PLAYER_SPEED": {"min": 60.0, "max": 300.0, "step": 5.0},
 }
 ## 单局目标收集量（需求验收基线 3：收集 20 个即通关）。
 var TARGET_SCORE: int = 20
@@ -43,6 +45,13 @@ var SPAWN_INTERVAL_MIN: float = 0.45
 var LIFETIME_START: float = 6.0
 ## 可收集物寿命下限（秒）：难度封顶时仍留出可追的距离。
 var LIFETIME_MIN: float = 3.0
+## 牛牛体型倍率（v2 手感基线，需求 cmuqmej89000ym9gg6mom93o0）：视觉精灵与碰撞体
+##（含 PickupArea 判定体）整体同步放大，在 1.3~1.5 区间内取 1.4 落账。
+## v1 口径 = 1.0，经调参面板 / 壳页 ?tuning= URL 可查看并调回。
+var PLAYER_SCALE: float = 1.4
+## 牛牛移动速度 px/s（v2 手感基线）：v1 默认 220 的 65.9%，落在需求的 60~70% 区间。
+## v1 口径 = 220.0，同为调参键可回滚；消费方 player.gd 每物理帧读本值。
+var PLAYER_SPEED: float = 145.0
 ## 物品临期闪烁警示的剩余寿命阈值（秒）。
 const LIFETIME_WARN_SECONDS: float = 1.5
 ## 持久化文件（收集进度与历史最高分）。

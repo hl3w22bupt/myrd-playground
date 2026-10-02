@@ -14,7 +14,8 @@ const COLLECTIBLE_SCENE: PackedScene = preload("res://scenes/collectible.tscn")
 const SPAWN_MARGIN: float = 48.0
 ## 刷点与牛牛保持的最小间距（px）：避免物品生成在角色身上被「贴脸白捡」，
 ## 也避免重开瞬间（归位后无输入）被判定收集，保证开局计数的确定性。
-## 余量推导：拾取半径 22 + 物品半径 14 = 36px 即可触发判定，96px 留 2.6 倍余量。
+## 余量推导：v2 体型 1.4× 后拾取判定半径 22×1.4≈30.8 + 物品半径 14 ≈44.8px 即触发判定，
+## 96px 仍留 ≈2.1 倍余量（v1 为 36px/2.6 倍；间距常量不变，倍率变化随 PLAYER_SCALE 生效）。
 const SPAWN_CLEARANCE: float = 96.0
 ## 剩余时间低于该秒数时 HUD 进入红色倒计时警示（需求：失败反馈明确）。
 const TIME_WARN_SECONDS: float = 10.0

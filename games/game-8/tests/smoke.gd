@@ -24,6 +24,8 @@ extends Node
 ##  10. 失败可达：限时归零 → phase=LOST + 结算面板「时间到」+ HUD 红色警示（验收基线 3）
 ##  11. 一键重开：结算后按确认 → 计数/时限/位置/面板/难度节奏全部复位（验收基线 3）
 ##  12. 持久化：最高分与累计进度落盘后回读一致（验收基线 4）
+##  13. v2 手感基线：体型倍率 1.3~1.5×、移速为 v1(220) 的 60~70%，且倍率真的接线到
+##      根节点/碰撞体/PickupArea 判定体（需求 cmuqmej89000ym9gg6mom93o0）
 ##
 ## ⚠️ 输入注入分阶段互不重叠（references/error-signatures.md E-08）：
 ##   `Input.action_press()` 与 `Input.parse_input_event()` 同帧混用会互相冲掉，必须分帧。
@@ -31,8 +33,8 @@ extends Node
 ## ── 噪声相位：确定种子对抗输入（悬挂手势/孤儿释放/乱键），断言仍全过 = 输入管线没被楔死 ──
 const NOISE_FRAMES: int = 24
 ## 阶段一（方向符号断言）：单方向持续按住的物理帧数。
-## 220px/s ≈ 3.67px/物理帧 → 6 帧 ≈ 18~22px 位移，远超 MIN_MOVE_DISTANCE 且帧开销极小
-## （A/← 与 D/→ 背靠背共 13 帧，对照原先单向 11 帧，只多 2 帧，保住 240 帧预算）。
+## v2 移速 145px/s ≈ 2.42px/物理帧 → 6 帧 ≈ 12~15px 位移，远超 MIN_MOVE_DISTANCE 且
+## 帧开销极小（A/← 与 D/→ 背靠背共 13 帧，对照原先单向 11 帧，只多 2 帧，保住 240 帧预算）。
 const DIR_HOLD_FRAMES: int = 6
 ## 方向符号断言基准点：视口正中（640x360）。距左右边各 300px，双向 ~20px 位移
 ## 不会触 PLAY_RECT(20px 边距) 钳制 —— 钳制会吃掉位移、把方向断言打成假失败。
@@ -50,8 +52,9 @@ const NO_MISJUDGE_FRAMES: int = 4
 ## 过期断言用的短寿命（秒）：0.2s ≈ 12 物理帧。
 const SHORT_LIFETIME: float = 0.2
 ## 大批量收集时，非目标物品的统一停放点：
-## 必须在牛牛可达区（PLAY_RECT 钳制 [20..620, 20..340]）之外，且距可达区最近点 >36px
-## （拾取判定 = 玩家半径 22 + 物品半径 14；(700,420) 距可达角 (620,340) ≈113px = 3 倍余量）。
+## 必须在牛牛可达区（PLAY_RECT 钳制 [20..620, 20..340]）之外，且距可达区最近点 >判定距离
+## （v2 拾取判定 = 玩家判定半径 22×1.4≈30.8 + 物品半径 14 ≈44.8px；
+## (700,420) 距可达角 (620,340) ≈113px ≈ 2.5 倍余量，放大后仍单触单收）。
 ## 旧值 (620,340) 恰好压在钳制角上（距离 0）：目标刷点一靠近，传送即整堆误收（实测 score 单触 +6）。
 ## 每次只把目标物品摆到牛牛脚下、其余全部停走 → 单触单收确定性，50 连击不被双收污染。
 const PARK_POSITION: Vector2 = Vector2(700.0, 420.0)
@@ -59,6 +62,14 @@ const PARK_POSITION: Vector2 = Vector2(700.0, 420.0)
 const TOTAL_FRAME_BUDGET: int = 600
 ## 判定「真的移动了」的最小位移（像素）。
 const MIN_MOVE_DISTANCE: float = 1.0
+## ── v2 手感基线机判区间（需求 cmuqmej89000ym9gg6mom93o0）──
+## 体型倍率：需求要求 1.3~1.5 倍整体放大（实际落账 1.4）。
+const V2_SCALE_MIN: float = 1.3
+const V2_SCALE_MAX: float = 1.5
+## 移速：v1 默认 220 px/s 下调至 60~70%（实际落账 145 ≈ 65.9%）。
+const V1_SPEED: float = 220.0
+const V2_SPEED_MIN: float = V1_SPEED * 0.6
+const V2_SPEED_MAX: float = V1_SPEED * 0.7
 ## HUD 低时警示色（与 main.gd TIME_WARN 覆写保持一致）。
 const TIME_WARN_COLOR: Color = Color(1.0, 0.35, 0.3)
 ## 失败阶段先落入的警示观察点（秒）：低于 main.gd 的 TIME_WARN_SECONDS(10) 即变红。
@@ -186,6 +197,7 @@ func _advance_phase() -> void:
 			# 布置帧先把牛牛瞬移到视口正中（双方位移都不触边钳制）、把在场物品停走
 			# （杜绝 13 帧窗口内顺路收集污染判定），再背靠背注入 ← / → 两个方向。
 			if _phase_frames == 1:
+				_assert_v2_tuning()
 				_park_all_others(null)
 				# _advance_phase 只在零失败时推进（_physics_process 已守卫），此处 _player 必非空。
 				_player.global_position = DIR_CHECK_POSITION
@@ -401,6 +413,38 @@ func _assert_direction_sign(expected_sign: int) -> void:
 				DIR_HOLD_FRAMES, delta, MIN_MOVE_DISTANCE,
 			]
 		)
+
+
+## v2 手感基线断言（需求 cmuqmej89000ym9gg6mom93o0）：
+## ① 体型倍率落在 1.3~1.5 区间；② 移速落在 v1(220) 的 60~70% 区间；
+## ③ 倍率真的接线到节点：根缩放、碰撞体与 PickupArea 判定体的全局缩放都等于数值键
+##   （「数值键写了但没接上」的集成断言，与难度梯度 SpawnTimer 断言同口径）。
+func _assert_v2_tuning() -> void:
+	if GameState.PLAYER_SCALE < V2_SCALE_MIN or GameState.PLAYER_SCALE > V2_SCALE_MAX:
+		_failures.append("v2 手感断言 FAIL：体型倍率 %.2f 不在 %.1f~%.1f 区间（需求 cmuqmej89000ym9gg6mom93o0：整体放大约 1.3~1.5 倍）" % [
+			GameState.PLAYER_SCALE, V2_SCALE_MIN, V2_SCALE_MAX,
+		])
+	if GameState.PLAYER_SPEED < V2_SPEED_MIN or GameState.PLAYER_SPEED > V2_SPEED_MAX:
+		_failures.append("v2 手感断言 FAIL：移速 %.1fpx/s 不在 v1 默认 %.0f 的 60%%~70%% 区间 [%.1f, %.1f]" % [
+			GameState.PLAYER_SPEED, V1_SPEED, V2_SPEED_MIN, V2_SPEED_MAX,
+		])
+	if _player == null:
+		return  # Player 缺失已由 _ready 断言上报，这里不重复计失败
+	_assert_node_scaled(_player, "Player 根节点")
+	_assert_node_scaled(_player.get_node_or_null("CollisionShape2D") as Node2D, "碰撞体 CollisionShape2D")
+	_assert_node_scaled(_player.get_node_or_null("PickupArea/PickupShape") as Node2D, "拾取判定体 PickupArea/PickupShape")
+
+
+## 单节点缩放接线断言：全局缩放必须等于数值区 PLAYER_SCALE（uniform 同步放大）。
+func _assert_node_scaled(node: Node2D, label: String) -> void:
+	if node == null:
+		_failures.append("v2 手感断言 FAIL：场景树找不到 %s（体型放大接线目标缺失）" % label)
+		return
+	var expected: Vector2 = Vector2.ONE * GameState.PLAYER_SCALE
+	if not node.global_transform.get_scale().is_equal_approx(expected):
+		_failures.append("v2 手感断言 FAIL：%s 全局缩放 %s 与数值区 PLAYER_SCALE %.2f 不同步（放大量未接线到节点）" % [
+			label, node.global_transform.get_scale(), GameState.PLAYER_SCALE,
+		])
 
 
 func _assert_collected() -> void:
@@ -625,7 +669,7 @@ func _key_labels(keys: Array) -> String:
 
 func _report() -> void:
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/输入映射/移动方向符号(A/←减小,D/→增大)/收集判定/50 连击一致性/难度梯度/过期回收/胜负/一键重开/持久化 全部通过")
+		print("GODOT_SMOKE: PASS 场景实例化/输入映射/移动方向符号(A/←减小,D/→增大)/收集判定/50 连击一致性/难度梯度/过期回收/胜负/一键重开/持久化/v2手感基线(体型1.3~1.5x·移速60~70%) 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:
