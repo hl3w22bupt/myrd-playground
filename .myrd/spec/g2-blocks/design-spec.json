@@ -3,112 +3,118 @@
   "spec": {
     "acceptance": [
       {
-        "check": "g2-blocks/tests/board-init.spec.mjs",
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-01-board-init-seeded",
         "id": "ac-01-board-init-seeded",
-        "pendingApprove": true,
+        "scope": "playable",
         "statement": "seed=DEFAULT_SEED(20261001) 启动后炉板 64 格满员、7 类型合法；同 seed 跑两局，棋盘初始化序列逐字节一致。"
       },
       {
-        "check": "g2-blocks/tests/spawn-rng.spec.mjs",
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-02-spawn-uniform-random",
         "id": "ac-02-spawn-uniform-random",
-        "pendingApprove": true,
+        "scope": "playable",
         "statement": "spawn.orientation: \"uniform_random\"：每次补手从 7 类型等概率取一；seeded RNG 测试钩子（seededRng）可注入固定 seed 复现任意局面；内核零 Math.random/Date.now。"
       },
       {
-        "check": "g2-blocks/tests/swap-rule.spec.mjs",
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-03-swap-adjacency-only",
         "id": "ac-03-swap-adjacency-only",
-        "pendingApprove": true,
+        "scope": "playable",
         "statement": "仅相邻（上下左右 ≤4 向）交换合法；非相邻交换无效、不消耗手数、不触发结算。"
       },
       {
-        "check": "g2-blocks/tests/match-detect.spec.mjs",
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-04-match-3plus",
         "id": "ac-04-match-3plus",
-        "pendingApprove": true,
+        "scope": "playable",
         "statement": "三连及以上即消除，含 L/T 形交点（交点块只计一次）。"
       },
       {
-        "check": "g2-blocks/tests/cascade.spec.mjs",
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-05-gravity-refill-cascade",
         "id": "ac-05-gravity-refill-cascade",
-        "pendingApprove": true,
+        "scope": "playable",
         "statement": "消除后重力下落、顶部补手补满，连锁自动结算直至无新消除。"
       },
       {
-        "check": "g2-blocks/tests/combo-vector.spec.mjs",
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-06-combo-four-move-vector",
         "id": "ac-06-combo-four-move-vector",
-        "pendingApprove": true,
+        "scope": "playable",
         "statement": "连击加成四手向量逐字裁决：消/消/不消/消 → +0/+50/归0/+0（第 1 手消除不加成 +0；连续第 2 手消除 +chainBonus=+50；中间插入非消除手 → 连击归 0；归零后再消除 +0 重新起算）。"
       },
       {
-        "check": "g2-blocks/tests/deadlock-cool.spec.mjs",
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-07-deadlock-cool",
         "id": "ac-07-deadlock-cool",
-        "pendingApprove": true,
+        "scope": "playable",
         "statement": "炉冷判定：落定结算后+补手后各判一次，任一为真即炉冷；判定算法 = 64格×7块×≤4向全穷举（对 64 格逐格取 7 类型中在盘类型、对每格 ≤4 个相邻方向做 swap-probe，任一可成三消即存在手，全部不可成才判炉冷）。"
       },
       {
-        "check": "g2-blocks/tests/settle-order.spec.mjs",
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-08-settlement-order",
         "id": "ac-08-settlement-order",
-        "pendingApprove": true,
+        "scope": "playable",
         "statement": "单手结算顺序唯一：交换 → 消除判定 → 计分（含连击加成）→ 重力 → 补手 → 炉冷判定；实现不得自创顺序或漏判步骤。"
       },
       {
-        "check": "g2-blocks/tests/restart.spec.mjs",
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-09-restart-full-reset",
         "id": "ac-09-restart-full-reset",
-        "pendingApprove": true,
+        "scope": "playable",
         "statement": "重开全复位：分数、连击、棋盘、手数、炉冷态全部回到初始；重开后的 seed 链重新起算且确定性保持。"
       },
       {
-        "check": "g2-blocks/tests/perf-j1.spec.mjs",
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-10-perf-j1",
         "id": "ac-10-perf-j1",
-        "pendingApprove": true,
+        "scope": "playable",
+        "scopeNote": "PWA 范围标注：本轮生效面 = Web PWA 端（含 manifest / service-worker 打包）；移植端（wx/dy/Steam/Roblox）deferred 顺延下轮（任务书「明确不做」）。J1 预算与口径逐字引用 numeric.perf.j1 冻结块，零新增数值；双端标记名契约在移植端开工前仅对 Web 端生效。",
         "statement": "J1 定义（逐字）：J1 = 一次消除从落定结算开始到该次反馈完成的墙钟时长，双端 perf 标记名逐字为 j1_settle_start / j1_feedback_done；预算 numeric.perf.j1.budgetMs=400 @ 4x CPU throttle + 390x844（基准口径见 numeric.perf.j1.device）；超预算即红，双端任一端缺标记名即红。"
       },
       {
-        "check": "g2-blocks/tests/theme.spec.mjs",
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-11-theme-single-source",
         "id": "ac-11-theme-single-source",
-        "note": "断言框架本轮已落（值在 approve 后激活）：numeric 冻结块=真源，theme.js=运行时单源",
-        "pendingApprove": false,
+        "scope": "playable",
+        "scopeNote": "PWA 范围标注：本轮生效。执行面单源件 = src/render/theme.ts（与 assets.a01、entities.e-renderer.script、tests/contract 断言四方一致）；statement 内「theme.js」为 N1 轮呈批件已披露的措辞二义，随本版 approve 一并裁定，实现不按其行事。",
         "statement": "theme.js（运行时单源）的 7 个色值键名与值必须逐字等于 spec numeric.palette 冻结块；键缺失、值漂移、多源定义任一即红。"
       },
       {
-        "check": "node g2-blocks/tools/palette-gate.mjs matrix --palette g2-blocks/assets/palette/palette-n1-final.json --threshold 25 --pairs 21",
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-12-palette-double-gate",
         "id": "ac-12-palette-double-gate",
-        "pendingApprove": false,
+        "scope": "playable",
+        "scopeNote": "PWA 范围标注：本轮生效。统一入口经 scripts/contract-check.mjs 内部调用美术门禁工具，判据与阈值逐字沿用 numeric.palette 冻结块（thresholdDeltaE 等），零新增数值。",
         "statement": "色板 7 色 21 对双门禁（HSL 三选二 + ΔE(CIEDE2000)≥numeric.palette.thresholdDeltaE）全绿；红对即红。"
       },
       {
-        "check": "g2-blocks/tests/no-texture.spec.mjs",
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-13-no-external-texture",
         "id": "ac-13-no-external-texture",
-        "pendingApprove": true,
+        "scope": "playable",
+        "scopeNote": "PWA 范围标注：本轮生效。三批资产（块 tile → UI/HUD → 背景/表现件）以定稿色板 token + 几何规格交付，尺寸复用黑板 assets.md 风格卡定稿口径，零新增数值、零贴图文件。",
         "statement": "极简几何色块渲染，零外部贴图依赖（无 image/贴图文件加载）；风格漂移按缺陷打回。"
       },
       {
-        "check": "g2-blocks/tests/kernel-purity.spec.mjs",
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-14-deterministic-kernel",
         "id": "ac-14-deterministic-kernel",
-        "pendingApprove": true,
+        "scope": "playable",
         "statement": "内核与 seed 链路零 Math.random / Date.now（RNG 唯一来源 = e-rng mulberry32 + seededRng 测试钩子）。"
       },
       {
-        "check": "g2-blocks/tests/audio-feedback.spec.mjs",
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-15-audio-feedback",
         "id": "ac-15-audio-feedback",
-        "pendingApprove": true,
+        "scope": "playable",
         "statement": "消除命中 → 音效调用与反馈完成同帧发起（可 spy 可测）；音频缺失不阻塞玩法。"
       },
       {
-        "check": "g2-blocks/tests/persistence.spec.mjs",
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-16-persistence-minimal",
         "id": "ac-16-persistence-minimal",
-        "pendingApprove": true,
+        "scope": "playable",
+        "scopeNote": "PWA 范围标注：本轮生效面 = Web PWA 本地最小存档集；范围外（上报/云同步）spec 未声明，本轮不新增，deferred 以未来版本显式声明为准。",
         "statement": "存档仅 muted + anonId 两键级最小集，零 PII 上报；无网络调用。"
       },
       {
-        "check": "g2-blocks/ci/guard-repo-scope.mjs --self-check",
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-17-repo-one-zero-touch",
         "id": "ac-17-repo-one-zero-touch",
-        "pendingApprove": false,
+        "scope": "playable",
+        "scopeNote": "PWA 范围标注：本轮生效。PWA 构建产物（manifest / service-worker / build 导出）一并纳入一号零接触守卫扫描范围。",
         "statement": "一号仓库（stack-tower 线）全程零接触：本轮全部产物不修改一号仓库任何 tracked 文件、不触碰其 spec/导出包；以 git diff 留证。"
       },
       {
-        "check": "g2-blocks/ci/guard-repo-scope.mjs",
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-18-ci-guard-repo-scope",
         "id": "ac-18-ci-guard-repo-scope",
-        "pendingApprove": false,
+        "scope": "playable",
+        "scopeNote": "PWA 范围标注：本轮生效。CI 守卫对 PWA 构建面同规则生效，越界即红。",
         "statement": "仓库范围守卫：g2-blocks 仓库内任何提交不得引用/修改一号仓库路径（games/stack-tower、export/wx、export/tt、.myrd/spec/stack-tower-*）；CI job 每次跑守卫，越界即红。"
       }
     ],
@@ -425,15 +431,15 @@
     }
   },
   "_platform": {
-    "id": "cmuovwra0004gm97tinha15zq",
-    "version": 1,
-    "status": "draft",
+    "id": "cmuqa2mu50023m9zr8mh60uph",
+    "version": 2,
+    "status": "approved",
     "title": "g2-blocks（熔炉方块）",
     "projectId": "cmto0g28j0002m9sqnvjdy8o7",
     "goalId": null,
-    "createdAt": "2026-10-01T01:57:44.857Z",
-    "updatedAt": "2026-10-01T01:57:44.857Z",
+    "createdAt": "2026-10-02T01:21:59.838Z",
+    "updatedAt": "2026-10-02T01:22:12.052Z",
     "numericAnchorSha256": "302e63367f3dea63212ad689a33703d83886d145862db0d724df98e97fea2d89",
-    "exportedAt": "2026-10-01T01:58:30.256Z"
+    "exportedAt": "2026-10-02T01:23:20.975Z"
   }
 }

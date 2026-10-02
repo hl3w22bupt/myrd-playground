@@ -1,8 +1,22 @@
-# 资产清单黑板 — g2-blocks（N1 修复轮）
+# 资产清单黑板 — g2-blocks（R2「spec v1 → 首个可玩构建」轮）
 
-> 更新时间：2026-10-01（N1 修复轮开工 · 主策划）
+> 更新时间：2026-10-02（R2 轮 N3/N5 收口 · 主策划整合校对）
 > 负责人：游戏美术（资产面）/ 主策划（整合校对）
-> 下一步：线1 色板定稿后本文件即为唯一色板真源；OD 恢复后同步参考卡（不构成新门禁）
+> 下一步：等主人拍板（approve-ready 包）；色板沿用 N1 定稿零改动
+
+## R2 轮三批交付（N3 · 已全部落账，映射表 = g2-blocks/assets/MAPPING.md）
+
+| 批 | 交付件（kebab-case） | spec 绑定 | 运行时单源接线 | 状态 |
+|---|---|---|---|---|
+| 批一 · 块 tile | `e-board-block-tiles.json` + `style-card.json`（随批） | entities.e-board；方块 id ↔ numeric.palette 七枚全等 | `tools/gen-theme.mjs` → `src/render/theme.ts`（PALETTE/SHAPE/TILES）→ renderer | ✅ 已交付已接线 |
+| 批二 · UI/HUD | `e-renderer-ui-tokens.json` | entities.e-renderer | theme.ts（UI/HUD_TEXT/TYPE_SCALE）→ renderer + main | ✅ 已交付已接线 |
+| 批三 · 背景/表现件 | `e-renderer-backdrop.json` + `a03-sfx-plan.json` | entities.e-renderer + assets.a03-sfx-pack | theme.ts（BACKDROP/MOTION/SFX）→ renderer + audio（WebAudio 合成，零音频文件） | ✅ 已交付已接线 |
+
+- **总表口径**：id / 尺寸比例（style-card 比例值）/ hex（全部经 paletteToken 引用或 theme 生成件）/ 状态，逐件见仓库 `assets/MAPPING.md`（QA G5/a–d 机判双向一致通过）。
+- **零改动件**：`assets/palette/palette-n1-final.json`（sha256 `7bc2ca03…` = numeric.palette.sourceSha256 锚，R2 零触碰）。
+- **intent 更正案继续挂账**（本轮「仅动 acceptance 段 + numeric 零 diff」约束不可随版）；触发条件改为「下一轮 spec 修订」。
+- 机器证据：`g2-blocks/docs/evidence/qa-round3-run.log`（G5 三批映射断言）+ `g2-blocks/assets/MAPPING.md`。
+
 
 ## 风格卡（四要素 · 其余三要素本轮不动，仅色板一要素进入本轮修订）
 
