@@ -18,14 +18,26 @@ signal game_over(score: int, best: int)
 enum State { MENU, PLAYING, GAME_OVER }
 
 ## ── 调参区（集中配置，便于后续调优；单位：像素 / 秒 / 个）──
-const PLAYFIELD_WIDTH: float = 640.0          # 与 project.godot 视口宽一致
+const VIEWPORT_WIDTH: float = 640.0           # 与 project.godot 视口宽一致
+const VIEWPORT_HEIGHT: float = 360.0          # 与 project.godot 视口高一致
 const PLAYFIELD_MARGIN: float = 40.0          # 苹果/果篮左右留白（不贴边）
+const BASKET_HALF_WIDTH: float = 30.0         # 果篮碰撞矩形半宽（= player.tscn RectangleShape2D size.x × 0.5）
+const BASKET_HEIGHT: float = 26.0             # 果篮碰撞矩形高（= player.tscn RectangleShape2D size.y）
+const APPLE_RADIUS: float = 13.0              # 苹果碰撞半径（= apple.tscn CircleShape2D.radius）
+const CATCH_MARGIN: float = 20.0              # 苹果出生点向内收的接住余量（见 spawn_range 注释）
 const BASKET_SPEED: float = 340.0             # 果篮水平速度（键盘/触屏摇杆）
 const BASKET_Y: float = 320.0                 # 果篮固定高度
-const FLOOR_Y: float = 396.0                  # 苹果越过即漏接（视口高 360 + 苹果半径余量）
+# 漏接线：苹果中心滚出视口底部，再让它整体（2 × 半径）离屏并留 10px 缓冲后才判漏接，
+# 玩家能看到苹果落地离场，而不是半途凭空消失。推导：360 + 13 × 2 + 10 = 396。
+const FLOOR_Y: float = VIEWPORT_HEIGHT + APPLE_RADIUS * 2.0 + 10.0
 const APPLE_FALL_SPEED: float = 150.0         # 苹果初始下落速度
 const APPLE_FALL_RAMP: float = 14.0           # 每得 1 分下落速度增量（难度曲线）
 const APPLE_FALL_SPEED_MAX: float = 460.0     # 下落速度上限
+# 隧穿安全上限：苹果每帧位移必须小于「碰撞重叠带的一半」，否则一步就能跨过果篮矩形
+# 而不触发 body_entered（高速下漏接假阳性）。重叠带 = 苹果直径 + 果篮碰撞高
+# = 13 × 2 + 26 = 52px，取一半 26px/帧，按物理固定 60Hz 折算 = 1560px/s。
+# 调参红线：APPLE_FALL_SPEED_MAX 必须小于本值（tests/smoke.gd 有对应断言）。
+const APPLE_FALL_SPEED_TUNNEL_SAFE: float = (APPLE_RADIUS * 2.0 + BASKET_HEIGHT) * 0.5 * 60.0
 const SPAWN_INTERVAL: float = 1.10            # 初始生成间隔（秒）
 const SPAWN_RAMP: float = 0.045               # 每得 1 分生成间隔缩短量（秒）
 const SPAWN_INTERVAL_MIN: float = 0.35        # 生成间隔下限（秒）
@@ -92,9 +104,26 @@ func spawn_interval() -> float:
 	return maxf(SPAWN_INTERVAL - SPAWN_RAMP * float(score), SPAWN_INTERVAL_MIN)
 
 
-## 苹果横向出生范围（留边，避免贴边出生接不到）。
+## 果篮中心可达范围（player.gd 边界钳制的唯一事实来源）：
+## 左右各留 PLAYFIELD_MARGIN，再让出一个 BASKET_HALF_WIDTH —— 果篮边缘最多贴到留白线，
+## 不会越过画面边缘；推导：40 + 30 = 70，640 - 40 - 30 = 570。
+func basket_clamp_range() -> Vector2:
+	return Vector2(PLAYFIELD_MARGIN + BASKET_HALF_WIDTH,
+			VIEWPORT_WIDTH - PLAYFIELD_MARGIN - BASKET_HALF_WIDTH)
+
+
+## 苹果横向出生范围：比果篮可达范围再向内收 CATCH_MARGIN。
+## 不收这一段时，出生在 40 / 600 的苹果只能靠果篮边缘擦到（果篮中心极限在 70 / 570），
+## 属于「零余量死角苹果」。收 CATCH_MARGIN 后出生点 [60, 580] 落在果篮正面覆盖区内，
+## 每个苹果都留有 ≥ CATCH_MARGIN + APPLE_RADIUS = 33px 的接住余量。
 func spawn_range() -> Vector2:
-	return Vector2(PLAYFIELD_MARGIN, PLAYFIELD_WIDTH - PLAYFIELD_MARGIN)
+	return Vector2(PLAYFIELD_MARGIN + CATCH_MARGIN,
+			VIEWPORT_WIDTH - PLAYFIELD_MARGIN - CATCH_MARGIN)
+
+
+## 本局结算是否刷新了历史最高分（结算界面「新纪录」标记用）。
+func is_new_record() -> bool:
+	return state == State.GAME_OVER and score > 0 and best == score
 
 
 func _set_state(new_state: State) -> void:
@@ -123,3 +152,11 @@ func _save_best() -> void:
 		return
 	file.store_line(str(best))
 	file.close()
+
+
+## 从磁盘重新读最高分。冒烟测试用它模拟「页面刷新后重新加载」：
+## Web 导出时 user:// 落在浏览器 IndexedDB，刷新后进程重建、内存里的 best 归零，
+## 唯有这条重读路径能证明最高分真的持久化在了引擎外部。
+func reload_best() -> void:
+	best = _load_best()
+	best_changed.emit(best)

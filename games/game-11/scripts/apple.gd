@@ -12,6 +12,8 @@ signal caught(apple: Apple)
 signal missed(apple: Apple)
 
 ## 下落速度（px/s）：由主场景按难度曲线赋值（GameState.apple_fall_speed()）。
+## 上限受 GameState.APPLE_FALL_SPEED_TUNNEL_SAFE 约束 —— 每帧位移小于「苹果直径 + 果篮高」
+## 的一半（13 × 2 + 26 = 52px 的一半 = 26px/帧），60Hz 下 460px/s ≈ 7.7px/帧，隧穿余量约 3.4 倍。
 var fall_speed: float = GameState.APPLE_FALL_SPEED
 
 var _resolved: bool = false

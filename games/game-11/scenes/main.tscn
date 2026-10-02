@@ -49,6 +49,27 @@ offset_bottom = 34.0
 theme_override_font_sizes/font_size = 15
 text = "得分 0 · 最高分 0 · 生命 3"
 
+[node name="MissFlash" type="ColorRect" parent="UI"]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.78, 0.12, 0.12, 0)
+
+[node name="FeedbackLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+visible = false
+offset_left = 20.0
+offset_top = 42.0
+offset_right = 620.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 17
+text = ""
+horizontal_alignment = 1
+
 [node name="StartPanel" type="Control" parent="UI"]
 unique_name_in_owner = true
 anchors_preset = 15
@@ -109,6 +130,18 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.35)
+
+[node name="NewRecordLabel" type="Label" parent="UI/GameOverPanel"]
+unique_name_in_owner = true
+visible = false
+offset_left = 20.0
+offset_top = 96.0
+offset_right = 620.0
+offset_bottom = 122.0
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.95, 0.72, 0.15, 1)
+text = "新纪录！"
+horizontal_alignment = 1
 
 [node name="ResultLabel" type="Label" parent="UI/GameOverPanel"]
 unique_name_in_owner = true
