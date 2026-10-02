@@ -1,5 +1,5 @@
 /**
- * 自定义游戏落地页（伺服于 /）。
+ * 《hello》游戏落地页（伺服于 /）。
  *
  * 与 Godot 默认壳的差异：所有二进制资产必须经 M1 文本网关中转 ——
  * 页面先从 api/public/assets/* 拉 base64 文本，还原出 wasm/pck 真实字节，
@@ -9,9 +9,12 @@
  * 单独补丁把相对文件名改写到 api/public/assets/ 下。
  *
  * 注意：页面里拉资源的路径一律不带前导斜杠（相对路径），
- * 经公网入口 /apps/game 访问时才能解析到网关子路径。
+ * 经公网入口 /apps/hello 访问时才能解析到网关子路径。
  *
- * 移动端音频手势解锁器（脚本最前段，必须先于引擎加载安装）：
+ * 调参桥（脚本最前段，必须先于引擎加载）：URL 参数 tuning → window.__GAME_TUNING__，
+ * 游戏侧 game_state.gd 启动时读它覆盖调参区数值（试玩调参可用 URL 复现）。
+ *
+ * 移动端音频手势解锁器（调参桥之后，必须先于引擎加载安装）：
  * iOS/Android WebKit 的 AudioContext 创建即 suspended、打断后 interrupted（引擎不识别），
  * 引擎只在自身输入回调里 resume —— 缺壳页兜底 = 移动端无声而桌面正常。
  * 实现：包 AudioContext 构造器捕获实例 + document 级手势监听内同步 resume
@@ -23,42 +26,56 @@ export const GAME_PAGE_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
-<title>糖果粉碎传奇</title>
+<title>《hello》 · 休闲收集</title>
 <style>
 html, body, #canvas { margin: 0; padding: 0; border: 0; }
-body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { color: #fff; background: #101820; overflow: hidden; touch-action: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 #canvas { display: block; width: 100vw; height: 100vh; }
 #canvas:focus { outline: none; }
 #boot { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
-  background: radial-gradient(circle at 50% 35%, #3d1d5c 0%, #241040 55%, #170b2b 100%); z-index: 10; transition: opacity .4s; }
+  background: radial-gradient(circle at 50% 35%, #1d3244 0%, #14222e 55%, #0b1218 100%); z-index: 10; transition: opacity .4s; }
 #boot.hidden { opacity: 0; pointer-events: none; }
-#boot h1 { margin: 0; font-size: 2rem; letter-spacing: .12em; color: #ffd7ef;
-  text-shadow: 0 2px 0 #a12c6b, 0 0 18px rgba(255,120,200,.55); }
-#boot .sub { color: #b9a6d8; font-size: .85rem; margin-top: -10px; }
-#bar-wrap { width: min(420px, 70vw); height: 14px; border-radius: 999px; background: #2c1547; overflow: hidden; border: 1px solid #5b2f86; }
-#bar { height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(90deg, #ff7ab8, #ffd166, #7ae0c3); transition: width .2s; }
-#boot-msg { color: #9d8cc0; font-size: .8rem; }
+#boot h1 { margin: 0; font-size: 2rem; letter-spacing: .12em; color: #ffd94d;
+  text-shadow: 0 2px 0 #8a6a12, 0 0 18px rgba(255,200,80,.45); }
+#boot .sub { color: #9fb4c4; font-size: .85rem; margin-top: -10px; }
+#bar-wrap { width: min(420px, 70vw); height: 14px; border-radius: 999px; background: #1c2c38; overflow: hidden; border: 1px solid #2f4a5c; }
+#bar { height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(90deg, #ffd94d, #7ae0c3, #6fb6ff); transition: width .2s; }
+#boot-msg { color: #8aa2b4; font-size: .8rem; }
 #hint { position: fixed; left: 50%; transform: translateX(-50%); bottom: 10px; z-index: 5;
-  color: #cbb8ea; background: rgba(24,12,44,.72); border: 1px solid #4a2670; border-radius: 999px;
+  color: #c3d4e0; background: rgba(12,22,30,.72); border: 1px solid #2f4a5c; border-radius: 999px;
   padding: 6px 16px; font-size: 12px; letter-spacing: .05em; pointer-events: none; }
-#boot kbd { background: #38205c; border: 1px solid #6a3f9c; border-bottom-width: 2px; border-radius: 5px; padding: 1px 7px; font-family: inherit; font-size: .92em; color: #ffd7ef; }
-#keys { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; color: #b9a6d8; font-size: .82rem; }
+#boot kbd { background: #22394a; border: 1px solid #3f657c; border-bottom-width: 2px; border-radius: 5px; padding: 1px 7px; font-family: inherit; font-size: .92em; color: #ffd94d; }
+#keys { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; color: #9fb4c4; font-size: .82rem; }
 </style>
 </head>
 <body>
 <canvas id="canvas">你的浏览器不支持 canvas。</canvas>
 <div id="boot">
-  <h1>糖果粉碎传奇</h1>
-  <div class="sub">Candy Crush Legend · MyRD 小游戏工坊</div>
+  <h1>《hello》</h1>
+  <div class="sub">hello · 休闲收集 · MyRD 小游戏工坊</div>
   <div id="bar-wrap"><div id="bar"></div></div>
-  <div id="boot-msg">正在准备糖果…</div>
-  <div id="keys"><span><kbd>←↑↓→</kbd> 移动光标</span><span><kbd>空格</kbd> 选中 / 交换</span><span><kbd>R</kbd> 重开</span><span><kbd>Enter</kbd> 过关后下一关</span></div>
+  <div id="boot-msg">正在准备收集场…</div>
+  <div id="keys"><span><kbd>WASD</kbd>/<kbd>←↑↓→</kbd> 移动</span><span>移动碰触金色方块即收集</span><span><kbd>空格</kbd>/<kbd>回车</kbd> 过关下一关 / 失败重来</span></div>
 </div>
-<div id="hint" style="display:none">方向键移动 · 空格交换 · R 重开 · Enter 下一关</div>
+<div id="hint" style="display:none">WASD / 方向键移动 · 触屏用摇杆 · 空格 / 回车 确认</div>
 <noscript>你的浏览器不支持 JavaScript。</noscript>
 <!-- 引擎引导脚本由启动脚本按 BASE_PATH 动态注入（静态 src 在无尾斜杠入口下会 404） -->
 <script>
 (function () {
+  // ---- 调参桥（§3C 调参工作台硬契约，必须在引擎加载前解析）----
+  // 壳页把 URL 参数 tuning（JSON 对象）解析进 window.__GAME_TUNING__；
+  // 游戏侧 autoload/game_state.gd 启动时读它覆盖调参区数值（只认 TUNING_META 声明的键、
+  // 按 min/max 钳制）。缺这一层 = 试玩调好的参数无法用 URL 复现，调参回写流程断裂。
+  // 非对象 / 数组 / 非法 JSON 一律忽略（保持默认参数，绝不让坏参数挡住启动）。
+  var tuningRaw = null;
+  try { tuningRaw = new URLSearchParams(location.search).get('tuning'); } catch (e) { /* 极老内核无 URLSearchParams */ }
+  if (tuningRaw) {
+    try {
+      var tuning = JSON.parse(tuningRaw);
+      if (tuning && typeof tuning === 'object' && !Array.isArray(tuning)) window.__GAME_TUNING__ = tuning;
+    } catch (e) { /* 非法 JSON：忽略，用游戏内默认参数 */ }
+  }
+
   // ---- 移动端音频手势解锁器（必须在引擎加载前安装，见文件尾注释）----
   // 根因（games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md F1/F2 取证）：
   // iOS/Android WebKit 下 AudioContext 创建即 suspended，锁屏/来电/切后台/静音键
@@ -155,10 +172,10 @@ body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; f
         audioAddModules += 1;
         var realUrl = BASE_PATH + 'api/public/assets/' + file;
         return origAddModule.call(self, realUrl, options).catch(function (err) {
-          console.error('[candy-shell] audio worklet 资产通道加载失败，降级原路径重试', file, err);
+          console.error('[hello-shell] audio worklet 资产通道加载失败，降级原路径重试', file, err);
           audioLog.push({ t: Date.now(), state: 'worklet-fallback:' + file });
           return origAddModule.call(self, url, options).catch(function (err2) {
-            console.error('[candy-shell] audio worklet 兜底加载也失败（移动端将无声）', file, err2);
+            console.error('[hello-shell] audio worklet 兜底加载也失败（移动端将无声）', file, err2);
             audioLog.push({ t: Date.now(), state: 'worklet-dead:' + file });
             throw err2;
           });

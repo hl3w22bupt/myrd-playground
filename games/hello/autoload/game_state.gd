@@ -29,6 +29,24 @@ const TIME_STEP: float = 4.0
 ## 数值到顶的关卡（第 3 关起 target=6 / 时限 18s，梯度封顶）。
 const MAX_LEVEL: int = 3
 
+## ── 调参桥（§3C 调参工作台硬契约的游戏侧）──
+## 壳页把 URL 参数 tuning 解析进 window.__GAME_TUNING__，这里在启动时读取并覆盖下面的
+## 可调参数（只认 TUNING_META 声明的键、按 min/max 钳制）。缺壳页那一层时键不存在 →
+## 全部保持默认值，行为与未接调参桥完全一致（桌面/冒烟门禁不受影响）。
+## TUNING_META 是唯一入口清单：键不在里面 = 拒绝，防止 URL 乱注入任意成员。
+const TUNING_META: Dictionary = {
+	"base_target": {"min": 1.0, "max": 6.0},
+	"base_time": {"min": 10.0, "max": 90.0},
+	"time_step": {"min": 0.0, "max": 10.0},
+	"min_time": {"min": 5.0, "max": 90.0},
+}
+
+## 可调参数（初值 = 上面的常量；base_target 钳在 MAX_TARGET 内，目标不超过场上件数）。
+var base_target: int = BASE_TARGET
+var base_time: float = BASE_TIME
+var time_step: float = TIME_STEP
+var min_time: float = MIN_TIME
+
 var level: int = 1
 var target: int = BASE_TARGET
 var time_limit: float = BASE_TIME
@@ -39,16 +57,46 @@ var over: bool = false
 
 
 func _ready() -> void:
+	_apply_tuning()
 	start_level(1)
 
 
 ## 第 lv 关的收集目标与时限（纯函数：梯度常量的唯一推导处，Main/冒烟只读结果）。
 func target_for_level(lv: int) -> int:
-	return mini(MAX_TARGET, BASE_TARGET + (lv - 1))
+	return mini(MAX_TARGET, base_target + (lv - 1))
 
 
 func time_for_level(lv: int) -> float:
-	return maxf(MIN_TIME, BASE_TIME - (lv - 1) * TIME_STEP)
+	return maxf(min_time, base_time - (lv - 1) * time_step)
+
+
+## 读壳页注入的 window.__GAME_TUNING__ 覆盖可调参数（仅 Web 平台；JSON 值非法/越界按钳制处理）。
+func _apply_tuning() -> void:
+	if not OS.has_feature("web"):
+		return
+	var raw: Variant = JavaScriptBridge.eval(
+		"window.__GAME_TUNING__ ? JSON.stringify(window.__GAME_TUNING__) : ''", true)
+	if raw == null or str(raw).is_empty():
+		return
+	var parsed: Variant = JSON.parse_string(str(raw))
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return
+	for key: String in TUNING_META:
+		if not (parsed as Dictionary).has(key):
+			continue
+		var bounds: Dictionary = TUNING_META[key]
+		var value: float = clampf(
+			float((parsed as Dictionary)[key]),
+			float(bounds["min"]), float(bounds["max"]))
+		match key:
+			"base_target":
+				base_target = int(round(value))
+			"base_time":
+				base_time = value
+			"time_step":
+				time_step = value
+			"min_time":
+				min_time = value
 
 
 ## 开一关：清零本关计数与胜负标记，按关卡号推导目标/时限，并广播开局。
