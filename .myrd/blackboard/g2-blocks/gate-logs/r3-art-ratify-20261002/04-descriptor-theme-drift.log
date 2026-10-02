@@ -1,0 +1,9 @@
+  · style-card.json hex=4 alpha=2
+  · e-board-block-tiles.json hex=0 alpha=0
+  · e-renderer-ui-tokens.json hex=9 alpha=0
+  · e-renderer-backdrop.json hex=6 alpha=4
+  · a03-sfx-plan.json hex=0 alpha=0
+PASS ① 描述件 hex/alpha 全量接线 theme.ts :: hex=19 alpha=6 全命中
+PASS ② theme.ts 零 rgba/rgb 数值字面量 :: 仅 withAlpha helper（唯一 rgba 入口在位）
+PASS ③ spec 冻结 hex 7/7 在 theme.ts :: 命中 7/7
+# 结论: ALL-GREEN（描述件 5 件 · hex 19 · alpha 6 全接线）

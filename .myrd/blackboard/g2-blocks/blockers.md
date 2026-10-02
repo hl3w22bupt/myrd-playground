@@ -40,9 +40,12 @@
 ### 挂账（非本轮动作，防丢失）
 
 - **美术线 intent 更正案**：继续挂账顺延下一轮 spec 修订（本轮「仅动 acceptance 段 + numeric 零 diff」硬约束不可随版；6 步执行序见 assets.md）。
-- **美术线门禁 env 钉值登记建议**（2026-10-02 复证轮新增）：`tests/framework.spec.mjs` ac-17 自检在缺
-  `G2_REPO_ONE_PATH` 时按兄弟目录扫描取首个 `run-*`，多 run 并行会误锚他线工作区；建议下轮 spec 修订时
-  由程序线把钉值口径写进门禁 README（复证证据 `gate-logs/r2-art-reverify-20261002/`，钉本 run 后 5/5 PASS）。
+- ~~**美术线门禁 env 钉值登记建议**~~（✅ 2026-10-02 销账）：F4 修复轮 `tests/contract/repo-one.mjs`
+  共享定位件根治（多候选取 spec 导出件 updatedAt 最新，ac-17 与 framework.spec 统一接入）；
+  美术线复跑实证 ac-17 无钉值自动正锚本 run（`gate-logs/r3-art-ratify-20261002/03-contract-check.log` 原文）。
+- **美术线跨线认领流程提醒**（2026-10-02 复核轮新增，非阻塞）：F3 修复对美术交付件（style-card/backdrop）
+  的代改走 QA 打回通道合规且黑板有补录登记，但作者线（美术）事后认领当时缺位、本轮已补
+  （见 assets.md「美术线认领」）；建议后续打回项显式 @ 作者线复核。
 - **缺口通道 A 档口径注记（本轮实现判读，随包披露）**：
   ① 炉冷判点一（落定结算后）在补手前的盘面上执行（含消除空洞），spec「落定结算后+补手后各判一次」的字面实现（ac-07 机判双探针在档）；
   ② 初始盘面为 uniform_random 字面填充，不附加「开局无三连」约束（spec 未声明；若需约束走缺口通道 B/C）；

@@ -1,6 +1,6 @@
 # 资产清单黑板 — g2-blocks（R2「spec v1 → 首个可玩构建」轮）
 
-> 更新时间：2026-10-02（R2 复证轮 · 美术线独立复跑落账；三批交付 N3/N5 收口态不变）
+> 更新时间：2026-10-02（R3 驳回修复轮 · 美术线复核认领 F3 token 补录 + 复跑全绿落账）
 > 负责人：游戏美术（资产面）/ 主策划（整合校对）
 > 下一步：等主人拍板（approve-ready 包）；色板沿用 N1 定稿零改动
 
@@ -90,6 +90,15 @@
   - `assets/e-renderer-backdrop.json` backdrop 段新增 `coolScrim`（`#000000`@0.55，炉冷遮罩）
   - 运行时面：`gen-theme.mjs` 增发 `MATERIAL` 组 + `withAlpha()` helper（唯一 rgba 入口）；`renderer.ts` 7 处 rgba 字面量清零，辉光漂移值 rgb(210,160,40) 修正为 token `#C89C19`；ac-11 扫描扩展 rgba(/rgb( 形态（红验必咬），全仓 17 色溯源单源
   - `palette-n1-final.json` 零触碰（sha256 `7bc2ca03…` 锚不变）；spec numeric 冻结块零触碰（锚 `302e6336…` 不变，QA G6/b PASS）
+- **美术线认领（2026-10-02 · 线1 对 F3 补录的复核，正式生效）**：tint 墨/纸与风格卡要素 4 自洽、
+  `topHighlight` alpha 0.18 与要素 2 `topHighlightRatio 0.18` 数值自洽、`innerStroke`/`coolScrim` 为隐性值
+  显式化且零贴图红线不破、heatGlow 漂移值→`#C89C19` 修正方向正确——**五项全部认领为美术规格一部分**；
+  跨线代改流程提醒（QA 打回修复通道内改动应显式 @ 作者线复核）已记录证据目录 README。
+- **美术线复跑与新增自检（2026-10-02 · F3 补录后）**：palette 双门禁 ALL-GREEN（21 对 minΔE=26.555）+
+  七门禁 7/7 + 契约 18/18（ac-17 经 `repo-one.mjs` 根治后**无钉值自动正锚本 run**，前轮 env 钉值挂账销账）；
+  新增美术自检门 = **描述件↔theme 漂移检查**（五件描述件 hex=19/alpha=6 全接线 theme.ts · theme 零
+  rgba/rgb 数值字面量 · spec 冻结 hex 7/7；改描述件不重跑 codegen 必红）。证据 =
+  `gate-logs/r3-art-ratify-20261002/`（3 log + 漂移检查脚本/原文 + README 美术复核表）。
 
 > **资产面本轮变动（线3 契约收口，2026-10-01）：无新增/无修改资产**。本轮只动测试与门禁面
 > （`tests/kernel-purity.spec.mjs` / `tests/acceptance-map.spec.mjs` / run-all / CI），三件资产落点与
