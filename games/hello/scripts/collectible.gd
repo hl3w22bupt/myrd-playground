@@ -12,7 +12,7 @@ extends Area2D
 ## 被玩家收集时发出；参数是收集物编号（Main 场景订阅它来计分）。
 signal collected(id: int)
 
-## 收集物编号（0..3）：场景摆放顺序即编号，重开时 Main 按编号在原位重新实例化。
+## 收集物编号（0..5）：场景摆放顺序即编号，开局时 Main 按编号在原位重新实例化。
 @export var id: int = 0
 
 var _active: bool = true

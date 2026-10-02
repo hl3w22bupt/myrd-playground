@@ -57,8 +57,9 @@ fi
 echo ""
 
 echo "==> [2/2] smoke（godot --headless 无头冒烟门禁）"
-# 帧预算 240：冒烟要跑「噪声 30 帧 → 移动 10 帧 → 4 次传送收集（各 4 帧）→ 胜负断言 → 重开断言」
-# 约 66 个物理帧；headless 下 process:physics 不严格 1:1，预算对齐
+# 帧预算 240：冒烟要跑「噪声 30 帧 → 移动 10 帧 → 4 次传送收集（各 4 帧）→ 过关断言 →
+# confirm 进第 2 关断言（梯度）→ 时限压 0 触发失败断言 → confirm 重来断言」约 94 个物理帧；
+# headless 下 process:physics 不严格 1:1，预算对齐
 # .myrd/routines.yaml godot-smoke 的 smokeFrames 默认值（240），两边同值不各说各话。
 # 预算只放宽兜底，不改变判定语义。
 GODOT_SMOKE_FRAMES="${GODOT_SMOKE_FRAMES:-240}" GODOT_BIN="${GODOT_BIN}" \
@@ -70,4 +71,4 @@ if [ "${SMOKE_EXIT}" -ne 0 ]; then
 fi
 
 echo ""
-echo "verify: PASS preflight + smoke 全部通过（验收：移动/收集计数/胜负判定/重开复位）"
+echo "verify: PASS preflight + smoke 全部通过（验收：移动/收集计数/过关判定/难度梯度/超时失败/失败重来）"

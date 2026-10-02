@@ -8,14 +8,16 @@ extends Node
 ##   通过 → stdout 打印 `GODOT_SMOKE: PASS ...`，进程退出码 0
 ##   失败 → stderr 打印 `GODOT_SMOKE: FAIL <原因>`（每条一行），进程退出码 1
 ##
-## 覆盖面（模板五项断言逐项保留 + 本游戏三条玩法断言）：
+## 覆盖面（模板五项断言逐项保留 + 本游戏玩法断言）：
 ##   1. 场景可实例化（main.tscn → player.tscn / collectible.tscn 接线未断裂）
-##   2. autoload GameState 已注册且带约定信号（score_changed / game_won）
+##   2. autoload GameState 已注册且带约定信号（score_changed / game_won / game_over / level_started）
 ##   3. InputMap 动作已注册、物理键绑定正确（键位契约），注入输入后玩家真的动了
-##   4. 信号真的到达订阅方（Player.moved / GameState.score_changed / game_won）
+##   4. 信号真的到达订阅方（Player.moved / GameState.score_changed / game_won / game_over / level_started）
 ##   5. 收集交互生效：玩家碰到收集物 → 计数累加
-##   6. 胜负可达：收集满 WIN_SCORE → won = true、胜利文案显示
-##   7. 重开可用：confirm 动作 → 分数清零、收集物复活、胜利文案隐藏
+##   6. 过关可达：第 1 关收满 4/6 → won = true、过关结算文案显示
+##   7. 难度梯度：confirm 过关 → 第 2 关（目标 4→5、时限 30→26 秒）、收集物 6 件按原位复活
+##   8. 失败反馈可达：时限压到 0 → over = true、失败结算文案显示（won 保持 false）
+##   9. 失败后重来：confirm → 回第 1 关（level 1、时限恢复 30 秒、收集物复活、结算文案隐藏）
 ##
 ## ⚠️ 输入注入分阶段互不重叠（references/error-signatures.md E-08）：
 ##   headless 下 `Input.parse_input_event()` 的缓冲冲刷会清掉 `Input.action_press()`
@@ -31,11 +33,22 @@ const NOISE_FRAMES: int = 30
 const MOVE_FRAMES: int = 10
 ## 收集相位：每次把玩家传送到收集物位置后，等 Area2D 完成重叠检测的帧数。
 const COLLECT_SETTLE_FRAMES: int = 4
-## 重开相位：注入 confirm 后等待「玩家瞬移 → 收集物按原位复活」生效的帧数。
+## 开局相位：注入 confirm 后等待「玩家瞬移 → 收集物按原位复活」生效的帧数。
 ## 留足帧数也为了让「复活件被瞬间重复收集」这类时序缺陷有暴露窗口。
 const RESTART_SETTLE_FRAMES: int = 8
-## 一局收集目标数（与 autoload/game_state.gd 的 WIN_SCORE 同值，改动需两边同步）。
-const COLLECT_COUNT: int = 4
+## 场上收集物总数（与 main.tscn 摆放数同值：第 1 关目标 4 件，场上备 6 件撑梯度上限）。
+const SCENE_COLLECTIBLES: int = 6
+## 第 1 关收集目标（与 autoload/game_state.gd 的 BASE_TARGET 同值，改动需两边同步）。
+const LEVEL1_TARGET: int = 4
+## 第 2 关梯度期望值（BASE_TARGET+1 / BASE_TIME-TIME_STEP，硬编码以拦「梯度常量被悄悄改动」）。
+const LEVEL2_TARGET: int = 5
+const LEVEL2_TIME: float = 26.0
+## 第 1 关时限（BASE_TIME，失败相位后重来断言用它核对时限已复位）。
+const LEVEL1_TIME: float = 30.0
+## 失败相位：把 time_left 压到该值，等它自然归零（60Hz 下约 3 帧）触发超时。
+const FAIL_TIME_LEFT: float = 0.05
+## 失败相位等待帧数：压值 → 归零 → 信号 → 文案，留 10 帧余量。
+const FAIL_WAIT_FRAMES: int = 10
 ## 判定「真的移动了」的最小位移（像素）。
 const MIN_MOVE_DISTANCE: float = 1.0
 
@@ -43,9 +56,15 @@ const MIN_MOVE_DISTANCE: float = 1.0
 const F_MOVE_START: int = NOISE_FRAMES + 1
 const F_MOVE_END: int = F_MOVE_START + MOVE_FRAMES
 const F_COLLECT_START: int = F_MOVE_END + 2
-const F_COLLECT_END: int = F_COLLECT_START + COLLECT_COUNT * COLLECT_SETTLE_FRAMES
-const F_RESTART: int = F_COLLECT_END + 2
-const F_TOTAL: int = F_RESTART + RESTART_SETTLE_FRAMES + 1
+const F_COLLECT_END: int = F_COLLECT_START + LEVEL1_TARGET * COLLECT_SETTLE_FRAMES
+const F_LEVEL1_CHECK: int = F_COLLECT_END + 2
+const F_ADVANCE: int = F_LEVEL1_CHECK + 2
+const F_LEVEL2_CHECK: int = F_ADVANCE + RESTART_SETTLE_FRAMES
+const F_FAIL_SETUP: int = F_LEVEL2_CHECK + 2
+const F_FAIL_CHECK: int = F_FAIL_SETUP + FAIL_WAIT_FRAMES
+const F_RESTART: int = F_FAIL_CHECK + 2
+const F_RESTART_CHECK: int = F_RESTART + RESTART_SETTLE_FRAMES
+const F_TOTAL: int = F_RESTART_CHECK + 1
 
 const REQUIRED_ACTIONS: Array[StringName] = [
 	&"move_left", &"move_right", &"move_up", &"move_down", &"confirm",
@@ -68,11 +87,14 @@ var _finished: bool = false
 var _main: Node2D
 var _player: Player
 var _win_label: Label
+var _game_state: Node
 var _collect_index: int = 0
 var _origin: Vector2 = Vector2.ZERO
 var _moved_seen: bool = false
 var _score_seen: bool = false
 var _won_seen: bool = false
+var _over_seen: bool = false
+var _level_started_seen: bool = false
 
 ## 噪声相位：确定种子随机事件（原始事件，不含 InputEventAction）。
 var _noise_rng := RandomNumberGenerator.new()
@@ -88,18 +110,21 @@ func _ready() -> void:
 			_failures.append("InputMap 缺少动作 %s（project.godot [input] 未注册）" % action)
 	_check_key_bindings()
 
-	var game_state := get_tree().root.get_node_or_null("GameState")
-	if game_state == null:
+	_game_state = get_tree().root.get_node_or_null("GameState")
+	if _game_state == null:
 		_failures.append("autoload GameState 未注册（project.godot [autoload] 缺失）")
 	else:
-		if not game_state.has_signal("score_changed"):
-			_failures.append("autoload GameState 缺少信号 score_changed")
-		if not game_state.has_signal("game_won"):
-			_failures.append("autoload GameState 缺少信号 game_won")
-		if game_state.has_signal("score_changed"):
-			game_state.score_changed.connect(_on_score_changed)
-		if game_state.has_signal("game_won"):
-			game_state.game_won.connect(_on_game_won)
+		for signal_name in ["score_changed", "game_won", "game_over", "level_started"]:
+			if not _game_state.has_signal(signal_name):
+				_failures.append("autoload GameState 缺少信号 %s" % signal_name)
+		if _game_state.has_signal("score_changed"):
+			_game_state.score_changed.connect(_on_score_changed)
+		if _game_state.has_signal("game_won"):
+			_game_state.game_won.connect(_on_game_won)
+		if _game_state.has_signal("game_over"):
+			_game_state.game_over.connect(_on_game_over_seen)
+		if _game_state.has_signal("level_started"):
+			_game_state.level_started.connect(_on_level_started_seen)
 
 	_main = get_tree().root.find_child("Main", true, false) as Node2D
 	if _main == null:
@@ -115,9 +140,13 @@ func _ready() -> void:
 	if _win_label == null:
 		_failures.append("Main 场景找不到 %WinLabel（UI 缺少胜利/重开提示 Label，或未设 unique_name_in_owner）")
 	var initial_count: int = _active_collectible_count()
-	if initial_count != COLLECT_COUNT:
+	if initial_count != SCENE_COLLECTIBLES:
 		_failures.append("收集物数量 %d != %d（main.tscn Collectibles 摆放不足，或 collectible.gd 未加入 collectibles 组）" % [
-			initial_count, COLLECT_COUNT,
+			initial_count, SCENE_COLLECTIBLES,
+		])
+	if _game_state != null and int(_game_state.target) != LEVEL1_TARGET:
+		_failures.append("第 1 关收集目标 %d != %d：GameState._ready 未 start_level(1)，或 BASE_TARGET 被改动" % [
+			int(_game_state.target), LEVEL1_TARGET,
 		])
 
 
@@ -137,12 +166,20 @@ func _physics_process(_delta: float) -> void:
 		elif _frames >= F_COLLECT_START and _frames < F_COLLECT_END:
 			if (_frames - F_COLLECT_START) % COLLECT_SETTLE_FRAMES == 0:
 				_teleport_to_next_collectible()
-		elif _frames == F_COLLECT_END:
-			_assert_all_collected_and_won()
+		elif _frames == F_LEVEL1_CHECK:
+			_assert_level1_won()
+		elif _frames == F_ADVANCE:
+			_press_action(&"confirm")
+		elif _frames == F_LEVEL2_CHECK:
+			_assert_level2_started()
+		elif _frames == F_FAIL_SETUP:
+			_game_state.time_left = FAIL_TIME_LEFT
+		elif _frames == F_FAIL_CHECK:
+			_assert_failed()
 		elif _frames == F_RESTART:
 			_press_action(&"confirm")
-		elif _frames == F_TOTAL:
-			_assert_restarted()
+		elif _frames == F_RESTART_CHECK:
+			_assert_run_restarted()
 
 	if _frames >= F_TOTAL or not _failures.is_empty():
 		_finished = true
@@ -199,7 +236,7 @@ func _press_action(action: StringName) -> void:
 
 ## 收集相位：把玩家直接放到收集物圆心上，靠引擎重叠检测触发 body_entered（真实交互路径）。
 func _teleport_to_next_collectible() -> void:
-	if _collect_index >= COLLECT_COUNT or _player == null:
+	if _collect_index >= LEVEL1_TARGET or _player == null:
 		return
 	var target := _collectible_by_id(_collect_index)
 	_collect_index += 1
@@ -223,40 +260,88 @@ func _assert_player_moved() -> void:
 		_failures.append("信号 Player.moved 未到达订阅方：连接断裂或从未 emit")
 
 
-## 收集 + 胜负断言：4 件全部收掉（组里一个不剩）、计数累加、won 翻转、胜利文案显示。
-func _assert_all_collected_and_won() -> void:
+## 第 1 关过关断言：收满 LEVEL1_TARGET 件（场上另 2 件保留，第 2 关还要用）、
+## 计数累加、won 翻转、过关结算文案显示。
+func _assert_level1_won() -> void:
 	var remaining: int = _active_collectible_count()
-	if remaining != 0:
-		_failures.append("仍有 %d 件收集物未被收集：玩家重叠后 Area2D 未触发 body_entered → collect()" % remaining)
-	var game_state := get_tree().root.get_node("GameState")
-	if game_state.score != COLLECT_COUNT:
-		_failures.append("收集计数 %d != %d：collected → Main → GameState.add_score 计分链路未生效" % [
-			game_state.score, COLLECT_COUNT,
+	var expected_remaining: int = SCENE_COLLECTIBLES - LEVEL1_TARGET
+	if remaining != expected_remaining:
+		_failures.append("收满 %d 件后场上剩 %d 件 != %d：收集物被误收（计分超发）或漏收（Area2D 未触发 body_entered）" % [
+			LEVEL1_TARGET, remaining, expected_remaining,
 		])
-	if not game_state.won:
-		_failures.append("收集满 %d 件后 GameState.won 仍为 false：胜负判定未触发" % COLLECT_COUNT)
+	if _game_state.score != LEVEL1_TARGET:
+		_failures.append("收集计数 %d != %d：collected → Main → GameState.add_score 计分链路未生效" % [
+			_game_state.score, LEVEL1_TARGET,
+		])
+	if not _game_state.won:
+		_failures.append("收集满 %d 件后 GameState.won 仍为 false：过关判定未触发" % LEVEL1_TARGET)
+	if _game_state.over:
+		_failures.append("过关瞬间 over 仍为 true：倒计时归零早于收集完成，时限梯度失衡")
 	if not _score_seen:
 		_failures.append("信号 GameState.score_changed 未到达订阅方：连接断裂或从未 emit")
 	if not _won_seen:
-		_failures.append("信号 GameState.game_won 未到达订阅方：连接断裂或胜负未达成")
+		_failures.append("信号 GameState.game_won 未到达订阅方：连接断裂或过关未达成")
 	if _win_label != null and not _win_label.visible:
-		_failures.append("胜利/重开提示 %WinLabel 未显示：Main._on_game_won 未生效")
+		_failures.append("过关结算 %WinLabel 未显示：Main._on_game_won 未生效")
 
 
-## 重开断言：confirm → Main.restart() → 分数清零、收集物按原位复活（4 件全部可再收集）、胜利文案隐藏。
-func _assert_restarted() -> void:
-	var game_state := get_tree().root.get_node("GameState")
-	if game_state.score != 0:
-		_failures.append("重开后分数 %d != 0：confirm → Main.restart → GameState.reset 未生效" % game_state.score)
-	if game_state.won:
-		_failures.append("重开后 won 仍为 true：状态未复位，下一局无法再判胜")
+## 难度梯度断言：confirm 过关 → 第 2 关开局（目标 4→5、时限 30→26s）、
+## 收集物 6 件按原位复活（可再收集）、结算文案收起、信号送达。
+func _assert_level2_started() -> void:
+	if int(_game_state.level) != 2:
+		_failures.append("过关后关卡 %d != 2：confirm → GameState.advance_level 未生效" % int(_game_state.level))
+	if int(_game_state.target) != LEVEL2_TARGET:
+		_failures.append("第 2 关目标 %d != %d：难度梯度未按关卡递增" % [int(_game_state.target), LEVEL2_TARGET])
+	if absf(float(_game_state.time_limit) - LEVEL2_TIME) > 0.01:
+		_failures.append("第 2 关时限 %.2f != %.2f：时限梯度未按关卡递减" % [float(_game_state.time_limit), LEVEL2_TIME])
+	if _game_state.score != 0:
+		_failures.append("第 2 关分数 %d != 0：start_level 未清零上一关计数" % int(_game_state.score))
+	if _game_state.won:
+		_failures.append("第 2 关开局 won 仍为 true：过关状态未复位，本关无法再判胜")
 	var active: int = _active_collectible_count()
-	if active != COLLECT_COUNT:
-		_failures.append("重开后可收集物 %d != %d：restart 未按原位重新实例化收集物（或复活件被瞬间重复收集）" % [
-			active, COLLECT_COUNT,
+	if active != SCENE_COLLECTIBLES:
+		_failures.append("第 2 关可收集物 %d != %d：开局未按原位重新实例化收集物（或复活件被瞬间重复收集）" % [
+			active, SCENE_COLLECTIBLES,
 		])
 	if _win_label != null and _win_label.visible:
-		_failures.append("重开后 %WinLabel 仍可见：胜利文案未隐藏")
+		_failures.append("第 2 关开局 %WinLabel 仍可见：过关结算文案未收起")
+	if not _level_started_seen:
+		_failures.append("信号 GameState.level_started 未到达订阅方：连接断裂或开局未广播")
+
+
+## 失败反馈断言：时限压到 0 自然归零 → over 翻转、失败结算文案显示、won 保持 false。
+func _assert_failed() -> void:
+	if not _game_state.over:
+		_failures.append("时限归零后 GameState.over 仍为 false：超时判定未触发（失败反馈缺失）")
+	if _game_state.won:
+		_failures.append("超时失败时 won 为 true：失败被误判成过关")
+	if not _game_state.time_left <= 0.0:
+		_failures.append("超时后 time_left %.3f > 0：倒计时未钳制到 0" % float(_game_state.time_left))
+	if not _over_seen:
+		_failures.append("信号 GameState.game_over 未到达订阅方：连接断裂或超时未广播")
+	if _win_label == null:
+		_failures.append("失败结算 %WinLabel 缺失：无法展示失败反馈")
+	elif not _win_label.visible:
+		_failures.append("失败结算 %WinLabel 未显示：Main._on_game_over 未生效")
+	elif not _win_label.text.contains("时间到"):
+		_failures.append("失败结算文案未说明超时（缺「时间到」）：玩家无法分辨胜/败反馈")
+
+
+## 失败后重来断言：confirm → 回第 1 关（关卡/时限/分数/胜负全复位、收集物复活、结算收起）。
+func _assert_run_restarted() -> void:
+	if int(_game_state.level) != 1:
+		_failures.append("失败重来后关卡 %d != 1：confirm → GameState.restart_run 未生效" % int(_game_state.level))
+	if absf(float(_game_state.time_limit) - LEVEL1_TIME) > 0.01:
+		_failures.append("重来后时限 %.2f != %.2f：时限未复位到第 1 关值" % [float(_game_state.time_limit), LEVEL1_TIME])
+	if _game_state.score != 0:
+		_failures.append("重来后分数 %d != 0：start_level 未清零计数" % int(_game_state.score))
+	if _game_state.over or _game_state.won:
+		_failures.append("重来后 over/won 仍为 true：胜负状态未复位，本局无法正常游玩")
+	var active: int = _active_collectible_count()
+	if active != SCENE_COLLECTIBLES:
+		_failures.append("重来后可收集物 %d != %d：开局未按原位重新实例化收集物" % [active, SCENE_COLLECTIBLES])
+	if _win_label != null and _win_label.visible:
+		_failures.append("重来后 %WinLabel 仍可见：失败结算文案未隐藏")
 
 
 ## 当前仍可收集的收集物数量（collectible.gd 收集后即 queue_free，销毁即离开组）。
@@ -314,7 +399,7 @@ func _key_labels(keys: Array) -> String:
 
 func _report() -> void:
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/autoload/输入映射与键位契约/物理移动/信号送达/收集计数/胜负判定/重开复位 全部通过")
+		print("GODOT_SMOKE: PASS 场景实例化/autoload/输入映射与键位契约/物理移动/信号送达/收集计数/过关判定/难度梯度/超时失败/失败重来 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:
@@ -332,3 +417,11 @@ func _on_score_changed(_score: int) -> void:
 
 func _on_game_won(_score: int) -> void:
 	_won_seen = true
+
+
+func _on_game_over_seen(_score: int) -> void:
+	_over_seen = true
+
+
+func _on_level_started_seen(_level: int, _target: int, _time_limit: float) -> void:
+	_level_started_seen = true
