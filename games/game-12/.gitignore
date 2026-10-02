@@ -1,8 +1,10 @@
 # Godot 本机导入缓存：由 `godot --headless --path . --import` 重新生成，不进版本库
 .godot/
 
-# 导出产物
-/export/
+# 导出产物必须入库：AppHost 部署以 apphost.toml 的 assets_dir = games/game-12/export/web
+# 为资产源，平台按 gitRef 从仓库取目录上传对象存储 —— 忽略掉就是部署后全部 404
+# （mobile-web-smoke 门禁会判「关键资源不可得」）。与 games/game 的入库口径一致。
+# 仅本机导入缓存 .godot/ 继续不入库。
 *.exe
 *.zip
 

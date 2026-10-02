@@ -29,6 +29,30 @@ bash games/game-12/verify.sh        # preflight + smoke(GODOT_SMOKE_FRAMES=240) 
 判定协议：退出码 0 且日志含 `GODOT_SMOKE: PASS`（冒烟）/ `GODOT_FUZZ: PASS`（fuzz）；
 退出码 2 = 环境不可用（先装 Godot，不要改判定脚本）。
 
+> 注：模板仓库 `std-skills/godot-game-dev/scripts/` 当前未预置 `playtest.sh`（机器人试玩门禁），
+> 本工程无法也**不得**自行编写判定器 —— 该步只能等运维补齐模板仓库技能资产后接入。
+> `.myrd/routines.yaml` 的 `godot-smoke` 与 `mobile-web-smoke` 两条门禁所需脚本均已就位。
+
+## 导出与部署
+
+```
+export_presets.cfg     # Web 预设：export_path=export/web/index.html，custom_html_shell=export/web-shell.html
+export/web-shell.html  # 自定义壳：移动端音频手势解锁器 + window.__audioDebug()（mobile-web-smoke 机判对象）
+export/web/            # 导出产物（index.wasm/.pck/.js/.html…），**必须入库**
+```
+
+重导出（产物变更后必跑）：
+
+```bash
+mkdir -p games/game-12/export/web
+godot --headless --path games/game-12 --export-release Web export/web/index.html
+```
+
+部署链（AppHost）：`apphost.toml` 的 `assets_dir = "games/game-12/export/web"` —— 平台部署时把该
+目录上传对象存储，壳页（`server/src/game-page.ts`）经 `api/public/assets/*` 以 base64 文本通道
+回传 wasm/pck。**`export/web` 因此不能进 `.gitignore`**，否则部署后关键资源全部 404
+（mobile-web-smoke 判「关键资源不可得」）。
+
 ## 验收标准 → 冒烟断言映射
 
 | 验收标准 | 冒烟断言（tests/smoke.gd） |
@@ -36,5 +60,6 @@ bash games/game-12/verify.sh        # preflight + smoke(GODOT_SMOKE_FRAMES=240) 
 | 1. 正常节奏连点 10 次恰好计 10 | 相位六：合成时间 >300ms 节奏点到 TARGET_COUNT，count 恰好 10 |
 | 2. 300ms 窗口内连点 5 次只 +1 | 相位六：窗口内 100/200/250/299ms 连点全部拦截 + click_rejected |
 | 3. 窗口结束恢复累加无跳变 | 相位六：+400ms 恢复计数，恰好 +1 |
-| 4. 移动可玩（触摸/≥44px/375 无横滚） | 竖屏 720×1280 canvas_items+keep（375 宽按 0.52 缩放无横滚）；+1 按钮 560×240、确认钮 r=44；相位三/五：动作事件与按钮 pressed 两条真实路径均计数 |
+| 4. 移动可玩（触摸/≥44px/375 无横滚） | 竖屏 720×1280 canvas_items+keep（375 宽按 0.52 缩放无横滚）；+1 按钮 560×240、确认钮 r=44；相位三/五：动作事件与按钮 pressed 两条真实路径均计数；相位一帧静态断言：触控目标 ≥44×44 + 拉伸契约（canvas_items/keep/720×1280） |
 | 5. 刷新归零无残留 | 相位七：restart 动作 + RestartButton 均归零回 PLAYING，按钮 disabled 复位 |
+| （部署链）移动端门禁「画面在动」 | 相位八：主按钮待机呼吸脉冲 scale 极差 ≥0.02（静止页面必须有非零帧差，否则会被误判渲染冻结）；拦截反馈不被指针行程覆盖 |

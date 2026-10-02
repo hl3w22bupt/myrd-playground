@@ -23,38 +23,38 @@ export const GAME_PAGE_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
-<title>糖果粉碎传奇</title>
+<title>测试连点防重的极简计数页</title>
 <style>
 html, body, #canvas { margin: 0; padding: 0; border: 0; }
-body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { color: #fff; background: #101319; overflow: hidden; touch-action: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 #canvas { display: block; width: 100vw; height: 100vh; }
 #canvas:focus { outline: none; }
 #boot { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
-  background: radial-gradient(circle at 50% 35%, #3d1d5c 0%, #241040 55%, #170b2b 100%); z-index: 10; transition: opacity .4s; }
+  background: radial-gradient(circle at 50% 35%, #1d3a5c 0%, #14243f 55%, #0b1526 100%); z-index: 10; transition: opacity .4s; }
 #boot.hidden { opacity: 0; pointer-events: none; }
-#boot h1 { margin: 0; font-size: 2rem; letter-spacing: .12em; color: #ffd7ef;
-  text-shadow: 0 2px 0 #a12c6b, 0 0 18px rgba(255,120,200,.55); }
-#boot .sub { color: #b9a6d8; font-size: .85rem; margin-top: -10px; }
-#bar-wrap { width: min(420px, 70vw); height: 14px; border-radius: 999px; background: #2c1547; overflow: hidden; border: 1px solid #5b2f86; }
-#bar { height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(90deg, #ff7ab8, #ffd166, #7ae0c3); transition: width .2s; }
-#boot-msg { color: #9d8cc0; font-size: .8rem; }
+#boot h1 { margin: 0; font-size: 2rem; letter-spacing: .12em; color: #dbe8ff;
+  text-shadow: 0 2px 0 #2c5aa8, 0 0 18px rgba(120,180,255,.45); }
+#boot .sub { color: #9fb4d8; font-size: .85rem; margin-top: -10px; }
+#bar-wrap { width: min(420px, 70vw); height: 14px; border-radius: 999px; background: #1b2a44; overflow: hidden; border: 1px solid #33507f; }
+#bar { height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(90deg, #5aa9ff, #8fd0ff, #7ae0c3); transition: width .2s; }
+#boot-msg { color: #8ba3c9; font-size: .8rem; }
 #hint { position: fixed; left: 50%; transform: translateX(-50%); bottom: 10px; z-index: 5;
-  color: #cbb8ea; background: rgba(24,12,44,.72); border: 1px solid #4a2670; border-radius: 999px;
+  color: #c3d4f0; background: rgba(12,20,40,.72); border: 1px solid #26456f; border-radius: 999px;
   padding: 6px 16px; font-size: 12px; letter-spacing: .05em; pointer-events: none; }
-#boot kbd { background: #38205c; border: 1px solid #6a3f9c; border-bottom-width: 2px; border-radius: 5px; padding: 1px 7px; font-family: inherit; font-size: .92em; color: #ffd7ef; }
-#keys { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; color: #b9a6d8; font-size: .82rem; }
+#boot kbd { background: #1d3355; border: 1px solid #3f6ba8; border-bottom-width: 2px; border-radius: 5px; padding: 1px 7px; font-family: inherit; font-size: .92em; color: #dbe8ff; }
+#keys { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; color: #9fb4d8; font-size: .82rem; }
 </style>
 </head>
 <body>
 <canvas id="canvas">你的浏览器不支持 canvas。</canvas>
 <div id="boot">
-  <h1>糖果粉碎传奇</h1>
-  <div class="sub">Candy Crush Legend · MyRD 小游戏工坊</div>
+  <h1>测试连点防重的极简计数页</h1>
+  <div class="sub">game-12 · MyRD 小游戏工坊</div>
   <div id="bar-wrap"><div id="bar"></div></div>
-  <div id="boot-msg">正在准备糖果…</div>
-  <div id="keys"><span><kbd>←↑↓→</kbd> 移动光标</span><span><kbd>空格</kbd> 选中 / 交换</span><span><kbd>R</kbd> 重开</span><span><kbd>Enter</kbd> 过关后下一关</span></div>
+  <div id="boot-msg">正在准备…</div>
+  <div id="keys"><span><kbd>点「+1」</kbd> 或 <kbd>空格</kbd> 计数</span><span><kbd>300ms</kbd> 内连点只计一次</span><span><kbd>R</kbd> 重开</span></div>
 </div>
-<div id="hint" style="display:none">方向键移动 · 空格交换 · R 重开 · Enter 下一关</div>
+<div id="hint" style="display:none">点「+1」计数 · 300ms 内连点只计一次 · R 重开</div>
 <noscript>你的浏览器不支持 JavaScript。</noscript>
 <!-- 引擎引导脚本由启动脚本按 BASE_PATH 动态注入（静态 src 在无尾斜杠入口下会 404） -->
 <script>
@@ -155,10 +155,10 @@ body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; f
         audioAddModules += 1;
         var realUrl = BASE_PATH + 'api/public/assets/' + file;
         return origAddModule.call(self, realUrl, options).catch(function (err) {
-          console.error('[candy-shell] audio worklet 资产通道加载失败，降级原路径重试', file, err);
+          console.error('[game12-shell] audio worklet 资产通道加载失败，降级原路径重试', file, err);
           audioLog.push({ t: Date.now(), state: 'worklet-fallback:' + file });
           return origAddModule.call(self, url, options).catch(function (err2) {
-            console.error('[candy-shell] audio worklet 兜底加载也失败（移动端将无声）', file, err2);
+            console.error('[game12-shell] audio worklet 兜底加载也失败（移动端将无声）', file, err2);
             audioLog.push({ t: Date.now(), state: 'worklet-dead:' + file });
             throw err2;
           });

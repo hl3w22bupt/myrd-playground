@@ -16,6 +16,11 @@ extends Node
 ##   5. 核心交互（点击计数）真实路径生效：confirm 动作事件 + CountButton.pressed 各计一次
 ##   6. 连点防重：300ms 窗口内 4 连点只计一次且发 click_rejected；窗口结束后恢复正常累加
 ##   7. 胜负可达：达标 TARGET_COUNT 进入 WON，胜利后不再计数；重开可用：归零回 PLAYING
+##   8. 移动可玩（验收 4 的机判代理）：触控目标 ≥44×44px（+1 按钮矩形 + 触摸确认钮圆形热区）、
+##      拉伸契约 canvas_items+keep 且设计分辨率 720×1280（与 375×667 同宽高比 → 无横向滚动）
+##   9. 待机示能脉冲：主按钮 scale 在窗口期内极差达标（静止页面也必须有非零帧差，
+##      否则 mobile-web-smoke 的「画面在动」检查会把健康的极简页面误判成渲染冻结）
+##  10. 反馈可见性：防重拦截提示不被指针行程覆盖（反馈线与指针线分离）
 ##
 ## ⚠️ 输入注入分阶段互不重叠（references/error-signatures.md E-08）：
 ##   `Input.parse_input_event()` 的缓冲冲刷会清掉 `Input.action_press()` 的按下状态。
@@ -39,7 +44,15 @@ const SETTLE_FRAMES: int = 2
 ## 判定「真的移动了」的最小位移（像素）。
 const MIN_MOVE_DISTANCE: float = 1.0
 ## 总帧数上限（超过即 FAIL，防止死循环；smoke.sh 另有 --quit-after 兜底）。
+## 必须小于门禁帧预算 GODOT_SMOKE_FRAMES=240（--quit-after 会先杀进程，届时既无 PASS 也无 FAIL）。
 const TOTAL_FRAMES: int = NOISE_FRAMES + MOVE_FRAMES + REAL_GAP_MAX_FRAMES + 60
+## 触控目标下限（验收 4：按钮触控区域不小于 44×44px）。
+const MIN_TOUCH_TARGET: float = 44.0
+## 拦截反馈可见性相位里，把指针摇起来的帧数。
+const REJECT_MOVE_FRAMES: int = 10
+## 拉伸契约：设计分辨率（与 375×667 同 0.5625 宽高比 → 等比缩放后无横向滚动）。
+const DESIGN_WIDTH: int = 720
+const DESIGN_HEIGHT: int = 1280
 
 const REQUIRED_ACTIONS: Array[StringName] = [
 	&"move_left", &"move_right", &"move_up", &"move_down", &"confirm", &"restart",
@@ -56,13 +69,16 @@ const KEY_CONTRACT: Dictionary = {
 }
 
 ## 冒烟相位机：输入注入分帧进行（E-08），真实点击之间按真实时间跨窗。
-enum Phase { NOISE, MOVE, CONFIRM, GAP, BUTTON, SYNTHETIC, RESTART, DONE }
+enum Phase { NOISE, MOVE, CONFIRM, GAP, BUTTON, SYNTHETIC, RESTART, REJECT, DONE }
 
 var _failures: PackedStringArray = []
 var _phase: int = Phase.NOISE
 var _phase_frame: int = 0
 var _frames: int = 0
 var _player: Player
+var _main: Node2D
+var _status_label: Label
+var _touch_confirm: TouchScreenButton
 var _count_label: Label
 var _count_button: Button
 var _restart_button: Button
@@ -108,6 +124,11 @@ func _ready() -> void:
 	_restart_button = get_tree().root.find_child("RestartButton", true, false) as Button
 	if _count_label == null or _count_button == null or _restart_button == null:
 		_failures.append("主场景缺 CountLabel/CountButton/RestartButton（极简计数页 UI 未装配齐）")
+	_main = get_tree().root.find_child("Main", true, false) as Node2D
+	if _main == null:
+		_failures.append("冒烟场景未实例化 Main（tests/smoke.tscn → scenes/main.tscn 接线断裂）")
+	_status_label = get_tree().root.find_child("StatusLabel", true, false) as Label
+	_touch_confirm = get_tree().root.find_child("ConfirmButton", true, false) as TouchScreenButton
 
 
 func _physics_process(_delta: float) -> void:
@@ -115,6 +136,11 @@ func _physics_process(_delta: float) -> void:
 		return
 	_frames += 1
 	_phase_frame += 1
+	# 静态几何 / 工程契约断言放在第一物理帧：Control.size 要等一帧布局才落定，
+	# 在 _ready 里读恒为 0 → 触控目标断言会整段漏判（实测负例不触发）。
+	if _frames == 1:
+		_check_touch_targets()
+		_check_stretch_contract()
 	if _failures.is_empty():
 		match _phase:
 			Phase.NOISE:
@@ -131,6 +157,8 @@ func _physics_process(_delta: float) -> void:
 				_tick_synthetic()
 			Phase.RESTART:
 				_tick_restart()
+			Phase.REJECT:
+				_tick_reject()
 			Phase.DONE:
 				pass
 	if _frames >= TOTAL_FRAMES and _phase != Phase.DONE:
@@ -300,7 +328,72 @@ func _tick_restart() -> void:
 				GameState.count, GameState.state])
 		if _count_button != null and _count_button.disabled:
 			_failures.append("重开后 +1 按钮仍不可用（disabled 应复位）")
+		_advance(Phase.REJECT)
+
+
+## ── 相位八：反馈可见性 + 待机示能脉冲 ──
+## ① 真实触发一次防重拦截（合成时间戳纯函数，重开后防重窗口已清零），状态栏必须出现拦截提示；
+## ② 再把指针摇起来 —— 拦截提示不能被指针行程冲掉（main.gd 反馈线/指针线分离的机判）；
+## ③ 主按钮 scale 在整个冒烟窗口期内的极差必须达标：极简页面无输入时画面完全静止，
+##    mobile-web-smoke 的「画面在动（双时点帧差 > 0）」检查会把它误判成渲染冻结。
+func _tick_reject() -> void:
+	if _phase_frame == 1:
+		GameState.try_count(8_000_000)
+		GameState.try_count(8_000_010)  # 距上次有效计数 10ms < 300ms → 拦截并 emit click_rejected
+	elif _phase_frame == 1 + SETTLE_FRAMES:
+		if _status_label == null:
+			_failures.append("主场景缺 StatusLabel（拦截反馈无处显示）")
+		elif not _status_label.text.contains("拦截"):
+			_failures.append("防重拦截后状态栏未显示拦截提示：text=%s" % _status_label.text)
+		Input.action_press(&"move_right")
+	elif _phase_frame == 1 + SETTLE_FRAMES + REJECT_MOVE_FRAMES:
+		Input.action_release(&"move_right")
+		if _status_label != null and not _status_label.text.contains("拦截"):
+			_failures.append("指针移动冲掉了拦截反馈（状态栏 text=%s）—— 反馈线与指针线未分离" % _status_label.text)
+		if _main != null:
+			var swing: float = _main._pulse_max - _main._pulse_min
+			if swing < _main.PULSE_MIN_SWING:
+				_failures.append("主按钮待机脉冲未生效：scale 极差 %.3f < %.3f（静止页面会让移动端门禁判「画面冻结」）" % [
+					swing, _main.PULSE_MIN_SWING])
+		# 归位：本相位为验证而动过状态，别把脏状态带出门禁（也验证 reset 幂等）。
+		GameState.reset()
+		_count_seen = false
+		_won_seen = false
+		_rejected_count = 0
 		_advance(Phase.DONE)
+
+
+## 验收 4 机判（触控目标）：+1 按钮矩形与触摸确认钮圆形热区都不得小于 44×44px。
+## 在第一物理帧判（Control.size 要等一帧布局才落定，_ready 里读恒为 0，整段会漏判）。
+func _check_touch_targets() -> void:
+	if _count_button != null and (_count_button.size.x < MIN_TOUCH_TARGET or _count_button.size.y < MIN_TOUCH_TARGET):
+		_failures.append("+1 按钮尺寸 %.0fx%.0f 低于触控目标下限 %.0fx%.0f（验收 4：触控区域不足会误触/点不中）" % [
+			_count_button.size.x, _count_button.size.y, MIN_TOUCH_TARGET, MIN_TOUCH_TARGET])
+	if _touch_confirm == null:
+		_failures.append("TouchUI 缺 ConfirmButton（移动端触摸确认计数路径不存在）")
+	else:
+		var circle := _touch_confirm.shape as CircleShape2D
+		if circle == null:
+			_failures.append("ConfirmButton.shape 不是 CircleShape2D，触控直径无法机判")
+		elif circle.radius * 2.0 < MIN_TOUCH_TARGET:
+			_failures.append("触摸确认钮热区直径 %.0f 低于 %.0f（验收 4：触控区域不足）" % [
+				circle.radius * 2.0, MIN_TOUCH_TARGET])
+
+
+## 验收 4 机判（375 宽视口无横向滚动）的可无头判定代理：
+## 设计分辨率 720×1280 与 375×667 同为 0.5625 宽高比，且拉伸策略 canvas_items+keep
+## —— 视口任意尺寸都等比缩放并留黑边，内容永不宽于视口 → 页面不会出现横向滚动。
+## 改宽高比或改 stretch 策略都会让「375 无横滚」在真机上翻车，这里提前拦住。
+func _check_stretch_contract() -> void:
+	var width: int = int(ProjectSettings.get_setting("display/window/size/viewport_width", 0))
+	var height: int = int(ProjectSettings.get_setting("display/window/size/viewport_height", 0))
+	if width != DESIGN_WIDTH or height != DESIGN_HEIGHT:
+		_failures.append("设计分辨率 %sx%s 与 %.4f 宽高比契约不符（期望 %dx%d，375 视口下会出横向滚动/黑边失衡）" % [
+			width, height, DESIGN_WIDTH / float(DESIGN_HEIGHT), DESIGN_WIDTH, DESIGN_HEIGHT])
+	if ProjectSettings.get_setting("display/window/stretch/mode", "") != "canvas_items":
+		_failures.append("拉伸模式应为 canvas_items（否则 375 视口下 UI 不等比缩放，触控目标随视口变形）")
+	if ProjectSettings.get_setting("display/window/stretch/aspect", "") != "keep":
+		_failures.append("拉伸宽高比策略应为 keep（否则非 0.5625 视口会被拉伸变形）")
 
 
 ## 无显示设备时模拟「玩家按键」：注入真实 InputEvent，让 _unhandled_input 收得到。
