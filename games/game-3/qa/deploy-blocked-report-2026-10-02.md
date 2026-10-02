@@ -62,6 +62,27 @@ curl -X POST "$PLATFORM_API_URL/api/v1/apphost/apps/cmuieq51i002am9gyfxqx06rl/de
 # 产物回写：先 GET /api/v1/goals/cmuieq51k002cm9gysxbyppv7 读 artifacts，再 PATCH 合并后的完整数组
 ```
 
+## 重入复核（2026-10-02T00:29Z，第二次进入本节点）
+
+**结论不变：仍为 blocked，阻塞点依旧是授权层，非代码。**
+
+| 复核项 | 本次结果 |
+|---|---|
+| 分支同步 | 本地 HEAD = `b2bc346` = `origin/myrd/games-goal-cmuieq51k002cm9gysxbyppv7`（`git ls-remote` 实证） |
+| 门禁 preflight | PASS（13 类 73 文件，退出码 0） |
+| 门禁 smoke | PASS（240 帧，退出码 0，`godot-smoke: PASS 断言标记齐全，日志无脚本错误`；脚本所有失败路径均 `exit 1`，退出码 0 即真通过） |
+| 门禁 input-fuzz | PASS（`GODOT_FUZZ: PASS seed=20260913 batches=6 total_frames=239`，退出码 0） |
+| 门禁 playtest | PASS（`GODOT_PLAYTEST: PASS`，3 局 ×900 帧；run2 `score=5|fb=44`，首奖励 2.67s，节奏阈值内） |
+| 导出产物 | `games/game-3/export/web/` 含 index.html / index.js / index.pck / index.wasm（35MB，走 assets_dir 对象存储，不受 bundle 25MB 约束） |
+| 授权探测（本轮新证） | `2026-10-02T00:29:47Z` POST `/api/v1/apphost/apps/cmuieq51i002am9gyfxqx06rl/deployments` → `403 FORBIDDEN 仅应用所有者或系统管理员可操作`，requestId `req_1790900987990`；同刻 GET `/api/v1/goals/cmuieq51k002cm9gysxbyppv7` → `403 无权访问` |
+| 工作区 | `git status --porcelain` 干净，无漂移 |
+
+**本轮为何只发一次部署探针**：授权 403 是环境缺陷，重试不可能改变结果。本轮单次探针只为确认
+「上次阻塞是否已被运维修复」——结论是未修复（userId 仍 `cmt428ptv004bm9seap9ankcc`，role 仍
+developer，via workflow-node，名下应用列表仍为空）。继续重试只会重复失败，故停止，等运维放权。
+
+**需要运维做的事与上次完全一致（见上文「需要谁做什么」）**，三条任选其一即可解锁。
+
 ## 部署形态说明（供验收）
 
 首选形态 a（已配置）：`assets_dir` 出 bundle —— 平台把 `games/game-3/export/web` 上传对象存储
