@@ -1,5 +1,10 @@
 # game-12 交付交接（实现节点 → 导出部署 / 试玩节点）
 
+> **2026-10-03 更新：已部署并通过双门禁** —— deploymentId `cmurba8yd001vicbsfdl79x8l`
+> （commit c54fcc9，gitRef=`myrd/games-goal-cmur8pnhn000kicbsvl0eoqx6`）；
+> 正式 mobile-web-smoke 对 liveUrl **PASS 10/10**（证据 `games/game-12/qa/mobile/`）。
+> 壳页已补 §3C 调参桥（`?tuning=` → `window.__GAME_TUNING__`，游戏暂无 TUNING_META，安全 no-op）。
+
 > 产物分支：`myrd/games-goal-cmur8pnhn000kicbsvl0eoqx6`（部署 gitRef 必须用它，不要用 main）
 > 工程：`games/game-12` · AppHost id `cmur8pm9j000iicbsmd25q04l` · slug `game-12`
 > liveUrl：`https://leomac-studio.tail49399e.ts.net/apps/game-12/`
@@ -41,17 +46,17 @@ node std-skills/godot-game-dev/scripts/mobile-web-smoke.mjs \
 3. 产物由 Godot **4.3.stable** 导出，与 `resolve-godot.sh` 解析到的门禁引擎同版本 ——
    换引擎重导出时，`config/features` 与门禁口径要一并对齐。
 
-## 四、两个环境缺口（需运维，不要由 agent 自行绕过）
+## 四、环境缺口（需运维，不要由 agent 自行绕过）
 
 1. **`std-skills/godot-game-dev/scripts/playtest.sh` 不在模板仓库里**
    （同目录现有 `gate-selftest.sh / input-fuzz.sh / input_fuzz_driver.gd / mobile-web-smoke.mjs /
    mobile_smoke_selftest.mjs / preflight.py / preflight_selftest.py / resolve-godot.sh / smoke.sh`）。
    机器人试玩门禁因此无法接入；判定器只能来自仓库，**不得自写等价脚本**。
    请运维把模板仓库技能资产补上。
-2. **AppHost 应用 `game-12` 尚未上线**：`GET /apps/game-12/health` 返回
-   `{"code":"APP_NOT_FOUND","message":"应用不存在或未上线"}`（本节点无平台 API 凭据触发部署）。
-   需要平台侧以 `gitRef = myrd/games-goal-cmur8pnhn000kicbsvl0eoqx6` 建立并部署该应用，
-   部署完成后跑上面第二条正式门禁。
+   （注：`.myrd/routines.yaml` 的 godot-smoke routine 步骤只含 preflight/smoke/input-fuzz，
+   不引用 playtest.sh，故本缺口不阻塞 godot-smoke 门禁。）
+2. ~~AppHost 应用 `game-12` 尚未上线~~ **已解决（2026-10-03）**：应用已部署并上线，
+   `/health` 200，落地页 200，正式移动端门禁 PASS。
 
 ## 五、玩法与验收对照
 
