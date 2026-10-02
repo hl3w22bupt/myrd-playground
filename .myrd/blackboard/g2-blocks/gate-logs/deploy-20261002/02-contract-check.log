@@ -1,0 +1,9 @@
+# 部署轮复跑 · g2-blocks @ 0c3aa95 · 2026-10-02 11:25:56
+$ node scripts/contract-check.mjs
+PASS  ac-15-audio-feedback :: 消除音效与反馈同帧同步发起（chain=1）· 音频缺失零阻塞
+PASS  ac-16-persistence-minimal :: 键级最小集 muted+anonId · 未知键拒绝 · 零网络调用构造
+PASS  ac-17-repo-one-zero-touch :: 一号仓库零接触自检 PASS（白名单机判，root=run-cmuq9pz86001vm9zrmqyfm59c）
+PASS  ac-18-ci-guard-repo-scope :: 仓库范围守卫 PASS（零一号路径引用，策略单源 ci/scope-policy.json）
+—— 合计 18 PASS / 0 FAIL ——
+CONTRACT: PASS 契约全绿（实现与 approved 策划案一致）
+CONTRACT_EXIT=
