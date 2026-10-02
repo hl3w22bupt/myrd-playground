@@ -8,7 +8,7 @@
     "mobile": true,
     "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
   },
-  "checkedAt": "2026-10-02T18:45:11.308Z",
+  "checkedAt": "2026-10-02T18:54:20.112Z",
   "checks": [
     {
       "id": "network",
@@ -32,7 +32,7 @@
       "id": "render",
       "label": "首帧截图非纯色（400 点采样 ≥2 种量化色）",
       "status": "pass",
-      "detail": "采样仅 15 种颜色——画面没渲染出来（黑屏/白屏）"
+      "detail": "采样仅 18 种颜色——画面没渲染出来（黑屏/白屏）"
     },
     {
       "id": "animate",
@@ -68,14 +68,14 @@
       "id": "fps",
       "label": "FPS ≥ 8（swiftshader 软渲染口径）",
       "status": "pass",
-      "detail": "实测 38 fps"
+      "detail": "实测 39 fps"
     }
   ],
   "metrics": {
-    "colorCount": 15,
+    "colorCount": 18,
     "idleDiff": 400,
     "tapDiff": 51,
-    "fps": 38,
+    "fps": 39,
     "scrollWidth": 390,
     "clientWidth": 390,
     "hasViewportMeta": true
