@@ -23,7 +23,7 @@ export const GAME_PAGE_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
-<title>糖果粉碎传奇</title>
+<title>测试预算边界</title>
 <style>
 html, body, #canvas { margin: 0; padding: 0; border: 0; }
 body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -48,10 +48,10 @@ body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; f
 <body>
 <canvas id="canvas">你的浏览器不支持 canvas。</canvas>
 <div id="boot">
-  <h1>糖果粉碎传奇</h1>
+  <h1>测试预算边界</h1>
   <div class="sub">Candy Crush Legend · MyRD 小游戏工坊</div>
   <div id="bar-wrap"><div id="bar"></div></div>
-  <div id="boot-msg">正在准备糖果…</div>
+  <div id="boot-msg">正在整理仓库…</div>
   <div id="keys"><span><kbd>←↑↓→</kbd> 移动光标</span><span><kbd>空格</kbd> 选中 / 交换</span><span><kbd>R</kbd> 重开</span><span><kbd>Enter</kbd> 过关后下一关</span></div>
 </div>
 <div id="hint" style="display:none">方向键移动 · 空格交换 · R 重开 · Enter 下一关</div>

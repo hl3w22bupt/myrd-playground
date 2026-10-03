@@ -1,0 +1,56 @@
+; Engine configuration file.
+; 《测试预算边界》—— 休闲收集（预算边界）· Godot 4.x 工程。
+; 接线三类必查项：主场景（run/main_scene）、自动加载单例（[autoload]）、输入映射（[input]）；
+; 这三项也是 tools/gates/gate1_project_check.sh 的静态检查对象。
+
+config_version=5
+
+[application]
+
+config/name="测试预算边界"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.3")
+config/icon="res://icon.svg"
+
+[autoload]
+
+SaveData="*res://autoload/save_data.gd"
+
+[display]
+
+window/size/viewport_width=640
+window/size/viewport_height=360
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+
+[gui]
+
+; 全局默认字体：子集化 Noto Sans CJK SC（Web 导出拿不到系统字体，没有它中文全是缺字方块）。
+theme/custom_font="res://assets/fonts/NotoSansSC-Regular.otf"
+
+[input]
+
+; 收集：鼠标左键 / 触摸（触摸由 Godot 模拟为鼠标事件，无需单独绑定）
+collect_click={
+"deadzone": 0.5,
+"events": [Object(InputEventMouseButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"button_mask":1,"position":Vector2(0, 0),"global_position":Vector2(0, 0),"factor":1.0,"button_index":1,"canceled":false,"pressed":true,"double_click":false,"script":null)
+]
+}
+; 暂停 / 继续
+pause={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194305,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+, Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":80,"key_label":0,"unicode":112,"location":0,"echo":false,"script":null)
+]
+}
+; 重开本关
+restart={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":82,"key_label":0,"unicode":114,"location":0,"echo":false,"script":null)
+]
+}
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

@@ -10,7 +10,7 @@ const app = new Hono();
 app.get("/health", (c) =>
   c.json({
     ok: true,
-    app: "candy-crush-legend",
+    app: "testing-budget-boundary",  // 《测试预算边界》game-13（本 goal 分支的壳）
     env: ctx.environment,
     assets: "lazy/object-storage",
   }),

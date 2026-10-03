@@ -1,0 +1,11 @@
+# 《测试预算边界》（game-13）AppHost 应用清单（平台构建管线步骤 1 读取；M1 仅支持顶层字符串键值）
+# 壳位于仓库根：server/ 内是 Node20 + Hono 应用，游戏 Web 导出产物经 gzip+base64 内联进 bundle
+# HostedApp id=cmusp1obl001tic7qg3cb7dco · slug=game-13 · 项目=cmusp1obf001pic7q0ernsp6x
+# 部署方式：POST /api/v1/apphost/apps/cmusp1obl001tic7qg3cb7dco/deployments
+#           { "gitRef": "<本分支>", "manifestPath": "games/game-13/apphost.toml", "goalId": "cmusp1pjb001vic7qpt4udw7i" }
+name = "testing-budget-boundary"
+runtime = "node20"
+health = "/health"
+
+# 底座 A：资产出 bundle（部署时平台把该目录上传对象存储，server 用 asset-store 懒加载）
+assets_dir = "games/game-13/export/web"
