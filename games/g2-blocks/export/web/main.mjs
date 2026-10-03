@@ -3,6 +3,7 @@
 import { createGame,           } from './game.mjs';
 import { createAudio } from './audio.mjs';
 import { createPerf } from './telemetry/perf.mjs';
+import { createFpsRecorder } from './telemetry/fps.mjs';
 import { numeric, LEVELS } from './generated/spec-data.mjs';
 import { probeSwapCreatesMatch } from './kernel/board.mjs';
 import { findAnyMove } from './kernel/deadlock.mjs';
@@ -228,7 +229,17 @@ debug.__G2_STATE = ()                          => ({
 debug.__G2_RESTART = doRestart;
 debug.__G2_SET_LEVEL = (id        )       => setLevel(id);
 
+// 帧率/帧时间埋点（A 轮 N3-T2）：采集面在产品内，报告由 tools/perf-report.mjs 读取产出。
+// 零玩法影响：只记录相邻 rAF 时间差；口径判断（60fps/P95≤16.7ms）在报告层，不在内核断言（红线④）。
+const fps = createFpsRecorder(600);
+debug.__G2_FPS = {
+  snapshot: ()          => fps.snapshot(),
+  reset: ()       => fps.reset(),
+  samplesAsc: ()           => fps.samplesAsc(),
+};
+
 function loop(time        )       {
+  fps.frame(time);
   syncState(time);
   const heat = Math.min(1, st.chain / 5);
   drawBackdrop(ctx, layout, heat);

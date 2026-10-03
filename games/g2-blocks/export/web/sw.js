@@ -1,5 +1,5 @@
 // sw.js — GENERATED（tools/build.mjs）；cache-first 版本化缓存
-const CACHE = 'g2-2-1790911401358';
+const CACHE = 'g2-2-1791037047254';
 const ASSETS = [
   "./",
   "./index.html",
@@ -9,14 +9,19 @@ const ASSETS = [
   "./generated/spec-data.mjs",
   "./kernel/board.mjs",
   "./kernel/combo.mjs",
+  "./kernel/datetime.mjs",
   "./kernel/deadlock.mjs",
   "./kernel/rng.mjs",
   "./kernel/sim.mjs",
   "./kernel/spec-source.mjs",
   "./main.mjs",
   "./persistence.mjs",
+  "./platform/audio.mjs",
+  "./platform/clock.mjs",
+  "./platform/storage.mjs",
   "./render/renderer.mjs",
   "./render/theme.mjs",
+  "./telemetry/fps.mjs",
   "./telemetry/perf.mjs"
 ];
 self.addEventListener('install', (e) => {

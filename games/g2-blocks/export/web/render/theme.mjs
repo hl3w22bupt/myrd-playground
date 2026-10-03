@@ -39,9 +39,9 @@ export const HUD_TEXT = {
 
 /** 字号比例（美术批二） */
 export const TYPE_SCALE = {
-  scoreRatio: 0.3,
-  labelRatio: 0.16,
-  bannerRatio: 0.24,
+  scoreRatio: 0.036,
+  labelRatio: 0.016,
+  bannerRatio: 0.043,
 };
 
 /** 形状语言（风格卡 · assets/style-card.json） */
