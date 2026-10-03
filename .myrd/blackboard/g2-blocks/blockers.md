@@ -1,8 +1,49 @@
-# 阻塞项黑板 — g2-blocks（**R2「spec v1 → 首个可玩构建」轮 · 收口**）
+# 阻塞项黑板 — g2-blocks（**A 轮「发布收尾主线 + v1.2 写案并行」· 进行中**）
 
-> 更新时间：2026-10-02（N1–N5 全链核销 · 主策划）
+> 更新时间：2026-10-03（A 轮开工 · 主策划）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：**等主人拍板**（approve-ready-r2 包）；blockers 清零，无未闭环项
+> 下一步：N2–N6 并行推进；N1/N7/N8/N9 为条件触发节点（条件写死，见下）
+
+## 当前基线（A 轮开工核对 · 2026-10-03）
+
+- **黑板路径**：`.myrd/blackboard/g2-blocks/`（levels.md / assets.md / blockers.md 三件套 + gate-logs/ + apphost-app.md）
+- **spec 版本号**：**v1.1 = 链 v2 · approved（唯一）**，平台 id `cmuqa2mu50023m9zr8mh60uph`；v1 `cmuovwra0004gm97tinha15zq` superseded 未覆盖
+  - 本 run 开工实调 `GET /api/v1/game-design-specs?projectId=cmto0g28j0002m9sqnvjdy8o7` 核对：链上 16 条中 g2-blocks 仅 2 条，v2 approved 唯一、v1 superseded ✓
+- **numeric 冻结锚**：sha256(sortKeys) = `302e63367f3dea63212ad689a33703d83886d145862db0d724df98e97fea2d89`
+  （本 run 开工对导出件重算，全等零漂移 ✓）
+- **导出件**：`.myrd/spec/g2-blocks/design-spec.json`（本 run 开工回读 `spec` 内容与链 v2 记录**逐字节全等** ✓；
+  六段齐：meta/world/entities/levels/content/acceptance + numeric/assets）
+  - **落点偏差披露**：任务书要求导出到 `.myrd/spec/design-spec.json`，该路径是糖果线撞车冻结件
+    （`.myrd/routines.yaml` B4「一游戏一文件」口径，README 明令不可作契约依据）。为避免跨游戏撞车，
+    沿用既有指针 `.myrd/spec/g2-blocks/design-spec.json`，契约测试与 QA 均以此为准。
+- **g2-blocks 仓库**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks` @ `0c3aa95`（working-tree 净）
+- **一号仓库**：本 run 工作区，分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `c389982`；
+  线上发布 commit = `8d40c39`（首个可玩构建部署面）+ `c389982`（部署落账）；对应 g2-blocks 源仓 `0c3aa95`
+- **红线确认（任务书原文）**：① v1.2 数值冻结前不写数值实现代码；② 契约测试禁止硬编码派生值，一律读自 numeric 段；
+  ③ stack-tower 线上零接触；④ 性能口径落发布就绪清单、不进 spec acceptance；⑤ B1/B2/B3 超一轮不解决 → 升级主人
+
+## 阻塞项（A 轮登记 · 对应 N2 三件）
+
+| id | 内容 | 归属线 | 解除判据 | 状态 |
+|---|---|---|---|---|
+| B1 | g2-blocks 未注册进图注册表（跨仓库图检索/影响面分析覆盖不到本游戏） | 程序 | 注册表含 g2-blocks 条目且可被图工具检索 | 🔄 N2① |
+| B2 | 装配区只读入口缺失（QA/美术无「一把钥匙两用」，截图不同批不可互证） | 程序 | 只读入口 + 同批截图索引落档，QA 与美术共用 | 🔄 N2② |
+| B3 | 10/2 发布 commit 的 contract-check + 冒烟**原始输出**未归档（复检无基线证据可对账） | 程序 | 原始输出原文落 gate-logs，含命令行/退出码/时间戳/J1 | 🔄 N2③ |
+
+## 待触发节点（本轮不执行，条件写死）
+
+| 节点 | 触发条件 | 门禁 |
+|---|---|---|
+| N1 approve 确认 | 主人回复（**不接受沉默推断**） | 回复落卷后才算落卷 |
+| N7 round-2 复检 | N1 落卷 **且** B2（三件）到齐 | 门禁六条 + 美术四条逐条核，全绿才放行 |
+| N8 v1.2 实现 | **三闸齐**：v1 基线 approve + v1.2 数值冻结 + 主人拍板 | 顺序 combo → level-stars → daily |
+| N9 发布 + 提审 | N7 绿 **且** N4 素材就位 | 机器证据随包 |
+
+---
+
+# 上一轮（R2「spec v1 → 首个可玩构建」轮 · 收口）存档
+
+> 更新时间：2026-10-02（N1–N5 全链核销 · 主策划）；下一步：等主人拍板（approve-ready-r2 包）
 
 ## 当前基线（R2 轮收口 · 2026-10-02 · 部署轮追加）
 
