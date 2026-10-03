@@ -10,7 +10,7 @@
 | 节点 | 线 | 交付与落点 | 验收信号 | 状态 |
 |---|---|---|---|---|
 | N2① 图注册表 | 程序 | code-review-graph registry `g2-blocks` → `/Users/leo/.myrd/workspaces/…/g2-blocks` | `list_repos` 返回条目（alias g2-blocks） | ✅ B1 闭合 |
-| N2② 装配区只读入口 | 程序 | `docs/assembly-entry.md` + `docs/assembly-manifest.json` + `tools/assembly-entry.mjs`（同批 = build sha256 机判，不同批拒绝出清单） | ASSEMBLY: PASS · 同批 `be310288cff10563`（10/3 复检重建导出后同批重拍，见下方复检记录）· QA/美术两用 | ✅ B2 闭合 |
+| N2② 装配区只读入口 | 程序 | `docs/assembly-entry.md` + `docs/assembly-manifest.json` + `tools/assembly-entry.mjs`（同批判据 = **buildSha256 唯一**，不同批拒绝出清单；gitRef 信息性，见 R4④） | ASSEMBLY: PASS · 同批 `be310288cff10563`（10/3 复检重建导出后同批重拍；双清单 gitRef 同锚 `4f67806`）· QA/美术两用 | ✅ B2 闭合 |
 | N2③ B3 归档 | 程序 | 黑板 `gate-logs/deploy-20261002/{01-README,02-contract-check.log,03-smoke.log}`（10/2 发布 commit `0c3aa95` 复跑原文） | 契约 18/18 EXIT=0 · SMOKE PASS J1=175.2ms · 含命令/钉值/时间戳 | ✅ B3 闭合 |
 | N3-T1 | 程序 | `src/platform/storage.ts`（注册键制 + 版本化迁移，fromVersion 显式）+ `src/platform/audio.ts`（合成器可注入） | 门禁 T1a–g PASS · ac-16 键级最小集不降 | ✅ |
 | N3-T2 | 程序 | `src/telemetry/fps.ts` + main.ts rAF 接线 + `__G2_FPS` + `tools/perf-report.mjs` | 基准跑 fps=60 · P95=16.7ms · 卡顿 0；口径落 `docs/release-readiness.md`（红线④） | ✅ |
@@ -18,16 +18,23 @@
 | N4 发布素材包 | 美术 | 9 件 → `assets/release/`（icons/favicon/OG/wx/dy）+ 4 张同批实机截图 | IHDR 尺寸逐张机判 · 生成器零裸 hex · maskable 安全区 · 美术四门禁自检过 | ✅（美术复核欠） |
 | N4 风格盘点 | 美术 | A-09/A-10/A-11 → assets.md（四列齐） | A-09 实锤并代改待认领；A-10/A-11 挂账 | ✅ |
 | N5 spec v1.2 | 策划 | 链 v3 `cmurqo70l001uiccx7hjjr37e` **draft**（parent=v1.1）· 八道守卫全绿 | 三 check 写死 3/3 PASS · 漂移面=白名单 · v1.1 approved 保留 · READBACK EQUAL | ✅（approve 留主人） |
-| N6 对抗用例预研 | QA | `n6-adversarial-cases.md` 六维 38 条（含开放问题 Q1–Q3） | 逐条可执行（命令+预期+判定）· 不依赖装配区 | ✅ |
+| N6 对抗用例预研 | QA | `n6-adversarial-cases.md` 六维 **42 条**（6+6+7+8+7+8，含开放问题 Q1–Q3） | 逐条可执行（命令+预期+判定）· 不依赖装配区 | ✅ |
 
-## A 轮复跑基线（收口态 · g2-blocks @ `aa929e3` 树净 · 10/3 程序线复检后）
+## A 轮复跑基线（收口态 · g2-blocks @ `fe5fd38` 树净 · 10/3 驳回修复 R4 后）
 
-- 契约全量（approved v1.1 基线）：**18 PASS / 0 FAIL · EXIT=0**
-- v1.2 三条新 check：**3/3 PASS**（`G2_SPEC_PATH=v1.2 draft` + `--only`）
+> 本段数字**全部有原文在档**（驳回②判据「归档 = 复跑 stdout 原文」）：
+> 收口态 `c425e1f` → `gate-logs/c425e1f-closeout-recheck-20261003/`；
+> 最终态 `fe5fd38` → `gate-logs/prog-r4-docfix-recheck-20261003/`。J1 为墙钟实测，跑间毫秒级抖动，
+> **以归档原文为准，不跨 run 转抄**。
+
+- 契约全量（approved v1.1 基线）：**18 PASS / 0 FAIL · EXIT=0**（两态同绿）
+- v1.2 三条新 check：**3/3 PASS**（`G2_SPEC_PATH=v1.2 draft` + `--only`；结论依据 **draft**，未拍板）
 - 八门禁：**①–⑧ 全 PASS**（⑧ = 本轮新增工程前置面，20 断言）
-- 冒烟：**SMOKE: PASS · J1=171.3ms ≤ 400ms**
+- 冒烟：**SMOKE: PASS · EXIT=0**——`c425e1f` 态 **J1=172ms**、最终态 **J1=174.6ms** ≤ 400ms（原文在档）
+- 装配区：**ASSEMBLY: PASS · 同批 `be310288cff10563`**（判据 = `buildSha256`；双清单 gitRef 已同锚 `4f67806`）
+- P95：基准 **P95=16.7ms @ fps=60 · 卡顿 0**（最终态重出，代理口径披露在案）
 - numeric 锚：v1.1 `302e6336…`（零漂移）· v1.2 draft `00ca798c…`
-- 提交链：`a6eef71` → `49402b5` → `8410986` → `d564b5c` → `4f7470d` → `bb4c836` → `2a5d480`（复检修 3 缺陷）→ `aa929e3`（证据重出）
+- 提交链：`a6eef71` → `49402b5` → `8410986` → `d564b5c` → `4f7470d` → `bb4c836` → `2a5d480`（程序复检修 3 缺陷）→ `aa929e3`（证据重出）→ `c425e1f`（**美术线复核收口**）→ `4f67806`（**驳回修复 R4①③④**）→ `fe5fd38`（双清单重出）
 
 ## 程序线独立复检（2026-10-03 · 新 run 工作区，不沿用上轮证据）
 
@@ -53,6 +60,19 @@
 | R1 定位器误锚旧 run | `tests/contract/repo-one.mjs` 在多 run 并列最高 version 时按**字母序** tie-break → 锚上一轮 run（`run-cmuq9pz86…`）；ac-17 扫的是陈旧快照、ac-19/20/21 在新 run 全红 | tie-break 改「spec updatedAt → **git HEAD 提交时刻最新（活跃工作区）**」；env 双钉仍最优先（已归档证据可复跑） | 不设 env 时 `repoOneRoot()` = 本 run；ac-17 detail `root=run-cmurp7sf…` |
 | R2 契约 `--only` 假绿 | id 不在当前装载 spec 的 acceptance 段时零断言仍报「契约全绿」（违本脚本反审查约束②）——裸跑 ac-19/20/21 必假绿 | 零断言显式红 + EXIT=1 + 恢复路径提示（指向 `G2_SPEC_PATH=<draft>`） | 裸跑 ac-19 实测 `RED … EXIT=1`；带钉后 3/3 PASS |
 | R3 导出产物漂移 | `src` 注释（禁 API 字面量措辞）改动后未重建 → tracked `build/` ≠ src（违「确定性导出」） | `node tools/build.mjs` 重建 + `node tools/screenshot.mjs` 同批重拍 + P95 报告重出 | 重建后 diff 仅 datetime/fps 注释 + sw 版本号；同批 `be310288cff10563` |
+
+### 驳回修复 R4（2026-10-03 · 第二次驳回 · 4 处文档/证据链缺陷，机器面与玩法面零改动）
+
+> 驳回范围：机器面与玩法面全绿，打回仅针对文档/证据链。程序线认领 4 处全改，`g2-blocks @ 4f67806` + `fe5fd38`。
+
+| # | 驳回点 | 修法 | 证据 |
+|---|---|---|---|
+| R4① | `docs/assembly-entry.md` 钥匙 batchId 手抄 `750c70b6440ad04c`（R3 重建导出前陈旧值） | 钥匙段改为**引用 `docs/assembly-manifest.json` 字段**（batchId/buildSha256/gitRef），文档不再手抄批次值，杜绝再陈旧 | `assembly-entry.md`「钥匙」段；与 `05-assembly-and-perf.log` 机判清单同源 |
+| R4② | 收口态复跑数字（SMOKE J1=171.3ms / 八门禁 / 契约 18/18）无原文归档，违「归档 = 复跑 stdout 原文」（B3 同判据） | `git worktree add` 干净 `c425e1f` 实跑四门禁并归档原文（含命令/gitRef/钉值/UTC/EXIT/J1）；**J1 更正为有档实测 172ms**（171.3 为跨 run 转抄，作废）；最终态 `fe5fd38` 另档全量复跑 | `gate-logs/c425e1f-closeout-recheck-20261003/`（4 件 + README）· `gate-logs/prog-r4-docfix-recheck-20261003/`（5 件 + README） |
+| R4③ | `docs/release-readiness.md` §C「🔄 本轮 N4」/ §E.2「A-09 待认领」滞后于 assets.md 收口态（A-01..A-08 复核完成、A-09 已认领、ART-RECHECK 12/12） | §C 同步为收口态（素材复核 PASS / A-09 已认领 / A-12..A-14 已修重出 / 四门禁 12/12）；§E.1（发现器挂账）与 §E.2 一并划掉并给解除证据 | `docs/release-readiness.md` §C/§E |
+| R4④ | 双 manifest `gitRef` 异锚（shot `bb4c836` vs assembly `2a5d480`）构成 QA 必核第三条歧义；根因 = `assembly-entry.mjs` 必核项自带「gitRef 与归档证据一致」 | 双生成器落 `sameBatchCriterion` 随件字段（criterion/exclusive/gitRefRole/note）+ 必核项更正「buildSha256 唯一判据」+ `assembly-entry.md` 新增「同批判据」表；**双清单重出后 gitRef 同锚 `4f67806`**，历史异锚值不复存在；4 张 PNG 逐字节未变 | `05-assembly-and-perf.log` 对账段 · `docs/assembly-manifest.json` / `assets/release/shot-manifest.json` |
+
+另：levels.md N6 计数更正 **38 → 42 条**（6+6+7+8+7+8，实数清点 `n6-adversarial-cases.md`）。
 
 ### N9 前置提醒（部署面）
 

@@ -22,7 +22,10 @@
   → `d564b5c`（N3 三件）→ `4f7470d`（N4 素材包）→ `bb4c836`（N5 v1.2）→ `aa929e3`/`2a5d480`（程序线复检）
   → `c425e1f`（**美术线复核收口**：A-12/A-13/A-14 修复 + A-09 认领）
 - **一号仓库**：分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d`；线上发布 commit = `8d40c39`（部署面）+ `c389982`（落账）
-- **收口复跑基线**：契约 18/18 EXIT=0 · 八门禁全 PASS · SMOKE PASS J1=171.3ms · v1.2 三 check 3/3 PASS
+- **收口复跑基线**：契约 18/18 EXIT=0 · 八门禁全 PASS · SMOKE PASS · v1.2 三 check 3/3 PASS
+  ——**原文在档**（驳回修复 R4②）：`c425e1f` 态 = `gate-logs/c425e1f-closeout-recheck-20261003/`（**J1=172ms**，
+  旧写 171.3ms 为跨 run 转抄无档，作废）；最终态 `fe5fd38` = `gate-logs/prog-r4-docfix-recheck-20261003/`
+  （**J1=174.6ms** · P95=16.7ms · ASSEMBLY 同批 `be310288cff10563`）。J1 为墙钟实测，以归档原文为准。
 - **落点偏差披露**：任务书要求 spec 导出到 `.myrd/spec/design-spec.json`，该路径为糖果线撞车冻结件
   （`routines.yaml` B4「一游戏一文件」，README 明令不可作契约依据）→ 沿用 `.myrd/spec/g2-blocks/design-spec.json`
 
@@ -35,6 +38,16 @@
 | B3 | 10/2 发布 commit 原始输出未归档 | 程序 | 原文落 gate-logs（含命令/钉值/退出码/J1） | ✅ `gate-logs/deploy-20261002/` 三件（N2③） |
 
 ### 程序线复检修复记录（2026-10-03 · 新 run 工作区实跑发现，判据零放宽）
+
+#### R4（第二次驳回 · 4 处文档/证据链缺陷 · 机器面与玩法面零改动 · `4f67806` + `fe5fd38`）
+
+| id | 缺陷 | 修法 | 证据 |
+|---|---|---|---|
+| R4① | `assembly-entry.md` 钥匙手抄 batchId 陈旧值 | 改为引用 `assembly-manifest.json` 字段，文档零手抄批次值 | `docs/assembly-entry.md` |
+| R4② | 收口态复跑数字无原文归档（违「归档 = 复跑 stdout 原文」） | worktree 干净 `c425e1f` 实跑归档 + 最终态 `fe5fd38` 全量归档；J1 更正为有档值 | `gate-logs/c425e1f-closeout-recheck-20261003/` · `gate-logs/prog-r4-docfix-recheck-20261003/` |
+| R4③ | `release-readiness.md` §C/§E 滞后 assets.md 收口态 | §C 同步（素材复核 PASS / A-09 已认领 / ART-RECHECK 12/12）+ §E.1/E.2 划账给证 | `docs/release-readiness.md` |
+| R4④ | 双 manifest gitRef 异锚 → QA 必核第三条歧义（根因：必核项自带「gitRef 一致」） | 双生成器落 `sameBatchCriterion` 随件字段 + 必核项更正 + 双清单重出同锚 `4f67806`；同批判据唯 `buildSha256` | `docs/assembly-manifest.json` · `assets/release/shot-manifest.json` · `assembly-entry.md`「同批判据」表 |
+| R4⑤（连带） | levels.md N6 计数 38 与实数不符 | 更正 **42 条**（6+6+7+8+7+8） | `levels.md` N6 行 · `n6-adversarial-cases.md` |
 
 | id | 缺陷 | 修法 | 证据 |
 |---|---|---|---|
