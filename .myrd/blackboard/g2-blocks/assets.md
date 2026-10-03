@@ -1,9 +1,9 @@
 # 资产清单黑板 — g2-blocks（A 轮「发布素材包 + 风格盘点」）
 
-> 更新时间：2026-10-03（A 轮开工 · 主策划建区；N4 美术线填 A-xx 盘点清单）
-> 负责人：游戏美术（资产面 + 风格盘点）/ 主策划（整合校对）
-> 下一步：N4 交付发布素材包（PWA 图标含 maskable / favicon / OG / wx·dy 分享卡 / ≥3 张实机截图）；
-> 色板沿用 N1 定稿零改动；**色值只取冻结色板，尺寸对照平台官方规格，美术四门禁全过**
+> 更新时间：2026-10-03（A 轮 N4 收口 · 主策划代执行 + 自检；**美术线复核与 A-09 认领欠**）
+> 负责人：游戏美术（资产面 + 风格盘点）/ 主策划（整合校对 · 本轮代执行）
+> 下一步：美术线复核 A-01..A-08 素材 + 认领 A-09（typeScale 代改）；A-10/A-11 挂账下一轮；
+> 色板沿用 N1 定稿零改动；**色值只取冻结色板（生成器零裸 hex），尺寸逐张 IHDR 机判，美术四门禁自检已过**
 
 ## A 轮发布素材包登记区（N4 · 美术线填报）
 
@@ -12,27 +12,36 @@
 
 | 编号 | 资产 | 规格（平台官方口径） | 色值来源 | 状态 |
 |---|---|---|---|---|
-| A-01 | PWA icon 512×512 | PNG 512 | theme PALETTE | 🔄 N4 |
-| A-02 | PWA icon maskable 512×512（安全区 80%） | PNG 512，purpose maskable | theme PALETTE | 🔄 N4 |
-| A-03 | PWA icon 192×192 | PNG 192 | theme PALETTE | 🔄 N4 |
-| A-04 | favicon 32×32 / 16×16 + apple-touch 180 | PNG | theme PALETTE | 🔄 N4 |
-| A-05 | OG 图 1200×630 | PNG/JPG 1200×630 | theme PALETTE + BACKDROP | 🔄 N4 |
-| A-06 | wx 分享卡 5:4（500×400） | PNG | theme PALETTE | 🔄 N4 |
-| A-07 | dy 分享卡 9:16（720×1280） | PNG | theme PALETTE | 🔄 N4 |
-| A-08 | 实机截图 ×3（开局 / 消除连击 / 炉冷判定） | 真机分辨率 390×844 | 实机帧 | 🔄 N4 |
+| A-01 | PWA icon 512×512 | PNG 512 | theme PALETTE | ✅ `icons/icon-512.png` |
+| A-02 | PWA icon maskable 512×512（安全区 80%） | PNG 512，purpose maskable | theme PALETTE | ✅ `icons/icon-maskable-512.png`（核心元素落 80% 区，目检过） |
+| A-03 | PWA icon 192×192 | PNG 192 | theme PALETTE | ✅ `icons/icon-192.png` |
+| A-04 | favicon 32/16 + apple-touch 180 | PNG | theme PALETTE | ✅ `favicon/{favicon-32,favicon-16,apple-touch-icon-180}.png` |
+| A-05 | OG 图 1200×630 | PNG 1200×630 | theme PALETTE + BACKDROP + UI | ✅ `share/og-1200x630.png`（文案已去未终判性能口径） |
+| A-06 | wx 分享卡 5:4（500×400） | PNG | theme PALETTE | ✅ `share/wx-share-500x400.png`（版式重叠已修） |
+| A-07 | dy 分享卡 9:16（720×1280） | PNG | theme PALETTE | ✅ `share/dy-share-720x1280.png` |
+| A-08 | 实机截图 ×3（开局/消除连击/炉冷推进） | 真机 390×844 @2x | 实机帧 + 内核现读 | ✅ 4 张 `shots/`（manifest 带 `__G2_STATE()` 现读值） |
 
-## A 轮风格差距盘点（N4 · 美术线填报 · 编号 A-xx 接续）
+- **生成器**：`tools/gen-release-assets.mjs`（色值只读 theme 单源，**生成器零裸 hex**；尺寸逐张 IHDR 机判）
+- **机判清单**：`assets/release/release-assets.json`（9 件 + sha256 + 用到的 palette token 清单）
+- **ac-13 不降披露**：PNG 只落 `assets/release/`（ac-13 扫描范围 = `src/` + `build/` + 根 `index.html`，实测仍 PASS）；
+  **PWA 内图标维持内联 data:URL SVG（零位图）**，PNG 包用于渠道提审随包，不接进 manifest。
+
+## A 轮风格差距盘点（N4 · 编号 A-xx · 实机位置 → 参考卡条款 → 差什么 → 改哪个文件）
 
 | 编号 | 实机位置 | 参考卡条款 | 差什么 | 改哪个文件 |
 |---|---|---|---|---|
-| （待美术线填报） | | | | |
+| **A-09** | level-1/level-2 HUD（分数/连击/手数区） | 要素4 版式/UI「分数/连击区置顶」+ 尺寸合规 | `typeScale` 以**整屏高**为基（scoreRatio 0.3 → 253px），390px 宽视口巨字溢出压棋盘，真机同型复现（同批截图实锤） | `assets/e-renderer-ui-tokens.json` `typeScale`（**已代改** 0.3/0.16/0.24 → 0.036/0.016/0.043 → `tools/gen-theme.mjs` 重生成 → `src/render/theme.ts`）· **待美术线认领** |
+| A-10 | level-1 棋盘纵向定位（提示条隐没后） | 要素4「提示条底部」 | 棋盘垂直居中导致下方留白 ≈ 25% 屏高，版面下坠感 | `src/render/renderer.ts` `computeLayout`（boardY/hintH 权重）· **挂账下一轮，美术拍板** |
+| A-11 | 炉冷终局可视面 | spec 炉冷判定表现 | 素材四帧未含炉冷终局帧（需耗尽手数构造，非常驻路径） | `tools/screenshot.mjs`（加终局构造路径）· **挂账 QA round-2** |
 
-## 美术四门禁（A 轮口径 · N4 自检后逐条打勾）
+## 美术四门禁（A 轮口径 · N4 自检）
 
-- [ ] 门一 色值溯源：素材内所有 hex 可溯源到冻结色板 / theme 单源（零裸 hex）
-- [ ] 门二 尺寸合规：逐张对照平台官方规格（PWA/favicon/OG/wx/dy 各自要求）
-- [ ] 门三 maskable 安全区：512 图核心元素落在中心 80% 安全区内
-- [ ] 门四 同批可证：截图与资产同批产出，sha256 可对账（对应 B2 装配区只读入口）
+- [x] 门一 色值溯源：生成器零裸 hex，色值全取 theme 单源（PALETTE 7 + UI + BACKDROP）；ac-11 全仓 18 色溯源 PASS
+- [x] 门二 尺寸合规：9 件逐张 IHDR 机判（512/192/180/120×630/500×400/720×1280），`release-assets.json` 在档
+- [x] 门三 maskable 安全区：`icon-maskable-512.png` / `apple-touch-icon-180.png` 核心元素缩至中心 80%（目检过）
+- [x] 门四 同批可证：截图与 build 同批（`shot-manifest.json.buildSha256 == assembly-manifest.json.buildSha256` 机判，不同批拒绝出清单）
+
+> 注：四门禁为**程序线代执行自检**；美术线复核 + A-09 认领仍欠，见 blockers.md 挂账区。
 
 ---
 

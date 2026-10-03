@@ -5,20 +5,29 @@
 > 下一步：N2–N6 并行推进；N1/N7/N8/N9 条件触发（条件写死，见 blockers.md 待触发区）
 > 红线：**v1.2 数值冻结前不写数值实现代码**（N8 三闸齐才派）；性能口径不进 spec acceptance
 
-## A 轮节点链台账（N2–N6）
+## A 轮节点链台账（N2–N6 · 全核销）
 
 | 节点 | 线 | 交付与落点 | 验收信号 | 状态 |
 |---|---|---|---|---|
-| N2① 图注册表 | 程序 | code-review-graph 注册表新增 g2-blocks | 注册表条目可检索 | 🔄 |
-| N2② 装配区只读入口 | 程序 | 只读入口文档 + 同批截图索引（QA/美术一把钥匙两用） | QA 确认可用 | 🔄 |
-| N2③ B3 归档 | 程序 | 10/2 发布 commit 的 contract-check + 冒烟原始输出 → gate-logs | 原文含命令/退出码/J1 | 🔄 |
-| N3-T1 | 程序 | storage/audio 门面 + 版本化迁移 | 既有契约+冒烟全绿不降 | 🔄 |
-| N3-T2 | 程序 | 帧率/帧时间埋点 + P95 报告 | P95 ≤ 16.7ms 口径落发布就绪清单 | 🔄 |
-| N3-T3 | 程序 | 确定性 PRNG + 可注入时钟 + 时区工具（零外部依赖） | 同 seed 同输出；时区纯函数 | 🔄 |
-| N4 发布素材包 | 美术 | PWA 图标（含 maskable）/favicon/OG + wx/dy 分享卡 + ≥3 实机截图 | 色值只取冻结色板；尺寸对官方规格；美术四门禁全过 | 🔄 |
-| N4 风格盘点 | 美术 | 差距清单 A-xx → assets.md | 四列齐（位置/条款/差距/文件） | 🔄 |
-| N5 spec v1.2 | 策划 | 三提案 numeric（combo/daily/level-stars）+ 第四提案（首分钟引导）走 version+1 | 三 check 路径写死；零新增漂移；QA+主策划评审通过 | 🔄 |
-| N6 对抗用例预研 | QA | 六维用例设计文档 → 黑板 | 逐条可执行，不依赖装配区 | 🔄 |
+| N2① 图注册表 | 程序 | code-review-graph registry `g2-blocks` → `/Users/leo/.myrd/workspaces/…/g2-blocks` | `list_repos` 返回条目（alias g2-blocks） | ✅ B1 闭合 |
+| N2② 装配区只读入口 | 程序 | `docs/assembly-entry.md` + `docs/assembly-manifest.json` + `tools/assembly-entry.mjs`（同批 = build sha256 机判，不同批拒绝出清单） | ASSEMBLY: PASS · 同批 `750c70b6440ad04c` · QA/美术两用 | ✅ B2 闭合 |
+| N2③ B3 归档 | 程序 | 黑板 `gate-logs/deploy-20261002/{01-README,02-contract-check.log,03-smoke.log}`（10/2 发布 commit `0c3aa95` 复跑原文） | 契约 18/18 EXIT=0 · SMOKE PASS J1=175.2ms · 含命令/钉值/时间戳 | ✅ B3 闭合 |
+| N3-T1 | 程序 | `src/platform/storage.ts`（注册键制 + 版本化迁移，fromVersion 显式）+ `src/platform/audio.ts`（合成器可注入） | 门禁 T1a–g PASS · ac-16 键级最小集不降 | ✅ |
+| N3-T2 | 程序 | `src/telemetry/fps.ts` + main.ts rAF 接线 + `__G2_FPS` + `tools/perf-report.mjs` | 基准跑 fps=60 · P95=16.7ms · 卡顿 0；口径落 `docs/release-readiness.md`（红线④） | ✅ |
+| N3-T3 | 程序 | `src/kernel/datetime.ts`（时区纯函数 + dailySeed）+ `src/platform/clock.ts`（可注入时钟） | 门禁 T3a–f PASS · 零外部依赖 · 内核纯净不降 | ✅ |
+| N4 发布素材包 | 美术 | 9 件 → `assets/release/`（icons/favicon/OG/wx/dy）+ 4 张同批实机截图 | IHDR 尺寸逐张机判 · 生成器零裸 hex · maskable 安全区 · 美术四门禁自检过 | ✅（美术复核欠） |
+| N4 风格盘点 | 美术 | A-09/A-10/A-11 → assets.md（四列齐） | A-09 实锤并代改待认领；A-10/A-11 挂账 | ✅ |
+| N5 spec v1.2 | 策划 | 链 v3 `cmurqo70l001uiccx7hjjr37e` **draft**（parent=v1.1）· 八道守卫全绿 | 三 check 写死 3/3 PASS · 漂移面=白名单 · v1.1 approved 保留 · READBACK EQUAL | ✅（approve 留主人） |
+| N6 对抗用例预研 | QA | `n6-adversarial-cases.md` 六维 38 条（含开放问题 Q1–Q3） | 逐条可执行（命令+预期+判定）· 不依赖装配区 | ✅ |
+
+## A 轮复跑基线（收口态 · g2-blocks @ `bb4c836` 树净）
+
+- 契约全量（approved v1.1 基线）：**18 PASS / 0 FAIL · EXIT=0**
+- v1.2 三条新 check：**3/3 PASS**（`G2_SPEC_PATH=v1.2 draft` + `--only`）
+- 八门禁：**①–⑧ 全 PASS**（⑧ = 本轮新增工程前置面，20 断言）
+- 冒烟：**SMOKE: PASS · J1=171.3ms ≤ 400ms**
+- numeric 锚：v1.1 `302e6336…`（零漂移）· v1.2 draft `00ca798c…`
+- 提交链：`a6eef71` → `49402b5` → `8410986` → `d564b5c` → `4f7470d` → `bb4c836`
 
 ## v1.2 数值提案（策划线 · 冻结前仅供参考，冻结以链上 numeric 为准）
 
