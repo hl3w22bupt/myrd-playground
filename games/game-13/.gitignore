@@ -1,0 +1,5 @@
+# Godot 导入缓存（本机重新生成，不进仓库）
+.godot/
+
+# 导出中间产物保留 export/web（apphost assets_dir 依赖它进仓库），仅忽略编辑器临时文件
+*.tmp

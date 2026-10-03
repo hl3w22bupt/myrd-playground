@@ -1,0 +1,80 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/level.gd" id="1_level"]
+[ext_resource type="Texture2D" path="res://assets/sprites/bg_warehouse.png" id="2_bg"]
+[ext_resource type="Script" path="res://scripts/player_cursor.gd" id="3_cursor"]
+[ext_resource type="Script" path="res://scripts/hud_budget_meter.gd" id="4_budget"]
+[ext_resource type="Script" path="res://scripts/hud_collect_counter.gd" id="5_counter"]
+[ext_resource type="PackedScene" path="res://scenes/settlement_panel.tscn" id="6_settle"]
+[ext_resource type="PackedScene" path="res://scenes/pause_overlay.tscn" id="7_pause"]
+
+[node name="Level01" type="Node2D"]
+script = ExtResource("1_level")
+level_index = 1
+level_title = "第 1 关 · 宽裕起步"
+start_budget = 8
+star_count = 6
+crystal_count = 0
+decoy_count = 0
+hint_text = "点击结晶收集；每次点击消耗 1 点预算，右上角实时显示剩余预算与收集进度"
+
+[node name="Background" type="Sprite2D" parent="."]
+centered = false
+texture = ExtResource("2_bg")
+
+[node name="Entities" type="Node2D" parent="."]
+
+[node name="Cursor" type="Node2D" parent="."]
+position = Vector2(320, 180)
+script = ExtResource("3_cursor")
+
+[node name="UI" type="CanvasLayer" parent="."]
+process_mode = 3
+
+[node name="BudgetMeter" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 400.0
+offset_top = 12.0
+offset_right = 624.0
+offset_bottom = 40.0
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 2
+text = "剩余预算：0"
+script = ExtResource("4_budget")
+
+[node name="CollectCounter" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 300.0
+offset_bottom = 40.0
+theme_override_font_sizes/font_size = 18
+text = "收集进度：0 / 0"
+script = ExtResource("5_counter")
+
+[node name="SessionTime" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 336.0
+offset_right = 480.0
+offset_bottom = 356.0
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.72, 0.75, 0.82, 1)
+text = "本局用时：0s / 上限 300s"
+
+[node name="Hint" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 64.0
+offset_top = 48.0
+offset_right = 576.0
+offset_bottom = 88.0
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.85, 0.88, 0.95, 1)
+text = "…"
+autowrap_mode = 2
+
+[node name="SettlementPanel" parent="UI" instance=ExtResource("6_settle")]
+visible = false
+
+[node name="PauseOverlay" parent="UI" instance=ExtResource("7_pause")]
+visible = false

@@ -1,0 +1,71 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/settlement_panel.gd" id="1_script"]
+
+[node name="SettlementPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.04, 0.05, 0.09, 0.78)
+
+[node name="Card" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -190.0
+offset_top = -110.0
+offset_right = 190.0
+offset_bottom = 110.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Card"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+horizontal_alignment = 1
+text = "通关！"
+
+[node name="Stars" type="Label" parent="Card"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 34
+horizontal_alignment = 1
+text = "☆☆☆"
+
+[node name="Hint" type="Label" parent="Card"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+text = "…"
+autowrap_mode = 2
+
+[node name="Buttons" type="HBoxContainer" parent="Card"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 18
+
+[node name="RestartButton" type="Button" parent="Card/Buttons"]
+layout_mode = 2
+text = "重开本关 (R)"
+
+[node name="NextButton" type="Button" parent="Card/Buttons"]
+layout_mode = 2
+text = "下一关 (Enter)"
+
+[connection signal="pressed" from="Card/Buttons/RestartButton" to="." method="_on_restart_pressed"]
+[connection signal="pressed" from="Card/Buttons/NextButton" to="." method="_on_next_pressed"]

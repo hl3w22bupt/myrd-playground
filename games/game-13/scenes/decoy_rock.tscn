@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/decoy_rock.gd" id="1_rock"]
+[ext_resource type="Texture2D" path="res://assets/sprites/decoy_rock.svg" id="2_tex"]
+[ext_resource type="AudioStream" path="res://assets/audio/misclick.wav" id="3_sfx"]
+
+[node name="DecoyRock" type="Area2D"]
+script = ExtResource("1_rock")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("2_tex")
+
+[node name="Sfx" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("3_sfx")
+volume_db = -10.0
