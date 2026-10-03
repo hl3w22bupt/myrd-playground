@@ -1,9 +1,9 @@
 # 资产清单黑板 — g2-blocks（A 轮「发布素材包 + 风格盘点」）
 
-> 更新时间：2026-10-03（A 轮 N4 收口 · 主策划代执行 + 自检；**美术线复核与 A-09 认领欠**）
-> 负责人：游戏美术（资产面 + 风格盘点）/ 主策划（整合校对 · 本轮代执行）
-> 下一步：美术线复核 A-01..A-08 素材 + 认领 A-09（typeScale 代改）；A-10/A-11 挂账下一轮；
-> 色板沿用 N1 定稿零改动；**色值只取冻结色板（生成器零裸 hex），尺寸逐张 IHDR 机判，美术四门禁自检已过**
+> 更新时间：2026-10-03（**美术线复核收口**：A-01..A-08 复核完成 + 3 缺陷修复重出 + A-09 认领，源仓 `c425e1f`）
+> 负责人：游戏美术（资产面 + 风格盘点）/ 主策划（整合校对 · 前轮代执行已复核认领）
+> 下一步：A-10（棋盘纵向定位）/ A-11（炉冷终局帧）挂账维持；intent 更正案继续挂「approve 后首轮 spec 修订」；
+> 色板沿用 N1 定稿零改动；**色值只取冻结色板（生成器零裸 hex、零 rgba 字面量），尺寸逐张 IHDR 机判，美术四门禁复核机判 PASS（12/12）**
 
 ## A 轮发布素材包登记区（N4 · 美术线填报）
 
@@ -12,14 +12,18 @@
 
 | 编号 | 资产 | 规格（平台官方口径） | 色值来源 | 状态 |
 |---|---|---|---|---|
-| A-01 | PWA icon 512×512 | PNG 512 | theme PALETTE | ✅ `icons/icon-512.png` |
-| A-02 | PWA icon maskable 512×512（安全区 80%） | PNG 512，purpose maskable | theme PALETTE | ✅ `icons/icon-maskable-512.png`（核心元素落 80% 区，目检过） |
-| A-03 | PWA icon 192×192 | PNG 192 | theme PALETTE | ✅ `icons/icon-192.png` |
-| A-04 | favicon 32/16 + apple-touch 180 | PNG | theme PALETTE | ✅ `favicon/{favicon-32,favicon-16,apple-touch-icon-180}.png` |
-| A-05 | OG 图 1200×630 | PNG 1200×630 | theme PALETTE + BACKDROP + UI | ✅ `share/og-1200x630.png`（文案已去未终判性能口径） |
-| A-06 | wx 分享卡 5:4（500×400） | PNG | theme PALETTE | ✅ `share/wx-share-500x400.png`（版式重叠已修） |
-| A-07 | dy 分享卡 9:16（720×1280） | PNG | theme PALETTE | ✅ `share/dy-share-720x1280.png` |
-| A-08 | 实机截图 ×3（开局/消除连击/炉冷推进） | 真机 390×844 @2x | 实机帧 + 内核现读 | ✅ 4 张 `shots/`（manifest 带 `__G2_STATE()` 现读值） |
+| A-01 | PWA icon 512×512 | PNG 512 | theme PALETTE | ✅ `icons/icon-512.png` · **美术复核 PASS**（面心像素 ≡ 冻结色板 ±3） |
+| A-02 | PWA icon maskable 512×512（安全区 80%） | PNG 512，purpose maskable | theme PALETTE | ✅ `icons/icon-maskable-512.png` · **美术复核 PASS**（像素机判越界 0，r≤210px） |
+| A-03 | PWA icon 192×192 | PNG 192 | theme PALETTE | ✅ `icons/icon-192.png` · **美术复核 PASS** |
+| A-04 | favicon 32/16 + apple-touch 180 | PNG | theme PALETTE | ✅ `favicon/{favicon-32,favicon-16,apple-touch-icon-180}.png` · **美术复核 PASS**（apple-touch 按 maskable 口径越界 0） |
+| A-05 | OG 图 1200×630 | PNG 1200×630 | theme PALETTE + BACKDROP + UI | ✅ `share/og-1200x630.png` · **美术复核 PASS**（A-13 文案修正已随） |
+| A-06 | wx 分享卡 5:4（500×400） | PNG | theme PALETTE | ✅ `share/wx-share-500x400.png` · **美术复核 PASS**（A-13 修正 + 版式无重叠目检） |
+| A-07 | dy 分享卡 9:16（720×1280） | PNG | theme PALETTE | ✅ `share/dy-share-720x1280.png` · **美术复核 PASS**（A-13/A-14 修正已随） |
+| A-08 | 实机截图 ×3（开局/消除连击/炉冷推进） | 真机 390×844 @2x | 实机帧 + 内核现读 | ✅ 4 张 `shots/` · **美术复核 PASS（零触碰）**（同批 `be310288cff10563` 门四机判继续有效） |
+
+> **美术线复核（2026-10-03，G-A09 解除动作）**：主策划代执行版经独立复核发现 3 处美术面缺陷
+> **A-12/A-13/A-14**（见下表），已修并重出 9 件（manifest sha256 随动；实机帧零触碰）。复核后源仓 = `c425e1f`。
+> 机判证据 = `gate-logs/a4-art-recheck-20261003/`（ART-RECHECK 12/12 PASS）。
 
 - **生成器**：`tools/gen-release-assets.mjs`（色值只读 theme 单源，**生成器零裸 hex**；尺寸逐张 IHDR 机判）
 - **机判清单**：`assets/release/release-assets.json`（9 件 + sha256 + 用到的 palette token 清单）
@@ -30,18 +34,23 @@
 
 | 编号 | 实机位置 | 参考卡条款 | 差什么 | 改哪个文件 |
 |---|---|---|---|---|
-| **A-09** | level-1/level-2 HUD（分数/连击/手数区） | 要素4 版式/UI「分数/连击区置顶」+ 尺寸合规 | `typeScale` 以**整屏高**为基（scoreRatio 0.3 → 253px），390px 宽视口巨字溢出压棋盘，真机同型复现（同批截图实锤） | `assets/e-renderer-ui-tokens.json` `typeScale`（**已代改** 0.3/0.16/0.24 → 0.036/0.016/0.043 → `tools/gen-theme.mjs` 重生成 → `src/render/theme.ts`）· **待美术线认领** |
-| A-10 | level-1 棋盘纵向定位（提示条隐没后） | 要素4「提示条底部」 | 棋盘垂直居中导致下方留白 ≈ 25% 屏高，版面下坠感 | `src/render/renderer.ts` `computeLayout`（boardY/hintH 权重）· **挂账下一轮，美术拍板** |
+| **A-09** | level-1/level-2 HUD（分数/连击/手数区） | 要素4 版式/UI「分数/连击区置顶」+ 尺寸合规 | `typeScale` 以**整屏高**为基（scoreRatio 0.3 → 253px），390px 宽视口巨字溢出压棋盘，真机同型复现（同批截图实锤） | `assets/e-renderer-ui-tokens.json` `typeScale`（**已代改** 0.3/0.16/0.24 → 0.036/0.016/0.043 → `tools/gen-theme.mjs` 重生成 → `src/render/theme.ts`）· **✅ 美术线已认领（2026-10-03，机判 4 条，见 gate-logs/a4-art-recheck-20261003/README §三）** |
+| A-10 | level-1 棋盘纵向定位（提示条隐没后） | 要素4「提示条底部」 | 棋盘垂直居中导致下方留白 ≈ 25% 屏高，版面下坠感（复核目检复证实测 ≈20%） | `src/render/renderer.ts` `computeLayout`（boardY/hintH 权重）· **挂账下一轮，美术拍板** |
 | A-11 | 炉冷终局可视面 | spec 炉冷判定表现 | 素材四帧未含炉冷终局帧（需耗尽手数构造，非常驻路径） | `tools/screenshot.mjs`（加终局构造路径）· **挂账 QA round-2** |
+| **A-12** | 发布素材 9 件全部块面（高光条/内描边） | 要素2「顶部高光条」+ R3 已认领的 material 显式化 token | 生成器硬编码 `rgba(255,255,255,0.16)`/带高 0.16/偏移 0.07；美术规格（style-card → theme MATERIAL/SHAPE，renderer 同源）= **α0.18/带高 0.18/内缩=内描边宽** → 素材与实机漂移 | `tools/gen-release-assets.mjs` block() 接线 theme 单源 + style-card↔theme 漂移守卫 · **✅ 已修重出（`c425e1f`）** |
+| **A-13** | OG/wx/dy 卡 accent 文案 | 红线①同源（数值纪律） | 「连击 ×5 上限」= **v1.2 draft 未冻结数值**（approved v1.1 `numeric.combo` 无 maxMultiplier 键，机判留痕）→ 主人改值/否决则渠道素材即错 | 同上（改「连击加成 · 炉冷判定」）· **✅ 已修重出（`c425e1f`）** |
+| **A-14** | dy 卡底部副文案 | 渠道素材对外口径 | 印「spec v2 · approved」内部流程元数据，玩家不可读且暴露内部状态 | 同上（改「离线可玩 · 零贴图渲染」）· **✅ 已修重出（`c425e1f`）** |
 
-## 美术四门禁（A 轮口径 · N4 自检）
+## 美术四门禁（A 轮口径 · 美术线复核机判 2026-10-03，`gate-logs/a4-art-recheck-20261003/01-art-recheck.log`）
 
-- [x] 门一 色值溯源：生成器零裸 hex，色值全取 theme 单源（PALETTE 7 + UI + BACKDROP）；ac-11 全仓 18 色溯源 PASS
-- [x] 门二 尺寸合规：9 件逐张 IHDR 机判（512/192/180/120×630/500×400/720×1280），`release-assets.json` 在档
-- [x] 门三 maskable 安全区：`icon-maskable-512.png` / `apple-touch-icon-180.png` 核心元素缩至中心 80%（目检过）
-- [x] 门四 同批可证：截图与 build 同批（`shot-manifest.json.buildSha256 == assembly-manifest.json.buildSha256` 机判，不同批拒绝出清单）
+- [x] 门一 色值溯源：生成器零裸 hex、**零 rgba/rgb 数字字面量**（复核加严），色值全取 theme 单源（PALETTE 7 + UI + BACKDROP + SHAPE/MATERIAL）；theme.PALETTE 7 键 ≡ spec 冻结色板机判 + icon 面心像素 4/4 命中 ±3；style-card↔theme 漂移守卫入生成器
+- [x] 门二 尺寸合规：9 件逐张 IHDR 机判（512/192/180/32/16/1200×630/500×400/720×1280）+ 4 帧实机 780×1688，sha256 ≡ manifest 在档
+- [x] 门三 maskable 安全区：`icon-maskable-512.png`（内容 51512px 越界 0，r≤210px）/ `apple-touch-icon-180.png`（越界 0）——**像素级机判**（前轮为目检，本轮升级）
+- [x] 门四 同批可证：`shot-manifest.buildSha256 == assembly-manifest.buildSha256` = `be310288cff10563` 机判；实机帧本轮零触碰，证据链不作废
 
-> 注：四门禁为**程序线代执行自检**；美术线复核 + A-09 认领仍欠，见 blockers.md 挂账区。
+> **ART-RECHECK: PASS 12/12（EXIT=0）**——四门禁 + A-09 认领 + A-13/A-14 文案红线同门机判；
+> 复核器 `01-art-recheck.mjs` 随证据目录在档可重跑（剥注释扫未冻结数值/内部元数据/色值字面量）。
+> 仓库门禁复跑全绿不降：八门禁 PASS（骨架态口径）· 色板 ALL-GREEN 21 对 minΔE 26.555 · 契约 18/18。
 
 ---
 

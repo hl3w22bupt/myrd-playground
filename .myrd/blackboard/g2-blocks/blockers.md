@@ -17,9 +17,10 @@
 - **导出件**：
   - approved：`.myrd/spec/g2-blocks/design-spec.json`（回读 = 链 v2 全等；**落点偏差披露见下**）
   - v1.2 draft：`.myrd/spec/g2-blocks/design-spec-v1.2-draft.json`（与 approved 基线分离，契约共同输入不换）
-- **g2-blocks 仓库**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks` @ `bb4c836`（树净）
+- **g2-blocks 仓库**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks` @ `c425e1f`（树净）
   本轮提交链：`a6eef71`（冒烟器竞态修正）→ `49402b5`（A-09 代改 + 同批截图）→ `8410986`（装配区入口）
-  → `d564b5c`（N3 三件）→ `4f7470d`（N4 素材包）→ `bb4c836`（N5 v1.2）
+  → `d564b5c`（N3 三件）→ `4f7470d`（N4 素材包）→ `bb4c836`（N5 v1.2）→ `aa929e3`/`2a5d480`（程序线复检）
+  → `c425e1f`（**美术线复核收口**：A-12/A-13/A-14 修复 + A-09 认领）
 - **一号仓库**：分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d`；线上发布 commit = `8d40c39`（部署面）+ `c389982`（落账）
 - **收口复跑基线**：契约 18/18 EXIT=0 · 八门禁全 PASS · SMOKE PASS J1=171.3ms · v1.2 三 check 3/3 PASS
 - **落点偏差披露**：任务书要求 spec 导出到 `.myrd/spec/design-spec.json`，该路径为糖果线撞车冻结件
@@ -44,7 +45,7 @@
 
 | id | 内容 | 归属 | 触发/解除条件 |
 |---|---|---|---|
-| G-A09 | `typeScale` 代改（0.3/0.16/0.24 → 0.036/0.016/0.043）**待美术线认领** | 美术 | 美术复核；不认可 → 回滚并出替代案（HUD 版式已实证修复，契约/冒烟全绿不降） |
+| G-A09 | ~~`typeScale` 代改待美术线认领~~ **✅ 10/3 美术线认领**：机判 4 条（三处数值逐字相等 / 基准=layout.h 源码命中 / 390×844 实测 30.4/13.5/36.3px / 门禁全绿不降）；复核同时立案并修复 A-12/A-13/A-14 三缺陷（素材 token 漂移 + 未冻结数值文案 + 内部元数据外泄，源仓 `c425e1f`），证据 `gate-logs/a4-art-recheck-20261003/`（ART-RECHECK 12/12） | 美术 | 已解除 |
 | G-locator | ~~发现器 tie-break 不确定~~ **✅ 10/3 程序线修复**：`repo-one.mjs` tie-break 改「spec updatedAt → git HEAD 提交时刻最新（活跃工作区）」，字母序根源消除；env 双钉仍最优先（已归档证据按原钉值可复跑，证据链不作废）。复跑：不设 env 时 ac-17 detail `root=run-cmurp7sf…`（本 run）· 契约 18/18 · 门禁 ①–⑧ 全绿 | 程序 | 已解除（levels.md「程序线独立复检」R1） |
 | G-A10 | 棋盘纵向定位（提示条隐没后下方留白 ≈25% 屏高） | 美术 | 下一轮 spec 修订 / 美术拍板 `computeLayout` 权重 |
 | G-A11 | 炉冷终局实机帧缺失（需耗尽手数构造） | QA | round-2 用 `__G2_SET_LEVEL` + 长链路构造补帧 |
