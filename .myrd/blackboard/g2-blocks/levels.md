@@ -10,7 +10,7 @@
 | 节点 | 线 | 交付与落点 | 验收信号 | 状态 |
 |---|---|---|---|---|
 | N2① 图注册表 | 程序 | code-review-graph registry `g2-blocks` → `/Users/leo/.myrd/workspaces/…/g2-blocks` | `list_repos` 返回条目（alias g2-blocks） | ✅ B1 闭合 |
-| N2② 装配区只读入口 | 程序 | `docs/assembly-entry.md` + `docs/assembly-manifest.json` + `tools/assembly-entry.mjs`（同批 = build sha256 机判，不同批拒绝出清单） | ASSEMBLY: PASS · 同批 `750c70b6440ad04c` · QA/美术两用 | ✅ B2 闭合 |
+| N2② 装配区只读入口 | 程序 | `docs/assembly-entry.md` + `docs/assembly-manifest.json` + `tools/assembly-entry.mjs`（同批 = build sha256 机判，不同批拒绝出清单） | ASSEMBLY: PASS · 同批 `be310288cff10563`（10/3 复检重建导出后同批重拍，见下方复检记录）· QA/美术两用 | ✅ B2 闭合 |
 | N2③ B3 归档 | 程序 | 黑板 `gate-logs/deploy-20261002/{01-README,02-contract-check.log,03-smoke.log}`（10/2 发布 commit `0c3aa95` 复跑原文） | 契约 18/18 EXIT=0 · SMOKE PASS J1=175.2ms · 含命令/钉值/时间戳 | ✅ B3 闭合 |
 | N3-T1 | 程序 | `src/platform/storage.ts`（注册键制 + 版本化迁移，fromVersion 显式）+ `src/platform/audio.ts`（合成器可注入） | 门禁 T1a–g PASS · ac-16 键级最小集不降 | ✅ |
 | N3-T2 | 程序 | `src/telemetry/fps.ts` + main.ts rAF 接线 + `__G2_FPS` + `tools/perf-report.mjs` | 基准跑 fps=60 · P95=16.7ms · 卡顿 0；口径落 `docs/release-readiness.md`（红线④） | ✅ |
@@ -20,14 +20,44 @@
 | N5 spec v1.2 | 策划 | 链 v3 `cmurqo70l001uiccx7hjjr37e` **draft**（parent=v1.1）· 八道守卫全绿 | 三 check 写死 3/3 PASS · 漂移面=白名单 · v1.1 approved 保留 · READBACK EQUAL | ✅（approve 留主人） |
 | N6 对抗用例预研 | QA | `n6-adversarial-cases.md` 六维 38 条（含开放问题 Q1–Q3） | 逐条可执行（命令+预期+判定）· 不依赖装配区 | ✅ |
 
-## A 轮复跑基线（收口态 · g2-blocks @ `bb4c836` 树净）
+## A 轮复跑基线（收口态 · g2-blocks @ `aa929e3` 树净 · 10/3 程序线复检后）
 
 - 契约全量（approved v1.1 基线）：**18 PASS / 0 FAIL · EXIT=0**
 - v1.2 三条新 check：**3/3 PASS**（`G2_SPEC_PATH=v1.2 draft` + `--only`）
 - 八门禁：**①–⑧ 全 PASS**（⑧ = 本轮新增工程前置面，20 断言）
 - 冒烟：**SMOKE: PASS · J1=171.3ms ≤ 400ms**
 - numeric 锚：v1.1 `302e6336…`（零漂移）· v1.2 draft `00ca798c…`
-- 提交链：`a6eef71` → `49402b5` → `8410986` → `d564b5c` → `4f7470d` → `bb4c836`
+- 提交链：`a6eef71` → `49402b5` → `8410986` → `d564b5c` → `4f7470d` → `bb4c836` → `2a5d480`（复检修 3 缺陷）→ `aa929e3`（证据重出）
+
+## 程序线独立复检（2026-10-03 · 新 run 工作区，不沿用上轮证据）
+
+> 复检口径：在新 run 工作区（`run-cmurp7sfe000ticcx6ddkrvca`）**实跑**全部门禁拿本轮自己的证据，
+> 不引用上一轮 run 的输出。结果：**3 处缺陷修掉，复跑全绿不降**（N3 验收信号达成）。
+> 原始输出归档：`gate-logs/a-round-prog-recheck-20261003/`（含 cmd/gitRef/钉值/UTC/EXIT，N7 对账输入）。
+
+| # | 复检项 | 本轮实测（命令 + 退出码） | 结果 |
+|---|---|---|---|
+| 1 | 契约全量（approved v1.1） | `node scripts/contract-check.mjs` → EXIT=0 | **18 PASS / 0 FAIL** |
+| 2 | v1.2 三条新 check | `G2_SPEC_PATH=<draft>` + `--only ac-19/20/21` → 各 EXIT=0 | **3/3 PASS**（工程面零 v1.2 实现痕迹，红线①机判） |
+| 3 | 工程门禁八件 | `npm run gate` | **①–⑧ 全 PASS**（⑧ = 20/20） |
+| 4 | 冒烟 | `node tools/smoke.mjs` → EXIT=0 | **SMOKE: PASS · J1=171.5ms ≤ 400ms** · 控制台零错误 |
+| 5 | P95 报告（N3-T2） | `node tools/perf-report.mjs` | **基准 P95=16.7ms @ fps=60 · 卡顿 0**（当前批次重建） |
+| 6 | 装配区入口（N2②） | `node tools/assembly-entry.mjs` → EXIT=0 | **ASSEMBLY: PASS · 同批 `be310288cff10563`** |
+| 7 | 图注册表（N2①） | `list_repos` | alias `g2-blocks` → 源仓路径在册 |
+| 8 | B3 归档（N2③） | 黑板 `gate-logs/deploy-20261002/` | 原文含 cmd/gitRef/钉值/UTC/EXIT · 契约 18/18 · J1=175.2ms |
+
+### 复检修掉的 3 处缺陷（判据未放宽，见 blockers.md 修复区）
+
+| 缺陷 | 根因 | 修法 | 证据 |
+|---|---|---|---|
+| R1 定位器误锚旧 run | `tests/contract/repo-one.mjs` 在多 run 并列最高 version 时按**字母序** tie-break → 锚上一轮 run（`run-cmuq9pz86…`）；ac-17 扫的是陈旧快照、ac-19/20/21 在新 run 全红 | tie-break 改「spec updatedAt → **git HEAD 提交时刻最新（活跃工作区）**」；env 双钉仍最优先（已归档证据可复跑） | 不设 env 时 `repoOneRoot()` = 本 run；ac-17 detail `root=run-cmurp7sf…` |
+| R2 契约 `--only` 假绿 | id 不在当前装载 spec 的 acceptance 段时零断言仍报「契约全绿」（违本脚本反审查约束②）——裸跑 ac-19/20/21 必假绿 | 零断言显式红 + EXIT=1 + 恢复路径提示（指向 `G2_SPEC_PATH=<draft>`） | 裸跑 ac-19 实测 `RED … EXIT=1`；带钉后 3/3 PASS |
+| R3 导出产物漂移 | `src` 注释（禁 API 字面量措辞）改动后未重建 → tracked `build/` ≠ src（违「确定性导出」） | `node tools/build.mjs` 重建 + `node tools/screenshot.mjs` 同批重拍 + P95 报告重出 | 重建后 diff 仅 datetime/fps 注释 + sw 版本号；同批 `be310288cff10563` |
+
+### N9 前置提醒（部署面）
+
+仓库 `build/` = 批次 `be310288cff10563`；一号仓库部署镜像 `games/g2-blocks/export/web` 仍是
+10/2 发布批次（commit `8d40c39`）。**N9 触发时必须重新导出镜像**，否则线上 ≠ 源仓当前批次。
 
 ## v1.2 数值提案（策划线 · 冻结前仅供参考，冻结以链上 numeric 为准）
 

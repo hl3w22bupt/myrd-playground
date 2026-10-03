@@ -30,15 +30,22 @@
 | id | 内容 | 归属线 | 解除判据 | 状态 |
 |---|---|---|---|---|
 | B1 | g2-blocks 未注册进图注册表 | 程序 | 注册表含 g2-blocks 且可被图工具检索 | ✅ `list_repos` 返回 alias=g2-blocks（N2①） |
-| B2 | 装配区只读入口缺失（QA/美术无同一把钥匙） | 程序 | 只读入口 + 同批截图索引，机判同批 | ✅ ASSEMBLY: PASS · 同批 `750c70b6…`（N2②） |
+| B2 | 装配区只读入口缺失（QA/美术无同一把钥匙） | 程序 | 只读入口 + 同批截图索引，机判同批 | ✅ ASSEMBLY: PASS · 同批 `be310288cff10563`（N2②；10/3 复检重建导出后同批重拍） |
 | B3 | 10/2 发布 commit 原始输出未归档 | 程序 | 原文落 gate-logs（含命令/钉值/退出码/J1） | ✅ `gate-logs/deploy-20261002/` 三件（N2③） |
+
+### 程序线复检修复记录（2026-10-03 · 新 run 工作区实跑发现，判据零放宽）
+
+| id | 缺陷 | 修法 | 证据 |
+|---|---|---|---|
+| R2 | `scripts/contract-check.mjs --only <id>` 指向不在当前装载 spec 的 id 时**零断言仍报全绿**（违本脚本反审查约束②；裸跑 ac-19/20/21 必假绿） | 零断言显式 RED + EXIT=1 + 恢复路径提示（`G2_SPEC_PATH=<draft>`） | 裸跑 ac-19 实测 RED/EXIT=1；带钉 3/3 PASS |
+| R3 | tracked `build/` 导出与 src 漂移（src 禁 API 字面量注释措辞改动后未重建，违「确定性导出」） | 重建 `build/` + 同批重拍 4 张实机帧 + P95 报告重出 | 重建 diff 仅 2 文件注释 + sw 版本号；ASSEMBLY 同批 `be310288cff10563`；SMOKE PASS J1=171.5ms |
 
 ## 挂账（非本轮动作，防丢失）
 
 | id | 内容 | 归属 | 触发/解除条件 |
 |---|---|---|---|
 | G-A09 | `typeScale` 代改（0.3/0.16/0.24 → 0.036/0.016/0.043）**待美术线认领** | 美术 | 美术复核；不认可 → 回滚并出替代案（HUD 版式已实证修复，契约/冒烟全绿不降） |
-| G-locator | `spec-source.ts` / `repo-one.mjs` 兄弟 run 发现器 tie-break 不确定（多 run 并列最高 version 时锚定任意候选；本轮首跑实测 ac-17 误锚上一轮 run） | 程序 | 本轮以 `G2_SPEC_PATH` + `G2_REPO_ONE_ROOT` 双钉值规避；发现器修复留下一轮（QA 在场时改，避免作废证据链） |
+| G-locator | ~~发现器 tie-break 不确定~~ **✅ 10/3 程序线修复**：`repo-one.mjs` tie-break 改「spec updatedAt → git HEAD 提交时刻最新（活跃工作区）」，字母序根源消除；env 双钉仍最优先（已归档证据按原钉值可复跑，证据链不作废）。复跑：不设 env 时 ac-17 detail `root=run-cmurp7sf…`（本 run）· 契约 18/18 · 门禁 ①–⑧ 全绿 | 程序 | 已解除（levels.md「程序线独立复检」R1） |
 | G-A10 | 棋盘纵向定位（提示条隐没后下方留白 ≈25% 屏高） | 美术 | 下一轮 spec 修订 / 美术拍板 `computeLayout` 权重 |
 | G-A11 | 炉冷终局实机帧缺失（需耗尽手数构造） | QA | round-2 用 `__G2_SET_LEVEL` + 长链路构造补帧 |
 | G-cdp | `tools/smoke.mjs` / `screenshot.mjs` 未并入共享件 `tools/cdp.mjs` | 程序 | 两件被 QA 复检器钉档，本轮不代改；下一轮 QA 在场时并 |
