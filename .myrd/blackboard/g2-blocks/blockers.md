@@ -21,7 +21,7 @@
   本轮提交链：`a6eef71`（冒烟器竞态修正）→ `49402b5`（A-09 代改 + 同批截图）→ `8410986`（装配区入口）
   → `d564b5c`（N3 三件）→ `4f7470d`（N4 素材包）→ `bb4c836`（N5 v1.2）→ `aa929e3`/`2a5d480`（程序线复检）
   → `c425e1f`（**美术线复核收口**：A-12/A-13/A-14 修复 + A-09 认领）
-- **一号仓库**：分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d`；线上发布 commit = `8d40c39`（部署面）+ `c389982`（落账）
+- **一号仓库**：分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d`；线上发布 commit = `852a13c`（**部署轮 r2 · 2026-10-03**：A 轮收口后最新产物上 AppHost，坑 `cmuqelj2r0046m9zr4emgdgdg` v3 running · LIVE-SMOKE PASS，见 `apphost-app.md`）；历史 `8d40c39`（v2 部署面）+ `c389982`（落账）
 - **收口复跑基线**：契约 18/18 EXIT=0 · 八门禁全 PASS · SMOKE PASS · v1.2 三 check 3/3 PASS
   ——**原文在档**（驳回修复 R4②）：`c425e1f` 态 = `gate-logs/c425e1f-closeout-recheck-20261003/`（**J1=172ms**，
   旧写 171.3ms 为跨 run 转抄无档，作废）；最终态 `fe5fd38` = `gate-logs/prog-r4-docfix-recheck-20261003/`
