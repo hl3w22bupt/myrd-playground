@@ -54,7 +54,7 @@ body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; f
   <div id="boot-msg">正在整理仓库…</div>
   <div id="keys"><span><kbd>←↑↓→</kbd> 移动光标</span><span><kbd>空格</kbd> 选中 / 交换</span><span><kbd>R</kbd> 重开</span><span><kbd>Enter</kbd> 过关后下一关</span></div>
 </div>
-<div id="hint" style="display:none">方向键移动 · 空格交换 · R 重开 · Enter 下一关</div>
+<div id="hint" style="display:none">点击/拖拽收集 · 每次动作消耗 1 点预算 · ESC 暂停 · R 重开</div>
 <noscript>你的浏览器不支持 JavaScript。</noscript>
 <!-- 引擎引导脚本由启动脚本按 BASE_PATH 动态注入（静态 src 在无尾斜杠入口下会 404） -->
 <script>
