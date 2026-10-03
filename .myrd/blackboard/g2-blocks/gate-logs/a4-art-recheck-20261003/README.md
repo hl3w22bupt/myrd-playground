@@ -46,3 +46,17 @@
 - 八门禁/色板/契约为复核后**复跑取证**（本轮未逐一落 log 文件，原文见各命令 stdout；核心判据已固化进 `01-art-recheck.log` 与源仓 commit message）。
 - 实机 4 帧本轮零触碰 → 门四同批指纹（`be310288cff10563`）继续有效，截图证据链不作废。
 - 素材文案纪律与门一判据已在 `01-art-recheck.mjs` 固化：剥注释后扫描 `×5 / maxMultiplier / spec vN` 与数字字面量形态 rgba/rgb，复核器可重跑复证。
+
+## 五、复证（2026-10-03 · R4 驳回修复轮后，HEAD `fe5fd38`）
+
+> 触发：R4 轮重拍 4 实机帧（`shot-manifest.json` gitRef 重锚 `4f67806` + `sameBatchCriterion` 随件声明）→ 美术面在新 HEAD 复证，判据零改动。
+
+```
+[PASS] | 线1 美术 | 02-art-reverify-fe5fd38.log | 2026-10-03 | node 01-art-recheck.mjs | ART-RECHECK: PASS 12/12（重拍帧 sha256 4/4 ≡ 新 manifest · 门四同批 be310288cff10563 不变 · gitRefRole=informational 口径与复核器判据一致） | 本目录
+[PASS] | 线1 美术 | （契约复跑） | 2026-10-03 | cd $G2 && node scripts/contract-check.mjs | 18 PASS / 0 FAIL · CONTRACT: PASS | g2-blocks @ fe5fd38
+[PASS] | 线1 美术 | （色板复跑） | 2026-10-03 | cd $G2 && npm run gate:palette | ALL-GREEN 0红/21对 minΔE=26.555 margin=+1.555 selftest=18/18 | g2-blocks @ fe5fd38
+[PASS] | 线1 美术 | （八门禁复跑） | 2026-10-03 | cd $G2 && npm run gate | 门禁绿（骨架态）①–⑧ 全 PASS · 20 PASS/0 FAIL | g2-blocks @ fe5fd38
+```
+
+- 复证性质 = **只检不新做**：素材 9 件 + 实机帧 4 张像素零改动（R4 仅重锚清单元数据）；`sameBatchCriterion.exclusive=true` 与本目录门四判据逐字一致，美术面无新缺陷、无新立案。
+- 美术线状态：**收口态维持**；在册挂账 A-10 / A-11 / intent 更正案触发条件不变。
