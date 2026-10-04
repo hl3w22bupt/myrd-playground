@@ -1,4 +1,35 @@
-# 资产清单黑板 — g2-blocks（A 轮「发布素材包 + 风格盘点」）
+# 资产清单黑板 — g2-blocks（**V1.2「核心手感 6 项 + daily-challenge」轮 · 视觉打磨包**）
+
+> 更新时间：2026-10-04（本轮开工 · 主策划）
+> 负责人：游戏美术（打磨包面）/ 主策划（整合校对）
+> 下一步：待 N1 numeric 冻结（feel/daily 两组）后按冻结值开产七件打磨包，逐资产四要素校样留证；A 轮风格差距清单收口为零 open
+> 红线：色值一律引用冻结色板 token（生成器零裸 hex、零 rgba 字面量）；形变/粒子/震屏数值一律取链上 `numeric.feel`（零手抄第二份）
+
+## 顶部风格卡（沿用 A 轮定稿，本轮零改动 · 详档见下方存档区「风格卡」节）
+
+- **要素1 主色**：冻结色板 7 hex（`block-01..07`，真源 = spec `numeric.palette`；暖区第 6/7 色 #4B2B25 / #E3B5BF）
+- **要素2 形状语言**：方角圆角块 + 内描边（alpha 0.35）+ 顶部高光条（alpha 0.18）——本轮新增「落地挤压形变」「三档粒子」须沿用同一形状语言派生
+- **要素3 材质**：零贴图（textureSampling=none）· brightness-pulse 命中反馈 · inner-dark-overlay 阴影
+- **要素4 版式基色**：BACKDROP 三停靠渐变 + heatGlow 连击热感 + vignette；UI token 九键（bgDeep/bgPanel/textPrimary/textDim/accentWarm/dangerCool/hintBarBg/coolBannerBg/coolBannerText）
+
+## V1.2 视觉打磨包登记区（N3 · 美术线填报 · 编号 F-xx）
+
+> 填报口径：每条编号 `F-xx`，四要素校样逐项留证（**实机位置 → 参考卡条款 → 数值来源 → 校样证据**）。
+> 数值来源只认链上 `numeric.feel`（链 v4）；色值只认冻结 token。校样证据落 `gate-logs/v12-feel-n3-20261004/`。
+
+| 编号 | 资产 | 实机位置 | 数值来源 | 校样证据 | 状态 |
+|---|---|---|---|---|---|
+| F-01 | 落地挤压形变帧表 | 重力落定的块（渲染层 squash 变换） | numeric.feel.landSquash | ⏳ | ⏳ |
+| F-02 | 硬降震屏参数曲线 | 消除后大落差（≥thresholdCells）镜头偏移 | numeric.feel.hardDrop | ⏳ | ⏳ |
+| F-03 | 三档独立粒子资产 + 合图集说明 | 消除命中点爆发粒子 | numeric.feel.particles | ⏳ | ⏳ |
+| F-04 | 三档音效资源表（三组独立 + 变参微调） | 消除/连击音（theme SFX 表经 a03 资产再生） | numeric.feel.sfx.tiers + assets/a03-sfx-plan.json | ⏳ | ⏳ |
+| F-05 | 连击三档视觉态 | HUD 连击计数区 | numeric.feel.combo.tiers | ⏳ | ⏳ |
+| F-06 | 重开按钮三态 + 转场帧 | 炉冷横幅 / 常驻重开入口 | numeric.feel.restart | ⏳ | ⏳ |
+| F-07 | daily 入口与角标 + 分享卡轻更新 | HUD daily 入口 / share og+wx 卡轻刷新 | numeric.daily + numeric.feel.dailyBadge | ⏳ | ⏳ |
+
+---
+
+# 存档：A 轮「发布素材包 + 风格盘点」（2026-10-03 收口）
 
 > 更新时间：2026-10-03（**美术线复核收口 + R4 后复证**：A-01..A-08 复核 + 3 缺陷修复重出 + A-09 认领（源仓 `c425e1f`）；R4 重拍帧后于 HEAD `fe5fd38` 复证 ART-RECHECK 12/12，只检不新做）
 > 负责人：游戏美术（资产面 + 风格盘点）/ 主策划（整合校对 · 前轮代执行已复核认领）

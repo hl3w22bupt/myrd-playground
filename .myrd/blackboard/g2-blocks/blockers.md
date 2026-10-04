@@ -1,4 +1,34 @@
-# 阻塞项黑板 — g2-blocks（**A 轮「发布收尾主线 + v1.2 写案并行」· 收口**）
+# 阻塞项黑板 — g2-blocks（**V1.2「核心手感 6 项 + daily-challenge」轮 · 进行中**）
+
+> 更新时间：2026-10-04（本轮开工 · 主策划）
+> 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：N1 spec 校准入链（链 v4 draft）→ N2 实现 ∥ N3 视觉打磨包 → N4 复检 → N5 打包提请主人 approve
+
+## 当前基线（V1.2 核心手感轮 · 2026-10-04）
+
+- **黑板路径**：`.myrd/blackboard/g2-blocks/`（levels.md / assets.md / blockers.md + gate-logs/）
+- **spec 版本号**：
+  - **契约共同输入 = v1.1 approved 导出件** `.myrd/spec/g2-blocks/design-spec.json`（平台 id `cmuqa2mu50023m9zr8mh60uph` · 链 v2 · 锚 `302e63367f3dea63…`；**实查披露**：链上因 v3 draft 建版动作，v2 行 status 已翻 superseded——approved 快照以导出件 `_platform` 为准，契约输入本轮不换）
+  - **链头 = v3 draft** `cmurqo70l001uiccx7hjjr37e`（combo 倍率 / level-stars 派生式 / 第一分钟引导提案，**本轮顺延**，保留在链不覆盖）
+  - **本轮新建 = 链 v4 draft**（V1.2 核心手感校准版）：numeric 增 `feel`+`daily` 两组、acceptance 增 7 条（ac-22..28）、v3 提案中 daily 段并入、combo 倍率/level-stars/第一分钟引导顺延零实体零验收
+- **开工前置两项快照（已冻结，N2 开工前置）**：
+  - ① v1.1 P95 基线报告快照 → `gate-logs/v12-feel-n1-20261004/01-p95-baseline-snapshot.json`（源仓 `docs/evidence/perf-p95-report.json` @ `fe5fd38`：基准跑 P95=16.7ms / fps=60 / 卡顿 0）
+  - ② v1.1 契约清单快照 → `gate-logs/v12-feel-n1-20261004/02-v11-contract-snapshot.json`（18 条 id+check+statement 逐字 + 锚）
+- **本轮基线自证（2026-10-04 实跑）**：契约 18/18 EXIT=0 · 八门禁 ①–⑧ 全 PASS（钉 `G2_REPO_ONE_ROOT=`本 run）
+- **g2-blocks 仓库**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks` @ `fe5fd38`（树有 2 处 benign 运行残留：`build/sw.js` 缓存版本号 + `tests/contract/.j1-evidence.json` J1 实测值，N2 首个提交一并归位）
+- **一号仓库**：分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d`（沿用 A 轮工作分支；线上发布 commit `852a13c` 不动）
+- **落点偏差披露（沿用 A 轮已接受口径）**：任务书要求 spec 导出到 `.myrd/spec/design-spec.json`，该路径为 stack-tower 专属件（`routines.yaml` B4「一游戏一文件」）→ 本轮沿用 `.myrd/spec/g2-blocks/design-spec.json`
+- **护栏**：① stack-tower 线上零接触（本轮零触碰其 spec/代码/黑板段）；② numeric 冻结零漂移，v1.1 既有 12 组 numeric 逐字节不动，契约+冒烟全绿为提交前置，numeric 与 P95 冲突 → 程序上报 → 主策划回 N1 version+1，禁止静默改 spec；③ 阻塞超一轮 → 升级主人
+
+## 阻塞项（V1.2 核心手感轮 · 开工登记）
+
+| id | 内容 | 归属线 | 解除判据 | 状态 |
+|---|---|---|---|---|
+| C1 | 本轮 numeric（feel/daily 两组）未冻结 → 实现不得开工（红线：数值冻结前不写数值实现代码） | 策划+程序 | 链 v4 draft 入链 + 回读全等 + 守卫全绿 | ⏳ N1 执行中 |
+| C2 | 视觉打磨包未开产（形变帧表/三档粒子/震屏曲线/连击三档态/重开三态/daily 入口角标/分享卡轻更新） | 美术 | 按 N1 numeric 冻结值产出 + 逐资产四要素校样留证 + open 差距=0 | ⏳ 待 N1 冻结 |
+| C3 | 五切片实现未开工（依赖 C1 解除 + C2 表格可并行） | 程序 | 每片先红后绿；合入前 T2 采样对比 v1.1 P95 不退化 | ⏳ 待 C1 |
+
+# 以下为 A 轮存档（「发布收尾主线 + v1.2 写案并行」· 收口 · 2026-10-03）
 
 > 更新时间：2026-10-03（N2–N6 全链核销 · 主策划）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
