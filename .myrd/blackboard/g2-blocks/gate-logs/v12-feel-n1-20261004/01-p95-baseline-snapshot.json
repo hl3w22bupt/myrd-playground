@@ -1,0 +1,47 @@
+{
+  "generatedAt": "2026-10-03T02:59:47.224Z",
+  "spec": {
+    "id": "cmuqa2mu50023m9zr8mh60uph",
+    "version": 2,
+    "status": "approved"
+  },
+  "budgetP95Ms": 16.7,
+  "passes": [
+    {
+      "label": "基准跑",
+      "throttleX": 1,
+      "viewportPx": "390x844",
+      "hands": 14,
+      "snapshot": {
+        "samples": 363,
+        "fps": 60,
+        "meanMs": 16.666,
+        "p50Ms": 16.7,
+        "p95Ms": 16.7,
+        "p99Ms": 16.8,
+        "maxMs": 16.8,
+        "jankFrames": 0,
+        "jankRatio": 0
+      },
+      "consoleErrors": 0
+    },
+    {
+      "label": "规格跑（spec j1 同环境）",
+      "throttleX": 4,
+      "viewportPx": "390x844",
+      "hands": 14,
+      "snapshot": {
+        "samples": 140,
+        "fps": 18.03,
+        "meanMs": 55.474,
+        "p50Ms": 50,
+        "p95Ms": 66.7,
+        "p99Ms": 66.7,
+        "maxMs": 66.7,
+        "jankFrames": 140,
+        "jankRatio": 1
+      },
+      "consoleErrors": 0
+    }
+  ]
+}

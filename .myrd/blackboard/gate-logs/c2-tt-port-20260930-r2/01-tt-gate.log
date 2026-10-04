@@ -1,0 +1,156 @@
+# 文件名：01-tt-gate.log
+# 日期：2026-09-30 10:34:43 +0800（UTC+8）
+# 命令：node games/stack-tower/tests/tt/run-tt-gate.mjs
+# 执行目录：/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmunesx300146m9lfeoyat8w7（repo 根 = git rev-parse --show-toplevel）
+# 角色：游戏程序（N2 · 驳回收口轮）：tt 轨门禁聚合（子门 stdout 全量透传——DY_FRIEND_RANK 三行进档）
+# ── 以下为命令原始输出（无删节） ──
+----- [gate] dy-runtime（tt-runtime-surface 条目查）（tests/tt/tt-runtime-surface.spec.mjs）stdout 开始 -----
+  PASS  spec dy 条目 id 全集（3 条，编号无漂移）
+  PASS  落点在盘（repo 根相对逐字）：games/stack-tower/src/platform/tt.ts
+  PASS  落点在盘（repo 根相对逐字）：games/stack-tower/src/audio/bgm.ts
+  PASS  落点在盘（repo 根相对逐字）：games/stack-tower/tt/game.json
+  PASS  落点在盘（repo 根相对逐字）：games/stack-tower/tt/game.js
+  PASS  落点在盘（repo 根相对逐字）：games/stack-tower/tt/project.config.json
+  PASS  落点在盘（repo 根相对逐字）：games/stack-tower/tools/build-tt.mjs
+  PASS  deviceOrientation=portrait
+  PASS  无 openDataContext（抖音无开放数据域独立子包机制，好友榜收敛 tt 云存储）
+  PASS  AppID 占位在位（长度 ≥8，非空号）
+  PASS  compileType=game
+  PASS  AppID 占位策略留痕（占位 + 真机/提审不执行不造假）
+  PASS  game.js → require('./build-tt/app/boot-tt.js')
+  PASS  boot-tt 产物落包
+  PASS  exports.createTtPlatform（装配体导出）
+  PASS  生命周期：tt.onShow 恢复 / tt.onHide 暂停（BGM 环接线）
+  PASS  输入：tt.onTouchStart → 意图（首触解锁先行）
+  PASS  时钟：requestAnimationFrame 帧链
+  PASS  系统信息：getSystemInfoSync + safeArea（仅表现层布局输入）
+  PASS  存储桥：tt getStorageSync/setStorageSync 读写路径
+  PASS  存储键常量单源（MUTED_STORAGE_KEY / META_SAVE_KEY import，零字面重抄）
+  PASS  键名常量与 web 同源逐字相等（st.settings.muted / st.meta.save.v2）
+  PASS  BGM 环：createInnerAudioContext(loop) + obeyMuteSwitch
+  PASS  好友榜：setUserCloudStorage 写 / getFriendCloudStorage 读（tt 云存储单通道）
+  PASS  好友榜降级三因（missing-api / auth-denied / no-tt-container）+ 门禁可见行 DY_FRIEND_RANK
+  PASS  分享面：onShareAppMessage 注册 + shareAppMessage 主动（不可用静默降级）
+  PASS  零 kernel 触碰（系统信息/安全区不进 numeric 冻结段）
+  PASS  boot-tt：DOM shim + 视口上报 + HUD 直绘 + 分享入口
+[tier] devtools=machine-run（本门执行，fake tt 宿主行为冒烟）
+[tier] device=blocked —— AppID + 类目/资质 + 真机工具未到位，不执行、不造假数据（spec dy-submission-kit.notes 口径）
+  PASS  真机档政策在位（AppID 占位 + 不执行不造假）
+[gate] DY_FRIEND_RANK=degraded reason=missing-api
+  PASS  好友榜降级·缺 API：DY_FRIEND_RANK=degraded reason=missing-api（门禁输出可见）
+[gate] DY_FRIEND_RANK=degraded reason=no-tt-container
+  PASS  好友榜降级·非抖音容器：reason=no-tt-container（门禁输出可见）
+[gate] DY_FRIEND_RANK=cloud
+  PASS  好友榜接入档：mode=cloud（API 在位）
+  PASS  好友榜读取：tt 云存储单通道返回分数行（降序）
+  PASS  主包零好友数据落点（读取不写任何存储键）
+  PASS  装配面：platform / bgm / setPaused / safeArea / friendRank 五柄齐备
+  PASS  安全区只读暴露（top=44，表现层布局输入）
+  PASS  帧链与意图链可达（pump 一帧 → 帧回调 1 次）
+  PASS  首触手势内完成音频解锁 + BGM 起播（acc-a7 同口径）
+  PASS  首触同手势产生落块意图（与 web pointerdown 同口径，解锁不吞首次操作）
+  PASS  后续触摸 → drop 意图（输入链稳定）
+  PASS  静音持久：st.settings.muted=1 写入 tt 存储（同源键）
+  PASS  静音复位：st.settings.muted=0（读写路径同桥）
+  PASS  onHide 语义：暂停后帧回调静默（帧数不再增长）
+  PASS  BGM 环调度：loopsScheduled ≥ 2（提前预约下一圈）
+  PASS  BGM 环连续性：gapViolations = 0（缝隙 ≤ 预算）
+  PASS  BGM 环出口：InnerAudioContext loop + obeyMuteSwitch（跟随系统静音键）
+  PASS  UTC 23:30 vs UTC+8 00:30 归入不同挑战日（任务书原文用例）
+  PASS  翻日边界：UTC 15:59:59 前一日 / 16:00:00 翻日（TZ_OFFSET=480）
+  PASS  meta 存档：st.meta.save.v2 落 tt 存储 + schemaVersion=2（键名与 web 同源零分叉）
+  PASS  跨翻日边界：同键读写连续（挑战日翻日不改存档键）
+  PASS  当日挑战 seed 确定性（同输入同 seed，零 Math.random）
+  PASS  巡检：tt 装配体零网络调用面（tt.request/uploadFile/connectSocket/fetch 均无）
+  PASS  巡检：tt 入口零网络调用面
+  PASS  巡检：tt 面 Zero PII（无昵称/头像/设备号/身份字段）
+  PASS  巡检：会话埋点仍由共享组装根承载（session_start/session_end 原位，未在 tt 面重抄）
+[audit] 埋点合规巡检 = 只读核对（三行），零调优建议输出
+RESULT: PASS  — dy-runtime 运行时表面（55 项断言全绿）
+----- [gate] dy-runtime（tt-runtime-surface 条目查） stdout 结束 -----
+----- [gate] dy-share-loop（tt-share-loop 条目查）（tests/tt/tt-share-loop.spec.mjs）stdout 开始 -----
+  PASS  spec 原文②：tt.shareAppMessage 最小闭环（主判据）
+  PASS  spec 原文②：分享回调 imageUrl 使用 dy-share-card（500×400）
+  PASS  spec 原文③：录屏分享/高光封面卡 = 能力级 optional
+  PASS  spec 原文③反向口径：未标注 optional 的缺件按 spec 缺陷打回
+  PASS  spec 原文：载荷携带 sessionId（sid 同源，零 PII）
+  PASS  spec 原文：分享失败降级（静默降级并保留入口，不抛错不阻塞对局）
+  PASS  dy-share-card spec↔资产 manifest↔磁盘 三向一致（sha256）
+  PASS  dy-share-card 尺寸 500x400 = spec 定稿 500x400（500×400）
+  PASS  dy-share-card 比例 5:4 数值核
+  PASS  dy-share-card 落包（export/tt 内 sha256 一致）
+  PASS  dy-share-card 色源：NEON 表派生（生成器色源断言在 manifest.derivedFrom）
+  PASS  share.js：会话卡路径 assets/tt/share-card.png（主判据配图）
+  PASS  tt.js：createTtShareRegistrar 导出（注册面）
+  PASS  tt.js：onShareAppMessage 注册 + shareAppMessage 主动分享（闭环双通道）
+  PASS  tt.js：分享不可用静默降级（入口保留，不抛错）
+  PASS  boot-tt：installShareMenuWith(TT_SHARE_CARDS) 安装 + shareNow 入口
+  PASS  载荷 query 携带 sid=（encodeURIComponent）
+  PASS  分享载荷零 PII（无昵称/头像/设备号/身份字段）
+  PASS  被动分享回调返回载荷（imageUrl=dy-share-card + query sid=）
+  PASS  注册面记帐：lastSessionShare 与回调载荷一致
+  PASS  主动分享：tt.shareAppMessage 收到 imageUrl=dy-share-card（会话实收形态）
+  PASS  降级一：宿主缺分享 API → shareNow 静默不抛错（入口保留）
+  PASS  降级二：分享失败回调（fail）→ 静默不抛错不阻塞对局
+  PASS  卡片集单源：TT_SHARE_CARDS=tt/share-card，WX_SHARE_CARDS=wx 既有两卡（互不串线）
+  PASS  optional 能力不产件：仓库无录屏/高光封面派生素材 id（缺失不构成打回项）
+RESULT: PASS  — dy-share-loop 分享闭环（主判据 dy-share-card 500×400）（25 项断言全绿）
+----- [gate] dy-share-loop（tt-share-loop 条目查） stdout 结束 -----
+----- [gate] dy-submission-kit（tt-submission-kit 条目查）（tests/tt/tt-submission-kit.spec.mjs）stdout 开始 -----
+  PASS  check-tt-bundle-size（主包/子包分列断言）PASS
+  PASS  check-numeric-freeze（只复算 N1 存档，禁现场自算）PASS
+  PASS  包 manifest 逐件 sha256 与磁盘一致（63 件，漂移 0）
+  PASS  包内关键件在位：game.json
+  PASS  包内关键件在位：project.config.json
+  PASS  包内关键件在位：game.js
+  PASS  包内关键件在位：build-tt/app/boot-tt.js
+  PASS  包内关键件在位：build-tt/platform/tt.js
+  PASS  包内关键件在位：assets/tt/share-card.png
+  PASS  包内关键件在位：assets/bgm/neon-loop.m4a
+  PASS  商店截图不入包（提审材料留仓库——wx B0 判例同构）
+  PASS  numeric 逐字节零漂移：现行 approved 导出件 numeric ≡ N1 存档锚
+  PASS  numeric 冻结锚形态合法（64 hex，唯一存档来源）
+  PASS  dy 材料 id 全集 5 项在 spec 登记（dy-share-card + 01..03 + dy-icon）
+  PASS  dy-submission-kit 条目资产 = 4 件（截图 3 + 图标；share-card 归 dy-share-loop）
+  PASS  材料 dy-share-card（500x400）spec↔manifest↔磁盘 三向一致
+  PASS  材料 dy-store-screenshot-01（1242x2208）spec↔manifest↔磁盘 三向一致
+  PASS  材料 dy-store-screenshot-02（1242x2208）spec↔manifest↔磁盘 三向一致
+  PASS  材料 dy-store-screenshot-03（1242x2208）spec↔manifest↔磁盘 三向一致
+  PASS  材料 dy-icon（512x512）spec↔manifest↔磁盘 三向一致
+  PASS  dy 编号三方对齐（spec 条目 id ↔ 资产 id ↔ 接线面）
+  PASS  docs/dy-submission-kit-c3.md 在位
+  PASS  kit 文书含提审包指纹（export/tt/game.js sha256 可追溯）
+  PASS  kit 文书含「是否提审由主人拍板」声明（团队只交包，提审动作不代行）
+  PASS  kit 文书含 optional 能力声明（录屏分享/高光封面卡，缺失不构成打回项）
+  PASS  kit 文书含 N4 三份输入口径（approved spec + repo 根/黑板指针 + 机器证据）
+  PASS  kit 文书含 QA 四条验收口径对照（①好友榜②主判据③optional④停审）
+  PASS  kit 文书含材料清单（5 id 逐项，含 sha256）
+  PASS  kit 文书材料 sha256 ≡ assets/tt/manifest.json（5 件逐件相等）
+  PASS  kit 文书主包体积 ≡ export/tt/manifest.json（300222B）
+  PASS  kit 文书带 repo 根/黑板指针（N4 产物定位输入）
+RESULT: PASS  — dy-submission-kit 提审包与材料清单（31 项断言全绿）
+----- [gate] dy-submission-kit（tt-submission-kit 条目查） stdout 结束 -----
+----- [gate] 包体积分列（check-tt-bundle-size）（scripts/check-tt-bundle-size.mjs）stdout 开始 -----
+[size] 主包 293.2KB / 4MB —— PASS
+[size] 子包 0B —— PASS（分列口径：抖音无开放数据域独立子包机制）
+[size] manifest 一致性：63 件，漂移 0
+RESULT: PASS
+----- [gate] 包体积分列（check-tt-bundle-size） stdout 结束 -----
+----- [gate] numeric 零漂移（check-numeric-freeze）（scripts/check-numeric-freeze.mjs）stdout 开始 -----
+[freeze] 存档   = c3af773b6483164c22ca0a039623967cb3b67ff9b2b658749f927baeee74957d
+[freeze] 现行   = c3af773b6483164c22ca0a039623967cb3b67ff9b2b658749f927baeee74957d
+[freeze] v1.2   = c3af773b6483164c22ca0a039623967cb3b67ff9b2b658749f927baeee74957d
+[freeze] PASS  存档可解析（64 hex）
+[freeze] PASS  现行导出件 numeric ≡ 存档
+[freeze] PASS  v1.2 载荷 numeric ≡ 存档（存档来源可追溯）
+RESULT: PASS
+----- [gate] numeric 零漂移（check-numeric-freeze） stdout 结束 -----
+===== tt 轨门禁聚合（C 抖音移植轮 · 可机跑面）=====
+[PASS]  dy-runtime（tt-runtime-surface 条目查）   RESULT: PASS  — dy-runtime 运行时表面（55 项断言全绿）
+[PASS]  dy-share-loop（tt-share-loop 条目查）   RESULT: PASS  — dy-share-loop 分享闭环（主判据 dy-share-card 500×400）（25 项断言全绿）
+[PASS]  dy-submission-kit（tt-submission-kit 条目查）   RESULT: PASS  — dy-submission-kit 提审包与材料清单（31 项断言全绿）
+[PASS]  包体积分列（check-tt-bundle-size）   RESULT: PASS
+[PASS]  numeric 零漂移（check-numeric-freeze）   RESULT: PASS
+tt-GATE: PASS (5/5)
+# ── 输出摘要 ──
+# exit=0 · RESULT: PASS  — dy-runtime 运行时表面（55 项断言全绿） RESULT: PASS  — dy-share-loop 分享闭环（主判据 dy-share-card 500×400）（25 项断言全绿） RESULT: PASS  — dy-submission-kit 提审包与材料清单（31 项断言全绿） RESULT: PASS RESULT: PASS tt-GATE: PASS (5/5) 

@@ -1,0 +1,122 @@
+{
+  "test": "goal-flow",
+  "total": 23,
+  "failures": 0,
+  "results": [
+    {
+      "name": "A0 开局阶段为 playing",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "A0 开局比分 0:0",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "A1 比分 red +1",
+      "pass": true,
+      "detail": "{\"red\":1,\"blue\":0}"
+    },
+    {
+      "name": "A2 进入庆祝阶段（冻结）",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "A3 A08 于 goal_sfx_at_s=0.0 排程",
+      "pass": true,
+      "detail": "[{\"id\":\"a08-sfx-goal-hit\",\"at_s\":0,\"t\":0.016666666666666666}]"
+    },
+    {
+      "name": "A4 goal_sfx_at_s === 0.0（spec v1.2 字段）",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "A5 庆祝时长 = 1.2s",
+      "pass": true,
+      "detail": "1.2"
+    },
+    {
+      "name": "A6 庆祝期间球冻结",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "A7 庆祝期间计时冻结",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "A8 庆祝期间比分不变",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "A9 庆祝 72 tick = 1.2s",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "A10 庆祝结束恢复 playing（≤73 tick）",
+      "pass": true,
+      "detail": "guard=62"
+    },
+    {
+      "name": "A11 中圈重开：球回 el-07 (128,80) 速度清零",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "A12 中圈重开：赤焰回 el-05 (168,80)",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "A13 中圈重开：霜蓝回 el-06 (88,80)",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "A14 比分保留（red 1:0）",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "B1 右门得分：blue +1",
+      "pass": true,
+      "detail": "{\"red\":0,\"blue\":1}"
+    },
+    {
+      "name": "B2 进入庆祝阶段",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C1 带外越线无进球",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C2 端墙反弹回场内",
+      "pass": true,
+      "detail": "x=246 vx=38.98618436489724"
+    },
+    {
+      "name": "D1 y=102（开区间边界）不判进",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "E1 goal 事件字段齐备",
+      "pass": true,
+      "detail": "{\"type\":\"goal\",\"scorer\":\"red\",\"conceder\":\"blue\",\"goalElementId\":\"el-03\",\"sfx\":{\"id\":\"a08-sfx-goal-hit\",\"at_s\":0}}"
+    },
+    {
+      "name": "E2 sfx 附于事件且 at_s=0.0",
+      "pass": true,
+      "detail": null
+    }
+  ]
+}

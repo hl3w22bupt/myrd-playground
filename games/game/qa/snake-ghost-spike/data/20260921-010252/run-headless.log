@@ -1,0 +1,5 @@
+[1;31mERROR:[0;91m Error parsing /private/tmp/snake-ghost-spike.dh1kjx/project.godot at line 11: Unexpected identifier: 'portrait'. File might be corrupted.
+[0;90m   at: _load_settings_text (core/config/project_settings.cpp:777)[0m
+[1;31mERROR:[0;91m Couldn't load file '/private/tmp/snake-ghost-spike.dh1kjx/project.godot', error code 43.
+[0;90m   at: _load_settings_text_or_binary (core/config/project_settings.cpp:811)[0m
+Godot Engine v4.3.stable.official.77dcf97d8 - https://godotengine.org

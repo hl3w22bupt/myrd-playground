@@ -99,18 +99,6 @@ export interface PlayerViewSnapshot {
   medkitChannelMsLeft: number;
   /** 正在使用中的医疗物品 id（引导进度条用；null = 未在使用） */
   medkitItem: ItemId | null;
-  /** 拾取提示（AC3）：范围内最近的可拾取物资；null 表示范围内无物资 */
-  nearbyLoot: NearbyLoot | null;
-  /** 毒圈警示（AC5）：true 表示玩家当前处于安全区外（正在按秒掉血） */
-  outsideZone: boolean;
-}
-
-/** 玩家附近可拾取物资的提示信息 */
-export interface NearbyLoot {
-  id: string;
-  item: ItemId;
-  /** 与玩家的水平距离（m） */
-  dist: number;
 }
 
 export interface LootSnapshot {

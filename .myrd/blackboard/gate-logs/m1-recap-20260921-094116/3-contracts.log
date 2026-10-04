@@ -1,0 +1,16 @@
+### [4/4a] 音画同 tick 契约（ac-audio-tick）
+Godot Engine v4.3.stable.official.77dcf97d8 - https://godotengine.org
+
+AUDIO_SAME_TICK: PASS 交换音/消除音/胜负音与结算同帧 + 无效交换反馈同帧 + 消除FX同帧入队 全部通过
+[1;33mWARNING:[0;93m ObjectDB instances leaked at exit (run with --verbose for details).
+[0;90m     at: cleanup (core/object/object.cpp:2284)[0m
+[1;31mERROR:[0;91m 5 resources still in use at exit (run with --verbose for details).
+[0;90m   at: clear (core/io/resource.cpp:604)[0m
+AUDIO_TICK_EXIT=0
+
+### [4/4b] 消除反馈/结算三态/持久化 契约（阻塞#1#2#3）
+Godot Engine v4.3.stable.official.77dcf97d8 - https://godotengine.org
+
+FX_SETTLE_PERSIST: PERF sampled=312 avg_fps=61.1(阈值>=50) steady_worst_fps=53.4(阈值>=30) rebuild_hitch_ms=47.9(计量不上限)
+FX_SETTLE_PERSIST: PASS 消除反馈同帧 + 连击阈值/封顶 + 屏震有界归零 + 刷新后分数仍在 + 结算三态(WIN/LOSE/RESUME)接线 + 帧成本达标 全部通过
+FX_SETTLE_EXIT=0

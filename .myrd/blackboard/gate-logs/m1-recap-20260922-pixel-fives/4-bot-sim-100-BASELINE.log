@@ -1,0 +1,1019 @@
+{
+  "meta": {
+    "seeds_start": 42,
+    "seeds_end": 141,
+    "game_count": 100,
+    "spec_version": "v1.2",
+    "built_from": "d0487cf2a6a6ea620987c6f274c74a0d3f243e96",
+    "generated_at": "2026-09-21T23:52:56+08:00",
+    "deterministic": true
+  },
+  "per_game": [
+    {
+      "seed": 42,
+      "goals_total": 17,
+      "goals_red": 7,
+      "goals_blue": 10,
+      "duration_s": 69.59999999999734,
+      "shots": 53,
+      "touches": 2752,
+      "errors": []
+    },
+    {
+      "seed": 43,
+      "goals_total": 15,
+      "goals_red": 4,
+      "goals_blue": 11,
+      "duration_s": 71.9999999999972,
+      "shots": 58,
+      "touches": 2909,
+      "errors": []
+    },
+    {
+      "seed": 44,
+      "goals_total": 14,
+      "goals_red": 4,
+      "goals_blue": 10,
+      "duration_s": 73.19999999999713,
+      "shots": 52,
+      "touches": 2509,
+      "errors": []
+    },
+    {
+      "seed": 45,
+      "goals_total": 13,
+      "goals_red": 6,
+      "goals_blue": 7,
+      "duration_s": 74.39999999999706,
+      "shots": 46,
+      "touches": 2467,
+      "errors": []
+    },
+    {
+      "seed": 46,
+      "goals_total": 18,
+      "goals_red": 7,
+      "goals_blue": 11,
+      "duration_s": 68.3999999999974,
+      "shots": 62,
+      "touches": 2135,
+      "errors": []
+    },
+    {
+      "seed": 47,
+      "goals_total": 14,
+      "goals_red": 4,
+      "goals_blue": 10,
+      "duration_s": 74.3833333333304,
+      "shots": 54,
+      "touches": 2586,
+      "errors": []
+    },
+    {
+      "seed": 48,
+      "goals_total": 15,
+      "goals_red": 7,
+      "goals_blue": 8,
+      "duration_s": 71.9999999999972,
+      "shots": 53,
+      "touches": 2421,
+      "errors": []
+    },
+    {
+      "seed": 49,
+      "goals_total": 13,
+      "goals_red": 6,
+      "goals_blue": 7,
+      "duration_s": 74.39999999999706,
+      "shots": 55,
+      "touches": 2695,
+      "errors": []
+    },
+    {
+      "seed": 50,
+      "goals_total": 15,
+      "goals_red": 5,
+      "goals_blue": 10,
+      "duration_s": 71.9999999999972,
+      "shots": 54,
+      "touches": 2455,
+      "errors": []
+    },
+    {
+      "seed": 51,
+      "goals_total": 11,
+      "goals_red": 3,
+      "goals_blue": 8,
+      "duration_s": 76.79999999999693,
+      "shots": 50,
+      "touches": 2475,
+      "errors": []
+    },
+    {
+      "seed": 52,
+      "goals_total": 13,
+      "goals_red": 5,
+      "goals_blue": 8,
+      "duration_s": 74.39999999999706,
+      "shots": 47,
+      "touches": 2461,
+      "errors": []
+    },
+    {
+      "seed": 53,
+      "goals_total": 15,
+      "goals_red": 7,
+      "goals_blue": 8,
+      "duration_s": 72.23333333333052,
+      "shots": 54,
+      "touches": 2265,
+      "errors": []
+    },
+    {
+      "seed": 54,
+      "goals_total": 13,
+      "goals_red": 3,
+      "goals_blue": 10,
+      "duration_s": 74.39999999999706,
+      "shots": 55,
+      "touches": 2416,
+      "errors": []
+    },
+    {
+      "seed": 55,
+      "goals_total": 11,
+      "goals_red": 3,
+      "goals_blue": 8,
+      "duration_s": 77.81666666666354,
+      "shots": 45,
+      "touches": 2671,
+      "errors": []
+    },
+    {
+      "seed": 56,
+      "goals_total": 14,
+      "goals_red": 7,
+      "goals_blue": 7,
+      "duration_s": 73.19999999999713,
+      "shots": 55,
+      "touches": 2519,
+      "errors": []
+    },
+    {
+      "seed": 57,
+      "goals_total": 13,
+      "goals_red": 3,
+      "goals_blue": 10,
+      "duration_s": 75.41666666666367,
+      "shots": 46,
+      "touches": 2740,
+      "errors": []
+    },
+    {
+      "seed": 58,
+      "goals_total": 16,
+      "goals_red": 6,
+      "goals_blue": 10,
+      "duration_s": 70.81666666666393,
+      "shots": 59,
+      "touches": 2366,
+      "errors": []
+    },
+    {
+      "seed": 59,
+      "goals_total": 15,
+      "goals_red": 3,
+      "goals_blue": 12,
+      "duration_s": 71.9999999999972,
+      "shots": 53,
+      "touches": 2564,
+      "errors": []
+    },
+    {
+      "seed": 60,
+      "goals_total": 15,
+      "goals_red": 4,
+      "goals_blue": 11,
+      "duration_s": 72.33333333333051,
+      "shots": 55,
+      "touches": 2302,
+      "errors": []
+    },
+    {
+      "seed": 61,
+      "goals_total": 12,
+      "goals_red": 4,
+      "goals_blue": 8,
+      "duration_s": 75.599999999997,
+      "shots": 52,
+      "touches": 2134,
+      "errors": []
+    },
+    {
+      "seed": 62,
+      "goals_total": 16,
+      "goals_red": 6,
+      "goals_blue": 10,
+      "duration_s": 70.79999999999727,
+      "shots": 55,
+      "touches": 2361,
+      "errors": []
+    },
+    {
+      "seed": 63,
+      "goals_total": 13,
+      "goals_red": 2,
+      "goals_blue": 11,
+      "duration_s": 74.39999999999706,
+      "shots": 53,
+      "touches": 2656,
+      "errors": []
+    },
+    {
+      "seed": 64,
+      "goals_total": 14,
+      "goals_red": 5,
+      "goals_blue": 9,
+      "duration_s": 73.19999999999713,
+      "shots": 56,
+      "touches": 2347,
+      "errors": []
+    },
+    {
+      "seed": 65,
+      "goals_total": 15,
+      "goals_red": 7,
+      "goals_blue": 8,
+      "duration_s": 71.9999999999972,
+      "shots": 47,
+      "touches": 2532,
+      "errors": []
+    },
+    {
+      "seed": 66,
+      "goals_total": 20,
+      "goals_red": 5,
+      "goals_blue": 15,
+      "duration_s": 65.99999999999754,
+      "shots": 65,
+      "touches": 2046,
+      "errors": []
+    },
+    {
+      "seed": 67,
+      "goals_total": 9,
+      "goals_red": 4,
+      "goals_blue": 5,
+      "duration_s": 80.1166666666634,
+      "shots": 43,
+      "touches": 2593,
+      "errors": []
+    },
+    {
+      "seed": 68,
+      "goals_total": 10,
+      "goals_red": 2,
+      "goals_blue": 8,
+      "duration_s": 77.99999999999686,
+      "shots": 46,
+      "touches": 2403,
+      "errors": []
+    },
+    {
+      "seed": 69,
+      "goals_total": 20,
+      "goals_red": 5,
+      "goals_blue": 15,
+      "duration_s": 66.41666666666418,
+      "shots": 70,
+      "touches": 1988,
+      "errors": []
+    },
+    {
+      "seed": 70,
+      "goals_total": 13,
+      "goals_red": 4,
+      "goals_blue": 9,
+      "duration_s": 74.39999999999706,
+      "shots": 53,
+      "touches": 2447,
+      "errors": []
+    },
+    {
+      "seed": 71,
+      "goals_total": 12,
+      "goals_red": 4,
+      "goals_blue": 8,
+      "duration_s": 75.599999999997,
+      "shots": 51,
+      "touches": 2361,
+      "errors": []
+    },
+    {
+      "seed": 72,
+      "goals_total": 13,
+      "goals_red": 5,
+      "goals_blue": 8,
+      "duration_s": 74.39999999999706,
+      "shots": 57,
+      "touches": 2503,
+      "errors": []
+    },
+    {
+      "seed": 73,
+      "goals_total": 15,
+      "goals_red": 4,
+      "goals_blue": 11,
+      "duration_s": 71.9999999999972,
+      "shots": 52,
+      "touches": 2634,
+      "errors": []
+    },
+    {
+      "seed": 74,
+      "goals_total": 13,
+      "goals_red": 5,
+      "goals_blue": 8,
+      "duration_s": 75.19999999999702,
+      "shots": 54,
+      "touches": 2687,
+      "errors": []
+    },
+    {
+      "seed": 75,
+      "goals_total": 13,
+      "goals_red": 8,
+      "goals_blue": 5,
+      "duration_s": 74.39999999999706,
+      "shots": 56,
+      "touches": 2421,
+      "errors": []
+    },
+    {
+      "seed": 76,
+      "goals_total": 19,
+      "goals_red": 5,
+      "goals_blue": 14,
+      "duration_s": 67.19999999999747,
+      "shots": 61,
+      "touches": 2186,
+      "errors": []
+    },
+    {
+      "seed": 77,
+      "goals_total": 13,
+      "goals_red": 2,
+      "goals_blue": 11,
+      "duration_s": 74.39999999999706,
+      "shots": 55,
+      "touches": 2366,
+      "errors": []
+    },
+    {
+      "seed": 78,
+      "goals_total": 11,
+      "goals_red": 4,
+      "goals_blue": 7,
+      "duration_s": 76.79999999999693,
+      "shots": 53,
+      "touches": 2405,
+      "errors": []
+    },
+    {
+      "seed": 79,
+      "goals_total": 9,
+      "goals_red": 6,
+      "goals_blue": 3,
+      "duration_s": 79.19999999999679,
+      "shots": 42,
+      "touches": 2586,
+      "errors": []
+    },
+    {
+      "seed": 80,
+      "goals_total": 14,
+      "goals_red": 8,
+      "goals_blue": 6,
+      "duration_s": 73.19999999999713,
+      "shots": 50,
+      "touches": 2756,
+      "errors": []
+    },
+    {
+      "seed": 81,
+      "goals_total": 11,
+      "goals_red": 5,
+      "goals_blue": 6,
+      "duration_s": 76.79999999999693,
+      "shots": 44,
+      "touches": 2565,
+      "errors": []
+    },
+    {
+      "seed": 82,
+      "goals_total": 13,
+      "goals_red": 2,
+      "goals_blue": 11,
+      "duration_s": 74.39999999999706,
+      "shots": 53,
+      "touches": 2521,
+      "errors": []
+    },
+    {
+      "seed": 83,
+      "goals_total": 13,
+      "goals_red": 2,
+      "goals_blue": 11,
+      "duration_s": 74.39999999999706,
+      "shots": 49,
+      "touches": 2356,
+      "errors": []
+    },
+    {
+      "seed": 84,
+      "goals_total": 12,
+      "goals_red": 4,
+      "goals_blue": 8,
+      "duration_s": 75.599999999997,
+      "shots": 53,
+      "touches": 2369,
+      "errors": []
+    },
+    {
+      "seed": 85,
+      "goals_total": 14,
+      "goals_red": 6,
+      "goals_blue": 8,
+      "duration_s": 73.6499999999971,
+      "shots": 52,
+      "touches": 2282,
+      "errors": []
+    },
+    {
+      "seed": 86,
+      "goals_total": 16,
+      "goals_red": 5,
+      "goals_blue": 11,
+      "duration_s": 71.06666666666392,
+      "shots": 54,
+      "touches": 2339,
+      "errors": []
+    },
+    {
+      "seed": 87,
+      "goals_total": 13,
+      "goals_red": 6,
+      "goals_blue": 7,
+      "duration_s": 74.39999999999706,
+      "shots": 56,
+      "touches": 2354,
+      "errors": []
+    },
+    {
+      "seed": 88,
+      "goals_total": 13,
+      "goals_red": 5,
+      "goals_blue": 8,
+      "duration_s": 74.39999999999706,
+      "shots": 53,
+      "touches": 2502,
+      "errors": []
+    },
+    {
+      "seed": 89,
+      "goals_total": 14,
+      "goals_red": 5,
+      "goals_blue": 9,
+      "duration_s": 73.19999999999713,
+      "shots": 52,
+      "touches": 2515,
+      "errors": []
+    },
+    {
+      "seed": 90,
+      "goals_total": 12,
+      "goals_red": 3,
+      "goals_blue": 9,
+      "duration_s": 75.599999999997,
+      "shots": 48,
+      "touches": 2618,
+      "errors": []
+    },
+    {
+      "seed": 91,
+      "goals_total": 14,
+      "goals_red": 1,
+      "goals_blue": 13,
+      "duration_s": 73.19999999999713,
+      "shots": 51,
+      "touches": 2693,
+      "errors": []
+    },
+    {
+      "seed": 92,
+      "goals_total": 12,
+      "goals_red": 3,
+      "goals_blue": 9,
+      "duration_s": 75.599999999997,
+      "shots": 50,
+      "touches": 2469,
+      "errors": []
+    },
+    {
+      "seed": 93,
+      "goals_total": 13,
+      "goals_red": 7,
+      "goals_blue": 6,
+      "duration_s": 74.51666666666372,
+      "shots": 52,
+      "touches": 2544,
+      "errors": []
+    },
+    {
+      "seed": 94,
+      "goals_total": 12,
+      "goals_red": 7,
+      "goals_blue": 5,
+      "duration_s": 75.599999999997,
+      "shots": 45,
+      "touches": 2908,
+      "errors": []
+    },
+    {
+      "seed": 95,
+      "goals_total": 16,
+      "goals_red": 5,
+      "goals_blue": 11,
+      "duration_s": 70.79999999999727,
+      "shots": 51,
+      "touches": 2519,
+      "errors": []
+    },
+    {
+      "seed": 96,
+      "goals_total": 10,
+      "goals_red": 4,
+      "goals_blue": 6,
+      "duration_s": 77.99999999999686,
+      "shots": 41,
+      "touches": 2739,
+      "errors": []
+    },
+    {
+      "seed": 97,
+      "goals_total": 15,
+      "goals_red": 6,
+      "goals_blue": 9,
+      "duration_s": 71.9999999999972,
+      "shots": 54,
+      "touches": 2197,
+      "errors": []
+    },
+    {
+      "seed": 98,
+      "goals_total": 17,
+      "goals_red": 3,
+      "goals_blue": 14,
+      "duration_s": 69.59999999999734,
+      "shots": 63,
+      "touches": 2181,
+      "errors": []
+    },
+    {
+      "seed": 99,
+      "goals_total": 14,
+      "goals_red": 5,
+      "goals_blue": 9,
+      "duration_s": 73.19999999999713,
+      "shots": 57,
+      "touches": 2526,
+      "errors": []
+    },
+    {
+      "seed": 100,
+      "goals_total": 18,
+      "goals_red": 4,
+      "goals_blue": 14,
+      "duration_s": 68.3999999999974,
+      "shots": 58,
+      "touches": 2175,
+      "errors": []
+    },
+    {
+      "seed": 101,
+      "goals_total": 12,
+      "goals_red": 7,
+      "goals_blue": 5,
+      "duration_s": 76.48333333333028,
+      "shots": 52,
+      "touches": 2465,
+      "errors": []
+    },
+    {
+      "seed": 102,
+      "goals_total": 13,
+      "goals_red": 3,
+      "goals_blue": 10,
+      "duration_s": 74.39999999999706,
+      "shots": 46,
+      "touches": 2826,
+      "errors": []
+    },
+    {
+      "seed": 103,
+      "goals_total": 16,
+      "goals_red": 5,
+      "goals_blue": 11,
+      "duration_s": 71.56666666666389,
+      "shots": 57,
+      "touches": 2440,
+      "errors": []
+    },
+    {
+      "seed": 104,
+      "goals_total": 15,
+      "goals_red": 7,
+      "goals_blue": 8,
+      "duration_s": 72.89999999999715,
+      "shots": 54,
+      "touches": 2108,
+      "errors": []
+    },
+    {
+      "seed": 105,
+      "goals_total": 12,
+      "goals_red": 1,
+      "goals_blue": 11,
+      "duration_s": 75.599999999997,
+      "shots": 48,
+      "touches": 2772,
+      "errors": []
+    },
+    {
+      "seed": 106,
+      "goals_total": 14,
+      "goals_red": 6,
+      "goals_blue": 8,
+      "duration_s": 74.3833333333304,
+      "shots": 47,
+      "touches": 2574,
+      "errors": []
+    },
+    {
+      "seed": 107,
+      "goals_total": 12,
+      "goals_red": 6,
+      "goals_blue": 6,
+      "duration_s": 75.599999999997,
+      "shots": 50,
+      "touches": 2324,
+      "errors": []
+    },
+    {
+      "seed": 108,
+      "goals_total": 13,
+      "goals_red": 2,
+      "goals_blue": 11,
+      "duration_s": 74.39999999999706,
+      "shots": 46,
+      "touches": 2563,
+      "errors": []
+    },
+    {
+      "seed": 109,
+      "goals_total": 12,
+      "goals_red": 4,
+      "goals_blue": 8,
+      "duration_s": 75.599999999997,
+      "shots": 50,
+      "touches": 2645,
+      "errors": []
+    },
+    {
+      "seed": 110,
+      "goals_total": 13,
+      "goals_red": 4,
+      "goals_blue": 9,
+      "duration_s": 74.39999999999706,
+      "shots": 47,
+      "touches": 2411,
+      "errors": []
+    },
+    {
+      "seed": 111,
+      "goals_total": 14,
+      "goals_red": 2,
+      "goals_blue": 12,
+      "duration_s": 73.19999999999713,
+      "shots": 55,
+      "touches": 2256,
+      "errors": []
+    },
+    {
+      "seed": 112,
+      "goals_total": 14,
+      "goals_red": 4,
+      "goals_blue": 10,
+      "duration_s": 73.83333333333043,
+      "shots": 52,
+      "touches": 2594,
+      "errors": []
+    },
+    {
+      "seed": 113,
+      "goals_total": 11,
+      "goals_red": 4,
+      "goals_blue": 7,
+      "duration_s": 76.89999999999692,
+      "shots": 48,
+      "touches": 2589,
+      "errors": []
+    },
+    {
+      "seed": 114,
+      "goals_total": 15,
+      "goals_red": 5,
+      "goals_blue": 10,
+      "duration_s": 72.23333333333052,
+      "shots": 52,
+      "touches": 2455,
+      "errors": []
+    },
+    {
+      "seed": 115,
+      "goals_total": 14,
+      "goals_red": 7,
+      "goals_blue": 7,
+      "duration_s": 73.19999999999713,
+      "shots": 55,
+      "touches": 2328,
+      "errors": []
+    },
+    {
+      "seed": 116,
+      "goals_total": 13,
+      "goals_red": 3,
+      "goals_blue": 10,
+      "duration_s": 74.39999999999706,
+      "shots": 46,
+      "touches": 2768,
+      "errors": []
+    },
+    {
+      "seed": 117,
+      "goals_total": 15,
+      "goals_red": 5,
+      "goals_blue": 10,
+      "duration_s": 71.9999999999972,
+      "shots": 53,
+      "touches": 2528,
+      "errors": []
+    },
+    {
+      "seed": 118,
+      "goals_total": 10,
+      "goals_red": 1,
+      "goals_blue": 9,
+      "duration_s": 77.99999999999686,
+      "shots": 48,
+      "touches": 2511,
+      "errors": []
+    },
+    {
+      "seed": 119,
+      "goals_total": 14,
+      "goals_red": 9,
+      "goals_blue": 5,
+      "duration_s": 73.19999999999713,
+      "shots": 56,
+      "touches": 2356,
+      "errors": []
+    },
+    {
+      "seed": 120,
+      "goals_total": 12,
+      "goals_red": 3,
+      "goals_blue": 9,
+      "duration_s": 75.599999999997,
+      "shots": 50,
+      "touches": 2603,
+      "errors": []
+    },
+    {
+      "seed": 121,
+      "goals_total": 13,
+      "goals_red": 4,
+      "goals_blue": 9,
+      "duration_s": 74.39999999999706,
+      "shots": 51,
+      "touches": 2726,
+      "errors": []
+    },
+    {
+      "seed": 122,
+      "goals_total": 10,
+      "goals_red": 3,
+      "goals_blue": 7,
+      "duration_s": 77.99999999999686,
+      "shots": 49,
+      "touches": 2650,
+      "errors": []
+    },
+    {
+      "seed": 123,
+      "goals_total": 8,
+      "goals_red": 2,
+      "goals_blue": 6,
+      "duration_s": 80.39999999999672,
+      "shots": 50,
+      "touches": 2483,
+      "errors": []
+    },
+    {
+      "seed": 124,
+      "goals_total": 16,
+      "goals_red": 2,
+      "goals_blue": 14,
+      "duration_s": 71.23333333333058,
+      "shots": 52,
+      "touches": 2281,
+      "errors": []
+    },
+    {
+      "seed": 125,
+      "goals_total": 15,
+      "goals_red": 6,
+      "goals_blue": 9,
+      "duration_s": 72.83333333333049,
+      "shots": 62,
+      "touches": 2126,
+      "errors": []
+    },
+    {
+      "seed": 126,
+      "goals_total": 12,
+      "goals_red": 8,
+      "goals_blue": 4,
+      "duration_s": 75.599999999997,
+      "shots": 50,
+      "touches": 2322,
+      "errors": []
+    },
+    {
+      "seed": 127,
+      "goals_total": 16,
+      "goals_red": 2,
+      "goals_blue": 14,
+      "duration_s": 70.79999999999727,
+      "shots": 54,
+      "touches": 2306,
+      "errors": []
+    },
+    {
+      "seed": 128,
+      "goals_total": 10,
+      "goals_red": 4,
+      "goals_blue": 6,
+      "duration_s": 78.88333333333014,
+      "shots": 51,
+      "touches": 2387,
+      "errors": []
+    },
+    {
+      "seed": 129,
+      "goals_total": 14,
+      "goals_red": 2,
+      "goals_blue": 12,
+      "duration_s": 74.3833333333304,
+      "shots": 45,
+      "touches": 2610,
+      "errors": []
+    },
+    {
+      "seed": 130,
+      "goals_total": 14,
+      "goals_red": 6,
+      "goals_blue": 8,
+      "duration_s": 73.19999999999713,
+      "shots": 49,
+      "touches": 2463,
+      "errors": []
+    },
+    {
+      "seed": 131,
+      "goals_total": 14,
+      "goals_red": 8,
+      "goals_blue": 6,
+      "duration_s": 73.19999999999713,
+      "shots": 52,
+      "touches": 2552,
+      "errors": []
+    },
+    {
+      "seed": 132,
+      "goals_total": 12,
+      "goals_red": 7,
+      "goals_blue": 5,
+      "duration_s": 75.599999999997,
+      "shots": 55,
+      "touches": 2260,
+      "errors": []
+    },
+    {
+      "seed": 133,
+      "goals_total": 13,
+      "goals_red": 5,
+      "goals_blue": 8,
+      "duration_s": 74.39999999999706,
+      "shots": 49,
+      "touches": 2646,
+      "errors": []
+    },
+    {
+      "seed": 134,
+      "goals_total": 11,
+      "goals_red": 5,
+      "goals_blue": 6,
+      "duration_s": 76.79999999999693,
+      "shots": 48,
+      "touches": 2743,
+      "errors": []
+    },
+    {
+      "seed": 135,
+      "goals_total": 10,
+      "goals_red": 5,
+      "goals_blue": 5,
+      "duration_s": 77.99999999999686,
+      "shots": 54,
+      "touches": 2579,
+      "errors": []
+    },
+    {
+      "seed": 136,
+      "goals_total": 13,
+      "goals_red": 3,
+      "goals_blue": 10,
+      "duration_s": 74.39999999999706,
+      "shots": 53,
+      "touches": 2326,
+      "errors": []
+    },
+    {
+      "seed": 137,
+      "goals_total": 17,
+      "goals_red": 6,
+      "goals_blue": 11,
+      "duration_s": 69.59999999999734,
+      "shots": 65,
+      "touches": 2295,
+      "errors": []
+    },
+    {
+      "seed": 138,
+      "goals_total": 10,
+      "goals_red": 5,
+      "goals_blue": 5,
+      "duration_s": 77.99999999999686,
+      "shots": 47,
+      "touches": 2931,
+      "errors": []
+    },
+    {
+      "seed": 139,
+      "goals_total": 15,
+      "goals_red": 8,
+      "goals_blue": 7,
+      "duration_s": 71.9999999999972,
+      "shots": 55,
+      "touches": 2206,
+      "errors": []
+    },
+    {
+      "seed": 140,
+      "goals_total": 11,
+      "goals_red": 4,
+      "goals_blue": 7,
+      "duration_s": 76.79999999999693,
+      "shots": 46,
+      "touches": 2477,
+      "errors": []
+    },
+    {
+      "seed": 141,
+      "goals_total": 13,
+      "goals_red": 2,
+      "goals_blue": 11,
+      "duration_s": 75.38333333333034,
+      "shots": 49,
+      "touches": 2590,
+      "errors": []
+    }
+  ],
+  "summary": {
+    "goal_range_ratio": 0.3,
+    "duration_in_range_ratio": 0.02,
+    "games_with_errors": 0,
+    "errors": []
+  }
+}

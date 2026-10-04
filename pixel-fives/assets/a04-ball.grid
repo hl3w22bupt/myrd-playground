@@ -1,0 +1,48 @@
+# pixel-fives grid asset v1
+# id: A04
+# name: ball
+# kind: spritesheet
+# frame: 8x8
+# frames: 4
+# anims: roll=0-3@12fps
+# style: 引用 docs/art/style-card-v1.md（20色锁 / 左上45°光 / 右下暗面v / K纹路）
+legend:
+K #1A1626
+w #F4F1E8
+v #C9C4B4
+grid:
+..wwww..
+.wwwwww.
+.wwKKww.
+wwKKwwwv
+wwwwwvvv
+.wwwwvv.
+.vwwvvv.
+..vvvv..
++
+..wwww..
+.wwwwww.
+.wwwKKww
+wwwwKKwv
+wwwKwwvv
+.wwKKvv.
+.vwwvvv.
+..vvvv..
++
+..wwww..
+.wwwwww.
+.wwwwww.
+wKKwwwwv
+wKKKwwwv
+.wKKwvv.
+.vwwvvv.
+..vvvv..
++
+..wwww..
+.wwwwww.
+.wwKKww.
+.wwwKKwv
+wwwwwwvv
+.wKwwvv.
+.vwwvvv.
+..vvvv..

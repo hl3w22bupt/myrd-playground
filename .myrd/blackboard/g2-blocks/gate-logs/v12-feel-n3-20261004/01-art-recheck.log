@@ -1,0 +1,14 @@
+[PASS] 门一.a 生成器零裸 hex / 零 rgba 字面量 — hex=0 rgba/rgb=0（A-12 修正后）
+[PASS] 门一.b theme.PALETTE 7 键 ≡ spec 冻结色板（numeric 唯一真源） — block-01=#21458C block-03=#38B279 block-04=#DB6B43 block-05=#A472CA block-02=#C89C19 block-06=#4B2B25 block-07=#E3B5BF
+[PASS] 门一.c style-card（美术规格真源）↔ theme 零漂移（A-12 判据） — topHighlight α=0.18 innerStroke α=0.35 corner=0.12
+[PASS] 门二.a 9 件 IHDR 尺寸 + sha256 ≡ release-assets.json — 9/9（512/192/180/32/16/1200×630/500×400/720×1280）
+[PASS] 门二.b 4 实机帧 780×1688（390×844@2x）+ sha256 ≡ shot-manifest — 4/4 @2x
+[PASS] 门四 shot-manifest.buildSha256 ≡ assembly-manifest.buildSha256 — 同批 be310288cff10563（assembly gitRef=4f67806a5）
+[PASS] A-09 typeScale 代改认领（0.036/0.016/0.043） — theme≡描述件 ✓ · 基准=layout.h ✓ · 390×844 实测 score=30.4px label=13.5px banner=36.3px（旧值 0.3→253px 巨字已除）
+[PASS] A-13/A-14.a 生成器零「×5 / maxMultiplier / spec vN」文案 — 连击上限= v1.2 draft 未冻结值（approved v1.1 numeric.combo 无此键），已改「连击加成 · 炉冷判定」
+[PASS] A-13.b 判据留痕：approved 无 maxMultiplier · v1.2 draft 才有 — approved.combo={"appliesFromChain":2,"chainBonus":50,"fourMoveVector":"消/消/不消/消 → +0/+50/归0/+0","resetOnNonClear":true} · v1.2 maxMultiplier=5(draft)
+[PASS] 门三 icons/icon-maskable-512.png 核心元素 ⊆ 中心 80% 安全区 — 内容像素 51512 · 越界 0（r≤210px）
+[PASS] 门三 favicon/apple-touch-icon-180.png 核心元素 ⊆ 中心 80% 安全区 — 内容像素 6535 · 越界 0（r≤74px）
+[PASS] 门一.d icon-512 四块面心像素 ≡ 冻结色板（±3） — 4/4 命中（block-01/02/03/04）
+
+ART-RECHECK: PASS 12/12（美术四门禁 + A-09 认领 + A-13/A-14 文案红线）

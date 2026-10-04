@@ -1,0 +1,38 @@
+# 门禁9 契约 run-all（驳回①修复后复跑：acc-j1 已按 spec numeric.benchmark_device 口径=4x CPU throttle+双视口） · 2026-09-27 11:44:26 · 命令: node tests/contract/run-all.mjs（cwd games/stack-tower）
+RESULT: PASS (4/4)
+RESULT: PASS (4/4)
+RESULT: PASS (4/4)
+RESULT: PASS (3/3)
+RESULT: PASS (4/4)
+RESULT: PASS (4/4)
+RESULT: PASS (4/4)
+RESULT: PASS (4/4)
+RESULT: PASS (3/3)
+RESULT: PASS (3/3)
+RESULT: PASS (4/4)
+RESULT: PASS (3/3)
+RESULT: PASS (3/3)
+RESULT: PASS (3/3)
+RESULT: PASS (2/2)
+RESULT: PASS (3/3)
+RESULT: PASS (2/2)
+RESULT: PASS (4/4)
+RESULT: PASS (1/1)
+RESULT: PASS (3/3)
+RESULT: PASS (4/4)
+RESULT: PASS (2/2)
+[contract] acc-j1 · lvl-01-stack-tower/e09-opening-stack
+        [evidence] 390x844=310ms · 360x640=166ms（throttle 4x）
+  ok    冷启动 → 首块可见 ≤3000ms（chromium + 4x CPU throttle · 390x844 / 360x640）
+RESULT: PASS (1/1)
+RESULT: PASS (3/3)
+RESULT: PASS (2/2)
+RESULT: PASS (2/2)
+RESULT: PASS (1/1)
+RESULT: PASS (4/4)
+RESULT: PASS (3/3)
+RESULT: PASS (2/2)
+RESULT: PASS (3/3)
+==== 契约汇总 ====
+PASS 31 / FAIL 0 / not-runnable 0 （共 31）
+exit=0

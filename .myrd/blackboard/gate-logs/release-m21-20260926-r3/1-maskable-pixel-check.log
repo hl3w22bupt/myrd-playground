@@ -1,0 +1,4 @@
+icon-192-maskable.png 192×192 → outsideCircleNonBgPx=0 rowEdgeMismatch=0 contentPx=5565 · bgTop=#a3b2c6 bgMid=#96a4b7 bgBottom=#8a97a8 · 圆内内容色 top: #9d572e×1512 #833a27×1232 #a98033×966 #6f3d20×432 #5c291c×352 → MASKABLE-SAFE-PASS
+icon-512-maskable.png 512×512 → outsideCircleNonBgPx=0 rowEdgeMismatch=0 contentPx=39592 · bgTop=#a3b2c6 bgMid=#96a4b7 bgBottom=#8a97a8 · 圆内内容色 top: #9d572e×11193 #833a27×9204 #a98033×7176 #6f3d20×2870 #5c291c×2360 → MASKABLE-SAFE-PASS
+apple-touch-icon-180.png 180×180 → outsideCircleNonBgPx=0 rowEdgeMismatch=0 contentPx=4980 · bgTop=#a3b2c6 bgMid=#96a4b7 bgBottom=#8a97a8 · 圆内内容色 top: #9d572e×1414 #833a27×1162 #a98033×910 #6f3d20×404 #5c291c×332 → FULLBLEED-PASS
+ART-MASKABLE-RESULT: PASS (3/3)

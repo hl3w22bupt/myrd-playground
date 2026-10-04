@@ -1,0 +1,5 @@
+precache 条目总数 = 55
+发布面 assets 文件 = 25 · precache 覆盖 assets = 25
+未入 precache = 0（全量覆盖 ✓）
+precache 重复条目 = 0
+CACHE = const CACHE = 'st-precache-v1' · REVISION = 1

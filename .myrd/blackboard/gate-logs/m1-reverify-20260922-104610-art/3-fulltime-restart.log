@@ -1,0 +1,161 @@
+{
+  "test": "smoke/fulltime-restart",
+  "seed": 42,
+  "game1": {
+    "ticks": 5904,
+    "score": {
+      "red": 5,
+      "blue": 2
+    },
+    "wall_ms": 5.3
+  },
+  "game2_restart_replay": {
+    "ticks": 5904
+  },
+  "game3_fresh_replay": {
+    "ticks": 5904,
+    "score": {
+      "red": 5,
+      "blue": 2
+    }
+  },
+  "errors": [],
+  "failures": 0,
+  "results": [
+    {
+      "name": "A1 全程零报错（errors=0）",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "A2 局末阶段 fulltime",
+      "pass": true,
+      "detail": "fulltime"
+    },
+    {
+      "name": "A3 计时归零（timeS=90）",
+      "pass": true,
+      "detail": "90"
+    },
+    {
+      "name": "A4 终局比分可读且落在门禁区间 [1,12]",
+      "pass": true,
+      "detail": "red 5 : blue 2"
+    },
+    {
+      "name": "A5 终局前有进球事件留痕（lastGoal/sfxEvents 供结算层消费）",
+      "pass": true,
+      "detail": "sfx=7"
+    },
+    {
+      "name": "A6 局内 tick 数 > 5400（庆祝期比赛钟双冻结，DR-P3 口径）",
+      "pass": true,
+      "detail": "5904"
+    },
+    {
+      "name": "B1 fulltime 后 step() 不推进：比分冻结",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "B2 fulltime 后 step() 不推进：计时冻结",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "B3 fulltime 后球位置冻结",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "B4 fulltime 后双方球员冻结",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "B5 HUD 剩余时间归零（timeLeftS=0）",
+      "pass": true,
+      "detail": "0"
+    },
+    {
+      "name": "C1 比分清零 0:0",
+      "pass": true,
+      "detail": "{\"red\":0,\"blue\":0}"
+    },
+    {
+      "name": "C2 计时归零（timeS=0）",
+      "pass": true,
+      "detail": "0"
+    },
+    {
+      "name": "C3 阶段回 playing",
+      "pass": true,
+      "detail": "playing"
+    },
+    {
+      "name": "C4 庆祝计时/进球留痕清空",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C5 音效排程清空",
+      "pass": true,
+      "detail": "0"
+    },
+    {
+      "name": "C6 球回 el-07 (128,80) 速度清零",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C7 赤焰回 el-05 (168,80)",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C8 霜蓝回 el-06 (88,80)",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "C9 onboarding 提示重新可见（firstTouchS 复位 → alpha=1）",
+      "pass": true,
+      "detail": "1"
+    },
+    {
+      "name": "D1 重开局零报错（errors=0）",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "D2 重开局踢到 fulltime",
+      "pass": true,
+      "detail": "fulltime"
+    },
+    {
+      "name": "D3 重开局计时走满 90s",
+      "pass": true,
+      "detail": "90"
+    },
+    {
+      "name": "D4 重开局有射门有触球",
+      "pass": true,
+      "detail": "shots=26 touches=7788"
+    },
+    {
+      "name": "E1 重开（全新对局）采样点数一致",
+      "pass": true,
+      "detail": "590 vs 590"
+    },
+    {
+      "name": "E2 重开局与首局逐 tick 采样一致（同 seed 复现）",
+      "pass": true,
+      "detail": "all identical"
+    },
+    {
+      "name": "E3 重开局终局比分与首局一致",
+      "pass": true,
+      "detail": "5:2 vs 5:2"
+    }
+  ]
+}

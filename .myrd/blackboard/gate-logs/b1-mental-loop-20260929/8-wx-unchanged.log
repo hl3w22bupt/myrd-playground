@@ -1,0 +1,8 @@
+# 8 · wx 零变更留证（2026-09-29 · 本轮起点 487640c → N3 e2c9fd4）
+$ git diff 487640c..HEAD --stat -- games/stack-tower/wx games/stack-tower/export/wx
+(空输出 = wx 目录与提审包零变更)
+
+$ node scripts/check-wx-bundle-size.mjs
+[size] 开放数据域 5.7KB / 1024KB —— PASS（分列口径）
+[size] manifest 一致性：62 件，漂移 0
+RESULT: PASS

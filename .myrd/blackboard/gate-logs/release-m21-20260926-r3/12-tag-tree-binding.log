@@ -1,0 +1,18 @@
+# r3 发布对象绑定复核 — T3 美术线（2026-09-26）
+# 目的：把 N3'' 终检记录（检对象 = 终检时 HEAD 436be68）与发布 tag 绑定闭合（v1.1 证据条款：tag hash）
+
+$ git rev-parse stack-tower-m2.1-release-r3^{commit}
+26a53d7fe4460f2dedb55729f21399474159ac2e
+
+$ git diff --stat 436be68..stack-tower-m2.1-release-r3 -- games/stack-tower/assets/ games/stack-tower/src/render/ games/stack-tower/tools/gen-assets.mjs games/stack-tower/tools/gen-audio.mjs
+(空输出 = 素材/渲染/生成器面零漂移 → 终检证据可转移到 tag 树)
+
+$ git diff --stat stack-tower-m2.1-release-r3 -- games/stack-tower/export/web games/stack-tower/assets
+(空输出 = 本机工作树发布面 ≡ tag 树发布面，字节全等)
+
+# maskable 检查在 tag 树工作面重跑（同一检查器 art-check-maskable.mjs）：
+icon-192-maskable.png 192×192 → outsideCircleNonBgPx=0 rowEdgeMismatch=0 contentPx=5565 · bgTop=#a3b2c6 bgMid=#96a4b7 bgBottom=#8a97a8 · 圆内内容色 top: #9d572e×1512 #833a27×1232 #a98033×966 #6f3d20×432 #5c291c×352 → MASKABLE-SAFE-PASS
+icon-512-maskable.png 512×512 → outsideCircleNonBgPx=0 rowEdgeMismatch=0 contentPx=39592 · bgTop=#a3b2c6 bgMid=#96a4b7 bgBottom=#8a97a8 · 圆内内容色 top: #9d572e×11193 #833a27×9204 #a98033×7176 #6f3d20×2870 #5c291c×2360 → MASKABLE-SAFE-PASS
+apple-touch-icon-180.png 180×180 → outsideCircleNonBgPx=0 rowEdgeMismatch=0 contentPx=4980 · bgTop=#a3b2c6 bgMid=#96a4b7 bgBottom=#8a97a8 · 圆内内容色 top: #9d572e×1414 #833a27×1162 #a98033×910 #6f3d20×404 #5c291c×332 → FULLBLEED-PASS
+ART-MASKABLE-RESULT: PASS (3/3)
+exit=0

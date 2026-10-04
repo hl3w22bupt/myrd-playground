@@ -1,0 +1,4 @@
+Godot Engine v4.3.stable.official.77dcf97d8 - https://godotengine.org
+
+FX_SETTLE_PERSIST: PERF sampled=312 avg_fps=61.0(阈值>=50) steady_worst_fps=53.5(阈值>=30) rebuild_hitch_ms=46.8(计量不上限)
+FX_SETTLE_PERSIST: PASS 消除反馈同帧 + 连击阈值/封顶 + 屏震有界归零 + 刷新后分数仍在 + 结算三态(WIN/LOSE/RESUME)接线 + 帧成本达标 全部通过

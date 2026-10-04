@@ -1,0 +1,5 @@
+{
+  "_comment": "真实 v1.3 存档 fixture（acc-b5 迁移零损断言输入）。形态 = localStorage 快照（key → 原始字符串值）。非空断言：st.settings.muted 与 st.telemetry.anonId 两键缺一即 FAIL。来源 = B0 收口态线上形态实值结构（muted='0' 表示未静音；anonId 为设备首访时生成的 UUID v4，零 PII）。",
+  "st.settings.muted": "0",
+  "st.telemetry.anonId": "3f2a1b4c-5d6e-4f70-8a9b-0c1d2e3f4a5b"
+}

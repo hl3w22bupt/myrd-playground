@@ -1,0 +1,15 @@
+# 11 · B1 deploy（2026-09-29 · 仅 PWA 增量）
+## 通道事实
+- POST /api/v1/apphost/apps/cmugttipt000km9299oej5z9b/deployments（mode=bundle）
+- 部署单 cmum141az006tm9lfwrc7c6a2 status=running（在服形态）· commitHash=c0a31f6 · app current 已切 · app status=ready
+- 坑复现：① 405/404 探路（POST /api/v1/deployments 不存在，真通道 = apphost/apps/:id/deployments）② 一次 504@30s 代理截断（POST 体缺 mode/commitHash 未受理，GET 复查无单后修正重发，非盲目重试）③ 部署输入 = gitRef 远端 HEAD：首 POST 时远端尚在 487640c，push（487640c..c0a31f6，ls-remote 实证）后重发才发布 B1 产物
+
+## 线上自测
+- /health 200 · / 308→200 出壳
+- SW：const CACHE = 'st-precache-v2' + META_CACHE_EPOCH=1 + navigate network-first（线上 sw.js 实文）
+- 模块指纹 8/8 全等（main/meta 六模块/telemetry-meta，local sha256-16 ≡ remote）
+- assets/meta/manifest.json 200
+
+## live-smoke
+- 核心循环 7/7 全绿：画布 480×720 / 分数 0→45→重开复位 / PNG·M4A 字节通道 / 音频可解码
+- FAIL 三项 = B0 已立案 U6/R2 既有态（SW scope 壳层成因，共享壳 server/ 待主人三选一裁决），非本轮回归，本轮不碰壳

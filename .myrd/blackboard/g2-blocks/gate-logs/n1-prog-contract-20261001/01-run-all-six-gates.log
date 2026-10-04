@@ -1,0 +1,94 @@
+
+=== ① 范围守卫（AC-18） ===
+$ node ci/guard-repo-scope.mjs
+SCOPE-GUARD PASS 本仓库 21 文件零越界引用（策略单源 ci/scope-policy.json；spec 真源豁免面命中 8 处，属契约条款声明）
+
+=== ② 色板双门禁 21 对（AC-12） ===
+$ node tools/palette-gate.mjs matrix --palette assets/palette/palette-n1-final.json --threshold 25 --pairs 21
+# 门禁: A=HSL三选二(dH≥25°/dL≥0.1/dS≥0.08) B=ΔE00≥25 | 色数=7 对数=21
+PASS block-01|block-03    HSL=3/3 dE=54.33 (dH=67.8 dL=0.120 dS=0.097)
+PASS block-01|block-04    HSL=2/3 dE=49.15 (dH=156.0 dL=0.222 dS=0.060)
+PASS block-01|block-05    HSL=3/3 dE=28.51 (dH=54.3 dL=0.280 dS=0.165)
+PASS block-01|block-02    HSL=3/3 dE=64.71 (dH=174.9 dL=0.102 dS=0.159)
+PASS block-01|block-06    HSL=3/3 dE=30.27 (dH=149.7 dL=0.120 dS=0.279)
+PASS block-01|block-07    HSL=3/3 dE=52.10 (dH=127.1 dL=0.461 dS=0.168)
+PASS block-03|block-04    HSL=3/3 dE=56.50 (dH=136.2 dL=0.102 dS=0.157)
+PASS block-03|block-05    HSL=2/3 dE=46.23 (dH=122.1 dL=0.161 dS=0.068)
+PASS block-03|block-02    HSL=2/3 dE=34.71 (dH=107.1 dL=0.018 dS=0.256)
+PASS block-03|block-06    HSL=3/3 dE=57.74 (dH=142.5 dL=0.239 dS=0.182)
+PASS block-03|block-07    HSL=2/3 dE=49.08 (dH=165.0 dL=0.341 dS=0.070)
+PASS block-04|block-05    HSL=2/3 dE=38.22 (dH=101.7 dL=0.059 dS=0.225)
+PASS block-04|block-02    HSL=3/3 dE=28.17 (dH=29.1 dL=0.120 dS=0.099)
+PASS block-04|block-06    HSL=2/3 dE=35.75 (dH=6.3 dL=0.341 dS=0.339)
+PASS block-04|block-07    HSL=3/3 dE=26.67 (dH=28.8 dL=0.239 dS=0.228)
+PASS block-05|block-02    HSL=3/3 dE=58.89 (dH=130.8 dL=0.178 dS=0.324)
+PASS block-05|block-06    HSL=3/3 dE=40.32 (dH=95.4 dL=0.400 dS=0.114)
+PASS block-05|block-07    HSL=2/3 dE=26.56 (dH=72.9 dL=0.180 dS=0.003)
+PASS block-02|block-06    HSL=3/3 dE=49.93 (dH=35.4 dL=0.222 dS=0.438)
+PASS block-02|block-07    HSL=3/3 dE=36.85 (dH=58.0 dL=0.359 dS=0.327)
+PASS block-06|block-07    HSL=2/3 dE=57.02 (dH=22.5 dL=0.580 dS=0.112)
+# 结果: ALL-GREEN 红对数=0/21 minΔE=26.555 阈值=25 margin=1.555 selftest=18/18
+
+=== ③ theme 单源断言框架（AC-11，骨架态= PENDING-APPROVE） ===
+$ node tests/theme.spec.mjs
+# AC-11 theme 单源断言（真源 = spec numeric.palette）
+# spec: id=cmuovwra0004gm97tinha15zq v1 status=draft anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmuouq3u0003im97tyhjci0kc/.myrd/spec/g2-blocks/design-spec.json
+# 冻结块键集: block-01=#21458C block-03=#38B279 block-04=#DB6B43 block-05=#A472CA block-02=#C89C19 block-06=#4B2B25 block-07=#E3B5BF
+# spec status = draft（approve 是主人拍板位）
+# 被测件 src/render/theme.ts 不存在 —— 冻结值相关实现按任务书红线等 approve 后再写
+PENDING-APPROVE  ac-11-theme-single-source
+# 框架自检: 断言框架可加载冻结块（7 键），被测件缺位时输出 PENDING-APPROVE（非绿非红）
+# 结果: PASS=0 RED=0 PENDING-APPROVE=1
+
+=== ④ 零冻结值依赖面自测（ac-12/17/18 + harness） ===
+$ node tests/framework.spec.mjs
+# N3 前置件自测（零冻结值依赖面）
+# spec: id=cmuovwra0004gm97tinha15zq v1 status=draft anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmuouq3u0003im97tyhjci0kc/.myrd/spec/g2-blocks/design-spec.json
+PASS  ac-12-palette-double-gate
+PASS  harness/rng-determinism
+PASS  harness/spec-anchor-stable
+PASS  ac-18-ci-guard-repo-scope
+PASS  ac-17-repo-one-zero-touch
+# 结果: PASS=5 RED=0 PENDING-APPROVE=0
+
+=== ⑤ ac-14 内核确定性（spec 声明落点） ===
+$ node tests/kernel-purity.spec.mjs
+# ac-14 内核确定性（spec 声明落点 tests/kernel-purity.spec.mjs）
+# spec: id=cmuovwra0004gm97tinha15zq v1 status=draft anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmuouq3u0003im97tyhjci0kc/.myrd/spec/g2-blocks/design-spec.json
+# numeric.rng = {"algorithm":"mulberry32","forbidDateNow":true,"forbidMathRandom":true,"testHook":"seededRng"}
+# spec status = draft（approve 是主人拍板位）
+PASS  ac-14/a 内核纯净（零 Math.random/Date.now/performance.now）
+PASS  ac-14/b 同 seed 两路序列逐字节一致
+PASS  ac-14/c 默认 seed ≡ spec DEFAULT_SEED（真源唯一）
+PASS  ac-14/d 异 seed 序列必异
+PASS  ac-14/e 纯函数隔离（无共享内部状态，可复现）
+PASS  ac-14/f uniformInt 值域/边界/非法入参
+PASS  ac-14/g rng 值域 [0,1) 且类型 number
+PASS  ac-14/h 本件零冻结 seed 字面量（自证）
+# 结果: PASS=8 RED=0 PENDING-APPROVE=0
+
+=== ⑥ acceptance.check 声明落点契约守卫 ===
+$ node tests/acceptance-map.spec.mjs
+# acceptance.check 声明落点 ↔ 工程文件对应（契约守卫）
+# spec: id=cmuovwra0004gm97tinha15zq v1 status=draft anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmuouq3u0003im97tyhjci0kc/.myrd/spec/g2-blocks/design-spec.json
+# spec acceptance 共 18 条；冻结值缺位白名单 13 条（approve 后解冻）
+PASS  acmap/a acceptance 非空且 id 唯一
+PASS  acmap/b 每条 check 都声明 g2-blocks 仓库内落点
+#   声明落点缺位但属冻结面（PENDING-APPROVE）= 13 条
+PASS  acmap/c 声明落点存在或显式 PENDING-APPROVE（缺位即漂移）
+PASS  acmap/d 白名单无过期条目（文件已存在者必须移出）
+PASS  acmap/e 白名单与 spec id 对齐（无幽灵条目）
+# 结果: PASS=5 RED=0 PENDING-APPROVE=0
+
+=== N3 门禁台账 ===
+PASS  ① 范围守卫（AC-18）
+PASS  ② 色板双门禁 21 对（AC-12）
+PASS  ③ theme 单源断言框架（AC-11，骨架态= PENDING-APPROVE）
+PASS  ④ 零冻结值依赖面自测（ac-12/17/18 + harness）
+PASS  ⑤ ac-14 内核确定性（spec 声明落点）
+PASS  ⑥ acceptance.check 声明落点契约守卫
+# 结论: 门禁绿（骨架态）——冻结值相关实现与门禁等 approve 后补齐，不装绿

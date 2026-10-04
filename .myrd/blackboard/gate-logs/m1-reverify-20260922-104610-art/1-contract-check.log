@@ -1,0 +1,47 @@
+—— 契约测试输出 ——
+  PASS  spec 可解析: .myrd/spec/design-spec-pixel-fives.json
+  PASS  spec 为 approved 版（v1.2，2026-09-12）→ 强制模式
+  PASS  实体 player script 存在: pixel-fives/src/entities/player.js
+  PASS  实体 ball script 存在: pixel-fives/src/entities/ball.js
+  PASS  实体 goal script 存在: pixel-fives/src/entities/goal.js
+  PASS  关卡 pitch script 存在: pixel-fives/src/levels/pitch.js
+  PASS  关卡元素 el-01 在 pitch.js 落位
+  PASS  关卡元素 el-02 在 pitch.js 落位
+  PASS  关卡元素 el-03 在 pitch.js 落位
+  PASS  关卡元素 el-04 在 pitch.js 落位
+  PASS  关卡元素 el-05 在 pitch.js 落位
+  PASS  关卡元素 el-06 在 pitch.js 落位
+  PASS  关卡元素 el-07 在 pitch.js 落位
+  PASS  关卡元素 el-08 在 pitch.js 落位
+  PASS  关卡元素 el-09 在 pitch.js 落位
+  PASS  关卡元素 el-10 在 pitch.js 落位
+  PASS  关卡元素编号唯一性核对完成（10 个）
+  PASS  资产 manifest 可解析（8 项资产：A01,A02,A03,A04,A05,A06,A07,A08）
+  PASS  实体 player 资产 A02 与 manifest 对齐（A02）
+  PASS  实体 player 资产 A03 与 manifest 对齐（A03）
+  PASS  实体 player 资产 A06 与 manifest 对齐（A06）
+  PASS  实体 ball 资产 A04 与 manifest 对齐（A04）
+  PASS  实体 goal 资产 A05 与 manifest 对齐（A05）
+  PASS  实体 goal 资产 A08 与 manifest 对齐（A08）
+  PASS  数值单源就绪: pixel-fives/src/core/constants.js
+  PASS  数值 tick_hz=60 在单源有对应
+  PASS  数值 match.duration_s=90 在单源有对应
+  PASS  数值 goal_celebration_s=1.2 在单源有对应
+  PASS  数值 goal_sfx_at_s=0.0 在单源有对应
+  PASS  数值 red_line.input_to_shot_latency_ms=50 在单源有对应
+  PASS  数值 bot_sim.seeds=42..141 在单源有对应
+  PASS  数值 bot_sim.goal_range=[1,12] 在单源有对应
+  PASS  数值 bot_sim.duration_in_range_s=[80,100] 在单源有对应
+  PASS  数值 a06 9帧/12fps/0.75s/contact3 在单源有对应
+  PASS  验收项 acc-01 check 存在: pixel-fives/tests/smoke/full-match.test.mjs
+  PASS  验收项 acc-02 check 存在: pixel-fives/tests/red-line/input-to-shot.test.mjs
+  PASS  验收项 acc-03 check 存在: pixel-fives/tools/bot-sim.mjs
+  PASS  验收项 acc-04 check 存在: pixel-fives/tests/qa/bot-sim-contract.test.mjs
+  PASS  验收项 acc-05 check 存在: pixel-fives/tests/ui/onboarding-hint.test.mjs
+  PASS  验收项 acc-06 check 存在: pixel-fives/tests/goal-flow.test.mjs
+  PASS  验收项 acc-07 check 为例行任务口径（contract-check 例行任务（game-contract，读 .myr…）
+  PASS  验收项 acc-08 check 存在: pixel-fives/tools/gen-assets.mjs
+  PASS  验收项 acc-09 check 为例行任务口径（人工核对（主策划批准后程序线执行翻转并回报）…）
+  WARN  acc-09 槽位状态: PENDING_APPROVED_SLOTS 已翻转
+—— 合计 43 PASS / 1 WARN / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致

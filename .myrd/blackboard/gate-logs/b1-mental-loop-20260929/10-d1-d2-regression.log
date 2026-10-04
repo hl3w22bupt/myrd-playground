@@ -1,0 +1,8 @@
+# 10 · offline smoke（acc-d2 既有项回归，2026-09-29）
+$ node tests/contract/m21-acc-d2-offline-smoke.spec.mjs
+  ok    无音频 404 负面用例：sfx 全 404 不抛错、核心循环可玩（404 子句承接自 acc-a1）
+RESULT: PASS (2/2)
+
+$ node tests/contract/m21-acc-d1-pwa-shell.spec.mjs（acc-d1 兼容复核）
+  ok    入口装配：SW 注册 + ?fps=1 帧率面板
+RESULT: PASS (4/4)

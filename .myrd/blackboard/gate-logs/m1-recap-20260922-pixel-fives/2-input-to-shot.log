@@ -1,0 +1,72 @@
+{
+  "test": "red-line/input-to-shot",
+  "total": 13,
+  "failures": 0,
+  "results": [
+    {
+      "name": "1a 判定发生在同一 tick（impulse 同步调用）",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "1b 射门计数 +1",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "1c 单 tick 延迟 ≤ 红线 50ms",
+      "pass": true,
+      "detail": "tick=16.667ms ≤ 50ms"
+    },
+    {
+      "name": "1d A06 动画被排程（纯视觉）",
+      "pass": true,
+      "detail": "0.75"
+    },
+    {
+      "name": "1e 冷却进入生效",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "1f 动画时长 = 0.75s（9帧@12fps 终裁 R-01）",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "2a 快进至冷却结束",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "2b 动画仍在播放（kickAnimT > 0）",
+      "pass": true,
+      "detail": "0.4333333333333326"
+    },
+    {
+      "name": "2c 动画未播完不阻塞判定",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "3a 首次判定成功",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "3b 冷却中第二次判定被拒",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "4a 触距外判定失败",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "4b reach 常量 = 13（R-10 采纳值）",
+      "pass": true,
+      "detail": null
+    }
+  ]
+}

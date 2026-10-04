@@ -1,0 +1,51 @@
+{
+  "specSource": "spec v1.4 content.retention items[].assets（meta 四件套 4 id；mission-panel 为 missions-deferred 预留件）",
+  "derivedFrom": "霓虹夜塔参考卡 v1.0（docs/style-card-neon-night-v1.md）· 色源 theme.ts NEON 表",
+  "generator": "tools/gen-meta-assets.mjs（确定性，重跑逐字节一致）",
+  "items": [
+    {
+      "id": "daily-challenge-card",
+      "file": "daily-challenge-card.png",
+      "bytes": 936,
+      "sha256": "a7edfeace083b98c6b1dbe14a4adabc4c26df885fb9d3876669eca5d994b75b5",
+      "size": "360x160",
+      "kind": "ui-panel",
+      "slice": 24,
+      "alpha": "transparent",
+      "expect": "每日挑战面板卡：日历隐喻 + 标题抽象条 + 三段进度；NEON 派生；透明底"
+    },
+    {
+      "id": "mission-panel",
+      "file": "mission-panel.png",
+      "bytes": 1063,
+      "sha256": "c2d9e5be1fce4e8cf5343356670513c8b41592c74c2278e10f5d070720905ade",
+      "size": "360x200",
+      "kind": "ui-panel",
+      "slice": 24,
+      "alpha": "transparent",
+      "expect": "连击任务面板：三条目行（行高 48）+ 奖励角标位；NEON 派生；透明底（本轮预留，下一轮接线）"
+    },
+    {
+      "id": "streak-badge",
+      "file": "streak-badge.png",
+      "bytes": 442,
+      "sha256": "c44a43f9f7784aacf8ac9d6e51485d9d74d9fba15cc324681cb5fdbec67dc81b",
+      "size": "96x96",
+      "kind": "icon",
+      "slice": null,
+      "alpha": "transparent",
+      "expect": "连胜徽章：菱形核心 + 光晕 + 双尾迹；单色高亮可被主题重着色；透明底"
+    },
+    {
+      "id": "icon-badge",
+      "file": "icon-badge.png",
+      "bytes": 310,
+      "sha256": "6fc5dae975e402fa1c6cbe535b4cfb7701c3c7770c13b5c12680aa2fe2939896",
+      "size": "64x64",
+      "kind": "icon",
+      "slice": null,
+      "alpha": "transparent",
+      "expect": "奖励角标：圆盘 + 对勾抽象；挑战完成/任务奖励共用；透明底"
+    }
+  ]
+}

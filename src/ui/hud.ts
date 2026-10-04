@@ -6,7 +6,6 @@
  */
 
 import type { GameEvent, MatchHandle, WorldSnapshot } from '../core/types';
-import { ITEMS } from '../content';
 import { HudState } from './hudState';
 
 const HITMARKER_MS = 140;
@@ -33,8 +32,6 @@ export class Hud {
   private medkitBar: HTMLDivElement;
   private debugText: HTMLDivElement;
   private vignette: HTMLDivElement;
-  private pickupHint: HTMLDivElement;
-  private zoneWarn: HTMLDivElement;
   private hitmarker: HTMLDivElement;
   private crosshair: HTMLDivElement;
 
@@ -46,10 +43,6 @@ export class Hud {
   // 计时型视觉（hitmarker/准星后座）按布尔状态翻转时才写 class，避免每帧 DOM 写入
   private hitmarkerShown = false;
   private crosshairKicked = false;
-  // 提示型 UI：以文本差异做脏检查（变化频率低，避免每帧 DOM 写入）
-  private lastPickupText = '';
-  private lastZoneWarnText = '';
-  private poisonShown = false;
 
   constructor(container: HTMLElement) {
     this.root = document.createElement('div');
@@ -68,8 +61,6 @@ export class Hud {
       </div>
       <div class="hud-state" data-ref="state"></div>
       <div class="airdrop-banner" data-ref="airdrop"></div>
-      <div class="pickup-hint" data-ref="pickup"></div>
-      <div class="zone-warn" data-ref="zonewarn"></div>
       <div class="killfeed" data-ref="killfeed"></div>
       <div class="hud-bottom-left">
         <div class="hpwrap">
@@ -109,8 +100,6 @@ export class Hud {
     this.killFeed = ref('killfeed');
     this.medkitBar = ref('medkit');
     this.debugText = ref('debug');
-    this.pickupHint = ref('pickup');
-    this.zoneWarn = ref('zonewarn');
   }
 
   update(snap: WorldSnapshot): void {
@@ -142,32 +131,6 @@ export class Hud {
     if (state.medkitVisible && dirty.medkitFillWidth) {
       const fill = this.medkitBar.firstElementChild as HTMLElement | null;
       if (fill) fill.style.width = state.medkitFillWidth;
-    }
-
-    // 拾取提示（AC3）：范围内最近物资 → 「按 E 拾取 xx」
-    const near = snap.player?.nearbyLoot ?? null;
-    const pickupText = near
-      ? `按 E 拾取 ${ITEMS[near.item as keyof typeof ITEMS]?.name ?? near.item}`
-      : '';
-    if (pickupText !== this.lastPickupText) {
-      this.lastPickupText = pickupText;
-      this.pickupHint.textContent = pickupText;
-      this.pickupHint.style.display = pickupText ? 'block' : 'none';
-    }
-
-    // 毒圈警示（AC5）：处于安全区外 → 提示当前掉血速率
-    const outside = snap.player?.outsideZone ?? false;
-    const zoneWarnText = outside
-      ? `⚠ 已在安全区外 —— 每秒 ${snap.zone.dps.toFixed(1)} 点伤害，立即进圈！`
-      : '';
-    if (zoneWarnText !== this.lastZoneWarnText) {
-      this.lastZoneWarnText = zoneWarnText;
-      this.zoneWarn.textContent = zoneWarnText;
-      this.zoneWarn.style.display = zoneWarnText ? 'block' : 'none';
-    }
-    if (outside !== this.poisonShown) {
-      this.poisonShown = outside;
-      this.vignette.classList.toggle('poison', outside);
     }
 
     // 命中标记 / 开火准星扩散（计时自动消退；仅状态翻转时写 class）

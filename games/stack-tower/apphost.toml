@@ -1,0 +1,6 @@
+# Stack Tower（M2 首卡）专属部署清单 —— 每游戏一份，共享仓库根壳 server/。
+# 部署时以 manifestPath=games/stack-tower/apphost.toml 传入，勿改仓库根 apphost.toml。
+name = "Stack Tower"
+runtime = "node20"
+health = "/health"
+assets_dir = "games/stack-tower/export/web"

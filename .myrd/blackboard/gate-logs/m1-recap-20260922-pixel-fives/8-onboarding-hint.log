@@ -1,0 +1,47 @@
+{
+  "test": "ui/onboarding-hint",
+  "total": 8,
+  "failures": 0,
+  "results": [
+    {
+      "name": "A1 开局提示不透明度 = 1（可见）",
+      "pass": true,
+      "detail": "1"
+    },
+    {
+      "name": "A2 el-09 落点在关卡 script",
+      "pass": true,
+      "detail": "el-09"
+    },
+    {
+      "name": "B1 首次触球被感知（touchCount>0）",
+      "pass": true,
+      "detail": "1"
+    },
+    {
+      "name": "B2 firstTouchS 锚定",
+      "pass": true,
+      "detail": "0.016666666666666666"
+    },
+    {
+      "name": "C1 淡出完成（alpha=0）",
+      "pass": true,
+      "detail": "0.6000000000000002"
+    },
+    {
+      "name": "C2 淡出时限 ≤3s（spec el-09 / onboarding.hide_after_first_touch_s=3）",
+      "pass": true,
+      "detail": "0.600s"
+    },
+    {
+      "name": "D1 5s 未触球提示仍可见（alpha=1）",
+      "pass": true,
+      "detail": "1"
+    },
+    {
+      "name": "E1 淡出过程单调不回弹",
+      "pass": true,
+      "detail": null
+    }
+  ]
+}

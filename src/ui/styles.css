@@ -69,27 +69,6 @@ html, body {
   background: radial-gradient(ellipse at center, transparent 55%, rgba(160,20,20,0.55) 100%);
 }
 .vignette.danger { opacity: 1; }
-.vignette.poison { opacity: 1; animation: poisonPulse 1.2s ease-in-out infinite; }
-
-@keyframes poisonPulse {
-  0%, 100% { background: radial-gradient(ellipse at center, transparent 58%, rgba(120, 40, 160, 0.35) 100%); }
-  50% { background: radial-gradient(ellipse at center, transparent 50%, rgba(120, 40, 160, 0.6) 100%); }
-}
-
-.pickup-hint {
-  position: absolute; left: 50%; top: 58%; transform: translateX(-50%);
-  display: none;
-  background: var(--hud-bg); border: 1px solid var(--hud-line); border-radius: 8px;
-  padding: 8px 16px; font-size: 14px; color: #ffe9a8;
-}
-.pickup-hint::first-letter { font-weight: 700; }
-
-.zone-warn {
-  position: absolute; left: 50%; top: 23%; transform: translateX(-50%);
-  display: none;
-  background: rgba(70, 20, 90, 0.62); border: 1px solid rgba(190, 120, 230, 0.55); border-radius: 10px;
-  padding: 9px 20px; font-size: 15px; font-weight: 700; color: #f2d9ff; letter-spacing: 1px;
-}
 
 /* —— 左上：局势面板 + 缩圈徽章 —— */
 .hud-top-left {

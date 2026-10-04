@@ -1,0 +1,330 @@
+{
+  "game": "pixel-fives",
+  "manifest_version": "1.0.0-draft",
+  "status": "APPROVED",
+  "approved_by": "lead-game-designer（主策划 · 唯一 approved 执行人）· 2026-09-12 · 批准记录 docs/spec/v1.2-approval-record.md §3",
+  "style_card": "docs/art/style-card-v1.md",
+  "style_card_status": "v1-approved",
+  "style_lock": {
+    "palette_count": 20,
+    "palette": {
+      "K": "#1A1626",
+      "S": "#2E2A44",
+      "d": "#256B3A",
+      "g": "#2E7D46",
+      "l": "#3B9457",
+      "w": "#F4F1E8",
+      "v": "#C9C4B4",
+      "p": "#A8A394",
+      "e": "#E8E4D8",
+      "r": "#D93A2B",
+      "R": "#A8281C",
+      "x": "#F06A50",
+      "b": "#2B6BD9",
+      "B": "#1E4DA8",
+      "y": "#5C8FF0",
+      "f": "#F2C9A0",
+      "F": "#D9A87C",
+      "h": "#3A2A1E",
+      "o": "#E8B23A",
+      "n": "#12101E"
+    },
+    "team_swap": {
+      "r": "b",
+      "R": "B",
+      "x": "y"
+    },
+    "light": "左上45°单光源；每精灵≤3阶明暗；硬边像素过渡；禁渐变/抗锯齿/软阴影；接地投影由程序以K色50%alpha绘制，不入精灵",
+    "line": "内描边1px（受光S/背光K）；外轮廓禁纯黑#000000；像素阶梯表达转折；场地白线恒1px w",
+    "proportion": "¾俯视；16px公度网格；角色16×16侧视朝右（反向=水平镜像，禁旋转）；球8×8；球门32×24；tile16×16；导出整数倍缩放，禁平滑插值",
+    "animation_base_fps": 12
+  },
+  "budget": {
+    "assets_total_max_bytes": 1572864,
+    "wechat_main_package_max_bytes": 4194304,
+    "assets_total_bytes": 68496,
+    "note": "assets_total_bytes 由 node tools/gen-assets.mjs 回填并强校验（含 .grid 源 + 导出 PNG + WAV），超线 exit 1",
+    "generated_with_scale": 1
+  },
+  "assets": [
+    {
+      "id": "A01",
+      "name": "pitch-tileset",
+      "kind": "tileset",
+      "source": "assets/a01-pitch-tileset.grid",
+      "frame_size": [
+        16,
+        16
+      ],
+      "frames": 4,
+      "fps": null,
+      "palette_used": [
+        "g",
+        "d",
+        "l",
+        "w"
+      ],
+      "tile_index": {
+        "0": "grass-light-stripe",
+        "1": "grass-dark-stripe",
+        "2": "boundary-line-top",
+        "3": "center-spot"
+      },
+      "output": "assets/out/a01-pitch-tileset.png",
+      "bytes": 1801,
+      "status": "approved"
+    },
+    {
+      "id": "A02",
+      "name": "player-red",
+      "kind": "spritesheet",
+      "source": "assets/a02-player-red.grid",
+      "frame_size": [
+        16,
+        16
+      ],
+      "frames": 6,
+      "fps": null,
+      "anims": [
+        {
+          "name": "idle",
+          "range": [
+            0,
+            1
+          ],
+          "fps": 4
+        },
+        {
+          "name": "run",
+          "range": [
+            2,
+            5
+          ],
+          "fps": 12
+        }
+      ],
+      "facing": "right; left=mirror",
+      "palette_used": [
+        "K",
+        "r",
+        "R",
+        "x",
+        "f",
+        "F",
+        "h",
+        "w"
+      ],
+      "output": "assets/out/a02-player-red.png",
+      "bytes": 2537,
+      "status": "approved"
+    },
+    {
+      "id": "A03",
+      "name": "player-blue",
+      "kind": "spritesheet",
+      "derive_from": "A02",
+      "palette_swap": {
+        "r": "b",
+        "R": "B",
+        "x": "y"
+      },
+      "source": "assets/a02-player-red.grid",
+      "frame_size": [
+        16,
+        16
+      ],
+      "frames": 6,
+      "fps": null,
+      "anims": [
+        {
+          "name": "idle",
+          "range": [
+            0,
+            1
+          ],
+          "fps": 4
+        },
+        {
+          "name": "run",
+          "range": [
+            2,
+            5
+          ],
+          "fps": 12
+        }
+      ],
+      "facing": "right; left=mirror",
+      "palette_used": [
+        "K",
+        "b",
+        "B",
+        "y",
+        "f",
+        "F",
+        "h",
+        "w"
+      ],
+      "output": "assets/out/a03-player-blue.png",
+      "bytes": 2540,
+      "status": "approved"
+    },
+    {
+      "id": "A04",
+      "name": "ball",
+      "kind": "spritesheet",
+      "source": "assets/a04-ball.grid",
+      "frame_size": [
+        8,
+        8
+      ],
+      "frames": 4,
+      "fps": 12,
+      "anims": [
+        {
+          "name": "roll",
+          "range": [
+            0,
+            3
+          ],
+          "fps": 12
+        }
+      ],
+      "palette_used": [
+        "K",
+        "w",
+        "v"
+      ],
+      "output": "assets/out/a04-ball.png",
+      "bytes": 728,
+      "status": "approved"
+    },
+    {
+      "id": "A05",
+      "name": "goal-net",
+      "kind": "sprite",
+      "source": "assets/a05-goal-net.grid",
+      "frame_size": [
+        32,
+        24
+      ],
+      "frames": 1,
+      "fps": null,
+      "facing": "left-goal; right=mirror",
+      "palette_used": [
+        "e",
+        "p",
+        "v"
+      ],
+      "output": "assets/out/a05-goal-net.png",
+      "bytes": 1364,
+      "status": "approved"
+    },
+    {
+      "id": "A06",
+      "name": "kick-shot",
+      "kind": "animation",
+      "source": "assets/a06-kick-shot.grid",
+      "frame_size": [
+        16,
+        16
+      ],
+      "frames": 9,
+      "fps": 12,
+      "duration_s": 0.75,
+      "contact_frame": 3,
+      "contact_note": "视觉触球帧≈250ms；出球判定由程序即时触发（input_to_shot_latency_ms<=50 红线），动画不阻塞判定",
+      "change_record": "2026-09-12 终裁锁定 9帧@12fps=0.75s（原稿帧数记录随黑板不可达，以终裁为准）",
+      "facing": "right; left=mirror",
+      "team_swap_capable": true,
+      "palette_used": [
+        "K",
+        "r",
+        "R",
+        "x",
+        "f",
+        "F",
+        "h",
+        "w"
+      ],
+      "output": "assets/out/a06-kick-shot.png",
+      "bytes": 3578,
+      "status": "approved"
+    },
+    {
+      "id": "A07",
+      "name": "ui-hud",
+      "kind": "ui-panel",
+      "source": "assets/a07-ui-hud.grid",
+      "frame_size": [
+        48,
+        16
+      ],
+      "frames": 1,
+      "fps": null,
+      "nine_slice": {
+        "cols": [
+          [
+            0,
+            3
+          ],
+          [
+            4,
+            43
+          ],
+          [
+            44,
+            47
+          ]
+        ],
+        "rows": [
+          [
+            0,
+            2
+          ],
+          [
+            3,
+            12
+          ],
+          [
+            13,
+            15
+          ]
+        ]
+      },
+      "scope_note": "比分数字用系统像素字体，不占美术位图预算（风格卡§5）",
+      "palette_used": [
+        "S",
+        "n",
+        "r",
+        "R",
+        "b",
+        "B",
+        "o",
+        "v"
+      ],
+      "output": "assets/out/a07-ui-hud.png",
+      "bytes": 1533,
+      "status": "approved"
+    },
+    {
+      "id": "A08",
+      "name": "sfx-goal-hit",
+      "kind": "audio",
+      "source": "assets/a08-sfx-goal-hit.spec.json",
+      "spec_ref": "assets/a08-sfx-goal-hit.spec.json",
+      "format": {
+        "container": "wav",
+        "codec": "pcm_s16le",
+        "channels": 1,
+        "sample_rate_hz": 44100,
+        "duration_s": 0.6
+      },
+      "added_record": "2026-09-12 终裁新增：音效不删、变可测；goal_sfx_at_s 字段归属 spec v1.2（策划线落文），美术侧默认偏移 0.0s",
+      "build": "node tools/gen-audio.mjs",
+      "output": "assets/out/a08-sfx-goal-hit.wav",
+      "bytes": 52964,
+      "status": "approved"
+    }
+  ],
+  "generated_at": "2026-09-22T02:09:39.498Z"
+}

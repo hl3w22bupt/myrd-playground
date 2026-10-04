@@ -1,0 +1,10 @@
+# 命令: node tests/wx/assets-wx-check.mjs（B0 美术线收口复核 · 2026-09-28 10:22:47）
+  PASS  wx-friend-rank-ui  460x560  3.7KB  派生色 #0b1026
+  PASS  wx-icon  120x120  1.0KB  派生色 #0b1026
+  PASS  wx-share-card-5x4  500x400  3.3KB  派生色 #0b1026
+  PASS  wx-share-timeline-1x1  500x500  5.9KB  派生色 #0b1026
+  PASS  wx-store-screenshot-01  1242x2208  16.5KB  派生色 #0b1026
+  PASS  wx-store-screenshot-02  1242x2208  28.2KB  派生色 #0b1026
+  PASS  wx-store-screenshot-03  1242x2208  20.8KB  派生色 #0b1026
+RESULT: PASS  — 平台素材查表 7/7（sha256 + 尺寸 + NEON 派生）
+# exit=0（10:22:47）
