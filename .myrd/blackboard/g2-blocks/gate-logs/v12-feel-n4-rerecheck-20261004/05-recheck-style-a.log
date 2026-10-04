@@ -1,0 +1,21 @@
+# N4 对抗复检 · 姿势 A（文档口径：只钉 G2_REPO_ONE_ROOT）· 2026-10-04T02:19:23Z
+$ G2_REPO_ONE_ROOT=/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmut4m9ww00bvic7qxd1wpl7y node tools/qa-v12-feel.mjs
+[PASS] R1.a Mode B 全量契约（链 v4 · 25 条） — 合计=25 PASS / 0 FAIL · EXIT=0
+[PASS] R1.b id ↔ 契约件三件套（spec 有而件缺 = 红） — acceptance=25 缺件=0
+[PASS] R1.c check 落点形态统一 — 越轨=0
+[PASS] R2.a 契约快照零红（approved v1.1 · 18 条） — 合计=18 PASS / 0 FAIL · EXIT=0
+[PASS] R2.a2 快照② ↔ approved 导出件 id 集全等 — 快照=18 条 · 导出件=18 条
+[PASS] R2.b 冒烟零变化（判据面 git diff = 空） — diff 行数=0
+[PASS] R2.c P95 同口径比对（基准跑 · fps/卡顿/带宽） — 基线 fps=60 jank=0 p95=16.7 ←→ 本轮 fps=60 jank=0 p95=16.7（Δ=0.0ms ≤1 帧时间量化带宽）
+[PASS] R2.c2 J1 实测 ≤ spec 预算（同帧率口径） — 规格跑（j1 环境）throttle×4 p95=66.7ms
+[PASS] R2.d 存档向后兼容（ac-16 在 Mode A + ac-28④ 在 Mode B 双态在档） — 键级最小集不降 + v1 存档 fixture 全等
+[PASS] R2.e 纯增量 diff 核验（路径白名单） — 改动=56 件 · 白名单外=0
+[PASS] R2.e2 numeric 零漂移守卫复跑（九道守卫） — 九道守卫全绿（v1.1 既有 12 组 numeric 逐字节零 diff）
+[PASS] R3.a 红证据核验（先红后绿 · 在档可审计） — 在档=6 件（含切片1 模块缺位红 + 各片断言红）
+[PASS] R3.b 顺延零渗漏（spec 面：combo 倍率/level-stars/第一分钟引导/daily.star） — 渗漏=0 · star=false
+[PASS] R3.b2 顺延零渗漏（实现面：src/ 零命中；tools/ 白名单外零命中） — src 命中=0 · tools 白名单外=0（白名单内 4 件 = 守卫/注释/自检非实现，逐件见档）
+[PASS] R3.c numeric ↔ 实现常量表零漂移（生成器幂等复跑 = 零 diff） — regen EXIT=0 · 再生 diff=空（零漂移）
+
+—— N4 复检台账：15 PASS / 0 FAIL ——
+VERDICT: APPROVE-READY（N4 四步无红 · 打包提请主人 approve）
+EXIT=0

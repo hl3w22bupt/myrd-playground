@@ -35,7 +35,15 @@
 - 冒烟：**SMOKE PASS** · 判据面 `git diff fe5fd38..HEAD -- tools/smoke.mjs` = 0 行（零变化）
 - T2 采样：基准跑 **fps=60 · 卡顿 0 · P95=16.8ms**（基线快照① 16.7ms，Δ=0.1ms = rAF 帧时间量化带宽；jank 0↔0 → 不退化成立）
 - N4 对抗复检：**15/15 · VERDICT: APPROVE-READY**（`gate-logs/v12-feel-n4-20261004/01`；复检器首跑自曝五缺陷全修，02 同档互证）
-- 源仓提交链（本轮 9 commit）：`19bf249`(N1 入链)→`a19e132`(切片0)→`50efa9f`(切片1)→`684f42a`(切片2)→`ced4497`(切片3)→`6fc09c2`(切片4)→`cf57708`(切片5)→`6fec4a6`(N3 收口)→`b66aa0b`(N4)→`eab0df0`(N5 清单)
+- 源仓提交链（本轮 10 commit）：`19bf249`(N1 入链)→`a19e132`(切片0)→`50efa9f`(切片1)→`684f42a`(切片2)→`ced4497`(切片3)→`6fc09c2`(切片4)→`cf57708`(切片5)→`6fec4a6`(N3 收口)→`b66aa0b`(N4)→`eab0df0`(N5 清单)→`01c2f06`(提交前复跑 + 复检器加固)
+
+### 提交前复跑（程序 · 提审包封箱自检 · 2026-10-04 · `gate-logs/v12-feel-n4-rerecheck-20261004/`）
+
+- **目的**：证明「全绿」可由第三方按文档口径重现；非打回、非新一轮 N4，同一实现态的独立实跑。
+- **复跑结果**：契约 Mode A **18/18** + Mode B **25/25**（EXIT 均 0）· 八门禁 ①–⑧ 全 PASS · **SMOKE PASS（J1=174.9ms）** · T2 基准跑 **fps=60 · 卡顿 0 · P95=16.7ms**（与基线快照① **16.7ms 全等**，较上一档 16.8ms 回落 1 帧时间量化步）· N4 复检 **15/15 APPROVE-READY**。
+- **独立核验五项**（原文 `07-independent-checks.log`）：numeric 锚双值 MATCH（`302e6336…` / `1720df8e…`）· 既有 12 组 numeric 逐字节零 diff（新增组恰 = feel+daily）· 顺延项 src 命中 0（spec 面 `star` 7 处逐一排除为 restart/startMark 子串）· `tools/smoke.mjs` 判据面 diff = 0 行 · 一号仓本轮区间 `games/` 触碰 0 文件。
+- **事故与修复（1 处工具缺陷，判据零变化）**：复跑者外层残留 `G2_SPEC_PATH=<draft>` 时 R2.a 假红（Mode A 子调用继承环境误装链 v4 25 条）。修法 = R2.a 显式钉 `{ G2_SPEC_PATH: APPROVED }`（与检查名「approved v1.1 · 18 条」一致）；双姿势复跑均 15/15（`05`/`06` 原文）；加固后在新 HEAD `01c2f06` 再跑仍 15/15（`08`）。`gen-feel-pack.mjs` 不受影响（取数走独立 `G2_SPEC_V13`）。
+- `build/sw.js` 重建产生的缓存版本号残留已归位（保持与归档双 manifest `buildSha256` 同批一致）；源仓树净。
 
 ## 挂账（非本轮动作，防丢失）
 

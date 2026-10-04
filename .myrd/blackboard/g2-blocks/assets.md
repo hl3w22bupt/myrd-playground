@@ -27,6 +27,10 @@
 | F-06 ✅ | 重开按钮三态 + 转场帧 | 炉冷横幅 / 常驻重开入口 | numeric.feel.restart | ac-27 + ui-feel-pack.json + cool-frame | ✅ |
 | F-07 ✅ | daily 入口与角标 + 分享卡轻更新 | HUD daily 入口 / share og+wx 卡轻刷新 | numeric.daily（dailyBadge 未单列，角标=UI 映射面） | ac-28 + daily-entry-pack.json + 分享卡重出 | ✅ |
 
+> **提交前复跑（2026-10-04 · 程序线封箱自检）**：资产面**零新增、零改动**（F-01..F-07 与 a03/a04..a07 均维持 N3 收口态）；
+> 仅随复跑刷新证据件（`docs/evidence/perf-p95-report.*` 基准 p95=16.7ms / `tests/contract/.j1-evidence.json` J1=174.9ms，
+> 源仓 `01c2f06`）。原文 `gate-logs/v12-feel-n4-rerecheck-20261004/`。
+
 ---
 
 # 存档：A 轮「发布素材包 + 风格盘点」（2026-10-03 收口）

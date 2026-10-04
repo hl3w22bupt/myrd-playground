@@ -14,6 +14,7 @@
 | N3 视觉打磨包 | 美术 | F-01..F-07 全落 + a03 三档资源 + 分享卡轻更新 + A-10/A-11 收口 | ✅ 四要素校样（gate-logs/v12-feel-n3-20261004/README）· ART-RECHECK 12/12 · 差距清单零 open |
 | N4 复检 | QA | 四步对抗复检（tools/qa-v12-feel.mjs） | ✅ 15/15 无红 · VERDICT: APPROVE-READY（复检器首跑五缺陷自曝全修） |
 | N5 打包提审 | 主策划+程序 | 打包 + 证据三件套 + release-readiness §F..I | ✅ 提请主人 approve（PWA 发布归 deploy 节点） |
+| 提交前复跑（程序 · 提审包封箱自检） | 程序 | 源仓 `eab0df0`→`01c2f06` 全量重跑：契约双态 18/18 + 25/25 · 八门禁 ①–⑧ · SMOKE（J1=174.9ms）· T2 基准 P95=16.7ms（与基线快照①全等）· N4 复检双姿势 15/15 | ✅ 无红（原文 `gate-logs/v12-feel-n4-rerecheck-20261004/`，独立核验五项判据在档） |
 
 ---
 
