@@ -1,0 +1,10 @@
+# cmd: node /tmp/g2-live-smoke.mjs <liveUrl>/gw  (部署节点自测 · 真浏览器 CDP)
+[live] 游戏就绪 __G2_READY=true @ https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/gw
+[live] 盘面 64 格满员 · score=0
+[live] 手1 核心循环可玩：score 0 → 160（chain=1）
+[live] 消除粒子上屏 ✓（drawn=8）
+[live] 重开全复位 ✓（score=0 status=playing）
+[live] J1 证据 {"measuredMs":151.2000000178814,"startMark":"j1_settle_start","doneMark":"j1_feedback_done"}
+[live] 控制台零错误 ✓
+[live] LIVE-SMOKE: PASS 线上真浏览器可开 + 核心循环可玩 + 粒子上屏 + 重开复位 + 零控制台错误
+# EXIT=0

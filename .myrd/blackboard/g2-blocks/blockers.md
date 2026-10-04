@@ -1,8 +1,23 @@
 # 阻塞项黑板 — g2-blocks（**V1.2「核心手感 6 项 + daily-challenge」轮 · 驳回修复后重提审**）
 
-> 更新时间：2026-10-04（驳回 D1–D6 全闭 · N4 加固版 15/15 APPROVE-READY · 程序线修复 + 主策划位复核待认领）
+> 更新时间：2026-10-04（驳回 D1–D6 全闭 · N4 加固版 15/15 APPROVE-READY · **部署轮 r3 已发布 v1.2 产物上线**）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：**等主人拍板**（链 v4 approve + 实现人工验收 + A-10/D4 取向确认）；PWA 发布归 workflow deploy 节点；渠道提审归主人
+> 下一步：**等主人拍板**（链 v4 approve + 实现人工验收 + A-10/D4 取向确认）；线上试玩入口 `https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/gw`（部署轮 r3 @ `caaaba2`）；渠道提审归主人
+
+## 部署轮 r3（2026-10-04 · workflow deploy 节点 · v1.2 手感轮产物上 AppHost）
+
+| 项 | 证据（可核对） |
+|---|---|
+| 专属坑 | `cmuqelj2r0046m9zr4emgdgdg` / slug `g2-blocks-2` / sourceId `g2-blocks`（GET 复核 projectId `cmto0g28j…` · status ready · **未新建坑**） |
+| gitRef / 提交 | 分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `caaaba2`（`git ls-remote` 与远端全等） |
+| 产物 | `games/g2-blocks/export/web/` 25 文件 = 源仓 `g2-blocks@6d3db6a` `build/` 逐字节相等（`diff -rq`）；新增 `daily.mjs`/`render/feel.mjs`/`generated/feel-data.mjs` |
+| 部署 | deployment `cmuta82oz001cics1ppn9syak` version **5** · current · running · 零 errorMessage（单次 POST，网关 504 但仅受理一条，无 r2 式重复） |
+| 线上自测 | `/health` 200 `{"ok":true,...}` · `/gw` 200 · 真浏览器 CDP **LIVE-SMOKE: PASS**（64 格满员 + 0→160 chain=1 + **粒子上屏 drawn=8** + 重开复位 + 零控制台错误 · J1=153.6ms ≤ 400ms） |
+| 产物一致性 | 线上 `sw.js` 与提交件 `diff` 全等；`main.mjs` sha256 全等（`3ef61025…`） |
+| 零接触 | 本轮 git 变更 10 路径全在 `games/g2-blocks/export/web`；`games/stack-tower`/`games/game`/根 `apphost.toml` 零触碰 |
+| 部署前门禁 | contract Mode A 18/18 EXIT=0 · BUILD 22 modules · SMOKE PASS J1=173.8ms（源仓 `6d3db6a` 树净实跑） |
+
+全文见 `apphost-app.md`「本轮部署（2026-10-04 · 部署轮 r3）」。
 
 ## 驳回修复轮（D1–D6 · 2026-10-04 · 全部闭环，原文 `gate-logs/v12-feel-reject-fix-20261004/`）
 

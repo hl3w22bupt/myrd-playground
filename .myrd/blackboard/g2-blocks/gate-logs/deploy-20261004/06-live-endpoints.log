@@ -1,0 +1,19 @@
+# 线上端点自测（curl · 2026-10-04T04:00:18Z · base=https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2）
+--- GET /health ---
+{"ok":true,"app":"stack-tower","env":"development","assets":"lazy/object-storage"}
+[HTTP=200]
+--- GET / (裸根) ---
+[HTTP=308 redirect=https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2]
+--- GET /gw (玩法入口) ---
+[HTTP=200 type=text/html; charset=utf-8 bytes=3703]
+--- GET /apps/g2-blocks-2 (无斜杠) ---
+[HTTP=200]
+--- GET 新增三模块（v1.2 面）---
+render/feel.mjs            [HTTP=200 bytes=8578]
+daily.mjs                  [HTTP=200 bytes=3504]
+generated/feel-data.mjs    [HTTP=200 bytes=3453]
+--- GET sw.js CACHE + precache 新模块 ---
+const CACHE = 'g2-2-1791085720684';
+  "./daily.mjs",
+  "./generated/feel-data.mjs",
+  "./render/feel.mjs",

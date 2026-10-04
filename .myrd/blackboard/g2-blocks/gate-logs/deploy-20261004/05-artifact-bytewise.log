@@ -1,0 +1,39 @@
+# 部署完整性：线上逐文件字节比对（deploy-20261004 · 2026-10-04T03:59:36Z）
+# base=https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/api/public/assets
+# 对照 = 工作区仓 HEAD games/g2-blocks/export/web/（commit caaaba2）
+OK   audio.mjs
+OK   daily.mjs
+OK   game.mjs
+OK   generated/feel-data.mjs
+OK   generated/spec-data.mjs
+DIFF index.html
+OK   kernel/board.mjs
+OK   kernel/combo.mjs
+OK   kernel/datetime.mjs
+OK   kernel/deadlock.mjs
+OK   kernel/rng.mjs
+OK   kernel/sim.mjs
+OK   kernel/spec-source.mjs
+OK   main.mjs
+DIFF manifest.webmanifest
+OK   persistence.mjs
+OK   platform/audio.mjs
+OK   platform/clock.mjs
+OK   platform/storage.mjs
+OK   render/feel.mjs
+OK   render/renderer.mjs
+OK   render/theme.mjs
+OK   sw.js
+OK   telemetry/fps.mjs
+OK   telemetry/perf.mjs
+----
+files=25 identical=23 differ=2
+VERDICT: MISMATCH
+
+# ---- 差异归因（2026-10-04 程序线补录）----
+# index.html：平台壳注入 <base href="api/public/assets/"> + 裸根自愈/二进制资产补丁脚本（apphost-app.md 已登记壳行为）
+#             游戏自身标记零改动（live 第 3 行 = committed `<head>` + 壳注入串）。
+# manifest.webmanifest：壳改写 start_url "./" → "../../../gw"、scope "./" → "../../../"（挂载路径适配）。
+# 结论：23/25 字节全等（含全部游戏模块 kernel/render/platform/telemetry/generated 与 sw.js），
+#       2 件为壳注入/改写，游戏代码零漂移 → 部署完整性成立。
+VERDICT(final): DEPLOY-INTACT（23 byte-identical + 2 shell-transformed, documented）

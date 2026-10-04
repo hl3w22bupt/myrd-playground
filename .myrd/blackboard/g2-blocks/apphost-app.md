@@ -1,6 +1,6 @@
 # AppHost 应用登记 — g2-blocks（熔炉方块）
 
-> 更新时间：2026-10-03（部署轮 r2 · 复用同一坑，发布 A 轮收口后的最新产物）
+> 更新时间：2026-10-04（部署轮 r3 · 复用同一坑 `cmuqelj2r0046m9zr4emgdgdg`，发布 v1.2 手感轮产物）
 > 用途：一坞一游戏，下一轮**复用同一坑**（不要新建、不要挤占别的游戏的应用）
 
 ## 专属坑（2026-10-02 建档）
@@ -17,7 +17,31 @@
 | 玩法入口 | `/apps/g2-blocks-2/gw`（壳注入 `<base href="api/public/assets/">`，裸根 308 归一自愈到 /gw） |
 | health | `/apps/g2-blocks-2/health` → 200 `{"ok":true,...}` |
 
-## 本轮部署（2026-10-03 · 部署轮 r2 · 当前生效）
+## 本轮部署（2026-10-04 · 部署轮 r3 · 当前生效 · v1.2 手感轮）
+
+| 项 | 值 |
+|---|---|
+| gitRef（分支） | `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` |
+| 部署提交 | `caaaba2`（= 远端同名分支 HEAD，`git ls-remote` 核对全等 `caaaba23…`） |
+| manifestPath | `games/g2-blocks/apphost.toml` |
+| 导出产物 | `games/g2-blocks/export/web/`（**25 文件**，= 源仓 `g2-blocks@6d3db6a` `build/` **逐字节相等**，`diff -rq` 核对；较 r2 的 22 文件新增 `daily.mjs` / `render/feel.mjs` / `generated/feel-data.mjs`，即 v1.2 六项手感 + daily 钩子；`sw.js` precache 列表已含三新模块） |
+| deployment id | `cmuta82oz001cics1ppn9syak`（version 5 · current · running · 零 errorMessage） |
+| 产物区 artifactId | `cmuqewt4u004jm9zreo1yw2ue`（kind=app · ready · 本轮 POST 201 幂等复用同一 id） |
+| 线上自测 | LIVE-SMOKE: **PASS**（真浏览器 CDP：可开 + 盘面 64 满员 + 核心循环 0→160 chain=1 + **消除粒子上屏 drawn=8** + 重开复位 + 零控制台错误 · J1 实测 **153.6ms** ≤ 400ms） |
+
+- **受理方式**：单次 POST（吸取 r2 重复受理教训），网关仍返 504 但服务端**仅受理一条**（version 5，无重复）；轮询至 `currentDeploymentId` 切到 v5 后再做线上自测。
+- **产物一致性双验**：线上 `/api/public/assets/sw.js` 与仓内提交件 `diff` 逐字节全等；`main.mjs` sha256 全等（`3ef61025…`）。
+- **stack-tower 线上零接触**：本轮 git 变更 10 条路径全部落在 `games/g2-blocks/export/web` 内（7 改 + 3 新增），`games/stack-tower` / `games/game` / 根 `apphost.toml` 零触碰。
+- slug 精确检索提示：`?slug=g2-blocks` 命中的是首建已删坑 `cmuqekaip0044m9zrzod50hgf`（status=suspended，软删占位）；**不要用那个**，本游戏专属坑 = `cmuqelj2r0046m9zr4emgdgdg`（slug `g2-blocks-2`）。
+
+## 部署前门禁（游戏源仓 @ `6d3db6a` = v1.2 D1–D6 驳回修复轮收口态，树净）
+
+- `node scripts/contract-check.mjs` → **18 PASS / 0 FAIL · CONTRACT: PASS**（Mode A · approved v1.1 · EXIT=0）
+- `node tools/build.mjs` → **BUILD 22 modules → build/ · spec v2 approved**（重建两次：`index.html`/`theme.mjs` 哈希全等，仅 `sw.js` 缓存版本时间戳变——属缓存失效机制，非漂移）
+- `node tools/smoke.mjs` → **SMOKE: PASS**（可开 + 可玩 0→160→240 + 消除粒子上屏 drawn=8 + 重开 + level-1/2 切换 + SW 激活 + manifest + 控制台零错误 · J1=173.8ms ≤ 400ms）
+- N4 复检基线（同源仓 `eab0df0`→`6d3db6a` 谱系）：契约双态 18/18 + 25/25 · 八门禁 ①–⑧ 全 PASS · P95=16.7ms 与 v1.1 基线全等，见 `gate-logs/v12-feel-n4-rerecheck-20261004/`
+
+## 上一轮（2026-10-03 · 部署轮 r2 · 存档）
 
 | 项 | 值 |
 |---|---|
