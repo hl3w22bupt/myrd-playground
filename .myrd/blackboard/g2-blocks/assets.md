@@ -1,6 +1,6 @@
 # 资产清单黑板 — g2-blocks（**V1.2「核心手感 6 项 + daily-challenge」轮 · 视觉打磨包**）
 
-> 更新时间：2026-10-04（N3 收口 · 七件全落 · ART-RECHECK 12/12 不降）
+> 更新时间：2026-10-04（N3 收口 · 七件全落 · ART-RECHECK 12/12 不降 · 美术线独立复验六项全绿零 delta）
 > 负责人：游戏美术（打磨包面）/ 主策划（整合校对）
 > 下一步：等主人 approve；观感/听感 rubric 人工校样随 approve 验收走（契约面只测时序+查表）
 > 红线：色值一律引用冻结色板 token（生成器零裸 hex、零 rgba 字面量）；形变/粒子/震屏数值一律取链上 `numeric.feel`（零手抄第二份）
@@ -30,6 +30,24 @@
 > **提交前复跑（2026-10-04 · 程序线封箱自检）**：资产面**零新增、零改动**（F-01..F-07 与 a03/a04..a07 均维持 N3 收口态）；
 > 仅随复跑刷新证据件（`docs/evidence/perf-p95-report.*` 基准 p95=16.7ms / `tests/contract/.j1-evidence.json` J1=174.9ms，
 > 源仓 `01c2f06`）。原文 `gate-logs/v12-feel-n4-rerecheck-20261004/`。
+
+## 美术线独立复验台账（V1.2 · 2026-10-04 美术线 · 复验不新做 · 源仓 @ `01c2f06` 树净）
+
+> 口径 = `evidence-one-line-template.md`；性质 = **复证而非重做**（F-01..F-07 资产面零触碰，只独立实跑门禁证明绿可重现）。
+> 结论：**六项全绿 EXIT=0 · ART-RECHECK 12/12 · 资产面零 delta 成立**。证据原文 = `gate-logs/v12-feel-n3-reverify-20261004/`。
+
+```
+[PASS] | 线1 美术 | 01-palette-gate.log | 2026-10-04 | cd $G2 && npm run gate:palette | ALL-GREEN 0红/21对 minΔE=26.555 阈值=25 margin=+1.555 selftest=18/18（≡冻结记录逐字一致） | g2-blocks 仓库根 @ 01c2f06
+[PASS] | 线1 美术 | 02-contract-mode-a.log | 2026-10-04 | cd $G2 && node scripts/contract-check.mjs | 18 PASS / 0 FAIL · anchor=302e6336… · EXIT=0 | g2-blocks 仓库根 @ 01c2f06
+[PASS] | 线1 美术 | 03-contract-mode-b.log | 2026-10-04 | cd $G2 && G2_SPEC_PATH=<draft> node scripts/contract-check.mjs | 25 PASS / 0 FAIL · anchor=1720df8e… · 美术面 ac-22..28（F-01..F-07 契约面）全 PASS | g2-blocks 仓库根 @ 01c2f06
+[PASS] | 线1 美术 | 04-gates-eight.log | 2026-10-04 | cd $G2 && G2_REPO_ONE_PATH=<run-ws> node tests/run-all.mjs | 门①–⑧ 全 PASS · EXIT=0 · ③ theme 单源 7 键 ≡ 冻结色板 | g2-blocks 仓库根 @ 01c2f06
+[PASS] | 线1 美术 | 06-art-recheck.log | 2026-10-04 | cd <证据目录> && node 05-art-recheck.mjs | ART-RECHECK: PASS 12/12（四门禁 + A-09 认领 + A-13/A-14 文案红线 · 生成器零裸 hex/零 rgba 字面量 · 9 件 IHDR+sha256 · maskable 越界 0） | 证据目录内（复跑器 = a4 档同件拷贝，判据零改动）
+[PASS] | 线1 美术 | 07-asset-determinism.log | 2026-10-04 | cd $G2 && 四生成器重跑（gen-release-assets / gen-theme / gen-feel-pack / palette-design）&& git status --porcelain | 9 件资产 sha256/尺寸零变化 · palette sha256=7bc2ca03…（≡numeric.palette.sourceSha256 锚）· 残留仅 manifest gitRef+generatedAt 两行（良性，已复位树净） | g2-blocks 仓库根 @ 01c2f06
+```
+
+- **披露两处（非缺陷）**：① 门③ approved 导出件解析落前轮 run 工作区，与本 run spec `shasum` **逐字节全等**（`ad5d5534…`）→ 同内容命中非漂移（同「env 钉值登记」挂账族，程序线下轮处理）；
+  ② `release-assets.json` 重跑残留仅 `gitRef`/`generatedAt` 两行（9 件资产条目零变化）→ 资产像素零改动成立，树已复位。
+- **红线核销**：stack-tower 零接触 · spec/numeric 零写入 · 玩法代码零改动（源仓维持 `01c2f06` 树净）。
 
 ---
 
