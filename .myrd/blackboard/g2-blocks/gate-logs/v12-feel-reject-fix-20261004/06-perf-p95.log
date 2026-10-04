@@ -1,0 +1,7 @@
+# T2 采样 P95 报告（基准跑 vs 基线快照①）· HEAD=cf967ec · 2026-10-04T03:03:38Z
+$ node tools/perf-report.mjs
+[perf] 基准跑（throttle×1）: samples=363 fps=60 p50=16.7ms p95=16.7ms p99=16.8ms max=16.8ms jank=0(0.00%)
+[perf] 规格跑（spec j1 同环境）（throttle×4）: samples=140 fps=17.8 p50=50ms p95=66.7ms p99=66.761ms max=66.8ms jank=140(100.00%)
+[perf] 报告 → docs/evidence/perf-p95-report.md + .json
+PERF-REPORT: PASS P95 报告已产出（基准 P95=16.7ms · 代理口径披露在案）
+EXIT=0

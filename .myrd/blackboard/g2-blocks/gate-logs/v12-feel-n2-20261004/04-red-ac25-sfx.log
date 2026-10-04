@@ -1,0 +1,9 @@
+# 切片2b 红证据：sfx 三档边界漂移（tier2 maxChain 3→2）（D2 重归档 · 隔离 worktree 构造态真红取证）
+# 基座 = 01c2f06bb6efb0061fa6c8a74de781cfa344d6ee（最终实现态）· 注入 = 77s/"maxChain": 3,/"maxChain": 2,/ · 构造态仅存于临时 worktree，不入实现树
+$ sed -i '77s/"maxChain": 3,/"maxChain": 2,/' src/generated/feel-data.ts   # 制造实现↔spec 漂移
+$ G2_REPO_ONE_ROOT=/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmut4m9ww00bvic7qxd1wpl7y G2_SPEC_PATH=<design-spec-v1.3-feel-draft.json> node scripts/contract-check.mjs --only ac-25-feel-sfx-three-tier
+# g2-blocks contract-check · spec v4 (draft) anchor=1720df8ec6ac0d00…
+RED  ac-25-feel-sfx-three-tier :: 执行异常 实现 FEEL.sfx 漂移: {"resourceModel":"three-independent-voices+var-param","tierBoundaries":[{"maxChain":1,"minChain":1,"tier":1},{"maxChain":2,"minChain":2,"tier":2},{"maxChain":null,"minChain":4,"tier":3}],"trigger":"sa ≠ {"resourceModel":"three-independent-voices+var-param","tierBoundaries":[{"maxChain":1,"minChain":1,"tier":1},{"maxChain":3,"minChain":2,"tier":2},{"maxChain":null,"minChain":4,"tier":3}],"trigger":"sa
+—— 合计 0 PASS / 1 FAIL ——
+CONTRACT: RED 契约未全绿，禁止提交
+EXIT=1

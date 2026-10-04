@@ -1,0 +1,11 @@
+# D1 红证据：smoke 先加「粒子上屏」门禁（实现未接线时必红）· 2026-10-04T03:06:49Z · 基座 = 01c2f06（build/ 未含接线）
+$ node tools/smoke.mjs   # 此跑时 src/build 尚无 drawParticles/__G2_LAYOUT（红态）
+[smoke] 静态服务 http://127.0.0.1:49572/
+[smoke] viewport=390x844 throttle=4x（spec numeric.perf.j1.device）
+[smoke] 浏览器可开：页面加载完成
+[smoke] 游戏就绪 __G2_READY=true
+[smoke] 盘面 64 格满员
+[smoke] 手1（首消+提示）: score 0 → 160（chain 1） J1=184.09999999403954ms
+[smoke] 手2（连击路径）: score 160 → 240（chain 2） J1=171.19999998807907ms
+[smoke] RED 粒子上屏断言缺调试面：__G2_LAYOUT/__G2_FEEL 缺位（renderer 未接线粒子绘制）
+EXIT=1

@@ -20,10 +20,20 @@
 
 ## F-03 三档独立粒子资产 + 合图集说明
 
-- 实机位置：消除命中点爆发（drawParticles 几何圆；零贴图 → ac-13 不降）
-- 参考卡条款：要素1 主色（粒子色 = 被消除块的冻结色板 token 派生提亮，零新色）+ 要素2（圆形从块圆角语言派生）
+> **D1 打回更正（2026-10-04 · 程序线代更正失实陈述，待美术线认领复核）**：
+> 原文称「实机位置 = drawParticles 几何圆」时该函数**尚不存在**、「FEEL-PROBE 实机 34 粒」实为
+> `tools/feel-probe.mjs` 读取 `__G2_FEEL()` 状态机数值（`pool.spawns`，**零像素断言**）——
+> 两条均为数据面证据却被表述为视觉面证据，违「校样不得陈述不存在的行为」。更正后口径如下；
+> 视觉面（观感/形变质感）的人工 rubric 校样仍归美术线，随 approve 验收走。
+
+- 实机位置：消除命中点爆发——`renderer.drawParticles` 几何圆（**D1 打回后已接线**：消费
+  `FeelSnapshot.particles`，色 = `UI.accentWarm` token（与 block-02 余烬金同值），半径 = sizeRatio×cell，
+  alpha 查表衰减，随棋盘震屏平移；零贴图 → ac-13 不降）
+- 参考卡条款：要素1 主色（粒子色 = 冻结 token `accentWarm`，零新色零裸 hex，ac-11 溯源机判）+ 要素2（圆形从块圆角语言派生）
 - 数值来源：spec numeric.feel.particles（双值：期望派生式 + 同屏硬顶；particle-pack.json 三档 sizeRatio）
-- 校样证据：ac-24 PASS（硬顶/drop-new/零超分配压力机判）；FEEL-PROBE 实机 34 粒分发 · 硬顶 120 · 丢弃 0；图集说明 = 零贴图（procedural 几何，无需合图）
+- 校样证据（数据面）：ac-24 PASS（硬顶/drop-new/零超分配压力机判）；FEEL-PROBE = `pool.spawns` 数值分发 · 硬顶 120 · 丢弃 0
+- 校样证据（上屏面 · 冒烟机判）：`drawn=8`（= perClearBase）· 绘制坐标差分采样存活帧 **8/8 命中 accentWarm 色系** · 寿命结束后同坐标复采 **0**（差分归因粒子；block-02 与 accentWarm 同色故必须差分）——`gate-logs/v12-feel-reject-fix-20261004/08-smoke-final.log`
+- 图集说明 = 零贴图（procedural 几何，无需合图）
 
 ## F-04 三档音效资源表（三组独立 + 变参微调）
 

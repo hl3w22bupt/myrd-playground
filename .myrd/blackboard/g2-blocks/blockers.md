@@ -1,8 +1,22 @@
-# 阻塞项黑板 — g2-blocks（**V1.2「核心手感 6 项 + daily-challenge」轮 · 收口提审**）
+# 阻塞项黑板 — g2-blocks（**V1.2「核心手感 6 项 + daily-challenge」轮 · 驳回修复后重提审**）
 
-> 更新时间：2026-10-04（N1–N5 全链走完 · N4 APPROVE-READY · 主策划）
+> 更新时间：2026-10-04（驳回 D1–D6 全闭 · N4 加固版 15/15 APPROVE-READY · 程序线修复 + 主策划位复核待认领）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：**等主人拍板**（链 v4 approve + 实现人工验收 + A-10 取向确认）；PWA 发布归 workflow deploy 节点；渠道提审归主人
+> 下一步：**等主人拍板**（链 v4 approve + 实现人工验收 + A-10/D4 取向确认）；PWA 发布归 workflow deploy 节点；渠道提审归主人
+
+## 驳回修复轮（D1–D6 · 2026-10-04 · 全部闭环，原文 `gate-logs/v12-feel-reject-fix-20261004/`）
+
+| id | 缺陷 | 修复 | 证据 |
+|---|---|---|---|
+| D1 红 | 消除粒子视觉面缺失（renderer 零绘制、drawParticles 不存在）+ 校样失实（数据面证称视觉面） | `renderer.drawParticles` 接线（消费 snap.particles：几何圆/accentWarm token/查表 alpha/随震屏/出屏裁剪/返回实绘数）+ RenderState/main 透传 + smoke ⑤b 两级上屏断言（消费确证 + **差分像素**：block-02 与 accentWarm 同色 #C89C19，单帧色域不可区分 → 存活帧命中 vs 寿命后复采回落归因） | 先红后绿：`01-smoke-red.log`（RED EXIT=1）→ 实测 drawn=8（=perClearBase）· 存活帧 8/8 · 消亡后 0 · 3 连稳（`08-smoke-final.log`）；源仓 `cf967ec` |
+| D2 红 | 红证据名实不符（绿灯挂红名/转写无命令头/自认转录）+ R3.a 断言漏检 | 旧 6 件退役（`retired-falsified-20261004/` 留审计）；七件真红重归档（隔离 worktree 注入实现↔spec 漂移，**命令头+RED+FAIL 合计+EXIT=1** 齐备）；R3.a 加固 = 逐件四要素 + 名实一致 + ac-22..28 全覆盖（零放水） | `v12-feel-n2-20261004/01..07-red-*.log`；N4 R3.a PASS（在档=7 · 缺格=0 · 覆盖 7/7） |
+| D3 红 | J1 转抄失实三处（README×2 + blockers×1，174.9ms ≠ 归档原文 172.09999999403954ms） | 三处以归档原文更正 + 注记根因（N4 内部冒烟覆写证据件后跨跑次转抄）；流程性消除 = 冒烟归档「先 log 后立即同批 cp 证据」 | 本轮同批对：`01-smoke.log`↔`02-j1-evidence.json`（173.599…ms）· 收口 `08`↔`09`（173.199…ms） |
+| D4 黄 | daily 完成谓词实现裁量未披露（任意关卡一消即 markDone） | 包内披露落点（release-readiness §F「D4 披露」+ §I 拍板第 4 项）；不改 spec；更强口径走 N1 v1.3 增补 `numeric.daily.donePredicate` | 升级条款 **Q-D4**（下表）；release-readiness §F |
+| D5 黄 | 契约尾行 draft 装载时仍称「与 approved 一致」（误导） | 尾行随装载态输出 `spec v<version> <status>`；`CONTRACT: PASS` 前缀保留（下游断言锚零变化） | `03`/`04` 原文：Mode A 尾行 v2 approved · Mode B v4 draft |
+| D6 黄 | 重开真机层口径未钉次数（numeric 冻结串与任务书「5 次中位数」微差） | release-readiness §G 钉死「**同机同条件 5 次取中位数**」并注明 numeric 冻结串零漂移不改（本节即口径归档位） | release-readiness §G |
+
+- **修复轮复跑终态**：契约双态 18/18 + 25/25（尾行随装载态）· 八门禁 ①–⑧ 全 PASS · SMOKE PASS + 粒子上屏 ✓ · 基准 P95=**16.7ms = 基线快照① 全等**（Δ=0.0ms）· **N4 15/15 APPROVE-READY（加固版 R3.a/R2.b）** · numeric 锚双值不变（零漂移）· stack-tower 零接触。
+- **F-03 校样更正**（D1 连带）：`gate-logs/v12-feel-n3-20261004/README.md` §F-03 失实陈述（不存在的 drawParticles / FEEL-PROBE 数值面称实机）已更正为真实口径 + 上屏面证据；**待美术线认领复核**（观感 rubric 校样仍归美术线）。
 
 ## 当前基线（V1.2 核心手感轮收口 · 2026-10-04）
 
@@ -35,12 +49,12 @@
 - 冒烟：**SMOKE PASS** · 判据面 `git diff fe5fd38..HEAD -- tools/smoke.mjs` = 0 行（零变化）
 - T2 采样：基准跑 **fps=60 · 卡顿 0 · P95=16.8ms**（基线快照① 16.7ms，Δ=0.1ms = rAF 帧时间量化带宽；jank 0↔0 → 不退化成立）
 - N4 对抗复检：**15/15 · VERDICT: APPROVE-READY**（`gate-logs/v12-feel-n4-20261004/01`；复检器首跑自曝五缺陷全修，02 同档互证）
-- 源仓提交链（本轮 10 commit）：`19bf249`(N1 入链)→`a19e132`(切片0)→`50efa9f`(切片1)→`684f42a`(切片2)→`ced4497`(切片3)→`6fc09c2`(切片4)→`cf57708`(切片5)→`6fec4a6`(N3 收口)→`b66aa0b`(N4)→`eab0df0`(N5 清单)→`01c2f06`(提交前复跑 + 复检器加固)
+- 源仓提交链（本轮 12 commit）：`19bf249`(N1 入链)→`a19e132`(切片0)→`50efa9f`(切片1)→`684f42a`(切片2)→`ced4497`(切片3)→`6fc09c2`(切片4)→`cf57708`(切片5)→`6fec4a6`(N3 收口)→`b66aa0b`(N4)→`eab0df0`(N5 清单)→`01c2f06`(提交前复跑 + 复检器加固)→`cf967ec`(驳回修复 D1+D5+R3.a/R2.b 加固)
 
 ### 提交前复跑（程序 · 提审包封箱自检 · 2026-10-04 · `gate-logs/v12-feel-n4-rerecheck-20261004/`）
 
 - **目的**：证明「全绿」可由第三方按文档口径重现；非打回、非新一轮 N4，同一实现态的独立实跑。
-- **复跑结果**：契约 Mode A **18/18** + Mode B **25/25**（EXIT 均 0）· 八门禁 ①–⑧ 全 PASS · **SMOKE PASS（J1=174.9ms）** · T2 基准跑 **fps=60 · 卡顿 0 · P95=16.7ms**（与基线快照① **16.7ms 全等**，较上一档 16.8ms 回落 1 帧时间量化步）· N4 复检 **15/15 APPROVE-READY**。
+- **复跑结果**：契约 Mode A **18/18** + Mode B **25/25**（EXIT 均 0）· 八门禁 ①–⑧ 全 PASS · **SMOKE PASS（J1=172.1ms · 归档原文口径，D3 更正：原写 174.9ms 系跨跑次转抄）** · T2 基准跑 **fps=60 · 卡顿 0 · P95=16.7ms**（与基线快照① **16.7ms 全等**）· N4 复检 **15/15 APPROVE-READY**。
 - **独立核验五项**（原文 `07-independent-checks.log`）：numeric 锚双值 MATCH（`302e6336…` / `1720df8e…`）· 既有 12 组 numeric 逐字节零 diff（新增组恰 = feel+daily）· 顺延项 src 命中 0（spec 面 `star` 7 处逐一排除为 restart/startMark 子串）· `tools/smoke.mjs` 判据面 diff = 0 行 · 一号仓本轮区间 `games/` 触碰 0 文件。
 - **事故与修复（1 处工具缺陷，判据零变化）**：复跑者外层残留 `G2_SPEC_PATH=<draft>` 时 R2.a 假红（Mode A 子调用继承环境误装链 v4 25 条）。修法 = R2.a 显式钉 `{ G2_SPEC_PATH: APPROVED }`（与检查名「approved v1.1 · 18 条」一致）；双姿势复跑均 15/15（`05`/`06` 原文）；加固后在新 HEAD `01c2f06` 再跑仍 15/15（`08`）。`gen-feel-pack.mjs` 不受影响（取数走独立 `G2_SPEC_V13`）。
 - `build/sw.js` 重建产生的缓存版本号残留已归位（保持与归档双 manifest `buildSha256` 同批一致）；源仓树净。
@@ -63,6 +77,7 @@
 | Q2 | 沿挂（见 G-Q2） | 业务拍板 |
 | Q3 | **链 v4 approve + 实现产物「好不好玩」人工验收** | approve 是人的动作（红线）；人工验收 rubric = 六项手感体验 + daily 入口，本地 `npx serve g2-blocks/build` |
 | Q4 | A-10 残余留白取向（本轮拍板 = 下区功能化 + 节奏留白） | 布局审美取向，主人可另定 → 回 N1 spec 修订面 |
+| Q-D4 | **daily 完成谓词**（驳回 D4 升级）：现实现 = 任意关卡任意一消即打卡当日（`src/main.ts` attemptSwap → `daily.markDone()`，与 `?daily=1` 无关）；链 v4 ac-28 未冻结谓词 | 设计决策：完成判据是玩法口径（若裁定「仅 `?daily=1` 首消」等更强口径 → N1 v1.3 增补 `numeric.daily.donePredicate` 后改实现）；包内披露已在 release-readiness §F |
 
 ## 待触发节点（条件写死）
 
@@ -80,12 +95,12 @@
 - ④ 性能口径不进 spec acceptance → ✅ P95 口径在快照/报告/release-readiness，acceptance 零性能条款
 - ⑤ 阻塞超一轮升级 → ✅ C1..C3 轮内闭合，未触发
 
-## 提请主人拍板
+## 提请主人拍板（驳回修复后重提审）
 
 1. **链 v4（V1.2 核心手感轮）approve** —— 策划案版本链 `cmut5fkyf00cbic7qudea13g6` draft 待裁；approve 即 approved 唯一。
-2. **实现产物人工验收**（终裁「好不好玩」）：六项手感逐项体验清单见 release-readiness §F；本地 `npx serve g2-blocks/build` 或装配区只读入口。
-3. **A-10 留白取向**（Q4）与沿挂 G-Q1/G-Q2 裁决。
-4. PWA 发布 = workflow deploy 节点动作；渠道提审/开辟 = 主人动作。团队包已就绪（证据三件套：gate-logs + 快照 + 报告）。
+2. **实现产物人工验收**（终裁「好不好玩」）：六项手感逐项体验清单见 release-readiness §F（本轮新增：消除粒子已实际上屏）；本地 `npx serve g2-blocks/build` 或装配区只读入口。
+3. **A-10 留白取向**（Q4）、**D4 daily 完成谓词**（Q-D4）与沿挂 G-Q1/G-Q2 裁决。
+4. PWA 发布 = workflow deploy 节点动作；渠道提审/开辟 = 主人动作。团队包已就绪（证据三件套：gate-logs/v12-feel-reject-fix-20261004 + 快照 + 报告）。
 
 # 以下为 A 轮存档（「发布收尾主线 + v1.2 写案并行」· 收口 · 2026-10-03）
 

@@ -1,0 +1,9 @@
+# 切片1a 红证据：landSquash 实现表漂移（frames 8→9）（D2 重归档 · 隔离 worktree 构造态真红取证）
+# 基座 = 01c2f06bb6efb0061fa6c8a74de781cfa344d6ee（最终实现态）· 注入 = s/"frames": 8,/"frames": 9,/ · 构造态仅存于临时 worktree，不入实现树
+$ sed -i 's/"frames": 8,/"frames": 9,/' src/generated/feel-data.ts   # 制造实现↔spec 漂移
+$ G2_REPO_ONE_ROOT=/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmut4m9ww00bvic7qxd1wpl7y G2_SPEC_PATH=<design-spec-v1.3-feel-draft.json> node scripts/contract-check.mjs --only ac-22-feel-land-squash
+# g2-blocks contract-check · spec v4 (draft) anchor=1720df8ec6ac0d00…
+RED  ac-22-feel-land-squash :: 执行异常 实现 FEEL.landSquash 漂移: {"durationMs":120,"easing":"ease-out-quad","frames":9,"scaleX":1.12,"scaleY":0.84,"trigger":"gravity-land-frame"} ≠ {"durationMs":120,"easing":"ease-out-quad","frames":8,"scaleX":1.12,"scaleY":0.84,"trigger":"gravity-land-frame"}
+—— 合计 0 PASS / 1 FAIL ——
+CONTRACT: RED 契约未全绿，禁止提交
+EXIT=1

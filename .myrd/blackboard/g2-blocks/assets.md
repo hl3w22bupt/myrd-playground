@@ -21,7 +21,7 @@
 |---|---|---|---|---|---|
 | F-01 ✅ | 落地挤压形变帧表 | 重力落定的块（渲染层 squash 变换） | numeric.feel.landSquash | ac-22 + motion-pack.json | ✅ |
 | F-02 ✅ | 硬降震屏参数曲线 | 消除后大落差（≥thresholdCells）镜头偏移 | numeric.feel.hardDrop | ac-23 + motion-pack.json | ✅ |
-| F-03 ✅ | 三档独立粒子资产 + 合图集说明 | 消除命中点爆发粒子 | numeric.feel.particles | ac-24 + particle-pack.json + FEEL-PROBE | ✅ |
+| F-03 ✅ | 三档独立粒子资产 + 合图集说明 | 消除命中点爆发粒子（**D1 后实际接线**：renderer.drawParticles 几何圆 · accentWarm token · 上屏冒烟断言 drawn=8/命中 8/8/复采 0） | numeric.feel.particles | ac-24 + particle-pack.json + FEEL-PROBE（数据面）+ smoke 上屏差分（视觉面机判）· **校样更正与待美术认领见 gate-logs/v12-feel-n3-20261004/README §F-03** | ✅ |
 | F-04 ✅ | 三档音效资源表（三组独立 + 变参微调） | 消除/连击音（theme SFX 表经 a03 资产再生） | numeric.feel.sfx.tiers + assets/a03-sfx-plan.json | ac-25 + a03 三档资源 | ✅ |
 | F-05 ✅ | 连击三档视觉态 | HUD 连击计数区 | numeric.feel.combo.tiers | ac-26 + ui-feel-pack.json | ✅ |
 | F-06 ✅ | 重开按钮三态 + 转场帧 | 炉冷横幅 / 常驻重开入口 | numeric.feel.restart | ac-27 + ui-feel-pack.json + cool-frame | ✅ |

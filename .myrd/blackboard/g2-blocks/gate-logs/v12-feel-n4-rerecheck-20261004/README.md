@@ -1,7 +1,10 @@
 # V1.2 核心手感轮 · N4 复跑复检（提交前独立实跑）· 2026-10-04
 
 > 执行：游戏程序（提交前置自检，非 QA 代位）· 源仓 `g2-blocks` @ `eab0df0`（核验时点树净）
-> 结论：**契约双态 18/18 + 25/25 · 八门禁 ①–⑧ 全 PASS · SMOKE PASS（J1=174.9ms）· 基准 P95=16.7ms（与基线全等）· N4 复检 15/15 APPROVE-READY**
+> 结论：**契约双态 18/18 + 25/25 · 八门禁 ①–⑧ 全 PASS · SMOKE PASS（J1=172.1ms）· 基准 P95=16.7ms（与基线全等）· N4 复检 15/15 APPROVE-READY**
+> （**D3 更正 2026-10-04**：本行与下表原写 174.9ms 系跨跑次转抄——N4 复检器内部冒烟覆写
+> `.j1-evidence.json` 后归档件为后跑次值；本目录归档原文 `04-smoke.log`/`.j1-evidence.json`
+> 实测 **172.09999999403954ms**（at=2026-10-04T02:19:13Z），以归档原文为准，判据零变化。
 > 附带产出：复检器 1 处环境敏感缺陷（加固前可复现假红）已修复，判据零变化。
 
 ## 与上一份 N4 档（`v12-feel-n4-20261004/`）的关系
@@ -16,12 +19,12 @@
 | `01-contract-mode-a.log` | 契约 Mode A（approved v1.1 · 默认装载）18 条 | 18/18 · EXIT=0 |
 | `02-contract-mode-b.log` | 契约 Mode B（链 v4 draft · `G2_SPEC_PATH` 钉值）25 条（含 ac-22..28） | 25/25 · EXIT=0 |
 | `03-gates-eight.log` | 八门禁 ①–⑧（`node tests/run-all.mjs`） | ①–⑧ 全 PASS · EXIT=0 |
-| `04-smoke.log` | 冒烟（可开 + 核心循环可玩 + PWA + J1 实测） | SMOKE PASS · J1=174.9ms ≤ 400 |
+| `04-smoke.log` | 冒烟（可开 + 核心循环可玩 + PWA + J1 实测） | SMOKE PASS · J1=172.09999999403954ms ≤ 400 |
 | `05-recheck-style-a.log` | N4 复检 · 文档口径（只钉 `G2_REPO_ONE_ROOT`） | 15/15 · APPROVE-READY |
 | `06-recheck-style-b-env-leak.log` | N4 复检 · 外层残留 `G2_SPEC_PATH=<draft>`（加固前必红） | 15/15 · APPROVE-READY（加固后） |
 | `07-independent-checks.log` | 独立核验：锚 / numeric 零漂移 / 顺延零渗漏 / 冒烟判据面 / 一号仓 games/ | 全绿（见下） |
 | `perf-p95-report.json` `.md` | T2 采样报告（本 run 重出） | 基准 fps=60 · jank=0 · **p95=16.7ms** |
-| `.j1-evidence.json` | ac-10 机器证据（冒烟同批） | measuredMs=174.90000000596046 |
+| `.j1-evidence.json` | ac-10 机器证据（N4 复检器内部冒烟跑次 · 与 `04-smoke.log` 非同批，值以此件原文为准） | measuredMs=172.09999999403954（at=2026-10-04T02:19:13Z） |
 
 ## `07-independent-checks.log` 五项判据
 
@@ -48,5 +51,5 @@
 ## 证据值与健康度
 
 - 基准跑 P95：本轮重出 = **16.7ms**（上一档 16.8ms；基线快照① = 16.7ms）→ 与 v1.1 基线全等，不退化成立。
-- J1 实测 174.9ms，处历史族（172.3 / 174.6 / 177.3 / 179.1 / 182.6 / 183.8ms）内，预算 400ms。
+- J1 实测 172.09999999403954ms（本目录归档原文；174.9 系契约 ac-10 在冒烟覆写前读到的上一跑次值，D3 已更正），处历史族（171.5 / 172.1 / 172.3 / 174.6 / 177.3 / 179.1ms）内，预算 400ms。
 - `build/sw.js` 本 run 重建产生的缓存版本号残留已归位（保持与归档双 manifest `buildSha256` 同批一致）。
