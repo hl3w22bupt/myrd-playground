@@ -25,6 +25,10 @@ import { seededRng,          } from './rng.mjs';
                            
                   
                  
+                                                       
+                       
+                                         
+                        
  
 
                               
@@ -88,6 +92,24 @@ export function createSim(opts                    = {})      {
     return baseClear3 + (clearedCount - 3) * perExtraBlock;
   }
 
+  /** 波次落差观察：压缩保序 → 每列自底向上按序对齐，位移 = 落点行 − 原行（确定性，零随机源） */
+  function waveFall(pre          , post          , cols        , rows        )                                        {
+    let maxFall = 0;
+    const landed           = [];
+    for (let x = 0; x < cols; x += 1) {
+      const preRows           = [];
+      for (let y = 0; y < rows; y += 1) if (pre[y * cols + x] >= 0) preRows.push(y);
+      const postRows           = [];
+      for (let y = 0; y < rows; y += 1) if (post[y * cols + x] >= 0) postRows.push(y);
+      for (let k = 0; k < preRows.length && k < postRows.length; k += 1) {
+        const fall = postRows[k] - preRows[k];
+        if (fall > maxFall) maxFall = fall;
+        if (fall > 0) landed.push(postRows[k] * cols + x);
+      }
+    }
+    return { maxFall, landed };
+  }
+
   function swap(a        , b        )             {
     const trace           = [];
     const probes                = [];
@@ -143,12 +165,16 @@ export function createSim(opts                    = {})      {
       appliedBonus = 0;
       score += gained;
       record('score');
-      waves.push({ cleared: matched.length, gained });
       clearedAll = clearedAll.concat(matched);
       // 重力（落定：消除块落地、顶部成 -1 空洞）
+      const preCells = board.cells.slice();
+      for (const idx of matched) preCells[idx] = -1; // 观察面对齐口径：消除格先置空，存活块自上而下保序对齐
       const g = applyGravity(board, matched);
       board = g.board;
       record('gravity');
+      // 波次观察面（纯增量：最大落差 + 落定格；不改变结算顺序与任何既有 trace 步）
+      const fall = waveFall(preCells, board.cells, board.cols, board.rows);
+      waves.push({ cleared: matched.length, gained, maxFallCells: fall.maxFall, landedCells: fall.landed });
       if (!settleProbed) {
         // ④ 判点一「落定结算后」：重力落定后、补手前（盘面含消除空洞 -1）——真实时点机判见 ac-07
         afterSettle = probe('after-settle');

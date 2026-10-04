@@ -1,11 +1,13 @@
 // sw.js — GENERATED（tools/build.mjs）；cache-first 版本化缓存
-const CACHE = 'g2-2-1791037047254';
+const CACHE = 'g2-2-1791085720684';
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./audio.mjs",
+  "./daily.mjs",
   "./game.mjs",
+  "./generated/feel-data.mjs",
   "./generated/spec-data.mjs",
   "./kernel/board.mjs",
   "./kernel/combo.mjs",
@@ -19,6 +21,7 @@ const ASSETS = [
   "./platform/audio.mjs",
   "./platform/clock.mjs",
   "./platform/storage.mjs",
+  "./render/feel.mjs",
   "./render/renderer.mjs",
   "./render/theme.mjs",
   "./telemetry/fps.mjs",

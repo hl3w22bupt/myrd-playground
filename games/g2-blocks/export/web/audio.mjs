@@ -4,6 +4,8 @@
 // （发起面在 game.ts 同步接线，本文件只负责「被调用即出声」）；音频缺失/未解锁不阻塞玩法。
 import { SFX, SFX_MASTER } from './render/theme.mjs';
 import { createPersistence } from './persistence.mjs';
+import { FEEL } from './generated/feel-data.mjs';
+import { tierForChain, voiceOfTier,                   } from './platform/audio.mjs';
 
                                 
                              
@@ -13,6 +15,8 @@ import { createPersistence } from './persistence.mjs';
  
 
                                      
+
+                                                                 
 
 export function createAudio(storage                   )                                                                              {
   const persist = storage ? createPersistence(storage) : null;
@@ -29,7 +33,7 @@ export function createAudio(storage                   )                         
     return ctx;
   }
 
-  function tone(kind                                        )       {
+  function tone(kind          )       {
     if (muted) return;
     const ac = ensureCtx();
     if (!ac) return; // 音频缺失不阻塞玩法
@@ -44,7 +48,9 @@ export function createAudio(storage                   )                         
       osc.type = spec.wave                  ;
       osc.frequency.setValueAtTime(spec.freqFromHz, t0);
       osc.frequency.exponentialRampToValueAtTime(Math.max(1, spec.freqToHz), t0 + dur);
-      const peak = SFX_MASTER.gain * (kind === 'combo' ? 1.2 : 1);
+      const gainMul = typeof spec.gainMul === 'number' ? spec.gainMul : 1;
+      const peak = SFX_MASTER.gain * gainMul;
+      if (typeof spec.detuneCents === 'number' && spec.detuneCents !== 0) osc.detune.value = spec.detuneCents;
       gain.gain.setValueAtTime(0.0001, t0);
       gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), t0 + 0.01);
       gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
@@ -56,9 +62,8 @@ export function createAudio(storage                   )                         
 
   return {
     clear(chain        )       {
-      // 连击层级感：连击 ≥2 时叠加 combo 上探音
-      if (chain >= 2) tone('combo');
-      else tone('clear');
+      // V1.2 三档：边界唯一真源 = FEEL.sfx.tierBoundaries（= spec numeric.feel），voice 逐档独立
+      tone(voiceOfTier(tierForChain(chain, FEEL.sfx.tierBoundaries                           )));
     },
     combo(chain        )       {
       void chain;

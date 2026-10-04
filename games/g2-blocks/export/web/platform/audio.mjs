@@ -8,7 +8,26 @@
 
 import { createPersistence,                  } from '../persistence.mjs';
 
-                                                             
+                                                                       
+
+/** 三档边界（V1.2 注入面：生产 = numeric.feel.sfx.tierBoundaries；缺省 = 二档 legacy 行为） */
+                                                                                          
+
+const DEFAULT_TWO_TIER                 = [
+  { tier: 1, minChain: 1, maxChain: 1 },
+  { tier: 2, minChain: 2, maxChain: null },
+];
+
+export function voiceOfTier(tier        )          {
+  return tier === 1 ? 'clear' : tier === 2 ? 'combo' : 'blaze';
+}
+
+export function tierForChain(chain        , boundaries                         )         {
+  for (const b of boundaries) {
+    if (chain >= b.minChain && (b.maxChain === null || chain <= b.maxChain)) return b.tier;
+  }
+  return 1;
+}
 
 /** 合成器面（生产 = WebAudio；测试 = 记录调用的 fake） */
                         
@@ -34,11 +53,14 @@ import { createPersistence,                  } from '../persistence.mjs';
                         
                                 
                          
+                                                                       
+                                           
  
 
 export function createAudioFacade(opts                    )                   {
   const persist = opts.storage ? createPersistence(opts.storage) : null;
   let muted = persist ? persist.getMuted() : (opts.initialMuted ?? false);
+  const boundaries = opts.tierBoundaries ?? DEFAULT_TWO_TIER;
 
   const emit = (kind         )       => {
     if (muted) return;
@@ -52,7 +74,7 @@ export function createAudioFacade(opts                    )                   {
 
   return {
     clear(chain        )       {
-      emit(chain > 1 ? 'combo' : 'clear');
+      emit(voiceOfTier(tierForChain(chain, boundaries)));
     },
     combo(chain        )       {
       void chain;

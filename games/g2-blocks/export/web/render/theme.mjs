@@ -181,31 +181,48 @@ export const SFX_MASTER = {
 };
 export const SFX = [
   {
-    id: 'clear-hit',
+    id: 'clear-hit-t1',
     kind: 'clear',
     wave: 'triangle',
     freqFromHz: 520,
     freqToHz: 780,
     durationMs: 120,
     envelope: 'fast-attack-quick-decay',
+    gainMul: 1,
+    detuneCents: 0,
   },
   {
-    id: 'combo-rise',
+    id: 'combo-rise-t2',
     kind: 'combo',
     wave: 'square',
     freqFromHz: 440,
     freqToHz: 880,
     durationMs: 160,
     envelope: 'step-up',
+    gainMul: 1.15,
+    detuneCents: 35,
+  },
+  {
+    id: 'blaze-burst-t3',
+    kind: 'blaze',
+    wave: 'sawtooth',
+    freqFromHz: 330,
+    freqToHz: 1240,
+    durationMs: 220,
+    envelope: 'fast-attack-long-decay',
+    gainMul: 1.3,
+    detuneCents: 70,
   },
   {
     id: 'cool-down',
     kind: 'cool',
-    wave: 'sawtooth',
+    wave: 'sine',
     freqFromHz: 220,
     freqToHz: 90,
     durationMs: 700,
     envelope: 'slow-decay',
+    gainMul: 1,
+    detuneCents: 0,
   },
   {
     id: 'restart-stoke',
@@ -215,8 +232,60 @@ export const SFX = [
     freqToHz: 660,
     durationMs: 200,
     envelope: 'soft-attack',
+    gainMul: 1,
+    detuneCents: 0,
   },
 ];
+
+/** V1.2 核心手感 UI 映射（美术打磨包 · a06/a07 · GENERATED；色一律 token 名引用） */
+export const FEEL_UI = {
+  comboTokenMap: [
+    {
+      tier: 1,
+      valueToken: 'UI.textPrimary',
+      accent: 'none',
+      valueScale: 1,
+    },
+    {
+      tier: 2,
+      valueToken: 'UI.accentWarm',
+      accent: 'alpha-pulse',
+      valueScale: 1.12,
+    },
+    {
+      tier: 3,
+      valueToken: 'UI.dangerCool',
+      accent: 'alpha-pulse+scale',
+      valueScale: 1.22,
+    },
+  ],
+  restart: {
+    entry: 'button+keyboard-same-source',
+    states: [
+      'idle',
+      'armed',
+      'transition',
+    ],
+    transitionFrames: 9,
+    tokenMap: {
+      idle: 'UI.textPrimary',
+      armed: 'UI.accentWarm',
+      transition: 'UI.textDim',
+    },
+  },
+  daily: {
+    states: [
+      'undone',
+      'done',
+    ],
+    tokenMap: {
+      undone: 'UI.accentWarm',
+      done: 'UI.textDim',
+    },
+    position: 'HUD 右上角标入口',
+    badge: '未完成日显示角标；完成当日角标收敛为对勾态',
+  },
+};
 
 /** 派生：hex → 提亮/压暗（amt 正提亮负压暗） */
 export function shade(hex        , amt        )         {
