@@ -16,7 +16,7 @@
 | D6 黄 | 重开真机层口径未钉次数（numeric 冻结串与任务书「5 次中位数」微差） | release-readiness §G 钉死「**同机同条件 5 次取中位数**」并注明 numeric 冻结串零漂移不改（本节即口径归档位） | release-readiness §G |
 
 - **修复轮复跑终态**：契约双态 18/18 + 25/25（尾行随装载态）· 八门禁 ①–⑧ 全 PASS · SMOKE PASS + 粒子上屏 ✓ · 基准 P95=**16.7ms = 基线快照① 全等**（Δ=0.0ms）· **N4 15/15 APPROVE-READY（加固版 R3.a/R2.b）** · numeric 锚双值不变（零漂移）· stack-tower 零接触。
-- **F-03 校样更正**（D1 连带）：`gate-logs/v12-feel-n3-20261004/README.md` §F-03 失实陈述（不存在的 drawParticles / FEEL-PROBE 数值面称实机）已更正为真实口径 + 上屏面证据；**待美术线认领复核**（观感 rubric 校样仍归美术线）。
+- **F-03 校样更正**（D1 连带）：`gate-logs/v12-feel-n3-20261004/README.md` §F-03 失实陈述（不存在的 drawParticles / FEEL-PROBE 数值面称实机）已更正为真实口径 + 上屏面证据；**✅ 美术线已认领复核（2026-10-04）**——认领更正成立，并连带发现/收口一处描述件漂移（`particle-pack.json` colorSource 旧口径「按块取色」↔ 实现 accentWarm 单色，该字段无门禁覆盖）；美术拍板 accentWarm 单色定稿（spec numeric.feel 无颜色字段，零 spec/数值触碰），生成器重出 pack 同源，定稿后契约 Mode B 25/25 + 八门禁①–⑧ + ART-RECHECK 12/12 + SMOKE PASS（粒子 drawn=8 · 存活帧 8/8 · 复采 0）全绿复跑（证据 `gate-logs/v12-feel-n3-reverify-20261004/` 08–12）；观感 rubric 校样仍归美术线随 approve 验收走。
 
 ## 当前基线（V1.2 核心手感轮收口 · 2026-10-04）
 

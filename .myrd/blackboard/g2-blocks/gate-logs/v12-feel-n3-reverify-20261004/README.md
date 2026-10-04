@@ -42,3 +42,38 @@
 - stack-tower 零接触 ✅（本轮零触碰其任何路径；改动面仅 `.myrd/blackboard/g2-blocks/`）
 - numeric/spec 零改动 ✅（只读装载，零写入；spec 文件 sha256 未变）
 - 玩法代码零改动 ✅（源仓树净维持 `01c2f06`；唯一落盘 = 本证据目录 + 黑板登记）
+
+---
+
+# 增补（同日 · D1–D6 驳回修复轮后 · 美术线认领 F-03 + 色源定稿复跑）
+
+> 语境：本目录前 7 件锚源仓 `01c2f06`；其后发生 D1–D6 驳回修复轮（D1 红 = 粒子视觉面缺失 + F-03 校样失实），
+> 源仓推进至 `fca54d5`。黑板挂「F-03 校样更正待美术线认领复核」→ 美术线独立实跑认领，**连带发现一处描述件漂移并收口**。
+
+## F-03 色源漂移（美术线发现 · 已收口）
+
+- **现象**：交付件 `assets/feel/particle-pack.json` 三档 `colorSource` = 「cleared-block-palette-token（按块取色提亮）」，
+  实现 `renderer.drawParticles` = 单一 `UI.accentWarm` —— 描述件↔实现不同源。
+  该字段**无任何门禁覆盖**（grep tests/tools 零命中；ac-24 只机判 count/cap/sizeRatio/寿命），属漂移盲区。
+- **归属判定**：spec `numeric.feel.particles` 冻结面 = frames/gravity/lifeMs/overflowPolicy/perClearBase/perExtraBlock/poolSize/hardCap/speed，
+  **无颜色字段**（实查 v4 draft）→ 色源属美术域，拍板权在美术线。
+- **美术拍板：accentWarm 单色定稿**。理由：要素1 零新色（accentWarm ≡ block-02 `#C89C19`）；要素3 克制纪律
+  （8×8 七色板高频消除下按块取色成「彩纸」，单色读作炉火火星，与 world.tone 熔炉工坊同源）；
+  与 F-05 档2 脉冲 / F-06 armed / F-07 daily 角标同一 accent 语义族；D1 差分像素证据已按 accentWarm≡block-02
+  同色锚定，改实现将动契约/冒烟判据面，收益为负。
+- **改动面（2 文件，零代码逻辑/零数值）**：`tools/gen-feel-pack.mjs`（colorSource 定稿文案 + 补 `$artBlock`
+  美术定值声明，与 ui-feel-pack 同构）→ 重出 `assets/feel/particle-pack.json`（其余三件 pack 零 diff 实测）。
+  `$specBind.feelAnchor` 绑 spec numeric.feel 哈希（未动）→ 锚不变，pack 为纯描述件（无运行时/门禁消费，grep 实证）。
+
+## 定稿后复跑（同批原文 08–12）
+
+```
+[PASS] | 线1 美术 | 08-post-fix-contract-b.log | 2026-10-04 | cd $G2 && G2_SPEC_PATH=<draft> node scripts/contract-check.mjs | 25 PASS / 0 FAIL · ac-22..28 全 PASS · 尾行 v4 draft（D5 后口径） | g2-blocks 源仓（工作树含 F-03 定稿 2 文件）
+[PASS] | 线1 美术 | 09-post-fix-gates-eight.log | 2026-10-04 | cd $G2 && G2_REPO_ONE_PATH=<run-ws> node tests/run-all.mjs | 门①–⑧ 全 PASS · EXIT=0 | 同上
+[PASS] | 线1 美术 | 10-post-fix-art-recheck.log | 2026-10-04 | cd <本目录> && node 05-art-recheck.mjs | ART-RECHECK: PASS 12/12 · EXIT=0 | 本证据目录
+[PASS] | 线1 美术 | 11-post-fix-smoke.log | 2026-10-04 | cd $G2 && node tools/smoke.mjs | SMOKE PASS · 消除粒子上屏 ✓（drawn=8 · 存活帧命中 8/8 · 消亡后复采 0）· J1=176.1ms ≤ 400 | g2-blocks 源仓
+[PASS] | 线1 美术 | 12-j1-evidence-same-batch.json | 2026-10-04 | （同批对：11 log 后立即 cp，D3 流程纪律） | measuredMs=176.09999999403954 ≡ 11 log 逐字一致 | 本证据目录
+```
+
+- 跑后树处置：`tests/contract/.j1-evidence.json`（冒烟覆写残留，D3 已披露的机制）已复位；源仓仅余 F-03 定稿 2 文件，随本轮美术 commit 入库。
+- spec/numeric 零触碰 ✅ · stack-tower 零接触 ✅ · renderer/smoke/契约判据面零改动 ✅（只动素材描述件与其生成器）。

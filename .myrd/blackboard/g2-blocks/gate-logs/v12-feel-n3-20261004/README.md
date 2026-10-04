@@ -26,6 +26,18 @@
 > 两条均为数据面证据却被表述为视觉面证据，违「校样不得陈述不存在的行为」。更正后口径如下；
 > 视觉面（观感/形变质感）的人工 rubric 校样仍归美术线，随 approve 验收走。
 
+> **✅ 美术线认领复核（2026-10-04 · 游戏美术 · 独立实跑后正式生效）**：
+> ① 更正后口径与实现/冒烟原文逐字核对一致（`drawParticles` 接线 · token 取色 · 上屏差分），**认领更正成立**；
+> ② **连带发现并修复一处描述件漂移**：交付件 `particle-pack.json` 三档 `colorSource` 仍写
+> 「cleared-block-palette-token（按块取色提亮）」，与实现单一 `UI.accentWarm` 不同源（该字段无门禁覆盖，
+> 属漂移盲区）。**美术拍板：采纳 accentWarm 单色为 F-03 定稿**——要素1 零新色（accentWarm ≡ block-02
+> `#C89C19`）· 要素3 克制纪律（七色板高频消除下按块取色成彩纸，单色读作炉火火星，与 world.tone 同源）·
+> 与 F-05/F-06/F-07 同一 accent 语义族。生成器 `tools/gen-feel-pack.mjs` 已改并重出（其余三件 pack 零 diff），
+> 并补 `$artBlock` 美术定值声明；**spec numeric.feel 无颜色字段（已实查），零 spec 触碰、零数值改动**。
+> ③ 定稿后全门禁复跑：契约 Mode B 25/25 · 八门禁①–⑧ · ART-RECHECK 12/12 · SMOKE PASS（本批粒子
+> drawn=8 · 存活帧 8/8 · 复采 0 · J1=176.1ms）→ 证据 `gate-logs/v12-feel-n3-reverify-20261004/`（08–12）。
+> ④ 观感/听感 rubric 人工校样仍归美术线，随 approve 验收走（口径不变）。
+
 - 实机位置：消除命中点爆发——`renderer.drawParticles` 几何圆（**D1 打回后已接线**：消费
   `FeelSnapshot.particles`，色 = `UI.accentWarm` token（与 block-02 余烬金同值），半径 = sizeRatio×cell，
   alpha 查表衰减，随棋盘震屏平移；零贴图 → ac-13 不降）
