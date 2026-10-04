@@ -1,19 +1,19 @@
 # 关卡状态黑板 — g2-blocks（**V1.2「核心手感 6 项 + daily-challenge」轮**）
 
-> 更新时间：2026-10-04（本轮开工 · 主策划）
+> 更新时间：2026-10-04（N1–N5 全链核销 · 主策划）
 > 负责人：主策划（整合人）· 程序线维护实现状态列 · QA 线维护核销列
-> 下一步：N1 链 v4 入链 → N2 五切片 ∥ N3 打磨包 → N4 复检 → N5 提审
+> 下一步：等主人拍板（链 v4 approve + 人工验收）；PWA 发布归 deploy 节点
 > 红线：**numeric 冻结前不写数值实现代码**；顺延项（连击任务/成就/皮肤 + v3 提案的 combo 倍率/level-stars/第一分钟引导）零实体零验收；性能口径不进 spec acceptance
 
 ## V1.2 核心手感轮节点台账（N1–N5）
 
 | 节点 | 线 | 交付与落点 | 验收信号 | 状态 |
 |---|---|---|---|---|
-| N1 spec 校准入链 | 策划+程序 | 链 v4 draft（numeric 增 feel/daily · acceptance 增 ac-22..28 · detail 校准/顺延清单） | 守卫全绿 + POST version=4 parent=v3 + 回读全等 + v1/v2/v3 保留 | ⏳ |
-| N2 五切片 | 程序 | ①落地挤压形变+硬降震屏 ②消除粒子+三档音效 ③连击计数反馈 ④重开一键化 ⑤daily-challenge 钩子 | 每片先红后绿；合入前 T2 采样 P95 对比快照①不退化 | ⏳ |
-| N3 视觉打磨包 | 美术 | 形变帧表/三档独立粒子资产+图集/震屏参数曲线/连击三档视觉态/重开按钮三态+转场帧/daily 入口与角标/分享卡轻更新 | 逐资产四要素校样留证；A 轮风格差距清单收口为零 open | ⏳ |
-| N4 复检 | QA | 四步：spec 一致性 / v1.1 回归五项 / v1.2 新条款对抗 / P95 比对 | 无红 → approve-ready | ⏳ |
-| N5 打包提审 | 主策划+程序 | 打包 + 证据三件套（gate-logs + 快照 + 报告） | 提请主人 approve（PWA 发布归 deploy 节点） | ⏳ |
+| N1 spec 校准入链 | 策划+程序 | 链 v4 draft `cmut5fkyf00cbic7qudea13g6`（numeric 增 feel/daily · acceptance 增 ac-22..28 · assets +a04..a07 · content +dailyChallenge） | ✅ 九守卫全绿 + POST v4 parent=v3 + READBACK EQUAL + v1/v2/v3 零覆盖 · 锚 `1720df8e…` |
+| N2 五切片 | 程序 | ①形变+震屏 ②粒子+三档音效 ③连击反馈 ④重开一键 ⑤daily 钩子（源仓 a19e132..cf57708 六提交） | ✅ 每片先红后绿（红证据 6 件）· Mode A 18/18 + Mode B 25/25 · 每片 T2 采样 P95 不退化 |
+| N3 视觉打磨包 | 美术 | F-01..F-07 全落 + a03 三档资源 + 分享卡轻更新 + A-10/A-11 收口 | ✅ 四要素校样（gate-logs/v12-feel-n3-20261004/README）· ART-RECHECK 12/12 · 差距清单零 open |
+| N4 复检 | QA | 四步对抗复检（tools/qa-v12-feel.mjs） | ✅ 15/15 无红 · VERDICT: APPROVE-READY（复检器首跑五缺陷自曝全修） |
+| N5 打包提审 | 主策划+程序 | 打包 + 证据三件套 + release-readiness §F..I | ✅ 提请主人 approve（PWA 发布归 deploy 节点） |
 
 ---
 

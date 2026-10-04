@@ -1,8 +1,8 @@
 # 资产清单黑板 — g2-blocks（**V1.2「核心手感 6 项 + daily-challenge」轮 · 视觉打磨包**）
 
-> 更新时间：2026-10-04（本轮开工 · 主策划）
+> 更新时间：2026-10-04（N3 收口 · 七件全落 · ART-RECHECK 12/12 不降）
 > 负责人：游戏美术（打磨包面）/ 主策划（整合校对）
-> 下一步：待 N1 numeric 冻结（feel/daily 两组）后按冻结值开产七件打磨包，逐资产四要素校样留证；A 轮风格差距清单收口为零 open
+> 下一步：等主人 approve；观感/听感 rubric 人工校样随 approve 验收走（契约面只测时序+查表）
 > 红线：色值一律引用冻结色板 token（生成器零裸 hex、零 rgba 字面量）；形变/粒子/震屏数值一律取链上 `numeric.feel`（零手抄第二份）
 
 ## 顶部风格卡（沿用 A 轮定稿，本轮零改动 · 详档见下方存档区「风格卡」节）
@@ -19,13 +19,13 @@
 
 | 编号 | 资产 | 实机位置 | 数值来源 | 校样证据 | 状态 |
 |---|---|---|---|---|---|
-| F-01 | 落地挤压形变帧表 | 重力落定的块（渲染层 squash 变换） | numeric.feel.landSquash | ⏳ | ⏳ |
-| F-02 | 硬降震屏参数曲线 | 消除后大落差（≥thresholdCells）镜头偏移 | numeric.feel.hardDrop | ⏳ | ⏳ |
-| F-03 | 三档独立粒子资产 + 合图集说明 | 消除命中点爆发粒子 | numeric.feel.particles | ⏳ | ⏳ |
-| F-04 | 三档音效资源表（三组独立 + 变参微调） | 消除/连击音（theme SFX 表经 a03 资产再生） | numeric.feel.sfx.tiers + assets/a03-sfx-plan.json | ⏳ | ⏳ |
-| F-05 | 连击三档视觉态 | HUD 连击计数区 | numeric.feel.combo.tiers | ⏳ | ⏳ |
-| F-06 | 重开按钮三态 + 转场帧 | 炉冷横幅 / 常驻重开入口 | numeric.feel.restart | ⏳ | ⏳ |
-| F-07 | daily 入口与角标 + 分享卡轻更新 | HUD daily 入口 / share og+wx 卡轻刷新 | numeric.daily + numeric.feel.dailyBadge | ⏳ | ⏳ |
+| F-01 ✅ | 落地挤压形变帧表 | 重力落定的块（渲染层 squash 变换） | numeric.feel.landSquash | ac-22 + motion-pack.json | ✅ |
+| F-02 ✅ | 硬降震屏参数曲线 | 消除后大落差（≥thresholdCells）镜头偏移 | numeric.feel.hardDrop | ac-23 + motion-pack.json | ✅ |
+| F-03 ✅ | 三档独立粒子资产 + 合图集说明 | 消除命中点爆发粒子 | numeric.feel.particles | ac-24 + particle-pack.json + FEEL-PROBE | ✅ |
+| F-04 ✅ | 三档音效资源表（三组独立 + 变参微调） | 消除/连击音（theme SFX 表经 a03 资产再生） | numeric.feel.sfx.tiers + assets/a03-sfx-plan.json | ac-25 + a03 三档资源 | ✅ |
+| F-05 ✅ | 连击三档视觉态 | HUD 连击计数区 | numeric.feel.combo.tiers | ac-26 + ui-feel-pack.json | ✅ |
+| F-06 ✅ | 重开按钮三态 + 转场帧 | 炉冷横幅 / 常驻重开入口 | numeric.feel.restart | ac-27 + ui-feel-pack.json + cool-frame | ✅ |
+| F-07 ✅ | daily 入口与角标 + 分享卡轻更新 | HUD daily 入口 / share og+wx 卡轻刷新 | numeric.daily（dailyBadge 未单列，角标=UI 映射面） | ac-28 + daily-entry-pack.json + 分享卡重出 | ✅ |
 
 ---
 

@@ -1,10 +1,10 @@
-# 阻塞项黑板 — g2-blocks（**V1.2「核心手感 6 项 + daily-challenge」轮 · 进行中**）
+# 阻塞项黑板 — g2-blocks（**V1.2「核心手感 6 项 + daily-challenge」轮 · 收口提审**）
 
-> 更新时间：2026-10-04（本轮开工 · 主策划）
+> 更新时间：2026-10-04（N1–N5 全链走完 · N4 APPROVE-READY · 主策划）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：N1 spec 校准入链（链 v4 draft）→ N2 实现 ∥ N3 视觉打磨包 → N4 复检 → N5 打包提请主人 approve
+> 下一步：**等主人拍板**（链 v4 approve + 实现人工验收 + A-10 取向确认）；PWA 发布归 workflow deploy 节点；渠道提审归主人
 
-## 当前基线（V1.2 核心手感轮 · 2026-10-04）
+## 当前基线（V1.2 核心手感轮收口 · 2026-10-04）
 
 - **黑板路径**：`.myrd/blackboard/g2-blocks/`（levels.md / assets.md / blockers.md + gate-logs/）
 - **spec 版本号**：
@@ -20,13 +20,64 @@
 - **落点偏差披露（沿用 A 轮已接受口径）**：任务书要求 spec 导出到 `.myrd/spec/design-spec.json`，该路径为 stack-tower 专属件（`routines.yaml` B4「一游戏一文件」）→ 本轮沿用 `.myrd/spec/g2-blocks/design-spec.json`
 - **护栏**：① stack-tower 线上零接触（本轮零触碰其 spec/代码/黑板段）；② numeric 冻结零漂移，v1.1 既有 12 组 numeric 逐字节不动，契约+冒烟全绿为提交前置，numeric 与 P95 冲突 → 程序上报 → 主策划回 N1 version+1，禁止静默改 spec；③ 阻塞超一轮 → 升级主人
 
-## 阻塞项（V1.2 核心手感轮 · 开工登记）
+## 阻塞项（V1.2 核心手感轮 · 全部闭合 ✅）
 
 | id | 内容 | 归属线 | 解除判据 | 状态 |
 |---|---|---|---|---|
-| C1 | 本轮 numeric（feel/daily 两组）未冻结 → 实现不得开工（红线：数值冻结前不写数值实现代码） | 策划+程序 | 链 v4 draft 入链 + 回读全等 + 守卫全绿 | ⏳ N1 执行中 |
-| C2 | 视觉打磨包未开产（形变帧表/三档粒子/震屏曲线/连击三档态/重开三态/daily 入口角标/分享卡轻更新） | 美术 | 按 N1 numeric 冻结值产出 + 逐资产四要素校样留证 + open 差距=0 | ⏳ 待 N1 冻结 |
-| C3 | 五切片实现未开工（依赖 C1 解除 + C2 表格可并行） | 程序 | 每片先红后绿；合入前 T2 采样对比 v1.1 P95 不退化 | ⏳ 待 C1 |
+| C1 | 本轮 numeric（feel/daily 两组）未冻结 → 实现不得开工 | 策划+程序 | 链 v4 draft 入链 + 回读全等 + 守卫全绿 | ✅ POST `cmut5fkyf00cbic7qudea13g6` v4 draft · READBACK EQUAL · 九守卫全绿 · 锚 `1720df8e…`（gate-logs/v12-feel-n1-20261004/03·04） |
+| C2 | 视觉打磨包未开产 | 美术 | 按 N1 冻结值产出 + 四要素校样 + open 差距=0 | ✅ F-01..F-07 全落（校样表 gate-logs/v12-feel-n3-20261004/README）· ART-RECHECK 12/12 · A-10/A-11 收口零 open |
+| C3 | 五切片实现未开工 | 程序 | 每片先红后绿；合入前 T2 采样 P95 不退化 | ✅ 五片全落（红证据 6 件在档）· Mode A 18/18 + Mode B 25/25 · P95 持平（16.7→16.8ms 量化带宽内 · jank 双跑皆零） |
+
+### 收口复跑基线（源仓 @ `eab0df0` 树净 · 2026-10-04，全部原文在档）
+
+- 契约双态：**Mode A 18/18（approved v1.1）+ Mode B 25/25（链 v4 draft）** · 均 EXIT=0
+- 八门禁：**①–⑧ 全 PASS**（`gate-logs/v12-feel-n4-20261004/03-gates-eight-final.log`）
+- 冒烟：**SMOKE PASS** · 判据面 `git diff fe5fd38..HEAD -- tools/smoke.mjs` = 0 行（零变化）
+- T2 采样：基准跑 **fps=60 · 卡顿 0 · P95=16.8ms**（基线快照① 16.7ms，Δ=0.1ms = rAF 帧时间量化带宽；jank 0↔0 → 不退化成立）
+- N4 对抗复检：**15/15 · VERDICT: APPROVE-READY**（`gate-logs/v12-feel-n4-20261004/01`；复检器首跑自曝五缺陷全修，02 同档互证）
+- 源仓提交链（本轮 9 commit）：`19bf249`(N1 入链)→`a19e132`(切片0)→`50efa9f`(切片1)→`684f42a`(切片2)→`ced4497`(切片3)→`6fc09c2`(切片4)→`cf57708`(切片5)→`6fec4a6`(N3 收口)→`b66aa0b`(N4)→`eab0df0`(N5 清单)
+
+## 挂账（非本轮动作，防丢失）
+
+| id | 内容 | 归属 | 触发/解除条件 |
+|---|---|---|---|
+| G-Q1 | daily 时钟倒拨语义（backdatePolicy）仍不在 numeric（A 轮升级条款 Q1 沿挂：反作弊口径 = 主人裁决项） | 主人 | approve 时或 v1.3 提案 |
+| G-Q2 | 渠道分享链路业务参数（wx/dy 落地页等）不在 spec 冻结面（A 轮 Q2 沿挂；本轮分享卡仅版式轻更新） | 主人 | 渠道开辟决策时 |
+| G-perf | 60fps / P95 / 重开真机层终判未做（headless 代理证据，本轮与 A 轮同口径；真机层口径 = 同机同条件多次中位数，落 release-readiness §G） | QA | 真机实测后回填 |
+| G-cdp | smoke/screenshot 并入共享件 tools/cdp.mjs（A 轮沿挂） | 程序 | 下一轮 QA 在场时并 |
+| G-approv | 链 v4 为 **draft**：approve 前 spec-data 契约输入维持 v1.1；「实现先于 approve」系本任务书显式授权（N5 打包提审 = 主人终裁位） | 主人 | approve 动作本身 |
+
+## 升级条款（本轮回主人裁决）
+
+| id | 问题 | 为什么不能机器定 |
+|---|---|---|
+| Q1 | 沿挂（见 G-Q1） | 设计决策 |
+| Q2 | 沿挂（见 G-Q2） | 业务拍板 |
+| Q3 | **链 v4 approve + 实现产物「好不好玩」人工验收** | approve 是人的动作（红线）；人工验收 rubric = 六项手感体验 + daily 入口，本地 `npx serve g2-blocks/build` |
+| Q4 | A-10 残余留白取向（本轮拍板 = 下区功能化 + 节奏留白） | 布局审美取向，主人可另定 → 回 N1 spec 修订面 |
+
+## 待触发节点（条件写死）
+
+| 节点 | 触发条件 | 门禁 |
+|---|---|---|
+| 主人 approve | 主人回复（不接受沉默推断） | approve 落卷后才算落卷；approve 后可在平台对链 v4 调 approve 接口落 approved |
+| workflow deploy 节点 | N5 包就绪（✅）且主人拍板发布 | PWA 发布仅发生于此节点；发布后复跑冒烟 LIVE 口径 |
+| 渠道提审（wx/dy/Steam/Roblox） | 主人开辟决策 | 与团队无关的材料 = 渠道业务参数（G-Q2） |
+
+## 红线核销（任务书原文 · 全程生效）
+
+- ① stack-tower 线上零接触 → ✅ 本轮源仓 diff 零 stack-tower 路径（N4 R2.e 路径白名单机判）；ac-17 一号零接触 PASS；平台侧仅对 g2-blocks spec 走 revisions，stack-tower spec 零触碰
+- ② numeric 冻结零漂移 + 契约冒烟全绿为提交前置 + 冲突上报回 N1 → ✅ 九守卫复跑（R2.e2）+ 每片提交前契约+冒烟双绿；「P95 不退化」在场约束成立（numeric 全取零分配/查表形态，未触发冲突上报路径）
+- ③ 顺延项零实体零验收 → ✅ N4 R3.b/b2 双面机判（spec 无 combo 倍率/level-stars/第一分钟引导/daily.star；src 零命中）
+- ④ 性能口径不进 spec acceptance → ✅ P95 口径在快照/报告/release-readiness，acceptance 零性能条款
+- ⑤ 阻塞超一轮升级 → ✅ C1..C3 轮内闭合，未触发
+
+## 提请主人拍板
+
+1. **链 v4（V1.2 核心手感轮）approve** —— 策划案版本链 `cmut5fkyf00cbic7qudea13g6` draft 待裁；approve 即 approved 唯一。
+2. **实现产物人工验收**（终裁「好不好玩」）：六项手感逐项体验清单见 release-readiness §F；本地 `npx serve g2-blocks/build` 或装配区只读入口。
+3. **A-10 留白取向**（Q4）与沿挂 G-Q1/G-Q2 裁决。
+4. PWA 发布 = workflow deploy 节点动作；渠道提审/开辟 = 主人动作。团队包已就绪（证据三件套：gate-logs + 快照 + 报告）。
 
 # 以下为 A 轮存档（「发布收尾主线 + v1.2 写案并行」· 收口 · 2026-10-03）
 

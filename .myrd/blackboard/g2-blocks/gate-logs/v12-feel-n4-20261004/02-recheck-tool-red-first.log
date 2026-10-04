@@ -1,0 +1,14 @@
+# N4 对抗复检器首跑红原文（工具缺陷自曝 · 2026-10-04 · 会话实跑转录）
+# 结论: 10 PASS / 5 FAIL → VERDICT: RED（复检器自身五缺陷，非实现缺陷；逐条修正后复跑 15/15，见 01）
+[FAIL] R1.a 契约快照零红 — PASS=20 EXIT=0
+  → 缺陷: 以 /PASS /g 正则计数，合计行才是真源 → 改「合计 X PASS / Y FAIL」解析 + CONTRACT: PASS 双判
+[FAIL] R2.a 契约快照零红（18 条）— PASS=20 EXIT=0
+  → 同上
+[FAIL] R2.c P95 同口径比对 — Δ=0.1ms ≤1 帧时间量化带宽
+  → 缺陷: 浮点 16.8-16.7=0.10000000000000053 > 0.1（带宽边界假红）→ 引入 1e-6 容差
+[FAIL] R2.e 纯增量 diff 核验 — 白名单外=scripts/contract-check.mjs
+  → 缺陷: 白名单漏 scripts/（统一入口守卫属在库工程件）→ 补
+[FAIL] R3.b2 顺延零渗漏（实现面）— 命中 build-spec-v13/v12、gen-release-assets、qa-v12-feel 四件
+  → 缺陷: grep 把「守卫断言本体 / v3 历史建版器 / A-13 文案红线注释 / 本件自检模式」当实现命中
+    → 改 src/ 硬判零命中 + tools/ 四件白名单（逐件有据，白名单外零容忍）
+# 处置: 五缺陷全修 → 复跑 01-adversarial-recheck.log 15/15 APPROVE-READY（本文件与 01 同档互证）
