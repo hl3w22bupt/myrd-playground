@@ -1,0 +1,7 @@
+# 《熔炉方块》（g2-blocks）AppHost 应用清单 —— 一坞一游戏，专属坑 slug=g2-blocks-2
+# 壳位于仓库根：server/（Node20 + Hono），游戏 Web 导出产物经 gzip+base64 内联进 bundle
+# 导出源：游戏仓 g2-blocks-wx @ wx/port-v1.1（HEAD 4fba03a）build/ —— SMOKE PASS（浏览器可开 + 核心循环可玩）
+name = "g2-blocks（熔炉方块）"
+runtime = "node20"
+health = "/health"
+assets_dir = "games/g2-blocks/export/web"
