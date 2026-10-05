@@ -26,7 +26,7 @@
 
 | id | 内容 | 归属 | 解除判据 | 状态 |
 |---|---|---|---|---|
-| W-1 | 微信开发者工具 CLI 未安装 → devtools 侧「双绿」无法本机机跑 | 程序+QA | ✅ 本轮可做面全做：结构门禁取证（wx 三条目查 3/3 + 八门禁 exit 0）+ runbook 脚本化（`tools/verify-wx-devtools.mjs`）+ N4 E2 如实披露（BLOCKED-ENV exit 2 原件 09/11 档）；**devtools 侧真跑待环境**（CLI 在位后一键复跑） | 🚨 挂主人侧环境（不构成包面缺陷；不造假不装绿） |
+| W-1 | 微信开发者工具 CLI 未安装 → devtools 侧「双绿」无法本机机跑 | 程序+QA | ✅ 本轮可做面全做：结构门禁取证（wx 三条目查 3/3 + 八门禁 exit 0）+ runbook 脚本化（`tools/verify-wx-devtools.mjs`）+ N4 E2 如实披露（BLOCKED-ENV exit 2 原件 09/11 档）；**devtools 侧真跑待环境**（CLI 在位后一键复跑）；程序线收口复跑二次取证 BLOCKED-ENV（15 号日志），Node 侧复跑全绿（12..14 号） | 🚨 挂主人侧环境（不构成包面缺陷；不造假不装绿） |
 | W-2 | wx 提审需 AppID + 类目/资质（正式） | 主人 | 主人下发后 project.config.json 换正式 appid（现占位 `touristappid` 测试号，沿一号仓 B0 判例） | 🚨 待主人（不影响包与材料生产） |
 | W-3 | 上轮 QA 09:04 reject verdict 的缺口 A/B 原文检索 | 主策划 | 本轮以任务书重述为准（缺口 A=devtools 验证 runbook 缺失 → N1 补丁①；缺口 B=dy 条目验收口径不明 → N1 补丁②）；**如原文在档后续补挂链接，不阻塞**（补丁内容两源一致） | ⏳ 沿任务书重述执行 |
 

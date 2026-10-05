@@ -41,7 +41,25 @@
 | N3 平台合规视觉包 | 游戏美术 | privacy-popup-visual.md（一稿三态+触发时机+首启路径示意）+ compliance-visual-checklist.md（A–D 18 条，逐条条款编号+证据）+ wx-submission-kit.md（材料逐 id）+ 图标/截图规格官方锚点核对（直连被网络策略拦 → 锚点路径+后台勾对口径如实落档） | 自查表 12 条机判 ✅ · 4 条待后台/环境 · 2 条主人侧 · **无团队面红项** | ✅（并入 e39c0a1） |
 | N4 复检与打包 | 游戏 QA | 复检器 `tools/qa-wx-port-recheck.mjs` → **15/15 · VERDICT: APPROVE-READY**（verdict JSON `docs/platform/wx/qa-wx-port-verdict.json`）；首启可玩代理证据 = headless 冒烟 PASS；提审包 `export/wx/` + 材料清单回流主人 | 三口径（双绿原件/合规逐条/numeric 逐字段 11/11）+ 三条显式验收项全过；治理面两处最小修正（守卫白名单前缀条目）随件披露 | ✅（commit cabef9e） |
 
-## 三、红线（任务书原文，全程生效）
+## 三、程序线独立复跑台账（2026-10-05 · 游戏程序 · 不装绿纪律）
+
+> 上轮 N2-P1/N2-P2 收口后，程序线对 g2-blocks-wx @ `cabef9e`（wx/port-v1.1）做独立复跑，全部机器输出原件落 `gate-logs/wx-port-20261005/12..16` 号日志。
+
+| # | 复跑项 | 命令 | 结果 | 证据 |
+|---|---|---|---|---|
+| R1 | wx 三条目查（runtime/share/submission） | `node tests/wx/run-all-wx.mjs` | **3/3 绿 · exit 0**（22 断言全 PASS） | `12-wx-green-rerun.log` |
+| R2 | 基线八门禁 | `node tests/run-all.mjs` | **8/8 PASS · exit 0** | `13-gate-rerun.log` |
+| R3 | 契约检查（approved v1.1 导出件驱动 18 条） | `node scripts/contract-check.mjs` | **18/18 PASS · exit 0**（`CONTRACT: PASS 契约全绿`） | `14-contract-check-rerun.log` |
+| R4 | devtools 侧验证 | `node tools/verify-wx-devtools.mjs` | **BLOCKED-ENV exit 2**（CLI 仍缺席，如实披露=W-1 不变） | `15-devtools-rerun.log` |
+| R5 | 组包器确定性 | `node tools/build-wx.mjs` 后 `git status` | **exit 0 · 零 diff**（包面=生成链当前态） | `16-build-wx-rerun.log` |
+| R6 | 包体独立审计 | `node tools/audit-wx-bundle.mjs` | **132,607B（129.5KB）· gzip 73,148B · PASS**（与在档 10 号审计逐字节同值） | 本机输出（复跑） |
+| R7 | 红线复核：`git diff fe5fd38..wx/port-v1.1` | 变更 29 件全落谱系目录（ci2/dy1/wx6/spec2/scripts1/platform-wx5/tests-wx4/tools8）；kernel/feel/theme/numeric/daily/render **零接触 ✓**；4 行删除全在 ci 治理面（N4 已披露的白名单前缀修正） | PASS | 机判 `git diff --name-only` |
+
+环境核验：spec 发现链双候选（本 run + 前 run）导出件 **sha256 全等 `ad5d5534…`**（v1.1 approved，锚 `302e6336…`）——前 run 目录被清理不影响复跑。仓库零 npm 依赖（`deps={}`），Node v26.7.0 原生 type-stripping 直跑。
+
+**复跑结论：N2 交付双绿在当前 HEAD 真实成立（Node 侧）；devtools 侧维持 W-1 如实披露，不构成包面缺陷。**
+
+## 四、红线（任务书原文，全程生效）
 
 1. v1.2 冻结范围（手感 6 项 + daily-challenge + 视觉打磨包 + 全部 numeric）零接触，触碰即越界打回；
 2. 本轮不开新产品线；
