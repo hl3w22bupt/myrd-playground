@@ -88,7 +88,22 @@
 
 **谱系延伸**：`fe5fd38` → … → `cabef9e`（N4 收口）→ `0485004`（美术补做一）→ **`eb9ddab`（补做二：分享环接线）**——仍属「platform 段 + 提审材料通道追加」；G8 接线为呈现层装配（spec wx-share-loop summary「会话分享闭环」的落地完成），零玩法/数值 diff 口径不变。
 
-## 四、红线（任务书原文，全程生效）
+## 四、驳回修复轮（2026-10-05 · wk-acc-3 隐私弹窗运行时 · 游戏程序 · QA 修法 (a)）
+
+> 打回缺陷一（实现+spec 同修）按修法 (a) 执行：spec 行为条款（wk-acc-3 四谓词）+ N3 视觉稿（三态/触发时机）已定稿，属实现缺口非设计决策；修法 (b)（revisions 顺延）不动。缺陷二（devtools CLI）按 QA 口径维持披露不改码。随件注记（ac-10 scopeNote 文面冲突）归主策划定稿时以 revisions 注记澄清，非码面动作（本板 blockers.md 知会）。
+
+| 项 | 落点 | 证据 |
+|---|---|---|
+| 先红 | wx-k5b..k5g 六条行为断言落 `tests/wx/wx-submission.spec.mjs`（wk-acc-3 四谓词 + 二次启动 + 叠绘契约），对无实现状态跑出 **PASS=8/RED=6**（红因=privacy.ts 不存在） | `24a-wx-submission-red-privacy.log` |
+| 运行时件 | `src/platform/wx/privacy.ts`（新 · 290 行）：P1 requestShow+applyProbe 双条件才弹（顺序无关）；P2 卡片外 handleTap=false 透传玩法入口；P3 经 T1 门面 registerKey('privacy-consent') 读写 granted/denied（未注册键仍拒）；P4 装配零阻塞；× 关闭不落盘保留再询 | `24b-wx-green-privacy.log` 14/14 |
+| 装配接线 | `boot-wx.ts`：registerPrivacyConsentKey 显式注册 + createWxPrivacyPopup + wx.onTouchEnd 并行监听 + rAF 包装（首帧回调完成后 requestShow · 每帧渲染后叠绘，零内核/main 改动）；`wx-k5e` 结构断言钉装配面 | g2 仓 `ed172e1` |
+| 随件补线披露 | `adapter.ts` canvas.addEventListener 接入 canvasHandlers——原 fire 目标为空 Map（main.ts 的 pointerdown 在 wx 面静默丢失 = 触摸不可玩，runbook G2 会暴露）；属垫片自洽性修复，非设计变更 | g2 仓 `ed172e1` diff |
+| theme 单源回归 | 首跑契约 ac-11 红（弹窗 6 色成裸 hex）→ 中性面收编生成链：`e-renderer-ui-tokens.json` privacy 段（标注来源=视觉稿定稿）→ gen-theme 输出 PRIVACY_UI → privacy.ts 单源引用（遮罩改 hexToRgba 动态拼，零字面量）。**色值逐字节同值=视觉零漂移；PALETTE 7 色零接触；theme sha `bb6ba8b3…`** | `24d`(红)→复跑绿 |
+| 核对路径 | runbook 判定标准增 **G5 隐私项**（首帧后弹/拒绝不阻玩法/二次启动不重弹/× 保留再询）；`compliance-visual-checklist.md` B-1/B-2/B-5 证据补运行时锚 + 新增 **B-5a** 显式条件行（「隐私指引填报收集项→弹窗实现为提审硬前置」当前已满足，隐性前提消除） | `24f-devtools-final.log` |
+| 终态回归 | 契约 **18/18** · 八门禁 **exit 0** · 三条目查 **3/3（14 断言）** · 冒烟 **PASS** · 组包 31 件 **150,530B（147.0KB）≤4MB** · devtools **BLOCKED-ENV exit 2**（W-1 维持） | `24b/24c/24d/24e/24f/24g` |
+| 红线复核 | `git diff eb9ddab..ed172e1` 11 件全白名单（platform-wx/tools/tests-wx/docs-wx/theme 生成链/j1 证据）；numeric sha256 `302e6336…` 与 spec 冻结锚**全等**（零接触）；kernel/feel/daily 零 diff | 机判 |
+
+## 五、红线（任务书原文，全程生效）
 
 1. v1.2 冻结范围（手感 6 项 + daily-challenge + 视觉打磨包 + 全部 numeric）零接触，触碰即越界打回；
 2. 本轮不开新产品线；

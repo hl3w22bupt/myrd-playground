@@ -26,7 +26,8 @@
 
 | id | 内容 | 归属 | 解除判据 | 状态 |
 |---|---|---|---|---|
-| W-1 | 微信开发者工具 CLI 未安装 → devtools 侧「双绿」无法本机机跑 | 程序+QA | ✅ 本轮可做面全做：结构门禁取证（wx 三条目查 3/3 + 八门禁 exit 0）+ runbook 脚本化（`tools/verify-wx-devtools.mjs`）+ N4 E2 如实披露（BLOCKED-ENV exit 2 原件 09/11 档）；**devtools 侧真跑待环境**（CLI 在位后一键复跑）；程序线收口复跑二次取证 BLOCKED-ENV（15 号日志），Node 侧复跑全绿（12..14 号） | 🚨 挂主人侧环境（不构成包面缺陷；不造假不装绿） |
+| W-1 | 微信开发者工具 CLI 未安装 → devtools 侧「双绿」无法本机机跑 | 程序+QA | ✅ 本轮可做面全做：结构门禁取证（wx 三条目查 3/3 + 八门禁 exit 0）+ runbook 脚本化（`tools/verify-wx-devtools.mjs`）+ N4 E2 如实披露（BLOCKED-ENV exit 2 原件 09/11 档）；**devtools 侧真跑待环境**（CLI 在位后一键复跑）；程序线收口复跑二次取证 BLOCKED-ENV（15 号日志），Node 侧复跑全绿（12..14 号）；**QA 驳回缺陷二复述确认：wr-acc-2 G1–G4 未机跑属执行资源缺口，升级动作=主人侧安装微信开发者工具（稳定版）+ 开服务端口后一键复跑 `node tools/verify-wx-devtools.mjs`；G1 机跑通过前 approve-ready 包不得实际提审（维持披露，无需改码）**；24f 三次取证 BLOCKED-ENV 在档（runbook 已含 G5 隐私项） | 🚨 挂主人侧环境（不构成包面缺陷；不造假不装绿） |
+| W-4 | （随件注记 · 知会主策划）v1.3 acceptance ac-10 scopeNote 逐字节沿 v1.1 仍写「移植端（wx/dy/Steam/Roblox）deferred 顺延下轮」，与 v1.3 content.platform 五条目文面冲突 | 主策划 | 定稿/rebase 时以 revisions 注记澄清（revision_note 已披露零 diff 面政策）；非码面动作，不阻塞任何节点 | ⏳ 归 spec 定稿轮 |
 | W-2 | wx 提审需 AppID + 类目/资质（正式） | 主人 | 主人下发后 project.config.json 换正式 appid（现占位 `touristappid` 测试号，沿一号仓 B0 判例） | 🚨 待主人（不影响包与材料生产） |
 | W-3 | 上轮 QA 09:04 reject verdict 的缺口 A/B 原文检索 | 主策划 | 本轮以任务书重述为准（缺口 A=devtools 验证 runbook 缺失 → N1 补丁①；缺口 B=dy 条目验收口径不明 → N1 补丁②）；**如原文在档后续补挂链接，不阻塞**（补丁内容两源一致） | ⏳ 沿任务书重述执行 |
 
@@ -53,4 +54,5 @@
 | N2-P1 | ✅ | 实测 22 件 + 先红 22 断言（01/02/03 日志）· commit 5761b3a |
 | N2-P2 + N3 | ✅ | wx 五件 + 组包 129.5KB + 合规三件 · 双绿（07/08 日志）· commit e39c0a1 |
 | N4 | ✅ 15/15 APPROVE-READY | verdict JSON + 11 日志 · commit cabef9e |
+| 驳回修复轮 | ✅ 缺陷一修法 (a) 全落 | wk-acc-3 弹窗运行时件 + 装配接线 + wx-k5b..k5g 先红(24a RED=6)后绿(24b 14/14) + runbook G5 + compliance B-5a 显式化 + ac-11 theme 单源收编复绿 · 契约 18/18 · 八门禁 0 · 冒烟 PASS · 包 31 件 150,530B · numeric 锚 `302e6336` 全等零接触 · g2 仓 commit `ed172e1` |
 | 回流主人 | ✅ 包 + 材料清单 | `g2-blocks-wx/export/wx/` + `docs/platform/wx/wx-submission-kit.md` |
