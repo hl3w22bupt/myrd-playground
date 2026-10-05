@@ -1,5 +1,5 @@
 {
-  "verdict": "FAIL",
+  "verdict": "PASS",
   "url": "https://leomac-studio.tail49399e.ts.net/apps/game-15/",
   "preset": {
     "width": 390,
@@ -8,13 +8,13 @@
     "mobile": true,
     "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
   },
-  "checkedAt": "2026-10-05T13:27:48.547Z",
+  "checkedAt": "2026-10-05T14:05:15.645Z",
   "checks": [
     {
       "id": "network",
       "label": "关键资源网络全通（无 5xx / 404 / 登录墙重定向）",
-      "status": "fail",
-      "detail": "404 https://leomac-studio.tail49399e.ts.net/apps/game-15（关键资源不可得：相对路径/资产清单排查）"
+      "status": "pass",
+      "detail": ""
     },
     {
       "id": "console",
@@ -25,38 +25,38 @@
     {
       "id": "canvas",
       "label": "canvas 存在（引擎产物已挂载）",
-      "status": "fail",
-      "detail": "20s 内未出现 canvas——引擎未启动/加载挂死"
+      "status": "pass",
+      "detail": ""
     },
     {
       "id": "render",
       "label": "首帧截图非纯色（400 点采样 ≥2 种量化色）",
       "status": "pass",
-      "detail": "采样仅 5 种颜色——画面没渲染出来（黑屏/白屏）"
+      "detail": "采样仅 19 种颜色——画面没渲染出来（黑屏/白屏）"
     },
     {
       "id": "animate",
       "label": "画面在动（1.5s 双时点帧差 > 0）",
-      "status": "fail",
+      "status": "pass",
       "detail": "400 采样点零变化——主循环挂死或渲染冻结"
     },
     {
       "id": "touch-pipeline",
       "label": "触摸事件到达 DOM（tap/swipe 均被派发）",
       "status": "pass",
-      "detail": "tap={\"touchstart\":1,\"touchmove\":0,\"touchend\":1} swipe={\"touchstart\":2,\"touchmove\":7,\"touchend\":2}——事件没到页面=壳层挡了输入"
+      "detail": "tap={\"touchstart\":1,\"touchmove\":0,\"touchend\":1} swipe={\"touchstart\":2,\"touchmove\":8,\"touchend\":2}——事件没到页面=壳层挡了输入"
     },
     {
       "id": "touch-response",
       "label": "触摸后画面有响应（tap 后帧差 > 0 或产生新活动）",
-      "status": "fail",
-      "detail": "输入到达但 3s 内画面零变化零活动——引擎忽略触摸（TouchUI/输入映射坏）。若游戏确为开局静止画面，在 qa/mobile/ 放说明文件并在产物 detail 注明豁免依据"
+      "status": "pass",
+      "detail": ""
     },
     {
       "id": "audio-unlock",
       "label": "音频手势解锁器存在（window.__audioDebug）",
-      "status": "fail",
-      "detail": "typeof __audioDebug === \"undefined\"——缺解锁层 = 移动端全部音效静默且控制台零报错（取证：games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md）"
+      "status": "pass",
+      "detail": "typeof __audioDebug === \"function\"——缺解锁层 = 移动端全部音效静默且控制台零报错（取证：games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md）"
     },
     {
       "id": "viewport",
@@ -68,21 +68,19 @@
       "id": "fps",
       "label": "FPS ≥ 8（swiftshader 软渲染口径）",
       "status": "pass",
-      "detail": "实测 61 fps"
+      "detail": "实测 27 fps"
     }
   ],
   "metrics": {
-    "colorCount": 5,
-    "idleDiff": 0,
-    "tapDiff": 0,
-    "fps": 61,
+    "colorCount": 19,
+    "idleDiff": 400,
+    "tapDiff": 2,
+    "fps": 27,
     "scrollWidth": 390,
     "clientWidth": 390,
     "hasViewportMeta": true
   },
-  "networkFailures": [
-    "404 https://leomac-studio.tail49399e.ts.net/apps/game-15（关键资源不可得：相对路径/资产清单排查）"
-  ],
+  "networkFailures": [],
   "networkWarnings": [],
   "consoleErrors": [],
   "touchCounters": {
@@ -93,7 +91,7 @@
     },
     "afterSwipe": {
       "touchstart": 2,
-      "touchmove": 7,
+      "touchmove": 8,
       "touchend": 2
     }
   },
