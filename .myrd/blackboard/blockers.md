@@ -1,8 +1,15 @@
-# 阻塞项黑板 — g2-blocks · **WX 移植提审轮（v1.1 基线 → 可提审微信小游戏包 + 材料清单回流）**
+# 阻塞项黑板 — g2-blocks · **WX 移植提审轮（收口态 · APPROVE-READY 包已回流主人）**
 
-> 更新时间：2026-10-05 12:50（开工前置完成 · 主策划）
+> 更新时间：2026-10-05 13:4x（N4 15/15 APPROVE-READY · 主策划整合收口）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：N1 入链 ∥ N2-P1 实测（并行开工）；v1.2 批复在途不阻塞任何节点
+> 下一步：**等主人拍板**（是否提审 + 正式 AppID/类目资质 + 隐私指引填报）；v1.2 批复在途互不阻塞
+
+## 提请主人拍板（本轮回流 · 团队只交包）
+
+1. **是否提审**：approve-ready 包 + 材料清单已就绪（见当前基线）；提审动作 = 主人在微信开发者工具/公众平台执行（两步手册见 `docs/platform/wx/wx-submission-kit.md` §三）。
+2. **正式 AppID + 类目/资质**（W-2）：下发后 `project.config.json` 替换 touristappid 即可提审。
+3. **《用户隐私保护指引》后台填报**：口径已给全（收集项 = 本地 muted/anonId 两键、零网络上报；代码面证据 `src/persistence.ts`）。
+4. **v1.2（链 v4）批复**：在途；批复与否不影响本包基线（v1.1 + 平台段）；若先批复 → spec v1.3-platform 按既定纪律 rebase 重出版。
 
 ## 当前基线（开工即记 · 2026-10-05）
 
@@ -19,7 +26,7 @@
 
 | id | 内容 | 归属 | 解除判据 | 状态 |
 |---|---|---|---|---|
-| W-1 | 微信开发者工具 CLI 未安装 → devtools 侧「双绿」无法本机机跑 | 程序+QA | ① 结构门禁取证（game.json/project.config.json/adapter 齐备 + Node 侧全绿）；② runbook 脚本化（`tools/verify-wx-devtools.mjs`，CLI 在位即一键跑）；③ N4 结论如实标注「devtools 侧待环境」→ **升级主人**（不造假、不装绿） | 🚨 已升级（不阻塞 Node 侧与打包件生产） |
+| W-1 | 微信开发者工具 CLI 未安装 → devtools 侧「双绿」无法本机机跑 | 程序+QA | ✅ 本轮可做面全做：结构门禁取证（wx 三条目查 3/3 + 八门禁 exit 0）+ runbook 脚本化（`tools/verify-wx-devtools.mjs`）+ N4 E2 如实披露（BLOCKED-ENV exit 2 原件 09/11 档）；**devtools 侧真跑待环境**（CLI 在位后一键复跑） | 🚨 挂主人侧环境（不构成包面缺陷；不造假不装绿） |
 | W-2 | wx 提审需 AppID + 类目/资质（正式） | 主人 | 主人下发后 project.config.json 换正式 appid（现占位 `touristappid` 测试号，沿一号仓 B0 判例） | 🚨 待主人（不影响包与材料生产） |
 | W-3 | 上轮 QA 09:04 reject verdict 的缺口 A/B 原文检索 | 主策划 | 本轮以任务书重述为准（缺口 A=devtools 验证 runbook 缺失 → N1 补丁①；缺口 B=dy 条目验收口径不明 → N1 补丁②）；**如原文在档后续补挂链接，不阻塞**（补丁内容两源一致） | ⏳ 沿任务书重述执行 |
 
@@ -31,8 +38,19 @@
 | 地基前置界定 | 主策划 09:08 裁决（随纪要知会，可否决）：地基三件与 v1.2 冻结解耦，wx 分支允许 cherry-pick。**执行实况：地基三件已在 v1.1 基线 @ fe5fd38 在档（A 轮 N3 交付），cherry-pick 清单=∅**（levels.md §一 实查记录）；主人若否决 v1.2 → 地基独立重落、wx 线 rebase，v1.3 条款不失效 |
 | 提审决策 | 团队只交 approve-ready 包 + 材料清单；**提审与否主人拍板** |
 
-## 打回预公示转显式验收项（QA N4 逐条核）
+## 打回预公示转显式验收项（QA N4 逐条核 · 终态）
 
-1. 新测试文件存在性（`tests/wx/` 新代码自带测试）；
-2. 对照 cherry-pick 清单核对玩法/数值/视觉零 diff（清单=∅，即 wx 分支 diff 面=platform 段新增件）；
-3. 包体实测非估算（逐资产字节数 + gzip 实测档）。
+1. ✅ 新测试文件存在性——`tests/wx/` 4 件在盘，先红（02 日志 0/3）后绿（07 日志 3/3）对照在档；
+2. ✅ 对照 cherry-pick 清单核对零 diff——清单=∅；N4-D2/D2b 机判：变更 26 件全部落在谱系声明白名单，玩法/数值/视觉面 diff=0；
+3. ✅ 包体实测非估算——N4-D3 独立重跑 132,607B（≤4MB），逐件档 `10-wx-bundle-audit.json`。
+
+## 收口台账（2026-10-05 · 全链闭环）
+
+| 节点 | 终态 | 证据 |
+|---|---|---|
+| 开工前置 | ✅ | 黑板三件 + 导出件固化（commit 273a11a / 161d455） |
+| N1 链 v5 入链 | ✅ draft | `cmuusk0p60040icryguvlev9j` · QA 复核 11/11（06 日志）· commit 7111e49 |
+| N2-P1 | ✅ | 实测 22 件 + 先红 22 断言（01/02/03 日志）· commit 5761b3a |
+| N2-P2 + N3 | ✅ | wx 五件 + 组包 129.5KB + 合规三件 · 双绿（07/08 日志）· commit e39c0a1 |
+| N4 | ✅ 15/15 APPROVE-READY | verdict JSON + 11 日志 · commit cabef9e |
+| 回流主人 | ✅ 包 + 材料清单 | `g2-blocks-wx/export/wx/` + `docs/platform/wx/wx-submission-kit.md` |

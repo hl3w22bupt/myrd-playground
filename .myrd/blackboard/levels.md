@@ -37,9 +37,9 @@
 | 开工前置 | 主策划 | 黑板三件 + spec 导出件固化 | 基线区写进 blockers.md | ✅ |
 | N1 spec v1.3-platform 校准入链 | 主策划+游戏策划 | `tools/build-spec-v13-platform.mjs`（十道守卫 10/10）→ `docs/spec/spec-v13-platform-payload.json` → POST revisions → **链 v5 `cmuusk0p60040icryguvlev9j` draft**（parent=v4）；draft 导出件本 run `.myrd/spec/g2-blocks/design-spec-v1.3-platform-draft.json` | 入链成功 + QA 复核 **11/11 PASS**（Q1..Q11：numeric 零 diff 机判 + acceptance 逐条可核对 + 前版 v1..v4 零覆盖 + diff 面恰三点）· 日志 gate-logs 05/06 | ✅（commit 7111e49） |
 | N2-P1 工程 Phase 1 | 游戏程序 | `docs/platform/wx/bundle-size-audit-v11.md`（22 件实测 raw 87,213B / gzip 35,749B）+ `tests/wx/` 三条目查 22 断言（先红：0/3 绿 RED 在档 02 日志）+ `tools/verify-wx-devtools.mjs`（BLOCKED-ENV exit 2 在档 03 日志）+ dy 写案件 checker PASS | 实测非估算 ✓；脚手架在位 ✓ | ✅（commit 5761b3a） |
-| N2-P2 工程 Phase 2 | 游戏程序 | `src/platform/wx/runtime.ts` + `src/platform/wx/share.ts` + `tools/build-wx.mjs` → `export/wx/`；构建谱系记录 | Node 侧绿；devtools 侧按披露口径取证 | ⏳ |
-| N3 平台合规视觉包 | 游戏美术 | `docs/platform/wx/privacy-popup-visual.md` + `docs/platform/wx/compliance-visual-checklist.md` + 图标规格核对回写 assets.md + 入包清单 | 自查表逐条有条款编号与证据，无红 | ⏳ |
-| N4 复检与打包 | 游戏 QA | 复检报告 + JSON verdict + 提审包 + `docs/platform/wx/wx-submission-kit.md` 材料清单 | 结论 JSON；reject 逐条指文件与 spec 条目 | ⏳ |
+| N2-P2 工程 Phase 2 | 游戏程序 | wx 五件（wx-env/runtime/share/adapter/boot-wx · 复用 T1/T3 门面）+ `tools/build-wx.mjs` → `export/wx/` 30 件 132,607B（≤4MB 实测断言）+ 谱系件 build-lineage.md | **Node 侧双绿**：wx 三条目查 3/3（22/22 断言）+ 基线八门禁 exit 0 零回归；devtools 侧 BLOCKED-ENV exit 2 如实披露（W-1） | ✅（commit e39c0a1） |
+| N3 平台合规视觉包 | 游戏美术 | privacy-popup-visual.md（一稿三态+触发时机+首启路径示意）+ compliance-visual-checklist.md（A–D 18 条，逐条条款编号+证据）+ wx-submission-kit.md（材料逐 id）+ 图标/截图规格官方锚点核对（直连被网络策略拦 → 锚点路径+后台勾对口径如实落档） | 自查表 12 条机判 ✅ · 4 条待后台/环境 · 2 条主人侧 · **无团队面红项** | ✅（并入 e39c0a1） |
+| N4 复检与打包 | 游戏 QA | 复检器 `tools/qa-wx-port-recheck.mjs` → **15/15 · VERDICT: APPROVE-READY**（verdict JSON `docs/platform/wx/qa-wx-port-verdict.json`）；首启可玩代理证据 = headless 冒烟 PASS；提审包 `export/wx/` + 材料清单回流主人 | 三口径（双绿原件/合规逐条/numeric 逐字段 11/11）+ 三条显式验收项全过；治理面两处最小修正（守卫白名单前缀条目）随件披露 | ✅（commit cabef9e） |
 
 ## 三、红线（任务书原文，全程生效）
 

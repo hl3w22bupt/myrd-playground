@@ -29,13 +29,14 @@
 | 3 | privacy-popup 视觉稿（一稿三态） | wx-submission-kit | `docs/platform/wx/privacy-popup-visual.md` | 文字规格稿（零新贴图，极简几何 DOM 直绘） | 否 | ⏳ N3 |
 | 4 | 商店截图（≥3） | wx-submission-kit | 候选源 `assets/release/shots/` | 以官方核对为准 | 否 | ⏳ N4 选批 |
 
-## 三、入包清单与包体数据（N2-P1 实测后回写 · 对 4MB 主包红线）
+## 三、入包清单与包体数据（N2-P1 实测 + N2-P2 组包终态回写 · 对 4MB 主包红线）
 
-> 实测方法披露：`ls -l` 原始字节 + `gzip -9` 可压缩性 + 分包性判定；数据来自 v1.1 基线 `fe5fd38` worktree 实构建产物，**非估算**。明细档：`docs/platform/wx/bundle-size-audit-v11.md`（wx 分支）。
+> 实测方法披露：statSync 原始字节 + zlib.gzipSync level 9；机器输出原件 `gate-logs/wx-port-20261005/01-bundle-size-raw.json`（v1.1 web 面 22 件）与 `10-wx-bundle-audit.json`（wx 包逐件）。明细档：`docs/platform/wx/bundle-size-audit-v11.md`。
 
 | 项 | 数据 | 状态 |
 |---|---|---|
-| v1.1 构建产物总原始体积 | ⏳ N2-P1 回写 | ⏳ |
-| gzip -9 后总体积 | ⏳ N2-P1 回写 | ⏳ |
-| 主包红线余量（4MB） | ⏳ N2-P1 回写 | ⏳ |
-| 素材入包决策（哪些进主包/哪些不进） | ⏳ N3↔N2 合议后回写 | ⏳ |
+| v1.1 构建产物总原始体积（web 面 22 件） | 87,213 B（85.2KB）· gzip 35,749 B | ✅ 实测 |
+| wx 提审包（export/wx/ 30 件） | **132,607 B（129.5KB）· gzip 73,148 B** | ✅ 实测（N4 复检器独立重跑） |
+| 主包红线余量（4MB） | 用量 **3.16%** · 余量 4,061,697 B | ✅ wx-k4 机判 |
+| 分包决策 | **不分包**（逻辑面 83.4KB + wx 件；零素材程序化绘制） | ✅ |
+| 素材入包决策 | 入包：5:4 分享卡（A-06 复用，32,284B，sha256 随 `assets-manifest.json`）+ privacy-popup.json（机读投影）；不入包：PWA 三件（sw/manifest/index.html，断言机判）+ 商店截图/图标（提审材料通道，不占运行时包） | ✅ N3↔N2 合议定稿 |
