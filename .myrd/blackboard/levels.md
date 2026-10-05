@@ -38,7 +38,7 @@
 | N1 spec v1.3-platform 校准入链 | 主策划+游戏策划 | `tools/build-spec-v13-platform.mjs`（十道守卫 10/10）→ `docs/spec/spec-v13-platform-payload.json` → POST revisions → **链 v5 `cmuusk0p60040icryguvlev9j` draft**（parent=v4）；draft 导出件本 run `.myrd/spec/g2-blocks/design-spec-v1.3-platform-draft.json` | 入链成功 + QA 复核 **11/11 PASS**（Q1..Q11：numeric 零 diff 机判 + acceptance 逐条可核对 + 前版 v1..v4 零覆盖 + diff 面恰三点）· 日志 gate-logs 05/06 | ✅（commit 7111e49） |
 | N2-P1 工程 Phase 1 | 游戏程序 | `docs/platform/wx/bundle-size-audit-v11.md`（22 件实测 raw 87,213B / gzip 35,749B）+ `tests/wx/` 三条目查 22 断言（先红：0/3 绿 RED 在档 02 日志）+ `tools/verify-wx-devtools.mjs`（BLOCKED-ENV exit 2 在档 03 日志）+ dy 写案件 checker PASS | 实测非估算 ✓；脚手架在位 ✓ | ✅（commit 5761b3a） |
 | N2-P2 工程 Phase 2 | 游戏程序 | wx 五件（wx-env/runtime/share/adapter/boot-wx · 复用 T1/T3 门面）+ `tools/build-wx.mjs` → `export/wx/` 30 件 132,607B（≤4MB 实测断言）+ 谱系件 build-lineage.md | **Node 侧双绿**：wx 三条目查 3/3（22/22 断言）+ 基线八门禁 exit 0 零回归；devtools 侧 BLOCKED-ENV exit 2 如实披露（W-1） | ✅（commit e39c0a1） |
-| N3 平台合规视觉包 | 游戏美术 | privacy-popup-visual.md（一稿三态+触发时机+首启路径示意）+ compliance-visual-checklist.md（A–D 18 条，逐条条款编号+证据）+ wx-submission-kit.md（材料逐 id）+ 图标/截图规格官方锚点核对（直连被网络策略拦 → 锚点路径+后台勾对口径如实落档） | 自查表 12 条机判 ✅ · 4 条待后台/环境 · 2 条主人侧 · **无团队面红项** | ✅（并入 e39c0a1） |
+| N3 平台合规视觉包 | 游戏美术 | privacy-popup-visual.md（一稿三态+触发时机+首启路径示意）+ compliance-visual-checklist.md（A–D 18 条，逐条条款编号+证据）+ wx-submission-kit.md（材料逐 id）+ 图标/截图规格官方锚点核对（直连被网络策略拦 → 锚点路径+后台勾对口径如实落档）；**补做轮（2026-10-05 · commit `0485004`）：官方原文全文拉取成功（§三A）+ wx-icon 交付件落盘** | 自查表 12 条机判 ✅ · 4 条待后台/环境 · 2 条主人侧 · **无团队面红项**；补做轮后 14 条可核 ✅ + 4 条 🟡 + 3 条主人侧，仍无红 | ✅（并入 e39c0a1 + 补做 0485004） |
 | N4 复检与打包 | 游戏 QA | 复检器 `tools/qa-wx-port-recheck.mjs` → **15/15 · VERDICT: APPROVE-READY**（verdict JSON `docs/platform/wx/qa-wx-port-verdict.json`）；首启可玩代理证据 = headless 冒烟 PASS；提审包 `export/wx/` + 材料清单回流主人 | 三口径（双绿原件/合规逐条/numeric 逐字段 11/11）+ 三条显式验收项全过；治理面两处最小修正（守卫白名单前缀条目）随件披露 | ✅（commit cabef9e） |
 
 ## 三、程序线独立复跑台账（2026-10-05 · 游戏程序 · 不装绿纪律）
@@ -58,6 +58,22 @@
 环境核验：spec 发现链双候选（本 run + 前 run）导出件 **sha256 全等 `ad5d5534…`**（v1.1 approved，锚 `302e6336…`）——前 run 目录被清理不影响复跑。仓库零 npm 依赖（`deps={}`），Node v26.7.0 原生 type-stripping 直跑。
 
 **复跑结论：N2 交付双绿在当前 HEAD 真实成立（Node 侧）；devtools 侧维持 W-1 如实披露，不构成包面缺陷。**
+
+## 三A、美术线 N3 缺口补做台账（2026-10-05 · 游戏美术 · 全部机器输出原件落 gate-logs 17..21 号）
+
+> 缺口来源：上轮 N3 收口时官方文档被本机网络策略拦截（自查表 A-1 停「🟡 待后台勾对」、submission-kit wx-icon 行「待产」）。本补做轮换 web-reader 通道**全文拉取官方《小程序/小游戏审核规则》成功**，并补齐 wx-icon 交付件。落点 `g2-blocks-wx` @ `wx/port-v1.1` commit **`0485004`**（6 件：assets/wx/×2 + tools/×1 + docs/platform/wx/×3）。
+
+| # | 补做项 | 做法 | 结果 | 证据 |
+|---|---|---|---|---|
+| G1 | 官方条款原文钉死 | web-reader 拉取 `developers.weixin.qq.com/minigame/product/reject.html` 全文 | 成功；钉死 1.2.2(1)(2)(3) 头像 logo 三禁令 · 3.6.5 有色背景 · 3.6.2 弹窗可关闭 · 3.2.9 素材图无广告网址 · 3.6.6 版号+健告 · 3.4.1/3.2.1 判据锚（逐字摘录进自查表 §E） | 自查表 `compliance-visual-checklist.md` §E |
+| G2 | wx-icon 交付件补产 | `tools/gen-wx-icon.mjs`（源链 sha256 校验 + PNG IHDR 机判 512×512 + clauses 逐条记录；**精确复制派生**，装配区 assets/release/ 零触碰只读） | **5 pass + 1 残余 🟡（像素后台勾对）**；派生器重跑两遍逐字节一致（幂等实测） | `assets/wx/wx-icon-512.png` + `wx-icon-manifest.json`；sha256 `8a971534…` 与源件全等 |
+| G3 | wx 三条目查复跑 | `node tests/wx/run-all-wx.mjs` | **3/3 绿 · exit 0** | `17-wx-green-n3redone.log` |
+| G4 | 契约 + 守卫复跑 | `node scripts/contract-check.mjs` / `node ci/guard-repo-scope.mjs` | **契约 18/18 PASS · 守卫 146 文件零越界 · 双 exit 0** | `18-contract-check-n3redone.log` / `19-scope-guard-n3redone.log` |
+| G5 | 组包器重跑（新素材防混包） | 重包前后逐件 sha256 指纹对比 | **零 diff**（仅 assets-manifest.json 时间戳字段异）；**wx-icon 不在包内** ✓（提审材料通道不占主包）；wx-k4 ≤4MB 断言随跑过 | `20-build-wx-n3redone.log` |
+| G6 | 基线八门禁全量 | `node tests/run-all.mjs` | **8/8 · exit 0** | `21-runall-n3redone.log` |
+| G7 | 红线复核：`git diff cabef9e..0485004` | 变更 6 件全落 `assets/wx/`+`tools/`+`docs/platform/wx/`；src/ 零接触 → **玩法/数值/运行时视觉面 diff=0**；v1.2 冻结面零接触 ✓ | PASS | 机判 `git diff --name-only`（本表记录时点实查） |
+
+**谱系延伸**：`fe5fd38` → … → `cabef9e`（N4 收口）→ **`0485004`（美术补做）**——仍属「platform 段 + 提审材料通道追加」，零玩法/数值/视觉 diff 口径不变。
 
 ## 四、红线（任务书原文，全程生效）
 

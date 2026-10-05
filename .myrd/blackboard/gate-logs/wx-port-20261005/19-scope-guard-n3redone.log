@@ -1,0 +1,1 @@
+SCOPE-GUARD PASS 本仓库 146 文件零越界引用（策略单源 ci/scope-policy.json；spec 真源豁免面命中 10 处，属契约条款声明）
