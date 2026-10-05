@@ -54,6 +54,7 @@
 | R5 | 组包器确定性 | `node tools/build-wx.mjs` 后 `git status` | **exit 0 · 零 diff**（包面=生成链当前态） | `16-build-wx-rerun.log` |
 | R6 | 包体独立审计 | `node tools/audit-wx-bundle.mjs` | **132,607B（129.5KB）· gzip 73,148B · PASS**（与在档 10 号审计逐字节同值） | 本机输出（复跑） |
 | R7 | 红线复核：`git diff fe5fd38..wx/port-v1.1` | 变更 29 件全落谱系目录（ci2/dy1/wx6/spec2/scripts1/platform-wx5/tests-wx4/tools8）；kernel/feel/theme/numeric/daily/render **零接触 ✓**；4 行删除全在 ci 治理面（N4 已披露的白名单前缀修正） | PASS | 机判 `git diff --name-only` |
+| R8 | routine 驳回修复：工作区根补 `scripts/contract-check.mjs` 薄壳入口（保留位 spec→g2 落点映射 · 游戏仓库自动发现 wx 交付线优先 · `G2_SPEC_PATH` 注入 · 检查逻辑零复制 exit 透传）；按 game-contract routine **字面命令** `node scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --project .` 实跑 | **18/18 PASS · exit 0**；`--only` 透传形态 1/1 PASS · exit 0；游戏仓库 git 零变更 | `17-contract-check-workspace-entry.log` |
 
 环境核验：spec 发现链双候选（本 run + 前 run）导出件 **sha256 全等 `ad5d5534…`**（v1.1 approved，锚 `302e6336…`）——前 run 目录被清理不影响复跑。仓库零 npm 依赖（`deps={}`），Node v26.7.0 原生 type-stripping 直跑。
 

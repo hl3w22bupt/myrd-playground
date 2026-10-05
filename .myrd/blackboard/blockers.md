@@ -20,7 +20,7 @@
   - **v4 draft→superseded**（`cmut5fkyf00cbic7qudea13g6`，V1.2 手感轮）：v5 建版动作翻 superseded 属平台语义，**内容零覆盖**（QA 复核 Q7/Q8：手感锚 `1720df8e…` + 与本地 payload 深比全等）· **待批复，本轮零接触**
 - **源基线**：g2-blocks 仓库 `/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks` @ `fe5fd38`（v1.1 已发布）；wx 分支 `wx/port-v1.1`
 - **上轮黑板**：`run-cmut4m9ww00bvic7qxd1wpl7y/.myrd/blackboard/g2-blocks/`（V1.2 手感轮收口 15/15 APPROVE-READY + 部署轮 r3 已上线；只读沿档，不覆写）
-- **落点偏差披露（第三次沿 A/B 轮已接受口径）**：任务书写 `.myrd/spec/design-spec.json`，该路径为 routines.yaml 保留位（一游戏一文件）→ 沿用 `.myrd/spec/g2-blocks/design-spec.json`（`src/kernel/spec-source.ts` 兄弟目录自动发现即认此路径，换路径反破坏既有发现链）
+- **落点偏差披露（第三次沿 A/B 轮已接受口径）**：任务书写 `.myrd/spec/design-spec.json`，该路径为 routines.yaml 保留位（一游戏一文件）→ 沿用 `.myrd/spec/g2-blocks/design-spec.json`（`src/kernel/spec-source.ts` 兄弟目录自动发现即认此路径，换路径反破坏既有发现链）；**2026-10-05 routine 驳回修复**：`game-contract` routine 以工作区根为 cwd 执行 `node scripts/contract-check.mjs` 曾 MODULE_NOT_FOUND（检查器单源在游戏仓库）→ 工作区根补 `scripts/contract-check.mjs` 薄壳入口（保留位→g2 落点映射 + 游戏仓库自动发现〔wx 交付线优先〕+ `G2_SPEC_PATH` 注入，逻辑零复制、exit 透传），routine 字面命令 18/18 绿（17 号日志）
 
 ## 阻塞项（本轮）
 
