@@ -154,6 +154,18 @@ body { color: #fff; background: #10151f; overflow: hidden; touch-action: none; f
     var stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
     return new Response(stream).arrayBuffer().then(function (buf) { return new Uint8Array(buf); });
   }
+  function isGzip(bytes) {
+    return bytes && bytes.length > 2 && bytes[0] === 0x1f && bytes[1] === 0x8b;
+  }
+  // 解开至非 gzip 为止（上限 2 层）：产物可能预压缩入库（慢链路瘦身，git/网关只认字节），
+  // 平台上传 .wasm/.pck 又会压一次 —— 双层歧义由魔数判定兜底，多一层就是普通字节直通。
+  function gunzipFully(bytes) {
+    var p = Promise.resolve(bytes);
+    for (var i = 0; i < 2; i++) {
+      p = p.then(function (b) { return isGzip(b) ? gunzip(b) : b; });
+    }
+    return p;
+  }
 
   // 音频 worklet 由浏览器内部加载（不经 window.fetch），单独补丁改写到相对资产端点。
   // F2 防御（MOBILE_AUDIO_ROOT_CAUSE.md）：worklet 是音频单一故障点 —— Godot 4.6 的
@@ -195,9 +207,9 @@ body { color: #fff; background: #10151f; overflow: hidden; touch-action: none; f
     });
   }
   loadEngine().then(function () { return Promise.all([
-    fetchAsset('index.wasm.gz.b64').then(function (b64) { return gunzip(b64ToBytes(b64)); })
+    fetchAsset('index.wasm.gz.b64').then(function (b64) { return gunzipFully(b64ToBytes(b64)); })
       .then(function (b) { wasmBytes = b; setBar(0.85); msg.textContent = '引擎就绪，装载关卡…'; }),
-    fetchAsset('index.pck.gz.b64').then(function (b64) { return gunzip(b64ToBytes(b64)); })
+    fetchAsset('index.pck.gz.b64').then(function (b64) { return gunzipFully(b64ToBytes(b64)); })
       .then(function (b) { pckBytes = b; setBar(0.95); })
   ]); }).then(function () {
     if (!WebAssembly.validate(wasmBytes)) throw new Error('wasm 校验失败（传输可能被破坏）');
