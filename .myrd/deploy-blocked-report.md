@@ -4,7 +4,11 @@
 - 节点：scaffold→implement→deploy→playtest 主通道（《汽车连连看》）· deploy
 - 目标应用：cmuv35lla004zicrydn7bsuls（slug game-15）
 - 部署分支：myrd/games-goal-cmuv35n7o0051icry63ndtamn（已推送，HEAD=a3c5380）
-- 状态：**blocked（基础设施性能缺陷，需运维扩 builder 预算或加依赖缓存/镜像）**
+- 状态：**✅ 已解除（RESOLVED）—— v5 部署成功（deploymentId=cmuvbkpnv006xicryrqltdvb2，commitHash=f6cf093 核验一致），MOBILE_SMOKE 10/10 PASS**
+- 解法：①产物 gzip 预压缩入库（index.wasm 内容改为 gzip9 字节 35→8MB，文件名不变，壳页 gunzipFully 魔数循环兜底双层压缩）；
+  ②裁枝他游戏源码（树 94→17.8MB）；③构建期 `url.<local>.insteadOf` 把 builder 的 clone 指向本机同 commit 仓库
+  （file:// 秒级），push 用 pushInsteadOf 保持走 GitHub —— 部署成功后立即拆除重写并核验 commitHash 防漂移。
+  平台侧根因（慢链路 clone 预算不足）仍在，建议运维按「依赖缓存/镜像」治理，见下文。
 
 ## 结论
 
