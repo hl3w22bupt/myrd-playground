@@ -22,9 +22,10 @@ description: "Godot 4 自主游戏开发技能包：脚手架（Godot 最小可�
 | `templates/minimal-2d/` | Godot 4 最小可运行工程骨架（主场景/自动加载/信号/输入映射/最小资源/冒烟场景/中文字体） |
 | `templates/minimal-2d/CLAUDE.md` | 随工程复制走的规则文件：钉死 Godot 4.x / GDScript 2.0 + 版本污染对照表 + 场景/脚本分工边界（防 Godot 3 退化比每轮提示重申更有效的手段，**不得删除**） |
 | `scripts/preflight.py` | 13 类前置一致性静态检查，无需 Godot 即可机判 |
-| `scripts/preflight_selftest.py` | preflight 自身的回归用例（19 例）：门禁自己的门禁，改完检查器必跑 |
+| `scripts/preflight_selftest.py` | preflight 自身的回归用例（24 例）：门禁自己的门禁，改完检查器必跑 |
 | `scripts/smoke.sh` | 无头冒烟门禁：`godot --headless` + 退出码/日志双断言 |
 | `scripts/resolve-godot.sh` | Godot 可执行文件解析的唯一实现（GODOT_BIN > PATH > 常见安装位置），routine 与 verify.sh 共用 |
+| `scripts/repo-preflight.sh` | 直通车开发前置检查：仓库可达 + 门禁脚本齐备可用 + 工具链，缺失即 blocked（`--full` 追加运行期验证）；只存在于本目录，不入 docs 镜像 |
 | `references/preflight-checklist.md` | 前置一致性检查清单（含人工核对项） |
 | `references/error-signatures.md` | 错误签名 → 根因 → 修复动作 对照表（**全部实测采集**） |
 | `references/godot-smoke-routine.md` | `.myrd/routines.yaml` 的 `godot-smoke` 门禁 routine 片段 |
