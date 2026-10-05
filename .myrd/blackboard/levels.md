@@ -88,6 +88,18 @@
 
 **谱系延伸**：`fe5fd38` → … → `cabef9e`（N4 收口）→ `0485004`（美术补做一）→ **`eb9ddab`（补做二：分享环接线）**——仍属「platform 段 + 提审材料通道追加」；G8 接线为呈现层装配（spec wx-share-loop summary「会话分享闭环」的落地完成），零玩法/数值 diff 口径不变。
 
+### 三A·三（2026-10-05 第三次补做 · 程序线 `ed172e1` + 美术 `2856d7c` · 隐私弹窗实现签收 + 查看全文补全）
+
+> 背景：程序线驳回修复轮落地 wk-acc-3 隐私弹窗运行时（privacy.ts 297 行 + boot 装配 + PRIVACY_UI 8 token 收编 + wx-k5b..k5g 机判；包体 150,530B）。美术线（N3 owner）对其做**符合性终检**，发现并补齐一处交互承诺缺口。
+
+| # | 补做项 | 做法 | 结果 | 证据 |
+|---|---|---|---|---|
+| G13 | 符合性核对（美术 owner） | privacy.ts ↔ privacy-popup-visual.md §一§二逐项：色值 8 token 单源链（视觉稿 → e-renderer-ui-tokens.json → gen-theme → theme.PRIVACY_UI，**零裸 hex**）· 几何（440×312 r12 / 44-8-12 / ×24）· 五处文案逐字 · 三态与触发双条件 | **逐项一致**；自查表 B-1/B-2/B-5 程序线补运行时锚（wx-k5b..k5g）+ B-5a，我方复核认可 | `privacy.ts`；自查表 §B；assets.md theme 生成件行 |
+| G14 | 「查看全文」拉起补全（先红后绿） | 缺口 = 视觉稿承诺入口可拉起平台隐私指引页，实现仅绘文字（官方 3.4.1 告知闭环缺角）；修法 = `WxPrivacyHost` DI 注入 + `layoutIn` more 命中区（与 paint 同源）+ `handleTap` 消费/无能力宿主静默；boot 装配传 `host=wx` | wx-k5h 先红（more 命中区未导出）→ 后绿 **15/15**；玩法/数值面零接触 | wx 仓 `2856d7c`；tests/wx/wx-submission.spec.mjs |
+| G15 | 渲染稿终检 + 门禁终态 | 实现 paint 路径直出 390×844 拟真底渲染稿（CDP 管线，只读零仓库写入）；门禁全量复跑 | 渲染稿**美术终检 PASS**（全要素/层次/命中面坐标自洽，31 号在档）；三条目 3/3 · 八门禁 · 契约 18/18（仓内+routine 字面）· 守卫 147 文件零越界 · 组包 **151,768B（148.2KB）** ≤4MB · 镜像 openPrivacyContract 双件在位 | `gate-logs` 31..34 号 |
+
+**谱系延伸**：… → `eb9ddab`（补做二）→ `ed172e1`（程序线：隐私弹窗运行时）→ **`2856d7c`（补做三：查看全文拉起 + 视觉稿实现锚定签收）**——仍属 platform 段呈现层，零玩法/数值 diff；v1.2 冻结面零接触（PALETTE 7 色逐字零变，ac-11 机判随跑过）。
+
 ## 四、驳回修复轮（2026-10-05 · wk-acc-3 隐私弹窗运行时 · 游戏程序 · QA 修法 (a)）
 
 > 打回缺陷一（实现+spec 同修）按修法 (a) 执行：spec 行为条款（wk-acc-3 四谓词）+ N3 视觉稿（三态/触发时机）已定稿，属实现缺口非设计决策；修法 (b)（revisions 顺延）不动。缺陷二（devtools CLI）按 QA 口径维持披露不改码。随件注记（ac-10 scopeNote 文面冲突）归主策划定稿时以 revisions 注记澄清，非码面动作（本板 blockers.md 知会）。
