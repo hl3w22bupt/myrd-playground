@@ -1,0 +1,9 @@
+[live-smoke] 目标 https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/gw · viewport=390x844 throttle=4x
+[live-smoke] 浏览器可开：页面加载完成
+[live-smoke] 游戏就绪 __G2_READY=true
+[live-smoke] 盘面 64 格满员
+[live-smoke] 手1（首消）: score 0 → 160（chain 1） J1=178.40000000596046ms
+[live-smoke] 手2（连击路径）: score 160 → 240（chain 2） J1=170.59999999403954ms
+[live-smoke] 重开全复位 ✓（score=0 status=playing）
+[live-smoke] 控制台零错误 ✓
+[live-smoke] LIVE-SMOKE: PASS 线上可开 + 核心循环可玩 + 重开复位 + 零控制台错误
