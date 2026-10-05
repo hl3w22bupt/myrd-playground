@@ -76,4 +76,4 @@ if [ "${SMOKE_EXIT}" -ne 0 ]; then
 fi
 
 echo ""
-echo "verify: PASS preflight + smoke 全部通过（可玩验收：光标移动/同车种配对消除/连通规则/提示/洗牌/图鉴收集/过关/重开）"
+echo "verify: PASS preflight + smoke 全部通过（可玩验收：光标移动/同车种配对消除/连通规则/提示/洗牌/图鉴收集/过关/关卡推进/反馈/调参/重开）"

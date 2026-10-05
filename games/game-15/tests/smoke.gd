@@ -57,6 +57,7 @@ var _finished: bool = false
 var _board: Node2D
 var _main: Node2D
 var _win_layer: CanvasLayer
+var _juice: Node
 
 var _cursor_moved_seen: bool = false
 var _selection_seen: bool = false
@@ -67,6 +68,10 @@ var _collected_seen: bool = false
 var _game_won_seen: bool = false
 
 var _cursor_origin: Vector2i
+## 过关时刻的累计分数（断言「下一关」后分数跨关累计）。
+var _score_at_win: int = 0
+## 注入 restart 前的分数（重开轮询判据：分数被清零才证明 new_game 真的执行过）。
+var _score_before_restart: int = 0
 ## 重开条件轮询：-1 = 未在等待；≥0 = 已注入 restart、等待复位生效的 tick 计数。
 var _restart_poll_ticks: int = -1
 
@@ -75,6 +80,7 @@ func _ready() -> void:
 	# headless 无垂直同步：限到 60 FPS 让 --quit-after 的帧兜底有意义（模板同款）。
 	Engine.max_fps = 60
 	_check_static()
+	_check_tuning_protocol()
 	_check_path_rules()
 	if _board != null:
 		_check_generator()
@@ -98,18 +104,28 @@ func _physics_process(_delta: float) -> void:
 		elif _frames == NOISE_FRAMES + 2 + WAIT_FRAMES * 3:
 			_assert_pair_eliminated()
 			_run_negative_case()
+		elif _frames == NOISE_FRAMES + 2 + WAIT_FRAMES * 4:
+			_run_hint_shuffle_case()
 		elif _frames == NOISE_FRAMES + 2 + WAIT_FRAMES * 5:
 			_run_win_phase()
 		elif _frames == NOISE_FRAMES + 3 + WAIT_FRAMES * 5:
 			_assert_win_phase()
+			_stage_next_level()
+		elif _frames == NOISE_FRAMES + 4 + WAIT_FRAMES * 5:
+			_assert_next_level()
+			_score_before_restart = GameState.score
 			_press_action(&"restart")
 			_restart_poll_ticks = 0
 	# 重开断言用条件轮询而非固定帧距：注入事件按「迭代」派发（每次迭代 flush 一次），
 	# 而胜负相位的大计算帧会触发物理帧追赶突发（一次迭代连跑多个 tick），
 	# 固定帧距可能整个落在同一次迭代里（事件尚未派发）→ 偶发假失败。
+	# 判据必须包含「分数被清零」：下一关相位结束后棋盘本来就是铺满状态，
+	# 只看铺满会在事件派发前就误判已重开（假失败）；分数变化 = new_game 确实执行过的证据，
+	# 若重开彻底失效则分数不变 → 走 120 tick 超时分支照样拦截。
 	if _restart_poll_ticks >= 0 and _failures.is_empty():
 		_restart_poll_ticks += 1
-		if _board.remaining_tiles() == _board.W * _board.H and not GameState.won:
+		if _board.remaining_tiles() == _board.W * _board.H and not GameState.won \
+				and GameState.score != _score_before_restart:
 			_restart_poll_ticks = -1
 			_assert_restart()
 		elif _restart_poll_ticks > 120:
@@ -138,6 +154,11 @@ func _check_static() -> void:
 		game_state.progress_changed.connect(_on_progress_changed)
 		game_state.collected_changed.connect(_on_collected_changed)
 		game_state.game_won.connect(_on_game_won)
+	_juice = get_tree().root.get_node_or_null("Juice")
+	if _juice == null:
+		_failures.append("autoload Juice 未注册（project.godot [autoload] 缺失）——结果性事件无反馈面")
+	elif not _juice.has_signal("feedback_fired"):
+		_failures.append("autoload Juice 缺少信号 feedback_fired（反馈记录协议断裂）")
 	_main = get_tree().root.find_child("Main", true, false) as Node2D
 	if _main == null:
 		_failures.append("场景树找不到 Main（tests/smoke.tscn 未实例化 main.tscn）")
@@ -160,6 +181,35 @@ func _check_static() -> void:
 		])
 	if _board.remaining_tiles() != _board.W * _board.H:
 		_failures.append("开局棋盘存在空格（生成器未铺满）")
+
+
+## 调参协议（SKILL.md §3C）：TUNING_META 非空且带 min/max/step；
+## apply_tuning 应用已声明键、拒绝未声明键、按 max 钳制。纯逻辑无头可判。
+func _check_tuning_protocol() -> void:
+	if GameState.TUNING_META.is_empty():
+		_failures.append("调参协议：GameState.TUNING_META 为空（调参工作台无对接面）")
+		return
+	for key: StringName in GameState.TUNING_META:
+		var meta: Dictionary = GameState.TUNING_META[key]
+		if not (meta.has("min") and meta.has("max") and meta.has("step")):
+			_failures.append("调参协议：可调键 %s 缺 min/max/step 元数据" % key)
+	# 记录默认值，测试后恢复，避免污染后续行为相位。
+	var default_score: int = GameState.score_per_pair
+	var default_hints: int = GameState.total_hints
+	var applied: PackedStringArray = GameState.apply_tuning({"score_per_pair": 20, "total_hints": 5})
+	if not (applied.has("score_per_pair") and applied.has("total_hints")):
+		_failures.append("调参协议：apply_tuning 未应用已声明键（实际生效 %s）" % [applied])
+	if GameState.score_per_pair != 20 or GameState.total_hints != 5:
+		_failures.append("调参协议：apply_tuning 后数值未生效（score_per_pair=%d total_hints=%d）" % [
+			GameState.score_per_pair, GameState.total_hints,
+		])
+	GameState.apply_tuning({"total_hints": 99})
+	if GameState.total_hints != int(GameState.TUNING_META[&"total_hints"]["max"]):
+		_failures.append("调参协议：apply_tuning 未按 max 钳制（total_hints=%d）" % GameState.total_hints)
+	var rejected: PackedStringArray = GameState.apply_tuning({"not_a_tuning_key": 1.0})
+	if not rejected.is_empty():
+		_failures.append("调参协议：apply_tuning 应用了未声明键 %s（应拒绝）" % [rejected])
+	GameState.apply_tuning({"score_per_pair": default_score, "total_hints": default_hints})
 
 
 ## 连通规则构造用例（需求验收标准 2 的机判化）。
@@ -315,6 +365,8 @@ func _assert_pair_eliminated() -> void:
 		_failures.append("图鉴为空：消除后车种未计入图鉴")
 	if not _selection_seen:
 		_failures.append("信号 Board.selection_changed 未到达订阅方（confirm 未走选中管线）")
+	if _juice == null or _juice.events.is_empty():
+		_failures.append("反馈缺失：消除成功后 Juice.events 为空（结果性事件未挂反馈，SKILL.md §3B）")
 
 
 ## 负例：不同车种不可消除，且给出可感知反馈。
@@ -348,6 +400,59 @@ func _diff_type_pair() -> Array:
 	return []
 
 
+## 提示与洗牌（需求验收标准 3 的机判化）：提示必高亮一对可连通同车种图块并扣减次数；
+## 洗牌保持剩余块数与车种多重集（配对关系）不变、布局确实重排、选中态被清除。
+func _run_hint_shuffle_case() -> void:
+	var hints_before: int = GameState.hints_left
+	var cells_before := PackedInt32Array(_board.cells)
+	_board.request_hint()
+	if GameState.hints_left != hints_before - 1:
+		_failures.append("提示失效：hints_left 未扣减（%d → %d）" % [hints_before, GameState.hints_left])
+	var highlighted: int = 0
+	for tile in _board.tile_nodes.values():
+		if tile.hint_left > 0.0:
+			highlighted += 1
+	if highlighted != 2:
+		_failures.append("提示失效：应恰好高亮 2 张图块，实际 %d（show_hint 未接线或高亮对不全）" % highlighted)
+	_board.clear_selection() # 清掉负例残留的选中态，保证下面只制造一个干净选中。
+	_board.select_cell(_board.find_hint_pair()[0]) # 制造选中态，验证洗牌会清掉它。
+	var multiset_before: Dictionary = _type_multiset(cells_before)
+	_board.request_shuffle()
+	if _board.remaining_tiles() != _count_occupied(cells_before):
+		_failures.append("洗牌失效：剩余图块数变化（%d → %d）" % [
+			_count_occupied(cells_before), _board.remaining_tiles(),
+		])
+	if _type_multiset(_board.cells) != multiset_before:
+		_failures.append("洗牌失效：车种多重集变化（剩余图块的配对关系被破坏）")
+	var layout_same: bool = true
+	for idx in _board.cells.size():
+		if _board.cells[idx] != cells_before[idx]:
+			layout_same = false
+			break
+	if layout_same:
+		_failures.append("洗牌失效：布局未重排（洗牌前后逐格一致）")
+	if _board.selected_cell != INVALID:
+		_failures.append("洗牌失效：洗牌后选中态未清除（选中视觉与逻辑脱节）")
+
+
+## 车种多重集：type_id → 出现次数（洗牌不得改变它）。
+func _type_multiset(cells: PackedInt32Array) -> Dictionary:
+	var counts: Dictionary = {}
+	for value in cells:
+		if value != BoardLogic.EMPTY:
+			counts[value] = int(counts.get(value, 0)) + 1
+	return counts
+
+
+## 统计非空格数。
+func _count_occupied(cells: PackedInt32Array) -> int:
+	var count: int = 0
+	for value in cells:
+		if value != BoardLogic.EMPTY:
+			count += 1
+	return count
+
+
 ## 胜负可达：贪心消除整局直到清空。
 func _run_win_phase() -> void:
 	_board.clear_selection() # 清掉负例残留的选中态，避免下一对被当成「换选」。
@@ -374,6 +479,37 @@ func _assert_win_phase() -> void:
 		_failures.append("图鉴判定：过关时图鉴未收齐（%d/%d）" % [GameState.collected.size(), GameState.total_types])
 	if not _win_layer.visible:
 		_failures.append("过关覆盖层未显示（main 未订阅 game_won）")
+	if _juice != null and _juice.events.is_empty():
+		_failures.append("反馈缺失：过关后 Juice.events 为空（胜利反馈未接线）")
+
+
+## 关卡推进（难度梯度）：走真实入口（过关层「下一关」按钮的 pressed 信号）→ level_up + 新局。
+func _stage_next_level() -> void:
+	_score_at_win = GameState.score
+	var next_button: Button = _main.get_node("%NextLevelButton") as Button
+	if next_button == null:
+		_failures.append("Main 场景缺少 %NextLevelButton（过关层「下一关」入口未接线）")
+		return
+	next_button.pressed.emit()
+
+
+func _assert_next_level() -> void:
+	if GameState.level != 2:
+		_failures.append("关卡推进：level 期望 2 实际 %d（NextLevelButton → level_up 断裂）" % GameState.level)
+	if _board.remaining_tiles() != _board.W * _board.H:
+		_failures.append("关卡推进：新关卡棋盘未铺满（剩余 %d/%d，new_game 未按新关卡配置重生成）" % [
+			_board.remaining_tiles(), _board.W * _board.H,
+		])
+	if _board.tile_nodes.size() != _board.W * _board.H:
+		_failures.append("关卡推进：新关卡图块未重建（%d/%d）" % [_board.tile_nodes.size(), _board.W * _board.H])
+	if GameState.score != _score_at_win:
+		_failures.append("关卡推进：分数未跨关累计（期望 %d 实际 %d）" % [_score_at_win, GameState.score])
+	if GameState.won:
+		_failures.append("关卡推进：新关卡 won 标记未复位")
+	if GameState.hints_left != GameState.total_hints:
+		_failures.append("关卡推进：提示次数未按新局重置（%d/%d）" % [GameState.hints_left, GameState.total_hints])
+	if _win_layer.visible:
+		_failures.append("关卡推进：过关覆盖层未隐藏")
 
 
 func _assert_restart() -> void:
@@ -383,8 +519,10 @@ func _assert_restart() -> void:
 		_failures.append("重开失效：分数未清零（%d）" % GameState.score)
 	if GameState.won:
 		_failures.append("重开失效：won 标记未复位")
-	if GameState.hints_left != GameState.TOTAL_HINTS:
-		_failures.append("重开失效：提示次数未复位（%d）" % GameState.hints_left)
+	if GameState.hints_left != GameState.total_hints:
+		_failures.append("重开失效：提示次数未复位（%d/%d）" % [GameState.hints_left, GameState.total_hints])
+	if GameState.level != 2:
+		_failures.append("重开失效：关卡被意外重置（重玩本关应保持 2，实际 %d）" % GameState.level)
 	if _win_layer.visible:
 		_failures.append("重开失效：过关覆盖层仍显示")
 
@@ -469,7 +607,7 @@ func _key_labels(keys: Array) -> String:
 
 func _report() -> void:
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/autoload/键位契约/光标移动/配对消除/连通规则/可解生成/胜负/重开 全部通过")
+		print("GODOT_SMOKE: PASS 场景实例化/autoload(含Juice)/键位契约/光标移动/配对消除/连通规则/可解生成/胜负/反馈/调参/关卡推进/重开 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

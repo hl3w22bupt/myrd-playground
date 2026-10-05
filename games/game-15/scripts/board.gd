@@ -5,9 +5,18 @@ extends Node2D
 ##  避免一次点按被 touch+mouse 双通道各消费一次）。
 ## 规则判定全部委托 BoardLogic（纯逻辑层），本文件只管状态迁移与表现。
 
-const W: int = 6
-const H: int = 8
-const TYPE_COUNT: int = 10
+## 难度梯度（关卡 → 棋盘 列×行 / 车种数）：越往后棋盘越大，配对干扰越强；封顶后维持末档。
+## 约束：格总数必须为偶数（成对摆放）；车种数 ≤ 对数；末档 8×10 保证触控目标 ≥ 64px。
+const LEVEL_CONFIGS: Array[Vector3i] = [
+	Vector3i(6, 8, 8),   # 第 1 关：24 对 · 8 车种
+	Vector3i(6, 8, 10),  # 第 2 关：24 对 · 10 车种
+	Vector3i(6, 10, 10), # 第 3 关：30 对 · 10 车种
+	Vector3i(8, 10, 10), # 第 4 关起：40 对 · 10 车种
+]
+## 当前关棋盘尺寸与车种数（new_game 按 GameState.level 从 LEVEL_CONFIGS 装载）。
+var W: int = LEVEL_CONFIGS[0].x
+var H: int = LEVEL_CONFIGS[0].y
+var TYPE_COUNT: int = LEVEL_CONFIGS[0].z
 const INVALID_CELL := Vector2i(-1, -1)
 ## 布局：HUD 顶部预留 / 底部按钮预留（设计分辨率 720x1280，expand 兼容更矮更宽窗口）。
 const TOP_RESERVE: float = 200.0
@@ -26,6 +35,10 @@ signal feedback(text: String)
 signal restart_requested
 ## 棋盘清空（本局过关）。
 signal board_cleared
+## 配对消除成功（参数：车种编号）—— main 订阅后挂 Juice 反馈（消除弹跳/音效）。
+signal pair_matched(type_id: int)
+## 配对被拒：&"type_mismatch"（不同车种）或 &"path_blocked"（不可连通）—— main 订阅挂 Juice 反馈。
+signal match_rejected(reason: StringName)
 
 var cells: PackedInt32Array = PackedInt32Array()
 var tile_nodes: Dictionary = {}
@@ -46,8 +59,18 @@ func _ready() -> void:
 	new_game()
 
 
-## 开新局（重开共用）：重新生成可解棋盘并重建图块。
-func new_game() -> void:
+## 取关卡配置（超出表尾沿用末档 —— 难度封顶，循环可玩）。
+func _level_config(level: int) -> Vector3i:
+	return LEVEL_CONFIGS[clampi(level - 1, 0, LEVEL_CONFIGS.size() - 1)]
+
+
+## 开新局（重开 / 进入下一关共用）：按当前关卡装载配置，重新生成可解棋盘并重建图块。
+## keep_score=true 时分数跨局保留（「下一关」用）；重开默认清零。
+func new_game(keep_score: bool = false) -> void:
+	var config := _level_config(GameState.level)
+	W = config.x
+	H = config.y
+	TYPE_COUNT = config.z
 	for node in tile_nodes.values():
 		node.queue_free()
 	tile_nodes.clear()
@@ -60,8 +83,14 @@ func new_game() -> void:
 	_path_points.clear()
 	_path_left = 0.0
 	cursor_cell = _first_occupied_cell()
-	GameState.configure_run(W * H / 2, TYPE_COUNT)
+	GameState.configure_run(W * H / 2, TYPE_COUNT, keep_score)
 	feedback.emit("点选两张相同车种且可连通的图块消除")
+
+
+## 过关后进入下一关：推进关卡号（难度梯度）并按新关卡配置开新局；分数跨关累计。
+func next_level() -> void:
+	GameState.level_up()
+	new_game(true)
 
 
 ## 剩余图块数（= 剩余对数 × 2）。
@@ -108,11 +137,13 @@ func select_cell(cell: Vector2i) -> void:
 	var selected_type: int = cells[BoardLogic.cell_index(W, selected_cell)]
 	if selected_type != type_id:
 		_flash_mismatch(cell)
+		match_rejected.emit(&"type_mismatch")
 		feedback.emit("不同车种无法配对：%s ≠ %s" % [_tile_at(selected_cell).type_name(), _tile_at(cell).type_name()])
 		return
 	var path: Array[Vector2i] = BoardLogic.find_path(W, H, cells, selected_cell, cell)
 	if path.is_empty():
 		_flash_mismatch(cell)
+		match_rejected.emit(&"path_blocked")
 		feedback.emit("无法连通（拐点超过 2 或被未消除图块阻挡）")
 		return
 	_eliminate(selected_cell, cell, type_id, path)
@@ -122,7 +153,7 @@ func request_hint() -> void:
 	if GameState.won or remaining_tiles() == 0:
 		return
 	if not GameState.use_hint():
-		feedback.emit("提示次数已用完（每局 %d 次）" % GameState.TOTAL_HINTS)
+		feedback.emit("提示次数已用完（每局 %d 次）" % GameState.total_hints)
 		return
 	var pair: Array = find_hint_pair()
 	if pair.is_empty():
@@ -193,6 +224,7 @@ func _eliminate(a: Vector2i, b: Vector2i, type_id: int, path: Array[Vector2i]) -
 	tile_nodes.erase(a)
 	tile_nodes.erase(b)
 	GameState.register_match(type_id)
+	pair_matched.emit(type_id)
 	queue_redraw()
 	if GameState.remaining_pairs == 0:
 		board_cleared.emit()
@@ -211,6 +243,9 @@ func _shuffle_remaining(auto: bool) -> void:
 			break
 	cells = candidate
 	rebuild_tiles()
+	# 洗牌重排了局面，旧选中块的视觉高亮已随节点重建丢失 —— 一律清选中，
+	# 避免「看不见的选中格」参与下一次配对（视觉与逻辑脱节）。
+	clear_selection()
 	if auto:
 		feedback.emit("死局！已自动洗牌（车种配对关系不变）")
 	else:
