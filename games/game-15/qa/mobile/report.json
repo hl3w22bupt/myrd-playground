@@ -8,7 +8,7 @@
     "mobile": true,
     "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
   },
-  "checkedAt": "2026-10-05T14:05:15.645Z",
+  "checkedAt": "2026-10-05T14:07:17.673Z",
   "checks": [
     {
       "id": "network",
@@ -74,7 +74,7 @@
   "metrics": {
     "colorCount": 19,
     "idleDiff": 400,
-    "tapDiff": 2,
+    "tapDiff": 3,
     "fps": 27,
     "scrollWidth": 390,
     "clientWidth": 390,
