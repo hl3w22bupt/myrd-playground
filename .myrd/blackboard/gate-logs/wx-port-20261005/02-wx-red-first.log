@@ -1,0 +1,47 @@
+
+=== ① wx-runtime 条目查 ===
+$ node tests/wx/wx-runtime.spec.mjs
+# wx-runtime 条目查（WX 提审轮）
+# spec: id=cmuqa2mu50023m9zr8mh60uph v2 status=approved anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmuuk3zvg002oicrykuhulees/.myrd/spec/g2-blocks/design-spec.json
+RED  wx-r1 落点在盘：src/platform/wx/{wx-env,runtime,share,adapter,boot-wx}.ts 五件齐 :: {"missing":["wx-env.ts","runtime.ts","share.ts","adapter.ts","boot-wx.ts"]}
+RED  wx-r2 存储复用 T1 门面：wx storage 适配 → StorageLike 读写往返（fake 宿主） :: "runtime.ts 缺位/装载失败: Cannot find module '/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx/src/platform/wx/runtime.ts' imported from /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx/tests/wx/wx-runtime.spec.mjs"
+RED  wx-r3 音频复用 T1 门面：静音态走 muted 键（persistence 单源） :: "runtime.ts 缺位: Cannot find module '/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx/src/platform/wx/runtime.ts' imported from /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx/tests/wx/wx-runtime.spec.mjs"
+RED  wx-r4 时钟复用 T3 门面：nowMs/tzOffset 由 Clock 注入源提供（可测、可复现） :: "runtime.ts 缺位: Cannot find module '/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx/src/platform/wx/runtime.ts' imported from /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx/tests/wx/wx-runtime.spec.mjs"
+RED  wx-r5 生命周期：onShow/onHide 经 wx.onShow/onHide 注册（fake 宿主记录） :: "runtime.ts 缺位: Cannot find module '/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx/src/platform/wx/runtime.ts' imported from /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx/tests/wx/wx-runtime.spec.mjs"
+RED  wx-r6 内核纯净面：wx 三件零 Math.random/Date.now 直调字面（ac-14 同口径，含注释） :: {"missing":"runtime.ts"}
+PASS  wx-r7 runbook 机跑件在位：tools/verify-wx-devtools.mjs 可输出 步骤/预期/判定 三节
+# 结果: PASS=1 RED=6 PENDING-APPROVE=0
+
+=== ② wx-share-loop 条目查 ===
+$ node tests/wx/wx-share.spec.mjs
+# wx-share-loop 条目查（WX 提审轮）
+# spec: id=cmuqa2mu50023m9zr8mh60uph v2 status=approved anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmuuk3zvg002oicrykuhulees/.myrd/spec/g2-blocks/design-spec.json
+RED  wx-s1 shareNow 纯跳转：调 wx.shareAppMessage，绑定 500×400 分享卡 + query sid :: "share.ts 缺位/装载失败: Cannot find module '/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx/src/platform/wx/share.ts' imported from /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx/tests/wx/wx-share.spec.mjs"
+RED  wx-s2 零数值回调面：share.ts 静态 import 面不含 kernel/game/numeric（纯平台件） :: {"missing":"share.ts"}
+RED  wx-s3 载荷 sid 零 PII：sid 形如短随机 token（^[A-Za-z0-9-]{1,32}$） :: "share.ts 缺位: Cannot find module '/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx/src/platform/wx/share.ts' imported from /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx/tests/wx/wx-share.spec.mjs"
+RED  wx-s4 不可用降级：无 wx 容器 → {ok:false,reason} 不抛错（入口保留） :: "share.ts 缺位: Cannot find module '/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx/src/platform/wx/share.ts' imported from /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx/tests/wx/wx-share.spec.mjs"
+RED  wx-s5 失败降级：wx.shareAppMessage 抛错 → 静默 {ok:false,reason:share-failed} :: "share.ts 缺位: Cannot find module '/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx/src/platform/wx/share.ts' imported from /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx/tests/wx/wx-share.spec.mjs"
+RED  wx-s6 被动通道：installPassive 注册 onShareAppMessage + showShareMenu（同卡同参） :: "share.ts 缺位: Cannot find module '/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx/src/platform/wx/share.ts' imported from /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx/tests/wx/wx-share.spec.mjs"
+# 结果: PASS=0 RED=6 PENDING-APPROVE=0
+
+=== ③ wx-submission-kit 条目查（结构门禁档） ===
+$ node tests/wx/wx-submission.spec.mjs
+# wx-submission-kit 条目查（WX 提审轮 · 结构门禁档）
+# spec: id=cmuqa2mu50023m9zr8mh60uph v2 status=approved anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmuuk3zvg002oicrykuhulees/.myrd/spec/g2-blocks/design-spec.json
+RED  wx-k1 game.json 在盘且可解析（deviceOrientation 合法） :: {"missing":"export/wx/game.json"}
+RED  wx-k2 project.config.json 在盘：compileType=game · appid 占位 touristappid（正式号归主人下发） :: {"missing":"export/wx/project.config.json"}
+RED  wx-k3 PWA 专属三件不入包：export/wx 载面零 sw.js / manifest.webmanifest / index.html :: {"missing":"export/wx/"}
+RED  wx-k4 主包体积 ≤ 4MB（实测逐件字节数求和，非估算） :: {"missing":"export/wx/"}
+RED  wx-k5 隐私弹窗件在盘：export/wx 内 privacy-popup 资源/文案件 + 视觉稿三态（docs 侧） :: {"docOk":false,"pkgOk":false}
+RED  wx-k6 材料清单在盘：docs/platform/wx/wx-submission-kit.md（逐 id 对照） :: {"missing":"docs/platform/wx/wx-submission-kit.md"}
+RED  wx-k7 组包器在位且断言齐全：tools/build-wx.mjs（PWA 三件排除 + 主包红线断言） :: {"missing":"tools/build-wx.mjs"}
+RED  wx-k8 合规自查表在盘：docs/platform/wx/compliance-visual-checklist.md（逐条条款编号+证据） :: {"missing":"docs/platform/wx/compliance-visual-checklist.md"}
+# 结果: PASS=0 RED=8 PENDING-APPROVE=0
+
+—— WX 三条目查台账：0/3 绿（红=3）——
+[RED ] ① wx-runtime 条目查
+[RED ] ② wx-share-loop 条目查
+[RED ] ③ wx-submission-kit 条目查（结构门禁档）

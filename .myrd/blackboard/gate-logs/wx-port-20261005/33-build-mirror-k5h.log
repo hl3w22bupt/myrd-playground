@@ -1,0 +1,9 @@
+=== game.js ===
+// g2-blocks wx 入口（tools/build-wx.mjs 生成；勿手改）
+import { bootWx } from './src/platform/wx/boot-wx.mjs';
+bootWx({ shareImageUrl: 'assets/wx-share-500x400.png' });
+=== privacy.mjs more 接线 ===
+export/wx/src/platform/wx/privacy.mjs:1
+export/wx/src/platform/wx/boot-wx.mjs:1
+=== 包体 ===
+—— 主包实测: 151768B（148.2KB）· gzip 80641B · 红线 4194304B · PASS ——

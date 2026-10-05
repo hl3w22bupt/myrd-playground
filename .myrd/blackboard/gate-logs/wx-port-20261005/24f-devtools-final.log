@@ -1,0 +1,27 @@
+# verify-wx-devtools — 微信开发者工具侧验证（runbook 机跑）
+BLOCKED-ENV: 微信开发者工具 CLI 未安装（/Applications/wechatwebdevtools.app 不存在）
+# 处置：不造假、不装绿 —— devtools 侧验证挂起，runbook 如下，CLI 在位后一键复跑：
+# 微信开发者工具验证 runbook（wx-runtime acceptance 内嵌 · 步骤/预期输出/判定标准）
+
+## 步骤
+1. 安装微信开发者工具（稳定版）→ 设置-安全设置开启「服务端口」（CLI/HTTP 调用）。
+2. 导入项目：目录 = 仓库 export/wx/，AppID = 主人下发的正式 AppID（未下发前 touristappid 仅限工具内预览）。
+3. CLI 预览：node tools/verify-wx-devtools.mjs（内部执行 cli preview --project export/wx）。
+4. 真机扫码进入小游戏，完成「首启 60 秒可开始玩」实点与分享/静音/重开四项手测。
+
+## 预期输出
+- 步骤 3 成功：CLI 输出 preview 成功并给出二维码路径（本脚本归档原文到 stdout）。
+- 工具内编译面板：0 error（warning 允许，逐条记录）。
+- 真机首启：炉板 64 格满员渲染、无白屏、无控制台报错弹层。
+
+## 判定标准
+- G1 编译零 error → 过。
+- G2 首启 ≤60 秒内完成「首次交换」（真人实点，记录秒数）→ 过。
+- G3 会话分享卡片实收且为 5:4 分享卡 → 过。
+- G4 静音开关生效且重开复位（分数/连击归零）→ 过。
+- G5 隐私弹窗（wk-acc-3 · 2026-10-05 驳回修复增补）：首启**首帧渲染后**弹窗出现（首帧前无遮挡）→
+  点「拒绝」→ 玩法入口立即可点（「开始玩」不被阻塞、不消失）→ 二次启动不重弹（已落盘
+  privacy-consent）→ 右上 × 关闭后下次启动仍会询问 → 过。Node 侧行为档 wx-k5b..k5g 机判
+  在档；本项为真机面复核。
+- 任一不过 → reject（逐条指到文件与 spec 条目）；CLI 缺席 → BLOCKED-ENV（exit 2），不装绿。
+

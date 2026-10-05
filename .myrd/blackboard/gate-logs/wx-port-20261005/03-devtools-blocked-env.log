@@ -1,0 +1,2 @@
+# verify-wx-devtools — 微信开发者工具侧验证（runbook 机跑）
+BLOCKED: export/wx/ 不存在（先跑 node tools/build-wx.mjs）→ /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx/export/wx

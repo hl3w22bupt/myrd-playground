@@ -1,0 +1,14 @@
+PASS  Q1 v5 在链且 draft :: id=cmuusk0p60040icryguvlev9j v5 draft
+PASS  Q2 v5 numeric 锚 ≡ 302e6336… :: 302e63367f3dea63…
+PASS  Q3 numeric 组集零增减 :: 12 组
+PASS  Q4 numeric 逐字段深比零 diff :: 逐组 sortKeys 深比
+PASS  Q5 world/entities/levels/assets/acceptance 五面零 diff :: 五面深比
+PASS  Q6 v4 在链（行保留） :: status=superseded（v5 建版翻 superseded 属平台语义）
+PASS  Q7 v4 numeric 锚 ≡ 1720df8e… :: 1720df8ec6ac0d00…
+PASS  Q8 v4 内容 ≡ 手感 payload（零覆盖） :: sortKeys 深比
+PASS  Q9 v1..v4 行在链（版本链保序） :: v1,v2,v3,v4,v5
+PASS  Q10 五条目 acceptance 逐条可核对（编号稳定 + check 可执行三态） :: wx-runtime: check=tests/wx/wx-runtime.spec.mjs → exit 1（RED=实现未到，声明面在盘） · wx-share-loop: check=tests/wx/wx-share.spec.mjs → exit 1（RED=实现未到，声明面在盘） · wx-submission-kit: check=tests/wx/wx-submission.spec.mjs → exit 1（RED=实现未到，声明面在盘） · dy-runtime: check=scripts/check-dy-copy.mjs → exit 0（PASS） · dy-share-kit: check=scripts/check-dy-copy.mjs → exit 0（PASS）
+PASS  Q11 diff 面恰三点 :: content.platform 新增 + meta.version=1.3 + revision_note 前缀保持
+
+—— N1 QA spec 复核：11/11 ——
+VERDICT: PASS（入链成功 · numeric 零 diff · acceptance 逐条可核对 · 前版零覆盖）

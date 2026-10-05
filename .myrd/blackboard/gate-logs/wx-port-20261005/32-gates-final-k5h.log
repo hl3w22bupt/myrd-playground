@@ -1,0 +1,11 @@
+=== wx 三条目 ===
+—— WX 三条目查台账：3/3 绿（红=0）——
+[PASS] ① wx-runtime 条目查
+[PASS] ② wx-share-loop 条目查
+[PASS] ③ wx-submission-kit 条目查（结构门禁档）
+=== 八门禁 ===
+PASS  ⑧ 工程前置面（A 轮 N3）：T1 storage/audio 门面 · T2 帧率埋点 · T3 时钟/时区
+# 结论: 门禁绿（骨架态）——冻结值相关实现与门禁等 approve 后补齐，不装绿
+=== 契约 ===
+—— 合计 18 PASS / 0 FAIL ——
+CONTRACT: PASS 契约全绿（实现与 approved 策划案一致）

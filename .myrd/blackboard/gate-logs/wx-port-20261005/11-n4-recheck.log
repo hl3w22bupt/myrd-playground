@@ -1,0 +1,19 @@
+# N4 对抗复检（WX 提审轮）— 三口径 + 三条显式验收项
+PASS  N4-①a wx 三条目查 3/3 绿（exit 0 原件） :: exit=0
+PASS  N4-①b 基线八门禁零回归（exit 0 原件） :: exit=0
+PASS  N4-①c 范围守卫 PASS（一号仓零引用） :: SCOPE-GUARD PASS 本仓库 144 文件零越界引用（策略单源 ci/scope-policy.json；spec 真源豁免面命中 10 处，属契约
+PASS  N4-②a 自查表 18 条逐条在档（条款编号行） :: rows=18
+PASS  N4-②b 每条含「证据路径」列 :: 证据引用面
+PASS  N4-②c 自查表无团队面红项 :: 🟡=待后台/环境 · 🚨=主人侧（不构成团队面 reject）
+PASS  N4-②d 隐私弹窗视觉稿三态在档（含触发时机） :: N3 交付件
+PASS  N4-②e 隐私弹窗机读投影口径（非阻断·非前置·三态） :: trigger=first-frame-interactive
+PASS  N4-③a spec 链复核 11/11（numeric 零 diff + 前版零覆盖） :: exit=0
+PASS  N4-D1 新测试文件存在 + 先红后绿对照在档 :: red=true green=true
+PASS  N4-D2 玩法/数值/视觉零 diff（cherry-pick 清单=∅ 对账） :: 变更 26 件 · 玩法面 diff=0
+PASS  N4-D2b 变更面 ⊆ 谱系声明白名单（唯一既有文件修改 = 治理件） :: 白名单外零件
+PASS  N4-D3 主包实测 ≤4MB（复检器独立重跑） :: 132607B
+PASS  N4-E1 首启可玩代理证据（headless 冒烟：核心循环可玩 + 零控制台错误） :: exit=0
+PASS  N4-E2 devtools 侧如实披露（BLOCKED-ENV exit 2 · 不装绿） :: exit=2（CLI 在位环境一键复跑）
+
+—— N4 复检：15/15 ——
+VERDICT: APPROVE-READY（approve-ready · 提审包 + 材料清单回流主人；提审与否主人拍板）

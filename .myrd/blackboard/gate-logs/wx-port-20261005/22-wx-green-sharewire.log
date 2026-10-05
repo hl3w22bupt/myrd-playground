@@ -1,0 +1,50 @@
+
+=== ① wx-runtime 条目查 ===
+$ node tests/wx/wx-runtime.spec.mjs
+# wx-runtime 条目查（WX 提审轮）
+# spec: id=cmuqa2mu50023m9zr8mh60uph v2 status=approved anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmurp7sfe000ticcx6ddkrvca/.myrd/spec/g2-blocks/design-spec.json
+PASS  wx-r1 落点在盘：src/platform/wx/{wx-env,runtime,share,adapter,boot-wx}.ts 五件齐
+PASS  wx-r2 存储复用 T1 门面：wx storage 适配 → StorageLike 读写往返（fake 宿主）
+PASS  wx-r3 音频复用 T1 门面：静音态走 muted 键（persistence 单源）
+PASS  wx-r4 时钟复用 T3 门面：nowMs/tzOffset 由 Clock 注入源提供（可测、可复现）
+PASS  wx-r5 生命周期：onShow/onHide 经 wx.onShow/onHide 注册（fake 宿主记录）
+PASS  wx-r6 内核纯净面：wx 三件零 Math.random/Date.now 直调字面（ac-14 同口径，含注释）
+PASS  wx-r7 runbook 机跑件在位：tools/verify-wx-devtools.mjs 可输出 步骤/预期/判定 三节
+# 结果: PASS=7 RED=0 PENDING-APPROVE=0
+
+=== ② wx-share-loop 条目查 ===
+$ node tests/wx/wx-share.spec.mjs
+# wx-share-loop 条目查（WX 提审轮）
+# spec: id=cmuqa2mu50023m9zr8mh60uph v2 status=approved anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmurp7sfe000ticcx6ddkrvca/.myrd/spec/g2-blocks/design-spec.json
+PASS  wx-s1 shareNow 纯跳转：调 wx.shareAppMessage，绑定 500×400 分享卡 + query sid
+PASS  wx-s2 零数值回调面：share.ts 静态 import 面不含 kernel/game/numeric（纯平台件）
+PASS  wx-s3 载荷 sid 零 PII：sid 形如短随机 token（^[A-Za-z0-9-]{1,32}$）
+PASS  wx-s4 不可用降级：无 wx 容器 → {ok:false,reason} 不抛错（入口保留）
+PASS  wx-s5 失败降级：wx.shareAppMessage 抛错 → 静默 {ok:false,reason:share-failed}
+PASS  wx-s6 被动通道：installPassive 注册 onShareAppMessage + showShareMenu（同卡同参）
+PASS  wx-s7 默认载荷：包内 5:4 卡路径同源 + sid 源自注入时钟（fixedClock 可复现 · 零 PII）
+PASS  wx-s8 生产接线：wireSharePassive 注册被动通道（同卡同参）并返回可主动分享的句柄
+PASS  wx-s9 接线在位 + 组包同源：boot-wx 调 wireSharePassive；build-wx 落点与 share.ts 常量同一字面量
+# 结果: PASS=9 RED=0 PENDING-APPROVE=0
+
+=== ③ wx-submission-kit 条目查（结构门禁档） ===
+$ node tests/wx/wx-submission.spec.mjs
+# wx-submission-kit 条目查（WX 提审轮 · 结构门禁档）
+# spec: id=cmuqa2mu50023m9zr8mh60uph v2 status=approved anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmurp7sfe000ticcx6ddkrvca/.myrd/spec/g2-blocks/design-spec.json
+PASS  wx-k1 game.json 在盘且可解析（deviceOrientation 合法）
+PASS  wx-k2 project.config.json 在盘：compileType=game · appid 占位 touristappid（正式号归主人下发）
+PASS  wx-k3 PWA 专属三件不入包：export/wx 载面零 sw.js / manifest.webmanifest / index.html
+PASS  wx-k4 主包体积 ≤ 4MB（实测逐件字节数求和，非估算）
+PASS  wx-k5 隐私弹窗件在盘：export/wx 内 privacy-popup 资源/文案件 + 视觉稿三态（docs 侧）
+PASS  wx-k6 材料清单在盘：docs/platform/wx/wx-submission-kit.md（逐 id 对照）
+PASS  wx-k7 组包器在位且断言齐全：tools/build-wx.mjs（PWA 三件排除 + 主包红线断言）
+PASS  wx-k8 合规自查表在盘：docs/platform/wx/compliance-visual-checklist.md（逐条条款编号+证据）
+# 结果: PASS=8 RED=0 PENDING-APPROVE=0
+
+—— WX 三条目查台账：3/3 绿（红=0）——
+[PASS] ① wx-runtime 条目查
+[PASS] ② wx-share-loop 条目查
+[PASS] ③ wx-submission-kit 条目查（结构门禁档）

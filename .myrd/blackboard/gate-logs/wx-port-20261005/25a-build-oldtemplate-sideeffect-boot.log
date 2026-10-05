@@ -1,0 +1,14 @@
+# spec 真源: id=cmuqa2mu50023m9zr8mh60uph v2 approved
+WX-BUILD: export/wx/ 30 件 · 主包 134273B（131.1KB）≤ 4MB ✓ · 断言①②过
+    32284B  assets/wx-share-500x400.png
+     9092B  src/main.mjs
+     8018B  src/generated/spec-data.mjs
+     7838B  src/render/renderer.mjs
+     7677B  src/kernel/sim.mjs
+     6685B  src/platform/storage.mjs
+     6034B  src/platform/wx/adapter.mjs
+     5674B  src/render/theme.mjs
+     5393B  src/game.mjs
+     4741B  src/kernel/board.mjs
+(node:4392) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
