@@ -74,7 +74,19 @@
 | G6 | 基线八门禁全量 | `node tests/run-all.mjs` | **8/8 · exit 0** | `21-runall-n3redone.log` |
 | G7 | 红线复核：`git diff cabef9e..0485004` | 变更 6 件全落 `assets/wx/`+`tools/`+`docs/platform/wx/`；src/ 零接触 → **玩法/数值/运行时视觉面 diff=0**；v1.2 冻结面零接触 ✓ | PASS | 机判 `git diff --name-only`（本表记录时点实查） |
 
-**谱系延伸**：`fe5fd38` → … → `cabef9e`（N4 收口）→ **`0485004`（美术补做）**——仍属「platform 段 + 提审材料通道追加」，零玩法/数值/视觉 diff 口径不变。
+### 三A·二（2026-10-05 第二次补做 · commit `eb9ddab` · 分享环生产接线 + 截图选批）
+
+> 缺口来源：勘验发现 `createWxShare` 无生产调用点——包内 5:4 分享卡为死重、菜单转发落宿主默认截图（ws-acc-1/4 纸面成立）。归因：上轮路径字面量只存在于 tests/（ac-13 扫 src/ 故未红），接线层缺位未被任何门禁覆盖。本轮以「组包器模板注入」架构补线，门禁零放宽。
+
+| # | 补做项 | 做法 | 结果 | 证据 |
+|---|---|---|---|---|
+| G8 | 分享环生产接线 | `boot-wx` 改显式 `bootWx(opts)` 入口；路径字面量单源迁至 `tools/build-wx.mjs` game.js 模板（`shareImageUrl` 注入）→ `share.wireSharePassive(wx, clock, imageUrl)` 被动通道同卡同参；sid 走注入时钟（零 PII 可复现） | 先红（wx-s7/s8/s9 RED 在档）→ 后绿 **9/9**；注入缺失降级路径显式披露（纪律⑤，不破坏运行） | `gate-logs` 22 号；`src/platform/wx/{boot-wx,share}.ts` |
+| G9 | ac-13 红转绿 | 首版接线把 `.png` 字面量写进 src → 契约 `ac-13-no-external-texture` **RED（17/18）**；改模板注入架构后 src 零图片扩展名字面量 | **18/18 PASS**；断言零放宽；红原件 `24a` 号在档（不装绿） | `gate-logs` 24a（红）/24（绿） |
+| G10 | 商店截图选批定稿 | 亲验 4 张候选 → 选 01/03/04（首启引导 / 连击 ×7 / 关卡目标差异），落选 02 理由随件；逐张 3.2.9/清晰度/实机性 pass | kit §四 选批表（逐张 sha256，同批判 `be310288…`）；checklist A-3 升级 | `docs/platform/wx/wx-submission-kit.md` §四 |
+| G11 | 门禁终态 8 组 | share 9/9 · wx 三条目 3/3 · 契约 18/18（仓内 + 工作区根薄壳 routine 字面命令）· 八门禁 · scope 守卫 146 文件零越界 · 组包 ≤4MB 断言 · 包内镜像断言（share.mjs 零 png / game.js 注入调用）· devtools BLOCKED-ENV exit 2 如实披露 | **8 组全绿**（devtools 沿 W-1 披露）；主包实测 **135,283B（132.1KB）**，较接线前 +2,676B（接线代码+模板），红线用量 3.2% | `gate-logs` 22..30 号 |
+| G12 | 红线复核：`git diff 0485004..eb9ddab` | 变更 6 件全落 `src/platform/wx/`+`tests/wx/`+`tools/`+`docs/platform/wx/`；kernel/feel/theme/numeric/daily 零接触 ✓；v1.2 冻结面零接触 ✓；玩法/数值面 diff=0（diff 面=呈现层接线+组包模板+测试+文档） | PASS | 机判 `git diff --name-only`（本表记录时点实查） |
+
+**谱系延伸**：`fe5fd38` → … → `cabef9e`（N4 收口）→ `0485004`（美术补做一）→ **`eb9ddab`（补做二：分享环接线）**——仍属「platform 段 + 提审材料通道追加」；G8 接线为呈现层装配（spec wx-share-loop summary「会话分享闭环」的落地完成），零玩法/数值 diff 口径不变。
 
 ## 四、红线（任务书原文，全程生效）
 

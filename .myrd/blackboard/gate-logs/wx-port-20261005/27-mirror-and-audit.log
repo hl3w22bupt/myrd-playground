@@ -1,0 +1,17 @@
+=== game.js（模板注入）===
+// g2-blocks wx 入口（tools/build-wx.mjs 生成；勿手改）
+import { bootWx } from './src/platform/wx/boot-wx.mjs';
+bootWx({ shareImageUrl: 'assets/wx-share-500x400.png' });
+=== boot-wx.mjs 导出 ===
+10://      模板注入（shareImageUrl）——本件与 share.ts 零图片扩展名字面量；注入缺失时被动通道不注册
+15:import { wireSharePassive } from './share.mjs';
+23:export function bootWx(opts                = {})       {
+40:  if (opts.shareImageUrl) wireSharePassive(wx, runtime.clock, opts.shareImageUrl);
+=== share.mjs 零 png 字面量 ===
+0
+0 处 ✓
+=== 包体审计 ===
+     211B  gzip    157B  project.config.json
+     192B  gzip    140B  game.json
+     180B  gzip    187B  game.js
+—— 主包实测: 135283B（132.1KB）· gzip 74509B · 红线 4194304B · PASS ——

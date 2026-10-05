@@ -1,6 +1,6 @@
 # 资产清单黑板 — g2-blocks（熔炉方块）· **WX 移植提审轮**
 
-> 更新时间：2026-10-05 13:5x（N3 缺口补做轮 · 游戏美术核销回写：wx-icon 交付件落盘 + 官方原文拉取成功 · 详见 g2-blocks-wx commit `0485004`）
+> 更新时间：2026-10-05 14:3x（N3 补做轮二 · 游戏美术核销回写：**分享环生产接线落地** + 商店截图选批定稿 · 详见 g2-blocks-wx commit `eb9ddab`）
 > 负责人：主策划（整合人）· 美术线维护素材登记 · 程序线维护入包/体积数据 · QA 线维护查表核销
 > 下一步：等主人拍板（提审与否 + AppID/资质 + 隐私指引填报）；美术线本轮无待办
 
@@ -25,9 +25,9 @@
 | # | id | 条目 | 落点 | 规格 | optional | 状态 |
 |---|---|---|---|---|---|---|
 | 1 | wx-icon | wx-submission-kit | ✅ `g2-blocks-wx@0485004` `assets/wx/wx-icon-512.png`（源 = A-01 icon-512 **精确复制派生**，零裁切零改绘 → sha256 全等 `8a971534…` 即零漂移机判；派生器 `tools/gen-wx-icon.mjs` 幂等两遍逐字节一致实测） | 512×512 正方形 PNG · 14,564B；官方原文核对 **5 pass**（1.2.2(1)(2)(3) 清晰度/名实一致/无官方标识 · 3.6.5 有色深底非白底 · 直角无外框圆角）+ **1 残余 🟡** 像素数值后台实时清单勾对（官方文档不载像素数）；逐条证据 `assets/wx/wx-icon-manifest.json` clauses + 自查表 §A-1/§E | 否（提审材料通道，不占主包——组包重跑指纹机判 wx-icon 不在包内） | ✅ N3 补做轮 |
-| 2 | wx-share-card（复用 A-06） | wx-share-loop | `assets/release/` 既有件 | 500×400（5:4） | 否 | ✅ 复用 |
+| 2 | wx-share-card（复用 A-06） | wx-share-loop | `assets/release/share/wx-share-500x400.png` → 组包 `export/wx/assets/` 同名（sha256 随 assets-manifest.json） | 500×400（5:4） | 否（入包） | ✅ 复用 + **已功能性接线**（eb9ddab）：接线点 = `tools/build-wx.mjs` game.js 模板（路径字面量单源，shareImageUrl 注入）→ `boot-wx.bootWx(opts)` → `share.wireSharePassive(wx, clock, imageUrl)` → 被动通道 `onShareAppMessage`+`showShareMenu` 同卡同参；接线前包内卡为死重（上轮缺口，本轮修复）· wx-s7/s8/s9 先红后绿 9/9 · ac-13 零贴图门禁保持绿（src 零字面量，红原件 24a 号在档） |
 | 3 | privacy-popup 视觉稿（一稿三态） | wx-submission-kit | `docs/platform/wx/privacy-popup-visual.md`（g2-blocks-wx 在盘 · N3 补做轮补官方条款锚 3.6.2/3.4.1） | 文字规格稿（零新贴图，极简几何 DOM 直绘）；三态 + 触发时机（first-frame-interactive · 非阻断 · 非开始玩前置）+ 首启路径示意齐备；机读投影 `export/wx/privacy-popup.json` wx-k5 机判 | 否 | ✅ N3（含补做轮条款锚） |
-| 4 | 商店截图（≥3） | wx-submission-kit | 候选源 `assets/release/shots/` | 以官方核对为准 | 否 | ⏳ N4 选批 |
+| 4 | 商店截图（≥3） | wx-submission-kit | ✅ 选批定稿（eb9ddab · kit §四）：**01 首启引导 / 03 连击 ×7 / 04 关卡目标差异** 三张，逐张 3.2.9/清晰度/实机性 pass，sha256 随批 `be310288…`；落选 02（与 03 同关同构）理由随件；主人提审时照单上传，QA/主人可否决改批 | 后台实时清单为准（通行 3–5 张实机）· 残余 🟡 = 后台张数/尺寸勾对 | 否（提审材料通道） | ✅ N3 补做轮二（原 N4 选批项由美术先定建议稿） |
 
 ## 三、入包清单与包体数据（N2-P1 实测 + N2-P2 组包终态回写 · 对 4MB 主包红线）
 
