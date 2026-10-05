@@ -35,8 +35,8 @@
 | 节点 | 负责 | 产物落点 | 验收信号 | 状态 |
 |---|---|---|---|---|
 | 开工前置 | 主策划 | 黑板三件 + spec 导出件固化 | 基线区写进 blockers.md | ✅ |
-| N1 spec v1.3-platform 校准入链 | 主策划+游戏策划 | `tools/build-spec-v13-platform.mjs`（守卫）→ `docs/spec/spec-v13-platform-payload.json` → POST `/api/v1/game-design-specs/cmut5fkyf00cbic7qudea13g6/revisions` → **链 v5 draft**；draft 导出件 `.myrd/spec/g2-blocks/design-spec-v1.3-platform-draft.json` | 入链成功（version=5 · parent=v4 · draft · 零覆盖）+ QA 复核 numeric 零 diff + acceptance 逐条可核对 | ⏳ |
-| N2-P1 工程 Phase 1 | 游戏程序 | `docs/platform/wx/bundle-size-audit-v11.md`（逐资产实测）+ devtools/组包/验证脚本脚手架 + `tests/wx/` 测试脚手架 | 实测数据非估算；脚手架在位 | ⏳ |
+| N1 spec v1.3-platform 校准入链 | 主策划+游戏策划 | `tools/build-spec-v13-platform.mjs`（十道守卫 10/10）→ `docs/spec/spec-v13-platform-payload.json` → POST revisions → **链 v5 `cmuusk0p60040icryguvlev9j` draft**（parent=v4）；draft 导出件本 run `.myrd/spec/g2-blocks/design-spec-v1.3-platform-draft.json` | 入链成功 + QA 复核 **11/11 PASS**（Q1..Q11：numeric 零 diff 机判 + acceptance 逐条可核对 + 前版 v1..v4 零覆盖 + diff 面恰三点）· 日志 gate-logs 05/06 | ✅（commit 7111e49） |
+| N2-P1 工程 Phase 1 | 游戏程序 | `docs/platform/wx/bundle-size-audit-v11.md`（22 件实测 raw 87,213B / gzip 35,749B）+ `tests/wx/` 三条目查 22 断言（先红：0/3 绿 RED 在档 02 日志）+ `tools/verify-wx-devtools.mjs`（BLOCKED-ENV exit 2 在档 03 日志）+ dy 写案件 checker PASS | 实测非估算 ✓；脚手架在位 ✓ | ✅（commit 5761b3a） |
 | N2-P2 工程 Phase 2 | 游戏程序 | `src/platform/wx/runtime.ts` + `src/platform/wx/share.ts` + `tools/build-wx.mjs` → `export/wx/`；构建谱系记录 | Node 侧绿；devtools 侧按披露口径取证 | ⏳ |
 | N3 平台合规视觉包 | 游戏美术 | `docs/platform/wx/privacy-popup-visual.md` + `docs/platform/wx/compliance-visual-checklist.md` + 图标规格核对回写 assets.md + 入包清单 | 自查表逐条有条款编号与证据，无红 | ⏳ |
 | N4 复检与打包 | 游戏 QA | 复检报告 + JSON verdict + 提审包 + `docs/platform/wx/wx-submission-kit.md` 材料清单 | 结论 JSON；reject 逐条指文件与 spec 条目 | ⏳ |

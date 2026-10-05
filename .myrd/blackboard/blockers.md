@@ -9,8 +9,8 @@
 - **黑板路径**：`.myrd/blackboard/`（levels.md / assets.md / blockers.md + gate-logs/，本 run 目录）
 - **spec 版本号**：
   - **契约共同输入 = v1.1 approved 导出件** `.myrd/spec/g2-blocks/design-spec.json`（projectId `cmto0g28j0002m9sqnvjdy8o7` · 平台 id `cmuqa2mu50023m9zr8mh60uph` · 链 v2 · status=approved · 锚 `302e63367f3dea63…`；导出件本 run 固化实查全等）
-  - **链头 = v4 draft `cmut5fkyf00cbic7qudea13g6`**（V1.2 核心手感轮 · 锚 `1720df8e…`）· **待批复，本轮零接触**
-  - **本轮新建 = spec v1.3-platform（链 v5，目标 draft）**：仅平台段增量，parent=v4 链头
+  - **链头 = v5 draft `cmuusk0p60040icryguvlev9j`**（v1.3-platform · parent=v4 · 2026-10-05 N1 入链；QA 复核 11/11 PASS）
+  - **v4 draft→superseded**（`cmut5fkyf00cbic7qudea13g6`，V1.2 手感轮）：v5 建版动作翻 superseded 属平台语义，**内容零覆盖**（QA 复核 Q7/Q8：手感锚 `1720df8e…` + 与本地 payload 深比全等）· **待批复，本轮零接触**
 - **源基线**：g2-blocks 仓库 `/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks` @ `fe5fd38`（v1.1 已发布）；wx 分支 `wx/port-v1.1`
 - **上轮黑板**：`run-cmut4m9ww00bvic7qxd1wpl7y/.myrd/blackboard/g2-blocks/`（V1.2 手感轮收口 15/15 APPROVE-READY + 部署轮 r3 已上线；只读沿档，不覆写）
 - **落点偏差披露（第三次沿 A/B 轮已接受口径）**：任务书写 `.myrd/spec/design-spec.json`，该路径为 routines.yaml 保留位（一游戏一文件）→ 沿用 `.myrd/spec/g2-blocks/design-spec.json`（`src/kernel/spec-source.ts` 兄弟目录自动发现即认此路径，换路径反破坏既有发现链）

@@ -1,0 +1,160 @@
+{
+  "at": "2026-10-05T05:21:18.426Z",
+  "dir": "export/wx",
+  "files": [
+    {
+      "file": "assets/wx-share-500x400.png",
+      "bytes": 32284,
+      "gzip": 31679
+    },
+    {
+      "file": "src/main.mjs",
+      "bytes": 9092,
+      "gzip": 3640
+    },
+    {
+      "file": "src/generated/spec-data.mjs",
+      "bytes": 8018,
+      "gzip": 3683
+    },
+    {
+      "file": "src/render/renderer.mjs",
+      "bytes": 7838,
+      "gzip": 2461
+    },
+    {
+      "file": "src/kernel/sim.mjs",
+      "bytes": 7677,
+      "gzip": 2678
+    },
+    {
+      "file": "src/platform/storage.mjs",
+      "bytes": 6685,
+      "gzip": 2358
+    },
+    {
+      "file": "src/platform/wx/adapter.mjs",
+      "bytes": 6034,
+      "gzip": 2364
+    },
+    {
+      "file": "src/render/theme.mjs",
+      "bytes": 5674,
+      "gzip": 2247
+    },
+    {
+      "file": "src/game.mjs",
+      "bytes": 5393,
+      "gzip": 2035
+    },
+    {
+      "file": "src/kernel/board.mjs",
+      "bytes": 4741,
+      "gzip": 1807
+    },
+    {
+      "file": "src/telemetry/fps.mjs",
+      "bytes": 3575,
+      "gzip": 1534
+    },
+    {
+      "file": "src/platform/wx/runtime.mjs",
+      "bytes": 3514,
+      "gzip": 1376
+    },
+    {
+      "file": "src/kernel/datetime.mjs",
+      "bytes": 3448,
+      "gzip": 1632
+    },
+    {
+      "file": "src/kernel/spec-source.mjs",
+      "bytes": 3373,
+      "gzip": 1698
+    },
+    {
+      "file": "src/platform/audio.mjs",
+      "bytes": 3129,
+      "gzip": 1214
+    },
+    {
+      "file": "src/audio.mjs",
+      "bytes": 3103,
+      "gzip": 1308
+    },
+    {
+      "file": "src/platform/wx/wx-env.mjs",
+      "bytes": 2378,
+      "gzip": 851
+    },
+    {
+      "file": "src/platform/wx/share.mjs",
+      "bytes": 2215,
+      "gzip": 968
+    },
+    {
+      "file": "src/platform/clock.mjs",
+      "bytes": 2135,
+      "gzip": 939
+    },
+    {
+      "file": "src/kernel/deadlock.mjs",
+      "bytes": 2130,
+      "gzip": 1065
+    },
+    {
+      "file": "src/telemetry/perf.mjs",
+      "bytes": 2053,
+      "gzip": 933
+    },
+    {
+      "file": "src/kernel/rng.mjs",
+      "bytes": 2003,
+      "gzip": 1169
+    },
+    {
+      "file": "src/persistence.mjs",
+      "bytes": 1987,
+      "gzip": 902
+    },
+    {
+      "file": "src/kernel/combo.mjs",
+      "bytes": 1380,
+      "gzip": 627
+    },
+    {
+      "file": "src/platform/wx/boot-wx.mjs",
+      "bytes": 1294,
+      "gzip": 846
+    },
+    {
+      "file": "privacy-popup.json",
+      "bytes": 543,
+      "gzip": 414
+    },
+    {
+      "file": "assets-manifest.json",
+      "bytes": 402,
+      "gzip": 300
+    },
+    {
+      "file": "project.config.json",
+      "bytes": 211,
+      "gzip": 157
+    },
+    {
+      "file": "game.json",
+      "bytes": 192,
+      "gzip": 140
+    },
+    {
+      "file": "game.js",
+      "bytes": 106,
+      "gzip": 123
+    }
+  ],
+  "totalBytes": 132607,
+  "totalGzipBytes": 73148,
+  "limitBytes": 4194304,
+  "ok": true
+}
