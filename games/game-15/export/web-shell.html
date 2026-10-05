@@ -93,6 +93,22 @@ body {
 <link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
 <link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
 
+<!-- 调参桥（§3C 调参工作台硬契约，必须先于引擎脚本安装）：
+     壳页把 URL ?tuning=<JSON> 解析进 window.__GAME_TUNING__，
+     GameState._apply_web_tuning() 启动时读它覆盖 TUNING_META 声明的键（按 min/max 钳制）。
+     与 AppHost 壳页（server/src/game-page.ts）同源同语义。 -->
+<script>
+(function () {
+	try {
+		var rawTuning = new URLSearchParams(location.search).get('tuning');
+		if (rawTuning) {
+			var t = JSON.parse(rawTuning);
+			if (t && typeof t === 'object' && !Array.isArray(t)) window.__GAME_TUNING__ = t;
+		}
+	} catch (e) { /* 非法 tuning 参数按无覆盖处理 */ }
+}());
+</script>
+
 <!-- 移动端音频手势解锁器（必须先于引擎脚本安装）：
      iOS/Android WebKit 的 AudioContext 创建即 suspended、打断后 interrupted（引擎状态机不识别），
      引擎只在自己的输入回调里 resume —— 缺兜底 = 移动端无声而桌面正常。
