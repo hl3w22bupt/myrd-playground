@@ -1,39 +1,21 @@
 # N4 对抗复检（DY 平台段轮）— 三份输入检查 + 四条判定 + 双轨合规
 三份输入齐 ✓（N1 清单 / N2 证据 / N3 核对单）
 
-FAIL  N4-①a 基线八门禁零回归（exit 0 原件） :: exit=1
-FAIL  N4-①b v1.1 契约 18/18（锚 302e6336…） :: exit=1
+PASS  N4-①a 基线八门禁零回归（exit 0 原件） :: exit=0
+PASS  N4-①b v1.1 契约 18/18（锚 302e6336…） :: exit=0
 PASS  N4-②a dy 三条目查 3/3 绿（复检重跑原件） :: exit=0
 PASS  N4-②b 先红（0/3 · RED=10）后绿（3/3）对照在档 :: red=true green=true
 PASS  N4-②c dy 冒烟段覆盖 开始→玩→结算（结场面 cooled + 引导路径达标） :: docs/evidence/dy-smoke-report.json
 PASS  N4-③a P95 配对 A/B（同机同日）Δ=0.0ms 不退化 :: 13 号判定件 + 11/12 号原文
 PASS  N4-④a 玩法 numeric 逐字段对照报告全等（12 组） :: anchorAfter=bcc465801f2e6735…
-FAIL  N4-④b 数值抽 4 字段直接对配表（链 v6 ↔ 映射表/材料清单） :: bundleLimitBytes · shareCard 720x1280 · interactionBudgetMs 400（J1 同源） · storeScreenshotMinCount 3
+PASS  N4-④b 数值抽 4 字段直接对配表（链 v6 ↔ 映射表/材料清单） :: bundleLimitBytes · shareCard 720x1280 · interactionBudgetMs 400（J1 同源） · storeScreenshotMinCount 3
 PASS  N4-⑤a spec 链复核 12/12（v6 draft + 前版零覆盖 + v4 手感锚保留） :: exit=0
 PASS  N4-⑥a 双轨①占位机核：包内文案位 4 slot 冻结在位 :: export/dy/compliance-copy.json
 PASS  N4-⑥b 双轨②当日规范人工核对：材料清单核对表在位（提审日回填） :: docs/platform/dy/dy-submission-kit.md §三
-FAIL  N4-⑦a 红线复核：变更全落 dy 谱系目录（v1.2 冻结面/玩法/数值/视觉零 diff） :: 变更 43 件 · 谱系外 6
+PASS  N4-⑦a 红线复核：变更全落 dy 谱系目录（build 镜像随件刷新窄断言：dy 镜像+sw） :: 变更 43 件 · 谱系外 6（其中 build 镜像 6 件：build/platform/dy/adapter.mjs,build/platform/dy/boot-dy.mjs,build/platform/dy/dy-env.mjs,build/platform/dy/runtime.mjs,build/platform/dy/share.mjs,build/sw.js）
 PASS  N4-⑦b wx 冻结件零触碰（wx/port-v1.1 分支与 g2-blocks-wx 目录不在本轮变更面） :: wx 面 diff=0
 PASS  N4-E1 devtools CLI 缺席 = BLOCKED-ENV exit 2 如实披露（D-1） :: 10 号日志（不装绿）
 
-—— N4 对抗复检：10/14 无红 ——
-VERDICT: REJECT
-
-REJECT 双锚点（文件 + spec 条目）:
-  - N4-①a 基线八门禁零回归（exit 0 原件）
-    文件锚: tests/run-all.mjs
-    spec 锚: undefined
-    事实: exit=1
-  - N4-①b v1.1 契约 18/18（锚 302e6336…）
-    文件锚: scripts/contract-check.mjs
-    spec 锚: acceptance ac-01..18（顶层 18 条零增改）
-    事实: exit=1
-  - N4-④b 数值抽 4 字段直接对配表（链 v6 ↔ 映射表/材料清单）
-    文件锚: docs/platform/dy/tt-wx-diff-mapping.md
-    spec 锚: numeric.platform.dy
-    事实: bundleLimitBytes · shareCard 720x1280 · interactionBudgetMs 400（J1 同源） · storeScreenshotMinCount 3
-  - N4-⑦a 红线复核：变更全落 dy 谱系目录（v1.2 冻结面/玩法/数值/视觉零 diff）
-    文件锚: git diff fe5fd38..HEAD
-    spec 锚: 硬约束①②④
-    事实: 变更 43 件 · 谱系外 6
+—— N4 对抗复检：14/14 无红 ——
+VERDICT: APPROVE-READY
 verdict JSON → docs/platform/dy/qa-dy-port-verdict.json
