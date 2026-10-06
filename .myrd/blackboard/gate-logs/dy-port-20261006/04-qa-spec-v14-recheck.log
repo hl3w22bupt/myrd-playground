@@ -1,0 +1,13 @@
+PASS Q0 链上 v6 在链 :: version=6 status=draft
+PASS Q1 玩法 numeric 零 diff（链上 v6 vs v1.1 导出件，12 组逐字段） :: 12 组全等 · 锚 302e63367f3dea63…
+PASS Q2 新增平台参数逐个冻结（恰 platform.dy · 5 参数 · 无待定字样） :: dy.bundleLimitBytes=4194304 · dy.interactionBudgetMs=400 · dy.shareCard.height=1280 · dy.shareCard.width=720 · dy.smokeFrames=240 · dy.storeScreenshotMinCount=3
+PASS Q3 顶层 acceptance 18 条三方全等（v1.1/v5/v6） :: 18 条零增改
+PASS Q4 wx 三条目零覆盖（链上 v6 vs v5 逐字节） :: wx-runtime / wx-share-loop / wx-submission-kit 原样保留
+PASS Q5 dy 三条目 final + 面（files/check/acceptance）+ 映射表随件 :: 6 条 · dy×3 final
+PASS Q6 tt↔wx 映射表在盘：id 连续无断号 + 无空洞行 :: 10 行连续
+PASS Q7 前版 v1..v5 在链（零覆盖断言：行在 + 版本号在） :: 链上版本: 1,2,3,4,5,6
+PASS Q8 v4 手感锚保留（1720df8e… · v1.2 冻结面零接触） :: 1720df8ec6ac0d00… ✓
+PASS Q9 双口径 + 引导路径 + fallback 原句在文（链上 v6 acceptance 面） :: 7 关键口径全在
+PASS Q10 v6 status=draft（approve 主人拍板位，未代拍） :: draft ✓
+PASS Q11 数值抽字段直接对配表（映射表/材料口径 ↔ numeric.platform.dy 抽 4 字段核对） :: 4 字段与配表一致
+—— QA 复核 12/12 全绿 ——

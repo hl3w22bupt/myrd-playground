@@ -1,0 +1,4 @@
+BLOCKED-ENV 抖音开发者工具 CLI 未安装（候选位探测为空）→ 工具侧验证无法本机机跑
+解除路径（主人侧环境）：① 安装抖音开发者工具（稳定版）；② 设置→安全设置 开启服务端口；
+③ 重跑本件：node tools/verify-dy-devtools.mjs（内部 cli preview --project export/dy）。
+本披露为 D-1 沿档：Node 侧三条目查 + 组包断言已绿在档；工具侧/真机档（G1–G4）未机跑不装绿。

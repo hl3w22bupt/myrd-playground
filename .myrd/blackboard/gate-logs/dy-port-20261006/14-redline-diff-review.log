@@ -1,0 +1,44 @@
+=== 红线复核：git diff fe5fd38..HEAD 变更面（dy/port-v1.1）===
+ tools/qa-spec-v14-recheck.mjs          | 165 +++++++++
+ tools/spec-v14-dy-items.mjs            | 103 ++++++
+ 8 files changed, 1451 insertions(+), 4 deletions(-)
+
+=== 变更文件清单（应全落 dy 谱系目录）===
+docs/platform/dy/tt-wx-diff-mapping.md
+docs/spec/spec-v14-dy-payload.json
+docs/spec/v14-dy-numeric-report.json
+tests/contract/.j1-evidence.json
+tools/build-spec-v14-dy.mjs
+tools/post-spec-v14-dy.mjs
+tools/qa-spec-v14-recheck.mjs
+tools/spec-v14-dy-items.mjs
+=== 红线复核：git diff fe5fd38..HEAD 全量（N1+N2）===
+docs/evidence/dy-smoke-report.json
+docs/evidence/perf-p95-report.json
+docs/evidence/perf-p95-report.md
+docs/platform/dy/compliance-visual-checklist.md
+docs/platform/dy/dy-platform-copy.md
+docs/platform/dy/dy-submission-kit.md
+docs/platform/dy/tt-wx-diff-mapping.md
+docs/spec/spec-v14-dy-payload.json
+docs/spec/v14-dy-numeric-report.json
+src/platform/dy/adapter.ts
+src/platform/dy/boot-dy.ts
+src/platform/dy/dy-env.ts
+src/platform/dy/runtime.ts
+src/platform/dy/share.ts
+tests/contract/.j1-evidence.json
+tests/dy/dy-runtime.spec.mjs
+tests/dy/dy-share.spec.mjs
+tests/dy/dy-smoke.mjs
+tests/dy/dy-submission.spec.mjs
+tests/dy/run-all-dy.mjs
+tools/build-dy.mjs
+tools/build-spec-v14-dy.mjs
+tools/post-spec-v14-dy.mjs
+tools/qa-spec-v14-recheck.mjs
+tools/spec-v14-dy-items.mjs
+tools/verify-dy-devtools.mjs
+
+=== 谱系外变更核对（应为空）===
+（全部落在 dy 谱系目录 ✓）

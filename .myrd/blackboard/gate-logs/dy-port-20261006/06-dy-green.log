@@ -1,0 +1,52 @@
+
+=== ① dy-runtime 条目查 ===
+$ node tests/dy/dy-runtime.spec.mjs
+# dy-runtime 条目查（DY 平台段轮）
+# spec: id=cmuqa2mu50023m9zr8mh60uph v2 status=approved anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmut4m9ww00bvic7qxd1wpl7y/.myrd/spec/g2-blocks/design-spec.json
+PASS  dy-r1 (dr-acc-1) 落点在盘：src/platform/dy/{dy-env,runtime,share,adapter,boot-dy}.ts 五件齐
+PASS  dy-r2 (dr-acc-2/dy-diff-01) 存储复用 T1 门面：tt storage 适配 → StorageLike 读写往返
+PASS  dy-r3 (dr-acc-2/dy-diff-01) 音频/时钟复用门面：audio 可注入可用态 + clock 可注入 fixedClock
+PASS  dy-r4 (dy-diff-02) 容器判定真值表：有 tt+createCanvas=true；无 tt=false；tt 无 createCanvas=false
+PASS  dy-r5 (dy-diff-05) 生命周期接线：attachLifecycle 注册 tt.onShow/onHide 且双态回调可达
+PASS  dy-r6 (dy-diff-06) 视口/安全区：safeArea 缺失走 adapter 默认值不抛错 + dpr 钳制 ≤2
+PASS  dy-r7 (dy-diff-07) 触摸装配面：canvas.addEventListener 已接线（fire 目标非空）+ tt.onTouchStart→pointerdown
+PASS  dy-r8 (dr-acc-2) tt.* 直调面收口：src/ 全树扫描，tt 字面只许出现在 src/platform/dy/ 内
+PASS  dy-r9 (dy-diff-08 fallback) dy 包零隐私弹窗运行时：无 privacy 件 + boot-dy 零 privacy 装配
+PASS  dy-r10 (dr-acc-2) 内核纯净同口径：dy 五件零 Math.random/Date.now 直调字面（含注释）
+# 结果: PASS=10 RED=0 PENDING-APPROVE=0
+
+=== ② dy-share-kit 条目查 ===
+$ node tests/dy/dy-share.spec.mjs
+# dy-share-kit 条目查（DY 平台段轮）
+# spec: id=cmuqa2mu50023m9zr8mh60uph v2 status=approved anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmut4m9ww00bvic7qxd1wpl7y/.myrd/spec/g2-blocks/design-spec.json
+PASS  dy-s1 (ds-acc-1) 落点在盘 + shareNow 调 tt.shareAppMessage 且载荷 sid 合规
+PASS  dy-s2 (ds-acc-1/dy-diff-09) 卡规格 720×1280 = 链 v6 numeric.platform.dy.shareCard（零硬编码）
+PASS  dy-s3 (ds-acc-2) 分享入口纯跳转：share.ts 静态 import 面零 kernel/game/generated/numeric
+PASS  dy-s4 (ds-acc-3) 降级两路：无容器=no-dy-container；通道抛错=share-failed；均不抛错
+PASS  dy-s5 (ds-acc-4/dy-diff-04) 被动通道：installPassive 注册 onShareAppMessage+showShareMenu 同卡同参
+PASS  dy-s6 (生产接线) wireSharePassive：注入时钟生成 sid（零 PII 可复现）+ 无容器静默不抛错
+# 结果: PASS=6 RED=0 PENDING-APPROVE=0
+
+=== ③ dy-submission-kit 条目查（结构门禁档） ===
+$ node tests/dy/dy-submission.spec.mjs
+# dy-submission-kit 条目查（DY 平台段轮 · 结构门禁档）
+# spec: id=cmuqa2mu50023m9zr8mh60uph v2 status=approved anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmut4m9ww00bvic7qxd1wpl7y/.myrd/spec/g2-blocks/design-spec.json
+PASS  dy-k0 (dk-acc-2 前置) 组包器在盘：tools/build-dy.mjs
+PASS  dy-k1 (dk-acc-1) game.json 在盘可解析且 deviceOrientation 合法
+PASS  dy-k2 (dk-acc-1) project.config.json 在盘：工程形态字段在位（appid 占位，正式号主人下发）
+PASS  dy-k3 (dk-acc-1) PWA 专属三件不入包：export/dy 载面零 sw.js / manifest.webmanifest / index.html
+PASS  dy-k4 (dk-acc-2) 主包 ≤ numeric.platform.dy.bundleLimitBytes（逐件实测字节求和，非估算）
+PASS  dy-k5 (dy-diff-08 fallback 反向断言) dy 包零隐私弹窗运行时：export/dy 无 privacy 件 + assets-manifest 无弹窗投影
+PASS  dy-k6 (dk-acc-1/ds-acc-1) 分享卡入包：export/dy 内 dy-share-720x1280 资产在包且 sha256 与 A-07 源件全等
+PASS  dy-k7 (dk-acc-4) 合规文案位双口径：占位文案件在包 + 材料清单双口径节在盘
+PASS  dy-k8 (dk-acc-3) 材料清单 dy 段 v2 逐 id 对照行齐（dy-share-card/dy-icon/截图≥3/主人侧占位）
+PASS  dy-k9 (dk-acc-5) 合规自查表在盘：逐条「条款编号+结论+证据路径」结构 + 无团队面红项标注
+# 结果: PASS=10 RED=0 PENDING-APPROVE=0
+
+—— DY 三条目查台账：3/3 绿（红=0）——
+[PASS] ① dy-runtime 条目查
+[PASS] ② dy-share-kit 条目查
+[PASS] ③ dy-submission-kit 条目查（结构门禁档）
