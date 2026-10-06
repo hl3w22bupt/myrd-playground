@@ -76,3 +76,31 @@ round1 判读的两条修复输入逐条落地：
 
 - 门禁默认档：`report.log`（完整 stdout/stderr，含 GODOT_PLAYTEST_METRICS 单行 JSON）
 - 全 session 档：`report-full-session.log`
+
+---
+
+## 迭代收尾（implement 节点迭代 · 2026-10-06 13:46Z 补记）
+
+上一轮迭代被打断在「归档未推送」状态，本轮收尾并全程实证：
+
+1. **推送闭环**：`7a68d1e`（修复+重导出）、`62504d0`（round2 归档）已确认在 origin；
+   本轮新增 `f0eb771`（冒烟断言升级，见下）一并推送。`git ls-remote` 证实分支 tip。
+2. **部署核实（不再重复受理）**：AppHost v4 `cmuwpdpxw004pm9lgt8rljmsz`
+   status=running @ `7a68d1e`；线上 `index.pck`（base64+gzip 解码后）sha256
+   `f4365b7d…` 与本地修复后导出**逐字节一致**；`/health` 返回
+   `app=game-9, title=汽车连连看`。游戏代码与分支 tip 无差异（其后两个提交只动
+   qa 文档与测试），按知识库教训（同 gitRef 重复受理白烧排队）**不新建 v5**。
+3. **冒烟断言升级（f0eb771）**：新增断言 11「光标钳制」（rect 接线/几何一致/
+   甩出视口外被钳回/随难度更新）与断言 12「取消选中反馈」（NO_SELECTION 信号 +
+   「已取消选中」文案 + Juice 事件）。负向探针证明拦截力且不误报：
+   pre-fix main.gd → FAIL「clamp_rect 未接线」；去掉取消反馈两行 → FAIL「文案未变」
+   「Juice.events 为空」。
+4. **门禁复跑全绿**（本轮实测）：PREFLIGHT PASS（14 类）+ GODOT_SMOKE PASS（240 帧）
+   + GODOT_FUZZ PASS（seed=20260913，6 批 239 帧）+ GODOT_PLAYTEST PASS
+   （fb=71/80/76，最长断档 1.32s，指标与上表一致）。
+5. **qa/mobile/ 证据再刷新**：MOBILE_SMOKE PASS 10/10（checkedAt 2026-10-06T13:46:36Z，
+   tap 响应 pass、37fps），对象仍为 v4 线上部署。
+6. **工作流迭代 API 探测（如实记录）**：`POST /api/v1/workflows/runs/:id/iterate`
+   对本 agent 凭据返回 **400 VALIDATION_ERROR（缺 startNodeId）**——端点可达、
+   鉴权通过，与任务所述「目标大师主体 403」不矛盾（主体不同）。正式迭代仍由
+   委派方在权限补齐后补跑；本目录与 `qa/mobile/` 为可复现的兜底机判证据。
