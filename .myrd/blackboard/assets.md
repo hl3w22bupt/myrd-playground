@@ -34,6 +34,7 @@
 - 提审日待办（dk-acc-4 口径②）：DC-07 人工核对记录回填 `docs/platform/dy/dy-submission-kit.md` §三（主人侧/提审日）。
 - **19 号轮复核（2026-10-06 · HEAD 态只读重验，零改交付物）**：icon/share 派生三面 sha256 全等零漂移（`8a971534…` / `c705aaa6…`）· `assets/release|wx|palette` 零触碰机判（diff=∅）· 规格全中（截图 780×1688=390×844@2x、icon 512²、卡 720×1280）· 截图 manifest 逐件对账 3/3 全等。取证：`gate-logs/dy-port-20261006/19-round-index.md`。
 - **21 号轮接线复核（2026-10-06 · 美术 · 零改交付物）**：「素材接线引用 + fallback 不破坏运行」端到端机判 **7/7 无红**——接线链 A-07 → `assets/dy/dy-share-720x1280.png` → 组包器（缺盘即抛 L113，包路径字面量单源）→ 包内件+`assets-manifest.files[]` 同源 → game.js 注入 `shareImageUrl` → boot-dy 可选注入守卫 → share.ts 两路降级不抛错（dy-s4 实测 PASS）；**接线点**=`tools/build-dy.mjs`（注入）+ `src/platform/dy/boot-dy.ts`（接线）+ `src/platform/dy/share.ts`（降级）。取证：`gate-logs/dy-port-20261006/21-round-index.md`。
+- **23 号轮同批判据复算（2026-10-06 · 美术 · 驳回修复后 HEAD=`023e583`）**：截图三件套 `sameBatch.buildSha256` 由「生成时自我声明」升级为**可复算机判**——按出图器原配方（`gen-dy-shots.mjs` L48-56，`build/` 27 件聚合）现态复算与 manifest **逐位全等**（`c9d7bffb…`）+ `export/dy` 自批次零变更 → **截图↔在盘包同源可证**（DC-05 实机性闭环）。同轮在驳回修复后新 HEAD 重跑 N4 复检器 **14/14 无红 APPROVE-READY**（第五度复现）。取证：`gate-logs/dy-port-20261006/23-round-index.md`。
 
 ## 三、隔离纪律（红线随件）
 
