@@ -70,6 +70,16 @@
 - 证据 JSON（smoke-report / verdict）按 18 号口径还原未提交（仅时间戳与运行间抖动），今日绿证以 19d/19e 日志为准。
 - **收口态维持：等主人拍板（不变）。**
 
+### 〇·六 例行程序入口桥接（2026-10-06 12:xx · 游戏程序 · 平台驳回修复）
+
+> 驳回：routine「游戏契约测试」在 run 工作区根执行 `node scripts/contract-check.mjs --spec … --project .` → `MODULE_NOT_FOUND`（契约入口实际在同级独立仓 `../g2-blocks/scripts/contract-check.mjs`）。
+
+| 项 | 处置 | 证据 |
+|---|---|---|
+| 派发壳 | run 根新增 `scripts/contract-check.mjs`：定位 g2 仓（env `G2_REPO_ROOT` → 同级 `../g2-blocks`）+ `--spec`→`G2_SPEC_PATH` 翻译 + 其余参数逐字透传 + 退出码传播；零逻辑复制，替换显式打 `[dispatch]` 日志 | run 仓提交（见 git log） |
+| specPath 错配根因 | `.myrd/routines.yaml` 旧值 `.myrd/spec/design-spec.json` 在本工作区不存在 → 校正为固化导出件实际落点 `.myrd/spec/g2-blocks/design-spec.json`（v1.1 approved · 锚 `302e6336…`） | 同上 + 19 号日志首行 |
+| 终验 | 干净树上以例行确切命令实跑：**exit=0 · 18/18 PASS**（含 ac-17/18 双守卫）；壳三形态（原始命令/无参/`--only` 透传）实测全绿 | `gate-logs/dy-port-20261006/19-routine-dispatch-green.log` |
+
 ## 二、硬约束（任务书原文，全程生效）
 
 1. v1.2 冻结范围（手感 6 项 + daily-challenge + 视觉打磨包 + 全部 numeric）零接触；

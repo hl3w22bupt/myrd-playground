@@ -19,6 +19,8 @@
 
 上轮 N4 的 14/14 系**预提交态测量**（复检器自身未入 HEAD → diff 少算自身）。HEAD 态重跑揭出「自指陷阱」残留：谱系白名单漏列复检器自身路径（15b 号 REJECT 原件在档）。已单点窄修（g2 `566e650`，判定语义不变）并干净取证 **17 号 14/14 无红 APPROVE-READY（HEAD 态可复现）**；今日冒烟复跑绿（18 号，guide 293ms/23 帧）。全程零触碰 v1.2 冻结面 / wx 冻结包 / stack-tower。
 
+**追加（例行驳回修复 · 19 号）**：routine「游戏契约测试」MODULE_NOT_FOUND 已修——run 根新增派发壳 `scripts/contract-check.mjs`（定位 g2 仓 + `--spec`→`G2_SPEC_PATH` + 透传/退出码传播）+ `routines.yaml` specPath 校正；干净树终验 exit=0 · 18/18（19 号日志）。g2 仓零改动（壳在 run 仓），dy 包/门禁证据链不受影响。
+
 ## 提请主人拍板（本轮回流 · 团队只交包）
 
 1. **dy 提审与否**：approve-ready 包 + 材料清单 dy 段 v2 + N4 verdict（14/14 无红 APPROVE-READY）已就绪；提审动作 = 主人在抖音开发者工具/平台后台执行（两步手册见 `docs/platform/dy/dy-submission-kit.md` §二）。
