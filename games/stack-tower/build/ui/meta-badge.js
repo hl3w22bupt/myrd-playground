@@ -20,7 +20,7 @@ export function createStreakBadge(doc, mount) {
     Object.assign(el.style, {
         display: 'none',
         position: 'absolute',
-        top: '12px',
+        top: '64px', // 每日挑战卡（右上角 top:12）下方避让；同占右上会互相叠压
         right: '12px',
         padding: '4px 10px',
         borderRadius: '8px',

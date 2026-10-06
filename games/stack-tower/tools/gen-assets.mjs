@@ -16,21 +16,31 @@ import { Raster, encodePng, hexToRgb, shadeRgb } from './pnglib.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-// ---------- 色板同源：解析 palette.ts，禁止另设色值 ----------
-const src = readFileSync(join(ROOT, 'src', 'render', 'palette.ts'), 'utf8');
+// ---------- 色板同源：解析 theme.ts（v1.2 换装后真源迁至此，palette.ts 仅再导出），禁止另设色值 ----------
+const src = readFileSync(join(ROOT, 'src', 'render', 'theme.ts'), 'utf8');
 function pick(name) {
   const m = new RegExp(`${name}:\\s*'(#[0-9a-fA-F]{6})'`).exec(src);
   if (!m) {
-    console.error(`FAIL palette.ts 缺少 ${name}（色板真源被破坏，禁止生成器私设色值）`);
+    console.error(`FAIL theme.ts 缺少 ${name}（色板真源被破坏，禁止生成器私设色值）`);
     process.exit(1);
   }
   return hexToRgb(m[1]);
 }
 const P = {
-  BLOCK_A: pick('BLOCK_A'),
-  BLOCK_B: pick('BLOCK_B'),
-  BLOCK_C: pick('BLOCK_C'),
-  SKY_BOTTOM: pick('SKY_BOTTOM'),
+  BLOCK_A: pick('BLOCK_NEON_01'),
+  BLOCK_B: pick('BLOCK_NEON_02'),
+  BLOCK_C: pick('BLOCK_NEON_03'),
+  SKY_BOTTOM: pick('NIGHT_SKY_BOTTOM'),
+  // 塔块霓虹六色循环（真源 = theme.BLOCK_NEON_CYCLE；tileset 六 cell 逐一切片，
+  // 少一格 = sliceTileset 越界 → 空心块回归，勿减）
+  NEON_CYCLE: [
+    pick('BLOCK_NEON_01'),
+    pick('BLOCK_NEON_02'),
+    pick('BLOCK_NEON_03'),
+    pick('BLOCK_NEON_04'),
+    pick('BLOCK_NEON_05'),
+    pick('BLOCK_NEON_06'),
+  ],
 };
 const WHITE = [255, 255, 255];
 const DEBRIS_RGB = [20, 28, 38]; // 失败黑承载色（低明度蓝黑，透明度走 alpha）
@@ -127,13 +137,25 @@ const out = (file, raster) => jobs.push({ file, raster });
   }
   out('assets/ui/e08-fail-recover.png', r);
 }
-// tileset 塔块三循环（A/B/C 三 cell ×120×28；描边由 renderer 统一绘制，贴图不带）
+// tileset 塔块六色循环（v1.2 霓虹夜塔：6 cell ×120×28，与 BLOCK_CYCLE 逐位对应；
+// 描边由 renderer 统一绘制，贴图不带。sliceTileset 按 BLOCK_CYCLE.indexOf(hex)×120 定位 cell，
+// cell 数 < 循环色数 = 高层切片越界 → 空心描边块（部署版回归根因））
 {
-  const r = new Raster(360, 28);
-  for (const [i, c] of [P.BLOCK_A, P.BLOCK_B, P.BLOCK_C].entries()) {
-    const cell = new Raster(120, 28);
+  const CELL_W = 120, CELL_H = 28;
+  const r = new Raster(P.NEON_CYCLE.length * CELL_W, CELL_H);
+  for (const [i, c] of P.NEON_CYCLE.entries()) {
+    const cell = new Raster(CELL_W, CELL_H);
     blockFace(cell, c, {}, 111 + i);
-    cell.data.copy(r.data, i * 120 * 4 * 28, 0, 120 * 4 * 28);
+    // 逐行带 stride 拷贝（cell 落在目标第 i 列段）。线性整块 copy 是错的：
+    // cell 的 28 行会被摊平成全宽横条（旧 3 格时代恰好伪装成三面光照条带未露馅）
+    for (let y = 0; y < CELL_H; y++) {
+      cell.data.copy(
+        r.data,
+        (y * P.NEON_CYCLE.length * CELL_W + i * CELL_W) * 4,
+        y * CELL_W * 4,
+        (y + 1) * CELL_W * 4,
+      );
+    }
   }
   out('assets/tileset/blocks-tower.png', r);
 }
