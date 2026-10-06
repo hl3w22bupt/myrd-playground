@@ -62,3 +62,36 @@
 - **未伪造 GODOT_PLAYTEST: PASS**；后续 playtest 节点在脚本补齐前会 fail-closed，属预期。
 - 游戏已按 §4.5 协议接入 playtest 依赖面：Juice 单例（feedback_fired）已注册、
   score_changed 时序可采样、tests/playtest.json 阈值文件可在脚本到位后按需添加。
+
+---
+
+# Blocked 上报（第三次，延续）— playtest 节点（run cmuw339we01a3icry68bdkwhs）
+
+- **status: blocked（仅限 playtest.sh 一项；试玩验收包主产出已完成并回写）**
+- **detail: 模板仓库未预置门禁脚本：std-skills/godot-game-dev/scripts/playtest.sh；请运维把模板仓库补上技能资产**
+- 时间：2026-10-06 ｜ 分支：myrd/games-goal-cmuw2o88z018ricryvpr6v8wn
+
+## 与前两轮的差异
+
+- `git fetch origin` 后核验：远端最新提交 c186f89 的
+  `std-skills/godot-game-dev/scripts/` 仍无 playtest.sh（全部历史 `git log --all -- "*playtest*"`
+  为空）；本轮未编写/未复制/未以等价命令替代该判定器。
+- 硬约束第 2 类资产本轮核验**齐备**：`.myrd/routines.yaml` 含 id=godot-smoke 与
+  id=mobile-web-smoke；references/{godot-smoke-routine.md, mobile-smoke-routine.md} 在库。
+
+## 本节点已交付（不依赖缺失脚本的 parts）
+
+- preHook 移动门禁证据核实并入库：`games/game-9/qa/mobile/report.json` verdict=PASS
+  十项全绿（网络/console/canvas/渲染/动画/触摸管线/触摸响应/音频解锁/视口/FPS37），
+  与「移动端能不能玩已机判全绿」结论一致，无矛盾。
+- 试玩验收包：`games/game-9/qa/playtest-kit.md`（试玩指引 + 四问量表待回填 +
+  调参工作台入口 ?tuning=1 + 实现与 spec v1 差异说明），并 PATCH 合并回写
+  goal.artifacts（op=playtest_kit）。量表状态「待用户试玩」——试玩结论只能来自用户，
+  未收到结果前不触发 spec revisions 回写（第 3 步跳过，不伪造）。
+- 调参区声明核验：GameState.TUNING_META 三键（start_time_easy=90 / start_time_hard=180 /
+  match_points=10），?tuning=<JSON> 桥与面板开关（tuning 参数存在即开）在部署壳中在位。
+
+## 待运维动作
+
+- 把 playtest.sh（及配套 playtest_driver.gd，注入目录内有阅读副本可参考）补入模板仓库
+  std-skills/godot-game-dev/scripts/ 并重新预置；补齐后本节点重跑即可闭环机判试玩门禁。
