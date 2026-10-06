@@ -104,3 +104,31 @@ round1 判读的两条修复输入逐条落地：
    对本 agent 凭据返回 **400 VALIDATION_ERROR（缺 startNodeId）**——端点可达、
    鉴权通过，与任务所述「目标大师主体 403」不矛盾（主体不同）。正式迭代仍由
    委派方在权限补齐后补跑；本目录与 `qa/mobile/` 为可复现的兜底机判证据。
+
+---
+
+## 迭代 v5 收尾（deploy/playtest 节点兜底 · 2026-10-06 14:10Z）
+
+本轮把「证据 commit = 线上部署 commit」收敛为严格相等（v4 时代只是"同源代码"）：
+
+1. **PR#33 验收复核证据并入**：cherry-pick `1249b9b` → `97d0565`
+   （`qa/ACCEPTANCE_REVIEW.md` + `qa/mobile-round3/` 10/10 PASS 证据 + blackboard），
+   分支此后包含主策划复核产物；平台 auto-commit `a4edc0d` 未并入（与游戏无关）。
+2. **HEAD 重导出**：`--export-release Web`，`index.wasm` 与 7a68d1e **字节一致**
+   （35,376,909 B），`index.pck` 3,968,912 B（并入的 round3 证据图被工程资源带入），
+   `index.html` 仅 fileSizes 更新 —— 提交 `2626927`。
+3. **v5 部署**：`cmuwqrrl70051m9lgj8v89gh9`，受理 POST 返回 504（网关超时），
+   **按知识库教训先查列表**：已受理 building，未重复提交；~6 min 后 running @
+   `2626927b`，gitRef=goal 分支，sourceId=goal id。
+4. **门禁四连绿（本轮实测，HEAD=2626927）**：PREFLIGHT PASS（14 类）+
+   GODOT_SMOKE PASS（240 帧）+ GODOT_FUZZ PASS（seed=20260913，6 批 239 帧）+
+   GODOT_PLAYTEST PASS 两档全绿 —— 默认档 900 帧 fb=75/73/76；全 session 档
+   5400 帧 fb=517/495/518（`report.log` / `report-full-session.log` 为本轮日志）。
+5. **移动门禁刷新到 v5**：MOBILE_SMOKE **PASS 10/10**（checkedAt 2026-10-06T14:10:14Z，
+   tapDiff=320 / idleDiff=338 / 37fps / 音频解锁器在位 / 无横向溢出），
+   证据 `qa/mobile/`（report.json + phase-* + diag-*）。
+6. **环境插曲（如实记录）**：v5 切 running 后公网入口 TLS 握手即断
+   （SSL_ERROR_SYSCALL，基础域同挂）—— 根因是本机 **Tailscale 已停止**，
+   `tailscale up` 拉起后恢复 200；与部署本身无关。
+7. 工作流正式迭代结论仍待调度 API 权限补齐后补跑（本目录与 `qa/mobile/` 为
+   可复现兜底机判；判定脚本全部取自仓库 `std-skills/godot-game-dev/scripts/`）。
