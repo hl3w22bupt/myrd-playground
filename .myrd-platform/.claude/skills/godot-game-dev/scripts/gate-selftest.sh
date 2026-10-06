@@ -232,16 +232,29 @@ open(p, 'w').write(s.replace(
 PY
 }
 
-# D5 静默逻辑 bug：SPEED=0，零报错、能启动、玩家按住方向键也一动不动，
+# D5 静默逻辑 bug：移动速度归零，零报错、能启动、玩家按住方向键也一动不动，
 #    命中位移阈值断言（这是退出码/日志都扫不出来、只能靠行为断言拦截的一类）。
+#    双锚点：新模板速度在 autoload 调参区（GameState.move_speed，§3C），
+#    旧模板/既有工程的 player.gd 仍是 const SPEED —— 注入器按两个锚点依次尝试。
 case_silent_logic() {
   python3 - "$1" <<'PY'
 import re, sys
-p = sys.argv[1] + '/scripts/player.gd'
-s = open(p).read()
-new, n = re.subn(r'const SPEED: float = [0-9.]+', 'const SPEED: float = 0.0', s, count=1)
-assert n == 1, 'player.gd 缺少 const SPEED（模板契约被改）'
-open(p, 'w').write(new)
+state_path = sys.argv[1] + '/autoload/game_state.gd'
+player_path = sys.argv[1] + '/scripts/player.gd'
+injected = ''
+try:
+    s = open(state_path).read()
+except OSError:
+    s = ''
+new, n = re.subn(r'var move_speed: float = [0-9.]+', 'var move_speed: float = 0.0', s, count=1)
+if n == 1:
+    open(state_path, 'w').write(new)
+    injected = 'move-speed'
+if injected == '':
+    s = open(player_path).read()
+    new, n = re.subn(r'const SPEED: float = [0-9.]+', 'const SPEED: float = 0.0', s, count=1)
+    assert n == 1, '既无 GameState.move_speed 也无 player.gd const SPEED（模板契约被改）'
+    open(player_path, 'w').write(new)
 PY
 }
 
