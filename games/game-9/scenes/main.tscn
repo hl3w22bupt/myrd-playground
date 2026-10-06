@@ -148,9 +148,9 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 toggle_mode = true
 offset_left = 60.0
-offset_top = 420.0
+offset_top = 340.0
 offset_right = 260.0
-offset_bottom = 490.0
+offset_bottom = 410.0
 theme_override_font_sizes/font_size = 24
 text = "轻松 4×4"
 
@@ -158,18 +158,18 @@ text = "轻松 4×4"
 unique_name_in_owner = true
 toggle_mode = true
 offset_left = 280.0
-offset_top = 420.0
+offset_top = 340.0
 offset_right = 480.0
-offset_bottom = 490.0
+offset_bottom = 410.0
 theme_override_font_sizes/font_size = 24
 text = "挑战 6×6"
 
 [node name="StartButton" type="Button" parent="MenuLayer"]
 unique_name_in_owner = true
 offset_left = 150.0
-offset_top = 540.0
+offset_top = 430.0
 offset_right = 390.0
-offset_bottom = 616.0
+offset_bottom = 530.0
 theme_override_font_sizes/font_size = 30
 text = "开始游戏"
 
