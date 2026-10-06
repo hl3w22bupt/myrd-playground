@@ -1,8 +1,8 @@
 # 关卡状态黑板 — g2-blocks（熔炉方块）· **DY 平台段校准入链 + approve-ready 包轮（v1.1 基线）**
 
-> 更新时间：2026-10-06 11:0x（开工前置完成 · 主策划）
+> 更新时间：2026-10-06 12:0x（复检可复现性修正轮 · 游戏程序回写）
 > 负责人：主策划（整合人）· 各节点署名回写 · QA 线维护核销列
-> 下一步：N1 dy spec v6 校准入链（关键路径）∥ N2 dy 分支开线 + v1.1 锚点门禁（并行）
+> 下一步：等主人拍板（不变）；本轮新增：N4 复检器自指残留修复 + HEAD 态重跑取证全绿（见 §〇·五）
 >
 > 上轮黑板（WX 移植提审轮）：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmuuk3zvg002oicrykuhulees/.myrd/blackboard/`（只读沿档，不覆写）
 > 上上轮黑板（V1.2 手感轮 + A 轮全档）：`run-cmut4m9ww00bvic7qxd1wpl7y/.myrd/blackboard/g2-blocks/`（只读沿档）
@@ -33,18 +33,31 @@
 | N1 dy spec 校准入链 | 游戏策划 | 链 **v6 `cmuw3gcgm01a9icryraii5dzp`** draft（parent=v5）+ 映射表 `docs/platform/dy/tt-wx-diff-mapping.md` + 守卫器/入链器/复核器三件 + 逐字段对照报告；g2 仓 `15d7340` | 守卫 11/11 + QA 独立复核 12/12（链上回读）；玩法 numeric 12 组逐字段全等（锚 `302e6336…`）；新增 5 参数逐个冻结；wx 三条目零覆盖；v4 手感锚 `1720df8e…` 保留 | ✅ |
 | N2 dy 工程适配 | 游戏程序 | 分支 `dy/port-v1.1`（自 `fe5fd38`）；`src/platform/dy/` 五件 + `tools/build-dy.mjs`（export/dy/ 30 件 174.3KB ≤4MB 实测）+ `tests/dy/` 三条目查+冒烟；g2 仓 `0feac16` | v1.1 锚点先行三绿（01/02/03 号）；先红 0/3（05 号）→ 后绿 3/3（06 号）；dy 冒烟：引导路径 228ms/17 帧 ≤400/240 + 613 手自然炉冷（与离线推演逐位一致）；P95 配对 A/B Δ=0.0ms；门面外零 `tt.*` 直调（机判） | ✅ |
 | N3 dy 素材包 | 游戏美术 | `assets/dy/`（icon/分享卡/同批截图×3/四列核对单）+ `docs/platform/dy/dy-submission-kit.md`（材料清单 dy 段 v2）+ 合规自查表；g2 仓 `a303ccf` | 四列核对单全绿（资产 id↔规格↔平台条款↔参考卡条款可追溯）；派生件 sha256 全等零漂移机判；装配区与 wx 通道零触碰；规格全取 N1 映射表 | ✅ |
-| N4 只读复检 | 游戏 QA | `tools/qa-dy-port-recheck.mjs` + `docs/platform/dy/qa-dy-port-verdict.json`；证据 15/15a 号；g2 仓 `51d84f8` | 三份输入齐才开检 ✓；**14/14 无红 VERDICT: APPROVE-READY**；首跑自曝 4 缺陷全修（15a 原件在档）；REJECT 双锚点协议在器 | ✅ |
+| N4 只读复检 | 游戏 QA | `tools/qa-dy-port-recheck.mjs` + `docs/platform/dy/qa-dy-port-verdict.json`；证据 15/15a 号；g2 仓 `51d84f8` → **复检可复现性修正轮 `566e650`（复检器白名单补自身）/ `cfb733c`（verdict 刷新）** | 三份输入齐才开检 ✓；**14/14 无红 VERDICT: APPROVE-READY**；首跑自曝 4 缺陷全修（15a 原件在档）；REJECT 双锚点协议在器；**HEAD 态重跑复现绿（17 号，见 §〇·五）** | ✅ |
 | N5 汇总提请 | 主策划 | blockers.md 提请主人拍板区 + 本板收口态 | 闭环三问过；决策归主人 | ✅ |
 
 ### 收口快照（一屏查两线）
 
 | 线 | 状态 | 位置 |
 |---|---|---|
-| **dy（本轮）** | approve-ready 包 + 材料清单 dy 段 v2 已回流，等主人拍板提审 | g2 仓 `dy/port-v1.1` @ `51d84f8` · 包 `export/dy/`（30 件 174.3KB）· 清单 `docs/platform/dy/dy-submission-kit.md` · verdict `docs/platform/dy/qa-dy-port-verdict.json` |
+| **dy（本轮）** | approve-ready 包 + 材料清单 dy 段 v2 已回流，等主人拍板提审 | g2 仓 `dy/port-v1.1` @ `cfb733c` · 包 `export/dy/`（30 件 174.3KB）· 清单 `docs/platform/dy/dy-submission-kit.md` · verdict `docs/platform/dy/qa-dy-port-verdict.json`（17 号重跑取证） |
 | **wx（冻结只读）** | 上轮 approve-ready 包已回流，等主人拍板提审（本轮零触碰） | 分支 `wx/port-v1.1` @ `2856d7c` + 镜像 `g2-blocks-wx/` |
 | **v1.2（冻结待批复）** | 链 v4 draft 在途，本轮零接触 | 链 `cmut5fkyf00cbic7qudea13g6` |
 | **spec 链头** | v6 draft（本链 version+1 产物，未 approve） | `cmuw3gcgm01a9icryraii5dzp` |
 | **stack-tower** | 全程零接触（守卫机判 151 文件零越界） | — |
+
+### 〇·五 复检可复现性修正轮（2026-10-06 12:0x · 游戏程序 · 证据链 15b→18 全在档）
+
+> 触发：按「重跑取证不认转抄」口径在 HEAD 态重跑 N4 复检器 → **REJECT（13/14）**。上轮 15 号的 14/14 系预提交态测量（复检器自身尚未入 HEAD，diff 少算自身），属「自指陷阱」修复不完整残留，非产品代码缺陷。留痕如下，原件不删除：
+
+| 号 | 内容 | 结论 |
+|---|---|---|
+| 15b | HEAD 态重跑原件：⑦a 红（谱系外 7 ≠ build 镜像 6，第 7 件=复检器自身路径）+ ①a/①b 红（15b 日志未提交→ac-17 白名单外） | REJECT 原件 |
+| 16 | 取证程序自污染对照件（日志先落 run 仓未提交 → ac-17 红），证明 ①a/①b 红为程序顺序问题、非交付物缺陷 | 程序性红 |
+| 17 | 修复后干净取证（g2 HEAD=`566e650` + run 仓零脏文件，stdout 落盘后归档）：**14/14 无红 VERDICT: APPROVE-READY，exit=0** | **HEAD 态可复现绿** |
+| 18 | dy 冒烟同日复跑：guide 293ms/23 帧 ≤400/240 · 613 手自然炉冷 · 零错误（N2 证据 JSON 未动，以此日志为今日绿证） | 冒烟绿 |
+
+修复内容（g2 仓 `566e650`，单点窄修 + 根因注释在器）：`tools/qa-dy-port-recheck.mjs` 谱系白名单 tools 组补 `qa-dy-port-recheck`（本件即 N4 dy 交付物，黑板 N4 行已列名）；判定语义不变——谱系外仍须全为 build 镜像窄断言才放行（17 号详情=谱系外 6 全 build）。副作用修复：verdict JSON 曾被红跑覆写为 REJECT，已随 `cfb733c` 以 17 号取证刷新回 APPROVE-READY。
 
 ## 二、硬约束（任务书原文，全程生效）
 

@@ -1,0 +1,12 @@
+[dy-smoke] 参数现读链 v6：interactionBudgetMs=400 smokeFrames=240 limit=4194304
+[dy-smoke] 静态服务 http://127.0.0.1:62037/dy-smoke.html（export/dy/ 载面 + 模块 Worker）
+[dy-smoke] chromium 就绪（viewport 390x844 · 无 throttle）
+[dy-smoke] 页面加载完成（Worker 冒烟启动）
+[dy-smoke] ready ✓ boardLen=64 status=playing
+[dy-smoke] 触摸通路 ✓
+[dy-smoke] guide: 293ms / 23 帧 · J1=153.89999997615814ms · marks=j1_settle_start→j1_feedback_done
+[dy-smoke] session: status=cooled hands=613 scored=613
+[dy-smoke] 结算 ✓ status=cooled · 613 手（得分手 613）· score=9432750 · movesUsed=614 · cool=true
+[dy-smoke] console/worker 零错误 ✓
+[dy-smoke] 证据 → docs/evidence/dy-smoke-report.json
+DY-SMOKE: PASS 引导路径 + 开始→玩→结算 + 触摸通路 + 零错误
