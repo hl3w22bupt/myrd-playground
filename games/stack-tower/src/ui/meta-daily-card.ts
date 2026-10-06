@@ -55,7 +55,7 @@ export function createDailyCard(doc: CardDoc, mount: { appendChild(node: unknown
   Object.assign(el.style, {
     position: 'absolute',
     top: '12px',
-    left: '12px',
+    right: '12px', // 右上角：左上角是 HUD 文案区（分数/连击），left 会压住首行（v1.4 部署版回归）
     padding: '8px 14px',
     borderRadius: '10px',
     background: DAILY_CARD_TOKENS.bg,

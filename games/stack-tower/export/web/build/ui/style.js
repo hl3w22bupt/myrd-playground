@@ -21,8 +21,9 @@ export const STAGE_STYLE = `
          padding:calc(12px + var(--st-safe-top)) calc(14px + var(--st-safe-right))
                  calc(12px + var(--st-safe-bottom)) calc(14px + var(--st-safe-left))}
     .st-hud-line{margin-bottom:4px;font-variant-numeric:tabular-nums}
-    .st-hud-actions{position:absolute;bottom:calc(12px + var(--st-safe-bottom));left:0;right:0;
-         display:flex;gap:8px;justify-content:center;align-items:center}
+    .st-hud-actions{position:absolute;bottom:calc(12px + var(--st-safe-bottom));
+         left:calc(10px + var(--st-safe-left));right:calc(10px + var(--st-safe-right));
+         display:flex;gap:8px;justify-content:space-between;align-items:center}
     .st-hud-restart,.st-hud-mute{pointer-events:auto;background:rgba(0,0,0,.35);color:${NEON.CUT_FACE};
          border:1px solid ${NEON.UI_BTN_PRIMARY};border-radius:6px;padding:6px 14px;font-size:14px;cursor:pointer;
          touch-action:manipulation}

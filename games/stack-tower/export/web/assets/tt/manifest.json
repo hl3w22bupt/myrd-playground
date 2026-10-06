@@ -1,0 +1,57 @@
+{
+  "specSource": "spec v1.5 content.platform items[].assets（dy 素材 id 5 项）",
+  "derivedFrom": "霓虹夜塔参考卡 v1.0（docs/style-card-neon-night-v1.md）· 色源 theme.ts NEON 表",
+  "generator": "tools/gen-tt-assets.mjs（C 轮 N3 美术线覆写：涟漪/辉光/切面对齐冻结四联图 P1/P3 画法，构图缺陷修正；确定性，重跑逐字节一致；风格四要素零漂移，仅规格裁切）",
+  "items": [
+    {
+      "id": "dy-icon",
+      "file": "icon.png",
+      "bytes": 3723,
+      "sha256": "e0a6c8fa6633f84ab43ba61656464fe46fbbf4e44e6b56940426c25dd6ac308f",
+      "size": "512x512",
+      "use": "应用图标（塔块霓虹剪影）",
+      "ratio": "1:1",
+      "panel": "参考卡块皮同源"
+    },
+    {
+      "id": "dy-share-card",
+      "file": "share-card.png",
+      "bytes": 3411,
+      "sha256": "7055ecae8d36c6a64f0612dbc027f9d0f99353564dbac41da4150872b3e26431",
+      "size": "500x400",
+      "use": "会话分享卡（dy-share-loop 主判据配图）",
+      "ratio": "5:4",
+      "panel": "参考卡面板一·开局首屏"
+    },
+    {
+      "id": "dy-store-screenshot-01",
+      "file": "store-screenshot-01.png",
+      "bytes": 17141,
+      "sha256": "ebd85034b1ee74d9695215392c99b2696177ac16c9cb4b33e01674f2b9d17551",
+      "size": "1242x2208",
+      "use": "商店截图一：开局首屏",
+      "ratio": "9:16",
+      "panel": "参考卡面板一"
+    },
+    {
+      "id": "dy-store-screenshot-02",
+      "file": "store-screenshot-02.png",
+      "bytes": 28345,
+      "sha256": "0aba4ae3d67bec798104379d4cacbb28362ebf3a5d4fcc794bba691cf2aed568",
+      "size": "1242x2208",
+      "use": "商店截图二：perfect 涟漪时刻",
+      "ratio": "9:16",
+      "panel": "参考卡面板三·perfect"
+    },
+    {
+      "id": "dy-store-screenshot-03",
+      "file": "store-screenshot-03.png",
+      "bytes": 20413,
+      "sha256": "c553f5a43bbe09353243d649e82ffba60ad57e0438fc3c0b4743e4d9f4225a59",
+      "size": "1242x2208",
+      "use": "商店截图三：竖屏对局构图（安全区内）",
+      "ratio": "9:16",
+      "panel": "参考卡派生·安全区"
+    }
+  ]
+}

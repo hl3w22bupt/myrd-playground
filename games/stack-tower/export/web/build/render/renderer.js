@@ -35,7 +35,10 @@ export class Renderer {
             this.drawBlock(ctx, b, logical, false);
         // L3 摆动块（悬停带：塔顶上方两层高）
         if (snap.moving) {
-            const hover = { x: snap.moving.x, width: snap.moving.width, yIndex: snap.layers + 2 };
+            // e09 开局摆位后物理塔顶 ≠ snap.layers（玩家层数，不含预置块）：悬停带必须锚物理塔顶，
+            // 否则摆动块/引导线穿进开场预置块（v1.2 部署版回归：悬停带落在塔身内部）
+            const topBlock = snap.tower[snap.tower.length - 1];
+            const hover = { x: snap.moving.x, width: snap.moving.width, yIndex: (topBlock ? topBlock.yIndex : snap.layers) + 2 };
             const y = logical.height - (hover.yIndex + 1) * BLOCK_H;
             const moveSprite = this.sprites.blockMove;
             if (moveSprite) {
@@ -45,7 +48,7 @@ export class Renderer {
                 this.drawBlock(ctx, hover, logical, true);
                 this.drawBounceLight(ctx, hover, logical);
             }
-            this.drawGuide(ctx, hover, logical); // L4 引导层（首局 layers<2）
+            this.drawGuide(ctx, hover, logical, topBlock ? topBlock.yIndex : snap.layers); // L4 引导层（首局 layers<2）
         }
         // L6 tower-ripple 波纹（e-ripple-renderer：池 ≤200 颗 + additive 合成 + 异常隔离；
         // duration 300±50ms 内可见，随 duration 等比扩散；无整屏闪光）
@@ -104,11 +107,11 @@ export class Renderer {
         ctx.restore();
     }
     /** L4 引导层（风格卡 §3）：首局 layers<2 时摆块正下方落点虚线；2 次落块后随 layers≥2 自动消失 */
-    drawGuide(ctx, hover, logical) {
+    drawGuide(ctx, hover, logical, topYIndex) {
         if (hover.yIndex < 2)
             return;
         const topY = logical.height - hover.yIndex * BLOCK_H;
-        const baseTopY = logical.height - BLOCK_H;
+        const baseTopY = logical.height - (topYIndex + 1) * BLOCK_H; // 落点面 = 物理塔顶上表面（e09 后 ≠ 塔基顶）
         if (baseTopY - topY < 4)
             return;
         const guide = this.sprites.guide;
