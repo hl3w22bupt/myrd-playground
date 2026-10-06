@@ -33,6 +33,7 @@
 - 派生纪律执行：全部自 A 轮风格卡派生、四要素零 diff；`assets/release/` 装配区与 `assets/wx/` 通道零触碰（派生器只读源件 + sha256 全等机判）。
 - 提审日待办（dk-acc-4 口径②）：DC-07 人工核对记录回填 `docs/platform/dy/dy-submission-kit.md` §三（主人侧/提审日）。
 - **19 号轮复核（2026-10-06 · HEAD 态只读重验，零改交付物）**：icon/share 派生三面 sha256 全等零漂移（`8a971534…` / `c705aaa6…`）· `assets/release|wx|palette` 零触碰机判（diff=∅）· 规格全中（截图 780×1688=390×844@2x、icon 512²、卡 720×1280）· 截图 manifest 逐件对账 3/3 全等。取证：`gate-logs/dy-port-20261006/19-round-index.md`。
+- **21 号轮接线复核（2026-10-06 · 美术 · 零改交付物）**：「素材接线引用 + fallback 不破坏运行」端到端机判 **7/7 无红**——接线链 A-07 → `assets/dy/dy-share-720x1280.png` → 组包器（缺盘即抛 L113，包路径字面量单源）→ 包内件+`assets-manifest.files[]` 同源 → game.js 注入 `shareImageUrl` → boot-dy 可选注入守卫 → share.ts 两路降级不抛错（dy-s4 实测 PASS）；**接线点**=`tools/build-dy.mjs`（注入）+ `src/platform/dy/boot-dy.ts`（接线）+ `src/platform/dy/share.ts`（降级）。取证：`gate-logs/dy-port-20261006/21-round-index.md`。
 
 ## 三、隔离纪律（红线随件）
 
