@@ -8,4 +8,7 @@
 | jank | 51(11.21%) | 55(12.50%) | +1.29pp | 机噪内 |
 | 规格跑 P95 (throttle×4) | 73.38ms | 73.76ms | +0.38ms | 不退化 |
 
-结论：P95 对照 v1.1 不退化（配对同机同日，Δ=0.0ms）；原文 11-perf-dy.log / 12-perf-baseline-paired.log
+结论：P95 对照 v1.1 不退化（配对同机同日，Δ=0.0ms）。
+原文（引用文经 QA 驳回缺陷1 勘误，原「11-perf-dy.log / 12-perf-baseline-paired.log」两件不存在，留痕不删除）：
+- dy 侧原文 = `11-perf-report.log`（本表 dy 分支列与其逐位一致：70.07fps/27.1ms/27.3ms/55(12.50%)/73.76ms）；
+- A 侧原文 = `12-perf-baseline-paired.log`（**驳回后补档**：git worktree @ fe5fd38 二次独立配对，26.1ms/66.74fps/71.06ms，与本表 v1.1 列同量级同结论；原始对 A 侧未随轮留档一事已在 12 号头部如实披露）。
