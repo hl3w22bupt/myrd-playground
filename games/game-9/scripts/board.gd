@@ -12,10 +12,31 @@ const MAX_SHUFFLE_ATTEMPTS: int = 200
 ## 空棋盘外圈也算可通行通道（经典连连看规则：路径可以绕出棋盘外）。
 const BORDER: int = 1
 
-const COLS: int = 4
-const ROWS: int = 4
-const CELL_SIZE: float = 100.0
-const BOARD_ORIGIN: Vector2 = Vector2(70.0, 240.0)
+## 视口宽（project.godot display/window/size/viewport_width）；棋盘水平居中用。
+const VIEW_WIDTH: float = 540.0
+## 棋盘顶部起始 y（HUD 区块之下）。
+const BOARD_TOP: float = 240.0
+## 发牌基准格子尺寸（tile.tscn 的卡片本体按它绘制；其他难度按比例缩放卡片）。
+const BASE_CELL_SIZE: float = 100.0
+
+
+## ── 动态棋盘几何：全部由 GameState 当前难度推导（验收 5：4×4 / 6×6 两档）──
+
+func cols() -> int:
+	return int(GameState.DIFFICULTIES[GameState.difficulty]["cols"])
+
+
+func rows() -> int:
+	return int(GameState.DIFFICULTIES[GameState.difficulty]["rows"])
+
+
+func cell_size() -> float:
+	return float(GameState.DIFFICULTIES[GameState.difficulty]["cell_size"])
+
+
+## 棋盘原点（左上格子的左上角）：按当前规模在视口内水平居中。
+func origin() -> Vector2:
+	return Vector2((VIEW_WIDTH - float(cols()) * cell_size()) * 0.5, BOARD_TOP)
 ## 车型表：8 种汽车元素，scaffold 用 4x4（8 对）；6x6 大棋盘在实现节点扩展。
 const CAR_TYPES: Array[String] = ["轿车", "跑车", "卡车", "赛车", "警车", "救护车", "消防车", "出租车"]
 const CAR_COLORS: Array[Color] = [
@@ -45,13 +66,15 @@ func _ready() -> void:
 	setup()
 
 
-## 重开入口：清场重发。types 逐对生成后整体洗牌，保证成对且布局随机。
+## 重开入口：清场重发（按 GameState 当前难度决定规模）。types 逐对生成后整体洗牌，
+## 保证成对且布局随机；开局即死局时走「洗牌直到有解」。
 func setup() -> void:
 	_clear_tiles()
 	_selected = NO_SELECTION
 	_cursor_cell = NO_SELECTION
+	@warning_ignore("integer_division")
+	var pairs: int = cols() * rows() / 2
 	var types: Array[int] = []
-	var pairs: int = COLS * ROWS / 2
 	for i in pairs:
 		var type_index: int = i % CAR_TYPES.size()
 		types.append(type_index)
@@ -59,10 +82,21 @@ func setup() -> void:
 	types.shuffle()
 	for idx in types.size():
 		@warning_ignore("integer_division")
-		var cell := Vector2i(idx % COLS, idx / COLS)
+		var cell := Vector2i(idx % cols(), idx / cols())
 		_spawn_tile(types[idx], cell)
 	if not has_any_match():
 		_reshuffle_until_solvable()
+	tiles_changed.emit(remaining_count())
+
+
+## 以确定局面重建棋盘（冒烟负向断言 / 未来关卡系统共用）：
+## types: {Vector2i(col,row): type_index}，只落这些格子；调用方保证同型卡成对。
+func load_layout(types: Dictionary) -> void:
+	_clear_tiles()
+	_selected = NO_SELECTION
+	_cursor_cell = NO_SELECTION
+	for cell: Vector2i in types.keys():
+		_spawn_tile(types[cell], cell)
 	tiles_changed.emit(remaining_count())
 
 
@@ -76,15 +110,15 @@ func is_occupied(cell: Vector2i) -> bool:
 
 ## 格子 → 世界坐标（格子中心）。
 func world_from_cell(cell: Vector2i) -> Vector2:
-	return BOARD_ORIGIN + Vector2(cell) * CELL_SIZE + Vector2(CELL_SIZE, CELL_SIZE) * 0.5
+	return origin() + Vector2(cell) * cell_size() + Vector2(cell_size(), cell_size()) * 0.5
 
 
 ## 世界坐标 → 格子；越界返回 (-1,-1)。
 func cell_from_world(world_pos: Vector2) -> Vector2i:
 	var local := to_local(world_pos)
-	var offset: Vector2 = local - BOARD_ORIGIN
-	var cell := Vector2i(int(floor(offset.x / CELL_SIZE)), int(floor(offset.y / CELL_SIZE)))
-	if cell.x < 0 or cell.x >= COLS or cell.y < 0 or cell.y >= ROWS:
+	var offset: Vector2 = local - origin()
+	var cell := Vector2i(int(floor(offset.x / cell_size())), int(floor(offset.y / cell_size())))
+	if cell.x < 0 or cell.x >= cols() or cell.y < 0 or cell.y >= rows():
 		return NO_SELECTION
 	return cell
 
@@ -181,13 +215,13 @@ func _find_path(a: Vector2i, b: Vector2i) -> Array[Vector2i]:
 	for corner: Vector2i in [Vector2i(a.x, b.y), Vector2i(b.x, a.y)]:
 		if _is_passable(corner) and _clear_segment(a, corner) and _clear_segment(corner, b):
 			return [a, corner, b]
-	for row in range(-BORDER, ROWS + BORDER):
+	for row in range(-BORDER, rows() + BORDER):
 		var c1 := Vector2i(a.x, row)
 		var c2 := Vector2i(b.x, row)
 		if c1 != a and c2 != b and _is_passable(c1) and _is_passable(c2) \
 				and _clear_segment(a, c1) and _clear_segment(c1, c2) and _clear_segment(c2, b):
 			return [a, c1, c2, b]
-	for col in range(-BORDER, COLS + BORDER):
+	for col in range(-BORDER, cols() + BORDER):
 		var c1 := Vector2i(col, a.y)
 		var c2 := Vector2i(col, b.y)
 		if c1 != a and c2 != b and _is_passable(c1) and _is_passable(c2) \
@@ -215,7 +249,7 @@ func _is_blocked(cell: Vector2i) -> bool:
 
 
 func _is_passable(cell: Vector2i) -> bool:
-	if cell.x < 0 or cell.x >= COLS or cell.y < 0 or cell.y >= ROWS:
+	if cell.x < 0 or cell.x >= cols() or cell.y < 0 or cell.y >= rows():
 		return true
 	return not is_occupied(cell)
 
@@ -229,9 +263,9 @@ func _remove_pair(a: Vector2i, b: Vector2i, cell_path: Array[Vector2i]) -> void:
 	_free_tile(a)
 	_free_tile(b)
 	_selected = NO_SELECTION
-	GameState.add_score(GameState.MATCH_POINTS)
+	GameState.award_match()
 	_path_layer.show_path(points)
-	match_made.emit(a, b, GameState.MATCH_POINTS)
+	match_made.emit(a, b, GameState.last_match_points)
 	var remaining := remaining_count()
 	tiles_changed.emit(remaining)
 	if remaining == 0:
@@ -292,6 +326,7 @@ func _occupied_cells() -> Array[Vector2i]:
 func _spawn_tile(type_index: int, cell: Vector2i) -> void:
 	var tile := TILE_SCENE.instantiate() as Tile
 	tile.position = world_from_cell(cell)
+	tile.set_base_scale(cell_size() / BASE_CELL_SIZE)
 	_grid[cell] = tile
 	_tiles_root.add_child(tile)
 	tile.setup(type_index, cell, CAR_TYPES[type_index], CAR_COLORS[type_index])

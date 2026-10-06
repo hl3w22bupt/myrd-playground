@@ -16,9 +16,18 @@ var type_index: int = 0
 var cell: Vector2i = Vector2i.ZERO
 ## 选中高亮由 GameBoard 统一控制，卡片只提供接口。
 var _selected: bool = false
+## 基础缩放（随难度格子尺寸变化）；选中/消除动画都在它之上叠加，避免 6×6 时动画改写尺寸。
+var _base_scale: float = 1.0
 
 @onready var _bg: Polygon2D = $Bg
 @onready var _label: Label = %CarLabel
+
+
+## GameBoard 发牌时按难度格子尺寸设置（6×6 格 78px → 卡片缩放 0.78，相邻不重叠）。
+func set_base_scale(value: float) -> void:
+	_base_scale = value
+	if not _selected:
+		scale = Vector2.ONE * _base_scale
 
 
 ## GameBoard 实例化后立即调用（在 _ready 之前也可能被调，故字体文案放 setup）。
@@ -44,9 +53,9 @@ func set_cursor_hover(value: bool) -> void:
 func _apply_tint() -> void:
 	if _selected:
 		_bg.color = Color(1.0, 0.82, 0.25, 1.0)
-		scale = Vector2(1.06, 1.06)
+		scale = Vector2.ONE * _base_scale * 1.06
 	else:
-		scale = Vector2.ONE
+		scale = Vector2.ONE * _base_scale
 
 
 ## 不可消除时的抖动反馈（要求：明确提示，替代刺耳音效）。
@@ -60,6 +69,6 @@ func shake() -> void:
 ## 配对成功：先闪一下再缩放消失；格子数据由 GameBoard 即时清理，动画只管观感。
 func pop() -> void:
 	var tween := create_tween()
-	tween.tween_property(self, "scale", Vector2(1.18, 1.18), 0.08)
+	tween.tween_property(self, "scale", Vector2.ONE * _base_scale * 1.18, 0.08)
 	tween.tween_property(self, "scale", Vector2.ZERO, 0.14)
 	tween.tween_callback(queue_free)

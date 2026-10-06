@@ -5,8 +5,9 @@
 #   ① resolve-godot.sh  定位 Godot 可执行文件
 #   ② preflight.py      静态一致性检查（P1..P13）
 #   ③ smoke.sh          无头冒烟（GODOT_SMOKE_FRAMES=240，断言 GODOT_SMOKE: PASS）
+#   ④ input-fuzz.sh     输入鲁棒性 fuzz（断言 GODOT_FUZZ: PASS）
 #
-# 判定协议：全部通过退出码 0；preflight/smoke 失败退出码 1；环境不可用退出码 2。
+# 判定协议：全部通过退出码 0；preflight/smoke/fuzz 失败退出码 1；环境不可用退出码 2。
 
 set -uo pipefail
 
@@ -32,4 +33,7 @@ echo "== headless smoke（GODOT_SMOKE_FRAMES=240）=="
 GODOT_SMOKE_FRAMES="${GODOT_SMOKE_FRAMES:-240}" GODOT_BIN="${GODOT_BIN}" \
   bash "${GATE_DIR}/smoke.sh" "${SCRIPT_DIR}" || exit $?
 
-echo "verify: PASS preflight + smoke 全部通过"
+echo "== input fuzz =="
+GODOT_BIN="${GODOT_BIN}" bash "${GATE_DIR}/input-fuzz.sh" "${SCRIPT_DIR}" || exit $?
+
+echo "verify: PASS preflight + smoke + fuzz 全部通过"
