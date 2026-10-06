@@ -11,6 +11,7 @@
 | # | 事项 | 上报轮次 | 责任 |
 | --- | --- | --- | --- |
 | L2 | 工作流调度 API 迭代通道不可用（任务载明 403：目标大师非项目成员；本轨迹实测 iterate 端点 400 缺 startNodeId）——正式工作流结论待权限补齐后从 implement 补跑 | 迭代 v5 轮 | owner/运维 |
+| L3 | 第二轮复核轨迹 token 与 goal owner 不一致，goal artifacts API 直写被 403——v5 标识（HostedApp `cmuw2o6z4018picry133zwcio` / deployment `cmuwqrrl70051m9lgj8v89gh9` @2626927 / liveUrl）已落仓库黑板与 `qa/ACCEPTANCE_REVIEW_ROUND2.md` §3（含待落账 JSON），待有 owner 凭据者一键原位更新 goal 卡 hosted_app 条目 | 第二轮复核轮 | owner/目标大师 |
 
 ## 已解除
 
