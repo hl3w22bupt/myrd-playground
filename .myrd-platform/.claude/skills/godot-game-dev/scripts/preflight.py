@@ -36,6 +36,9 @@
       字体文件存在（Web 导出跑在浏览器沙箱里拿不到系统字体，引擎内置默认
       字体只含拉丁字形；没有这份字体，中文会渲染成 TextServer 缺字方块）。
       .gd 先剥注释再检测 —— 注释里的中文不会被渲染，不算触发条件
+  P14 脚本引用了 Juice 反馈单例（Juice.）时，project.godot [autoload] 必须注册
+      Juice（模板默认注册）。缺注册 = GDScript 解析期 Identifier not found，
+      无头冒烟才暴露 —— 这里秒级提前拦。反向（注册了但暂无调用点）不判错
 
 健壮性说明：.tscn 的方括号头一律按 key=value 解析、与属性顺序无关。
 Godot 编辑器保存场景时会写入 `uid="…"`、调整属性顺序 —— 任何按固定顺序匹配
@@ -80,7 +83,7 @@ GD3_PATTERNS = (
     (re.compile(r"\binterpolate_property\s*\("), "Godot 3 Tween API `interpolate_property()` → 应为 `create_tween()` + `tween_property()`"),
 )
 
-CHECKS = 13
+CHECKS = 14
 
 # CJK 渲染字符集：假名、汉字（扩展A/基本区/兼容区）、CJK 标点、全角形式。
 # 命中任意一个就视为「工程会渲染非拉丁文案」，P13 要求全局默认字体兜底。
@@ -365,6 +368,20 @@ def main() -> int:
                  "参考 minimal-2d 模板 assets/fonts/ 的子集化 Noto Sans CJK SC）")
         elif not exists(custom_font):
             fail(messages, "P13", f"gui/theme/custom_font 指向的字体不存在：{custom_font}")
+
+    # P14 Juice 反馈单例接线一致性：脚本引用了 Juice. ⇒ [autoload] 必须注册 Juice。
+    # 缺注册是解析期 Identifier not found（无头冒烟才暴露），静态提前拦；
+    # 反向（注册了但暂无调用点）不判错 —— 模板默认注册，供随时挂反馈。
+    # 与 P11 同款剥注释：SKILL.md/CLAUDE.md 里的示例写进注释不触发。
+    if "Juice" not in project.get("autoload", {}):
+        for rel, body in script_bodies.items():
+            stripped = "\n".join(strip_gd_comment(line) for line in body.splitlines())
+            if re.search(r"\bJuice\.", stripped):
+                fail(messages, "P14",
+                     f"{rel} 引用了 Juice 单例，但 project.godot [autoload] 未注册 Juice"
+                     "（解析期 Identifier not found）—— 从模板复制的工程默认已注册，"
+                     "删除单例必须同步删全部调用点")
+                break
 
     if messages:
         for message in messages:

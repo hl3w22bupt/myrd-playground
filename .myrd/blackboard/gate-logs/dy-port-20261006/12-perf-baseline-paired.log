@@ -1,0 +1,23 @@
+# 12 号 · P95 配对 A 侧（v1.1 基线 fe5fd38）原始跑日志 —— N2 驳回补档（2026-10-06）
+
+> 缘起：QA 驳回缺陷1——13 号判定件引用的 A 侧原始档（12-perf-baseline-paired.log）缺档，本件即该位补档。
+> 口径：同机同日**第二次独立配对**的 A 侧（13 号为第一次配对，其 A 侧原始档未随轮留档，如实披露，以本件交叉印证）。
+> 跑法：git worktree @ fe5fd38（临时 detached）→ `G2_SPEC_PATH=<run仓>/.myrd/spec/g2-blocks/design-spec.json node tools/perf-report.mjs`；
+> 工具与 dy 侧（11 号）同一份（fe5fd38..HEAD 该件零改动）；结构化报告见 12-perf-baseline-report.{md,json}。
+
+## 两次配对对照（同机同日 · 结论同向）
+
+| 项 | 13 号原始对·v1.1 列 | 12 号补档·A 侧 | dy 侧（11 号） | 结论 |
+|---|---|---|---|---|
+| 基准跑 P95 | 27.1ms | 26.1ms | 27.1ms | A/B 差 ≈1ms 机噪内，不退化维持 |
+| 基准跑 fps | 71.96 | 66.74 | 70.07 | 同量级 |
+| 基准跑 p99 | 34.892ms | 32.351ms | 27.3ms | 同量级 |
+| 基准跑 jank | 51(11.21%) | 63(15.00%) | 55(12.50%) | 机噪带内 |
+| 规格跑 P95 (×4) | 73.38ms | 71.06ms | 73.76ms | dy −0.4~+2.7ms，≪400ms 预算，不退化维持 |
+
+—— 以下为原始跑 stdout（原样，未编辑） ——
+
+[perf] 基准跑（throttle×1）: samples=420 fps=66.74 p50=13.9ms p95=26.1ms p99=32.351ms max=36.9ms jank=63(15.00%)
+[perf] 规格跑（spec j1 同环境）（throttle×4）: samples=137 fps=16.85 p50=58.5ms p95=71.06ms p99=74.2ms max=74.6ms jank=137(100.00%)
+[perf] 报告 → docs/evidence/perf-p95-report.md + .json
+PERF-REPORT: PASS P95 报告已产出（基准 P95=26.1ms · 代理口径披露在案）

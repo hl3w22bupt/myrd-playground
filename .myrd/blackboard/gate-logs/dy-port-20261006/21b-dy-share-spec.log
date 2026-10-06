@@ -1,0 +1,10 @@
+# dy-share-kit 条目查（DY 平台段轮）
+# spec: id=cmuqa2mu50023m9zr8mh60uph v2 status=approved anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmut4m9ww00bvic7qxd1wpl7y/.myrd/spec/g2-blocks/design-spec.json
+PASS  dy-s1 (ds-acc-1) 落点在盘 + shareNow 调 tt.shareAppMessage 且载荷 sid 合规
+PASS  dy-s2 (ds-acc-1/dy-diff-09) 卡规格 720×1280 = 链 v6 numeric.platform.dy.shareCard（零硬编码）
+PASS  dy-s3 (ds-acc-2) 分享入口纯跳转：share.ts 静态 import 面零 kernel/game/generated/numeric
+PASS  dy-s4 (ds-acc-3) 降级两路：无容器=no-dy-container；通道抛错=share-failed；均不抛错
+PASS  dy-s5 (ds-acc-4/dy-diff-04) 被动通道：installPassive 注册 onShareAppMessage+showShareMenu 同卡同参
+PASS  dy-s6 (生产接线) wireSharePassive：注入时钟生成 sid（零 PII 可复现）+ 无容器静默不抛错
+# 结果: PASS=6 RED=0 PENDING-APPROVE=0

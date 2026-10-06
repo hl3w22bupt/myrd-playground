@@ -1,0 +1,8 @@
+PASS 20-w1 注入 :: game.js 注入 shareImageUrl=包内相对路径
+PASS 20-w2 零扩散 :: 包内 game.js 卡路径字面量仅注入点 1 处（单源纪律）
+PASS 20-w3 源件全等 :: 包内卡 sha256 == A-07 源件（c705aaa6…）
+PASS 20-w4 manifest 同源 :: assets-manifest.files[dy-share-card] sha256+bytes 同源机判
+PASS 20-w5 id 对应 :: 四列核对单六 id 全在（文件名与 spec 元素 id 对应）
+PASS 20-w6 降级两路 :: share.ts 两路降级不抛错（try/catch）
+PASS 20-w7 注入缺失守卫 :: boot-dy 可选注入 + 缺失不注册被动通道
+—— N3 接线端到端：7/7 无红 ——

@@ -1,0 +1,9 @@
+# 《熔炉方块》AppHost 应用清单（g2-blocks · DY 平台段轮 · 一坞一游戏专属清单）
+# 与仓库根 apphost.toml（糖果粉碎传奇接入线）无关；本清单只服务本游戏部署。
+# 壳位于仓库根：server/（Node20 共享壳，清单不声明壳位置）。
+# 产物来源：g2-blocks 独立仓 dy/port-v1.1 @ 023e583 的 tools/build.mjs 输出（build/ 27 件，
+#   与 QA 锚 023e583 逐位一致；契约 18/18 + DY 条目查 3/3 + DY 冒烟 PASS 在该树上取得）。
+name = "熔炉方块"
+runtime = "node20"
+health = "/health"
+assets_dir = "games/g2-blocks/export/web"
