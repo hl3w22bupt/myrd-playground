@@ -23,7 +23,8 @@ const MOVE_FRAMES: int = 10
 const CYCLE_WAIT_FRAMES: int = 150
 ## 结算/重开断言的宽限帧。
 const RESULT_WAIT_FRAMES: int = 10
-const MIN_MOVE_DISTANCE: float = 1.0
+## 爪子位移断言阈值（米）：满速 10 物理帧 ≈ 0.4m。
+const MIN_MOVE_DISTANCE: float = 0.25
 
 const REQUIRED_ACTIONS: Array[StringName] = [
 	&"move_left", &"move_right", &"move_up", &"move_down", &"confirm", &"switch_claw",
@@ -46,7 +47,7 @@ var _phase: int = Phase.NOISE
 var _phase_frame: int = 0
 var _claw: Claw
 var _game_state: Node
-var _origin: Vector2 = Vector2.ZERO
+var _origin: Vector3 = Vector3.ZERO
 var _moved_seen: bool = false
 var _score_seen: bool = false
 var _phase_result_seen: bool = false
@@ -75,6 +76,9 @@ func _ready() -> void:
 		_game_state.score_changed.connect(_on_score_changed)
 		_game_state.phase_changed.connect(_on_phase_changed)
 		_check_tuning_protocol(_game_state)
+		_check_claw_variety(_game_state)
+		_check_audio(_game_state)
+		_check_3d_presentation()
 
 	_claw = get_tree().root.find_child("Claw", true, false) as Claw
 	if _claw == null:
@@ -248,6 +252,87 @@ func _check_tuning_protocol(game_state: Node) -> void:
 		game_state.set(probe_key, original)
 
 
+## 爪型差异契约（验收 1）：≥3 种爪型且有效参数互不相同（同爪型抓取表现才有可感知差异）。
+func _check_claw_variety(game_state: Node) -> void:
+	var types: Array = game_state.get("CLAW_TYPES")
+	if types == null or (types as Array).size() < 3:
+		_failures.append("爪型断言：CLAW_TYPES 少于 3 种（验收 1 要求 ≥3 种可切换夹爪）")
+		return
+	var radii: Array[float] = []
+	var powers: Array[float] = []
+	for i in (types as Array).size():
+		game_state.call("select_claw", i)
+		var claw: Dictionary = game_state.call("current_claw")
+		radii.append(float(claw["radius"]))
+		powers.append(float(claw["power"]))
+	for i in (types as Array).size():
+		for j in range(i + 1, (types as Array).size()):
+			if is_equal_approx(radii[i], radii[j]) and is_equal_approx(powers[i], powers[j]):
+				_failures.append("爪型断言：第 %d/%d 种爪型的抓取半径与夹力完全相同（验收 1 要求参数差异可感知）" % [i, j])
+	game_state.call("select_claw", 0)
+
+
+## 音频契约（验收 4）：SFX ≥5 种（含 move）、BGM 无缝循环且在播、静音开关可翻转可还原。
+func _check_audio(game_state: Node) -> void:
+	var juice := get_tree().root.get_node_or_null("Juice")
+	if juice == null:
+		_failures.append("音频断言：autoload Juice 未注册")
+		return
+	var bank: Dictionary = juice.get("SFX_BANK")
+	if bank.size() < 5:
+		_failures.append("音频断言：SFX_BANK 只有 %d 种音效（验收 4 要求 ≥5 种）" % bank.size())
+	if not bank.has(&"move"):
+		_failures.append("音频断言：SFX_BANK 缺少 move（爪子移动音效，验收 4）")
+	var bgm := get_tree().root.find_child("Bgm", true, false) as AudioStreamPlayer
+	if bgm == null or bgm.stream == null:
+		_failures.append("音频断言：找不到 Bgm 播放器或音频流（验收 4 要求 ≥1 首 BGM）")
+	else:
+		var wav := bgm.stream as AudioStreamWAV
+		if wav == null or wav.loop_mode != AudioStreamWAV.LOOP_FORWARD:
+			_failures.append("音频断言：BGM 未设 LOOP_FORWARD（验收 4 要求无缝循环）")
+		if not bgm.playing:
+			_failures.append("音频断言：BGM 未在播放")
+	var before: bool = game_state.get("muted")
+	if game_state.call("toggle_mute") == before:
+		_failures.append("音频断言：toggle_mute 未翻转静音态（静音开关失效，验收 4）")
+	if game_state.call("toggle_mute") != before:
+		_failures.append("音频断言：toggle_mute 二次调用未还原静音态")
+
+
+## 3D 呈现契约（验收 3 的可机判代理）：全 3D 场景 + 布货是物理刚体 + 视角限位可靠。
+func _check_3d_presentation() -> void:
+	var main := get_tree().root.find_child("Main", true, false) as Node3D
+	if main == null:
+		_failures.append("3D 断言：主场景根不是 Node3D（验收 3 要求场景全 3D 呈现）")
+	var dolls := get_tree().root.find_child("Dolls", true, false)
+	if dolls != null:
+		var rigid_count := 0
+		for child in dolls.get_children():
+			if child is RigidBody3D:
+				rigid_count += 1
+		if rigid_count < Doll.KINDS.size():
+			_failures.append("3D 断言：布货娃娃只有 %d 只是 RigidBody3D（物理碰撞缺失，验收 3）" % rigid_count)
+	var rig := get_tree().root.find_child("CameraRig", true, false) as CameraRig
+	if rig == null:
+		_failures.append("3D 断言：场景没有 CameraRig（视角旋转/缩放缺失，验收 3）")
+	else:
+		rig.orbit(99999.0, 99999.0)
+		# 正向拖动把 yaw 推向下界、pitch 推向上界 —— 断言两侧都被钳住。
+		if absf(absf(rig.yaw) - CameraRig.YAW_LIMIT) > 0.0001 or absf(rig.pitch - CameraRig.PITCH_MAX) > 0.0001:
+			_failures.append("相机断言：orbit 未按限位钳制（yaw=%.3f pitch=%.3f）" % [rig.yaw, rig.pitch])
+		rig.zoom_by(-99999.0)
+		if absf(rig.distance - CameraRig.DIST_MIN) > 0.0001:
+			_failures.append("相机断言：zoom_by 未按 DIST_MIN 钳制（distance=%.3f）" % rig.distance)
+		rig.zoom_by(99999.0)
+		if absf(rig.distance - CameraRig.DIST_MAX) > 0.0001:
+			_failures.append("相机断言：zoom_by 未按 DIST_MAX 钳制（distance=%.3f）" % rig.distance)
+		# 还原默认视角，不污染后续玩法断言。
+		rig.yaw = 0.0
+		rig.pitch = 0.62
+		rig.distance = 2.45
+		rig.orbit(0.0, 0.0)
+
+
 func _key_labels(keys: Array) -> String:
 	var labels: PackedStringArray = []
 	for code in keys:
@@ -264,7 +349,7 @@ func _assert_player_moved() -> void:
 		return
 	var travelled: float = _claw.global_position.distance_to(_origin)
 	if travelled < MIN_MOVE_DISTANCE:
-		_failures.append("爪子 %d 帧内位移 %.2fpx < %.2fpx：InputMap 动作未生效或 _physics_process 未驱动" % [
+		_failures.append("爪子 %d 帧内位移 %.2fm < %.2fm：InputMap 动作未生效或 _physics_process 未驱动" % [
 			MOVE_FRAMES, travelled, MIN_MOVE_DISTANCE,
 		])
 
@@ -278,7 +363,7 @@ func _stage_dramatic_drop() -> void:
 		_failures.append("下爪前置失败：场景里没有娃娃可抓")
 		return
 	var doll := dolls.get_child(0) as Doll
-	_claw.global_position = doll.global_position - Vector2(0.0, 96.0)
+	_claw.global_position = Vector3(doll.global_position.x, _claw.global_position.y, doll.global_position.z)
 
 
 func _assert_cycle_result() -> void:
@@ -314,7 +399,7 @@ func _assert_restart() -> void:
 
 ## ── 信号接收 ──
 
-func _on_claw_moved(_position: Vector2) -> void:
+func _on_claw_moved(_position: Vector3) -> void:
 	_moved_seen = true
 
 
@@ -350,7 +435,7 @@ func _report() -> void:
 		for key: String in _saved_tuning:
 			_game_state.set(key, _saved_tuning[key])
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/autoload/输入映射/信号/移动/下爪抓取/胜负重开/反馈/调参协议 全部通过")
+		print("GODOT_SMOKE: PASS 场景实例化/autoload/输入映射/信号/3D移动/物理抓取落洞/胜负重开/反馈/调参协议/爪型差异/音频契约/相机限位 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

@@ -1,15 +1,16 @@
 class_name Doll
-extends Node2D
-## 娃娃：8 种造型（造型/体积/稀有度差异化），程序化 _draw 绒布质感，落体状态机。
+extends RigidBody3D
+## 娃娃（3D）：8 种造型（造型/体积/稀有度差异化）程序化建模的 RigidBody3D。
 ##
-## 规范要点：对外只发信号（caught / landed），不持有 UI；入账由场景层订阅后调 GameState。
+## 真实物理：落台/蹭落/落洞都是刚体碰撞翻滚（验收 3）。被爪子抓住时 freeze 成
+## 运动学态由爪子每帧同步位置，松爪 unfreeze 交还物理。
+## 材质按款式缓存（static），8 只娃娃共享，控 DrawCall。
 
 signal caught(doll: Doll)
-signal landed(doll: Doll)
 
-enum DollState { IDLE, HELD, FALLING }
+enum DollState { IDLE, HELD, CAUGHT }
 
-## 娃娃库（需求：不少于 8 种，不同造型/体积/稀有度；weight 越大越难被抓稳）。
+## 娃娃库（需求：不少于 8 种，不同造型/体积/稀有度；weight 越大越难被抓稳，质量也越大）。
 const KINDS: Array[Dictionary] = [
 	{"id": &"bear", "name": "泰迪熊", "body": Color(0.82, 0.6, 0.36), "belly": Color(0.93, 0.8, 0.62), "ear": "round", "score": 100, "weight": 0.9, "rarity": "普通"},
 	{"id": &"bunny", "name": "长耳兔", "body": Color(0.95, 0.93, 0.9), "belly": Color(1.0, 0.97, 0.95), "ear": "bunny", "score": 100, "weight": 0.8, "rarity": "普通"},
@@ -21,27 +22,26 @@ const KINDS: Array[Dictionary] = [
 	{"id": &"unicorn", "name": "云朵独角兽", "body": Color(0.9, 0.82, 0.98), "belly": Color(0.98, 0.95, 1.0), "ear": "horn", "score": 300, "weight": 1.15, "rarity": "隐藏"},
 ]
 
-## 下落动画参数。
-const FALL_TIME: float = 0.55
-const GRAVITY_TILT: float = 0.35
+## 布货半径基准（米）；实际半径按体重微调（weight^0.15，同 2D 版口径）。
+## 0.13 配 2×4 网格（列距 0.20/行距 0.20）：相邻轻微相触，落台散落后自然成堆。
+const BASE_RADIUS: float = 0.13
 
 var kind_index: int = 0
 var kind: Dictionary = KINDS[0]
-var radius: float = 34.0
+var radius: float = BASE_RADIUS
 var state: int = DollState.IDLE
-var _fall_from: Vector2 = Vector2.ZERO
-var _fall_to: Vector2 = Vector2.ZERO
-var _fall_t: float = 0.0
-var _fall_caught: bool = false
+
+static var _mat_cache: Dictionary = {}
 
 
-## 布货：指定款式与半径（入场时由主场景调用），随机微转角模拟散落。
+## 布货：指定款式（入场时由主场景调用），随机微转角模拟散落。
 func setup(index: int, doll_radius: float) -> void:
 	kind_index = index % KINDS.size()
 	kind = KINDS[kind_index]
 	radius = doll_radius * float(kind.get("weight", 1.0)) ** 0.15
-	rotation = randf_range(-0.22, 0.22)
-	queue_redraw()
+	mass = 0.22 * float(kind.get("weight", 1.0))
+	rotation = Vector3(randf_range(-0.25, 0.25), randf_range(-PI, PI), randf_range(-0.25, 0.25))
+	_build_body()
 
 
 func kind_name() -> String:
@@ -52,81 +52,118 @@ func kind_score() -> int:
 	return int(kind["score"])
 
 
-## 被爪子抓住：附着到爪子（由 claw 每帧同步位置）。
+func kind_rarity() -> String:
+	return String(kind["rarity"])
+
+
+## 被爪子抓住：冻结成运动学态（位置由 claw 每帧同步）。
 func grab() -> void:
 	state = DollState.HELD
+	freeze_mode = RigidBody3D.FREEZE_MODE_KINEMATIC
+	freeze = true
+	linear_velocity = Vector3.ZERO
+	angular_velocity = Vector3.ZERO
 
 
-## 松爪下落：caught=true 落进取物口；false 中途滑落回机台原位。
-func release(to: Vector2, is_caught: bool) -> void:
-	state = DollState.FALLING
-	_fall_from = position
-	_fall_to = to if is_caught else position + Vector2(0.0, 26.0)
-	_fall_t = 0.0
-	_fall_caught = is_caught
-	rotation = randf_range(-0.6, 0.6)
+## 松爪：is_caught=true 交还物理直接落洞；false 中途滑落，给一点随机翻滚。
+func release(is_caught: bool) -> void:
+	freeze = false
+	linear_velocity = Vector3.ZERO
+	angular_velocity = Vector3.ZERO
+	if not is_caught:
+		apply_central_impulse(Vector3(randf_range(-0.25, 0.25), 0.0, randf_range(-0.2, 0.2)))
+		apply_torque_impulse(Vector3(randf_range(-0.05, 0.05), randf_range(-0.05, 0.05), randf_range(-0.05, 0.05)))
+	else:
+		state = DollState.CAUGHT
 
 
-func _physics_process(delta: float) -> void:
-	if state != DollState.FALLING:
-		return
-	_fall_t = minf(_fall_t + delta / FALL_TIME, 1.0)
-	var t := _fall_t
-	# 抛物线下落 + 收缩（掉进取物口的纵深感），中途滑落只压一点点。
-	position = _fall_from.lerp(_fall_to, t)
-	var squash := 1.0 - 0.35 * sin(t * PI) if _fall_caught else 1.0 - 0.12 * sin(t * PI)
-	scale = Vector2.ONE * squash
-	if t >= 1.0:
-		state = DollState.IDLE
-		scale = Vector2.ONE
-		if _fall_caught:
-			caught.emit(self)
-		else:
-			landed.emit(self)
+func _mat(color: Color, rough: float = 0.9) -> StandardMaterial3D:
+	var key := "%s|%s" % [color.to_html(), rough]
+	if not _mat_cache.has(key):
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = color
+		mat.roughness = rough
+		_mat_cache[key] = mat
+	return _mat_cache[key] as StandardMaterial3D
 
 
-func _draw() -> void:
-	var body: Color = kind["body"]
-	var belly: Color = kind["belly"]
+func _sphere(parent: Node, pos: Vector3, r: float, mat: Material, sy := 1.0) -> MeshInstance3D:
+	var mesh := SphereMesh.new()
+	mesh.radius = r
+	mesh.height = r * 2.0 * sy
+	mesh.radial_segments = 20
+	mesh.rings = 10
+	var inst := MeshInstance3D.new()
+	inst.mesh = mesh
+	inst.position = pos
+	inst.material_override = mat
+	parent.add_child(inst)
+	return inst
+
+
+## 程序化建模：身体 + 肚皮 + 头 + 耳朵/独角 + 眼睛鼻腮红 + 碰撞球。
+func _build_body() -> void:
+	for child in get_children():
+		child.queue_free()
 	var r := radius
-	# 投影。
-	draw_circle(Vector2(3.0, 5.0), r * 1.02, Color(0.0, 0.0, 0.0, 0.18))
+	var body_c: Color = kind["body"]
+	var belly_c: Color = kind["belly"]
+	var mat_body := _mat(body_c)
+	var mat_belly := _mat(belly_c)
+	# 身体（竖椭圆）与肚皮。
+	_sphere(self, Vector3(0.0, 0.0, 0.0), r, mat_body, 1.05)
+	_sphere(self, Vector3(0.0, -r * 0.18, r * 0.32), r * 0.52, mat_belly, 1.1)
+	# 头（略前倾朝向镜头 +Z）。
+	_sphere(self, Vector3(0.0, r * 0.72, r * 0.06), r * 0.74, mat_body)
+	_sphere(self, Vector3(0.0, r * 0.6, r * 0.5), r * 0.36, mat_belly, 0.9)
 	match String(kind["ear"]):
-		"bunny":
-			for side in [-1.0, 1.0]:
-				var ear_pos := Vector2(side * r * 0.42, -r * 1.18)
-				draw_circle(ear_pos + Vector2(0.0, r * 0.3), r * 0.2, body)
-				draw_circle(ear_pos, r * 0.22, body)
-				draw_circle(ear_pos, r * 0.12, belly)
-		"cat":
-			for side in [-1.0, 1.0]:
-				var tip := Vector2(side * r * 0.72, -r * 0.82)
-				draw_circle(tip, r * 0.3, body)
-		"horn":
-			draw_polygon(
-				PackedVector2Array([
-					Vector2(-r * 0.16, -r * 0.86), Vector2(0.0, -r * 1.42), Vector2(r * 0.16, -r * 0.86),
-				]),
-				PackedColorArray([Color(1.0, 0.92, 0.6), Color(1.0, 0.85, 0.45), Color(1.0, 0.92, 0.6)])
-			)
-			for side in [-1.0, 1.0]:
-				draw_circle(Vector2(side * r * 0.5, -r * 0.78), r * 0.22, body)
 		"round":
 			for side in [-1.0, 1.0]:
-				draw_circle(Vector2(side * r * 0.78, -r * 0.72), r * 0.34, body)
-				draw_circle(Vector2(side * r * 0.78, -r * 0.72), r * 0.18, belly)
+				_sphere(self, Vector3(side * r * 0.66, r * 1.22, 0.02), r * 0.3, mat_body)
+				_sphere(self, Vector3(side * r * 0.66, r * 1.22, 0.1), r * 0.16, mat_belly)
+		"bunny":
+			for side in [-1.0, 1.0]:
+				_sphere(self, Vector3(side * r * 0.34, r * 1.5, -0.02), r * 0.2, mat_body, 2.6)
+				_sphere(self, Vector3(side * r * 0.36, r * 1.52, 0.1), r * 0.1, mat_belly, 2.0)
+		"cat":
+			for side in [-1.0, 1.0]:
+				_sphere(self, Vector3(side * r * 0.58, r * 1.28, 0.0), r * 0.24, mat_body, 0.8)
+		"horn":
+			var horn := MeshInstance3D.new()
+			var cone := CylinderMesh.new()
+			cone.top_radius = 0.0
+			cone.bottom_radius = r * 0.14
+			cone.height = r * 0.62
+			horn.mesh = cone
+			horn.position = Vector3(0.0, r * 1.62, 0.0)
+			horn.rotation.x = 0.12
+			horn.material_override = _mat(Color(1.0, 0.88, 0.55), 0.4)
+			add_child(horn)
+			for side in [-1.0, 1.0]:
+				_sphere(self, Vector3(side * r * 0.55, r * 1.12, 0.0), r * 0.16, _mat(Color(1.0, 0.75, 0.85)))
 		_:
 			pass
-	# 身体（椭圆感：两个交叠圆）。
-	draw_circle(Vector2(0.0, r * 0.42), r * 0.86, body)
-	draw_circle(Vector2(0.0, r * 0.5), r * 0.52, belly)
-	# 头。
-	draw_circle(Vector2(0.0, -r * 0.24), r * 0.78, body)
-	draw_circle(Vector2(0.0, -r * 0.05), r * 0.42, belly)
 	# 眼睛 + 鼻 + 腮红。
-	var eye := Color(0.16, 0.13, 0.12)
-	draw_circle(Vector2(-r * 0.26, -r * 0.34), r * 0.09, eye)
-	draw_circle(Vector2(r * 0.26, -r * 0.34), r * 0.09, eye)
-	draw_circle(Vector2(0.0, -r * 0.14), r * 0.06, Color(0.55, 0.3, 0.3))
-	draw_circle(Vector2(-r * 0.46, -r * 0.12), r * 0.11, Color(1.0, 0.62, 0.62, 0.55))
-	draw_circle(Vector2(r * 0.46, -r * 0.12), r * 0.11, Color(1.0, 0.62, 0.62, 0.55))
+	var eye := _mat(Color(0.16, 0.13, 0.12), 0.35)
+	_sphere(self, Vector3(-r * 0.26, r * 0.78, r * 0.62), r * 0.09, eye)
+	_sphere(self, Vector3(r * 0.26, r * 0.78, r * 0.62), r * 0.09, eye)
+	_sphere(self, Vector3(0.0, r * 0.62, r * 0.68), r * 0.06, _mat(Color(0.55, 0.3, 0.3), 0.5))
+	_sphere(self, Vector3(-r * 0.48, r * 0.62, r * 0.5), r * 0.11, _mat(Color(1.0, 0.62, 0.62, 0.6)))
+	_sphere(self, Vector3(r * 0.48, r * 0.62, r * 0.5), r * 0.11, _mat(Color(1.0, 0.62, 0.62, 0.6)))
+	# 碰撞球（略小于视觉，抓取与落洞余量更足）。
+	var shape_node := CollisionShape3D.new()
+	var shape := SphereShape3D.new()
+	shape.radius = r * 0.92
+	shape_node.shape = shape
+	shape_node.position = Vector3(0.0, r * 0.25, 0.0)
+	add_child(shape_node)
+	# 物理材质：低弹性高摩擦，堆叠稳定、翻滚自然。
+	var phys := PhysicsMaterial.new()
+	phys.bounce = 0.12
+	phys.friction = 0.9
+	physics_material_override = phys
+	angular_damp = 2.5
+	linear_damp = 0.15
+	collision_layer = 1
+	collision_mask = 1
+	can_sleep = true

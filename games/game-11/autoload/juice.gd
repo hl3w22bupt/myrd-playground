@@ -26,6 +26,7 @@ const SFX_BANK: Dictionary = {
 	&"fail": preload("res://assets/sfx/fail.wav"),
 	&"drop": preload("res://assets/sfx/drop.wav"),
 	&"claw_close": preload("res://assets/sfx/claw_close.wav"),
+	&"move": preload("res://assets/sfx/move.wav"),
 }
 
 ## 本局反馈记录（"kind@ms"），冒烟断言只看是否非空；环形上限防长局内存膨胀。

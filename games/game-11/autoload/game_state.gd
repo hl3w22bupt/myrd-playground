@@ -13,6 +13,8 @@ signal coins_changed(coins: int)
 signal claw_switched(claw_id: StringName, claw_name: String)
 ## 局态变化：进入 PLAYING / RESULT（won=是否达成目标）。
 signal phase_changed(phase: int, won: bool)
+## 静音开关切换（BGM 与音效总线）。
+signal mute_changed(muted: bool)
 
 ## 局态：READY 未开局（预留）/ PLAYING 进行中 / RESULT 结算。
 enum Phase { READY, PLAYING, RESULT }
@@ -32,6 +34,8 @@ var coins: int = 5
 var dolls_collected: int = 0
 ## 背包/展示柜：本局抓到的娃娃名（结算与 HUD 展示用）。
 var collected_names: PackedStringArray = []
+## 背包详情行（名称 · 稀有度 · 分数），与 collected_names 同序。
+var collected_details: PackedStringArray = []
 var last_won: bool = false
 ## 当前夹爪下标（switch_claw 循环切换）。
 var claw_index: int = 0
@@ -40,9 +44,10 @@ var time_left: float = 75.0
 
 ## ── 数值调参区（SKILL.md §3C 调参工作台的 spec.numeric 对接面）──
 ## 注意：全部声明为 float —— apply_tuning 经 set() 写入，float 写进 int 变量会运行报错。
-var claw_speed: float = 300.0
-var drop_speed: float = 420.0
-var grab_radius: float = 52.0
+## 3D 版单位为米/秒（1 unit = 1 m），与 2D 像素口径不同。
+var claw_speed: float = 1.15
+var drop_speed: float = 2.6
+var grab_radius: float = 0.28
 var grab_stability: float = 0.8
 var round_seconds: float = 75.0
 var target_dolls: float = 3.0
@@ -50,9 +55,9 @@ var coins_start: float = 5.0
 
 ## 可调键的元数据：键名 → {min, max, step}。调参面板按它生成滑杆，apply_tuning 按它钳制。
 const TUNING_META: Dictionary = {
-	&"claw_speed": {"min": 80.0, "max": 600.0, "step": 10.0},
-	&"drop_speed": {"min": 120.0, "max": 900.0, "step": 10.0},
-	&"grab_radius": {"min": 16.0, "max": 90.0, "step": 2.0},
+	&"claw_speed": {"min": 0.4, "max": 2.4, "step": 0.05},
+	&"drop_speed": {"min": 0.8, "max": 6.0, "step": 0.1},
+	&"grab_radius": {"min": 0.10, "max": 0.40, "step": 0.01},
 	&"grab_stability": {"min": 0.2, "max": 1.0, "step": 0.05},
 	&"round_seconds": {"min": 30.0, "max": 180.0, "step": 5.0},
 	&"target_dolls": {"min": 1.0, "max": 8.0, "step": 1.0},
@@ -86,9 +91,27 @@ func current_claw() -> Dictionary:
 
 
 func switch_claw() -> void:
-	claw_index = (claw_index + 1) % CLAW_TYPES.size()
+	select_claw((claw_index + 1) % CLAW_TYPES.size())
+
+
+## 指定爪型（爪型选择面板用）；越界忽略，同型不重播信号。
+func select_claw(index: int) -> void:
+	if index < 0 or index >= CLAW_TYPES.size():
+		return
+	claw_index = index
 	var claw: Dictionary = CLAW_TYPES[claw_index]
 	claw_switched.emit(claw["id"], claw["name"])
+
+
+## ── 声音开关（BGM + 音效同一总线）──
+
+var muted: bool = false
+
+
+func toggle_mute() -> bool:
+	muted = not muted
+	mute_changed.emit(muted)
+	return muted
 
 
 ## 开局/重开：清状态、补币、回满时间，广播 phase_changed(PLAYING)。
@@ -100,6 +123,7 @@ func start_round() -> void:
 	coins = int(coins_start)
 	dolls_collected = 0
 	collected_names = PackedStringArray()
+	collected_details = PackedStringArray()
 	time_left = round_seconds
 	score_changed.emit(score)
 	coins_changed.emit(coins)
@@ -115,16 +139,22 @@ func spend_coin() -> bool:
 	return true
 
 
-## 娃娃落入取物口：入账 + 进背包；达标即胜。
-func collect_doll(doll_name: String, doll_score: int) -> void:
+## 娃娃落入取物口：入账 + 进背包（含稀有度详情）；达标即胜。
+func collect_doll(doll_name: String, doll_score: int, rarity: String = "普通") -> void:
 	if phase != Phase.PLAYING:
 		return
 	dolls_collected += 1
 	score += doll_score
 	collected_names.append(doll_name)
+	collected_details.append("%s · %s · %d分" % [doll_name, rarity, doll_score])
 	score_changed.emit(score)
 	if dolls_collected >= int(target_dolls):
 		finish(true)
+
+
+## 背包/展示柜详情行（展示柜面板用）。
+func collected_entries() -> PackedStringArray:
+	return collected_details
 
 
 ## 结算：只有 PLAYING 能结算，防重复 finish。

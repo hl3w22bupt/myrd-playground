@@ -1,37 +1,40 @@
 class_name Claw
-extends Node2D
-## 夹爪（玩家可控角色）：摇杆平移 → 下爪 → 闭合抓取 → 提起 → 自动返回取物口 → 松爪。
+extends Node3D
+## 夹爪（3D）：摇杆平移（XZ 平面）→ 下爪 → 闭合抓取 → 提起 → 自动返回取物口 → 松爪。
 ##
 ## 规范要点：
 ## - 输入只读 InputMap 动作名（move_left/right/up/down），数值只读 GameState 调参区；
-## - 对外只发信号（moved / cycle_finished），UI 反馈由主场景订阅后挂 Juice；
-## - 状态机推进全部在 _physics_process，headless 冒烟可分帧驱动断言。
+## - 对外只发信号（moved / cycle_finished / grab_resolved / slipped），UI 反馈由主场景订阅后挂 Juice；
+## - 状态机推进全部在 _physics_process，headless 冒烟可分帧驱动断言；
+## - 抓取判定：爪头球形邻域内最近的空闲娃娃，按 夹力/体重 掷骰（debug_always_grab 测试接缝）。
 
-signal moved(position: Vector2)
+signal moved(position: Vector3)
 ## 一个抓取周期结束：grabbed=true = 娃娃被送进取物口上方松开。
 signal cycle_finished(grabbed: bool)
 ## 抓取判定结果（闭合瞬间）：抓到 / 空爪 —— 主场景据此挂即时反馈。
 signal grab_resolved(grabbed: bool)
 ## 中途滑落（夹持不稳，娃娃掉回机台）。
-signal slipped(position: Vector2)
+signal slipped(position: Vector3)
 
 enum ClawState { IDLE, DROPPING, GRABBING, RAISING, RETURNING, RELEASING }
 
-## 视觉下爪深度（像素）。
-const HEAD_DROP_DEPTH: float = 96.0
+## 下爪深度（米）：从龙门架到娃娃堆高度。
+const HEAD_DROP_DEPTH: float = 1.28
 ## 闭合 / 松爪时长（秒）。
-const GRAB_TIME: float = 0.28
-const RELEASE_TIME: float = 0.22
-## 爪子平移的活动范围夹边（防抖动余量）。
-const EDGE_MARGIN: float = 26.0
+const GRAB_TIME: float = 0.3
+const RELEASE_TIME: float = 0.24
+## 爪子平移的活动范围夹边（米，防卡死角）。
+const EDGE_MARGIN: float = 0.06
+## 移动伺服音效节流（秒）。
+const MOVE_SFX_INTERVAL: float = 0.22
 
 var state: int = ClawState.IDLE
-## 可移动范围（机台玻璃区，主场景 _ready 注入）。
-var field_rect: Rect2 = Rect2(0, 0, 720, 1280)
+## 可移动范围（XZ 平面：x=世界 X，y=世界 Z；主场景 _ready 注入）。
+var field_rect: Rect2 = Rect2(-0.55, -0.4, 1.1, 0.82)
 ## 取物口悬停点（世界坐标，主场景注入）。
-var pit_point: Vector2 = Vector2.ZERO
+var pit_point: Vector3 = Vector3.ZERO
 ## 娃娃容器（抓取判定遍历用，主场景注入）。
-var dolls: Node2D = null
+var dolls: Node3D = null
 ## 测试接缝：true 时跳过滑落掷骰（冒烟需要确定性抓取；运行时恒为 false）。
 var debug_always_grab: bool = false
 
@@ -42,11 +45,20 @@ var held_doll: Doll = null
 var _grab_timer: float = 0.0
 var _will_slip: bool = false
 var _cycle_grabbed: bool = false
+var _move_sfx_cd: float = 0.0
 var _rng := RandomNumberGenerator.new()
+
+## 视觉节点（_ready 代码搭建）。
+var _head: Node3D
+var _cable: MeshInstance3D
+var _arm_pivots: Array[Node3D] = []
+var _head_mat: StandardMaterial3D
+var _tip_mat: StandardMaterial3D
 
 
 func _ready() -> void:
 	_rng.randomize()
+	_build_visuals()
 
 
 func claw_state_name() -> String:
@@ -58,16 +70,17 @@ func reset_state() -> void:
 	if held_doll != null:
 		var doll := held_doll
 		held_doll = null
-		doll.release(global_position + Vector2(0.0, 30.0), false)
+		doll.release(false)
 	state = ClawState.IDLE
 	head_drop = 0.0
 	arm_close = 0.0
 	_will_slip = false
 	_cycle_grabbed = false
+	_sync_visual()
 
 
 func effective_speed() -> float:
-	return GameState.claw_speed * GameState.current_claw()["speed_mult"]
+	return GameState.claw_speed * float(GameState.current_claw()["speed_mult"])
 
 
 func effective_radius() -> float:
@@ -75,8 +88,8 @@ func effective_radius() -> float:
 
 
 ## 爪头（下爪末端）的世界坐标：抓取判定与挂娃娃都锚在这里。
-func head_position() -> Vector2:
-	return global_position + Vector2(0.0, head_drop * HEAD_DROP_DEPTH)
+func head_position() -> Vector3:
+	return global_position + Vector3(0.0, -head_drop * HEAD_DROP_DEPTH, 0.0)
 
 
 ## 尝试下爪：IDLE + 进行中 + 币足才成立；返回是否受理。
@@ -91,6 +104,7 @@ func try_drop() -> bool:
 
 
 func _physics_process(delta: float) -> void:
+	_move_sfx_cd = maxf(_move_sfx_cd - delta, 0.0)
 	match state:
 		ClawState.IDLE:
 			_process_idle(delta)
@@ -104,7 +118,7 @@ func _physics_process(delta: float) -> void:
 			_process_returning(delta)
 		ClawState.RELEASING:
 			_process_releasing(delta)
-	queue_redraw()
+	_sync_visual()
 
 
 func _process_idle(delta: float) -> void:
@@ -112,11 +126,13 @@ func _process_idle(delta: float) -> void:
 	if direction == Vector2.ZERO:
 		return
 	var speed := effective_speed()
-	position += direction * speed * delta
-	position = position.clamp(
-		field_rect.position + Vector2(EDGE_MARGIN, EDGE_MARGIN),
-		field_rect.end - Vector2(EDGE_MARGIN, EDGE_MARGIN)
-	)
+	var next := position + Vector3(direction.x, 0.0, direction.y) * speed * delta
+	var min_edge := field_rect.position + Vector2(EDGE_MARGIN, EDGE_MARGIN)
+	var max_edge := field_rect.end - Vector2(EDGE_MARGIN, EDGE_MARGIN)
+	position = Vector3(clampf(next.x, min_edge.x, max_edge.x), position.y, clampf(next.z, min_edge.y, max_edge.y))
+	if _move_sfx_cd <= 0.0:
+		_move_sfx_cd = MOVE_SFX_INTERVAL
+		Juice.sfx(&"move")
 	moved.emit(global_position)
 
 
@@ -137,28 +153,27 @@ func _process_grabbing(delta: float) -> void:
 
 func _process_raising(delta: float) -> void:
 	head_drop = maxf(head_drop - delta * GameState.drop_speed / HEAD_DROP_DEPTH, 0.0)
+	_carry_held_doll()
 	if head_drop <= 0.0:
 		if held_doll != null and _will_slip:
-			# 夹持不稳：提起瞬间滑落，娃娃掉回机台。
+			# 夹持不稳：提起瞬间滑落，娃娃掉回机台（交还物理，随机翻滚）。
 			var doll := held_doll
 			held_doll = null
-			doll.release(global_position + Vector2(0.0, 30.0), false)
+			doll.release(false)
 			slipped.emit(global_position)
 		state = ClawState.RETURNING
 
 
 func _process_returning(delta: float) -> void:
 	var step := effective_speed() * delta
-	var to_pit := pit_point - global_position
+	var to_pit := Vector3(pit_point.x - global_position.x, 0.0, pit_point.z - global_position.z)
 	if to_pit.length() <= step:
-		global_position = pit_point
+		global_position = Vector3(pit_point.x, global_position.y, pit_point.z)
 		state = ClawState.RELEASING
 		_grab_timer = 0.0
 	else:
 		global_position += to_pit.normalized() * step
-	# 挂着的娃娃跟随爪头。
-	if held_doll != null:
-		held_doll.global_position = head_position() + Vector2(0.0, 26.0)
+	_carry_held_doll()
 
 
 func _process_releasing(delta: float) -> void:
@@ -169,14 +184,21 @@ func _process_releasing(delta: float) -> void:
 			var doll := held_doll
 			held_doll = null
 			_cycle_grabbed = true
-			# 松在取物口正上方：落进取物口（主场景订阅 Doll.caught 入账）。
-			doll.release(pit_point + Vector2(0.0, 58.0), true)
+			# 松在取物口正上方：交还物理，落进取物口（Machine.pit_area body_entered 入账）。
+			doll.release(true)
 		state = ClawState.IDLE
 		cycle_finished.emit(_cycle_grabbed)
 		GameState.check_coins_exhausted()
 
 
-## 闭合判定：半径内最近的空闲娃娃；掷骰决定是否夹稳。
+## 挂着的娃娃跟随爪头（冻结态直接写全局位置）。
+func _carry_held_doll() -> void:
+	if held_doll != null:
+		held_doll.global_position = head_position() + Vector3(0.0, -(held_doll.radius * 0.9 + 0.03), 0.0)
+		held_doll.rotation.y += 0.01
+
+
+## 闭合判定：球形邻域内最近的空闲娃娃；掷骰决定是否夹稳（夹力/体重）。
 func _resolve_grab() -> void:
 	var target := _nearest_idle_doll()
 	if target == null:
@@ -205,65 +227,107 @@ func _nearest_idle_doll() -> Doll:
 		var doll := child as Doll
 		if doll == null or doll.state != Doll.DollState.IDLE:
 			continue
-		var dist := head_position().distance_to(doll.global_position)
-		var reach := best_dist + doll.radius * 0.35
-		if dist <= reach:
-			best_dist = maxf(dist - doll.radius * 0.35, 1.0)
+		var dist := head_position().distance_to(doll.global_position + Vector3(0.0, doll.radius * 0.25, 0.0))
+		if dist <= best_dist + doll.radius * 0.35:
 			best = doll
 	return best
 
 
-## ── 绘制：吊缆 + 滑车 + 爪头 + 爪臂（爪型决定臂数与配色）──
+## ── 视觉：滑车 + 吊缆 + 爪头 + 爪臂（爪型决定臂数/形状/配色）──
 
 const CLAW_COLORS: Dictionary = {
 	&"triple": Color(1.0, 0.82, 0.28),
 	&"twin": Color(0.95, 0.42, 0.36),
 	&"scissor": Color(0.45, 0.85, 0.95),
 }
+## 三爪的圆周分布角。
+const TRIPLE_YAW: Array[float] = [-2.094, 0.0, 2.094]
+const TWIN_YAW: Array[float] = [-1.571, 1.571]
+## 臂张开 / 闭合的倾角（弧度）。
+const SPREAD_OPEN: float = 0.42
+const SPREAD_CLOSED: float = 0.05
 
 
-func _draw() -> void:
+func _build_visuals() -> void:
+	var carriage := MeshInstance3D.new()
+	var cart_mesh := BoxMesh.new()
+	cart_mesh.size = Vector3(0.2, 0.11, 0.16)
+	carriage.mesh = cart_mesh
+	carriage.material_override = _metal(Color(0.92, 0.9, 0.86), 0.3)
+	add_child(carriage)
+	_cable = MeshInstance3D.new()
+	var cable_mesh := CylinderMesh.new()
+	cable_mesh.top_radius = 0.008
+	cable_mesh.bottom_radius = 0.008
+	cable_mesh.height = 1.0
+	_cable.mesh = cable_mesh
+	_cable.material_override = _metal(Color(0.6, 0.62, 0.66), 0.5)
+	add_child(_cable)
+	_head = Node3D.new()
+	add_child(_head)
+	var head_ball := MeshInstance3D.new()
+	var ball := SphereMesh.new()
+	ball.radius = 0.05
+	ball.height = 0.1
+	head_ball.mesh = ball
+	_head.add_child(head_ball)
 	var claw_id: StringName = GameState.current_claw()["id"]
-	var metal := CLAW_COLORS.get(claw_id, Color(0.9, 0.9, 0.9)) as Color
-	var head := Vector2(0.0, head_drop * HEAD_DROP_DEPTH)
-	# 吊缆 + 滑车。
-	draw_line(Vector2.ZERO, head, Color(0.75, 0.78, 0.82, 0.9), 3.0)
-	draw_circle(Vector2.ZERO, 10.0, Color(0.55, 0.58, 0.64))
-	draw_circle(Vector2.ZERO, 6.0, Color(0.85, 0.87, 0.9))
-	# 爪头（球关节）。
-	draw_circle(head, 9.0, metal.darkened(0.25))
-	# 爪臂：side ∈ {-1,0,1} 决定左右中；spread 张开 0.5rad → 闭合 0.06rad。
-	var spread := lerpf(0.5, 0.06, arm_close)
-	match claw_id:
-		&"twin":
-			_draw_arm(head, -1.0, spread, metal, 10.0)
-			_draw_arm(head, 1.0, spread, metal, 10.0)
-		&"scissor":
-			_draw_blade(head, -1.0, spread, metal)
-			_draw_blade(head, 1.0, spread, metal)
-		_:
-			_draw_arm(head, -1.0, spread, metal, 8.0)
-			_draw_arm(head, 0.0, spread, metal, 8.0)
-			_draw_arm(head, 1.0, spread, metal, 8.0)
+	var claw_color := CLAW_COLORS.get(claw_id, Color(0.9, 0.9, 0.9)) as Color
+	_head_mat = _metal(claw_color, 0.25)
+	_tip_mat = _metal(claw_color.darkened(0.3), 0.35)
+	var yaws: Array[float] = TRIPLE_YAW if claw_id != &"twin" else TWIN_YAW
+	if claw_id == &"scissor":
+		yaws = TWIN_YAW
+	for yaw in yaws:
+		var pivot := Node3D.new()
+		pivot.rotation = Vector3(SPREAD_OPEN, yaw, 0.0)
+		_head.add_child(pivot)
+		var arm := MeshInstance3D.new()
+		var box := BoxMesh.new()
+		if claw_id == &"scissor":
+			box.size = Vector3(0.05, 0.36, 0.012)
+		else:
+			box.size = Vector3(0.028, 0.34, 0.016)
+		arm.mesh = box
+		arm.position = Vector3(0.0, -0.18, 0.0)
+		arm.material_override = _head_mat
+		pivot.add_child(arm)
+		var tip := MeshInstance3D.new()
+		var tip_ball := SphereMesh.new()
+		tip_ball.radius = 0.018
+		tip_ball.height = 0.036
+		tip.mesh = tip_ball
+		tip.position = Vector3(0.0, -0.35, 0.0)
+		tip.material_override = _tip_mat
+		pivot.add_child(tip)
+		_arm_pivots.append(pivot)
+	_sync_visual()
 
 
-## 弯折爪臂：近段向外斜，远段向内收拢（像真机爪指）。screen 坐标 +y 向下。
-func _draw_arm(head: Vector2, side: float, spread: float, color: Color, width: float) -> void:
-	var dir1 := Vector2(0.0, 1.0).rotated(side * spread * 0.55)
-	var dir2 := Vector2(0.0, 1.0).rotated(side * spread * 0.12).rotated(side * 0.22)
-	var knee := head + dir1 * 36.0
-	var tip := knee + dir2 * 30.0
-	draw_line(head, knee, color, width)
-	draw_line(knee, tip, color.lightened(0.15), width * 0.85)
-	draw_circle(tip, width * 0.55, color.darkened(0.2))
+func _metal(color: Color, rough: float) -> StandardMaterial3D:
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.metallic = 0.75
+	mat.roughness = rough
+	return mat
 
 
-## 剪刀爪刀刃：细长三角，闭合时双刃交叠。
-func _draw_blade(head: Vector2, side: float, spread: float, color: Color) -> void:
-	var dir := Vector2(0.0, 1.0).rotated(side * spread * 0.8)
-	var tip := head + dir * 54.0
-	var edge := dir.orthogonal() * 7.0
-	draw_polygon(
-		PackedVector2Array([head + edge, head - edge, tip]),
-		PackedColorArray([color, color, color.lightened(0.3)])
-	)
+## 每帧把状态量同步到视觉节点：缆长、爪头高度、臂张合、爪型配色。
+func _sync_visual() -> void:
+	if _head == null:
+		return
+	var drop_len := head_drop * HEAD_DROP_DEPTH
+	_head.position = Vector3(0.0, -drop_len, 0.0)
+	_cable.scale = Vector3(1.0, maxf(drop_len, 0.01), 1.0)
+	_cable.position = Vector3(0.0, -drop_len / 2.0, 0.0)
+	var spread := lerpf(SPREAD_OPEN, SPREAD_CLOSED, arm_close)
+	for pivot in _arm_pivots:
+		pivot.rotation.x = spread
+	var claw_id: StringName = GameState.current_claw()["id"]
+	var color := CLAW_COLORS.get(claw_id, Color(0.9, 0.9, 0.9)) as Color
+	if _head_mat != null and _head_mat.albedo_color != color:
+		_head_mat.albedo_color = color
+		_tip_mat.albedo_color = color.darkened(0.3)
+		for pivot in _arm_pivots:
+			for child in pivot.get_children():
+				(child as MeshInstance3D).material_override = _head_mat

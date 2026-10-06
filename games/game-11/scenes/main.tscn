@@ -1,54 +1,136 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/claw.tscn" id="2_claw"]
 [ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="3_joystick"]
 [ext_resource type="Script" path="res://scripts/touch_confirm_button.gd" id="4_confirm"]
 [ext_resource type="Script" path="res://scripts/machine.gd" id="5_machine"]
+[ext_resource type="Script" path="res://scripts/camera_rig.gd" id="6_camera"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_button"]
 radius = 52.0
 
-[node name="Main" type="Node2D"]
+[node name="Main" type="Node3D"]
 script = ExtResource("1_main")
 
-[node name="Machine" type="Node2D" parent="."]
+[node name="Machine" type="Node3D" parent="."]
 script = ExtResource("5_machine")
 
-[node name="Dolls" type="Node2D" parent="."]
+[node name="Dolls" type="Node3D" parent="."]
 
 [node name="Claw" parent="." instance=ExtResource("2_claw")]
-position = Vector2(360, 300)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, 0)
+
+[node name="CameraRig" type="Node3D" parent="."]
+script = ExtResource("6_camera")
 
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="HudLabel" type="Label" parent="UI"]
 unique_name_in_owner = true
 offset_left = 20.0
-offset_top = 30.0
-offset_right = 700.0
-offset_bottom = 76.0
-theme_override_font_sizes/font_size = 26
+offset_top = 26.0
+offset_right = 560.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 25
 theme_override_colors/font_color = Color(1, 0.96, 0.88, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.08, 0.16, 0.9)
+theme_override_constants/outline_size = 6
 text = "币 5 · 时间 75s · 目标 0/3 · 标准三爪 · 得分 0"
 
 [node name="CollectedLabel" type="Label" parent="UI"]
 unique_name_in_owner = true
 offset_left = 20.0
-offset_top = 84.0
-offset_right = 700.0
-offset_bottom = 124.0
-theme_override_font_sizes/font_size = 21
+offset_top = 76.0
+offset_right = 540.0
+offset_bottom = 112.0
+theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.85, 0.92, 1, 0.92)
+theme_override_colors/font_outline_color = Color(0.1, 0.08, 0.16, 0.9)
+theme_override_constants/outline_size = 5
 text = "背包：空"
+
+[node name="MuteButton" type="Button" parent="UI"]
+unique_name_in_owner = true
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -104.0
+offset_top = 24.0
+offset_right = -20.0
+offset_bottom = 68.0
+theme_override_font_sizes/font_size = 20
+text = "音效:开"
+
+[node name="ClawSelect" type="HBoxContainer" parent="UI"]
+unique_name_in_owner = true
+anchor_top = 1.0
+anchor_bottom = 1.0
+anchor_right = 1.0
+offset_left = 24.0
+offset_top = -196.0
+offset_right = -24.0
+offset_bottom = -140.0
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="ClawButton0" type="Button" parent="UI/ClawSelect"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 52)
+theme_override_font_sizes/font_size = 21
+text = "①标准三爪"
+
+[node name="ClawButton1" type="Button" parent="UI/ClawSelect"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 52)
+theme_override_font_sizes/font_size = 21
+text = "②强力双爪"
+
+[node name="ClawButton2" type="Button" parent="UI/ClawSelect"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 52)
+theme_override_font_sizes/font_size = 21
+text = "③剪刀爪"
+
+[node name="BackpackButton" type="Button" parent="UI"]
+unique_name_in_owner = true
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -210.0
+offset_top = -120.0
+offset_right = -24.0
+offset_bottom = -72.0
+theme_override_font_sizes/font_size = 20
+text = "背包 / 展示柜"
+
+[node name="CollectionPanel" type="PanelContainer" parent="UI"]
+unique_name_in_owner = true
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -260.0
+offset_right = 280.0
+offset_bottom = 260.0
+
+[node name="CollectionText" type="Label" parent="UI/CollectionPanel"]
+unique_name_in_owner = true
+horizontal_alignment = 1
+vertical_alignment = 0
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "背包详情"
 
 [node name="ResultLabel" type="Label" parent="UI"]
 unique_name_in_owner = true
 offset_left = 60.0
-offset_top = 470.0
+offset_top = 400.0
 offset_right = 660.0
-offset_bottom = 760.0
-theme_override_font_sizes/font_size = 32
+offset_bottom = 700.0
+theme_override_font_sizes/font_size = 30
 theme_override_colors/font_color = Color(1, 0.97, 0.9, 1)
 theme_override_colors/font_outline_color = Color(0.1, 0.08, 0.16, 0.9)
 theme_override_constants/outline_size = 10
@@ -59,11 +141,13 @@ autowrap_mode = 2
 [node name="HintLabel" type="Label" parent="UI"]
 unique_name_in_owner = true
 offset_left = 20.0
-offset_top = 1188.0
+offset_top = 1180.0
 offset_right = 700.0
-offset_bottom = 1240.0
-theme_override_font_sizes/font_size = 20
-theme_override_colors/font_color = Color(1, 1, 1, 0.55)
+offset_bottom = 1230.0
+theme_override_font_sizes/font_size = 19
+theme_override_colors/font_color = Color(1, 1, 1, 0.6)
+theme_override_colors/font_outline_color = Color(0.1, 0.08, 0.16, 0.9)
+theme_override_constants/outline_size = 4
 text = "WASD / 方向键移动 · 空格下爪 · Tab 换爪"
 horizontal_alignment = 1
 
@@ -89,9 +173,9 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -300.0
-offset_top = -290.0
+offset_top = -300.0
 offset_right = -186.0
-offset_bottom = -176.0
+offset_bottom = -186.0
 grow_horizontal = 0
 grow_vertical = 0
 
