@@ -11,7 +11,7 @@
   - **链头 = v6 draft `cmuw3gcgm01a9icryraii5dzp`**（v1.4-dy · parent=v5 `cmuusk0p60040icryguvlev9j`）· 本轮 N1 入链产物 · **未 approve，决策归主人**
   - v1.2 手感轮 v4 draft `cmut5fkyf00cbic7qudea13g6` 待批复（本轮零接触，锚 `1720df8e…` 复核保留）
   - 契约共同输入 = v1.1 approved 导出件（锚 `302e63367f3dea63…`，玩法 numeric 与 v6 逐字段全等）
-- **代码**：g2 仓 `dy/port-v1.1` @ `cfb733c`（N1 `15d7340` → N2 `0feac16` → N3 `a303ccf` → N4 `51d84f8` → 复检可复现性修正 `566e650`/`cfb733c`，基线 `fe5fd38`）
+- **代码**：g2 仓 `dy/port-v1.1` @ `023e583`（N1 `15d7340` → N2 `0feac16` → N3 `a303ccf` → N4 `51d84f8` → 复检可复现性修正 `566e650`/`cfb733c` → QA 驳回修复 `9b646df`/`023e583`，基线 `fe5fd38`）
 - **包**：`export/dy/` 30 件实测 178,444B ≤ 4,194,304B（余量 95.7%，分包=不分包，先实测后定）
 - **材料清单 dy 段 v2**：`docs/platform/dy/dy-submission-kit.md`（逐 id 对照 + 提审两步手册 + 双口径核对表）
 
@@ -20,6 +20,8 @@
 上轮 N4 的 14/14 系**预提交态测量**（复检器自身未入 HEAD → diff 少算自身）。HEAD 态重跑揭出「自指陷阱」残留：谱系白名单漏列复检器自身路径（15b 号 REJECT 原件在档）。已单点窄修（g2 `566e650`，判定语义不变）并干净取证 **17 号 14/14 无红 APPROVE-READY（HEAD 态可复现）**；今日冒烟复跑绿（18 号，guide 293ms/23 帧）。全程零触碰 v1.2 冻结面 / wx 冻结包 / stack-tower。
 
 **追加（例行驳回修复 · 20 号）**：routine「游戏契约测试」MODULE_NOT_FOUND 已修——run 根新增派发壳 `scripts/contract-check.mjs`（定位 g2 仓 + `--spec`→`G2_SPEC_PATH` + 透传/退出码传播）+ `routines.yaml` specPath 校正；干净树终验 exit=0 · 18/18（20 号日志；19 号轮=美术并行只读复核 19a–19f 全绿，与本修互相独立、互为印证）。g2 仓零改动（壳在 run 仓），dy 包/门禁证据链不受影响。
+
+**追加（QA 驳回修复 · 21/22 号 · g2 `9b646df`/`023e583`）**：打回面 2 条零码窄修全闭合——①P95 A 侧原始档已补（12 号位：worktree@`fe5fd38` 二次配对，26.1ms/71.06ms 与原始对同量级同结论，断链引用文在 13 号/复检器/verdict 三面统一勘误）；②材料清单 dy-icon/截图×3 状态列 ⏳→✅（引 manifest + 19 号轮取证）。修复后复检 14/14 APPROVE-READY + 契约 18/18 + dy 3/3 + 冒烟 286ms/23 帧全绿零回归。g2 锚 `dy/port-v1.1` @ `023e583`。
 
 ## 提请主人拍板（本轮回流 · 团队只交包）
 

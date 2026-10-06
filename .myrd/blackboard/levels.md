@@ -40,7 +40,7 @@
 
 | 线 | 状态 | 位置 |
 |---|---|---|
-| **dy（本轮）** | approve-ready 包 + 材料清单 dy 段 v2 已回流，等主人拍板提审 | g2 仓 `dy/port-v1.1` @ `cfb733c` · 包 `export/dy/`（30 件 174.3KB）· 清单 `docs/platform/dy/dy-submission-kit.md` · verdict `docs/platform/dy/qa-dy-port-verdict.json`（17 号重跑取证） |
+| **dy（本轮）** | approve-ready 包 + 材料清单 dy 段 v2 已回流，等主人拍板提审 | g2 仓 `dy/port-v1.1` @ `023e583` · 包 `export/dy/`（30 件 174.3KB）· 清单 `docs/platform/dy/dy-submission-kit.md`（状态列已全 ✅/🚨）· verdict `docs/platform/dy/qa-dy-port-verdict.json`（21 号重跑取证） |
 | **wx（冻结只读）** | 上轮 approve-ready 包已回流，等主人拍板提审（本轮零触碰） | 分支 `wx/port-v1.1` @ `2856d7c` + 镜像 `g2-blocks-wx/` |
 | **v1.2（冻结待批复）** | 链 v4 draft 在途，本轮零接触 | 链 `cmut5fkyf00cbic7qudea13g6` |
 | **spec 链头** | v6 draft（本链 version+1 产物，未 approve） | `cmuw3gcgm01a9icryraii5dzp` |
@@ -80,6 +80,17 @@
 | 派发壳 | run 根新增 `scripts/contract-check.mjs`：定位 g2 仓（env `G2_REPO_ROOT` → 同级 `../g2-blocks`）+ `--spec`→`G2_SPEC_PATH` 翻译 + 其余参数逐字透传 + 退出码传播；零逻辑复制，替换显式打 `[dispatch]` 日志 | run 仓提交（见 git log） |
 | specPath 错配根因 | `.myrd/routines.yaml` 旧值 `.myrd/spec/design-spec.json` 在本工作区不存在 → 校正为固化导出件实际落点 `.myrd/spec/g2-blocks/design-spec.json`（v1.1 approved · 锚 `302e6336…`） | 同上 + 20 号日志首行 |
 | 终验 | 干净树上以例行确切命令实跑：**exit=0 · 18/18 PASS**（含 ac-17/18 双守卫）；壳三形态（原始命令/无参/`--only` 透传）实测全绿 | `gate-logs/dy-port-20261006/20-routine-dispatch-green.log` |
+
+### 〇·七 QA 驳回修复轮（2026-10-06 13:xx · 游戏程序 · 打回面 2 条零码窄修）
+
+> QA 驳回：缺陷1 P95 配对 A 侧原始证据缺档+断链引用；缺陷2 材料清单两行状态列失实。四条判定与实现不改。
+
+| 缺陷 | 处置 | 证据 |
+|---|---|---|
+| 缺陷1(a) A 侧原始档缺档 | **补档**：git worktree @ `fe5fd38` 二次独立配对跑 A 侧（与 dy 侧同一份 perf 工具，fe5fd38..HEAD 该件零改动）→ 12 号位三件（原始 stdout + 结构化报告 md/json）；两次配对对照表在 12 号头部（A 侧 26.1ms/66.74fps/71.06ms，与 13 号 v1.1 列 27.1/71.96/73.38 同量级，**不退化结论两次同向**；原始对 A 侧未随轮留档一事在 12 号头部如实披露） | `12-perf-baseline-paired.log` + `12-perf-baseline-report.{md,json}` |
+| 缺陷1(b) 断链引用 | 13 号判定件尾行勘误（原「11-perf-dy.log / 12-perf-baseline-paired.log」不存在，留痕）→ dy 侧原件=`11-perf-report.log`、A 侧=12 号补档；复检器 ③a detail 硬编码文同步修正（g2 `9b646df`），verdict JSON 随 21 号重跑刷新 | `13-perf-paired-verdict.md` 尾行 + 21 号 |
+| 缺陷2 状态列失实 | dy-submission-kit.md §一 dy-icon / dy-store-screenshot-01..03 两行 ⏳→✅，引 `assets/dy/*manifest.json` + 19 号轮 N3 专项复核取证（icon 三面全等 `8a971534…`；截图 manifest 对账 3/3） | g2 `023e583`；前置 N2 冒烟绿=06/18/19d 号在档 |
+| 修复后门禁全扫 | 复检器 **14/14 无红 APPROVE-READY**（③a 带新引用文）+ 契约 18/18 + dy 三条目查 3/3 + dy 冒烟 PASS（guide 286ms/23 帧 ≤400/240） | `21-n4-postreject-green.log` / `22-dy-smoke-postreject.log` |
 
 ## 二、硬约束（任务书原文，全程生效）
 
