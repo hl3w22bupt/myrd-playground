@@ -14,6 +14,7 @@
 - **代码**：g2 仓 `dy/port-v1.1` @ `023e583`（N1 `15d7340` → N2 `0feac16` → N3 `a303ccf` → N4 `51d84f8` → 复检可复现性修正 `566e650`/`cfb733c` → QA 驳回修复 `9b646df`/`023e583`，基线 `fe5fd38`）
 - **包**：`export/dy/` 30 件实测 178,444B ≤ 4,194,304B（余量 95.7%，分包=不分包，先实测后定）
 - **材料清单 dy 段 v2**：`docs/platform/dy/dy-submission-kit.md`（逐 id 对照 + 提审两步手册 + 双口径核对表）
+- **在线部署坞（本轮 · AppHost）**：appId `cmuqelj2r0046m9zr4emgdgdg`（slug `g2-blocks-2`，唯一合法坑，谱系与下一轮操作提示见 `apphost-app.md`）· liveUrl `https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/` · gitRef `myrd/run-cmuvzeu0a0167icrywu8c0k10` @ `57b3d67` · 部署 v12 running · 产物=游戏仓 `023e583` build/ 逐位（线上 main.mjs/sw.js md5 全等）· 线上自测 LIVE-SMOKE PASS + 截图目验炉板/HUD/引导条在屏
 
 ## 修正声明（复检可复现性 · 2026-10-06 12:0x · 游戏程序回写）
 
