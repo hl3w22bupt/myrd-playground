@@ -72,13 +72,14 @@
 
 ### 〇·六 例行程序入口桥接（2026-10-06 12:xx · 游戏程序 · 平台驳回修复）
 
+> 编号说明：19 号轮为美术线并行只读复核（见 `19-round-index.md`，19a–19f 全绿）；本节证据件在其后归档，顺延为 **20 号**（初归档时误撞 19 号，已 git mv 改号留痕）。
 > 驳回：routine「游戏契约测试」在 run 工作区根执行 `node scripts/contract-check.mjs --spec … --project .` → `MODULE_NOT_FOUND`（契约入口实际在同级独立仓 `../g2-blocks/scripts/contract-check.mjs`）。
 
 | 项 | 处置 | 证据 |
 |---|---|---|
 | 派发壳 | run 根新增 `scripts/contract-check.mjs`：定位 g2 仓（env `G2_REPO_ROOT` → 同级 `../g2-blocks`）+ `--spec`→`G2_SPEC_PATH` 翻译 + 其余参数逐字透传 + 退出码传播；零逻辑复制，替换显式打 `[dispatch]` 日志 | run 仓提交（见 git log） |
-| specPath 错配根因 | `.myrd/routines.yaml` 旧值 `.myrd/spec/design-spec.json` 在本工作区不存在 → 校正为固化导出件实际落点 `.myrd/spec/g2-blocks/design-spec.json`（v1.1 approved · 锚 `302e6336…`） | 同上 + 19 号日志首行 |
-| 终验 | 干净树上以例行确切命令实跑：**exit=0 · 18/18 PASS**（含 ac-17/18 双守卫）；壳三形态（原始命令/无参/`--only` 透传）实测全绿 | `gate-logs/dy-port-20261006/19-routine-dispatch-green.log` |
+| specPath 错配根因 | `.myrd/routines.yaml` 旧值 `.myrd/spec/design-spec.json` 在本工作区不存在 → 校正为固化导出件实际落点 `.myrd/spec/g2-blocks/design-spec.json`（v1.1 approved · 锚 `302e6336…`） | 同上 + 20 号日志首行 |
+| 终验 | 干净树上以例行确切命令实跑：**exit=0 · 18/18 PASS**（含 ac-17/18 双守卫）；壳三形态（原始命令/无参/`--only` 透传）实测全绿 | `gate-logs/dy-port-20261006/20-routine-dispatch-green.log` |
 
 ## 二、硬约束（任务书原文，全程生效）
 
