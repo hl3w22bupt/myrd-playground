@@ -3,11 +3,12 @@
 #
 # 只调用仓库内判定脚本（std-skills/godot-game-dev/scripts/），不重新实现任何检查逻辑：
 #   ① resolve-godot.sh  定位 Godot 可执行文件
-#   ② preflight.py      静态一致性检查（P1..P13）
+#   ② preflight.py      静态一致性检查（P1..P14）
 #   ③ smoke.sh          无头冒烟（GODOT_SMOKE_FRAMES=240，断言 GODOT_SMOKE: PASS）
 #   ④ input-fuzz.sh     输入鲁棒性 fuzz（断言 GODOT_FUZZ: PASS）
+#   ⑤ playtest.sh       机器人试玩（断言 GODOT_PLAYTEST: PASS；阈值见 tests/playtest.json）
 #
-# 判定协议：全部通过退出码 0；preflight/smoke/fuzz 失败退出码 1；环境不可用退出码 2。
+# 判定协议：全部通过退出码 0；任一门禁失败退出码 1；环境不可用退出码 2。
 
 set -uo pipefail
 
@@ -36,4 +37,7 @@ GODOT_SMOKE_FRAMES="${GODOT_SMOKE_FRAMES:-240}" GODOT_BIN="${GODOT_BIN}" \
 echo "== input fuzz =="
 GODOT_BIN="${GODOT_BIN}" bash "${GATE_DIR}/input-fuzz.sh" "${SCRIPT_DIR}" || exit $?
 
-echo "verify: PASS preflight + smoke + fuzz 全部通过"
+echo "== playtest（阈值见 tests/playtest.json）=="
+GODOT_BIN="${GODOT_BIN}" bash "${GATE_DIR}/playtest.sh" "${SCRIPT_DIR}" || exit $?
+
+echo "verify: PASS preflight + smoke + fuzz + playtest 全部通过"
