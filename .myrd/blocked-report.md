@@ -36,3 +36,29 @@
 
 - 按约束立即停止，未编写/未复制任何判定脚本，未搭建 games/game-9，未做任何绕过。
 - 待运维把 playtest.sh（及配套 playtest_driver.gd）补入模板仓库并重新预置后，本节点可重跑。
+
+---
+
+# Blocked 上报（延续）— implement 节点（run cmuw339we01a3icry68bdkwhs）
+
+- **status: blocked（仅限 playtest.sh 一项；本节点主产出已完成并推送）**
+- **detail: 模板仓库未预置门禁脚本：std-skills/godot-game-dev/scripts/playtest.sh；请运维把模板仓库补上技能资产**
+- 时间：2026-10-06
+- 分支：myrd/game-9-goal-cmuw2o88z018ricryvpr6v8wn（commit acf2f61）
+
+## 与 scaffold 轮的差异
+
+- 本节点门禁（preHook: godot-smoke，按 .myrd/routines.yaml 4 步：resolve-godot / preflight /
+  headless-smoke / input-fuzz）**不含 playtest**，且「开工前先确认」三件套
+  （preflight.py / smoke.sh / resolve-godot.sh + .myrd/routines.yaml）均在库 —— 故本节点开工。
+- playtest.sh 在全部 git 历史（含 origin/main）中从未存在（`git log --all -- "*playtest*"` 为空），
+  scaffold 轮的 blocked 上报后仍未补齐。
+
+## 本节点处置
+
+- 未编写/未复制/未以任何等价命令替代 playtest.sh（遵守「被检方不自造判定器」硬约束）。
+- 本地自检按仓库内判定器实跑三门禁：PREFLIGHT: PASS（13 类）/
+  GODOT_SMOKE: PASS（240 帧）/ GODOT_FUZZ: PASS（seed=20260913, 6 批次）。
+- **未伪造 GODOT_PLAYTEST: PASS**；后续 playtest 节点在脚本补齐前会 fail-closed，属预期。
+- 游戏已按 §4.5 协议接入 playtest 依赖面：Juice 单例（feedback_fired）已注册、
+  score_changed 时序可采样、tests/playtest.json 阈值文件可在脚本到位后按需添加。
