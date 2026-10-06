@@ -12,6 +12,10 @@ const GRID_ROWS: int = 2
 const SPAWN_JITTER: float = 0.045
 ## BGM 音量（线性）。
 const BGM_VOLUME_DB: float = -9.0
+## 点按画布判定的位移阈值（px）：起点-终点距离 ≤ 该值算点按（下爪），超过算拖动转视角。
+const TAP_SLOP_PX: float = 24.0
+## 鼠标点按在 _tap_starts 里的伪索引（与触摸 index 空间隔离，防互踩）。
+const MOUSE_TAP_INDEX: int = -1
 
 @onready var claw: Claw = $Claw
 @onready var machine: Machine = $Machine
@@ -30,13 +34,15 @@ const BGM_VOLUME_DB: float = -9.0
 
 var _bgm: AudioStreamPlayer
 var _move_hint: String = "WASD / 方向键移动 · 空格下爪 · Tab 换爪 · 拖动画面转视角"
+## 进行中的点按起点（触摸 index → 起点；鼠标用 MOUSE_TAP_INDEX）。
+var _tap_starts: Dictionary = {}
 
 
 func _ready() -> void:
 	_setup_environment()
 	if DisplayServer.is_touchscreen_available():
 		touch_ui.visible = true
-		_move_hint = "摇杆移动 · 「下爪」键下爪/重开 · 「换爪」键切换爪型 · 拖动画面转视角"
+		_move_hint = "摇杆移动 · 点按画面/「下爪」键下爪/重开 · 「换爪」键切换爪型 · 拖动画面转视角"
 	hint_label.text = _move_hint
 	_setup_bgm()
 	_connect_signals()
@@ -122,19 +128,51 @@ func _process(_delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# 摇杆/触摸按钮命中后事件已标记 handled（反向传播下它们先于 Main 收到），
+	# 这里守卫掉 —— 点按画布的判定只吃「落在 3D 场景上的裸点按」。
+	if get_viewport().is_input_handled():
+		return
 	if event.is_action_pressed("switch_claw"):
 		GameState.switch_claw()
 		Juice.sfx(&"confirm")
 	elif event.is_action_pressed("confirm"):
-		if GameState.phase == GameState.Phase.RESULT:
-			GameState.start_round()
-			Juice.sfx(&"confirm")
-		elif GameState.phase == GameState.Phase.PLAYING:
-			if claw.try_drop():
-				Juice.sfx(&"drop")
-			else:
-				Juice.sfx(&"fail")
-				Juice.flash(hud_label, Color(1.0, 0.4, 0.4, 0.6))
+		_confirm_primary()
+	elif event is InputEventScreenTouch:
+		# 点按画布 = 主动作（下爪/结算重开）：移动端单手主路径，与「下爪」键同义。
+		# 位移超过 TAP_SLOP_PX 的判定为拖动转视角（CameraRig 的职责），不下爪。
+		var touch := event as InputEventScreenTouch
+		if touch.pressed:
+			_tap_starts[touch.index] = touch.position
+		elif _tap_starts.has(touch.index):
+			var start: Vector2 = _tap_starts[touch.index]
+			_tap_starts.erase(touch.index)
+			if start.distance_to(touch.position) <= TAP_SLOP_PX:
+				_confirm_primary()
+	elif event is InputEventMouseButton and not DisplayServer.is_touchscreen_available():
+		# 桌面鼠标点按同义（触屏设备跳过：触摸事件已被上面处理，
+		# emulate_mouse_from_touch 的派生鼠标事件不得二次触发）。
+		var mb := event as InputEventMouseButton
+		if mb.button_index == MOUSE_BUTTON_LEFT:
+			if mb.pressed:
+				_tap_starts[MOUSE_TAP_INDEX] = mb.position
+			elif _tap_starts.has(MOUSE_TAP_INDEX):
+				var mouse_start: Vector2 = _tap_starts[MOUSE_TAP_INDEX]
+				_tap_starts.erase(MOUSE_TAP_INDEX)
+				if mouse_start.distance_to(mb.position) <= TAP_SLOP_PX:
+					_confirm_primary()
+
+
+## 主动作（下爪 / 结算重开）：键盘 confirm、触摸「下爪」按钮、点按画布三路共用。
+func _confirm_primary() -> void:
+	if GameState.phase == GameState.Phase.RESULT:
+		GameState.start_round()
+		Juice.sfx(&"confirm")
+	elif GameState.phase == GameState.Phase.PLAYING:
+		if claw.try_drop():
+			Juice.sfx(&"drop")
+		else:
+			Juice.sfx(&"fail")
+			Juice.flash(hud_label, Color(1.0, 0.4, 0.4, 0.6))
 
 
 ## ── 布货与复位 ──

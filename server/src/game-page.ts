@@ -60,7 +60,7 @@ body { color: #fff; background: #101426; overflow: hidden; touch-action: none; f
   <div id="boot-msg">正在准备机台…</div>
   <div id="keys"><span><kbd>←↑↓→ / 摇杆</kbd> 移动爪子</span><span><kbd>空格</kbd> 下爪</span><span><kbd>Tab</kbd> 切换爪型</span><span><kbd>拖动画面</kbd> 环绕视角</span></div>
 </div>
-<div id="hint" style="display:none">方向键/摇杆移动 · 空格下爪 · Tab 切爪型 · 拖动转视角</div>
+<div id="hint" style="display:none">点按画面/空格下爪 · 摇杆/方向键移动 · Tab 切爪型 · 拖动转视角</div>
 <noscript>你的浏览器不支持 JavaScript。</noscript>
 <!-- 引擎引导脚本由启动脚本按 BASE_PATH 动态注入（静态 src 在无尾斜杠入口下会 404） -->
 <script>
