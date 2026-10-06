@@ -3,23 +3,33 @@
 - 目标：cmuw2o88z018ricryvpr6v8wn ｜ AppHost：game-9（cmuw2o6z4018picry133zwcio）
 - 线上地址（即玩入口，免登录）：https://leomac-studio.tail49399e.ts.net/apps/game-9/
 - 调参工作台：https://leomac-studio.tail49399e.ts.net/apps/game-9/?tuning=1
-- 产出节点：playtest（run cmuw339we01a3icry68bdkwhs）｜ 量表状态：**待用户试玩**
+- 产出节点：playtest（本轮迭代 run cmuwnz5e0004im9lgb8z163z4，前轮 run cmuw339we01a3icry68bdkwhs）｜
+  量表状态：**待用户试玩**
 - 本文件是回写目标 artifacts（op=playtest_kit）的落盘母本；试玩结论只能来自用户，agent 不代填。
 
 ## 0. 门禁背书范围（先说清机判判了什么、没判什么）
+
+> 本轮对象 = 线上 AppHost **v5** `cmuwqrrl70051m9lgj8v89gh9`（分支 tip 游戏代码 `2626927`，
+> HEAD `c1106d7` 只动 qa 文档），移动端证据已于 2026-10-06T14:19Z 对 v5 线上实测刷新。
 
 - **移动端模拟门禁（preHook: mobile-web-smoke）PASS**：headless Chrome 移动仿真（iPhone UA /
   390×844/DPR3）打开线上地址，十项全绿——关键资源网络全通、console 零 error、canvas 挂载、
   首帧渲染、画面在动、触摸事件到达 DOM、触摸后画面有响应（tapDiff=320）、音频手势解锁器
   存在、视口无横向溢出（390=390）、FPS 37（swiftshader 软渲染口径）。证据：
-  `games/game-9/qa/mobile/report.json`（checkedAt 2026-10-06T04:00:31Z，verdict=PASS）+
+  `games/game-9/qa/mobile/report.json`（checkedAt 2026-10-06T14:19:33Z，verdict=PASS）+
   phase-load/phase-tap/phase-joystick 三张分阶段截图。round1 曾 touch-response FAIL
-  （tap 画布几何中心落菜单按钮空隙），整改主 CTA 居中后 round2 全绿，诊断留档
+  （tap 画布几何中心落菜单按钮空隙），整改主 CTA 居中后 round2/round3 全绿，诊断留档
   `games/game-9/qa/mobile/TOUCH_RESPONSE_DIAGNOSIS.md`。
-- **机判「好不好玩」不成立**：判定脚本 `playtest.sh` 模板仓库从未预置（scaffold/implement
-  两节点已先后上报，本节点第三次确认缺失），因此「可玩性手感」只能由真人试玩判定——
-  这正是本验收包把裁判权交给你的原因。节点按硬约束回写 status=blocked，不伪造任何
-  「试玩通过/好玩」结论。
+- **机判试玩门禁（playtest.sh）已补齐且 PASS**：此前模板仓库缺 `playtest.sh`
+  （scaffold/implement/playtest 三轮上报 blocked），现仓库 `std-skills/godot-game-dev/scripts/`
+  已预置该判定器（本轮复跑前核验在库，未改动）。本轮 agent 独立实跑四门禁全绿：
+  PREFLIGHT PASS 14 类 / GODOT_SMOKE PASS 240 帧 / GODOT_FUZZ PASS（6 批 239 帧）/
+  **GODOT_PLAYTEST: PASS 两档全绿**（默认档 900 帧 fb=75/80/76，全 session 档 5400 帧
+  fb=517/483/518，阈值 `tests/playtest.json`，明细与日志
+  `games/game-9/qa/playtest-round2/`）。机判口径是「节奏代理指标下限」（首次奖励 ≤5s、
+  无反馈窗口 ≤6s、反馈密度 ≥30 次/局、局间结果互异）——它只证明「玩起来有持续反馈、
+  节奏不断档到机器可判的下限」，**「好不好玩」仍只能由你真人试玩判定**，本验收包把
+  裁判权交给你。
 
 ## 1. 试玩指引（怎么玩、看什么）
 

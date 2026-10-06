@@ -132,3 +132,25 @@ round1 判读的两条修复输入逐条落地：
    `tailscale up` 拉起后恢复 200；与部署本身无关。
 7. 工作流正式迭代结论仍待调度 API 权限补齐后补跑（本目录与 `qa/mobile/` 为
    可复现兜底机判；判定脚本全部取自仓库 `std-skills/godot-game-dev/scripts/`）。
+
+---
+
+## playtest 节点复跑（本轨迹 · run cmuwnz5e0004im9lgb8z163z4 · 2026-10-06 14:2xZ）
+
+playtest 节点 agent 独立复跑全链门禁，被测代码 = 分支 tip `c1106d7`
+（游戏代码与 `2626927` 无差异——其后提交只动 qa 文档；线上即 AppHost v5
+`cmuwqrrl70051m9lgj8v89gh9` 的构建源）。判定脚本全部取自仓库
+`std-skills/godot-game-dev/scripts/`，未改动任何判定器：
+
+| 门禁 | 命令（routines.yaml 同参） | 结果 |
+| --- | --- | --- |
+| preflight | `python3 …/preflight.py games/game-9` | **PASS 14 类**（EXIT 0） |
+| headless-smoke | `GODOT_SMOKE_FRAMES=240 …/smoke.sh games/game-9` | **PASS 240 帧**（EXIT 0） |
+| input-fuzz | `…/input-fuzz.sh games/game-9` | **PASS** seed=20260913，6 批 239 帧（EXIT 0） |
+| playtest 默认档 | `…/playtest.sh games/game-9` | **GODOT_PLAYTEST: PASS**（EXIT 0）fb=75/80/76 |
+| playtest 全 session 档 | `GODOT_PLAYTEST_FRAMES=5400 …/playtest.sh …` | **GODOT_PLAYTEST: PASS**（EXIT 0）fb=517/483/518 |
+| mobile-web-smoke（preHook） | `…/mobile-web-smoke.mjs --url <liveUrl> --out games/game-9/qa/mobile` | **PASS 10/10**（checkedAt 2026-10-06T14:19:33Z，tapDiff=320，37fps） |
+
+- `report.log` / `report-full-session.log` 已由本轮两档实跑刷新（单行 METRICS + 判定行）。
+- 机判口径不变：GODOT_PLAYTEST 只判「节奏代理指标下限」（首次奖励/无反馈窗口/反馈密度/
+  局间方差），**「好不好玩」仍留给人** —— `qa/playtest-kit.md` 量表保持「待用户试玩」。
