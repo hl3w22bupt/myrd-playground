@@ -13,6 +13,7 @@
 | c | `node tests/dy/run-all-dy.mjs` | **3/3 条目查绿**（runtime 10 + share 6 + submission 10 = 26 行，RED=0） | 19c |
 | d | `node tests/dy/dy-smoke.mjs` | **PASS**：guide 293ms/23 帧 ≤400/240 · J1=155.2ms · 613 手自然炉冷 · 零错误 | 19d |
 | e | `G2_REPO_ONE_ROOT=<run仓> node tools/qa-dy-port-recheck.mjs` | **14/14 无红 VERDICT: APPROVE-READY，exit=0** | 19e |
+| f | （工作区基线）`bash games/game/verify.sh` | **PASS**：preflight 13 类 + godot 无头冒烟全过；`.import` 缓存副作用已还原（非本轮交付面，糖果粉碎传奇线零改动） | 19f |
 
 - 冒烟运行间抖动：guide 228→293ms、17→23 帧（均在预算内，与 18 号逐位同分布）；
   证据 JSON（`docs/evidence/dy-smoke-report.json`、`docs/platform/dy/qa-dy-port-verdict.json`）按 18 号口径**还原未提交**，今日绿证以 19d/19e 日志为准。
