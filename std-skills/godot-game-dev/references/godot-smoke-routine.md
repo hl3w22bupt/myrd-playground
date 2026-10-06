@@ -22,6 +22,7 @@
     params:
       gamePath: games/my-game      # 默认被测工程（相对仓库根），接入新工程时改这里或用 preHookParams 覆盖
       smokeFrames: "240"           # --quit-after 帧数兜底，必须与该工程 verify.sh 的预算同值
+      playtestFrames: "900"        # 机器人试玩每局帧数（60 tick = 1 秒；建议 ≈ 60 × spec.content.sessionSeconds）
     steps:
       # 环境前置 —— 没有 Godot 直接给明确失败原因，避免 agent 误改代码
       - name: godot-availability
@@ -47,6 +48,14 @@
         command: "GODOT_BIN=\"$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)\" bash std-skills/godot-game-dev/scripts/input-fuzz.sh {{gamePath}}"
         target: host
         timeout: 180
+      # 机器人试玩 —— bot 以确定种子多局游玩，机判节奏类代理指标下限：首次得分时间 /
+      # 最长无反馈窗口 / 反馈密度 / 局间结果方差。阈值可被工程内 tests/playtest.json 覆盖
+      # （对齐 spec.content.sessionSeconds）。每局 900 帧 × 3 局，wall time 约 45 秒 ——
+      # 把 timeout 给足。判定协议 GODOT_PLAYTEST: PASS/FAIL，指标明细在 METRICS 行（单行 JSON）。
+      - name: playtest
+        command: "GODOT_PLAYTEST_FRAMES={{playtestFrames}} GODOT_BIN=\"$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)\" bash std-skills/godot-game-dev/scripts/playtest.sh {{gamePath}}"
+        target: host
+        timeout: 600
 ```
 
 要点：
