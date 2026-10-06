@@ -37,6 +37,11 @@ func cell_size() -> float:
 ## 棋盘原点（左上格子的左上角）：按当前规模在视口内水平居中。
 func origin() -> Vector2:
 	return Vector2((VIEW_WIDTH - float(cols()) * cell_size()) * 0.5, BOARD_TOP)
+
+
+## 棋盘整体像素尺寸（cols×rows 个格子）。
+func board_pixel_size() -> Vector2:
+	return Vector2(float(cols()), float(rows())) * cell_size()
 ## 车型表：8 种汽车元素，scaffold 用 4x4（8 对）；6x6 大棋盘在实现节点扩展。
 const CAR_TYPES: Array[String] = ["轿车", "跑车", "卡车", "赛车", "警车", "救护车", "消防车", "出租车"]
 const CAR_COLORS: Array[Color] = [
@@ -124,10 +129,14 @@ func cell_from_world(world_pos: Vector2) -> Vector2i:
 
 
 ## 桌面/触屏点选：触摸经 emulate_mouse_from_touch 统一转成鼠标左键。
+## 点击位置必须取事件自带的 position（换算到世界系），不能读全局鼠标态——
+## 合成事件流（fuzz/playtest 的随机 drag）会让引擎跟踪的鼠标位置漂出棋盘，
+## 读全局态等于「点哪儿都落在棋盘外」，点击静默失效（playtest round1 实证缺陷）。
 func _unhandled_input(event: InputEvent) -> void:
 	var mouse := event as InputEventMouseButton
 	if mouse != null and mouse.button_index == MOUSE_BUTTON_LEFT and mouse.pressed:
-		select_cell(cell_from_world(get_global_mouse_position()))
+		var world_pos: Vector2 = get_canvas_transform().affine_inverse() * mouse.position
+		select_cell(cell_from_world(world_pos))
 
 
 ## 选中 / 配对入口（键盘 confirm 走光标所在格，鼠标点击走命中格）。

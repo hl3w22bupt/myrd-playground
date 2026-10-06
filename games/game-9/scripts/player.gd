@@ -12,10 +12,17 @@ signal moved(position: Vector2)
 
 const SPEED: float = 220.0
 
+## 光标活动范围（世界坐标矩形）。size 为零 = 不钳制；
+## Main 按当前难度棋盘几何设置它——光标只在棋盘内有意义，
+## 走出棋盘会让 confirm 落空（键盘玩法闭环 + bot 试玩可玩性都依赖这一点）。
+var clamp_rect: Rect2 = Rect2()
+
 
 func _physics_process(delta: float) -> void:
 	var direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	velocity = direction * SPEED
 	move_and_slide()
+	if clamp_rect.size != Vector2.ZERO:
+		global_position = global_position.clamp(clamp_rect.position, clamp_rect.end)
 	if direction != Vector2.ZERO:
 		moved.emit(global_position)

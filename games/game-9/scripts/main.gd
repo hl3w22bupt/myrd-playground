@@ -61,6 +61,7 @@ func _ready() -> void:
 		start_button.pressed.connect(_on_start_pressed)
 	GameState.select_difficulty(GameState.difficulty)
 	_on_state_changed(GameState.state)
+	_update_player_clamp()
 	# 调参工作台（SKILL.md §3C）：网页 + URL 带 ?tuning 参数才创建，其余环境零成本。
 	if TuningPanel.is_enabled():
 		add_child(TuningPanel.new())
@@ -100,6 +101,12 @@ func back_to_menu() -> void:
 	GameState.to_menu()
 
 
+## 玩家光标钳制在当前难度棋盘内（内缩 1px：cell_from_world 用 floor，
+## 边界值会落到界外格）。光标只在棋盘内有意义，越界即 confirm 落空。
+func _update_player_clamp() -> void:
+	player.clamp_rect = Rect2(board.origin() + Vector2.ONE, board.board_pixel_size() - Vector2(2.0, 2.0))
+
+
 func _on_player_moved(position: Vector2) -> void:
 	board.notify_cursor(board.cell_from_world(position))
 
@@ -117,6 +124,9 @@ func _on_match_made(_cell_a: Vector2i, _cell_b: Vector2i, points: int) -> void:
 
 func _on_selection_changed(cell: Vector2i) -> void:
 	if cell == GameBoard.NO_SELECTION:
+		# 取消选中也是一次点击的结果：必须有可见反馈（§3B 任意点击必有响应）。
+		status_label.text = "已取消选中"
+		Juice.sfx(&"confirm", -8.0)
 		return
 	status_label.text = "已选中第 %d 列第 %d 行，再选一张相同的汽车卡片" % [cell.x + 1, cell.y + 1]
 	Juice.sfx(&"confirm")
@@ -145,6 +155,7 @@ func _on_difficulty_changed(difficulty: StringName) -> void:
 	easy_button.set_pressed_no_signal(difficulty == &"easy")
 	hard_button.set_pressed_no_signal(difficulty == &"hard")
 	start_button.text = "开始（%s）" % GameState.DIFFICULTIES[difficulty]["label"]
+	_update_player_clamp()
 
 
 func _on_state_changed(new_state: int) -> void:
