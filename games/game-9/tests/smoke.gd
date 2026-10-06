@@ -22,6 +22,10 @@ extends Node
 ##   9. 重开可用：败/胜后 restart_game() 均回到 PLAYING、16 张卡、0 分；结算「返回菜单」
 ##      → MENU 态且菜单层可见（结算界面双出口可达）
 ##  10. 洗牌必有解：每次 board_shuffled 后 has_any_match() 必为 true（多次触发验证）
+##  11. 光标钳制：钳制矩形与棋盘几何一致（难度切换后随之更新）；被甩出视口外的
+##       光标会被钳回棋盘内——否则键盘 confirm 永久落空（playtest round1 实证缺陷）
+##  12. 取消选中反馈：同格二次 confirm → selection_changed(NO_SELECTION) + 状态栏
+##       「已取消选中」+ Juice 事件（§3B 任意点击必有响应，round2 修复面）
 ##
 ## ⚠️ 输入注入分两个阶段、互不重叠（见 references/error-signatures.md E-08）：
 ##   headless 下 `Input.parse_input_event()` 的缓冲冲刷会清掉 `Input.action_press()`
@@ -57,7 +61,8 @@ const KEY_CONTRACT: Dictionary = {
 }
 
 enum Phase {
-	NOISE, MENU_CHECK, START, MOVE, SELECT_SETUP, SELECT_CHECK, MATCH_ACT, MATCH_CHECK,
+	NOISE, MENU_CHECK, START, MOVE, CLAMP_ACT, CLAMP_CHECK, SELECT_SETUP, SELECT_CHECK,
+	DESELECT_ACT, DESELECT_CHECK, MATCH_ACT, MATCH_CHECK,
 	NEG_SETUP, NEG_SELECT, NEG_CHECK, TUNING_CHECK, DIFF_ACT, DIFF_CHECK, LOSE_ARM,
 	LOSE_CHECK, RESTART1_CHECK, WIN_LOOP, WIN_CHECK, RESTART2_CHECK, MENU_RETURN, REPORT,
 }
@@ -72,6 +77,7 @@ var _board: GameBoard
 var _juice: Node
 var _menu_layer: CanvasLayer
 var _result_panel: ColorRect
+var _status_label: Label
 var _origin: Vector2 = Vector2.ZERO
 var _moved_seen: bool = false
 var _score_seen: bool = false
@@ -119,6 +125,9 @@ func _ready() -> void:
 	_player = _main.get_node("Player") as Player
 	_menu_layer = _main.get_node("MenuLayer") as CanvasLayer
 	_result_panel = _main.get_node("%ResultPanel") as ColorRect
+	_status_label = _main.get_node("%StatusLabel") as Label
+	if _status_label == null:
+		_failures.append("Main 下找不到 %StatusLabel（状态提示文案无落点）")
 	if _board == null:
 		_failures.append("Main 下找不到 Board（GameBoard 棋盘未挂载）")
 	if _player == null:
@@ -175,6 +184,15 @@ func _frames_step() -> void:
 			if _phase_frame >= MOVE_FRAMES:
 				Input.action_release(&"move_right")
 				_assert_player_moved()
+				_begin(Phase.CLAMP_ACT)
+		Phase.CLAMP_ACT:
+			if _phase_frame == 1:
+				# 光标钳制（round2 修复面）：把光标甩出视口外，等钳制把它拉回棋盘。
+				_player.global_position = Vector2(-5000.0, -5000.0)
+			_begin(Phase.CLAMP_CHECK)
+		Phase.CLAMP_CHECK:
+			if _phase_frame >= 2:
+				_assert_cursor_clamped()
 				_begin(Phase.SELECT_SETUP)
 		Phase.SELECT_SETUP:
 			# 噪声相位的随机点击/按键可能提前触发配对，先重发一局保证断言基线确定。
@@ -196,6 +214,18 @@ func _frames_step() -> void:
 					_failures.append("confirm 注入后未精确选中光标所在格 %s（实际最后选中 %s）—— 选中链路断裂" % [
 						_selected_cell, _last_selection_cell,
 					])
+				_begin(Phase.DESELECT_ACT)
+		Phase.DESELECT_ACT:
+			# 取消选中也是一次点击（round2 修复面）：同格二次 confirm 必须有可见反馈。
+			if _phase_frame == 1:
+				if _juice != null:
+					_juice.call("clear_events")
+				_press_action(&"confirm")
+			if _phase_frame >= 2:
+				_begin(Phase.DESELECT_CHECK)
+		Phase.DESELECT_CHECK:
+			if _phase_frame >= 2:
+				_assert_deselect_feedback()
 				_board.clear_selection()
 				_begin(Phase.MATCH_ACT)
 		Phase.MATCH_ACT:
@@ -252,6 +282,12 @@ func _frames_step() -> void:
 					])
 				if _board.remaining_count() != 36:
 					_failures.append("挑战难度发牌 %d 张 ≠ 36（6×6 规模未生效）" % _board.remaining_count())
+				# 钳制矩形必须随难度切换重算（6×6 棋盘更大，沿用 4×4 的矩形会错钳光标）。
+				var hard_expected: Vector2 = _board.board_pixel_size() - Vector2(2.0, 2.0)
+				if not _player.clamp_rect.size.is_equal_approx(hard_expected):
+					_failures.append("切 6×6 后 clamp_rect.size %s 未随棋盘更新（期望 %s）——难度切换后钳制失效" % [
+						_player.clamp_rect.size, hard_expected,
+					])
 				# 开局后 tick 已走过数帧，用 1 秒容差断言「时间按难度档取值」。
 				if GameState.time_left > GameState.start_time_hard \
 						or GameState.time_left <= GameState.start_time_hard - 1.0:
@@ -340,7 +376,7 @@ func _begin(next: Phase) -> void:
 func _finish() -> void:
 	_finished = true
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 菜单/移动/选中/消除计分/反馈/连通双向/调参/难度/胜负可达/重开/洗牌有解 全部通过")
+		print("GODOT_SMOKE: PASS 菜单/移动/光标钳制/选中/取消反馈/消除计分/反馈/连通双向/调参/难度/胜负可达/重开/洗牌有解 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:
@@ -405,6 +441,38 @@ func _inject_noise_frame() -> void:
 		k.physical_keycode = [KEY_A, KEY_D, KEY_W, KEY_S, KEY_SPACE, KEY_ENTER][_noise_rng.randi_range(0, 5)]
 		k.pressed = _noise_rng.randf() < 0.5
 		Input.parse_input_event(k)
+
+
+## 光标钳制断言（round2 修复面）：钳制矩形必须已接线且与当前棋盘几何一致，
+## 甩出视口外的光标要被钳回棋盘内——否则键盘 confirm 会永久落空（round1 实证缺陷）。
+func _assert_cursor_clamped() -> void:
+	var rect := _player.clamp_rect
+	if rect.size == Vector2.ZERO:
+		_failures.append("玩家 clamp_rect 未接线（size=0 等于不钳制）——光标可走出棋盘致 confirm 永久落空")
+		return
+	var expected_pos: Vector2 = _board.origin() + Vector2.ONE
+	var expected_size: Vector2 = _board.board_pixel_size() - Vector2(2.0, 2.0)
+	if not rect.position.is_equal_approx(expected_pos) or not rect.size.is_equal_approx(expected_size):
+		_failures.append("clamp_rect(pos=%s size=%s) 与棋盘几何(pos=%s size=%s)不一致——钳制矩形错位会卡死角或漏钳" % [
+			rect.position, rect.size, expected_pos, expected_size,
+		])
+	if not rect.has_point(_player.global_position):
+		_failures.append("甩出视口外的光标 %s 未被钳制回 %s（越界光标让 confirm 落空，反馈黑洞）" % [
+			_player.global_position, rect,
+		])
+
+
+## 取消选中反馈断言（round2 修复面）：同格二次 confirm = 取消选中，
+## 必须有可见反馈（状态栏文案 + Juice 事件），不能静默（§3B 任意点击必有响应）。
+func _assert_deselect_feedback() -> void:
+	if _last_selection_cell != GameBoard.NO_SELECTION:
+		_failures.append("同格二次 confirm 未取消选中（最后选中 %s，期望 NO_SELECTION）" % _last_selection_cell)
+	if _status_label == null:
+		_failures.append("%StatusLabel 缺失，取消选中反馈无落点")
+	elif _status_label.text != "已取消选中":
+		_failures.append("取消选中后状态栏文案为「%s」，应为「已取消选中」（可见反馈缺失）" % _status_label.text)
+	if _juice == null or (_juice.get("events") as PackedStringArray).is_empty():
+		_failures.append("取消选中后 Juice.events 为空（§3B 任意点击必有反馈断裂）")
 
 
 ## 连通负向断言：死格布局（a=(0,0) 与 b=(1,1) 同型；(0,1)/(1,0) 被占）下——
