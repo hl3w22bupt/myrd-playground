@@ -1,41 +1,49 @@
-# 阻塞项黑板 — g2-blocks · **DY 平台段轮（开工态）**
+# 阻塞项黑板 — g2-blocks · **DY 平台段轮（收口态 · APPROVE-READY 包已回流主人）**
 
-> 更新时间：2026-10-06 11:0x（开工前置完成 · 主策划）
+> 更新时间：2026-10-06 13:xx（N4 14/14 无红 · 主策划整合收口）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：N1 出 v6 draft → QA 复核 → N2 开线（v1.1 锚点门禁先行）
+> 下一步：**等主人拍板**（dy 提审与否 + AppID/资质 + 提审日规范人工核对）；v1.2 批复在途互不阻塞
 
-## 当前基线（执行要求指定区 · 开工即记）
+## 当前基线（收口态）
 
-- **黑板路径**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmuvzeu0a0167icrywu8c0k10/.myrd/blackboard/`（levels.md / assets.md / blockers.md + gate-logs/）
+- **黑板路径**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmuvzeu0a0167icrywu8c0k10/.myrd/blackboard/`（levels.md / assets.md / blockers.md / dy-acceptance-map.md + gate-logs/，run 仓已提交固化）
 - **spec 版本号**：
-  - **链头 = v5 draft `cmuusk0p60040icryguvlev9j`**（v1.3-platform · parent=v4）· 本轮 N1 在其上 version+1 出 **v6 dy 段**（POST revisions，零覆盖）
-  - **v1.2 手感轮 v4 draft `cmut5fkyf00cbic7qudea13g6` 待批复（本轮零接触）**
-  - **契约共同输入 = v1.1 approved 内容**（导出件 `.myrd/spec/g2-blocks/design-spec.json` · 平台 id `cmuqa2mu50023m9zr8mh60uph` · 链 v2 · numeric 冻结锚 `302e63367f3dea63…`）
-  - 本轮 v6 入链前导出件态：v1.1 approved 导出件 + v5 draft 导出件双固化于本 run `.myrd/spec/g2-blocks/`（sha256 见固化记录）
-- **源基线**：g2-blocks @ `fe5fd38`（v1.1 已发布）；wx 冻结线 `wx/port-v1.1` @ `2856d7c` + 镜像 `g2-blocks-wx/`
-- **上轮 dy 写案**：`docs/platform/dy/dy-platform-copy.md`（draft · 双条目 · checker `scripts/check-dy-copy.mjs`）
-- **落点偏差披露（沿 A/B/wx 三轮已接受口径）**：spec 导出件落 `.myrd/spec/g2-blocks/design-spec.json`（`G2_SPEC_PATH`/兄弟 run 自动发现链即认此路径），`.myrd/spec/design-spec.json` 保留位不动
+  - **链头 = v6 draft `cmuw3gcgm01a9icryraii5dzp`**（v1.4-dy · parent=v5 `cmuusk0p60040icryguvlev9j`）· 本轮 N1 入链产物 · **未 approve，决策归主人**
+  - v1.2 手感轮 v4 draft `cmut5fkyf00cbic7qudea13g6` 待批复（本轮零接触，锚 `1720df8e…` 复核保留）
+  - 契约共同输入 = v1.1 approved 导出件（锚 `302e63367f3dea63…`，玩法 numeric 与 v6 逐字段全等）
+- **代码**：g2 仓 `dy/port-v1.1` @ `51d84f8`（N1 `15d7340` → N2 `0feac16` → N3 `a303ccf` → N4 `51d84f8`，基线 `fe5fd38`）
+- **包**：`export/dy/` 30 件实测 178,444B ≤ 4,194,304B（余量 95.7%，分包=不分包，先实测后定）
+- **材料清单 dy 段 v2**：`docs/platform/dy/dy-submission-kit.md`（逐 id 对照 + 提审两步手册 + 双口径核对表）
 
-## 阻塞项（本轮）
+## 提请主人拍板（本轮回流 · 团队只交包）
 
-| id | 内容 | 归属 | 解除判据 | 状态 |
-|---|---|---|---|---|
-| D-1 | 抖音开发者工具 CLI 未装（沿上轮 W-1 同型缺口）→ devtools 侧验证无法本机机跑 | 程序+QA | Node 侧机跑全绿 + runbook 脚本化（`tools/verify-dy-devtools.mjs` 同型）+ N4 显式披露 BLOCKED-ENV；真机/工具侧终判待主人侧环境 | 🚨 挂主人侧环境（不构成包面缺陷；不造假不装绿） |
-| D-2 | dy 提审需正式 AppID/资质 + 提审日最新规范人工核对（合规文案位双口径中的「当日规范」半边） | 主人 | 主人下发后填占位；提审前人工核对当日规范 | 🚨 待主人（不影响包与材料生产） |
-| D-3 | dy 条目现为 **draft**（上轮写案明文：实现启动须先经 spec revisions 把两条目转定稿） | 主策划+游戏策划 | N1 v6 入链即解除（draft→按 N1 口径定稿/冻结参数） | ⏳ 本轮 N1 处理 |
-| W-4（沿挂） | v1.3 acceptance ac-10 scopeNote 文面与 content.platform 五条目冲突（「移植端 deferred」vs 平台段已落地） | 主策划 | 本轮 N1 v6 revision_note 一并澄清（非码面动作） | ⏳ 随 N1 |
+1. **dy 提审与否**：approve-ready 包 + 材料清单 dy 段 v2 + N4 verdict（14/14 无红 APPROVE-READY）已就绪；提审动作 = 主人在抖音开发者工具/平台后台执行（两步手册见 `docs/platform/dy/dy-submission-kit.md` §二）。
+2. **spec 链 v6 draft 是否 approve**（v1.4-dy 段）——approve 是主人拍板位，团队不代拍。
+3. **正式 AppID + 类目/资质**（D-2）：下发后 `export/dy/project.config.json` 替换占位即可提审。
+4. **提审日合规人工核对**（dk-acc-4 口径②）：以抖音官方当日生效规范逐条核对包内文案位，记录回填材料清单 §三。
+5. **v1.2（链 v4）批复**：在途；若先批复 → dy 线 spec/分支按既定纪律 rebase 重出版（见债务台账）。
+
+## 债务台账（防丢失 · 不阻塞本轮）
+
+| 项 | 口径 |
+|---|---|
+| v1.2 rebase 计划 | v1.2（链 v4 `cmut5fkyf00cbic7qudea13g6`）若获主人批复 → dy 线（链 v6 + `dy/port-v1.1` 分支）按 revisions version+1 rebase 重出版，不做双版本线并行；若被否决 → 地基独立重落，v1.4-dy 条款不失效（revision_note 已写死） |
+| wx 提审状态（一句话） | 上轮 approve-ready 包已回流（`wx/port-v1.1` @ `2856d7c` + `g2-blocks-wx/`），等主人拍板提审；本轮零触碰 |
+| D-1 抖音开发者工具 CLI | 未安装 → 工具侧/真机档（G1–G4）待主人侧装 CLI 后一键复跑 `node tools/verify-dy-devtools.mjs`；**真机核对完成前包不得实际提审**（与 wx 轮 W-1 同口径维持披露） |
+| D-2 AppID/资质 | 占位 `touristappid` 仅限工具内预览；正式号主人下发后替换 |
+| D-3/D-4 闭环 | dy 条目 draft→final 已随 v6 入链落定（D-3 解除）；W-4 ac-10 scopeNote 文面冲突已随 v6 revision_note 注记澄清（顶层 18 条零改动） |
+| build/ 镜像随件刷新 | `build/platform/dy/*.mjs` ×5 + `sw.js` 时间戳随 N3 构建刷新（A 轮 `0c3aa95` 先例），N4 窄断言机判在案 |
+
+## 闭环三问（N5 提请前自检 · 全过）
+
+1. **契约测试过了吗？** 过——v1.1 锚 18/18（复检重跑原件）+ v6 守卫 11/11 + 玩法 numeric 十二组逐字段全等。
+2. **QA 打回修完了吗？** 修完——N4 首跑自曝 4 缺陷（ac-17 自检面/配表面语义/build 镜像断言/自指陷阱）全部修复，15a 原件在档。
+3. **复检过了吗？** 过——N4 对抗复检 14/14 无红 VERDICT: APPROVE-READY（重跑取证不认转抄）。
 
 ## 在途知会（非阻塞 · 主人可否决）
 
 | 项 | 口径 |
 |---|---|
-| v1.2（链 v4）待批复 | 与本轮互不阻塞；若本轮执行中先获批 → dy 线 spec/分支按既定纪律 rebase 重出版，不做双版本线并行 |
-| wx 提审 | 上轮 approve-ready 包已回流，等主人拍板；本轮 wx 件冻结只读 |
-| dy 提审 | 本轮只交 approve-ready 包 + 材料清单 dy 段 v2；**提审与否主人拍板** |
-
-## 升级条款（沿上轮格式预登记）
-
-| id | 触发条件 | 升级动作 |
-|---|---|---|
-| Q-D4' | dy 验收谓词如遇「更强口径 vs 最小实现」分歧（沿上轮 daily D4 判例） | 随 N5 提请，主人裁决 |
-| Q-DY-1 | tt↔wx 差异若出现「tt 缺位 API 且无 fallback 口径可写」 | 该条目整条打回 N1 重写，缺位清零才许入链 |
+| 地基前置 | 沿 wx 轮裁决：地基三件已在 v1.1 基线在档，cherry-pick 清单=∅（levels.md 实查记录） |
+| 本轮不开新产品线 | dy 属 g2-blocks 平台扩展（映射表驱动，同构改面）；Steam/Roblox 仍 deferred |
+| 黑板勘误留痕 | 本 run 初版 levels.md 曾误记「g2-blocks 不存在」（初勘面不全），全盘搜索后纠正，勘误声明在 levels.md 顶部留痕不删除 |

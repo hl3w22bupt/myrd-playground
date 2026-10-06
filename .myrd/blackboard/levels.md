@@ -25,16 +25,26 @@
 | 上轮 dy 写案（校准对象） | `docs/platform/dy/dy-platform-copy.md`（wx/port-v1.1 @ 上轮 · draft · 双条目 dy-runtime / dy-share-kit · 零实现） | 文件实读 + checker `scripts/check-dy-copy.mjs` |
 | 工具链实况 | 抖音开发者工具 CLI **未装**（沿上轮 W-1 同型披露：Node 侧机跑 + runbook 脚本化，不造假） | 本轮 N2 复查留档 |
 
-## 一、本轮节点链台账
+## 一、本轮节点链台账（收口态 2026-10-06 · N5）
 
 | 节点 | 负责 | 产物落点 | 验收信号 | 状态 |
 |---|---|---|---|---|
-| 开工前置 | 主策划 | 黑板三件（本目录）+ spec 输入固化（`.myrd/spec/g2-blocks/`） | 基线区写进 blockers.md | ✅ |
-| N1 dy spec 校准入链 | 游戏策划 | `tools/build-spec-v14-dy.mjs`（守卫机判）→ `docs/spec/spec-v14-dy-payload.json` → POST revisions → **链 v6 draft**；导出件固化本 run | numeric 玩法面零 diff（逐字段对照报告）；新增平台参数逐个冻结无「待定」；tt↔wx 差异映射表（三栏）；合规文案双口径；引导路径显式；黑板四列表 | ⏳ 进行中 |
-| N2 dy 工程适配 | 游戏程序 | 分支 `dy/port-v1.1`（自 `fe5fd38`）+ `src/platform/dy/*` + `tools/build-dy.mjs` + `tests/dy/*` + 包体审计 | v1.1 契约+冒烟锚点全绿先行；dy 新增段先红后绿；P95 对照不退化；门面外零 `tt.*` 直调 | ⏳ 待 N1 |
-| N3 dy 素材包 | 游戏美术 | `assets/dy/`（与 wx 包物理隔离）+ 四列核对单 | 规格取自 N1 映射表；四要素零 diff 源自风格卡；实机截图 N2 绿后同批出图 | ⏳ 待 N1/N2 |
-| N4 只读复检 | 游戏 QA | 复检器 verdict + 材料清单 dy 段 v2 | 三份输入齐才开检；四条判定无红才出 approve-ready | ⏳ 待 N1-N3 |
-| N5 汇总提请 | 主策划 | blockers.md 提请区 + 回流主人 | 闭环三问过 + 决策归主人 | ⏳ 待 N4 |
+| 开工前置 | 主策划 | 黑板五件（本目录）+ spec 输入三件固化（`.myrd/spec/g2-blocks/`，run 仓已提交固化） | 基线区写进 blockers.md | ✅ |
+| N1 dy spec 校准入链 | 游戏策划 | 链 **v6 `cmuw3gcgm01a9icryraii5dzp`** draft（parent=v5）+ 映射表 `docs/platform/dy/tt-wx-diff-mapping.md` + 守卫器/入链器/复核器三件 + 逐字段对照报告；g2 仓 `15d7340` | 守卫 11/11 + QA 独立复核 12/12（链上回读）；玩法 numeric 12 组逐字段全等（锚 `302e6336…`）；新增 5 参数逐个冻结；wx 三条目零覆盖；v4 手感锚 `1720df8e…` 保留 | ✅ |
+| N2 dy 工程适配 | 游戏程序 | 分支 `dy/port-v1.1`（自 `fe5fd38`）；`src/platform/dy/` 五件 + `tools/build-dy.mjs`（export/dy/ 30 件 174.3KB ≤4MB 实测）+ `tests/dy/` 三条目查+冒烟；g2 仓 `0feac16` | v1.1 锚点先行三绿（01/02/03 号）；先红 0/3（05 号）→ 后绿 3/3（06 号）；dy 冒烟：引导路径 228ms/17 帧 ≤400/240 + 613 手自然炉冷（与离线推演逐位一致）；P95 配对 A/B Δ=0.0ms；门面外零 `tt.*` 直调（机判） | ✅ |
+| N3 dy 素材包 | 游戏美术 | `assets/dy/`（icon/分享卡/同批截图×3/四列核对单）+ `docs/platform/dy/dy-submission-kit.md`（材料清单 dy 段 v2）+ 合规自查表；g2 仓 `a303ccf` | 四列核对单全绿（资产 id↔规格↔平台条款↔参考卡条款可追溯）；派生件 sha256 全等零漂移机判；装配区与 wx 通道零触碰；规格全取 N1 映射表 | ✅ |
+| N4 只读复检 | 游戏 QA | `tools/qa-dy-port-recheck.mjs` + `docs/platform/dy/qa-dy-port-verdict.json`；证据 15/15a 号；g2 仓 `51d84f8` | 三份输入齐才开检 ✓；**14/14 无红 VERDICT: APPROVE-READY**；首跑自曝 4 缺陷全修（15a 原件在档）；REJECT 双锚点协议在器 | ✅ |
+| N5 汇总提请 | 主策划 | blockers.md 提请主人拍板区 + 本板收口态 | 闭环三问过；决策归主人 | ✅ |
+
+### 收口快照（一屏查两线）
+
+| 线 | 状态 | 位置 |
+|---|---|---|
+| **dy（本轮）** | approve-ready 包 + 材料清单 dy 段 v2 已回流，等主人拍板提审 | g2 仓 `dy/port-v1.1` @ `51d84f8` · 包 `export/dy/`（30 件 174.3KB）· 清单 `docs/platform/dy/dy-submission-kit.md` · verdict `docs/platform/dy/qa-dy-port-verdict.json` |
+| **wx（冻结只读）** | 上轮 approve-ready 包已回流，等主人拍板提审（本轮零触碰） | 分支 `wx/port-v1.1` @ `2856d7c` + 镜像 `g2-blocks-wx/` |
+| **v1.2（冻结待批复）** | 链 v4 draft 在途，本轮零接触 | 链 `cmut5fkyf00cbic7qudea13g6` |
+| **spec 链头** | v6 draft（本链 version+1 产物，未 approve） | `cmuw3gcgm01a9icryraii5dzp` |
+| **stack-tower** | 全程零接触（守卫机判 151 文件零越界） | — |
 
 ## 二、硬约束（任务书原文，全程生效）
 
