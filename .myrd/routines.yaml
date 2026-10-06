@@ -54,7 +54,9 @@ routines:
   description: 断言工程实现与 approved 版策划案（GameDesignSpec）一致 —— 实体/关卡落点文件存在、验收项有可执行检查、关卡元素编号稳定唯一
   gate: false
   params:
-    specPath: .myrd/spec/design-spec.json
+    # g2-blocks（熔炉方块）spec 固化导出件落点（run 仓提交固化 · v1.1 approved · 锚 302e6336…）；
+    # 旧值 .myrd/spec/design-spec.json 在本工作区不存在（2026-10-06 例行驳回事故），已校正。
+    specPath: .myrd/spec/g2-blocks/design-spec.json
     projectDir: .
   steps:
   - name: contract-check
