@@ -1,8 +1,9 @@
 # Godot 本机导入缓存：由 `godot --headless --path . --import` 重新生成，不进版本库
 .godot/
 
-# 导出产物
-/export/
+# 导出产物：Web 导出（export/web/）必须入库 —— 部署侧按 gitRef clone 后
+# 从 apphost.toml 的 assets_dir 上传对象存储，不入库 = 部署缺资产。
+# 仍忽略桌面端可执行与压缩包产物。
 *.exe
 *.zip
 
