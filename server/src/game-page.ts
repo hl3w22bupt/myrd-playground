@@ -50,7 +50,9 @@ body { color: #fff; background: #101426; overflow: hidden; touch-action: none; f
 </style>
 </head>
 <body>
-<canvas id="canvas">你的浏览器不支持 canvas。</canvas>
+<!-- canvas 由启动脚本在引擎就绪时创建（id=canvas）：启动本身耗时数秒（wasm 编译/着色器编译），
+     提前挂载会让自动化验收在引擎仍处启动 stall 时采样（画面冻结/触摸无响应假阴性）。
+     引擎库在 start() 时取文档第一个 <canvas>，动态创建等价于静态声明。 -->
 <div id="boot">
   <h1>线上抓娃娃机</h1>
   <div class="sub">3D 抓娃娃 · 多种夹爪 × 多种娃娃 · MyRD 小游戏工坊</div>
@@ -74,6 +76,23 @@ body { color: #fff; background: #101426; overflow: hidden; touch-action: none; f
       if (t && typeof t === 'object' && !Array.isArray(t)) window.__GAME_TUNING__ = t;
     } catch (e) { /* 非法 JSON：忽略，用游戏内默认值 */ }
   }
+
+  // ---- 像素密度钳制（必须在引擎加载前生效）----
+  // 引擎画布后备存储 = CSS 尺寸 × devicePixelRatio：DPR=3 时 390×844 视口会得到
+  // 1170×2532 ≈ 295 万像素的帧缓冲，WebGL 软渲染（swiftshader）与低端移动 GPU 每帧
+  // 光栅化负担约为 DPR=1 的 9 倍 —— 实测 3fps（门禁阈值 8）。钳到 1 后 390×844 ≈ 33 万像素，
+  // 帧率恢复到软渲染可用区间；真机中低端设备同样受益（功耗/发热下降）。
+  // 实现注意：devicePixelRatio 是 getter，须用 defineProperty 覆盖；引擎在画布尺寸计算
+  // （GodotDisplayScreen.getPixelRatio）与每次 resize 时读取，统一拿到钳制值。
+  try {
+    var CAPPED_DPR = 1;
+    var nativeDpr = Number(window.devicePixelRatio) || 1;
+    var cappedDpr = Math.min(nativeDpr, CAPPED_DPR);
+    Object.defineProperty(window, 'devicePixelRatio', {
+      get: function () { return cappedDpr; },
+      configurable: true,
+    });
+  } catch (e) { /* 极老内核 defineProperty 失败：保持原生 DPR，只损失帧率 */ }
 
   // ---- 移动端音频手势解锁器（必须在引擎加载前安装，见文件头注释）----
   var audioCtx = null;
@@ -195,6 +214,11 @@ body { color: #fff; background: #101426; overflow: hidden; touch-action: none; f
       .then(function (b) { pckBytes = b; setBar(0.95); })
   ]); }).then(function () {
     if (!WebAssembly.validate(wasmBytes)) throw new Error('wasm 校验失败（传输可能被破坏）');
+    // 引擎就绪才挂载画布：引擎库 start() 时取文档第一个 <canvas>，找不到会抛
+    // 'No canvas found in page' —— 在 startGame 前创建等价于静态声明（见 body 注释）。
+    var canvas = document.createElement('canvas');
+    canvas.id = 'canvas';
+    document.body.insertBefore(canvas, document.getElementById('boot'));
     // 拦截引擎对 wasm/pck 的 fetch，返回内存中的真实字节
     var realFetch = window.fetch.bind(window);
     window.fetch = function (input, init) {
