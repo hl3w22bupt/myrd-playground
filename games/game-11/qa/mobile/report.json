@@ -1,5 +1,5 @@
 {
-  "verdict": "FAIL",
+  "verdict": "PASS",
   "url": "https://leomac-studio.tail49399e.ts.net/apps/game-11/",
   "preset": {
     "width": 390,
@@ -8,7 +8,7 @@
     "mobile": true,
     "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
   },
-  "checkedAt": "2026-10-06T10:16:48.712Z",
+  "checkedAt": "2026-10-06T10:26:45.658Z",
   "checks": [
     {
       "id": "network",
@@ -49,8 +49,8 @@
     {
       "id": "touch-response",
       "label": "触摸后画面有响应（tap 后帧差 > 0 或产生新活动）",
-      "status": "fail",
-      "detail": "输入到达但 3s 内画面零变化零活动——引擎忽略触摸（TouchUI/输入映射坏）。若游戏确为开局静止画面，在 qa/mobile/ 放说明文件并在产物 detail 注明豁免依据"
+      "status": "pass",
+      "detail": ""
     },
     {
       "id": "audio-unlock",
@@ -68,14 +68,14 @@
       "id": "fps",
       "label": "FPS ≥ 8（swiftshader 软渲染口径）",
       "status": "pass",
-      "detail": "实测 9 fps"
+      "detail": "实测 10 fps"
     }
   ],
   "metrics": {
     "colorCount": 24,
-    "idleDiff": 394,
-    "tapDiff": 0,
-    "fps": 9,
+    "idleDiff": 393,
+    "tapDiff": 45,
+    "fps": 10,
     "scrollWidth": 390,
     "clientWidth": 390,
     "hasViewportMeta": true
