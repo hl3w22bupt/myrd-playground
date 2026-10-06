@@ -1,0 +1,10 @@
+{
+  "_note": "机器人试玩门禁阈值（scripts/playtest_driver.gd 约定）。frames_per_run 是 bot 采样窗口（900 帧 = 15 秒/局），非单局时长（单局 round_seconds=75 在 GameState 调参区，bot 只需采样到核心循环的正反馈节奏）。thresholds 与驱动内置默认一致，显式写出便于调参轮对照。",
+  "frames_per_run": 900,
+  "thresholds": {
+    "first_reward_seconds_max": 10.0,
+    "feedback_gap_seconds_max": 10.0,
+    "feedback_events_min_per_run": 2,
+    "seed_outcomes_min_distinct": 1
+  }
+}
