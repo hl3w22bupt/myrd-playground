@@ -7,7 +7,9 @@ import { BOOT_SCRIPT } from "./boot-script";
 import { FALLBACK_PAGE_HTML } from "./game-page";
 
 /**
- * Stack Tower（叠塔）AppHost 壳 —— games/stack-tower 专属（M2.1「有声可装」部署线）。
+ * g2-blocks（熔炉方块）AppHost 壳 —— games/g2-blocks 专属部署线
+ * （壳逻辑沿 M2.1 通用壳原样移植：/ 回源 export/web/index.html + 注入 base/boot，
+ *   r2/r3 两轮 LIVE-SMOKE PASS 的同一实现；仅标识面从 stack-tower 改写为 g2-blocks）。
  *
  * 平台契约（apphost-public.ts / proxy.ts / builder.ts 事实源）：
  *  - 公网入口 /apps/<slug>/gw（/gw 段即页面目录根）；子路径经 rewrite 原样透传到实例；
@@ -109,7 +111,7 @@ const app = new Hono();
 
 // 平台契约：健康检查（部署后 30s 内必须 200；资产懒加载，不等待就绪）。
 app.get("/health", (c) =>
-  c.json({ ok: true, app: "stack-tower", env: ctx.environment, assets: "lazy/object-storage" }),
+  c.json({ ok: true, app: "g2-blocks", env: ctx.environment, assets: "lazy/object-storage" }),
 );
 
 // 游戏落地页（网关豁免路径；/apps/<slug>/gw 即落到这里）。
