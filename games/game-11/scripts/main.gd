@@ -164,11 +164,18 @@ func _setup_environment() -> void:
 
 
 ## 渲染后端能力检测：adapter 名含软渲染特征串 → 软渲染（SwiftShader/llvmpipe）。
+## Web 导出补充：浏览器把 WebGL 的 GL_RENDERER 掩码成通用串（如 "WebKit WebGL"），
+## adapter 名探测在 Web 拿不到软渲染特征串（实测 SwiftShader 门禁 runner 命不中 →
+## 全效果 5fps）；壳页读得到 UNMASKED_RENDERER_WEBGL，把结论写进 window.__SOFT_RENDER__
+## （在引擎加载之前），这里经 JavaScriptBridge 桥读兜底。native（冒烟/桌面）无此单例，走 adapter 名。
 func _is_software_renderer() -> bool:
 	var adapter := RenderingServer.get_video_adapter_name().to_lower()
 	for keyword in SOFTWARE_RENDERER_KEYWORDS:
 		if adapter.contains(keyword):
 			return true
+	if OS.has_feature("web") and Engine.has_singleton("JavaScriptBridge"):
+		var flag: Variant = JavaScriptBridge.eval("!!window.__SOFT_RENDER__", true)
+		return bool(flag)
 	return false
 
 

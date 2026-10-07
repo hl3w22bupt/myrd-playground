@@ -92,12 +92,19 @@ body { color: #fff; background: #101426; overflow: hidden; touch-action: none; f
     try {
       // GPU 能力探测：建一个即弃 WebGL 上下文读 UNMASKED_RENDERER_WEBGL，
       // 命中软渲染特征串则回落钳 1（与游戏内质量看门狗的 LOW 档同口径）。
+      // 结论同时写入 window.__SOFT_RENDER__：Web 导出里 Godot 只能看到被浏览器掩码的
+      // GL_RENDERER（不含软渲染特征串），游戏侧 adapter 名探测失效（实测 SwiftShader
+      // 门禁 runner 命不中 → 全效果 5fps）；壳页读得到 UNMASKED 值，由它把结论桥给游戏。
       var probe = document.createElement('canvas');
       var gl = probe.getContext('webgl') || probe.getContext('experimental-webgl');
+      window.__SOFT_RENDER__ = false;
       if (gl) {
         var dbg = gl.getExtension('WEBGL_debug_renderer_info');
         var renderer = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : String(gl.getParameter(gl.RENDERER));
-        if (/swiftshader|llvmpipe|softpipe|software/i.test(renderer)) CAPPED_DPR = 1;
+        if (/swiftshader|llvmpipe|softpipe|software/i.test(renderer)) {
+          CAPPED_DPR = 1;
+          window.__SOFT_RENDER__ = true;
+        }
       }
     } catch (e) { /* 探测失败按真 GPU 处理，只影响钳制档位 */ }
     try {
