@@ -15,6 +15,7 @@ extends Node2D
 @onready var hud_label: Label = %HudLabel
 @onready var touch_ui: CanvasLayer = $TouchUI
 @onready var win_ui: CanvasLayer = %WinUI
+@onready var game_over_ui: CanvasLayer = %GameOverUI
 
 var _move_hint: String = "WASD / 方向键移动 · 空格抓取愿晶"
 
@@ -30,9 +31,15 @@ func _ready() -> void:
 		GameState.score_changed.connect(_on_score_changed)
 	if not GameState.game_won.is_connected(_on_game_won):
 		GameState.game_won.connect(_on_game_won)
+	if not GameState.game_lost.is_connected(_on_game_lost):
+		GameState.game_lost.connect(_on_game_lost)
 	for crystal in crystals.get_children():
-		if crystal is Crystal and not (crystal as Crystal).collected.is_connected(_on_crystal_collected):
-			(crystal as Crystal).collected.connect(_on_crystal_collected)
+		if crystal is Crystal:
+			var node := crystal as Crystal
+			if not node.collected.is_connected(_on_crystal_collected):
+				node.collected.connect(_on_crystal_collected)
+			if not node.expired.is_connected(_on_crystal_expired):
+				node.expired.connect(_on_crystal_expired)
 	_refresh_hud()
 	# 调参工作台（SKILL.md §3C）：网页 + URL 带 ?tuning 参数才创建，其余环境零成本。
 	if TuningPanel.is_enabled():
@@ -55,9 +62,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 ## 点触收集：命中愿晶热区（直径 ≥88 逻辑像素，远超 44px 下限）即收集。
-## 胜利后返回 false —— 收集交互全部失效，愿晶不消失、计数不变化。
+## 胜利/败局后返回 false —— 收集交互全部失效，愿晶不消失、计数不变化。
 func try_collect_at(tap_pos: Vector2) -> bool:
-	if GameState.is_won:
+	if GameState.is_won or GameState.is_lost:
 		return false
 	var best: Crystal = _nearest_crystal(tap_pos, GameState.tap_collect_radius)
 	if best == null:
@@ -67,7 +74,7 @@ func try_collect_at(tap_pos: Vector2) -> bool:
 
 ## confirm 便捷收集：抓取离玩家最近的一颗愿晶（桌面键位路径，次要交互）。
 func collect_nearest_to_player() -> bool:
-	if GameState.is_won:
+	if GameState.is_won or GameState.is_lost:
 		return false
 	var best: Crystal = _nearest_crystal(player.global_position, GameState.confirm_collect_radius)
 	if best == null:
@@ -83,6 +90,7 @@ func restart_game() -> void:
 		if crystal is Crystal:
 			(crystal as Crystal).reset_crystal()
 	win_ui.visible = false
+	game_over_ui.visible = false
 	_refresh_hud()
 	Juice.sfx(&"confirm")
 
@@ -101,8 +109,9 @@ func _nearest_crystal(from: Vector2, max_distance: float) -> Crystal:
 func _active_crystals() -> Array[Crystal]:
 	var active: Array[Crystal] = []
 	for child in crystals.get_children():
-		if child is Crystal and not (child as Crystal).is_collected:
-			active.append(child as Crystal)
+		var crystal := child as Crystal
+		if crystal != null and not crystal.is_collected and not crystal.is_expired:
+			active.append(crystal)
 	return active
 
 
@@ -110,8 +119,29 @@ func _player_spawn() -> Vector2:
 	return get_viewport_rect().size / 2.0
 
 
+## 倒计时 HUD：流星时限逐帧变化，走 _process 刷新（文本赋值廉价，360x640 无压力）。
+func _process(_delta: float) -> void:
+	_refresh_hud()
+
+
 func _refresh_hud() -> void:
-	hud_label.text = "%s · 愿晶 %d/%d" % [_move_hint, GameState.score, GameState.WIN_THRESHOLD]
+	if GameState.is_lost:
+		hud_label.text = "%s · 愿晶消散，愿望落空" % [_move_hint]
+		return
+	var soonest: float = _soonest_expiry_seconds()
+	if soonest < INF:
+		hud_label.text = "%s · 愿晶 %d/%d · 最近流星 %.1fs" % [
+			_move_hint, GameState.score, GameState.WIN_THRESHOLD, soonest]
+	else:
+		hud_label.text = "%s · 愿晶 %d/%d" % [_move_hint, GameState.score, GameState.WIN_THRESHOLD]
+
+
+## 场上最快消散的流星剩余秒数（无在野流星返回 INF，HUD 退化为纯进度显示）。
+func _soonest_expiry_seconds() -> float:
+	var soonest: float = INF
+	for crystal in _active_crystals():
+		soonest = minf(soonest, crystal.remaining)
+	return soonest
 
 
 func _on_player_moved(_position: Vector2) -> void:
@@ -122,6 +152,23 @@ func _on_player_moved(_position: Vector2) -> void:
 func _on_crystal_collected(_crystal: Crystal) -> void:
 	GameState.add_score(1)
 	Juice.sfx(&"collect")
+	# 难度梯度：每收一颗，剩余愿晶的倒计时按 lifetime_decay 折减重置（越收集越紧）。
+	if not GameState.is_won:
+		for crystal in _active_crystals():
+			crystal.tighten_deadline(GameState.score)
+
+
+## 结果性事件（流星消散）的处理函数：交由 GameState 判负（流星全散 = 3 颗不可集齐）。
+func _on_crystal_expired(_crystal: Crystal) -> void:
+	GameState.lose()
+
+
+## 败局：亮出失败画面与失败音效；此后收集交互全部失效，仅保留「再来一局」。
+func _on_game_lost() -> void:
+	game_over_ui.visible = true
+	Juice.sfx(&"fail")
+	Juice.flash(%LoseLabel)
+	Juice.shake(3.0)
 
 
 func _on_score_changed(score: int) -> void:

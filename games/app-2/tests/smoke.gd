@@ -14,10 +14,12 @@ extends Node
 ##   3. InputMap 动作已注册、物理键绑定逐键核对，注入输入后玩家真的动了
 ##   4. 信号真的到达订阅方（Player.moved / GameState.score_changed / game_won）
 ##   5. 核心交互生效：真实触摸注入 → 愿晶收集、计数 0→1→2→3
-##   6. 胜负可达且封顶：恰好 3 颗即胜；胜利后收集全部失效，计数绝不超 3
+##   6. 胜负可达且封顶：恰好 3 颗即胜；胜利后收集全部失效、倒计时冻结，计数绝不超 3
 ##   7. 重开可用：重开后计数清零、愿晶复位、胜利画面收起
-##   8. 结果性事件挂了反馈（Juice.events 非空，SKILL.md §3B）
-##   9. 调参协议可判（TUNING_META 非空、apply_tuning 钳制与未知键拒绝，SKILL.md §3C）
+##   8. 一闪即逝判负：愿晶时限耗尽 → game_lost 送达、失败画面可见、收集全部失效；
+##      败局重开 → 败局态清除、愿晶复位、时限回满
+##   9. 结果性事件挂了反馈（Juice.events 非空，SKILL.md §3B）
+##   10. 调参协议可判（TUNING_META 非空、apply_tuning 钳制与未知键拒绝，SKILL.md §3C）
 ##
 ## ⚠️ 输入注入分阶段互不重叠（references/error-signatures.md E-08）：
 ##   headless 下 `Input.parse_input_event()` 的缓冲冲刷会清掉 `Input.action_press()`
@@ -37,10 +39,13 @@ const MOVE_FRAMES: int = 10
 ##   47  第 1 颗抬起 → 真实触摸收集第 2 颗
 ##   49  第 2 颗抬起 → confirm 动作抓取最近愿晶（第 3 颗，桌面路径）
 ##   53  断言：恰好 3/3、已胜、game_won 送达、胜利画面可见
-##   57  胜利后溢出尝试：confirm + 点触已收集愿晶
-##   61  断言：计数仍 3、重复 collect() 被拒 → 注入 restart
+##   57  胜利后溢出尝试：confirm + 点触已收集愿晶；同时记录愿晶剩余时限（冻结基线）
+##   61  断言：计数仍 3、重复 collect() 被拒、胜利后倒计时冻结 → 注入 restart
 ##   65  断言：计数 0、未胜、3 颗复位、胜利画面隐藏
-##   69  终局断言：信号送达 + 反馈非空 → 报告
+##   67  败局相位：把三颗愿晶剩余时限压到 0.3s（白盒注入，模拟「一闪即逝」到期）
+##   91  断言：流星消散 → 判负、game_lost 送达、失败画面可见、收集全部失效 → 注入 restart
+##   95  断言：败局重开 → 败局态清除、失败画面收起、愿晶复位、时限回满
+##   99  终局断言：信号送达 + 反馈非空 → 报告
 const FRAME_RELEASE_MOVE: int = NOISE_FRAMES + MOVE_FRAMES + 1
 const FRAME_CLEAN_CHECK: int = FRAME_RELEASE_MOVE + 4
 const FRAME_TAP_SECOND: int = FRAME_CLEAN_CHECK + 2
@@ -50,7 +55,12 @@ const FRAME_OVERFLOW: int = FRAME_WIN_CHECK + 4
 const FRAME_OVERFLOW_CHECK: int = FRAME_OVERFLOW + 4
 const FRAME_RESTART_AGAIN: int = FRAME_OVERFLOW_CHECK
 const FRAME_RESTART_CHECK: int = FRAME_RESTART_AGAIN + 4
-const FRAME_FINAL: int = FRAME_RESTART_CHECK + 4
+const FRAME_FAIL_SETUP: int = FRAME_RESTART_CHECK + 2
+## 败局相位的注入时限（秒）：0.3s ≈ 18 物理帧；+24 帧留足到期与信号传播余量。
+const FAIL_PHASE_REMAINING: float = 0.3
+const FRAME_FAIL_CHECK: int = FRAME_FAIL_SETUP + 24
+const FRAME_FAIL_RESTART_CHECK: int = FRAME_FAIL_CHECK + 4
+const FRAME_FINAL: int = FRAME_FAIL_RESTART_CHECK + 4
 ## 总帧数上限（超过即出报告，防止死循环；smoke.sh 另有 --quit-after 兜底）。
 const TOTAL_FRAMES: int = FRAME_FINAL + 2
 ## 判定「真的移动了」的最小位移（像素）。
@@ -81,6 +91,9 @@ var _origin: Vector2 = Vector2.ZERO
 var _moved_seen: bool = false
 var _score_events: int = 0
 var _game_won_seen: bool = false
+var _game_lost_seen: bool = false
+## 胜利瞬间的愿晶剩余时限基线：胜利后必须冻结（胜局里流星不再消散）。
+var _win_lock_remaining: float = -1.0
 
 
 func _ready() -> void:
@@ -100,9 +113,12 @@ func _ready() -> void:
 		_failures.append("autoload GameState 缺少信号 score_changed")
 	elif not game_state.has_signal("game_won"):
 		_failures.append("autoload GameState 缺少信号 game_won")
+	elif not game_state.has_signal("game_lost"):
+		_failures.append("autoload GameState 缺少信号 game_lost（一闪即逝判负协议缺失）")
 	else:
 		game_state.score_changed.connect(_on_score_changed)
 		game_state.game_won.connect(_on_game_won)
+		game_state.game_lost.connect(_on_game_lost)
 		_check_tuning_protocol(game_state)
 
 	var juice := get_tree().root.get_node_or_null("Juice")
@@ -155,12 +171,21 @@ func _physics_process(_delta: float) -> void:
 		elif _frames == FRAME_OVERFLOW:
 			_press_action(&"confirm")
 			_tap_crystal(_crystals[0])
+			# 冻结基线：胜利后愿晶倒计时必须停摆（胜局里流星不再消散）。
+			_win_lock_remaining = _crystals[0].remaining
 		elif _frames == FRAME_OVERFLOW_CHECK:
 			_release_tap()
 			_assert_win_locked()
 			_press_action(&"restart")
 		elif _frames == FRAME_RESTART_CHECK:
 			_assert_restarted()
+		elif _frames == FRAME_FAIL_SETUP:
+			_setup_fail_phase()
+		elif _frames == FRAME_FAIL_CHECK:
+			_assert_game_lost()
+			_press_action(&"restart")
+		elif _frames == FRAME_FAIL_RESTART_CHECK:
+			_assert_recovered_from_lost()
 		elif _frames == FRAME_FINAL:
 			_assert_final()
 
@@ -221,6 +246,10 @@ func _assert_win_locked() -> void:
 	# 已收集愿晶直接调 collect() 必须被拒（重复点击不重复计数）。
 	if _crystals[0].collect():
 		_failures.append("已收集愿晶再次 collect() 返回 true（重复收集未拦截）")
+	# 胜利后倒计时冻结：胜局里流星绝不消散（否则胜局还会翻成败局）。
+	if not is_equal_approx(_crystals[0].remaining, _win_lock_remaining):
+		_failures.append("胜利封顶：愿晶剩余时限 %.3f ≠ 冻结基线 %.3f（胜局倒计时未冻结）" % [
+			_crystals[0].remaining, _win_lock_remaining])
 
 
 ## 重开可用：计数清零、胜利态清除、愿晶复位、胜利画面收起。
@@ -236,12 +265,63 @@ func _assert_restarted() -> void:
 		_failures.append("重开断言：胜利画面应隐藏（WinUI.visible 未复位）")
 
 
+## 败局相位准备：白盒把三颗愿晶剩余时限压到 FAIL_PHASE_REMAINING（测试态注入，
+## 与 crystal.collect() 直调同属白盒手段；只影响本相位，restart 后回满）。
+func _setup_fail_phase() -> void:
+	for crystal in _crystals:
+		crystal.remaining = FAIL_PHASE_REMAINING
+
+
+## 一闪即逝判负：流星消散 → game_lost 送达 → 失败画面可见 → 收集交互全部失效。
+func _assert_game_lost() -> void:
+	if not GameState.is_lost:
+		_failures.append("败局判定：愿晶时限耗尽但 is_lost == false（一闪即逝判负未接线）")
+	if not _game_lost_seen:
+		_failures.append("信号 GameState.game_lost 未到达订阅方：连接断裂或从未 emit")
+	if not _main.game_over_ui.visible:
+		_failures.append("失败画面未显示（GameOverUI.visible == false，败局反馈缺失）")
+	if GameState.is_won:
+		_failures.append("胜负判定：未满 %d 颗却 is_won == true（未满三颗误判胜）" % GameState.WIN_THRESHOLD)
+	if GameState.score != 0:
+		_failures.append("败局相位计数应为 0，实际 %d（相位被污染）" % GameState.score)
+	# 败局后收集交互必须全部失效：白盒直调与点触路径都要被拒。
+	for crystal in _crystals:
+		if crystal.collect():
+			_failures.append("败局后 collect() 返回 true（终局收集未失效）")
+			break
+	if _main.try_collect_at(_crystals[0].global_position):
+		_failures.append("败局后 try_collect_at 仍返回 true（终局点触未失效）")
+
+
+## 败局重开：败局态清除、失败画面收起、消散愿晶复位、倒计时回满。
+func _assert_recovered_from_lost() -> void:
+	if GameState.is_lost:
+		_failures.append("败局重开：is_lost 应为 false（reset 未清败局态）")
+	if _main.game_over_ui.visible:
+		_failures.append("败局重开：失败画面应隐藏（GameOverUI.visible 未复位）")
+	if _active_crystal_count() != _crystals.size():
+		_failures.append("败局重开：在野愿晶 %d/%d（消散愿晶未复位）" % [
+			_active_crystal_count(), _crystals.size()])
+	for crystal in _crystals:
+		if crystal.is_expired:
+			_failures.append("败局重开：愿晶仍处消散态（reset_crystal 未清 is_expired）")
+			break
+		# 容许重开后几帧的自然倒计时损耗，只拦「没回满」。
+		if crystal.remaining < 1.0:
+			_failures.append("败局重开：愿晶剩余时限 %.2fs 未回满（reset_crystal 未重读调参区）" % crystal.remaining)
+			break
+
+
 ## 终局：信号送达 + 反馈挂了（玩起来不是哑的）。
 func _assert_final() -> void:
 	if not _moved_seen:
 		_failures.append("信号 Player.moved 未到达订阅方：连接断裂或从未 emit")
 	if _score_events == 0:
 		_failures.append("信号 GameState.score_changed 未到达订阅方：连接断裂或从未 emit")
+	if not _game_won_seen:
+		_failures.append("信号 GameState.game_won 未到达订阅方：连接断裂或从未 emit")
+	if not _game_lost_seen:
+		_failures.append("信号 GameState.game_lost 未到达订阅方：败局相位未跑或连接断裂")
 	if Juice.events.is_empty():
 		_failures.append("反馈断言：收集/胜利的结果事件没有触发任何 Juice 反馈"
 			+ "（结果性事件必须挂 ≥1 条反馈，见 SKILL.md §3B）")
@@ -252,7 +332,7 @@ func _assert_final() -> void:
 func _active_crystal_count() -> int:
 	var count: int = 0
 	for crystal in _crystals:
-		if not crystal.is_collected:
+		if not crystal.is_collected and not crystal.is_expired:
 			count += 1
 	return count
 
@@ -345,7 +425,7 @@ func _check_tuning_protocol(game_state: Node) -> void:
 
 func _report() -> void:
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/autoload/输入映射/物理移动/触摸收集/三颗即胜/胜利封顶/重开复位/反馈触发/调参协议 全部通过")
+		print("GODOT_SMOKE: PASS 场景实例化/autoload/输入映射/物理移动/触摸收集/三颗即胜/胜利封顶/重开复位/一闪即逝判负/败局重开/反馈触发/调参协议 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:
@@ -363,6 +443,10 @@ func _on_score_changed(_score: int) -> void:
 
 func _on_game_won(_score: int) -> void:
 	_game_won_seen = true
+
+
+func _on_game_lost() -> void:
+	_game_lost_seen = true
 
 
 ## ── 噪声相位：确定种子随机事件（原始事件，不含 InputEventAction）──

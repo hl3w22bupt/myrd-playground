@@ -13,6 +13,8 @@ extends Node
 signal score_changed(score: int)
 ## 达成 3 颗胜利时发出（恰好一次；重开后可再次发出）。
 signal game_won(score: int)
+## 愿晶全部消散（时限内未集齐 3 颗）判负时发出（恰好一次；重开后可再次发出）。
+signal game_lost()
 
 ## 胜利判定阈值：需求固定 3 颗即胜，不做可调数值。
 const WIN_THRESHOLD: int = 3
@@ -21,6 +23,8 @@ const WIN_THRESHOLD: int = 3
 var score: int = 0
 ## 是否已进入胜利状态；胜利后收集交互全部失效，仅保留重开。
 var is_won: bool = false
+## 是否已进入败局状态；流星全部消散、3 颗已不可集齐。败局后收集交互同样失效，仅保留重开。
+var is_lost: bool = false
 
 ## ── 数值调参区（SKILL.md §3C 调参工作台的 spec.numeric 对接面）──
 ## 默认值 = spec.numeric 的当前定稿；试玩调参经 apply_tuning 覆盖，定稿回写 spec 后更新这里。
@@ -29,6 +33,11 @@ var move_speed: float = 220.0
 var tap_collect_radius: float = 48.0
 ## confirm 键/按钮「抓取最近愿晶」的判定半径（桌面便捷操作，次要收集路径）。
 var confirm_collect_radius: float = 200.0
+## 「一闪即逝」难度核心：每颗愿晶从出现/上次收集起可存活的秒数。
+## 每成功收集一颗，剩余愿晶的倒计时按 lifetime_decay 折减重置 —— 越接近胜利时限越紧。
+var crystal_lifetime: float = 12.0
+## 收集一颗愿晶后，剩余愿晶新时限的折减系数（0.75 → 12s → 9s → 6.75s 的难度梯度）。
+var lifetime_decay: float = 0.75
 
 ## 可调键的元数据：键名 → {min, max, step}。调参面板按它生成滑杆，apply_tuning 按它钳制。
 ## 新增可调数值 = 上面加变量 + 这里加一行，两处都在本文件。
@@ -36,6 +45,8 @@ const TUNING_META: Dictionary = {
 	&"move_speed": {"min": 60.0, "max": 600.0, "step": 10.0},
 	&"tap_collect_radius": {"min": 32.0, "max": 96.0, "step": 4.0},
 	&"confirm_collect_radius": {"min": 80.0, "max": 320.0, "step": 10.0},
+	&"crystal_lifetime": {"min": 4.0, "max": 30.0, "step": 1.0},
+	&"lifetime_decay": {"min": 0.4, "max": 1.0, "step": 0.05},
 }
 
 
@@ -44,9 +55,9 @@ func _ready() -> void:
 
 
 ## 收集一次愿晶：计数 +1；恰好达到 3 颗 → 胜利。
-## 胜利后拒绝任何加分（不报错、不变化）；amount 只接受正数，计数不可能倒退或越界。
+## 胜利/败局后拒绝任何加分（不报错、不变化）；amount 只接受正数，计数不可能倒退或越界。
 func add_score(amount: int = 1) -> void:
-	if is_won:
+	if is_won or is_lost:
 		return
 	if amount <= 0:
 		return
@@ -59,10 +70,20 @@ func add_score(amount: int = 1) -> void:
 		score_changed.emit(score)
 
 
+## 判负：愿晶已全部消散、3 颗不可再集齐。胜利优先 —— 已胜绝不翻转为败局。
+## 重入安全：重复调用直接返回（不重复发信号、不重复挂反馈）。
+func lose() -> void:
+	if is_won or is_lost:
+		return
+	is_lost = true
+	game_lost.emit()
+
+
 ## 重开一局：计数清零、胜利态清除（场景层负责重置愿晶与玩家位置）。
 func reset() -> void:
 	score = 0
 	is_won = false
+	is_lost = false
 	score_changed.emit(score)
 
 
