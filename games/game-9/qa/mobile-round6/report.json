@@ -1,0 +1,104 @@
+{
+  "verdict": "PASS",
+  "url": "https://leomac-studio.tail49399e.ts.net/apps/game-9/",
+  "preset": {
+    "width": 390,
+    "height": 844,
+    "deviceScaleFactor": 3,
+    "mobile": true,
+    "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
+  },
+  "checkedAt": "2026-10-07T14:50:08.927Z",
+  "checks": [
+    {
+      "id": "network",
+      "label": "关键资源网络全通（无 5xx / 404 / 登录墙重定向）",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "id": "console",
+      "label": "console 零 error + 零未捕获异常",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "id": "canvas",
+      "label": "canvas 存在（引擎产物已挂载）",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "id": "render",
+      "label": "首帧截图非纯色（400 点采样 ≥2 种量化色）",
+      "status": "pass",
+      "detail": "采样仅 14 种颜色——画面没渲染出来（黑屏/白屏）"
+    },
+    {
+      "id": "animate",
+      "label": "画面在动（1.5s 双时点帧差 > 0）",
+      "status": "pass",
+      "detail": "400 采样点零变化——主循环挂死或渲染冻结"
+    },
+    {
+      "id": "touch-pipeline",
+      "label": "触摸事件到达 DOM（tap/swipe 均被派发）",
+      "status": "pass",
+      "detail": "tap={\"touchstart\":1,\"touchmove\":0,\"touchend\":1} swipe={\"touchstart\":2,\"touchmove\":8,\"touchend\":2}——事件没到页面=壳层挡了输入"
+    },
+    {
+      "id": "touch-response",
+      "label": "触摸后画面有响应（tap 后帧差 > 0 或产生新活动）",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "id": "audio-unlock",
+      "label": "音频手势解锁器存在（window.__audioDebug）",
+      "status": "pass",
+      "detail": "typeof __audioDebug === \"function\"——缺解锁层 = 移动端全部音效静默且控制台零报错（取证：games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md）"
+    },
+    {
+      "id": "viewport",
+      "label": "无横向溢出（scrollWidth ≤ clientWidth+1）",
+      "status": "pass",
+      "detail": "scrollWidth=390 vs clientWidth=390"
+    },
+    {
+      "id": "fps",
+      "label": "FPS ≥ 8（swiftshader 软渲染口径）",
+      "status": "pass",
+      "detail": "实测 36 fps"
+    }
+  ],
+  "metrics": {
+    "colorCount": 14,
+    "idleDiff": 338,
+    "tapDiff": 320,
+    "fps": 36,
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "hasViewportMeta": true
+  },
+  "networkFailures": [],
+  "networkWarnings": [],
+  "consoleErrors": [],
+  "touchCounters": {
+    "afterTap": {
+      "touchstart": 1,
+      "touchmove": 0,
+      "touchend": 1
+    },
+    "afterSwipe": {
+      "touchstart": 2,
+      "touchmove": 8,
+      "touchend": 2
+    }
+  },
+  "evidence": [
+    "phase-load.png",
+    "phase-tap.png",
+    "phase-joystick.png"
+  ],
+  "exemptionNote": "touch-response 判 FAIL 但游戏确为开局静止画面时：在本目录放 EXEMPTION.md 说明依据，产物 detail 注明——不得无据豁免"
+}

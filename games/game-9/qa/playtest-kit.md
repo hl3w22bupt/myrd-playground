@@ -11,6 +11,9 @@
 
 > 本轮对象 = 线上 AppHost **v5** `cmuwqrrl70051m9lgj8v89gh9`（分支 tip 游戏代码 `2626927`，
 > HEAD `c1106d7` 只动 qa 文档），移动端证据已于 2026-10-06T14:19Z 对 v5 线上实测刷新。
+> **第三轮复核（2026-10-07）独立复验**：四门禁在本轨迹复跑全绿（playtest 三局 fb=75/80/76
+> 与归档逐字一致，qa/playtest-round3/）+ 移动门禁对线上 v5 复跑 PASS 10/10（qa/mobile-round6/）+
+> 线上 pck 与 v5 导出逐字节一致 —— 以下机判结论全部经复现证实，量表仍待你回填。
 
 - **移动端模拟门禁（preHook: mobile-web-smoke）PASS**：headless Chrome 移动仿真（iPhone UA /
   390×844/DPR3）打开线上地址，十项全绿——关键资源网络全通、console 零 error、canvas 挂载、
