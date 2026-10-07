@@ -10,7 +10,8 @@ const app = new Hono();
 app.get("/health", (c) =>
   c.json({
     ok: true,
-    app: "candy-crush-legend",
+    app: "app-6",
+    title: "冒烟愿晶：一闪即逝的流星，收集三颗即胜",
     env: ctx.environment,
     assets: "lazy/object-storage",
   }),

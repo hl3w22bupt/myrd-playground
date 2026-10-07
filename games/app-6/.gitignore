@@ -1,0 +1,11 @@
+# Godot 本机导入缓存：由 `godot --headless --path . --import` 重新生成，不进版本库
+.godot/
+
+# 导出产物【必须入库】：AppHost 部署从 gitRef checkout 上传 assets_dir
+# （apphost.toml → games/app-6/export/web），不在仓库 = 部署后资产 404。
+# 重新导出：godot --headless --path . --export-release "Web" export/web/index.html
+*.exe
+*.zip
+
+# 系统
+.DS_Store

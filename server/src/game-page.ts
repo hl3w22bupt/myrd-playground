@@ -23,14 +23,14 @@ export const GAME_PAGE_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
-<title>糖果粉碎传奇</title>
+<title>冒烟愿晶：一闪即逝的流星，收集三颗即胜</title>
 <style>
 html, body, #canvas { margin: 0; padding: 0; border: 0; }
-body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { color: #fff; background: #070d20; overflow: hidden; touch-action: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 #canvas { display: block; width: 100vw; height: 100vh; }
 #canvas:focus { outline: none; }
 #boot { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
-  background: radial-gradient(circle at 50% 35%, #3d1d5c 0%, #241040 55%, #170b2b 100%); z-index: 10; transition: opacity .4s; }
+  background: radial-gradient(circle at 50% 30%, #1b2c5c 0%, #101b3f 55%, #070d20 100%); z-index: 10; transition: opacity .4s; }
 #boot.hidden { opacity: 0; pointer-events: none; }
 #boot h1 { margin: 0; font-size: 2rem; letter-spacing: .12em; color: #ffd7ef;
   text-shadow: 0 2px 0 #a12c6b, 0 0 18px rgba(255,120,200,.55); }
@@ -48,13 +48,13 @@ body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; f
 <body>
 <canvas id="canvas">你的浏览器不支持 canvas。</canvas>
 <div id="boot">
-  <h1>糖果粉碎传奇</h1>
-  <div class="sub">Candy Crush Legend · MyRD 小游戏工坊</div>
+  <h1>冒烟愿晶</h1>
+  <div class="sub">一闪即逝的流星，收集三颗即胜 · MyRD 小游戏工坊</div>
   <div id="bar-wrap"><div id="bar"></div></div>
-  <div id="boot-msg">正在准备糖果…</div>
-  <div id="keys"><span><kbd>←↑↓→</kbd> 移动光标</span><span><kbd>空格</kbd> 选中 / 交换</span><span><kbd>R</kbd> 重开</span><span><kbd>Enter</kbd> 过关后下一关</span></div>
+  <div id="boot-msg">正在点亮夜空…</div>
+  <div id="keys"><span><kbd>WASD / ←↑↓→</kbd> 移动捕手</span><span><kbd>点击流星</kbd> 捕捉</span><span><kbd>空格 / Enter</kbd> 捕捉最近的流星</span><span><kbd>Enter</kbd> 胜利后重开</span></div>
 </div>
-<div id="hint" style="display:none">方向键移动 · 空格交换 · R 重开 · Enter 下一关</div>
+<div id="hint" style="display:none">摇杆移动 · 点击流星捕愿晶 · 收集 3 颗即胜</div>
 <noscript>你的浏览器不支持 JavaScript。</noscript>
 <!-- 引擎引导脚本由启动脚本按 BASE_PATH 动态注入（静态 src 在无尾斜杠入口下会 404） -->
 <script>
@@ -107,6 +107,25 @@ body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; f
     return { state: audioCtx ? audioCtx.state : 'no-ctx', addModules: audioAddModules, log: audioLog };
   };
 
+  // ---- 调参桥：URL ?tuning=<JSON> → window.__GAME_TUNING__（引擎启动前必须就位）----
+  // 消费方 games/app-6/autoload/game_state.gd::_apply_web_tuning()：启动时读这个全局、
+  // 走 apply_tuning() 按 TUNING_META 钳制应用。试玩调参（SKILL.md §3C）的壳端半边 ——
+  // 缺了它 URL 调参静默失效（游戏回落默认值，看起来「调参不生效」）。
+  // 解析失败按无参处理（带坏参不能拦启动），原始串留 __GAME_TUNING_RAW__ 供排查。
+  window.__GAME_TUNING__ = null;
+  try {
+    var tuningParam = new URLSearchParams(location.search).get('tuning');
+    if (tuningParam) {
+      window.__GAME_TUNING_RAW__ = tuningParam;
+      var parsed = JSON.parse(tuningParam);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        window.__GAME_TUNING__ = parsed;
+      }
+    }
+  } catch (e) {
+    window.__GAME_TUNING__ = null;
+  }
+
   // 资产基路径：公网入口 /apps/game（无尾斜杠）下，裸相对路径会解析到 /apps/*（网关 404）。
   // 以页面路径推导：/apps/game → /apps/game/ → /apps/game/api/public/assets/*。
   var BASE_PATH = (function () {
@@ -155,10 +174,10 @@ body { color: #fff; background: #1b0f2e; overflow: hidden; touch-action: none; f
         audioAddModules += 1;
         var realUrl = BASE_PATH + 'api/public/assets/' + file;
         return origAddModule.call(self, realUrl, options).catch(function (err) {
-          console.error('[candy-shell] audio worklet 资产通道加载失败，降级原路径重试', file, err);
+          console.error('[app-6 shell] audio worklet 资产通道加载失败，降级原路径重试', file, err);
           audioLog.push({ t: Date.now(), state: 'worklet-fallback:' + file });
           return origAddModule.call(self, url, options).catch(function (err2) {
-            console.error('[candy-shell] audio worklet 兜底加载也失败（移动端将无声）', file, err2);
+            console.error('[app-6 shell] audio worklet 兜底加载也失败（移动端将无声）', file, err2);
             audioLog.push({ t: Date.now(), state: 'worklet-dead:' + file });
             throw err2;
           });
