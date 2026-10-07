@@ -1,0 +1,231 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/board.tscn" id="2_board"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="3_player"]
+[ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="4_joystick"]
+[ext_resource type="Script" path="res://scripts/touch_confirm_button.gd" id="5_confirm"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_confirm"]
+radius = 44.0
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Board" parent="." instance=ExtResource("2_board")]
+
+[node name="Player" parent="." instance=ExtResource("3_player")]
+position = Vector2(270, 440)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HudTitle" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 0.0
+offset_top = 16.0
+offset_right = 540.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 34
+theme_override_colors/font_color = Color(1, 0.82, 0.45, 1)
+text = "汽车连连看"
+horizontal_alignment = 1
+
+[node name="TimeLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 0.0
+offset_top = 72.0
+offset_right = 540.0
+offset_bottom = 104.0
+theme_override_font_sizes/font_size = 24
+text = "剩余时间 90 秒"
+horizontal_alignment = 1
+
+[node name="ScoreLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 0.0
+offset_top = 108.0
+offset_right = 540.0
+offset_bottom = 140.0
+theme_override_font_sizes/font_size = 24
+text = "得分 0"
+horizontal_alignment = 1
+
+[node name="TilesLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 0.0
+offset_top = 144.0
+offset_right = 540.0
+offset_bottom = 176.0
+theme_override_font_sizes/font_size = 22
+text = "剩余卡片 16 张"
+horizontal_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 0.0
+offset_top = 184.0
+offset_right = 540.0
+offset_bottom = 212.0
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.72, 0.76, 0.84, 1)
+text = "点选两张相同的汽车卡片，路径转折不超过 2 次即可消除"
+horizontal_alignment = 1
+
+[node name="ResultPanel" type="ColorRect" parent="UI"]
+unique_name_in_owner = true
+visible = false
+offset_left = 40.0
+offset_top = 320.0
+offset_right = 500.0
+offset_bottom = 640.0
+color = Color(0.05, 0.07, 0.1, 0.88)
+
+[node name="ResultLabel" type="Label" parent="UI/ResultPanel"]
+unique_name_in_owner = true
+offset_left = 20.0
+offset_top = 70.0
+offset_right = 440.0
+offset_bottom = 160.0
+theme_override_font_sizes/font_size = 40
+theme_override_colors/font_color = Color(1, 0.85, 0.5, 1)
+text = "通关！"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RestartButton" type="Button" parent="UI/ResultPanel"]
+unique_name_in_owner = true
+offset_left = 40.0
+offset_top = 200.0
+offset_right = 240.0
+offset_bottom = 262.0
+theme_override_font_sizes/font_size = 24
+text = "再来一局"
+
+[node name="MenuButton" type="Button" parent="UI/ResultPanel"]
+unique_name_in_owner = true
+offset_left = 260.0
+offset_top = 200.0
+offset_right = 460.0
+offset_bottom = 262.0
+theme_override_font_sizes/font_size = 24
+text = "返回菜单"
+
+[node name="MenuLayer" type="CanvasLayer" parent="."]
+layer = 5
+
+[node name="MenuBackground" type="ColorRect" parent="MenuLayer"]
+unique_name_in_owner = true
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 540.0
+offset_bottom = 960.0
+color = Color(0.09, 0.12, 0.17, 1)
+
+[node name="MenuTitle" type="Label" parent="MenuLayer"]
+unique_name_in_owner = true
+offset_left = 0.0
+offset_top = 170.0
+offset_right = 540.0
+offset_bottom = 250.0
+theme_override_font_sizes/font_size = 52
+theme_override_colors/font_color = Color(1, 0.82, 0.45, 1)
+text = "汽车连连看"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MenuSubtitle" type="Label" parent="MenuLayer"]
+unique_name_in_owner = true
+offset_left = 0.0
+offset_top = 262.0
+offset_right = 540.0
+offset_bottom = 300.0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.72, 0.76, 0.84, 1)
+text = "经典消除 × 汽车主题 · 限时挑战"
+horizontal_alignment = 1
+
+[node name="EasyButton" type="Button" parent="MenuLayer"]
+unique_name_in_owner = true
+toggle_mode = true
+offset_left = 60.0
+offset_top = 340.0
+offset_right = 260.0
+offset_bottom = 410.0
+theme_override_font_sizes/font_size = 24
+text = "轻松 4×4"
+
+[node name="HardButton" type="Button" parent="MenuLayer"]
+unique_name_in_owner = true
+toggle_mode = true
+offset_left = 280.0
+offset_top = 340.0
+offset_right = 480.0
+offset_bottom = 410.0
+theme_override_font_sizes/font_size = 24
+text = "挑战 6×6"
+
+[node name="StartButton" type="Button" parent="MenuLayer"]
+unique_name_in_owner = true
+offset_left = 150.0
+offset_top = 430.0
+offset_right = 390.0
+offset_bottom = 530.0
+theme_override_font_sizes/font_size = 30
+text = "开始游戏"
+
+[node name="MenuHelp" type="Label" parent="MenuLayer"]
+unique_name_in_owner = true
+offset_left = 40.0
+offset_top = 680.0
+offset_right = 500.0
+offset_bottom = 820.0
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.6, 0.65, 0.72, 1)
+text = "玩法：点选两张图案相同的汽车卡片，若连通路径
+转折不超过 2 次即可消除；路径被阻挡会有抖动提示。
+全部消除即通关，卡死时自动洗牌且保证有解。"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="TouchUI" type="CanvasLayer" parent="."]
+layer = 10
+visible = false
+
+[node name="JoystickAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -160.0
+offset_right = 160.0
+offset_bottom = -24.0
+grow_vertical = 0
+script = ExtResource("4_joystick")
+
+[node name="ConfirmAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -140.0
+offset_top = -140.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="ConfirmButton" type="TouchScreenButton" parent="TouchUI/ConfirmAnchor"]
+position = Vector2(58, 58)
+shape = SubResource("CircleShape2D_confirm")
+script = ExtResource("5_confirm")
+
+[node name="ConfirmLabel" type="Label" parent="TouchUI/ConfirmAnchor/ConfirmButton"]
+unique_name_in_owner = true
+offset_left = -40.0
+offset_top = -14.0
+offset_right = 40.0
+offset_bottom = 14.0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 0.9)
+text = "选中"

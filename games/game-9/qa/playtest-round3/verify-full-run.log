@@ -1,0 +1,12 @@
+== preflight ==
+PREFLIGHT: PASS 14 类前置一致性检查全部通过（87 个工程文件，不含 .godot/ 导入缓存）
+== headless smoke（GODOT_SMOKE_FRAMES=240）==
+godot-smoke: PASS 冒烟场景通过：tests/smoke.tscn（退出码 0，断言标记齐全，日志无脚本错误）
+== input fuzz ==
+GODOT_FUZZ: PASS seed=20260913 batches=6 total_frames=239
+godot-fuzz: PASS 输入鲁棒性 fuzz 通过（退出码 0，日志无脚本错误）
+== playtest（阈值见 tests/playtest.json）==
+GODOT_PLAYTEST_METRICS: {"frames_per_run":900,"runs":[{"feedback_events":75,"first_reward_seconds":0.0666666666666667,"max_feedback_gap_seconds":1.31666666666667,"outcome":"score=0|fb=75","run":1,"seed":20260913},{"feedback_events":80,"first_reward_seconds":0.266666666666667,"max_feedback_gap_seconds":1.16666666666667,"outcome":"score=0|fb=80","run":2,"seed":20260914},{"feedback_events":76,"first_reward_seconds":0.0166666666666667,"max_feedback_gap_seconds":0.95,"outcome":"score=0|fb=76","run":3,"seed":20260915}],"thresholds":{"feedback_events_min_per_run":30,"feedback_gap_seconds_max":6,"first_reward_seconds_max":5,"seed_outcomes_min_distinct":2},"thresholds_source":"tests/playtest.json"}
+GODOT_PLAYTEST: PASS 3 局全部通过（节奏代理指标在阈值内，明细见 METRICS 行）
+godot-playtest: PASS 机器人试玩通过（3 局，每局 900 帧，节奏代理指标在阈值内）
+verify: PASS preflight + smoke + fuzz + playtest 全部通过
