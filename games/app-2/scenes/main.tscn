@@ -1,0 +1,142 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/crystal.tscn" id="3_crystal"]
+[ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="4_joystick"]
+[ext_resource type="Script" path="res://scripts/touch_action_button.gd" id="5_action"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_action"]
+radius = 44.0
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Background" type="Polygon2D" parent="."]
+color = Color(0.05, 0.07, 0.16, 1)
+polygon = PackedVector2Array(0, 0, 360, 0, 360, 640, 0, 640)
+
+[node name="Crystals" type="Node2D" parent="."]
+
+[node name="Crystal1" parent="Crystals" instance=ExtResource("3_crystal")]
+position = Vector2(90, 170)
+
+[node name="Crystal2" parent="Crystals" instance=ExtResource("3_crystal")]
+position = Vector2(280, 130)
+
+[node name="Crystal3" parent="Crystals" instance=ExtResource("3_crystal")]
+position = Vector2(200, 460)
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(180, 320)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HudLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 12.0
+offset_top = 10.0
+offset_right = 348.0
+offset_bottom = 66.0
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.92, 0.94, 1, 1)
+autowrap_mode = 3
+text = "收集冒烟愿晶 0/3"
+
+[node name="TouchUI" type="CanvasLayer" parent="."]
+layer = 10
+visible = false
+
+[node name="JoystickAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -160.0
+offset_right = 160.0
+offset_bottom = -24.0
+grow_vertical = 0
+script = ExtResource("4_joystick")
+
+[node name="CollectAnchor" type="Control" parent="TouchUI"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -140.0
+offset_top = -140.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="CollectButton" type="TouchScreenButton" parent="TouchUI/CollectAnchor"]
+position = Vector2(58, 58)
+shape = SubResource("CircleShape2D_action")
+script = ExtResource("5_action")
+action_name = &"confirm"
+
+[node name="CollectLabel" type="Label" parent="TouchUI/CollectAnchor/CollectButton"]
+offset_left = -40.0
+offset_top = -14.0
+offset_right = 40.0
+offset_bottom = 14.0
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 0.9)
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "抓取"
+
+[node name="WinUI" type="CanvasLayer" parent="."]
+unique_name_in_owner = true
+layer = 20
+visible = false
+
+[node name="Dim" type="ColorRect" parent="WinUI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.55)
+
+[node name="WinLabel" type="Label" parent="WinUI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -160.0
+offset_bottom = -60.0
+theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "愿晶集齐，愿望成真！"
+
+[node name="RestartAnchor" type="Control" parent="WinUI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -70.0
+offset_top = -230.0
+offset_right = 70.0
+offset_bottom = -142.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="RestartButton" type="TouchScreenButton" parent="WinUI/RestartAnchor"]
+position = Vector2(70, 44)
+shape = SubResource("CircleShape2D_action")
+script = ExtResource("5_action")
+action_name = &"restart"
+
+[node name="RestartLabel" type="Label" parent="WinUI/RestartAnchor/RestartButton"]
+offset_left = -40.0
+offset_top = -14.0
+offset_right = 40.0
+offset_bottom = 14.0
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "再来一局"
