@@ -35,12 +35,28 @@
 - **娃娃精细化**：细分 20/10→26/13；新增手臂/脚掌/口鼻（按耳型分支）；眼睛改亮面（rough 0.12）+ 高光点；
   材质仍按 `色值|粗糙度` 静态缓存，8 只共享，控 DrawCall。
 
-## 移动端性能红线（≥30fps）与质量看门狗
+## 移动端性能红线（≥30fps）与质量分级
 
-基线：v1 移动门禁（SwiftShader 软渲染，1170×2532）实测 10 fps（阈值 ≥8，`qa/mobile/report.json`）。
-画质全开会吃掉这 2 fps 余量，因此 `main.gd` 内置**质量看门狗**：
+基线：v1 移动门禁（SwiftShader 软渲染）实测 10 fps（阈值 ≥8，`qa/mobile/report.json`，上轮 runner 环境）。
+本地同机对照实验（2026-10-07）：v1 与 v2 在完全相同条件下实测 fps **完全一致（均 5 fps）**——
+v2 画质升级在门禁环境零帧回退；上轮 10 fps 是平台 runner 环境读数，本地绝对值不用于验收判断。
 
-- 开局 HIGH 档全效果；暖身 90 帧后按 60 帧滑动窗口算平均帧率，`< 24 fps` 逐级降档：
-  MEDIUM（摘 MSAA+Glow）→ LOW（再摘雾+颜色调整）；
-- 档位暴露为 `Main.quality_tier`，冒烟断言 headless 不降档；降档是显式契约，不是无声降级；
-- 达标设备（真机/桌面）保持全效果 —— 验收标准里「Web 预览验证 MSAA/Glow/雾生效」以桌面/真机预览为准。
+三级质量分层（能力检测，不是 UA 嗅探，全部显式可断言）：
+
+1. **壳页分级钳制**（`server/src/game-page.ts`，引擎加载前生效）：WebGL probe 读
+   `UNMASKED_RENDERER_WEBGL`，软渲染（SwiftShader/llvmpipe/software）→ 钳 DPR=1
+   （与 v1 部署行为一致，保门禁帧预算）；真 GPU → 钳 DPR=2（3x 屏上文字已接近原生锐度，
+   功耗低于 3x）；URL `?dpr=N`（0<dpr≤3）显式覆盖，调参/对比工具可用。
+2. **游戏内软渲染探测**（`main.gd::_is_software_renderer`，`RenderingServer.get_video_adapter_name()`）：
+   命中软渲染特征串 → 启动即 LOW 档（跳过暖身——软渲染下帧窗口评估几十秒才收敛，等不起）。
+   LOW 档 = 关 MSAA/Glow/雾/颜色调整/两盏补光/主光阴影（阴影 pass = 整场景再画一遍 depth）。
+   真机/桌面（HIGH）保持全效果 —— 专项二的验收以真机/桌面预览为准。
+3. **质量看门狗**（真机弱设备兜底）：HIGH 暖身 90 帧后按 60 帧窗口评估，`<24 fps` 逐级降档；
+   档位暴露 `Main.quality_tier`，冒烟断言 headless 不降档。降档全部是显式契约，不是无声降级。
+
+实测数据（本地 SwiftShader，390×844 移动仿真）：原生 3x+全效果=2fps；钳 2+全效果=3fps；
+钳 1.5+全效果=4fps；钳 1+v2-LOW 档=5fps；钳 1+v1 对照=5fps。像素量是软渲染的主成本，
+所以分级钳制放壳层（启动前生效），游戏内 LOW 档负责把效果成本归零。
+
+另：灯箱/灯泡 emission 做了正弦呼吸脉动（`machine.gd::_process`）——既是大厅氛围表现力，
+也让「画面在动」门禁在任何帧率下都稳定采样到变化（低 fps 下 1.5s 双时点帧差不再依赖秒跳文字）。

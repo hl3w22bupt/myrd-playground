@@ -94,10 +94,10 @@ func _sphere(parent: Node, pos: Vector3, r: float, mat: Material, sy := 1.0) -> 
 	var mesh := SphereMesh.new()
 	mesh.radius = r
 	mesh.height = r * 2.0 * sy
-	# 画质 v2（专项三）：细分从 20/10 提到 26/13 —— 弧面圆滑无棱；8 只 × ~20 件的
-	# 顶点量对 30fps 红线无压力（材质仍按款式缓存共享）。
-	mesh.radial_segments = 26
-	mesh.rings = 13
+	# 画质 v2（专项三）：细分从 20/10 提到 22/11 —— 弧面更圆滑；顶点预算给 SwiftShader
+	# 软渲染的门禁环境留余地（材质仍按款式缓存共享）。
+	mesh.radial_segments = 22
+	mesh.rings = 11
 	var inst := MeshInstance3D.new()
 	inst.mesh = mesh
 	inst.position = pos

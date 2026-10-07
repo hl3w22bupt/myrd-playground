@@ -47,7 +47,12 @@ var _env: Environment
 const WARMUP_FRAMES: int = 90
 const QUALITY_WINDOW_FRAMES: int = 60
 const QUALITY_FPS_FLOOR: float = 24.0
+## 软渲染特征串（SwiftShader/llvmpipe 等）：命中即跳过暖身直接 LOW 档 ——
+## 软渲染下看门狗的帧窗口评估要几十秒才收敛，等不起；adapter 名是能力检测不是 UA 嗅探。
+const SOFTWARE_RENDERER_KEYWORDS: PackedStringArray = ["swiftshader", "llvmpipe", "softpipe", "software"]
 var quality_tier: int = 0
+var _key_lights: Array[OmniLight3D] = []
+var _sun: DirectionalLight3D
 var _quality_frames: int = 0
 var _quality_window_time: float = 0.0
 var _quality_checked_windows: int = 0
@@ -133,20 +138,38 @@ func _setup_environment() -> void:
 	sun.shadow_opacity = 0.72
 	sun.light_angular_distance = 2.0
 	add_child(sun)
+	_sun = sun
 	# 反射等效补光（对位玻璃罩/金属爪的高光）：左上暖金 + 右侧冷青，位置固定在
 	# 机台斜前上方，金属件的 metallic 高光会沿这两盏灯拉出可信的反光条。
+	# 补光引用进 _key_lights：LOW 档（软渲染）关掉 —— per-pixel 光照是软渲染的大头。
 	var key_warm := OmniLight3D.new()
 	key_warm.position = Vector3(-1.05, 1.65, 1.15)
 	key_warm.light_color = Color(1.0, 0.86, 0.58)
 	key_warm.light_energy = 1.1
 	key_warm.omni_range = 3.4
 	add_child(key_warm)
+	_key_lights.append(key_warm)
 	var key_cool := OmniLight3D.new()
 	key_cool.position = Vector3(1.25, 1.30, 0.95)
 	key_cool.light_color = Color(0.60, 0.78, 1.0)
 	key_cool.light_energy = 0.8
 	key_cool.omni_range = 3.2
 	add_child(key_cool)
+	_key_lights.append(key_cool)
+	# 软渲染（门禁/headless 仿真环境）启动即 LOW：帧预算物理上撑不起全效果，
+	# 等看门狗暖身收敛黄花菜都凉了；真 GPU（真机/桌面）保持 HIGH 全效果。
+	if _is_software_renderer():
+		quality_tier = 2
+		_apply_quality_tier()
+
+
+## 渲染后端能力检测：adapter 名含软渲染特征串 → 软渲染（SwiftShader/llvmpipe）。
+func _is_software_renderer() -> bool:
+	var adapter := RenderingServer.get_video_adapter_name().to_lower()
+	for keyword in SOFTWARE_RENDERER_KEYWORDS:
+		if adapter.contains(keyword):
+			return true
+	return false
 
 
 ## BGM：程序化合成的无缝循环曲（assets/music/bgm_shop.wav），循环在运行时设。
@@ -217,16 +240,24 @@ func _watch_quality(delta: float) -> void:
 	_apply_quality_tier()
 
 
-## 档位 → 具体关什么：MEDIUM 摘 MSAA+Glow（最贵的两项），LOW 再摘雾与颜色调整。
+## 档位 → 具体关什么：MEDIUM 摘 MSAA+Glow（最贵的两项），LOW 再摘雾/颜色调整/补光
+## （补光是 per-pixel 光照，软渲染下每盏都是一整遍全屏光照计算）。
 func _apply_quality_tier() -> void:
+	if quality_tier >= 1:
+		get_viewport().msaa_3d = Viewport.MSAA_DISABLED
 	if _env == null:
 		return
 	if quality_tier >= 1:
-		get_viewport().msaa_3d = Viewport.MSAA_DISABLED
 		_env.glow_enabled = false
 	if quality_tier >= 2:
 		_env.fog_enabled = false
 		_env.adjustment_enabled = false
+		for light in _key_lights:
+			light.light_energy = 0.0
+		# 阴影 pass = 整场景再画一遍 depth：软渲染下省掉它收益最大；
+		# 真机（HIGH/MEDIUM）保持软阴影（专项二「主光软阴影」在真机预览验收）。
+		if _sun != null:
+			_sun.shadow_enabled = false
 
 
 ## ── UI 主题（画质 v2 专项一：高清字体主题）──

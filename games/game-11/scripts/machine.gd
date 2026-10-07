@@ -37,6 +37,17 @@ var _mat_carpet: StandardMaterial3D
 var _mat_glass: StandardMaterial3D
 var _mat_lamp: StandardMaterial3D
 var _mat_bulb: StandardMaterial3D
+## 灯组呼吸计时（_process 里对共享 emission 材质做正弦脉动：画面常动 + 氛围表现力）。
+var _breath_t: float = 0.0
+
+
+func _process(delta: float) -> void:
+	_breath_t += delta
+	var breath := 0.5 + 0.5 * sin(_breath_t * 2.4)
+	if _mat_bulb != null:
+		_mat_bulb.emission_energy_multiplier = 2.7 + breath * 1.1
+	if _mat_lamp != null:
+		_mat_lamp.emission_energy_multiplier = 2.1 + breath * 0.7
 
 
 func field_rect() -> Rect2:

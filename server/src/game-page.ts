@@ -77,15 +77,36 @@ body { color: #fff; background: #101426; overflow: hidden; touch-action: none; f
     } catch (e) { /* 非法 JSON：忽略，用游戏内默认值 */ }
   }
 
-  // ---- 像素密度钳制（必须在引擎加载前生效）----
-  // 引擎画布后备存储 = CSS 尺寸 × devicePixelRatio：DPR=3 时 390×844 视口会得到
-  // 1170×2532 ≈ 295 万像素的帧缓冲，WebGL 软渲染（swiftshader）与低端移动 GPU 每帧
-  // 光栅化负担约为 DPR=1 的 9 倍 —— 实测 3fps（门禁阈值 8）。钳到 1 后 390×844 ≈ 33 万像素，
-  // 帧率恢复到软渲染可用区间；真机中低端设备同样受益（功耗/发热下降）。
+  // ---- 像素密度分级钳制（必须在引擎加载前生效）----
+  // 引擎画布后备存储 = CSS 尺寸 × devicePixelRatio，像素量随 DPR 平方增长：
+  // DPR=3 时 390×844 视口得到 1170×2532 ≈ 295 万像素的帧缓冲，WebGL 软渲染（swiftshader）
+  // 实测只有 2~5fps（门禁阈值 8），而真机 GPU 毫无压力。
+  // 画质 v2 策略 = 按 GPU 能力分级（能力检测，不是 UA 嗅探）：
+  //   软渲染（SwiftShader/llvmpipe/software）→ 钳 1：与首版部署行为一致，保住门禁帧预算；
+  //   真 GPU（真机/桌面）→ 钳 2：3x 屏上 2x 渲染已接近原生锐度，UI 文字边缘锐利（专项一），
+  //     同时省掉 3x 的功耗/发热；URL ?dpr=N 可显式覆盖（调参/对比工具）。
   // 实现注意：devicePixelRatio 是 getter，须用 defineProperty 覆盖；引擎在画布尺寸计算
   // （GodotDisplayScreen.getPixelRatio）与每次 resize 时读取，统一拿到钳制值。
   try {
-    var CAPPED_DPR = 1;
+    var CAPPED_DPR = 2;
+    try {
+      // GPU 能力探测：建一个即弃 WebGL 上下文读 UNMASKED_RENDERER_WEBGL，
+      // 命中软渲染特征串则回落钳 1（与游戏内质量看门狗的 LOW 档同口径）。
+      var probe = document.createElement('canvas');
+      var gl = probe.getContext('webgl') || probe.getContext('experimental-webgl');
+      if (gl) {
+        var dbg = gl.getExtension('WEBGL_debug_renderer_info');
+        var renderer = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : String(gl.getParameter(gl.RENDERER));
+        if (/swiftshader|llvmpipe|softpipe|software/i.test(renderer)) CAPPED_DPR = 1;
+      }
+    } catch (e) { /* 探测失败按真 GPU 处理，只影响钳制档位 */ }
+    try {
+      var dprParam = new URLSearchParams(location.search).get('dpr');
+      if (dprParam) {
+        var dprOverride = Number(dprParam);
+        if (dprOverride > 0 && dprOverride <= 3) CAPPED_DPR = dprOverride;
+      }
+    } catch (e) { /* 老内核无 URLSearchParams：用分级默认值 */ }
     var nativeDpr = Number(window.devicePixelRatio) || 1;
     var cappedDpr = Math.min(nativeDpr, CAPPED_DPR);
     Object.defineProperty(window, 'devicePixelRatio', {
