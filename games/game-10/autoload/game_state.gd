@@ -39,6 +39,15 @@ var magnet_radius: float = 150.0
 var magnet_pull: float = 120.0
 ## 托管模式的操纵速度（px/s）。
 var autopilot_speed: float = 360.0
+## ── 难度梯度（随收集进度收紧；「越收越难」的曲线参数，留 ?tuning= 给人调）──
+## 每收集一颗流星，流星存在时长乘以该系数（<1 = 越收越短，转瞬即逝的梯度来源）。
+var lifetime_decay_per_collect: float = 0.85
+## 每收集一颗流星，流星生成间隔乘以该系数（<1 = 出现越来越密）。
+var spawn_accel_per_collect: float = 0.9
+## 流星存在时长的下限（秒）：梯度只加压到这条底线，保证后续流星始终可玩。
+var min_lifetime: float = 1.2
+## 流星生成间隔的下限（秒）。
+var min_spawn_interval: float = 0.5
 
 ## 可调键的元数据：键名 → {min, max, step}。调参面板按它生成滑杆，apply_tuning 按它钳制。
 ## 新增可调数值 = 上面加变量 + 这里加一行，两处都在本文件。
@@ -50,6 +59,10 @@ const TUNING_META: Dictionary = {
 	&"magnet_radius": {"min": 0.0, "max": 400.0, "step": 10.0},
 	&"magnet_pull": {"min": 0.0, "max": 300.0, "step": 10.0},
 	&"autopilot_speed": {"min": 120.0, "max": 600.0, "step": 10.0},
+	&"lifetime_decay_per_collect": {"min": 0.5, "max": 1.0, "step": 0.05},
+	&"spawn_accel_per_collect": {"min": 0.5, "max": 1.0, "step": 0.05},
+	&"min_lifetime": {"min": 0.8, "max": 4.0, "step": 0.1},
+	&"min_spawn_interval": {"min": 0.2, "max": 2.0, "step": 0.1},
 }
 
 
@@ -81,6 +94,19 @@ func set_autopilot(enabled: bool) -> void:
 ## 胜利判定：收集满 WIN_TARGET 即胜（需求规则 3：立即判定胜利）。
 func is_victory() -> bool:
 	return score >= WIN_TARGET
+
+
+## 当前生效的流星存在时长（秒）：基准值随收集进度按梯度收紧，且钳在下限之上。
+## 难度梯度的唯一出处 —— 生成流星（Main）与冒烟断言都走这里，禁止各自另算一套。
+func effective_lifetime() -> float:
+	var scaled: float = meteor_lifetime * pow(lifetime_decay_per_collect, score)
+	return maxf(min_lifetime, scaled)
+
+
+## 当前生效的流星生成间隔（秒）：随收集进度按梯度收紧，且钳在下限之上。
+func effective_spawn_interval() -> float:
+	var scaled: float = spawn_interval * pow(spawn_accel_per_collect, score)
+	return maxf(min_spawn_interval, scaled)
 
 
 ## 应用调参覆盖（调参面板与壳页面 __GAME_TUNING__ 桥共用的唯一入口）：

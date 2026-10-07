@@ -15,6 +15,10 @@ const BODY_RADIUS: float = 16.0
 ## 渐隐消失时长（秒）：出现→渐隐消失的可观察阶段（验收标准 1）。
 const FADE_SECONDS: float = 0.25
 
+## 本颗流星的存在时长（秒）：Main 生成时按难度梯度快照（GameState.effective_lifetime()）；
+## 生成方没赋值时在 _ready 里兜底取当前梯度值（直接实例化也不炸）。
+var lifetime: float = 0.0
+
 var _age: float = 0.0
 var _collected: bool = false
 var _expired: bool = false
@@ -25,6 +29,9 @@ var _fade_left: float = FADE_SECONDS
 
 
 func _ready() -> void:
+	# 存在时长快照兜底：正常路径由 Main 在 add_child 前赋值（生成时刻的难度梯度）。
+	if lifetime <= 0.0:
+		lifetime = GameState.effective_lifetime()
 	# 出现反馈：流星「闪现」入场（弹跳放大 + 闪光），转瞬即逝的观感来源之一。
 	scale = Vector2.ZERO
 	Juice.flash(self, Color(1, 1, 1, 0.55), 0.16)
@@ -37,8 +44,7 @@ func _physics_process(delta: float) -> void:
 	if _collected:
 		return
 	_age += delta
-	var life: float = GameState.meteor_lifetime
-	if not _fading and life - _age <= 0.0:
+	if not _fading and lifetime - _age <= 0.0:
 		_begin_fade()
 	if _fading:
 		_fade_left -= delta
@@ -47,8 +53,8 @@ func _physics_process(delta: float) -> void:
 			queue_free()
 		return
 	# 临近消失时闪烁提示（剩余寿命 < 25% 时高频明暗），强化「转瞬即逝」的紧迫感。
-	var remaining := life - _age
-	if remaining < life * 0.25:
+	var remaining := lifetime - _age
+	if remaining < lifetime * 0.25:
 		_body.self_modulate.a = 0.45 + 0.55 * absf(sin(_age * 14.0))
 	else:
 		_body.self_modulate.a = 1.0
@@ -62,7 +68,7 @@ func is_collectible() -> bool:
 
 ## 剩余存在时长（秒）：调用方（冒烟选目标）用它挑寿命最长的一颗，避免注入投递期间过期。
 func time_left() -> float:
-	return maxf(GameState.meteor_lifetime - _age, 0.0)
+	return maxf(lifetime - _age, 0.0)
 
 
 ## 被收集（Main 在距离判定/点击命中后调用）：弹出放大 + 音效，随后移除。

@@ -15,6 +15,9 @@ extends Node
 ##   验收4 漏收不回退、不判负、可继续 → LIFE 断言 score 不回退 + 生成持续（TAP/RESTART 阶段仍有新星）+ 无失败终止条件
 ##   验收5 托管全程无人干预取胜 → WIN 阶段仅注入一次 toggle_autopilot，之后零输入直到胜利（AUTOPILOT_WIN）
 ##   重开入口 → RESTART 阶段：confirm 重开后 score=0/结算隐藏/流星重新生成
+## 玩法面补充断言（新交互 → 新断言）：
+##   难度梯度生效 → TAP 阶段：收集后 effective_lifetime/effective_spawn_interval 必须低于基准且钳在下限之上
+##   漏收反馈明确 → LIFE 阶段：流星消散后 HintLabel 可见且文案说明「消散/不回退」
 ##
 ## ⚠️ 输入注入分帧（error-signatures E-08）：action_press 与 parse_input_event 不在同帧混用。
 ## ⚠️ 测试加速：Engine.time_scale = 4（--quit-after 数的是 process 帧；4× 时间缩放让
@@ -67,6 +70,7 @@ var _finished: bool = false
 var _main: Node2D
 var _player: Player
 var _hud: Label
+var _hint: Label
 var _victory_layer: CanvasLayer
 var _victory_label: Label
 var _meteors: Node2D
@@ -106,6 +110,7 @@ func _ready() -> void:
 	else:
 		_player = _main.get_node_or_null("Player") as Player
 		_hud = _main.find_child("HudLabel", true, false) as Label
+		_hint = _main.find_child("HintLabel", true, false) as Label
 		_victory_layer = _main.find_child("VictoryLayer", true, false) as CanvasLayer
 		_victory_label = _main.find_child("VictoryLabel", true, false) as Label
 		_meteors = _main.get_node_or_null("Meteors") as Node2D
@@ -155,9 +160,11 @@ func _physics_process(_delta: float) -> void:
 				_goto(Phase.LIFE_WAIT_SPAWN)
 				# 解冻主场景 + 收紧寿命/生成节奏（走真实调参入口 apply_tuning），
 				# 让「生成→超时消失」在帧预算内可观测。
+				# ⚠️ spawn_interval=0.8 须高于 min_spawn_interval=0.5：难度梯度断言要求
+				# 「收集后有效间隔 < 基准」，若基准本身低于下限，钳制会把它抬高、断言必假失败。
 				_main.set_physics_process(true)
 				var applied: PackedStringArray = GameState.apply_tuning({
-					"meteor_lifetime": 1.5, "spawn_interval": 0.45,
+					"meteor_lifetime": 1.5, "spawn_interval": 0.8,
 				})
 				if not (applied.has("meteor_lifetime") and applied.has("spawn_interval")):
 					_failures.append("调参协议：apply_tuning 未生效 meteor_lifetime/spawn_interval（%s）" % [applied])
@@ -174,6 +181,13 @@ func _physics_process(_delta: float) -> void:
 				if GameState.score != _score_at_life_start:
 					_failures.append("验收1：流星超时消失后 score %d != %d（未收集的流星被计入进度）" % [
 						GameState.score, _score_at_life_start])
+				# 漏收反馈：消散瞬间必须有一条明确的非惩罚性提示（说清不判负、可继续）。
+				if _hint == null:
+					_failures.append("漏收反馈：Main 场景树找不到 HintLabel（UI 提示节点缺失，消散事件无反馈面）")
+				elif not _hint.visible:
+					_failures.append("漏收反馈：流星消散后 HintLabel 不可见（漏收反馈未接线）")
+				elif not (_hint.text.contains("消散") and _hint.text.contains("不回退")):
+					_failures.append("漏收反馈：提示文案未说明「消散且进度不回退」（实际：%s）" % _hint.text)
 				_goto(Phase.TAP_WAIT_SPAWN)
 			elif _phase_frames >= WAIT_EXPIRE_MAX:
 				_failures.append("验收1：等待 %d 帧没有流星超时消失（meteor_lifetime 计时或 expired 信号断裂）" % [WAIT_EXPIRE_MAX])
@@ -194,6 +208,7 @@ func _physics_process(_delta: float) -> void:
 				if _hud != null and not _hud.text.contains("已收集 %d/%d" % [GameState.score, GameState.WIN_TARGET]):
 					_failures.append("验收2：HUD 未实时显示「已收集 %d/%d」（实际：%s）" % [
 						GameState.score, GameState.WIN_TARGET, _hud.text])
+				_assert_difficulty_gradient()
 				_goto(Phase.AUTOPILOT_ON)
 		Phase.AUTOPILOT_ON:
 			if _phase_frames == 1:
@@ -368,6 +383,27 @@ func _assert_player_moved() -> void:
 	var travelled: float = _player.global_position.distance_to(_origin)
 	if travelled < 1.0:
 		_failures.append("玩家 %d 帧内位移 %.2fpx < 1px：InputMap 动作未生效或 _physics_process 未驱动 velocity" % [MOVE_FRAMES, travelled])
+
+
+## 难度梯度断言（新玩法面）：score>0 后，生成侧的有效寿命/生成间隔必须
+## ① 低于各自基准（梯度真的随进度收紧）；② 不低于各自下限（钳制在位，游戏不会难到不可玩）。
+func _assert_difficulty_gradient() -> void:
+	if GameState.score < 1:
+		return
+	var life: float = GameState.effective_lifetime()
+	var interval: float = GameState.effective_spawn_interval()
+	if life >= GameState.meteor_lifetime:
+		_failures.append("难度梯度：收集后有效寿命 %.2f 未低于基准 %.2f（梯度未随进度收紧）" % [
+			life, GameState.meteor_lifetime])
+	if interval >= GameState.spawn_interval:
+		_failures.append("难度梯度：收集后有效生成间隔 %.2f 未低于基准 %.2f（梯度未随进度收紧）" % [
+			interval, GameState.spawn_interval])
+	if life < GameState.min_lifetime - 0.001:
+		_failures.append("难度梯度：有效寿命 %.2f 低于下限 %.2f（下限钳制缺失，游戏会难到不可玩）" % [
+			life, GameState.min_lifetime])
+	if interval < GameState.min_spawn_interval - 0.001:
+		_failures.append("难度梯度：有效生成间隔 %.2f 低于下限 %.2f（下限钳制缺失）" % [
+			interval, GameState.min_spawn_interval])
 
 
 ## 调参工作台协议（SKILL.md §3C）：TUNING_META 非空；apply_tuning 应用已声明键、

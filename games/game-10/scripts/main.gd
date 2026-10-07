@@ -17,10 +17,13 @@ const SPAWN_MIN_PLAYER_DISTANCE: float = 200.0
 const EDGE_MARGIN: float = 60.0
 ## 点击/触摸收集的热区加成（px）：手指命中宽容度。
 const TAP_SLACK: float = 18.0
+## 漏收提示的停留时长（秒）：到期后渐隐隐藏。
+const HINT_VISIBLE_SECONDS: float = 1.4
 
 @onready var player: Player = $Player
 @onready var meteors: Node2D = $Meteors
 @onready var hud_label: Label = %HudLabel
+@onready var hint_label: Label = %HintLabel
 @onready var victory_layer: CanvasLayer = %VictoryLayer
 @onready var victory_label: Label = %VictoryLabel
 @onready var restart_button: Button = %RestartButton
@@ -48,12 +51,14 @@ func _physics_process(delta: float) -> void:
 	_spawn_cooldown -= delta
 	if _spawn_cooldown <= 0.0 and meteors.get_child_count() < MAX_METEORS:
 		_spawn_meteor()
-		_spawn_cooldown = GameState.spawn_interval
+		# 生成节奏走难度梯度：收集越多，下一颗出现得越快（钳在下限之上）。
+		_spawn_cooldown = GameState.effective_spawn_interval()
 	_apply_magnet_and_collect()
 	_steer_autopilot()
 
 
-## 生成一颗流星：场内随机位置（避开玩家近旁），限时存在由 Meteor 自管理。
+## 生成一颗流星：场内随机位置（避开玩家近旁），
+## 存在时长按生成时刻的难度梯度快照（收集越多寿命越短），限时与渐隐由 Meteor 自管理。
 func _spawn_meteor() -> void:
 	var rect := _play_rect()
 	var pos := Vector2.ZERO
@@ -66,6 +71,7 @@ func _spawn_meteor() -> void:
 			break
 	var meteor: Meteor = METEOR_SCENE.instantiate()
 	meteor.position = pos
+	meteor.lifetime = GameState.effective_lifetime()
 	meteor.expired.connect(_on_meteor_expired)
 	meteors.add_child(meteor)
 
@@ -159,9 +165,28 @@ func _try_tap_collect(screen_position: Vector2) -> void:
 
 
 ## 流星超时消失：不计入进度、进度不回退、不判负（验收标准 1/4 的状态面）。
+## 漏收给一条明确的非惩罚性反馈（提示 + 音效），说清「不回退、可继续」。
 func _on_meteor_expired(_meteor: Meteor) -> void:
 	expired_count += 1
+	_show_hint("流星消散了！进度不回退、不判负，继续收集")
+	Juice.sfx(&"hit")
 	_update_hud()
+
+
+## 展示一条限时提示：停留 HINT_VISIBLE_SECONDS 后渐隐；重复调用以最新一条为准。
+func _show_hint(text: String) -> void:
+	hint_label.text = text
+	hint_label.visible = true
+	hint_label.modulate.a = 1.0
+	Juice.flash(hint_label, Color(1.0, 0.62, 0.3, 0.5), 0.22)
+	var tween := hint_label.create_tween()
+	tween.tween_interval(HINT_VISIBLE_SECONDS)
+	tween.tween_property(hint_label, "modulate:a", 0.0, 0.4)
+	tween.tween_callback(_hide_hint)
+
+
+func _hide_hint() -> void:
+	hint_label.visible = false
 
 
 ## 收集进度变化：HUD 实时刷新 + 反馈；满三颗立即判定胜利（验收标准 2/3）。
@@ -198,8 +223,10 @@ func _on_restart_button_pressed() -> void:
 
 func _update_hud() -> void:
 	var mode := "托管中" if GameState.autopilot else "手动"
-	hud_label.text = "已收集 %d/%d · 超时消失 %d · %s（T 切换托管）" % [
-		GameState.score, GameState.WIN_TARGET, expired_count, mode,
+	# 「流星限时」实时反映难度梯度：收集越多，新生成的流星存在越短（下限钳制生效时贴底）。
+	hud_label.text = "已收集 %d/%d · 流星限时 %.1f 秒 · 超时消失 %d · %s（T 切换托管）" % [
+		GameState.score, GameState.WIN_TARGET, GameState.effective_lifetime(),
+		expired_count, mode,
 	]
 
 
