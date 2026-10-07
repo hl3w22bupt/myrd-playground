@@ -63,3 +63,24 @@
 - HostedApp id：`cmuwf171v000vm9lg2vqldhwy`
 - deployment id：待平台部署后回填（上轮为 `cmuwj6mze0037m9lgdwigdpli`，本轮会产生新 id）
 - liveUrl：https://leomac-studio.tail49399e.ts.net/apps/game-11/
+
+---
+
+## 部署完成（2026-10-07 12:10，deploy 节点 · 重跑主工作流轮次）
+
+- **deployment id**：`cmuxl0nam001dm9oetz0i10xi`（version 7，commit **07bba07**，status=running）
+- **liveUrl**：https://leomac-studio.tail49399e.ts.net/apps/game-11/（/health 200，app=claw-machine-game-11）
+- **线上 pck 指纹**：sha256=`603865ed03dccfb3`（3,459,648 B），经资产通道 gzip+b64 解码后与本地 HEAD 构建逐字节一致
+- **四门禁**：preflight 14 类 / smoke 240 帧（含画质七断言）/ fuzz（seed=20260913）/ playtest 3 局 —— 全绿
+- **移动门禁**：MOBILE_SMOKE **PASS 10 项**，实测 **fps=15**（阈值 8；证据 games/game-11/qa/mobile/）
+
+### 本轮打回修复记录（round1 FAIL → 修复 → round2 PASS）
+
+- **现象**：round1 MOBILE_SMOKE 9/10 PASS，唯一 FAIL fps=5<8；截图（已存档 qa/mobile-round1-fail/）
+  灯泡 Glow 光晕可见 → runner 上游戏跑在 HIGH 档，软渲染 LOW 档未生效。
+- **根因**：门禁 runner 以 `--use-angle=swiftshader` 启动 Chrome，WebGL 的 GL_RENDERER 被浏览器
+  掩码成通用串，Godot `get_video_adapter_name()` 在 Web 拿不到 swiftshader 特征串 →
+  `_is_software_renderer()` 命不中（壳页读 UNMASKED_RENDERER_WEBGL 能命中，但没把结论给游戏）。
+- **修复**（07bba07）：壳页 GPU 探测结论写 `window.__SOFT_RENDER__`（引擎加载前）；
+  游戏侧 web 平台经 JavaScriptBridge 桥读兜底（native 有 feature 守卫不受影响）。
+- **复测**：fps 5→15（3×），Glow 关闭确认 LOW 档生效；桌面/真机（HIGH 全效果）路径不受影响。

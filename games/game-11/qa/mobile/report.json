@@ -1,5 +1,5 @@
 {
-  "verdict": "FAIL",
+  "verdict": "PASS",
   "url": "https://leomac-studio.tail49399e.ts.net/apps/game-11/",
   "preset": {
     "width": 390,
@@ -8,7 +8,7 @@
     "mobile": true,
     "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
   },
-  "checkedAt": "2026-10-07T03:53:46.235Z",
+  "checkedAt": "2026-10-07T04:05:14.424Z",
   "checks": [
     {
       "id": "network",
@@ -67,15 +67,15 @@
     {
       "id": "fps",
       "label": "FPS ≥ 8（swiftshader 软渲染口径）",
-      "status": "fail",
-      "detail": "实测 5 fps"
+      "status": "pass",
+      "detail": "实测 15 fps"
     }
   ],
   "metrics": {
     "colorCount": 24,
-    "idleDiff": 396,
-    "tapDiff": 51,
-    "fps": 5,
+    "idleDiff": 393,
+    "tapDiff": 61,
+    "fps": 15,
     "scrollWidth": 390,
     "clientWidth": 390,
     "hasViewportMeta": true
