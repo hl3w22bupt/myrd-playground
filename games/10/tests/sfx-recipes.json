@@ -1,0 +1,14 @@
+{
+  "_provenance": {
+    "tool": "tools/gen_sfx.gd",
+    "method": "procedural-synthesis",
+    "note": "资产治理协议 SKILL.md §7B：生成资产入库 spec.assets（source=generated, generator=procedural:tools/gen_sfx.gd）；改配方重跑工具即再生成，同配方同产物（确定种子）"
+  },
+  "sample_rate": 22050,
+  "effects": [
+    { "name": "score", "kind": "sweep", "from": 523.0, "to": 1046.0, "duration": 0.18, "volume": 0.55, "wave": "triangle", "decay": 3.0 },
+    { "name": "confirm", "kind": "blip", "freq": 660.0, "duration": 0.1, "volume": 0.5, "wave": "square", "decay": 14.0 },
+    { "name": "hit", "kind": "noise", "duration": 0.12, "volume": 0.6, "decay": 22.0 },
+    { "name": "fail", "kind": "sweep", "from": 392.0, "to": 196.0, "duration": 0.32, "volume": 0.55, "wave": "sawtooth", "decay": 5.0 }
+  ]
+}
