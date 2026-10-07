@@ -21,8 +21,12 @@ Juice="*res://autoload/juice.gd"
 
 window/size/viewport_width=720
 window/size/viewport_height=1280
+; 画质 v2（专项一：字体清晰）：canvas 按 devicePixelRatio 渲染。Web 端 hidpi 开启后，
+; iPhone 390×844@3x 的背板是 1170×2532，配合 stretch mode=canvas_items（矢量重排）+
+; aspect=expand（任意窗口占比铺满、无黑边），字体按最终分辨率光栅化而不是位图拉伸。
+window/dpi/allow_hidpi=true
 window/stretch/mode="canvas_items"
-window/stretch/aspect="keep"
+window/stretch/aspect="expand"
 window/handheld/orientation="portrait"
 
 [gui]
@@ -74,3 +78,7 @@ confirm={
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+; 画质 v2（专项二：画面精美）：MSAA 3D 2×。兼容渲染器通过多重采样帧缓冲实现，
+; 模型边缘无锯齿楼梯。选 2× 不选 4×：hidpi 3x DPR 背板已达 1170×2532，2× MSAA 在
+; 移动 GPU 上的边际成本可控（弱设备还有 main.gd 的质量看门狗兜底降档）。
+anti_aliasing/quality/msaa_3d=1

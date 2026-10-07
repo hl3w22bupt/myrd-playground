@@ -77,12 +77,15 @@ func release(is_caught: bool) -> void:
 		state = DollState.CAUGHT
 
 
-func _mat(color: Color, rough: float = 0.9) -> StandardMaterial3D:
+## 绒布材质（画质 v2 专项三）：高粗糙哑光绒面（roughness 0.95 + 低 specular 吃光不反光）；
+## 亮面件（眼睛/独角）单独传 roughness，按 色值|粗糙度 缓存共享，控 DrawCall。
+func _mat(color: Color, rough: float = 0.95) -> StandardMaterial3D:
 	var key := "%s|%s" % [color.to_html(), rough]
 	if not _mat_cache.has(key):
 		var mat := StandardMaterial3D.new()
 		mat.albedo_color = color
 		mat.roughness = rough
+		mat.metallic_specular = 0.25 if rough >= 0.85 else 0.7
 		_mat_cache[key] = mat
 	return _mat_cache[key] as StandardMaterial3D
 
@@ -91,8 +94,10 @@ func _sphere(parent: Node, pos: Vector3, r: float, mat: Material, sy := 1.0) -> 
 	var mesh := SphereMesh.new()
 	mesh.radius = r
 	mesh.height = r * 2.0 * sy
-	mesh.radial_segments = 20
-	mesh.rings = 10
+	# 画质 v2（专项三）：细分从 20/10 提到 26/13 —— 弧面圆滑无棱；8 只 × ~20 件的
+	# 顶点量对 30fps 红线无压力（材质仍按款式缓存共享）。
+	mesh.radial_segments = 26
+	mesh.rings = 13
 	var inst := MeshInstance3D.new()
 	inst.mesh = mesh
 	inst.position = pos
@@ -101,7 +106,8 @@ func _sphere(parent: Node, pos: Vector3, r: float, mat: Material, sy := 1.0) -> 
 	return inst
 
 
-## 程序化建模：身体 + 肚皮 + 头 + 耳朵/独角 + 眼睛鼻腮红 + 碰撞球。
+## 程序化建模（画质 v2 专项三）：身体 + 肚皮 + 头 + 耳朵/独角 + 手脚 + 眼睛鼻腮红 + 碰撞球。
+## 多部件立体层次：手臂/脚掌/口鼻让剪影脱离「贴片球」，眼睛带高光点更像玩偶。
 func _build_body() -> void:
 	for child in get_children():
 		child.queue_free()
@@ -113,6 +119,11 @@ func _build_body() -> void:
 	# 身体（竖椭圆）与肚皮。
 	_sphere(self, Vector3(0.0, 0.0, 0.0), r, mat_body, 1.05)
 	_sphere(self, Vector3(0.0, -r * 0.18, r * 0.32), r * 0.52, mat_belly, 1.1)
+	# 手臂（两侧斜下的小椭球）与脚掌（底部两颗），拼出玩偶剪影。
+	for side in [-1.0, 1.0]:
+		var arm := _sphere(self, Vector3(side * r * 0.78, -r * 0.05, r * 0.18), r * 0.24, mat_body, 1.35)
+		arm.rotation.z = side * -0.5
+		_sphere(self, Vector3(side * r * 0.34, -r * 0.88, r * 0.30), r * 0.20, mat_body, 0.9)
 	# 头（略前倾朝向镜头 +Z）。
 	_sphere(self, Vector3(0.0, r * 0.72, r * 0.06), r * 0.74, mat_body)
 	_sphere(self, Vector3(0.0, r * 0.6, r * 0.5), r * 0.36, mat_belly, 0.9)
@@ -121,32 +132,41 @@ func _build_body() -> void:
 			for side in [-1.0, 1.0]:
 				_sphere(self, Vector3(side * r * 0.66, r * 1.22, 0.02), r * 0.3, mat_body)
 				_sphere(self, Vector3(side * r * 0.66, r * 1.22, 0.1), r * 0.16, mat_belly)
+			# 泰迪熊口鼻。
+			_sphere(self, Vector3(0.0, r * 0.58, r * 0.66), r * 0.20, mat_belly, 0.85)
 		"bunny":
 			for side in [-1.0, 1.0]:
 				_sphere(self, Vector3(side * r * 0.34, r * 1.5, -0.02), r * 0.2, mat_body, 2.6)
 				_sphere(self, Vector3(side * r * 0.36, r * 1.52, 0.1), r * 0.1, mat_belly, 2.0)
+			_sphere(self, Vector3(0.0, r * 0.56, r * 0.68), r * 0.14, mat_belly, 0.85)
 		"cat":
 			for side in [-1.0, 1.0]:
 				_sphere(self, Vector3(side * r * 0.58, r * 1.28, 0.0), r * 0.24, mat_body, 0.8)
+			_sphere(self, Vector3(0.0, r * 0.56, r * 0.66), r * 0.16, mat_belly, 0.85)
 		"horn":
 			var horn := MeshInstance3D.new()
 			var cone := CylinderMesh.new()
 			cone.top_radius = 0.0
 			cone.bottom_radius = r * 0.14
 			cone.height = r * 0.62
+			cone.radial_segments = 24
 			horn.mesh = cone
 			horn.position = Vector3(0.0, r * 1.62, 0.0)
 			horn.rotation.x = 0.12
-			horn.material_override = _mat(Color(1.0, 0.88, 0.55), 0.4)
+			# 独角 = 唯一的亮面硬质件：金属质感（与绒布 body 拉开材质对比）。
+			horn.material_override = _mat(Color(1.0, 0.88, 0.55), 0.25)
 			add_child(horn)
 			for side in [-1.0, 1.0]:
 				_sphere(self, Vector3(side * r * 0.55, r * 1.12, 0.0), r * 0.16, _mat(Color(1.0, 0.75, 0.85)))
 		_:
 			pass
-	# 眼睛 + 鼻 + 腮红。
-	var eye := _mat(Color(0.16, 0.13, 0.12), 0.35)
+	# 眼睛（亮面 + 高光点）+ 鼻 + 腮红。
+	var eye := _mat(Color(0.14, 0.11, 0.10), 0.12)
 	_sphere(self, Vector3(-r * 0.26, r * 0.78, r * 0.62), r * 0.09, eye)
 	_sphere(self, Vector3(r * 0.26, r * 0.78, r * 0.62), r * 0.09, eye)
+	var gleam := _mat(Color(1.0, 1.0, 1.0), 0.05)
+	_sphere(self, Vector3(-r * 0.23, r * 0.81, r * 0.69), r * 0.03, gleam)
+	_sphere(self, Vector3(r * 0.29, r * 0.81, r * 0.69), r * 0.03, gleam)
 	_sphere(self, Vector3(0.0, r * 0.62, r * 0.68), r * 0.06, _mat(Color(0.55, 0.3, 0.3), 0.5))
 	_sphere(self, Vector3(-r * 0.48, r * 0.62, r * 0.5), r * 0.11, _mat(Color(1.0, 0.62, 0.62, 0.6)))
 	_sphere(self, Vector3(r * 0.48, r * 0.62, r * 0.5), r * 0.11, _mat(Color(1.0, 0.62, 0.62, 0.6)))

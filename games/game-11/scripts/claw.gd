@@ -52,6 +52,8 @@ var _rng := RandomNumberGenerator.new()
 var _head: Node3D
 var _cable: MeshInstance3D
 var _arm_pivots: Array[Node3D] = []
+## 跟随爪型变色的网格（_sync_visual 只改这些的共享材质，不再整体覆盖 override）。
+var _tinted: Array[MeshInstance3D] = []
 var _head_mat: StandardMaterial3D
 var _tip_mat: StandardMaterial3D
 
@@ -233,7 +235,9 @@ func _nearest_idle_doll() -> Doll:
 	return best
 
 
-## ── 视觉：滑车 + 吊缆 + 爪头 + 爪臂（爪型决定臂数/形状/配色）──
+## ── 视觉（画质 v2 专项三：夹爪多部件拼装 + 圆滑着色）──
+## 滑车（滚轮+螺栓）→ 吊缆 → 缆夹 → 爪头（颈柱/环座/圆盘）→ 每臂（胶囊上臂 →
+## 肘关节球 → 锥形下指 → 指尖胶垫）。曲面件用 Capsule/Sphere/Cylinder，无硬棱盒子。
 
 const CLAW_COLORS: Dictionary = {
 	&"triple": Color(1.0, 0.82, 0.28),
@@ -247,68 +251,193 @@ const TWIN_YAW: Array[float] = [-1.571, 1.571]
 const SPREAD_OPEN: float = 0.42
 const SPREAD_CLOSED: float = 0.05
 
+## 爪臂分段锚点（沿 pivot -Y 向下）。
+const UPPER_ARM_LEN: float = 0.22
+const LOWER_FINGER_LEN: float = 0.17
+const ELBOW_Y: float = -UPPER_ARM_LEN
+const FINGER_Y: float = -(UPPER_ARM_LEN + LOWER_FINGER_LEN * 0.5)
+const TIP_Y: float = -(UPPER_ARM_LEN + LOWER_FINGER_LEN)
+
+var _joint_mat: StandardMaterial3D
+var _chrome_mat: StandardMaterial3D
+
 
 func _build_visuals() -> void:
-	var carriage := MeshInstance3D.new()
-	var cart_mesh := BoxMesh.new()
-	cart_mesh.size = Vector3(0.2, 0.11, 0.16)
-	carriage.mesh = cart_mesh
-	carriage.material_override = _metal(Color(0.92, 0.9, 0.86), 0.3)
-	add_child(carriage)
+	var claw_id: StringName = GameState.current_claw()["id"]
+	var claw_color := CLAW_COLORS.get(claw_id, Color(0.9, 0.9, 0.9)) as Color
+	# 材质分级：镀铬爪色 / 深色关节金属 / 橡胶指尖 / 银灰滑车。
+	_head_mat = _metal(claw_color, 0.20)
+	_head_mat.metallic_specular = 0.75
+	_tip_mat = _rubber(claw_color.darkened(0.55))
+	_joint_mat = _metal(Color(0.32, 0.33, 0.38), 0.32)
+	_chrome_mat = _metal(Color(0.88, 0.89, 0.92), 0.26)
+	_chrome_mat.metallic_specular = 0.8
+	_build_carriage()
 	_cable = MeshInstance3D.new()
 	var cable_mesh := CylinderMesh.new()
 	cable_mesh.top_radius = 0.008
 	cable_mesh.bottom_radius = 0.008
 	cable_mesh.height = 1.0
+	cable_mesh.radial_segments = 16
 	_cable.mesh = cable_mesh
-	_cable.material_override = _metal(Color(0.6, 0.62, 0.66), 0.5)
+	_cable.material_override = _rubber(Color(0.16, 0.16, 0.18))
 	add_child(_cable)
 	_head = Node3D.new()
 	add_child(_head)
-	var head_ball := MeshInstance3D.new()
-	var ball := SphereMesh.new()
-	ball.radius = 0.05
-	ball.height = 0.1
-	head_ball.mesh = ball
-	_head.add_child(head_ball)
-	var claw_id: StringName = GameState.current_claw()["id"]
-	var claw_color := CLAW_COLORS.get(claw_id, Color(0.9, 0.9, 0.9)) as Color
-	_head_mat = _metal(claw_color, 0.25)
-	_tip_mat = _metal(claw_color.darkened(0.3), 0.35)
-	var yaws: Array[float] = TRIPLE_YAW if claw_id != &"twin" else TWIN_YAW
-	if claw_id == &"scissor":
-		yaws = TWIN_YAW
+	_build_head()
+	var yaws: Array[float] = TWIN_YAW if claw_id == &"twin" or claw_id == &"scissor" else TRIPLE_YAW
 	for yaw in yaws:
-		var pivot := Node3D.new()
-		pivot.rotation = Vector3(SPREAD_OPEN, yaw, 0.0)
-		_head.add_child(pivot)
-		var arm := MeshInstance3D.new()
-		var box := BoxMesh.new()
-		if claw_id == &"scissor":
-			box.size = Vector3(0.05, 0.36, 0.012)
-		else:
-			box.size = Vector3(0.028, 0.34, 0.016)
-		arm.mesh = box
-		arm.position = Vector3(0.0, -0.18, 0.0)
-		arm.material_override = _head_mat
-		pivot.add_child(arm)
-		var tip := MeshInstance3D.new()
-		var tip_ball := SphereMesh.new()
-		tip_ball.radius = 0.018
-		tip_ball.height = 0.036
-		tip.mesh = tip_ball
-		tip.position = Vector3(0.0, -0.35, 0.0)
-		tip.material_override = _tip_mat
-		pivot.add_child(tip)
-		_arm_pivots.append(pivot)
+		_build_arm(yaw, claw_id)
 	_sync_visual()
+
+
+## 滑车：主体 + 沿梁滚轮（横向圆柱）+ 两颗螺栓 + 侧导靴。
+func _build_carriage() -> void:
+	var body := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = Vector3(0.18, 0.10, 0.14)
+	body.mesh = box
+	body.material_override = _chrome_mat
+	add_child(body)
+	var roller := MeshInstance3D.new()
+	var roller_cyl := CylinderMesh.new()
+	roller_cyl.top_radius = 0.028
+	roller_cyl.bottom_radius = 0.028
+	roller_cyl.height = 0.20
+	roller_cyl.radial_segments = 24
+	roller.mesh = roller_cyl
+	roller.rotation.x = PI / 2.0
+	roller.position = Vector3(0.0, 0.062, 0.0)
+	roller.material_override = _joint_mat
+	add_child(roller)
+	for dx in [-0.075, 0.075]:
+		var bolt := MeshInstance3D.new()
+		var bolt_sphere := SphereMesh.new()
+		bolt_sphere.radius = 0.016
+		bolt_sphere.height = 0.032
+		bolt_sphere.radial_segments = 16
+		bolt_sphere.rings = 8
+		bolt.mesh = bolt_sphere
+		bolt.position = Vector3(dx, -0.03, 0.075)
+		bolt.material_override = _joint_mat
+		add_child(bolt)
+
+
+## 爪头：缆夹 + 颈柱 + 环座（torus）+ 圆盘基座，全部曲面件。
+func _build_head() -> void:
+	var clamp_cyl := MeshInstance3D.new()
+	var clamp_mesh := CylinderMesh.new()
+	clamp_mesh.top_radius = 0.014
+	clamp_mesh.bottom_radius = 0.014
+	clamp_mesh.height = 0.05
+	clamp_mesh.radial_segments = 16
+	clamp_cyl.mesh = clamp_mesh
+	clamp_cyl.material_override = _joint_mat
+	_head.add_child(clamp_cyl)
+	var neck := MeshInstance3D.new()
+	var neck_mesh := CylinderMesh.new()
+	neck_mesh.top_radius = 0.024
+	neck_mesh.bottom_radius = 0.030
+	neck_mesh.height = 0.07
+	neck_mesh.radial_segments = 20
+	neck.mesh = neck_mesh
+	neck.position = Vector3(0.0, -0.055, 0.0)
+	neck.material_override = _head_mat
+	_tinted.append(neck)
+	_head.add_child(neck)
+	var collar := MeshInstance3D.new()
+	var collar_torus := TorusMesh.new()
+	collar_torus.inner_radius = 0.034
+	collar_torus.outer_radius = 0.052
+	collar.mesh = collar_torus
+	collar.position = Vector3(0.0, -0.098, 0.0)
+	collar.material_override = _head_mat
+	_tinted.append(collar)
+	_head.add_child(collar)
+	var hub := MeshInstance3D.new()
+	var hub_cyl := CylinderMesh.new()
+	hub_cyl.top_radius = 0.042
+	hub_cyl.bottom_radius = 0.042
+	hub_cyl.height = 0.024
+	hub_cyl.radial_segments = 24
+	hub.mesh = hub_cyl
+	hub.position = Vector3(0.0, -0.098, 0.0)
+	hub.material_override = _chrome_mat
+	_head.add_child(hub)
+
+
+## 单条爪臂：上臂胶囊 → 肘关节球 → 锥形下指（跟爪色）→ 指尖胶垫（橡胶）。
+## 剪刀爪下指压扁成刃（薄椭圆截面）；双爪上臂加粗。
+func _build_arm(yaw: float, claw_id: StringName) -> void:
+	var pivot := Node3D.new()
+	pivot.rotation = Vector3(SPREAD_OPEN, yaw, 0.0)
+	_head.add_child(pivot)
+	_arm_pivots.append(pivot)
+	var is_scissor := claw_id == &"scissor"
+	var upper_radius := 0.020 if claw_id == &"twin" else 0.016
+	var upper := MeshInstance3D.new()
+	var upper_capsule := CapsuleMesh.new()
+	upper_capsule.radius = upper_radius
+	upper_capsule.height = UPPER_ARM_LEN + upper_radius * 2.0
+	upper.mesh = upper_capsule
+	upper.position = Vector3(0.0, -UPPER_ARM_LEN * 0.5, 0.0)
+	upper.material_override = _head_mat
+	_tinted.append(upper)
+	pivot.add_child(upper)
+	var elbow := MeshInstance3D.new()
+	var elbow_sphere := SphereMesh.new()
+	elbow_sphere.radius = upper_radius * 1.5
+	elbow_sphere.height = upper_radius * 3.0
+	elbow_sphere.radial_segments = 20
+	elbow_sphere.rings = 10
+	elbow.mesh = elbow_sphere
+	elbow.position = Vector3(0.0, ELBOW_Y, 0.0)
+	elbow.material_override = _joint_mat
+	pivot.add_child(elbow)
+	var finger := MeshInstance3D.new()
+	if is_scissor:
+		var blade := CapsuleMesh.new()
+		blade.radius = 0.016
+		blade.height = LOWER_FINGER_LEN + 0.032
+		finger.mesh = blade
+		finger.scale = Vector3(1.0, 1.0, 0.30)
+	else:
+		var cone := CylinderMesh.new()
+		cone.top_radius = upper_radius * 0.85
+		cone.bottom_radius = 0.005
+		cone.height = LOWER_FINGER_LEN
+		cone.radial_segments = 20
+		finger.mesh = cone
+	finger.position = Vector3(0.0, FINGER_Y, 0.0)
+	finger.material_override = _head_mat
+	_tinted.append(finger)
+	pivot.add_child(finger)
+	var tip := MeshInstance3D.new()
+	var tip_ball := SphereMesh.new()
+	tip_ball.radius = 0.009
+	tip_ball.height = 0.018
+	tip_ball.radial_segments = 14
+	tip_ball.rings = 7
+	tip.mesh = tip_ball
+	tip.position = Vector3(0.0, TIP_Y, 0.0)
+	tip.material_override = _tip_mat
+	pivot.add_child(tip)
 
 
 func _metal(color: Color, rough: float) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
-	mat.metallic = 0.75
+	mat.metallic = 1.0
 	mat.roughness = rough
+	return mat
+
+
+func _rubber(color: Color) -> StandardMaterial3D:
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.metallic = 0.0
+	mat.roughness = 0.88
+	mat.metallic_specular = 0.3
 	return mat
 
 
@@ -326,8 +455,7 @@ func _sync_visual() -> void:
 	var claw_id: StringName = GameState.current_claw()["id"]
 	var color := CLAW_COLORS.get(claw_id, Color(0.9, 0.9, 0.9)) as Color
 	if _head_mat != null and _head_mat.albedo_color != color:
+		# 爪色只写共享材质的 albedo（_tinted 网格全部引用它），不再逐网格重设 override ——
+		# 关节/指尖的独立材质由此不再被误覆盖。
 		_head_mat.albedo_color = color
-		_tip_mat.albedo_color = color.darkened(0.3)
-		for pivot in _arm_pivots:
-			for child in pivot.get_children():
-				(child as MeshInstance3D).material_override = _head_mat
+		_tip_mat.albedo_color = color.darkened(0.55)

@@ -79,6 +79,7 @@ func _ready() -> void:
 		_check_claw_variety(_game_state)
 		_check_audio(_game_state)
 		_check_3d_presentation()
+		_check_graphics_contract()
 
 	_claw = get_tree().root.find_child("Claw", true, false) as Claw
 	if _claw == null:
@@ -331,6 +332,37 @@ func _check_3d_presentation() -> void:
 		rig.pitch = 0.62
 		rig.distance = 2.45
 		rig.orbit(0.0, 0.0)
+
+
+## 画质契约（画质 v2 专项的可机判代理）：Filmic 色调映射 / Glow / 深度雾 / 颜色调整
+## 在环境里配置，MSAA 3D 在工程设置里声明，UI 主题（矢量中文字体）真的挂到了控件上，
+## 质量看门狗档位可读 —— 任何一项无声回退都算门禁失败。
+func _check_graphics_contract() -> void:
+	var main := get_tree().root.find_child("Main", true, false)
+	if main == null:
+		return
+	var world_env := main.find_child("WorldEnvironment", true, false) as WorldEnvironment
+	if world_env == null or world_env.environment == null:
+		_failures.append("画质断言：主场景没有 WorldEnvironment/Environment（画质 v2 环境未装配）")
+		return
+	var env := world_env.environment
+	if env.tonemap_mode != Environment.TONE_MAPPER_FILMIC:
+		_failures.append("画质断言：色调映射不是 Filmic（tonemap_mode=%d，专项二要求 Filmic/ACES）" % env.tonemap_mode)
+	if not env.glow_enabled:
+		_failures.append("画质断言：Glow 辉光未开启（灯罩/灯泡自发光体要求有光晕）")
+	if not env.fog_enabled:
+		_failures.append("画质断言：雾效未开启（机台空间要求空气感层次）")
+	if not env.adjustment_enabled:
+		_failures.append("画质断言：颜色调整未开启（对比/饱和增强缺失）")
+	if ProjectSettings.get_setting("rendering/anti_aliasing/quality/msaa_3d", 0) < 1:
+		_failures.append("画质断言：MSAA 3D 未在 project.godot 声明（模型边缘抗锯齿缺失）")
+	if int(main.get("quality_tier")) > 0:
+		_failures.append("画质断言：质量看门狗在冒烟窗口内降档到 %d（headless 不应触发降档）" % int(main.get("quality_tier")))
+	var hud := main.find_child("HudLabel", true, false) as Label
+	if hud == null or hud.theme == null:
+		_failures.append("画质断言：HudLabel 未挂 UI 主题（高清字体主题未应用）")
+	elif hud.theme.default_font == null:
+		_failures.append("画质断言：UI 主题缺矢量默认字体（中文字体回退风险）")
 
 
 func _key_labels(keys: Array) -> String:

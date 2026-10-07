@@ -93,36 +93,48 @@ func _box(size: Vector3, pos: Vector3, mat: Material, collide: bool = false) -> 
 
 
 func _build_materials() -> void:
+	# PBR 材质体系（画质 v2 专项三）：按部件区分 metallic / roughness / emission / specular。
+	# 机身 = 深紫烤漆金属（金属基底、中等粗糙 → 可见环境反光条）。
 	_mat_body = StandardMaterial3D.new()
-	_mat_body.albedo_color = Color(0.16, 0.13, 0.30)
-	_mat_body.metallic = 0.35
-	_mat_body.roughness = 0.45
+	_mat_body.albedo_color = Color(0.13, 0.105, 0.26)
+	_mat_body.metallic = 0.78
+	_mat_body.roughness = 0.38
+	_mat_body.metallic_specular = 0.62
+	# 金色包边 = 镀铬金（全金属、低粗糙 → 沿补光拉出镜面高光条）。
 	_mat_frame = StandardMaterial3D.new()
-	_mat_frame.albedo_color = Color(0.98, 0.80, 0.36)
-	_mat_frame.metallic = 0.6
-	_mat_frame.roughness = 0.3
+	_mat_frame.albedo_color = Color(1.0, 0.83, 0.40)
+	_mat_frame.metallic = 1.0
+	_mat_frame.roughness = 0.18
+	_mat_frame.metallic_specular = 0.75
+	# 柜内壁 = 深色丝绒（高粗糙哑光，吃光不反光，衬托娃娃）。
 	_mat_inner = StandardMaterial3D.new()
-	_mat_inner.albedo_color = Color(0.10, 0.09, 0.20)
-	_mat_inner.roughness = 0.8
+	_mat_inner.albedo_color = Color(0.09, 0.08, 0.17)
+	_mat_inner.roughness = 0.97
+	_mat_inner.metallic_specular = 0.2
+	# 台面地毯 = 绒面猩红（最高粗糙 + 低 specular，哑光织物感）。
 	_mat_carpet = StandardMaterial3D.new()
-	_mat_carpet.albedo_color = Color(0.72, 0.25, 0.34)
-	_mat_carpet.roughness = 0.95
+	_mat_carpet.albedo_color = Color(0.60, 0.155, 0.26)
+	_mat_carpet.roughness = 1.0
+	_mat_carpet.metallic_specular = 0.15
+	# 玻璃罩 = 透明 + 高 specular + 双面（补光沿玻璃拉出斜向反光，可感知的环境反射）。
 	_mat_glass = StandardMaterial3D.new()
-	_mat_glass.albedo_color = Color(0.65, 0.85, 1.0, 0.16)
+	_mat_glass.albedo_color = Color(0.70, 0.88, 1.0, 0.13)
 	_mat_glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_mat_glass.metallic = 0.2
-	_mat_glass.roughness = 0.05
+	_mat_glass.metallic = 0.55
+	_mat_glass.roughness = 0.04
+	_mat_glass.metallic_specular = 0.9
 	_mat_glass.cull_mode = BaseMaterial3D.CULL_DISABLED
+	# 灯罩 / 灯泡 = 自发光体（emission 能量抬到 Glow 阈值之上，主环境 glow 下出光晕）。
 	_mat_lamp = StandardMaterial3D.new()
 	_mat_lamp.albedo_color = Color(1.0, 0.93, 0.68)
 	_mat_lamp.emission_enabled = true
 	_mat_lamp.emission = Color(1.0, 0.85, 0.45)
-	_mat_lamp.emission_energy_multiplier = 1.6
+	_mat_lamp.emission_energy_multiplier = 2.4
 	_mat_bulb = StandardMaterial3D.new()
 	_mat_bulb.albedo_color = Color(1.0, 0.98, 0.9)
 	_mat_bulb.emission_enabled = true
 	_mat_bulb.emission = Color(1.0, 0.95, 0.75)
-	_mat_bulb.emission_energy_multiplier = 2.2
+	_mat_bulb.emission_energy_multiplier = 3.2
 
 
 ## 柜体外壳：底座 + 背板 + 左右侧板 + 前面板下半（滑道观察窗留洞由面板拼出）。
@@ -152,13 +164,17 @@ func _build_cabinet() -> void:
 
 
 ## 玻璃罩：前玻璃（带碰撞，娃娃飞不出）+ 顶玻璃（装饰；顶板高过龙门滑车防穿模）。
+## 玻璃全部 cast_shadow=OFF：透明体不该在主光下投死黑影，柜内主光软阴影才干净。
 func _build_glass_box() -> void:
-	_box(Vector3(CAB_HALF_W * 2.0 - 0.06, WALL_H - 0.10, 0.02), Vector3(0.0, WALL_H / 2.0, 0.44), _mat_glass, true)
-	_box(Vector3(CAB_HALF_W * 2.0 - 0.06, 0.02, 0.96), Vector3(0.0, WALL_H + 0.10, 0.0), _mat_glass)
-	# 玻璃斜向高光条（装饰薄片）。
+	var front := _box(Vector3(CAB_HALF_W * 2.0 - 0.06, WALL_H - 0.10, 0.02), Vector3(0.0, WALL_H / 2.0, 0.44), _mat_glass, true)
+	front.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var top := _box(Vector3(CAB_HALF_W * 2.0 - 0.06, 0.02, 0.96), Vector3(0.0, WALL_H + 0.10, 0.0), _mat_glass)
+	top.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# 玻璃斜向高光条（装饰薄片）：微自发光模拟灯带在玻璃上的反射条。
 	var glint := StandardMaterial3D.new()
-	glint.albedo_color = Color(1.0, 1.0, 1.0, 0.08)
+	glint.albedo_color = Color(1.0, 1.0, 1.0, 0.09)
 	glint.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	glint.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_box(Vector3(0.02, WALL_H - 0.2, 0.9), Vector3(-0.42, WALL_H / 2.0, 0.435), glint)
 	_box(Vector3(0.02, WALL_H - 0.35, 0.7), Vector3(0.36, WALL_H / 2.0, 0.435), glint)
 
@@ -202,29 +218,39 @@ func _build_chute() -> void:
 	_box(Vector3(0.02, depth, d), Vector3(cx + w / 2.0, CHUTE_FLOOR_Y + depth / 2.0, cz), _mat_inner, true)
 
 
-## 顶部灯箱：发光面板 + 标题 + 一排灯泡 + 爪子导轨。
+## 顶部灯箱：发光面板 + 标题 + 一排灯泡 + 爪子导轨 + 顶部皇冠金边。
 func _build_marquee() -> void:
 	_box(Vector3(CAB_HALF_W * 2.0, 0.26, 0.30), Vector3(0.0, WALL_H + 0.13, -0.30), _mat_body)
 	var face := _box(Vector3(CAB_HALF_W * 2.0 - 0.08, 0.20, 0.02), Vector3(0.0, WALL_H + 0.13, -0.145), _mat_lamp)
 	face.name = "MarqueeFace"
+	face.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var title := Label3D.new()
 	title.text = "★ 娃娃星球 ★"
-	title.font_size = 96
-	title.pixel_size = 0.0035
+	# 画质 v2（专项一）：3D 文字同样吃矢量中文字体（Web 沙箱没有系统字体，引擎内置
+	# 字体只有拉丁字形，不挂字体就是缺字方块）；font_size 提到 256 / pixel_size 同比
+	# 缩小 = 文字纹理密度翻倍多，高分屏下灯箱标题不再发糊。
+	title.font = preload("res://assets/fonts/NotoSansSC-Regular.otf")
+	title.font_size = 256
+	title.pixel_size = 0.00082
 	title.modulate = Color(0.55, 0.16, 0.28)
-	title.outline_size = 18
+	title.outline_size = 40
 	title.outline_modulate = Color(1.0, 0.95, 0.8)
 	title.position = Vector3(0.0, WALL_H + 0.135, -0.13)
 	add_child(title)
+	# 顶部皇冠：金色斜边收头（体积感 + 金属反光层次）。
+	_box(Vector3(CAB_HALF_W * 2.0 + 0.06, 0.06, 0.34), Vector3(0.0, WALL_H + 0.29, -0.30), _mat_frame)
 	var bulb_mat := _mat_bulb
 	for i in 9:
 		var bulb := MeshInstance3D.new()
 		var sphere := SphereMesh.new()
 		sphere.radius = 0.032
 		sphere.height = 0.064
+		sphere.radial_segments = 24
+		sphere.rings = 12
 		bulb.mesh = sphere
 		bulb.material_override = bulb_mat
 		bulb.position = Vector3(-0.62 + float(i) * 0.155, WALL_H + 0.02, 0.40)
+		bulb.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(bulb)
 	# 龙门导轨（两条横梁 + 中梁）。
 	var rail_mat := _mat_frame
@@ -232,6 +258,75 @@ func _build_marquee() -> void:
 	_box(Vector3(FIELD_RECT.size.x + 0.16, 0.05, 0.05), Vector3(0.0, GANTRY_Y + 0.06, FIELD_RECT.end.y + 0.05), rail_mat)
 	_box(Vector3(0.05, 0.05, FIELD_RECT.size.y + 0.16), Vector3(-FIELD_RECT.size.x / 2.0 - 0.05, GANTRY_Y + 0.06, 0.0), rail_mat)
 	_box(Vector3(0.05, 0.05, FIELD_RECT.size.y + 0.16), Vector3(FIELD_RECT.size.x / 2.0 + 0.05, GANTRY_Y + 0.06, 0.0), rail_mat)
+	_build_front_decor()
+
+
+## 前脸细节（画质 v2 专项三：精细化建模）：投币门 + 出货按钮面板 + 玻璃前角柱。
+## 全部纯装饰（无碰撞），不改变任何布局常量与物理体。
+func _build_front_decor() -> void:
+	# 玻璃前缘两根金属角柱（圆角柱体，撑起玻璃罩前脸）。
+	for side in [-1.0, 1.0]:
+		var post := MeshInstance3D.new()
+		var cyl := CylinderMesh.new()
+		cyl.top_radius = 0.035
+		cyl.bottom_radius = 0.045
+		cyl.height = WALL_H - 0.10
+		cyl.radial_segments = 24
+		post.mesh = cyl
+		post.position = Vector3(side * (CAB_HALF_W - 0.05), WALL_H / 2.0, 0.44)
+		post.material_override = _mat_frame
+		add_child(post)
+	# 投币门：金色圆盘底座 + 投币缝 + 红色退币钮。
+	var coin_base := MeshInstance3D.new()
+	var coin_cyl := CylinderMesh.new()
+	coin_cyl.top_radius = 0.085
+	coin_cyl.bottom_radius = 0.085
+	coin_cyl.height = 0.02
+	coin_cyl.radial_segments = 28
+	coin_base.mesh = coin_cyl
+	coin_base.rotation.x = PI / 2.0
+	coin_base.position = Vector3(0.30, CHUTE_FLOOR_Y + 0.26, 0.512)
+	coin_base.material_override = _mat_frame
+	add_child(coin_base)
+	var slot := MeshInstance3D.new()
+	var slot_box := BoxMesh.new()
+	slot_box.size = Vector3(0.012, 0.09, 0.012)
+	slot.mesh = slot_box
+	slot.position = Vector3(0.30, CHUTE_FLOOR_Y + 0.26, 0.522)
+	slot.material_override = _mat_inner
+	add_child(slot)
+	var refund_btn := MeshInstance3D.new()
+	var btn_sphere := SphereMesh.new()
+	btn_sphere.radius = 0.022
+	btn_sphere.height = 0.044
+	btn_sphere.radial_segments = 20
+	btn_sphere.rings = 10
+	refund_btn.mesh = btn_sphere
+	refund_btn.position = Vector3(0.30, CHUTE_FLOOR_Y + 0.36, 0.512)
+	var btn_mat := StandardMaterial3D.new()
+	btn_mat.albedo_color = Color(0.85, 0.22, 0.25)
+	btn_mat.metallic = 0.2
+	btn_mat.roughness = 0.35
+	btn_mat.metallic_specular = 0.7
+	refund_btn.material_override = btn_mat
+	add_child(refund_btn)
+	# 出货按钮面板（观察窗左侧）：两颗糖果色圆钮。
+	for i in 2:
+		var knob := MeshInstance3D.new()
+		var knob_sphere := SphereMesh.new()
+		knob_sphere.radius = 0.030
+		knob_sphere.height = 0.060
+		knob_sphere.radial_segments = 20
+		knob_sphere.rings = 10
+		knob.mesh = knob_sphere
+		knob.position = Vector3(-0.42 + float(i) * 0.11, CHUTE_FLOOR_Y + 0.30, 0.512)
+		var knob_mat := StandardMaterial3D.new()
+		knob_mat.albedo_color = [Color(0.95, 0.62, 0.25), Color(0.35, 0.75, 0.55)][i]
+		knob_mat.metallic = 0.15
+		knob_mat.roughness = 0.3
+		knob_mat.metallic_specular = 0.7
+		knob.material_override = knob_mat
+		add_child(knob)
 
 
 ## 灯光：罩内暖光顶灯 + 补光；入账判定 Area3D（洞内）。

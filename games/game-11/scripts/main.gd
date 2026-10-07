@@ -30,16 +30,32 @@ const MOUSE_TAP_INDEX: int = -1
 @onready var mute_button: Button = %MuteButton
 @onready var claw_buttons: Array[Button] = [%ClawButton0, %ClawButton1, %ClawButton2]
 @onready var backpack_button: Button = %BackpackButton
+@onready var ui_layer: CanvasLayer = $UI
 @onready var touch_ui: CanvasLayer = $TouchUI
 
 var _bgm: AudioStreamPlayer
 var _move_hint: String = "WASD / 方向键移动 · 空格下爪 · Tab 换爪 · 拖动画面转视角"
 ## 进行中的点按起点（触摸 index → 起点；鼠标用 MOUSE_TAP_INDEX）。
 var _tap_starts: Dictionary = {}
+## 环境资源引用（质量看门狗降档时改写 glow/fog/adjustment）。
+var _env: Environment
+## ── 质量看门狗（画质 v2 的移动端红线兜底）──
+## 档位：0=HIGH 全效果；1=MEDIUM 关 MSAA+Glow；2=LOW 再关雾与颜色调整。
+## 开局按 HIGH 跑，暖身后按滑动窗口平均帧率逐级降档；达标设备（真机/桌面）保持全效果，
+## 弱设备（SwiftShader/低端机）自动让出帧预算 —— 30fps 红线优先于效果，但不无声降级：
+## 降档动作与档位暴露给冒烟断言（quality_tier 属性）。
+const WARMUP_FRAMES: int = 90
+const QUALITY_WINDOW_FRAMES: int = 60
+const QUALITY_FPS_FLOOR: float = 24.0
+var quality_tier: int = 0
+var _quality_frames: int = 0
+var _quality_window_time: float = 0.0
+var _quality_checked_windows: int = 0
 
 
 func _ready() -> void:
 	_setup_environment()
+	_apply_ui_theme()
 	if DisplayServer.is_touchscreen_available():
 		touch_ui.visible = true
 		_move_hint = "摇杆移动 · 点按画面/「下爪」键下爪/重开 · 「换爪」键切换爪型 · 拖动画面转视角"
@@ -64,23 +80,73 @@ func _ready() -> void:
 		add_child(TuningPanel.new())
 
 
-## 环境与主光：柔和暖色平行光 + 淡蓝环境光（柜内还有机台自带的顶灯）。
+## 环境与主光（画质 v2 专项二）：Filmic 色调映射 + Glow 辉光 + 深度雾 + 颜色调整，
+## 主光软阴影，另设两盏彩色补光给金属件/玻璃罩造镜面高光（兼容渲染器没有 SSR/反射探针
+## 的 4.3 支持面，用「多光源镜面高光」做反射的等效替代 —— 决策记录见 docs/graphics-v2.md）。
 func _setup_environment() -> void:
 	var world_env := WorldEnvironment.new()
+	# 显式命名：运行时 add_child 的匿名节点会得到 @类名@N 不可读名，冒烟断言找不到。
+	world_env.name = "WorldEnvironment"
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.05, 0.055, 0.10)
+	env.background_color = Color(0.04, 0.045, 0.09)
+	# 环境光：冷调天蓝提亮暗部，与柜内暖光形成冷暖对比。
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.55, 0.6, 0.75)
-	env.ambient_light_energy = 0.7
+	env.ambient_light_color = Color(0.55, 0.62, 0.80)
+	env.ambient_light_energy = 0.85
+	# Filmic 色调映射：高光滚落（灯泡自发光 3.2 energy 不再死白截断），明暗层次可辨。
+	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.tonemap_exposure = 1.05
+	env.tonemap_white = 4.0
+	# Glow 辉光：灯罩/灯泡等 emission 体产生柔和光晕（兼容渲染器 4.3 起支持）。
+	env.glow_enabled = true
+	env.glow_intensity = 0.55
+	env.glow_strength = 1.0
+	env.glow_bloom = 0.08
+	env.glow_hdr_threshold = 1.05
+	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
+	# 深度雾：机台内外空间拉开空气感层次（兼容渲染器支持 depth/height fog，不支持体积雾）。
+	env.fog_enabled = true
+	env.fog_mode = Environment.FOG_MODE_DEPTH
+	env.fog_light_color = Color(0.10, 0.10, 0.20)
+	env.fog_light_energy = 1.0
+	env.fog_depth_begin = 1.6
+	env.fog_depth_end = 7.0
+	env.fog_depth_curve = 1.4
+	env.fog_sky_affect = 0.0
+	# 颜色调整：轻微对比/饱和提升（兼容渲染器支持 adjustments），去掉软渲染的灰蒙感。
+	env.adjustment_enabled = true
+	env.adjustment_brightness = 0.98
+	env.adjustment_contrast = 1.06
+	env.adjustment_saturation = 1.10
+	_env = env
 	world_env.environment = env
 	add_child(world_env)
+	# 主光（软阴影）：阴影模糊 + 降不透明度弱化硬边（兼容渲染器没有 PCSS，
+	# light_angular_distance 会被忽略，等效靠 shadow_blur + shadow_opacity）。
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-52.0, -18.0, 0.0)
 	sun.light_color = Color(1.0, 0.95, 0.86)
-	sun.light_energy = 1.1
+	sun.light_energy = 1.15
 	sun.shadow_enabled = true
+	sun.shadow_blur = 1.6
+	sun.shadow_opacity = 0.72
+	sun.light_angular_distance = 2.0
 	add_child(sun)
+	# 反射等效补光（对位玻璃罩/金属爪的高光）：左上暖金 + 右侧冷青，位置固定在
+	# 机台斜前上方，金属件的 metallic 高光会沿这两盏灯拉出可信的反光条。
+	var key_warm := OmniLight3D.new()
+	key_warm.position = Vector3(-1.05, 1.65, 1.15)
+	key_warm.light_color = Color(1.0, 0.86, 0.58)
+	key_warm.light_energy = 1.1
+	key_warm.omni_range = 3.4
+	add_child(key_warm)
+	var key_cool := OmniLight3D.new()
+	key_cool.position = Vector3(1.25, 1.30, 0.95)
+	key_cool.light_color = Color(0.60, 0.78, 1.0)
+	key_cool.light_energy = 0.8
+	key_cool.omni_range = 3.2
+	add_child(key_cool)
 
 
 ## BGM：程序化合成的无缝循环曲（assets/music/bgm_shop.wav），循环在运行时设。
@@ -123,8 +189,56 @@ func _connect_signals() -> void:
 		machine.pit_area.body_entered.connect(_on_pit_body_entered)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	_refresh_hud()
+	_watch_quality(delta)
+
+
+## ── 质量看门狗（画质 v2：性能红线不回退的兜底）──
+
+## 暖身后按滑动窗口评估平均帧率，低于 QUALITY_FPS_FLOOR 逐级降档（HIGH→MEDIUM→LOW）。
+## headless 冒烟 fps 恒为上限值不会触发；真机达标设备保持全效果，移动门禁的软渲染
+## 环境会在数秒内降档保帧 —— 降档是显式契约（quality_tier 可断言），不是无声降级。
+func _watch_quality(delta: float) -> void:
+	if quality_tier >= 2:
+		return
+	_quality_frames += 1
+	_quality_window_time += delta
+	if _quality_frames < WARMUP_FRAMES:
+		return
+	if _quality_frames % QUALITY_WINDOW_FRAMES != 0:
+		return
+	var avg_fps := float(QUALITY_WINDOW_FRAMES) / maxf(_quality_window_time, 0.0001)
+	_quality_window_time = 0.0
+	_quality_checked_windows += 1
+	if avg_fps >= QUALITY_FPS_FLOOR or _quality_checked_windows < 1:
+		return
+	quality_tier += 1
+	_apply_quality_tier()
+
+
+## 档位 → 具体关什么：MEDIUM 摘 MSAA+Glow（最贵的两项），LOW 再摘雾与颜色调整。
+func _apply_quality_tier() -> void:
+	if _env == null:
+		return
+	if quality_tier >= 1:
+		get_viewport().msaa_3d = Viewport.MSAA_DISABLED
+		_env.glow_enabled = false
+	if quality_tier >= 2:
+		_env.fog_enabled = false
+		_env.adjustment_enabled = false
+
+
+## ── UI 主题（画质 v2 专项一：高清字体主题）──
+
+## 主题挂在 UI 层每个顶层 Control 上（Theme 沿 Control 子树向下继承）；
+## 节点级 theme_override_* 仍可单点覆盖（tscn 里保留的字号/颜色）。
+func _apply_ui_theme() -> void:
+	var theme := UiTheme.build()
+	for layer: CanvasLayer in [ui_layer, touch_ui]:
+		for child in layer.get_children():
+			if child is Control:
+				(child as Control).theme = theme
 
 
 func _unhandled_input(event: InputEvent) -> void:
