@@ -22,3 +22,13 @@
 - 门禁 B 移动端模拟门禁：round3 PASS 10/10（`qa/mobile/` @10:29Z）+ **round4 独立复跑 PASS 10/10**（`qa/mobile-round4/` @12:18Z，fps=10、tapDiff=43、console error=0）——双轮收敛可复现
 - 验收复核报告：games/game-11/qa/ACCEPTANCE_REVIEW.md
 - 功能分支已快进对齐部署分支：`myrd/game-11-goal-cmuwf19ee000xm9lg4v7bxybn` @ `bffad6b`
+
+## 画质 v2 增量（2026-10-07，implement 节点）
+
+- 渲染：hidpi 显式声明 + stretch aspect=expand + MSAA 3D 2× + Filmic tonemap + Glow + 深度雾 + 颜色调整 + 主光软阴影（shadow_blur+opacity，玻璃/自发光 cast_shadow=OFF）
+- PBR 材质分级：烤漆金属机身 / 镀铬金包边 / 哑光绒布娃娃 / 自发光灯组（呼吸脉动）/ 透明高光玻璃 / 亮面金属独角
+- 精细建模：夹爪 23 件（滚轮滑车/缆夹/颈柱/环座/胶囊臂/肘关节/锥形指/胶垫）、娃娃 ~20 件（手脚/口鼻/高光眼，细分 22/11）
+- UI：代码构建主题（scripts/ui_theme.gd，矢量 NotoSansSC + StyleBoxFlat）+ 全局字号加大 + 灯箱 Label3D 挂中文字体（文字纹理密度 ~5×，修 v1 缺字/糊字隐患）
+- 性能三层分级：壳页 GPU 探测钳 DPR（软渲染 1 / 真 GPU 2 / ?dpr= 覆盖）→ 游戏内软渲染 LOW 档 → 质量看门狗；quality_tier 可断言，非无声降级
+- 决策记录：games/game-11/docs/graphics-v2.md（兼容渲染器支持面 × 等效替代 × 实测数据）
+- 门禁：verify.sh 四道全绿 @0674e99；部署交接见 game-11-deploy-v2.md
