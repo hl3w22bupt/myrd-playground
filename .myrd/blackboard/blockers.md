@@ -16,6 +16,7 @@
 | L4 | 画质 v2 spec↔实现已披露差异：hidpi spec dpr_max=3 vs 真 GPU 钳 2；MSAA spec 桌面 4x/移动 2x vs 统一 2×——若人工验收认定须对齐，走 spec revisions（version+1），禁止两头各改 | 主策划下一轮 |
 | L5 | 真机 ≥30fps 红线无法机判（门禁为 SwiftShader 口径 ≥8，实测 17）；真机帧率数据只能 owner 体感回填 | 目标 owner |
 | L6 | 画质数值不进 ?tuning 面板（只覆盖 7 玩法键）；试玩指向画质数值 → spec.numeric.rendering/materials 修订 | 主策划下一轮 |
+| L7 | **goal artifacts PATCH 是替换语义不是合并**（v2 验收节点实测：只送新条目会把旧 13 条清掉，已即时全量恢复 14 条）；后续节点回写 artifacts 必须先 GET 全量再「旧+新」整包 PATCH，PATCH 后必须复核 count 与 detail 完整性 | 所有回写节点 |
 
 ## 已解除
 
