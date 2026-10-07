@@ -32,3 +32,7 @@
 - 性能三层分级：壳页 GPU 探测钳 DPR（软渲染 1 / 真 GPU 2 / ?dpr= 覆盖）→ 游戏内软渲染 LOW 档 → 质量看门狗；quality_tier 可断言，非无声降级
 - 决策记录：games/game-11/docs/graphics-v2.md（兼容渲染器支持面 × 等效替代 × 实测数据）
 - 门禁：verify.sh 四道全绿 @0674e99；部署交接见 game-11-deploy-v2.md
+- 重跑节点独立复验（2026-10-07 第二轮）：四道门禁 + server tsc 全绿 @a9eb74b；HEAD 重导出与已提交
+  export/web 逐字节一致（pck sha256 `b0d851f6c2af7b13`）——线上将部署产物 = HEAD 代码，非陈旧导出。
+  线上当前仍为 v1（壳页无 GPU probe、pck 404 于直连路径），待平台按 game-11-deploy-v2.md 执行部署后
+  跑 mobile-web-smoke 并回写新 deployment id。
