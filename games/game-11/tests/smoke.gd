@@ -9,6 +9,9 @@ extends Node
 ##   1. 主场景可实例化（Claw / Machine / Dolls×8 接线完整）
 ##   2. autoload GameState 已注册且带约定信号
 ##   3. InputMap 动作注册 + 键位契约 + 注入输入后爪子真的动了
+##      + 带符号方向语义（验收 3 后半）：move_left / move_right 的爪头位移对激活相机
+##        右基向量（投影 XZ 平面归一化）的点积必须为负 / 为正 —— 只断位移量拦不住
+##        「能跑但方向镜像」，必须连符号一起断
 ##   4. 信号真的到达订阅方（Claw.moved / GameState.score_changed）
 ##   5. 核心交互生效：下爪 → 闭合抓取 → 娃娃入取物口 → 得分（确定性：debug_always_grab + 调速）
 ##   6. 结果性事件挂了反馈（Juice.events 非空）
@@ -25,6 +28,10 @@ const CYCLE_WAIT_FRAMES: int = 150
 const RESULT_WAIT_FRAMES: int = 10
 ## 爪子位移断言阈值（米）：满速 10 物理帧 ≈ 0.4m。
 const MIN_MOVE_DISTANCE: float = 0.25
+## 方向语义断言的单次注入帧数：满速 8 物理帧 ≈ 0.32m（活动半径 ±0.49m，不会撞边钳制）。
+const DIRECTION_FRAMES: int = 8
+## 方向语义点积阈值（米）：位移在相机右基方向上投影的绝对值下限（排除近零位移误判符号）。
+const MIN_DIRECTION_DOT: float = 0.05
 
 const REQUIRED_ACTIONS: Array[StringName] = [
 	&"move_left", &"move_right", &"move_up", &"move_down", &"confirm", &"switch_claw",
@@ -39,11 +46,11 @@ const KEY_CONTRACT: Dictionary = {
 	&"switch_claw": [KEY_TAB],
 }
 
-enum Phase { NOISE, MOVE, DROP_WAIT, CATCH_WAIT, RESULT_WAIT, DONE }
+enum Phase { DIRECTION_LEFT, DIRECTION_RIGHT, NOISE, MOVE, DROP_WAIT, CATCH_WAIT, RESULT_WAIT, DONE }
 
 var _failures: PackedStringArray = []
 var _frames: int = 0
-var _phase: int = Phase.NOISE
+var _phase: int = Phase.DIRECTION_LEFT
 var _phase_frame: int = 0
 var _claw: Claw
 var _game_state: Node
@@ -57,6 +64,10 @@ var _won_seen: bool = false
 var _restart_seen: bool = false
 var _drop_accepted: bool = false
 var _saved_tuning: Dictionary = {}
+## 方向语义断言工作区：单次注入的位移起点 + 两次点积实测值（写进失败信息，便于定位镜像方向）。
+var _dir_origin: Vector3 = Vector3.ZERO
+var _dir_left_dot: float = 0.0
+var _dir_right_dot: float = 0.0
 
 
 func _ready() -> void:
@@ -118,7 +129,14 @@ func _physics_process(_delta: float) -> void:
 		_report()
 		return
 	match _phase:
+		Phase.DIRECTION_LEFT:
+			_run_direction_probe(&"move_left", Phase.DIRECTION_RIGHT)
+		Phase.DIRECTION_RIGHT:
+			_run_direction_probe(&"move_right", Phase.NOISE)
 		Phase.NOISE:
+			# 播种挂在 NOISE 相位第 1 帧（方向相位在前，_frames==1 已经过去）。
+			if _phase_frame == 1:
+				_noise_rng.seed = NOISE_SEED
 			_inject_noise_frame()
 			if _phase_frame >= NOISE_FRAMES:
 				_next_phase(Phase.MOVE)
@@ -162,8 +180,7 @@ var _noise_rng := RandomNumberGenerator.new()
 
 
 func _inject_noise_frame() -> void:
-	if _frames == 1:
-		_noise_rng.seed = NOISE_SEED
+	# 种子由 Phase.NOISE 的第 1 帧负责播种（见 _physics_process），本函数只消费序列。
 	var roll := _noise_rng.randf()
 	var pos := Vector2(_noise_rng.randf_range(0, 720), _noise_rng.randf_range(0, 1280))
 	if roll < 0.30:
@@ -372,6 +389,59 @@ func _key_labels(keys: Array) -> String:
 	return "[%s]" % ", ".join(labels)
 
 
+## ── 方向语义断言（验收 3 后半）：位移量只证「能跑」，带符号点积才证「不镜像」──
+## 注入 move_left / move_right 若干物理帧 → 采样爪头位移 Δ → 与主场景激活相机的
+## 右基向量（投影 XZ 平面归一化）做点积：A 必须向屏幕左（dot<0），D 必须向屏幕右（dot>0）。
+## 只依赖默认视角，放在噪声相位之前、独立于噪声后的移动断言，不与对抗事件序耦合。
+
+func _run_direction_probe(action: StringName, next_phase: int) -> void:
+	if _phase_frame == 1:
+		_dir_origin = _claw.global_position
+		Input.action_press(action)
+	if _phase_frame < 1 + DIRECTION_FRAMES:
+		return
+	Input.action_release(action)
+	var delta := _claw.global_position - _dir_origin
+	var right := _camera_right_xz()
+	var expected_negative := action == &"move_left"
+	if right != Vector3.ZERO:
+		var dot := delta.dot(right)
+		if expected_negative:
+			_dir_left_dot = dot
+		else:
+			_dir_right_dot = dot
+		if delta.length() > 0.0001 and absf(dot) <= MIN_DIRECTION_DOT:
+			_failures.append("方向语义：%s 位移 %.3fm 几乎垂直于相机右基（点积=%.4f ≤ %.2f），方向不可判" % [
+				action, delta.length(), dot, MIN_DIRECTION_DOT,
+			])
+		elif expected_negative and dot > -MIN_DIRECTION_DOT:
+			_failures.append("方向语义：%s 实际屏幕位移点积=%.4f，期望为负（向屏幕左）" % [action, dot])
+		elif not expected_negative and dot < MIN_DIRECTION_DOT:
+			_failures.append("方向语义：%s 实际屏幕位移点积=%.4f，期望为正（向屏幕右）" % [action, dot])
+	# 还原爪位到 _ready 记录的起点：方向相位不得污染噪声后的位移断言与下爪前置。
+	_claw.global_position = _origin
+	_next_phase(next_phase)
+
+
+## 主场景激活相机的右基向量，投影到 XZ 平面并归一化（屏幕「右」的世界方向）。
+func _camera_right_xz() -> Vector3:
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		# headless 兜底：视口未登记当前相机时，退回 CameraRig 持有的那只。
+		var rig := get_tree().root.find_child("CameraRig", true, false) as CameraRig
+		if rig != null:
+			cam = rig.camera()
+	if cam == null:
+		_failures.append("方向语义：取不到激活相机（get_viewport().get_camera_3d() 为空且无 CameraRig），无法判定屏幕方向")
+		return Vector3.ZERO
+	var basis_x := cam.global_transform.basis.x
+	var right := Vector3(basis_x.x, 0.0, basis_x.z)
+	if right.length() < 0.0001:
+		_failures.append("方向语义：相机右基垂直于 XZ 平面（俯仰退化），无法投影出屏幕方向")
+		return Vector3.ZERO
+	return right.normalized()
+
+
 ## ── 玩法断言 ──
 
 func _assert_player_moved() -> void:
@@ -467,7 +537,9 @@ func _report() -> void:
 		for key: String in _saved_tuning:
 			_game_state.set(key, _saved_tuning[key])
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/autoload/输入映射/信号/3D移动/物理抓取落洞/胜负重开/反馈/调参协议/爪型差异/音频契约/相机限位 全部通过")
+		print("GODOT_SMOKE: PASS 场景实例化/autoload/输入映射/信号/3D移动/方向语义(左dot=%.3f 右dot=%.3f)/物理抓取落洞/胜负重开/反馈/调参协议/爪型差异/音频契约/相机限位 全部通过" % [
+			_dir_left_dot, _dir_right_dot,
+		])
 		get_tree().quit(0)
 	else:
 		for failure in _failures:
