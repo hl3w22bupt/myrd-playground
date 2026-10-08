@@ -1,3 +1,28 @@
+# 《3D 切苹果》(3d) 资产与产物清单（主策划线上复核回写，2026-10-08）
+
+## 线上产物标识（本轮复核实测口径）
+
+- **HostedApp id**: `cmuzmgm4y000em9fyitqs4nrk`
+- **deployment id**: `cmuzr8tql0019m9vixtveb0m6`（**v3 running**；v1 `cmuzqfm8z0013m9vizdmpztn9` / v2 `cmuzr82kv0017m9viynasshwp` superseded）
+- **commit**: 游戏代码 `6a0760c` @ 分支 `myrd/game-3d-goal-cmuzmgo3y000gm9fyz4cd9en0`（其后仅 QA 证据 commit）
+- **liveUrl**: https://leomac-studio.tail49399e.ts.net/apps/3d/
+- **/health 身份**: `{"ok":true,"app":"3d","title":"3D 切苹果"}`（2026-10-08 实测）
+- **字节级证实**: 线上 `index.pck.gz.b64` 解码后 sha256 `ed7f3ba2…4672`（2,541,648 B）== 仓库 `6a0760c` 导出逐字节一致
+- **玩法标识**: pck 解码 14/14（Combo/切中炸弹/再来一局/新纪录/漏接/分数/4 调参键/音效/引导）
+
+## 门禁与证据链（主策划节点独立复跑，非转抄）
+
+- PREFLIGHT PASS（14 类）/ GODOT_SMOKE PASS（240 帧）/ GODOT_FUZZ PASS（6 批 239 帧）
+- MOBILE_SMOKE PASS 10/10（对线上独立复跑，tapDiff=7、fps=27）：`games/3d/qa/mobile-review/`
+- 实现节点 qa/mobile（16:37Z，晚于部署完成）：`games/3d/qa/mobile/` report.json PASS 10/10
+- 复核报告：`games/3d/qa/ACCEPTANCE_REVIEW.md`（PR #39）；artifacts 已回写 op=acceptance_review
+
+## 唯一剩余动作
+
+- owner 人工试玩回填：`games/3d/qa/playtest-kit.md` 四问量表（入口 liveUrl，调参 `?tuning=1`）并拍板
+
+---
+
 # 《汽车连连看》(game-9) 资产与产物清单（验收复核回写）
 
 ## 线上产物标识（第三轮复核复测口径，2026-10-07）
