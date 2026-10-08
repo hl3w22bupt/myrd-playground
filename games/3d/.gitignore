@@ -1,0 +1,20 @@
+# Godot 本机导入缓存：由 `godot --headless --path . --import` 重新生成，不进版本库
+.godot/
+
+# 导出产物：桌面端产物不入库；export/web 是 AppHost 部署的构建输入
+# （仓库根 server/ 的 postinstall 会把它 gzip+base64 内联进 bundle），必须入库
+/export/*
+!/export/web/
+# 自定义导出壳：export_presets.cfg 的 html/custom_html_shell 指向它，
+# 是重导出的构建输入（内嵌移动端音频手势解锁器 + ?tuning= 调参桥），必须随仓库走
+!/export/web-shell.html
+*.exe
+*.zip
+
+# Godot 对工程目录内非资产图片（QA 截图、导出产物 PNG）自动生成的导入边车，
+# 每次无头运行都会重新生成，属构建噪音，不入库
+/qa/**/*.import
+/export/web/*.import
+
+# 系统
+.DS_Store

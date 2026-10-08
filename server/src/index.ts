@@ -10,8 +10,8 @@ const app = new Hono();
 app.get("/health", (c) =>
   c.json({
     ok: true,
-    app: "game-9",
-    title: "汽车连连看",
+    app: "3d",
+    title: "3D 切苹果",
     env: ctx.environment,
     assets: "lazy/object-storage",
   }),
