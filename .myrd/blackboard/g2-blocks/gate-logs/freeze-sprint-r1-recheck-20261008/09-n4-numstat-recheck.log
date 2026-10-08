@@ -1,0 +1,10 @@
+# N4 埋点零玩法 diff 复核 @ a70d194（提交级 numstat）
+commit a70d194 feat(telemetry): 产品埋点 9 事件——全局 track 面 + sendBeacon/onHide flush 兜底 + wx/dy 原生路由（封版冲刺 N4）
+
+31	0	src/main.ts
+194	0	src/telemetry/analytics.ts
+94	0	tests/contract/ac-29-analytics-nine-events.spec.mjs
+
+# 自红线基线 6d3db6a..HEAD src/ 删除行合计（应=0）：
+deleted_total=0
+added_total=225

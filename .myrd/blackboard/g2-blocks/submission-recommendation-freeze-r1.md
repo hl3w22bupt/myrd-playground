@@ -22,13 +22,15 @@
 | 9 事件模块 `src/telemetry/analytics.ts`（wx=reportEvent / dy=reportAnalytics / web=缓冲+sendBeacon+flush 兜底；不自建第三方 SDK） | ✅ 源仓 `a70d194` |
 | main.ts 接线 | **31 行纯新增 / 0 删除 / 0 改行**（numstat 机判 + R3 红线检查盯防） |
 | 双向断言：spec 事件表 ↔ 代码镜像 ↔ call site | ✅ ac-29 PASS（Mode B） |
-| 契约三态：Mode A 18/18 · Mode B(v7) 26 PASS/0 FAIL/3 PEND · PEND 通道显式披露 | ✅ EXIT=0 |
+| 契约三态：Mode A 18/18 · Mode B(v7) 26 PASS/0 FAIL/3 PEND · PEND 通道显式披露 | ✅ EXIT=0（复核轮 `1e3eff4` 复跑确认，原文 `freeze-sprint-r1-recheck-20261008/01..02`） |
+| 零玩法 diff 机判 | ✅ 自基线 `6d3db6a..HEAD` src/ 删除行合计=0（numstat 复核 `09-n4-numstat-recheck.log`） |
 
 ## 三、QA 三章证据（N2 + N3）
 
 **章 1 · 契约三处实跑**（`gate-logs/freeze-sprint-r1-20261008/n2-1*.log`）：web v1.2 主线 @`5e7f2e5` 18/18 EXIT=0；wx @`4fba03a` 18/18 EXIT=0；dy @`023e583` 18/18 EXIT=0。
 **章 2 · wx 包哈希对照**（`n2-2-wx-hash-table.log`）：正确基线复核（含 `src/platform/wx/` 六件）@`4fba03a`，双跑 EXIT=0，31 件 151,768 B，包聚合哈希 `b947f290…`；dy 侧红线报告 178,793 B / 30 件 ≤4MB。
 **章 3 · 红线自查 + 断言指认 + diff 清单**（`n2-5-redline-{web,wx,dy}.json` + `n2-4-guide-assertions.md` + `n2-5-v11-to-v12-diffstat.log`）：三树 6/6 全绿（kernel 平台 API=0 / 一号仓零引用 / 埋点零玩法 diff / 冻结值抽查 / 包体预算 / 原生 API 零越界）；v1.1→v1.2 逐文件 diff 在档。
+> **复核轮更正（2026-10-08 · F6）**：红线自查工具已迁出源仓 → `.myrd/blackboard/g2-blocks/tools/redline-selfcheck.mjs`（原 `scripts/redline-selfcheck.mjs` @`b8ac090` 触发 ac-18 守卫，Mode A 曾 17/18 RED，源仓 `1e3eff4` 修复）；三树 6/6 于 web `1e3eff4` / wx `4fba03a` / dy `023e583` 复跑确认（原文 `freeze-sprint-r1-recheck-20261008/04..08`）。web 主线 Mode A 效力边界自 `5e7f2e5` 推至 `1e3eff4`。
 **真机轨**（`n3-smoke-report.json`）：通用 8 项 + wx 5 项 + dy 4 项清单与机读报告框架就绪，**全部 not_run（真机未到位，不执行不造假）**。
 
 ## 四、红线自查报告（汇总）
