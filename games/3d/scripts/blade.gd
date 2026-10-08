@@ -24,9 +24,12 @@ const PLAY_Y_MAX: float = 5.0
 const MOVE_EPSILON: float = 0.02
 ## confirm 原地挥砍脉冲的持续时间（秒）。
 const SWING_PULSE_SEC: float = 0.18
-## 刀痕判定盒的横截面厚度（世界单位）——覆盖相邻两枚苹果与轻微 z 抖动。
+## 刀痕判定盒的横截面厚度（世界单位）。切割包络推导（注释承诺 = 常量推导）：
+##   判定带半厚 1.6/2 = 0.8，加苹果碰撞半径 0.42（fruit.gd RADIUS）→
+##   刀痕线两侧各 1.22 世界单位内的苹果中心必被切中；相邻两枚苹果（中心距 ≥0.84）
+##   一条穿过中线的刀痕同时命中两枚（0.42 < 1.22）；z 向抖动上限 0.2+0.15 = 0.35 < 1.22。
 ## 取值偏宽容：滑动切割的手感底线是「指哪切哪」，判定过窄会让滑动变成挫败。
-const CUT_THICKNESS: float = 1.1
+const CUT_THICKNESS: float = 1.6
 ## 挥砍风声的最小间隔（秒）：一次连续挥砍只报一声，不刷屏。
 const SWOOSH_MIN_INTERVAL: float = 0.35
 ## 刀痕拖尾点数。

@@ -17,6 +17,7 @@ extends Node
 ##   6. 结果性事件真的挂了反馈（Juice.events 非空 —— 反馈缺失 = 玩起来是哑的，SKILL.md §3B）
 ##   7. 调参协议可判（TUNING_META 非空、apply_tuning 钳制与未知键拒绝、检查后恢复原值 §3C）
 ##   8. 玩法闭环（需求验收的无头翻译）：单果 +10 → 一刀两果合计 +30（连击加成）→
+##      一刀三果累计 +50（combo_bonus_many）→ Combo 提示弹出 → 漏接计数 →
 ##      切中炸弹立即终局 → 重开可用
 ##
 ## ⚠️ 输入注入分两个阶段、互不重叠（error-signatures E-08）：
@@ -30,6 +31,8 @@ const MOVE_FRAMES: int = 10
 const CUT_WAIT_FRAMES: int = 8
 ## 连击窗口自然结算等待（combo_window 0.4s = 24 物理帧，取富余）。
 const COMBO_FLUSH_FRAMES: int = 34
+## 漏接探针从摆放落到 MISS_Y 的等待帧数（下坠 0.08s ≈ 5 帧，取富余）。
+const MISS_WAIT_FRAMES: int = 10
 ## 炸弹终局等待帧数。
 const BOMB_WAIT_FRAMES: int = 8
 ## 重开等待帧数。
@@ -41,7 +44,12 @@ const F_PLACE: int = F_MOVE_END + 2
 const F_CONFIRM: int = F_PLACE + 1
 const F_SCORE_CHECK: int = F_CONFIRM + CUT_WAIT_FRAMES
 const F_COMBO_CHECK: int = F_SCORE_CHECK + COMBO_FLUSH_FRAMES
-const F_BOMB_PLACE: int = F_COMBO_CHECK + 1
+const F_TRIPLE_PLACE: int = F_COMBO_CHECK + 1
+const F_TRIPLE_CUT: int = F_TRIPLE_PLACE + 1
+const F_TRIPLE_CHECK: int = F_TRIPLE_CUT + COMBO_FLUSH_FRAMES
+const F_MISS_PLACE: int = F_TRIPLE_CHECK + 1
+const F_MISS_CHECK: int = F_MISS_PLACE + MISS_WAIT_FRAMES
+const F_BOMB_PLACE: int = F_MISS_CHECK + 1
 const F_BOMB_CUT: int = F_BOMB_PLACE + 1
 const F_END_CHECK: int = F_BOMB_CUT + BOMB_WAIT_FRAMES
 const F_RESTART: int = F_END_CHECK + 1
@@ -95,6 +103,7 @@ func _ready() -> void:
 		game_state.swing_combo.connect(_on_swing_combo)
 		game_state.round_ended.connect(_on_round_ended)
 		_check_tuning_protocol(game_state)
+		_check_rule_defaults(game_state)
 
 	_main = get_node_or_null("Main") as Node3D
 	if _main == null:
@@ -134,6 +143,16 @@ func _physics_process(_delta: float) -> void:
 			_assert_pair_scored()
 		elif _frames == F_COMBO_CHECK:
 			_assert_combo_bonus()
+		elif _frames == F_TRIPLE_PLACE:
+			_place_triple()
+		elif _frames == F_TRIPLE_CUT:
+			_press_action(&"confirm")
+		elif _frames == F_TRIPLE_CHECK:
+			_assert_triple_combo_and_label()
+		elif _frames == F_MISS_PLACE:
+			_place_miss_probe()
+		elif _frames == F_MISS_CHECK:
+			_assert_miss_counted()
 		elif _frames == F_BOMB_PLACE:
 			_place_bomb()
 		elif _frames == F_BOMB_CUT:
@@ -165,25 +184,47 @@ func _assert_blade_moved() -> void:
 
 
 func _assert_pair_scored() -> void:
-	var expected: int = int(GameState.apple_points) * 2
+	# 需求口径字面值（不用调参变量计算期望：期望跟着参数走就成了恒真式，拦不住错参数）。
 	if GameState.apples_sliced != 2:
 		_failures.append("核心交互：摆 2 个苹果一刀挥砍后 apples_sliced=%d（期望 2）—— 切割查询未命中碰撞体" % GameState.apples_sliced)
-	if GameState.score != expected:
-		_failures.append("计分：两果 %d 分（期望 %d，每果 +apple_points）—— register_apple_cut 未按单果计分" % [
-			GameState.score, expected])
+	if GameState.score != 20:
+		_failures.append("计分：两果 %d 分（期望 20 = 2×10，需求「每切中 1 个苹果 +10」）—— register_apple_cut 未按单果计分" % GameState.score)
 	if not _score_seen:
 		_failures.append("信号 GameState.score_changed 未到达订阅方：切割计分链路断裂")
 
 
 func _assert_combo_bonus() -> void:
-	var expected: int = int(GameState.apple_points) * 2 + int(GameState.combo_bonus_pair)
-	if GameState.score != expected:
-		_failures.append("连击加成：一刀两果合计 %d 分（期望 %d = 2×苹果 + combo_bonus_pair）" % [
-			GameState.score, expected])
+	# 需求口径字面值：一刀两果合计 +30（2×10 + 连击加成 10）。
+	if GameState.score != 30:
+		_failures.append("连击加成：一刀两果合计 %d 分（期望 30，需求「同一刀切中 2 个额外 +10」）—— combo_bonus_pair 未生效" % GameState.score)
 	if GameState.max_swing_combo < 2:
 		_failures.append("连击统计：max_swing_combo=%d（期望 ≥2）—— 同刀判定窗口未把两果记为一刀" % GameState.max_swing_combo)
 	if _combo_count_seen < 2:
 		_failures.append("信号 GameState.swing_combo 未到达订阅方（或连击数 <2）：连击提示链路断裂")
+
+
+func _assert_triple_combo_and_label() -> void:
+	# 需求口径字面值：前序累计 30（两果刀）+ 本刀三果 50（3×10 + 20）= 80。
+	if GameState.score != 80:
+		_failures.append("三果连击：累计 %d 分（期望 80 = 两果刀 30 + 三果 3×10 + 20，需求「三果及以上额外 +20」）—— 一刀三果加分口径与需求不符" % GameState.score)
+	if GameState.apples_sliced != 5:
+		_failures.append("三果连击：apples_sliced=%d（期望 5 = 两果 + 三果）—— 有苹果没被切中" % GameState.apples_sliced)
+	if GameState.max_swing_combo < 3:
+		_failures.append("三果连击：max_swing_combo=%d（期望 ≥3）—— 同刀窗口未把三果记为一刀" % GameState.max_swing_combo)
+	if _combo_count_seen < 3:
+		_failures.append("三果连击：swing_combo 未报 count≥3（实际 %d）—— 连击加成信号断裂" % _combo_count_seen)
+	var combo_label: Label = _main.get_node_or_null("UI/ComboLabel") as Label
+	if combo_label == null:
+		_failures.append("Combo 提示：main.tscn 缺少 UI/ComboLabel 节点")
+	elif not combo_label.visible:
+		_failures.append("Combo 提示：一刀三果后 ComboLabel 不可见 —— 连击提示未弹出（验收：≥2 连须有提示）")
+	elif not combo_label.text.contains("Combo"):
+		_failures.append("Combo 提示：ComboLabel 文案 %s 不含 Combo 标识 —— 提示语义缺失" % combo_label.text)
+
+
+func _assert_miss_counted() -> void:
+	if GameState.missed_fruits != 1:
+		_failures.append("漏接统计：missed_fruits=%d（期望 1）—— 抛出物落出屏幕下缘未计入漏接（不扣分但须计数）" % GameState.missed_fruits)
 
 
 func _assert_round_ended_by_bomb() -> void:
@@ -214,6 +255,19 @@ func _place_pair() -> void:
 	var center: Vector3 = _blade.position
 	(_main.call("spawn_fruit", center + Vector3(-0.12, 0, 0), Vector3.ZERO, false) as Fruit)
 	(_main.call("spawn_fruit", center + Vector3(0.12, 0, 0), Vector3.ZERO, false) as Fruit)
+
+
+## 一刀三果的确定性摆放：三枚苹果横排在刀锋 ±0.26 内（原地点击脉冲的球形查询必全覆盖）。
+func _place_triple() -> void:
+	var center: Vector3 = _blade.position
+	(_main.call("spawn_fruit", center + Vector3(-0.26, 0, 0), Vector3.ZERO, false) as Fruit)
+	(_main.call("spawn_fruit", center, Vector3.ZERO, false) as Fruit)
+	(_main.call("spawn_fruit", center + Vector3(0.26, 0, 0), Vector3.ZERO, false) as Fruit)
+
+
+## 漏接探针：摆在 MISS_Y（-7.0）上方一点并给向下的初速，数帧内落出屏幕下缘。
+func _place_miss_probe() -> void:
+	(_main.call("spawn_fruit", Vector3(0, -6.8, 0), Vector3(0, -2, 0), false) as Fruit)
 
 
 func _place_bomb() -> void:
@@ -329,12 +383,32 @@ func _check_tuning_protocol(game_state: Node) -> void:
 		game_state.set(first_key, original)
 
 
+## 需求口径锚点：计分与节奏的「默认值」必须等于需求数值。
+## 期望值不读取这些变量来算（否则断言跟着参数漂移成恒真式）—— 这里逐个对照需求原文。
+func _check_rule_defaults(game_state: Node) -> void:
+	var expectations: Array = [
+		["round_seconds", 60.0, "单局 60 秒"],
+		["apple_points", 10.0, "每切中 1 个苹果 +10"],
+		["combo_bonus_pair", 10.0, "一刀两果额外 +10（合计 +30）"],
+		["combo_bonus_many", 20.0, "一刀三果及以上额外 +20（合计 +50）"],
+		["bomb_ratio", 0.15, "炸弹混入概率约 15%"],
+		["spawn_interval_early", 1.5, "0-20s 约 1 个/1.5s"],
+		["spawn_interval_mid", 1.0, "20-40s 约 1 个/1s"],
+		["spawn_interval_late", 0.7, "40-60s 约 1 个/0.7s"],
+	]
+	for entry: Array in expectations:
+		var actual: Variant = game_state.get(entry[0])
+		if actual == null or not is_equal_approx(float(actual), float(entry[1])):
+			_failures.append("需求口径：默认值 %s=%s 偏离需求（期望 %s —— %s）" % [
+				entry[0], actual, entry[1], entry[2]])
+
+
 func _report() -> void:
 	# 反馈断言收口在报告前：前序任一断言失败时反馈链多半也没机会触发，只在前序全绿时判它。
 	if _failures.is_empty():
 		_assert_feedback_fired()
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/autoload/键位契约/刀锋移动/切割计分/连击加成/炸弹终局/重开/反馈/调参协议 全部通过")
+		print("GODOT_SMOKE: PASS 场景实例化/autoload/键位契约/刀锋移动/切割计分/两果连击/三果连击+50/Combo提示/漏接计数/炸弹终局/重开/反馈/调参协议 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

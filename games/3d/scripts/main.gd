@@ -13,8 +13,15 @@ const FRUIT_SCENE: PackedScene = preload("res://scenes/fruit.tscn")
 ## 抛出点与抛物线参数（世界坐标；视野范围与 blade.gd 的 PLAY_* 对齐）。
 const SPAWN_Y: float = -5.9
 const SPAWN_HALF_WIDTH: float = 2.3
-const THROW_VX_MAX: float = 1.3
-const THROWS_TOWARD_CENTER: float = 0.55
+## 未瞄准抛出的横向速度上限（世界单位/秒）：飞行 ≤2.7s 内漂移 ≤3.2，多数仍留在可达带。
+const THROW_VX_MAX: float = 1.2
+## 朝屏幕中带瞄准的抛出占比：瞄准抛出的抛物线顶点全程走在刀锋可达（±2.9）与
+## 可见（±3.1）的核心带内 —— 跑出可达带的苹果对谁都不可切，只会变成挫败漏接。
+const THROWS_TOWARD_CENTER: float = 0.8
+## 瞄准抛出的顶点横坐标范围：顶点落在 ±0.8 内，整条抛物线 x ∈ [出生点, 顶点] 都可达。
+const APEX_BAND: float = 0.8
+## 瞄准抛出横向初速的钳制上限（顶点贴中带所需的最大 |vx| ≈ 2.3×12/13.5 ≈ 2.05，留余量）。
+const THROW_VX_AIM_MAX: float = 2.6
 ## 节奏分段线（需求：0-20s / 20-40s / 40-60s 三档递增）。
 const PHASE_MID_AT: float = 20.0
 const PHASE_LATE_AT: float = 40.0
@@ -117,7 +124,7 @@ func _spawn_fruit_random() -> void:
 	var speed := _throw_rng.randf_range(GameState.throw_speed_min, GameState.throw_speed_max)
 	var vx := _throw_rng.randf_range(-THROW_VX_MAX, THROW_VX_MAX)
 	if _throw_rng.randf() < THROWS_TOWARD_CENTER:
-		vx = -x * 0.18  # 偏向屏幕中心的抛物线，保证可切性
+		vx = _aimed_vx(x, speed)
 	if first_throw:
 		# 开局正中直线苹果：垂直上抛、必两次穿过刀锋出生高度 —— 开局正反馈必可达。
 		x = 0.0
@@ -125,6 +132,14 @@ func _spawn_fruit_random() -> void:
 		speed = GameState.throw_speed_min
 	spawn_fruit(Vector3(x, SPAWN_Y, _throw_rng.randf_range(-0.15, 0.15)),
 		Vector3(vx, speed, 0.0), is_bomb)
+
+
+## 朝屏幕中带瞄准的横向初速：取顶点横坐标 ∈ ±APEX_BAND，反解 vx = (顶点x - 出生x)/t_顶点，
+## 其中 t_顶点 = v0/g（竖直方向速度归零点）。整条抛物线因此全程走在刀锋可达带内。
+func _aimed_vx(x: float, speed: float) -> float:
+	var apex_time: float = speed / GameState.gravity
+	var target_x := _throw_rng.randf_range(-APEX_BAND, APEX_BAND)
+	return clampf((target_x - x) / maxf(apex_time, 0.05), -THROW_VX_AIM_MAX, THROW_VX_AIM_MAX)
 
 
 ## 抛出一个指定参数的抛出物（随机抛出与冒烟确定性摆放共用这一个入口）。
