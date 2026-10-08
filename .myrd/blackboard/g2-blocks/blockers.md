@@ -41,6 +41,7 @@
 | G5 主人提审拍板 | G1–G4 全绿 + 版号/资质结论 → 主人按下提审按钮 | ⏳ 主人 |
 
 - G2 注：SMOKE 已于复核轮（2026-10-08 · `1e3eff4`）补跑 **PASS EXIT=0**（浏览器可开+核心循环可玩+SW 激活+manifest+控制台零错误）；P95 口径沿用部署 r3 归档（源码自 `6d3db6a` 起 src/ 零删除，numstat 机判见 `09-n4-numstat-recheck.log`）；G3 rebase 后随线复跑 SMOKE 补齐新包口径。
+- G3 注（美术面，2026-10-08 复核轮 F-A2）：rebase v1.2 时 dy 分享卡将随 merge 从 A-07 原批 `c705aaa6…` 更新为 web 主线 F-07 版 `fe5a20d1…`（wx 卡不受影响，本就绑定复用 web 件）——届时 `assets/dy/dy-share-manifest.json` sha256 须随动重出，并按物料矩阵 §二 模板骨架复验版式（9:16 主视觉 52%）；美术线随动复验，机判证据落 `gate-logs/freeze-sprint-r1-art-recheck-20261008/01-material-trace.log`（T-06）。
 
 ## 本轮阻塞项（滚动登记 · 收口态）
 

@@ -2,7 +2,7 @@
 
 > 平台 × 包版本 × 用途矩阵，逐格标注 **沿用 / 重制 / 冻结候审**；来源 commit 可回溯（源仓 g2-blocks 分支@sha）。
 > 三态口径：**沿用**=零改绘直接复用（挂同源 manifest）；**重制**=按平台规格派生（挂 derivedFrom）；**冻结候审**=等链 v7 approve 后再动（本轮零投入）。
-> 树锚：web=`main@6d3db6a`（v1.2 部署 r3 发布源，冲刺后=main@b8ac090）；wx=`wx/port-v1.1@4fba03a`；dy=`dy/port-v1.1@023e583`。
+> 树锚：web=`main@6d3db6a`（v1.2 部署 r3 发布源，冲刺后=main@`1e3eff4`〔复核轮守卫修复后，效力边界见 `../freeze-sprint-r1-recheck-20261008/`〕）；wx=`wx/port-v1.1@4fba03a`；dy=`dy/port-v1.1@023e583`。
 
 ## 一、平台 × 用途矩阵
 
@@ -10,8 +10,8 @@
 |---|---|---|---|---|
 | 风格卡（四要素） | `assets/style-card.json` @ `6d3db6a`（F-03 粒子色源定稿版） | `assets/style-card.json` @ `4fba03a`（分叉时点同步） | `assets/style-card.json` @ `023e583`（同） | **沿用**（v1.2 实测口径 = 定稿；平台线分叉副本与主线四要素零冲突，sync 时随线更新） |
 | 冻结色板 | `assets/palette/palette-n1-final.json` @ 主线（7 hex 真源 = spec numeric.palette） | 同源沿用 | 同源沿用 | **沿用**（冻结 token，任何平台不得改绘） |
-| 应用图标 512 | `assets/release/icons/icon-512.png` @ `4f67806` 批（A-01 门禁在档） | `assets/wx/wx-icon-512.png` = **重制派生**（derivedFrom icon-512，sha256 `8a971534…`，manifest `wx-icon-manifest.json` @ `0485004`） | `assets/dy/dy-icon-512.png` = **重制派生**（同源派生，manifest `dy-icon-manifest.json` @ `a303ccf`） | wx/dy=重制（提审通道件，不占运行时包）；web=沿用 |
-| 会话分享卡 | `assets/release/share/wx-share-500x400.png`（A-06，5:4）@ `6fec4a6` 轻更新 | **沿用** web 件（build-wx.mjs 组包断言④绑定复用） | `assets/release/share/dy-share-720x1280.png`（A-07，9:16）→ `assets/dy/dy-share-720x1280.png` = **沿用 exact-copy**（零改绘，sha256 `c705aaa6…` 双处全等，manifest `dy-share-manifest.json`） | web=定稿源；wx=沿用；dy=exact-copy 沿用 |
+| 应用图标 512 | `assets/release/icons/icon-512.png` @ `4f67806` 批（A-01 门禁在档） | `assets/wx/wx-icon-512.png` = **沿用（exact-copy 落位）**（derivedFrom icon-512 零裁切零改绘，sha256 `8a971534…` 三向全等，manifest `wx-icon-manifest.json` @ `0485004`）〔复核轮 F-A1 更正：原标「重制派生」，两份 manifest 实为 exact-copy〕 | `assets/dy/dy-icon-512.png` = **沿用（exact-copy 落位）**（同上口径，manifest `dy-icon-manifest.json` @ `a303ccf`） | wx/dy=沿用（exact-copy 提审通道件，不占运行时包）；web=沿用（定稿源） |
+| 会话分享卡 | `assets/release/share/wx-share-500x400.png`（A-06，5:4）@ `6fec4a6` 轻更新 | **沿用** web 件（build-wx.mjs 组包断言④绑定复用） | `assets/release/share/dy-share-720x1280.png`（A-07，9:16）→ `assets/dy/dy-share-720x1280.png` = **沿用 exact-copy**（零改绘，sha256 `c705aaa6…` dy 树内双处全等，manifest `dy-share-manifest.json`；= A-07 原批 @`4f67806`，web 主线 F-07 后已更新为 `fe5a20d1…`——**rebase v1.2 后 dy 卡随动，manifest sha256 须重出并按 §二 骨架复验 → 挂 G3〔复核轮 F-A2〕**） | web=定稿源；wx=沿用；dy=exact-copy 沿用（分叉时点版） |
 | 朋友圈/落地 1:1 | （wx 1:1 归提审材料通道，本轮**冻结候审**） | 冻结候审 | — | **冻结候审**（渠道业务参数挂 G-Q2，主人拍板后随链修订定稿） |
 | 商店截图 | —（web 无商店面） | 商店截图选批定稿 @ `eb9ddab`（N3 补做轮二） | `assets/dy/shots/dy-shot-01..03` @ `a303ccf`（同批实机 ×3 + 四列核对单） | wx/dy=沿用（提审材料，版本随包） |
 | 实机截图（同批证据） | `assets/release/shots/01..04` @ `4f67806` 同批（shot-manifest.json sameBatchCriterion=buildSha256） | 分叉时点同批副本 | `assets/dy/shots/` @ `a303ccf`（dy 同批） | **沿用**（跨平台不混批：每平台挂自己的 shot-manifest） |
@@ -59,3 +59,14 @@ share-card-template（单源版式 → 平台尺寸派生）
 - 本矩阵结论已回写黑板 `assets.md`「封版冲刺物料矩阵登记区」与顶部风格卡（V1.2 实测固化口径注记）。
 - 素材归档挂来源 commit：见矩阵「来源」列（全部可 `git -C <树> show <sha>:<path>` 回溯）。
 - 本轮零新绘/零改绘（红线：物料矩阵轮零新风格线投入）；分享卡模板骨架为版式契约文档，非成图交付。
+
+## 六、美术线复核轮增记（2026-10-08 · 游戏美术 · 不采信台账实跑复核）
+
+> 触发：任务重派后的实跑复核纪律（同程序线复核轮口径）。复核器 = `gate-logs/freeze-sprint-r1-art-recheck-20261008/art-trace-check.mjs`（本目录在档可重跑）。
+> 结论：**物料回溯机判 11/11 PASS EXIT=0**（T-01..T-11：风格卡/色板锚/双图标 manifest 三向全等/分享卡血缘/商店截图选批/手感 pack/发布面 9 件零漂移/模板-侵权-文案红线/world-tone 同源）+ 机器门禁自跑全绿（palette ALL-GREEN 21 对 · Mode A 契约 18/18 · 三树红线 6/6 @ web `1e3eff4`/wx `4fba03a`/dy `023e583`）。
+
+| 编号 | 发现 | 处置 |
+|---|---|---|
+| F-A1 | 矩阵 M-02/M-03 三态标「重制」，但 `wx-icon-manifest.json` / `dy-icon-manifest.json` 均写 `exact-copy（零裁切零改绘，sha256 全等）`——按本矩阵自身三态定义（沿用=零改绘直接复用）应标「沿用」 | ✅ 已更正（§一 应用图标行 + 黑板登记行同步）；sha256 链不受影响（三向全等 `8a971534…` 机判） |
+| F-A2 | dy 包分享卡 = A-07 原批 `c705aaa6…`（v1.1 分叉时点）；web 主线 F-07 轻更新后 = `fe5a20d1…`。rebase v1.2 后 dy 卡将随 merge 更新 → `dy-share-manifest.json` sha256 须重出 + 按 §二 骨架复验版式 | 挂 G3（平台线对齐 gate）美术面输入；rebase 执行时由美术线随动复验 |
+| 观察项 | wx 商店截图「选批定稿」= `docs/platform/wx/wx-submission-kit.md` 决策记录（@`eb9ddab`），非独立 PNG 落 assets/——矩阵口径与实物一致，登记备查 | 无需处置 |

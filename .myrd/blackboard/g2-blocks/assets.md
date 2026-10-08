@@ -12,8 +12,8 @@
 | 编号 | 项 | 三态 | 来源 |
 |---|---|---|---|
 | M-01 | 风格卡四要素 + 冻结色板 | **沿用**（v1.2 实测口径=定稿，三线同源） | `main@6d3db6a` `assets/style-card.json` + `palette-n1-final.json` |
-| M-02 | wx 提审图标 512 | **重制**（derivedFrom icon-512，sha256 `8a971534…`） | `wx@0485004` `assets/wx/wx-icon-manifest.json` |
-| M-03 | dy 提审图标 512 | **重制**（同源派生，manifest 在档） | `dy@a303ccf` `assets/dy/dy-icon-manifest.json` |
+| M-02 | wx 提审图标 512 | **沿用**（exact-copy 落位，derivedFrom icon-512 零改绘，sha256 `8a971534…` 三向全等；复核轮 F-A1 更正：原标「重制」） | `wx@0485004` `assets/wx/wx-icon-manifest.json` |
+| M-03 | dy 提审图标 512 | **沿用**（exact-copy 落位，同上口径，manifest 在档；复核轮 F-A1 更正） | `dy@a303ccf` `assets/dy/dy-icon-manifest.json` |
 | M-04 | 会话分享卡 wx 5:4 | **沿用**（web 定稿源，组包器绑定复用） | `main@6fec4a6` `assets/release/share/wx-share-500x400.png` |
 | M-05 | 分享卡 dy 9:16 | **沿用 exact-copy**（零改绘，sha256 双处全等 `c705aaa6…`） | `dy@a303ccf` `assets/dy/dy-share-manifest.json` |
 | M-06 | 商店截图 wx/dy | **沿用**（wx 选批 @`eb9ddab`；dy 同批 ×3 @`a303ccf`） | 各线 assets/ |
@@ -24,6 +24,21 @@
 | M-11 | dy 克制版分享文案 ×3 | 候选在档（零夸张词/零数值承诺）；终稿归主人/运营 | matrix §四 |
 
 - **本轮零新绘/零改绘**（物料矩阵轮零新风格线投入）；风格卡 v1.2 实测固化 = 下节四要素即定稿口径（V1.2 轮 F-01..F-07 校样 + ART-RECHECK 12/12 + 美术复验零 delta 为实测依据）。
+
+### N5 美术线复核轮登记（2026-10-08 · 游戏美术 · 不采信台账实跑复核）
+
+> 口径 = `evidence-one-line-template.md`；性质 = **复核而非重做**（物料矩阵交付面零重绘，只独立实跑回溯与门禁证明绿可重现）。证据原文 = `gate-logs/freeze-sprint-r1-art-recheck-20261008/`。
+
+```
+[PASS] | 线1 美术 | 01-material-trace.log | 2026-10-08 | node art-trace-check.mjs --ws <run-ws> | 物料回溯机判 11/11 PASS EXIT=0（风格卡/色板锚 7bc2ca03…/双图标 manifest 三向全等 8a971534…/分享卡 c705aaa6… 血缘/商店截图选批/手感 pack ×4/发布面 9 件零漂移/模板-侵权-文案红线/world-tone 同源） | 三树 worktree（web 1e3eff4 / wx 4fba03a / dy 023e583）
+[PASS] | 线1 美术 | 02-gates.log | 2026-10-08 | cd $G2-main && npm run gate:palette | ALL-GREEN 红对数=0/21 minΔE=26.555 阈值=25 margin=1.555 selftest=18/18 EXIT=0（≡冻结记录逐字一致） | g2-blocks-main @ 1e3eff4
+[PASS] | 线1 美术 | 02-gates.log | 2026-10-08 | cd $G2-main && node scripts/contract-check.mjs | 18 PASS / 0 FAIL / 0 PEND · anchor=302e6336… · EXIT=0（ac-11 theme 单源 18 色 / ac-13 零外部贴图 同门） | g2-blocks-main @ 1e3eff4
+[PASS] | 线1 美术 | 02-gates.log | 2026-10-08 | node tools/redline-selfcheck.mjs --root <树> ×3 | 三树 6/6 PASS EXIT=0（web 1e3eff4 / wx 4fba03a R5 实测 151,768B / dy 023e583 R5 实测 178,793B——与建议书引述逐字一致） | 三 worktree
+```
+
+- **F-A1（已更正）**：矩阵 M-02/M-03 三态原标「重制」，两份图标 manifest 实为 `exact-copy（零裁切零改绘，sha256 三向全等）` → 按矩阵自身定义更正为「沿用」（矩阵 §一 + 本文件登记行同步）。sha256 链不受影响。
+- **F-A2（挂 G3，非缺陷）**：dy 包分享卡 = A-07 原批 `c705aaa6…`（v1.1 分叉时点）；web 主线 F-07 轻更新后 = `fe5a20d1…`。rebase v1.2 后 dy 卡随 merge 更新 → `dy-share-manifest.json` sha256 重出 + 按 M-09 模板骨架复验版式，美术线随动。
+- **红线核销**：零新绘/零改绘 · spec/numeric 零写入 · 玩法代码零改动 · stack-tower/pixel-fives 零接触（本轮 git 变更仅黑板证据面）。
 
 ## 顶部风格卡（V1.2 实测固化基线 · N5 固化回写来源）
 

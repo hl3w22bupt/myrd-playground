@@ -1,0 +1,49 @@
+# 02-gates.log — 美术线复核轮机器门禁自跑原文（2026-10-08 · 游戏美术 · 退出码为实采非手填）
+
+## 门1 色板双门禁（g2-blocks-main @ 1e3eff4）
+# 命令：cd g2-blocks-main && npm run gate:palette
+PASS block-06|block-07    HSL=2/3 dE=57.02 (dH=22.5 dL=0.580 dS=0.112)
+# 结果: ALL-GREEN 红对数=0/21 minΔE=26.555 阈值=25 margin=1.555 selftest=18/18
+PALETTE-EXIT=0
+
+## 门2 Mode A 契约（g2-blocks-main @ 1e3eff4）
+# 命令：cd g2-blocks-main && node scripts/contract-check.mjs
+PASS  ac-17-repo-one-zero-touch :: 一号仓库零接触自检 PASS（白名单机判，root=run-cmuyupvw30035m93eu5gdynv0）
+PASS  ac-18-ci-guard-repo-scope :: 仓库范围守卫 PASS（零一号路径引用，策略单源 ci/scope-policy.json）
+—— 合计 18 PASS / 0 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v2 approved 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准）
+CONTRACT-EXIT=0
+
+## 门3 红线自查（g2-blocks-main @ 1e3eff4，分支 main）
+# 命令：node redline-selfcheck.mjs --root /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-main
+summary: 6 pass / 0 fail / 6
+  [PASS] R1-kernel-platform-api-zero
+  [PASS] R2-repo-one-zero-reference
+  [PASS] R3-analytics-zero-gameplay-diff
+  [PASS] R4-numeric-frozen-groups
+  [PASS] R5-bundle
+  [PASS] R6-native-api-scope
+REDLINE-g2-blocks-main-EXIT=0
+
+## 门3 红线自查（g2-blocks-wx @ 4fba03a，分支 wx/port-v1.1）
+# 命令：node redline-selfcheck.mjs --root /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx
+summary: 6 pass / 0 fail / 6
+  [PASS] R1-kernel-platform-api-zero
+  [PASS] R2-repo-one-zero-reference
+  [PASS] R3-analytics-zero-gameplay-diff
+  [PASS] R4-numeric-frozen-groups
+  [PASS] R5-bundle-wx
+  [PASS] R6-native-api-scope
+REDLINE-g2-blocks-wx-EXIT=0
+
+## 门3 红线自查（g2-blocks @ 023e583，分支 dy/port-v1.1）
+# 命令：node redline-selfcheck.mjs --root /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks
+summary: 6 pass / 0 fail / 6
+  [PASS] R1-kernel-platform-api-zero
+  [PASS] R2-repo-one-zero-reference
+  [PASS] R3-analytics-zero-gameplay-diff
+  [PASS] R4-numeric-frozen-groups
+  [PASS] R5-bundle-dy2
+  [PASS] R6-native-api-scope
+REDLINE-g2-blocks-EXIT=0
+

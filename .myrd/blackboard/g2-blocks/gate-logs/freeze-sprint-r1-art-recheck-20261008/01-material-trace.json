@@ -1,0 +1,115 @@
+{
+  "checkedAt": "2026-10-08T02:40:50.559Z",
+  "purpose": "封版冲刺 N5 物料归档可回溯性机判（美术线复核轮）",
+  "trees": {
+    "web": {
+      "root": "/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-main",
+      "head": "1e3eff4"
+    },
+    "wx": {
+      "root": "/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx",
+      "head": "4fba03a"
+    },
+    "dy": {
+      "root": "/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks",
+      "head": "023e583"
+    }
+  },
+  "summary": {
+    "pass": 11,
+    "fail": 0,
+    "total": 11
+  },
+  "checks": [
+    {
+      "id": "T-01",
+      "item": "M-01 风格卡",
+      "pass": true,
+      "detail": "assets/style-card.json @6d3db6a 在档，HEAD 零漂移（1222B）",
+      "commit": "6d3db6a",
+      "path": "assets/style-card.json",
+      "sha256": "d360843f8fbd7b115967dd53508981e88e962e1afa430419c5da9f0e2c9049a5"
+    },
+    {
+      "id": "T-02",
+      "item": "M-01 冻结色板",
+      "pass": true,
+      "detail": "sha256=7bc2ca03… ≡ 链锚 sourceSha256；HEAD 零漂移",
+      "commit": "6d3db6a",
+      "path": "assets/palette/palette-n1-final.json",
+      "sha256": "7bc2ca033ee8d7f7a20e63810b174e8cbdabcb92560a0db8dc72a10d553cd2ff"
+    },
+    {
+      "id": "T-03",
+      "item": "M-02 wx 提审图标 512",
+      "pass": true,
+      "detail": "manifest 声明=8a971534… derivedFrom 声明=8a971534… 实算=8a971534…（三向全等）；HEAD 零漂移",
+      "commit": "0485004",
+      "path": "assets/wx/wx-icon-512.png",
+      "sha256": "8a97153448bdb2ff75ae58e9f0d3571bf453d4c3b411b7d54037bfcf2791f6ee"
+    },
+    {
+      "id": "T-04",
+      "item": "M-03 dy 提审图标 512",
+      "pass": true,
+      "detail": "manifest 声明=8a971534… derivedFrom 声明=8a971534… 实算=8a971534…（三向全等）；HEAD 零漂移",
+      "commit": "a303ccf",
+      "path": "assets/dy/dy-icon-512.png",
+      "sha256": "8a97153448bdb2ff75ae58e9f0d3571bf453d4c3b411b7d54037bfcf2791f6ee"
+    },
+    {
+      "id": "T-05",
+      "item": "M-04 会话分享卡 wx 5:4",
+      "pass": true,
+      "detail": "assets/release/share/wx-share-500x400.png @6fec4a6 在档，HEAD 零漂移（33076B）",
+      "commit": "6fec4a6",
+      "path": "assets/release/share/wx-share-500x400.png",
+      "sha256": "07089031b3fe3375998edf2363abcc276d2c8bc43bac173c2811a9d30580ceec"
+    },
+    {
+      "id": "T-06",
+      "item": "M-05 分享卡 dy 9:16 exact-copy（树内双处）",
+      "pass": true,
+      "detail": "dy@a303ccf 树内双处全等 sha256=c705aaa6… ≡ manifest 声明 c705aaa6…；dy HEAD 零漂移。web A-07 原批@4f67806=c705aaa6…；web 主线 F-07 更新后=fe5a20d1…（rebase 后 dy 卡随动 → F-A2 挂 G3）",
+      "commit": "a303ccf",
+      "path": "assets/dy/dy-share-720x1280.png",
+      "sha256": "c705aaa68ecd970580076b93f58a1482e20fec5bc99723ec4489db5d2fa471ff"
+    },
+    {
+      "id": "T-07",
+      "item": "M-06 商店截图 wx/dy",
+      "pass": true,
+      "detail": "dy shots 4/4 在档 @a303ccf；wx 选批记录 @eb9ddab wx-submission-kit.md 命中「截图/选批」×11（口径：选批为决策记录，非独立 PNG 落 assets/）",
+      "commit": "a303ccf/eb9ddab",
+      "path": "assets/dy/shots/ + docs/platform/wx/wx-submission-kit.md"
+    },
+    {
+      "id": "T-08",
+      "item": "M-07 手感 pack 四件",
+      "pass": true,
+      "detail": "motion-pack.json OK · particle-pack.json OK · ui-feel-pack.json OK · daily-entry-pack.json OK @6d3db6a"
+    },
+    {
+      "id": "T-09",
+      "item": "发布面 9 件零漂移",
+      "pass": true,
+      "detail": "manifest 9/9 件 sha256 ≡ HEAD blob 实算",
+      "commit": "1e3eff4",
+      "path": "assets/release/release-assets.json"
+    },
+    {
+      "id": "T-10",
+      "item": "M-09/10/11 模板/侵权/文案",
+      "pass": true,
+      "detail": "矩阵三章节在档 3/3；克制文案红线（零夸张词/零数值承诺）机判 PASS",
+      "path": "gate-logs/freeze-sprint-r1-20261008/matrix/material-matrix.md"
+    },
+    {
+      "id": "T-11",
+      "item": "分享文案 world/tone 同源",
+      "pass": true,
+      "detail": "关键词命中 3/3（火就越旺/炉冷/8×8）——矩阵文案词汇与 spec world.oneLiner/summary 同源",
+      "spec": "design-spec-v1.5-freeze-draft.json"
+    }
+  ]
+}

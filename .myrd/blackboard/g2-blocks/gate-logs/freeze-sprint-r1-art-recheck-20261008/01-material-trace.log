@@ -1,0 +1,12 @@
+PASS  T-01 :: M-01 风格卡 — assets/style-card.json @6d3db6a 在档，HEAD 零漂移（1222B）
+PASS  T-02 :: M-01 冻结色板 — sha256=7bc2ca03… ≡ 链锚 sourceSha256；HEAD 零漂移
+PASS  T-03 :: M-02 wx 提审图标 512 — manifest 声明=8a971534… derivedFrom 声明=8a971534… 实算=8a971534…（三向全等）；HEAD 零漂移
+PASS  T-04 :: M-03 dy 提审图标 512 — manifest 声明=8a971534… derivedFrom 声明=8a971534… 实算=8a971534…（三向全等）；HEAD 零漂移
+PASS  T-05 :: M-04 会话分享卡 wx 5:4 — assets/release/share/wx-share-500x400.png @6fec4a6 在档，HEAD 零漂移（33076B）
+PASS  T-06 :: M-05 分享卡 dy 9:16 exact-copy（树内双处） — dy@a303ccf 树内双处全等 sha256=c705aaa6… ≡ manifest 声明 c705aaa6…；dy HEAD 零漂移。web A-07 原批@4f67806=c705aaa6…；web 主线 F-07 更新后=fe5a20d1…（rebase 后 dy 卡随动 → F-A2 挂 G3）
+PASS  T-07 :: M-06 商店截图 wx/dy — dy shots 4/4 在档 @a303ccf；wx 选批记录 @eb9ddab wx-submission-kit.md 命中「截图/选批」×11（口径：选批为决策记录，非独立 PNG 落 assets/）
+PASS  T-08 :: M-07 手感 pack 四件 — motion-pack.json OK · particle-pack.json OK · ui-feel-pack.json OK · daily-entry-pack.json OK @6d3db6a
+PASS  T-09 :: 发布面 9 件零漂移 — manifest 9/9 件 sha256 ≡ HEAD blob 实算
+PASS  T-10 :: M-09/10/11 模板/侵权/文案 — 矩阵三章节在档 3/3；克制文案红线（零夸张词/零数值承诺）机判 PASS
+PASS  T-11 :: 分享文案 world/tone 同源 — 关键词命中 3/3（火就越旺/炉冷/8×8）——矩阵文案词汇与 spec world.oneLiner/summary 同源
+—— 合计 11 PASS / 0 FAIL / 11 ——
