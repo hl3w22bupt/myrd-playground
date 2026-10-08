@@ -11,5 +11,10 @@
 *.exe
 *.zip
 
+# Godot 对工程目录内非资产图片（QA 截图、导出产物 PNG）自动生成的导入边车，
+# 每次无头运行都会重新生成，属构建噪音，不入库
+/qa/**/*.import
+/export/web/*.import
+
 # 系统
 .DS_Store
