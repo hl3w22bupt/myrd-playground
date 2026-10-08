@@ -1,6 +1,6 @@
 # AppHost 应用登记 — g2-blocks（熔炉方块）
 
-> 更新时间：2026-10-04（部署轮 r3 · 复用同一坑 `cmuqelj2r0046m9zr4emgdgdg`，发布 v1.2 手感轮产物）
+> 更新时间：2026-10-08（部署轮 r4 · 复用同一坑 `cmuqelj2r0046m9zr4emgdgdg`，发布封版冲刺产物 v1.2+N4 埋点）
 > 用途：一坞一游戏，下一轮**复用同一坑**（不要新建、不要挤占别的游戏的应用）
 
 ## 专属坑（2026-10-02 建档）
@@ -17,7 +17,25 @@
 | 玩法入口 | `/apps/g2-blocks-2/gw`（壳注入 `<base href="api/public/assets/">`，裸根 308 归一自愈到 /gw） |
 | health | `/apps/g2-blocks-2/health` → 200 `{"ok":true,...}` |
 
-## 本轮部署（2026-10-04 · 部署轮 r3 · 当前生效 · v1.2 手感轮）
+## 本轮部署（2026-10-08 · 部署轮 r4 · 当前生效 · 封版冲刺 v1.2 + N4 埋点）
+
+| 项 | 值 |
+|---|---|
+| gitRef（分支） | `myrd/g2-blocks-v13-n1-spec-cmuyupvw30035m93eu5gdynv0` |
+| 部署提交 | `9fe1a23`（= 远端同名分支 HEAD，`git ls-remote` 核对全等 `9fe1a23d…`；含 `787a52c` 导出件 + 壳标识拾取） |
+| manifestPath | `games/g2-blocks/apphost.toml` |
+| 导出产物 | `games/g2-blocks/export/web/`（**26 文件**，= 源仓 `g2-blocks@1e3eff4`（main = 封版冲刺收口态）`build/` **逐字节相等**，`diff -rq` 核对；较 r3 的 25 文件：`main.mjs` 纯增量埋点接线 + 新增 `telemetry/analytics.mjs` + `sw.js` precache 更新） |
+| deployment id | `cmuyzjydy004hm93ei1bxbgvt`（commitHash `9fe1a23dd…` 全等 · errorMessage 空 · app status ready） |
+| 产物区 artifactId | `cmuqewt4u004jm9zreo1yw2ue`（kind=app · ready · 本轮 POST 幂等复用同一 id） |
+| 线上自测 | LIVE-SMOKE: **PASS**（真浏览器 CDP：可开 + 盘面 64 满员 + 真实 tap 0→160 chain=1 + **埋点 sink=web · 7 事件在位**（session_start / run_start / evt_first_screen / evt_first_drag / evt_first_place / restart_clicked）+ 重开复位 + 零控制台错误 · J1 实测 **147.3ms** ≤ 400ms） |
+
+- **部署前线上态披露（重要）**：v12（2026-10-06 · run-cmuvzeu 轮，黑板漏登记）发布的是 **v1.1 dy 移植包**（27 文件含 `platform/dy/*` 五件，无 v1.2 手感、无埋点）+ g2 专属壳。本轮把线上推进为「v1.2 + N4 埋点 web 包」；壳标识面（health `app:"g2-blocks"` + fallback 页标题）经 cherry-pick `57b3d67` 到本分支（`9fe1a23`）保持不回退，壳逻辑本体两线本就同源。该轮遗留的「web 部署面混入 dy 适配件」口径问题挂 `blockers.md` 待主人裁决（web 面应否承载 dy 件，属部署面策略，非本游戏轮可私决）。
+- **受理方式**：单次 POST（零重复），无 504；轮询至 `currentDeploymentId` 切到本轮后自测。
+- **产物一致性双验**：线上 `main.mjs`（sha256 `0659545…`）与 `telemetry/analytics.mjs`（sha256 `5dea790…`）和仓内提交件逐字节全等；`index.html` 差异属壳 base/boot 注入（伺服页头 `<base href="api/public/assets/">` 实证，r3 同口径）。
+- **门禁**（源仓 main @ `1e3eff4`）：contract **18 PASS / 0 FAIL / 0 PEND** · build 23 modules · SMOKE **PASS**（J1=177.9ms）；证据 `gate-logs/deploy-20261008-r4/`。
+- **stack-tower / 糖果线零接触**：本轮 git 变更全部落在 `games/g2-blocks/export/web`（3 路径）+ 壳标识 2 文件（`server/src/{index,game-page}.ts`，沿已验证实现拾取）；`games/stack-tower` / `games/game` / 根 `apphost.toml` 零触碰。
+
+## 上一轮（2026-10-04 · 部署轮 r3 · 存档 · v1.2 手感轮）
 
 | 项 | 值 |
 |---|---|

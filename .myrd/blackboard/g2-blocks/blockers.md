@@ -1,6 +1,6 @@
 # 阻塞项黑板 — g2-blocks（**封版就绪冲刺 · 第 1 批 · 2026-10-08**）
 
-> 更新时间：2026-10-08（第 1 批收口 · 主策划；N1–N5 + 汇总全落账，主人侧四项输入挂起中；**同日程序线复核轮 F6 修复——六门重跑全绿，见 F6 行与 `gate-logs/freeze-sprint-r1-recheck-20261008/`**）
+> 更新时间：2026-10-08（第 1 批收口 · 主策划；N1–N5 + 汇总全落账，主人侧四项输入挂起中；**同日程序线复核轮 F6 修复——六门重跑全绿，见 F6 行与 `gate-logs/freeze-sprint-r1-recheck-20261008/`**；**同日部署轮 r4——封版冲刺产物（v1.2+N4 埋点）上坞 LIVE-SMOKE PASS，见「部署轮 r4」节**）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：**等主人**（① 链 v7 approve ② 真机设备 ③ 渠道提审状态/版号资质 ④ 沿挂裁决）；G3（平台线 rebase v1.2）随 G1 触发；**提审按钮归主人**
 > 红线：不触 stack-tower；新游戏线零投入；埋点零玩法 diff（纯增量）；numeric 不改生效值（新增仅提案态）；主人侧待输入项单列挂起不阻塞成员侧产出
@@ -17,7 +17,7 @@
   - `wx/port-v1.1` @ `4fba03a`（worktree `g2-blocks-wx/`，含 `src/platform/wx/`）
   - `dy/port-v1.1` @ `023e583`（主目录当前检出，含 `src/platform/dy/`）
 - **一号仓库**：分支 `myrd/g2-blocks-v13-n1-spec-cmuyupvw30035m93eu5gdynv0`（**本运行分支，开工时由平台误锚 main=game-9 线，已重置回工作区累积线 `14b4d3a`**——重置零丢失：原分支无独有提交；game-9 线与本任务无关，红线「新游戏线零投入」）
-- **部署面**：AppHost 坑 `cmuqelj2r0046m9zr4emgdgdg` slug `g2-blocks-2` @ deployment version 5（部署轮 r3 `caaaba2`）不变
+- **部署面**：AppHost 坑 `cmuqelj2r0046m9zr4emgdgdg` slug `g2-blocks-2` @ **deployment `cmuyzjydy004hm93ei1bxbgvt`（部署轮 r4 · `9fe1a23` · v1.2+N4 埋点 · LIVE-SMOKE PASS）**；r3（`caaaba2`）起历史见 apphost-app.md 存档
 
 ## 本轮节点台账（封版就绪冲刺 · 第 1 批 · 2026-10-08 收口）
 
@@ -53,8 +53,19 @@
 | F4 | wx/dy 提审状态、版号/资质结论未回 | 主人 | 主人回复；未回不阻塞成员侧产出 | ⏳ 主人侧 |
 | F5 | 平台线（wx/dy）未 rebase v1.2（现包 = v1.1 面貌） | 程序（下一轮） | rebase v1.2 方案（提审建议书 §六）随 G1 触发执行 | ⏳ 条件触发 |
 | F6 | **复核轮抓到真缺陷**：N2⑤ 红线自查脚本随 `b8ac090` 入源仓后，注释含平台导出面字面量触发 ac-18 守卫（Mode A 17/18 RED）——前轮三绿证据止于 `5e7f2e5`，封版脚本提交后未复跑契约 | 程序（已闭） | 修复 = 工具重定位出源仓（`.myrd/blackboard/g2-blocks/tools/`，树根参数化 · 拒绝策略自豁免不替 spec 改语义），源仓 `1e3eff4`；六门复跑全绿（Mode A 18/18 · Mode B 26/0/3 · SMOKE · 三树红线 6/6 · wx/dy 契约 EXIT=0） | ✅ 修复（原文 `freeze-sprint-r1-recheck-20261008/`） |
+| F7 | **部署面策略待裁决（部署轮 r4 实查发现）**：2026-10-06 `run-cmuvzeu` 轮把 **v1.1 dy 移植包**（27 文件，含 `platform/dy/*` 五件 + `boot-dy` 入口）发上了 **web 部署坑** 且黑板零登记；r4 已把线上推进为「v1.2+N4 埋点 web 包」，dy 适配件随导出面更替自然离场（现导出 26 文件无 dy 件） | 主人裁决 | 确认口径：web 部署坑只承载 web 主线包，dy 包走 wx/dy 独立提审通道（现行为即此）；如需 web 坑同时验 dy 形态，另开双包方案 | ⏳ 主人侧（不阻塞线上：现行口径已是 web 主线包） |
 
 ---
+
+## 部署轮 r4（2026-10-08 · workflow deploy 节点 · 封版冲刺产物上坞）
+
+- **发布内容**：源仓 `main @ 1e3eff4`（web v1.2 主线 + N4 埋点 `a70d194`）build/ 逐字节镜像 → `games/g2-blocks/export/web/`（26 文件，较 r3 增 `telemetry/analytics.mjs`、`main.mjs` 纯增量接线、`sw.js` precache）；壳标识拾取 `57b3d67`（health `app:"g2-blocks"`，与 v12 已验证壳一致不回退）。
+- **门禁（源仓）**：contract 18 PASS / 0 FAIL / 0 PEND · build 23 modules · SMOKE PASS（J1=177.9ms）。
+- **部署**：坑 `cmuqelj2r0046m9zr4emgdgdg`（slug `g2-blocks-2` · sourceId `g2-blocks`）· 单次 POST 零重复 · deploymentId `cmuyzjydy004hm93ei1bxbgvt` · commitHash `9fe1a23dd…` 与远端分支 HEAD 全等 · errorMessage 空 · app status ready · 产物区 artifactId `cmuqewt4u004jm9zreo1yw2ue` 幂等复用。
+- **线上自测**：/health 200（`app:"g2-blocks"`）· 裸根 308 自愈 · /gw 200 · 新包特征三件 200（analytics/feel/daily）· 字节锚 `main.mjs`+`analytics.mjs` sha256 与仓内全等 · **LIVE-SMOKE PASS**（CDP：64 满员 + 0→160 chain1 + 埋点 7 事件在位 + 重开复位 + 零控制台错误 · J1=147.3ms）。
+- **证据**：`gate-logs/deploy-20261008-r4/`（README.md + live-smoke.json）；登记全文 `apphost-app.md` 本轮节。
+- **试玩入口**：https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/gw
+
 ---
 
 # 以下为上一轮存档（V1.2「核心手感 6 项 + daily-challenge」轮 · 驳回修复后重提审）

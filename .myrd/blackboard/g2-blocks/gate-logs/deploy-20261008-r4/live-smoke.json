@@ -1,0 +1,30 @@
+{
+  "ts": "2026-10-08T03:43:45.439Z",
+  "url": "https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/gw",
+  "checks": {
+    "open": true,
+    "ready": true,
+    "boardLen": 64,
+    "score": [
+      0,
+      160
+    ],
+    "chain": 1,
+    "j1Ms": 147.30000001192093,
+    "analytics": {
+      "sink": "web",
+      "sent": [
+        "run_start",
+        "session_start",
+        "evt_first_screen",
+        "evt_first_drag",
+        "evt_first_place",
+        "restart_clicked",
+        "run_start"
+      ]
+    },
+    "restartReset": true,
+    "consoleErrors": 0
+  },
+  "verdict": "PASS"
+}
