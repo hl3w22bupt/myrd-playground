@@ -4,6 +4,7 @@ import { createGame,           } from './game.mjs';
 import { createAudio } from './audio.mjs';
 import { createPerf } from './telemetry/perf.mjs';
 import { createFpsRecorder } from './telemetry/fps.mjs';
+import { createAnalytics, autoSink,              } from './telemetry/analytics.mjs';
 import { numeric, LEVELS } from './generated/spec-data.mjs';
 import { probeSwapCreatesMatch } from './kernel/board.mjs';
 import { findAnyMove } from './kernel/deadlock.mjs';
@@ -40,6 +41,11 @@ const storageFacade = createStorageFacade({
 storageFacade.migrate();
 const daily = createDaily({ clock: systemClock(), facade: storageFacade });
 
+// 产品埋点（封版冲刺 N4 · ac-29 九事件表）：sink 平台自动路由（wx/dy 原生上报 / web 缓冲+sendBeacon）；
+// 零玩法耦合：fire-and-forget，异常不外溢（模块内 try/catch），锚点 once 语义在模块内部
+const analyticsSink = autoSink();
+const analytics = createAnalytics(analyticsSink);
+
 // 关卡入口（spec content.levelCount 面；levelId 只认 spec LEVELS 段声明，未知值回退首关）
 const LEVEL_IDS = LEVELS.map((l                ) => l.id);
 function levelFromUrl()         {
@@ -54,6 +60,7 @@ function dailyFromUrl()                     {
 }
 
 let game       = createGame({ levelId: levelFromUrl(), seed: dailyFromUrl(), audio, perf });
+analytics.runStart({ levelId: game.levelId() }); // 局起点（N4 ac-29：首局）
 
 const st              = {
   board: game.state.board,
@@ -82,6 +89,7 @@ let layout         = computeLayout(canvas.width, canvas.height);
 let poppingUntil = 0;
 let j1Pending = false;
 let restartArmedUntil = 0;
+let firstScreenSent = false; // 引导锚点①本地面（once 语义兜底；N4 ac-29）
 
 function resize()       {
   const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -107,6 +115,7 @@ function syncState(time        )       {
   st.chain = game.state.chain;
   st.movesLeft = game.movesLeft();
   st.cooled = game.state.status === 'cooled';
+  if (game.state.status === 'cooled') analytics.runEnd({ levelId: game.levelId(), score: game.state.score, chain: game.state.chain, movesUsed: game.state.movesUsed }); // 局终点（每局至多一次，N4 ac-29）
   st.time = time;
   st.goalText = goalShortText();
   const mv = game.hintAvailable() ? game.hint() : null;
@@ -138,6 +147,7 @@ function goalShortText()         {
 function setLevel(id        )       {
   if (!LEVEL_IDS.includes(id) || id === game.levelId()) return;
   game = createGame({ levelId: id, audio, perf });
+  analytics.runStart({ levelId: id }); // 切关 = 新局起点（N4 ac-29）
   st.selected = null;
   st.popping = [];
   st.hintPair = null;
@@ -165,6 +175,7 @@ function centerOf(idx        )                           {
 }
 
 async function attemptSwap(a        , b        )                {
+  analytics.firstDrag({ a, b, levelId: game.levelId() }); // 引导锚点②首次拖拽（once/会话，N4 ac-29）
   const willClear = simProbeClear(a, b);
   if (willClear) {
     perf.settleStart(); // J1 起点 = 落定结算开始
@@ -173,6 +184,7 @@ async function attemptSwap(a        , b        )                {
   const r = game.swap(a, b);
   st.selected = null;
   if (!r.ok) return;
+  analytics.firstPlace({ a, b, chain: r.chain, levelId: game.levelId() }); // 引导锚点③首次成功放置（once/会话，N4 ac-29）
   // 手感事件投递（与结算同一调用栈；逻辑帧 = 当前帧）：波次合并面（落差取最大、落定/消除格合并）
   if (r.cleared.length > 0 || r.waves.length > 0) {
     feel.onHand({
@@ -274,7 +286,9 @@ window.addEventListener('keydown', (e) => {
 });
 
 function doRestart()       {
+  analytics.restartClicked({ levelId: game.levelId(), movesUsed: game.state.movesUsed }); // 重开点击（N4 ac-29）
   game.restart();
+  analytics.runStart({ levelId: game.levelId() }); // 重开 = 新局起点（N4 ac-29）
   feel.restart(logicFrameOf(performance.now()));
   st.selected = null;
   st.popping = [];
@@ -341,6 +355,7 @@ debug.__G2_FPS = {
 };
 
 function loop(time        )       {
+  if (!firstScreenSent) { firstScreenSent = true; analytics.firstScreen({ levelId: game.levelId() }); } // 引导锚点①首屏（首个渲染帧，N4 ac-29）
   fps.frame(time);
   syncState(time);
   const heat = Math.min(1, st.chain / 5);
@@ -373,6 +388,22 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
 }
 
 debug.__G2_READY = true;
+
+// 会话埋点收尾（封版冲刺 N4 · ac-29）：session_start 一次性 + 隐藏/离页 flush 兜底（web 面）
+analytics.sessionStart({ levelId: game.levelId(), sink: analytics.sinkKind });
+window.addEventListener('pagehide', () => { analytics.flush(); });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    analytics.sessionEnd({ levelId: game.levelId() }); // once/会话：首个 hidden 视为会话终点（口径见 ac-29 表）
+    analytics.flush();
+  }
+});
+// 埋点观测面（QA 冒烟机读）：sink 类型 + 会话事件序列 + web 缓冲快照
+debug.__G2_ANALYTICS = ()                          => ({
+  sink: analytics.sinkKind,
+  sent: analytics.sentEventIds(),
+  buffered: analyticsSink.kind === 'web' ? (analyticsSink           ).log() : null,
+});
 
 
 //# sourceURL=main.ts
