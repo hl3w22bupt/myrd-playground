@@ -1,4 +1,43 @@
-# 资产清单黑板 — g2-blocks（**V1.2「核心手感 6 项 + daily-challenge」轮 · 视觉打磨包**）
+# 资产清单黑板 — g2-blocks（**封版就绪冲刺 · 第 1 批 · 2026-10-08 · 物料矩阵**）
+
+> 更新时间：2026-10-08（冲刺开工 · 主策划；N5 美术线填报中）
+> 负责人：游戏美术（物料矩阵面）/ 主策划（整合校对）
+> 下一步：N5 《物料代差清单》+ 风格卡 v1.2 实测固化回写 + 素材归档挂来源 commit + 三平台分享卡模板骨架 + wx 侵权比对 + dy 克制版文案
+> 红线：色值一律引用冻结色板 token；沿用/重制/冻结候审三态逐格标注；素材归档必须挂来源 commit 可回溯
+
+## 封版冲刺物料矩阵登记区（N5 · 美术线 · 2026-10-08 落账）
+
+> 矩阵全表：`gate-logs/freeze-sprint-r1-20261008/matrix/material-matrix.md`（逐格 沿用/重制/冻结候审 + 来源 commit 可回溯）。关键结论：
+
+| 编号 | 项 | 三态 | 来源 |
+|---|---|---|---|
+| M-01 | 风格卡四要素 + 冻结色板 | **沿用**（v1.2 实测口径=定稿，三线同源） | `main@6d3db6a` `assets/style-card.json` + `palette-n1-final.json` |
+| M-02 | wx 提审图标 512 | **重制**（derivedFrom icon-512，sha256 `8a971534…`） | `wx@0485004` `assets/wx/wx-icon-manifest.json` |
+| M-03 | dy 提审图标 512 | **重制**（同源派生，manifest 在档） | `dy@a303ccf` `assets/dy/dy-icon-manifest.json` |
+| M-04 | 会话分享卡 wx 5:4 | **沿用**（web 定稿源，组包器绑定复用） | `main@6fec4a6` `assets/release/share/wx-share-500x400.png` |
+| M-05 | 分享卡 dy 9:16 | **沿用 exact-copy**（零改绘，sha256 双处全等 `c705aaa6…`） | `dy@a303ccf` `assets/dy/dy-share-manifest.json` |
+| M-06 | 商店截图 wx/dy | **沿用**（wx 选批 @`eb9ddab`；dy 同批 ×3 @`a303ccf`） | 各线 assets/ |
+| M-07 | 手感 pack 四件 a04..a07 | web=**沿用**定稿；平台线=**冻结候审**（随 sync 携入） | `main@6d3db6a` `assets/feel/*-pack.json` |
+| M-08 | 朋友圈 1:1 / 落地 1:1 | **冻结候审**（渠道业务参数 = G-Q2 归主人） | — |
+| M-09 | 三平台共用分享卡模板骨架 | 版式契约文档（非成图） | matrix/material-matrix.md §二 |
+| M-10 | wx 侵权比对 | 无冲突（官方条款 1.2.2/3.6.5/3.6.2/3.2.9/3.6.6 已核 @`0485004`；零外部贴图/零第三方 IP） | matrix §三 |
+| M-11 | dy 克制版分享文案 ×3 | 候选在档（零夸张词/零数值承诺）；终稿归主人/运营 | matrix §四 |
+
+- **本轮零新绘/零改绘**（物料矩阵轮零新风格线投入）；风格卡 v1.2 实测固化 = 下节四要素即定稿口径（V1.2 轮 F-01..F-07 校样 + ART-RECHECK 12/12 + 美术复验零 delta 为实测依据）。
+
+## 顶部风格卡（V1.2 实测固化基线 · N5 固化回写来源）
+
+- **要素1 主色**：冻结色板 7 hex（`block-01..07`，真源 = spec `numeric.palette`；暖区第 6/7 色 #4B2B25 / #E3B5BF）
+- **要素2 形状语言**：方角圆角块 + 内描边（alpha 0.35）+ 顶部高光条（alpha 0.18）+ 手感轮派生（落地挤压形变 / 三档粒子 / 硬降震屏）
+- **要素3 材质**：零贴图（textureSampling=none）· brightness-pulse 命中反馈 · inner-dark-overlay 阴影 · accentWarm 单色粒子（F-03 定稿）
+- **要素4 版式基色**：BACKDROP 三停靠渐变 + heatGlow 连击热感 + vignette；UI token 九键（bgDeep/bgPanel/textPrimary/textDim/accentWarm/dangerCool/hintBarBg/coolBannerBg/coolBannerText）
+
+（以上四要素 = V1.2 轮收口定稿口径，本轮 N5 以 v1.2 实测产物固化核对后落「实测口径」注记，不改变冻结 token。）
+
+---
+---
+
+# 以下为上一轮存档（V1.2「核心手感 6 项 + daily-challenge」轮 · 视觉打磨包）
 
 > 更新时间：2026-10-04（N3 收口 · 七件全落 · ART-RECHECK 12/12 不降 · 美术线独立复验六项全绿零 delta）
 > 负责人：游戏美术（打磨包面）/ 主策划（整合校对）

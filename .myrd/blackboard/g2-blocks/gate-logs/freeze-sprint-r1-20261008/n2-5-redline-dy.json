@@ -1,0 +1,54 @@
+{
+  "checkedAt": "2026-10-08T02:06:13.072Z",
+  "tree": {
+    "root": "/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks",
+    "branch": "dy/port-v1.1",
+    "commit": "023e5838b5e833875fab2e37711d8d3e2d714e2e",
+    "baseline": "6d3db6a"
+  },
+  "summary": {
+    "pass": 6,
+    "fail": 0,
+    "total": 6
+  },
+  "checks": [
+    {
+      "id": "R1-kernel-platform-api-zero",
+      "pass": true,
+      "detail": "src/kernel 平台 API 引用数 = 0（确定性内核纯度）",
+      "count": 0
+    },
+    {
+      "id": "R2-repo-one-zero-reference",
+      "pass": true,
+      "detail": "stack-tower 面零引用（patterns×5，全仓扫描 183 文件）",
+      "count": 0
+    },
+    {
+      "id": "R3-analytics-zero-gameplay-diff",
+      "pass": true,
+      "detail": "基线 6d3db6a 非本树 HEAD 祖先（移植分叉线）→ skip（该检查只适用 web 主线）",
+      "skipped": true
+    },
+    {
+      "id": "R4-numeric-frozen-groups",
+      "pass": true,
+      "detail": "冻结值抽查通过（spec v2 approved · palette/DEFAULT_SEED 单源呈现）",
+      "specVersion": 2,
+      "specStatus": "approved"
+    },
+    {
+      "id": "R5-bundle-dy2",
+      "pass": true,
+      "detail": "export/dy 逐件实测求和 = 178793 B（预算 ≤ 4194304 B · 30 件）",
+      "bytes": 178793,
+      "files": 30
+    },
+    {
+      "id": "R6-native-api-scope",
+      "pass": true,
+      "detail": "平台原生 API 直调零越界（仅 platform/{wx,dy}/ 面）",
+      "count": 0
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+# wx 包构建 commit ↔ 包哈希对照表（基线复核 + 双跑确定性）
+# 基线：wx/port-v1.1 @ 4fba03ae1552f5efc73d9ffb0a8f63391e0f6cf6（含 src/platform/wx/ 六件：adapter.ts boot-wx.ts privacy.ts runtime.ts share.ts wx-env.ts ）
+# spec 真源钉 approved v1.1（组包器断言③）
+--- build run#1 ---
+     6502B  src/platform/wx/adapter.mjs
+     6040B  src/render/theme.mjs
+     5393B  src/game.mjs
+(node:32901) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+EXIT=0
+--- build run#2 ---
+     6502B  src/platform/wx/adapter.mjs
+     6040B  src/render/theme.mjs
+     5393B  src/game.mjs
+(node:32904) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+EXIT=0
+--- manifest sha256 (run#2) ---
+export/wx/assets-manifest.json  600a593c5ba0f3460094024965c5b2e9f695dd293462425509f7ca8d2a26746f
+export/wx/assets/wx-share-500x400.png  84a7fc942646654a9b32fcb462f25d2b191804d87d945e1b2c66b4dda34e3c91
+export/wx/game.js  6a3ca21639d3bdd988cf925d7af12127d0750b9780aa62ef4c7c24a539df0a38
+export/wx/game.json  e5610ed5d21eac5cb9419765cb8996bea4503a8f57b8b068fd10b1b58dffac89
+export/wx/privacy-popup.json  73a781cc16b63b2889ccf1e7616a52c43a0dc230dd6505e32a83f2762d1bb456
+export/wx/project.config.json  ce9aec3060a7908a8c54e77842a72661a8d2f98fb33d2b495302f106d8d68a70
+export/wx/src/audio.mjs  a7c873f2ee8bf17fa6fc191c115020107ba5db6cd8609605b05db892cec09134
+export/wx/src/game.mjs  36c742477c17137bf88649730f9cb656b766fa2d19faa3cda0d1833d799e61ed
+export/wx/src/generated/spec-data.mjs  be916e68f87f0d9a8089220e16f81bbd299e5b3f3c8b0a396d8b201dbbb3f306
+export/wx/src/kernel/board.mjs  39db0b2001025c3f0521b2f17e13db34f470b75f52a0abf5224c5ec33bf9b87f
+export/wx/src/kernel/combo.mjs  2297f87efabebab70932371a353b57f1e33d1cbfb7cc7db364c6c278c5beb6e1
+export/wx/src/kernel/datetime.mjs  13824350b732fa3c0a1ae177941f45ee59329490c6fd44d50a27a3c1a5b45689
+export/wx/src/kernel/deadlock.mjs  38fd0f92f9f6c69555625dcc0184a93d6f3df98a878dc15b1015414fa9df691a
+export/wx/src/kernel/rng.mjs  2169385dc6c10e84c3c44fa5ec9a8894050915875fba9e43d507af474b00a6f3
+export/wx/src/kernel/sim.mjs  be97a949daab1c6cf00db81a810b34df299ed3dfecd6a811413c148054ce9f39
+export/wx/src/kernel/spec-source.mjs  4c9e7da39a244f102c8ae7acefae4c780cf9b391f5e25e9e0ddf921f23e70952
+export/wx/src/main.mjs  a9e842c67b50fe974b94e1d357c040f39b809fe296a57979b86061dae24d2d0f
+export/wx/src/persistence.mjs  dffacb13eeab8ced0be45642c442d9c319394d81c7cde75a3747abcb8a75ee0f
+export/wx/src/platform/audio.mjs  98d41206049e3291927d72daa872a947f0b90030fa15e2b81715a7facd96c7f9
+export/wx/src/platform/clock.mjs  00ae24d6d390c7eb4626938fced6f3841d92d31e4e7eecbdfcca0f3c4c6591a9
+export/wx/src/platform/storage.mjs  4b65c2301f72093f1cd2efc58a9d0ea035dcc42f03b1364963e40e4d59206cb2
+export/wx/src/platform/wx/adapter.mjs  579174c239ab2b104aa11742c0fa2334050156f6bc3da839d7c1696685bf4edd
+export/wx/src/platform/wx/boot-wx.mjs  3775edecac7443e1dc4ef897d37c784cf5d7fbed224bf88d37914d540edb98c3
+export/wx/src/platform/wx/privacy.mjs  661e356704aadc15b8a4b558ca1c22d5b1987b645874b0cd092948100c2806c0
+export/wx/src/platform/wx/runtime.mjs  d6d3dbb8551949655f610e6be40d7ca9509ced00b8cfa33c01e17e2cb2ad1111
+export/wx/src/platform/wx/share.mjs  85339ffe138561a23c487309242e7b301b2a14de1602868f688defa4899cf4bf
+export/wx/src/platform/wx/wx-env.mjs  90b3b0bd29e4bb938566de460e010f0c4172af96b2341c9797ebe82c06942190
+export/wx/src/render/renderer.mjs  d03c870bdf34d868f05fe4553687381175e7506db9ba132d100a11782bd89796
+export/wx/src/render/theme.mjs  ca0b4708813c5cfa61a215b6665e8a40b45863483c2b2d013e8527a0e6c7b3c6
+export/wx/src/telemetry/fps.mjs  0fcc0398c13219c77a9dfd60238112a2dd3fa01a33030a737b488a4682997d92
+export/wx/src/telemetry/perf.mjs  03c05e34a42758eb987b75985537a6895ce3bbde601420b1c1373e0982fdaa22
+--- 逐件计数与总字节 ---
+      31
+208 KB

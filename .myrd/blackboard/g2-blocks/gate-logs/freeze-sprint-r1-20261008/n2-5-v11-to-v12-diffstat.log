@@ -1,0 +1,120 @@
+# v1.1→v1.2 逐文件 diff 清单（源仓 main：fe5fd38=v1.1 末梢 → 6d3db6a=v1.2 收口/部署 r3 发布源）
+# 命令：git diff --stat fe5fd38..6d3db6a（含 numstat 汇总）
+
+ assets/a03-sfx-plan.json                           |  85 ++-
+ assets/feel/daily-entry-pack.json                  |  28 +
+ assets/feel/motion-pack.json                       | 129 +++++
+ assets/feel/particle-pack.json                     |  52 ++
+ assets/feel/ui-feel-pack.json                      |  62 ++
+ assets/release/release-assets.json                 |  16 +-
+ assets/release/share/dy-share-720x1280.png         | Bin 72935 -> 74572 bytes
+ assets/release/share/og-1200x630.png               | Bin 65467 -> 66712 bytes
+ assets/release/share/wx-share-500x400.png          | Bin 32284 -> 33076 bytes
+ build/audio.mjs                                    |  15 +-
+ build/daily.mjs                                    | 108 ++++
+ build/generated/feel-data.mjs                      | 110 ++++
+ build/kernel/sim.mjs                               |  28 +-
+ build/main.mjs                                     | 112 +++-
+ build/platform/audio.mjs                           |  26 +-
+ build/render/feel.mjs                              | 243 ++++++++
+ build/render/renderer.mjs                          | 125 +++-
+ build/render/theme.mjs                             |  75 ++-
+ build/sw.js                                        |   5 +-
+ docs/evidence/cool-frame-390x844.png               | Bin 0 -> 151285 bytes
+ docs/evidence/perf-p95-report.json                 |  10 +-
+ docs/evidence/perf-p95-report.md                   |   4 +-
+ docs/release-readiness.md                          |  47 ++
+ docs/spec/spec-v13-feel-payload.json               | 641 +++++++++++++++++++++
+ scripts/contract-check.mjs                         |   9 +-
+ src/audio.ts                                       |  15 +-
+ src/daily.ts                                       | 105 ++++
+ src/generated/feel-data.ts                         | 107 ++++
+ src/kernel/sim.ts                                  |  28 +-
+ src/main.ts                                        | 112 +++-
+ src/platform/audio.ts                              |  26 +-
+ src/render/feel.ts                                 | 240 ++++++++
+ src/render/renderer.ts                             | 125 +++-
+ src/render/theme.ts                                |  75 ++-
+ tests/contract/.j1-evidence.json                   |   8 +-
+ .../ac-19-combo-multiplier-numeric.spec.mjs        |  46 --
+ tests/contract/ac-20-daily-seed-numeric.spec.mjs   |  58 --
+ tests/contract/ac-21-level-stars-derived.spec.mjs  |  39 --
+ tests/contract/ac-22-feel-land-squash.spec.mjs     |  72 +++
+ tests/contract/ac-23-feel-hard-drop-shake.spec.mjs |  65 +++
+ tests/contract/ac-24-feel-clear-particles.spec.mjs |  71 +++
+ tests/contract/ac-25-feel-sfx-three-tier.spec.mjs  |  62 ++
+ tests/contract/ac-26-feel-combo-feedback.spec.mjs  |  57 ++
+ .../contract/ac-27-feel-restart-one-click.spec.mjs |  82 +++
+ tests/contract/ac-28-daily-hook-min-loop.spec.mjs  | 134 +++++
+ tests/contract/approved-path.mjs                   |   8 +
+ tests/contract/spec-v12.mjs                        |  63 --
+ tests/contract/spec-v13.mjs                        |  36 ++
+ tools/build-spec-v13.mjs                           | 377 ++++++++++++
+ tools/cool-frame.mjs                               |  64 ++
+ tools/feel-probe.mjs                               |  40 ++
+ tools/gen-feel-pack.mjs                            | 170 ++++++
+ tools/gen-release-assets.mjs                       |  10 +
+ tools/gen-theme.mjs                                |  16 +-
+ tools/post-spec-v13.mjs                            | 131 +++++
+ tools/qa-v12-feel.mjs                              | 145 +++++
+ tools/smoke.mjs                                    |  51 ++
+ 57 files changed, 4294 insertions(+), 274 deletions(-)
+
+# numstat 明细（新增/删除/文件）
+74	11	assets/a03-sfx-plan.json
+28	0	assets/feel/daily-entry-pack.json
+129	0	assets/feel/motion-pack.json
+52	0	assets/feel/particle-pack.json
+62	0	assets/feel/ui-feel-pack.json
+8	8	assets/release/release-assets.json
+-	-	assets/release/share/dy-share-720x1280.png
+-	-	assets/release/share/og-1200x630.png
+-	-	assets/release/share/wx-share-500x400.png
+10	5	build/audio.mjs
+108	0	build/daily.mjs
+110	0	build/generated/feel-data.mjs
+27	1	build/kernel/sim.mjs
+110	2	build/main.mjs
+24	2	build/platform/audio.mjs
+243	0	build/render/feel.mjs
+121	4	build/render/renderer.mjs
+72	3	build/render/theme.mjs
+4	1	build/sw.js
+-	-	docs/evidence/cool-frame-390x844.png
+5	5	docs/evidence/perf-p95-report.json
+2	2	docs/evidence/perf-p95-report.md
+47	0	docs/release-readiness.md
+641	0	docs/spec/spec-v13-feel-payload.json
+7	2	scripts/contract-check.mjs
+10	5	src/audio.ts
+105	0	src/daily.ts
+107	0	src/generated/feel-data.ts
+27	1	src/kernel/sim.ts
+110	2	src/main.ts
+24	2	src/platform/audio.ts
+240	0	src/render/feel.ts
+121	4	src/render/renderer.ts
+72	3	src/render/theme.ts
+4	4	tests/contract/.j1-evidence.json
+0	46	tests/contract/ac-19-combo-multiplier-numeric.spec.mjs
+0	58	tests/contract/ac-20-daily-seed-numeric.spec.mjs
+0	39	tests/contract/ac-21-level-stars-derived.spec.mjs
+72	0	tests/contract/ac-22-feel-land-squash.spec.mjs
+65	0	tests/contract/ac-23-feel-hard-drop-shake.spec.mjs
+71	0	tests/contract/ac-24-feel-clear-particles.spec.mjs
+62	0	tests/contract/ac-25-feel-sfx-three-tier.spec.mjs
+57	0	tests/contract/ac-26-feel-combo-feedback.spec.mjs
+82	0	tests/contract/ac-27-feel-restart-one-click.spec.mjs
+134	0	tests/contract/ac-28-daily-hook-min-loop.spec.mjs
+8	0	tests/contract/approved-path.mjs
+0	63	tests/contract/spec-v12.mjs
+36	0	tests/contract/spec-v13.mjs
+377	0	tools/build-spec-v13.mjs
+64	0	tools/cool-frame.mjs
+40	0	tools/feel-probe.mjs
+170	0	tools/gen-feel-pack.mjs
+10	0	tools/gen-release-assets.mjs
+15	1	tools/gen-theme.mjs
+131	0	tools/post-spec-v13.mjs
+145	0	tools/qa-v12-feel.mjs
+51	0	tools/smoke.mjs

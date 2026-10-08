@@ -1,0 +1,16 @@
+# dy/port-v1.1 spec-v12 面三查逐条实跑（v1.2 草案装载）@ 023e583
+--- ac-19-combo-multiplier-numeric ---
+PASS  ac-19-combo-multiplier-numeric :: combo 三键唯一真源（max=正整数 / step∈(0,1] / rounding=向下取整枚举）· v1.1 既有四键零改写 · 工程面零实现痕迹（v1.2=draft）
+—— 合计 1 PASS / 0 FAIL ——
+CONTRACT: PASS 契约全绿（实现与 approved 策划案一致）
+EXIT=0
+--- ac-20-daily-seed-numeric ---
+PASS  ac-20-daily-seed-numeric :: daily 四键唯一真源 · 本地时区日期码跨零点必变 · 种子派生纯函数（同日恒定/跨日必变）· 工程面零实现痕迹（v1.2=draft）
+—— 合计 1 PASS / 0 FAIL ——
+CONTRACT: PASS 契约全绿（实现与 approved 策划案一致）
+EXIT=0
+--- ac-21-level-stars-derived ---
+PASS  ac-21-level-stars-derived :: level-stars 派生式（basis=derived · unit=B · 三档严格升序且一星=1×B · 间距单调不减）· 契约零绝对分 · 工程面零实现痕迹（v1.2=draft）
+—— 合计 1 PASS / 0 FAIL ——
+CONTRACT: PASS 契约全绿（实现与 approved 策划案一致）
+EXIT=0

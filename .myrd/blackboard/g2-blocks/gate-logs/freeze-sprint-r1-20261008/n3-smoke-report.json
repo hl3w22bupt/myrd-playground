@@ -1,0 +1,76 @@
+{
+  "report": "n3-smoke-report",
+  "round": "封版就绪冲刺 · 第 1 批",
+  "generatedAt": "2026-10-08",
+  "generator": "游戏 QA（框架预填）· 真机执行待主人侧设备",
+  "discipline": "真机未到位 → 不执行不造假：results 槽位一律 not_run，禁止预填 pass/fail",
+  "packages": {
+    "wx": {
+      "tree": "g2-blocks-wx",
+      "branch": "wx/port-v1.1",
+      "commit": "4fba03ae1552f5efc73d9ffb0a8f63391e0f6cf6",
+      "exportDir": "export/wx",
+      "fileCount": 31,
+      "bytesTotal": 151768,
+      "bundleSha256Aggregate": "b947f2909d283e4a4702a914fbe7a6b1684aaacb84dc13ded80dc5688e92766c",
+      "evidence": "gate-logs/freeze-sprint-r1-20261008/n2-2-wx-hash-table.log"
+    },
+    "dy": {
+      "tree": "g2-blocks",
+      "branch": "dy/port-v1.1",
+      "commit": "023e5838",
+      "exportDir": "export/dy",
+      "fileCount": 30,
+      "bytesTotal": 178793,
+      "bundleSha256Aggregate": null,
+      "bundleSha256Note": "dy 包未在本轮重建（现有产物 @ 023e583 组包器输出）；真机执行前按 n2-2 同口径补算并交叉核对",
+      "evidence": "gate-logs/freeze-sprint-r1-20261008/n2-5-redline-dy.json"
+    },
+    "web": {
+      "branch": "main",
+      "commit": "b8ac090（封版冲刺后主线）· 部署 r3 发布源 = 6d3db6a",
+      "note": "web 无真机轨（PWA headless 代理证据口径不变，G-perf 挂账真机终判）"
+    }
+  },
+  "devices": [
+    { "platform": "iOS", "model": null, "os": null, "host": ["wx", "dy"], "provided": false },
+    { "platform": "Android", "model": null, "os": null, "host": ["wx", "dy"], "provided": false }
+  ],
+  "results": {
+    "generic": {
+      "S1-首启渲染": "not_run",
+      "S2-首屏可交互": "not_run",
+      "S3-首次交换": "not_run",
+      "S4-消除链路": "not_run",
+      "S5-反馈面": "not_run",
+      "S6-重开复位": "not_run",
+      "S7-静音开关": "not_run",
+      "S8-会话恢复持久化": "not_run"
+    },
+    "wx": {
+      "W1-会话分享": "not_run",
+      "W2-隐私弹窗": "not_run",
+      "W3-onShow-onHide": "not_run",
+      "W4-静音键物理行为": "not_run",
+      "W5-主包体积工具面板": "not_run（机读侧已核：151768 B ≤ 4MB，n2-5-redline-wx.json）"
+    },
+    "dy": {
+      "D1-分享拉起": "not_run",
+      "D2-宿主返回键": "not_run",
+      "D3-生命周期": "not_run",
+      "D4-宿主兼容": "not_run"
+    }
+  },
+  "n2EvidenceReview": {
+    "n2_1_threeContractRuns": { "web": "18/18 EXIT=0", "webV7ModeB": "26 PASS / 0 FAIL / 3 PEND EXIT=0", "wx": "18/18 EXIT=0", "dy": "18/18 EXIT=0", "pass": true },
+    "n2_2_wxHashTable": { "baseline": "4fba03a", "dualRunExit": 0, "pass": true },
+    "n2_3_dySpecV12Declarations": { "ac19": "PASS(声明面)", "ac20": "PASS(声明面)", "ac21": "PASS(声明面)", "pass": true },
+    "n2_5_diffAndRedline": { "v11v12Diffstat": "在档", "redline": { "web": "6/6", "wx": "6/6", "dy": "6/6" }, "pass": true }
+  },
+  "verdict": {
+    "conclusion": "不可提审（真机轨缺位）",
+    "reason": "材料面（契约/哈希/红线/物料）全绿齐备；唯一缺口 = 真机冒烟未执行（设备在主人侧）。真机轨完成且全 pass 后，本报告升格为「可提审」，提审按钮仍归主人。",
+    "checkedAt": "2026-10-08",
+    "escalation": "F3（blockers.md）：请主人提供 iOS+Android 真机各 ≥1 台并指定执行人/方式"
+  }
+}

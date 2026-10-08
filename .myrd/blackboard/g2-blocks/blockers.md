@@ -1,4 +1,61 @@
-# 阻塞项黑板 — g2-blocks（**V1.2「核心手感 6 项 + daily-challenge」轮 · 驳回修复后重提审**）
+# 阻塞项黑板 — g2-blocks（**封版就绪冲刺 · 第 1 批 · 2026-10-08**）
+
+> 更新时间：2026-10-08（第 1 批收口 · 主策划；N1–N5 + 汇总全落账，主人侧四项输入挂起中）
+> 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：**等主人**（① 链 v7 approve ② 真机设备 ③ 渠道提审状态/版号资质 ④ 沿挂裁决）；G3（平台线 rebase v1.2）随 G1 触发；**提审按钮归主人**
+> 红线：不触 stack-tower；新游戏线零投入；埋点零玩法 diff（纯增量）；numeric 不改生效值（新增仅提案态）；主人侧待输入项单列挂起不阻塞成员侧产出
+
+## 当前基线（封版就绪冲刺 · 开工锚定 · 2026-10-08 实查）
+
+- **黑板路径**：`.myrd/blackboard/g2-blocks/`（levels.md / assets.md / blockers.md + gate-logs/）+ 本轮证据区 `gate-logs/freeze-sprint-r1-20261008/`
+- **spec 版本链（平台实查 2026-10-08）**：
+  - v1 `cmuovwra0004gm97tinha15zq` superseded → v2 `cmuqa2mu50023m9zr8mh60uph`（**v1.1，链上唯一曾 approved**；因 v3 起后续建版翻 superseded，契约共同输入导出件不变）→ v3 `cmurqo70l001uiccx7hjjr37e` superseded → v4 `cmut5fkyf00cbic7qudea13g6` superseded（V1.2 手感轮）→ v5 `cmuusk0p60040icryguvlev9j` superseded（wx 平台段）→ **v6 `cmuw3gcgm01a9icryraii5dzp` draft = 链头**（dy 写案校准）
+  - **⚠ 链上回归披露（本轮 N1 修复对象）**：v5/v6 基于 v1.1 的 18 条基线建版，**未继承链 v4 手感轮增量**——丢了 acceptance ac-22..28 七条、numeric.feel/daily 两组、assets a04..a07 四项、content.dailyChallenge 段。v1.2 冻结范围（已实现 + 已部署 r3 + N4 APPROVE-READY）在链头处失真；**v7 封版包 = 找回 v4 全量 + v6 平台段保留 + 本轮四项增量**，逐字节守卫断言。
+- **spec 基线固化**：approved 导出件 `.myrd/spec/g2-blocks/design-spec.json`（=链 v2 回读，契约共同输入不换）；链头 v6 导出 `.myrd/spec/g2-blocks/chain/raw-cmuw3gcgm01a9icryraii5dzp.json`；v5 同目录。
+- **源仓**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks`（独立 git 仓）
+  - `main` @ `6d3db6a` = web v1.2 主线（部署 r3 发布源）
+  - `wx/port-v1.1` @ `4fba03a`（worktree `g2-blocks-wx/`，含 `src/platform/wx/`）
+  - `dy/port-v1.1` @ `023e583`（主目录当前检出，含 `src/platform/dy/`）
+- **一号仓库**：分支 `myrd/g2-blocks-v13-n1-spec-cmuyupvw30035m93eu5gdynv0`（**本运行分支，开工时由平台误锚 main=game-9 线，已重置回工作区累积线 `14b4d3a`**——重置零丢失：原分支无独有提交；game-9 线与本任务无关，红线「新游戏线零投入」）
+- **部署面**：AppHost 坑 `cmuqelj2r0046m9zr4emgdgdg` slug `g2-blocks-2` @ deployment version 5（部署轮 r3 `caaaba2`）不变
+
+## 本轮节点台账（封版就绪冲刺 · 第 1 批 · 2026-10-08 收口）
+
+| 节点 | 线 | 交付与落点 | 验收信号 | 状态 |
+|---|---|---|---|---|
+| N1 spec 拍板包 | 主策划 | 候选池 v1（`concept-pool-freeze-v1.md`）+ 链 v7 `cmuyvvhql0043m93eu777kop8` [draft]（找回 v4 全量 + 3 锚点实体 + 9 事件表 + DoD 三层门待校准 + 候选池 1/2；numeric 只提案）+ 拍板包 `approve-ready-freeze-r1.md` | 十三守卫全绿 + POST parent=v6 + 回读全等 + v1..v6 零覆盖 + 拍板包提请 approve | ✅（approve 归主人） |
+| N2 证据补齐 | 程序 | 三处契约实跑（web 18/18 + Mode B 26/0/3 · wx 18/18 · dy 18/18，各挂 commit sha）+ wx 哈希对照表（`4fba03a` 双跑 · bundle `b947f290…`）+ dy spec-v12 三查逐条声明（PASS·声明面）+ 引导断言指认（`n2-4`）+ v1.1→v1.2 diff 清单 + 红线自查脚本 v1（`scripts/redline-selfcheck.mjs` @源仓 `b8ac090`，三树 6/6） | 全部机读归档 `gate-logs/freeze-sprint-r1-20261008/` | ✅ |
+| N3 真机冒烟 | QA | 冒烟清单（通用 8 + wx 5 + dy 4）+ 机读报告 `n3-smoke-report.json`（包哈希已填 · 真机槽位 not_run · N2 四项证据复核 ✅） | 真机未到位 → 结论「不可提审（真机轨缺位）」如实出具 + 升级 F3 | ✅（真机轨 not_run 不造假） |
+| N4 埋点落地 | 程序 | `src/telemetry/analytics.ts` + main.ts 接线 31 行纯新增（0 删除 0 改行）+ ac-29 契约件 + PEND 通道（源仓 `a70d194`/`b79d511`） | 双向断言 PASS + numstat 机判 + Mode A/B 双绿 | ✅ |
+| N5 物料矩阵 | 美术 | 《物料代差清单》（M-01..M-11 三态逐格）+ 风格卡 v1.2 实测固化回写 assets.md + 素材归档挂来源 commit + 分享卡模板骨架 + wx 侵权比对（无冲突）+ dy 克制版文案 ×3（`matrix/material-matrix.md`） | 矩阵逐格可核 + 零新绘零改绘 | ✅ |
+| 汇总 | 主策划 | 《提审建议书》（`submission-recommendation-freeze-r1.md`：rebase v1.2 方案 + QA 三章 + 红线自查汇总 + 物料矩阵 + 主人侧输入单列）+ v1.3 五条 gate 挂本文件 | 提审按钮归主人 | ✅ |
+
+## v1.3 五条 gate（封版基线 → 提审；条件写死）
+
+| gate | 通过判据 | 状态 |
+|---|---|---|
+| G1 spec 封版基线 | 链 v7 approved（主人 approve 落卷） | ⏳ 主人 |
+| G2 实现零回归 | Mode A 18/18 + Mode B(v7) 全 PASS（PEND 3 条显式披露不计 FAIL）+ SMOKE PASS + P95 不退化 | ✅ 现态即绿（SMOKE 见注） |
+| G3 平台线对齐 | wx/dy rebase v1.2 后各自契约 + 组包 + 哈希对照表全绿 | ⏳ 待 G1 后执行（方案见提审建议书 §六） |
+| G4 真机冒烟 | 通用 8 项 + 平台特有项全 pass（机读报告包哈希交叉一致） | ⏳ 主人侧设备（F3） |
+| G5 主人提审拍板 | G1–G4 全绿 + 版号/资质结论 → 主人按下提审按钮 | ⏳ 主人 |
+
+- G2 注：SMOKE（headless Chrome CDP）本轮未复跑——N4 为纯新增观测面（Mode A/B 双绿 + numstat 0 删除已机判）；G3 rebase 后随线复跑 SMOKE 补齐口径。
+
+## 本轮阻塞项（滚动登记 · 收口态）
+
+| id | 内容 | 归属线 | 解除判据 | 状态 |
+|---|---|---|---|---|
+| F1 | 链 v5/v6 丢失 v4 手感轮增量（基线分叉） | 主策划（N1 修复） | v7 折入找回 + 守卫断言 + 主人知悉 | ✅ 修复（v7 在链，拍板包 §二披露） |
+| F2 | 链上无 approved 版（v2 曾 approved 已翻 superseded） | 主人 | 主人对链 v7 approve | ⏳ 主人拍板（拍板包已出） |
+| F3 | 真机（iOS+Android）不在成员侧 | QA + 主人出包配合 | 主人提供真机/授权；到位前 N3 真机轨 `not_run`（清单与报告框架已备） | ⏳ 主人侧 |
+| F4 | wx/dy 提审状态、版号/资质结论未回 | 主人 | 主人回复；未回不阻塞成员侧产出 | ⏳ 主人侧 |
+| F5 | 平台线（wx/dy）未 rebase v1.2（现包 = v1.1 面貌） | 程序（下一轮） | rebase v1.2 方案（提审建议书 §六）随 G1 触发执行 | ⏳ 条件触发 |
+
+---
+---
+
+# 以下为上一轮存档（V1.2「核心手感 6 项 + daily-challenge」轮 · 驳回修复后重提审）
 
 > 更新时间：2026-10-04（驳回 D1–D6 全闭 · N4 加固版 15/15 APPROVE-READY · **部署轮 r3 已发布 v1.2 产物上线**）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
