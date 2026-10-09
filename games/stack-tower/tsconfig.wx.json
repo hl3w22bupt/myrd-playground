@@ -7,5 +7,9 @@
     "rootDir": "src"
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["src/main.ts"]
+  "exclude": [
+    "src/main.ts",
+    "src/app/boot-tt.ts",
+    "src/platform/tt.ts"
+  ]
 }

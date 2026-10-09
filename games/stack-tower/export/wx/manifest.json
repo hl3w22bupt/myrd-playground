@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-09T04:08:17.632Z",
+  "generatedAt": "2026-10-09T04:18:43.553Z",
   "spec": {
     "id": "cmunf6r1e014cm9lfamzllk2h",
     "version": 7,
@@ -11,7 +11,7 @@
     "openDataContextMaxBytes": 1048576
   },
   "sizes": {
-    "mainBytes": 377627,
+    "mainBytes": 356298,
     "openDataBytes": 5789,
     "mainWithinBudget": true,
     "openDataWithinBudget": true
@@ -131,11 +131,6 @@
       "path": "assets/wx/store-screenshot-03.png",
       "bytes": 21266,
       "sha256": "62b58f98223c114596f04e8071c8f89dea91d31a762239005b88d17daaa67d06"
-    },
-    {
-      "path": "build-wx/app/boot-tt.js",
-      "bytes": 10023,
-      "sha256": "5f5fb784c36d7c63030846a587b75d9282886f985c7a84bf22c83d34cdd7c66f"
     },
     {
       "path": "build-wx/app/boot-wx.js",
@@ -263,11 +258,6 @@
       "sha256": "9f64f4cf6d3bb8fd70bd982dd36d9ad8db4c3c08a556647f8ff4a83f14fd3dc0"
     },
     {
-      "path": "build-wx/platform/tt.js",
-      "bytes": 11306,
-      "sha256": "d8da9e824b411687f3569aa4bc9720fbba79ebc74f6e235ab3b8cc955e8ef66e"
-    },
-    {
       "path": "build-wx/platform/wx.js",
       "bytes": 6893,
       "sha256": "c02e06179dd9d52406149d941b8e92e4ee280b312076c237400c41eb979a44f7"
@@ -370,7 +360,7 @@
     {
       "path": "open-data-context/tokens.js",
       "bytes": 992,
-      "sha256": "bf809e91cd5547ba88b05505f28e712f46b6f655f0ff327569521f91e8ae5e67"
+      "sha256": "a6f4adb38c24e27ddf973a940d0337b72faf8759041c93c63fba790d7956c548"
     },
     {
       "path": "project.config.json",
