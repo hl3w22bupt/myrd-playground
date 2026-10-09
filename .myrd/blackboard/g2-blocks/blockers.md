@@ -2,7 +2,7 @@
 
 > 更新时间：2026-10-09（N1 收口 · 链 v8 = 唯一链头 draft · N2/N3 已解锁）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：N1 链 v8 入链 → 解锁 N2/N3；提审/发布归主人（团队只交包）
+> 下一步：N2/N3 并行（已解锁，输入 = 链 v8 冻结面）→ N4 → N5；提审/发布归主人（团队只交包）
 
 ## 当前基线（V1.3 首批开工 · 2026-10-09）
 
@@ -10,7 +10,7 @@
 - **spec 版本号**：
   - **契约共同输入（approved 基线）= v1.1 导出件** `.myrd/spec/g2-blocks/design-spec.json`（平台 id `cmuqa2mu50023m9zr8mh60uph` · 链 v2 · 锚 `302e63367f3dea63…` 2026-10-09 实算全等）
   - **链头 = 链 v7 draft**（v1.5 封版包）`cmuyvvhql0043m93eu777kop8` · parent=链 v6 · **numeric 锚 `19661d90b8de07c6…`（2026-10-09 链上回读实算）** · 含 ac-29（active）/ ac-30（PEND·calibration）/ ac-31/ac-32（PEND·implementation）
-  - **本轮新建 = 链 v8 draft（已入链 = 唯一链头）**：id  · parent=链 v7 · **numeric 锚 （POST 回读实算）** · ac-31/ac-32 转 active（copy 枚举 + auto/manual + 埋点/槽位 id）+ ac-30 增首轮校准规格（四门槛零改动）+ 新增 ac-33 提审包零 diff（active）+ 实体 +2（e-personal-best / e-sfx-usage）+ assets +3（a08/a09/a10）· v7 翻 superseded（版本链语义，零覆盖实核）
+  - **本轮新建 = 链 v8 draft（已入链 = 唯一链头）**：id `cmv0aoxtt004gm9vigjmn09bh` · parent=链 v7 · **numeric 锚 `6719edd27d7e121a…`（POST 回读实算）** · ac-31/ac-32 转 active（copy 枚举 + auto/manual + 埋点/槽位 id）+ ac-30 增首轮校准规格（四门槛零改动）+ 新增 ac-33 提审包零 diff（active）+ 实体 +2（e-personal-best / e-sfx-usage）+ assets +3（a08/a09/a10）· v7 翻 superseded（版本链语义，零覆盖实核）
 - **导出件**：链 v7 → `.myrd/spec/g2-blocks/design-spec-v15-freeze-draft.json`；链 v8 → `.myrd/spec/g2-blocks/design-spec-v13-batch-draft.json`（N1 入链后落）
 - **源仓**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks`；**v1.2 发布 commit = `6d3db6a`**（部署轮 r3 产物同源）；main 头 `1e3eff4`（封版冲刺/wx/dy 端口在各自分支与 main，本轮零接触）；**N2 从 `6d3db6a` 切 `feat/v1.3-nearmiss-settlement`**
 - **开工前置快照**：`gate-logs/v13-nearmiss-n1-20261009/00-baseline-snapshot.json`（双锚 + 链状态表 + 源仓基线）
@@ -21,9 +21,9 @@
 
 | id | 内容 | 归属线 | 解除判据 | 状态 |
 |---|---|---|---|---|
-| C1 | QA 预打回六条未修补入链 | 策划+程序 | 链 v8 draft 入链 + 回读全等 + v1..v7 零覆盖 + 守卫全绿 | ✅ 链 v8  · 14 守卫全绿 · 回读全等 · v1..v7 零覆盖（） |
-| C2 | near-miss/结算页实现未开工（N2） | 程序 | 链 v8 入链后从 `6d3db6a` 切分支，每片先红后绿 | ⏳ 待 C1 |
-| C3 | near-miss 视听变体 + 槽位视觉 + 截图证据包未开产（N3） | 美术 | 按 N1 冻结面产出 + 四要素校样 | ⏳ 待 C1 |
+| C1 | QA 预打回六条未修补入链 | 策划+程序 | 链 v8 draft 入链 + 回读全等 + v1..v7 零覆盖 + 守卫全绿 | ✅ 链 v8 `cmv0aoxtt004gm9vigjmn09bh` · 14 守卫全绿 · 回读全等 · v1..v7 零覆盖（`gate-logs/v13-nearmiss-n1-20261009/`） |
+| C2 | near-miss/结算页实现未开工（N2） | 程序 | 链 v8 入链后从 `6d3db6a` 切分支，每片先红后绿 | 🔄 C1 已闭 · 进行中 |
+| C3 | near-miss 视听变体 + 槽位视觉 + 截图证据包未开产（N3） | 美术 | 按 N1 冻结面产出 + 四要素校样 | 🔄 C1 已闭 · 进行中 |
 | C4 | DoD 首轮校准报告未产出（N4） | QA | 对照链 v8 审查无红 + 报告三件套齐全 | ⏳ 待 C2/C3 |
 
 ## 升级条款（本轮回主人裁决 · 延续 v1.2 轮未决项）
