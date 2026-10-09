@@ -49,7 +49,10 @@ const F_TRIPLE_CUT: int = F_TRIPLE_PLACE + 1
 const F_TRIPLE_CHECK: int = F_TRIPLE_CUT + COMBO_FLUSH_FRAMES
 const F_MISS_PLACE: int = F_TRIPLE_CHECK + 1
 const F_MISS_CHECK: int = F_MISS_PLACE + MISS_WAIT_FRAMES
-const F_BOMB_PLACE: int = F_MISS_CHECK + 1
+const F_KIND_PLACE: int = F_MISS_CHECK + 1
+const F_KIND_CUT: int = F_KIND_PLACE + 1
+const F_KIND_CHECK: int = F_KIND_CUT + CUT_WAIT_FRAMES
+const F_BOMB_PLACE: int = F_KIND_CHECK + 1
 const F_BOMB_CUT: int = F_BOMB_PLACE + 1
 const F_END_CHECK: int = F_BOMB_CUT + BOMB_WAIT_FRAMES
 const F_RESTART: int = F_END_CHECK + 1
@@ -104,6 +107,7 @@ func _ready() -> void:
 		game_state.round_ended.connect(_on_round_ended)
 		_check_tuning_protocol(game_state)
 		_check_rule_defaults(game_state)
+		_check_fruit_catalog()
 
 	_main = get_node_or_null("Main") as Node3D
 	if _main == null:
@@ -153,6 +157,12 @@ func _physics_process(_delta: float) -> void:
 			_place_miss_probe()
 		elif _frames == F_MISS_CHECK:
 			_assert_miss_counted()
+		elif _frames == F_KIND_PLACE:
+			_place_kind_pair()
+		elif _frames == F_KIND_CUT:
+			_press_action(&"confirm")
+		elif _frames == F_KIND_CHECK:
+			_assert_multi_fruit_cut()
 		elif _frames == F_BOMB_PLACE:
 			_place_bomb()
 		elif _frames == F_BOMB_CUT:
@@ -185,10 +195,10 @@ func _assert_blade_moved() -> void:
 
 func _assert_pair_scored() -> void:
 	# 需求口径字面值（不用调参变量计算期望：期望跟着参数走就成了恒真式，拦不住错参数）。
-	if GameState.apples_sliced != 2:
-		_failures.append("核心交互：摆 2 个苹果一刀挥砍后 apples_sliced=%d（期望 2）—— 切割查询未命中碰撞体" % GameState.apples_sliced)
+	if GameState.fruits_sliced != 2:
+		_failures.append("核心交互：摆 2 个水果一刀挥砍后 fruits_sliced=%d（期望 2）—— 切割查询未命中碰撞体" % GameState.fruits_sliced)
 	if GameState.score != 20:
-		_failures.append("计分：两果 %d 分（期望 20 = 2×10，需求「每切中 1 个苹果 +10」）—— register_apple_cut 未按单果计分" % GameState.score)
+		_failures.append("计分：两果 %d 分（期望 20 = 2×10，需求「每切中 1 个水果 +10」）—— register_fruit_cut 未按单果计分" % GameState.score)
 	if not _score_seen:
 		_failures.append("信号 GameState.score_changed 未到达订阅方：切割计分链路断裂")
 
@@ -207,8 +217,8 @@ func _assert_triple_combo_and_label() -> void:
 	# 需求口径字面值：前序累计 30（两果刀）+ 本刀三果 50（3×10 + 20）= 80。
 	if GameState.score != 80:
 		_failures.append("三果连击：累计 %d 分（期望 80 = 两果刀 30 + 三果 3×10 + 20，需求「三果及以上额外 +20」）—— 一刀三果加分口径与需求不符" % GameState.score)
-	if GameState.apples_sliced != 5:
-		_failures.append("三果连击：apples_sliced=%d（期望 5 = 两果 + 三果）—— 有苹果没被切中" % GameState.apples_sliced)
+	if GameState.fruits_sliced != 5:
+		_failures.append("三果连击：fruits_sliced=%d（期望 5 = 两果 + 三果）—— 有水果没被切中" % GameState.fruits_sliced)
 	if GameState.max_swing_combo < 3:
 		_failures.append("三果连击：max_swing_combo=%d（期望 ≥3）—— 同刀窗口未把三果记为一刀" % GameState.max_swing_combo)
 	if _combo_count_seen < 3:
@@ -225,6 +235,40 @@ func _assert_triple_combo_and_label() -> void:
 func _assert_miss_counted() -> void:
 	if GameState.missed_fruits != 1:
 		_failures.append("漏接统计：missed_fruits=%d（期望 1）—— 抛出物落出屏幕下缘未计入漏接（不扣分但须计数）" % GameState.missed_fruits)
+
+
+## 多水果切割断言（需求「验收 3/6」的无头翻译）：
+## 摆西瓜 + 猕猴桃各一枚一刀切掉 → 分种类统计入账 + 切面剖面网格真实生成。
+func _assert_multi_fruit_cut() -> void:
+	# 计分不分种类：前序累计 80（两果刀 30 + 三果刀 50）+ 本刀西瓜/猕猴桃 2×10 = 100。
+	# 检查点在切割后 8 帧 < combo_window（0.4s）：这一刀的连击加成尚未入账，不影响期望值。
+	if GameState.fruits_sliced != 7:
+		_failures.append("多水果切割：fruits_sliced=%d（期望 7 = 前序 5 + 西瓜/猕猴桃 2）—— 非苹果水果切割未计分" % GameState.fruits_sliced)
+	if GameState.score != 100:
+		_failures.append("多水果计分：score=%d（期望 100 = 前序 80 + 2×10）—— 计分随种类漂移或加成提前入账" % GameState.score)
+	if int(GameState.fruits_by_kind.get(&"watermelon", 0)) != 1 \
+			or int(GameState.fruits_by_kind.get(&"kiwi", 0)) != 1:
+		_failures.append("多水果统计：fruits_by_kind=%s（期望 watermelon×1 + kiwi×1）—— 分种类统计未入账" % str(GameState.fruits_by_kind))
+	# 切面剖面：两半各带果肉圆盘/果心/籽粒 —— 场上应存在带切面子节点的分离网格。
+	var cut_halves := _count_cut_halves()
+	if cut_halves < 2:
+		_failures.append("切面剖面：切割后带切面子节点的分离网格 %d 个（期望 ≥2）—— 果皮/果肉双层或切面剖面网格未生成" % cut_halves)
+
+
+## 统计 Fruits 子树里「挂了 ≥3 个子网格」的分离半（皮球 + 果肉圆盘 + 心/籽）。
+func _count_cut_halves() -> int:
+	var fruits_root: Node = _main.get_node_or_null("Fruits")
+	if fruits_root == null:
+		return 0
+	var count := 0
+	var stack: Array[Node] = [fruits_root]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		if node is MeshInstance3D and node.get_child_count() >= 3:
+			count += 1
+		for child in node.get_children():
+			stack.append(child)
+	return count
 
 
 func _assert_round_ended_by_bomb() -> void:
@@ -270,7 +314,18 @@ func _place_miss_probe() -> void:
 	(_main.call("spawn_fruit", Vector3(0, -6.8, 0), Vector3(0, -2, 0), false) as Fruit)
 
 
+## 多水果切割的确定性摆放：西瓜 + 猕猴桃各一枚横排在刀锋两侧（原地点击脉冲球形查询全覆盖）。
+func _place_kind_pair() -> void:
+	_blade.reset_to(_blade.position)  # 熄灭上一阶段的挥砍脉冲，防误切本阶段摆放物
+	var center: Vector3 = _blade.position
+	(_main.call("spawn_fruit", center + Vector3(-0.14, 0, 0), Vector3.ZERO,
+		false, &"watermelon") as Fruit)
+	(_main.call("spawn_fruit", center + Vector3(0.14, 0, 0), Vector3.ZERO,
+		false, &"kiwi") as Fruit)
+
+
 func _place_bomb() -> void:
+	_blade.reset_to(_blade.position)  # 同上：多水果阶段的原地脉冲 0.18s 未过期会提前切中炸弹
 	(_main.call("spawn_fruit", _blade.position, Vector3.ZERO, true) as Fruit)
 
 
@@ -388,7 +443,7 @@ func _check_tuning_protocol(game_state: Node) -> void:
 func _check_rule_defaults(game_state: Node) -> void:
 	var expectations: Array = [
 		["round_seconds", 60.0, "单局 60 秒"],
-		["apple_points", 10.0, "每切中 1 个苹果 +10"],
+		["fruit_points", 10.0, "每切中 1 个水果 +10（不分种类）"],
 		["combo_bonus_pair", 10.0, "一刀两果额外 +10（合计 +30）"],
 		["combo_bonus_many", 20.0, "一刀三果及以上额外 +20（合计 +50）"],
 		["bomb_ratio", 0.15, "炸弹混入概率约 15%"],
@@ -403,12 +458,33 @@ func _check_rule_defaults(game_state: Node) -> void:
 				entry[0], actual, entry[1], entry[2]])
 
 
+## 多水果目录断言（需求「验收 3/6」）：≥5 种、外观定义齐全、果皮配色两两可辨不混同。
+func _check_fruit_catalog() -> void:
+	if FruitCatalog.kind_count() < 5:
+		_failures.append("多水果目录：种类数 %d < 5（需求「每局出现 ≥5 种水果」）" % FruitCatalog.kind_count())
+	for kind: StringName in FruitCatalog.KINDS:
+		var fruit_def: Dictionary = FruitCatalog.def(kind)
+		for required_key in ["peel_color", "flesh_color", "flesh_juice", "seed_color", "seed_count", "radius"]:
+			if not fruit_def.has(required_key):
+				_failures.append("多水果目录：%s 缺少外观字段 %s —— 程序化造型数据不全" % [kind, required_key])
+	# 果皮配色两两间距（RGB 欧氏距离）：低于阈值 = 玩家分不清两种水果（需求「不混同」）。
+	var kinds: Array[StringName] = FruitCatalog.KINDS
+	for i in range(kinds.size()):
+		for j in range(i + 1, kinds.size()):
+			var a: Color = FruitCatalog.def(kinds[i])["peel_color"]
+			var b: Color = FruitCatalog.def(kinds[j])["peel_color"]
+			var distance := Vector3(a.r, a.g, a.b).distance_to(Vector3(b.r, b.g, b.b))
+			if distance < 0.2:
+				_failures.append("多水果目录：%s 与 %s 果皮配色间距 %.2f < 0.2 —— 外观雷同难以辨识" % [
+					kinds[i], kinds[j], distance])
+
+
 func _report() -> void:
 	# 反馈断言收口在报告前：前序任一断言失败时反馈链多半也没机会触发，只在前序全绿时判它。
 	if _failures.is_empty():
 		_assert_feedback_fired()
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/autoload/键位契约/刀锋移动/切割计分/两果连击/三果连击+50/Combo提示/漏接计数/炸弹终局/重开/反馈/调参协议 全部通过")
+		print("GODOT_SMOKE: PASS 场景实例化/autoload/键位契约/刀锋移动/切割计分/两果连击/三果连击+50/Combo提示/漏接计数/多水果目录/多水果切割+分种类统计+切面剖面/炸弹终局/重开/反馈/调参协议 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

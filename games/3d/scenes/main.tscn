@@ -77,7 +77,7 @@ offset_right = 524.0
 offset_bottom = 76.0
 theme_override_font_sizes/font_size = 15
 theme_override_colors/font_color = Color(0.78, 0.84, 0.95, 0.85)
-text = "滑动切开苹果"
+text = "滑动切开水果"
 
 [node name="ComboLabel" type="Label" parent="UI"]
 unique_name_in_owner = true

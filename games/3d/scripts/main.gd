@@ -55,7 +55,7 @@ var _throw_rng := RandomNumberGenerator.new()
 func _ready() -> void:
 	if DisplayServer.is_touchscreen_available():
 		touch_ui.visible = true
-		hint_label.text = "滑动切开苹果 · 连切有加成 · 切中炸弹即终局"
+		hint_label.text = "滑动切开水果 · 连切有加成 · 切中炸弹即终局"
 	else:
 		hint_label.text = "按住拖动滑切（或方向键移刀 · 空格挥砍）· 切中炸弹即终局"
 	# 信号连接：订阅方（本场景）写连接代码，发布方（GameState）只 emit。
@@ -113,10 +113,12 @@ func _spawn_interval() -> float:
 	return GameState.spawn_interval_early
 
 
-## 随机抛出一个苹果 / 炸弹（bomb_ratio 决定占比；每局前 SAFE_THROWS 必为苹果）。
+## 随机抛出一个水果 / 炸弹（bomb_ratio 决定炸弹占比；每局前 SAFE_THROWS 必为水果）。
+## 水果种类从 FruitCatalog（6 种）均匀随机 —— 单局 60s 约 60 投，≥5 种必出现。
 func _spawn_fruit_random() -> void:
 	var is_bomb := _round_throws >= SAFE_THROWS_PER_ROUND \
 		and _throw_rng.randf() < GameState.bomb_ratio
+	var kind := FruitCatalog.random_kind(_throw_rng)
 	var first_throw := _round_throws == 0
 	_round_throws += 1
 	var half_width := FIRST_THROW_HALF_WIDTH if first_throw else SPAWN_HALF_WIDTH
@@ -126,12 +128,12 @@ func _spawn_fruit_random() -> void:
 	if _throw_rng.randf() < THROWS_TOWARD_CENTER:
 		vx = _aimed_vx(x, speed)
 	if first_throw:
-		# 开局正中直线苹果：垂直上抛、必两次穿过刀锋出生高度 —— 开局正反馈必可达。
+		# 开局正中直线水果：垂直上抛、必两次穿过刀锋出生高度 —— 开局正反馈必可达。
 		x = 0.0
 		vx = 0.0
 		speed = GameState.throw_speed_min
 	spawn_fruit(Vector3(x, SPAWN_Y, _throw_rng.randf_range(-0.15, 0.15)),
-		Vector3(vx, speed, 0.0), is_bomb)
+		Vector3(vx, speed, 0.0), is_bomb, kind)
 
 
 ## 朝屏幕中带瞄准的横向初速：取顶点横坐标 ∈ ±APEX_BAND，反解 vx = (顶点x - 出生x)/t_顶点，
@@ -143,9 +145,13 @@ func _aimed_vx(x: float, speed: float) -> float:
 
 
 ## 抛出一个指定参数的抛出物（随机抛出与冒烟确定性摆放共用这一个入口）。
-func spawn_fruit(at: Vector3, velocity: Vector3, bomb: bool) -> Fruit:
+## variety 传 &""（默认）时非炸弹抛出物随机选种类、炸弹忽略种类。
+func spawn_fruit(at: Vector3, velocity: Vector3, bomb: bool,
+		variety: StringName = &"") -> Fruit:
 	var fruit: Fruit = FRUIT_SCENE.instantiate()
 	fruit.is_bomb = bomb
+	if not variety.is_empty():
+		fruit.variety = variety
 	fruit.setup(at, velocity)
 	fruits.add_child(fruit)
 	return fruit
@@ -169,9 +175,10 @@ func _on_round_ended(reason: StringName, stats: Dictionary) -> void:
 		end_title.text = "切中炸弹！对局结束"
 	else:
 		end_title.text = "时间到！对局结束"
-	end_stats.text = "总分 %d\n切中苹果 %d 个 · 最高单刀连击 x%d\n漏接 %d 个 · 历史最高 %d%s\n\n按任意键 / 点击按钮 再来一局" % [
-		stats.get("score", 0), stats.get("apples", 0), stats.get("max_combo", 0),
-		stats.get("missed", 0), stats.get("best", 0),
+	var kinds_line := _format_kinds(stats.get("kinds", {}))
+	end_stats.text = "总分 %d\n切中水果 %d 个 · 最高单刀连击 x%d\n%s\n漏接 %d 个 · 历史最高 %d%s\n\n按任意键 / 点击按钮 再来一局" % [
+		stats.get("score", 0), stats.get("fruits", 0), stats.get("max_combo", 0),
+		kinds_line, stats.get("missed", 0), stats.get("best", 0),
 		"\n★ 新纪录！" if stats.get("record_broken", false) else "",
 	]
 	end_panel.visible = true
@@ -179,6 +186,16 @@ func _on_round_ended(reason: StringName, stats: Dictionary) -> void:
 	# 结果性事件（终局）的反馈：弹跳 + 音效（爆炸本体反馈在 fruit._explode）。
 	Juice.pop(end_panel)
 	Juice.sfx(&"confirm")
+
+
+## 分种类统计 → 「西瓜×2 橙子×1 …」一行（结算面板展示多水果构成；空字典给占位）。
+func _format_kinds(kinds: Dictionary) -> String:
+	if kinds.is_empty():
+		return "本局未切中水果"
+	var parts: PackedStringArray = []
+	for kind: StringName in kinds:
+		parts.append("%s×%d" % [FruitCatalog.def(kind)["label"], kinds[kind]])
+	return " · ".join(parts)
 
 
 func _on_restart_pressed() -> void:

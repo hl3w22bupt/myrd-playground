@@ -22,7 +22,8 @@ signal record_broken(best: int)
 ## ── 对局状态 ──
 var score: int = 0
 var round_active: bool = false
-var apples_sliced: int = 0        ## 本局切中苹果数
+var fruits_sliced: int = 0        ## 本局切中水果数（不分种类，需求「计分规则 1」）
+var fruits_by_kind: Dictionary = {}  ## 分种类统计：kind → 个数（结算与冒烟断言用）
 var missed_fruits: int = 0        ## 本局漏接（落出屏幕）的抛出物数 —— 不扣分，只计统计
 var max_swing_combo: int = 0      ## 本局最高单刀连击数
 var best_score: int = 0           ## 历史最高分（user:// 持久化，跨局保留）
@@ -38,7 +39,7 @@ const BEST_SCORE_KEY: String = "best_score"
 ## ── 数值调参区（SKILL.md §3C 调参工作台的 spec.numeric 对接面）──
 ## 默认值 = spec.numeric 的当前定稿；试玩调参经 apply_tuning 覆盖，定稿回写 spec 后更新这里。
 var round_seconds: float = 60.0          ## 单局时长（需求：60 秒）
-var apple_points: float = 10.0           ## 每切中 1 个苹果 +10
+var fruit_points: float = 10.0           ## 每切中 1 个水果 +10（不分种类）
 var combo_bonus_pair: float = 10.0       ## 一刀两果额外 +10（该刀合计 +30）
 var combo_bonus_many: float = 20.0       ## 一刀三果及以上额外 +20（三果合计 +50）
 var combo_window: float = 0.4            ## 「同一刀」的判定窗口（秒）
@@ -55,7 +56,7 @@ var blade_speed: float = 26.0            ## 键盘/摇杆模式下刀锋移动�
 ## 新增可调数值 = 上面加变量 + 这里加一行，两处都在本文件。
 const TUNING_META: Dictionary = {
 	&"round_seconds": {"min": 30.0, "max": 120.0, "step": 5.0},
-	&"apple_points": {"min": 5.0, "max": 50.0, "step": 1.0},
+	&"fruit_points": {"min": 5.0, "max": 50.0, "step": 1.0},
 	&"combo_bonus_pair": {"min": 0.0, "max": 40.0, "step": 1.0},
 	&"combo_bonus_many": {"min": 0.0, "max": 60.0, "step": 1.0},
 	&"combo_window": {"min": 0.2, "max": 1.0, "step": 0.05},
@@ -100,7 +101,8 @@ func end_round(reason: StringName) -> void:
 func round_stats() -> Dictionary:
 	return {
 		"score": score,
-		"apples": apples_sliced,
+		"fruits": fruits_sliced,
+		"kinds": fruits_by_kind.duplicate(),
 		"missed": missed_fruits,
 		"max_combo": max_swing_combo,
 		"best": best_score,
@@ -120,7 +122,8 @@ func register_miss() -> void:
 ##   状态直到下一份输入到来 —— 节奏门禁实测因此出现开局断档。）
 func reset() -> void:
 	score = 0
-	apples_sliced = 0
+	fruits_sliced = 0
+	fruits_by_kind = {}
 	missed_fruits = 0
 	max_swing_combo = 0
 	record_broken_this_round = false
@@ -132,7 +135,8 @@ func reset() -> void:
 func _reset_round_stats() -> void:
 	score = 0
 	round_active = false
-	apples_sliced = 0
+	fruits_sliced = 0
+	fruits_by_kind = {}
 	missed_fruits = 0
 	max_swing_combo = 0
 	record_broken_this_round = false
@@ -142,8 +146,9 @@ func _reset_round_stats() -> void:
 
 ## ── 计分规则（需求「计分规则」节的唯一实现）──
 
-## 切中 1 个苹果：+10 分立即入账；同一刀（combo_window 内）累加连击计数。
-func register_apple_cut() -> void:
+## 切中 1 个水果（不分种类）：+10 分立即入账；同一刀（combo_window 内）累加连击计数。
+## kind 用于分种类统计（结算与冒烟多水果断言），未知种类照常计分。
+func register_fruit_cut(kind: StringName = &"apple") -> void:
 	if not round_active:
 		return
 	var now := _now_sec()
@@ -153,8 +158,9 @@ func register_apple_cut() -> void:
 	_swing_expire_at = now + combo_window
 	if _swing_count > max_swing_combo:
 		max_swing_combo = _swing_count
-	apples_sliced += 1
-	score += int(apple_points)
+	fruits_sliced += 1
+	fruits_by_kind[kind] = int(fruits_by_kind.get(kind, 0)) + 1
+	score += int(fruit_points)
 	score_changed.emit(score)
 
 
