@@ -43,8 +43,17 @@ func _ready() -> void:
 	_build_touch_ui()
 	_connect_signals()
 	_refresh_static_hud()
+	_maybe_mount_tuning_panel()
 	conductor.start()
 	_refresh_hud()
+
+
+## 调参工作台挂载（SKILL.md §3C）：网页 URL 带 ?tuning= 时浮出面板（面板自判环境，
+## 桌面/无头 is_enabled()=false 零成本）。此前面板只有定义、无实例化点——
+## playtest 节点 2026-10-09 实测线上 ?tuning=1 不出面板，补上这条装配。
+func _maybe_mount_tuning_panel() -> void:
+	if TuningPanel.is_enabled():
+		add_child(TuningPanel.new())
 
 
 ## ── 装配 ──

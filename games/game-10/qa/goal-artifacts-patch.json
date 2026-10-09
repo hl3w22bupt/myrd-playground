@@ -1,0 +1,41 @@
+{
+  "artifacts": [
+    {
+      "op": "create_requirement",
+      "title": "录入《节奏大师》音乐节拍玩法需求",
+      "detail": "收到，我先把这条需求细化成完整文档（标题 + 详细描述 + 5 条可验证验收标准），再写入需求池。\n\n第一步：先把需求文档正文落到本地文件（避免 JSON 转义出错），随后组装请求体并调用平台 API 录入。文档写好了，第二步：组装 JSON 请求体并 POST 到需求池接口。需求已成功录入需求池（HTTP 201，状态 backlog）。\n\n**录入结果**\n- 标题：《节奏大师》音乐节拍玩法需求：四轨判定、连击收集、难度分级与移动端触控\n- 类型：feature ｜ 优先级：medium ｜ 项目：cmv0xyobf0007m94ogyu79h0k\n- 内容结构：背景与目标 + 四大模块详述（四轨判定窗口 ±50/±100ms、Combo 累计与清零规则、Easy~Expert 四档难度、移动端多点触控与延迟校准）+ 5 条可验证验收标准（判定自动化 100% 一致、连击结算误差为 0、四档位配置区间校验、真机 1000 次 0 丢触且延迟中位数 ≤80ms、得分可人工复算）\n\nrequirement id：[ARTIFACT_ID]cmv0y4coa000vm94o5w4iwqso[/ARTIFACT_ID]",
+      "status": "completed",
+      "createdAt": "2026-10-09T12:33:01.285Z",
+      "artifactId": "cmv0y4coa000vm94o5w4iwqso",
+      "artifactType": "requirement"
+    },
+    {
+      "op": "write_document",
+      "title": "节拍类谱面设计与 WebAudio 契约调研",
+      "detail": "收到任务：把前序需求《节奏大师》四轨节拍玩法对应的「谱面设计 + WebAudio 契约 + 移动端触控」调研结论，整理成一份结构化调研初稿，落到项目文档库。我先把文档写出来，再调用平台 API 入库。文档初稿已完成，覆盖 BPM/谱面、判定契约、WebAudio、触控布局四大块并映射到 AC1–AC5。现在组装 JSON 载荷并提交到平台文档库。文档已成功写入平台文档库（API 返回 `success: true`，末尾的报错只是我本地解析回显时的控制字符问题，不影响入库）。\n\n**本次产出说明：**\n\n围绕前序需求《节奏大师》四轨节拍玩法，我把调研结论整理成了一份结构化初稿，共 9 个章节，核心内容：\n\n- **BPM 与谱面设计**：时间换算（含 BPM 128/190 两个关键算例）、密度指标（NPS 均值+峰值、双押率）、四档难度配置表草案（approach 2200ms→800ms、同轨最小间隔 ≥400ms→≥180ms）、谱面校验 5 条机器可查规则；\n- **判定契约**：±50ms/±100ms 三档判定公式、只认音频时钟（禁止 rAF 参与判定）、输入时间戳换算到歌曲时间轴的方法、反吞噬判定算法（每轨队列 + 顺序消费 + 帧无关 MISS 扫描）、±300ms/10ms 校准流程与持久化方案；\n- **WebAudio 契约**：手势解锁时序（decode 可预做、resume 必须在手势内）、单一 AudioContext 原则、绝对时间调度锚点、baseLatency/outputLatency/getOutputTimestamp 特性检测矩阵、iOS 中断（interrupted 状态）与后台/低帧率处理；\n- **移动端触控**：四轨分区几何（x 定轨、全轨可按）、Pointer Events 多点处理（pointercancel 不清 combo）、触控→判定延迟预算拆解（中位 20–45ms，≤80ms 可达成）、真机矩阵建议；\n- **AC1–AC5 逐条映射**到实现锚点与验证方式，并单独列出 8 项待验证清单 + 6 个需拍板的开放问题（空按惩罚、连击加分、≤80ms 口径等）。\n\n文档已按「未甄别中间产物」定位落项目文档库，待评审和真机验证后再考虑沉淀进知识库。\n\n[ARTIFACT_ID]e057b7de-2fab-4f8d-b36e-0f262eca0188[/ARTIFACT_ID]",
+      "status": "completed",
+      "createdAt": "2026-10-09T12:41:23.187Z",
+      "artifactId": "e057b7de-2fab-4f8d-b36e-0f262eca0188",
+      "artifactType": "document"
+    },
+    {
+      "op": "run_workflow",
+      "url": "/apps/game-10/gw",
+      "title": "《节奏大师，音乐节拍类游戏》已部署",
+      "detail": "liveUrl=https://leomac-studio.tail49399e.ts.net/apps/game-10/；deploymentId=cmv10cg93001jm94of535yg54（gitRef=myrd/game-10-goal-cmv0xypkw000dm94o58qf3x8j，commitHash=2ccb38e）；冒烟结论=本地 godot 四门禁全绿（PREFLIGHT 14类 / GODOT_SMOKE 240帧 / GODOT_FUZZ / GODOT_PLAYTEST 3局 380/520/600），部署后 /health 与 / 均 200，落地页标题=节奏大师；移动端门禁=MOBILE_SMOKE PASS（10项全绿：网络全通/console零错/canvas挂载/首帧非纯色/画面在动/触摸到达/触摸响应/音频解锁器__audioDebug/无横向溢出/FPS≥8，证据 games/game-10/qa/mobile/ report.json+phase-load/phase-joystick/phase-tap.png）；形态=assets_dir 出 bundle（对象存储懒加载，index.wasm 35MB 走 CDN 通道），壳含移动端音频手势解锁器与 ?tuning= 调参桥，桌面键位 D F J K、移动端四分区触控",
+      "status": "completed",
+      "artifactId": "cmv0xyobv000bm94o6kxqca8z",
+      "artifactType": "hosted_app"
+    },
+    {
+      "op": "playtest_kit",
+      "title": "《节奏大师》试玩验收包（playtest kit）",
+      "detail": "试玩入口=https://leomac-studio.tail49399e.ts.net/apps/game-10/；调参工作台=https://leomac-studio.tail49399e.ts.net/apps/game-10/?tuning=1。调参数值桥线上已生效（?tuning=<JSON> 启动即应用），但面板缺陷：线上 commit 2ccb38e 的面板脚本有定义、无实例化点，?tuning=1 不出面板——本节点已补接线（main.gd _maybe_mount_tuning_panel，PREFLIGHT 14 类 + GODOT_SMOKE 240 帧复跑全绿）并重导出，面板待下一次部署生效；此前调参直接拼 ?tuning=<JSON> URL（模板见验收包§五）。试玩指引已落 games/game-10/qa/playtest-kit.md：一局 32s（0-3.8s 等待期）、四轨 D/F/J/K（移动端底部四分区多点触控）、PERFECT ±50ms=100 分 / GOOD ±100ms=60 分 / 超窗 MISS、MISS 清零 combo、命中率 ≥60% 通关；结算页展示总分/最大连击/P·G·MISS 计数/命中率，总分=P×100+G×60 可人工复算（AC5）；四档难度 Easy~Expert（300/1.10s → 560/0.46s）结算页切换。结构化量表四问（①首分钟看懂目标与操作 ②再来一局 1-5 ③手感反馈 1-5 ④节奏断档）全部标注「待用户试玩」——试玩结论只能来自试玩人，未回填不代填，未收到调参 URL 前不执行 spec 数值回写。机器侧核查（本节点，非试玩结论）：mobile-web-smoke preHook 证据 qa/mobile/report.json verdict=PASS 10/10（url=liveUrl，fps=38，checkedAt=2026-10-09T13:45:38Z），与 preHook 结论一致无矛盾；门禁资产在库（6 判定脚本 + routines.yaml 含 godot-smoke/mobile-web-smoke + references 两模板）。前置缺口：本 goal 在 game_design_specs 表无任何版本行且工程内无 .myrd/spec/design-spec.json → 收到调参 URL 后 revisions 端点会 404，需先建首版 spec 再走数值回写（已写入验收包§五）。",
+      "status": "completed",
+      "artifactId": "games/game-10/qa/playtest-kit.md",
+      "artifactType": "playtest_kit",
+      "url": "https://leomac-studio.tail49399e.ts.net/apps/game-10/?tuning=1",
+      "createdAt": "2026-10-09T13:53:52.000Z"
+    }
+  ]
+}
