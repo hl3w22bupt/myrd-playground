@@ -1,0 +1,19 @@
+PASS 守卫① 基线三钉（v1.1 锚 302e6336… + v4 锚 1720df8e… + v7 链头 id/version/draft + v7 锚 19661d90…）
+PASS 守卫② v7↔v1.1 玩法十二组全等 + v7 feel/daily↔v4 全等（前提自检）
+PASS 守卫③ v7 修订前提自检（ac-29 active + ac-30/31/32 pending + e-nearmiss/e-settlement + uxProposal 提案值）
+PASS 守卫④ numeric 形态：除 uxProposal（声明收缩面）外全部组逐字节不动 + 组集恰 +2（nearMiss/settlement）
+PASS 守卫⑤ 承值零调参：nearMiss/settlement 七个承值字段与 v7 uxProposal 提案值逐字节全等
+PASS 守卫⑥ acceptance 形态：其余 25 条逐字节不动 + 三条原位替换（位置不变）+ 恰 1 新增 ac-33（总数 29）
+PASS 守卫⑦ 修订条目形态：ac-31/32 active（scope=playable · verification=auto · copy/events 齐备）；ac-30 门槛数值与 v7 逐字节全等（零改动）
+PASS 守卫⑧ entities 形态：其余 10 项逐字节不动 + 两项原位替换 + 恰 2 新增（总数 14）
+PASS 守卫⑨ world/assets 形态：world 既有键不动（uxCommitments 为声明面重写，id 面单查）+ uxCommitments 2 项 id 不变；assets 七项不动 + 恰 3 新增（总数 10）
+PASS 守卫⑩ levels/content 逐字节不动；meta 仅 version/revision_note 变且 version=1.6
+PASS 守卫⑪ 修补①..⑥ 落点机判（口径定死 / 强反馈预留 / 个人最佳边界 / 测量口径 / 埋点与 element id / 文案枚举与 auto-manual）
+PASS 守卫⑫ 顺延项零回流：无 numeric.levelStars / ac-19/20/21 / 第一分钟引导
+PASS 守卫⑬ near-miss 硬约束：零粒子 + 不震屏 + 边行高亮不常亮（transient-not-latched）
+PASS 守卫⑭ payload 形态完整：八段齐 + 三方自洽（ac-31.events ↔ e-nearmiss ↔ numeric 遥测；ac-32.slots ↔ e-settlement ↔ slotOrder）
+BUILD-SPEC-V13-BATCH: PASS（14 守卫全绿）
+payload → /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-n1/docs/spec/spec-v13-batch-payload.json
+v8 numeric 锚 = 6719edd27d7e121ac90be2ddca4b8ab127fdda269532bf4693c6afd805e9a739
+acceptance 30 条 · entities 14 项 · assets 10 项
+SPEC-V13-BATCH-POST: PASS（对账模式）链 v8 已在链且全等
