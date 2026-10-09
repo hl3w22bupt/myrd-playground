@@ -1,28 +1,21 @@
-# 《汽车连连看》(game-9) 阻塞项（第三轮线上版复核后更新 2026-10-07）
+# 《节奏大师》(game-10) 阻塞项（主策划线上复核后更新 2026-10-09）
 
-## 当前阻塞（1 项，需要人）
+## 当前阻塞（2 项）
 
 | # | 阻塞 | 影响 | 责任 | 状态 |
 | --- | --- | --- | --- | --- |
-| B1 | 人工验收未拍板：owner 需按 liveUrl 完整试玩（开始→消除→通关/失败→重新开始）+ 移动真机走查 + 回填试玩量表 games/game-9/qa/playtest-kit.md（四问） | 目标关闭的唯一前置；机器侧验收已全绿且第三轮独立复跑可复现（GODOT_PLAYTEST 两档 + round6 移动门禁），**人工拍板是最终裁决** | @ai-verse-bot（目标 owner） | ⏳ 待人工（第三轮复核已备好指引：qa/ACCEPTANCE_REVIEW_ROUND3.md §六） |
+| B1 | 人工验收未拍板：owner 需按 liveUrl 完整试玩一局（开始→四轨击打→MISS 清零→结算页复算 P×100+G×60→切难度→重开）+ 移动真机走查（AC4 抽查）+ 回填四问量表 games/game-10/qa/playtest-kit.md | 目标关闭的唯一前置；机器侧已全绿（四门禁 + MOBILE_SMOKE 两轮 10/10），**人工拍板是最终裁决** | @ai-verse-bot（目标 owner） | ⏳ 待人工 |
+| B2 | 线上落后功能线 HEAD 一个提交：线上 pck＝2ccb38e（2,524,032 B），HEAD=b0e8560 补了调参面板接线（main.gdc +460B）→ 线上 `?tuning=1` 不出调参面板 | 不影响游玩与判定，只影响 owner 调参工作台体验；`?tuning=<JSON>` 直传桥不受影响 | owner/平台（触发一次重部署；本节点 token 无部署 API 权限：`GET /api/v1/deployments/<id>` 404、工作流运行 API 不可达） | ⏳ 待一次重部署，deployment id 变更后需回填 qa/LIVE_REVIEW_2026-10-09.md 与 assets.md |
 
-## 已知遗留（不阻塞验收包与 playtest 机判）
+## 已解除 / 无新增
 
-| # | 事项 | 上报轮次 | 责任 |
-| --- | --- | --- | --- |
-| L2 | 工作流调度 API 迭代通道不可用（任务载明 403：目标大师非项目成员；本轨迹实测 iterate 端点 400 缺 startNodeId）——正式工作流结论待权限补齐后从 implement 补跑 | 迭代 v5 轮 | owner/运维 |
-| L3 | goal artifacts API 直写被拒：`GET /api/v1/goals/cmuw2o88z018ricryvpr6v8wn` 403（本轨迹 2026-10-07 实测复现，与第二轮复核同因）；待落账 JSON 已备 qa/ACCEPTANCE_REVIEW_ROUND3.md §四，有 owner 凭据者一键落账（hosted_app 原位更新 v5 + playtest 第三轮判定） | 第二轮复核上报、第三轮复核复现 | owner/运维 |
-
-## 已解除
-
-| 事项 | 解除方式 |
+| 事项 | 结论 |
 | --- | --- |
-| L1 模板仓库未预置 `playtest.sh` + `playtest_driver.gd`（playtest 棒三轮 blocked） | 运维已补入模板仓库；v5 迭代复跑核验在库且 GODOT_PLAYTEST PASS 两档（900 帧 fb=75/80/76、5400 帧 fb=517/483/518，详见 qa/playtest-round2/） |
-| round1 移动门禁 touch-response FAIL（tap 落按钮空隙） | main.tscn 主 CTA 居中，round2/round3 全绿（tapDiff 0→320） |
-| 模板壳残留（candy-crush-legend 品牌文案 / /health 身份 / apphost assets_dir / 调参桥壳端） | 部署分支 e2c63a5 整改，/health 实测身份=game-9 汽车连连看 |
-| 部署 API 504 重复受理（v1 building / v2 queued） | v3 running 为准，v1/v2 superseded；当前线上=v5 cmuwqrrl70051m9lgj8v89gh9 @ 游戏代码 2626927（第三轮复核字节级复测证实，2026-10-07） |
-| GODOT_PLAYTEST: PASS 可信度（单次留证 → 跨轨迹复现） | 第三轮复核独立复跑四门禁全绿，playtest 三局指标与 round2 归档逐字一致（qa/playtest-round3/） |
+| goal artifacts API 写权限 | game-9 时代 403 本轮**未复现**：GET goal 200，PATCH artifacts 追加 op=online_review 成功 |
+| 线上身份/资产链路 | /health 身份=game-10 节奏大师无串号；wasm/pck/js 全 200，懒加载通道正常 |
+| 线上可玩性 | MOBILE_SMOKE 复核轮独立复跑 10/10（qa/mobile-round2/），非转抄前轮证据 |
 
 ## 升级规则
 
-B1 若超过一轮无人响应 → 停止空转，升级给主人拍板「验收通过/打回」。
+- B1 超过一轮无人响应 → 停止空转，升级给主人拍板「验收通过/打回」。
+- B2 与 B1 可并行；若 owner 试玩依赖调参面板，则 B2 先行。
