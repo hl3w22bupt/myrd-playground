@@ -8,9 +8,10 @@
  *  - 零外部资源：全部相对路径（同源 serve），禁止 http(s) 外链（黑板 assets.md 红线）。
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ASSET_MANIFEST = void 0;
+exports.META_ASSET_MANIFEST = exports.ASSET_MANIFEST = void 0;
 exports.emptyAssets = emptyAssets;
 exports.loadGameAssets = loadGameAssets;
+exports.loadMetaAssets = loadMetaAssets;
 /** 资产清单：key = 接线点名，value = 工程内相对路径（文件名含 spec 元素 id） */
 exports.ASSET_MANIFEST = {
     /** e01-spawn-first-block：塔基块贴图 */
@@ -31,6 +32,22 @@ exports.ASSET_MANIFEST = {
     restartButton: 'assets/ui/e08-fail-recover.png',
     /** 塔块三循环 tileset（陶土橙/砖红/沙黄，层序读数） */
     blockTileset: 'assets/tileset/blocks-tower.png',
+};
+/**
+ * meta 四件套清单（B1 上头循环 · spec v1.4 content.retention assets，与核心 9 项清单分立）。
+ * 纪律：
+ *  - 独立导出、不动 ASSET_MANIFEST（tests/assets-check.mjs 硬断言核心清单 9 项契约）；
+ *  - scope_gate = narrow（spec v1.4 落死）：仅接线 daily-challenge-card / streak-badge / icon-badge 三件；
+ *    mission-panel 为 missions-deferred 预留件——产出在档（assets/meta/mission-panel.png）不接线，下一轮增补；
+ *  - 文件名与 spec id 逐字对应（assets/meta/<id>.png）；零外部资源。
+ */
+exports.META_ASSET_MANIFEST = {
+    /** daily-challenge-card：每日挑战面板卡（360×160，9-slice 四角 24px 安全区） */
+    dailyChallengeCard: 'assets/meta/daily-challenge-card.png',
+    /** streak-badge：连胜徽章（96×96，透明底） */
+    streakBadge: 'assets/meta/streak-badge.png',
+    /** icon-badge：奖励角标图标（64×64，透明底） */
+    iconBadge: 'assets/meta/icon-badge.png',
 };
 function emptyAssets() {
     return {};
@@ -60,5 +77,33 @@ async function loadGameAssets(loadImage, log) {
         }
     }
     log?.(`[assets] 贴图就绪 ${ok}/${entries.length}${ok < entries.length ? '（缺项走程序化 fallback）' : ''}`);
+    return out;
+}
+/**
+ * meta 四件套并行装载（三态语义与 loadGameAssets 同源）：
+ *  无加载器（headless/Node 契约测试）→ 空清单 → 主题令牌占位；
+ *  单项失败（404/解码失败）→ 该项 null → 同样回令牌态，绝不抛错、不破坏运行。
+ */
+async function loadMetaAssets(loadImage, log) {
+    if (!loadImage)
+        return {};
+    const entries = Object.entries(exports.META_ASSET_MANIFEST);
+    const loaded = await Promise.all(entries.map(async ([key, url]) => {
+        try {
+            return [key, await loadImage(url)];
+        }
+        catch {
+            return [key, null];
+        }
+    }));
+    const out = {};
+    let ok = 0;
+    for (const [key, img] of loaded) {
+        if (img) {
+            out[key] = img;
+            ok++;
+        }
+    }
+    log?.(`[assets] meta 贴图就绪 ${ok}/${entries.length}${ok < entries.length ? '（缺项走主题令牌 fallback）' : ''}`);
     return out;
 }

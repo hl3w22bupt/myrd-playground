@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-09-28T02:00:45.579Z",
+  "generatedAt": "2026-10-09T04:08:17.632Z",
   "spec": {
-    "id": "cmukkjc10001ym9nb3dnc5kt6",
-    "version": 5,
+    "id": "cmunf6r1e014cm9lfamzllk2h",
+    "version": 7,
     "numericFreeze": "numeric 段 sha256=c3af773b6483164c22ca0a039623967cb3b67ff9b2b658749f927baeee74957d（sortKeys 规范化）为本版唯一冻结基线；check-numeric-freeze 只复算 N1 存档（.myrd/spec/stack-tower-spec-v1.3-numeric-sha256.txt），禁止现场自算基线"
   },
   "budgets": {
@@ -11,7 +11,7 @@
     "openDataContextMaxBytes": 1048576
   },
   "sizes": {
-    "mainBytes": 325394,
+    "mainBytes": 377627,
     "openDataBytes": 5789,
     "mainWithinBudget": true,
     "openDataWithinBudget": true
@@ -133,14 +133,19 @@
       "sha256": "62b58f98223c114596f04e8071c8f89dea91d31a762239005b88d17daaa67d06"
     },
     {
+      "path": "build-wx/app/boot-tt.js",
+      "bytes": 10023,
+      "sha256": "5f5fb784c36d7c63030846a587b75d9282886f985c7a84bf22c83d34cdd7c66f"
+    },
+    {
       "path": "build-wx/app/boot-wx.js",
       "bytes": 7398,
       "sha256": "a0863c25eef55cc3dbd240000b3e8dab0354c9d3096c0f3d3aafa8e8e13d5f17"
     },
     {
       "path": "build-wx/app/main.js",
-      "bytes": 8981,
-      "sha256": "f11c847eb60ecad9d9f85e6679636c4fc9aff780c26b7ddb8d9488288687a9bc"
+      "bytes": 13918,
+      "sha256": "8db3d0377f8116e373c6a36926c070cdd64743f5865195e40173d3349f180a05"
     },
     {
       "path": "build-wx/audio/audio-manager.js",
@@ -149,8 +154,8 @@
     },
     {
       "path": "build-wx/audio/bgm.js",
-      "bytes": 3821,
-      "sha256": "397a2e7958e1fa5cf3c817b522d2d20ee1db6982a9a1fafdb993e706a262d386"
+      "bytes": 4052,
+      "sha256": "7e997a2952ed15d1c50ed0dd0b1d7ef0a45a5622a2118ece0b2708b2bcea434f"
     },
     {
       "path": "build-wx/audio/sfx.js",
@@ -213,6 +218,31 @@
       "sha256": "480078bd78989eafa456d735e47d36d6264f258cb2420cc1b14dbf6e6e14cd33"
     },
     {
+      "path": "build-wx/meta/claim.js",
+      "bytes": 1176,
+      "sha256": "034425be4603718a971dd187c831ec1956b0f8e7a2f812c39ebe44385b0e7876"
+    },
+    {
+      "path": "build-wx/meta/daily.js",
+      "bytes": 1874,
+      "sha256": "7130d19386c805ed701a9687de07bc85a357aa88c6d24487563c1b7a4d856a16"
+    },
+    {
+      "path": "build-wx/meta/save.js",
+      "bytes": 2801,
+      "sha256": "93ccebb31be98b38f1081cff438044c5f6cc29d750a3a320bdd0c8e1f3c132d5"
+    },
+    {
+      "path": "build-wx/meta/seed.js",
+      "bytes": 2323,
+      "sha256": "1b6c3978b4b851e536d4a4a9d6fccd477ea61c65585571072c8d968f225f2c35"
+    },
+    {
+      "path": "build-wx/meta/streak.js",
+      "bytes": 800,
+      "sha256": "0fb1ac7c12ea4bc4d327f5f4f1e720808a034364b75ba3c294ae2caca0717f78"
+    },
+    {
       "path": "build-wx/platform/browser.js",
       "bytes": 4604,
       "sha256": "abb97d2e49ad5908d55017c5f6eb75480520f6c68244c12c3868570431c11e6f"
@@ -229,8 +259,13 @@
     },
     {
       "path": "build-wx/platform/share.js",
-      "bytes": 2119,
-      "sha256": "80caf875a8dc0f5f6dcbc41d1cd549efd42667e2fbc00ea2b3075be68bcd8290"
+      "bytes": 3328,
+      "sha256": "9f64f4cf6d3bb8fd70bd982dd36d9ad8db4c3c08a556647f8ff4a83f14fd3dc0"
+    },
+    {
+      "path": "build-wx/platform/tt.js",
+      "bytes": 11306,
+      "sha256": "d8da9e824b411687f3569aa4bc9720fbba79ebc74f6e235ab3b8cc955e8ef66e"
     },
     {
       "path": "build-wx/platform/wx.js",
@@ -239,8 +274,8 @@
     },
     {
       "path": "build-wx/render/assets.js",
-      "bytes": 2844,
-      "sha256": "47159e7721a140895da4ac47feb4371495d6d07c92477a7b89178b5438677163"
+      "bytes": 4882,
+      "sha256": "33309ac5e3bc446c36a33f7ddab332a225173ff717cf5f72c65d47ee228584c4"
     },
     {
       "path": "build-wx/render/backdrop.js",
@@ -254,8 +289,8 @@
     },
     {
       "path": "build-wx/render/renderer.js",
-      "bytes": 6782,
-      "sha256": "81664a61524d63fde34ed62535e6f7fe891a2994638ed8c727fc9bc7e5863a4e"
+      "bytes": 7265,
+      "sha256": "f8801c800ca88b43dfa67e6d3921c6eca11c8308d08c269770a41bfef3790289"
     },
     {
       "path": "build-wx/render/ripple-renderer.js",
@@ -278,6 +313,11 @@
       "sha256": "ed983a5f0bf243566b36bba675dec53e87370d8da5d4f520a25b3eb68c7674a5"
     },
     {
+      "path": "build-wx/telemetry/meta.js",
+      "bytes": 7084,
+      "sha256": "0e1a11f048fecbf66651dbf4b0047e4ab2e7849f3029fbd1d667cb866f592d8c"
+    },
+    {
       "path": "build-wx/ui/fps-overlay.js",
       "bytes": 2362,
       "sha256": "9f185d0819271d1546404d3626c58266bc97e7d8225a3c25d42a62f5999b3d4b"
@@ -288,14 +328,24 @@
       "sha256": "855ed0a1f1440bd7aa1e145ab31436f2d5ea01b043059a552dce11580b0d9283"
     },
     {
+      "path": "build-wx/ui/meta-badge.js",
+      "bytes": 2164,
+      "sha256": "0c20333b4cce1ab4fc1c59f147d79d957b731eecd208a6221b2c7b89d90fc700"
+    },
+    {
+      "path": "build-wx/ui/meta-daily-card.js",
+      "bytes": 3704,
+      "sha256": "ab80ccefe9536e346104d8e3c0862c329207982c21b1196d11cd8d148ec97e1d"
+    },
+    {
       "path": "build-wx/ui/rotate-overlay.js",
       "bytes": 2224,
       "sha256": "34df30f089f7e52382ab062a3fa6ecd33a89338ba47c1a058143f0fc3073802a"
     },
     {
       "path": "build-wx/ui/style.js",
-      "bytes": 2930,
-      "sha256": "c12fde85d86ea6ad79c12ed3557f701283a251cc0d7c52a22ab7ebd4381a495b"
+      "bytes": 3010,
+      "sha256": "0e8aafd6f06b9fdff8159e8a5c81729873f972d40de63e50dd6b68af7cf8e584"
     },
     {
       "path": "game.js",
@@ -320,7 +370,7 @@
     {
       "path": "open-data-context/tokens.js",
       "bytes": 992,
-      "sha256": "9751924d0f344dcac1da7cfd8cd3952236d90eca47effc6c24c8445d9574a607"
+      "sha256": "bf809e91cd5547ba88b05505f28e712f46b6f655f0ff327569521f91e8ae5e67"
     },
     {
       "path": "project.config.json",

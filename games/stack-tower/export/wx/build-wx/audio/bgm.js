@@ -3,7 +3,9 @@
  * BGM 环调度器（B0 微信小游戏移植轮 · spec v1.3 content.platform wx-runtime 条目）。
  *
  * 纪律：
- *  - 平台无关：只依赖注入面（LoopSink / 时钟 / 静音源），wx 装配体提供 InnerAudioContext 环，
+ *  - 平台无关：只依赖注入面（LoopSink / 时钟 / 静音源），wx / tt 装配体提供 InnerAudioContext 环
+ *    （tt 侧 = src/platform/tt.ts createTtBgmSink，C 抖音移植轮 dy-runtime 条目接入；
+ *    调度连续性断言 wx/tt 双轨同门——tests/wx/bgm-loop-wx.spec.mjs 与 tests/tt/tt-runtime-surface.spec.mjs），
  *    web（browser.ts）不接线 → web 行为零变化（v1.2 契约面不动）；
  *  - 调度连续性：提前 LOOKAHEAD_MS 预约下一圈，圈间缝隙超 GAP_BUDGET_MS 即记违例（可断言）；
  *  - onShow/onHide：resume()/pause() 幂等；静音态零输出（sink 静音占位，不解绑环）；
