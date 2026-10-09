@@ -1,0 +1,12 @@
+== cmd: G2_SPEC_PATH=<v8> node scripts/contract-check.mjs --only ac-32-settlement-ia ==
+# g2-blocks contract-check · spec v8 (draft) anchor=…
+RED  ac-32-settlement-ia :: 执行异常 有个人最佳差值时归因行走差值文案（不并 no-moves）
+—— 合计 0 PASS / 1 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: RED 契约未全绿，禁止提交
+EXIT=1
+== cmd: G2_SPEC_PATH=<v8> node scripts/contract-check.mjs --only ac-32-settlement-ia ==
+# g2-blocks contract-check · spec v8 (draft) anchor=…
+PASS  ac-32-settlement-ia :: 链 v8 settlement 冻结面全绿 · 六槽三方一致 · 触达 ≥48px · 文案枚举 12 条逐字一致
+—— 合计 1 PASS / 0 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v8 draft 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准）
+EXIT=0

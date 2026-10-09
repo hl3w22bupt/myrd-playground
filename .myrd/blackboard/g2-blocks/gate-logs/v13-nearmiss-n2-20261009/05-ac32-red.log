@@ -1,0 +1,6 @@
+== cmd: G2_SPEC_PATH=<v8> node scripts/contract-check.mjs --only ac-32-settlement-ia（预期 RED：settlement.ts/theme 增量缺位） ==
+# g2-blocks contract-check · spec v8 (draft) anchor=…
+RED  ac-32-settlement-ia :: 执行异常 Cannot find module '/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-v13/src/render/settlement.ts' imported from /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-v13/tests/contract/ac-32-settlement-ia.spec.mjs
+—— 合计 0 PASS / 1 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: RED 契约未全绿，禁止提交
+EXIT=1

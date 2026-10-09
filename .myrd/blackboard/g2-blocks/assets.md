@@ -1,6 +1,6 @@
 # 资产清单黑板 — g2-blocks（**V1.3 首批「near-miss 反馈 + 结算页 IA」表现层资产**）
 
-> 更新时间：2026-10-09（N3 待 N1 解锁 · 主策划登记区段）
+> 更新时间：2026-10-09（N3 收口 · G-01..G-05 全落 · rubric 留 approve 验收）
 > 负责人：游戏美术（表现层资产面）/ 主策划（整合校对）
 > 下一步：等 N1 链 v8 入链后按冻结面开产；截图证据包命名挂稳定 id
 > 红线：色值一律引用冻结色板 token 派生（生成器零裸 hex、零 rgba 字面量）；near-miss 视听参数一律取链 v8 `numeric.nearMiss` 冻结面（零手抄第二份）；零粒子、不震屏为 near-miss 硬约束
@@ -16,11 +16,11 @@
 
 | 编号 | 资产 | 实机位置 | 数值/色源 | 校样证据 | 状态 |
 |---|---|---|---|---|---|
-| G-01 | near-miss 音效变体（第二档变体参数：下行尾音 + 时长减半） | 炉冷结算 near-miss 命中时刻（三档音效用途表：near-miss=第二档变体） | 链 v8 `numeric.nearMiss.sfxVariant` + 用途表实体 | 单元断言 + 人工听感 rubric | ⏳ 待 N1 |
-| G-02 | near-miss 边行高亮（冷色降饱和 ~30% · 不常亮） | near-miss 命中行/列的边行块 | 冻结冷 token 派生式（`tools/color.mjs` 同源） | palette-gate + 截图 | ⏳ 待 N1 |
-| G-03 | 结算页 P0–P3 槽位视觉（结果层/归因层/行动层版式） | 结算面三层 IA | UI token 九键 + result-slot-* element id（链 v8 entities） | smoke 三区块断言 + 截图 | ⏳ 待 N1 |
-| G-04 | 分享卡模板（v1.3 轻更新） | 分享面 | 既有分享卡同源派生 | 与 wx/dy 提审包零 diff 断言并存 | ⏳ 待 N1 |
-| G-05 | 6 张实机截图证据包（三态×两机型档，命名挂稳定 id） | 三态 = near-miss 命中 / 无可消除 / 常规结算；两机型档 = 390×844（最低档基准）+ 430×932 | 装配区同批判据（buildSha256） | shot-manifest 同批机判 | ⏳ 待 N2 |
+| G-01 ✅ | near-miss 音效变体（第二档变体参数：下行尾音 + 时长减半） | near-miss 弱反馈展示同帧发起 | a08 pack（`nearMissSfxSpec` 派生 880→440Hz · 80ms · 承值全符）| ac-31 契约 H 节逐字段机判 + 人工听感 rubric | ✅ |
+| G-02 ✅ | near-miss 边行高亮（冷色降饱和 ~30% · 不常亮） | near-miss 命中行/列的边行块 | `NEARMISS_UI.edge = #dcbcb5`（desat(coolBannerText,0.3) 派生可机判）| ac-32 契约派生式断言 + 截图 nm-hit 态 | ✅ |
+| G-03 ✅ | 结算页 P0–P3 槽位视觉（结果层/归因层/行动层版式） | 结算面三层 IA | a09 pack（六槽三方单源 · 触达 ≥48px · 时序 400/240ms）| ac-32 契约 + smoke ⑦b 三区块断言 + 目检 | ✅ |
+| G-04 ✅ | 分享卡模板（v1.3 轻更新） | 分享面 | a09 pack shareCard 节（版式沿用 · 零新色）| 与 wx/dy 提审包零 diff 断言并存（ac-33）| ✅ |
+| G-05 ✅ | 6 张实机截图证据包（三态×两机型档，命名挂稳定 id） | 三态 = nm-hit / settle-nm / settle-nomoves；两机型档 = 390×844 + 430×932 | 同批 `buildSha256 = 00417238…`（复算机判 · QA Q8 抓不同批后同批重拍）| shot-manifest 同批机判 + 每态渲染断言 | ✅ |
 
 ---
 

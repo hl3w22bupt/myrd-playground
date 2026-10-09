@@ -1,8 +1,8 @@
 # 阻塞项黑板 — g2-blocks（**V1.3 首批「near-miss 反馈系统 + 结算页信息架构」最小闭环 + 封版 DoD 四项首轮校准**）
 
-> 更新时间：2026-10-09（N2/N3 收口 · N4 对抗审查进行中）
+> 更新时间：2026-10-09（**N1–N5 全链核销 · 团队包全就绪 · 提请主人拍板**）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：N2/N3 并行（已解锁，输入 = 链 v8 冻结面）→ N4 → N5；提审/发布归主人（团队只交包）
+> 下一步：**等主人拍板**（拍板清单见文末「提请主人拍板」节）；团队无阻塞项
 
 ## 当前基线（V1.3 首批开工 · 2026-10-09）
 
@@ -15,6 +15,7 @@
 - **源仓**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks`；**v1.2 发布 commit = `6d3db6a`**（部署轮 r3 产物同源）；main 头 `1e3eff4`（封版冲刺/wx/dy 端口在各自分支与 main，本轮零接触）；**N2 从 `6d3db6a` 切 `feat/v1.3-nearmiss-settlement`**
 - **开工前置快照**：`gate-logs/v13-nearmiss-n1-20261009/00-baseline-snapshot.json`（双锚 + 链状态表 + 源仓基线）
 - **落点偏差披露（沿用既有口径）**：任务书模板路径 `.myrd/blackboard/` 与 `.myrd/spec/design-spec.json` 为多游戏共线撞车件（`routines.yaml` B4「一游戏一文件」）→ 本轮沿用 `.myrd/blackboard/g2-blocks/` 与 `.myrd/spec/g2-blocks/design-spec.json`（v1.1 approved 为契约共同输入，链 v8 draft 为 Mode B 第二态）
+- **本轮收口态（2026-10-09）**：源仓 `feat/v1.3-nearmiss-settlement` @ `e79e1ee`（九提交：2 移植 + 4 切片 + N3 + N4）· 复检器 VERDICT **APPROVE-READY（9/9）** · 契约三态 18/25/29+1PEND · 八门禁①–⑧ · SMOKE PASS · P95 同机零退化 · 内测包 `games/g2-blocks/export/web-v13-beta/`（30 文件 · 同批 `00417238…`）· 提审包状态快照双通道 ✅
 - **护栏**：① v1.2 冻结范围零接触（源仓 diff 面只允许本轮新增路径 + main.ts/renderer 接线最小面；`games/stack-tower`、`games/game`、根 `apphost.toml` 零触碰）；② v1.1 十二组 + feel/daily 两组 numeric 逐字节不动，near-miss/结算数值走链 v8 冻结面；③ 契约+冒烟全绿为提交前置，P95 冲突 → 回 N1，禁静默改 spec；④ 阻塞超一轮 → 升级主人；⑤ 全程无「DoD 已达标」措辞（DoD 只首轮校准）
 
 ## 阻塞项（V1.3 首批登记）
@@ -24,7 +25,15 @@
 | C1 | QA 预打回六条未修补入链 | 策划+程序 | 链 v8 draft 入链 + 回读全等 + v1..v7 零覆盖 + 守卫全绿 | ✅ 链 v8 `cmv0aoxtt004gm9vigjmn09bh` · 14 守卫全绿 · 回读全等 · v1..v7 零覆盖（`gate-logs/v13-nearmiss-n1-20261009/`） |
 | C2 | near-miss/结算页实现未开工（N2） | 程序 | 链 v8 入链后从 `6d3db6a` 切分支，每片先红后绿 | ✅ 四切片先红后绿 · 契约三态+八门禁+SMOKE 全绿 · P95 同机零退化（`beeeb46`） |
 | C3 | near-miss 视听变体 + 槽位视觉 + 截图证据包未开产（N3） | 美术 | 按 N1 冻结面产出 + 四要素校样 | ✅ a08/a09/a10 全落 + 六张截图同批 `c9f11ad1…`（`7ce0da6`）；rubric 留 approve |
-| C4 | DoD 首轮校准报告未产出（N4） | QA | 对照链 v8 审查无红 + 报告三件套齐全 | ⏳ 待 C2/C3 |
+| C4 | DoD 首轮校准报告未产出（N4） | QA | 对照链 v8 审查无红 + 报告三件套齐全 | ✅ 复检器 9/9 无红 APPROVE-READY（五轮自曝全链）· 报告三件套齐全 · 措辞机判通过（`e79e1ee`） |
+
+## 提请主人拍板（v1.3 首批收口 · 驳回修复后全链就绪）
+
+1. **链 v8 approve**：`cmv0aoxtt004gm9vigjmn09bh`（v1.3 首批修补版 draft）待裁；approve 即 approved 唯一。
+2. **实现产物人工验收**（终裁「好不好玩」）：`npx serve games/g2-blocks/export/web-v13-beta`；主观感受记录 = 源仓 `docs/playtest-subjective-round1.md`（含三个主观裁决问题）。
+3. **内测三件**（DoD 首轮校准启动件，Q6/Q7/Q8）：内测名单圈定 · 样本回收方式 · 时点。
+4. **wx/dy 提审动作与时点**（Q5）：提审包就绪（双通道零 diff ✅）但**提审与否归主人**；渠道业务参数（G-Q2）沿挂。
+5. **PWA 线上发布**：workflow deploy 节点动作，仅主人拍板后执行（本轮零触碰线上）。
 
 ## 升级条款（本轮回主人裁决 · 延续 v1.2 轮未决项）
 
@@ -87,6 +96,7 @@
 - **g2-blocks 仓库**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks` @ `fe5fd38`（树有 2 处 benign 运行残留：`build/sw.js` 缓存版本号 + `tests/contract/.j1-evidence.json` J1 实测值，N2 首个提交一并归位）
 - **一号仓库**：分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d`（沿用 A 轮工作分支；线上发布 commit `852a13c` 不动）
 - **落点偏差披露（沿用 A 轮已接受口径）**：任务书要求 spec 导出到 `.myrd/spec/design-spec.json`，该路径为 stack-tower 专属件（`routines.yaml` B4「一游戏一文件」）→ 本轮沿用 `.myrd/spec/g2-blocks/design-spec.json`
+- **本轮收口态（2026-10-09）**：源仓 `feat/v1.3-nearmiss-settlement` @ `e79e1ee`（九提交：2 移植 + 4 切片 + N3 + N4）· 复检器 VERDICT **APPROVE-READY（9/9）** · 契约三态 18/25/29+1PEND · 八门禁①–⑧ · SMOKE PASS · P95 同机零退化 · 内测包 `games/g2-blocks/export/web-v13-beta/`（30 文件 · 同批 `00417238…`）· 提审包状态快照双通道 ✅
 - **护栏**：① stack-tower 线上零接触（本轮零触碰其 spec/代码/黑板段）；② numeric 冻结零漂移，v1.1 既有 12 组 numeric 逐字节不动，契约+冒烟全绿为提交前置，numeric 与 P95 冲突 → 程序上报 → 主策划回 N1 version+1，禁止静默改 spec；③ 阻塞超一轮 → 升级主人
 
 ## 阻塞项（V1.2 核心手感轮 · 全部闭合 ✅）

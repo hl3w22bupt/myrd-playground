@@ -1,0 +1,6 @@
+== cmd: G2_SPEC_PATH=<v8> node scripts/contract-check.mjs --only ac-31-nearmiss-feedback（含遥测节 G） ==
+# g2-blocks contract-check · spec v8 (draft) anchor=…
+PASS  ac-31-nearmiss-feedback :: 链 v8 nearMiss 冻结面全绿 · 频控 1/3 · 复现轨迹 8 手 · 遥测 2 事件（seed/会话/internal 字段齐）· UX 组锚 ce4562787207…
+—— 合计 1 PASS / 0 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v8 draft 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准）
+EXIT=0

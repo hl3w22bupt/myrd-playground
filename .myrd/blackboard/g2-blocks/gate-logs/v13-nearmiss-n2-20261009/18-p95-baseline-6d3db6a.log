@@ -1,0 +1,4 @@
+[perf] 基准跑（throttle×1）: samples=432 fps=68.09 p50=13.4ms p95=26.1ms p99=33.807ms max=34.8ms jank=61(14.12%)
+[perf] 规格跑（spec j1 同环境）（throttle×4）: samples=131 fps=16.58 p50=59.7ms p95=73.9ms p99=78.04ms max=78.8ms jank=131(100.00%)
+[perf] 报告 → docs/evidence/perf-p95-report.md + .json
+PERF-REPORT: PASS P95 报告已产出（基准 P95=26.1ms · 代理口径披露在案）

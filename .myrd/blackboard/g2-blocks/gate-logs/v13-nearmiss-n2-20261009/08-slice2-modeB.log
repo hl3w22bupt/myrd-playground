@@ -1,0 +1,5 @@
+== cmd: G2_SPEC_PATH=<v4 draft> node scripts/contract-check.mjs（Mode B） ==
+PASS  ac-28-daily-hook-min-loop :: daily 种子纯函数（同日恒定/跨日必变/uint32）· 跨本地零点重置（steppedClock）· v1 存档向后兼容 fixture · streak 连续/断档/跨窗口三口径机判 · 入口完成态可查询 · 范围外零实体（v4 draft）
+—— 合计 25 PASS / 0 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v4 draft 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准）
+EXIT_B=

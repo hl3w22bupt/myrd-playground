@@ -1,0 +1,6 @@
+== cmd: G2_SPEC_PATH=<approved> node tools/perf-report.mjs（T2 采样 · 对比 v1.2 基线 16.7ms） ==
+[perf] 基准跑（throttle×1）: samples=436 fps=68.85 p50=13.4ms p95=26.1ms p99=31.09ms max=35.7ms jank=61(13.99%)
+[perf] 规格跑（spec j1 同环境）（throttle×4）: samples=134 fps=16.46 p50=61.65ms p95=74.98ms p99=83.101ms max=84.7ms jank=134(100.00%)
+[perf] 报告 → docs/evidence/perf-p95-report.md + .json
+PERF-REPORT: PASS P95 报告已产出（基准 P95=26.1ms · 代理口径披露在案）
+EXIT_P95=0

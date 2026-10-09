@@ -1,0 +1,6 @@
+== cmd: G2_SPEC_PATH=<chain v8 draft> node scripts/contract-check.mjs (Mode B, 预期红: ac-31/32/33 契约件缺位) ==
+# g2-blocks contract-check · spec v8 (draft) anchor=…
+RED  contract-missing ac-31-nearmiss-feedback :: tests/contract/ac-31-nearmiss-feedback.spec.mjs 缺位（spec 有而件缺，不装绿）
+RED  contract-missing ac-32-settlement-ia :: tests/contract/ac-32-settlement-ia.spec.mjs 缺位（spec 有而件缺，不装绿）
+RED  contract-missing ac-33-submission-bundle-zero-diff :: tests/contract/ac-33-submission-bundle-zero-diff.spec.mjs 缺位（spec 有而件缺，不装绿）
+EXIT_B=1

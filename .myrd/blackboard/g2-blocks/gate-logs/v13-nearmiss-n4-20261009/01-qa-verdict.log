@@ -1,0 +1,13 @@
+== cmd: node tools/qa-v13-batch.mjs（N4 对抗复检 · 终轮） ==
+PASS Q2 契约三态：approved 18 / 链v4 25 / 链v8 29+1PEND（EXIT=0） :: 三态 18 / 25 / 29+1PEND 全符（现场实跑）
+PASS Q3 八门禁①–⑧ + SMOKE（现场实跑 · J1 证据同批归档） :: 八门禁①–⑧ PASS · SMOKE PASS（J1 同批归档 185.19999992847443…）
+PASS Q4 六条修补三向抽点（判定口径/强反馈预留/边界条款/测量口径/埋点槽位/文案枚举） :: 9/9 抽点全符（①行列同权 · ①末态口径 · ①频控 · ②强反馈预留 · ③边界条款 · ④测量口径 · ⑤埋点事件 · ⑤槽位 id · ⑥文案枚举）
+PASS Q5 DoD 四门槛零改动 · calibrationRound1 在链 · 报告在档 · 全文无「已达标」措辞 :: 门槛逐字节全等 · calibrationRound1 在链 · 报告在档且措辞机判无「已达标」类结论
+PASS Q6 提审包零 diff：契约面 ac-33 PASS + QA 独立跨树通道（wx worktree 交集机判） :: 契约面 PASS · 独立通道：v1.3 diff 46 路径 ∩ wx 提审输入面 = 0 · wx 树零内测字面量
+PASS Q7 内测工具隔离：build 零泄漏 + internal tag 缺省关闭（独立复跑） :: build 30 文件零泄漏 · internal tag 缺省关闭
+PASS Q8 截图证据包：六张在档 + manifest buildSha256 复算全等 + 字节数一致 :: 六张在档 · 同批 0041723813ea… · 字节全符
+PASS Q9 P95 同机双跑对在档（v1.2 基线 vs HEAD · P95 相等） :: 同机对 P95 26.1ms（6d3db6a 基线）→ 26.1ms（HEAD）· 零退化（原文在档）
+PASS Q1 链面：链 v8 draft 在链 · 锚双值不变 · v1..v7 零覆盖（平台实读） :: v8 draft 在链 · 锚 6719edd27d7e… · v7 锁定 · v1..v7 七行在链
+—— 合计 9 PASS / 0 RED ——
+VERDICT: APPROVE-READY（九面无红 · 证据同批归档）
+EXIT_QA=0

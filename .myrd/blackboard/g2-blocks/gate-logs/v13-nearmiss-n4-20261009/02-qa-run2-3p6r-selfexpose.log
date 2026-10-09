@@ -1,0 +1,19 @@
+PASS Q2 契约三态：approved 18 / 链v4 25 / 链v8 29+1PEND（EXIT=0） :: 三态 18 / 25 / 29+1PEND 全符（现场实跑）
+RED  Q3 八门禁①–⑧ + SMOKE（现场实跑 · J1 证据同批归档） :: 门禁红：
+ 单源断言框架（AC-11，骨架态= PENDING-APPROVE）
+PASS  ④ 零冻结值依赖面自测（ac-12/17/18 + harness）
+PASS  ⑤ ac-14 内核确定性（spec 声明落点）
+PASS  ⑥ acceptance.check 声明落点契约守卫
+PASS  ⑦ 关卡面（F4）：parseGoals / goalEval / el-hint 行为
+PASS  ⑧ 工程前置面（A 轮 N3）：T1 storage/audio 门面 · T2 帧率埋点 · T3 时钟/时区
+# 结论: 门禁绿（骨架态）——冻结值相关实现与门禁等 approve 后补齐，不装绿
+
+RED  Q4 六条修补三向抽点（判定口径/强反馈预留/边界条款/测量口径/埋点槽位/文案枚举） :: 三向抽点缺格: ①行列同权
+RED  Q5 DoD 四门槛零改动 · calibrationRound1 在链 · 报告在档 · 全文无「已达标」措辞 :: 报告含禁用措辞「已达标」
+PASS Q6 提审包零 diff：契约面 ac-33 PASS + QA 独立跨树通道（wx worktree 交集机判） :: 契约面 PASS · 独立通道：v1.3 diff 46 路径 ∩ wx 提审输入面 = 0 · wx 树零内测字面量
+PASS Q7 内测工具隔离：build 零泄漏 + internal tag 缺省关闭（独立复跑） :: build 35 文件零泄漏 · internal tag 缺省关闭
+RED  Q8 截图证据包：六张在档 + manifest buildSha256 复算全等 + 字节数一致 :: EISDIR: illegal operation on a directory, read
+PASS Q9 P95 同机双跑对在档（v1.2 基线 vs HEAD · P95 相等） :: 同机对 P95 26.1ms（6d3db6a 基线）→ 26.1ms（HEAD）· 零退化（原文在档）
+PASS Q1 链面：链 v8 draft 在链 · 锚双值不变 · v1..v7 零覆盖（平台实读） :: v8 draft 在链 · 锚 6719edd27d7e… · v7 锁定 · v1..v7 七行在链
+—— 合计 5 PASS / 4 RED ——
+VERDICT: REJECTED（Q3,Q4,Q5,Q8）
