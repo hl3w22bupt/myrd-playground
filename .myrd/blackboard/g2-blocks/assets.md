@@ -1,8 +1,8 @@
 # 资产清单黑板 — g2-blocks（**V1.3 首批「near-miss 反馈 + 结算页 IA」表现层资产**）
 
-> 更新时间：2026-10-09（N3 收口 · G-01..G-05 全落 · rubric 留 approve 验收）
+> 更新时间：2026-10-09（**N3 美术线独立复证 · 三门禁全绿 27/27 · 复证不新做** · G-01..G-05 收口态维持 · rubric 留 approve 验收）
 > 负责人：游戏美术（表现层资产面）/ 主策划（整合校对）
-> 下一步：等 N1 链 v8 入链后按冻结面开产；截图证据包命名挂稳定 id
+> 下一步：等主人 approve（approve 后美术面无在产项；观感/听感 rubric 随 approve 验收走）
 > 红线：色值一律引用冻结色板 token 派生（生成器零裸 hex、零 rgba 字面量）；near-miss 视听参数一律取链 v8 `numeric.nearMiss` 冻结面（零手抄第二份）；零粒子、不震屏为 near-miss 硬约束
 
 ## 顶部风格卡（沿用 A 轮定稿 · 本轮沿用零改版，详档见存档区「风格卡」节）
@@ -21,6 +21,24 @@
 | G-03 ✅ | 结算页 P0–P3 槽位视觉（结果层/归因层/行动层版式） | 结算面三层 IA | a09 pack（六槽三方单源 · 触达 ≥48px · 时序 400/240ms）| ac-32 契约 + smoke ⑦b 三区块断言 + 目检 | ✅ |
 | G-04 ✅ | 分享卡模板（v1.3 轻更新） | 分享面 | a09 pack shareCard 节（版式沿用 · 零新色）| 与 wx/dy 提审包零 diff 断言并存（ac-33）| ✅ |
 | G-05 ✅ | 6 张实机截图证据包（三态×两机型档，命名挂稳定 id） | 三态 = nm-hit / settle-nm / settle-nomoves；两机型档 = 390×844 + 430×932 | 同批 `buildSha256 = 00417238…`（复算机判 · QA Q8 抓不同批后同批重拍）| shot-manifest 同批机判 + 每态渲染断言 | ✅ |
+
+## V1.3 N3 美术线独立复证台账（2026-10-09 · 复证不新做 · 源仓 @ `2738599` 树净）
+
+> 口径 = `evidence-one-line-template.md`；性质 = **复证而非重做**（G-01..G-05 资产面零触碰，只独立实跑门禁证明绿可重现，
+> 并补齐黑板 v13 证据链的 N3 美术线独立目录——前轮 n1/n2/n4/n5 各有其录、n3 缺录）。
+> 结论：**三门禁全绿 EXIT=0 · ART-RECHECK-V13 27/27 · 六张实机截图目检 PASS · 复证后 v13 树仍净（零 delta）**。
+> 证据原文 = `gate-logs/v13-nearmiss-n3-reverify-20261009/`（3 log + 复证器 `03-art-recheck-v13.mjs` + README + 首跑误报留档）。
+
+```
+[PASS] | 线1 美术 | 01-check-v13-three-state.log | 2026-10-09 | cd $V13 && node scripts/check-v13.mjs | 三态 18 / 25 / 29+1PEND 计数全符 · EXIT=0（美术面 ac-31 H 节 / ac-32 派生式 / ac-33 零 diff 全在内） | g2-blocks-v13 工作树 @ 2738599
+[PASS] | 线1 美术 | 02-gates-eight.log | 2026-10-09 | cd $V13 && G2_SPEC_PATH=<run-ws approved v1.1> npm run gate | 门①–⑧ 全 PASS 74/0 · 色板 ALL-GREEN 21 对 minΔE=26.555 margin=+1.555 selftest=18/18（≡冻结记录）· EXIT=0 | g2-blocks-v13 工作树 @ 2738599
+[PASS] | 线1 美术 | 03-art-recheck-v13.log | 2026-10-09 | node 03-art-recheck-v13.mjs $V13 | ART-RECHECK-V13: PASS 27/27（a08 视听包 6 · a09 结算包 6 · 运行时单源现算 4 · a10 六截图 5 · 生成器纪律 3 · 渲染面硬约束 3）· EXIT=0 | 本证据目录（复证器落目录不进源仓）
+[PASS] | 线1 美术 | （目检 · 六张实机截图） | 2026-10-09 | 美术眼检 assets/release/v13-shots/*.png ×6 | 三态语义正确 · 两机型档同构自适应 · 无构图缺陷 · 色值全在冻结族（暖=block-02 主按钮 · 冷=NEARMISS_UI.edge 派生） | g2-blocks-v13 工作树 @ 2738599
+```
+
+- **复证器关键断言（美术面钉死项）**：下行尾音 880→440Hz · 时长减半 160→80ms（第二档承值派生，`nearMissSfxSpec()` 单源现算非手抄）· edge=`#dcbcb5` 由 `theme.desaturate('#E3B5BF',0.3)` 现算 ≡ pack · 六槽稳定 id `result-slot-*` 全枚举 · 触达 ≥48px · 零粒子/不震屏/不常亮三声明 + 渲染面 `drawNearMiss` 函数体零 particles/shake 写入、驻留窗外零绘制 · 两生成器确定性重跑零漂移（树净维持）。
+- **披露两处（非源仓缺陷，登记制）**：① 门2 首跑 `G2_SPEC_PATH` 误钉 worktree 内路径（ENOENT）③④⑤⑥ 假红，绝对路径重跑全绿；② 复证器首版自带 desaturate 近似公式误报 A08/f（C/a 已证 theme 单源 ≡ pack，派生关系无缺陷），修正为 import 单源现算——首跑原文留档 `04-first-run-correction.log`（零手抄第二份纪律自查样本）。
+- **红线核销**：stack-tower 零接触 · spec/numeric 冻结面零写入 · 玩法逻辑与数值零改动（源仓复证前后 `git status --porcelain` = 0 行）；本轮产出仅黑板证据目录 + 本台账登记。
 
 ---
 

@@ -1,0 +1,136 @@
+== cmd: G2_SPEC_PATH=<run-ws approved v1.1> npm run gate（八门禁 · N3 复证门2 · 重跑）
+== 首跑误钉 worktree 内路径（ENOENT）作废，本跑为有效取证
+== worktree: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-v13 @ 2738599
+
+> g2-blocks@0.1.0-n1-scaffold gate
+> node tests/run-all.mjs
+
+
+=== ① 范围守卫（AC-18） ===
+$ node ci/guard-repo-scope.mjs
+SCOPE-GUARD PASS 本仓库 168 文件零越界引用（策略单源 ci/scope-policy.json；spec 真源豁免面命中 20 处，属契约条款声明）
+
+=== ② 色板双门禁 21 对（AC-12） ===
+$ node tools/palette-gate.mjs matrix --palette assets/palette/palette-n1-final.json --threshold 25 --pairs 21
+# 门禁: A=HSL三选二(dH≥25°/dL≥0.1/dS≥0.08) B=ΔE00≥25 | 色数=7 对数=21
+PASS block-01|block-03    HSL=3/3 dE=54.33 (dH=67.8 dL=0.120 dS=0.097)
+PASS block-01|block-04    HSL=2/3 dE=49.15 (dH=156.0 dL=0.222 dS=0.060)
+PASS block-01|block-05    HSL=3/3 dE=28.51 (dH=54.3 dL=0.280 dS=0.165)
+PASS block-01|block-02    HSL=3/3 dE=64.71 (dH=174.9 dL=0.102 dS=0.159)
+PASS block-01|block-06    HSL=3/3 dE=30.27 (dH=149.7 dL=0.120 dS=0.279)
+PASS block-01|block-07    HSL=3/3 dE=52.10 (dH=127.1 dL=0.461 dS=0.168)
+PASS block-03|block-04    HSL=3/3 dE=56.50 (dH=136.2 dL=0.102 dS=0.157)
+PASS block-03|block-05    HSL=2/3 dE=46.23 (dH=122.1 dL=0.161 dS=0.068)
+PASS block-03|block-02    HSL=2/3 dE=34.71 (dH=107.1 dL=0.018 dS=0.256)
+PASS block-03|block-06    HSL=3/3 dE=57.74 (dH=142.5 dL=0.239 dS=0.182)
+PASS block-03|block-07    HSL=2/3 dE=49.08 (dH=165.0 dL=0.341 dS=0.070)
+PASS block-04|block-05    HSL=2/3 dE=38.22 (dH=101.7 dL=0.059 dS=0.225)
+PASS block-04|block-02    HSL=3/3 dE=28.17 (dH=29.1 dL=0.120 dS=0.099)
+PASS block-04|block-06    HSL=2/3 dE=35.75 (dH=6.3 dL=0.341 dS=0.339)
+PASS block-04|block-07    HSL=3/3 dE=26.67 (dH=28.8 dL=0.239 dS=0.228)
+PASS block-05|block-02    HSL=3/3 dE=58.89 (dH=130.8 dL=0.178 dS=0.324)
+PASS block-05|block-06    HSL=3/3 dE=40.32 (dH=95.4 dL=0.400 dS=0.114)
+PASS block-05|block-07    HSL=2/3 dE=26.56 (dH=72.9 dL=0.180 dS=0.003)
+PASS block-02|block-06    HSL=3/3 dE=49.93 (dH=35.4 dL=0.222 dS=0.438)
+PASS block-02|block-07    HSL=3/3 dE=36.85 (dH=58.0 dL=0.359 dS=0.327)
+PASS block-06|block-07    HSL=2/3 dE=57.02 (dH=22.5 dL=0.580 dS=0.112)
+# 结果: ALL-GREEN 红对数=0/21 minΔE=26.555 阈值=25 margin=1.555 selftest=18/18
+
+=== ③ theme 单源断言框架（AC-11，骨架态= PENDING-APPROVE） ===
+$ node tests/theme.spec.mjs
+# AC-11 theme 单源断言（真源 = spec numeric.palette）
+# spec: id=cmuqa2mu50023m9zr8mh60uph v2 status=approved anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv09tbrg003vm9vijx5bdv8j/.myrd/spec/g2-blocks/design-spec.json
+# 冻结块键集: block-01=#21458C block-03=#38B279 block-04=#DB6B43 block-05=#A472CA block-02=#C89C19 block-06=#4B2B25 block-07=#E3B5BF
+# spec status = approved（approve 是主人拍板位）
+PASS  ac-11/a 键名齐全
+PASS  ac-11/b 值逐字相等
+PASS  ac-11/c 单源（src/render 其余文件零 hex 字面量）
+# 结果: PASS=3 RED=0 PENDING-APPROVE=0
+
+=== ④ 零冻结值依赖面自测（ac-12/17/18 + harness） ===
+$ node tests/framework.spec.mjs
+# N3 前置件自测（零冻结值依赖面）
+# spec: id=cmuqa2mu50023m9zr8mh60uph v2 status=approved anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv09tbrg003vm9vijx5bdv8j/.myrd/spec/g2-blocks/design-spec.json
+PASS  ac-12-palette-double-gate
+PASS  harness/rng-determinism
+PASS  harness/spec-anchor-stable
+PASS  ac-18-ci-guard-repo-scope
+PASS  ac-17-repo-one-zero-touch
+# 结果: PASS=5 RED=0 PENDING-APPROVE=0
+
+=== ⑤ ac-14 内核确定性（spec 声明落点） ===
+$ node tests/kernel-purity.spec.mjs
+# ac-14 内核确定性（spec 声明落点 tests/kernel-purity.spec.mjs）
+# spec: id=cmuqa2mu50023m9zr8mh60uph v2 status=approved anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv09tbrg003vm9vijx5bdv8j/.myrd/spec/g2-blocks/design-spec.json
+# numeric.rng = {"algorithm":"mulberry32","forbidDateNow":true,"forbidMathRandom":true,"testHook":"seededRng"}
+# spec status = approved（approve 是主人拍板位）
+PASS  ac-14/a 内核纯净（零 Math.random/Date.now/performance.now）
+PASS  ac-14/b 同 seed 两路序列逐字节一致
+PASS  ac-14/c 默认 seed ≡ spec DEFAULT_SEED（真源唯一）
+PASS  ac-14/d 异 seed 序列必异
+PASS  ac-14/e 纯函数隔离（无共享内部状态，可复现）
+PASS  ac-14/f uniformInt 值域/边界/非法入参
+PASS  ac-14/g rng 值域 [0,1) 且类型 number
+PASS  ac-14/h 本件零冻结 seed 字面量（自证）
+# 结果: PASS=8 RED=0 PENDING-APPROVE=0
+
+=== ⑥ acceptance.check 声明落点契约守卫 ===
+$ node tests/acceptance-map.spec.mjs
+# acceptance.check 声明落点 ↔ 工程文件对应（契约守卫 · spec v1.1 形态）
+# spec: id=cmuqa2mu50023m9zr8mh60uph v2 status=approved anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv09tbrg003vm9vijx5bdv8j/.myrd/spec/g2-blocks/design-spec.json
+# spec acceptance 共 18 条；check 唯一落点 = g2-blocks/scripts/contract-check.mjs --only <id>
+PASS  acmap/a acceptance 非空且 id 唯一
+PASS  acmap/b check 形态正确：统一入口 --only <id>（v1.1 落点纪律）
+PASS  acmap/c 每条 id 有契约件 tests/contract/<id>.spec.mjs（缺位即漂移）
+PASS  acmap/d 统一入口 scripts/contract-check.mjs 在仓
+PASS  acmap/e 白名单制度防复发：白名单条目不得为已存在文件的过期豁免
+PASS  acmap/f 白名单与 spec id 对齐（无幽灵条目）
+PASS  acmap/g 生成件漂移守卫：spec-data 锚 ≡ 链上导出件 numeric 锚
+PASS  acmap/h 生成件数值 ≡ 链上导出件 numeric（深比全等）
+# 结果: PASS=8 RED=0 PENDING-APPROVE=0
+
+=== ⑦ 关卡面（F4）：parseGoals / goalEval / el-hint 行为 ===
+$ node tests/levels.spec.mjs
+PASS levels.spec :: parseGoals 双关解析 · el-hint 仅 level-1（首消/3 手隐没）· goalEval 手数裁决（limit=20）
+
+=== ⑧ 工程前置面（A 轮 N3）：T1 storage/audio 门面 · T2 帧率埋点 · T3 时钟/时区 ===
+$ node tests/platform-facade.spec.mjs
+=== N3 工程前置门禁（T1/T2/T3） ===
+PASS  T1a 门面：注册键读写 roundtrip + 未注册键拒绝
+PASS  T1b 门面：键级最小集默认不扩（门面自身零新增落盘键）
+PASS  T1c 版本化迁移：toVersion 严格 +1，跳版拒绝
+PASS  T1d 版本化迁移：muted 归一（true→1 / off→0），键集零改动、零删键
+PASS  T1e 版本化迁移：幂等（重复 migrate 不再改写、版本不回退）
+PASS  T1e-2 版本语义：缺省 fromVersion = 最新（不触发迁移）；fromVersion 越轨拒绝
+PASS  T1f 音频门面：clear(chain>1) → combo；缺失合成器零阻塞；静音零出声
+PASS  T1g 音频门面：静音态持久化走 muted 键（键级最小集不变）
+PASS  T2a 帧率：60fps 恒定帧序列 → P95=16.67ms、fps=60
+PASS  T2a-2 帧率：P95 对尾延迟敏感（混入 1/20 的 50ms 掉帧 → P95 抬升）
+PASS  T2b 帧率：分位数单调有序（P50 ≤ P95 ≤ P99 ≤ max）
+PASS  T2c 帧率：掉帧口径（>20ms 记卡顿）+ 环形有界 + reset
+PASS  T2d 分位数函数：单样本/空集/越界 p 显式处理
+PASS  T3a 可注入时钟：fixed 恒定 / stepped 可推进可跳设 / system 可取值
+PASS  T3b 时区：同一时刻三时区日期码（含东八区跨日）
+PASS  T3c 跨日判定：同日 true / 跨日 false（东八区 23:30 → 次日 00:30）
+PASS  T3d daily 种子：同日恒定 / 跨日必变 / 落 uint32
+PASS  T3e PRNG：同 seed 逐字节一致 + uniformInt 边界
+PASS  T3f 非法输入显式抛错（不静默归零）
+PASS  T1/T2/T3 零外部依赖 + 零网络构造
+—— 合计 20 PASS / 0 FAIL ——
+PLATFORM-FACADE: PASS 工程前置件行为符合声明（零 v1.2 玩法数值）
+
+=== N3 门禁台账 ===
+PASS  ① 范围守卫（AC-18）
+PASS  ② 色板双门禁 21 对（AC-12）
+PASS  ③ theme 单源断言框架（AC-11，骨架态= PENDING-APPROVE）
+PASS  ④ 零冻结值依赖面自测（ac-12/17/18 + harness）
+PASS  ⑤ ac-14 内核确定性（spec 声明落点）
+PASS  ⑥ acceptance.check 声明落点契约守卫
+PASS  ⑦ 关卡面（F4）：parseGoals / goalEval / el-hint 行为
+PASS  ⑧ 工程前置面（A 轮 N3）：T1 storage/audio 门面 · T2 帧率埋点 · T3 时钟/时区
+# 结论: 门禁绿（骨架态）——冻结值相关实现与门禁等 approve 后补齐，不装绿
+EXIT=0

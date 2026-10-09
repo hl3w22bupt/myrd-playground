@@ -1,0 +1,29 @@
+PASS  A08/a id=a08-nearmiss-av-pack
+PASS  A08/b 下行尾音 880→440Hz
+PASS  A08/c 时长减半 160→80ms
+PASS  A08/d 变参规则 tail/durationScale/tier = descending/0.5/2
+PASS  A08/e 硬约束 零粒子/不震屏/不常亮 三声明在包
+PASS  A08/f edge 派生复算（theme.desaturate 现算）#dcbcb5 ≡ pack #dcbcb5（desat(coolBannerText,0.3)）
+PASS  A09/a 六槽 = 6
+PASS  A09/b 稳定 id 全枚举
+PASS  A09/c 三层四段 = P0-result/P1-result/P2-result/P3-attribution-action
+PASS  A09/d 触达 ≥48px
+PASS  A09/e 分享卡模板 share-card-v13
+PASS  A09/f 文案枚举 copy 6 条 + nearMissCopy 6 条
+PASS  C/a theme.NEARMISS_UI.edge = #dcbcb5（降饱和 30% 单源派生）
+PASS  C/b nearMissSfxSpec 现算 880→440Hz / 80ms（第二档承值派生）
+PASS  C/c 波形/包络/增益/失谐承第二档原值 square/step-up/1.15/35
+PASS  C/d 弱反馈频控 每行 1 次/局 + 全局 ≤3 次/局（链 v8 口径）
+PASS  D/a 清单 6 张
+PASS  D/b 同批判据 buildSha256=00417238…
+PASS  D/c 三态×两档矩阵 + 命名 shot-v13-<态>-<档>.png 全符（挂稳定 id）
+PASS  D/d IHDR 尺寸 @2x 全符（780×1688 / 860×1864）
+PASS  D/e 六张字节量 ≡ shot-manifest 逐张相等（同批复证锚）
+PASS  E/tools/gen-nearmiss-pack.mjs 零裸 hex / 零 rgba 字面量（命中 0）
+PASS  E/tools/gen-settlement-pack.mjs 零裸 hex / 零 rgba 字面量（命中 0）
+PASS  E/det 两生成器重跑逐字节一致（漂移 0 件）
+PASS  F/a 不常亮：驻留窗外零绘制（transient-not-latched 实现面）
+PASS  F/b 零粒子/不震屏：drawNearMiss 函数体零 particles 写入、零 shake 写入
+PASS  F/c 边行高亮色源 = NEARMISS_UI.edge 单源（theme 派生 token）
+
+ART-RECHECK-V13: PASS 27/27
