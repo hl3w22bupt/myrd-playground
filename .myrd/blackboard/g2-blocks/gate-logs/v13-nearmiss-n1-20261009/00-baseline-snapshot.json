@@ -1,0 +1,38 @@
+{
+  "snapshot": "v1.3 首批开工前置 · 基线双快照（2026-10-09）",
+  "inputs": {
+    "v11_approved_export": ".myrd/spec/g2-blocks/design-spec.json",
+    "v11_platform": {
+      "id": "cmuqa2mu50023m9zr8mh60uph",
+      "version": 2,
+      "status": "approved"
+    },
+    "v11_numeric_anchor": "302e63367f3dea63212ad689a33703d83886d145862db0d724df98e97fea2d89",
+    "v7_chain_head_export": ".myrd/spec/g2-blocks/design-spec-v15-freeze-draft.json",
+    "v7_platform": {
+      "id": "cmuyvvhql0043m93eu777kop8",
+      "version": 7,
+      "status": "draft",
+      "parentSpecId": "cmuw3gcgm01a9icryraii5dzp"
+    },
+    "v7_numeric_anchor": "19661d90b8de07c68b2178d288b4417ebe82dbaff99e028eb16ea7f568a94377",
+    "v7_meta_version": "1.5"
+  },
+  "chain": {
+    "1": "v1.0 superseded",
+    "2": "v1.1 approved(已被后续 draft 建版动作翻 superseded，approved 快照以导出件为准)",
+    "3": "v1.2 写案 superseded",
+    "4": "v1.2 手感 superseded",
+    "5": "wx 写案 superseded",
+    "6": "dy 写案 superseded",
+    "7": "v1.5 封版包 draft=链头"
+  },
+  "g2_repo": {
+    "root": "/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks",
+    "v12_release_commit": "6d3db6a",
+    "main_head": "1e3eff4",
+    "note": "本轮 N2 从 6d3db6a 切独立分支"
+  },
+  "six_qa_fixes_pending": "QA 预打回六条 → 链 v8 修补面（见 01-six-fixes-plan.md）",
+  "canonicalization": "JSON.stringify(sortKeys(v)) sha256（与 tools/post-spec-* 同口径，node 26 实算）"
+}

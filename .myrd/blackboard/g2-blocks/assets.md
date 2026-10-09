@@ -1,4 +1,30 @@
-# 资产清单黑板 — g2-blocks（**V1.2「核心手感 6 项 + daily-challenge」轮 · 视觉打磨包**）
+# 资产清单黑板 — g2-blocks（**V1.3 首批「near-miss 反馈 + 结算页 IA」表现层资产**）
+
+> 更新时间：2026-10-09（N3 待 N1 解锁 · 主策划登记区段）
+> 负责人：游戏美术（表现层资产面）/ 主策划（整合校对）
+> 下一步：等 N1 链 v8 入链后按冻结面开产；截图证据包命名挂稳定 id
+> 红线：色值一律引用冻结色板 token 派生（生成器零裸 hex、零 rgba 字面量）；near-miss 视听参数一律取链 v8 `numeric.nearMiss` 冻结面（零手抄第二份）；零粒子、不震屏为 near-miss 硬约束
+
+## 顶部风格卡（沿用 A 轮定稿 · 本轮沿用零改版，详档见存档区「风格卡」节）
+
+- **要素1 主色**：冻结色板 7 hex（`block-01..07`，真源 = spec `numeric.palette`）
+- **要素2 形状语言**：方角圆角块 + 内描边（alpha 0.35）+ 顶部高光条（alpha 0.18）——near-miss 边行高亮与结算页槽位沿用同一形状语言派生
+- **要素3 材质**：零贴图（textureSampling=none）；near-miss 硬约束 = 零粒子、不震屏、边行高亮不常亮
+- **要素4 版式基色**：BACKDROP 三停靠渐变 + UI token 九键（bgDeep/bgPanel/textPrimary/textDim/accentWarm/dangerCool/hintBarBg/coolBannerBg/coolBannerText）；near-miss 冷色 = 既有冷 token 降饱和 ~30% 派生（派生式可机判，零新色）
+
+## V1.3 表现层资产登记区（N3 · 美术线填报 · 编号 G-xx）
+
+| 编号 | 资产 | 实机位置 | 数值/色源 | 校样证据 | 状态 |
+|---|---|---|---|---|---|
+| G-01 | near-miss 音效变体（第二档变体参数：下行尾音 + 时长减半） | 炉冷结算 near-miss 命中时刻（三档音效用途表：near-miss=第二档变体） | 链 v8 `numeric.nearMiss.sfxVariant` + 用途表实体 | 单元断言 + 人工听感 rubric | ⏳ 待 N1 |
+| G-02 | near-miss 边行高亮（冷色降饱和 ~30% · 不常亮） | near-miss 命中行/列的边行块 | 冻结冷 token 派生式（`tools/color.mjs` 同源） | palette-gate + 截图 | ⏳ 待 N1 |
+| G-03 | 结算页 P0–P3 槽位视觉（结果层/归因层/行动层版式） | 结算面三层 IA | UI token 九键 + result-slot-* element id（链 v8 entities） | smoke 三区块断言 + 截图 | ⏳ 待 N1 |
+| G-04 | 分享卡模板（v1.3 轻更新） | 分享面 | 既有分享卡同源派生 | 与 wx/dy 提审包零 diff 断言并存 | ⏳ 待 N1 |
+| G-05 | 6 张实机截图证据包（三态×两机型档，命名挂稳定 id） | 三态 = near-miss 命中 / 无可消除 / 常规结算；两机型档 = 390×844（最低档基准）+ 430×932 | 装配区同批判据（buildSha256） | shot-manifest 同批机判 | ⏳ 待 N2 |
+
+---
+
+# 存档：V1.2「核心手感 6 项 + daily-challenge」轮 · 视觉打磨包（2026-10-04 收口）
 
 > 更新时间：2026-10-04（N3 收口 · 七件全落 · ART-RECHECK 12/12 不降 · 美术线独立复验六项全绿零 delta）
 > 负责人：游戏美术（打磨包面）/ 主策划（整合校对）
