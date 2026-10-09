@@ -51,6 +51,7 @@ func activate_note(chart_index: int) -> void:
 	var note := RhythmNote.new()
 	note.chart_index = chart_index
 	note.note_time = float(_chart[chart_index]["time"])
+	note.tint = Color(lane_color.r, lane_color.g, lane_color.b, 0.95)
 	note.position = Vector2(0.0, Conductor.SPAWN_Y)
 	add_child(note)
 	_active.append(note)

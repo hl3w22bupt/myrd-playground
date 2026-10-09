@@ -11,6 +11,8 @@ var note_time: float = 0.0
 var chart_index: int = -1
 ## 是否已被命中（命中后不再参与判定）。
 var hit: bool = false
+## 音符颜色（轨道装配时传入轨色：四轨各一色，下落时可读性更好）。
+var tint: Color = Color(0.30, 0.80, 1.0, 0.95)
 
 ## 视觉尺寸（轨道宽 180，留边距）。
 const NOTE_WIDTH: float = 150.0
@@ -19,7 +21,7 @@ const NOTE_HEIGHT: float = 34.0
 
 func _draw() -> void:
 	var half := Vector2(NOTE_WIDTH, NOTE_HEIGHT) / 2.0
-	draw_rect(Rect2(-half, Vector2(NOTE_WIDTH, NOTE_HEIGHT)), Color(0.30, 0.80, 1.0, 0.95))
+	draw_rect(Rect2(-half, Vector2(NOTE_WIDTH, NOTE_HEIGHT)), tint)
 	# 内芯高亮条：给音符一点「可击打」的视觉重心。
 	draw_rect(Rect2(-half + Vector2(8, 8), Vector2(NOTE_WIDTH - 16, NOTE_HEIGHT - 16)),
 		Color(0.85, 0.98, 1.0, 0.9))

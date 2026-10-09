@@ -14,6 +14,13 @@ const LANE_COLORS: Array[Color] = [
 const HUD_FONT_SIZE: int = 30
 const TITLE_FONT_SIZE: int = 44
 const LANE_KEYS: Array[String] = ["D", "F", "J", "K"]
+## 移动端触控带（四轨分区）：屏幕底部整带，四轨等宽铺满。
+const TOUCH_BAND_Y: float = 1150.0
+const TOUCH_BAND_H: float = 130.0
+## 工具按钮行（重开/校准/难度）：夹在判定圈（1018..1062）与触控带（1150+）之间，
+## 与四轨分区零重叠 —— 重叠会让击打误触校准/重开（移动端可玩性缺陷）。
+const UTILITY_ROW_Y: float = 1066.0
+const UTILITY_ROW_H: float = 60.0
 
 var conductor: Conductor
 var lanes: Array[Lane] = []
@@ -26,6 +33,7 @@ var status_label: Label
 var results_panel: PanelContainer
 var results_label: Label
 var touch_ui: CanvasLayer
+var _difficulty_buttons: Array[TouchActionButton] = []
 var _move_hint: String = "D/F/J/K 击打 · R 重开"
 
 
@@ -88,26 +96,47 @@ func _build_hud() -> void:
 func _build_touch_ui() -> void:
 	touch_ui = CanvasLayer.new()
 	touch_ui.layer = 10
+	# 可见性只由触屏可用性决定（SKILL.md §3A：不要用平台特征代替）。
 	touch_ui.visible = DisplayServer.is_touchscreen_available()
 	add_child(touch_ui)
 	if touch_ui.visible:
 		_move_hint = "点击下方分区击打音符"
-		# 四轨触控分区（多点并发，各按钮独立跟踪触点）。
-		for i in Conductor.LANE_COUNT:
-			var rect := Rect2(Conductor.LANE_WIDTH * float(i), 1150.0,
-				Conductor.LANE_WIDTH, 130.0)
-			touch_ui.add_child(TouchActionButton.create(
-				StringName("lane_%d" % (i + 1)), rect, LANE_KEYS[i], 52))
-		# 重开按钮（注入 restart 动作，与键盘同路径）。
+	# 按钮无条件构建、由层可见性统一控制（TouchScreenButton 不可见即不响应）；
+	# 无头冒烟因此也能机判触控分区结构（AC4 代理断言）。
+	# 四轨触控分区（多点并发，各按钮独立跟踪触点）。
+	for i in Conductor.LANE_COUNT:
+		var rect := Rect2(Conductor.LANE_WIDTH * float(i), TOUCH_BAND_Y,
+			Conductor.LANE_WIDTH, TOUCH_BAND_H)
 		touch_ui.add_child(TouchActionButton.create(
-			&"restart", Rect2(580.0, 240.0, 124.0, 72.0), "重开", 36))
-		# 延迟校准入口（±300ms、步长 10ms，GameState 持久化）。
-		var cal_down := TouchActionButton.create(&"", Rect2(16.0, 1150.0, 150.0, 64.0), "校准−10", 26)
-		var cal_up := TouchActionButton.create(&"", Rect2(180.0, 1150.0, 150.0, 64.0), "校准+10", 26)
-		touch_ui.add_child(cal_down)
-		touch_ui.add_child(cal_up)
-		cal_down.pressed.connect(_on_calibration_down)
-		cal_up.pressed.connect(_on_calibration_up)
+			StringName("lane_%d" % (i + 1)), rect, LANE_KEYS[i], 52))
+	# 工具按钮行：与四轨分区零重叠（重叠 = 击打误触，移动端可玩性缺陷）。
+	var cal_down := TouchActionButton.create(&"", Rect2(16.0, UTILITY_ROW_Y, 150.0, UTILITY_ROW_H),
+		"校准−10", 24)
+	var cal_up := TouchActionButton.create(&"", Rect2(180.0, UTILITY_ROW_Y, 150.0, UTILITY_ROW_H),
+		"校准+10", 24)
+	touch_ui.add_child(cal_down)
+	touch_ui.add_child(cal_up)
+	cal_down.pressed.connect(_on_calibration_down)
+	cal_up.pressed.connect(_on_calibration_up)
+	# 难度切换按钮（结算页开放，进行中隐藏）：注入 diff_prev/diff_next，与键盘同路径。
+	var diff_down := TouchActionButton.create(&"diff_prev",
+		Rect2(356.0, UTILITY_ROW_Y, 100.0, UTILITY_ROW_H), "难度‹", 24)
+	var diff_up := TouchActionButton.create(&"diff_next",
+		Rect2(468.0, UTILITY_ROW_Y, 100.0, UTILITY_ROW_H), "难度›", 24)
+	touch_ui.add_child(diff_down)
+	touch_ui.add_child(diff_up)
+	diff_down.visible = false
+	diff_up.visible = false
+	_difficulty_buttons = [diff_down, diff_up]
+	# 重开按钮（注入 restart 动作，与键盘同路径；进行中按下无效果由 _restart 保护）。
+	touch_ui.add_child(TouchActionButton.create(
+		&"restart", Rect2(588.0, UTILITY_ROW_Y, 118.0, UTILITY_ROW_H), "重开", 30))
+
+
+## 难度切换按钮只随结算面板显隐（切档只在结算页开放）。
+func _set_difficulty_buttons_visible(visible_now: bool) -> void:
+	for button in _difficulty_buttons:
+		button.visible = visible_now
 
 
 func _connect_signals() -> void:
@@ -167,6 +196,7 @@ func _restart() -> void:
 	if conductor.playing:
 		return
 	results_panel.visible = false
+	_set_difficulty_buttons_visible(false)
 	conductor.paused = false
 	GameState.reset()
 	conductor.restart()
@@ -207,6 +237,7 @@ func _on_game_finished(cleared: bool) -> void:
 		int(round(accuracy * 100.0)), GameState.difficulty_name(),
 	]
 	results_panel.visible = true
+	_set_difficulty_buttons_visible(true)
 	if cleared:
 		Juice.pop(results_panel)
 		Juice.sfx(&"score")

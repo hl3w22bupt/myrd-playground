@@ -1,0 +1,35 @@
+{
+  "meta": {
+    "song": "节奏大师 · 默认曲目",
+    "song_duration_s": 32.0,
+    "judge_windows_ms": { "perfect": 50.0, "good": 100.0 },
+    "score_weights": { "perfect": 100, "good": 60 },
+    "note": "本表是《节奏大师》难度分级的交付配置表（需求 AC3）。运行时以 autoload/game_state.gd 的 DIFFICULTY_TABLE 为生效来源；tests/smoke.gd 的 AC3 相位机判「代码表与配置表逐档一致、生效数值落在区间内」，两头脱节 = 冒烟 FAIL。"
+  },
+  "difficulties": [
+    {
+      "index": 0,
+      "name": "Easy",
+      "fall_speed_px_s": { "value": 300.0, "min": 270.0, "max": 330.0 },
+      "note_interval_s": { "value": 1.10, "min": 1.0, "max": 1.2 }
+    },
+    {
+      "index": 1,
+      "name": "Normal",
+      "fall_speed_px_s": { "value": 380.0, "min": 350.0, "max": 410.0 },
+      "note_interval_s": { "value": 0.85, "min": 0.75, "max": 0.95 }
+    },
+    {
+      "index": 2,
+      "name": "Hard",
+      "fall_speed_px_s": { "value": 470.0, "min": 440.0, "max": 500.0 },
+      "note_interval_s": { "value": 0.62, "min": 0.55, "max": 0.7 }
+    },
+    {
+      "index": 3,
+      "name": "Expert",
+      "fall_speed_px_s": { "value": 560.0, "min": 530.0, "max": 590.0 },
+      "note_interval_s": { "value": 0.46, "min": 0.4, "max": 0.52 }
+    }
+  ]
+}
