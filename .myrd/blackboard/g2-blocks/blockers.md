@@ -1,8 +1,18 @@
 # 阻塞项黑板 — g2-blocks（**V1.3 首批「near-miss 反馈系统 + 结算页信息架构」最小闭环 + 封版 DoD 四项首轮校准**）
 
-> 更新时间：2026-10-09（**N1–N5 全链核销 · QA 驳回修补③修复闭 · 团队包全就绪 · 提请主人拍板**）
+> 更新时间：2026-10-09（**N1–N5 全链核销 · QA 驳回修补③修复闭 · 团队包全就绪 · v1.3 首批已上 AppHost（部署轮 r4）· 提请主人拍板**）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：**等主人拍板**（拍板清单见文末「提请主人拍板」节）；团队无阻塞项
+
+## 部署轮 r4（2026-10-09 · 游戏程序 · v1.3 首批上 AppHost · 可核对证据）
+
+- **坑与版本**：专属坑 `cmuqelj2r0046m9zr4emgdgdg`（slug `g2-blocks-2` · sourceId `g2-blocks`）deployment **version 14** `cmv0gc581000cm91im2nx4uip` = running/current · commitHash `8b96402e…` 与部署提交全等 · 零 errorMessage（v13 及更早 superseded）。受理 = 单次 POST（网关 504 但服务端受理一条，GET 复查无重复单）。
+- **产物**：`games/g2-blocks/export/web/` 30 文件 = 源仓 `feat/v1.3-nearmiss-settlement` @ **`ded8e8f`** `build/` 逐字节相等（rsync 后 `diff -rq`）；部署提交 `8b96402` 已推远端（`git ls-remote` 全等）。
+- **部署前门禁（本节点实跑，非转抄）**：三态契约 `node scripts/check-v13.mjs` **18/25/29+1PEND 全 PASS** · 两次重建确定性（仅 `sw.js` 缓存时间戳异，既有机制）· `node tools/smoke.mjs` **SMOKE: PASS**（J1=188.9ms≤400ms · 结算页三区块 P0–P2 + 归因 + 行动层触达 ≥48 · near-miss `__G2_NM` bannerActive=true 频控/超限计数在册）。
+- **线上自测 LIVE-SMOKE: PASS**（真浏览器 CDP 直连 liveUrl）：`/gw` 可开 + `__G2_READY=true` + 盘面 64 满员 + 真实 tap 得分 0→160（chain 1）+ 控制台零错误 + `?internal=1` 观测口三件全在；`/health` 200；线上 `main.mjs` sha256 `92d563b7…` 与仓内部署件全等；v1.3 五个新增件线上全 200。
+- **登记与入口**：`apphost-app.md` r4 区段已更新；产物区 artifactId `cmuqewt4u004jm9zreo1yw2ue`（POST 201 幂等复用）；liveUrl `https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/`（玩法入口 `/gw`）。
+- **跨线零接触**：一号仓库本轮变更仅 `games/g2-blocks/export/web`（5 改 + 5 新增）+ 黑板；`games/stack-tower` / `games/game` / 根 `apphost.toml` 零触碰；源仓各分支工作区零触碰（构建复用既有 worktree `g2-blocks-v13` @ `ded8e8f`，dy 线工作区原样）。
+- **披露（如实）**：线上包含 `?internal=1` 内测观测口与 nm 遥测缓冲面（只缓冲不外发、未配端点）；提审面零 diff 由 ac-33 契约断言不受影响；AppHost 为预览面非提审面，发布依据本 run 任务书「每次都把当前成果发布上去」。
 
 ## 当前基线（V1.3 首批开工 · 2026-10-09）
 
