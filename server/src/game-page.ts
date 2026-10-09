@@ -52,9 +52,9 @@ body { color: #f3f5f7; background: #14181f; overflow: hidden; touch-action: none
   <div class="sub">3D Fruit Slash · MyRD 小游戏工坊</div>
   <div id="bar-wrap"><div id="bar"></div></div>
   <div id="boot-msg">正在点火启动…</div>
-  <div id="keys"><span><kbd>按住拖动 / 触屏滑动</kbd> 切开抛起的苹果</span><span><kbd>一刀多果</kbd> Combo 加分</span><span><kbd>炸弹</kbd> 切中即终局</span><span><kbd>60 秒</kbd> 冲高分</span></div>
+  <div id="keys"><span><kbd>按住拖动 / 触屏滑动</kbd> 切开抛起的水果</span><span><kbd>一刀多果</kbd> Combo 加分</span><span><kbd>炸弹</kbd> 切中即终局</span><span><kbd>60 秒</kbd> 冲高分</span></div>
 </div>
-<div id="hint" style="display:none">滑动切开苹果 · 连切有加成 · 切中炸弹即终局</div>
+<div id="hint" style="display:none">滑动切开水果 · 连切有加成 · 切中炸弹即终局</div>
 <noscript>你的浏览器不支持 JavaScript。</noscript>
 <!-- 引擎引导脚本由启动脚本按 BASE_PATH 动态注入（静态 src 在无尾斜杠入口下会 404） -->
 <script>
