@@ -15,7 +15,7 @@
 - **源仓**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks`；**v1.2 发布 commit = `6d3db6a`**（部署轮 r3 产物同源）；main 头 `1e3eff4`（封版冲刺/wx/dy 端口在各自分支与 main，本轮零接触）；**N2 从 `6d3db6a` 切 `feat/v1.3-nearmiss-settlement`**
 - **开工前置快照**：`gate-logs/v13-nearmiss-n1-20261009/00-baseline-snapshot.json`（双锚 + 链状态表 + 源仓基线）
 - **落点偏差披露（沿用既有口径）**：任务书模板路径 `.myrd/blackboard/` 与 `.myrd/spec/design-spec.json` 为多游戏共线撞车件（`routines.yaml` B4「一游戏一文件」）→ 本轮沿用 `.myrd/blackboard/g2-blocks/` 与 `.myrd/spec/g2-blocks/design-spec.json`（v1.1 approved 为契约共同输入，链 v8 draft 为 Mode B 第二态）
-- **本轮收口态（2026-10-09）**：源仓 `feat/v1.3-nearmiss-settlement` @ `e79e1ee`（九提交：2 移植 + 4 切片 + N3 + N4）· 复检器 VERDICT **APPROVE-READY（9/9）** · 契约三态 18/25/29+1PEND · 八门禁①–⑧ · SMOKE PASS · P95 同机零退化 · 内测包 `games/g2-blocks/export/web-v13-beta/`（30 文件 · 同批 `00417238…`）· 提审包状态快照双通道 ✅
+- **本轮收口态（2026-10-09）**：源仓 `feat/v1.3-nearmiss-settlement` @ `2738599`（十提交：2 移植 + 4 切片 + N3 + N4 + N5 收尾归位 · 树净）· 复检器 VERDICT **APPROVE-READY（9/9）** · 契约三态 18/25/29+1PEND · 八门禁①–⑧ · SMOKE PASS · P95 同机零退化 · 内测包 `games/g2-blocks/export/web-v13-beta/`（30 文件 · 同批 `00417238…`）· 提审包状态快照双通道 ✅
 - **护栏**：① v1.2 冻结范围零接触（源仓 diff 面只允许本轮新增路径 + main.ts/renderer 接线最小面；`games/stack-tower`、`games/game`、根 `apphost.toml` 零触碰）；② v1.1 十二组 + feel/daily 两组 numeric 逐字节不动，near-miss/结算数值走链 v8 冻结面；③ 契约+冒烟全绿为提交前置，P95 冲突 → 回 N1，禁静默改 spec；④ 阻塞超一轮 → 升级主人；⑤ 全程无「DoD 已达标」措辞（DoD 只首轮校准）
 
 ## 阻塞项（V1.3 首批登记）
@@ -96,7 +96,7 @@
 - **g2-blocks 仓库**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks` @ `fe5fd38`（树有 2 处 benign 运行残留：`build/sw.js` 缓存版本号 + `tests/contract/.j1-evidence.json` J1 实测值，N2 首个提交一并归位）
 - **一号仓库**：分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d`（沿用 A 轮工作分支；线上发布 commit `852a13c` 不动）
 - **落点偏差披露（沿用 A 轮已接受口径）**：任务书要求 spec 导出到 `.myrd/spec/design-spec.json`，该路径为 stack-tower 专属件（`routines.yaml` B4「一游戏一文件」）→ 本轮沿用 `.myrd/spec/g2-blocks/design-spec.json`
-- **本轮收口态（2026-10-09）**：源仓 `feat/v1.3-nearmiss-settlement` @ `e79e1ee`（九提交：2 移植 + 4 切片 + N3 + N4）· 复检器 VERDICT **APPROVE-READY（9/9）** · 契约三态 18/25/29+1PEND · 八门禁①–⑧ · SMOKE PASS · P95 同机零退化 · 内测包 `games/g2-blocks/export/web-v13-beta/`（30 文件 · 同批 `00417238…`）· 提审包状态快照双通道 ✅
+- **本轮收口态（2026-10-09）**：源仓 `feat/v1.3-nearmiss-settlement` @ `2738599`（十提交：2 移植 + 4 切片 + N3 + N4 + N5 收尾归位 · 树净）· 复检器 VERDICT **APPROVE-READY（9/9）** · 契约三态 18/25/29+1PEND · 八门禁①–⑧ · SMOKE PASS · P95 同机零退化 · 内测包 `games/g2-blocks/export/web-v13-beta/`（30 文件 · 同批 `00417238…`）· 提审包状态快照双通道 ✅
 - **护栏**：① stack-tower 线上零接触（本轮零触碰其 spec/代码/黑板段）；② numeric 冻结零漂移，v1.1 既有 12 组 numeric 逐字节不动，契约+冒烟全绿为提交前置，numeric 与 P95 冲突 → 程序上报 → 主策划回 N1 version+1，禁止静默改 spec；③ 阻塞超一轮 → 升级主人
 
 ## 阻塞项（V1.2 核心手感轮 · 全部闭合 ✅）
