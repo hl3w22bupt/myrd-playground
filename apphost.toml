@@ -1,8 +1,9 @@
-# 《汽车连连看》(game-9) AppHost 应用清单（平台构建管线步骤 1 读取；M1 仅支持顶层字符串键值）
-# 壳位于仓库根：server/ 内是 Node20 + Hono 应用，游戏 Web 导出产物经 gzip+base64 内联进 bundle
-name = "game-9"
+# 《节奏大师》(game-10) AppHost 应用清单（平台构建管线步骤 1 读取；M1 仅支持顶层字符串键值）
+# 壳位于仓库根：server/ 内是 Node20 + Hono 应用，游戏 Web 导出产物经对象存储懒加载伺服
+name = "game-10"
 runtime = "node20"
 health = "/health"
 
-# 底座 A：资产出 bundle（部署时平台把该目录上传对象存储，server 用 asset-store 懒加载）
-assets_dir = "games/game-9/export/web"
+# 底座 A：资产出 bundle（部署时平台把该目录上传对象存储，server 用 asset-store 懒加载；
+# 25MB bundle 上限不再约束资产体积 —— index.wasm 约 35MB 由 CDN 通道分发）
+assets_dir = "games/game-10/export/web"

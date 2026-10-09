@@ -23,7 +23,7 @@ export const GAME_PAGE_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
-<title>汽车连连看</title>
+<title>节奏大师</title>
 <style>
 html, body, #canvas { margin: 0; padding: 0; border: 0; }
 body { color: #f3f5f7; background: #14181f; overflow: hidden; touch-action: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -48,13 +48,13 @@ body { color: #f3f5f7; background: #14181f; overflow: hidden; touch-action: none
 <body>
 <canvas id="canvas">你的浏览器不支持 canvas。</canvas>
 <div id="boot">
-  <h1>汽车连连看</h1>
-  <div class="sub">Car Lianliankan · MyRD 小游戏工坊</div>
+  <h1>节奏大师</h1>
+  <div class="sub">Rhythm Master · MyRD 小游戏工坊</div>
   <div id="bar-wrap"><div id="bar"></div></div>
   <div id="boot-msg">正在点火启动…</div>
-  <div id="keys"><span><kbd>点击/触屏</kbd> 选两张相同汽车卡片</span><span><kbd>≤2 折</kbd> 连通即消除</span><span><kbd>R</kbd> 重开</span><span><kbd>空格/Enter</kbd> 确认按钮</span></div>
+  <div id="keys"><span><kbd>D F J K</kbd> 四轨击打</span><span><kbd>←/→</kbd> 切难度</span><span><kbd>R</kbd> 重开</span><span><kbd>触屏</kbd> 底部四分区</span></div>
 </div>
-<div id="hint" style="display:none">点选两张相同汽车卡片 · 无路可走自动洗牌 · R 重开</div>
+<div id="hint" style="display:none">D F J K 四轨击打 · PERFECT ±50ms / GOOD ±100ms · 底部四分区触控 · R 重开</div>
 <noscript>你的浏览器不支持 JavaScript。</noscript>
 <!-- 引擎引导脚本由启动脚本按 BASE_PATH 动态注入（静态 src 在无尾斜杠入口下会 404） -->
 <script>
@@ -69,7 +69,7 @@ body { color: #f3f5f7; background: #14181f; overflow: hidden; touch-action: none
     try {
       var t = JSON.parse(rawTuning);
       if (t && typeof t === 'object' && !Array.isArray(t)) window.__GAME_TUNING__ = t;
-    } catch (e) { console.warn('[game9-shell] tuning 参数不是合法 JSON，忽略', rawTuning); }
+    } catch (e) { console.warn('[game10-shell] tuning 参数不是合法 JSON，忽略', rawTuning); }
   }
 
   // ---- 移动端音频手势解锁器（必须在引擎加载前安装，见文件尾注释）----
@@ -168,10 +168,10 @@ body { color: #f3f5f7; background: #14181f; overflow: hidden; touch-action: none
         audioAddModules += 1;
         var realUrl = BASE_PATH + 'api/public/assets/' + file;
         return origAddModule.call(self, realUrl, options).catch(function (err) {
-          console.error('[game9-shell] audio worklet 资产通道加载失败，降级原路径重试', file, err);
+          console.error('[game10-shell] audio worklet 资产通道加载失败，降级原路径重试', file, err);
           audioLog.push({ t: Date.now(), state: 'worklet-fallback:' + file });
           return origAddModule.call(self, url, options).catch(function (err2) {
-            console.error('[game9-shell] audio worklet 兜底加载也失败（移动端将无声）', file, err2);
+            console.error('[game10-shell] audio worklet 兜底加载也失败（移动端将无声）', file, err2);
             audioLog.push({ t: Date.now(), state: 'worklet-dead:' + file });
             throw err2;
           });

@@ -28,7 +28,7 @@ routines:
   description: 对 Godot 工程跑前置一致性检查 + 无头运行冒烟，断言退出码与 GODOT_SMOKE 标记 —— 「游戏能不能跑且玩得动」的机判门禁
   gate: false
   params:
-    gamePath: games/godot-coin-rush
+    gamePath: games/game-10
     smokeFrames: 240
   steps:
   - name: godot-availability
@@ -67,7 +67,7 @@ routines:
   gate: false
   # liveUrl 故意不给默认值：工作流 preHookParams 必传，缺参 = fail-closed 失败（列出可用入参），不会静默测错应用
   params:
-    gamePath: games/godot-coin-rush
+    gamePath: games/game-10
   steps:
   # 退出码 0/1/2，证据（report.json + 三张分阶段截图）落 {{gamePath}}/qa/mobile/；
   # 诊断入口：先读 report.json 的 checks/networkFailures/consoleErrors，再看截图
