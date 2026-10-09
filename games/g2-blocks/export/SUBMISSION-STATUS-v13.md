@@ -23,11 +23,17 @@
 | 项 | 值 |
 |---|---|
 | 落点 | `games/g2-blocks/export/web-v13-beta/`（30 文件）|
-| 同源 | 源仓 `feat/v1.3-nearmiss-settlement` @ `e79e1ee` `build/`（`diff -rq` 逐字节相等 · `gate-logs/v13-nearmiss-n5-20261009/02`）|
-| 同批判据 | build 树 sha256 = shot-manifest `0041723813ea…`（截图六张同批）|
+| 同源 | 源仓 `feat/v1.3-nearmiss-settlement` @ 驳回修复轮 `ded8e8f` `build/`（逐件 sha256 全等 · `gate-logs/v13-nearmiss-reject-fix-20261009/`；前轮同源 `e79e1ee` @ 批 `00417238…` 已被本批 superseded，原档证据留 N5 目录不删）|
+| 同批判据 | build 树 sha256 = shot-manifest `e3481537db9b…`（截图六张同批 · 驳回修复轮重摄）|
 | 内容 | near-miss 反馈 + 结算页三层 IA + nm 遥测缓冲面 + `?internal=1` 内测标记 + 观测口（`__G2_SETTLEMENT/__G2_NM/__G2_NM_LOG`）|
 | 隔离 | 内测工具面不进任何提审包（上节双通道）；web 面只缓冲不外发（未配端点如实披露）|
 | 用途 | DoD 四项首轮校准的样本回收载体（样本下限见《DoD 校准首轮报告》§二）|
+
+### 三.1 驳回修复轮重出（2026-10-09 · QA 修补③打回后）
+
+- **修复内容**：PB=0（首局/清档）归因行按 `e-personal-best.zeroBoundary` 改出 edge 降级文案『继续热身，稳住节奏』（原误出通用行）；连带面 rule=null 归因槽禁 null 整行隐藏；`SettlementInputs.rule` 类型补 'P3'；`__G2_NM_FORCE` 时序改读 numeric（禁手抄）。
+- **证据重出**：契约三态 18/25/29+1PEND（先红后绿，红证据 `01-ac32-red-prefix.log`）· 冒烟 J1=183.2ms · a10 六张同批重摄（**新批 `e3481537…`**：settle-nm 两张与原档逐字节全等未变 · settle-nomoves 构造真值化「先手得分→record 路径」· nm-hit 披露脉冲相位抖动面）· 内测包 30 件随新 build 重出（逐件 sha256 ≡ build）。
+- **行为披露（内测可见）**：首局（PB=0）或低分（score<PB×50%）结算归因行 = 『继续热身，稳住节奏』；差值文案『个人最佳 N，就差 M 分』仅 PB>0 且 score∈[PB×50%, PB) 出现。
 
 ## 四、提审前置件（全部归主人，团队不代判）
 

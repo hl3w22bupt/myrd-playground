@@ -1,5 +1,5 @@
 // sw.js — GENERATED（tools/build.mjs）；cache-first 版本化缓存
-const CACHE = 'g2-2-1791513163659';
+const CACHE = 'g2-2-1791517339374';
 const ASSETS = [
   "./",
   "./index.html",

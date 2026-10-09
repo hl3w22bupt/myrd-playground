@@ -1,6 +1,6 @@
 # 阻塞项黑板 — g2-blocks（**V1.3 首批「near-miss 反馈系统 + 结算页信息架构」最小闭环 + 封版 DoD 四项首轮校准**）
 
-> 更新时间：2026-10-09（**N1–N5 全链核销 · 程序线独立复检九项全绿 · 团队包全就绪 · 提请主人拍板**）
+> 更新时间：2026-10-09（**N1–N5 全链核销 · QA 驳回修补③修复闭 · 团队包全就绪 · 提请主人拍板**）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：**等主人拍板**（拍板清单见文末「提请主人拍板」节）；团队无阻塞项
 
@@ -15,8 +15,9 @@
 - **源仓**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks`；**v1.2 发布 commit = `6d3db6a`**（部署轮 r3 产物同源）；main 头 `1e3eff4`（封版冲刺/wx/dy 端口在各自分支与 main，本轮零接触）；**N2 从 `6d3db6a` 切 `feat/v1.3-nearmiss-settlement`**
 - **开工前置快照**：`gate-logs/v13-nearmiss-n1-20261009/00-baseline-snapshot.json`（双锚 + 链状态表 + 源仓基线）
 - **落点偏差披露（沿用既有口径）**：任务书模板路径 `.myrd/blackboard/` 与 `.myrd/spec/design-spec.json` 为多游戏共线撞车件（`routines.yaml` B4「一游戏一文件」）→ 本轮沿用 `.myrd/blackboard/g2-blocks/` 与 `.myrd/spec/g2-blocks/design-spec.json`（v1.1 approved 为契约共同输入，链 v8 draft 为 Mode B 第二态）
-- **本轮收口态（2026-10-09）**：源仓 `feat/v1.3-nearmiss-settlement` @ `2738599`（十提交：2 移植 + 4 切片 + N3 + N4 + N5 收尾归位 · 树净）· 复检器 VERDICT **APPROVE-READY（9/9）** · 契约三态 18/25/29+1PEND · 八门禁①–⑧ · SMOKE PASS · P95 同机零退化 · 内测包 `games/g2-blocks/export/web-v13-beta/`（30 文件 · 同批 `00417238…`）· 提审包状态快照双通道 ✅
-- **程序线独立复检（2026-10-09 · 新执行轨迹 · 复检非重做）**：实跑九项全绿零新缺陷——契约三态 18/25/29+1PEND · 八门禁 · 冒烟 J1=180.5ms · P95 同机对 27.1=27.1（基线 `6d3db6a` 临时 worktree 实跑）· 聚合器双跑逐字节等 · 判定器六条修补口径抽读 · 槽位/copy id 对 spec · v1.3 diff 51 路径全白名单（platform/export/wx/dy 命中 0）· 内测包 30 件 sha256 ≡ HEAD build；平台链实查：链 v8 = draft（等主人 approve）· v7 及更早 superseded。原文 `gate-logs/v13-nearmiss-prog-recheck-20261009/`（复跑覆写件已还原，源仓树净维持）
+- **本轮收口态（2026-10-09 · 驳回修复后）**：源仓 `feat/v1.3-nearmiss-settlement` @ **`ded8e8f`**（十一提交：2 移植 + 4 切片 + N3 + N4 + N5 收尾归位 + 驳回修补③ · 树净）· 复检器 VERDICT **APPROVE-READY（9/9）** · 契约三态 18/25/29+1PEND · 八门禁①–⑧ · SMOKE PASS（J1=183.2ms）· P95 同机零退化 · 内测包 `games/g2-blocks/export/web-v13-beta/`（30 文件 · 同批 `e3481537…` 驳回修复轮重出）· 提审包状态快照双通道 ✅
+- **程序线独立复检（2026-10-09 · 新执行轨迹 · 复检非重做）**：实跑九项全绿零新缺陷（对 `2738599` 态）——契约三态 18/25/29+1PEND · 八门禁 · 冒烟 J1=180.5ms · P95 同机对 27.1=27.1（基线 `6d3db6a` 临时 worktree 实跑）· 聚合器双跑逐字节等 · 判定器六条修补口径抽读 · 槽位/copy id 对 spec · v1.3 diff 51 路径全白名单（platform/export/wx/dy 命中 0）· 内测包 30 件 sha256 ≡ HEAD build；平台链实查：链 v8 = draft（等主人 approve）· v7 及更早 superseded。原文 `gate-logs/v13-nearmiss-prog-recheck-20261009/`
+- **QA 驳回修复轮（2026-10-09 · 修补③）**：PB=0 归因行改 edge 降级文案（spec SSOT）+ 连带面 rule=null 必出归因行 + 契约断言对齐 + playtest 更正 + 三附注清账 + a10 重摄/内测包重出（详见 C5 行与 `gate-logs/v13-nearmiss-reject-fix-20261009/README.md`）
 - **护栏**：① v1.2 冻结范围零接触（源仓 diff 面只允许本轮新增路径 + main.ts/renderer 接线最小面；`games/stack-tower`、`games/game`、根 `apphost.toml` 零触碰）；② v1.1 十二组 + feel/daily 两组 numeric 逐字节不动，near-miss/结算数值走链 v8 冻结面；③ 契约+冒烟全绿为提交前置，P95 冲突 → 回 N1，禁静默改 spec；④ 阻塞超一轮 → 升级主人；⑤ 全程无「DoD 已达标」措辞（DoD 只首轮校准）
 
 ## 阻塞项（V1.3 首批登记）
@@ -27,6 +28,7 @@
 | C2 | near-miss/结算页实现未开工（N2） | 程序 | 链 v8 入链后从 `6d3db6a` 切分支，每片先红后绿 | ✅ 四切片先红后绿 · 契约三态+八门禁+SMOKE 全绿 · P95 同机零退化（`beeeb46`） |
 | C3 | near-miss 视听变体 + 槽位视觉 + 截图证据包未开产（N3） | 美术 | 按 N1 冻结面产出 + 四要素校样 | ✅ a08/a09/a10 全落 + 六张截图同批 `c9f11ad1…`（`7ce0da6`）；rubric 留 approve |
 | C4 | DoD 首轮校准报告未产出（N4） | QA | 对照链 v8 审查无红 + 报告三件套齐全 | ✅ 复检器 9/9 无红 APPROVE-READY（五轮自曝全链）· 报告三件套齐全 · 措辞机判通过（`e79e1ee`） |
+| C5 | QA 驳回：PB=0 边界行为违反 `e-personal-best.zeroBoundary`（attributionCopy 误出通用行 + 契约反向固化 + playtest §一.5 失实） | 程序 | attributionCopy PB<=0 → edge 文案 + 契约断言对齐 spec + 记录更正 + 连带面（rule=null 禁整行隐藏）同修 | ✅ @ `ded8e8f`：先红后绿（红 EXIT=1 → 三态 18/25/29+1PEND）· 冒烟 J1=183.2ms · 八门禁 · P95 对 27.135→27.1 零退化 · a10 重摄新批 `e3481537…`（settle-nm 与原档逐字节全等）· 内测包 30 件重出 · 提审面命中 0（`gate-logs/v13-nearmiss-reject-fix-20261009/`） |
 
 ## 提请主人拍板（v1.3 首批收口 · 驳回修复后全链就绪）
 

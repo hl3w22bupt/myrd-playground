@@ -55,7 +55,7 @@ export const SLOT_IDS = [
                 
                     
                                                                  
-                           
+                                  
                        
                         
                                                                             
@@ -71,9 +71,11 @@ export function settlementNumeric() {
 }
 
 /**
- * 归因层文案（单源分支器）：
- *   near-miss 规则文案（P1/P2 模板 / P3 带 chain）→ 差值文案（bestGap）→ 个人最佳边界降级（edge）
- *   → 无可消除（movesEnded）→ null（无归因行；survive-to-cool 且无 near-miss 的常态局）
+ * 归因层文案（单源分支器 · 驳回修复③对齐 e-personal-best.zeroBoundary）：
+ *   near-miss 规则文案（P1/P2 模板 / P3 带 chain）→ 差值文案（bestGap）→ 个人最佳边界
+ *   （=0（首局/清档）或低分（score < PB×0.5）→ edge 降级文案；常规差值 → gap；新纪录/追平 → 无差值文案）
+ *   → 无可消除（movesEnded 兜底，sl-copy-attribution-none）→ null（防御态：调用方未给任何归因输入）。
+ *   纪律：rule=null 且调用方给足 PB/score（视图路径恒给足）时必出归因行——禁 null 整行隐藏。
  */
 export function attributionCopy(opts   
                                   
@@ -93,9 +95,17 @@ export function attributionCopy(opts
       .replace('{gap}', String(opts.bestGap.gap));
   }
   if (typeof opts.personalBest === 'number' && typeof opts.score === 'number') {
-    // e-personal-best 边界（=0/低分/新纪录）：edge 降级文案仅在低分或清档时替代通用行
-    if (opts.personalBest <= 0) return SETTLEMENT_TEXT.attributionNone;
+    // e-personal-best 边界条款：zeroBoundary（PB=0 → edge，禁通用行顶替）+ lowScoreBoundary（<50% → edge）
+    if (opts.personalBest <= 0) return NEARMISS_TEXT['nm-copy-personal-best-edge'];
     if (opts.score < opts.personalBest * 0.5) return NEARMISS_TEXT['nm-copy-personal-best-edge'];
+    if (opts.score < opts.personalBest) {
+      // 常规差值兜底（caller 未传 bestGap 时按同式自算：best=PB · gap=PB−score，单一公式）
+      return NEARMISS_TEXT['nm-copy-personal-best-gap']
+        .replace('{best}', String(opts.personalBest))
+        .replace('{gap}', String(opts.personalBest - opts.score));
+    }
+    // 新纪录/追平：无差值文案（e-personal-best.role）→ 通用归因行
+    return SETTLEMENT_TEXT.attributionNone;
   }
   if (opts.movesEnded) return SETTLEMENT_TEXT.attributionNone;
   return null;

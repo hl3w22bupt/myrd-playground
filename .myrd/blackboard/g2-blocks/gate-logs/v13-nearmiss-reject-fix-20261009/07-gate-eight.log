@@ -1,0 +1,5 @@
+# cmd: npm run gate（驳回修复后八门禁）
+# utc: 2026-10-09T03:47:03Z
+—— 合计 20 PASS / 0 FAIL ——
+PASS  ⑧ 工程前置面（A 轮 N3）：T1 storage/audio 门面 · T2 帧率埋点 · T3 时钟/时区
+EXIT=0

@@ -1,6 +1,6 @@
 # 关卡状态黑板 — g2-blocks（**V1.3 首批「near-miss 反馈系统 + 结算页信息架构」最小闭环 + 封版 DoD 四项首轮校准**）
 
-> 更新时间：2026-10-09（**N1–N5 全链核销 · 程序线独立复检九项全绿 · 提请主人拍板** · 主策划/游戏程序）
+> 更新时间：2026-10-09（**N1–N5 全链核销 · QA 驳回修补③修复闭 · 提请主人拍板** · 主策划/游戏程序）
 > 负责人：主策划（整合人）· 程序线维护实现状态列 · QA 线维护核销列 · 美术线维护资产列
 > 下一步：**等主人拍板**（链 v8 approve + 人工验收 + 内测三件 + 提审时点）；PWA 发布归 deploy 节点
 > 红线：**v1.2 冻结范围零接触**（源仓从发布 commit `6d3db6a` 切独立分支）；near-miss 数值 = 链 v8 冻结面（uxProposal 提案值随本版转正式前不写实现读路）；提审决策归主人，团队只交包；DoD 只首轮校准不改生效阈值；性能口径不进 spec acceptance
@@ -16,6 +16,7 @@
 | N4 对抗审查+校准 | QA | 凭三前置件对照链 v8 三件套审查打回 + 《DoD 校准首轮报告》 | ✅ 复检器五轮自曝-修复全链（run1 3P6R → 终轮 **9/9 无红 APPROVE-READY**）· 自曝真缺陷 = 同批判据抓截图≠当前 build（同批重拍 `00417238…`）· 报告三件套（dod-calibration-round1 + playtest-subjective + 校准值版模板）· 措辞机判通过 · 原文 `gate-logs/v13-nearmiss-n4-20261009/`（源仓 `e79e1ee`） | ✅ |
 | N5 汇总 deploy | 主策划+程序 | v1.3 内测包 + 《DoD 校准首轮报告》+ 《提审包状态快照》（wx/dy 零 diff 确认） | ✅ 内测包 `games/g2-blocks/export/web-v13-beta/` 30 文件（逐字节等 · 同批 `00417238…`）+ 快照 `games/g2-blocks/export/SUBMISSION-STATUS-v13.md`（双通道 ✅）+ 封箱自检 `gate-logs/v13-nearmiss-n5-20261009/` · **提审/发布归主人** | ✅ |
 | 程序线独立复检（新执行轨迹 · 复检非重做） | 程序 | 源仓 `feat/v1.3-nearmiss-settlement` @ `2738599`（基点 `6d3db6a`）实跑九项：契约三态 18/25/29+1PEND · 八门禁①–⑧ · 冒烟 J1=180.5ms · P95 同机对 **27.1=27.1 零退化**（基线侧 `/tmp` worktree `6d3db6a` 实跑）· 聚合器双跑逐字节等 · 判定器六条修补口径抽读 · 槽位/copy id 对 spec · diff 51 路径全白名单（platform/export/wx/dy 命中 0）· 内测包 30 件 sha256 ≡ HEAD build | ✅ 九项全绿零新缺陷零代码改动；复跑覆写件已还原（源仓树净）· 原文 `gate-logs/v13-nearmiss-prog-recheck-20261009/`（6 日志 + README 四要素）· QA verdict 9 项交叉印证同向 | ✅ |
+| QA 驳回修复（修补③ · PB=0 边界） | 程序 | 驳回主缺陷 = attributionCopy PB<=0 误出通用行（违 `e-personal-best.zeroBoundary`）+ 契约反向固化 + playtest §一.5 记录失实。修复 @ `ded8e8f`：①PB<=0/低分 → edge 降级文案（spec SSOT，不走 v9）②连带面 rule=null 归因槽必显示一行（gap 兜底自算 + record→通用行）③ac-32 契约 C 节改写归因分支矩阵 ④playtest 更正 ⑤类型债 P3 ⑥`__G2_NM_FORCE` 时序读 numeric ⑦shot-manifest 增 stateMapping+determinismNote ⑧a10 六张同批重摄（settle-nomoves 构造真值化「先手得分→record 路径」保『无可消除』留证）· 内测包 30 件随新 build 重出（批 `e3481537…` · 快照 §三.1 披露） | ✅ 先红后绿（红 `01-ac32-red-prefix.log` EXIT=1 → 三态 18/25/29+1PEND 全绿）· 冒烟 J1=183.2ms · 八门禁 · P95 对 27.135→27.1 零退化 · settle-nm 两张与原档逐字节全等（未涉态零漂移）· 提审面命中 0 · 原文 `gate-logs/v13-nearmiss-reject-fix-20261009/` | ✅ |
 
 ---
 

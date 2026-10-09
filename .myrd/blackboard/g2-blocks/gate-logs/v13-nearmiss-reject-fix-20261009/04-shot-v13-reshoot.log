@@ -1,0 +1,24 @@
+# cmd: node tools/shot-v13.mjs（驳回修复后重摄 · settle-nomoves 构造真值化）
+# cwd: g2-blocks-v13
+# utc: 2026-10-09T03:42:54Z
+[shot-v13] shot-v13-nm-hit-390x844.png ✓（268237 bytes）
+[shot-v13] shot-v13-settle-nm-390x844.png ✓（124124 bytes）
+[shot-v13] shot-v13-settle-nomoves-390x844.png ✓（136314 bytes）
+[shot-v13] shot-v13-nm-hit-430x932.png ✓（303964 bytes）
+[shot-v13] shot-v13-settle-nm-430x932.png ✓（139838 bytes）
+[shot-v13] shot-v13-settle-nomoves-430x932.png ✓（152109 bytes）
+SHOT-V13: PASS 六张全落（三态 × 两机型档 · 同批 e3481537db9b…）→ assets/release/v13-shots/
+EXIT=0
+---- 重摄前后逐张 sha256 对比 ----
+1,2c1,2
+< 3acf5842697645c184cec9977d077de85c9564e37fb20c51227073ef29557e93  shot-v13-nm-hit-390x844.png
+< 5c6be96da402512873c70e16c03b34ce67c151fbece5ea418006076c6621cbe2  shot-v13-nm-hit-430x932.png
+---
+> dc32c6ebcda1b56aa8355d9c325dae2f28886e84278a24465fca803d8f1be522  shot-v13-nm-hit-390x844.png
+> d1b8b307af5e361291e734e500e57f72f4700d27106d334c3a921ad3d12c4e1e  shot-v13-nm-hit-430x932.png
+5,6c5,6
+< e8370d48d7d2190d667995c9c77717b656e3355e5abca9fc4467bfb9afe4aeca  shot-v13-settle-nomoves-390x844.png
+< 222a1d38f797dd5cbdd42908e41160aaefd83381adb1815050e0c872265b2c3e  shot-v13-settle-nomoves-430x932.png
+---
+> db3dd5f8216f1145da672738676210b1f9cec7f70d72623852aa8d600fae5fe4  shot-v13-settle-nomoves-390x844.png
+> e96295e8ca2b933b5ac46dc67526aa7d942e1f3ff663a9512856f91733fd926d  shot-v13-settle-nomoves-430x932.png

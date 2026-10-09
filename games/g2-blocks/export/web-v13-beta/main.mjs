@@ -500,7 +500,8 @@ debug.__G2_NM_STATE = (patch                                 )       => {
 // near-miss 构造钩子（与 __G2_LOAD_BOARD 同级测试面；smoke/截图证据构造用，零玩法路径）
 debug.__G2_NM_FORCE = (rows          )       => {
   const nowMs = performance.now();
-  st.nearMiss = { rows, text: NEARMISS_TEXT['nm-copy-inplay-oneaway'], bornAt: nowMs, pulseUntil: nowMs + 600, holdUntil: nowMs + 2400 };
+  const wf = nearMissNumeric().weakFeedback; // 时序真源 = 链 v8 numeric.nearMiss.weakFeedback（禁手抄第二份）
+  st.nearMiss = { rows, text: NEARMISS_TEXT['nm-copy-inplay-oneaway'], bornAt: nowMs, pulseUntil: nowMs + wf.pulseMs, holdUntil: nowMs + wf.bannerHoldMs };
 };
 
 // 帧率/帧时间埋点（A 轮 N3-T2）：采集面在产品内，报告由 tools/perf-report.mjs 读取产出。

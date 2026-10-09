@@ -20,7 +20,7 @@
 | G-02 ✅ | near-miss 边行高亮（冷色降饱和 ~30% · 不常亮） | near-miss 命中行/列的边行块 | `NEARMISS_UI.edge = #dcbcb5`（desat(coolBannerText,0.3) 派生可机判）| ac-32 契约派生式断言 + 截图 nm-hit 态 | ✅ |
 | G-03 ✅ | 结算页 P0–P3 槽位视觉（结果层/归因层/行动层版式） | 结算面三层 IA | a09 pack（六槽三方单源 · 触达 ≥48px · 时序 400/240ms）| ac-32 契约 + smoke ⑦b 三区块断言 + 目检 | ✅ |
 | G-04 ✅ | 分享卡模板（v1.3 轻更新） | 分享面 | a09 pack shareCard 节（版式沿用 · 零新色）| 与 wx/dy 提审包零 diff 断言并存（ac-33）| ✅ |
-| G-05 ✅ | 6 张实机截图证据包（三态×两机型档，命名挂稳定 id） | 三态 = nm-hit / settle-nm / settle-nomoves；两机型档 = 390×844 + 430×932 | 同批 `buildSha256 = 00417238…`（复算机判 · QA Q8 抓不同批后同批重拍）| shot-manifest 同批机判 + 每态渲染断言 | ✅ |
+| G-05 ✅ | 6 张实机截图证据包（三态×两机型档，命名挂稳定 id） | 三态 = nm-hit / settle-nm / settle-nomoves；两机型档 = 390×844 + 430×932 | 同批 `buildSha256 = e3481537…`（**驳回修复轮重摄 @ `ded8e8f`**：settle-nm 两张与原批逐字节全等 · settle-nomoves 构造真值化「先手得分→record 路径」保『无可消除』留证 · nm-hit 披露脉冲相位抖动面；前批 `00417238…` 原档留 N5 目录）| shot-manifest 同批机判（含 stateMapping+determinismNote）+ 每态渲染断言 + ac-32 契约 C 节归因矩阵 | ✅ |
 
 ## V1.3 N3 美术线独立复证台账（2026-10-09 · 复证不新做 · 源仓 @ `2738599` 树净）
 
