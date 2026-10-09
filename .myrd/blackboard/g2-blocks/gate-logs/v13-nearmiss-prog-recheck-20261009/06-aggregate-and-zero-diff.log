@@ -1,0 +1,22 @@
+# cmd: node tools/aggregate-nearmiss.mjs <fixture> out{1,2}.json + cmp
+# cwd: g2-blocks-v13
+# utc: 2026-10-09T02:53:09Z
+AGGREGATE: OK（events=8 · runs=2 · shows=2 · caps=1）
+AGGREGATE: OK（events=8 · runs=2 · shows=2 · caps=1）
+AGG-DETERMINISTIC: byte-equal
+EXIT=0
+
+# cmd: git diff --name-only 6d3db6a..feat/v1.3-nearmiss-settlement 白名单核对 + 内测包逐件 sha256 对 build/
+# utc: 2026-10-09T02:53:09Z
+diff 路径分布:
+  10 build
+   9 src
+   9 assets
+   7 tools
+   6 tests
+   6 docs
+   2 scripts
+   1 package.json
+   1 .github
+platform|export|wx|dy 命中数: 0
+BETA≡HEAD-BUILD: 30 文件逐件 sha256 全等

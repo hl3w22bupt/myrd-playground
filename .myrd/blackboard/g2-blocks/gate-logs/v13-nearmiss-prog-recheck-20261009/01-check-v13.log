@@ -1,0 +1,14 @@
+# cmd: node scripts/check-v13.mjs
+# cwd: g2-blocks-v13 (feat/v1.3-nearmiss-settlement @ 2738599)
+# utc: 2026-10-09T02:51:30Z
+== Mode A (approved v1.1) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv09tbrg003vm9vijx5bdv8j/.myrd/spec/g2-blocks/design-spec.json
+—— 合计 18 PASS / 0 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v2 approved 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准）
+== Mode B (chain v4 draft) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv09tbrg003vm9vijx5bdv8j/.myrd/spec/g2-blocks/design-spec-v1.3-feel-draft.json
+—— 合计 25 PASS / 0 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v4 draft 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准）
+== Mode C (chain v8 draft) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv09tbrg003vm9vijx5bdv8j/.myrd/spec/g2-blocks/design-spec-v13-batch-draft.json
+—— 合计 29 PASS / 0 FAIL / 1 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v8 draft 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准 · PEND 1 条显式挂起）
+CHECK-V13: PASS（三态计数全符 · 18 / 25 / 29+1PEND）
+EXIT=0

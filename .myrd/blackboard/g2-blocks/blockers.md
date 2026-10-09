@@ -1,6 +1,6 @@
 # 阻塞项黑板 — g2-blocks（**V1.3 首批「near-miss 反馈系统 + 结算页信息架构」最小闭环 + 封版 DoD 四项首轮校准**）
 
-> 更新时间：2026-10-09（**N1–N5 全链核销 · 团队包全就绪 · 提请主人拍板**）
+> 更新时间：2026-10-09（**N1–N5 全链核销 · 程序线独立复检九项全绿 · 团队包全就绪 · 提请主人拍板**）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：**等主人拍板**（拍板清单见文末「提请主人拍板」节）；团队无阻塞项
 
@@ -16,6 +16,7 @@
 - **开工前置快照**：`gate-logs/v13-nearmiss-n1-20261009/00-baseline-snapshot.json`（双锚 + 链状态表 + 源仓基线）
 - **落点偏差披露（沿用既有口径）**：任务书模板路径 `.myrd/blackboard/` 与 `.myrd/spec/design-spec.json` 为多游戏共线撞车件（`routines.yaml` B4「一游戏一文件」）→ 本轮沿用 `.myrd/blackboard/g2-blocks/` 与 `.myrd/spec/g2-blocks/design-spec.json`（v1.1 approved 为契约共同输入，链 v8 draft 为 Mode B 第二态）
 - **本轮收口态（2026-10-09）**：源仓 `feat/v1.3-nearmiss-settlement` @ `2738599`（十提交：2 移植 + 4 切片 + N3 + N4 + N5 收尾归位 · 树净）· 复检器 VERDICT **APPROVE-READY（9/9）** · 契约三态 18/25/29+1PEND · 八门禁①–⑧ · SMOKE PASS · P95 同机零退化 · 内测包 `games/g2-blocks/export/web-v13-beta/`（30 文件 · 同批 `00417238…`）· 提审包状态快照双通道 ✅
+- **程序线独立复检（2026-10-09 · 新执行轨迹 · 复检非重做）**：实跑九项全绿零新缺陷——契约三态 18/25/29+1PEND · 八门禁 · 冒烟 J1=180.5ms · P95 同机对 27.1=27.1（基线 `6d3db6a` 临时 worktree 实跑）· 聚合器双跑逐字节等 · 判定器六条修补口径抽读 · 槽位/copy id 对 spec · v1.3 diff 51 路径全白名单（platform/export/wx/dy 命中 0）· 内测包 30 件 sha256 ≡ HEAD build；平台链实查：链 v8 = draft（等主人 approve）· v7 及更早 superseded。原文 `gate-logs/v13-nearmiss-prog-recheck-20261009/`（复跑覆写件已还原，源仓树净维持）
 - **护栏**：① v1.2 冻结范围零接触（源仓 diff 面只允许本轮新增路径 + main.ts/renderer 接线最小面；`games/stack-tower`、`games/game`、根 `apphost.toml` 零触碰）；② v1.1 十二组 + feel/daily 两组 numeric 逐字节不动，near-miss/结算数值走链 v8 冻结面；③ 契约+冒烟全绿为提交前置，P95 冲突 → 回 N1，禁静默改 spec；④ 阻塞超一轮 → 升级主人；⑤ 全程无「DoD 已达标」措辞（DoD 只首轮校准）
 
 ## 阻塞项（V1.3 首批登记）

@@ -1,0 +1,8 @@
+# cmd: node tools/perf-report.mjs
+# cwd: g2-blocks-v13 (feat/v1.3-nearmiss-settlement @ 2738599)
+# utc: 2026-10-09T02:52:31Z
+[perf] 基准跑（throttle×1）: samples=437 fps=68.96 p50=12.3ms p95=27.1ms p99=35.128ms max=36.1ms jank=63(14.42%)
+[perf] 规格跑（spec j1 同环境）（throttle×4）: samples=134 fps=16.96 p50=59.4ms p95=73.57ms p99=76.839ms max=78.3ms jank=134(100.00%)
+[perf] 报告 → docs/evidence/perf-p95-report.md + .json
+PERF-REPORT: PASS P95 报告已产出（基准 P95=27.1ms · 代理口径披露在案）
+EXIT=0
