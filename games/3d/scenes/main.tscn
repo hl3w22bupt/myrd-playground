@@ -30,6 +30,7 @@ environment = SubResource("Env_main")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
 rotation = Vector3(-0.7, 0.4, 0)
+shadow_enabled = true
 
 [node name="Camera" type="Camera3D" parent="."]
 position = Vector3(0, 0, 8.5)

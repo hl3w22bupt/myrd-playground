@@ -19,6 +19,9 @@ extends Node
 ##   8. 玩法闭环（需求验收的无头翻译）：单果 +10 → 一刀两果合计 +30（连击加成）→
 ##      一刀三果累计 +50（combo_bonus_many）→ Combo 提示弹出 → 漏接计数 →
 ##      切中炸弹立即终局 → 重开可用
+##   9. 投放生成器（spec v2 多水果）：固定种子连投 60 次 ⇒ ≥5 种水果真实出现 +
+##      炸弹按 ~15% 真的混入；每种水果按目录生成程序化造型（果皮/果肉双层网格、
+##      边缘光、视觉半径、果皮配色）；炸弹引信可见一眼可辨
 ##
 ## ⚠️ 输入注入分两个阶段、互不重叠（error-signatures E-08）：
 ##   噪声相位（原始事件）→ 动作按住（action_press）→ 动作事件（parse_input_event），各相位错帧。
@@ -38,6 +41,11 @@ const BOMB_WAIT_FRAMES: int = 8
 ## 重开等待帧数。
 const RESTART_WAIT_FRAMES: int = 8
 
+## 投放探针：固定种子下随机投放的次数（≈ 一局 60s 的总投量，≈15% 炸弹 ⇒ 期望 ~9 枚）。
+const SPAWN_PROBE_THROWS: int = 60
+## 投放探针的确定种子（同种子 ⇒ 同一串抛出序列，断言可复现不抖动）。
+const SPAWN_PROBE_SEED: int = 20260913
+
 const F_MOVE_PRESS: int = NOISE_FRAMES + 1
 const F_MOVE_END: int = F_MOVE_PRESS + MOVE_FRAMES
 const F_PLACE: int = F_MOVE_END + 2
@@ -55,7 +63,9 @@ const F_KIND_CHECK: int = F_KIND_CUT + CUT_WAIT_FRAMES
 const F_BOMB_PLACE: int = F_KIND_CHECK + 1
 const F_BOMB_CUT: int = F_BOMB_PLACE + 1
 const F_END_CHECK: int = F_BOMB_CUT + BOMB_WAIT_FRAMES
-const F_RESTART: int = F_END_CHECK + 1
+const F_SPAWN_PROBE: int = F_END_CHECK + 1
+const F_SPAWN_CHECK: int = F_SPAWN_PROBE + 1
+const F_RESTART: int = F_SPAWN_CHECK + 1
 const F_TOTAL: int = F_RESTART + RESTART_WAIT_FRAMES
 
 ## 判定「刀锋真的移动了」的最小位移（世界单位；10 帧 × blade_speed 14 ≈ 2.3，取下限）。
@@ -84,6 +94,11 @@ var _moved_seen: bool = false
 var _score_seen: bool = false
 var _combo_count_seen: int = 0
 var _round_end_reason: StringName = &""
+## 投放探针采集（F_SPAWN_PROBE 一帧内完成，F_SPAWN_CHECK 消费）：
+var _probe_kinds: Dictionary = {}        ## 非炸弹种类 → 次数
+var _probe_bombs: int = 0                ## 炸弹枚数
+var _probe_fruit_by_kind: Dictionary = {}  ## 种类 → Fruit 节点（程序化造型断言用）
+var _probe_bomb_sample: Fruit = null     ## 炸弹外观断言样本
 
 
 func _ready() -> void:
@@ -169,6 +184,10 @@ func _physics_process(_delta: float) -> void:
 			_press_action(&"confirm")
 		elif _frames == F_END_CHECK:
 			_assert_round_ended_by_bomb()
+		elif _frames == F_SPAWN_PROBE:
+			_run_spawn_probe()
+		elif _frames == F_SPAWN_CHECK:
+			_assert_spawn_generator()
 		elif _frames == F_RESTART:
 			_press_action(&"confirm")
 		elif _frames == F_TOTAL:
@@ -281,6 +300,85 @@ func _assert_round_ended_by_bomb() -> void:
 		_failures.append("结算面板：main.tscn 缺少 UI/EndPanel 节点")
 	elif not end_panel.visible:
 		_failures.append("结算面板：炸弹终局后 EndPanel 未显示 —— 结算链路断裂")
+
+
+## ── 投放探针（需求「玩法设定 1/7」的无头翻译）：生成器本身必须产出多水果 + 炸弹 ──
+## 在炸弹终局之后跑（round_active=false：探针抛出物不计分、不计漏接，零状态污染）。
+func _run_spawn_probe() -> void:
+	_main.call("seed_throws", SPAWN_PROBE_SEED)
+	for i in range(SPAWN_PROBE_THROWS):
+		var fruit: Fruit = _main.call("_spawn_fruit_random")
+		if fruit == null:
+			continue
+		if fruit.is_bomb:
+			_probe_bombs += 1
+			if _probe_bomb_sample == null:
+				_probe_bomb_sample = fruit
+		else:
+			_probe_kinds[fruit.variety] = int(_probe_kinds.get(fruit.variety, 0)) + 1
+			_probe_fruit_by_kind[fruit.variety] = fruit
+
+
+## 生成器断言：固定种子连投 SPAWN_PROBE_THROWS 次 ⇒
+## ① 非炸弹种类 ≥5（需求「单局 ≥5 种」落在生成器上，而非只在目录上）；
+## ② 炸弹真的混入且不失控（≈15% ⇒ 60 投期望 ~9；0 枚 = 混入断裂，过半 = 占比失控）；
+## ③ 每种出现过的水果按目录生成程序化造型（双层网格 / 边缘光 / 视觉半径）；
+## ④ 炸弹外观可辨（引信可见）。
+func _assert_spawn_generator() -> void:
+	print("GODOT_SMOKE_PROBE: throws=%d bombs=%d kinds=%s" % [
+		SPAWN_PROBE_THROWS, _probe_bombs, str(_probe_kinds)])
+	if _probe_kinds.size() < 5:
+		_failures.append("投放生成器：固定种子 %d 连投 %d 次只出现 %d 种水果（期望 ≥5，实际 %s）—— FruitCatalog 随机选择断裂或目录退化" % [
+			SPAWN_PROBE_SEED, SPAWN_PROBE_THROWS, _probe_kinds.size(), str(_probe_kinds)])
+	for kind: StringName in _probe_kinds:
+		if not (kind in FruitCatalog.KINDS):
+			_failures.append("投放生成器：抛出了目录外的种类 %s —— random_kind 返回值越界" % kind)
+	if _probe_bombs < 1:
+		_failures.append("投放生成器：连投 %d 次零炸弹（期望 ~15%% 混入，seed=%d）—— bomb_ratio 未生效或安全投判定失效" % [
+			SPAWN_PROBE_THROWS, SPAWN_PROBE_SEED])
+	elif _probe_bombs > SPAWN_PROBE_THROWS / 2:
+		_failures.append("投放生成器：炸弹 %d/%d 超过一半 —— bomb_ratio 语义反转或失控" % [
+			_probe_bombs, SPAWN_PROBE_THROWS])
+	for kind: StringName in _probe_fruit_by_kind:
+		var fruit: Fruit = _probe_fruit_by_kind[kind]
+		if is_instance_valid(fruit):
+			_assert_fruit_visual(kind, fruit)
+	if _probe_bomb_sample != null and is_instance_valid(_probe_bomb_sample):
+		_assert_bomb_visual(_probe_bomb_sample)
+
+
+## 程序化造型断言（需求「验收 5/6」的无头翻译，逐种类核对）：
+## 果皮球网格半径 = 目录 radius；果皮材质开边缘光且果皮色 = 目录 peel_color；
+## 果皮球带内层果肉子网格（果皮/果肉双层网格）。
+func _assert_fruit_visual(kind: StringName, fruit: Fruit) -> void:
+	var fruit_def: Dictionary = FruitCatalog.def(kind)
+	var mesh_instance: MeshInstance3D = fruit.get_node_or_null("Mesh") as MeshInstance3D
+	if mesh_instance == null:
+		_failures.append("程序化造型：%s 缺少 Mesh 子节点 —— fruit.tscn 结构断裂" % kind)
+		return
+	var sphere := mesh_instance.mesh as SphereMesh
+	if sphere == null or not is_equal_approx(sphere.radius, float(fruit_def["radius"])):
+		var radius_text := "?" if sphere == null else "%.2f" % sphere.radius
+		_failures.append("程序化造型：%s 果皮网格半径 %s ≠ 目录 radius %.2f —— 造型未按种类生成" % [
+			kind, radius_text, float(fruit_def["radius"])])
+	if mesh_instance.get_child_count() < 1:
+		_failures.append("双层网格：%s 果皮球没有内层果肉子网格 —— 果皮/果肉双层造型未生成（验收 6）" % kind)
+	var peel := mesh_instance.material_override as StandardMaterial3D
+	if peel == null:
+		_failures.append("材质高光：%s 果皮没有 material_override —— 边缘光/高光无处附着" % kind)
+	else:
+		if not peel.rim_enabled:
+			_failures.append("材质高光：%s 果皮未开边缘光（rim_enabled=false）—— 深色背景体积感缺失（验收 5）" % kind)
+		if not peel.albedo_color.is_equal_approx(fruit_def["peel_color"]):
+			_failures.append("果皮配色：%s 果皮色 %s ≠ 目录 peel_color %s —— 生成器与目录脱钩" % [
+				kind, peel.albedo_color, fruit_def["peel_color"]])
+
+
+## 炸弹外观断言：引信可见（与水果一眼可辨，需求「干扰物」）。
+func _assert_bomb_visual(bomb: Fruit) -> void:
+	var fuse: MeshInstance3D = bomb.get_node_or_null("Fuse") as MeshInstance3D
+	if fuse == null or not fuse.visible:
+		_failures.append("炸弹外观：Fuse 缺失或不可见 —— 炸弹与水果无法一眼区分")
 
 
 func _assert_restart_works() -> void:
@@ -484,7 +582,7 @@ func _report() -> void:
 	if _failures.is_empty():
 		_assert_feedback_fired()
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/autoload/键位契约/刀锋移动/切割计分/两果连击/三果连击+50/Combo提示/漏接计数/多水果目录/多水果切割+分种类统计+切面剖面/炸弹终局/重开/反馈/调参协议 全部通过")
+		print("GODOT_SMOKE: PASS 场景实例化/autoload/键位契约/刀锋移动/切割计分/两果连击/三果连击+50/Combo提示/漏接计数/多水果目录/投放生成器(≥5种+炸弹混入+程序化造型)/多水果切割+分种类统计+切面剖面/炸弹终局/重开/反馈/调参协议 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

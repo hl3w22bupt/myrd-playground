@@ -115,7 +115,8 @@ func _spawn_interval() -> float:
 
 ## 随机抛出一个水果 / 炸弹（bomb_ratio 决定炸弹占比；每局前 SAFE_THROWS 必为水果）。
 ## 水果种类从 FruitCatalog（6 种）均匀随机 —— 单局 60s 约 60 投，≥5 种必出现。
-func _spawn_fruit_random() -> void:
+## 返回抛出物（冒烟投放探针采集 is_bomb / variety 用）。
+func _spawn_fruit_random() -> Fruit:
 	var is_bomb := _round_throws >= SAFE_THROWS_PER_ROUND \
 		and _throw_rng.randf() < GameState.bomb_ratio
 	var kind := FruitCatalog.random_kind(_throw_rng)
@@ -132,7 +133,7 @@ func _spawn_fruit_random() -> void:
 		x = 0.0
 		vx = 0.0
 		speed = GameState.throw_speed_min
-	spawn_fruit(Vector3(x, SPAWN_Y, _throw_rng.randf_range(-0.15, 0.15)),
+	return spawn_fruit(Vector3(x, SPAWN_Y, _throw_rng.randf_range(-0.15, 0.15)),
 		Vector3(vx, speed, 0.0), is_bomb, kind)
 
 
@@ -166,6 +167,13 @@ func set_spawning(enabled: bool) -> void:
 func clear_fruits() -> void:
 	for fruit in get_tree().get_nodes_in_group(&"fruits"):
 		fruit.queue_free()
+
+
+## 冒烟确定性辅助：把投放生成器钉到固定种子并越过「安全投」期（炸弹可出现）。
+## 同种子 ⇒ 同一串 (is_bomb, variety) 抛出序列，让「多水果生成 + 炸弹混入」可机判、可复现。
+func seed_throws(seed_value: int) -> void:
+	_throw_rng.seed = seed_value
+	_round_throws = SAFE_THROWS_PER_ROUND
 
 
 ## ── 结算与重开 ──
