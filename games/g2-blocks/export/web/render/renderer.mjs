@@ -1,7 +1,8 @@
 // renderer.ts — 表现层渲染器（e-renderer · 极简几何色块，零贴图）
 //
 // 色值唯一来源 = theme.ts 单源（spec palette + 美术 token）；本文件零 hex 字面量（ac-11/13 机判）。
-import { PALETTE, UI, SHAPE, MATERIAL, TYPE_SCALE, HUD_TEXT, BACKDROP, FEEL_UI, withAlpha } from './theme.mjs';
+import { PALETTE, UI, SHAPE, MATERIAL, TYPE_SCALE, HUD_TEXT, BACKDROP, FEEL_UI, withAlpha, NEARMISS_UI, SETTLEMENT_TEXT } from './theme.mjs';
+                                                      
                                               
 
                               
@@ -313,6 +314,110 @@ export function drawCoolBanner(ctx                          , layout        , st
   ctx.fillText(HUD_TEXT.coolTitle, layout.w / 2, by + bh * 0.34);
   ctx.font = `${layout.h * 0.03}px system-ui, sans-serif`;
   ctx.fillText(`${HUD_TEXT.coolSubtitle} · ${HUD_TEXT.restartLabel}(R)`, layout.w / 2, by + bh * 0.72);
+}
+
+/**
+ * near-miss 弱反馈绘制（v1.3 首批 · ac-31）：边行高亮（冷色降饱和派生 token，transient 不常亮）
+ * + 一行冷色文案（弱脉冲一次：pulse 窗内 alpha 单峰，驻留至 holdUntil 后零绘制）。
+ * 零粒子、不震屏（硬约束：本函数不触碰 particles/shake，也无任何震屏偏移写入）。
+ */
+export function drawNearMiss(ctx                          , layout        , st             , now        )       {
+  const nm = st.nearMiss;
+  if (!nm) return;
+  if (now >= nm.holdUntil) return; // 不常亮：驻留窗外零绘制
+  const holdMs = nm.holdUntil - nm.bornAt;
+  const fade = Math.max(0, Math.min(1, (nm.holdUntil - now) / Math.max(1, holdMs * 0.35)));
+  const bandAlpha = 0.16 * fade;
+  ctx.save();
+  for (const row of nm.rows) {
+    ctx.fillStyle = withAlpha(NEARMISS_UI.edge, bandAlpha);
+    ctx.fillRect(layout.boardX, layout.boardY + row * layout.cell, layout.boardSize, layout.cell);
+  }
+  const pulseT = Math.max(0, Math.min(1, (nm.pulseUntil - now) / Math.max(1, nm.pulseUntil - nm.bornAt)));
+  const textAlpha = (0.55 + 0.09 * pulseT * (1 - pulseT) * 4) * fade;
+  const bw = layout.w * 0.8;
+  const bh = Math.max(30, layout.h * 0.045);
+  const bx = (layout.w - bw) / 2;
+  const by = layout.boardY - bh - Math.max(8, layout.h * 0.012);
+  roundRect(ctx, bx, by, bw, bh, bh / 2);
+  ctx.fillStyle = withAlpha(UI.hintBarBg, 0.92 * fade);
+  ctx.fill();
+  ctx.strokeStyle = withAlpha(NEARMISS_UI.edge, 0.7 * fade);
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.fillStyle = withAlpha(NEARMISS_UI.edge, Math.max(0, Math.min(1, textAlpha)));
+  ctx.font = `${Math.max(12, layout.h * 0.022)}px system-ui, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(nm.text, layout.w / 2, by + bh / 2 + 1);
+  ctx.restore();
+}
+
+/**
+ * 结算页三层 IA 绘制（v1.3 首批 · ac-32）：结果层 P0–P2 → 归因层 → 行动层。
+ * 玩法输入封印 = cooled 既有面（本函数纯绘制，命中检测归 main.settlementHit）；
+ * 入场时序 = settlementBornAt 起 enterAnimMs 内 alpha 爬坡（出现延迟由 main 把关 showDelayMs）。
+ */
+export function drawSettlement(ctx                          , layout        , st             , now        , rects                                                                                                                                                                                              )       {
+  if (!st.cooled || !st.settlement || !rects) return;
+  const born = st.settlementBornAt;
+  const enter = st.settlement.enterAnimMs;
+  const t = Math.max(0, Math.min(1, (now - born) / Math.max(1, enter)));
+  const alpha = 0.5 + 0.5 * t;
+  ctx.save();
+  ctx.fillStyle = withAlpha(BACKDROP.coolScrim.hex, BACKDROP.coolScrim.alpha * 0.72 * alpha);
+  ctx.fillRect(0, 0, layout.w, layout.h);
+  const p = rects.panel;
+  roundRect(ctx, p.x, p.y, p.w, p.h, 14);
+  ctx.fillStyle = withAlpha(UI.bgPanel, alpha);
+  ctx.fill();
+  ctx.strokeStyle = withAlpha(UI.coolBannerBg, alpha);
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const rows                          = [];
+  const push = (id        , fallback        )       => {
+    const slot = st.settlement?.slots[id                                    ];
+    if (slot && slot.visible) rows.push([slot.label || fallback, slot.text]);
+  };
+  push('result-slot-score', '分数');
+  push('result-slot-chain', SETTLEMENT_TEXT.chainLabel);
+  push('result-slot-moves', SETTLEMENT_TEXT.movesLabel);
+  const rowH = Math.max(34, p.h * 0.12);
+  let y = p.y + p.h * 0.14;
+  for (const [label, text] of rows) {
+    ctx.fillStyle = withAlpha(UI.textDim, alpha);
+    ctx.font = `${Math.max(12, layout.h * 0.02)}px system-ui, sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.fillText(label, p.x + p.w * 0.1, y);
+    ctx.fillStyle = withAlpha(UI.textPrimary, alpha);
+    ctx.font = `${Math.max(18, layout.h * 0.036)}px system-ui, sans-serif`;
+    ctx.textAlign = 'right';
+    ctx.fillText(text, p.x + p.w * 0.9, y);
+    y += rowH;
+  }
+  const attr = st.settlement.slots['result-slot-attribution'];
+  if (attr.visible && attr.text) {
+    ctx.fillStyle = withAlpha(NEARMISS_UI.edge, alpha);
+    ctx.font = `${Math.max(13, layout.h * 0.023)}px system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(attr.text, layout.w / 2, y + rowH * 0.4);
+  }
+  const drawBtn = (r                                                , label        , primary         )       => {
+    roundRect(ctx, r.x, r.y, r.w, r.h, r.h / 2);
+    ctx.fillStyle = withAlpha(primary ? UI.accentWarm : UI.hintBarBg, alpha * (primary ? 0.95 : 0.9));
+    ctx.fill();
+    ctx.fillStyle = withAlpha(primary ? UI.bgDeep : UI.textPrimary, alpha);
+    ctx.font = `${Math.max(14, layout.h * 0.024)}px system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, r.x + r.w / 2, r.y + r.h / 2 + 1);
+  };
+  const slotsV = st.settlement.slots;
+  if (slotsV['result-slot-action-restart'].visible) drawBtn(rects.actionRestart, SETTLEMENT_TEXT.actionRestart, true);
+  if (slotsV['result-slot-action-daily'].visible) drawBtn(rects.actionDaily, SETTLEMENT_TEXT.actionDaily, false);
+  ctx.restore();
 }
 
 

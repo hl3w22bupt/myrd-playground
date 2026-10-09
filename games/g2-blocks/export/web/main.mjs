@@ -4,12 +4,17 @@ import { createGame,           } from './game.mjs';
 import { createAudio } from './audio.mjs';
 import { createPerf } from './telemetry/perf.mjs';
 import { createFpsRecorder } from './telemetry/fps.mjs';
+import { createAnalytics, autoSink,              } from './telemetry/analytics.mjs';
+import { createNearMissTelemetry, internalPlayerFlag, NM_EVENT_IDS } from './telemetry/nearmiss-telemetry.mjs';
 import { numeric, LEVELS } from './generated/spec-data.mjs';
 import { probeSwapCreatesMatch } from './kernel/board.mjs';
 import { findAnyMove } from './kernel/deadlock.mjs';
-import { computeLayout, drawBackdrop, drawBoard, drawCoolBanner, drawDailyEntry, drawHintBar, drawHud, drawParticles, drawRestartButton,                               } from './render/renderer.mjs';
+import { computeLayout, drawBackdrop, drawBoard, drawCoolBanner, drawDailyEntry, drawHintBar, drawHud, drawNearMiss, drawParticles, drawRestartButton, drawSettlement,                               } from './render/renderer.mjs';
 import { MOTION } from './render/theme.mjs';
 import { createFeel } from './render/feel.mjs';
+import { createNearMissRun, oneAwayRows, planShow, applyShow, observeMove, settlementRule, personalBestCopyKind, nearMissNumeric,                       } from './render/nearmiss.mjs';
+import { computeSettlementView, settlementRects, settlementHit, settlementNumeric } from './render/settlement.mjs';
+import { NEARMISS_TEXT } from './render/theme.mjs';
 import { createDaily } from './daily.mjs';
 import { systemClock } from './platform/clock.mjs';
 import { createStorageFacade } from './platform/storage.mjs';
@@ -24,7 +29,7 @@ const perf = createPerf();
 // daily-challenge 最小闭环（V1.2）：存储走门面版本化通道（v1 归一 + v2 daily 初始化；键由归属模块注册）
 const storageFacade = createStorageFacade({
   storage: window.localStorage,
-  keys: ['muted', 'anonId'],
+  keys: ['muted', 'anonId', 'bestScore'], // v1.3 首批：个人最佳键（e-personal-best · 键级最小集 +1，注册键制）
   fromVersion: 0,
   migrations: [
     { toVersion: 1, describe: 'muted 取值归一（true/on → 1；false/off → 0）；键集零改动', apply: (view) => {
@@ -35,10 +40,20 @@ const storageFacade = createStorageFacade({
     { toVersion: 2, describe: '注册 daily 存档键（numeric.daily.storageKey）并初始化空记录', apply: (view) => {
       if (view.get(DAILY.storageKey) === null) view.set(DAILY.storageKey, JSON.stringify({ v: 2, lastDone: 0, streak: 0 }));
     } },
+    { toVersion: 3, describe: '注册个人最佳键（bestScore · e-personal-best 边界条款数据源）并初始化 0', apply: (view) => {
+      if (view.get('bestScore') === null) view.set('bestScore', '0');
+    } },
   ],
 });
 storageFacade.migrate();
 const daily = createDaily({ clock: systemClock(), facade: storageFacade });
+
+// 产品埋点（封版冲刺 N4 · ac-29 九事件表）：sink 平台自动路由（wx/dy 原生上报 / web 缓冲+sendBeacon）；
+// 零玩法耦合：fire-and-forget，异常不外溢（模块内 try/catch），锚点 once 语义在模块内部
+const analyticsSink = autoSink();
+const analytics = createAnalytics(analyticsSink);
+// near-miss 遥测（v1.3 首批 · 内测工具面）：web 只缓冲不外发（同 ac-29 披露口径）；?internal=1 显式标记内部玩家
+const nmTele = createNearMissTelemetry(analyticsSink, { sessionId: analytics.sessionId, internal: internalPlayerFlag(window.location.search) });
 
 // 关卡入口（spec content.levelCount 面；levelId 只认 spec LEVELS 段声明，未知值回退首关）
 const LEVEL_IDS = LEVELS.map((l                ) => l.id);
@@ -53,7 +68,10 @@ function dailyFromUrl()                     {
   return q === '1' ? daily.seed() : undefined;
 }
 
-let game       = createGame({ levelId: levelFromUrl(), seed: dailyFromUrl(), audio, perf });
+const initialDailySeed = dailyFromUrl();
+let runSeed = initialDailySeed ?? numeric().DEFAULT_SEED; // 局级 seed（埋点字段 + near-miss 可复现追溯；内测面）
+let game       = createGame({ levelId: levelFromUrl(), seed: initialDailySeed, audio, perf });
+analytics.runStart({ levelId: game.levelId(), seed: runSeed }); // 局起点（N4 ac-29：首局；v1.3 增补局级 seed 字段）
 
 const st              = {
   board: game.state.board,
@@ -73,15 +91,71 @@ const st              = {
   comboTier: 1,
   particles: [],
   daily: { visible: false, done: false, streak: 0 },
+  nearMiss: null, // v1.3 首批：惜败弱反馈（transient 不常亮）
+  settlement: null, // v1.3 首批：结算页三层 IA（仅 cooled）
+  settlementBornAt: 0,
 };
 
 // 核心手感表现态机（V1.2 · 链 v4）：事件 + 逻辑帧 → 查表导出（零分配热路径）
 const feel = createFeel();
 
+// near-miss 判定器状态机（v1.3 首批 · ac-31 链 v8 冻结面）：纯表现层，零内核改动
+const nmCfg = (() => { const wf = nearMissNumeric().weakFeedback; return { perRowPerRun: wf.perRowPerRun, globalPerRun: wf.globalPerRun }; })(); // 频控（真源 = 链 v8 numeric.nearMiss，零手抄第二份）
+let nmRun                   = createNearMissRun({ runSeq: 1, seed: runSeed });
+let nmCappedTotal = 0; // 内测统计面：被频控拦截的命中数（__G2_NM 机读）
+let coolAt                = null; // 炉冷时刻（showDelayMs 出现延迟基准）
+let prevCooled = false;
+let settlementShown = false;
+
+/** 个人最佳（e-personal-best）：读/写（注册键制 bestScore） */
+function personalBest()         {
+  try { return Number(storageFacade.get('bestScore') ?? '0') || 0; } catch { return 0; }
+}
+function updatePersonalBest(score        )       {
+  try {
+    if (score > personalBest()) storageFacade.set('bestScore', String(score));
+  } catch { /* 存储异常不外溢（零玩法影响） */ }
+}
+
+/** 结算页三层 IA 视图构建（cooled + showDelayMs 后一次性；ac-32） */
+function buildSettlement()       {
+  if (settlementShown) return;
+  const goals = game.goals();
+  const rule = settlementRule(nmRun, { chainTarget: goals.chainTarget, firstClearWithinMoves: goals.firstClearWithinMoves }, game.movesLeft());
+  const best = personalBest();
+  const kind = personalBestCopyKind({ personalBest: best, score: game.state.score });
+  const view = computeSettlementView({
+    score: game.state.score,
+    chain: game.state.chain,
+    movesUsed: game.state.movesUsed,
+    rule,
+    personalBest: best,
+    dailyVisible: daily.entryState().visible,
+    movesEnded: game.movesLeft() !== null && (game.movesLeft() ?? 0) <= 0,
+    bestGap: kind === 'gap' ? { best, gap: best - game.state.score } : null,
+  });
+  st.settlement = view;
+  st.settlementBornAt = performance.now();
+  settlementShown = true;
+  if (rule) {
+    nmTele.triggered({ runSeq: nmRun.runSeq, seed: nmRun.seed, phase: 'cool', rule, rows: [], chain: game.state.chain, handsLeft: game.movesLeft(), score: game.state.score });
+  }
+}
+
+function resetNearMissRun()       {
+  nmRun = createNearMissRun({ runSeq: nmRun.runSeq + 1, seed: runSeed });
+  st.nearMiss = null;
+  st.settlement = null;
+  settlementShown = false;
+  coolAt = null;
+  prevCooled = false;
+}
+
 let layout         = computeLayout(canvas.width, canvas.height);
 let poppingUntil = 0;
 let j1Pending = false;
 let restartArmedUntil = 0;
+let firstScreenSent = false; // 引导锚点①本地面（once 语义兜底；N4 ac-29）
 
 function resize()       {
   const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -107,6 +181,15 @@ function syncState(time        )       {
   st.chain = game.state.chain;
   st.movesLeft = game.movesLeft();
   st.cooled = game.state.status === 'cooled';
+  if (game.state.status === 'cooled') analytics.runEnd({ levelId: game.levelId(), score: game.state.score, chain: game.state.chain, movesUsed: game.state.movesUsed, seed: runSeed }); // 局终点（每局至多一次，N4 ac-29；v1.3 增补局级 seed）
+  if (st.cooled && !prevCooled) {
+    coolAt = time;
+    updatePersonalBest(game.state.score); // e-personal-best：炉冷即记账（个人最佳）
+  }
+  prevCooled = st.cooled;
+  if (st.cooled && !settlementShown && coolAt !== null && time - coolAt >= settlementNumeric().showDelayMs) {
+    buildSettlement(); // 出现延迟 showDelayMs（链 v8 冻结；零新时序源）
+  }
   st.time = time;
   st.goalText = goalShortText();
   const mv = game.hintAvailable() ? game.hint() : null;
@@ -138,6 +221,7 @@ function goalShortText()         {
 function setLevel(id        )       {
   if (!LEVEL_IDS.includes(id) || id === game.levelId()) return;
   game = createGame({ levelId: id, audio, perf });
+  analytics.runStart({ levelId: id }); // 切关 = 新局起点（N4 ac-29）
   st.selected = null;
   st.popping = [];
   st.hintPair = null;
@@ -165,6 +249,7 @@ function centerOf(idx        )                           {
 }
 
 async function attemptSwap(a        , b        )                {
+  analytics.firstDrag({ a, b, levelId: game.levelId() }); // 引导锚点②首次拖拽（once/会话，N4 ac-29）
   const willClear = simProbeClear(a, b);
   if (willClear) {
     perf.settleStart(); // J1 起点 = 落定结算开始
@@ -173,6 +258,7 @@ async function attemptSwap(a        , b        )                {
   const r = game.swap(a, b);
   st.selected = null;
   if (!r.ok) return;
+  analytics.firstPlace({ a, b, chain: r.chain, levelId: game.levelId() }); // 引导锚点③首次成功放置（once/会话，N4 ac-29）
   // 手感事件投递（与结算同一调用栈；逻辑帧 = 当前帧）：波次合并面（落差取最大、落定/消除格合并）
   if (r.cleared.length > 0 || r.waves.length > 0) {
     feel.onHand({
@@ -194,6 +280,29 @@ async function attemptSwap(a        , b        )                {
     perf.feedbackDone();
   }
   if (r.cool) void 0; // 冷却横幅由渲染态驱动；音效已在 game 内同帧发起
+  // near-miss 局中评估（v1.3 首批 · ac-31）：消除结算后同逻辑帧末态（swap 返回 = 末态，同一调用栈）
+  observeMove(nmRun, { cleared: r.cleared.length > 0, chain: r.chain, handsLeft: game.movesLeft() });
+  if (r.ok && game.state.status === 'playing') {
+    const rows = oneAwayRows({ cells: game.state.board, cols: st.cols, rows: st.rows });
+    const plan = planShow(nmRun, rows, nmCfg);
+    if (plan.show.length > 0) {
+      applyShow(nmRun, plan.show);
+      const nowMs = performance.now();
+      st.nearMiss = {
+        rows: plan.show,
+        text: NEARMISS_TEXT['nm-copy-inplay-oneaway'],
+        bornAt: nowMs,
+        pulseUntil: nowMs + nearMissNumeric().weakFeedback.pulseMs, // 弱脉冲一次（链 v8 冻结直读，零手抄）
+        holdUntil: nowMs + nearMissNumeric().weakFeedback.bannerHoldMs, // 驻留窗（同上）
+      };
+      audio.nearMiss(); // 第二档变体（下行尾音·时长减半 · e-sfx-usage）；与反馈展示同帧发起（ac-15 语义沿用）
+      nmTele.triggered({ runSeq: nmRun.runSeq, seed: nmRun.seed, phase: 'per-move', rule: 'one-away-row', rows: plan.show, chain: r.chain, handsLeft: game.movesLeft(), score: game.state.score });
+    }
+    for (const c of plan.capped) {
+      nmTele.capped({ runSeq: nmRun.runSeq, seed: nmRun.seed, phase: 'per-move', rule: 'one-away-row', rows: c.rows, capType: c.capType });
+    }
+    nmCappedTotal += plan.capped.reduce((m, c) => m + c.rows.length, 0);
+  }
   if (r.cleared.length > 0) daily.markDone(); // daily 打卡（同日幂等；V1.2 最小闭环）
 }
 
@@ -242,7 +351,15 @@ function onTap(px        , py        )       {
     doRestart();
     return;
   }
-  if (game.state.status === 'cooled') return;
+  if (game.state.status === 'cooled') {
+    // 结算行动层命中（v1.3 首批 · ac-32）：主按钮 doRestart 同源；次按钮 daily 同源；其余触点吞掉（封印）
+    if (st.settlement) {
+      const hit = settlementHit(settlementRects(layout, { dailyVisible: daily.entryState().visible }), px, py, { dailyVisible: daily.entryState().visible });
+      if (hit === 'restart') doRestart();
+      else if (hit === 'daily') doDailyRestart();
+    }
+    return;
+  }
   const idx = cellAt(px, py);
   if (idx === null) return;
   if (st.selected === null) {
@@ -273,8 +390,25 @@ window.addEventListener('keydown', (e) => {
   if (e.key === '1' || e.key === '2') setLevel(LEVEL_IDS[Number(e.key) - 1]);
 });
 
+/** 每日挑战开局（结算行动层次按钮；与 ?daily=1 同源 = daily.seed() 派生面，零新玩法语义） */
+function doDailyRestart()       {
+  runSeed = daily.seed();
+  game = createGame({ levelId: game.levelId(), seed: runSeed, audio, perf });
+  analytics.runStart({ levelId: game.levelId(), seed: runSeed });
+  st.selected = null;
+  st.popping = [];
+  st.hintPair = null;
+  poppingUntil = 0;
+  goalCache = '';
+  j1Pending = false;
+  resetNearMissRun();
+}
+
 function doRestart()       {
+  analytics.restartClicked({ levelId: game.levelId(), movesUsed: game.state.movesUsed }); // 重开点击（N4 ac-29）
   game.restart();
+  analytics.runStart({ levelId: game.levelId(), seed: runSeed }); // 重开 = 新局起点（N4 ac-29；v1.3 增补局级 seed）
+  resetNearMissRun(); // v1.3：near-miss 频控/结算态随局重置（每行 1 次/局 口径）
   feel.restart(logicFrameOf(performance.now()));
   st.selected = null;
   st.popping = [];
@@ -330,6 +464,45 @@ debug.__G2_RESTART = doRestart;
 debug.__G2_SET_LEVEL = (id        )       => setLevel(id);
 // 契约/QA 测试钩子（与 __G2_SET_LEVEL 同级）：注入盘面（炉冷终局帧构造用；不动 chain/score/moves）
 debug.__G2_LOAD_BOARD = (cells          )       => game.loadBoard(cells);
+// 结算页观测口（v1.3 首批 · smoke/截图按 element id 断言读取；不进玩法路径）
+debug.__G2_SETTLEMENT = ()                          => {
+  const rects = settlementRects(layout, { dailyVisible: daily.entryState().visible });
+  return {
+    visible: st.cooled && st.settlement !== null,
+    inputSeal: st.settlement?.inputSeal ?? null,
+    showDelayMs: st.settlement?.showDelayMs ?? settlementNumeric().showDelayMs,
+    enterAnimMs: st.settlement?.enterAnimMs ?? settlementNumeric().enterAnimMs,
+    slots: st.settlement?.slots ?? null,
+    touchTargetMinPx: settlementNumeric().touchTargetMinPx,
+    rects,
+  };
+};
+// near-miss 观测口（v1.3 首批 · 内测统计面）
+debug.__G2_NM = ()                          => ({
+  runSeq: nmRun.runSeq,
+  seed: nmRun.seed,
+  shownRows: nmRun.shownRows,
+  shownCount: nmRun.shownCount,
+  runMaxChain: nmRun.runMaxChain,
+  firstClearAt: nmRun.firstClearAt,
+  cappedTotal: nmCappedTotal,
+  bannerActive: st.nearMiss !== null && performance.now() < st.nearMiss.holdUntil,
+  personalBest: personalBest(),
+  internal: internalPlayerFlag(window.location.search),
+  eventIds: NM_EVENT_IDS,
+});
+// 内测聚合数据出口（tools/ 下内测聚合器读此件；tools/ 不进 build 树 = 提审面零渗漏）
+debug.__G2_NM_LOG = ()                                 => nmTele.log();
+// near-miss 状态注入（与 __G2_LOAD_BOARD 同级测试面；结算归因态截图/smoke 构造用，零玩法路径）
+debug.__G2_NM_STATE = (patch                                 )       => {
+  Object.assign(nmRun, patch || {});
+};
+// near-miss 构造钩子（与 __G2_LOAD_BOARD 同级测试面；smoke/截图证据构造用，零玩法路径）
+debug.__G2_NM_FORCE = (rows          )       => {
+  const nowMs = performance.now();
+  const wf = nearMissNumeric().weakFeedback; // 时序真源 = 链 v8 numeric.nearMiss.weakFeedback（禁手抄第二份）
+  st.nearMiss = { rows, text: NEARMISS_TEXT['nm-copy-inplay-oneaway'], bornAt: nowMs, pulseUntil: nowMs + wf.pulseMs, holdUntil: nowMs + wf.bannerHoldMs };
+};
 
 // 帧率/帧时间埋点（A 轮 N3-T2）：采集面在产品内，报告由 tools/perf-report.mjs 读取产出。
 // 零玩法影响：只记录相邻 rAF 时间差；口径判断（60fps/P95≤16.7ms）在报告层，不在内核断言（红线④）。
@@ -341,6 +514,7 @@ debug.__G2_FPS = {
 };
 
 function loop(time        )       {
+  if (!firstScreenSent) { firstScreenSent = true; analytics.firstScreen({ levelId: game.levelId() }); } // 引导锚点①首屏（首个渲染帧，N4 ac-29）
   fps.frame(time);
   syncState(time);
   const heat = Math.min(1, st.chain / 5);
@@ -352,6 +526,8 @@ function loop(time        )       {
   drawRestartButton(ctx, layout, restartButtonState());
   drawDailyEntry(ctx, layout, st);
   drawCoolBanner(ctx, layout, st);
+  drawNearMiss(ctx, layout, st, time);
+  drawSettlement(ctx, layout, st, time, st.cooled && st.settlement ? settlementRects(layout, { dailyVisible: daily.entryState().visible }) : null);
   requestAnimationFrame(loop);
 }
 // 粒子上屏观测面（V1.2 · D1 打回修复）：渲染循环每帧记录 drawParticles 实绘数与绘制坐标
@@ -373,6 +549,22 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
 }
 
 debug.__G2_READY = true;
+
+// 会话埋点收尾（封版冲刺 N4 · ac-29）：session_start 一次性 + 隐藏/离页 flush 兜底（web 面）
+analytics.sessionStart({ levelId: game.levelId(), sink: analytics.sinkKind });
+window.addEventListener('pagehide', () => { analytics.flush(); nmTele.flush(); }); // v1.3：nm 面同窗兜底
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    analytics.sessionEnd({ levelId: game.levelId() }); // once/会话：首个 hidden 视为会话终点（口径见 ac-29 表）
+    analytics.flush();
+  }
+});
+// 埋点观测面（QA 冒烟机读）：sink 类型 + 会话事件序列 + web 缓冲快照
+debug.__G2_ANALYTICS = ()                          => ({
+  sink: analytics.sinkKind,
+  sent: analytics.sentEventIds(),
+  buffered: analyticsSink.kind === 'web' ? (analyticsSink           ).log() : null,
+});
 
 
 //# sourceURL=main.ts

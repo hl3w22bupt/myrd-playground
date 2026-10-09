@@ -6,17 +6,19 @@ import { SFX, SFX_MASTER } from './render/theme.mjs';
 import { createPersistence } from './persistence.mjs';
 import { FEEL } from './generated/feel-data.mjs';
 import { tierForChain, voiceOfTier,                   } from './platform/audio.mjs';
+import { nearMissSfxSpec } from './render/nearmiss.mjs';
 
                                 
                              
                              
+                   
                
                   
  
 
                                      
 
-                                                                 
+                                                                              
 
 export function createAudio(storage                   )                                                                              {
   const persist = storage ? createPersistence(storage) : null;
@@ -34,10 +36,14 @@ export function createAudio(storage                   )                         
   }
 
   function tone(kind          )       {
+    toneSpec(kind, undefined);
+  }
+
+  function toneSpec(kind          , override                                     )       {
     if (muted) return;
     const ac = ensureCtx();
     if (!ac) return; // 音频缺失不阻塞玩法
-    const spec = SFX.find((s) => s.kind === kind);
+    const spec = override ?? SFX.find((s) => s.kind === kind);
     if (!spec) return;
     try {
       if (ac.state === 'suspended') void ac.resume();
@@ -69,6 +75,7 @@ export function createAudio(storage                   )                         
       void chain;
       tone('combo');
     },
+    nearMiss()       { toneSpec('nearmiss', nearMissSfxSpec()                                      ); }, // v1.3：第二档变体（下行尾音·时长减半）
     cool()       { tone('cool'); },
     restart()       { tone('restart'); },
     unlock()       {

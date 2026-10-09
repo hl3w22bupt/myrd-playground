@@ -307,5 +307,62 @@ export function withAlpha(hex        , alpha        )         {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+/** 派生：hex → 降饱和（amt ∈ [0,1]，HSL 纯数学；派生式可机判，零新裸色 —— 链 v8 G-02 色源） */
+export function desaturate(hex        , amt        )         {
+  const v = hex.replace('#', '');
+  const num = parseInt(v, 16);
+  const r = ((num >> 16) & 255) / 255;
+  const g = ((num >> 8) & 255) / 255;
+  const b = (num & 255) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  const d = max - min;
+  const s0 = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+  const s = Math.max(0, s0 * (1 - amt));
+  const h = d === 0 ? 0 : max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs((h % 2) - 1));
+  const m = l - c / 2;
+  const seg = Math.floor(((h % 6) + 6) % 6);
+  const rgb = seg === 0 ? [c, x, 0] : seg === 1 ? [x, c, 0] : seg === 2 ? [0, c, x] : seg === 3 ? [0, x, c] : seg === 4 ? [x, 0, c] : [c, 0, x];
+  const to = (f        ) => Math.round((f + m) * 255).toString(16).padStart(2, '0');
+  return `#${to(rgb[0])}${to(rgb[1])}${to(rgb[2])}`;
+}
+
+/** near-miss 边行高亮 token（链 v8 G-02）：冻结冷 token 派生（降饱和 ~30%），不常亮（transient-not-latched 由渲染态控制） */
+export const NEARMISS_UI = {
+  edge: desaturate(UI.coolBannerText, 0.3),
+}         ;
+
+/** 结算页文案表（链 v8 ac-32.copy 枚举的代码面单源；措辞观感归人工 rubric，存在性/挂载点契约机判） */
+export const SETTLEMENT_TEXT = {
+  scoreLabel: '分数',
+  chainLabel: '最高连击',
+  movesLabel: '用步数',
+  attributionNone: '棋盘无可消除，炉冷收场',
+  actionRestart: '再来一局',
+  actionDaily: '每日挑战',
+  /** copy id ↔ 文案（ac-32.copy auto-present 条目逐字一致；契约机判面） */
+  byCopyId: {
+    'sl-copy-result-score': '分数',
+    'sl-copy-result-chain': '最高连击',
+    'sl-copy-result-moves': '用步数',
+    'sl-copy-attribution-none': '棋盘无可消除，炉冷收场',
+    'sl-copy-action-restart': '再来一局',
+    'sl-copy-action-daily': '每日挑战',
+  }                          ,
+};
+
+/** near-miss 文案表（链 v8 ac-31.copy 枚举的代码面单源；{chain}/{chainTarget}/{best}/{gap} 为模板位） */
+export const NEARMISS_TEXT                         = {
+  'nm-copy-inplay-oneaway': '这一行差一步就能消',
+  'nm-copy-settle-chain': '距离 {chainTarget} 连只差 1 连',
+  'nm-copy-settle-firstclear': '首消只差 1 步',
+  'nm-copy-settle-hands': '{chain} 连收尾，就差 1 手',
+  'nm-copy-personal-best-gap': '个人最佳 {best}，就差 {gap} 分',
+  'nm-copy-personal-best-edge': '继续热身，稳住节奏',
+};
+
 
 //# sourceURL=render/theme.ts

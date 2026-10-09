@@ -1,5 +1,5 @@
 // sw.js — GENERATED（tools/build.mjs）；cache-first 版本化缓存
-const CACHE = 'g2-2-1791085720684';
+const CACHE = 'g2-2-1791519174941';
 const ASSETS = [
   "./",
   "./index.html",
@@ -9,6 +9,7 @@ const ASSETS = [
   "./game.mjs",
   "./generated/feel-data.mjs",
   "./generated/spec-data.mjs",
+  "./generated/ux-data.mjs",
   "./kernel/board.mjs",
   "./kernel/combo.mjs",
   "./kernel/datetime.mjs",
@@ -22,9 +23,13 @@ const ASSETS = [
   "./platform/clock.mjs",
   "./platform/storage.mjs",
   "./render/feel.mjs",
+  "./render/nearmiss.mjs",
   "./render/renderer.mjs",
+  "./render/settlement.mjs",
   "./render/theme.mjs",
+  "./telemetry/analytics.mjs",
   "./telemetry/fps.mjs",
+  "./telemetry/nearmiss-telemetry.mjs",
   "./telemetry/perf.mjs"
 ];
 self.addEventListener('install', (e) => {
