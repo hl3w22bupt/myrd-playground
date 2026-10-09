@@ -1,6 +1,6 @@
 # 资产清单黑板 — g2-blocks（**V1.3 首批「near-miss 反馈 + 结算页 IA」表现层资产**）
 
-> 更新时间：2026-10-09（**N3 美术线独立复证 · 三门禁全绿 27/27 · 复证不新做** · G-01..G-05 收口态维持 · rubric 留 approve 验收）
+> 更新时间：2026-10-09（**N3 美术线对驳回修复轮亲审 + 复证 r2 · 三门禁全绿 27/27 @ `ded8e8f`** · G-01..G-05 收口态维持 · rubric 留 approve 验收）
 > 负责人：游戏美术（表现层资产面）/ 主策划（整合校对）
 > 下一步：等主人 approve（approve 后美术面无在产项；观感/听感 rubric 随 approve 验收走）
 > 红线：色值一律引用冻结色板 token 派生（生成器零裸 hex、零 rgba 字面量）；near-miss 视听参数一律取链 v8 `numeric.nearMiss` 冻结面（零手抄第二份）；零粒子、不震屏为 near-miss 硬约束
@@ -39,6 +39,24 @@
 - **复证器关键断言（美术面钉死项）**：下行尾音 880→440Hz · 时长减半 160→80ms（第二档承值派生，`nearMissSfxSpec()` 单源现算非手抄）· edge=`#dcbcb5` 由 `theme.desaturate('#E3B5BF',0.3)` 现算 ≡ pack · 六槽稳定 id `result-slot-*` 全枚举 · 触达 ≥48px · 零粒子/不震屏/不常亮三声明 + 渲染面 `drawNearMiss` 函数体零 particles/shake 写入、驻留窗外零绘制 · 两生成器确定性重跑零漂移（树净维持）。
 - **披露两处（非源仓缺陷，登记制）**：① 门2 首跑 `G2_SPEC_PATH` 误钉 worktree 内路径（ENOENT）③④⑤⑥ 假红，绝对路径重跑全绿；② 复证器首版自带 desaturate 近似公式误报 A08/f（C/a 已证 theme 单源 ≡ pack，派生关系无缺陷），修正为 import 单源现算——首跑原文留档 `04-first-run-correction.log`（零手抄第二份纪律自查样本）。
 - **红线核销**：stack-tower 零接触 · spec/numeric 冻结面零写入 · 玩法逻辑与数值零改动（源仓复证前后 `git status --porcelain` = 0 行）；本轮产出仅黑板证据目录 + 本台账登记。
+
+## V1.3 N3 美术线复证 r2（2026-10-09 · 对 QA 驳回修复轮 `ded8e8f` 亲审 + 复证 · 复证不新做）
+
+> 口径 = `evidence-one-line-template.md`；背景 = 上轮 r1（对象 `2738599`）后发生 QA 驳回修复轮（程序线，spec 为 SSOT），
+> 修复面中 **a10 六张截图重摄（新批 `e3481537…`）属美术交付物 G-05 连带变更** → 按「N2 初版 → N3 亲审」判例行美术面认定 + 三门禁对新 HEAD 复证。
+> 结论：**新批六张亲审 PASS · 三门禁全绿 EXIT=0 · ART-RECHECK-V13 27/27（复证器 r1 同件拷贝，判据零改动）· 复证后 v13 树仍净**。
+> 证据原文 = `gate-logs/v13-nearmiss-n3-reverify-20261009-r2/`（3 log + 复证器 + README）。
+
+```
+[PASS] | 线1 美术 | 01-check-v13-three-state.log | 2026-10-09 | cd $V13 && node scripts/check-v13.mjs | 三态 18 / 25 / 29+1PEND 全符 · EXIT=0（修补③ ac-32 C 节归因矩阵在内全绿） | g2-blocks-v13 工作树 @ ded8e8f
+[PASS] | 线1 美术 | 02-gates-eight.log | 2026-10-09 | cd $V13 && G2_SPEC_PATH=<run-ws approved v1.1> npm run gate | 门①–⑧ 全 PASS 74/0 · 色板 ALL-GREEN 21 对 minΔE=26.555（≡冻结记录）· EXIT=0 | g2-blocks-v13 工作树 @ ded8e8f
+[PASS] | 线1 美术 | 03-art-recheck-v13.log | 2026-10-09 | node 03-art-recheck-v13.mjs $V13 | ART-RECHECK-V13: PASS 27/27 · 新批 e3481537… 全符 · 生成器确定性重跑零漂移 · EXIT=0 | 本证据目录（判据零改动）
+[PASS] | 线1 美术 | （亲审 · 涉变四张实机截图） | 2026-10-09 | 美术眼检 settle-nomoves ×2 + nm-hit ×2 | settle-nomoves 新构造真值化成立（160 分 record 路径通用归因行 · PB=0 edge 文案改由契约机判不再混淆）；nm-hit 构图读感与原批一致（抖动面=脉冲相位不损读感）；settle-nm ×2 逐字节全等免检 | g2-blocks-v13 工作树 @ ded8e8f
+```
+
+- **亲审认定**：程序线重摄的 a10 新批**美术面认可**（G-05 交付态维持 ✅，buildSha256 = `e3481537…` 以本批为准）；manifest 新增 `stateMapping`/`determinismNote` 两字段与美术留证口径自洽。
+- **观察项（1 条 · 非阻塞）**：HUD 分数标签-数值间距随位数压缩（三位数「分数160」vs 一位数「分数 0」），两档一致、无 spec 条款约束；下轮打磨落点 = `renderer.ts` HUD 分数区 min-gap（呈现层单点，零数值面）。本轮不动（驳回修复面之外零触碰）。
+- **红线核销**：源仓零写入（复证前后树净）· stack-tower 零接触 · spec/numeric/玩法数值零触碰；本轮产出仅黑板证据目录 + 本台账。
 
 ---
 
