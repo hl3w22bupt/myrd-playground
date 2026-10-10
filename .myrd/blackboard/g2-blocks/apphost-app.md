@@ -1,9 +1,22 @@
 # AppHost 应用登记 — g2-blocks（熔炉方块）
 
-> 更新时间：2026-10-10（**部署轮 r5 · 对账收口** · 复用同一坑 `cmuqelj2r0046m9zr4emgdgdg`，发布 **v1.3 四件同包 merge 产物** · LIVE 自测 PASS）
+> 更新时间：2026-10-10（**部署轮 r6 · 对账收口后复证发布** · 复用同一坑 `cmuqelj2r0046m9zr4emgdgdg`，gitRef 前进至 **`f4de390`**（黑板落账+预置件轮），产物面零漂移 · LIVE 自测 PASS）
 > 用途：一坞一游戏，下一轮**复用同一坑**（不要新建、不要挤占别的游戏的应用）
 
-## 本轮部署（2026-10-10 · 部署轮 r5 · 对账收口）
+## 本轮部署（2026-10-10 · 部署轮 r6 · 当前生效 · 复证发布）
+
+| 项 | 值 |
+|---|---|
+| deployment | `cmv1snsqx005xm94oispjqjty` · **version 16** · running（v15 r5 被接管）· errorMessage null |
+| gitRef / 部署提交 | `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ **`f4de390`**（部署单回读 commitHash 全等；ls-remote 全等后单次 POST，HTTP=504 网关截断但受理一条，GET 复查无重复——沿 r3/r5 判例） |
+| 本轮 git 变更 | `cadb2f4..f4de390` 全部为黑板/门禁归档/预置件模板路径，`games/g2-blocks/export/web` **零变更**（`git diff --stat cadb2f4..HEAD -- games/g2-blocks/export/web/` 空）→ 产物未落后于代码，无需重新导出 |
+| 产物溯源 | `games/g2-blocks/export/web` 30 文件 ≡ 源仓 `g2-blocks` main **`26ba1d9`**（树净）`build/` **逐字节全等**（`diff -rq` 零输出）——HEAD `f4de390` ↔ 部署提交 ↔ 源仓 HEAD 三向绑定维持 |
+| 部署前门禁（本节点实跑，源仓 @ `26ba1d9`） | `node scripts/check-v13.mjs` 三态契约 **18/25/29+1PEND 全 PASS**（EXIT=0）· `node tools/smoke.mjs` **SMOKE: PASS**（J1=**174.3ms** ≤400ms @ 4x throttle 390x844 · 结算页三区块 ✓ · near-miss 构造面 ✓ · 零控制台错误） |
+| 线上自测 | /health 200 · /gw 200 · v1.3 新增件 4/4=200 · sha 全等 3/3（main.mjs=`92d563b7…` · nearmiss=`f05233ab…` · settlement=`b78981b7…`，与 r5 登记值全等=同源可溯源构建） |
+| 试玩入口 | `https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/gw`（真人试玩归主人；near-miss 感知只认真人判定，措辞限「机制就绪、感知待真人判定」） |
+| 证据 | `gate-logs/deploy-r6-20261010/`（00-preflight · 01-gates · 02-deploy-live，四要素齐） |
+
+## 上一轮（2026-10-10 · 部署轮 r5 · 对账收口 · 存档）
 
 | 项 | 值 |
 |---|---|

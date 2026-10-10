@@ -1,0 +1,36 @@
+# 部署轮 r6 部署受理 + 线上自测（sha 绑定闭环）
+# UTC: 2026-10-10T02:49:42Z 起 · 平台 API: $PLATFORM_API_URL · 坑: cmuqelj2r0046m9zr4emgdgdg
+
+## 1) 部署前坑核对（GET /api/v1/apphost/apps/cmuqelj2r0046m9zr4emgdgdg）
+{ 'id': 'cmuqelj2r0046m9zr4emgdgdg', 'name': 'g2-blocks（熔炉方块）', 'slug': 'g2-blocks-2',
+  'sourceType': 'game-studio', 'sourceId': 'g2-blocks', 'status': 'ready',
+  'currentDeploymentId': 'cmv1qhojj004km94o8tgy6kij' }   ← r5 · version 15 · running · commitHash cadb2f4
+
+## 2) 单次 POST 部署（git ls-remote 全等后发起, 防挤占三要素齐备）
+POST /api/v1/apphost/apps/cmuqelj2r0046m9zr4emgdgdg/deployments
+body: {mode:bundle, deployedBy:workflow,
+       gitRef:myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d,
+       manifestPath:games/g2-blocks/apphost.toml, sourceId:g2-blocks}
+→ HTTP=504（网关超时截断, 沿 r3/r5 既有判例）
+→ GET 复查: 服务端已受理 **且仅一条** —— version 16 id=cmv1snsqx005xm94oispjqjty
+   status: building → running（约 20s 后）· errorMessage: null · 无重复部署单
+
+## 3) v16 受理终态
+{ 'id': 'cmv1snsqx005xm94oispjqjty', 'version': 16, 'status': 'running',
+  'commitHash': 'f4de390f…（与本仓 HEAD / 远端 HEAD 全等）', 'errorMessage': null }
+app: currentDeploymentId → cmv1snsqx005… · status ready
+
+## 4) 线上自测（https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2）
+/health  → 200
+/gw      → 200
+v1.3 新增件 4/4 = 200: render/nearmiss.mjs · render/settlement.mjs
+                       telemetry/nearmiss-telemetry.mjs · generated/ux-data.mjs
+sha256 线上 ≡ 仓内部署件（3/3 全等）:
+  main.mjs            92d563b74904a6c3…  = 92d563b74904a6c3…  （与 r5 登记值同）
+  render/nearmiss.mjs f05233ab8a4a531c…  = f05233ab8a4a531c…  （与 r5 登记值同）
+  render/settlement.mjs b78981b7594ede27… = b78981b7594ede27… （与 r5 登记值同）
+
+## 结论
+LIVE 自测: PASS —— health/gw 双 200 + 新件可达 + 三件 sha 逐字节全等,
+线上即「gitRef=f4de390 · manifestPath=games/g2-blocks/apphost.toml」的可溯源构建
+（产物面 ≡ 源仓 main 26ba1d9 build/, 见 00-preflight.txt 三向绑定）。

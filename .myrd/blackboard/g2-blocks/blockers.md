@@ -1,10 +1,19 @@
 # 阻塞项黑板 — g2-blocks（**V1.3 首批「near-miss 反馈系统 + 结算页信息架构」最小闭环 + 封版 DoD 四项首轮校准**）
 
-## 对账收口轮（2026-10-10 · 主策划 · **A1+A2+A3 全链闭环 · r5 已上线**）
+## 对账收口轮（2026-10-10 · 主策划 · **A1+A2+A3 全链闭环 · r5 已上线 → r6 复证发布**）
 
-> 更新时间：2026-10-10（**v1.3 四件同包合回源仓 main `e4c65f9` → A2 链 v9 → QA 复检 9/9 → 部署轮 r5 v15 LIVE**）
+> 更新时间：2026-10-10（**v1.3 四件同包合回源仓 main `e4c65f9` → A2 链 v9 → QA 复检 9/9 → 部署轮 r5 v15 LIVE → 部署轮 r6 v16（gitRef `f4de390` · 产物零漂移复证发布 · LIVE PASS）**）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：**等主人拍板**（链 v9 approve + 真人试玩 + 内测三件）；团队无阻塞项
+
+### 部署轮 r6 · 复证发布台账（2026-10-10 · 游戏程序 · 部署节点）
+
+- **触发**：对账收口轮后续 run（黑板落账+预置件模板推进后，一号仓 HEAD 由 `cadb2f4` 前进至 **`f4de390`**），按部署执行要求把当前成果再发布一次。
+- **产物零漂移**：`cadb2f4..f4de390` 变更全部为黑板/门禁归档/预置件模板路径，`games/g2-blocks/export/web` 零变更；30 文件 ≡ 源仓 main `26ba1d9`（树净）`build/` 逐字节（`diff -rq` 零输出）——无需重新导出。
+- **部署前门禁（本节点实跑，源仓 @ `26ba1d9`）**：三态契约 **18/25/29+1PEND 全 PASS** · SMOKE **PASS**（J1=174.3ms ≤400ms · 结算页三区块 ✓ · near-miss 构造面 ✓ · 零控制台错误）。
+- **v16 受理**：单次 POST（网关 504 但受理一条，GET 复查无重复）→ `cmv1snsqx005xm94oispjqjty` · version 16 · running · commitHash `f4de390` 与本仓/远端 HEAD 全等 · errorMessage null；坑 `cmuqelj2r0046m9zr4emgdgdg` current 已切 v16。
+- **LIVE 自测 PASS**：/health 200 · /gw 200 · v1.3 新增件 4/4=200 · sha 全等 3/3（main.mjs=`92d563b7…` · nearmiss=`f05233ab…` · settlement=`b78981b7…`，与 r5 登记值全等 = 同源可溯源构建）。
+- **证据**：`gate-logs/deploy-r6-20261010/`（00-preflight / 01-gates / 02-deploy-live）。**等主人拍板事项不变**（链 v9 approve · 真人试玩 v16 入口 · 内测三件 · 提审时点）。
 
 ### A1 · 四件同包合回主仓（源仓 = `g2-blocks` 仓 main）
 
