@@ -1,5 +1,44 @@
 # 阻塞项黑板 — g2-blocks（**V1.3 首批「near-miss 反馈系统 + 结算页信息架构」最小闭环 + 封版 DoD 四项首轮校准**）
 
+## 对账收口轮（2026-10-10 · 主策划 · **A1+A2+A3 全链闭环 · r5 已上线**）
+
+> 更新时间：2026-10-10（**v1.3 四件同包合回源仓 main `e4c65f9` → A2 链 v9 → QA 复检 9/9 → 部署轮 r5 v15 LIVE**）
+> 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：**等主人拍板**（链 v9 approve + 真人试玩 + 内测三件）；团队无阻塞项
+
+### A1 · 四件同包合回主仓（源仓 = `g2-blocks` 仓 main）
+
+- **落点定位（逐线索排查结论）**：①未注册分支线索 = 一号仓 `myrd/v13-p0-p1-v13-cmv1pdxwj003jm94oqbnhim2z`（指向 main 谱系 `6c39fdd`，与 g2-blocks 工作谱系**无共同祖先**，非 v1.3 代码，排除）；②工作区副本线索 = 源仓 worktree `g2-blocks-v13` @ **`feat/v1.3-nearmiss-settlement` `ded8e8f`**（v1.3 代码真源，十一提交）✓；③部署物来源树 = 一号仓 `games/g2-blocks/export/web`（仅 build 导出面，r4 @ `8b96402`）。
+- **merge**：`feat/v1.3-nearmiss-settlement` → `main`，冲突 2 处（`src/main.ts` / `src/telemetry/analytics.ts`，双侧遥测实现）取 feat 侧（main 侧超集 · 契约验证版）。
+- **四件同包 = merge commit `e4c65f95ab0d1cb6c8546ec6514fef08ccf3e958`（单提交）**：
+  ① v1.3 代码全量；② spec 链 v8 档案件入仓（`docs/spec/spec-v13-batch-payload.json` + `design-spec-v13-batch-draft.json` + `v13-batch-chain.md`；spec = 平台回读权威源，锚 `6719edd27d7e121a…` 与 N1 台账逐字一致；**禁止重复 POST**）；③ **ac-08 断言同步修订**（只加不松：八步冻结断言逐字保留 + 新增「表现层挂接零漂移 / 评估输入末态纯度 / 结算视图只读」三组——链 v8 ac-32 scopeNote「ac-08 结算顺序语义零改动」的契约化；三态下全过）；④ ac-22+ 契约随包（ac-31 near-miss 阈值/不误报/频控/埋点 + ac-32 结算页三层 IA/出现时机/触达 + ac-33 提审包零 diff + ac-29 九事件）。
+- **主仓 HEAD 复跑（A1-3 · sha 绑定证据 `gate-logs/v13-a1-merge-20261010/00–04`）**：三态契约 **18/25/29+1PEND** 全 PASS · 根契约 Mode A PASS · SMOKE PASS（J1=**175.79999999701977ms** ≤400 @ 4x throttle 390x844，同批归档）· 树净。
+
+### A2 · DoD 校准复跑（原首轮不采信、不回写）
+
+- **复跑面（HEAD 实跑）**：复检器 `qa-v13-batch.mjs` **9/9 APPROVE-READY**（Q5 = DoD 机判面：四门槛逐字节全等锁定 · calibrationRound1 在链 · 报告在档 · 措辞机判无「已达标」；Q9 P95 26.1→26.1 零退化）——`05-qa-batch-rerun.log`。
+- **复跑结论（如实）**：四项 DoD（D1≥30%/D7≥10%/局均≥3min/重开率≥40%）为**真人样本校准门，样本 0**（内测名单 Q6 归主人）→ **无校准值可回写，禁编数**；原首轮报告产自无证据链树且自身声明样本 0 → 不采信。**达标项锁封版门槛（零改动）✓；不达标项 = 无（无数据可判）；封版前必办 = 校准样本回收，复测方法 = ac-30.calibrationRound1 规格**。
+- **链 v9 回写**：`cmv1q9k690045m94obp29ysre`（**draft · 唯一链头** · parent=链 v8 · version+1 经接口）——数值零漂移（锚不变）+ 正文唯一增量 `meta.dodRecalibration`（非数值面复跑账）；回读全等 · v1..v8 零覆盖 · 导出件 `.myrd/spec/g2-blocks/design-spec-v13-dod-rerun-draft.json`；入链器 `tools/post-spec-v13-dod-rerun.mjs`（守卫四道 + 幂等对账）——`06-chain-v9-post.log`。**approve 对象 = 链 v9**（机器不代行，红线）。
+
+### A3 · 收口复检 + 重部署（r5）
+
+- **QA 正式审查报告**：`源仓 docs/qa-review-v13-final.md`——**APPROVE-READY（9/9 无红）· 此前 reject 态撤回（以机器证据为准）**；near-miss 口径限「**机制就绪、感知待真人判定**」。
+- **deploy r5（可溯源构建三向绑定）**：部署提交 `cadb2f4`（一号仓，git ls-remote 全等后 POST）↔ 源仓 main `26ba1d9` build/ ↔ 部署面 30 文件逐字节（diff -rq 空）；deployment **version 15** `cmv1qhojj004km94o8tgy6kij` running（v14 被接管 · 单次 POST 受理 · errorMessage null）——`07-deploy-r5.log`。
+- **LIVE 自测 PASS**：/health 200 · /gw 200 · v1.3 新增件 5/5=200 · sha 全等 3/3（main.mjs=`92d563b7…` · nearmiss=`f05233ab…` · settlement=`b78981b7…`）。
+- **提醒主人**：真人试玩入口 `https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/gw`（v15）；near-miss 感知条款**只认真人判定**。
+- **跨线零接触**：本轮变更仅源仓 g2-blocks 仓 + 一号仓 `games/g2-blocks/export/web` + 黑板/预置件/简报；`games/stack-tower` / `games/game` / 根 `apphost.toml` 零触碰（git status 机判留证）。
+
+### 对账轮提请主人拍板（更新）
+
+1. **链 v9 approve**（v1.3 全部条款 + A2 复跑账；v8 已 superseded，内容零覆盖留证）。
+2. **实现产物人工验收**（终裁「好不好玩」+ near-miss 感知判定）：v15 入口 + `docs/playtest-subjective-round1.md`。
+3. **内测三件**（Q6/Q7/Q8）：名单圈定 · 样本回收方式 · 时点 → 校准值版报告的前置件。
+4. wx/dy 提审动作与时点（Q5）：包就绪双通道零 diff，提审归主人。
+
+---
+
+# 存档：V1.3 首批实现轮（2026-10-09 · N1–N5 全链核销 · 部署轮 r4）
+
 > 更新时间：2026-10-09（**N1–N5 全链核销 · QA 驳回修补③修复闭 · 团队包全就绪 · v1.3 首批已上 AppHost（部署轮 r4）· 提请主人拍板**）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：**等主人拍板**（拍板清单见文末「提请主人拍板」节）；团队无阻塞项

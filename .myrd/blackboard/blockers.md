@@ -1,4 +1,42 @@
-# 阻塞项黑板 — stack-tower（M2 首卡 → M2.1「有声可装」→ 正式发布轮 → 霓虹夜塔冲刺 → B0 微信移植轮 → B1 上头循环 → **C 抖音小游戏移植轮（提审包 + 材料清单回流）**）
+# 阻塞项黑板 — 工作室组合全景（多游戏共板 · 每线各自有子黑板）
+
+> 更新时间：2026-10-10 · 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：等主人拍板（三项裁决件见下）；团队无阻塞项
+
+## 组合全景登记（2026-10-10 · 收尾）
+
+| 线 | 状态 | 一句话 | 基线指针 |
+|---|---|---|---|
+| **g2-blocks（熔炉方块）** | **打磨中 · 对账中 → 本轮对账收口** | v1.3 首批四件同包合回源仓 main + 链 v9 + r5 已上线，等主人拍板 | 源仓 main `26ba1d9` · 链 v9 `cmv1q9k690045m94obp29ysre`（draft）· AppHost v15 LIVE · 子黑板 `.myrd/blackboard/g2-blocks/blockers.md` |
+| **stack-tower** | **冻结 · 维持** | 同大类红线（与消除/堆叠同大类）+ 举证责任在数据 + 成本账；解除条件已写明（B-C-001 存档节） | 主线 spec v1.5 approved · AppHost v24 · 本轮**零接触**（git status 机判） |
+| **第二产品线** | **孵化 · 调研中** | B1 调研简报已落账（4 候选，与消除/堆叠大类错开，数据点带出处日期）；三套预置件就绪；**简报落账未选型前不写 spec / 不锚风格卡 / 不建工程** | 简报 `.myrd/blackboard/next-line/research-brief-v1.md` · 预置件 `templates/next-line-scaffold/`（空壳冒烟 PASS 4/4） |
+
+## 本轮三项裁决执行台账（2026-10-10 · 主策划）
+
+| 裁决 | 执行结果 | 证据（HEAD sha 绑定） |
+|---|---|---|
+| ① v1.3 基线降级为「待对账」 | **对账完成**：定位（未注册分支排除 / worktree 真源确认 / 部署面来源树确认）→ 四件同包 merge `e4c65f95ab0d1cb6c8546ec6514fef08ccf3e958` → HEAD 复跑三门禁全绿（三态 18/25/29+1PEND · Mode A · 冒烟 J1=175.8ms）→ 绑 sha 证据 7 件落档 | `gate-logs/v13-a1-merge-20261010/00–04`（四要素头） |
+| ② 第二线开题简报先行 | **简报已落账**：微信畅销/人气/畅玩/IAA 政策 + 抖音畅销/白皮书/内容热度 10 个数据点全带出处与日期；≥4 候选均与消除/堆叠大类错开；stack-tower 零接触维持 | `.myrd/blackboard/next-line/research-brief-v1.md` |
+| ③ stack-tower 冻结 | **维持执行**：本轮全部 git 变更路径不含 `games/stack-tower` / `games/game` / 根 `apphost.toml` | 一号仓 `cadb2f4` 提交内容机判 |
+
+## 带 HEAD sha 的证据链（本轮汇总）
+
+| 环节 | sha / id | 证据件 |
+|---|---|---|
+| 四件同包 merge | 源仓 main `e4c65f95ab0d1cb6c8546ec6514fef08ccf3e958` | gate-logs/v13-a1-merge-20261010/00·01·02·03·04 |
+| A2 链 v9 入链 | 链 v9 `cmv1q9k690045m94obp29ysre`（draft · 锚 `6719edd27d7e121a…` 不变） | 同目录 06（READBACK EQUAL · v1..v8 零覆盖） |
+| A2/A3 复检 | 复检器 9/9 APPROVE-READY @ e4c65f9 | 同目录 05 |
+| 部署轮 r5 | 一号仓 `cadb2f424a884c149c8330390b99d939892f9560` · deployment v15 `cmv1qhojj004km94o8tgy6kij` | 同目录 07（LIVE 自测 · sha 三向全等） |
+| 预置件空壳冒烟 | SCAFFOLD-SMOKE PASS 4/4 | `templates/next-line-scaffold/`（可复跑） |
+
+## 升级主人（不越权维持）
+
+- 链 v9 approve · 真人试玩（near-miss 感知终裁）· 内测三件（Q6/Q7/Q8）· wx/dy 提审动作与时点 · 第二线三轴选型输入。
+- 提审凭证事项维持「提审就绪」表述；团队只交包与入口，提审动作与「好不好玩」终裁不代行。
+
+---
+
+# 存档：stack-tower 线黑板（C 抖音小游戏移植轮 · 2026-09-30 收口态）
 
 ## C · 抖音小游戏移植轮（2026-09-30 开工 · 主策划 · **N1 收口态**）
 

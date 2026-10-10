@@ -1,0 +1,8 @@
+# 文件: 07-deploy-r5.log · 日期: 2026-10-10T01:49:44Z · 命令: POST /api/v1/apphost/apps/cmuqelj2r0046m9zr4emgdgdg/deployments（mode=bundle · deployedBy=workflow · gitRef=myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d · manifestPath=games/g2-blocks/apphost.toml · sourceId=g2-blocks） · 执行目录: 一号仓 run-cmv1pdxwj003jm94oqbnhim2z
+# 部署单: id cmv1qhojj004km94o8tgy6kij · version 15 · building→running（轮询 2 次）· errorMessage null · 单次 POST（HTTP=504 网关截断但受理一条，GET 复查无重复）
+# 部署提交: cadb2f424a884c149c8330390b99d939892f9560（git ls-remote 与远端全等后 POST）
+# 产物: games/g2-blocks/export/web 30 文件 ≡ 源仓 g2-blocks main @ 26ba1d9 build/（rsync 后 diff -rq 空）
+# 上一生产版: version 14 cmv0gc581000cm91im2nx4uip（r4 @ 8b96402）被 v15 接管
+# LIVE 自测: /health 200 {"ok":true,...}（app:stack-tower 为共享壳遗产标识，健康判 200）· /gw 200 · v1.3 新增件 5/5=200（main.mjs/ux-data/settlement/nearmiss/nearmiss-telemetry）· sha 全等 3/3：main.mjs=92d563b74904a6c3 · nearmiss=f05233ab8a4a531c · settlement=b78981b7594ede27（本地≡线上）
+# 试玩入口: https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/gw（真人试玩 = 主人侧动作；near-miss 感知条款只认真人判定）
+--- 摘要: DEPLOY-R5 PASS（可溯源构建：部署提交 cadb2f4 ↔ 源仓 main 26ba1d9 ↔ 部署面逐字节三向绑定） ---

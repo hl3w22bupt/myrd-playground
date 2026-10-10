@@ -1,6 +1,7 @@
 # 资产清单黑板 — g2-blocks（**V1.3 首批「near-miss 反馈 + 结算页 IA」表现层资产**）
 
-> 更新时间：2026-10-09（**N3 美术线对驳回修复轮亲审 + 复证 r2 · 三门禁全绿 27/27 @ `ded8e8f`** · G-01..G-05 收口态维持 · rubric 留 approve 验收）
+> 更新时间：2026-10-10（**对账收口轮：资产面零改动**——四件同包 merge 含 a08/a09/a10 存量资产原样入 main；部署面 30 文件 ≡ 源仓 `26ba1d9` 逐字节；第二线预置件（风格卡/反馈通道模板）在 `templates/next-line-scaffold/art/`，非本线资产）· 收口台账见 blockers.md 对账收口轮节
+> 上一轮：2026-10-09（N3 美术线对驳回修复轮亲审 + 复证 r2 · 三门禁全绿 27/27 @ `ded8e8f` · G-01..G-05 收口态维持 · rubric 留 approve 验收）
 > 负责人：游戏美术（表现层资产面）/ 主策划（整合校对）
 > 下一步：等主人 approve（approve 后美术面无在产项；观感/听感 rubric 随 approve 验收走）
 > 红线：色值一律引用冻结色板 token 派生（生成器零裸 hex、零 rgba 字面量）；near-miss 视听参数一律取链 v8 `numeric.nearMiss` 冻结面（零手抄第二份）；零粒子、不震屏为 near-miss 硬约束

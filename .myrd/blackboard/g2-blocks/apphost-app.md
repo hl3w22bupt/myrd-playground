@@ -1,7 +1,18 @@
 # AppHost 应用登记 — g2-blocks（熔炉方块）
 
-> 更新时间：2026-10-09（部署轮 r4 · 复用同一坑 `cmuqelj2r0046m9zr4emgdgdg`，发布 **v1.3 首批**产物 · LIVE-SMOKE PASS）
+> 更新时间：2026-10-10（**部署轮 r5 · 对账收口** · 复用同一坑 `cmuqelj2r0046m9zr4emgdgdg`，发布 **v1.3 四件同包 merge 产物** · LIVE 自测 PASS）
 > 用途：一坞一游戏，下一轮**复用同一坑**（不要新建、不要挤占别的游戏的应用）
+
+## 本轮部署（2026-10-10 · 部署轮 r5 · 对账收口）
+
+| 项 | 值 |
+|---|---|
+| deployment | `cmv1qhojj004km94o8tgy6kij` · **version 15** · running（v14 r4 被接管）· errorMessage null |
+| gitRef / 部署提交 | `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ **`cadb2f4`**（ls-remote 全等后单次 POST；HTTP=504 网关截断但受理一条，GET 复查无重复） |
+| 产物溯源 | `games/g2-blocks/export/web` 30 文件 ≡ 源仓 `g2-blocks` main **`26ba1d9`** `build/`（rsync 后 diff -rq 空）——部署提交 ↔ 源仓 HEAD ↔ 部署面三向逐字节绑定 |
+| 线上自测 | /health 200 · /gw 200 · v1.3 新增件 5/5=200 · sha 全等 3/3（main.mjs=`92d563b7…` · nearmiss=`f05233ab…` · settlement=`b78981b7…`） |
+| 试玩入口 | `https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/gw`（真人试玩归主人；near-miss 感知只认真人判定） |
+| 证据 | `gate-logs/v13-a1-merge-20261010/07-deploy-r5.log`（四要素头） |
 
 ## 专属坑（2026-10-02 建档）
 
