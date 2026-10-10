@@ -13,6 +13,7 @@
 - **四件同包 = merge commit `e4c65f95ab0d1cb6c8546ec6514fef08ccf3e958`（单提交）**：
   ① v1.3 代码全量；② spec 链 v8 档案件入仓（`docs/spec/spec-v13-batch-payload.json` + `design-spec-v13-batch-draft.json` + `v13-batch-chain.md`；spec = 平台回读权威源，锚 `6719edd27d7e121a…` 与 N1 台账逐字一致；**禁止重复 POST**）；③ **ac-08 断言同步修订**（只加不松：八步冻结断言逐字保留 + 新增「表现层挂接零漂移 / 评估输入末态纯度 / 结算视图只读」三组——链 v8 ac-32 scopeNote「ac-08 结算顺序语义零改动」的契约化；三态下全过）；④ ac-22+ 契约随包（ac-31 near-miss 阈值/不误报/频控/埋点 + ac-32 结算页三层 IA/出现时机/触达 + ac-33 提审包零 diff + ac-29 九事件）。
 - **主仓 HEAD 复跑（A1-3 · sha 绑定证据 `gate-logs/v13-a1-merge-20261010/00–04`）**：三态契约 **18/25/29+1PEND** 全 PASS · 根契约 Mode A PASS · SMOKE PASS（J1=**175.79999999701977ms** ≤400 @ 4x throttle 390x844，同批归档）· 树净。
+- **主仓 HEAD 独立复证（2026-10-10 程序线 · 绑定 `26ba1d9`）**：上组证据绑定在 merge 提交 `e4c65f9`，其后 main 前进至 **`26ba1d9`**（A2+A3 收口归位提交，r5 部署面源）。本轮在**当前 HEAD 实跑全部门禁补齐 sha 绑定闭环**（复证非重做，零代码/零 spec/零部署动作）：三态契约 **18/25/29+1PEND 全 PASS** + 根契约 **18 PASS/0 FAIL** · 八门禁 **①–⑧ 全 PASS** · SMOKE **PASS**（J1=**170.4ms** ≤400 · 结算页三区块 ✓ · near-miss 构造面 ✓ · 零控制台错误）· 部署面 30 文件 ≡ `26ba1d9` build/ 逐字节复证 · B2 预置件空壳冒烟 **4/4** · 跨线零接触机判 · 冒烟覆写件已还原（树净）。原文 `gate-logs/v13-head-reverify-20261010/`（README + 00–03，四件各带命令/UTC/退出码）。
 
 ### A2 · DoD 校准复跑（原首轮不采信、不回写）
 

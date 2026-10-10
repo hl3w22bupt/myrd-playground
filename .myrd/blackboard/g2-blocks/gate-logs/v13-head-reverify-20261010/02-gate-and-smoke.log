@@ -1,0 +1,82 @@
+# 文件: 02-gate-and-smoke.log · 日期: 2026-10-10T02:05:43Z · 命令: npm run gate && node tools/smoke.mjs · 执行目录: g2-blocks-main @ HEAD 26ba1d9a1c663edb53ad537777abf902fe6fd296
+== 八门禁（npm run gate）==
+PASS  ac-11/a 键名齐全
+PASS  ac-11/b 值逐字相等
+PASS  ac-11/c 单源（src/render 其余文件零 hex 字面量）
+PASS  ac-12-palette-double-gate
+PASS  harness/rng-determinism
+PASS  harness/spec-anchor-stable
+PASS  ac-18-ci-guard-repo-scope
+PASS  ac-17-repo-one-zero-touch
+PASS  ac-14/a 内核纯净（零 Math.random/Date.now/performance.now）
+PASS  ac-14/b 同 seed 两路序列逐字节一致
+PASS  ac-14/c 默认 seed ≡ spec DEFAULT_SEED（真源唯一）
+PASS  ac-14/d 异 seed 序列必异
+PASS  ac-14/e 纯函数隔离（无共享内部状态，可复现）
+PASS  ac-14/f uniformInt 值域/边界/非法入参
+PASS  ac-14/g rng 值域 [0,1) 且类型 number
+PASS  ac-14/h 本件零冻结 seed 字面量（自证）
+PASS  acmap/a acceptance 非空且 id 唯一
+PASS  acmap/b check 形态正确：统一入口 --only <id>（v1.1 落点纪律）
+PASS  acmap/c 每条 id 有契约件 tests/contract/<id>.spec.mjs（缺位即漂移）
+PASS  acmap/d 统一入口 scripts/contract-check.mjs 在仓
+PASS  acmap/e 白名单制度防复发：白名单条目不得为已存在文件的过期豁免
+PASS  acmap/f 白名单与 spec id 对齐（无幽灵条目）
+PASS  acmap/g 生成件漂移守卫：spec-data 锚 ≡ 链上导出件 numeric 锚
+PASS  acmap/h 生成件数值 ≡ 链上导出件 numeric（深比全等）
+PASS  T1a 门面：注册键读写 roundtrip + 未注册键拒绝
+PASS  T1b 门面：键级最小集默认不扩（门面自身零新增落盘键）
+PASS  T1c 版本化迁移：toVersion 严格 +1，跳版拒绝
+PASS  T1d 版本化迁移：muted 归一（true→1 / off→0），键集零改动、零删键
+PASS  T1e 版本化迁移：幂等（重复 migrate 不再改写、版本不回退）
+PASS  T1e-2 版本语义：缺省 fromVersion = 最新（不触发迁移）；fromVersion 越轨拒绝
+PASS  T1f 音频门面：clear(chain>1) → combo；缺失合成器零阻塞；静音零出声
+PASS  T1g 音频门面：静音态持久化走 muted 键（键级最小集不变）
+PASS  T2a 帧率：60fps 恒定帧序列 → P95=16.67ms、fps=60
+PASS  T2a-2 帧率：P95 对尾延迟敏感（混入 1/20 的 50ms 掉帧 → P95 抬升）
+PASS  T2b 帧率：分位数单调有序（P50 ≤ P95 ≤ P99 ≤ max）
+PASS  T2c 帧率：掉帧口径（>20ms 记卡顿）+ 环形有界 + reset
+PASS  T2d 分位数函数：单样本/空集/越界 p 显式处理
+PASS  T3a 可注入时钟：fixed 恒定 / stepped 可推进可跳设 / system 可取值
+PASS  T3b 时区：同一时刻三时区日期码（含东八区跨日）
+PASS  T3c 跨日判定：同日 true / 跨日 false（东八区 23:30 → 次日 00:30）
+PASS  T3d daily 种子：同日恒定 / 跨日必变 / 落 uint32
+PASS  T3e PRNG：同 seed 逐字节一致 + uniformInt 边界
+PASS  T3f 非法输入显式抛错（不静默归零）
+PASS  T1/T2/T3 零外部依赖 + 零网络构造
+—— 合计 20 PASS / 0 FAIL ——
+PASS  ① 范围守卫（AC-18）
+PASS  ② 色板双门禁 21 对（AC-12）
+PASS  ③ theme 单源断言框架（AC-11，骨架态= PENDING-APPROVE）
+PASS  ④ 零冻结值依赖面自测（ac-12/17/18 + harness）
+PASS  ⑤ ac-14 内核确定性（spec 声明落点）
+PASS  ⑥ acceptance.check 声明落点契约守卫
+PASS  ⑦ 关卡面（F4）：parseGoals / goalEval / el-hint 行为
+PASS  ⑧ 工程前置面（A 轮 N3）：T1 storage/audio 门面 · T2 帧率埋点 · T3 时钟/时区
+# 结论: 门禁绿（骨架态）——冻结值相关实现与门禁等 approve 后补齐，不装绿
+GATE_PIPESTATUS_DONE
+== 冒烟（node tools/smoke.mjs）==
+[smoke] 静态服务 http://127.0.0.1:61521/
+[smoke] viewport=390x844 throttle=4x（spec numeric.perf.j1.device）
+[smoke] 浏览器可开：页面加载完成
+[smoke] 游戏就绪 __G2_READY=true
+[smoke] 盘面 64 格满员
+[smoke] 手1（首消+提示）: score 0 → 160（chain 1） J1=188.1000000089407ms
+[smoke] 手2（连击路径）: score 160 → 240（chain 2） J1=171.70000000298023ms
+[smoke] 消除粒子上屏 ✓（drawn=8 · 存活帧命中 8/8 · 消亡后复采 0）
+[smoke] J1 实测 170.3999999910593ms / 预算 400ms（达标）
+[smoke] J1 证据 → tests/contract/.j1-evidence.json
+[smoke] 重开全复位 ✓（score=0 status=playing）
+[smoke] level-2 入口可达 ✓（HUD 目标「升温局 · 20 手内打出 3 连击」= spec goal 现读）
+[smoke] level-2 手1（可玩性）: score 0 → 160（chain 1） J1=170.5ms
+[smoke] level-1/level-2 切换回路 ✓
+[smoke] 结算页三区块 ✓（P0–P2 + 归因 + 行动层 · 触达 ≥48 · inputSeal=cooled-existing）
+[smoke] near-miss 构造面 ✓（__G2_NM 机读 bannerActive=true · 频控/超限计数在册）
+[smoke] 行动层重开同源 ✓（doRestart 同路径 · 结算页复位）
+[smoke] SW 注册受理 ✓ scope=http://127.0.0.1:61521/
+[smoke] PWA Service Worker 激活 ✓（registrations=1）
+[smoke] manifest 可达 ✓
+[smoke] 控制台零错误 ✓
+SMOKE: PASS 浏览器可开 + 核心循环可玩 + PWA 就绪（J1 证据已落档）
+SMOKE_DONE
+TREE_RESTORED_DIRTY=0

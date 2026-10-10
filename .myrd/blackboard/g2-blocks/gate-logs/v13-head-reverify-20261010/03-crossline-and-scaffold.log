@@ -1,0 +1,13 @@
+# 文件: 03-crossline-and-scaffold.log · 日期: 2026-10-10T02:06:07Z · 执行目录: 一号仓 run-cmv1pdxwj003jm94oqbnhim2z
+== B2 预置件① 空壳冒烟（node templates/next-line-scaffold/tools/smoke.mjs）==
+[scaffold-smoke] 内核确定性（同 seed 双跑逐字节） ✓ score=22 tick=5
+[scaffold-smoke] phase 推进 ✓ 
+[scaffold-smoke] 平台门面 noop 可用（显式 kind） ✓ 
+[scaffold-smoke] 契约模板 PASS ✓ ac-template 空壳模板 PASS（1 断言 · 新线开工时复制改名并接入 spec acceptance 段）
+SCAFFOLD-SMOKE: PASS（4/4 面）
+SCAFFOLD_EXIT=0
+== 部署面 ≡ 源仓 main @ 26ba1d9 build/（diff -rq · 三向绑定复证）==
+DEPLOY-FACE-IDENTICAL（30 文件逐字节相等）
+== stack-tower / games/game / 根 apphost.toml 零接触（本 run 未提交变更面机判）==
+ZERO-TOUCH（工作树无上述路径变更）
+ZERO-TOUCH（HEAD~1..HEAD 提交内容亦无上述路径）

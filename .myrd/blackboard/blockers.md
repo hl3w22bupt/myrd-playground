@@ -27,7 +27,8 @@
 | A2 链 v9 入链 | 链 v9 `cmv1q9k690045m94obp29ysre`（draft · 锚 `6719edd27d7e121a…` 不变） | 同目录 06（READBACK EQUAL · v1..v8 零覆盖） |
 | A2/A3 复检 | 复检器 9/9 APPROVE-READY @ e4c65f9 | 同目录 05 |
 | 部署轮 r5 | 一号仓 `cadb2f424a884c149c8330390b99d939892f9560` · deployment v15 `cmv1qhojj004km94o8tgy6kij` | 同目录 07（LIVE 自测 · sha 三向全等） |
-| 预置件空壳冒烟 | SCAFFOLD-SMOKE PASS 4/4 | `templates/next-line-scaffold/`（可复跑） |
+| 主仓 HEAD 独立复证 | 源仓 main `26ba1d9a1c663edb53ad537777abf902fe6fd296`（= r5 部署面源 · 树净）：契约三态 18/25/29+1PEND + 根契约 18/0 + 八门禁 ①–⑧ + 冒烟 J1=170.4ms 全绿 · 部署面 30 文件逐字节复证 · 预置件空壳冒烟 4/4 · 跨线零接触机判 | `g2-blocks/gate-logs/v13-head-reverify-20261010/`（README + 00–03，各带命令/UTC/退出码） |
+| 预置件空壳冒烟 | SCAFFOLD-SMOKE PASS 4/4 | `templates/next-line-scaffold/`（可复跑；复证原文并入 `v13-head-reverify-20261010/03`） |
 
 ## 升级主人（不越权维持）
 

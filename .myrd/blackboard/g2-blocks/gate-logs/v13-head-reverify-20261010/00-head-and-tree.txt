@@ -1,0 +1,6 @@
+# 文件: 00-head-and-tree.txt · 日期: 2026-10-10T02:05:21Z · 命令: git rev-parse HEAD + git status --porcelain + git log -1 · 执行目录: g2-blocks-main（源仓 main 工作树 · 对账收口后独立复证轮）
+HEAD_SHA=26ba1d9a1c663edb53ad537777abf902fe6fd296
+SUBJECT=chore(qa): A2+A3 收口归位——链 v9 入链器（DoD 复跑账 · 数值零漂移）+ QA 正式审查报告 + 复检器同批证据归位 + 构建重建（r5 部署面源）
+AUTHOR_TIME=2026-10-10T09:45:51+08:00
+BRANCH=main
+DIRTY_ENTRIES=0

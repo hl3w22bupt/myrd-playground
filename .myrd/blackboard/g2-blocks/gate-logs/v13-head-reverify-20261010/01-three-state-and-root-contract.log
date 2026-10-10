@@ -1,0 +1,15 @@
+# 文件: 01-three-state-and-root-contract.log · 日期: 2026-10-10T02:05:31Z · 命令: node scripts/check-v13.mjs && node scripts/contract-check.mjs · 执行目录: g2-blocks-main @ HEAD 26ba1d9a1c663edb53ad537777abf902fe6fd296（复证非重做）
+== Mode A (approved v1.1) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv1pdxwj003jm94oqbnhim2z/.myrd/spec/g2-blocks/design-spec.json
+—— 合计 18 PASS / 0 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v2 approved 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准）
+== Mode B (chain v4 draft) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv1pdxwj003jm94oqbnhim2z/.myrd/spec/g2-blocks/design-spec-v1.3-feel-draft.json
+—— 合计 25 PASS / 0 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v4 draft 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准）
+== Mode C (chain v8 draft) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv1pdxwj003jm94oqbnhim2z/.myrd/spec/g2-blocks/design-spec-v13-batch-draft.json
+—— 合计 29 PASS / 0 FAIL / 1 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v8 draft 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准 · PEND 1 条显式挂起）
+CHECK-V13: PASS（三态计数全符 · 18 / 25 / 29+1PEND）
+--- 根契约（approved 基线 · contract-check.mjs）---
+—— 合计 18 PASS / 0 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v2 approved 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准）
+CHECK_EXIT=0
