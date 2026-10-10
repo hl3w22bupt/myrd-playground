@@ -36,6 +36,12 @@
       字体文件存在（Web 导出跑在浏览器沙箱里拿不到系统字体，引擎内置默认
       字体只含拉丁字形；没有这份字体，中文会渲染成 TextServer 缺字方块）。
       .gd 先剥注释再检测 —— 注释里的中文不会被渲染，不算触发条件
+  P13b 字形覆盖：P13 只保证「配了字体」，但模板内置的是子集字体（体积可控，
+      只收常用汉字 + 少量符号）—— 工程文案一旦用到子集外的字符（实测案例：
+      ①②③ 带圈数字、emoji），Web 导出后依旧是缺字方块。把「会渲染的非 ASCII
+      字符」逐一对照内嵌字体的 cmap 表（纯 stdlib 解析 ttf/otf/ttc），缺一个就拦。
+      tests/ 下的字符串豁免（断言消息只进控制台，不经游戏字体渲染）。
+      字体解析不了（woff2/位图/损坏）→ NOTE 降级跳过，不冒充通过也不误报
   P14 脚本引用了 Juice 反馈单例（Juice.）时，project.godot [autoload] 必须注册
       Juice（模板默认注册）。缺注册 = GDScript 解析期 Identifier not found，
       无头冒烟才暴露 —— 这里秒级提前拦。反向（注册了但暂无调用点）不判错
@@ -48,6 +54,7 @@ Godot 编辑器保存场景时会写入 `uid="…"`、调整属性顺序 —— 
 from __future__ import annotations
 
 import re
+import struct
 import sys
 from pathlib import Path
 
@@ -83,11 +90,11 @@ GD3_PATTERNS = (
     (re.compile(r"\binterpolate_property\s*\("), "Godot 3 Tween API `interpolate_property()` → 应为 `create_tween()` + `tween_property()`"),
 )
 
-CHECKS = 14
+CHECKS = 15
 
 # CJK 渲染字符集：假名、汉字（扩展A/基本区/兼容区）、CJK 标点、全角形式。
 # 命中任意一个就视为「工程会渲染非拉丁文案」，P13 要求全局默认字体兜底。
-CJK_GLYPH = re.compile(r"[぀-ヿ㐀-䶿一-鿿豈-﫿　-〿＀-￯]")
+CJK_GLYPH = re.compile(r"[぀-ヿ㐀-䶿一-鿿豈-﫿　-〿＀-￯]")
 
 
 def fail(messages: list[str], code: str, message: str) -> None:
@@ -99,6 +106,113 @@ def read_text(path: Path) -> str:
         return path.read_text(encoding="utf-8")
     except (UnicodeDecodeError, OSError):
         return ""
+
+
+def read_bytes(path: Path) -> bytes:
+    try:
+        return path.read_bytes()
+    except OSError:
+        return b""
+
+
+def _sfnt_tables(data: bytes, offset: int = 0) -> dict[bytes, tuple[int, int]] | None:
+    """读 sfnt 头 → {表标签: (偏移, 长度)}；不是 ttf/otf/ttc 返回 None。"""
+    if len(data) < offset + 12:
+        return None
+    magic = data[offset:offset + 4]
+    if magic == b"ttcf":  # TrueType collection：头 12 字节后是首字体偏移
+        if len(data) < offset + 16:
+            return None
+        (first,) = struct.unpack_from(">I", data, offset + 12)
+        return _sfnt_tables(data, first) if first else None
+    if magic not in (b"\x00\x01\x00\x00", b"OTTO", b"true"):
+        return None
+    (num_tables,) = struct.unpack_from(">H", data, offset + 4)
+    tables: dict[bytes, tuple[int, int]] = {}
+    for i in range(num_tables):
+        rec = offset + 12 + 16 * i
+        if len(data) < rec + 16:
+            return None
+        tables[data[rec:rec + 4]] = struct.unpack_from(">II", data, rec + 8)
+    return tables
+
+
+def _cmap_subtable_codes(data: bytes, base: int, seen: set[int]) -> None:
+    """把一个 cmap 子表里已映射的码点并入 seen（format 0/4/6/12，其余形态跳过）。
+
+    字形覆盖只关心「码点有没有被映射到非 0 glyph」，所以各子表取并集即可。
+    """
+    if len(data) < base + 4:
+        return
+    (fmt,) = struct.unpack_from(">H", data, base)
+    if fmt == 0:  # 字节表：256 个单字节 glyph id
+        for code, glyph in enumerate(data[base + 6:base + 6 + 256]):
+            if glyph:
+                seen.add(code)
+    elif fmt == 4:  # 分段表：endCodes / startCodes / idDelta / idRangeOffset 四数组
+        (seg_x2,) = struct.unpack_from(">H", data, base + 6)
+        seg = seg_x2 // 2
+        ends_base = base + 14
+        starts_base = ends_base + seg_x2 + 2  # 中间隔一个 reservedPad
+        deltas_base = starts_base + seg_x2
+        ranges_base = deltas_base + seg_x2
+        for i in range(seg):
+            (end,) = struct.unpack_from(">H", data, ends_base + 2 * i)
+            (start,) = struct.unpack_from(">H", data, starts_base + 2 * i)
+            (delta,) = struct.unpack_from(">h", data, deltas_base + 2 * i)  # idDelta 是有符号的
+            (rng,) = struct.unpack_from(">H", data, ranges_base + 2 * i)
+            for code in range(start, min(end, 0x10FFFF) + 1):
+                if code == 0xFFFF:
+                    continue  # 末段 0xFFFF 哨兵不映射任何真实字符
+                if rng == 0:
+                    if (code + delta) & 0xFFFF:
+                        seen.add(code)
+                else:
+                    addr = ranges_base + 2 * i + rng + 2 * (code - start)
+                    if addr + 2 > len(data):
+                        break
+                    (glyph,) = struct.unpack_from(">H", data, addr)
+                    if glyph:
+                        seen.add(code)
+    elif fmt == 6:  # 稀疏连续段
+        first, count = struct.unpack_from(">HH", data, base + 6)
+        for k in range(count):
+            addr = base + 10 + 2 * k
+            if addr + 2 > len(data):
+                break
+            (glyph,) = struct.unpack_from(">H", data, addr)
+            if glyph:
+                seen.add(first + k)
+    elif fmt == 12:  # 分组表（大于 BMP 的字符只用它表达）
+        (n_groups,) = struct.unpack_from(">I", data, base + 12)
+        for g in range(n_groups):
+            addr = base + 16 + 12 * g
+            if addr + 12 > len(data):
+                break
+            start, end, _start_glyph = struct.unpack_from(">III", data, addr)
+            seen.update(range(start, min(end, 0x10FFFF) + 1))
+
+
+def font_cmap_codepoints(data: bytes) -> set[int] | None:
+    """解析字体已映射的码点集合；不是可解析的 sfnt（或没有 cmap）返回 None。"""
+    try:
+        tables = _sfnt_tables(data)
+        if not tables or b"cmap" not in tables:
+            return None
+        cmap_off, _cmap_len = tables[b"cmap"]
+        if len(data) < cmap_off + 4:
+            return None
+        (n_sub,) = struct.unpack_from(">H", data, cmap_off + 2)
+        seen: set[int] = set()
+        for i in range(n_sub):
+            rec = cmap_off + 4 + 8 * i
+            if len(data) < rec + 8:
+                break
+            _platform, _encoding, sub_off = struct.unpack_from(">HHI", data, rec)
+            _cmap_subtable_codes(data, cmap_off + sub_off, seen)
+        return seen if seen else None
+    except Exception:
+        return None
 
 
 def parse_attrs(header: str) -> dict[str, str]:
@@ -359,8 +473,9 @@ def main() -> int:
         if rel.endswith(".gd"):
             body = "\n".join(strip_gd_comment(line) for line in body.splitlines())
         render_bodies.append(body)
-    if any(CJK_GLYPH.search(body) for body in render_bodies):
-        custom_font = project.get("gui", {}).get("theme/custom_font", "")
+    cjk_present = any(CJK_GLYPH.search(body) for body in render_bodies)
+    custom_font = project.get("gui", {}).get("theme/custom_font", "")
+    if cjk_present:
         if not custom_font:
             fail(messages, "P13",
                  "工程含会渲染的中文文案，但未设置 [gui] theme/custom_font"
@@ -368,6 +483,36 @@ def main() -> int:
                  "参考 minimal-2d 模板 assets/fonts/ 的子集化 Noto Sans CJK SC）")
         elif not exists(custom_font):
             fail(messages, "P13", f"gui/theme/custom_font 指向的字体不存在：{custom_font}")
+
+    # P13b 字形覆盖（子集字体的第二层保障，理由与降级策略见 docstring）：
+    # 收集「会渲染的非 ASCII 字符」逐一对内嵌字体的 cmap —— P13 查「配没配」，
+    # 这里查「用到的每个字符字体里到底有没有」（实测漏网案例：①②③、emoji）。
+    render_chars: set[str] = set()
+    for rel, body in zip(scan_files, render_bodies):
+        if rel.startswith("tests/"):
+            continue  # 测试断言消息只进控制台，不经游戏字体渲染 —— 豁免（模板 smoke.gd 文案含 §）
+        render_chars.update(ch for ch in body if not ch.isascii() and not ch.isspace())
+    if render_chars and custom_font and exists(custom_font):
+        covered = font_cmap_codepoints(read_bytes(project_dir / rel_path_of(custom_font)))
+        if covered is None:
+            print(f"PREFLIGHT: NOTE [P13b] 字体 {custom_font} 无可解析的 cmap 表"
+                  "（非 ttf/otf/ttc 或已损坏），跳过字形覆盖校验 —— 缺字方块请人工抽查")
+        else:
+            missing = sorted(ch for ch in render_chars if ord(ch) not in covered)
+            if missing:
+                shown = " ".join(f"{ch}(U+{ord(ch):04X})" for ch in missing[:12])
+                more = f" —— 共 {len(missing)} 个" if len(missing) > 12 else ""
+                fail(messages, "P13b",
+                     f"内嵌字体 {custom_font} 缺少工程文案用到的字形：{shown}{more}"
+                     "（Web 导出无系统字体回退，会渲染成缺字方块）—— "
+                     "改用字体已覆盖的写法（如「1.」代替「①」）、删去 emoji，或换全量字体")
+    elif render_chars and not custom_font and not cjk_present:
+        # 纯符号/非拉丁（如 ①②③）且无中文：P13 不触发，这里兜底 ——
+        # 引擎内置默认字体同样只含拉丁字形，缺字方块照出。
+        sample = " ".join(sorted(render_chars)[:5])
+        fail(messages, "P13b",
+             f"工程含会渲染的非拉丁字符（{sample} …）但未设置 [gui] theme/custom_font"
+             "（引擎内置字体只含拉丁字形，Web 导出会渲染成缺字方块）")
 
     # P14 Juice 反馈单例接线一致性：脚本引用了 Juice. ⇒ [autoload] 必须注册 Juice。
     # 缺注册是解析期 Identifier not found（无头冒烟才暴露），静态提前拦；
