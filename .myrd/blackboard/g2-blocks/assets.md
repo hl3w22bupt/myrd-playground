@@ -1,10 +1,28 @@
 # 资产清单黑板 — g2-blocks（**V1.3 首批「near-miss 反馈 + 结算页 IA」表现层资产**）
 
 > 更新时间：2026-10-10（**对账收口轮：资产面零改动**——四件同包 merge 含 a08/a09/a10 存量资产原样入 main；部署面 30 文件 ≡ 源仓 `26ba1d9` 逐字节；第二线预置件（风格卡/反馈通道模板）在 `templates/next-line-scaffold/art/`，非本线资产）· 收口台账见 blockers.md 对账收口轮节
+> 追记（同日 · 美术线）：**B2-② 预置件美术线 N3 亲审轮已行使**——风格卡模板 1 项缺陷修订（P-01 四要素对齐规范口径）+ 反馈通道规格模板只检 PASS；g2-blocks 源仓与部署面仍零触碰，见下节
 > 上一轮：2026-10-09（N3 美术线对驳回修复轮亲审 + 复证 r2 · 三门禁全绿 27/27 @ `ded8e8f` · G-01..G-05 收口态维持 · rubric 留 approve 验收）
 > 负责人：游戏美术（表现层资产面）/ 主策划（整合校对）
 > 下一步：等主人 approve（approve 后美术面无在产项；观感/听感 rubric 随 approve 验收走）
 > 红线：色值一律引用冻结色板 token 派生（生成器零裸 hex、零 rgba 字面量）；near-miss 视听参数一律取链 v8 `numeric.nearMiss` 冻结面（零手抄第二份）；零粒子、不震屏为 near-miss 硬约束
+
+## 第二线预置件 · 美术线 N3 亲审轮（2026-10-10 · B2-② · 整合线初版 → 美术亲审修订）
+
+> 口径 = `evidence-one-line-template.md`；性质 = **亲审而非重编**（B2-② 初版由整合线代执行，承 C 轮「N2 初版 → N3 美术亲审/覆写」判例行美术面认定）。
+> 结论：**风格卡模板 1 项缺陷修订（P-01）+ 反馈通道规格模板只检 PASS · 改动后三门禁全绿（EXIT 0/0/0）· g2-blocks 源仓与部署面零触碰（sha 证据链 `26ba1d9` 不破）**。
+> 证据原文 = `gate-logs/v13-preset-art-recheck-20261010/`（3 log + README）。
+
+```
+[PASS] | 线1 美术 | 01-gates-postchange.log | 2026-10-10 | node scripts/contract-check.mjs + bash games/game/verify.sh + node templates/next-line-scaffold/tools/smoke.mjs | RESULT: PASS（spec↔工程一致）· verify PASS（preflight+smoke）· SCAFFOLD-SMOKE PASS 4/4 · 三退出码 0/0/0 | 基线 HEAD 845d9ba（改动前树净）· 修订后复跑
+[PASS] | 线1 美术 | （亲审 · P-01 修订） | 2026-10-10 | style-card-template.md 四要素「色板/字体/形状语言/动效」→「调色板/光照/线条/比例」 | 缺陷 = 缺光照/线条锚（规范口径机审判例：stack-tower C 轮 art-audit），新线照填即放行风格漂移；修订 = 对齐规范口径 + 字体/动效降扩展项 §5/§6 + 判例零删 + 门禁面补光照线条/比例安全区两条机判；README 一行同步 | templates/next-line-scaffold/
+[PASS] | 线1 美术 | （只检 · 零改动） | 2026-10-10 | visual-feedback-channel-spec-template.md 五要素 + perception-note 通读 | trigger/form/duration/rate-limit/machine-check 齐备，判例承 ac-31/ac-32；「引用风格卡四要素 token」在 P-01 修订后引用面更完整（光照/线条 token 显式可引）——零改动 | templates/next-line-scaffold/
+[PASS] | 线1 美术 | 03-consistency-scan.log | 2026-10-10 | 旧口径零残留扫描 + 新口径在场 + 反馈通道模板空 diff | 旧字面 1 处命中 = 修订注记自引（预期内）；反馈通道模板 DIFF=空 | templates/next-line-scaffold/
+```
+
+- **P-01 修订动机（美术纪律面）**：风格卡四要素是「派生而非重编」的锚面——缺**光照**锚则反馈光/氛围层无 token 可引（near-miss「不常亮」级硬条款无处落卡）；缺**线条**锚则描边/高光条 α 值退回隐性 rgba 字面量老路（R3-F3 判例正是此缺陷）。初版把「字体/动效」提为要素属口径漂移：字体属版式可选项、动效归反馈通道规格模板管辖（五要素已有 form/duration/rate-limit），不该占四要素席位。
+- **填写时机不变**：简报落账 + 主人三轴选型后才复制填写（预置件纪律不因亲审改变）；本模板不构成新线风格锚定。
+- **红线核销**：本轮改动面 = `templates/next-line-scaffold/art/style-card-template.md` + `README.md` 一行 + 本黑板登记 + 证据目录；g2-blocks 源仓零写入 · 部署面零触碰 · stack-tower 零接触 · spec/numeric/玩法数值零触碰。
 
 ## 顶部风格卡（沿用 A 轮定稿 · 本轮沿用零改版，详档见存档区「风格卡」节）
 

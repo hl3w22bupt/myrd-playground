@@ -1,0 +1,26 @@
+# 01 改动后门禁复跑（2026-10-10 美术线 B2-② 亲审轮）
+## 根 contract-check.mjs
+[A] spec 基线：.myrd/spec/stack-tower-spec.json · platformSpecId=cmunf6r1e014cm9lfamzllk2h v7 status=approved acceptance=40 levels=1 entities=20 assets=24
+[B] acceptance 命令化 + 实跑：39/40 PASS（not-runnable 1：acc-a7（check=npx vitest run tests/audio/events.test.ts），单列不计绿）
+[C] 双向映射：level/element 8 ↔ elements 9（折入核验 1：lvl-01-stack-tower/e09-opening-stack）；横切 acceptance 31 ↔ 契约文件 39（run-all 聚合全量核对）
+[D] entities 落盘 20/20（含锚点实体 3，契约可追溯）；kernel 纯净性 10 文件扫描完成
+[E] assets 落盘 24/24（全部 generated，零外部资源）
+
+说明：acceptance 实跑即「契约测试通过记录」（B 段逐条执行 tests/contract/*.spec.mjs）。
+RESULT: PASS（spec ↔ 工程一致）
+CONTRACT_EXIT=0
+
+## games/game/verify.sh（他线基线，证明工作区整体绿）
+==> [2/2] smoke（godot --headless 无头冒烟门禁）
+godot-smoke: PASS 冒烟场景通过：tests/smoke.tscn（退出码 0，断言标记齐全，日志无脚本错误）
+
+verify: PASS preflight + smoke 全部通过（可玩验收七项：移动/收集交互/死局洗牌/计分加成/难度梯度/过关推进/胜负重开）
+VERIFY_EXIT=0
+
+## 脚手架空壳冒烟 templates/next-line-scaffold/tools/smoke.mjs
+[scaffold-smoke] 内核确定性（同 seed 双跑逐字节） ✓ score=22 tick=5
+[scaffold-smoke] phase 推进 ✓ 
+[scaffold-smoke] 平台门面 noop 可用（显式 kind） ✓ 
+[scaffold-smoke] 契约模板 PASS ✓ ac-template 空壳模板 PASS（1 断言 · 新线开工时复制改名并接入 spec acceptance 段）
+SCAFFOLD-SMOKE: PASS（4/4 面）
+SMOKE_EXIT=0
