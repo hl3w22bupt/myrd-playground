@@ -1,0 +1,5 @@
+# 文件: 00-head-and-tree.txt · 日期: 2026-10-10T01:37:07Z · 命令: git rev-parse HEAD + git status --porcelain + git log -1 --format=%H%n%s · 执行目录: g2-blocks-main（源仓 main 工作树）
+HEAD_SHA=e4c65f95ab0d1cb6c8546ec6514fef08ccf3e958
+SUBJECT=merge: v1.3 首批四件同包合回主仓（A1-2 · 主策划收口）
+DIRTY_ENTRIES=0
+BRANCH=main
