@@ -5,6 +5,7 @@
 // GameDesignSpec 导出件读取，不在代码里出现第二份。冻结值相关的玩法实现等 approve 后再写。
 // 取数优先级：G2_SPEC_PATH → 兄弟 run 目录发现 → 显式报错（不猜、不降级到内置值）。
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { dirname, join, resolve } from 'node:path';
 
                                    
@@ -71,6 +72,23 @@ export function loadSpecExport()             {
 /** 冻结数值块（唯一真源 = 平台 spec 导出件） */
 export function numeric()                      {
   return loadSpecExport().spec.numeric;
+}
+
+/** 实算 numeric 段锚（sha256(sortKeys)，与 tools/gen-spec-data.mjs / tests/acceptance-map.spec.mjs 同口径）。
+ *  平台导出件 _platform 不携带 numericAnchorSha256（optional 元字段恒缺）——锚一律实算，不依赖平台注入。
+ *  仅 Node 侧使用（本件不被浏览器打包面引用；浏览器冻结值走生成件 spec-data.ts）。 */
+export function computeNumericAnchor(spec             = loadSpecExport())         {
+  const sortKeys = (v     )      => (Array.isArray(v) ? v.map(sortKeys) : v && typeof v === 'object'
+    ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, sortKeys(v[k])])) : v);
+  return createHash('sha256').update(JSON.stringify(sortKeys(spec.spec.numeric))).digest('hex');
+}
+
+/** 绕缓存重读导出件（守卫用：验证装载确定性而非命中同一份缓存） */
+export function loadSpecExportFresh()             {
+  const path = resolveSpecPath();
+  const raw = JSON.parse(readFileSync(path, 'utf8'))              ;
+  if (!raw?.spec?.numeric) throw new Error(`spec 导出件缺 spec.numeric: ${path}`);
+  return raw;
 }
 
 /** 状态声明：draft = 待主人 approve（契约测试以 v1 内容为共同输入， approve 前不写冻结值玩法实现） */

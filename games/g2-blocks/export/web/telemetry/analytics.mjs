@@ -4,7 +4,7 @@
 //   ① 零玩法 diff：本模块只读调用方显式入参，不查 DOM、不读存档、不 await、不抛异常；
 //      玩法路径内全部为同步 fire-and-forget 单次调用（锚点 once 语义用布尔标记，零热路径分配）。
 //   ② 平台路由面单源：web = navigator.sendBeacon + pagehide/visibilitychange flush 兜底；
-//      wx = wx.reportEvent（原生上报）；dy = tt.reportAnalytics（原生上报）；不自建第三方 SDK。
+//      wx = wx.reportEvent（原生上报）；dy = 抖音原生 reportAnalytics（经 dy 门面注册面上报）；不自建第三方 SDK。
 //   ③ 事件 id 清单 = spec acceptance ac-29.events 的代码面镜像（唯一第二份，契约双向断言盯防）。
 //   ④ 无后端静态部署：web 面默认缓冲 + `__G2_ANALYTICS_LOG` 调试出口（QA 机读）；
 //      设 `__G2_ANALYTICS_ENDPOINT` 后 sendBeacon 才外发（未设 = 只缓冲不外发，如实披露）。
@@ -50,8 +50,14 @@ function wxGlobal()                                 {
   return typeof g.wx === 'object' && g.wx !== null ? (g.wx                           ) : null;
 }
 
-function ttGlobal()                                 {
-  return typeof g.tt === 'object' && g.tt !== null ? (g.tt                           ) : null;
+/**
+ * dy 原生上报注册面（sync/dy-v1.3 · dr-acc-2 收口）：由 src/platform/dy/adapter 在装填时注册
+ * （抖音 reportAnalytics 桥）。telemetry 层零平台全局字面——平台直调收口在 src/platform/dy/ 门面内
+ * （容器全局直调只许出现在 src/platform/dy/ 内，dr-acc-2 全树扫描面，注释同口径）。
+ */
+                                                                         
+function dyNativeSink()                      {
+  return typeof g.__G2_DY_SINK === 'function' ? (g.__G2_DY_SINK                ) : null;
 }
 
 /** wx 原生上报 sink：wx.reportEvent(eventId, kv)；缺失时静默丢弃（不阻塞玩法） */
@@ -65,12 +71,13 @@ export function wxSink()                {
   };
 }
 
-/** dy 原生上报 sink：tt.reportAnalytics(eventId, kv)；缺失时静默丢弃（不阻塞玩法） */
+/** dy 原生上报 sink：消费 adapter 注册的 __G2_DY_SINK 桥（抖音原生 reportAnalytics）；缺失时静默丢弃（不阻塞玩法） */
 export function dySink()                {
   return {
     kind: 'dy',
     send: (eventId, payload) => {
-      try { (ttGlobal()?.reportAnalytics                                                              )?.(eventId, payload); } catch { /* 上报失败不影响玩法 */ }
+      const native = dyNativeSink();
+      if (native) { try { native(eventId, payload); } catch { /* 上报失败不影响玩法 */ } }
     },
     flush: () => { /* dy 原生通道即时上报，无缓冲可冲 */ },
   };
@@ -112,10 +119,10 @@ export function nullSink()                {
   return { kind: 'null', send: () => {}, flush: () => {} };
 }
 
-/** 平台探测：wx → dy → web → null（顺序即优先级；平台包只命中自己的全局） */
+/** 平台探测：wx → dy → web → null（顺序即优先级；平台包只命中自己的全局/注册面） */
 export function autoSink()                {
   if (wxGlobal()) return wxSink();
-  if (ttGlobal()) return dySink();
+  if (dyNativeSink()) return dySink();
   if (typeof navigator !== 'undefined') return webSink();
   return nullSink();
 }
