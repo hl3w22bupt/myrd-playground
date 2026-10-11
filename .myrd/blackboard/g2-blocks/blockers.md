@@ -16,6 +16,27 @@
 - **本轮基线快照**：`gate-logs/dy-sync-20261010/00-chain-v9-pre-approve-snapshot.json`（approve 前）+ `02`（approve 后）+ `03`（全链快照）。
 - **源仓现状（开工实查）**：g2-blocks 源仓 main @ `26ba1d9`（v1.3 四件同包 merge 后 HEAD，worktree `g2-blocks-main`）；dy 线既有基线 = `dy/port-v1.1` @ `023e583`（v1.1 移植轮，tests/dy 四件 + export/dy 包 + tools/build-dy.mjs）；wx 线 `wx/port-v1.1` @ `4fba03a`。N2 从 main 开 `sync/dy-v1.3`。
 
+### N1 · 对账只读复核结论（2026-10-11 · 游戏 QA · QA-RECON-D1-20261011-01）
+
+- **结论：放行 N2**（附 1 打回项 N2 出包前必修）。回执 = 源仓 `docs/qa-recon-d1-20261011.md`（@ `db01bc7`）。
+- **10/10 核对全过**：三份输入锚定（链 v9 approved v1.6 · main `26ba1d9` · 双源机器证据）+ entities 14/14 落点在盘 + levels 2 关卡 expect 机判 + acceptance 30 条 check 可执行 + 核心循环同 seed 复现（ac-01 + SMOKE PASS）+ 新手引导三层齐备（`level-1/el-hint` 条款 → `tests/levels.spec.mjs:55-59` 契约 → `src/main.ts:196`+`renderer.ts:17,41-52` 实现）。
+- **零回退双源证据**：① v1.2 冻结面 = `6d3db6a..HEAD` 62 路径全白名单（ac-33 机判）+ `src/kernel/` 零被动 + Mode A（v1.1 存档锚）18/0/0 全绿；② v1.3 条款面 = ac-29/31/32/33 Mode C 全 PASS + 冒烟结算页三区块 + near-miss 机读面。链 v9 双件对拍 EQUAL（draft 件 ≡ approved 回读件零漂移）。
+- **打回项 D-01（N2 出包前必须修复复绿）**：`tests/contract/ac-22-feel-land-squash.spec.mjs:66` 基线守卫语义过时（硬断言 approved 基线不含 feel 组——链 v9 approve 后失配，Mode B/C 各 1 FAIL）。判定**非实现缺陷**（同组 ac-23..27 全 PASS + src/kernel 零被动 + Mode A 全绿）。修复方向 = 守卫升级非放松：「approved 基线文件 ≡ 链上 approved 回读件（sortKeys 深比）+ numeric 锚 ≡ `6719edd2…`」。责任：游戏程序，复跑三态期望 18/0/0 · 25/0/0 · 29/0/1PEND 留证。
+- **观测项 O-01（不阻塞）**：`scripts/contract-check.mjs:39-40` 白名单 `[object Object]` 字符串化瑕疵，随 D-01 同批修正。
+- **复核中当场处置三件（如实披露）**：两 worktree 冒烟覆写残留还原；一号仓 4 行平台注入技能件 chore 入库恢复树净（ac-17 复绿）；导出件 `_platform.updatedAt` 缺失自查自纠（repo-one 防污染锚依赖）。
+- **红线重申**：本回执不构成「好不好玩」终裁（真人试玩归主人）、不构成提审动作（归主人）；ac-30 DoD 四项维持待校准（样本 0，禁编数）。
+
+### N2 · dy 同步重出包收口台账（2026-10-11 · 游戏程序 + 游戏美术）
+
+- **分支与 HEAD**：源仓 `sync/dy-v1.3`（自 main @ `db01bc7` 切出）→ merge `dy/port-v1.1`（冲突仅 4 个机器生成件，源码零冲突自动合并）→ 程序适配修复 → 美术收口，**终版 HEAD = `1fdd787`**（树净）；main 分支零触碰（保持链 v9 approved 全绿态）。
+- **D-01 前置闭环**：ac-22 基线守卫升级为链锚核对（唯一真源 = 一号仓 `.myrd/spec/g2-blocks/approved-numeric-anchor.txt` = `6719edd2…`）+ O-01 部署面白名单对象形态规范化（`startsWith` 恒 false 潜伏缺陷）——三态复绿 `18/0/0 · 25/0/0 · 29/0+1PEND`（`cee0135`，证据 `05-d01-fix-three-state-green.log`）。
+- **spec 链 v10 入链（draft · 等主人 approve）**：`cmv35u0hd001qm9mxnwboe0qv` · parent=链 v9 · version+1 经接口 · **唯一增量 = ac-33 语句追加 ④ dy 同步轮声明面**（白名单另含 src/platform/dy、assets/dy、tests/dy、docs/platform/dy、export/dy；FORBIDDEN 收窄至 platform/wx 与 export/wx 子面 + web 入口零 dy 门面静态引用断言）；numeric 锚 `6719edd2…` 不变 · 其余 29 条 acceptance 与六段零改动（守卫五道全绿）；v1..v9 零覆盖（v9 仍 approved 唯一）。红线①「改动走 revision 接口」执行件；**approve 归主人（本轮不代持——任务书对 v10 无 approved 预设）**。契约文件 ac-33 与 v10 语句同面扩展（`cee0135` 后 `8504d0c`）。
+- **v1.3 首批同步 dy 形态（三缺陷修复 + 一收口）**：① location 垫片补缺（v1.3 `main.ts:56` 顶层 `window.location.search` 在 dy Worker 面 = 模块求值 TypeError 黑屏——dy-smoke 诊断透传暴露）；② 装载失败显式化（`boot-dy.ts` `void import` 吞错 → console.error + `__G2_BOOT_FAIL`）；③ 遥测 tt 直调收口进门面（`analytics.ts` 零 tt 字面，`__G2_DY_SINK` 注册面消费，dr-acc-2 全树扫描回归绿 + 新增 dy-r8b 桥断言）；包内 `main.mjs`/`nearmiss.mjs`/`settlement.mjs` 全在。
+- **双向门禁（两份输出 + HEAD sha 三样齐且一致）**：dy 全门禁 **11+6+10 结构/冒烟/材料 + 三条目查 3/3** + DY-SMOKE **PASS**（引导 288ms · J1=156.3ms · 613 手至炉冷结算 · console/worker 零错误）；wx 主包反向扫描 **零命中**（tt 违规标识符 0 · dy 域残留 0）+ wx 门禁 7+9+15 + 3/3 全绿（wx worktree `4fba03a` 树净零触碰）；三态 + v10 口径（29/0/1PEND）+ web SMOKE 全 PASS。原文：`gate-logs/dy-sync-20261010/06·07·08·09`（各带命令/UTC/退出码/双 HEAD sha）。
+- **美术面（详见 assets.md dy 同步轮节）**：结算页 dy 适配四要素**清单归零**（档位 ✅ / 安全区 ✅+真机档显式挂账 / 九宫格 N/A（零贴图纪律）/ 层叠 ✅）+ 双档机型渲染留证（390×844 + 360×640，终局 score 逐字节一致 = 确定性跨档保持）；截图三张 v1.3 形态重摄挂账美术下一批（提审前必办）。
+- **材料清单 dy 段 v3**：`docs/platform/dy/dy-submission-kit.md` 状态 = **已同步·提审就绪**（spec 锚 = 链 v6 规格源 + 链 v10 声明面；dy-appid/类目/资质 🚨 待主人）。
+- **提请主人拍板（本线新增）**：**链 v10 approve**（ac-33 ④ 声明面；approve 后 sync/dy-v1.3 可 merge 回 main 走 fast-forward）+ wx/dy 提审时点（既有挂账）。
+
 ### D 轮当前基线（2026-10-11 开工）
 
 - **黑板路径**：`.myrd/blackboard/g2-blocks/`（levels.md / assets.md / blockers.md + gate-logs/）
