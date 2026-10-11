@@ -45,6 +45,8 @@
 - **策略单源随拓扑规范化（AC-17/18）**：`ci/scope-policy.json` 新增 `exemptTouchPrefixes: games/wheat-squad/`（二线孵化部署面，任务书 N4/N5 授权，一号仓 `6092bd6` 起既有事实；**禁触 stack-tower 红线不变**）+ `referenceAllowedPaths` 豁免 `src/generated/spec-data.ts`（真源数据快照，与 docs/spec 同理）。守卫判定 exempt 优先于 forbidden，非静默放行。
 - **复绿终态（全部 CI 同入口实跑 ×2 非 flaky）**：check-v13 四态 **18/25/29+1PEND/29+1PEND** · tests/run-all 全量绿（palette3+platform5+framework8+acmap8+主面20）· contract v9 **29/0+1PEND** · contract v10 **29/0+1PEND** · web SMOKE PASS（J1=177.3ms）· dy 出包 38 件/主包 267494B≤4MB · dy 三条目查 **11+6+10** · DY-SMOKE PASS（引导 229ms · J1=150.7ms · **score=9432750 ≡ 上轮逐字节**=确定性保持）· wx 反扫三向零命中 · wx 三条目查 **7+9+15** · wx worktree `4fba03a` 树净零触碰。证据 `gate-logs/dy-rerun-20261011/00..05`。
 - **三样一致性复验**：dy 侧输出 HEAD=`1fdd787`（修复提交后=`8215096`，守卫/测试面变更，src 游戏面零改动）· wx 侧输出 HEAD=`4fba03a` 树净 —— 与上轮声称一致，**提审就绪态维持**。
+- **生成件重烘焙 → 重出包（`9c27438`）**：acmap/g+h 义务件重烘焙后重出 web + dy 包——dy 主包 **267494B → 301279B（294.2KB）≤ 4194304B**（+33.8KB = 链 v9 approved 全量 numeric/content 快照进包，实测余量 92.8%，仍不分包）；**玩法面确定性零漂移直接实证 = DY-SMOKE score=9432750 ≡ 上轮逐字节**（包内容变、行为零漂移）；web/dy 双 SMOKE PASS；重出包后随件落账三处真源快照字面豁免（ac-33 白名单 +spec-data.ts/+spec-source.ts · dy-r8 豁免 src/generated/ · ac-13/scope-policy 豁免 build 镜像）。终态 ×2 非 flaky：contract v9/v10 各 29/0+1PEND · 四态 18/25/29+1PEND/29+1PEND（零 env）· tests 全量 · dy 11+6+10。证据 `gate-logs/dy-rerun-20261011/06`。
+- **提审面口径（给主人的注记）**：本轮 dy 包内容随生成件真源刷新（锚 `6719edd2…`），玩法面 12 组 numeric 逐字段零漂移（链上声明 + acmap/h 深比 + 冒烟行为逐字节同构三重机判）；dy 材料清单的包字节以 `9c27438` 重出值（301279B）为准。
 - **遗留给主人的口径说明**：v10 链上 ac-29..33 的 check 字面为游戏仓相对形态（`node scripts/...`），与既有 28 条的一号仓相对形态（`g2-blocks/scripts/...`）并存——守卫已按归一化口径兼容；若主人希望链上字面统一，随 v10 approve 前的 revision 一并处理（非阻塞）。
 
 ### D 轮当前基线（2026-10-11 开工）

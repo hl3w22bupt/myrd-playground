@@ -1,0 +1,30 @@
+# 文件: 06-rebuild-bundle-gates.log | 日期: 2026-10-11T02:49:11Z | 生成件重烘焙后重出包 + 全门禁终态（×2 非 flaky）
+# 包内容随链 v9 approved 真源刷新（锚 6719edd2…）；玩法面确定性零漂移实证 = DY-SMOKE score=9432750 ≡ 上轮逐字节
+--- web build ---
+PWA build/（index + manifest + sw + 32 modules）· spec v9 approved
+(node:70620) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+--- dy build ---
+# spec 真源: id=cmuw3gcgm01a9icryraii5dzp v6 superseded · dy 参数: limit=4194304B card=720x1280
+DY-BUILD: export/dy/ 38 件 · 主包 301279B（294.2KB）≤ 4194304B ✓ · 断言①②④过 · 分包决策=不分包（实测余量 92.8%）
+    74572B  assets/dy-share-720x1280.png
+    40656B  src/generated/spec-data.mjs
+--- dy 三条目查 ---
+# 结果: PASS=11 RED=0 PENDING-APPROVE=0
+# 结果: PASS=6 RED=0 PENDING-APPROVE=0
+# 结果: PASS=10 RED=0 PENDING-APPROVE=0
+—— DY 三条目查台账：3/3 绿（红=0）——
+--- DY-SMOKE ---
+[dy-smoke] 结算 ✓ status=cooled · 613 手（得分手 613）· score=9432750 · movesUsed=614 · cool=true
+[dy-smoke] console/worker 零错误 ✓
+[dy-smoke] 证据 → docs/evidence/dy-smoke-report.json
+DY-SMOKE: PASS 引导路径 + 开始→玩→结算 + 触摸通路 + 零错误
+--- web SMOKE ---
+[smoke] 控制台零错误 ✓
+SMOKE: PASS 浏览器可开 + 核心循环可玩 + PWA 就绪（J1 证据已落档）
+--- contract v9 ---
+—— 合计 29 PASS / 0 FAIL / 1 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v9 approved 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准 · PEND 1 条显式挂起）
+--- 四态（零env CI同入口）r1=CHECK-V13: PASS ---
+CHECK-V13: PASS（四态计数全符 · 18 / 25 / 29+1PEND / 29+1PEND）
+--- tests 全量 r1 EXIT=0 / r2 EXIT=0 · contract v10 29/0+1PEND ---
