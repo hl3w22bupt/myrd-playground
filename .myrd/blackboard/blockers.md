@@ -1,7 +1,37 @@
 # 阻塞项黑板 — 工作室组合全景（多游戏共板 · 每线各自有子黑板）
 
-> 更新时间：2026-10-11 · 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：D 轮六节点推进中（N1 对账 → N2 dy 重出包 → N3 二线拍板 → N4 spec v0+骨架 → N5 互查+部署 → N6 收口）
+> 更新时间：2026-10-11（D 轮收口）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：**等主人拍板**（g2-blocks 链 v10 approve + 试玩终裁两线 + 内测三件 + 提审时点）；团队无阻塞项
+
+## D 轮收口台账（2026-10-11 · 主策划 · N6）
+
+### 本轮决策与执行（六节点全闭环）
+
+| 节点 | 结论 | 关键产物（sha 绑定） |
+|---|---|---|
+| N0 开工前置 | 链 v9 approve 代持落账（授权三件依据；approve 后回查 approved 唯一 PASS · 零覆盖 · 内容全等）+ 契约输入换基线 v1.6 + v1.1 存档独立落盘 | 一号仓 `f81dd9d`/`e9c2f7e` |
+| N1 对账（QA） | **放行 N2**（10/10 全过）+ 打回 D-01（ac-22 基线守卫过时）+ 零回退双源证据 | 回执 QA-RECON-D1-20261011-01 · 源仓 main `db01bc7` |
+| N2 dy 重出包（程序+美术） | sync/dy-v1.3 @ `1fdd787`：D-01 修复三态复绿 + 链 v10 入链（draft · ac-33④ 声明面）+ 三适配缺陷修复（location 垫片/装载显式化/tt 收口）+ dy 全门禁 11+6+10+3/3 + wx 反扫零命中（三样一致）+ 美术四要素归零 + 材料清单 v3「已同步·提审就绪」| 源仓 `cee0135`/`8504d0c`/`d2a4b72`/`1fdd787` · 一号仓 `b778331` |
+| N3 二线拍板（主策划） | **放置割草《麦浪小队》（wheat-squad）**七要素全项 + 三待校准显式挂账 | 纪要 `.myrd/blackboard/next-line/selection-memo-v1.md` |
+| N4 spec v0 + 骨架（策划+程序+美术） | 链起点 `cmv36ewn8001sm9mxvsyvbvuc`（v1 draft · meta 0.1 · 回读全等）+ 骨架 entities 13/13 落点 + 契约 **9/0** + WS-SMOKE PASS + 参考卡三件套 | 一号仓 `6092bd6` |
+| N5 互查 + 部署（QA+美术） | QA 五线零悬空放行 + 美术四要素打回当场闭环 + AppHost **wheat-squad-2 上线**（v1 running @ `4a58fb9e` · LIVE-SMOKE PASS）| 回执 QA-WS-N5-20261011-01 · 一号仓 `4a58fb9`/`bc304f7` |
+
+### DoD 四项第二轮校准态（g2-blocks 封版 DoD · ac-30 · 如实登记不编数）
+
+- **状态：待校准（第二轮，样本仍 0）**。四项阈值零改动：D1 次日留存 ≥30% / D7 七日留存 ≥10% / 局均时长 ≥3min / 重开率 ≥40%。
+- **所缺数据项（逐项列明）**：①内测名单圈定（Q6，归主人）；②样本回收方式与时点（Q7）；③近-miss 感知真人在局样本（Q8 + 链 v9 试玩终裁）——三项未到位前无校准值可回写，ac-30 维持 PEND，复测方法 = ac-30.calibrationRound1 规格。
+- 本轮 dy 同步对 DoD 数据面零影响（提审包零 diff，ac-33④ 契约机判）。
+
+### 升级主人（本轮新增/延续）
+
+1. **g2-blocks 链 v10 approve**（ac-33④ dy 同步轮声明面；approve 后 sync/dy-v1.3 可 fast-forward 回 main）——本轮不代持（任务书对 v10 无 approved 预设，区别于 N0 的 v9 输入前提）。
+2. **g2-blocks 真人试玩终裁**（near-miss 感知 + 好不好玩）+ 内测三件（Q6/Q7/Q8）+ wx/dy 提审动作与时点——延续挂账。
+3. **wheat-squad 试玩终裁**（四件套 manual 面）：入口 `https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw`；连续 3 轮 ≥2 轮 fv-1/fv-3 双 manual 不达 → 冻结转新题条款自动生效。
+
+### 下一步（团队面）
+
+- g2-blocks：等主人 v10 approve 后 merge sync/dy-v1.3 回 main（fast-forward）+ 部署轮把 dy 包产物同步部署面（本轮止于提审就绪）。
+- wheat-squad：试玩样本回收 → fv-pend 校准 revision；美术下批 = dy 截图重摄（g2-blocks）+ wheat-squad 占位资产色值核对入机判门禁（v0.2）。
 
 ## D 轮开工登记（2026-10-11 · 主策划）
 
@@ -14,7 +44,7 @@
 
 | 线 | 状态 | 一句话 | 基线指针 |
 |---|---|---|---|
-| **g2-blocks（熔炉方块）** | **已发布 · 打磨中 → 本轮 dy 同步** | v1.3 四件同包在 main + r6 v16 LIVE；链 v9 已 approved（D 轮 N0 代持落账）；本轮做 dy 同步重出包 | 源仓 main `26ba1d9` · 链 v9 `cmv1q9k690045m94obp29ysre`（**approved · v1.6**）· AppHost v16 LIVE · 子黑板 `.myrd/blackboard/g2-blocks/blockers.md` |
+| **g2-blocks（熔炉方块）** | **已发布 · 打磨中 · dy 已同步·提审就绪** | v1.3 四件同包 main + r6 v16 LIVE + 链 v9 approved（v1.6）；D 轮 N1 对账放行（10/10）+ N2 dy 重出包（sync/dy-v1.3 @ `1fdd787` · 双向门禁三样一致 · 链 v10 draft 待 approve）| 源仓 main `26ba1d9`（零触碰）· sync 分支 `1fdd787` · 链 v9 approved + 链 v10 `cmv35u0hd001qm9mxnwboe0qv`（draft）· AppHost v16 LIVE · 子黑板 `.myrd/blackboard/g2-blocks/blockers.md` |
 | **stack-tower** | **冻结 · 维持** | 同大类红线（与消除/堆叠同大类）+ 举证责任在数据 + 成本账；解除条件已写明（B-C-001 存档节） | 主线 spec v1.5 approved · AppHost v24 · 本轮**零接触**（git status 机判） |
 | **第二产品线（wheat-squad 麦浪小队）** | **孵化 · 可玩骨架已部署试玩** | D 轮 N3 拍板放置割草（idle×survivor-like，七要素纪要）→ N4 spec v0.1 入链（`cmv36ewn8001sm9mxvsyvbvuc` v1 draft · 契约 9/0）→ N5 互查放行 + AppHost 上线（wheat-squad-2 · LIVE-SMOKE PASS）；**等主人试玩终裁** | 试玩 `https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw` · 子黑板 `.myrd/blackboard/wheat-squad/` · 纪要 `.myrd/blackboard/next-line/selection-memo-v1.md` |
 
