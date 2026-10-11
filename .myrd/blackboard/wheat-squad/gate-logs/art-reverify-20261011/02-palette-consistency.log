@@ -1,0 +1,10 @@
+[i] 卡 token 数=8 · theme token 数=8 · spec palette token 数=8
+[PASS] wheatGold = #E8B84B（三方全等）
+[PASS] wheatDeep = #C99530（三方全等）
+[PASS] fieldGreen = #7FA65A（三方全等）
+[PASS] fieldDeep = #5C7F42（三方全等）
+[PASS] skyCream = #F5EDD8（三方全等）
+[PASS] pestBrown = #8A5A3B（三方全等）
+[PASS] accentRed = #D2543E（三方全等）
+[PASS] inkBrown = #4A3826（三方全等）
+RESULT: PASS — 参考卡/theme.ts/spec 三方 8 色逐值全等，无清单外 token

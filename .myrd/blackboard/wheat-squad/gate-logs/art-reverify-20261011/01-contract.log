@@ -1,0 +1,10 @@
+PASS det-1 同 seed 双局逐字节一致 :: {"tick":18750,"phase":"ended","kills":453,"xp":905,"wave":11,"ups":["fireRate","damage","damage","recruit","fireRate","s
+PASS fv-1(auto) 首杀 1.73s ≤3s · 首升 7.04s ≤20s
+PASS fv-2 单局 300s ∈ [180,300]s · reason=timeout
+PASS fv-3(auto) 重开 0ms ≤1s + 全复位 + 结算页三信息齐
+PASS fv-4(auto) 反馈延迟 0ms ≤150ms · flash=90ms 换算一致
+PASS perf-1 实体峰值 33 ≤220 · 单步 0.003ms ≤16ms（node 仿真步）
+PASS tex-1 零位图文件 + 7 源文件零贴图构造
+PASS anchor-1 entities 13/13 + levels 2/2 落点在盘非空
+PASS fv-pend placement 结构冻结 + 待校准语义在档（校准走 revision）
+—— wheat-squad 契约合计 9 PASS / 0 FAIL ——
