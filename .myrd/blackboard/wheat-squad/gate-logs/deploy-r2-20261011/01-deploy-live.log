@@ -1,0 +1,21 @@
+# 复证发布轮（deploy r2）部署通道 + 线上自测实录（wheat-squad）
+# UTC: 2026-10-11 · 执行节点: 游戏程序（部署）· 本节点实跑
+
+## 通道
+- 坑核对（防挤占）: GET /api/v1/apphost/apps/cmv36wl94001xm9mxp119q48x →
+  name=wheat-squad（麦浪小队） slug=wheat-squad-2 sourceType=game-studio sourceId=wheat-squad status=ready（复用不新建）
+- 部署提交: 66ef76f（git ls-remote 与本地 HEAD 全等后）单次 POST → HTTP=504（网关 30s 截断，判例形态）
+- GET 复查: 已受理 v2 cmv3b9cwe002jm9mx3rzu6fuq building（单条，无重复单）
+- 轮询: building ×2 → running（durationMs=835 · commitHash=66ef76f 与部署提交全等 · errorMessage=null）
+- v1（cmv36wsds… @ 4a58fb9）被本次 superseded；git diff --stat 4a58fb9..66ef76f -- games/wheat-squad/build = 空（产物面零漂移，复证发布绑 gitRef）
+
+## 线上自测（liveUrl https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2）
+- GET /health → 200（app 字段为共享壳硬编码值，同 g2-blocks r7 注）
+- GET /gw/ → 200，<title>麦浪小队</title>
+- 指纹: main.mjs md5 local=cc454a077277826eaca3c02616465620 = live（≡ 复跑轮登记修正值）
+- node games/wheat-squad/tools/smoke-live.mjs <liveUrl> →
+  [ws-live-smoke] ready ✓ __G2WS_READY=true（线上）
+  [ws-live-smoke] 操作 ✓ tick 推进 + 击杀 2（线上拖动→作战链通）
+  [ws-live-smoke] 结算 ✓ phase=ended reason=timeout elapsed=300s
+  [ws-live-smoke] console/页面 零错误 ✓
+  WS-LIVE-SMOKE: PASS（exit=0）

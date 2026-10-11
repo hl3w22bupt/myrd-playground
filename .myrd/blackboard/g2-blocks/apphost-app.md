@@ -1,9 +1,22 @@
 # AppHost 应用登记 — g2-blocks（熔炉方块）
 
-> 更新时间：2026-10-10（**部署轮 r6 · 对账收口后复证发布** · 复用同一坑 `cmuqelj2r0046m9zr4emgdgdg`，gitRef 前进至 **`f4de390`**（黑板落账+预置件轮），产物面零漂移 · LIVE 自测 PASS）
+> 更新时间：2026-10-11（**部署轮 r7 · dy 同步轮产物上部署面** · 复用同一坑 `cmuqelj2r0046m9zr4emgdgdg`，部署面 30→35 文件（+platform/dy×5 · spec-data 重烘焙至链 v9 锚 · analytics tt 收口 · sw 缓存纪元刷新）· LIVE 自测 PASS）
 > 用途：一坞一游戏，下一轮**复用同一坑**（不要新建、不要挤占别的游戏的应用）
 
-## 本轮部署（2026-10-10 · 部署轮 r6 · 当前生效 · 复证发布）
+## 本轮部署（2026-10-11 · 部署轮 r7 · 当前生效 · dy 同步轮产物）
+
+| 项 | 值 |
+|---|---|
+| deployment | `cmv3ay800002fm9mx78gm80ym` · **version 17** · running（v16 r6 被接管）· errorMessage null · durationMs 833 |
+| gitRef / 部署提交 | `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ **`2bb69c7`**（部署单回读 commitHash 全等；ls-remote 全等后单次 POST，HTTP=504 网关截断但受理一条，GET 复查无重复——沿 r3/r5/r6 判例） |
+| 本轮产物增量（源仓 sync/dy-v1.3 @ `9c27438` 重建 build 镜像） | 30→**35** 文件：+`platform/dy/{adapter,boot-dy,dy-env,runtime,share}.mjs`（dy 适配层，web 入口零静态引用）· `generated/spec-data.mjs` 重烘焙（≡ 链 v9 approved 锚 `6719edd2…`）· `kernel/spec-source.mjs` · `telemetry/analytics.mjs`（tt 直调收口进门面）· `sw.js`（缓存纪元刷新=回访客户端强制取新） |
+| 确定性重建核对 | `node tools/build.mjs` 重建 35 文件中 34 件逐字节全等，唯一差异 `sw.js` 缓存版本号时间戳（良性残留判例）→ 部署字节 = 重建字节 |
+| 部署前门禁（本节点实跑 ×2，源仓 `9c27438`） | `node scripts/check-v13.mjs` 四态 **18/25/29+1PEND/29+1PEND 全 PASS**（EXIT=0 ×2）· `node tools/smoke.mjs` **SMOKE: PASS ×2**（J1=169.6ms ≤400ms · 结算页三区块 ✓ · near-miss ✓ · SW 激活 ✓ · 零控制台错误，×2 非 flaky） |
+| 线上自测 | /health 200（app 字段=共享壳硬编码值，见 02-deploy-live.log 注）· /gw 200 · 指纹 7/7 对账闭合（变更件/新增件全等 · `main.mjs=92d563b7…` 与 r5/r6 登记值全等=玩法面零漂移 · `sw.js=073b3794…` 新纪元在线=新部署生效非旧缓存） |
+| 试玩入口 | `https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/gw`（真人试玩归主人；v10 链 approve 与 merge 回 main 仍归主人拍板） |
+| 证据 | `gate-logs/deploy-r7-20261011/`（00-rebuild · 01-gates · 02-deploy-post · 02-deploy-live，四要素齐） |
+
+## 上一轮（2026-10-10 · 部署轮 r6 · 对账收口后复证发布 · 存档）
 
 | 项 | 值 |
 |---|---|

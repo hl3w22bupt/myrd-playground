@@ -2,9 +2,10 @@
 
 ## dy 同步轮（2026-10-11 开工 · 主策划整合 · N1 对账 → N2 dy 重出包）
 
-> 更新时间：2026-10-11（**D 轮收口：N1 放行 + N2 dy 同步收口**）
+> 更新时间：2026-10-11（**D 轮收口：N1 放行 + N2 dy 同步收口 + 部署轮 r7 dy 产物上部署面（v17 LIVE）**）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：**等主人拍板**（链 v10 approve + 真人试玩 + 内测三件 + wx/dy 提审时点）；团队无阻塞项
+> 部署面：**r7 v17 LIVE**（`2bb69c7` · dy 同步轮产物 35 文件）——「部署轮把 dy 包产物同步部署面」已执行毕；merge sync/dy-v1.3 回 main 仍等 v10 approve
 
 ### N0 · 开工前置台账（2026-10-11 · 主策划）
 
@@ -48,6 +49,14 @@
 - **生成件重烘焙 → 重出包（`9c27438`）**：acmap/g+h 义务件重烘焙后重出 web + dy 包——dy 主包 **267494B → 301279B（294.2KB）≤ 4194304B**（+33.8KB = 链 v9 approved 全量 numeric/content 快照进包，实测余量 92.8%，仍不分包）；**玩法面确定性零漂移直接实证 = DY-SMOKE score=9432750 ≡ 上轮逐字节**（包内容变、行为零漂移）；web/dy 双 SMOKE PASS；重出包后随件落账三处真源快照字面豁免（ac-33 白名单 +spec-data.ts/+spec-source.ts · dy-r8 豁免 src/generated/ · ac-13/scope-policy 豁免 build 镜像）。终态 ×2 非 flaky：contract v9/v10 各 29/0+1PEND · 四态 18/25/29+1PEND/29+1PEND（零 env）· tests 全量 · dy 11+6+10。证据 `gate-logs/dy-rerun-20261011/06`。
 - **提审面口径（给主人的注记）**：本轮 dy 包内容随生成件真源刷新（锚 `6719edd2…`），玩法面 12 组 numeric 逐字段零漂移（链上声明 + acmap/h 深比 + 冒烟行为逐字节同构三重机判）；dy 材料清单的包字节以 `9c27438` 重出值（301279B）为准。
 - **遗留给主人的口径说明**：v10 链上 ac-29..33 的 check 字面为游戏仓相对形态（`node scripts/...`），与既有 28 条的一号仓相对形态（`g2-blocks/scripts/...`）并存——守卫已按归一化口径兼容；若主人希望链上字面统一，随 v10 approve 前的 revision 一并处理（非阻塞）。
+
+### 部署轮 r7（2026-10-11 · 游戏程序 · workflow deploy 节点 · dy 同步轮产物上 AppHost）
+
+- **坑（沿用不新建，黑板 appId 优先 + GET 核对防挤占）**：`cmuqelj2r0046m9zr4emgdgdg`（slug `g2-blocks-2` · sourceId `g2-blocks` 绑定即本游戏）deployment **version 17** `cmv3ay800002fm9mx78gm80ym` = running/current · commitHash `2bb69c7…` 与部署提交全等 · 零 errorMessage（v16 被 superseded）。
+- **产物溯源（三向绑定）**：源仓 `sync/dy-v1.3` @ **`9c27438`** 重建 `build/`（35 文件，34 件与重建前逐字节全等，唯一差异 sw.js 缓存版本号=良性残留判例）→ rsync 镜像一号仓 `games/g2-blocks/export/web`（diff -rq 空）→ 部署提交 **`2bb69c7`**。**sync/dy-v1.3 未 merge 回 main（等 v10 approve），部署面先行承载 dy 轮产物 = r4 判例（v1.3 首批先上部署面后 merge）**；玩法面零漂移（`main.mjs=92d563b7…` 与 r5/r6 全等）。
+- **部署前门禁（本节点实跑 ×2 非 flaky）**：check-v13 四态 **18/25/29+1PEND/29+1PEND 全 PASS** · web SMOKE **PASS ×2**（J1=169.6ms ≤400 · 结算页三区块 ✓ · near-miss ✓ · 零控制台错误）。证据 `gate-logs/deploy-r7-20261011/00·01`。
+- **线上自测**：/health 200 · /gw 200 · 指纹 7/7 对账闭合（变更/新增件全等 · sw.js 新缓存纪元在线=新部署生效非旧缓存 · index.html=壳层 base 注入设计行为）。证据 `gate-logs/deploy-r7-20261011/02`。
+- **边界（如实声明）**：①本轮只同步 web 部署面，**dy 提审包本身（export/dy @ `9c27438`，主包 301279B）不进部署面**——提审动作归主人；②美术资产面零新增（本节点只同步代码/数据产物，assets.md 无需改账）；③冒烟覆写件（build/sw.js + .j1-evidence.json）已还原，源仓树净 `9c27438` 保持。
 
 ### D 轮当前基线（2026-10-11 开工）
 

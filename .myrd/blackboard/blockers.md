@@ -1,7 +1,19 @@
 # 阻塞项黑板 — 工作室组合全景（多游戏共板 · 每线各自有子黑板）
 
-> 更新时间：2026-10-11（D 轮收口 + 复跑轮）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 更新时间：2026-10-11（D 轮收口 + 复跑轮 + **部署轮：两线 AppHost 双双刷新 LIVE**）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：**等主人拍板**（g2-blocks 链 v10 approve + 试玩终裁两线 + 内测三件 + 提审时点）；团队无阻塞项
+
+## 部署轮台账（2026-10-11 · 游戏程序 · workflow deploy 节点）
+
+> 分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d`（非 main）· 每笔部署前 `git ls-remote` 与本地 HEAD 全等 · 两坑均 GET 核对 sourceId 绑定（防挤占）· 单次 POST（504 网关截断判例：GET 复查受理、不重发）· 全部轮询至 running 零 errorMessage。
+
+| 线 | 坑（appId/slug） | 本轮部署 | 部署提交 | 产物面 | 线上自测 |
+|---|---|---|---|---|---|
+| **g2-blocks（r7）** | `cmuqelj2r0046m9zr4emgdgdg` / g2-blocks-2 | **v17** `cmv3ay800002fm9mx78gm80ym` running（v16 被接管） | `2bb69c7` | 源仓 sync/dy-v1.3 @ `9c27438` 重建 build 镜像 35 文件（+platform/dy×5 · spec-data 重烘焙至链 v9 锚 · analytics tt 收口 · sw 缓存纪元刷新）；30→35 增量 = D 轮 dy 轮产物首次上部署面（r4 先部署后 merge 判例；merge 仍等 v10 approve） | 门禁 ×2 绿（check-v13 四态 18/25/29+1PEND/29+1PEND · SMOKE J1=169.6ms）+ 指纹 7/7 对账闭合（`main.mjs=92d563b7…` 玩法面零漂移 · sw 新纪元在线） |
+| **wheat-squad（r2）** | `cmv36wl94001xm9mxp119q48x` / wheat-squad-2 | **v2** `cmv3b9cwe002jm9mx3rzu6fuq` running（v1 被接管） | `66ef76f` | `git diff 4a58fb9..66ef76f -- games/wheat-squad/build` 空 = 产物零漂移复证发布（内容 ≡ N5 试玩版）；随轮修复 `tools/build.mjs` 回退发现 `dirname` 多上一级缺陷（无 env 必 ENOENT → 红→绿，重建 ≡ HEAD 逐字节） | 契约 9/0 + WS-SMOKE PASS + **WS-LIVE-SMOKE PASS**（线上打开→拖动击杀→300s 结算→零错误）· API 级部署单核对补齐（上轮口径缺口） |
+
+- 证据：`g2-blocks/gate-logs/deploy-r7-20261011/00·01·02` · `wheat-squad/gate-logs/deploy-r2-20261011/00·01`（各带命令/UTC/退出码）。
+- 边界：本轮止于「提审就绪维持 + 试玩面刷新」；wx/dy 渠道提审动作、链 v10 approve、两线「好不好玩」终裁仍归主人；stack-tower 线零接触（本轮未读未写其任何文件）。
 
 ## 复跑轮台账（2026-10-11 · 游戏程序 · verify-claims 独立复验两线）
 
@@ -39,7 +51,7 @@
 
 ### 下一步（团队面）
 
-- g2-blocks：等主人 v10 approve 后 merge sync/dy-v1.3 回 main（fast-forward）+ 部署轮把 dy 包产物同步部署面（本轮止于提审就绪）。
+- g2-blocks：~~部署轮把 dy 包产物同步部署面~~ ✅ **已执行（部署轮 r7 v17 LIVE @ `2bb69c7`，见顶部部署轮台账）**；等主人 v10 approve 后 merge sync/dy-v1.3 回 main（fast-forward，届时部署面随 merge 提交复证一轮即可）。
 - wheat-squad：试玩样本回收 → fv-pend 校准 revision；美术下批 = dy 截图重摄（g2-blocks）+ wheat-squad 占位资产色值核对入机判门禁（v0.2）。
 
 ## D 轮开工登记（2026-10-11 · 主策划）
@@ -53,9 +65,9 @@
 
 | 线 | 状态 | 一句话 | 基线指针 |
 |---|---|---|---|
-| **g2-blocks（熔炉方块）** | **已发布 · 打磨中 · dy 已同步·提审就绪** | v1.3 四件同包 main + r6 v16 LIVE + 链 v9 approved（v1.6）；D 轮 N1 对账放行（10/10）+ N2 dy 重出包（sync/dy-v1.3 @ `1fdd787` · 双向门禁三样一致 · 链 v10 draft 待 approve）| 源仓 main `26ba1d9`（零触碰）· sync 分支 `1fdd787` · 链 v9 approved + 链 v10 `cmv35u0hd001qm9mxnwboe0qv`（draft）· AppHost v16 LIVE · 子黑板 `.myrd/blackboard/g2-blocks/blockers.md` |
+| **g2-blocks（熔炉方块）** | **已发布 · 打磨中 · dy 已同步·提审就绪** | v1.3 四件同包 main + **r7 v17 LIVE（dy 轮产物上部署面，2026-10-11 部署轮）** + 链 v9 approved（v1.6）；D 轮 N1 对账放行（10/10）+ N2 dy 重出包（sync/dy-v1.3 终版 @ `9c27438` · 双向门禁三样一致 · 链 v10 draft 待 approve）| 源仓 main `26ba1d9`（零触碰）· sync 分支 `9c27438` · 链 v9 approved + 链 v10 `cmv35u0hd001qm9mxnwboe0qv`（draft）· AppHost **v17 LIVE** @ `2bb69c7` · 子黑板 `.myrd/blackboard/g2-blocks/blockers.md` |
 | **stack-tower** | **冻结 · 维持** | 同大类红线（与消除/堆叠同大类）+ 举证责任在数据 + 成本账；解除条件已写明（B-C-001 存档节） | 主线 spec v1.5 approved · AppHost v24 · 本轮**零接触**（git status 机判） |
-| **第二产品线（wheat-squad 麦浪小队）** | **孵化 · 可玩骨架已部署试玩** | D 轮 N3 拍板放置割草（idle×survivor-like，七要素纪要）→ N4 spec v0.1 入链（`cmv36ewn8001sm9mxvsyvbvuc` v1 draft · 契约 9/0）→ N5 互查放行 + AppHost 上线（wheat-squad-2 · LIVE-SMOKE PASS）；**等主人试玩终裁** | 试玩 `https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw` · 子黑板 `.myrd/blackboard/wheat-squad/` · 纪要 `.myrd/blackboard/next-line/selection-memo-v1.md` |
+| **第二产品线（wheat-squad 麦浪小队）** | **孵化 · 可玩骨架已部署试玩（v2 LIVE）** | D 轮 N3 拍板放置割草（idle×survivor-like，七要素纪要）→ N4 spec v0.1 入链（`cmv36ewn8001sm9mxvsyvbvuc` v1 draft · 契约 9/0）→ N5 互查放行 + AppHost 上线 → **部署轮 r2 复证发布 v2 @ `66ef76f`（产物零漂移 · WS-LIVE-SMOKE PASS · 顺修 build.mjs 回退发现缺陷）**；**等主人试玩终裁** | 试玩 `https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw` · 子黑板 `.myrd/blackboard/wheat-squad/` · 纪要 `.myrd/blackboard/next-line/selection-memo-v1.md` |
 
 ## 本轮三项裁决执行台账（2026-10-10 · 主策划）
 
