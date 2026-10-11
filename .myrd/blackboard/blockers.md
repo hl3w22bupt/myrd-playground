@@ -1,13 +1,20 @@
 # 阻塞项黑板 — 工作室组合全景（多游戏共板 · 每线各自有子黑板）
 
-> 更新时间：2026-10-10 · 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：等主人拍板（三项裁决件见下）；团队无阻塞项
+> 更新时间：2026-10-11 · 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：D 轮六节点推进中（N1 对账 → N2 dy 重出包 → N3 二线拍板 → N4 spec v0+骨架 → N5 互查+部署 → N6 收口）
 
-## 组合全景登记（2026-10-10 · 收尾）
+## D 轮开工登记（2026-10-11 · 主策划）
+
+- **本轮目标**：① g2-blocks 完成 dy 同步重出包与双向门禁复跑（维持提审就绪）；② 第二产品线完成选型拍板 + spec v0 入链 + 可玩骨架部署供主人试玩。
+- **开工前置完成（N0）**：黑板本轮区段已刷新（顶层 + g2-blocks 子黑板 + next-line）；**链 v9 approve 代持落账**（授权依据=任务书输入前提「approved spec v1.3 revision 入链版」+ 反审批指令 + B3 判例；approve 后回查 approved 唯一 PASS · 零覆盖 · 内容全等）；契约输入导出件 `.myrd/spec/g2-blocks/design-spec.json` 换基线为链 v9（meta.version=1.6 · 30 条 acceptance）。
+- **stack-tower 线**：**继续冻结维持，本轮零接触**（同大类红线延续）。
+- **硬约束（全程生效）**：① v1.2 冻结范围与 v1.3 条款零回退，改动走 revision 接口；② 好友数据不出开放数据域；③ 提审/发布拍板归主人，本轮止于提审就绪 + 试玩部署；④ 二线品类 ≠ g2-blocks（≠ 消除大类）；⑤ 数据不足标「待校准 + 所缺数据项」，不编数；⑥ 阻塞超一轮进 blockers.md 升级主人。
+
+## 组合全景登记（2026-10-11 · D 轮开工时点）
 
 | 线 | 状态 | 一句话 | 基线指针 |
 |---|---|---|---|
-| **g2-blocks（熔炉方块）** | **打磨中 · 对账中 → 本轮对账收口** | v1.3 首批四件同包合回源仓 main + 链 v9 + r5 已上线，等主人拍板 | 源仓 main `26ba1d9` · 链 v9 `cmv1q9k690045m94obp29ysre`（draft）· AppHost v15 LIVE · 子黑板 `.myrd/blackboard/g2-blocks/blockers.md` |
+| **g2-blocks（熔炉方块）** | **已发布 · 打磨中 → 本轮 dy 同步** | v1.3 四件同包在 main + r6 v16 LIVE；链 v9 已 approved（D 轮 N0 代持落账）；本轮做 dy 同步重出包 | 源仓 main `26ba1d9` · 链 v9 `cmv1q9k690045m94obp29ysre`（**approved · v1.6**）· AppHost v16 LIVE · 子黑板 `.myrd/blackboard/g2-blocks/blockers.md` |
 | **stack-tower** | **冻结 · 维持** | 同大类红线（与消除/堆叠同大类）+ 举证责任在数据 + 成本账；解除条件已写明（B-C-001 存档节） | 主线 spec v1.5 approved · AppHost v24 · 本轮**零接触**（git status 机判） |
 | **第二产品线** | **孵化 · 调研中** | B1 调研简报已落账（4 候选，与消除/堆叠大类错开，数据点带出处日期）；三套预置件就绪；**简报落账未选型前不写 spec / 不锚风格卡 / 不建工程** | 简报 `.myrd/blackboard/next-line/research-brief-v1.md` · 预置件 `templates/next-line-scaffold/`（空壳冒烟 PASS 4/4） |
 

@@ -1,6 +1,30 @@
-# 阻塞项黑板 — g2-blocks（**V1.3 首批「near-miss 反馈系统 + 结算页信息架构」最小闭环 + 封版 DoD 四项首轮校准**）
+# 阻塞项黑板 — g2-blocks（**dy 同步重出包 + 双向门禁复跑（维持提审就绪）· N1 对账放行为前置**）
 
-## 对账收口轮（2026-10-10 · 主策划 · **A1+A2+A3 全链闭环 · r5 已上线 → r6 复证发布**）
+## dy 同步轮（2026-10-11 开工 · 主策划整合 · N1 对账 → N2 dy 重出包）
+
+> 更新时间：2026-10-11（N0 开工前置完成：链 v9 approve 代持落账 + 契约输入换基线）
+> 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：N1 对账只读复核（QA 视角，三份输入已齐）→ N2 dy 重出包（程序+美术）
+
+### N0 · 开工前置台账（2026-10-11 · 主策划）
+
+- **开工实查（不轻信任务书口径，以链上实况为准）**：任务书称「approved spec v1.3 revision 入链版」，平台 API 实查链上 **v9=draft 唯一链头、链上无任何 approved 版**（v1–v8 全 superseded）——与任务书口径存在状态偏差。
+- **approve 代持（授权依据三件）**：①任务书 N1 输入前提明写「approved spec v1.3 revision 入链版」（= 主人指令确认该 revision 的 approved 地位）；②任务书显式「不要进入 plan mode 或等待人工审批，直接实现需求并提交代码」；③B3/C 轮 approve 代持判例（stack-tower v1.5 同形态）。代持人=主策划；**红线不失效：主人一句否决即可重开；「好不好玩」终裁与提审动作仍归主人**。证据：`gate-logs/dy-sync-20261010/01-approve-chain-v9.log`（HTTP 200）。
+- **approve 后回查（三项全 PASS）**：v9 status=**approved**（version 9）· approved 唯一性 PASS（链上仅 v9 一条 approved，draft=0）· v1–v8 零覆盖保序 · approve 前后 spec 内容逐字全等（sortKeys 深比 EQUAL）。
+- **numeric 锚核对（防误锚披露）**：Python `ensure_ascii=False` 口径实算得 `9cc16b64…` 与黑板登记 `6719edd2…` 不符——**系序列化口径差异非数据漂移**；换前轮工具同口径（Node `JSON.stringify`+sortKeys）复算 = `6719edd27d7e121a…` ≡ 黑板登记值，**零漂移确认**。N1 锚核对一律用工具同口径。
+- **契约输入换基线**：`.myrd/spec/g2-blocks/design-spec.json` 由 v1.1（链 v2，18 条 acceptance）刷新为**链 v9 approved**（meta.version=**1.6** · 30 条 acceptance · entities 14 · levels 2 · assets 10）——刷新件 = 平台回读原文 + `_platform` 实况，非手改。
+- **本轮基线快照**：`gate-logs/dy-sync-20261010/00-chain-v9-pre-approve-snapshot.json`（approve 前）+ `02`（approve 后）+ `03`（全链快照）。
+- **源仓现状（开工实查）**：g2-blocks 源仓 main @ `26ba1d9`（v1.3 四件同包 merge 后 HEAD，worktree `g2-blocks-main`）；dy 线既有基线 = `dy/port-v1.1` @ `023e583`（v1.1 移植轮，tests/dy 四件 + export/dy 包 + tools/build-dy.mjs）；wx 线 `wx/port-v1.1` @ `4fba03a`。N2 从 main 开 `sync/dy-v1.3`。
+
+### D 轮当前基线（2026-10-11 开工）
+
+- **黑板路径**：`.myrd/blackboard/g2-blocks/`（levels.md / assets.md / blockers.md + gate-logs/）
+- **spec 版本号**：**链 v9 `cmv1q9k690045m94obp29ysre` · approved（唯一）· meta.version=1.6** · numeric 锚 `6719edd27d7e121a…`（工具同口径）· 契约共同输入 = `.myrd/spec/g2-blocks/design-spec.json`
+- **版本链全景**：v1（初稿）→ v2（v1.1）→ v3–v7（v1.2–v1.5）→ v8（v1.3 首批 draft）→ **v9（approved · v1.3 条款 + DoD 复跑账）**
+
+---
+
+## 存档：对账收口轮（2026-10-10 · 主策划 · **A1+A2+A3 全链闭环 · r5 已上线 → r6 复证发布**）
 
 > 更新时间：2026-10-10（**v1.3 四件同包合回源仓 main `e4c65f9` → A2 链 v9 → QA 复检 9/9 → 部署轮 r5 v15 LIVE → 部署轮 r6 v16（gitRef `f4de390` · 产物零漂移复证发布 · LIVE PASS）**）
 > 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
