@@ -13,6 +13,14 @@
 - **好玩判据四件套**：首 30 秒（auto 1.73s/7.04s + manual 待真人）/ 单局时长（auto 300s∈[180,300] + check 路径写进 acceptance fv-2）/ 再来一局（auto 重开 0ms+三信息 + manual 待真人）/ 反馈手感（auto 0 帧 ≤150ms + manual 待真人）——逐条 auto/manual 声明在 spec
 - **冻结转新题触发条件**：spec fv-3 条款写死（连续 3 轮真人试玩 ≥2 轮双 manual 不达 → 冻结转新题）
 
+## N5 收口态（2026-10-11 · 互查 + 部署试玩）
+
+- **QA 互查回执**：`games/wheat-squad/docs/qa-n5-recon.md`（QA-WS-N5-20261011-01）——五线零悬空（check 路径 9 可跑 + 1 PEND 在档 · 待校准列明数据项 · 试玩路径可复现 · 冻结条款写死 · 四件套声明齐）→ **放行部署**。
+- **美术互查**：参考卡首稿缺规范四要素中光照/线条/比例 → 主动打回当场补齐（§二·补），零遗留。
+- **AppHost 部署**：坑 `cmv36wl94001xm9mxp119q48x`（slug **wheat-squad-2** · projectId 关联本项目）· 部署单 `cmv36wsds001zm9mxjibnmgqt` **v1 running** @ commit `4a58fb9e1f2c8005e31bb08de84a8076509637b1`（远端 HEAD 全等）· 零 errorMessage。通道实录 = 首坑缺 projectId 被拒 → DELETE 重建 → POST 000 截断 → GET 复查已受理（单次无重复）。
+- **LIVE 自测 PASS**：/gw 200 出壳 title=麦浪小队 · 资产四件全 200 · main.mjs md5 `259fc5b449a76102792b264ef373ca01` ≡ 仓内 build 全等 · LIVE-SMOKE PASS（线上 boot + 拖动击杀 + 零错误）。**试玩入口：https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw**
+- **提请主人**：①真人试玩终裁（四件套 manual 面——接敌节奏/再来一局意愿/打击感，入口见上）；②链 v1（spec v0.1）approve 与否（draft 不阻塞试玩）；③试玩结论若触发「连续 3 轮不达」→ 冻结转新题条款自动生效（主策划发起）。
+
 ## 阻塞项（当前无团队面阻塞）
 
 | id | 内容 | 归属 | 解除判据 |

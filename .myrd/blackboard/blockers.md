@@ -16,7 +16,7 @@
 |---|---|---|---|
 | **g2-blocks（熔炉方块）** | **已发布 · 打磨中 → 本轮 dy 同步** | v1.3 四件同包在 main + r6 v16 LIVE；链 v9 已 approved（D 轮 N0 代持落账）；本轮做 dy 同步重出包 | 源仓 main `26ba1d9` · 链 v9 `cmv1q9k690045m94obp29ysre`（**approved · v1.6**）· AppHost v16 LIVE · 子黑板 `.myrd/blackboard/g2-blocks/blockers.md` |
 | **stack-tower** | **冻结 · 维持** | 同大类红线（与消除/堆叠同大类）+ 举证责任在数据 + 成本账；解除条件已写明（B-C-001 存档节） | 主线 spec v1.5 approved · AppHost v24 · 本轮**零接触**（git status 机判） |
-| **第二产品线** | **孵化 · 调研中** | B1 调研简报已落账（4 候选，与消除/堆叠大类错开，数据点带出处日期）；三套预置件就绪；**简报落账未选型前不写 spec / 不锚风格卡 / 不建工程** | 简报 `.myrd/blackboard/next-line/research-brief-v1.md` · 预置件 `templates/next-line-scaffold/`（空壳冒烟 PASS 4/4） |
+| **第二产品线（wheat-squad 麦浪小队）** | **孵化 · 可玩骨架已部署试玩** | D 轮 N3 拍板放置割草（idle×survivor-like，七要素纪要）→ N4 spec v0.1 入链（`cmv36ewn8001sm9mxvsyvbvuc` v1 draft · 契约 9/0）→ N5 互查放行 + AppHost 上线（wheat-squad-2 · LIVE-SMOKE PASS）；**等主人试玩终裁** | 试玩 `https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw` · 子黑板 `.myrd/blackboard/wheat-squad/` · 纪要 `.myrd/blackboard/next-line/selection-memo-v1.md` |
 
 ## 本轮三项裁决执行台账（2026-10-10 · 主策划）
 
