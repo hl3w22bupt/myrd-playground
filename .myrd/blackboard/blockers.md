@@ -1,7 +1,16 @@
 # 阻塞项黑板 — 工作室组合全景（多游戏共板 · 每线各自有子黑板）
 
-> 更新时间：2026-10-11（D 轮收口）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 更新时间：2026-10-11（D 轮收口 + 复跑轮）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 > 下一步：**等主人拍板**（g2-blocks 链 v10 approve + 试玩终裁两线 + 内测三件 + 提审时点）；团队无阻塞项
+
+## 复跑轮台账（2026-10-11 · 游戏程序 · verify-claims 独立复验两线）
+
+> 触发：接手「已声称完成」的六节点台账，按纪律不照抄黑板声称、在当前 HEAD 独立实跑复验。结论：**两线声称全部复现成立，提审就绪态与试玩部署态维持**；另暴露并修复 **2 组上轮门禁未覆盖的真红**（细节见各线子黑板）。
+
+- **g2-blocks dy 线**：CI 同入口（零 env）默认态复跑暴露 check-v13 Mode A 计数不符（EXIT=1，env 覆盖语义掩盖）+ tests/run-all 全量 8 红（生成件锚过期/acmap b-c PEND 与形态/spec-anchor 恒缺字段/ac-13 生成件字面误报）——全部先红后绿修复，源仓 `624c8ed`/`d9ab197`/`8215096`。复绿终态 ×2：四态契约 18/25/29+1PEND/29+1PEND · tests 全量绿 · contract v9/v10 各 29/0+1PEND · web SMOKE PASS · dy 门禁 11+6+10 · DY-SMOKE PASS（score=9432750 ≡ 上轮逐字节）· wx 反扫零命中 · wx 门禁 7+9+15（wx `4fba03a` 树净）。证据 `gate-logs/dy-rerun-20261011/00..05`。
+- **wheat-squad 线**：契约 9/0 EXIT=0 · 本地冒烟 PASS · LIVE 资产三点全等（LIVE ≡ git `4a58fb9e` ≡ HEAD，md5 逐件；index.html DIFF=壳层 base 注入设计行为；**LIVE md5 口径修正为复测值 `cc454a07…`**，原登记 `259fc5b4…` 为部署当时历史值）· 新增 `tools/smoke-live.mjs` → **WS-LIVE-SMOKE PASS**（线上可玩直接实证）。证据 `wheat-squad/gate-logs/rerun-20261011/01·02`。
+- **守卫制度随拓扑规范化（随件走，非一次性放行）**：g2-blocks `ci/scope-policy.json` 新增 `exemptTouchPrefixes: games/wheat-squad/`（二线部署面，任务书授权，一号仓 `6092bd6` 起既有事实；**禁触 stack-tower 红线不变**）+ `src/generated/spec-data.ts` 真源快照豁免；acmap/anchor/ac-13 三处守卫升级为可机判强口径（PEND 双字段豁免与 contract-check 主面同源、归一化 check 比对、实算锚两次装载全等）。
+- **给主人的口径补充**：①v10 链 ac-29..33 check 字面为游戏仓相对形态，守卫已归一化兼容，如需链上字面统一随 v10 revision 处理（非阻塞）；②wheat-squad 部署单 API 态（running/errorMessage）本地无 JWT 未做 API 级核对，以 LIVE 三点全等 + 线上冒烟替代证明部署存活。
 
 ## D 轮收口台账（2026-10-11 · 主策划 · N6）
 

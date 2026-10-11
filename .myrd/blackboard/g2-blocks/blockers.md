@@ -37,6 +37,16 @@
 - **材料清单 dy 段 v3**：`docs/platform/dy/dy-submission-kit.md` 状态 = **已同步·提审就绪**（spec 锚 = 链 v6 规格源 + 链 v10 声明面；dy-appid/类目/资质 🚨 待主人）。
 - **提请主人拍板（本线新增）**：**链 v10 approve**（ac-33 ④ 声明面；approve 后 sync/dy-v1.3 可 merge 回 main 走 fast-forward）+ wx/dy 提审时点（既有挂账）。
 
+### N2 复跑轮（2026-10-11 · 游戏程序 · verify-claims 独立复验 + 守卫修复）
+
+- **复跑方式**：不照抄上轮声称，在 `sync/dy-v1.3` 终版态以 **CI 同入口（零 env）默认态**独立实跑全部门禁。暴露 **2 组上轮未发现的红**，全部先红后绿修复（源仓 `624c8ed` + `d9ab197` + `8215096`，树净）。
+- **红 1（check-v13 默认态）**：`scripts/check-v13.mjs` Mode A 默认路径自创建起指向 `design-spec.json`（当时内容=v1.1·18 条），N0 换基线把该文件刷新为链 v9 approved（v1.6·30 条）后期望未同步——**默认态（CI 同入口）实跑必红 EXIT=1**（上轮 05/07 证据均为 `G2_SPEC_PATH` env 覆盖跑绿，env 覆盖语义掩盖了默认态）。修复 = Mode A 默认锚切 `design-spec-v11-approved-archive.json`（18/0/0，与 05 口径一致）+ 新增 Mode D=共同输入 `design-spec.json`（29/0+1PEND）。红证据 `gate-logs/dy-rerun-20261011/00`。
+- **红 2（tests/run-all 全量 8 红）**：上轮门禁仅跑 contract-check+smoke，未跑 tests 全量。暴露：acmap/g+h 生成件锚过期（302e6336≠6719edd2→重烘焙，锚 ≡ 黑板登记值，numeric 零漂移）· acmap/b 链 v7/v8 新增条款 check 形态字面不一致（守卫升级为归一化比对，**approved 链字面不可直改**，改动走 revision 红线①）· acmap/c PEND 条无豁免（豁免口径与 contract-check 主面同源双字段）· harness/spec-anchor-stable 读平台恒缺元字段恒红（升级实算口径 `computeNumericAnchor`）· ac-13 生成件 CONTENT 快照资产字面误报（精确豁免 `src/generated/` 数据快照面，位图文件检测不豁免）。
+- **策略单源随拓扑规范化（AC-17/18）**：`ci/scope-policy.json` 新增 `exemptTouchPrefixes: games/wheat-squad/`（二线孵化部署面，任务书 N4/N5 授权，一号仓 `6092bd6` 起既有事实；**禁触 stack-tower 红线不变**）+ `referenceAllowedPaths` 豁免 `src/generated/spec-data.ts`（真源数据快照，与 docs/spec 同理）。守卫判定 exempt 优先于 forbidden，非静默放行。
+- **复绿终态（全部 CI 同入口实跑 ×2 非 flaky）**：check-v13 四态 **18/25/29+1PEND/29+1PEND** · tests/run-all 全量绿（palette3+platform5+framework8+acmap8+主面20）· contract v9 **29/0+1PEND** · contract v10 **29/0+1PEND** · web SMOKE PASS（J1=177.3ms）· dy 出包 38 件/主包 267494B≤4MB · dy 三条目查 **11+6+10** · DY-SMOKE PASS（引导 229ms · J1=150.7ms · **score=9432750 ≡ 上轮逐字节**=确定性保持）· wx 反扫三向零命中 · wx 三条目查 **7+9+15** · wx worktree `4fba03a` 树净零触碰。证据 `gate-logs/dy-rerun-20261011/00..05`。
+- **三样一致性复验**：dy 侧输出 HEAD=`1fdd787`（修复提交后=`8215096`，守卫/测试面变更，src 游戏面零改动）· wx 侧输出 HEAD=`4fba03a` 树净 —— 与上轮声称一致，**提审就绪态维持**。
+- **遗留给主人的口径说明**：v10 链上 ac-29..33 的 check 字面为游戏仓相对形态（`node scripts/...`），与既有 28 条的一号仓相对形态（`g2-blocks/scripts/...`）并存——守卫已按归一化口径兼容；若主人希望链上字面统一，随 v10 approve 前的 revision 一并处理（非阻塞）。
+
 ### D 轮当前基线（2026-10-11 开工）
 
 - **黑板路径**：`.myrd/blackboard/g2-blocks/`（levels.md / assets.md / blockers.md + gate-logs/）
