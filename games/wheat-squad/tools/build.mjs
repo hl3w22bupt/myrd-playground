@@ -23,7 +23,10 @@ const ONE = process.env.G2WS_REPO_ONE_ROOT
         .filter((c) => existsSync(c))
         .map((c) => ({ c, at: JSON.parse(readFileSync(c, 'utf8'))?._platform?.updatedAt ?? '' }))
         .sort((a, b) => b.at.localeCompare(a.at));
-      if (cands.length > 0) return dirname(cands[0].c.slice(0, cands[0].c.lastIndexOf('.myrd')));
+      // ONE = 「含 .myrd 的那一层目录」= slice 本身（归一尾斜杠）；不能再套 dirname ——
+      // dirname 会多上一级落到项目级（deploy-r7 轮实证 ENOENT：resolve 到
+      // <project>/.myrd/... 而非 <project>/run-<id>/.myrd/...），见 blackboard 台账
+      if (cands.length > 0) return cands[0].c.slice(0, cands[0].c.lastIndexOf('.myrd')).replace(/\/+$/, '');
     }
     throw new Error('未找到 wheat-squad spec 导出件：请设 G2WS_REPO_ONE_ROOT');
   })();
