@@ -1454,6 +1454,8 @@
     "status": "approved",
     "parentSpecId": "cmv0aoxtt004gm9vigjmn09bh",
     "projectId": "cmto0g28j0002m9sqnvjdy8o7",
-    "approvedAt": "2026-10-11T01:22:32.154Z"
+    "title": "g2-blocks（熔炉方块）",
+    "createdAt": "2026-10-10T01:40:44.769Z",
+    "updatedAt": "2026-10-11T01:22:15.455Z"
   }
 }
