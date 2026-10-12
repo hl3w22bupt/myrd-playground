@@ -53,9 +53,12 @@ routines:
   name: 游戏契约测试
   description: 断言工程实现与 approved 版策划案（GameDesignSpec）一致 —— 实体/关卡落点文件存在、验收项有可执行检查、关卡元素编号稳定唯一
   gate: false
+  # 2026-10-12 修订（N10）：参数对齐「一游戏一子目录」判例（N0 披露）——spec 与工程均在 wheat-squad 子目录，
+  # 旧默认 specPath=.myrd/spec/design-spec.json（顶层）已不存在，routine 必失败（驳回证据 gate-logs/n10）。
+  # 注意：统一契约门禁必须在仓根执行（spec 实体路径按仓根相对解析）；换活跃线时同步改本参数。
   params:
-    specPath: .myrd/spec/design-spec.json
-    projectDir: .
+    specPath: .myrd/spec/wheat-squad/design-spec.json
+    projectDir: games/wheat-squad
   steps:
   - name: contract-check
     command: node scripts/contract-check.mjs --spec {{specPath}} --project {{projectDir}}

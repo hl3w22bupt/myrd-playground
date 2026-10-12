@@ -30,7 +30,9 @@
       { "prefix": ".myrd-platform/", "$note": "平台运行时自有面（skills/mcp 等，平台层维护）——出现改动不属 wheat 足迹；g2 判例同款豁免机制（其面为 SKILLS.md 单件，本仓平台面变更面更宽故取目录前缀）" }
     ],
     "allowedPreExistingModifiedPaths": [
-      ".myrd/blackboard/README.md"
+      ".myrd/blackboard/README.md",
+      { "$note": "routine 门禁参数单源（e2e-gate pre-hook/Routines Tab 读它）：N10 轮 game-contract 参数对齐一游戏一子目录判例的正当触碰面，换活跃线时会再改" },
+      ".myrd/routines.yaml"
     ],
     "forbiddenTouchGlobs": [
       "games/game/",

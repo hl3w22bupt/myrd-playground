@@ -18,7 +18,16 @@
 - 冒烟：**WS-SMOKE PASS**（headless 可重复：打开→首次核心操作→victory 结算 167s→重开复位 + A1/A4 埋点真实产生 + console 零错误）
 - 违规标识符扫描：**SCOPE-GUARD PASS**（47 文件零越界，策略单源含素材文案面；n9 轮复核 49 文件零越界——文件数随新增文件自然增长，判据不变）
 
+## N10 驳回修复轮（2026-10-12 · 游戏程序 · routine「游戏契约测试」FAIL）
+
+- **驳回属实**：routine 以默认参数 `--spec .myrd/spec/design-spec.json --project .` 执行 → `CONTRACT: FAIL spec 文件不存在`。根因 = **routines.yaml game-contract 默认参数未随 N0「一游戏一子目录」判例更新**（spec 实落 `.myrd/spec/wheat-squad/design-spec.json`，顶层件不存在）——routine 配置与布局判例脱节，非工程/spec 缺陷。
+- **修复（参数单源，检查器零改动）**：routines.yaml params → `specPath: .myrd/spec/wheat-squad/design-spec.json` · `projectDir: games/wheat-squad`（当前活跃线）；注释落「必须在仓根执行 + 换线同步改参数」口径契约。
+- **验证（先红后绿）**：红 = 驳回口径复现 RED-EXIT=1；绿 = routine 替换后字面命令连跑 2 轮 **53 PASS / 0 FAIL · EXIT=0**。冒烟 PASS · 守卫双模式 PASS。证据 `gate-logs/n10-routine-contract-fix-20261012/01-routine-fix.log`。
+- **策略面**：`.myrd/routines.yaml` 入 wheat scope-policy `allowedPreExistingModifiedPaths`（既有共享件正当触碰，注明换线会再改）。
+
 ## N9 复核轮（2026-10-12 · 游戏程序 · verify-claims 独立复验 + latent 缺陷先红后绿）
+
+
 
 - **独立复验结论：N1–N8 声称全部在当前 HEAD 复现成立**（未照抄黑板）：统一契约 53/0 EXIT=0 · 自有契约 13/0 EXIT=0（ac-a3 PEND 如实）· WS-SMOKE PASS 全链路+A1/A4 埋点 · SCOPE-GUARD PASS。证据 `gate-logs/n9-verify-20261012/`。
 - **抓到并修复 1 个 latent 缺陷（先红后绿）**：违规标识符扫描守卫**模式 2（`--self-check`）对 wheat 策略一调用即 TypeError 崩溃**——g2-blocks 判例四字段，wheat 移植仅两字段（缺 `allowedPreExistingModifiedPaths`/`forbiddenTouchGlobs`/`exemptTouchPrefixes`）。修复 = **策略单源补全（脚本零改动、检测规则零改动、零缩水）**；红证据 `01-guard-mode2-red-before-fix.log`（RED-EXIT=1），绿证据 `02-guard-dual-mode-green-after-fix.log`（双模式×2 轮 4/4 EXIT=0）。字段形态与脚本判定逻辑严格对齐（精确串/前缀/纯字符串数组三态）。
