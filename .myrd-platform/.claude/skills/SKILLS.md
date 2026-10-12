@@ -11,4 +11,5 @@
 - **style-card-library** — `.myrd-platform/.claude/skills/style-card-library/SKILL.md`
 - **threejs-game-dev** — `.myrd-platform/.claude/skills/threejs-game-dev/SKILL.md`
 - **verification** — `.myrd-platform/.claude/skills/verification/SKILL.md`
+- **web-app-dev** — `.myrd-platform/.claude/skills/web-app-dev/SKILL.md`
 - **webgame-prototype** — `.myrd-platform/.claude/skills/webgame-prototype/SKILL.md`
