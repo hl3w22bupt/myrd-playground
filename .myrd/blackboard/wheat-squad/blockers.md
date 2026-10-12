@@ -18,6 +18,14 @@
 - 冒烟：**WS-SMOKE PASS**（headless 可重复：打开→首次核心操作→victory 结算 167s→重开复位 + A1/A4 埋点真实产生 + console 零错误）
 - 违规标识符扫描：**SCOPE-GUARD PASS**（47 文件零越界，策略单源含素材文案面；n9 轮复核 49 文件零越界——文件数随新增文件自然增长，判据不变）
 
+## N15 受测游戏身份门禁收口 v2（2026-10-12 · 游戏程序 · gate-adapter 单源派生视图）
+
+- **驳回五到案**：「spec id 未解析出 slug 且存在 **3** 个 verify.sh」（日志 `gate-logs/contract-gate-20261012-134023.log`，13:40:23 在案）——证实 N13 后计数 2→3，裁决式两支仍不满足：①spec id 不可解析（链 id=cuid）②verify.sh 需唯一（3 个，2 个为冻结线零触面不可动）。
+- **根因判定**：平台门禁读 `.myrd/spec/design-spec.json` 顶层 **id** 字段核对 games/ 目录名；approved 导出件无此字段（仅 `_platform.id`=cuid），单靠符号链接/命名约定不可达。
+- **修复（单源纪律不破坏）**：`.myrd/spec/design-spec.json` 从符号链接升格为**生成的门禁适配视图**——新工具 `tools/build-gate-adapter.mjs`（零依赖确定性）从盘上 approved 单源派生：内容原样 + 仅注入顶层 `id`/`slug`=`wheat-squad` 两键；**ac-15** 机判守卫（视图 id/slug≡单源 meta.slug · 剔注入键与纯导出件键序无关深等 · games/wheat-squad/verify.sh 入口在盘）。红 RED-EXIT=1（id=undefined）→ 生成 → 绿。
+- **验证**：自有契约 **15 PASS / 0 FAIL** · 统一门禁**三口径全 PASS**（含弱面 `[design-spec.json × .]`——适配视图对旧调用方内容兼容）· 守卫双模式 PASS · **verify.sh 连跑 2 轮 5/5 VERIFY-EXIT=0**。证据 `gate-logs/n15-gate-adapter-20261012/`。
+- **如实披露**：平台门禁 id 读取实现不在仓内；本修覆盖其指令字面（「核对 design-spec.json 的 id 与 games/ 目录名」）。若其仅读 `_platform.id`（cuid），则属平台侧缺陷，新日志将落 gate-logs/ 可续诊升级（W-6 预设）。
+
 ## N14 对抗审查 D1/D2 修复轮（2026-10-12 · 游戏程序 · 埋点定名三方同名真达成）
 
 - **D1 属实并修复（先红后绿）**：spec 定名 `run_duration_ms`（telemetryFields + ac-a2 statement），接线载荷键曾为 `durationMs`（game.ts:81）、冒烟读 `re.durationMs` **自算值**（比指控更重：断言未绑真实遥测）。修复：① 载荷键改名 `run_duration_ms`（game.ts）② 冒烟改经 `telemetryEntries()` **直读真实发射载荷**（Game 接口新增暴露面），实跑实证 `run_duration_ms=167968ms reason=victory（A2 面·真实载荷）`。
