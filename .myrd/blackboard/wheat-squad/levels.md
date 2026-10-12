@@ -13,6 +13,7 @@
 
 - 冻结计数器：**0/3**（基线轮第 1 轮，四件套 3 达 1 未达不计数；触发条款写死于 spec meta.baselineProtocol）
 - A3 结论面 ⏳：5 名试玩 ≥3 人自然重开 ≥2 局且理由原文非空（记录 0/5——量表 `games/wheat-squad/qa/playtest-record-template.md`）
+- **n9 轮 HEAD 复核（2026-10-12）**：上表三行判据全部独立复跑再证（13/0 + 53/0 + WS-SMOKE PASS），证据 `gate-logs/n9-verify-20261012/03`；本行仅加注，不改判据面
 
 ## 既有登记（2026-10-11 骨架轮 · 原文保留）
 

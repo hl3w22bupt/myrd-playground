@@ -12,11 +12,19 @@
 - **差异点三列表**：`.myrd/blackboard/spec-notes-line2.md`（6 行三列，逐行落 spec 条款映射）
 - **风格卡**：v1 四要素冻结 + 主策划拍板（`.myrd/blackboard/wheat-squad/style-card-v1.md`）
 
-### 本轮机器面（全绿，证据 gate-logs/n7-adversarial-20261012/01-gates-fresh.log 新鲜复跑）
+### 本轮机器面（全绿，证据 gate-logs/n7-adversarial-20261012/01-gates-fresh.log 新鲜复跑；n9 轮 HEAD 复核再证，见下节）
 
 - 契约：自有套件 **13 PASS / 0 FAIL**（2 PEND=manual 明示）+ 统一门禁（approved 对账）**53 PASS / 0 FAIL · CONTRACT: PASS**
 - 冒烟：**WS-SMOKE PASS**（headless 可重复：打开→首次核心操作→victory 结算 167s→重开复位 + A1/A4 埋点真实产生 + console 零错误）
-- 违规标识符扫描：**SCOPE-GUARD PASS**（47 文件零越界，策略单源含素材文案面）
+- 违规标识符扫描：**SCOPE-GUARD PASS**（47 文件零越界，策略单源含素材文案面；n9 轮复核 49 文件零越界——文件数随新增文件自然增长，判据不变）
+
+## N9 复核轮（2026-10-12 · 游戏程序 · verify-claims 独立复验 + latent 缺陷先红后绿）
+
+- **独立复验结论：N1–N8 声称全部在当前 HEAD 复现成立**（未照抄黑板）：统一契约 53/0 EXIT=0 · 自有契约 13/0 EXIT=0（ac-a3 PEND 如实）· WS-SMOKE PASS 全链路+A1/A4 埋点 · SCOPE-GUARD PASS。证据 `gate-logs/n9-verify-20261012/`。
+- **抓到并修复 1 个 latent 缺陷（先红后绿）**：违规标识符扫描守卫**模式 2（`--self-check`）对 wheat 策略一调用即 TypeError 崩溃**——g2-blocks 判例四字段，wheat 移植仅两字段（缺 `allowedPreExistingModifiedPaths`/`forbiddenTouchGlobs`/`exemptTouchPrefixes`）。修复 = **策略单源补全（脚本零改动、检测规则零改动、零缩水）**；红证据 `01-guard-mode2-red-before-fix.log`（RED-EXIT=1），绿证据 `02-guard-dual-mode-green-after-fix.log`（双模式×2 轮 4/4 EXIT=0）。字段形态与脚本判定逻辑严格对齐（精确串/前缀/纯字符串数组三态）。
+- **口径契约落档**：统一契约门禁必须在仓根执行（`--spec .myrd/spec/wheat-squad/design-spec.json --project games/wheat-squad`）——spec 实体路径按仓根相对解析，子目录 CWD 调用会假红 25/28（`03-gates-fresh-n9.log` 勘误段 + `03a` 正确口径 53/0）。
+- **图谱刷新**：code-review-graph 增量更新 23 文件，`built_at_sha` 1652974 → **20a1a9d（head_matches_build=true）**，FTS 3096 条。
+- **构建确定性复核**：`node tools/build.mjs` 重建 10 文件与仓内 build/ **逐字节全等**（src/build 均止于 dca93ae，其后再无变更）——「部署字节=提交字节」在当前 HEAD 成立。
 - 四件套：**A1 ✅（1.71s≤10s+5种子≤30s）/ A2 ✅（P50=168s∈[90,180]·victory 20/20）/ A4 ✅（0ms≤100ms·通道4≥2）/ A3 机制面 ✅ 结论面 ⏳（0/5 待真人回填）**——「四件套全达」本轮不宣称
 - 冻结计数器：**0/3**（基线轮第 1 轮；口径=连续 3 轮四件套全不达才计数，本轮 3 达 1 未达 → 不计数；明细见 qa/n7-adversarial-review.md §四）
 

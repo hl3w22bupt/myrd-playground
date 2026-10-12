@@ -1,0 +1,8 @@
+ M .myrd-platform/.claude/mcp.json
+ M .myrd-platform/.claude/skills/SKILLS.md
+ M .myrd-platform/.claude/skills/godot-game-dev/SKILL.md
+ M .myrd-platform/.claude/skills/godot-game-dev/references/godot-smoke-routine.md
+ M .myrd-platform/.claude/skills/godot-game-dev/scripts/preflight.py
+ M .myrd-platform/.claude/skills/godot-game-dev/scripts/preflight_selftest.py
+ M .myrd-platform/.claude/skills/godot-game-dev/scripts/smoke.sh
+?? .myrd/blackboard/wheat-squad/gate-logs/n9-verify-20261012/

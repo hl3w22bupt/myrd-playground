@@ -1,0 +1,34 @@
+== GREEN 证据：策略单源补全后 guard-repo-scope 双模式（2026-10-12 · 连跑2轮防flaky）
+
+--- ROUND 1 : mode1 违规标识符扫描 ---
+SCOPE-GUARD PASS 本仓库 49 文件零越界引用（策略单源 ci/scope-policy.json；spec 真源豁免面命中 0 处，属契约条款声明）
+mode1-EXIT=0
+--- ROUND 1 : mode2 一号仓零接触自检(--self-check 父仓根) ---
+# 一号仓库 git status 共 9 行；白名单内新增区 = games/wheat-squad/ / .myrd/blackboard/wheat-squad/ / .myrd/spec/wheat-squad/ / .myrd/blackboard/spec-notes-line2.md / .myrd/blackboard/research/
+#    M .myrd-platform/.claude/mcp.json
+#    M .myrd-platform/.claude/skills/SKILLS.md
+#    M .myrd-platform/.claude/skills/godot-game-dev/SKILL.md
+#    M .myrd-platform/.claude/skills/godot-game-dev/references/godot-smoke-routine.md
+#    M .myrd-platform/.claude/skills/godot-game-dev/scripts/preflight.py
+#    M .myrd-platform/.claude/skills/godot-game-dev/scripts/preflight_selftest.py
+#    M .myrd-platform/.claude/skills/godot-game-dev/scripts/smoke.sh
+#    M games/wheat-squad/ci/scope-policy.json
+#   ?? .myrd/blackboard/wheat-squad/gate-logs/n9-verify-20261012/
+SELF-CHECK PASS 一号仓库零接触（9 行全部在白名单内，无 tracked 工程文件改动）
+mode2-EXIT=0
+--- ROUND 2 : mode1 违规标识符扫描 ---
+SCOPE-GUARD PASS 本仓库 49 文件零越界引用（策略单源 ci/scope-policy.json；spec 真源豁免面命中 0 处，属契约条款声明）
+mode1-EXIT=0
+--- ROUND 2 : mode2 一号仓零接触自检(--self-check 父仓根) ---
+# 一号仓库 git status 共 9 行；白名单内新增区 = games/wheat-squad/ / .myrd/blackboard/wheat-squad/ / .myrd/spec/wheat-squad/ / .myrd/blackboard/spec-notes-line2.md / .myrd/blackboard/research/
+#    M .myrd-platform/.claude/mcp.json
+#    M .myrd-platform/.claude/skills/SKILLS.md
+#    M .myrd-platform/.claude/skills/godot-game-dev/SKILL.md
+#    M .myrd-platform/.claude/skills/godot-game-dev/references/godot-smoke-routine.md
+#    M .myrd-platform/.claude/skills/godot-game-dev/scripts/preflight.py
+#    M .myrd-platform/.claude/skills/godot-game-dev/scripts/preflight_selftest.py
+#    M .myrd-platform/.claude/skills/godot-game-dev/scripts/smoke.sh
+#    M games/wheat-squad/ci/scope-policy.json
+#   ?? .myrd/blackboard/wheat-squad/gate-logs/n9-verify-20261012/
+SELF-CHECK PASS 一号仓库零接触（9 行全部在白名单内，无 tracked 工程文件改动）
+mode2-EXIT=0

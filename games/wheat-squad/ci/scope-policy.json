@@ -18,13 +18,40 @@
   "scannedExtensions": [".mjs", ".js", ".ts", ".json", ".md", ".yml", ".yaml", ".html", ".css", ".svg", ".toml"],
   "$scannedNote": "扫描扩展名含 .svg/.md/.toml = 素材文案与配置面全覆盖（QA 防缩水清单核对面）",
   "repoOne": {
-    "$note": "一号仓零接触自检（--self-check <一号仓根>）：wheat 线为二号仓，本节声明本线自身允许落盘面，供父级巡检引用",
+    "$note": "一号仓零接触自检（--self-check <一号仓根>）：wheat 线为二号仓，本节声明本线自身允许落盘面 + 例外面 + 禁触面，供父级巡检与 --self-check 直接执行（g2-blocks 判例全字段平移；2026-10-12 n9 轮补齐 mode2 缺失三字段——此前 mode2 一调用即 TypeError，红证据 gate-logs/n9-verify-20261012/01。字段形态须与脚本判定逻辑严格对齐：allowedPreExistingModifiedPaths=精确串、exemptTouchPrefixes/allowedNewPaths=前缀、forbiddenTouchGlobs=纯字符串数组）",
     "allowedNewPaths": [
       "games/wheat-squad/",
       ".myrd/blackboard/wheat-squad/",
       ".myrd/spec/wheat-squad/",
       ".myrd/blackboard/spec-notes-line2.md",
       ".myrd/blackboard/research/"
+    ],
+    "exemptTouchPrefixes": [
+      { "prefix": ".myrd-platform/", "$note": "平台运行时自有面（skills/mcp 等，平台层维护）——出现改动不属 wheat 足迹；g2 判例同款豁免机制（其面为 SKILLS.md 单件，本仓平台面变更面更宽故取目录前缀）" }
+    ],
+    "allowedPreExistingModifiedPaths": [
+      ".myrd/blackboard/README.md"
+    ],
+    "forbiddenTouchGlobs": [
+      "games/game/",
+      "games/game-9/",
+      "games/stack-tower",
+      "games/g2-blocks",
+      "apphost.toml",
+      "index.html",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "eslint.config.js",
+      "vitest.config.ts",
+      "vitest.bench.config.ts",
+      "src/",
+      "server/",
+      "scripts/",
+      "tests/",
+      "templates/",
+      "std-skills/",
+      "docs/"
     ]
   }
 }
