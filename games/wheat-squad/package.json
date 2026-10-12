@@ -1,0 +1,11 @@
+{
+  "name": "wheat-squad",
+  "private": true,
+  "version": "0.1.0",
+  "description": "麦浪小队 — 放置割草（idle × survivor-like）· 零 npm 依赖（node 原生 TS strip + stripTypeScriptTypes 构建）",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "contract": "node tests/contract/run-all.mjs",
+    "smoke": "node tools/smoke.mjs"
+  }
+}

@@ -1,0 +1,26 @@
+# 文件: 01-n4-contract-smoke.log | 日期: 2026-10-11T02:10:15Z | 执行目录: games/wheat-squad
+# spec: cmv36ewn8001sm9mxvsyvbvuc v1 draft meta.version=0.1
+# 命令: node tools/build.mjs && node tests/contract/run-all.mjs && node tools/smoke.mjs
+BUILD OK: build/ 10 文件（spec 内联 + src 镜像 + index）
+(node:37827) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+BUILD_EXIT=0
+PASS det-1 同 seed 双局逐字节一致 :: {"tick":18750,"phase":"ended","kills":453,"xp":905,"wave":11,"ups":["fireRate","damage","damage","recruit","fireRate","s
+PASS fv-1(auto) 首杀 1.73s ≤3s · 首升 7.04s ≤20s
+PASS fv-2 单局 300s ∈ [180,300]s · reason=timeout
+PASS fv-3(auto) 重开 0ms ≤1s + 全复位 + 结算页三信息齐
+PASS fv-4(auto) 反馈延迟 0ms ≤150ms · flash=90ms 换算一致
+PASS perf-1 实体峰值 33 ≤220 · 单步 0.003ms ≤16ms（node 仿真步）
+PASS tex-1 零位图文件 + 7 源文件零贴图构造
+PASS anchor-1 entities 13/13 + levels 2/2 落点在盘非空
+PASS fv-pend placement 结构冻结 + 待校准语义在档（校准走 revision）
+—— wheat-squad 契约合计 9 PASS / 0 FAIL ——
+CONTRACT_EXIT=0
+[ws-smoke] 静态服务 http://127.0.0.1:62566/（build/ 载面）
+[ws-smoke] chromium 就绪（CDP page target）
+[ws-smoke] ready ✓ __G2WS_READY=true
+[ws-smoke] 操作 ✓ tick 推进 + 击杀 1（拖动→作战链通）
+[ws-smoke] 结算 ✓ phase=ended reason=timeout elapsed=300s
+[ws-smoke] console/页面 零错误 ✓
+WS-SMOKE: PASS 打开→操作→结算 + console 零错误
+SMOKE_EXIT=0

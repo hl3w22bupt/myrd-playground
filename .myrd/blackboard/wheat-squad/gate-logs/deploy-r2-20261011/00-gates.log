@@ -1,0 +1,23 @@
+# wheat-squad 复证发布轮（deploy r2）部署前门禁 · gitRef 将绑 /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv34u4y0000tm9mxr9gy7y45 HEAD
+# UTC: 2026-10-11T04:15:27Z · 执行节点: 游戏程序（部署）· 本节点实跑
+# 执行目录: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv34u4y0000tm9mxr9gy7y45/games/wheat-squad
+
+== 0) node tools/build.mjs（无 env 默认态 · 工具缺陷修复后首跑）==
+BUILD OK: build/ 10 文件（spec 内联 + src 镜像 + index）· git status -- build 空 = 产物 ≡ HEAD 逐字节
+
+== 1) node tests/contract/run-all.mjs ==
+PASS tex-1 零位图文件 + 7 源文件零贴图构造
+PASS anchor-1 entities 13/13 + levels 2/2 落点在盘非空
+PASS fv-pend placement 结构冻结 + 待校准语义在档（校准走 revision）
+—— wheat-squad 契约合计 9 PASS / 0 FAIL ——
+contract_exit=0
+
+== 2) node tools/smoke.mjs ==
+[ws-smoke] 静态服务 http://127.0.0.1:51903/（build/ 载面）
+[ws-smoke] chromium 就绪（CDP page target）
+[ws-smoke] ready ✓ __G2WS_READY=true
+[ws-smoke] 操作 ✓ tick 推进 + 击杀 1（拖动→作战链通）
+[ws-smoke] 结算 ✓ phase=ended reason=timeout elapsed=300s
+[ws-smoke] console/页面 零错误 ✓
+WS-SMOKE: PASS 打开→操作→结算 + console 零错误
+smoke_exit=0

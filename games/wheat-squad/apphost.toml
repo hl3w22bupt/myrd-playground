@@ -1,0 +1,6 @@
+# wheat-squad（麦浪小队）专属部署清单 —— 二线孵化骨架（N4）· N5 部署面
+# 共享仓库根壳 server/；manifestPath=games/wheat-squad/apphost.toml；勿改仓库根 apphost.toml。
+name = "wheat-squad（麦浪小队）"
+runtime = "node20"
+health = "/health"
+assets_dir = "games/wheat-squad/build"

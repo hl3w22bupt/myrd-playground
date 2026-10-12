@@ -1,0 +1,17 @@
+# 文件: 02-live-md5-smoke-rerun.log | 日期: 2026-10-11T02:43:04Z | LIVE 资产 md5 三点全等核对 + 线上冒烟（tools/smoke-live.mjs 新增）
+## 资产路径 = /apps/wheat-squad-2/gw/api/public/assets/*（server 壳 <base> 形态）
+main.mjs HTTP=200 EQUAL live=cc454a077277826eaca3c02616465620 local=cc454a077277826eaca3c02616465620
+src/render/theme.mjs HTTP=200 EQUAL live=152ee52dfc289fb42bcf6bf011f7fed2 local=152ee52dfc289fb42bcf6bf011f7fed2
+src/kernel/sim.mjs HTTP=200 EQUAL live=03b9385b875f8c2196bd8641cdcd425a local=03b9385b875f8c2196bd8641cdcd425a
+index.html HTTP=200 DIFF(预期)=壳层 <base>+boot 注入设计行为（server/src/index.ts:55）
+## 三点全等：LIVE 字节 ≡ git 4a58fb9e 字节 ≡ HEAD build 字节（build/main.mjs 在 4a58fb9 与 HEAD 同为 cc454a07）
+## 黑板原登记 LIVE md5=259fc5b4… 为部署当时历史值；本轮复测以 cc454a07 为准（对象存储已随部署 commit 刷新）
+## LIVE /gw HTTP=200 title=麦浪小队
+--- WS-LIVE-SMOKE ---
+[ws-live-smoke] 目标 https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw
+[ws-live-smoke] chromium 就绪（CDP page target）
+[ws-live-smoke] ready ✓ __G2WS_READY=true（线上）
+[ws-live-smoke] 操作 ✓ tick 推进 + 击杀 2（线上拖动→作战链通）
+[ws-live-smoke] 结算 ✓ phase=ended reason=timeout elapsed=300s
+[ws-live-smoke] console/页面 零错误 ✓
+WS-LIVE-SMOKE: PASS 线上打开→操作→结算 + console 零错误

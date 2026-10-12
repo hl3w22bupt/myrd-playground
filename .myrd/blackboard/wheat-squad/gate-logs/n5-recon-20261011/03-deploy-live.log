@@ -1,0 +1,7 @@
+# 文件: 03-deploy-live.log | 日期: 2026-10-11T02:17:17Z | 执行目录: 一号仓根
+# 坑: appId=cmv36wl94001xm9mxp119q48x slug=wheat-squad-2（新建 · projectId=cmto0g28j0002m9sqnvjdy8o7 关联）
+# 部署单: cmv36wsds001zm9mxjibnmgqt v1 running · commit=4a58fb9e1f2c8005e31bb08de84a8076509637b1（=远端 HEAD ls-remote 全等）· manifestPath=games/wheat-squad/apphost.toml · mode=bundle · errorMessage=null
+# 通道: 首坑误建缺 projectId → DEPLOY_REJECTED(githubUrl 空) → PATCH/PUT 405 → DELETE 重建带 projectId → POST 000(30s 代理截断) → GET 复查已受理（单次受理无重复单，判例复现）
+# LIVE: /gw 200 title=麦浪小队 · /api/public/assets/{main.mjs,spec.json,src/main.mjs,index.html} 全 200 · main.mjs md5 259fc5b4… ≡ 仓内 build 全等
+# LIVE-SMOKE: PASS（ready ✓ 拖动击杀 2 ✓ console 零错误 ✓）
+# 试玩入口: https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw
