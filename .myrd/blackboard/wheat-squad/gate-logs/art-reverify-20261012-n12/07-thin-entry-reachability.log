@@ -1,0 +1,4 @@
+# ⑦ 双薄壳入口可达性（N11 spec 入口 + N12 契约入口）· HEAD=32dc491
+[PASS] ⑦a spec 薄壳入口：旧 specPath 可达 approved spec，8 色 palette 全可读
+—— wheat-squad 契约合计 13 PASS / 0 FAIL ——
+⑦b root tests/contract 薄壳链跑美术契约套件 EXIT=0

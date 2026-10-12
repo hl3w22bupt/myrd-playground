@@ -1,0 +1,4 @@
+# ⑥ scope-guard 双模式（N12 改策略后重证）· HEAD=32dc491
+SCOPE-GUARD PASS 本仓库 49 文件零越界引用（策略单源 ci/scope-policy.json；spec 真源豁免面命中 0 处，属契约条款声明）
+SCOPE-GUARD PASS 本仓库 49 文件零越界引用（策略单源 ci/scope-policy.json；spec 真源豁免面命中 0 处，属契约条款声明）
+mode2-EXIT=0 · mode1-EXIT=0
