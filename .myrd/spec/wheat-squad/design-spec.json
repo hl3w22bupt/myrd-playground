@@ -157,7 +157,7 @@
         "expect": "结算页数据面：本局三强强化回顾 + 下一波次难度预告 + 麦仓收益增量；单局时长/击杀/波次",
         "id": "e-settlement",
         "kind": "entity",
-        "script": "games/wheat-squad/src/settlement.ts#settlementFacts"
+        "script": "games/wheat-squad/src/settlement.ts#buildSettlement"
       },
       {
         "expect": "麦仓放置收益：offline = base × min(hours, cap) × levelCoef（结构冻结；基准数值待校准 PEND）",
@@ -249,7 +249,7 @@
           "dy"
         ]
       },
-      "revision_note": "v1.0（可玩基线版 2026-10-12）：好玩判据四件套 A1–A4 条目化（fv-1..4 退役，映射 A1←fv-1 / A2←fv-2 / A3←fv-3 / A4←fv-4，旧 id 不再入 acceptance）；埋点字段名三方同名定名（first_core_action_at / run_duration_ms / feedback_latency_ms）；entities[].script 符号锚与骨架实符逐条对齐（v0.1 三处漂移修正：e-wheat-pickup→sim.ts#pickups、e-wave-manager→sim.ts#waveTimerMs、e-placement-bank→settlement.ts#bankGain）；总则冻结规则 + check 命名范式 + 反馈接入协议写入 meta；world.styleRef 换风格卡 v1；美术资产四条款入 acceptance。数值面新增 runDuration 胜利波次带与 perf 机型档/artCaps，placement 结构与 palette 色值逐字节不动。",
+      "revision_note": "v1.1（2026-10-12 · 单点修订）：e-settlement 符号锚修正 settlement.ts#settlementFacts → #buildSettlement（v1.0 锚点笔误——settlementFacts 实由 sim.ts 导出，settlement.ts 对外面 = buildSettlement；统一契约门禁 #符号锚机判暴露，零数值/条款面改动）。本修订即 meta.feedbackProtocol 的首次实际执行：自查发现 → revision 标 diff → 链上旧版 superseded → 契约与程序按 approved 对齐。",
       "slug": "wheat-squad",
       "telemetryFields": {
         "feedback_latency_ms": "单次操作到反馈呈现的毫秒延迟（内核同 tick 记 0，视觉层按 hitFlashMs 记）",
@@ -259,7 +259,7 @@
         "run_start": "局开始事件（v0.1 既有，保留）"
       },
       "title": "麦浪小队",
-      "version": "1.0"
+      "version": "1.1"
     },
     "numeric": {
       "DEFAULT_SEED": 20261011,
@@ -372,13 +372,13 @@
     }
   },
   "_platform": {
-    "id": "cmv4pqezm0016m9qm2i2qmywe",
-    "version": 2,
+    "id": "cmv4q8bng001em9qm5p78do05",
+    "version": 3,
     "status": "approved",
-    "parentSpecId": "cmv36ewn8001sm9mxvsyvbvuc",
+    "parentSpecId": "cmv4pqezm0016m9qm2i2qmywe",
     "projectId": "cmto0g28j0002m9sqnvjdy8o7",
     "title": "麦浪小队（wheat-squad）",
-    "createdAt": "2026-10-12T03:49:10.115Z",
-    "updatedAt": "2026-10-12T03:57:57.409Z"
+    "createdAt": "2026-10-12T04:03:05.596Z",
+    "updatedAt": "2026-10-12T04:03:15.448Z"
   }
 }

@@ -207,6 +207,16 @@ function collectNumericSources() {
     const hit = resolveAgainstProject(rel);
     if (hit && isScript.test(hit)) sources.set(fs.realpathSync(hit), fs.readFileSync(hit, "utf8"));
   }
+  // 2026-10-12 wheat-squad 扩展（加法不缩水）：验收侧数值（如 firstCore/artCaps）的消费方 = 契约件
+  // （tests/contract/*.mjs 经 loadSpec 直读 spec.numeric 断言）——spec 仍单源，契约件是断言消费面，
+  // 并入扫描源使「数值在工程有对应」口径覆盖验收侧数值；引擎侧数值消费面原样保留。
+  const contractDir = resolveAgainstProject("tests/contract");
+  if (contractDir && fs.statSync(contractDir).isDirectory()) {
+    for (const f of fs.readdirSync(contractDir).filter((x) => /\.mjs$/.test(x))) {
+      const p = path.join(contractDir, f);
+      sources.set(fs.realpathSync(p), fs.readFileSync(p, "utf8"));
+    }
+  }
   if (sources.size > 0) return sources;
   const EXCLUDE = new Set([".git", ".godot", "node_modules", "export", "qa", ".myrd", ".myrd-platform", "build"]);
   const found = [];

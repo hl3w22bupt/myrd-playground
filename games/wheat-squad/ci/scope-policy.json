@@ -1,0 +1,30 @@
+{
+  "$note": "wheat-squad 仓库范围与违规标识符策略（可玩基线轮 2026-10-12 · 单源）：guard-repo-scope.mjs 只读本文件，不在代码里手抄第二份。检测规则沿 g2-blocks AC-17/AC-18 判例原样平移（脚本零改动），本策略 = wheat 线规则面；QA 规则清单（.myrd/blackboard/wheat-squad/ 下 N7 件）以本文件为准防缩水。",
+  "forbiddenReferencePatterns": [
+    { "pattern": "games/stack-tower", "$why": "一号仓（stack-tower 线）路径零引用——跨线泄漏红线" },
+    { "pattern": "games/g2-blocks", "$why": "g2-blocks 线零接触（本轮任务书边界）：wheat 面不得引用其路径/产物" },
+    { "pattern": "stack-tower-spec", "$why": "一号仓 spec 导出件名零引用" },
+    { "pattern": "\\.myrd/spec/(g2-blocks|stack-tower)", "$why": "兄弟线 spec 目录零引用" },
+    { "pattern": "getFriendCloudStorage|getFriendInfo|openDataContext", "$why": "平台红线①：好友数据不出开放数据域—— wheat v1 面无开放数据域实现，出现即违例（未来接入时随 spec revision 收窄本条）" },
+    { "pattern": "password|secretKey|apiKey|access_token|credential", "$why": "平台红线②：凭证不入库——工程内不得出现凭证类标识符（占位符 only）" },
+    { "pattern": "全网最低|全网第一|第一名|NO\\.1|国家级|世界级|顶级|独家|永久免费|100%中奖", "$why": "素材文案极限词（广告法面）——含素材文案面（.md/.svg/.html），QA 规则清单同步项" }
+  ],
+  "selfExemptFiles": ["ci/scope-policy.json", "ci/guard-repo-scope.mjs"],
+  "referenceAllowedPaths": [
+    { "prefix": "qa/submission/README.md", "$note": "提审素材 README = 红线规则清单本身（声明性引用极限词/红线字面，非使用）" },
+    { "prefix": "docs/", "$note": "spec/文档面逐字声明边界条款属契约内容非越界引用" },
+    { "prefix": "tests/contract/", "$note": "契约件 FORBIDDEN 面列举（禁触列表本身）" }
+  ],
+  "scannedExtensions": [".mjs", ".js", ".ts", ".json", ".md", ".yml", ".yaml", ".html", ".css", ".svg", ".toml"],
+  "$scannedNote": "扫描扩展名含 .svg/.md/.toml = 素材文案与配置面全覆盖（QA 防缩水清单核对面）",
+  "repoOne": {
+    "$note": "一号仓零接触自检（--self-check <一号仓根>）：wheat 线为二号仓，本节声明本线自身允许落盘面，供父级巡检引用",
+    "allowedNewPaths": [
+      "games/wheat-squad/",
+      ".myrd/blackboard/wheat-squad/",
+      ".myrd/spec/wheat-squad/",
+      ".myrd/blackboard/spec-notes-line2.md",
+      ".myrd/blackboard/research/"
+    ]
+  }
+}

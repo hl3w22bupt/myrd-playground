@@ -5,6 +5,8 @@
                         
                                                                               
                                                                            
+                                                              
+                                                              
  
 
 export const THEME        = {
@@ -16,4 +18,6 @@ export const THEME        = {
   pestBrown: '#8A5A3B',
   accentRed: '#D2543E',
   inkBrown: '#4A3826',
+  scrimInk: 'rgba(74,56,38,0.55)',
+  panelCream: 'rgba(245,237,216,0.96)',
 };

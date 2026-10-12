@@ -5,6 +5,8 @@
 export interface Theme {
   wheatGold: string; wheatDeep: string; fieldGreen: string; fieldDeep: string;
   skyCream: string; pestBrown: string; accentRed: string; inkBrown: string;
+  scrimInk: string;   // inkBrown α0.55 三选一遮罩（派生 token：同色相带 α）
+  panelCream: string; // skyCream α0.96 结算面板底（派生 token：同色相带 α）
 }
 
 export const THEME: Theme = {
@@ -16,4 +18,6 @@ export const THEME: Theme = {
   pestBrown: '#8A5A3B',
   accentRed: '#D2543E',
   inkBrown: '#4A3826',
+  scrimInk: 'rgba(74,56,38,0.55)',
+  panelCream: 'rgba(245,237,216,0.96)',
 };

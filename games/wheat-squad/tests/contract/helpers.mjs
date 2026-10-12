@@ -38,20 +38,22 @@ export async function driveRun(spec, opts = {}) {
   const { seededRng } = await import(join(ROOT, 'src', 'kernel', 'loop.ts'));
   const n = spec.numeric;
   const cfg = {
-    rng: seededRng(opts.seed ?? n.DEFAULT_SEED),
+    rng: seededRng(opts.seedOverride ?? opts.seed ?? n.DEFAULT_SEED),
     field: { w: 390, h: 640 },
     stepMs: n.FIXED_STEP_MS,
     captain: n.captain, squad: n.squad, enemy: n.enemy, wave: n.wave,
     upgrade: n.upgrade, firstKillBudgetSec: n.firstKillBudgetSec,
     feedback: n.feedback, perf: n.perf, runDuration: n.runDuration,
   };
-  const st = createSim(cfg, opts.seed ?? n.DEFAULT_SEED);
+  const st = createSim(cfg, opts.seedOverride ?? opts.seed ?? n.DEFAULT_SEED);
+  st.captain.target = { x: cfg.field.w / 2, y: cfg.field.h / 2 }; // 首次核心操作（拖动指令注入，目标=驻点不位移——保持既有动态面，A1 语义=指令面非位移面）
   const dt = opts.dtMs ?? n.FIXED_STEP_MS;
   let guard = 0;
   while (st.phase === 'running' && guard < 5_000_000) {
     guard += 1;
     stepSim(st, dt);
     if (st.choices) pickUpgrade(st, 0); // 恒选第 0 项（确定性输入面）
+    if (opts.stopAtSec && (st.tick * dt) / 1000 >= opts.stopAtSec) break; // A1 首30秒必达采样（提前窗断言）
   }
   return st;
 }

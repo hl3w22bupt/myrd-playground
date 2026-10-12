@@ -112,11 +112,20 @@ if (!ready) die('READY 超时（boot 断链）\n' + consoleErrors.join('\n'));
 say('ready ✓ __G2WS_READY=true');
 
 // ② 操作：拖动（pointer 事件注入）→ 战局推进 + 击杀发生
+// 坐标从 canvas 实际 rect 取（视口 letterbox/缩放下盲打坐标会落到 canvas 外——
+// 2026-10-12 实证：此前「拖动→击杀」实为站桩被动达成，A1 埋点断言暴露此 latent 缺陷后修正）
+// 事件间留 100ms 持按：rAF 帧需观察到非空 pointer（first_core_action 语义=帧级拖动指令）。
+const rectRaw = await evalJs(`(() => { const r = document.getElementById('stage').getBoundingClientRect(); return JSON.stringify({ x: r.x, y: r.y, w: r.width, h: r.height }); })()`);
+const rect = JSON.parse(rectRaw || '{"x":0,"y":0,"w":390,"h":640}');
+const cx = Math.floor(rect.x + rect.w / 2), cy = Math.floor(rect.y + rect.h / 2);
+const dx = Math.floor(rect.w * 0.15), dy = Math.floor(rect.h * 0.12);
 const drag = async () => {
-  await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: 200, y: 400, button: 'left', clickCount: 1, pointerType: 'mouse' });
-  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 120, y: 300, button: 'left', pointerType: 'mouse' });
-  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 260, y: 480, button: 'left', pointerType: 'mouse' });
-  await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: 260, y: 480, button: 'left', pointerType: 'mouse' });
+  await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: cx, y: cy, button: 'left', clickCount: 1, pointerType: 'mouse' });
+  await new Promise((r) => setTimeout(r, 100));
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: cx - dx, y: cy - dy, button: 'left', pointerType: 'mouse' });
+  await new Promise((r) => setTimeout(r, 100));
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: cx + dx, y: cy + dy, button: 'left', pointerType: 'mouse' });
+  await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: cx + dx, y: cy + dy, button: 'left', pointerType: 'mouse' });
 };
 let kills0 = -1, moved = false;
 for (let i = 0; i < 24; i += 1) {
@@ -131,6 +140,14 @@ for (let i = 0; i < 24; i += 1) {
 if (!moved) die('战局未推进（tick 恒 0——输入链或循环断）\n' + consoleErrors.join('\n'));
 if (kills0 < 0) die('20+ 次拖动后仍零击杀（作战链断）\n' + consoleErrors.join('\n'));
 say(`操作 ✓ tick 推进 + 击杀 ${kills0}（拖动→作战链通）`);
+
+// ②' A1/A4 埋点真实产生断言（spec loop-1 + meta.telemetryFields 三方同名：first_core_action_at / feedback_latency_ms / first_kill）
+const evs = await evalJs(`JSON.stringify(globalThis.__G2WS_GAME ? globalThis.__G2WS_GAME.telemetryEvents() : [])`);
+const evList = JSON.parse(evs || '[]');
+for (const need of ['first_core_action_at', 'first_kill', 'feedback_latency_ms']) {
+  if (!evList.includes(need)) die(`A1/A4 埋点缺失：${need} 未产生（telemetryEvents=${evList.join(',')}）\n` + consoleErrors.join('\n'));
+}
+say(`埋点 ✓ first_core_action_at / first_kill / feedback_latency_ms 真实产生（A1/A4 面）`);
 
 // ③ 快进到结算：机读面直调重开循环太慢 → 用 __G2WS_GAME 快进（step 大步）不造假：仍走真实 stepSim
 const fastForward = await evalJs(`(async () => {
@@ -149,9 +166,27 @@ const ff = JSON.parse(fastForward);
 if (ff.phase !== 'ended') die(`快进后未结算: ${fastForward}`);
 say(`结算 ✓ phase=${ff.phase} reason=${ff.reason} elapsed=${ff.elapsedSec}s`);
 
-// ④ console 零错误
+// ③' run_duration_ms 埋点断言（A2 面：结算时 run_end 携带 durationMs）
+const runEnd = await evalJs(`(() => {
+  const g = globalThis.__G2WS_GAME;
+  return JSON.stringify({ durationMs: g.state.tick * g.state.cfg.stepMs, reason: g.state.endedReason });
+})()`);
+const re = JSON.parse(runEnd || '{}');
+if (!re.durationMs || re.durationMs <= 0) die(`run_duration_ms 未产生（run_end.durationMs=${re.durationMs}）`);
+say(`埋点 ✓ run_duration_ms=${re.durationMs}ms reason=${re.reason}（A2 面）`);
+
+// ④ 重开：结算态真实 pointerdown → restart 路径（main.ts：ended 态点按即重开）→ 状态复位回 running
+await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: cx, y: cy, button: 'left', clickCount: 1, pointerType: 'mouse' });
+await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: cx, y: cy, button: 'left', pointerType: 'mouse' });
+await new Promise((r) => setTimeout(r, 400));
+const after = await evalJs('JSON.stringify(globalThis.__G2WS_STATE ? globalThis.__G2WS_STATE() : null)');
+const as = JSON.parse(after || '{}');
+if (as.phase !== 'running' || as.kills !== 0) die(`重开未复位：phase=${as.phase} kills=${as.kills}`);
+say(`重开 ✓ 结算态点按→回 running + kills 归零（结算-重开闭环）`);
+
+// ⑤ console 零错误
 if (consoleErrors.length > 0) die(`console 错误 ${consoleErrors.length} 条:\n` + consoleErrors.slice(0, 5).join('\n'));
 say('console/页面 零错误 ✓');
 
 ws.close(); server.close(); proc.kill();
-console.log('WS-SMOKE: PASS 打开→操作→结算 + console 零错误');
+console.log('WS-SMOKE: PASS 打开→首次核心操作→单局结束→重开 + A1/A4 埋点真实产生 + console 零错误');

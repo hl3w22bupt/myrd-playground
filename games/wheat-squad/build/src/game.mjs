@@ -5,6 +5,7 @@
 import { seededRng } from './kernel/loop.mjs';
 import { createSim, offerUpgrades, pickUpgrade, settlementFacts, stepSim,                                UPGRADE_LABEL } from './kernel/sim.mjs';
 import { computeLayout, drawEffects, drawField, drawHud, drawPests, drawSquad,             } from './render/renderer.mjs';
+import { THEME } from './render/theme.mjs';
 import { buildSettlement } from './settlement.mjs';
 
                                 
@@ -68,8 +69,16 @@ export function createGame(specRaw      , canvasW = 390, canvasH = 640)       {
       state.captain.target = game.pointer;
       stepSim(state, dtMs);
       if (state.firstKillTick !== null && !telemetry.some((t) => t.id === 'first_kill')) telemetry.push({ id: 'first_kill', tick: state.firstKillTick });
+      // 埋点三方同名（spec meta.telemetryFields = 本处 = 冒烟断言）：first_core_action_at / run_duration_ms / feedback_latency_ms
+      if (state.firstCoreActionTick !== null && !telemetry.some((t) => t.id === 'first_core_action_at')) {
+        telemetry.push({ id: 'first_core_action_at', tick: state.firstCoreActionTick, atMs: state.firstCoreActionTick * spec.numeric.FIXED_STEP_MS });
+      }
+      const fbEv = state.feedbackEvents[0];
+      if (fbEv && !telemetry.some((t) => t.id === 'feedback_latency_ms')) {
+        telemetry.push({ id: 'feedback_latency_ms', tick: fbEv.tick, latencyMs: fbEv.latencyMs, channels: fbEv.channels });
+      }
       if (state.phase === 'ended' && !telemetry.some((t) => t.id === 'run_end')) {
-        telemetry.push({ id: 'run_end', tick: state.tick });
+        telemetry.push({ id: 'run_end', tick: state.tick, durationMs: state.tick * spec.numeric.FIXED_STEP_MS, reason: state.endedReason });
       }
     },
     render(ctx                          )       {
@@ -87,7 +96,7 @@ export function createGame(specRaw      , canvasW = 390, canvasH = 640)       {
 }
 
 function renderUpgradePicker(ctx                          , L        , st          )       {
-  ctx.fillStyle = 'rgba(74,56,38,0.55)';
+  ctx.fillStyle = THEME.scrimInk;
   ctx.fillRect(0, 0, L.w, L.h);
   const cards = st.choices || [];
   const cw = 96, ch = 120, gap = 12;
@@ -96,12 +105,12 @@ function renderUpgradePicker(ctx                          , L        , st       
   const y0 = L.h / 2 - ch / 2;
   cards.forEach((id, i) => {
     const x = x0 + i * (cw + gap);
-    ctx.fillStyle = '#F5EDD8';
+    ctx.fillStyle = THEME.skyCream;
     ctx.fillRect(x, y0, cw, ch);
-    ctx.strokeStyle = '#C99530';
+    ctx.strokeStyle = THEME.wheatDeep;
     ctx.lineWidth = 2;
     ctx.strokeRect(x, y0, cw, ch);
-    ctx.fillStyle = '#4A3826';
+    ctx.fillStyle = THEME.inkBrown;
     ctx.font = '600 12px system-ui, sans-serif';
     wrapText(ctx, UPGRADE_LABEL[id], x + 8, y0 + 24, cw - 16, 16);
     ctx.font = '500 11px system-ui, sans-serif';
@@ -112,17 +121,17 @@ function renderUpgradePicker(ctx                          , L        , st       
 function renderSettlement(ctx                          , L        , st          )       {
   const facts = settlementFacts(st);
   const view = buildSettlement(facts, st.endedReason || 'timeout');
-  ctx.fillStyle = 'rgba(245,237,216,0.96)';
+  ctx.fillStyle = THEME.panelCream;
   ctx.fillRect(L.w * 0.08, L.h * 0.18, L.w * 0.84, L.h * 0.56);
-  ctx.strokeStyle = '#C99530';
+  ctx.strokeStyle = THEME.wheatDeep;
   ctx.lineWidth = 3;
   ctx.strokeRect(L.w * 0.08, L.h * 0.18, L.w * 0.84, L.h * 0.56);
-  ctx.fillStyle = '#4A3826';
+  ctx.fillStyle = THEME.inkBrown;
   ctx.font = '700 18px system-ui, sans-serif';
   ctx.fillText(view.headline, L.w * 0.12, L.h * 0.18 + 34);
   ctx.font = '500 12px system-ui, sans-serif';
   view.rows.forEach((r, i) => ctx.fillText(r, L.w * 0.12, L.h * 0.18 + 60 + i * 18));
-  ctx.fillStyle = '#D2543E';
+  ctx.fillStyle = THEME.accentRed;
   ctx.font = '600 13px system-ui, sans-serif';
   ctx.fillText(view.restartHint, L.w * 0.12, L.h * 0.18 + L.h * 0.56 - 16);
 }
