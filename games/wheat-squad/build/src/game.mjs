@@ -27,6 +27,8 @@ export function loadSpec()       {
                            
                                               
                               
+                                                        
+                                                                                    
  
 
 export function numericToConfig(spec      , rng                              )            {
@@ -78,7 +80,7 @@ export function createGame(specRaw      , canvasW = 390, canvasH = 640)       {
         telemetry.push({ id: 'feedback_latency_ms', tick: fbEv.tick, latencyMs: fbEv.latencyMs, channels: fbEv.channels });
       }
       if (state.phase === 'ended' && !telemetry.some((t) => t.id === 'run_end')) {
-        telemetry.push({ id: 'run_end', tick: state.tick, durationMs: state.tick * spec.numeric.FIXED_STEP_MS, reason: state.endedReason });
+        telemetry.push({ id: 'run_end', tick: state.tick, run_duration_ms: state.tick * spec.numeric.FIXED_STEP_MS, reason: state.endedReason });
       }
     },
     render(ctx                          )       {
@@ -91,6 +93,7 @@ export function createGame(specRaw      , canvasW = 390, canvasH = 640)       {
       if (state.phase === 'ended') renderSettlement(ctx, layout, state);
     },
     telemetryEvents()           { return telemetry.map((t) => t.id); },
+    telemetryEntries() { return telemetry.map((t) => ({ ...t })); },
   };
   return game;
 }

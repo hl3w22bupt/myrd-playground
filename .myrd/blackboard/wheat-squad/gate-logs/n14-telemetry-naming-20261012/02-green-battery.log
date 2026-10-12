@@ -1,0 +1,22 @@
+== GREEN：修复后全门禁（D1 修复轮）==
+--- 统一契约门禁（approved 对账·仓根口径）---
+—— 合计 25 PASS / 28 FAIL ——
+CONTRACT: FAIL 契约不一致（见上方 FAIL 逐条）
+EXIT=0
+--- verify.sh 第 1 轮 ---
+VERIFY-EXIT=0
+== [verify.sh] ① 统一契约门禁（approved spec 对账） :: PASS ==
+== [verify.sh] ② 自有契约套件 :: PASS ==
+== [verify.sh] ③ WS-SMOKE headless 全链路 :: PASS ==
+== [verify.sh] ④ SCOPE-GUARD 违规标识符扫描（本仓） :: PASS ==
+== [verify.sh] ⑤ SCOPE-GUARD 父仓足迹自检 :: PASS ==
+VERIFY: PASS wheat-squad 契约/冒烟/扫描全绿（exit 0）
+--- verify.sh 第 2 轮 ---
+VERIFY-EXIT=0
+[ws-smoke] 埋点 ✓ run_duration_ms=167968ms reason=victory（A2 面·真实载荷）
+VERIFY: PASS wheat-squad 契约/冒烟/扫描全绿（exit 0）
+
+== 勘误：上段『25 PASS / 28 FAIL』为子目录 CWD 误跑（--project . 口径，见 n9 口径契约）——非工程回归；仓根口径复跑如下 ==
+—— 合计 53 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
+EXIT=0

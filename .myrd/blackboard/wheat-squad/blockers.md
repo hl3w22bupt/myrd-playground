@@ -18,6 +18,19 @@
 - 冒烟：**WS-SMOKE PASS**（headless 可重复：打开→首次核心操作→victory 结算 167s→重开复位 + A1/A4 埋点真实产生 + console 零错误）
 - 违规标识符扫描：**SCOPE-GUARD PASS**（47 文件零越界，策略单源含素材文案面；n9 轮复核 49 文件零越界——文件数随新增文件自然增长，判据不变）
 
+## N14 对抗审查 D1/D2 修复轮（2026-10-12 · 游戏程序 · 埋点定名三方同名真达成）
+
+- **D1 属实并修复（先红后绿）**：spec 定名 `run_duration_ms`（telemetryFields + ac-a2 statement），接线载荷键曾为 `durationMs`（game.ts:81）、冒烟读 `re.durationMs` **自算值**（比指控更重：断言未绑真实遥测）。修复：① 载荷键改名 `run_duration_ms`（game.ts）② 冒烟改经 `telemetryEntries()` **直读真实发射载荷**（Game 接口新增暴露面），实跑实证 `run_duration_ms=167968ms reason=victory（A2 面·真实载荷）`。
+- **命名漂移第二处**：`endedReason` 枚举实现 `overrun` vs spec `defeat`——**按 approved 单源对齐代码**（sim.ts 类型+赋值、settlement.ts 签名三处 → `defeat`），spec 零改动即消解 reason 半边 revision 需求；若策划欲 `overrun` 语义差异化，走 feedbackProtocol revision，ac-14 会机判拦截旧值。
+- **新增 ac-14**（`tests/contract/ac-14-telemetry-naming.spec.mjs`，run-all 自动发现）：**剥注释后**机判 telemetryFields 5 键逐字出现于接线面+断言面（注释出现不算命中——run_duration_ms 正是靠注释逃逸双绿的）、结局势从 spec 文本机器提取并与实现枚举双包含对拍、旧键 `durationMs` 绝迹断言。**红证据 RED-EXIT=1**（对未修实现命中 QA 指控原文）。
+- **D2 修复**：ac-09 从纯 spec 侧文本扩为**行为级结构锁定**——导入 `placementOffline` 真实公式实体逐例对拍 `base×min(hours,cap)×levelCoef` + capHours 封顶钳制。
+- **D3 不动码**：冻结计数器措辞（spec「本轮收口时置第 1/3」vs QA「0/3 全不达才计数」）属 spec 单源措辞，按 feedbackProtocol 归策划单行 revision（W-5）。
+- **验证**：自有契约 **14 PASS / 0 FAIL**（新增 ac-14）· 统一门禁 **53/0**（仓根口径，勘误段在案）· **verify.sh 连续 2 轮五步全 PASS VERIFY-EXIT=0**（驳回要求的复审前置达成）。证据 `gate-logs/n14-telemetry-naming-20261012/`（01 ac14 红 + 02 全绿电量+勘误）。
+
+| id | 事项 | 归属 |
+|---|---|---|
+| W-5 | D3 单行澄清：spec meta.baselineProtocol.计数器措辞与 QA 口径（0/3 全不达才计数）统一——一次 spec revision 单行，随下次链上修订顺带 | 游戏策划（revision 链） |
+
 ## N13 受测游戏身份门禁处置（2026-10-12 · 游戏程序 · wheat verify.sh + slug 薄壳）
 
 - **驳回**：「无法确定受测游戏：spec id 未解析出 slug 且存在 2 个 verify.sh」。**破案证据**：平台门禁原始日志收档于 `.myrd/blackboard/gate-logs/contract-gate-20261012-130704.log`（13:07:04 = 产生本轮驳回的运行）——**平台门禁证据落点 = 顶层 gate-logs/**，已实证并登记白名单。

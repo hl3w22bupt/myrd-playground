@@ -48,7 +48,7 @@ export const UPGRADE_LABEL                            = {
                  
                                 
                              
-                                                        
+                                                       
                    
                      
                 
@@ -242,7 +242,7 @@ export function stepSim(st          , dtMs        )       {
       });
       const bl = Math.max(1, Math.hypot(dx, dy));
       p.pos.x -= (dx / bl) * 24; p.pos.y -= (dy / bl) * 24; // 接触分离（防贴合连扣）
-      if (st.captain.hp <= 0) { st.phase = 'ended'; st.endedReason = 'overrun'; return; }
+      if (st.captain.hp <= 0) { st.phase = 'ended'; st.endedReason = 'defeat'; return; }
     }
   }
 

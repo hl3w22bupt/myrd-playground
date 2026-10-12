@@ -48,7 +48,7 @@ export interface SimState {
   cfg: SimConfig;
   tick: number; // fixed-step 帧号
   phase: 'running' | 'ended';
-  endedReason: 'timeout' | 'overrun' | 'victory' | null;
+  endedReason: 'timeout' | 'defeat' | 'victory' | null;
   captain: Captain;
   mates: Squadmate[];
   pests: Pest[];
@@ -242,7 +242,7 @@ export function stepSim(st: SimState, dtMs: number): void {
       });
       const bl = Math.max(1, Math.hypot(dx, dy));
       p.pos.x -= (dx / bl) * 24; p.pos.y -= (dy / bl) * 24; // 接触分离（防贴合连扣）
-      if (st.captain.hp <= 0) { st.phase = 'ended'; st.endedReason = 'overrun'; return; }
+      if (st.captain.hp <= 0) { st.phase = 'ended'; st.endedReason = 'defeat'; return; }
     }
   }
 

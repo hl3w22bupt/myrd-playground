@@ -166,14 +166,16 @@ const ff = JSON.parse(fastForward);
 if (ff.phase !== 'ended') die(`快进后未结算: ${fastForward}`);
 say(`结算 ✓ phase=${ff.phase} reason=${ff.reason} elapsed=${ff.elapsedSec}s`);
 
-// ③' run_duration_ms 埋点断言（A2 面：结算时 run_end 携带 durationMs）
+// ③' run_duration_ms 埋点断言（A2 面：直读真实发射的 run_end 遥测条目与 spec 定名载荷键——禁自算替代）
 const runEnd = await evalJs(`(() => {
   const g = globalThis.__G2WS_GAME;
-  return JSON.stringify({ durationMs: g.state.tick * g.state.cfg.stepMs, reason: g.state.endedReason });
+  const e = (g.telemetryEntries ? g.telemetryEntries() : []).find((t) => t.id === 'run_end');
+  return JSON.stringify(e ?? {});
 })()`);
 const re = JSON.parse(runEnd || '{}');
-if (!re.durationMs || re.durationMs <= 0) die(`run_duration_ms 未产生（run_end.durationMs=${re.durationMs}）`);
-say(`埋点 ✓ run_duration_ms=${re.durationMs}ms reason=${re.reason}（A2 面）`);
+if (!re.run_duration_ms || re.run_duration_ms <= 0) die(`run_duration_ms 未产生（run_end 遥测=${runEnd}）`);
+if (!['victory', 'timeout', 'defeat'].includes(re.reason)) die(`run_end.reason=${re.reason} 不在 spec 结局势 {victory, timeout, defeat}`);
+say(`埋点 ✓ run_duration_ms=${re.run_duration_ms}ms reason=${re.reason}（A2 面·真实载荷）`);
 
 // ④ 重开：结算态真实 pointerdown → restart 路径（main.ts：ended 态点按即重开）→ 状态复位回 running
 await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: cx, y: cy, button: 'left', clickCount: 1, pointerType: 'mouse' });

@@ -27,6 +27,8 @@ export interface Game {
   step(dtMs: number): void;
   render(ctx: CanvasRenderingContext2D): void;
   telemetryEvents(): string[];
+  /** 遥测原始条目（id + 定名载荷键）——冒烟断言面直读真实发射载荷（D1 修复：禁止自算替代） */
+  telemetryEntries(): Array<{ id: string; tick: number } & Record<string, unknown>>;
 }
 
 export function numericToConfig(spec: Json, rng: ReturnType<typeof seededRng>): SimConfig {
@@ -78,7 +80,7 @@ export function createGame(specRaw: Json, canvasW = 390, canvasH = 640): Game {
         telemetry.push({ id: 'feedback_latency_ms', tick: fbEv.tick, latencyMs: fbEv.latencyMs, channels: fbEv.channels });
       }
       if (state.phase === 'ended' && !telemetry.some((t) => t.id === 'run_end')) {
-        telemetry.push({ id: 'run_end', tick: state.tick, durationMs: state.tick * spec.numeric.FIXED_STEP_MS, reason: state.endedReason });
+        telemetry.push({ id: 'run_end', tick: state.tick, run_duration_ms: state.tick * spec.numeric.FIXED_STEP_MS, reason: state.endedReason });
       }
     },
     render(ctx: CanvasRenderingContext2D): void {
@@ -91,6 +93,7 @@ export function createGame(specRaw: Json, canvasW = 390, canvasH = 640): Game {
       if (state.phase === 'ended') renderSettlement(ctx, layout, state);
     },
     telemetryEvents(): string[] { return telemetry.map((t) => t.id); },
+    telemetryEntries() { return telemetry.map((t) => ({ ...t })); },
   };
   return game;
 }

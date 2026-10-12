@@ -28,6 +28,7 @@
 13. **N11** 同因驳回二次处置：字面 specPath 薄壳入口（`.myrd/spec/design-spec.json` 相对符号链接 → approved 单源，零拷贝零漂移，thin-proxy 判例）；规范口径连跑 2 轮 53/0 绿；`projectDir=.` 弱面 fail-closed 2 项如实披露不弱化（平台参数存量升级项 W-4）。证据 `wheat-squad/gate-logs/n11-legacy-specpath-symlink-20261012/`
 14. **N12** 驳回三到案收口：v3『契约不一致』= 弱面丢契约镜像层（W-4 预判命中）；root `tests/contract` 薄壳链接（→ wheat 契约镜像）使检查器 `tests/contract` 解析位任意 projectDir 单源命中；插桩实证规范面 21 源纯 wheat 独立 53/0、弱面 27 源为合法超集（糖果线遗留 c3 命中 games/game 冻结件）非假绿；两口径各 2 轮 4/4 EXIT=0；**W-4 仓内闭环降为知情项**。证据 `wheat-squad/gate-logs/n12-root-contract-thin-entry-20261012/`
 15. **N13** 受测游戏身份门禁收口（破案：平台门禁日志落点=顶层 gate-logs/，原始驳回日志在档）：新建 **wheat verify.sh**（五步真门禁薄壳，2 轮全 PASS）+ `.myrd/spec/wheat-squad-spec.json` slug 命名薄壳 + routines.yaml 陈旧 gamePath 纠正；两处守卫拦截均显式登记后转绿，冻结线零触碰。证据 `wheat-squad/gate-logs/n13-game-identity-verify-sh-20261012/`
+16. **N14** 对抗审查 D1/D2 修复（先红后绿）：埋点定名 `run_duration_ms` 真达成（接线载荷键改名 + 冒烟经 telemetryEntries 直读真实载荷，弃自算）；`overrun`→`defeat` 按 approved 单源对齐；新增 **ac-14** 剥注释机判 5 键三方同名+结局势 spec 同源+placementOffline 行为锁定（D2）；14/0 + 53/0 + verify.sh 2 轮全绿；D3 措辞归策划 revision（W-5）。证据 `wheat-squad/gate-logs/n14-telemetry-naming-20261012/`
 
 ## 待主人裁决清单
 
