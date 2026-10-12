@@ -18,6 +18,15 @@
 - 冒烟：**WS-SMOKE PASS**（headless 可重复：打开→首次核心操作→victory 结算 167s→重开复位 + A1/A4 埋点真实产生 + console 零错误）
 - 违规标识符扫描：**SCOPE-GUARD PASS**（47 文件零越界，策略单源含素材文案面；n9 轮复核 49 文件零越界——文件数随新增文件自然增长，判据不变）
 
+## 部署轮 r9（2026-10-12 · workflow deploy 节点 · 重跑：worktree 切回成果分支，从当前分支部署）
+
+- **放行口径**：重跑反馈——worktree 已切回成果分支 `myrd/wheat-squad-baseline-cmv4k7sig0026m9p8oxdk8ebt` 并推远端（含全部 N0–N15 成果）。核对：本地成果分支经 `--ff-only` 快进对齐远端 `a5018b6`（`git ls-remote` 全等比对，不依赖 tracking ref），硬前置①②③全满足。
+- **部署前门禁（当前 HEAD=a5018b6 实跑）**：确定性重建 ≡ 仓内 build 逐字节全等（src/build 同批止于 729ef41）+ verify.sh 五步全 PASS **VERIFY-EXIT=0**（统一契约 · 自有契约 · WS-SMOKE 全链路 A1/A4 埋点 · 守卫双模式）。
+- **部署单**：坑 `cmv36wl94001xm9mxp119q48x`（sourceId=wheat-squad 绑定复核 ✓，复用未新建）· **version 9** `cmv4x0se5000cm95qvbgzzqo4` = **running/current** @ commit **`a5018b6`** · gitRef=**myrd/wheat-squad-baseline-cmv4k7sig0026m9p8oxdk8ebt**（当前分支）· errorMessage=null。**双单如实披露**：首次 POST 响应被网关 504 截断（服务端已受理），按 N5 判例 GET 复查发现已建单后未盲重；第二次诊断性 POST（带状态码复测）恰在 v9 受理后到达，多建 **v10**（同提交同清单字节等价，current=v9 正确，无内容风险）——「单次无重复」判例本轮破例一次，归因 504 语义模糊，留档。
+- **线上自测**：/gw/health **200** ✓ · 资产权威面 `main.mjs` **live ≡ 提交 build 字节全等**（md5 `1711423891…`）✓ · **页面路 W-3 串线第五次复现**：/gw 页面 title=汽车连连看 ≡ /apps/game-9/gw 字节全等（md5 `abb7c87b…`），壳为内联 bundle（无外链 src）→ 玩家侧 boot 断链（game-9 壳引 index.js 404），**WS-LIVE-SMOKE FAIL（exit=1，fail-closed 正确）**。
+- **结论**：部署面成功（v9 ready @a5018b6，三要素在档，gitRef 已按反馈从 main 换回成果分支）；**W-3 与 gitRef 无关**——v7（成果分支）/v8（main）/v9（成果分支）三种 gitRef × 正确 manifestPath+sourceId 五次部署，页面路一律发 game-9 共享壳，进一步收窄为平台 serving 层壳路由绑定缺陷（疑似 v3 漏 manifestPath 事故时被写坏后未随正确部署恢复）。维持升级运维/主人转发。解除判据不变：页面 title=麦浪小队 ⇒ **WS-LIVE-SMOKE PASS**。
+- 证据 `gate-logs/deploy-r9-20261012/`（01 门禁五步 · 02 live-smoke 红 · 03 串线页面字节收档）。
+
 ## 部署轮 r8（2026-10-12 · workflow deploy 节点 · 重跑放行：成果已回流 origin/main）
 
 - **放行口径**：publish 加固后重跑——main ≡ origin/main ≡ HEAD `21756d7`、`git log origin/main..HEAD` 空、工作树干净 ⇒ 识别为「成果已回流」，按新版脚本放行 deploy。
