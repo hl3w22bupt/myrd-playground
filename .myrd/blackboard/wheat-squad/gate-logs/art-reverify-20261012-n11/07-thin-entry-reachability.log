@@ -1,0 +1,3 @@
+# ⑦ 薄壳入口可达性（N11 新增面 · 美术侧抽核：符号链接解析到 approved spec 且 palette 可读）· HEAD=9035207
+[PASS] 旧字面 specPath 经薄壳入口可达 approved spec，8 色 palette token 全可读（美术色源单链不断）
+EXIT=0
