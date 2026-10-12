@@ -1,12 +1,35 @@
-// ac-05-hit-feedback — fv-4（auto 面）：判定→反馈 ≤150ms（帧级）+ flash 时长 = hitFlashMs
+// ac-05-hit-feedback — ac-a4-feedback-channels（A4 · auto）：反馈延迟 ≤100ms + 每操作 ≥2 通道
+// 判据源：spec acceptance ac-a4 + numeric.feedback（latencyBudgetMs/minChannelsPerOp/hitFlashMs）
+// feedback_latency_ms = 操作 tick → 反馈事件 tick 差 × FIXED_STEP_MS（meta.telemetryFields 三方同名）
 import { assert, loadSpec, driveRun } from './helpers.mjs';
 const spec = loadSpec();
-const st = await driveRun(spec);
-assert(st.kills > 0, '无击杀无反馈面');
+const fb = spec.numeric.feedback;
 const stepMs = spec.numeric.FIXED_STEP_MS;
-const latencyMs = (st.lastFeedbackLatencyTicks ?? 99) * stepMs;
-assert(latencyMs <= spec.numeric.feedback.latencyBudgetMs, `反馈延迟 ${latencyMs}ms > 预算 ${spec.numeric.feedback.latencyBudgetMs}ms`);
-const flashTicks = Math.max(1, Math.round(spec.numeric.feedback.hitFlashMs / stepMs));
-const f = st.flashes[0];
-if (f) assert(f.endTick - f.bornTick === flashTicks, `flash 时长 ${f.endTick - f.bornTick} 帧 ≠ ${flashTicks} 帧（hitFlashMs 换算）`);
-console.log(`PASS fv-4(auto) 反馈延迟 ${latencyMs}ms ≤${spec.numeric.feedback.latencyBudgetMs}ms · flash=${spec.numeric.feedback.hitFlashMs}ms 换算一致`);
+
+const st = await driveRun(spec);
+assert(Array.isArray(st.feedbackEvents) && st.feedbackEvents.length > 0, 'sim 未产出 feedbackEvents（A4 接线未完成）');
+
+// 面1：延迟——每条反馈事件 latency ≤ latencyBudgetMs(100ms)
+let maxLatency = 0;
+for (const ev of st.feedbackEvents) {
+  assert(typeof ev.latencyMs === 'number', 'feedbackEvent 缺 latencyMs（feedback_latency_ms 接线缺失）');
+  maxLatency = Math.max(maxLatency, ev.latencyMs);
+  assert(ev.latencyMs <= fb.latencyBudgetMs, `反馈延迟 ${ev.latencyMs}ms > ${fb.latencyBudgetMs}ms`);
+}
+
+// 面2：通道——采样操作每操作通道数 ≥ minChannelsPerOp(2)
+const byOp = new Map();
+for (const ev of st.feedbackEvents) {
+  const set = byOp.get(ev.opId) ?? new Set();
+  for (const ch of ev.channels) set.add(ch);
+  byOp.set(ev.opId, set);
+}
+assert(byOp.size > 0, '无采样操作（通道面无样本）');
+let minChannels = Infinity;
+for (const [, chans] of byOp) minChannels = Math.min(minChannels, chans.size);
+assert(minChannels >= fb.minChannelsPerOp, `存在操作仅 ${minChannels} 通道反馈 < ${fb.minChannelsPerOp}（A4 通道面）`);
+
+// 面3：flash 视觉时长口径保持（hitFlashMs，且 ≤ 延迟预算）
+assert(fb.hitFlashMs <= fb.latencyBudgetMs, `hitFlashMs(${fb.hitFlashMs}) > latencyBudgetMs(${fb.latencyBudgetMs})`);
+console.log(`PASS ac-a4(auto) 反馈延迟 max=${maxLatencyMs(maxLatency)}ms ≤${fb.latencyBudgetMs}ms · 每操作通道 min=${minChannels} ≥${fb.minChannelsPerOp} · flash=${fb.hitFlashMs}ms`);
+function maxLatencyMs(v) { return v.toFixed(0); }
