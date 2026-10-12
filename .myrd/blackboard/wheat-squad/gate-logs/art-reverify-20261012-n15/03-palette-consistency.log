@@ -1,0 +1,13 @@
+# ③ 三方色值机判（复用 v1 脚本 · 真源面）· HEAD=ed3b99b · 2026-10-12T05:45:29Z
+[i] 卡=/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv4k7sig0026m9p8oxdk8ebt/.myrd/blackboard/wheat-squad/style-card-v1.md
+[i] 卡 token 数=8 · theme token 数=8 · spec palette token 数=8
+[PASS] wheatGold = #E8B84B（三方全等）
+[PASS] wheatDeep = #C99530（三方全等）
+[PASS] fieldGreen = #7FA65A（三方全等）
+[PASS] fieldDeep = #5C7F42（三方全等）
+[PASS] skyCream = #F5EDD8（三方全等）
+[PASS] pestBrown = #8A5A3B（三方全等）
+[PASS] accentRed = #D2543E（三方全等）
+[PASS] inkBrown = #4A3826（三方全等）
+RESULT: PASS — 风格卡 v1/theme.ts/approved spec 三方 8 色逐值全等，无清单外 token
+EXIT=0

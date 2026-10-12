@@ -27,6 +27,8 @@
 
 **r6（同日 · HEAD `729ef41` 重锚 · 他线首触代码面）**：N14（QA 对抗审查 D1/D2 修复：埋点键 `run_duration_ms` 三方同名真达成 + `endedReason` 枚举按 spec 单源对齐 + 新增 ac-14）改动 game.ts/sim.ts/settlement.ts，经 render/theme/manifest/style 过滤**零触及美术呈现面**、spec 零改动 → verify.sh 全量五步逐条 PASS（自有契约 **14/0** · 统一门禁 53/0 · **冒烟在埋点键名变更后仍全绿**）；裸 hex 触码后重点复扫仍仅 theme.ts，4 件资产 sha256 零漂移。AC-A4 人判面引用的机器输出自此经剥注释机判背书，可信度升级。认领零保留。证据：`gate-logs/art-reverify-20261012-n14/`。结论仅对 `729ef41` 有效。
 
+**r7（同日 · HEAD `ed3b99b` 重锚）**：N15（`.myrd/spec/design-spec.json` 升格为确定性派生 gate-adapter 视图：内容原样+注入 id/slug 两键 + ac-15 漂移守卫）零触及美术源件 → verify.sh 全量五步逐条 PASS（自有契约 **15/0** · 统一门禁 53/0）；⑦ 抽核升级为**亲核**：单源/适配视图/slug 三入口 8 色 palette 逐值全等 + 注入键核实——适配视图定性为派生镜像非第二真源，与本线 theme.ts 派生镜像范式同构，认领零保留。证据：`gate-logs/art-reverify-20261012-n15/`。结论仅对 `ed3b99b` 有效。
+
 ## 既有登记（2026-10-11 复证轮 · 原文保留）
 
 | 资产 | 状态 | 说明 |
