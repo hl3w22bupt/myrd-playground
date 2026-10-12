@@ -17,6 +17,8 @@
 
 任务书（双轨冲刺）重发，按 redispatch-survey-first 勘验定性为**复证而非重做**（可玩基线轮美术交付面 N4–N9 已收口 + N9 后两笔提交零触及代码/spec 面，`git diff 03cf8d7..HEAD -- games/wheat-squad .myrd/spec` = 空）。当前 HEAD 六项重证全绿：① 自有契约 13/0（含 ac-10..13 美术四条款）EXIT=0；② 统一契约门禁 CONTRACT: PASS；③ 三方色值机判升版（style-card-v1 ↔ theme.ts ↔ approved spec）8 色全等；④ 裸 hex 扫描 theme.ts 之外 0 命中——**上轮挂账 game.ts ×5 裸 hex 确认 N6 已兑现清零，单源链零违例**；⑤ 提审占位模板三件尺寸逐件命中 + manifest/模板 4 件完整 sha256 基线留证；⑥ scope-guard 双模式 49 文件零越界。诚实口径：本轮不重跑 WS-SMOKE（程序线运行面，代码面零字节漂移故 N9 结论输入全等）；A3 结论面维持 ⏳ 待真人回填；正式提审素材维持止步清单。台账与原文证据：`gate-logs/art-reverify-20261012/`（README + 01..06 log + check-palette-consistency-v1.mjs）。结论仅对 `aa448e5` 有效。
 
+**r2（同日 · HEAD `9974553` 重锚）**：N10（程序线 routine 参数修复）零触及美术交付件，但改 `ci/scope-policy.json`/`routines.yaml`（本线门禁输入）→ 七项重证全绿（含 **4 件 sha256 逐字节零漂移**对照上轮基线 + scope-guard 双模式复证无回归）；N10 跨线改动经本线复核美术口径零冲突，认领登记。证据：`gate-logs/art-reverify-20261012-n10/`。结论仅对 `9974553` 有效。
+
 ## 既有登记（2026-10-11 复证轮 · 原文保留）
 
 | 资产 | 状态 | 说明 |
