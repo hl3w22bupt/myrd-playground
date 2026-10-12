@@ -1,7 +1,8 @@
 # 资产清单黑板 — wheat-squad（二线孵化 · 可玩基线轮）
 
 > 更新时间：2026-10-12（可玩基线轮 · N4 美术开产）· 负责人：游戏美术 · 主策划拍板：风格卡 v1 ✅ 开产授权
-> 下一步：AC-A1..A3 机判三件（ac-10..12）随 N6 实现入契约；AC-A4 人判互查随 N7 对抗审查执行；正式提审素材止步清单待主人拍板
+> 状态：AC-A1..A3 机判三件（ac-10..12）已随 N6 入契约（本轮复证 13/0 全绿）；AC-A4 人判互查已随 N7 执行（ac-art-4 PASS，回执在档）
+> 下一步：正式提审素材止步清单待主人拍板产出正式件；A3 结论面（0/5 真人回填）待主人试玩
 
 ## 本轮新增（2026-10-12 · 可玩基线轮）
 
@@ -11,6 +12,10 @@
 | 资产清单机读件 | ✅ | `games/wheat-squad/assets/manifest.json` v1：9 件 ≤ 封顶 13（entities 数）——实体资产 5（e-captain/e-squadmate/e-pest/e-bullet/e-wheat-pickup，id ∈ entities ids）+ ui-kit-01 + 提审占位 3 |
 | 提审素材占位模板 | ✅ 止步清单 | `games/wheat-squad/qa/submission/`（sub-icon 512² / sub-sharecard-5x4 1000×800 / sub-shots-3 1170×2080 三连模板 + 尺寸与红线 README；正式件待主人拍板） |
 | game.ts 裸 hex ×5 | 🔧 N6 收口 | 上轮挂账「单源链 v0.2 机判门禁」本轮兑现：裸 hex 换 THEME token + ac-10 白名单机判入契约 |
+
+## 复证轮登记（2026-10-12 · 游戏美术 · HEAD `aa448e5`）
+
+任务书（双轨冲刺）重发，按 redispatch-survey-first 勘验定性为**复证而非重做**（可玩基线轮美术交付面 N4–N9 已收口 + N9 后两笔提交零触及代码/spec 面，`git diff 03cf8d7..HEAD -- games/wheat-squad .myrd/spec` = 空）。当前 HEAD 六项重证全绿：① 自有契约 13/0（含 ac-10..13 美术四条款）EXIT=0；② 统一契约门禁 CONTRACT: PASS；③ 三方色值机判升版（style-card-v1 ↔ theme.ts ↔ approved spec）8 色全等；④ 裸 hex 扫描 theme.ts 之外 0 命中——**上轮挂账 game.ts ×5 裸 hex 确认 N6 已兑现清零，单源链零违例**；⑤ 提审占位模板三件尺寸逐件命中 + manifest/模板 4 件完整 sha256 基线留证；⑥ scope-guard 双模式 49 文件零越界。诚实口径：本轮不重跑 WS-SMOKE（程序线运行面，代码面零字节漂移故 N9 结论输入全等）；A3 结论面维持 ⏳ 待真人回填；正式提审素材维持止步清单。台账与原文证据：`gate-logs/art-reverify-20261012/`（README + 01..06 log + check-palette-consistency-v1.mjs）。结论仅对 `aa448e5` 有效。
 
 ## 既有登记（2026-10-11 复证轮 · 原文保留）
 
