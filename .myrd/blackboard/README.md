@@ -25,6 +25,7 @@
 10. **B 线**：第三线简报落盘——放置挂机互斥排除（同 idle 轴）；候选 ≤3（跑酷/模拟经营/io 对战·高风险标注）；全部带出处
 11. **N9** 游戏程序 verify-claims 独立复核（当前 HEAD）：N1–N8 全部复现成立（53/0 + 13/0 + 冒烟 + 扫描四绿）；**抓到守卫模式 2 latent 崩溃并策略单源修复**（先红后绿，脚本/规则零改动）；图谱刷到 20a1a9d · 重建与仓内 build 逐字节全等。证据 `wheat-squad/gate-logs/n9-verify-20261012/`
 12. **N10** 游戏程序驳回修复：routine「游戏契约测试」FAIL 属实（默认参数指向已不存在的顶层 spec 件——routines.yaml 未随 N0 一游戏一子目录判例更新）；修复 = 参数单源对齐 wheat 线，检查器零改动；字面命令连跑 2 轮 53/0 绿 + 冒烟绿。证据 `wheat-squad/gate-logs/n10-routine-contract-fix-20261012/`
+13. **N11** 同因驳回二次处置：字面 specPath 薄壳入口（`.myrd/spec/design-spec.json` 相对符号链接 → approved 单源，零拷贝零漂移，thin-proxy 判例）；规范口径连跑 2 轮 53/0 绿；`projectDir=.` 弱面 fail-closed 2 项如实披露不弱化（平台参数存量升级项 W-4）。证据 `wheat-squad/gate-logs/n11-legacy-specpath-symlink-20261012/`
 
 ## 待主人裁决清单
 

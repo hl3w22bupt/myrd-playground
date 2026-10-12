@@ -18,6 +18,18 @@
 - 冒烟：**WS-SMOKE PASS**（headless 可重复：打开→首次核心操作→victory 结算 167s→重开复位 + A1/A4 埋点真实产生 + console 零错误）
 - 违规标识符扫描：**SCOPE-GUARD PASS**（47 文件零越界，策略单源含素材文案面；n9 轮复核 49 文件零越界——文件数随新增文件自然增长，判据不变）
 
+## N11 同因驳回二次处置（2026-10-12 · 游戏程序 · 字面 specPath 薄壳入口）
+
+- **同驳回再到案**（`spec 文件不存在: .myrd/spec/design-spec.json`）：核实 N10 参数修复在 HEAD 在案 ⇒ 执行面参数并非（只）取自 routines.yaml 默认值（平台侧存量快照），或驳回取自修复落地前运行。
+- **修复（thin-proxy 判例）**：`.myrd/spec/design-spec.json` = **相对符号链接 → wheat-squad/design-spec.json**（approved 单源导出件，零拷贝零漂移）——任何携带旧 specPath 的调用方都能找到 approved spec；已入策略 allowedNewPaths 注记。
+- **断言面核实（不缩水）**：规范口径 53/0 EXIT=0（连跑 2 轮）；旧 specPath + wheat projectDir 组合同样 53/0。
+- **已知弱面如实披露（fail-closed 是正确行为，不为其弱化）**：若调用方还硬编码 `projectDir=.`，数值扫描丢契约镜像层（21→12 脚本），artCaps/firstCore 两项如实 FAIL——按检查器「数值只认 spec 禁止两头各改各的」哲学，**不造 src 数值副本迁就错误调用方**；该组合若再现属平台侧参数存量（见 W-4）。
+- 证据 `gate-logs/n11-legacy-specpath-symlink-20261012/01-legacy-path-thin-entry.log`。
+
+| id | 事项 | 证据 | 归属 |
+|---|---|---|---|
+| W-4 | 平台 routine 执行面参数存量：若 e2e-gate pre-hook 以仓内 routines.yaml 之外的快照取参（specPath=.myrd/spec/design-spec.json + projectDir=.），薄壳入口已保 spec 可达，但 projectDir=. 弱面会 fail-closed 2 项数值——请以仓内 routines.yaml 现行参数（wheat-squad 子目录口径）为准重放一次确认 | gate-logs/n11-legacy-specpath-symlink-20261012/ | 平台侧/主人转发 |
+
 ## N10 驳回修复轮（2026-10-12 · 游戏程序 · routine「游戏契约测试」FAIL）
 
 - **驳回属实**：routine 以默认参数 `--spec .myrd/spec/design-spec.json --project .` 执行 → `CONTRACT: FAIL spec 文件不存在`。根因 = **routines.yaml game-contract 默认参数未随 N0「一游戏一子目录」判例更新**（spec 实落 `.myrd/spec/wheat-squad/design-spec.json`，顶层件不存在）——routine 配置与布局判例脱节，非工程/spec 缺陷。

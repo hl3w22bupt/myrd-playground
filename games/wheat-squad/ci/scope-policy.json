@@ -23,6 +23,7 @@
       "games/wheat-squad/",
       ".myrd/blackboard/wheat-squad/",
       ".myrd/spec/wheat-squad/",
+      { "prefix": ".myrd/spec/design-spec.json", "$note": "N11 字面路径薄壳入口（相对符号链接 → wheat-squad/design-spec.json approved 单源，零拷贝零漂移）——兼容携带旧 specPath 的调用方；thin-proxy 判例" },
       ".myrd/blackboard/spec-notes-line2.md",
       ".myrd/blackboard/research/"
     ],
