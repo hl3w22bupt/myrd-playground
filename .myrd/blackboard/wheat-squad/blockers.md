@@ -1,7 +1,34 @@
-# 阻塞项黑板 — wheat-squad（麦浪小队 · 二线孵化）
+# 阻塞项黑板 — wheat-squad（麦浪小队 · 第二产品线 · 可玩基线轮）
 
-> 更新时间：2026-10-11（部署轮 r2 复证发布 · v2 LIVE）· 负责人：主策划（整合人）· 阻塞超一轮未解 → 升级主人，不空转
-> 下一步：主人试玩终裁（好不好玩归主人）· 试玩入口 https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw
+> 更新时间：2026-10-12（可玩基线轮收口）· 负责人：主策划（整合人）· 阻塞超一轮未解 → 升级主人，不空转
+> 下一步：①运维/主人侧处置页面路由平台层串线（W-3，证据齐）→ 试玩入口恢复交付；②主人 5 名试玩回填（A3 结论面）
+
+## 可玩基线轮收口态（2026-10-12）
+
+### 当前基线（两件事均已落实，判例落点披露）
+
+- **黑板路径**：`.myrd/blackboard/wheat-squad/`（levels.md / assets.md / blockers.md 三件套 + style-card-v1 + gate-logs）；组合全景索引 `.myrd/blackboard/README.md`。**披露**：任务书字面给的是顶层 `.myrd/blackboard/` 三件套，但顶层现存 game-9（汽车连连看）三件套（2026-10-07 口径），按「一游戏一子目录」判例落 wheat-squad 子目录，game-9 文件零触碰；主策划差异点三列表与 B 线简报按任务书指定路径落顶层（spec-notes-line2.md / research/line3-candidates-20261012.md）
+- **spec 版本号**：链 `cmv4q8bng001em9qm5p78do05` · **v3 approved**（meta.version=1.1「可玩基线版」）· 父链 v1(cmv36ewn8·v0.1)→v2(cmv4pqezm·v1.0) 均 superseded · 导出件 `.myrd/spec/wheat-squad/design-spec.json`（期望版本锚 --expect-version 3 重导，updatedAt=2026-10-12T04:03:15Z）——**链上唯一 approved 即本版，契约测试与实现只认它**
+- **差异点三列表**：`.myrd/blackboard/spec-notes-line2.md`（6 行三列，逐行落 spec 条款映射）
+- **风格卡**：v1 四要素冻结 + 主策划拍板（`.myrd/blackboard/wheat-squad/style-card-v1.md`）
+
+### 本轮机器面（全绿，证据 gate-logs/n7-adversarial-20261012/01-gates-fresh.log 新鲜复跑）
+
+- 契约：自有套件 **13 PASS / 0 FAIL**（2 PEND=manual 明示）+ 统一门禁（approved 对账）**53 PASS / 0 FAIL · CONTRACT: PASS**
+- 冒烟：**WS-SMOKE PASS**（headless 可重复：打开→首次核心操作→victory 结算 167s→重开复位 + A1/A4 埋点真实产生 + console 零错误）
+- 违规标识符扫描：**SCOPE-GUARD PASS**（47 文件零越界，策略单源含素材文案面）
+- 四件套：**A1 ✅（1.71s≤10s+5种子≤30s）/ A2 ✅（P50=168s∈[90,180]·victory 20/20）/ A4 ✅（0ms≤100ms·通道4≥2）/ A3 机制面 ✅ 结论面 ⏳（0/5 待真人回填）**——「四件套全达」本轮不宣称
+- 冻结计数器：**0/3**（基线轮第 1 轮；口径=连续 3 轮四件套全不达才计数，本轮 3 达 1 未达 → 不计数；明细见 qa/n7-adversarial-review.md §四）
+
+### 本轮升级项（红线：不空转）
+
+| id | 事项 | 证据 | 归属 |
+|---|---|---|---|
+| W-3 | **页面路由平台层串线**：v7 running@46cce20·currentDeploymentId=v7·资产字节全等（main.mjs md5 1711423891 ≡ live）·资产路 index.html=麦浪小队，但 /apps/wheat-squad-2/gw 页面=game-9 壳（与 /apps/game-9/gw 字节全等 abb7c87b）——平台 serving 层发共享壳，三次正确 manifestPath 重部署（v4/v5/v7）不收敛，与 stack-tower 轮判例（重部署即纠）行为不同 | gate-logs/n8-deploy-20261012/01-deploy-incident.log | **运维/平台侧**（主人转发） |
+| W-3' | v3 事故单如实披露：本轮首次部署漏传 manifestPath（stack-tower 轮同型判例），致页面路短暂串线；v4 起已带正确清单 | 同上 | 已纠正面，留档 |
+| W-2（沿上轮） | 好玩终裁（四件套 manual 面）+ A3 5 名试玩回填（量表 `games/wheat-squad/qa/playtest-record-template.md`，含重开理由原文列） | 试玩入口待 W-3 解除后交付 | 主人 |
+
+
 
 ## N4 收口态（2026-10-11 · spec v0 + 可玩骨架同批交付）
 
