@@ -18,6 +18,19 @@
 - 冒烟：**WS-SMOKE PASS**（headless 可重复：打开→首次核心操作→victory 结算 167s→重开复位 + A1/A4 埋点真实产生 + console 零错误）
 - 违规标识符扫描：**SCOPE-GUARD PASS**（47 文件零越界，策略单源含素材文案面；n9 轮复核 49 文件零越界——文件数随新增文件自然增长，判据不变）
 
+## N12 驳回三到案处置（2026-10-12 · 游戏程序 · root tests/contract 薄壳入口）
+
+- **驳回错误演进定位**：v1『spec 文件不存在』→ N10 参数修复；v2 同文 → N11 字面 specPath 符号链接；**v3『契约不一致』= 弱面（`projectDir=.`）数值扫描丢契约镜像层**——正是 N11 预判并登记 W-4 的组合（当时 51/2：artCaps/firstCore 数值面 FAIL）。
+- **修复（thin-proxy 判例第二件）**：根 `tests/contract` → `../games/wheat-squad/tests/contract`（相对符号链接）——统一契约检查器 `resolveAgainstProject("tests/contract")` 的 c1 解析位从此**任意 projectDir 皆命中同一份 wheat 契约镜像**（realpath 去重，单源零拷贝）。
+- **断言面实证（插桩源键清单 02 号证据，未动真件）**：规范面 21 源 = 6 wheat src + 15 wheat 契约件（纯 wheat）；弱面 27 源 = 同 21 + 糖果线遗留 fallbackList 经 c3（`join(projectDir,"games","game",p)`）命中的 `games/game/` 6 个 .gd（冻结存量，超集面）。**规范面独立 53/0 ⇒ 弱面 53/0 不依赖外来文件（合法超集非假绿）**。
+- **防 flake**：两口径各连跑 2 轮 **4/4 EXIT=0**。守卫 fail-closed 曾正确拦下新链接（root `tests/` 在禁触面）→ 按脚本设计走**显式豁免面** `exemptTouchPrefixes`（策略单源声明，非静默放行；换活跃线时随 routines.yaml 参数一并复审）。
+- **提交前置**：自有契约 13/0 · WS-SMOKE PASS · 守卫双模式 PASS。
+- 证据 `gate-logs/n12-root-contract-thin-entry-20261012/`（01 双口径防flake + 02 插桩源键）。
+
+| id | 事项 | 证据 | 归属 |
+|---|---|---|---|
+| ~~W-4~~ | **已由 N12 仓内闭环**：无论执行方携带哪组历史参数（specPath/projectDir 新旧组合），契约门禁都可达 wheat 单源并全绿；平台参数存量治理**降为知情项**（重放时以仓内 routines.yaml 现行参数为准最优） | gate-logs/n12-root-contract-thin-entry-20261012/ | 知情项 |
+
 ## N11 同因驳回二次处置（2026-10-12 · 游戏程序 · 字面 specPath 薄壳入口）
 
 - **同驳回再到案**（`spec 文件不存在: .myrd/spec/design-spec.json`）：核实 N10 参数修复在 HEAD 在案 ⇒ 执行面参数并非（只）取自 routines.yaml 默认值（平台侧存量快照），或驳回取自修复落地前运行。

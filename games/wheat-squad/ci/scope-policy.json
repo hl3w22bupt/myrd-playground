@@ -28,7 +28,8 @@
       ".myrd/blackboard/research/"
     ],
     "exemptTouchPrefixes": [
-      { "prefix": ".myrd-platform/", "$note": "平台运行时自有面（skills/mcp 等，平台层维护）——出现改动不属 wheat 足迹；g2 判例同款豁免机制（其面为 SKILLS.md 单件，本仓平台面变更面更宽故取目录前缀）" }
+      { "prefix": ".myrd-platform/", "$note": "平台运行时自有面（skills/mcp 等，平台层维护）——出现改动不属 wheat 足迹；g2 判例同款豁免机制（其面为 SKILLS.md 单件，本仓平台面变更面更宽故取目录前缀）" },
+      { "prefix": "tests/contract", "$note": "N12 字面路径薄壳入口（相对符号链接 → games/wheat-squad/tests/contract 契约镜像）——让统一契约检查器 tests/contract 解析位任意 projectDir 皆命中 wheat 单源；thin-proxy 判例，显式豁免非静默放行；换活跃线时须随 routines.yaml 参数一并复审" }
     ],
     "allowedPreExistingModifiedPaths": [
       ".myrd/blackboard/README.md",

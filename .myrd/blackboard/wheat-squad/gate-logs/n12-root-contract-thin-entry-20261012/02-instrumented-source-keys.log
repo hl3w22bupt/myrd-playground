@@ -1,0 +1,53 @@
+== 插桩源键清单（临时副本 /tmp/ccu-debug.mjs，未动真件）==
+--- 弱面 projectDir=. （27 源）---
+DEBUG sources=27
+  [0] games/wheat-squad/src/kernel/loop.ts
+  [1] games/wheat-squad/src/kernel/sim.ts
+  [2] games/wheat-squad/src/settlement.ts
+  [3] games/wheat-squad/src/render/renderer.ts
+  [4] games/wheat-squad/src/render/theme.ts
+  [5] games/wheat-squad/src/game.ts
+  [6] games/game/autoload/game_state.gd
+  [7] games/game/autoload/audio_manager.gd
+  [8] games/game/scripts/board.gd
+  [9] games/game/scripts/player.gd
+  [10] games/game/scripts/candy.gd
+  [11] games/game/scripts/main.gd
+  [12] games/wheat-squad/tests/contract/ac-01-seeded-determinism.spec.mjs
+  [13] games/wheat-squad/tests/contract/ac-02-first30s.spec.mjs
+  [14] games/wheat-squad/tests/contract/ac-03-run-duration.spec.mjs
+  [15] games/wheat-squad/tests/contract/ac-04-restart-loop.spec.mjs
+  [16] games/wheat-squad/tests/contract/ac-05-hit-feedback.spec.mjs
+  [17] games/wheat-squad/tests/contract/ac-06-perf-budget.spec.mjs
+  [18] games/wheat-squad/tests/contract/ac-07-no-texture.spec.mjs
+  [19] games/wheat-squad/tests/contract/ac-08-anchors.spec.mjs
+  [20] games/wheat-squad/tests/contract/ac-09-placement-structure.spec.mjs
+  [21] games/wheat-squad/tests/contract/ac-10-art-palette-whitelist.spec.mjs
+  [22] games/wheat-squad/tests/contract/ac-11-art-naming-ids.spec.mjs
+  [23] games/wheat-squad/tests/contract/ac-12-art-size-caps.spec.mjs
+  [24] games/wheat-squad/tests/contract/ac-13-art-style-consistency.spec.mjs
+  [25] games/wheat-squad/tests/contract/helpers.mjs
+  [26] games/wheat-squad/tests/contract/run-all.mjs
+--- 规范面 projectDir=games/wheat-squad （21 源）---
+DEBUG sources=21
+  [0] games/wheat-squad/src/kernel/loop.ts
+  [1] games/wheat-squad/src/kernel/sim.ts
+  [2] games/wheat-squad/src/settlement.ts
+  [3] games/wheat-squad/src/render/renderer.ts
+  [4] games/wheat-squad/src/render/theme.ts
+  [5] games/wheat-squad/src/game.ts
+  [6] games/wheat-squad/tests/contract/ac-01-seeded-determinism.spec.mjs
+  [7] games/wheat-squad/tests/contract/ac-02-first30s.spec.mjs
+  [8] games/wheat-squad/tests/contract/ac-03-run-duration.spec.mjs
+  [9] games/wheat-squad/tests/contract/ac-04-restart-loop.spec.mjs
+  [10] games/wheat-squad/tests/contract/ac-05-hit-feedback.spec.mjs
+  [11] games/wheat-squad/tests/contract/ac-06-perf-budget.spec.mjs
+  [12] games/wheat-squad/tests/contract/ac-07-no-texture.spec.mjs
+  [13] games/wheat-squad/tests/contract/ac-08-anchors.spec.mjs
+  [14] games/wheat-squad/tests/contract/ac-09-placement-structure.spec.mjs
+  [15] games/wheat-squad/tests/contract/ac-10-art-palette-whitelist.spec.mjs
+  [16] games/wheat-squad/tests/contract/ac-11-art-naming-ids.spec.mjs
+  [17] games/wheat-squad/tests/contract/ac-12-art-size-caps.spec.mjs
+  [18] games/wheat-squad/tests/contract/ac-13-art-style-consistency.spec.mjs
+  [19] games/wheat-squad/tests/contract/helpers.mjs
+  [20] games/wheat-squad/tests/contract/run-all.mjs
