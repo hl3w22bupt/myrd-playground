@@ -25,6 +25,8 @@
 
 **r5（同日 · HEAD `5360846` 重锚 · 口径升级）**：N13（新建 **`games/wheat-squad/verify.sh`** 五步真门禁薄壳 + slug 命名薄壳 + gamePath 纠正）零触及美术交付件 → 按任务书「有 verify.sh 则跑全量」**门禁升级为 verify.sh 全量实跑**（统一契约/自有契约/**WS-SMOKE**/守卫双模式五步逐条 PASS · VERIFY-EXIT=0）——r1–r4「冒烟转引程序线」口径就此退役；美术专项四检（色值三方/裸 hex/零漂移/三薄壳入口 8 色 palette 全可读）全绿。认领零保留。证据：`gate-logs/art-reverify-20261012-n13/`。结论仅对 `5360846` 有效。
 
+**r6（同日 · HEAD `729ef41` 重锚 · 他线首触代码面）**：N14（QA 对抗审查 D1/D2 修复：埋点键 `run_duration_ms` 三方同名真达成 + `endedReason` 枚举按 spec 单源对齐 + 新增 ac-14）改动 game.ts/sim.ts/settlement.ts，经 render/theme/manifest/style 过滤**零触及美术呈现面**、spec 零改动 → verify.sh 全量五步逐条 PASS（自有契约 **14/0** · 统一门禁 53/0 · **冒烟在埋点键名变更后仍全绿**）；裸 hex 触码后重点复扫仍仅 theme.ts，4 件资产 sha256 零漂移。AC-A4 人判面引用的机器输出自此经剥注释机判背书，可信度升级。认领零保留。证据：`gate-logs/art-reverify-20261012-n14/`。结论仅对 `729ef41` 有效。
+
 ## 既有登记（2026-10-11 复证轮 · 原文保留）
 
 | 资产 | 状态 | 说明 |

@@ -1,0 +1,5 @@
+# ⑦ 三薄壳入口可达性 · HEAD=729ef41
+[PASS] /.myrd/spec/design-spec.json 可达 approved spec，8 色 palette 全可读
+[PASS] /.myrd/spec/wheat-squad-spec.json 可达 approved spec，8 色 palette 全可读
+—— wheat-squad 契约合计 14 PASS / 0 FAIL ——
+⑦c root tests/contract 链跑套件 EXIT=0
