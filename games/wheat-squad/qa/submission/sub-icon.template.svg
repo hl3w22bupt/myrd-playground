@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- sub-icon 占位模板 · 512x512 · 正式件导出 PNG ≤300KB（artCaps.singleAssetMaxKB） -->
+  <!-- 色值全部 ∈ spec.numeric.palette 白名单（style-card-v1 要素一） -->
+  <rect width="512" height="512" fill="#F5EDD8"/>
+  <!-- 麦浪底纹（双层视差的静态示意） -->
+  <rect x="0" y="360" width="512" height="80" fill="#7FA65A" opacity="0.35"/>
+  <rect x="0" y="420" width="512" height="92" fill="#5C7F42" opacity="0.5"/>
+  <!-- 队长：wheatDeep 外圈 + wheatGold 本体（style-card-v1 要素四：直径 ≈ 主体 5% 放大至图标口径） -->
+  <circle cx="256" cy="248" r="150" fill="none" stroke="#C99530" stroke-width="16" opacity="0.5"/>
+  <circle cx="256" cy="248" r="118" fill="#E8B84B"/>
+  <!-- 麦穗 pickup（6x8 比例放大） -->
+  <rect x="238" y="396" width="36" height="48" fill="#E8B84B"/>
+  <text x="256" y="120" font-family="system-ui" font-size="44" fill="#4A3826" text-anchor="middle">麦浪小队</text>
+</svg>

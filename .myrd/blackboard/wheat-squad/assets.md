@@ -1,7 +1,25 @@
-# 资产清单黑板 — wheat-squad（二线孵化骨架）
+# 资产清单黑板 — wheat-squad（二线孵化 · 可玩基线轮）
 
-> 更新时间：2026-10-11（复证轮）· 负责人：游戏美术
-> 下一步：占位资产零状态维持（零贴图纪律）；icon/分享卡等下批资产从参考卡色值派生 + spec revision 登记
+> 更新时间：2026-10-12（可玩基线轮 · N4 美术开产）· 负责人：游戏美术 · 主策划拍板：风格卡 v1 ✅ 开产授权
+> 下一步：AC-A1..A3 机判三件（ac-10..12）随 N6 实现入契约；AC-A4 人判互查随 N7 对抗审查执行；正式提审素材止步清单待主人拍板
+
+## 本轮新增（2026-10-12 · 可玩基线轮）
+
+| 资产 | 状态 | 说明 |
+|---|---|---|
+| style-card-v1（四要素冻结版） | ✅ 主策划拍板 ✅ | `.myrd/blackboard/wheat-squad/style-card-v1.md`（调色板白名单/光照/线条/比例 + 资产清单规范 + 提审素材规格）；world.styleRef 派生源；v0 退役归档 |
+| 资产清单机读件 | ✅ | `games/wheat-squad/assets/manifest.json` v1：9 件 ≤ 封顶 13（entities 数）——实体资产 5（e-captain/e-squadmate/e-pest/e-bullet/e-wheat-pickup，id ∈ entities ids）+ ui-kit-01 + 提审占位 3 |
+| 提审素材占位模板 | ✅ 止步清单 | `games/wheat-squad/qa/submission/`（sub-icon 512² / sub-sharecard-5x4 1000×800 / sub-shots-3 1170×2080 三连模板 + 尺寸与红线 README；正式件待主人拍板） |
+| game.ts 裸 hex ×5 | 🔧 N6 收口 | 上轮挂账「单源链 v0.2 机判门禁」本轮兑现：裸 hex 换 THEME token + ac-10 白名单机判入契约 |
+
+## 既有登记（2026-10-11 复证轮 · 原文保留）
+
+| 资产 | 状态 | 说明 |
+|---|---|---|
+| style-card-v0（参考卡三件套） | 🗄️ v1 起退役归档 | `.myrd/blackboard/wheat-squad/style-card-v0.md`（palette 8 色带色值 + 角色几何 + 氛围；对标反向差异化）——四要素经 N5 打回补齐后由 v1 冻结承接 |
+| 渲染 token（theme.ts） | ✅ 与卡逐值一致 | `src/render/theme.ts` 8 色 = spec numeric.palette（零贴图，几何派生） |
+| 位图资产 | 🚫 纪律性为零 | tex-1 契约机判零位图文件 + 零贴图构造（ac-07 PASS） |
+
 
 | 资产 | 状态 | 说明 |
 |---|---|---|
