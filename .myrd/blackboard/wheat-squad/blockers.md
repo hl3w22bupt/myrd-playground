@@ -18,6 +18,15 @@
 - 冒烟：**WS-SMOKE PASS**（headless 可重复：打开→首次核心操作→victory 结算 167s→重开复位 + A1/A4 埋点真实产生 + console 零错误）
 - 违规标识符扫描：**SCOPE-GUARD PASS**（47 文件零越界，策略单源含素材文案面；n9 轮复核 49 文件零越界——文件数随新增文件自然增长，判据不变）
 
+## 部署轮 r8（2026-10-12 · workflow deploy 节点 · 重跑放行：成果已回流 origin/main）
+
+- **放行口径**：publish 加固后重跑——main ≡ origin/main ≡ HEAD `21756d7`、`git log origin/main..HEAD` 空、工作树干净 ⇒ 识别为「成果已回流」，按新版脚本放行 deploy。
+- **部署前门禁（本节点实跑）**：确定性重建 ≡ 仓内 build 逐字节全等（src/build 同批止于 729ef41，其后零代码变更）+ verify.sh 五步全 PASS **VERIFY-EXIT=0**（统一契约 approved 对账 · 自有契约 · WS-SMOKE 全链路含 A1/A4 埋点与 victory 167s 真实载荷 · 守卫双模式）。
+- **部署单**：坑 `cmv36wl94001xm9mxp119q48x`（slug **wheat-squad-2** · sourceId=wheat-squad 绑定核对 ✓，复用未新建）· **version 8** `cmv4wnl880009m95qbp6ye1am` = **running** @ commit **`21756d7`** · errorMessage=null · manifestPath=games/wheat-squad/apphost.toml · gitRef=**main**（当前分支=已回流成果）。部署前 v7 @46cce20 落后 14 提交。
+- **线上自测**：/gw/health **200** ✓ · 资产权威面 `main.mjs` **live ≡ 提交 build 字节全等**（md5 `1711423891…`）✓ · **页面路 W-3 串线第四次复现**：/gw 页面 title=汽车连连看，≡ /apps/game-9/gw 字节全等（md5 `abb7c87b…` = W-3 指纹）→ 玩家侧 boot 断链（game-9 壳引 index.js，本坑无此资产），**WS-LIVE-SMOKE FAIL（exit=1，fail-closed 正确）**。
+- **结论**：部署面成功（v8 ready @21756d7，三要素在档）；试玩入口仍受 **W-3 平台 serving 层串线**阻塞（v4/v5/v7/v8 四次正确 manifestPath+sourceId 部署不收敛）——维持升级运维/平台侧（主人转发）。解除判据：页面路按坑 manifest 返回对应壳（title=麦浪小队）⇒ 复测判据 **WS-LIVE-SMOKE PASS**。
+- 证据 `gate-logs/deploy-r8-20261012/`（01 门禁五步 · 02 live-smoke 红 · 03 串线页面字节收档 · README 部署单全档）。
+
 ## N15 受测游戏身份门禁收口 v2（2026-10-12 · 游戏程序 · gate-adapter 单源派生视图）
 
 - **驳回五到案**：「spec id 未解析出 slug 且存在 **3** 个 verify.sh」（日志 `gate-logs/contract-gate-20261012-134023.log`，13:40:23 在案）——证实 N13 后计数 2→3，裁决式两支仍不满足：①spec id 不可解析（链 id=cuid）②verify.sh 需唯一（3 个，2 个为冻结线零触面不可动）。
