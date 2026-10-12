@@ -1,0 +1,1 @@
+无法确定受测游戏：spec id 未解析出 slug 且存在 2 个 verify.sh，请核对 .myrd/spec/design-spec.json 的 id 与 games/ 目录名

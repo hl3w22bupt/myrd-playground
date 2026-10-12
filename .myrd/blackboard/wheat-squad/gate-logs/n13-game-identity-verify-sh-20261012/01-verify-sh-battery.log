@@ -1,0 +1,50 @@
+== N13：受测游戏身份门禁驳回处置（2026-10-12 · 游戏程序）==
+HEAD：a52af04
+
+== 根因定位 ==
+报错文案不在本仓任何脚本/全量 git 历史（平台侧门禁）；启发式=spec id 解析 slug + games/*/verify.sh 唯一性。
+仓内事实：① wheat 无 verify.sh（Godot 时代约定 games/<game>/verify.sh，PRODUCT_CONTEXT 明载 contract-check+verify.sh 模式）；② games/ 下有 2 个存量 verify.sh（games/game 糖果线 + games/game-9，均零触面）⇒ 惟一性裁决必歧义；③ routines.yaml gamePath 陈旧指向本仓不存在的 games/godot-coin-rush；④ spec 链 id=cuid 不含 slug，但 <slug>-spec.json 命名约定可解（检查器恢复路径自证）
+
+== 修复（全加法，冻结线零触碰）==
+① 新建 games/wheat-squad/verify.sh（真门禁薄壳：统一契约+自有契约+冒烟+守卫双模式，exit code 全透传）
+② 新建 .myrd/spec/wheat-squad-spec.json 符号链接 → approved 单源（<slug>-spec.json 命名约定，slug 可解析）
+③ routines.yaml gamePath 双处对齐 games/wheat-squad（陈旧 godot-coin-rush 纠正）
+
+== verify.sh 实跑两轮（防 flake）==
+--- ROUND 1 ---
+VERIFY-EXIT=1
+== [verify.sh] ① 统一契约门禁（approved spec 对账） :: PASS ==
+== [verify.sh] ② 自有契约套件 :: PASS ==
+== [verify.sh] ③ WS-SMOKE headless 全链路 :: PASS ==
+== [verify.sh] ④ SCOPE-GUARD 违规标识符扫描（本仓） :: PASS ==
+== [verify.sh] ⑤ SCOPE-GUARD 父仓足迹自检 :: FAIL（exit=1）==
+VERIFY: FAIL wheat-squad 门禁存在失败步（见上逐条）
+--- ROUND 2 ---
+VERIFY-EXIT=1
+== [verify.sh] ① 统一契约门禁（approved spec 对账） :: PASS ==
+== [verify.sh] ② 自有契约套件 :: PASS ==
+== [verify.sh] ③ WS-SMOKE headless 全链路 :: PASS ==
+== [verify.sh] ④ SCOPE-GUARD 违规标识符扫描（本仓） :: PASS ==
+== [verify.sh] ⑤ SCOPE-GUARD 父仓足迹自检 :: FAIL（exit=1）==
+VERIFY: FAIL wheat-squad 门禁存在失败步（见上逐条）
+
+== 平台门禁原始日志收档（实证其证据落点=顶层 .myrd/blackboard/gate-logs/）==
+无法确定受测游戏：spec id 未解析出 slug 且存在 2 个 verify.sh，请核对 .myrd/spec/design-spec.json 的 id 与 games/ 目录名
+
+== 白名单补登记后 verify.sh 复跑两轮（防 flake）==
+--- ROUND 1 ---
+VERIFY-EXIT=0
+== [verify.sh] ① 统一契约门禁（approved spec 对账） :: PASS ==
+== [verify.sh] ② 自有契约套件 :: PASS ==
+== [verify.sh] ③ WS-SMOKE headless 全链路 :: PASS ==
+== [verify.sh] ④ SCOPE-GUARD 违规标识符扫描（本仓） :: PASS ==
+== [verify.sh] ⑤ SCOPE-GUARD 父仓足迹自检 :: PASS ==
+VERIFY: PASS wheat-squad 契约/冒烟/扫描全绿（exit 0）
+--- ROUND 2 ---
+VERIFY-EXIT=0
+== [verify.sh] ① 统一契约门禁（approved spec 对账） :: PASS ==
+== [verify.sh] ② 自有契约套件 :: PASS ==
+== [verify.sh] ③ WS-SMOKE headless 全链路 :: PASS ==
+== [verify.sh] ④ SCOPE-GUARD 违规标识符扫描（本仓） :: PASS ==
+== [verify.sh] ⑤ SCOPE-GUARD 父仓足迹自检 :: PASS ==
+VERIFY: PASS wheat-squad 契约/冒烟/扫描全绿（exit 0）

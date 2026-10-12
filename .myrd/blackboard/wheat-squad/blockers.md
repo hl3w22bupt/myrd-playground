@@ -18,6 +18,14 @@
 - 冒烟：**WS-SMOKE PASS**（headless 可重复：打开→首次核心操作→victory 结算 167s→重开复位 + A1/A4 埋点真实产生 + console 零错误）
 - 违规标识符扫描：**SCOPE-GUARD PASS**（47 文件零越界，策略单源含素材文案面；n9 轮复核 49 文件零越界——文件数随新增文件自然增长，判据不变）
 
+## N13 受测游戏身份门禁处置（2026-10-12 · 游戏程序 · wheat verify.sh + slug 薄壳）
+
+- **驳回**：「无法确定受测游戏：spec id 未解析出 slug 且存在 2 个 verify.sh」。**破案证据**：平台门禁原始日志收档于 `.myrd/blackboard/gate-logs/contract-gate-20261012-130704.log`（13:07:04 = 产生本轮驳回的运行）——**平台门禁证据落点 = 顶层 gate-logs/**，已实证并登记白名单。
+- **根因（四件叠加）**：① wheat 无 `games/<game>/verify.sh`（Godot 时代约定，PRODUCT_CONTEXT 明载 contract-check+verify.sh 模式）；② games/ 下 2 个存量 verify.sh（糖果线 + game-9，均零触面）⇒ 惟一性裁决必歧义；③ routines.yaml gamePath 陈旧指向本仓不存在的 `games/godot-coin-rush`；④ spec 链 id=cuid 不含 slug。
+- **修复（全加法，冻结线零触碰）**：① 新建 **`games/wheat-squad/verify.sh`**（真门禁薄壳：统一契约+自有契约+冒烟+守卫双模式五步，exit code 全透传，`WS_VERIFY_SKIP_SMOKE` 仅限非门禁快查）；② 新建 `.myrd/spec/wheat-squad-spec.json` 符号链接（`<slug>-spec.json` 命名约定 → approved 单源，slug 可从文件名解析）；③ routines.yaml gamePath 双处对齐 wheat。
+- **验证**：verify.sh 五步全 PASS **连跑 2 轮 VERIFY-EXIT=0**；守卫 fail-closed 两次正确拦截（wheat-squad-spec.json 未登记 / 平台 gate-logs 落点未登记）→ 均按显式声明补白名单后转绿，零静默放行。
+- 证据 `gate-logs/n13-game-identity-verify-sh-20261012/01-verify-sh-battery.log`（含平台原始日志收档）。
+
 ## N12 驳回三到案处置（2026-10-12 · 游戏程序 · root tests/contract 薄壳入口）
 
 - **驳回错误演进定位**：v1『spec 文件不存在』→ N10 参数修复；v2 同文 → N11 字面 specPath 符号链接；**v3『契约不一致』= 弱面（`projectDir=.`）数值扫描丢契约镜像层**——正是 N11 预判并登记 W-4 的组合（当时 51/2：artCaps/firstCore 数值面 FAIL）。

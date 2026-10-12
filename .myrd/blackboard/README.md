@@ -27,6 +27,7 @@
 12. **N10** 游戏程序驳回修复：routine「游戏契约测试」FAIL 属实（默认参数指向已不存在的顶层 spec 件——routines.yaml 未随 N0 一游戏一子目录判例更新）；修复 = 参数单源对齐 wheat 线，检查器零改动；字面命令连跑 2 轮 53/0 绿 + 冒烟绿。证据 `wheat-squad/gate-logs/n10-routine-contract-fix-20261012/`
 13. **N11** 同因驳回二次处置：字面 specPath 薄壳入口（`.myrd/spec/design-spec.json` 相对符号链接 → approved 单源，零拷贝零漂移，thin-proxy 判例）；规范口径连跑 2 轮 53/0 绿；`projectDir=.` 弱面 fail-closed 2 项如实披露不弱化（平台参数存量升级项 W-4）。证据 `wheat-squad/gate-logs/n11-legacy-specpath-symlink-20261012/`
 14. **N12** 驳回三到案收口：v3『契约不一致』= 弱面丢契约镜像层（W-4 预判命中）；root `tests/contract` 薄壳链接（→ wheat 契约镜像）使检查器 `tests/contract` 解析位任意 projectDir 单源命中；插桩实证规范面 21 源纯 wheat 独立 53/0、弱面 27 源为合法超集（糖果线遗留 c3 命中 games/game 冻结件）非假绿；两口径各 2 轮 4/4 EXIT=0；**W-4 仓内闭环降为知情项**。证据 `wheat-squad/gate-logs/n12-root-contract-thin-entry-20261012/`
+15. **N13** 受测游戏身份门禁收口（破案：平台门禁日志落点=顶层 gate-logs/，原始驳回日志在档）：新建 **wheat verify.sh**（五步真门禁薄壳，2 轮全 PASS）+ `.myrd/spec/wheat-squad-spec.json` slug 命名薄壳 + routines.yaml 陈旧 gamePath 纠正；两处守卫拦截均显式登记后转绿，冻结线零触碰。证据 `wheat-squad/gate-logs/n13-game-identity-verify-sh-20261012/`
 
 ## 待主人裁决清单
 

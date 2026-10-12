@@ -24,6 +24,8 @@
       ".myrd/blackboard/wheat-squad/",
       ".myrd/spec/wheat-squad/",
       { "prefix": ".myrd/spec/design-spec.json", "$note": "N11 字面路径薄壳入口（相对符号链接 → wheat-squad/design-spec.json approved 单源，零拷贝零漂移）——兼容携带旧 specPath 的调用方；thin-proxy 判例" },
+      { "prefix": ".myrd/spec/wheat-squad-spec.json", "$note": "N13 <slug>-spec.json 命名约定薄壳入口（符号链接 → approved 单源）——平台门禁 slug 解析可从文件名达成；同上零拷贝" },
+      { "prefix": ".myrd/blackboard/gate-logs/", "$note": "平台 contract-gate 证据落点（N13 实证：13:07:04 驳回日志即落此处）——门禁自有写作面，非 wheat 代码足迹，性质同 .myrd-platform 豁免" },
       ".myrd/blackboard/spec-notes-line2.md",
       ".myrd/blackboard/research/"
     ],
