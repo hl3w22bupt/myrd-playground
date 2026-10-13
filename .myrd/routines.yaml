@@ -83,3 +83,20 @@ routines:
     command: node std-skills/godot-game-dev/scripts/mobile-web-smoke.mjs --url {{liveUrl}} --out {{gamePath}}/qa/mobile
     target: host
     timeout: 180
+
+# 体验证据包（G1 · 评估体系环境层）—— 与 mobile-web-smoke 分工：那边是门禁（判定「能不能玩」，
+# 不通过打回），这边是摄影师（记录「看起来/玩起来什么样」，只留证不判定、永不阻断工作流）。
+# 证据包落 {{gamePath}}/qa/experience/<时间戳>-<标签>/（截图/帧序列/FPS 曲线/网络瀑布/逐步输入证据），
+# 供人工核验、审美官（experience-review 技能）与轮间视觉回归对比消费。
+# liveUrl 同样不给默认值：preHookParams 必传，缺参 = fail-closed。
+- id: experience-pack
+  name: 体验证据包
+  description: 对部署后的 liveUrl 跑标准化体验场景并留证（带标签截图/帧序列/FPS 时间序列/网络瀑布/逐步输入证据）—— 只记录不判定，证据生成永不阻断工作流
+  gate: false
+  params:
+    gamePath: games/wheat-squad   # 默认对齐活跃线（同 mobile-web-smoke 口径）
+  steps:
+  - name: experience-pack
+    command: node std-skills/experience-harness/scripts/pack.mjs --url {{liveUrl}} --out {{gamePath}}/qa/experience --label routine
+    target: host
+    timeout: 240
