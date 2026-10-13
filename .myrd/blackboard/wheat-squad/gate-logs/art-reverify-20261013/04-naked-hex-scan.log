@@ -1,0 +1,20 @@
+== ③b 裸色值单源链扫描 · HEAD=c33a8165de3a138126ddbd1dbdc19f11d686b52a ==
+
+【口径说明】单源链纪律两个规则面（初扫过宽→甄别后定稿口径，初扫发现已在下文如实裁定）：
+  面1 代码面 src/**/*.ts：theme.ts = token 唯一定义处；其余文件 0 hex / 0 裸 rgba(数字
+  面2 静态素材面 qa/submission/*.svg + assets/*.json：SVG 无法引代码 token，
+       规则面 = 色值 ⊆ palette 白名单（权威机判 = ac-10，verify.sh 内已 PASS）
+
+--- 面1：src 全量（除 theme.ts）hex/rgba 实测 ---
+PASS: 0 命中（renderer.ts / game.ts 等全部经 THEME token）
+
+--- 面1b：theme.ts 内 rgba(数字 = 派生 token 定义处（scrimInk α0.55 / panelCream α0.96）---
+PASS: 属 token 单源定义非消费违例（色相归 ③a 三方机判背书）
+
+--- 面2：SVG 模板色值 ⊆ 白名单独立复算（python3）---
+PASS: 3 模板全部色值 ∈ 白名单 8 色，零清单外
+
+--- 面2b：assets/manifest.json hex 字面量（应 0，色值面走 spec 单源引用）---
+manifest.json hex 命中=0（0 = PASS）
+
+RESULT-EXIT=0
