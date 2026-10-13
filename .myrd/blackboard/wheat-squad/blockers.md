@@ -203,3 +203,11 @@
 |---|---|---|---|
 | W-1 | 放置收益基准值待校准（结构已冻结，数值占位） | 主人侧内测样本 | N5 部署试玩样本回收后 revision 校准（fv-pend PEND 条） |
 | W-2 | 好玩终裁（四件套 manual 面） | 主人（N5 部署后试玩） | 真人试玩结论；连续 3 轮不达触发冻结条款 |
+
+## 部署轮 r10（2026-10-13 · 游戏程序 · workflow deploy 节点 · v12 重发复证）
+
+- **重发复证**：坑 `cmv36wl94001xm9mxp119q48x`（slug `wheat-squad-2`，GET 核对 sourceId=wheat-squad 复用不新建）部署单 **v12** `cmv641ays003ym9qq0w2u53bg` ready @ commit **`7608768`**（gitRef=`myrd/spec-v1-qa-deploy-cmv5zila9002jm9qqpsyos4g1` · manifestPath=`games/wheat-squad/apphost.toml` · errorMessage=null，首轮轮询即 ready）。
+- **部署前门禁**：verify.sh 五步全 PASS `VERIFY_EXIT=0`（统一契约 + 自有契约 + WS-SMOKE 打开→首次核心操作→单局结束→重开 + A1/A4 四事件真实产生 + console 零错误 + SCOPE-GUARD 双模式）；确定性重建 10 文件零字节漂移（`games/wheat-squad/src` 自 `c4348e1` 起零变更，部署字节=提交字节）。证据 `gate-logs/deploy-r10-20261013/01`。
+- **W-3 第八次复现（维持升级，游戏仓侧不可修）**：页面路 title=汽车连连看；**新增决定性证据两条**——① 页面字节跨坑全等（`/apps/wheat-squad-2/gw` ≡ `/apps/game-9/gw`，md5 `abb7c87b…`，serving 层对所有 app 发同一份壳）；② 壳源码 boot 契约 Godot 专用（`index.js`→`index.wasm.gz.b64`/`index.pck.gz.b64`→`WebAssembly.validate` 硬校验→`new Engine`，无非 Godot 回退分支）+ 资产网关单段 `:name` 路由嵌套 `src/*.mjs` 全 404 实测 → TS 多模块工程经该壳必然 boot 断链。`tools/smoke-live.mjs` 对 LIVE 实测 **`LIVE_SMOKE_EXIT=1`**（预期红 fail-closed，取码紧邻命令）。证据 `gate-logs/deploy-r10-20261013/03`、`04`。
+- **资产路字节核验**：`main.mjs`/`spec.json`/`index.html` 三件 live md5 ≡ HEAD build md5（逐件全等）——v12 部署内容正确在线。
+- **试玩入口处置**：维持暂缓交付（r9 判例延续：页面路串线未解除，避免误测 game-9 壳）；解除判据不变：页面 title=麦浪小队 ⇒ smoke-live PASS。埋点本地日志开关说明已随 `games/wheat-squad/docs/deployment-notes.md` 刷新至 v12（9 事件 · 默认零外发）。wx 包本轮不出（无线上验证锚点）。

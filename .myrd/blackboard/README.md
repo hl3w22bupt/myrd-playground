@@ -35,7 +35,7 @@
 
 | # | 事项 | 入口/载体 |
 |---|---|---|
-| 1 | **W-3 页面路由平台层串线转发运维**（第六次复现：v11 @ e3abcb9 资产路新字节在线但页面路仍发 game-9 壳；证据 `wheat-squad/gate-logs/n0-rebaseline-20261013/11-n6-deploy-live.log`） | 黑板 blockers.md 升级项 |
+| 1 | **W-3 页面路由平台层串线转发运维**（**第八次复现**：v12 `cmv641ays003ym9qq0w2u53bg` @ 7608768 资产路字节在线（三件 md5 全等）但页面路仍发 game-9 共享壳；本轮新增决定性证据 = 页面字节跨坑全等（md5 `abb7c87b…`）+ 壳源码 Godot-only boot 契约（index.js/wasm.gz.b64/pck.gz.b64 硬链 + 嵌套资产网关 404，TS 工程必断链）；证据 `wheat-squad/gate-logs/deploy-r10-20261013/03-live-w3-probe-v12.log`） | 黑板 blockers.md 升级项 |
 | 2 | A3 5 名试玩组织与回填 + 四件套 manual 面终裁（好玩判定归主人；A1/A2/A4 auto 面 + A3 机制面全绿，结论面 0/5 不虚报） | 量表 `games/wheat-squad/qa/playtest-record-template.md`；试玩入口（W-3 解除后） |
 | 3 | **Q-1 缺陷修复授权**（offerIfNeeded 死阈值 5 与 sim 递增阈值不同源 → xp≥5 三选一连弹；修复涉 approved A1/A2 行为面，须走 feedbackProtocol revision——`games/wheat-squad/qa/known-defect-q1-offerif-bypass.md` 含修复方向与复测判据） | 黑板 blockers.md 升级项 |
 | 4 | 第三线候选点名（跑酷/模拟经营/io 对战三候选池已刷新，只攒池未开题） | `research/line3-candidates-20261013.md` |
@@ -53,6 +53,7 @@
 7. **N8** 游戏程序 verify-claims 独立复核（HEAD `304dacf` 树净）：N0–N6 全部声称逐条实跑复现成立（verify.sh 五步 VERIFY_EXIT=0 · 严格模式 exit 2 样例 · 链 v4 ≡ 仓内逐字节 · 构建零漂移 · a3 初值复跑逐值一致 · W-3 第七次复测仍串线/资产路 md5 全等）；账实修复 = levels.md 补 v1.2 轮状态段 + assets.md 补 manifest v2 复证登记 + inventory-line2 过时行清账。证据 `wheat-squad/gate-logs/n8-reverify-20261013/`
 8. **N9** 游戏美术复证轮 r8（HEAD `c33a816`）：任务书重发勘验定性复证而非重做（美术面 N2/N3 已收口 + 增量纯黑板文档）；八项重证全绿——verify.sh 五步 VERIFY_EXIT=0（自有契约 16/0 含 ac-art-1..4+ac-16）+ 三方色值机判 8 色全等 + 裸色值两规则面零违例 + **7 件交付件对 `304dacf` 逐字节零漂移** + 三入口 palette 亲核 + §v1.2 引导横幅目检亲审七项全符合；三合一包索求面回件零缺口核对在档；冻结件零触碰零新产（wx/dy 分享图维持不出）；闭合 N8 登记中「美术线复证仍归游戏美术」挂点。证据 `wheat-squad/gate-logs/art-reverify-20261013/`
 9. **N10** 游戏美术复证轮 r9（HEAD `7c570ec` · N9 驳回修复轮跨线认领）：任务书再重发勘验见 N9 两笔新提交（`a0929c2` 契约断言层 + `7c570ec` 证据收口）——断言直指美术交付件（ac-16 三方 copy 机判绑定 manifest copy / ac-11 窄面披露涉 ac-art-2），美术件本体零字节变更（7 件 vs r8 基线逐字节零漂移）；verify.sh 五步 **VERIFY_EXIT=0** + 四项快检全绿后逐项认领：①② 认领零保留（文案面自人工目核升逐字机判，与 G-1 逐字单源同向）；③ 美术线立场登记（裁决选项 A 更契合 manifest 类别学 / 选项 B 致双登记漂移面，两选项 manifest 零字节变更，冻结面不动）；自身瑕疵两项如实披露（status 取样自污染 / 隔管道取码同型违例即刻重取）。证据 `wheat-squad/gate-logs/art-reverify-20261013-n9/`
+10. **N11（本轮）** workflow deploy 节点 · **部署轮 r10（v12 重发复证 @ `7608768`）**：坑复用 `wheat-squad-2`（GET 核对 sourceId 绑定）→ 部署单 **v12** `cmv641ays003ym9qq0w2u53bg` **ready**（errorMessage=null，首轮轮询即 ready）；部署前 verify.sh 五步 `VERIFY_EXIT=0` + 确定性重建 10 文件零漂移（src 自 `c4348e1` 零变更，部署字节=提交字节）；资产路 main.mjs/spec.json/index.html 三件 live≡local md5 全等（v12 内容正确在线）；**W-3 第八次复现维持升级**，新增决定性证据两条（页面字节跨坑全等 `abb7c87b…` + 壳 Godot-only boot 契约与嵌套资产 404 → TS 工程必断链），`smoke-live` LIVE_SMOKE_EXIT=1 预期红 fail-closed；**试玩入口维持暂缓交付**（r9 判例）；埋点日志开关说明随 deployment-notes.md 刷新至 v12；wx 包本轮不出。证据 `wheat-squad/gate-logs/deploy-r10-20261013/`
 
 ## 本轮拍板记录（主策划）
 
