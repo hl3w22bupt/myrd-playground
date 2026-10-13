@@ -57,3 +57,9 @@ if (files.length > 0) {
 console.log(pending
   ? `PEND ac-a3(manual) 机制面 PASS（重开 ${restartMs}ms+全复位+结算三信息+模板 schema）· 结论面 MANUAL-PENDING（记录 0/5——5 名试玩回填后复跑本件）`
   : `PASS ac-a3 机制面+结论面全达（重开 ${restartMs}ms · 记录 ${files.length} 件 · 达标 ≥3/5）`);
+// PEND 语义 v2（run-all 三态聚合）：挂起必须注册到聚合器——只 console.log 会被合计吞成 PASS（旧缺陷）
+if (pending) {
+  (globalThis.__WS_CONTRACT_PENDS__ ??= []).push(
+    `ac-a3-restart-willingness 结论面：5 名试玩记录未回填（0/5）——manual 结论面待真人，回填后复跑本件转 PASS`,
+  );
+}

@@ -186,9 +186,34 @@ const as = JSON.parse(after || '{}');
 if (as.phase !== 'running' || as.kills !== 0) die(`重开未复位：phase=${as.phase} kills=${as.kills}`);
 say(`重开 ✓ 结算态点按→回 running + kills 归零（结算-重开闭环）`);
 
+// ④' 埋点四事件断言（spec v1.2 预埋：first_tap / first_loop_complete / restart_clicked / hint_shown——
+// 相对时间戳 atMs + restart_clicked 本地计数 +1（a4 v1 写死面）+ a5 判定素材（hint_shown.atMs / first_core_action_at.atMs）
+const four = await evalJs(`(() => {
+  const g = globalThis.__G2WS_GAME;
+  const es = g.telemetryEntries ? g.telemetryEntries() : [];
+  return JSON.stringify({
+    first_tap: es.find((t) => t.id === 'first_tap') ?? null,
+    first_loop_complete: es.find((t) => t.id === 'first_loop_complete') ?? null,
+    restart_clicked: es.filter((t) => t.id === 'restart_clicked'),
+    hint_shown: es.find((t) => t.id === 'hint_shown') ?? null,
+    first_core_action_at: es.find((t) => t.id === 'first_core_action_at') ?? null,
+  });
+})()`);
+const F = JSON.parse(four || '{}');
+if (!F.first_tap || typeof F.first_tap.atMs !== 'number') die(`first_tap 未产生或缺 atMs（四事件=${four}）`);
+if (!F.hint_shown || typeof F.hint_shown.atMs !== 'number' || !F.hint_shown.text) die(`hint_shown 未产生或缺 atMs/text（四事件=${four}）`);
+if (!F.first_loop_complete || typeof F.first_loop_complete.atMs !== 'number') die(`first_loop_complete 未产生或缺 atMs（四事件=${four}）`);
+if (!Array.isArray(F.restart_clicked) || F.restart_clicked.length !== 1 || F.restart_clicked[0].count !== 1) {
+  die(`restart_clicked 应恰 1 条且 count=1（真实点击本地计数 +1），实得 ${JSON.stringify(F.restart_clicked)}`);
+}
+if (F.first_core_action_at && F.first_core_action_at.atMs - F.hint_shown.atMs > 5000) {
+  die(`a5 窗语义破坏：首操作 ${F.first_core_action_at.atMs}ms - hint_shown ${F.hint_shown.atMs}ms > 5000ms`);
+}
+say(`埋点 ✓ 四事件齐（first_tap@${F.first_tap.atMs}ms · hint_shown@${F.hint_shown.atMs}ms · first_loop_complete@${F.first_loop_complete.atMs}ms · restart_clicked×${F.restart_clicked.length} count=1）+ a5 窗内`);
+
 // ⑤ console 零错误
 if (consoleErrors.length > 0) die(`console 错误 ${consoleErrors.length} 条:\n` + consoleErrors.slice(0, 5).join('\n'));
 say('console/页面 零错误 ✓');
 
 ws.close(); server.close(); proc.kill();
-console.log('WS-SMOKE: PASS 打开→首次核心操作→单局结束→重开 + A1/A4 埋点真实产生 + console 零错误');
+console.log('WS-SMOKE: PASS 打开→首次核心操作→单局结束→重开 + A1/A4 + 四事件埋点真实产生 + console 零错误');
