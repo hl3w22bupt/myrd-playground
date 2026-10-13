@@ -1,9 +1,32 @@
 # 阻塞项黑板 — wheat-squad（麦浪小队 · 第二产品线 · 可玩基线轮）
 
-> 更新时间：2026-10-12（可玩基线轮收口）· 负责人：主策划（整合人）· 阻塞超一轮未解 → 升级主人，不空转
-> 下一步：①运维/主人侧处置页面路由平台层串线（W-3，证据齐）→ 试玩入口恢复交付；②主人 5 名试玩回填（A3 结论面）
+> 更新时间：2026-10-13（spec v1.2 增量轮 · 任务书重发承接）· 负责人：主策划（整合人）· 阻塞超一轮未解 → 升级主人，不空转
+> 下一步：N1 地基（inventory + runner PEND + 埋点四事件）→ N2 spec v1.2 三合一包与修稿 → N3 审签入链 → N5 互查 → N6 deploy 复证 + W-3 复测；B 线调研刷新并行
 
-## 可玩基线轮收口态（2026-10-12）
+## 本轮（2026-10-13）任务书增量识别 · N0 开工基线
+
+### 任务承接口径（重发任务书 vs 链上实况，以链上实况为准）
+
+- **任务书 = 上轮（run-cmv4k7sig，spec v1→QA→deploy）任务书重发**。上轮已完成：spec 链 v1(v0.1)→v2(v1.0)→**v3(v1.1) approved**、实现 ac-01..15、美术四契约、QA 互查多轮、部署 v9（部署面成功但页面路 W-3 串线升级中）。本轮**不重做已完成面**，只落任务书相对链 v3 的增量：
+  1. **`a5-guidance-first-action`**（新增验收：`hint_shown` 后 5s 内首次有效操作，auto）——链上无 a5；
+  2. **埋点四事件** `first_tap` / `first_loop_complete` / `restart_clicked` / `hint_shown`（含相对时间戳字段）以结构化片段写死 entities——链上 telemetryFields 5 键无此四事件；
+  3. **a4 语义强化**：「已埋点 + 真实点击本地计数 +1」（auto）落 restart_clicked 面；
+  4. **check 路径定死 `checks/<acceptance-id>.mjs`**——链上 checkNaming 现为 `tests/contract/ac-*.spec.mjs`（改名走 revision + 门禁适配）；
+  5. **runner PEND 语义**：`tests/contract/run-all.mjs` 补三态输出（PASS/FAIL/PEND，含 PEND 即非全绿口径）——现状 PEND 由测试件内部打印、聚合器不计数；
+  6. **`inventory-line2.md`**（每文件一句职责）+ 图谱注册构建；
+  7. **deploy 复证 + 埋点本地日志开关说明 + W-3 复测**；
+  8. **B 线调研刷新**（line3-candidates 更新，异品类，只攒池不开题）。
+
+### N0 基线自证（2026-10-13 · HEAD `20facdf`）
+
+- **分支**：`myrd/spec-v1-qa-deploy-cmv5zila9002jm9qqpsyos4g1` = 上轮成果分支 `myrd/wheat-squad-baseline-cmv4k7sig0026m9p8oxdk8ebt` @ `20facdf` 快进重建（远端 spec-v1 分支不存在；r9 提交只在成果分支）。worktree 曾误停旧分支 `pixel-fives-m0-m1@6d59bef`，已切回。
+- **spec 链**：`cmv4q8bng001em9qm5p78do05` v3 approved（meta v1.1）——API 实查确认（Cookie token 通道），导出件 `.myrd/spec/wheat-squad/design-spec.json` 在盘，ac-15 门禁适配视图守卫绿。
+- **契约双口径**：统一门禁 **53 PASS / 0 FAIL**（EXIT=0）+ 自有套件 **15 PASS / 0 FAIL**（ac-a3 结论面 PEND 如实展示）。
+- **冒烟**：**WS-SMOKE PASS**（打开→操作→victory 167s→重开→零错误，A1/A2/A4 埋点真实载荷）。
+- 证据：`gate-logs/n0-rebaseline-20261013/01-baseline-contracts.log · 02-baseline-smoke.log`（各带 UTC + HEAD sha + 退出码）。
+- **落点披露（沿用上轮判例）**：黑板 = `.myrd/blackboard/wheat-squad/` 子目录（顶层为 game-9 三件套，零触碰）；`inventory-line2.md` 按任务书字面落顶层；B 线候选池沿用 `research/line3-candidates-20261012.md` 刷新。
+
+## 上轮收口态（2026-10-12 · 可玩基线轮）
 
 ### 当前基线（两件事均已落实，判例落点披露）
 
