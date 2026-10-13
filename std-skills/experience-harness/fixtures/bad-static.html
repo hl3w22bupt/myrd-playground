@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<!-- bad-static：静态无脚本页 —— 有内容（采样色数 >1）但无 canvas、无 JS、画面永远不动（frozen）。
+     selftest 用它区分「有画面但不活」与「根本没渲染」（bad-blank）。 -->
+<html lang="zh">
+<head><meta charset="utf-8"><title>bad-static</title>
+<style>body{font-family:sans-serif;margin:40px;background:#fff;color:#333}h1{color:#0f3460}</style>
+</head>
+<body>
+<h1>静态页面</h1>
+<p>这里没有任何脚本，画面不会变化。</p>
+<p>第三行文字，保证采样色数大于一。</p>
+</body>
+</html>

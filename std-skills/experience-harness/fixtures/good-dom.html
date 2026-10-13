@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!-- good-dom：纯 DOM web 形态的正向夹具 —— 无 canvas，按钮点击改变 DOM 文本（tap 帧差 >0）。
+     selftest 用它验证 runner 不绑引擎（同一 schema 服务 canvas 与 DOM 两类页面）。 -->
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>good-dom</title>
+<style>
+body{font-family:sans-serif;background:#f5f5f5;color:#222;margin:0;padding:24px}
+button{font-size:18px;padding:16px 24px;background:#2563eb;color:#fff;border:0;border-radius:12px}
+#count{font-size:48px;font-weight:bold;margin:16px 0}
+</style>
+</head>
+<body>
+<h1>DOM 计数器</h1>
+<div id="count">0</div>
+<button id="btn" aria-label="加一">点我 +1</button>
+<p id="hint">点击按钮，数字会变化</p>
+<script>
+let n = 0;
+// pointerdown 对 mouse/touch/pen 都触发——不依赖浏览器把 touch 合成为 click
+document.getElementById('btn').addEventListener('pointerdown', () => {
+  n += 1;
+  document.getElementById('count').textContent = String(n);
+});
+</script>
+</body>
+</html>

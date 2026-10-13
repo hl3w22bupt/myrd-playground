@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!-- bad-swallow：输入被吞 —— 触摸事件到达页面（探针计数 >0，页面自己的监听器也记账
+     window.__swallowCount），但画面从不因输入变化（tap 帧差 0 且画面静止）。
+     模拟「壳层没挡输入、引擎收到却忽略」的死输入管线。 -->
+<html lang="zh">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bad-swallow</title>
+<style>html,body{margin:0;background:#0b0f14;overflow:hidden}canvas{display:block}</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+const canvas = document.getElementById('game');
+canvas.width = 390; canvas.height = 844;
+const ctx = canvas.getContext('2d');
+const g = ctx.createLinearGradient(0, 0, 0, 844);
+g.addColorStop(0, '#101820'); g.addColorStop(1, '#20303f');
+ctx.fillStyle = g; ctx.fillRect(0, 0, 390, 844);
+ctx.fillStyle = '#8ecae6'; ctx.beginPath(); ctx.arc(195, 422, 40, 0, Math.PI*2); ctx.fill();
+window.__swallowCount = 0;
+// 事件到达（会被记账），但什么都不做——画面静止，输入被吞
+for (const type of ['touchstart', 'touchmove', 'touchend', 'click']) {
+  document.addEventListener(type, () => { window.__swallowCount += 1; }, { capture: true, passive: true });
+}
+</script>
+</body>
+</html>

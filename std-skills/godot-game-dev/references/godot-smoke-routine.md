@@ -21,7 +21,7 @@
     # 工程路径已参数化：params 是默认值，工作流节点用 preHookParams 按工程覆盖
     params:
       gamePath: games/my-game      # 默认被测工程（相对仓库根），接入新工程时改这里或用 preHookParams 覆盖
-      smokeFrames: "240"           # --quit-after 帧数兜底，必须与该工程 verify.sh 的预算同值
+      smokeFrames: "600"           # --quit-after 帧数兜底，必须与该工程 verify.sh 的预算同值（帧预算对机器速度敏感，慢机须留足余量）
       playtestFrames: "900"        # 机器人试玩每局帧数（60 tick = 1 秒；建议 ≈ 60 × spec.content.sessionSeconds）
     steps:
       # 环境前置 —— 没有 Godot 直接给明确失败原因，避免 agent 误改代码
