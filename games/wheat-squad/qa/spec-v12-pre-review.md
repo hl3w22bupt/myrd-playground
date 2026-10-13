@@ -12,7 +12,7 @@
 | ac-a2-run-duration-band | auto | ✅ 沿 v3 不变，20 种子 P50/P90 带 + victory 面（duration-log 2026-10-13 实测 P50=168.1s victory 20/20 再证） |
 | ac-a3-restart-willingness | manual+auto | ✅ 沿 v3 不变，机制面 auto + 结论面 manual（0/5 PEND 如实）双声明完整 |
 | ac-a4-feedback-channels | auto | ✅ 沿 v3 不变（反馈通道面），v1.2 的 a4 强化拆独立条款 ac-a4b（不稀释原义）✓ |
-| **ac-a5-guidance-first-action（新）** | auto | ✅ 可判定：hint_shown.atMs 与 first_core_action_at.atMs 均为 number 相对毫秒，差值 ≤5000ms 单比较即可机判；窗值 5000ms 写死 statement（判定参数不混 numeric，评审通过）；文案三方同名（spec=manifest.copy=GUIDANCE_TEXT）已机判在 ac-16 |
+| **ac-a5-guidance-first-action（新）** | auto | ✅ 可判定：hint_shown.atMs 与 first_core_action_at.atMs 均为 number 相对毫秒，差值 ≤5000ms 单比较即可机判；窗值 5000ms 写死 statement（判定参数不混 numeric，评审通过）；文案三方同名（spec=manifest.copy=GUIDANCE_TEXT）——**本行原判归因失实，2026-10-13 驳回修复轮更正**：预审时点该三方同名系目核一致、无机判（ac-16 当时仅断 text 非空）；机判断言已于驳回修复轮补入 ac-16（spec.copy ≡ manifest.copy ≡ GUIDANCE_TEXT ≡ hint_shown.text 逐字，双变异验证先红后绿） |
 | **ac-a4b-restart-click-counter（新）** | auto | ✅ 可判定：restart_clicked{count,atMs} 每次 +1 可枚举断言；「真实点击」双层实证 = 契约件直调接缝（ac-16⑤）+ 冒烟真实 pointerdown 断言 count=1（smoke ④'），无自算替代 |
 
 ## 二、check 路径形态（checkNaming 落地）

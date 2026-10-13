@@ -15,6 +15,8 @@
 
 **N8 独立复核一行**（游戏程序 · verify-claims 纪律 · HEAD `304dacf`）：verify.sh 五步 VERIFY_EXIT=0（统一契约 **56/0** · 自有 **16/0/1PEND** ALL_GREEN=false · 冒烟四事件 · SCOPE-GUARD 双模式）+ 链 v4 approved ≡ 仓内单源逐字节（`--expect-version 4` DEEP_EQUAL=true）+ 确定性重建 `git diff build/`=0 + 线上 W-3 第七次复测仍串线（title=汽车连连看；资产路 live main.mjs md5 `bcde4bea…` ≡ HEAD build）。证据 `gate-logs/n8-reverify-20261013/01–05`。结论仅对该 sha 有效。
 
+**N9 驳回修复轮一行**（2026-10-13 · QA 五条驳回 · 游戏程序）：① ac-16 补 a5 statement 谓词逐字断言（first_core_action_at − hint_shown ≤ 窗，窗值由 approved statement 机器解析 fail-closed）+ ② 三方 copy 逐字机判（spec.copy ≡ manifest.copy ≡ GUIDANCE_TEXT ≡ hint_shown.text）——双变异验证先红后绿（文案缺陷注入旧面绿/新断言红；延迟拖动 6s 红因 6048ms>5000ms 窗；还原绿）；③ ac-art-2 机判窄于 statement **升级主策划裁决**（选项 A statement 改 entities∪assets / B spec.assets 补登四件，ac-11 知情窄面披露不擅改）；④ LIVE_SMOKE exit 失实以显式取码重归档 **exit=1**（红正确）+ wrapper 取码口径落死；⑤ README 悬空行删除；两 QA 回执失实归因就地更正。spec 零变更（③ 走裁决未动链）。证据 `gate-logs/n9-rejection-fix-20261013/`。
+
 ## 可玩基线轮（2026-10-12 · spec v1.1 approved · victory 终局结构）
 
 | 关卡 | 状态 | 判据面 | 证据 |

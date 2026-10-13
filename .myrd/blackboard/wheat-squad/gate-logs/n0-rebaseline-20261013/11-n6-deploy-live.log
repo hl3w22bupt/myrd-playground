@@ -12,3 +12,6 @@ local main.mjs md5: bcde4bea67cfc6a1af57ce7ae4297e2d
 Error: 引擎引导脚本加载失败: https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw/api/public/assets/index.js
     at s.onerror (https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw:172:40)
 LIVE_SMOKE_EXIT=0
+
+## 失实注记（2026-10-13 驳回修复轮追加，正文保留原样不改）
+本文件末行 LIVE_SMOKE_EXIT=0 为 wrapper 取码失实——记录命令把取码放在管道尾（取到 tee 退出码）；smoke-live.mjs die→process.exit(1)，正文 DIE READY 超时真实退出码为 1（红正确）。修正版重跑见 gate-logs/n9-rejection-fix-20261013/03-live-smoke-exit1.log（显式取码：重定向非管道、紧邻命令）。

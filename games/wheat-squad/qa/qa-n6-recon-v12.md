@@ -18,7 +18,7 @@
 | ac-a2 | auto | ac-03 PASS（20 种子 P50=168.096s ∈[90,180] · P90 ≤300 · victory 20/20）+ duration-log 落档 |
 | ac-a3 | manual+auto | ac-04 机制面 PASS（重开 0ms 全复位 + 三信息 + 量表 schema）· 结论面 PEND 0/5 如实（run-all 三态 ALL_GREEN=false 口径） |
 | ac-a4 | auto | ac-05 PASS（延迟 0ms ≤100ms · 通道 min=4 ≥2 · flash=90ms） |
-| **ac-a5（新）** | auto | ac-16 PASS（hint_shown@0ms + first_core_action_at 差 2.6s ≤5000ms 窗）+ 冒烟四事件行（first_tap@2624ms 窗内） |
+| **ac-a5（新）** | auto | ac-16 PASS（hint_shown@0ms + first_tap@2624ms 窗内）+ 冒烟四事件行——**本行原判归因失实，2026-10-13 驳回修复轮更正**：互查时点 ac-16 并无 first_core_action_at 差值断言（「差 2.6s」系冒烟面实测读数，精确谓词当时仅 tools/smoke.mjs 有）；statement 谓词断言（first_core_action_at.atMs − hint_shown.atMs ≤ statement 解析窗）已于驳回修复轮补入 ac-16 ④′ 段（延迟拖动 6s 变异验证必红） |
 | **ac-a4b（新）** | auto | ac-16⑤ PASS（count 1→2 递增）+ 冒烟真实 pointerdown 后 restart_clicked×1 count=1 |
 
 ### 2. entities/levels 账实 — ✅ 通过
@@ -41,7 +41,7 @@
 ### 5. 首分钟引导 — ✅ 通过
 
 - hint_shown@0ms（首局 running 起始）→ first_core_action_at@2624ms：**2624ms ≤ 5000ms 窗（ac-a5 达）**。
-- 引导浮层 4s 窗渲染（drawGuidance）+ 文案三方同名（GUIDANCE_TEXT ≡ spec assets.copy ≡ manifest.copy「拖动队长移动 · 队员自动作战」）。
+- 引导浮层 4s 窗渲染（drawGuidance）+ 文案三方同名（GUIDANCE_TEXT ≡ spec assets.copy ≡ manifest.copy「拖动队长移动 · 队员自动作战」）——**2026-10-13 驳回修复轮更正归因**：互查时点为目核非机判；现该三方同名已由 ac-16 ①′ 段逐字机判背书（文案缺陷注入变异验证必红）。
 - 视觉权重规则定稿入参考卡（style-card-v1 §v1.2），禁 accentRed 纪律在卡。
 
 ## 结论与放行

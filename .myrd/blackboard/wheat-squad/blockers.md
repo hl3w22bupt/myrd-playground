@@ -3,6 +3,16 @@
 > 更新时间：2026-10-13（spec v1.2 增量轮 · 任务书重发承接）· 负责人：主策划（整合人）· 阻塞超一轮未解 → 升级主人，不空转
 > 下一步：N1 地基（inventory + runner PEND + 埋点四事件）→ N2 spec v1.2 三合一包与修稿 → N3 审签入链 → N5 互查 → N6 deploy 复证 + W-3 复测；B 线调研刷新并行
 
+## 驳回修复轮（2026-10-13 · QA 五条驳回 · 游戏程序处置）
+
+> 逐条核实后处置（verify-rejections 纪律：①②④⑤ 属实直修，③ 属 spec 语义裁决升级）；修毕 verify.sh 五步绑新 HEAD 重交四件同包。证据 `gate-logs/n9-rejection-fix-20261013/`。
+
+- **① ac-a5 断言↔验收错位 · 已修（先红后绿）**：ac-16 原 38-39 行以 first_tap 断窗、statement 谓词（first_core_action_at − hint_shown ≤ 5000ms）仅冒烟面有；注释「numeric.guidance.windowMs 单源」失实（approved numeric.guidance 无此键，note 明确判定参数写死 statement）。修复 = ac-16 补 ④′ 段 statement 谓词逐字断言 + 窗值改由 approved statement 机器解析（正则提取，解析失败 fail-closed，零本地兜底）+ 注释改实；**双变异验证**：文案缺陷注入旧面绿（MUTATED_EXIT=0）/ 新断言红（GUIDANCE_TEXT ≢ spec.copy）、延迟拖动 6s 变异红（6048ms > 5000ms 判定窗）/ 还原绿。
+- **② 机判面虚报（两回执归因）· 已修**：三方 copy（spec.copy ≡ manifest.copy ≡ GUIDANCE_TEXT ≡ hint_shown.text）逐字机判断言补入 ac-16 ①′ 段（同上变异验证）；`qa/spec-v12-pre-review.md` 与 `qa/qa-n6-recon-v12.md` 三处失实归因已就地更正并注明更正轮次。
+- **③ ac-art-2 机判窄于 statement · 升级主策划裁决（本条为升级项，不擅改）**：ac-11 面1 仅机判 category==='entity' 类，manifest 之 ui-kit-01/sub-icon/sub-sharecard-5x4/sub-shots-3 四件非 entity id 既不在 spec.entities 亦不在 spec.assets——按 ac-art-2 statement 字面（「逐件 id ∈ spec entities ids；清单外未登记资产 = 违例」）即违例而机判绿。裁决选项：**A** revision 改写 statement（id ∈ entities∪assets 登记集，ac-11 随裁决扩机判）；**B** spec.assets 补登四件后扩机判逐件对账。裁决前 ac-11 维持既有判据 + 知情窄面披露注释（不扩不缩不造第二真源）。
+- **④ 证据 exit 失实 · 已修**：`gate-logs/n0-rebaseline-20261013/11-n6-deploy-live.log` 正文 DIE READY（smoke-live die=exit1 红正确）而末行 `LIVE_SMOKE_EXIT=0`——根因 = 记录 wrapper 取码隔管道（`node … | tee …; echo EXIT=$?` 取到 tee 退出码，与 2026-10-12 N5 判例「exit code 全透传」纪律同型违例）。处置 = 原件加失实注记保留历史 + 以显式取码重跑 smoke-live（线上 W-3 仍在，预期 exit=1）重归档修正版 `gate-logs/n9-rejection-fix-20261013/03-live-smoke-exit1.log`；**口径约定自此落死：证据取码必须紧邻被测命令、禁隔管道**（`node x.mjs; echo EXIT=$?` 直取，日志经重定向非管道）。
+- **⑤（轻微）README 悬空行 · 已修**：组合全景索引「下一步」节后悬空表格行（引用过时 line3-candidates-20261012.md）删除——该信息由「待主人裁决清单」#4（指向 20261013 刷新件）覆盖。
+
 ## N2+N3+N5+N6 收口（2026-10-13 · spec v1.2 入链 approve + 互查放行 + 部署 v11 + W-3 维持）
 
 - **spec 链**：v1(v0.1 draft)→v2(v1.0)→v3(v1.1)→**v4 `cmv60scie003hm9qqu91foe7v` approved（meta v1.2 · acceptance 16 条）**——唯一 approved，v1..v3 superseded；链上内容≡payload 深比 True；导出件换基线（--expect-version 4）。本轮增量全落：A1–A5（新增 ac-a5-guidance-first-action auto）+ ac-a4b-restart-click-counter（a4 v1 写死）+ checkNaming 定死 `checks/<acceptance-id>.mjs`（16 条薄壳，SHIM_MAP↔spec 一致守卫）+ telemetryFields 9 键 + e-telemetry 结构化 + world.uxExisting 既有交互 5 条（4 收进 1 新增）+ W-5 闭合。

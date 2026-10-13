@@ -65,4 +65,3 @@
 - wheat-squad：等 W-3 解除（运维/主人侧）→ WS-LIVE-SMOKE PASS → 试玩入口正式交付 → A3 回填与四件套终裁 → fv-pend 校准 revision（样本回收后）；Q-1 若主人授权 → 独立 revision 轮（offerIfNeeded 对齐 + 20 种子复测 + A1/A2 行为面重估）。
 - 第三线：主人点名后开题（跑酷候选具备当天出骨架条件）。
 - g2-blocks / game-9 / 糖果线：零动作维持。
-| 4 | 第三线是否点名开题（本简报不自动触发） | .myrd/blackboard/research/line3-candidates-20261012.md |
