@@ -2,7 +2,7 @@
 
 > 更新时间：2026-10-13 · 负责人：游戏程序（产出）/ 主策划（对账整合）· 基线 HEAD `129bf56`（分支 `myrd/spec-v1-qa-deploy-cmv5zila9002jm9qqpsyos4g1` = 上轮成果分支 `20facdf` 快进）
 > 图谱：code-review-graph 全量构建 189 文件 / 3306 节点 / 21540 边，`built_at_sha=129bf56`（head_matches_build=true）
-> 下一步：runner PEND 语义 + 埋点四事件落骨架（本文件随实现增量回写）
+> 状态：runner PEND 语义 + 埋点四事件 + a3 实测初值已随 N1 落地（`0adff06`）；spec v1.2 已入链 approved（链 v4 `cmv60scie`，HEAD `c4348e1`）；N8 独立复核于 HEAD `304dacf` 全量实跑复现成立（`wheat-squad/gate-logs/n8-reverify-20261013/`）
 
 ## 渲染管线一行结论（交美术）
 

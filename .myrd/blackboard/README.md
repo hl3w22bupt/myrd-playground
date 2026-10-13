@@ -50,6 +50,7 @@
 4. **N5** QA 互查 QA-WS-N6-20261013-01：四件同包绑 HEAD c4348e1 + 五线按序核（A1–A5 可判定性/账实/断言对应/核心循环/首分钟引导）全过 RECON-PASS 放行
 5. **N6** 部署 v11 `cmv60yyfu003jm9qq1ablrdhm` running@e3abcb9（POST 一次受理 HTTP 200）+ **W-3 第六次复现**（资产路新字节在线 ✓ / 页面路仍串线 ✗ 维持升级）+ 埋点本地日志开关说明落档 + wx 包本轮不出（无线上验证锚点）
 6. **B 线** 候选池刷新：D8–D14 七个新数据点（含微信官方榜检索时点实时面 + DataEye 2025 年度抖音买量面）+ 三候选补齐三要素（含六件套可判定性预判）——只攒池不开题
+7. **N8** 游戏程序 verify-claims 独立复核（HEAD `304dacf` 树净）：N0–N6 全部声称逐条实跑复现成立（verify.sh 五步 VERIFY_EXIT=0 · 严格模式 exit 2 样例 · 链 v4 ≡ 仓内逐字节 · 构建零漂移 · a3 初值复跑逐值一致 · W-3 第七次复测仍串线/资产路 md5 全等）；账实修复 = levels.md 补 v1.2 轮状态段 + assets.md 补 manifest v2 复证登记 + inventory-line2 过时行清账。证据 `wheat-squad/gate-logs/n8-reverify-20261013/`
 
 ## 本轮拍板记录（主策划）
 

@@ -47,3 +47,12 @@
 ## 复证轮登记（2026-10-11 · 游戏美术 · HEAD `d4eeea2`）
 
 任务书重发按 redispatch-survey-first 勘验定性为**复证而非重做**（D 轮六节点同日已收口 + 程序线复跑轮成立）。当前 HEAD 重证三项全绿：① 契约 9/0 EXIT=0；② 色值三方机判全等（参考卡↔theme.ts↔spec 8 色，上轮手核本轮升机判）；③ 参考卡四要素逐项核对 PASS（调色板机判 / 光照 flash=accentRed·90ms 契约 / 线条描边 token 化 / 比例 390×640）。如实登记偏差一项：`game.ts` 5 处裸 hex（色值与卡全等=零风格漂移；单源链收口沿 N5 回执 :20 挂账排期 v0.2 机判门禁，本轮不扩范围）。台账与原文证据：`gate-logs/art-reverify-20261011/`（README + 01-contract.log + 02-palette-consistency.log + check 脚本）。g2-blocks 美术面（四要素归零 @`1fdd787` · 双档留证 · 材料清单 dy v3 提审就绪 · 真机档挂账维持）只读核对一致，零触碰。
+
+## 程序线复证登记（2026-10-13 · spec v1.2 增量轮 · 游戏程序 · HEAD `304dacf`）
+
+> N8 verify-claims 独立复核时对资产面的顺带核验（程序线口径，美术线复证仍归游戏美术）。
+
+- **manifest v2 在盘**：`games/wheat-squad/assets/manifest.json` 10 件 ≤ 封顶 13——实体资产 5 + ui-kit-01 + **guidance-hint-banner（v1.2 轮新增引导横幅，文案单源 `GUIDANCE_TEXT`）** + 提审占位 3；ac-art-2 实测 id 对账全过（entity 类 id ∈ entities ids）。
+- **美术机判三件随 verify.sh 复证全绿**：ac-art-1（12 文件色值 ⊆ palette 8 色白名单零违例）/ ac-art-2（清单对账）/ ac-art-3（尺寸 + build 首包 0.08MB ≤ 4MB）；ac-art-4 互查回执在档 PASS。
+- **style-card-v1 §v1.2 回执 + tri-pack-v1.2 在黑板**（`.myrd/blackboard/wheat-squad/style-card-v1.md` · `tri-pack-v1.2.md`）；正式提审素材维持止步清单（待主人拍板）。
+- 证据：`gate-logs/n8-reverify-20261013/01`（verify.sh 五步全量实跑）。结论仅对 `304dacf` 有效。
