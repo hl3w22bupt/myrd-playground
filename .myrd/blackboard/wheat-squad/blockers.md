@@ -3,6 +3,16 @@
 > 更新时间：2026-10-13（spec v1.2 增量轮 · 任务书重发承接）· 负责人：主策划（整合人）· 阻塞超一轮未解 → 升级主人，不空转
 > 下一步：N1 地基（inventory + runner PEND + 埋点四事件）→ N2 spec v1.2 三合一包与修稿 → N3 审签入链 → N5 互查 → N6 deploy 复证 + W-3 复测；B 线调研刷新并行
 
+## N2+N3+N5+N6 收口（2026-10-13 · spec v1.2 入链 approve + 互查放行 + 部署 v11 + W-3 维持）
+
+- **spec 链**：v1(v0.1 draft)→v2(v1.0)→v3(v1.1)→**v4 `cmv60scie003hm9qqu91foe7v` approved（meta v1.2 · acceptance 16 条）**——唯一 approved，v1..v3 superseded；链上内容≡payload 深比 True；导出件换基线（--expect-version 4）。本轮增量全落：A1–A5（新增 ac-a5-guidance-first-action auto）+ ac-a4b-restart-click-counter（a4 v1 写死）+ checkNaming 定死 `checks/<acceptance-id>.mjs`（16 条薄壳，SHIM_MAP↔spec 一致守卫）+ telemetryFields 9 键 + e-telemetry 结构化 + world.uxExisting 既有交互 5 条（4 收进 1 新增）+ W-5 闭合。
+- **流程件**：三合一包 `tri-pack-v1.2.md`（一次发全）→ 美术当天回件（style-card-v1 §v1.2 + manifest v2 guidance-hint-banner，ac-art-1/2/3 绿）；QA 只读预审 APPROVE-READY（`games/wheat-squad/qa/spec-v12-pre-review.md`，draft 未拍板声明在档）；主策划审签 `signoff-v1.2.md`（流程性，好玩终裁仍归主人）；QA 互查回执 **QA-WS-N6-20261013-01**（`games/wheat-squad/qa/qa-n6-recon-v12.md`，五线按序核全过 RECON-PASS）。
+- **门禁（HEAD `c4348e1` 树净）**：verify.sh 五步全 PASS VERIFY_EXIT=0（统一 **56/0** · 自有 **16/0/1PEND** ALL_GREEN=false 口径 · WS-SMOKE PASS 四事件真实产生 · SCOPE-GUARD 双模式）——`gate-logs/n0-rebaseline-20261013/08·09·10`。
+- **部署**：坑 `cmv36wl94001xm9mxp119q48x`（GET 核对 sourceId=wheat-squad 绑定 ✓ 复用）· **version 11** `cmv60yyfu003jm9qq1ablrdhm` = **running/current** @ commit **`e3abcb9`**（API 级三要素在档 · errorMessage=null · v10/v9 superseded）· POST 一次受理（HTTP 200 无 504）。
+- **W-3 第六次复现（维持升级运维/主人，不空转）**：页面路仍发 game-9 共享壳（title=汽车连连看，WS-LIVE-SMOKE fail-closed 红）——跨 v4/v5/v7/v8/v9/v11 六次正确 manifestPath+sourceId 部署、三种 gitRef 不收敛，平台 serving 层壳路由绑定缺陷定性不变；**资产路本轮新字节已上线**（main.mjs live≡HEAD build 逐字节 `bcde4bea…`，含四事件增量）——部署通道本身健康，仅页面路串线。证据 `gate-logs/n0-rebaseline-20261013/11-n6-deploy-live.log`。
+- **埋点本地日志开关说明**：`games/wheat-squad/docs/deployment-notes.md`（默认零外发零落盘；调试读口 `__G2WS_GAME.telemetryEntries()`；接渠道 SDK 须走 spec revision）。
+- **wx 包**：本轮不出（W-3 未解除无线上验证锚点；渠道面顺延批次，任务书「时间允许才出」且动 wx 主包必复跑全门禁）。
+
 ## 本轮（2026-10-13）任务书增量识别 · N0 开工基线
 
 ### 任务承接口径（重发任务书 vs 链上实况，以链上实况为准）
