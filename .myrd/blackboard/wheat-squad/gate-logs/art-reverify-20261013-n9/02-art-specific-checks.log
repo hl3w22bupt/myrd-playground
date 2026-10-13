@@ -1,0 +1,24 @@
+== ②' 美术专项快检 · HEAD=7c570ec66a6e0306f79f341ed4fc8892a87e84be（N9 驳回修复轮跨线认领配套）==
+
+--- a. 三方色值机判（卡↔theme.ts↔approved spec）---
+[PASS] inkBrown = #4A3826（三方全等）
+RESULT: PASS — 风格卡 v1/theme.ts/approved spec 三方 8 色逐值全等，无清单外 token
+PALETTE_EXIT=0
+
+--- b. 零漂移：7 件美术交付件 vs r8 基线（e99a4d2，上轮已验证态）---
+[PASS] 零漂移 games/wheat-squad/assets/manifest.json
+[PASS] 零漂移 games/wheat-squad/src/render/theme.ts
+[PASS] 零漂移 games/wheat-squad/src/render/renderer.ts
+[PASS] 零漂移 .myrd/blackboard/wheat-squad/style-card-v1.md
+[PASS] 零漂移 games/wheat-squad/qa/submission/sub-icon.template.svg
+[PASS] 零漂移 games/wheat-squad/qa/submission/sub-sharecard-5x4.template.svg
+[PASS] 零漂移 games/wheat-squad/qa/submission/sub-shots-3.template.svg
+DRIFT_EXIT=0
+
+--- c. 裸色值面快检（src 除 theme.ts：0 hex / 0 裸 rgba(数字）---
+PASS: 0 命中
+HEX_EXIT=0
+
+--- d. 文案三方同名独立复算（ac-16 ①′ 跨线认领配套）---
+PASS: spec.copy ≡ manifest.copy ≡「拖动队长移动 · 队员自动作战」
+COPY_EXIT=0
