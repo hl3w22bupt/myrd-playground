@@ -59,10 +59,11 @@ fi
 echo ""
 
 echo "==> [2/2] smoke（godot --headless 无头冒烟门禁）"
-# 帧预算 240：冒烟要跑「噪声 → 移动 → 收集 → 生成器补充 → 通关 → 重开 → 失败 → 再重开 →
-# 持久化回读」约 160 个物理帧阶段；预算对齐 .myrd/routines.yaml godot-smoke 的
-# smokeFrames 默认值（240），两边同值不各说各话。预算只放宽兜底，不改变判定语义。
-GODOT_SMOKE_FRAMES="${GODOT_SMOKE_FRAMES:-240}" GODOT_BIN="${GODOT_BIN}" \
+# 帧预算 320：v2 时代 240 帧覆盖「噪声→移动→收集→通关→重开→失败→再重开→过期→持久化」；
+# v3（需求 cmv6vkith000gjotytp4v915c）新增开始面板/多类型计分/Combo/磁铁/加速/暂停
+# 六个真实交互断言阶段（+~75 帧），沿用 game-6 的「加预算」先例路线（门禁经验 v4），
+# 判定协议（标记 + 退出码 + 零 SCRIPT ERROR）不变 —— 预算只放宽兜底，不改变判定语义。
+GODOT_SMOKE_FRAMES="${GODOT_SMOKE_FRAMES:-320}" GODOT_BIN="${GODOT_BIN}" \
 	bash "${SKILL_DIR}/scripts/smoke.sh" "${GAME_DIR}"
 SMOKE_EXIT=$?
 if [ "${SMOKE_EXIT}" -ne 0 ]; then

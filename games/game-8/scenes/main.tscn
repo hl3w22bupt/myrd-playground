@@ -25,7 +25,7 @@ position = Vector2(320, 180)
 unique_name_in_owner = true
 offset_left = 16.0
 offset_top = 12.0
-offset_right = 624.0
+offset_right = 704.0
 offset_bottom = 40.0
 text = "WASD / 方向键移动 · 收集青草垛"
 
@@ -36,10 +36,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -230.0
-offset_top = -64.0
-offset_right = 230.0
-offset_bottom = 64.0
+offset_left = -280.0
+offset_top = -90.0
+offset_right = 280.0
+offset_bottom = 90.0
 
 [node name="ResultLabel" type="Label" parent="UI/ResultPanel"]
 unique_name_in_owner = true

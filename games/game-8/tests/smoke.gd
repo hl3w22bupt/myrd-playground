@@ -8,7 +8,7 @@ extends Node
 ##   通过 → stdout 打印 `GODOT_SMOKE: PASS ...`，进程退出码 0
 ##   失败 → stderr 打印 `GODOT_SMOKE: FAIL <原因>`（每条一行），进程退出码 1
 ##
-## 覆盖面（模板五项断言逐项保留 + 收集玩法与难度梯度的机判断言）：
+## 覆盖面（模板五项断言逐项保留 + 收集玩法与难度梯度的机判断言 + v3 扩展）：
 ##   1. 场景可实例化（main.tscn → player.tscn / collectible.tscn 接线未断裂）
 ##   2. autoload 已注册且带约定信号
 ##   3. InputMap 动作已注册、物理键绑定正确（键位契约），注入输入后牛牛真的动了，
@@ -16,16 +16,26 @@ extends Node
 ##      （需求 cmuktc8jk000hm97zm6l1gp4u 基线：方向反向即 FAIL）
 ##   4. 信号真的到达订阅方（Player.moved / GameState.score_changed）
 ##   5. 收集判定：触碰后物品消失且计数 +1（需求验收基线 2）
-##   6. 连续 50 次触碰判定一致性：跨 3 局累计 50 次真实触碰，每次恰好 +1（验收基线 2）
+##   6. 连续 50 次触碰判定一致性：跨 3 局累计 50 次真实触碰（只碰普通物），每次恰好 +1
+##      （验收基线 2；v3 多类型下不回退 —— 高分物/道具停靠不碰，Combo 加成不污染台账）
 ##      含反例：清空场地静置，计数必须保持 0（无误判）
-##   7. 难度梯度：刷新间隔/物品寿命随本局收集数单调收紧、有界；首收后 SpawnTimer 真的变快
+##   7. 难度梯度：刷新间隔/物品寿命随波次曲线单调收紧、有界；首收后 SpawnTimer 真的变快
 ##   8. 物品过期：寿命耗尽自动回收且不计分（expired → 回收接线）
 ##   9. 通关可达：第 20 次触碰 → phase=WON + 结算面板「通关」（验收基线 3）
 ##  10. 失败可达：限时归零 → phase=LOST + 结算面板「时间到」+ HUD 红色警示（验收基线 3）
 ##  11. 一键重开：结算后按确认 → 计数/时限/位置/面板/难度节奏全部复位（验收基线 3）
-##  12. 持久化：最高分与累计进度落盘后回读一致（验收基线 4）
+##  12. 持久化：最高分/累计进度/最高连击落盘后回读一致（验收基线 4）
 ##  13. v2 手感基线：体型倍率 1.3~1.5×、移速为 v1(220) 的 60~70%，且倍率真的接线到
 ##      根节点/碰撞体/PickupArea 判定体（需求 cmuqmej89000ym9gg6mom93o0）
+##  14. 开始流程：READY + 开始面板 → 确认进入 RUNNING（v3 ④2）
+##  15. 多类型计分：稀有物 +3、时钟 +2 且加时 4 秒（v3 ①1；分值口径 gain_for 唯一来源）
+##  16. Combo：窗口内连击递增、高分物加成生效、连击 UI 可见、超时清零（v3 ①3）
+##  17. 磁铁道具：生效期间 96px 内目标被吸到判定距离并触发收集（v3 ①2）
+##  18. 加速道具：激活后实测位移 > 基线 ×1.3（BOOST_MULT=1.5，v3 ①2）
+##  19. 暂停/恢复：P 键暂停冻结时限、确认恢复（v3 ④2）
+##  20. 波次：波次下标按分数切分、权重表逐波合计 1 且 rare 单调不降（v3 ①4）
+##  21. 音效：Sfx 库 ≥6 种、收集后 played_count 真的增长（v3 ④1 零音效闭环）
+##  22. 调参协议：新增声明键可应用/钳制、未声明键拒绝（SKILL.md §3C）
 ##
 ## ⚠️ 输入注入分阶段互不重叠（references/error-signatures.md E-08）：
 ##   `Input.action_press()` 与 `Input.parse_input_event()` 同帧混用会互相冲掉，必须分帧。
@@ -34,11 +44,11 @@ extends Node
 const NOISE_FRAMES: int = 24
 ## 阶段一（方向符号断言）：单方向持续按住的物理帧数。
 ## v2 移速 145px/s ≈ 2.42px/物理帧 → 6 帧 ≈ 12~15px 位移，远超 MIN_MOVE_DISTANCE 且
-## 帧开销极小（A/← 与 D/→ 背靠背共 13 帧，对照原先单向 11 帧，只多 2 帧，保住 240 帧预算）。
+## 帧开销极小（A/← 与 D/→ 背靠背共 13 帧，对照原先单向 11 帧，只多 2 帧）。
 const DIR_HOLD_FRAMES: int = 6
-## 方向符号断言基准点：视口正中（640x360）。距左右边各 300px，双向 ~20px 位移
-## 不会触 PLAY_RECT(20px 边距) 钳制 —— 钳制会吃掉位移、把方向断言打成假失败。
-const DIR_CHECK_POSITION: Vector2 = Vector2(320.0, 180.0)
+## 方向符号断言基准点：视口正中（v3 竖屏画布 720x1280）。距左右边各 360px，双向 ~20px 位移
+## 不会触 PLAY_RECT(24px 边距) 钳制 —— 钳制会吃掉位移、把方向断言打成假失败。
+const DIR_CHECK_POSITION: Vector2 = Vector2(360.0, 640.0)
 ## 阶段二：传送到收集物上后等待 area_entered 的帧数。
 const COLLECT_FRAMES: int = 4
 ## 注入 confirm 后等待结算/重开生效的帧数。
@@ -52,12 +62,12 @@ const NO_MISJUDGE_FRAMES: int = 4
 ## 过期断言用的短寿命（秒）：0.2s ≈ 12 物理帧。
 const SHORT_LIFETIME: float = 0.2
 ## 大批量收集时，非目标物品的统一停放点：
-## 必须在牛牛可达区（PLAY_RECT 钳制 [20..620, 20..340]）之外，且距可达区最近点 >判定距离
-## （v2 拾取判定 = 玩家判定半径 22×1.4≈30.8 + 物品半径 14 ≈44.8px；
-## (700,420) 距可达角 (620,340) ≈113px ≈ 2.5 倍余量，放大后仍单触单收）。
-## 旧值 (620,340) 恰好压在钳制角上（距离 0）：目标刷点一靠近，传送即整堆误收（实测 score 单触 +6）。
+## 必须在牛牛可达区（PLAY_RECT 钳制 [24..696, 24..1256]）之外，且距可达区最近点 >判定距离
+## 与磁铁半径（v2 拾取判定 = 玩家判定半径 22×1.4≈30.8 + 物品半径 14 ≈44.8px；
+## v3 磁铁半径默认 100px；(780,1360) 距可达角 (696,1256) ≈133.7px，两者都安全）。
+## 旧竖屏前值 (700,420) 的推导同口径：距离 ≈113px 在 640x360 画布下同样成立。
 ## 每次只把目标物品摆到牛牛脚下、其余全部停走 → 单触单收确定性，50 连击不被双收污染。
-const PARK_POSITION: Vector2 = Vector2(700.0, 420.0)
+const PARK_POSITION: Vector2 = Vector2(780.0, 1360.0)
 ## 整体帧预算兜底（超过直接判失败，防死循环；smoke.sh 另有 --quit-after 兜底）。
 const TOTAL_FRAME_BUDGET: int = 600
 ## 判定「真的移动了」的最小位移（像素）。
@@ -74,9 +84,24 @@ const V2_SPEED_MAX: float = V1_SPEED * 0.7
 const TIME_WARN_COLOR: Color = Color(1.0, 0.35, 0.3)
 ## 失败阶段先落入的警示观察点（秒）：低于 main.gd 的 TIME_WARN_SECONDS(10) 即变红。
 const TIME_WARN_CHECK_SECONDS: float = 9.0
+## ── v3 断言常量（需求 cmv6vkith000gjotytp4v915c）──
+## 磁铁断言：目标物初始离牛牛的距离（<磁铁半径 100，>判定距离 44.8 —— 只能靠磁铁吸进来）。
+const MAGNET_TEST_DISTANCE: float = 85.0
+## 磁铁断言等待帧数上限：85→44.8px 需 (85-44.8)/170×60 ≈14 物理帧，取 24 留余量。
+const MAGNET_MAX_FRAMES: int = 24
+## 加速断言：基线与加速各持续按住 → 的物理帧数（145px/s ×5帧 ≈12px，位移可测）。
+const BOOST_HOLD_FRAMES: int = 5
+## 加速判定倍率下限：BOOST_MULT=1.5 留工程余量（帧取整噪声 <10%）。
+const BOOST_RATIO_MIN: float = 1.3
+## 多类型断言：时钟加时期望值（数值区 TIME_BONUS_CLOCK 默认 4.0）。
+const CLOCK_BONUS_EXPECTED: float = 4.0
+## Sfx 库最小注册数（collect/rare/clock/powerup/wave/win/lose 共 7，要求 ≥6 防漏注册）。
+const SFX_BANK_MIN: int = 6
+## KEY_CONTRACT 补充 v3 暂停键。
+const PAUSE_KEY: Key = KEY_P
 
 const REQUIRED_ACTIONS: Array[StringName] = [
-	&"move_left", &"move_right", &"move_up", &"move_down", &"confirm",
+	&"move_left", &"move_right", &"move_up", &"move_down", &"confirm", &"pause",
 ]
 
 ## 键位契约：动作 → 键表承诺的物理键，必须全部绑定（逐键 AND，见模板注释）。
@@ -86,14 +111,18 @@ const KEY_CONTRACT: Dictionary = {
 	&"move_up": [KEY_W, KEY_UP],
 	&"move_down": [KEY_S, KEY_DOWN],
 	&"confirm": [KEY_SPACE, KEY_ENTER],
+	&"pause": [KEY_P],
 }
 
 ## 冒烟阶段状态机。
 ## 触碰台账：COLLECT 1 次 + MASS1 至 20（本局通关触）+ MASS2 至 40（二局通关触）
 ## + MASS3 至 50（第三局不触发通关）＝ 验收基线 2 的「连续收集 50 次」。
+## v3 新增阶段全部走真实场景/真实输入：开始面板 → 多类型计分 → Combo → 磁铁 →
+## 加速 → 暂停 → 波次/调参/音效/持久化（v3 需求 cmv6vkith000gjotytp4v915c）。
 enum SmokePhase {
-	NOISE, MOVE, COLLECT, MASS1, SETTLE1, RESTART1, MASS2, SETTLE2, RESTART2,
-	MASS3, LOSE, RESTART3, RESPAWN_EXPIRE, DIFFICULTY, PERSIST, DONE,
+	NOISE, START, MOVE, COLLECT, MASS1, SETTLE1, RESTART1, MASS2, SETTLE2, RESTART2,
+	MASS3, LOSE, RESTART3, RESPAWN_EXPIRE, MULTITYPE, COMBO, MAGNET, BOOST, PAUSE,
+	DIFFICULTY, PERSIST, DONE,
 }
 
 var _failures: PackedStringArray = []
@@ -118,6 +147,21 @@ var _score_before_touch: int = 0
 var _awaiting_touch: bool = false
 ## RESPAWN_EXPIRE 阶段内观察到的 SpawnTimer 自动补充。
 var _respawn_seen: bool = false
+## ── v3 阶段用状态 ──
+## 多类型断言：触碰前的分数（稀有 +3 / 时钟 +2 的增量基准）。
+var _multi_score_before: int = 0
+## 时钟加时断言的加时前剩余时间。
+var _clock_time_before: float = 0.0
+## Combo 断言：连击链进入 COMBO 阶段时的基准（每触 +1 递推）。
+var _combo_base: int = 0
+## Combo 断言：三只稀有物的触碰台账（每次触碰后记录 delta）。
+var _combo_gains: PackedInt32Array = []
+## 磁铁断言：被吸目标与触碰前分数。
+var _magnet_target: Collectible
+var _magnet_score_before: int = 0
+## 加速断言：基线位移与加速位移（px）。
+var _boost_base_dx: float = 0.0
+var _boost_test_x: float = 0.0
 
 ## 噪声相位：确定种子随机事件（原始事件，不含 InputEventAction）。
 var _noise_rng := RandomNumberGenerator.new()
@@ -190,6 +234,14 @@ func _advance_phase() -> void:
 				# 显式释放全部动作：噪声随机按键可能留下悬挂的按下态，不清会污染 MOVE 断言。
 				for action in REQUIRED_ACTIONS:
 					Input.action_release(action)
+				_to_phase(SmokePhase.START)
+		SmokePhase.START:
+			# v3 开始流程（④2）：READY + 开始面板 → 确认 → RUNNING + 面板收起 + 场上铺满。
+			if _phase_frames == 1:
+				_assert_start_screen()
+				_press_action(&"confirm")
+			elif _phase_frames >= SETTLE_FRAMES:
+				_assert_started()
 				_to_phase(SmokePhase.MOVE)
 		SmokePhase.MOVE:
 			# 方向符号断言（需求 cmuktc8jk000hm97zm6l1gp4u 基线）：
@@ -260,12 +312,24 @@ func _advance_phase() -> void:
 				_to_phase(SmokePhase.RESPAWN_EXPIRE)
 		SmokePhase.RESPAWN_EXPIRE:
 			_respawn_expire_step()
+		SmokePhase.MULTITYPE:
+			_multitype_step()
+		SmokePhase.COMBO:
+			_combo_step()
+		SmokePhase.MAGNET:
+			_magnet_step()
+		SmokePhase.BOOST:
+			_boost_step()
+		SmokePhase.PAUSE:
+			_pause_step()
 		SmokePhase.DIFFICULTY:
 			_assert_difficulty_curve()
 			_to_phase(SmokePhase.PERSIST)
 		SmokePhase.PERSIST:
 			_assert_touch_ledger()
 			_assert_persistence_roundtrip()
+			_assert_v3_tuning_protocol()
+			_assert_sfx_bank()
 			_to_phase(SmokePhase.DONE)
 		SmokePhase.DONE:
 			_report()
@@ -284,7 +348,10 @@ func _mass_step(end_touch: int, next_phase: SmokePhase) -> void:
 		_awaiting_touch = false
 		if _main_node != null:
 			_main_node._fill_collectibles()
-		var target := _pick_fresh_collectible()
+		# 只碰普通物：+1 台账与 v1/v2 完全同口径（v3 的高分物/道具不进 50 连击样本）。
+		var target := _pick_fresh_collectible("normal")
+		if target == null and _main_node != null:
+			target = _main_node._spawn_collectible("normal")
 		if target != null:
 			_park_all_others(target)
 			_score_before_touch = GameState.score
@@ -303,14 +370,16 @@ func _mass_step(end_touch: int, next_phase: SmokePhase) -> void:
 
 
 ## 挑一个还有富余寿命的可收集物（剩余 >1s）：杜绝「摆上去同帧过期被释放」的竞态。
-func _pick_fresh_collectible() -> Collectible:
+## kind_filter 非空时只挑该类型 —— 50 连击台账只碰普通物（+1 口径不被高分物/连击加成污染）。
+func _pick_fresh_collectible(kind_filter: String = "") -> Collectible:
 	var container := get_tree().root.find_child("Collectibles", true, false)
 	if container == null:
 		return null
 	for child in container.get_children():
 		var collectible := child as Collectible
 		if collectible != null and not collectible.is_queued_for_deletion() \
-				and collectible.remaining_lifetime() > 1.0:
+				and collectible.remaining_lifetime() > 1.0 \
+				and (kind_filter.is_empty() or collectible.kind == kind_filter):
 			return collectible
 	return null
 
@@ -345,7 +414,7 @@ func _respawn_expire_step() -> void:
 	var expiry_done: bool = _expire_target == null or not is_instance_valid(_expire_target)
 	if _respawn_seen and expiry_done:
 		_assert_respawn_and_expiry()
-		_to_phase(SmokePhase.DIFFICULTY)
+		_to_phase(SmokePhase.MULTITYPE)
 	elif _phase_frames >= RESPAWN_MAX_FRAMES:
 		if not _respawn_seen:
 			_failures.append("生成器未在 %d 帧内自动补充（SpawnTimer timeout 未触发 _fill_collectibles）" % [
@@ -353,6 +422,213 @@ func _respawn_expire_step() -> void:
 			])
 		if not expiry_done:
 			_failures.append("过期物品未被回收：寿命耗尽后仍存活（expired → 回收接线断裂）")
+
+
+## ── v3 阶段：开始面板 ──
+func _assert_start_screen() -> void:
+	if GameState.phase != GameState.Phase.READY:
+		_failures.append("启动阶段应为 READY（v3 ④2 开始面板流程），实际 %s" % _phase_label(GameState.phase))
+	var panel := get_tree().root.find_child("StartPanel", true, false)
+	if panel == null or not (panel as Control).visible:
+		_failures.append("开始面板未在 READY 阶段显示（StartPanel 未创建或未置可见）")
+
+
+func _assert_started() -> void:
+	if GameState.phase != GameState.Phase.RUNNING:
+		_failures.append("确认后未进入 RUNNING（开始面板 → 游戏进行路径断裂），实际 %s" % _phase_label(GameState.phase))
+	var panel := get_tree().root.find_child("StartPanel", true, false) as Control
+	if panel != null and panel.visible:
+		_failures.append("开始游戏后开始面板仍可见（面板未随 RUNNING 收起）")
+	if _collectible_count() < GameState.MAX_COLLECTIBLES:
+		_failures.append("开始后场上物品未铺满：%d/%d（_start_or_restart 未执行 _fill_collectibles）" % [
+			_collectible_count(), GameState.MAX_COLLECTIBLES,
+		])
+
+
+## ── v3 阶段：多类型计分（rare +3；clock +2 且加时 4s）──
+## 全部走真实触碰：清场 → 指定类型刷到牛牛脚下 → 断言增量与类型分值一致。
+func _multitype_step() -> void:
+	if _phase_frames == 1:
+		# 分数归零：本阶段 +6 分、COMBO 阶段 +15 分，都不得误触 20 分通关线（否则 phase
+		# 进入 WON、磁铁/加速/暂停断言全部失效）。与 DIFFICULTY 阶段同款白盒口径。
+		GameState.score = 0
+		_main_node._clear_collectibles()
+		var rare := _main_node._spawn_collectible("rare")
+		_multi_score_before = GameState.score
+		rare.global_position = _player.global_position
+	elif _phase_frames == COLLECT_FRAMES:
+		var gained: int = GameState.score - _multi_score_before
+		if gained != GameState.item_score_for("rare"):
+			_failures.append("多类型计分 FAIL：稀有物触碰后 +%d，期望 +%d（类型分值口径不一致）" % [
+				gained, GameState.item_score_for("rare"),
+			])
+		# 窗口断言带容差：触碰刷新后 _process 每帧递减，检查点晚 1~3 帧 ≈0.03~0.05s 属正常。
+		if GameState.combo_timer < GameState.COMBO_WINDOW - 0.2:
+			_failures.append("Combo 窗口未随触碰刷新：timer=%.3f 应接近满窗 %.3f（触碰未续窗）" % [
+				GameState.combo_timer, GameState.COMBO_WINDOW,
+			])
+		# 白盒推进 Combo 超时（窗口 0.001s → 下一物理帧过期清零），隔离时钟触碰的连击加成，
+		# 让「时钟 +2」的分值口径单独可判。
+		GameState.combo_timer = 0.001
+	elif _phase_frames == COLLECT_FRAMES + 2:
+		if GameState.combo_count != 0:
+			_failures.append("Combo 超时未清零：combo_count=%d（窗口过期断链路径断裂）" % GameState.combo_count)
+		GameState.time_left = 30.0
+		_clock_time_before = GameState.time_left
+		var clock := _main_node._spawn_collectible("clock")
+		clock.global_position = _player.global_position
+	elif _phase_frames >= COLLECT_FRAMES * 2 + 2:
+		var gained: int = GameState.score - _multi_score_before
+		if gained != GameState.item_score_for("rare") + GameState.item_score_for("clock"):
+			_failures.append("多类型计分 FAIL：稀有+时钟合计 +%d，期望 +%d（时钟分值口径不一致）" % [
+				gained, GameState.item_score_for("rare") + GameState.item_score_for("clock"),
+			])
+		var expected_time: float = minf(_clock_time_before + CLOCK_BONUS_EXPECTED, GameState.TIME_LIMIT)
+		if absf(GameState.time_left - expected_time) > 0.5:
+			_failures.append("时钟加时 FAIL：time_left %.2f 期望 ≈%.2f（加时 %+.1fs 未生效）" % [
+				GameState.time_left, expected_time, CLOCK_BONUS_EXPECTED,
+			])
+		_combo_base = GameState.combo_count
+		_combo_score_base = GameState.score
+		_to_phase(SmokePhase.COMBO)
+
+
+## ── v3 阶段：Combo 递增 + 高分物加成 + 连击 UI ──
+func _combo_step() -> void:
+	if _phase_frames % 2 == 1:
+		if _phase_frames == 1:
+			GameState.score = 0  # 三只稀有 +15 分，归零防误触通关线（见 _multitype_step 注释）
+			_main_node._clear_collectibles()
+			_combo_gains.clear()
+			_combo_score_base = GameState.score
+		_combo_touch_score_before = GameState.score
+		var rare := _main_node._spawn_collectible("rare")
+		rare.global_position = _player.global_position
+		_awaiting_touch = true
+	elif _awaiting_touch:
+		_awaiting_touch = false
+		_combo_gains.append(GameState.score - _combo_touch_score_before)
+		if _combo_gains.size() >= 3:
+			_assert_combo_chain()
+			_to_phase(SmokePhase.MAGNET)
+
+
+## 进入 COMBO 阶段时的分数基准（MULTITYPE 迁移时写死）与单次触碰前分数。
+var _combo_score_base: int = 0
+var _combo_touch_score_before: int = 0
+
+
+func _assert_combo_chain() -> void:
+	# 连击链：base(时钟触后) → 三次稀有触碰，combo 逐触 +1；加成 = combo-1（≥2 起）。
+	for i: int in _combo_gains.size():
+		var combo: int = _combo_base + i + 1
+		var expected: int = GameState.gain_for("rare", combo)
+		if _combo_gains[i] != expected:
+			_failures.append("Combo 加成 FAIL：第 %d 连触碰稀有物 +%d，期望 +%d（combo=%d，加成口径不一致）" % [
+				combo, _combo_gains[i], expected, combo,
+			])
+	if GameState.combo_count != _combo_base + 3:
+		_failures.append("Combo 递增 FAIL：combo_count=%d 期望 %d（窗口内连击未逐触 +1）" % [
+			GameState.combo_count, _combo_base + 3,
+		])
+	var combo_label := get_tree().root.find_child("ComboLabel", true, false) as Label
+	if combo_label == null or not combo_label.visible:
+		_failures.append("连击 UI 未显示（ComboLabel 未随 combo ≥2 置可见，视觉反馈缺失）")
+
+
+## ── v3 阶段：磁铁道具（范围内目标被吸到判定距离并真实收集）──
+func _magnet_step() -> void:
+	if _phase_frames == 1:
+		_main_node._clear_collectibles()
+		_magnet_target = _main_node._spawn_collectible("normal")
+		# 摆在判定距离(44.8px)外、磁铁半径(100px)内：不吸则永远收不到，吸到即收集。
+		_magnet_target.global_position = _player.global_position + Vector2(MAGNET_TEST_DISTANCE, 0.0)
+		_magnet_score_before = GameState.score
+		_player.activate_magnet()  # 道具真实生效入口（拾取路径调用的同一函数）
+	elif _phase_frames >= MAGNET_MAX_FRAMES:
+		if not _player.is_magnet_active():
+			_failures.append("磁铁生效状态 FAIL：%d 帧（%.1fs）内 is_magnet_active 已变 false（MAGNET_DURATION 计时异常）" % [
+				MAGNET_MAX_FRAMES, float(MAGNET_MAX_FRAMES) / 60.0,
+			])
+		var collected: bool = not is_instance_valid(_magnet_target)
+		if not collected:
+			_failures.append("磁铁 FAIL：范围内目标 %d 帧后未被吸入判定距离（吸附效果未生效或拉速不足）" % MAGNET_MAX_FRAMES)
+		if GameState.score != _magnet_score_before + 1:
+			_failures.append("磁铁收集计分 FAIL：score %d → %d，期望恰好 +1" % [
+				_magnet_score_before, GameState.score,
+			])
+		_to_phase(SmokePhase.BOOST)
+
+
+## ── v3 阶段：加速道具（同输入下实测位移 ≥ 基线 ×1.3）──
+func _boost_step() -> void:
+	if _phase_frames == 1:
+		_main_node._clear_collectibles()
+		_player.global_position = DIR_CHECK_POSITION
+		Input.action_press(&"move_right")
+	elif _phase_frames == BOOST_HOLD_FRAMES + 1:
+		Input.action_release(&"move_right")
+		_boost_base_dx = _player.global_position.x - DIR_CHECK_POSITION.x
+		_player.activate_boost()
+		if not _player.is_boost_active():
+			_failures.append("加速道具未生效（is_boost_active=false）")
+	elif _phase_frames == BOOST_HOLD_FRAMES + 2:
+		_boost_test_x = _player.global_position.x
+		Input.action_press(&"move_right")
+	elif _phase_frames >= BOOST_HOLD_FRAMES * 2 + 2:
+		Input.action_release(&"move_right")
+		var boosted_dx: float = _player.global_position.x - _boost_test_x
+		if _boost_base_dx > 0.0 and boosted_dx < _boost_base_dx * BOOST_RATIO_MIN:
+			_failures.append("加速 FAIL：基线位移 %.1fpx，加速位移 %.1fpx（未达 ×%.1f，BOOST_MULT 未接线到移速）" % [
+				_boost_base_dx, boosted_dx, BOOST_RATIO_MIN,
+			])
+		_player.clear_powerups()
+		_to_phase(SmokePhase.PAUSE)
+
+
+## ── v3 阶段：暂停 / 恢复（P 键暂停冻结时限，确认恢复）──
+func _pause_step() -> void:
+	if _phase_frames == 1:
+		_press_action(&"pause")
+	elif _phase_frames == 3:
+		if GameState.phase != GameState.Phase.PAUSED:
+			_failures.append("暂停 FAIL：按 P 后 phase=%s（pause 动作 → pause_game 路径断裂）" % _phase_label(GameState.phase))
+		var pause_label := get_tree().root.find_child("PauseLabel", true, false) as Control
+		if pause_label == null or not pause_label.visible:
+			_failures.append("暂停提示未显示（PauseLabel 未随 PAUSED 置可见）")
+		_press_action(&"pause")  # 再按一次 P 应恢复（对称语义）
+	elif _phase_frames >= SETTLE_FRAMES + 2:
+		if GameState.phase != GameState.Phase.RUNNING:
+			_failures.append("恢复 FAIL：再按 P 后 phase=%s（resume_game 未被触发）" % _phase_label(GameState.phase))
+		_to_phase(SmokePhase.DIFFICULTY)
+
+
+## ── v3 断言：调参协议（新声明键可应用/钳制、未声明键拒绝，SKILL.md §3C）──
+func _assert_v3_tuning_protocol() -> void:
+	var applied: Array[String] = GameState.apply_tuning({"COMBO_WINDOW": 999.0})
+	if not applied.has("COMBO_WINDOW") or not is_equal_approx(GameState.COMBO_WINDOW, 5.0):
+		_failures.append("调参协议 FAIL：COMBO_WINDOW=999 未按 TUNING_META max=5 钳制（实际 %.2f）" % GameState.COMBO_WINDOW)
+	applied = GameState.apply_tuning({"NOT_A_REAL_KEY": 1.0})
+	if not applied.is_empty():
+		_failures.append("调参协议 FAIL：未声明键 NOT_A_REAL_KEY 被应用（apply_tuning 必须拒绝未知键）")
+	# 还原默认值：调参断言不得污染后续阶段（此处已是收尾阶段，恢复出厂语义）。
+	GameState.apply_tuning({"COMBO_WINDOW": 2.0})
+
+
+## ── v3 断言：音效库完备 + 收集后真的播过声（零音效缺陷闭环机判）──
+func _assert_sfx_bank() -> void:
+	var sfx := get_tree().root.get_node_or_null("Sfx")
+	if sfx == null:
+		_failures.append("音效 FAIL：autoload Sfx 未注册（project.godot [autoload] 缺失）")
+		return
+	var names: Array[StringName] = sfx.registered_names()
+	if names.size() < SFX_BANK_MIN:
+		_failures.append("音效 FAIL：Sfx 库仅注册 %d 种（期望 ≥%d）：%s" % [
+			names.size(), SFX_BANK_MIN, ", ".join(names),
+		])
+	var played: int = sfx.played_count
+	if played < 1:
+		_failures.append("音效 FAIL：全程 50+ 次真实触碰后 played_count=%d（收集音效未接线）" % played)
 
 
 ## 难度梯度断言：以本局收集数为自变量，刷新间隔/物品寿命单调收紧且收敛到下限。
@@ -384,6 +660,33 @@ func _assert_difficulty_curve() -> void:
 		_failures.append("满难度刷新间隔应收敛到 SPAWN_INTERVAL_MIN，实际 %.3f" % GameState.spawn_interval_now())
 	if not is_equal_approx(GameState.collectible_lifetime_now(), GameState.LIFETIME_MIN):
 		_failures.append("满难度物品寿命应收敛到 LIFETIME_MIN，实际 %.3f" % GameState.collectible_lifetime_now())
+	# ── v3 波次口径（①4）：波次下标按分数切分、曲线全局单调已由上方采样覆盖 ──
+	var third: int = maxi(GameState.TARGET_SCORE / 3, 1)
+	var two_thirds: int = maxi(GameState.TARGET_SCORE * 2 / 3, third + 1)
+	if GameState.wave_index_for(0) != 0:
+		_failures.append("波次切分 FAIL：score=0 应为第 1 波，实际下标 %d" % GameState.wave_index_for(0))
+	if GameState.wave_index_for(third) != 1:
+		_failures.append("波次切分 FAIL：score=%d 应进入第 2 波，实际下标 %d" % [third, GameState.wave_index_for(third)])
+	if GameState.wave_index_for(two_thirds) != 2:
+		_failures.append("波次切分 FAIL：score=%d 应进入第 3 波，实际下标 %d" % [two_thirds, GameState.wave_index_for(two_thirds)])
+	# 波次权重表：逐波合计 1.0、rare 权重逐波不降（高强度波高分物更多）。
+	var last_rare_weight: float = -1.0
+	for wave: int in 3:
+		var weights := GameState.wave_weights(wave)
+		var total_weight: float = 0.0
+		for kind: String in weights:
+			total_weight += float(weights[kind])
+		if absf(total_weight - 1.0) > 0.001:
+			_failures.append("波次权重 FAIL：第 %d 波权重合计 %.4f != 1.0（刷出分布不可信）" % [wave + 1, total_weight])
+		var rare_weight: float = float(weights.get("rare", 0.0))
+		if rare_weight < last_rare_weight - 0.0001:
+			_failures.append("波次权重 FAIL：rare 权重第 %d 波 %.3f 比前一波 %.3f 更低（梯度应单调不降）" % [
+				wave + 1, rare_weight, last_rare_weight,
+			])
+		last_rare_weight = rare_weight
+	# pick_kind 纯函数：roll=0 必为表中首键（normal），roll 越界兜底 normal。
+	if GameState.pick_kind(0, 0.0) != "normal":
+		_failures.append("pick_kind FAIL：roll=0 应选中 normal，实际 %s" % GameState.pick_kind(0, 0.0))
 	GameState.score = saved_score
 
 
@@ -450,10 +753,14 @@ func _assert_node_scaled(node: Node2D, label: String) -> void:
 func _assert_collected() -> void:
 	if not _score_seen:
 		_failures.append("收集判定未生效：触碰后 GameState.score_changed 未到达订阅方（PickupArea 分组/碰撞层或 Collectible 接线断裂）")
-	if GameState.score < 1:
-		_failures.append("收集计数未 +1：触碰可收集物后 score=%d（验收基线 2：计数与判定必须一致）" % GameState.score)
+	# 首触固定普通物 + combo=1（无加成）→ 恰好 +1：钉死 v1 验收基线的计分口径。
+	if GameState.score != 1:
+		_failures.append("收集计数 FAIL：普通物首触后 score=%d，期望恰好 +1（验收基线 2：触碰即 +1）" % GameState.score)
 	if _collect_target != null and is_instance_valid(_collect_target):
 		_failures.append("被收集的物品没有消失：触碰后 Collectible 仍在场景树（回收逻辑未执行）")
+	var sfx := get_tree().root.get_node_or_null("Sfx")
+	if sfx != null and sfx.played_count < 1:
+		_failures.append("收集音效未播放：触碰后 Sfx.played_count=%d（音效反馈未接线，零音效缺陷复现）" % sfx.played_count)
 
 
 ## 首次收集后的集成断言：难度梯度真的接到了 SpawnTimer（间隔比开局值更紧）。
@@ -513,13 +820,22 @@ func _assert_restarted() -> void:
 		_failures.append("一键重开后难度梯度未复位：刷新间隔 %.3f != 开局值 %.3f" % [
 			GameState.spawn_interval_now(), GameState.SPAWN_INTERVAL_START,
 		])
+	if GameState.wave_index != 0:
+		_failures.append("一键重开后波次未复位：wave_index=%d（start_run 未归零，v3 波次节奏跨局泄漏）" % GameState.wave_index)
+	if GameState.combo_count != 0:
+		_failures.append("一键重开后连击未清零：combo_count=%d（断链/重开清零规则失效）" % GameState.combo_count)
 
 
 func _assert_persistence_roundtrip() -> void:
+	# 先把当前内存态落盘：v3 的 MULTITYPE/COMBO/MAGNET 断言阶段发生在最后一次结算存盘之后，
+	# 收集数领先磁盘值属正常游戏语义（存盘时机 = 每局结算）——这里验证「落盘 → 回读一致」。
+	GameState.save_progress()
 	var before_best: int = GameState.best_score
 	var before_total: int = GameState.total_collected
+	var before_combo: int = GameState.best_combo
 	GameState.best_score = -7
 	GameState.total_collected = -7
+	GameState.best_combo = -7
 	GameState.load_progress()
 	if GameState.best_score != before_best:
 		_failures.append("持久化回读不一致：best_score 落盘值 %d，回读 %d（验收基线 4：退出重进数据不得丢失）" % [
@@ -528,6 +844,10 @@ func _assert_persistence_roundtrip() -> void:
 	if GameState.total_collected != before_total:
 		_failures.append("持久化回读不一致：total_collected 落盘值 %d，回读 %d（验收基线 4）" % [
 			before_total, GameState.total_collected,
+		])
+	if GameState.best_combo != before_combo:
+		_failures.append("持久化回读不一致：best_combo 落盘值 %d，回读 %d（v3 档案字段丢失）" % [
+			before_combo, GameState.best_combo,
 		])
 
 
@@ -555,7 +875,10 @@ func _place_target_under_player() -> void:
 	if container == null:
 		_failures.append("场景树找不到 Collectibles 容器（main.tscn 缺少生成器容器节点）")
 		return
-	var target := _pick_fresh_collectible()
+	# 首触固定普通物：钉死「普通物触碰恰好 +1」的验收基线口径（combo=1 无加成）。
+	var target := _pick_fresh_collectible("normal")
+	if target == null and _main_node != null:
+		target = _main_node._spawn_collectible("normal")
 	if target == null:
 		_failures.append("场上没有剩余寿命充足的可收集物（collectible.tscn 未被生成器实例化）")
 		return
@@ -596,7 +919,7 @@ func _inject_noise_frame() -> void:
 	if _total_frames == 1:
 		_noise_rng.seed = 20260913
 	var roll := _noise_rng.randf()
-	var pos := Vector2(_noise_rng.randf_range(0, 640), _noise_rng.randf_range(0, 360))
+	var pos := Vector2(_noise_rng.randf_range(0, 720), _noise_rng.randf_range(0, 1280))
 	if roll < 0.30:
 		var t := InputEventScreenTouch.new()
 		t.index = _noise_rng.randi_range(0, 1)
@@ -669,7 +992,7 @@ func _key_labels(keys: Array) -> String:
 
 func _report() -> void:
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/输入映射/移动方向符号(A/←减小,D/→增大)/收集判定/50 连击一致性/难度梯度/过期回收/胜负/一键重开/持久化/v2手感基线(体型1.3~1.5x·移速60~70%) 全部通过")
+		print("GODOT_SMOKE: PASS 场景实例化/输入映射/移动方向符号(A/←减小,D/→增大)/收集判定/50 连击一致性/波次梯度/过期回收/胜负/一键重开/持久化/v2手感基线(体型1.3~1.5x·移速60~70%)/v3扩展(开始面板·多类型计分·Combo·磁铁·加速·暂停·波次切分·音效闭环) 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:
