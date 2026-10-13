@@ -7,6 +7,8 @@
 import { assert, loadSpec } from './helpers.mjs';
 const spec = loadSpec();
 const stepMs = spec.numeric.FIXED_STEP_MS;
+// a5 判定窗（spec numeric.guidance.windowMs 单源；v1.2 入链前容缺省 5000）
+const windowMs = spec.numeric.guidance?.windowMs ?? 5000;
 
 const { createGame, pickUpgradeHost, offerIfNeeded } = await import(
   new URL('../../src/game.ts', import.meta.url).pathname
@@ -32,9 +34,9 @@ const taps = ents().filter((t) => t.id === 'first_tap');
 assert(taps.length === 1, `first_tap 应恰好 1 条（once），实得 ${taps.length}`);
 assert(Math.abs(taps[0].atMs - g.state.tick * stepMs) <= stepMs, `first_tap.atMs ${taps[0].atMs} 与 tick×stepMs ${g.state.tick * stepMs} 不一致`);
 
-// ③ a5 判定语义样例：真实操作发生在 hint_shown 后 5s 内（本件以受控时序断言窗语义）
+// ③ a5 判定语义样例：真实操作发生在 hint_shown 后判定窗内（本件以受控时序断言窗语义）
 const tapAt = taps[0].atMs, hintAt = hint.atMs;
-assert(tapAt - hintAt <= 5000, `a5 窗语义：首操作 atMs-tap ${tapAt - hintAt}ms > 5000ms（受控时序应落在窗内）`);
+assert(tapAt - hintAt <= windowMs, `a5 窗语义：首操作 atMs-tap ${tapAt - hintAt}ms > ${windowMs}ms（受控时序应落在窗内）`);
 
 // ④ first_loop_complete：首次升级三选一选择完成 = 首次核心循环闭环（拖动→击杀→掉落→拾取→升级）
 // 驱动真实仿真：拖动锚定 → step 快进 → 三选一出现即真实选择；循环直至 flc 落账
