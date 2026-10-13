@@ -3,7 +3,7 @@
 //
 // 架构：静态服务 build/ + CDP chromium（g2-blocks tools/smoke.mjs 判例同构，零 npm 依赖）。
 // 前置：node tools/build.mjs。
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, rmSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { join, dirname, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,10 +15,22 @@ const BUILD = join(ROOT, 'build');
 const say = (m) => console.log('[ws-smoke] ' + m);
 const die = (m) => { console.error('[ws-smoke] DIE ' + m); process.exit(1); };
 
+// 泄漏防护：die() 直接 process.exit，若不挂 exit 钩子，每失败一轮就漏一棵 Chrome
+// 进程树 + /tmp profile（2026-10-13 实测多轮 gate 后累计 ~90 个孤儿进程持续烧 CPU）。
+// 判例对齐平台 mobile-web-smoke.mjs 的 cleanup 模式，SIGKILL 兜底中途启动态。
+let proc = null;
+let server = null;
+let userDir = null;
+process.on('exit', () => {
+  if (proc && proc.exitCode === null) { try { proc.kill('SIGKILL'); } catch { /* 已退出 */ } }
+  try { server?.close(); } catch { /* 已关 */ }
+  if (userDir) { try { rmSync(userDir, { recursive: true, force: true }); } catch { /* 尽力 */ } }
+});
+
 if (!existsSync(join(BUILD, 'main.mjs'))) die('build/ 缺位——先 node tools/build.mjs');
 
 const MIME = { '.html': 'text/html', '.mjs': 'text/javascript', '.json': 'application/json', '.js': 'text/javascript' };
-const server = createServer((req, res) => {
+server = createServer((req, res) => {
   const url = (req.url || '/').split('?')[0];
   const p = join(BUILD, url === '/' ? 'index.html' : url.slice(1));
   if (!p.startsWith(BUILD) || !existsSync(p)) { res.writeHead(404); res.end(); return; }
@@ -37,8 +49,8 @@ const CANDIDATES = [
 ];
 const chromeBin = CANDIDATES.find((c) => existsSync(c));
 if (!chromeBin) die('chrome 未找到（装 Chrome 或 Chromium）');
-const userDir = join('/tmp', `ws-smoke-${Date.now()}`);
-const proc = execFile(chromeBin, [
+userDir = join('/tmp', `ws-smoke-${Date.now()}`);
+proc = execFile(chromeBin, [
   '--headless=new', '--no-first-run', '--no-default-browser-check',
   `--user-data-dir=${userDir}`, '--remote-debugging-port=0', 'about:blank',
 ], () => {});
