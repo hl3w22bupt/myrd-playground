@@ -1,9 +1,8 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/board.tscn" id="2_board"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="3_player"]
-[ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="4_joystick"]
 [ext_resource type="Script" path="res://scripts/touch_confirm_button.gd" id="5_confirm"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_confirm"]
@@ -190,17 +189,6 @@ autowrap_mode = 2
 [node name="TouchUI" type="CanvasLayer" parent="."]
 layer = 10
 visible = false
-
-[node name="JoystickAnchor" type="Control" parent="TouchUI"]
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = -160.0
-offset_right = 160.0
-offset_bottom = -24.0
-grow_vertical = 0
-script = ExtResource("4_joystick")
 
 [node name="ConfirmAnchor" type="Control" parent="TouchUI"]
 anchors_preset = 3

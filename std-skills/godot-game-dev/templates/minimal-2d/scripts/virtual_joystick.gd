@@ -3,7 +3,7 @@ extends Control
 ## 虚拟摇杆：把手指拖动向量合成为 InputEventAction（带 strength）注入引擎。
 ##
 ## 规范要点（见 SKILL.md「移动端触摸规范」）：
-## - 触摸控件是动作的「生产者」，经 Input.parse_input_event 注入 InputMap 动作；
+## - 触摸控件是动作的「生产者」，经 Input.action_press/action_release 写入 InputMap 动作状态；
 ## - 游戏逻辑（如 player.gd）仍然只用 Input.get_vector 读动作，二者互不感知；
 ## - 纯代码 _draw 绘制，不依赖图片素材，模板复制即用。
 
@@ -27,6 +27,9 @@ var _output: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
+	# GUI 输入过滤必须透明：默认 MOUSE_FILTER_STOP 会让 GUI 把落在摇杆矩形上的触摸
+	# 当场消费掉，_unhandled_input 永远收不到（表现为：摇杆画得出来但完全无响应）。
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	custom_minimum_size = Vector2(BASE_RADIUS, BASE_RADIUS) * 2.0
 	_center = size / 2.0
 	queue_redraw()
@@ -83,8 +86,8 @@ func _release() -> void:
 	_emit_move_actions()
 
 
-## 把摇杆向量分解为 4 个方向动作的 strength 注入引擎；
-## Input.get_vector 会读取 strength，游戏侧拿到的是模拟量方向。
+## 把摇杆向量分解为 4 个方向动作的 strength 写入引擎动作状态；
+## Input.get_vector 在 _physics_process 里轮询读取，游戏侧拿到的是模拟量方向。
 func _emit_move_actions() -> void:
 	_emit_action(MOVE_ACTIONS.left, -_output.x if _output.x < 0.0 else 0.0)
 	_emit_action(MOVE_ACTIONS.right, _output.x if _output.x > 0.0 else 0.0)
@@ -92,12 +95,14 @@ func _emit_move_actions() -> void:
 	_emit_action(MOVE_ACTIONS.down, _output.y if _output.y > 0.0 else 0.0)
 
 
+## 必须用状态 API（action_press/action_release）而不是 InputEventAction + parse_input_event：
+## 后者写入的动作状态是瞬态的（当帧输入冲刷即被清掉），轮询方 Input.get_vector
+## 在 _physics_process 里读到的永远是 0 —— 离散事件消费（_unhandled_input 分发）不受影响。
 func _emit_action(action: StringName, strength: float) -> void:
-	var ev := InputEventAction.new()
-	ev.action = action
-	ev.pressed = strength > 0.0
-	ev.strength = clampf(strength, 0.0, 1.0)
-	Input.parse_input_event(ev)
+	if strength > 0.0:
+		Input.action_press(action, clampf(strength, 0.0, 1.0))
+	else:
+		Input.action_release(action)
 
 
 func _draw() -> void:
