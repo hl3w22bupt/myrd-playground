@@ -47,3 +47,4 @@
 - **现象**：门禁 runner 侧 input-fuzz 退出码 1（反馈无明细）；本机同命令多次复跑 PASS。
 - **排查矩阵（全部 PASS，零 SCRIPT ERROR）**：同工作区 ×30+ 连跑（含 20 次连续循环）；10 个独立种子（1/7/42/99/12345/20260914/20260915/555555/88888888/31415926）；`taskpolicy -c background` 慢机模拟；origin 分支 fresh clone 冷缓存；Godot 4.3 与 4.6.1 双引擎；`override.cfg` 扫频 application/run/max_fps ∈ {5,10,15,30,45,60,90,120,240,1000}（系统性扫过事件帧/物理 tick 交错空间）；串行全电池 ×2（preflight+smoke@240+fuzz）。
 - **结论**：当前 HEAD（67059d5）在本机全部可复现维度下无缺陷迹象；门禁侧失败为环境性瞬态（runner 负载/执行时点工作区状态）的可能性最高。门禁日志在本机 user://logs 无对应记录（Godot 日志落盘证明门禁 runner 在另一宿主），失败明细需门禁侧提供（input-fuzz.sh 失败时本会打印 `godot-fuzz: FAIL <原因>` + 日志末尾 20 行，可作为索取模板）。
+- **精确根因（见 commit `c6f3ae9`，并行实例的独立诊断，与本矩阵互证）**：共享工作区并发伪失败——门禁例程与 agent 实例同 Workspace 执行，input-fuzz.sh 的暂存路径 `tests/.fuzz/` 为共享可变路径（rm -rf + 重暂存），并发时一方清理拆掉另一方正在加载的驱动场景，精确产出「Cannot open res://tests/.fuzz/fuzz_driver.tscn → 退出码 1」。加固：暂存目录入 .gitignore（瞬态残留永不入库）；处置约定：例程运行窗口内不对同一工程并发跑引擎命令。
