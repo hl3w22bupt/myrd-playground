@@ -18,6 +18,10 @@ extends Node
 ## ⚠️ 输入注入分阶段互不重叠（E-08）：action_press 与 parse_input_event 分帧做。
 
 const NOISE_FRAMES: int = 30
+## 摇杆链路阶段：动作真正按住后计的保持帧数（满速 ≈0.04m/帧，10 帧 ≈ 0.4m > 0.25）。
+const JOY_HOLD_FRAMES: int = 10
+## 摇杆阶段总帧数上限（启动初期物理帧:渲染帧 >1，注入事件在输入缓冲里可能压多帧）。
+const JOY_MAX_FRAMES: int = 45
 const MOVE_FRAMES: int = 10
 ## 等待爪子状态机离开/回到 IDLE 的帧数上限（加速后一个抓取周期 ~80 帧）。
 const CYCLE_WAIT_FRAMES: int = 150
@@ -39,11 +43,19 @@ const KEY_CONTRACT: Dictionary = {
 	&"switch_claw": [KEY_TAB],
 }
 
-enum Phase { NOISE, MOVE, DROP_WAIT, CATCH_WAIT, RESULT_WAIT, DONE }
+enum Phase { NOISE, JOYSTICK, MOVE, DROP_WAIT, CATCH_WAIT, RESULT_WAIT, DONE }
 
 var _failures: PackedStringArray = []
+## 摇杆链路断言用：JoystickAnchor 实例与触摸按下时的爪子起点。
+var _joystick: Control
+var _joy_origin: Vector3
+## 摇杆阶段币暂存：无头下 is_touchscreen_available()=false，触摸派生的模拟鼠标会走
+## main.gd「桌面点按=下爪」分支 —— 币清零让 try_drop 空转（爪子保持 IDLE 可平移），阶段结束恢复。
+var _joy_coins_saved: int = 0
+var _joy_drag_sent: bool = false
+var _joy_hold_frames: int = 0
 var _frames: int = 0
-var _phase: int = Phase.NOISE
+var _phase: int = Phase.JOYSTICK
 var _phase_frame: int = 0
 var _claw: Claw
 var _game_state: Node
@@ -80,6 +92,14 @@ func _ready() -> void:
 		_check_audio(_game_state)
 		_check_3d_presentation()
 		_check_graphics_contract()
+
+	# 摇杆链路断言准备：headless 检测不到触摸屏，TouchUI 可见性门控会把摇杆藏住，
+	# 显式点亮只为断言路径确定（真机上摇杆本就随触摸屏出现）。
+	_joystick = get_tree().root.find_child("JoystickAnchor", true, false) as Control
+	if _joystick != null:
+		var touch_ui: CanvasLayer = _joystick.get_parent() as CanvasLayer
+		if touch_ui != null:
+			touch_ui.visible = true
 
 	_claw = get_tree().root.find_child("Claw", true, false) as Claw
 	if _claw == null:
@@ -121,8 +141,43 @@ func _physics_process(_delta: float) -> void:
 		Phase.NOISE:
 			_inject_noise_frame()
 			if _phase_frame >= NOISE_FRAMES:
+				# 噪声的原始 Key/Touch 事件不会自动释放（悬挂按键会污染后续断言归因）。
+				for action in REQUIRED_ACTIONS:
+					Input.action_release(action)
+				for touch_id in [0, 1]:
+					var orphan := InputEventScreenTouch.new()
+					orphan.index = touch_id
+					orphan.pressed = false
+					orphan.position = Vector2.ZERO
+					Input.parse_input_event(orphan)
 				_next_phase(Phase.MOVE)
 				Input.action_press(&"move_right")
+		Phase.JOYSTICK:
+			# 摇杆链路（触摸→摇杆→动作状态→爪子位移）：拦「mouse_filter 改回 STOP（GUI 吞触摸）」
+			# 与「动作注入误用 parse_input_event（瞬态状态，轮询恒 0）」两类真机全灭缺陷。
+			if _phase_frame == 1:
+				_joy_coins_saved = _game_state.coins
+				_game_state.coins = 0
+				_joy_drag_sent = false
+				_joy_hold_frames = 0
+				_joystick_touch_press()
+				_joy_origin = _claw.global_position
+			elif _phase_frame > JOY_MAX_FRAMES:
+				_failures.append("摇杆链路：%d 帧内注入的触摸未被摇杆接管（输入缓冲冲刷异常）" % JOY_MAX_FRAMES)
+			elif int(_joystick.get("_touch_index")) == -1:
+				pass  # 按下事件仍在输入缓冲里，等它送达（启动初期物理帧快于渲染帧）
+			elif not _joy_drag_sent:
+				_joystick_touch_drag(Vector2(60.0, 0.0))
+				_joy_drag_sent = true
+			elif not Input.is_action_pressed(&"move_right"):
+				pass  # 拖动事件仍在缓冲里，等 move_right 真正按住
+			else:
+				_joy_hold_frames += 1
+				if _joy_hold_frames >= JOY_HOLD_FRAMES:
+					_assert_joystick_moved()
+					_joystick_touch_release()
+					_game_state.coins = _joy_coins_saved
+					_next_phase(Phase.NOISE)
 		Phase.MOVE:
 			if _phase_frame >= MOVE_FRAMES:
 				Input.action_release(&"move_right")
@@ -154,6 +209,61 @@ func _physics_process(_delta: float) -> void:
 func _next_phase(phase: int) -> void:
 	_phase = phase
 	_phase_frame = 0
+
+
+# ── 摇杆链路断言（Phase.JOYSTICK）────────────────────────────────────
+# parse_input_event 吃的是窗口坐标：无头窗口 ≠ 设计视口时必须经 root.get_final_transform()
+# 换算，否则事件位置被窗口→视口变换二次改写，永远落不进摇杆矩形（真机浏览器触摸同走窗口坐标）。
+func _joy_design_center() -> Vector2:
+	if _joystick == null:
+		return Vector2.ZERO
+	return _joystick.get_global_rect().get_center()
+
+
+func _joy_window_pos(design_pos: Vector2) -> Vector2:
+	return get_tree().root.get_final_transform() * design_pos
+
+
+func _joystick_touch_press() -> void:
+	if _joystick == null or _claw == null:
+		return
+	var t := InputEventScreenTouch.new()
+	t.index = 0
+	t.pressed = true
+	t.position = _joy_window_pos(_joy_design_center())
+	Input.parse_input_event(t)
+
+
+func _joystick_touch_drag(design_relative: Vector2) -> void:
+	if _joystick == null:
+		return
+	var d := InputEventScreenDrag.new()
+	d.index = 0
+	d.position = _joy_window_pos(_joy_design_center() + design_relative)
+	d.relative = design_relative
+	Input.parse_input_event(d)
+
+
+func _joystick_touch_release() -> void:
+	if _joystick == null:
+		return
+	var t := InputEventScreenTouch.new()
+	t.index = 0
+	t.pressed = false
+	t.position = _joy_window_pos(_joy_design_center())
+	Input.parse_input_event(t)
+
+
+func _assert_joystick_moved() -> void:
+	if _joystick == null or _claw == null:
+		return
+	var travelled: float = _claw.global_position.distance_to(_joy_origin)
+	if travelled < MIN_MOVE_DISTANCE:
+		_failures.append(
+			"摇杆链路：触摸摇杆区右拖后爪子 %d 帧内位移 %.2fm < %.2fm —— 检查 JoystickAnchor.mouse_filter 是否为 IGNORE（STOP 会被 GUI 吞触摸）、_emit_action 是否用 action_press/action_release（parse_input_event 是瞬态状态）" % [
+				JOY_HOLD_FRAMES, travelled, MIN_MOVE_DISTANCE,
+			]
+		)
 
 
 ## ── 噪声相位（输入鲁棒性：对抗事件序打在前，玩法断言在后）──
