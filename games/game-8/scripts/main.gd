@@ -781,22 +781,20 @@ func _make_circle_shape(radius: float) -> CircleShape2D:
 	return shape
 
 
-## 触屏专用 UI（虚拟摇杆/确认/暂停按钮）显示判定（v5 修复 D → v5.1 反转默认）：
-## 引擎确认「有触摸能力」后，Web 侧只在**确定是纯桌面**（fine 主指针 + 零触摸点 +
-## 非 coarse）时才隐藏 —— 其余（真机/平板/触屏笔电/触摸仿真视口/eval 受限）一律显示。
-## v5 原版要求 matchMedia('(pointer: coarse)') 为真才显示，实测真机会被否决
-## （线上首例：手机端摇杆消失、游戏不可玩），fail-closed 代价是整局不可玩，
-## fail-open 的代价只是桌面视口多两个控件 —— 方向必须反过来。
+## 触屏专用 UI（虚拟摇杆/确认/暂停按钮）显示判定（v5.2）：
+## Web 下**不经过引擎**，直接问浏览器 —— 引擎 is_touchscreen_available() 在 web 实测不可靠
+## （CDP 注入 ontouchstart 仍返回 false，线上真机两连例：摇杆不显示、整局不可玩）。
+## 浏览器三信号任一为真即显示（ontouchstart / maxTouchPoints>0 / pointer:coarse），
+## eval 受限或异常也按有触摸处理（fail-open：漏显桌面只是多个控件，误隐真机是整局不可玩）。
+## 非 Web（桌面/无头）保持引擎判定。
 func _touch_ui_should_show() -> bool:
-	if not DisplayServer.is_touchscreen_available():
-		return false
 	if OS.has_feature("web"):
-		var desktop_only: Variant = JavaScriptBridge.eval(
-			"(function(){try{return !window.matchMedia('(pointer: coarse)').matches"
-			+ " && window.matchMedia('(pointer: fine)').matches"
-			+ " && navigator.maxTouchPoints === 0}catch(e){return false}})()", true)
-		return desktop_only != true
-	return true
+		var touch_capable: Variant = JavaScriptBridge.eval(
+			"(function(){try{return 'ontouchstart' in window || navigator.maxTouchPoints > 0"
+			+ " || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)}"
+			+ "catch(e){return true}})()", true)
+		return touch_capable != false
+	return DisplayServer.is_touchscreen_available()
 
 
 ## 统一面板主题（开始/结算共用：深底、绿描边、圆角）。
