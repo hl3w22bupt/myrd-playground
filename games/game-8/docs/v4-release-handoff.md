@@ -83,3 +83,17 @@
 
 - `first_reward_seconds`（本轮实测 0.083/0.3s）由 `GameState.reset()/start_run()` 的 `score_changed.emit(0)` 触发，**不是机器人真实收集**；真实收集只体现在 `outcome` 的 `score=` 字段（本轮 run3=2，其余局 0——随机游走 bot 在 60s 内收不到是 bot 能力边界，非玩法缺陷：确定性收集正确性由 smoke 的「50 连击一致性」阶段机判）。此语义为 `game_state.gd` 模板协议注释明示的既有设计（`games/game` 参照工程在 `advance_level` 同样发归零信号）；如实落账，不改判定脚本、不放松阈值、也不为「好看」的 first_reward 数字去改玩法。
 - 局间结果签名（score|fb 组合）3 局互不相同，`seed_outcomes_min_distinct=1`（默认只记录）下无重玩性硬判风险。
+
+## 七、发布节点复跑（2026-10-14 下午：HEAD 重导出 + 重部署 + 移动门禁复跑）
+
+> **本轮定位**：v4 主通道工作流重跑的 deploy 节点。`f6e4443..e0ba2d8` 虽玩法零差异，但 `tests/smoke.gd`（67059d5，套件帧耗 277→200）与 qa 截图资源已入工程——export_filter=all_resources 口径下线上 pck 与 HEAD 存在字节差；本轮在 HEAD（9bda2c1）重导出消除之，并重部署使线上产物与分支 HEAD 逐字节对齐。
+
+| 项 | 值 |
+|---|---|
+| 新 deployment | **`cmv7oa022000im9700bqwktfj`**（status=running；旧 `cmv7kzwbl001yjofids0eyoc0` 自动 superseded） |
+| 部署 commit | `9bda2c1`（HEAD 重导出产物）@ `myrd/game-8-goal-cmujpml1e006rm99i9hc33huu`（未落 main ✓） |
+| 本地门禁（HEAD） | preflight PASS（15 类×81 文件）；smoke PASS（320 帧与 240 帧双预算，exit 0 零 SCRIPT ERROR）；input-fuzz PASS（seed=20260913，6 批次 239 帧）；**playtest PASS（3 局 fb=185/228/217，run2 score=3、run3 score=4 真实收集，无反馈窗口 ≤2.83s——上轮缺失项本轮闭环）** |
+| 产物自跑冒烟 | PASS：新 pck `--quit-after 320` 跑 tests/smoke.tscn → exit 0 + `GODOT_SMOKE: PASS`（断言签名含方向符号/v2手感/v3扩展/v4动画） |
+| 线上资产一致性 | 线上 `index.pck` sha256 `7738850ae98ff92f1893024e337f38c8dd43bcc2ec4443a62a4985fecc5d8502` = 本地 HEAD 导出（3,210,752B，逐字节一致，零版本漂移） |
+| 移动端门禁 | **MOBILE_SMOKE: PASS**（exit 0，10 项全绿：网络/console 零错误/渲染/帧差/触摸管线/响应/音频契约/视口/FPS=36），证据 `games/game-8/qa/mobile/`（checkedAt 2026-10-14T05:38:34Z） |
+| 部署受理备注 | POST 网关 504 但服务端已受理（deployment 列表确认后未盲目重试，本轮零冗余部署） |
