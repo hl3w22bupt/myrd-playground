@@ -106,7 +106,7 @@ export GODOT_BIN=/path/to/Godot
    不要凭空发挥设计。
 2. **落点与命名跟 spec 走**：`entities[].script/scene`、`levels[].scene`、`acceptance[].check`
    声明的相对路径必须真实建出；实体/关卡/元素 id 用 spec 里的编号（`l1/e3` 这类），不要私改 ——
-   契约测试（`node scripts/contract-check.mjs`，routine id `game-contract`）会逐个断言。
+   契约测试（`node std-skills/godot-game-dev/scripts/contract-check.mjs`，routine id `game-contract`）会逐个断言。
 3. **数值只认 `spec.numeric`**：速度/血量/得分等调参字段集中在 `autoload/game_state.gd`（或同级）
    并与 spec.numeric 键名对应；改数值 = 改 spec（修订产生新版本）→ 同步代码，禁止两头各改各的。
 4. **修改产生新版本**：改策划案走 `POST /api/v1/game-design-specs/:id/revisions`（version+1，
@@ -176,6 +176,13 @@ export GODOT_BIN=/path/to/Godot
   `draw_string`、对话框里的中文全部渲染成缺字方块（TextServer 画「字符 hex 码方块」占位，
   上线后用户看到的就是乱码）。新增第三方字体同样要内嵌进工程，禁止依赖 `SystemFont`。
   （preflight P13 机判：有中文文案但没字体/字体文件缺失 → FAIL）
+- **UI 文案只用字体子集覆盖的字符**：「配了字体」≠「字符都在」—— 子集字体没有
+  带圈数字（①②③）、emoji、生僻符号（实测案例：按钮「①标准三爪」的 ① 在真机上是
+  缺字方块）。序号写「1.」「2.」或「P1/P2」；图标用几何绘制，或用字体已覆盖的符号
+  （`· — ★ → ±` 等）。拿不准就跑 preflight，P13b 会逐字符对照内嵌字体 cmap，
+  把缺字形的字符连同码点列出来（`tests/` 下的字符串豁免 —— 断言消息只进控制台、
+  不经游戏字体渲染；解析不了的字体形态降级 NOTE 跳过，不误报）。
+  （preflight P13b 机判：渲染文案用到字体没有的字形 → FAIL）
 
 ---
 
@@ -281,7 +288,7 @@ python3 scripts/preflight.py <工程目录>
 godot --headless --path <工程目录> --import
 
 # ③ 无头冒烟（退出码 + 日志双断言）
-godot --headless --path <工程目录> --quit-after 120 tests/smoke.tscn
+godot --headless --path <工程目录> --quit-after 600 tests/smoke.tscn
 #   或直接用封装好的门禁（含 ①提示、②导入、③运行、断言、日志摘录）：
 GODOT_BIN=<godot> bash scripts/smoke.sh <工程目录>
 ```
@@ -435,7 +442,7 @@ AI 能造出机器，但调不出手感 —— 而在游戏里，调校本身就
 
 ```
 类型：2D 俯视收集 / 平台跳跃 / 弹幕 / 解谜 / 离散网格
-美术风格：极简几何（Polygon2D 色块）/ 像素 / 占位贴图
+美术风格：CC0 资产库 + 氛围层（模板默认）/ 极简几何（Polygon2D 色块，兜底）/ 像素 / 占位贴图
 核心玩法：一句话说清「玩家做什么、怎么赢」
 操作按键：WASD 移动 / 空格跳跃 / 回车确认（每个按键都要落到 InputMap 动作）
 验收标准：必须可无头判定（逐条可翻译成冒烟断言）
@@ -452,14 +459,19 @@ AI 能造出机器，但调不出手感 —— 而在游戏里，调校本身就
 
 | 资产类型 | 结论 | 本技能的默认动作 |
 |---|---|---|
+| **CC0 精选库（静态精灵/粒子/UI）** | **首选**：策展过的现成资产没有一致性问题，许可干净（见 assets/cc0/LICENSES.md） | **默认路线**：`asset-query.mjs` 语义查库 → 拷进工程 assets/ 着色使用；Ambience 氛围层（渐变天空+环境粒子+暗角）模板已默认开启 |
 | 音效 SFX | 真能用，含上线 | 默认程序化合成（`tools/gen_sfx.gd`，零依赖、确定可复现）；外部生成 API/模型为可选升级，入口都是 §7B 的 assets 段 |
 | 音乐 | 占位与氛围可以；有辨识度的主题曲还不行 | 占位循环先顶上，主题曲留人工 |
 | 2D 背景 / 概念图 | 能用 | 可生成 |
-| 精灵图集 | 差：帧间一致性与统一调色板恰是生成模型守不住的 | 避免；用极简几何（Polygon2D 色块，模板默认）替代 |
+| 精灵图集（生成） | 差：帧间一致性与统一调色板恰是生成模型守不住的 | 避免生成；静态精灵用 CC0 库（上面首选行），动态帧动画用极简几何变形或代码插值 |
 | 像素画 | 最差：不尊重像素网格，也不尊重固定调色板 | 避免；美术风格栏别轻易选「像素」 |
 | 3D | 静态道具几何勉强，动画拓扑不可用 | 本技能（2D）不涉及 |
 
-默认路线 = 模板的「极简几何」：不依赖任何生成资产即可成立，美术后补不阻塞可玩性。
+默认路线 = **CC0 资产库 + Ambience 氛围层**（模板 v5 起）：静态精灵/粒子/UI 从策展库选取
+（`node scripts/asset-query.mjs --need "关键词"`，用法见 references/asset-library.md），
+渐变天空/环境粒子/暗角由 `Ambience` autoload 默认开启（交互迸发用 `Ambience.burst(pos, tint)`）；
+极简几何降为兜底（库不可用或风格明确极简时）。资产入工程后跑 `scripts/asset-gate.mjs --game <dir>`
+做溯源门禁（CC0 拷贝天然合规，自备资产须在合规清单给许可证据）。
 **上架 Steam 须在内容调查表中披露 AI 生成内容**（Valve 2024-01 起；预生成资源披露后允许，
 实时生成需额外防护）——交付说明里要带上这句提醒，别到提交时才发现。
 

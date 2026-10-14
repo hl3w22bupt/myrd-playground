@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import struct
 import subprocess
 import sys
 import tempfile
@@ -71,6 +72,36 @@ script = ExtResource("1_main")
 COIN_TSCN = "[gd_scene format=3]\n[node name=\"Coin\" type=\"Area2D\"]\n"
 GAME_STATE_GD = "extends Node\n"
 ICON_IMPORT = 'uid="uid://selftesttex1"\n'
+
+
+def tiny_font(covered: str) -> bytes:
+    """合成一个只含 cmap(format 4) 的最小 sfnt 字体，仅映射 covered 里的字符。
+
+    P13b 的用例需要「字形覆盖可控」的真实二进制：真字体（几 MB）进不了自测文件，
+    伪造的非 sfnt 字节又只会走「解析失败 → NOTE 跳过」分支。这里手工拼一个
+    够 preflight.py 解析的最小表结构（校验和/名称表等引擎要用的字段全省，
+    preflight 只读 cmap）。每字符 glyph id = 码点本身（idDelta=0，非 0 即已映射）。
+    """
+    codes = sorted({ord(ch) for ch in covered})
+    segs: list[list[int]] = []
+    for code in codes:
+        if segs and segs[-1][1] == code - 1:
+            segs[-1][1] = code
+        else:
+            segs.append([code, code])
+    segs.append([0xFFFF, 0xFFFF])  # 末段哨兵（idDelta=1 让它映射到 glyph 0）
+    n = len(segs)
+    ends = b"".join(struct.pack(">H", seg[1]) for seg in segs)
+    starts = b"".join(struct.pack(">H", seg[0]) for seg in segs)
+    deltas = b"".join(struct.pack(">h", 1 if seg[0] == 0xFFFF else 0) for seg in segs)
+    body = ends + b"\x00\x00" + starts + deltas + b"\x00\x00" * n
+    sub = struct.pack(">7H", 4, 14 + len(body), 0, 2 * n, 0, 0, 0) + body
+    cmap = struct.pack(">HH", 0, 1) + struct.pack(">HHI", 3, 1, 12) + sub
+    return struct.pack(">IHHHH", 0x00010000, 1, 0, 0, 0) + b"cmap" + struct.pack(">III", 0, 28, len(cmap)) + cmap
+
+
+FONT_SUBSET_OTF = tiny_font("糖果粉碎传奇")  # 模拟模板的子集字体：有常用汉字、无 ①③ 等符号
+PROJECT_GODOT_WITH_FONT = PROJECT_GODOT + '\n[gui]\n\ntheme/custom_font="res://assets/fonts/NotoSansSC-Regular.otf"\n'
 
 # 用例注册表：目录名 → {文件路径: 内容, 期望}
 CASES: list[dict] = [
@@ -375,6 +406,73 @@ CASES: list[dict] = [
         "expect": "must_pass",
     },
     {
+        # P13b：子集字体缺字形（① 不在 cmap）—— P13 只查「配没配字体」拦不住这类，
+        # 实测案例：game-11 按钮「①标准三爪」在真机上渲染成缺字方块
+        "name": "p13b-glyph-missing",
+        "files": {
+            "project.godot": PROJECT_GODOT_WITH_FONT,
+            "scenes/main.tscn": MAIN_TSCN_SCRIPT_ONLY
+            + '[node name="Title" type="Label" parent="."]\ntext = "①糖果传奇"\n',
+            "scripts/main.gd": MAIN_GD_OK,
+            "autoload/game_state.gd": GAME_STATE_GD,
+            "assets/fonts/NotoSansSC-Regular.otf": FONT_SUBSET_OTF,
+        },
+        "expect": "must_fail:P13b",
+    },
+    {
+        # P13b 防误报：文案全部落在字形覆盖内 —— 放行
+        "name": "p13b-glyph-covered-ok",
+        "files": {
+            "project.godot": PROJECT_GODOT_WITH_FONT,
+            "scenes/main.tscn": MAIN_TSCN_SCRIPT_ONLY
+            + '[node name="Title" type="Label" parent="."]\ntext = "糖果传奇"\n',
+            "scripts/main.gd": MAIN_GD_OK,
+            "autoload/game_state.gd": GAME_STATE_GD,
+            "assets/fonts/NotoSansSC-Regular.otf": FONT_SUBSET_OTF,
+        },
+        "expect": "must_pass",
+    },
+    {
+        # P13b：纯符号（①②③ 非 CJK，P13 不触发）且没配字体 —— 兜底拦下
+        "name": "p13b-symbol-without-font",
+        "files": {
+            "project.godot": PROJECT_GODOT,
+            "scenes/main.tscn": MAIN_TSCN_SCRIPT_ONLY
+            + '[node name="Title" type="Label" parent="."]\ntext = "①②③"\n',
+            "scripts/main.gd": MAIN_GD_OK,
+            "autoload/game_state.gd": GAME_STATE_GD,
+        },
+        "expect": "must_fail:P13b",
+    },
+    {
+        # P13b：字体解析不了（非 sfnt 字节）→ NOTE 跳过，不冒充通过也不误报
+        "name": "p13b-unparseable-font-skip-ok",
+        "files": {
+            "project.godot": PROJECT_GODOT_WITH_FONT,
+            "scenes/main.tscn": MAIN_TSCN_SCRIPT_ONLY
+            + '[node name="Title" type="Label" parent="."]\ntext = "①糖果传奇"\n',
+            "scripts/main.gd": MAIN_GD_OK,
+            "autoload/game_state.gd": GAME_STATE_GD,
+            "assets/fonts/NotoSansSC-Regular.otf": b"OTF garbage not a font",
+        },
+        "expect": "must_pass",
+    },
+    {
+        # P13b：tests/ 下的字符豁免（断言消息只进控制台、不经游戏字体渲染；
+        # 模板 smoke.gd 的断言文案就含字体没有的 §，不能拦自己）
+        "name": "p13b-tests-dir-exempt-ok",
+        "files": {
+            "project.godot": PROJECT_GODOT_WITH_FONT,
+            "scenes/main.tscn": MAIN_TSCN_SCRIPT_ONLY
+            + '[node name="Title" type="Label" parent="."]\ntext = "糖果传奇"\n',
+            "scripts/main.gd": MAIN_GD_OK,
+            "autoload/game_state.gd": GAME_STATE_GD,
+            "assets/fonts/NotoSansSC-Regular.otf": FONT_SUBSET_OTF,
+            "tests/smoke.gd": 'extends Node\nfunc _check() -> void:\n\tpush_error("断言失败 §3B ① 不可渲染也不该拦")\n',
+        },
+        "expect": "must_pass",
+    },
+    {
         # P14：脚本引用 Juice. 但 [autoload] 未注册 Juice —— 解析期 Identifier not found，提前拦
         "name": "p14-juice-used-without-autoload",
         "files": {
@@ -406,7 +504,10 @@ def run_case(preflight: Path, case: dict) -> str | None:
         for rel, content in case["files"].items():
             target = project / rel
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(content, encoding="utf-8")
+            if isinstance(content, bytes):
+                target.write_bytes(content)
+            else:
+                target.write_text(content, encoding="utf-8")
         proc = subprocess.run(
             [sys.executable, str(preflight), str(project)],
             capture_output=True, text=True,
