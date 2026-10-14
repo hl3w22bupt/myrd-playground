@@ -30,21 +30,22 @@ func _ready() -> void:
 		add_child(TuningPanel.new())
 
 
-## 触屏 UI 显示判定：引擎确认有触摸能力后，Web 下仅在「确定纯桌面」
-## （fine 主指针 + 零触摸点 + 非 coarse）时才隐藏 —— fail-open。
-## ⚠️ 教训（game-8 v5 线上首例）：用 matchMedia('(pointer: coarse)') 一票否决
-## 会把真机摇杆藏掉（手机端整局不可玩）；fail-open 的代价只是桌面视口多两个控件，
-## 方向必须如此。eval 受限/异常同样按有触摸处理。非 Web 保持引擎判定。
+## 触屏 UI 显示判定：Web 下**不经过引擎**，直接问浏览器三信号
+## （ontouchstart / maxTouchPoints>0 / pointer:coarse），任一为真即显示；eval 受限
+## 或异常按有触摸处理（fail-open）。非 Web（桌面/无头）用引擎判定。
+## ⚠️ 教训链（game-8 v5→v5.1→v5.2 线上三连例）：
+##   - v5 用 matchMedia('coarse') 一票否决 → 真机摇杆被藏（fail-closed 致整局不可玩）；
+##   - v5.1 改 fail-open 但仍以引擎 is_touchscreen_available() 为第一道门 → 该调用在
+##     web 实测不可靠（注入 ontouchstart 仍返回 false），真机照样不显示；
+##   - v5.2 Web 完全绕开引擎直接问浏览器，真机/平板/触屏笔本显示，纯桌面隐藏。
 func _touch_ui_should_show() -> bool:
-	if not DisplayServer.is_touchscreen_available():
-		return false
 	if OS.has_feature("web"):
-		var desktop_only: Variant = JavaScriptBridge.eval(
-			"(function(){try{return !window.matchMedia('(pointer: coarse)').matches"
-			+ " && window.matchMedia('(pointer: fine)').matches"
-			+ " && navigator.maxTouchPoints === 0}catch(e){return false}})()", true)
-		return desktop_only != true
-	return true
+		var touch_capable: Variant = JavaScriptBridge.eval(
+			"(function(){try{return 'ontouchstart' in window || navigator.maxTouchPoints > 0"
+			+ " || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)}"
+			+ "catch(e){return true}})()", true)
+		return touch_capable != false
+	return DisplayServer.is_touchscreen_available()
 
 
 func _on_player_moved(pos: Vector2) -> void:
