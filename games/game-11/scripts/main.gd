@@ -287,9 +287,11 @@ func _apply_ui_theme() -> void:
 ## eval 受限按有触摸处理（fail-open）。非 Web 用引擎判定。
 func _touch_capable() -> bool:
 	if OS.has_feature("web"):
+		# v5.3：触摸三信号 + 视口宽度兜底（≤820px 一律显示，与 game-8 同源）
 		var touch_capable: Variant = JavaScriptBridge.eval(
 			"(function(){try{return 'ontouchstart' in window || navigator.maxTouchPoints > 0"
-			+ " || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)}"
+			+ " || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)"
+			+ " || window.matchMedia('(max-width: 820px)').matches}"
 			+ "catch(e){return true}})()", true)
 		return touch_capable != false
 	return DisplayServer.is_touchscreen_available()
