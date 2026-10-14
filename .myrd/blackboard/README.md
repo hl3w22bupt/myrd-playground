@@ -8,7 +8,7 @@
 |---|---|---|---|
 | **game-9《汽车连连看》**（一线已交付） | 维持：等主人试玩拍板 | **零接触** | 顶层三件套（存量） |
 | **g2-blocks《熔炉方块》** | 维持：提审就绪 · 被动触发器 | **零接触**（任务书红线：无主人凭证不越权提审） | 兄弟 run 工作区 |
-| **wheat-squad《麦浪小队》**（第二产品线） | **R1 打磨轮收口**：spec **v1.3 = 链 v5 approved**（B 案 assets 登记闭合）· 双线合流（W-3 平台修复 × v1.2 实现）· 实测三样绑 sha（A1/A2/A4 达标 · A3 未判定·待采）· QA 行号级对账放行 · 修复批两件（ALL_GREEN 假绿打印/征集卡移位）· **v14 重部署 LIVE @ b33bea2f**（三点复测全过 + WS-LIVE-SMOKE PASS）· **A3 采集窗已开启**；好玩判据第 1 轮**不达**（A3 无真人证据，如实登记；冻结计数器 0/3 按 spec 协议不计数） | R1 主线五节点全闭环（详见 wheat-squad/blockers.md 收口台账） | 链 v5 `cmv7hekf3000mjofivl4ebhdf` · 回执 QA-WS-R1-20261014-01 · 实测报告 r1-measured-report.md · 程序批 r1-program-batch.md · 记录卡 playtest-collection-round1.md |
+| **wheat-squad《麦浪小队》**（第二产品线） | **R1 打磨轮收口**：spec **v1.3 = 链 v5 approved**（B 案 assets 登记闭合）· 双线合流（W-3 平台修复 × v1.2 实现）· 实测三样绑 sha（A1/A2/A4 达标 · A3 未判定·待采）· QA 行号级对账放行 · 修复批两件（ALL_GREEN 假绿打印/征集卡移位）· **v15 重部署 LIVE @ 762742c**（deploy 节点：确定性重建抓到 v14 部署字节落后缺陷并修复——v1.3 spec 内联 + B 案补登已在线·发布 commit 五步门禁全绿 + 三点复测全过 + LIVE-SMOKE PASS）· **A3 采集窗开启中**；好玩判据第 1 轮**不达**（A3 无真人证据，如实登记；冻结计数器 0/3 按 spec 协议不计数） | R1 主线五节点全闭环（详见 wheat-squad/blockers.md 收口台账） | 链 v5 `cmv7hekf3000mjofivl4ebhdf` · 回执 QA-WS-R1-20261014-01 · 实测报告 r1-measured-report.md · 程序批 r1-program-batch.md · 记录卡 playtest-collection-round1.md |
 | **第三产品线** | 候选池维持（不开题不立项） | 本轮零接触（任务书「不开新题、不重复调研」红线） | `research/line3-candidates-20261013.md` |
 
 ## R1 轮台账速览（2026-10-14 · wheat-squad · 全文见 wheat-squad/blockers.md「R1 收口台账」）

@@ -39,11 +39,19 @@
 | 7 | 好玩判据红线 | 第 1 轮「不达」如实登记在案（A3 0/5 无真人证据）；冻结计数器 0/3 按 spec meta.baselineProtocol 单源口径不计数——**无粉饰无豁免** | 本台账「好玩判据状态」节 |
 | 8 | 边界红线 | g2-blocks / game-9 / 第三线零接触（本轮 git 提交全部限定 wheat-squad 与其黑板子目录）；不开新题不重复调研 | git log + SCOPE-GUARD ⑤ |
 
-### 部署台账（2026-10-14 · deploy 节点 · v14 LIVE）
+### 部署台账（2026-10-14 · deploy 节点 · **v15 LIVE · 当前线上**）
 
-- **部署单**：坑 `cmv36wl94001xm9mxp119q48x`（wheat-squad-2 · sourceId=wheat-squad 绑定复用）· **version 14 `cmv7htilk000vjofibg56wp5v` = running/current @ commit `b33bea2f`**（API 回读三要素：status/errorMessage=null/gitRef=本 run 分支 · durationMs 830）；通道实录 = POST 504 截断（判例）→ GET 复查已受理 → **未重发**（v13 未被误挤占，v14 正常接管）。
-- **线上三点复测（QA 放行条件②，`09` 三件证据）**：①/gw title=麦浪小队 ✓（W-3 修复保持）②live main.mjs md5 `bcde4bea…` ≡ HEAD build 逐字节 ✓（**v1.2+ 埋点 9 键构建已上线**，旧指纹 `1711423891` 消失）③**WS-LIVE-SMOKE PASS**（线上打开→拖动击杀→victory 167s 结算→console 零错误，exit=0 紧邻取码）。
-- **A3 采集窗：已开启**（前置达成）——正式试玩入口 `https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw`，记录卡 `games/wheat-squad/qa/playtest-collection-round1.md`（时间窗 ISO 可验真 + 旁证比对列），回填渠道经主策划统一分发。
+- **v15 部署单**：坑 `cmv36wl94001xm9mxp119q48x`（wheat-squad-2 · sourceId=wheat-squad 绑定复用）· **version 15 `cmv7kaen8001kjofi5p7qyb2l` = running/current @ 发布 commit `762742c`**（API 回读：errorMessage=null · durationMs 830 · commitHash=762742c · gitRef=本 run 分支；POST 一次受理无截断）。
+- **⚠️ v14 部署字节落后缺陷（本轮抓到 · 如实披露 · 已修复）**：确定性重建 diff 显示仓内 build/ 为 `8868d0f` 时刻陈旧产物——`spec.json` 缺 v1.3 B 案 assets 补登 4 件 + `main.mjs` 内联 `__G2WS_SPEC` 落后 v1.3；**v14 线上字节即该陈旧产物**（`bcde4bea…`，v14 三点复测当时「≡ HEAD build」成立是因为 HEAD build 同样陈旧——台账在档不删，如实留痕）。处置 = 重建产物落发布 commit `762742c` → 发布 commit 复跑五步门禁全绿 → 重部署 v15 → 线上 `f3a6a6b4…` ≡ 发布 commit build 逐字节全等（v1.3 spec 内联 + B 案补登已在线；其余 9 件重建零漂移，构建确定性成立）。证据 `gate-logs/deploy-v15-20261014/`。
+- **v15 线上三点复测（QA 放行条件②，`04-live-threepoint-v15.log`）**：①/gw HTTP 200 title=麦浪小队 ✓（W-3 修复保持）②live main.mjs md5 `f3a6a6b4…` ≡ 发布 commit build 逐字节 ✓ ③**WS-LIVE-SMOKE PASS LIVE_SMOKE_EXIT=0**（线上打开→ready→拖动击杀 2→victory 167s 结算→console 零错误）。
+- **发布门禁（QA 放行条件①）**：发布 commit `762742c` 上 verify.sh 五步全 PASS（统一契约 approved v1.3 · 自有契约 16/0/1PEND · WS-SMOKE · SCOPE-GUARD 双模式），`VERIFY_EXIT=0`；推送后 `git ls-remote` 远端 SHA ≡ 本地 HEAD 全等（762742c）。证据 `01-verify-sh-full-sha762742c.log`。
+- **A3 采集窗：开启中**（v15 线上为最新字节，正式试玩继续采）——入口 `https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw`，记录卡 `games/wheat-squad/qa/playtest-collection-round1.md`（时间窗 ISO 可验真 + 旁证比对列），回填渠道经主策划统一分发。
+- **团队产物区**：artifact `cmv3bfs3c002lm9mx7pw3e31a` → hostedAppId `cmv36wl94001xm9mxp119q48x`（wheat-squad-2）status=ready，runId=本 run。
+
+### 部署台账存档（2026-10-14 · v14，已被 v15 接管）
+
+- **部署单**：坑 `cmv36wl94001xm9mxp119q48x`（wheat-squad-2 · sourceId=wheat-squad 绑定复用）· **version 14 `cmv7htilk000vjofibg56wp5v` @ commit `b33bea2f`**（durationMs 830）；通道实录 = POST 504 截断（判例）→ GET 复查已受理 → **未重发**。**后验注记：v14 上线字节为 `8868d0f` 时刻陈旧产物（缺 v1.3 B 案补登），由 v15 替换修复**。
+- **v14 三点复测（当时实况）**：①/gw title=麦浪小队 ✓ ②live main.mjs md5 `bcde4bea…` ≡ 当时的 HEAD build（同样陈旧）③WS-LIVE-SMOKE PASS。
 
 ### 本轮决策（主策划拍板记录）
 
