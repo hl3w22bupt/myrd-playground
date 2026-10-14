@@ -31,6 +31,12 @@ func _ready() -> void:
 	_bank[&"wave"] = _synth_blip(293.66, 0.22)
 	_bank[&"win"] = _synth_arpeggio([523.25, 659.25, 783.99, 1046.5], 0.11)
 	_bank[&"lose"] = _synth_sweep(440.0, 174.61, 0.45)
+	# v4 交互反馈映射（需求 cmv7hnfx3000ojofistqwry8l ④1）：UI 结果事件的短双音 ——
+	# 确认(开始/重开)=上行、暂停=下行、恢复=上行，全部走 Juice.sfx 统一记录反馈事件。
+	_bank[&"confirm"] = _synth_double(659.25, 880.0, 0.06)
+	_bank[&"pause"] = _synth_double(523.25, 392.0, 0.06)
+	_bank[&"resume"] = _synth_double(392.0, 523.25, 0.06)
+	_bank[&"expire"] = _synth_blip(220.0, 0.12)
 	for _i: int in POLYPHONY:
 		var player := AudioStreamPlayer.new()
 		player.bus = &"Master"

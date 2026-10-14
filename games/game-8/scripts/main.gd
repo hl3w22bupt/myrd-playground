@@ -58,6 +58,8 @@ var _bg_near: Node2D
 var _combo_label: Label
 ## 波次横幅（跨波提示，波间停顿结束后隐藏）。
 var _wave_banner: Label
+## 上一帧相位（v4 ④1 UI 反馈映射用：RUNNING 迁移需区分「从暂停恢复」还是「开局/重开」）。
+var _prev_phase: int = 0
 ## 暂停提示。
 var _pause_label: Label
 ## 开始面板（READY 阶段显示）。
@@ -93,6 +95,7 @@ func _ready() -> void:
 	if not GameState.wave_changed.is_connected(_on_wave_changed):
 		GameState.wave_changed.connect(_on_wave_changed)
 	spawn_timer.timeout.connect(_on_spawn_timer_timeout)
+	_prev_phase = GameState.phase
 	_apply_panel_theme(result_panel)
 	# READY 阶段：开始面板就位，场上不铺物品（开始后才进入正式玩法）。
 	result_panel.visible = false
@@ -222,13 +225,15 @@ func _on_collectible_collected(collectible: Collectible) -> void:
 			player.activate_boost()
 		GameState.KIND_CLOCK:
 			_spawn_float_text(collectible.global_position, "+%d · 加时" % gain, tint)
-			Sfx.play(&"clock")
+			Juice.sfx(&"clock")
 		_:
 			_spawn_float_text(collectible.global_position, _gain_text(gain), tint)
-			Sfx.play(&"rare" if kind == GameState.KIND_RARE else &"collect",
+			Juice.sfx(&"rare" if kind == GameState.KIND_RARE else &"collect",
 					1.0 + 0.05 * mini(GameState.combo_count, 8))
 	# 收集正反馈三件套：音效 + 粒子 + 飘字（上 match 已各就各位；powerup 飘字走
-	# powerup_activated 路径，磁铁/加速不重复播计分音效）。
+	# powerup_activated 路径，磁铁/加速不重复播计分音效）+ Juice 弹跳（反馈单例记录，
+	# §3B：反馈挂在结果事件处理函数上）。
+	Juice.pop(player, 1.12, 0.14)
 	_spawn_collect_burst(collectible.global_position, tint)
 	_spawn_vanish_ghost(collectible)
 	# 波次难度：收集越多（分越高），后续补充越快（Timer 运行中改 wait_time，下一轮生效）。
@@ -275,7 +280,8 @@ func _on_wave_changed(wave: int) -> void:
 	spawn_timer.stop()
 	_wave_banner.text = "第 %d 波 %s" % [wave + 1, WAVE_SUBTITLES[clampi(wave, 0, WAVE_SUBTITLES.size() - 1)]]
 	_wave_banner.visible = true
-	Sfx.play(&"wave")
+	Juice.sfx(&"wave")
+	Juice.flash(_wave_banner, Color(1, 1, 1, 0.5))
 
 
 func _tick_wave_break(delta: float) -> void:
@@ -350,7 +356,8 @@ func _on_powerup_activated(kind: String) -> void:
 	var tint: Color = Collectible.KIND_COLORS.get(kind, Collectible.KIND_COLORS["normal"])
 	var text := "磁铁！范围内目标被吸来" if kind == GameState.KIND_MAGNET else "加速！移速提升"
 	_spawn_float_text(player.global_position + Vector2(-40.0, -60.0), text, tint)
-	Sfx.play(&"powerup")
+	Juice.sfx(&"powerup")
+	Juice.flash(player, Color(1, 1, 1, 0.4))
 
 
 func _on_spawn_timer_timeout() -> void:
@@ -394,19 +401,29 @@ func _on_phase_changed(phase: int) -> void:
 			result_label.text = "通关！得分 %d/%d · 本局最高连击 ×%d · 历史最佳 %d\n按 确认 / 空格 一键重开" % [
 				GameState.score, GameState.TARGET_SCORE, GameState.run_max_combo, GameState.best_score,
 			]
-			Sfx.play(&"win")
+			Juice.sfx(&"win")
+			Juice.shake(8.0, 0.3)
 		GameState.Phase.LOST:
 			result_label.text = "时间到！本局得分 %d/%d · 最高连击 ×%d · 历史最佳 %d\n按 确认 / 空格 一键重开" % [
 				GameState.score, GameState.TARGET_SCORE, GameState.run_max_combo, GameState.best_score,
 			]
-			Sfx.play(&"lose")
+			Juice.sfx(&"lose")
+			Juice.shake(5.0, 0.25)
 		GameState.Phase.PAUSED:
+			# v4 ④1 UI 反馈映射：暂停/恢复都有确认音（键盘 P 与触屏按钮同路径）。
+			Juice.sfx(&"pause")
 			spawn_timer.stop()
 		GameState.Phase.RUNNING:
+			# v4 ④1 UI 反馈映射：从暂停恢复 = 上行音；开局/重开确认 = 确认双音。
+			if _prev_phase == GameState.Phase.PAUSED:
+				Juice.sfx(&"resume")
+			else:
+				Juice.sfx(&"confirm")
 			# 恢复（或开始）时重启生成器；波间停顿期内不抢（停顿结束 _tick_wave_break 会开）。
 			if _wave_break_left <= 0.0 and not _start_panel.visible:
 				spawn_timer.wait_time = GameState.spawn_interval_now()
 				spawn_timer.start()
+	_prev_phase = phase
 	_update_hud()
 
 

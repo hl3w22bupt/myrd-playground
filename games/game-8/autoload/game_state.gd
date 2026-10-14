@@ -295,6 +295,24 @@ func tick_time(delta: float) -> void:
 
 ## ── 阶段控制（v3 ④2：开始面板 → 局内暂停/恢复 → 胜负结算 → 一键重开）──
 
+## 模板协议（playtest driver 的 _begin_run 调用点）：跨局完整复位到出厂初始态。
+## GameState 是 autoload，场景换局时自身状态会跨局残留（上局的相位/时限/连击），
+## driver 换种子重实例化场景后调用本方法，保证每局都从 READY 干净起跑 ——
+## 首局开始事件（start_run 的 score_changed）才能落在每局的采样窗口头部。
+func reset() -> void:
+	score = 0
+	time_left = TIME_LIMIT
+	combo_count = 0
+	combo_timer = 0.0
+	run_max_combo = 0
+	wave_index = 0
+	phase = Phase.READY
+	phase_changed.emit(phase)
+	score_changed.emit(score)
+	time_changed.emit(time_left)
+	combo_changed.emit(combo_count)
+
+
 ## 一键重开 / 从开始面板进入：清零本局进度并回到进行中（场景层负责重置场上实体）。
 func start_run() -> void:
 	score = 0
