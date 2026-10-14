@@ -781,20 +781,21 @@ func _make_circle_shape(radius: float) -> CircleShape2D:
 	return shape
 
 
-## 触屏专用 UI（虚拟摇杆/确认/暂停按钮）显示判定（v5 修复 D）：
-## 双条件 AND —— ①环境具备触摸能力；②主输入是手指（pointer: coarse）。
-## 只查 ① 会让「开了触摸仿真的桌面视口」「触屏笔记本」也显示摇杆，且壳页底部提示条
-## 与游戏内「确认」标签同屏重叠；加上 ② 后桌面键盘环境完全不可见（playtest kit §1.2 口径）。
-## Web 下用 matchMedia 精确判定（真实手机/平板 = coarse；桌面浏览器 = fine）；
-## 非 Web（桌面/无头）保持引擎判定（无触摸屏 = false）。
+## 触屏专用 UI（虚拟摇杆/确认/暂停按钮）显示判定（v5 修复 D → v5.1 反转默认）：
+## 引擎确认「有触摸能力」后，Web 侧只在**确定是纯桌面**（fine 主指针 + 零触摸点 +
+## 非 coarse）时才隐藏 —— 其余（真机/平板/触屏笔电/触摸仿真视口/eval 受限）一律显示。
+## v5 原版要求 matchMedia('(pointer: coarse)') 为真才显示，实测真机会被否决
+## （线上首例：手机端摇杆消失、游戏不可玩），fail-closed 代价是整局不可玩，
+## fail-open 的代价只是桌面视口多两个控件 —— 方向必须反过来。
 func _touch_ui_should_show() -> bool:
 	if not DisplayServer.is_touchscreen_available():
 		return false
 	if OS.has_feature("web"):
-		var coarse: Variant = JavaScriptBridge.eval(
-			"window.matchMedia ? window.matchMedia('(pointer: coarse)').matches : false", true
-		)
-		return coarse == true
+		var desktop_only: Variant = JavaScriptBridge.eval(
+			"(function(){try{return !window.matchMedia('(pointer: coarse)').matches"
+			+ " && window.matchMedia('(pointer: fine)').matches"
+			+ " && navigator.maxTouchPoints === 0}catch(e){return false}})()", true)
+		return desktop_only != true
 	return true
 
 
