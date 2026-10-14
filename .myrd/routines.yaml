@@ -28,8 +28,14 @@ routines:
   description: 对 Godot 工程跑前置一致性检查 + 无头运行冒烟，断言退出码与 GODOT_SMOKE 标记 —— 「游戏能不能跑且玩得动」的机判门禁
   gate: false
   params:
-    gamePath: games/godot-coin-rush
-    smokeFrames: 240
+    gamePath: games/game-8
+    # 帧预算 320 = 工程 games/game-8/verify.sh 同值（godot-smoke-routine.md 模板红线：
+    # 「smokeFrames 必须与该工程 verify.sh 的预算同值」）。game-8 冒烟套件自 v3 起含
+    # 开始面板/多类型计分/Combo/磁铁/加速/暂停六个交互断言阶段，实测需 ~270 帧跑完，
+    # 240 帧兜底会在协程跑完前截杀（无 PASS/FAIL 标记假失败）——v3 交接文档已论证
+    # 「240 帧预算不足系冒烟更重，非缺陷」。工作流 preHookParams 若显式传 smokeFrames
+    # 则以入参为准；此默认值仅供本仓 dogfood 与本工作流缺参兜底。
+    smokeFrames: 320
   steps:
   - name: godot-availability
     command: bash std-skills/godot-game-dev/scripts/resolve-godot.sh >/dev/null
