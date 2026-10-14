@@ -28,6 +28,7 @@ export const GAME_PAGE_HTML = `<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
 <title>牛牛打游戏</title>
+<script>window.__ASSET_V__ = "__ASSET_V_PLACEHOLDER__";</script>
 <style>
 html, body, #canvas { margin: 0; padding: 0; border: 0; }
 body { color: #fff; background: #10240f; overflow: hidden; touch-action: none; overscroll-behavior: none;
@@ -141,6 +142,9 @@ body { color: #fff; background: #10240f; overflow: hidden; touch-action: none; o
     var p = location.pathname.replace(/index\\.html$/, '');
     return p.charAt(p.length - 1) === '/' ? p : p + '/';
   })();
+  // 部署版本标识（index.ts 伺服本页时注入）：资产 URL 带版本参数 —— 跨部署立即换新，
+  // 同部署内浏览器可放心长缓存（配合资产路由的 immutable 头）。
+  var ASSET_V = window.__ASSET_V__ || '';
   var bar = document.getElementById('bar');
   var msg = document.getElementById('boot-msg');
   function setBar(p) { if (bar) bar.style.width = Math.max(0, Math.min(100, p * 100)) + '%'; }
@@ -150,7 +154,7 @@ body { color: #fff; background: #10240f; overflow: hidden; touch-action: none; o
   }
 
   function fetchAsset(name) {
-    return fetch(BASE_PATH + 'api/public/assets/' + name).then(function (r) {
+    return fetch(BASE_PATH + 'api/public/assets/' + name + (ASSET_V ? '?v=' + ASSET_V : '')).then(function (r) {
       if (!r.ok) throw new Error(name + ' HTTP ' + r.status);
       return r.text();
     });
@@ -180,7 +184,7 @@ body { color: #fff; background: #10240f; overflow: hidden; touch-action: none; o
       try { file = String(url).split('/').pop().split('?')[0]; } catch (e) { /* 保原路径 */ }
       if (/\\.worklet\\.js$/.test(file)) {
         audioAddModules += 1;
-        var realUrl = BASE_PATH + 'api/public/assets/' + file;
+        var realUrl = BASE_PATH + 'api/public/assets/' + file + (ASSET_V ? '?v=' + ASSET_V : '');
         return origAddModule.call(self, realUrl, options).catch(function (err) {
           console.error('[game8-shell] audio worklet 资产通道加载失败，降级原路径重试', file, err);
           audioLog.push({ t: Date.now(), state: 'worklet-fallback:' + file });
@@ -200,7 +204,7 @@ body { color: #fff; background: #10240f; overflow: hidden; touch-action: none; o
   function loadEngine() {
     return new Promise(function (resolve, reject) {
       var s = document.createElement('script');
-      s.src = BASE_PATH + 'api/public/assets/index.js';
+      s.src = BASE_PATH + 'api/public/assets/index.js' + (ASSET_V ? '?v=' + ASSET_V : '');
       s.onload = function () { resolve(null); };
       s.onerror = function () { reject(new Error('引擎引导脚本加载失败: ' + s.src)); };
       document.head.appendChild(s);
