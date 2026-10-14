@@ -61,7 +61,7 @@ var _quality_checked_windows: int = 0
 func _ready() -> void:
 	_setup_environment()
 	_apply_ui_theme()
-	if DisplayServer.is_touchscreen_available():
+	if _touch_capable():
 		touch_ui.visible = true
 		_move_hint = "摇杆移动 · 点按画面/「下爪」键下爪/重开 · 「换爪」键切换爪型 · 拖动画面转视角"
 	hint_label.text = _move_hint
@@ -279,6 +279,21 @@ func _apply_ui_theme() -> void:
 				(child as Control).theme = theme
 
 
+
+
+## Web 触摸能力判定（与 game-8 v5.2 同源）：引擎 is_touchscreen_available() 在 web
+## 实测不可靠（注入 ontouchstart 仍返回 false，线上真机两连例：摇杆不显示）——
+## 直接问浏览器三信号（ontouchstart / maxTouchPoints>0 / pointer:coarse），
+## eval 受限按有触摸处理（fail-open）。非 Web 用引擎判定。
+func _touch_capable() -> bool:
+	if OS.has_feature("web"):
+		var touch_capable: Variant = JavaScriptBridge.eval(
+			"(function(){try{return 'ontouchstart' in window || navigator.maxTouchPoints > 0"
+			+ " || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)}"
+			+ "catch(e){return true}})()", true)
+		return touch_capable != false
+	return DisplayServer.is_touchscreen_available()
+
 func _unhandled_input(event: InputEvent) -> void:
 	# 摇杆/触摸按钮命中后事件已标记 handled（反向传播下它们先于 Main 收到），
 	# 这里守卫掉 —— 点按画布的判定只吃「落在 3D 场景上的裸点按」。
@@ -300,7 +315,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			_tap_starts.erase(touch.index)
 			if start.distance_to(touch.position) <= TAP_SLOP_PX:
 				_confirm_primary()
-	elif event is InputEventMouseButton and not DisplayServer.is_touchscreen_available():
+	elif event is InputEventMouseButton and not _touch_capable():
 		# 桌面鼠标点按同义（触屏设备跳过：触摸事件已被上面处理，
 		# emulate_mouse_from_touch 的派生鼠标事件不得二次触发）。
 		var mb := event as InputEventMouseButton
