@@ -10,3 +10,9 @@
 
 # 系统
 .DS_Store
+
+# 门禁脚本的瞬态暂存目录（input-fuzz.sh / playtest.sh 运行时生成、退出时清理）：
+# 并发运行或中断残留会污染 git status → git-hygiene 的 committed-check。永不入库。
+tests/.fuzz/
+tests/.playtest/
+tests/.diag/
