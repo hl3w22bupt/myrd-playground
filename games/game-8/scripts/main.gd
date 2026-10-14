@@ -789,12 +789,30 @@ func _make_circle_shape(radius: float) -> CircleShape2D:
 ## 非 Web（桌面/无头）保持引擎判定。
 func _touch_ui_should_show() -> bool:
 	if OS.has_feature("web"):
+		# v5.3：触摸三信号之外加**视口宽度兜底**（≤820px 一律显示）——线上真机三连例
+		# 证明任何触摸检测都可能有盲区，手机宽度是最后一个不可能说谎的信号。
 		var touch_capable: Variant = JavaScriptBridge.eval(
 			"(function(){try{return 'ontouchstart' in window || navigator.maxTouchPoints > 0"
-			+ " || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)}"
+			+ " || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)"
+			+ " || window.matchMedia('(max-width: 820px)').matches}"
 			+ "catch(e){return true}})()", true)
+		_touch_debug_export(touch_capable)
 		return touch_capable != false
 	return DisplayServer.is_touchscreen_available()
+
+
+## 真机取证出口（配合壳页 ?debug=1 浮层）：把判定原始值写到 window.__TOUCH_DEBUG__，
+## 手机上无需控制台即可截图回传诊断。
+func _touch_debug_export(touch_capable: Variant) -> void:
+	var raw: Variant = JavaScriptBridge.eval(
+		"(function(){try{return JSON.stringify({"
+		+ "ontouch:'ontouchstart' in window,"
+		+ "mt:navigator.maxTouchPoints,"
+		+ "coarse:window.matchMedia('(pointer: coarse)').matches,"
+		+ "narrow:window.matchMedia('(max-width: 820px)').matches,"
+		+ "ua:navigator.userAgent.slice(0,80)})"
+		+ "catch(e){return '{\"err\":\"eval-failed\"}'}})()", true)
+	JavaScriptBridge.eval("window.__TOUCH_DEBUG__=" + str(raw) + ";window.__TOUCH_UI_SHOW=" + str(touch_capable != false).to_lower(), true)
 
 
 ## 统一面板主题（开始/结算共用：深底、绿描边、圆角）。

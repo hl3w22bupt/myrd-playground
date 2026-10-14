@@ -145,6 +145,20 @@ body { color: #fff; background: #10240f; overflow: hidden; touch-action: none; o
   // 部署版本标识（index.ts 伺服本页时注入）：资产 URL 带版本参数 —— 跨部署立即换新，
   // 同部署内浏览器可放心长缓存（配合资产路由的 immutable 头）。
   var ASSET_V = window.__ASSET_V__ || '';
+  // ?debug=1 真机诊断浮层：显示触摸判定原始信号（游戏侧启动后回填 window.__TOUCH_DEBUG__）
+  if (/[?&]debug=1/.test(location.search)) {
+    var dbg = document.createElement('div');
+    dbg.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99;background:rgba(0,0,0,.82);color:#7fff7f;font:11px/1.5 monospace;padding:6px 8px;white-space:pre-wrap;word-break:break-all;pointer-events:none;';
+    dbg.textContent = '等待引擎上报…';
+    document.body.appendChild(dbg);
+    var refresh = function () {
+      try {
+        var t = window.__TOUCH_DEBUG__ ? JSON.parse(window.__TOUCH_DEBUG__) : null;
+        dbg.textContent = 'TOUCH_DEBUG ' + JSON.stringify(t) + ' show=' + window.__TOUCH_UI_SHOW;
+      } catch (e) { dbg.textContent = 'TOUCH_DEBUG raw=' + window.__TOUCH_DEBUG__; }
+    };
+    setInterval(refresh, 1000); refresh();
+  }
   var bar = document.getElementById('bar');
   var msg = document.getElementById('boot-msg');
   function setBar(p) { if (bar) bar.style.width = Math.max(0, Math.min(100, p * 100)) + '%'; }
