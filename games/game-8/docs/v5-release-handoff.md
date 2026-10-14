@@ -40,6 +40,14 @@
   压在「一键重开」按钮上。
 - **修复**：`autowrap_mode = AUTOWRAP_WORD_SMART` + 字号 20；结论(16..134)/新纪录(138..172)/
   按钮(180..244) 三段重排互不重叠，面板加高至 320px。
+- **v5 第三轮复验补刀（浏览器实测抓出修复未生效）**：场景里 `ResultLabel` 定义
+  `anchor_bottom = 1.0`（锚面板底边），上述 `offset_bottom = 134` 在该锚点语义下是
+  「label 底边悬到面板底外 134px」——文字垂直居中后正好压回按钮行，**与修复前同样重叠**。
+  第三轮以 CDP 调参桥（`?tuning={"TIME_LIMIT":15,"TARGET_SCORE":60}`）15s 打到失败结算截图实锤，
+  补一行 `result_label.anchor_bottom = 0.0` 后复验截图三段干净分层零重叠
+  （证据 `qa/local-v5-verify/cd-mobile-result.png`，修复前后对照同目录）。
+  **教训：该缺陷第一二轮都只做了源码级推演、从未在浏览器里到过结算面板** —— 调参桥打快进局
+  是结算面板唯一现实的浏览器取证路径。
 
 ### D（中等）触屏 UI 泄漏桌面 —— 根因：触屏判定单一（is_touchscreen_available）
 
@@ -56,10 +64,11 @@
 | 2 | smoke @320 帧 | PASS | exit 0 + `GODOT_SMOKE: PASS` + 零 SCRIPT ERROR |
 | 3 | input-fuzz | PASS | seed=20260913，6 批 239 帧 |
 | 4 | playtest @3600 帧 | PASS | 3 局 fb=185/222/213（阈值内） |
-| 5 | 产物自跑冒烟 | PASS | `--main-pack export/web/index.pck --quit-after 320 res://tests/smoke.tscn` → `GODOT_SMOKE: PASS` 全断言 |
-| 6 | 产物规模 | 2,612,896 B | `exclude_filter="qa/*, docs/*"`（v5 起 qa 证据不入产物；tests/ 保留供自跑冒烟） |
-| 7 | 本地壳链路可玩性三项 | **PASS** | `tools/playability-probe.mjs` @ 壳页模拟：P1=1272 命中 / P2=118px / P3=172px |
+| 5 | 产物自跑冒烟 | PASS | `--main-pack export/web/index.pck --quit-after 320 res://tests/smoke.tscn` → `GODOT_SMOKE: PASS` 全断言（第三轮 C 补刀后新 pck 复跑同过） |
+| 6 | 产物规模 | 2,613,856 B | `exclude_filter="qa/*, docs/*"`（v5 起 qa 证据不入产物；tests/ 保留供自跑冒烟；+960B 为 C 补刀） |
+| 7 | 本地壳链路可玩性三项 | **PASS** | `tools/playability-probe.mjs` @ 壳页模拟：第三轮新 pck 实测 P1=1365 命中 / P2=117px / P3=173px（`qa/local-v5-verify/playability.json`） |
 | 8 | 线上 v4 现状对照 | FAIL（P1=5 / P3=0px） | `qa/pre-deploy-live/playability.json`——坐实「线上必须换 v5 包」 |
+| 9 | C/D 浏览器级取证（第三轮新增） | **PASS** | 调参桥快进失败局：`qa/local-v5-verify/cd-mobile-result.png`（结算零重叠）/ `cd-desktop-ingame.png`·`cd-desktop-result.png`（桌面视口无摇杆/无触屏确认钮）；移动/桌面 `pointer:coarse` 探测 true/false 各如其分 |
 
 ## 三、门禁盲区闭合（v4 验收 §五.4 建议的落地）
 
@@ -77,17 +86,27 @@
 - 分支已推送：`500c008`（玩法修复 db8b9ce + 探针 + 本交接；2026-10-14 晚间 `git ls-remote` 实测远端 tip 一致）。
 - 线上现状：仍是 v4 包（pck sha256 `7738850a…5d8502`，3,210,752 B，不可玩；2026-10-14 晚间经
   `api/public/assets/index.pck.gz.b64` 下载实锤）；`qa/pre-deploy-live/` 为部署前基线证据。
-- 部署后核对：线上 pck sha256 应 = `ec9cd0d69a4115b1effd2ce42faf9ce325a55eff0ba032e1a7b13d3adeeb31ab`
-  （2,612,896 B，`db8b9ce` HEAD blob 实算——**勘误**：本文初版写的 `2a27c8b8…` 为笔误，
-  pck 打包含非确定性元数据、哈希仅作参考，权威口径仍是「线上 pck 自跑冒烟含 v5 断言」）；
-  随后跑 mobile-web-smoke（判定脚本，产出 `qa/mobile/report.json`）+ playability-probe
-  （工程探针，产出 `qa/mobile/playability.json`）双验，A/B/C/D 四项以探针实测为准。
+- 部署后核对：线上 pck sha256 应 = `3ca34b4307c97f2eb43b97a4e24fec4182dfbbcd1b818818aee6b3a401286f60`
+  （2,613,856 B，第三轮 C 补刀后 HEAD 重导出实算。旧值 `ec9cd0d6…`/2,612,896 B 对应 C 补刀前
+  的 `db8b9ce` 产物，已作废；pck 打包含非确定性元数据、哈希仅作参考，权威口径仍是
+  「线上 pck 自跑冒烟含 v5 断言」）；随后跑 mobile-web-smoke（判定脚本，产出
+  `qa/mobile/report.json`）+ playability-probe（工程探针，产出 `qa/mobile/playability.json`）
+  双验，A/B/C/D 四项以探针实测为准。
+- **第三轮增量（2026-10-14 晚）**：C 补刀（anchor_bottom 归零）+ 门禁四件套在含补刀的 HEAD
+  复跑全绿 + 重导出 + 本地壳链路 A/B/C/D 四项浏览器级复验全过。分支同步了模板仓 PR #810
+  （`311f1d2`：mobile-web-smoke 增加「真实事件驱动位移>阈值」与「同屏可收集物>0」观测断言、
+  移动门禁坐标校准——恰为 v5 需求要求的门禁盲区闭合，本仓 std-skills 即权威判定脚本）。
 
 ## 五、⚠️ 部署卡点（blocked，结构性身份错位——v5 第二轮实锤升级）
 
 **第一轮结论（已过时）**：「无 MYRD_TOKEN、无凭据」。**第二轮实证（2026-10-14 晚间）**：本轮环境已注入
 `MYRD_TOKEN`（workflow-node 身份，scopes 含 `app:deploy`），干跑与正式 POST 各一次仍 403
-（req_1791968047179 / req_1791968912360）——**不是缺凭据，是身份错位**：
+（req_1791968047179 / req_1791968912360）——**不是缺凭据，是身份错位**。
+**第三轮复核（同日更晚，换新 run 执行环境）**：干跑再证 403 同型（req_1791969367365），且读平台源码
+（`assertAppAccess` / `workflowNodeTokenPayload`）+ 只读查库（app owner = goal owner = `cmuimu6w…`
+≠ 本 run 触发人 `cmt428ptv…` master-goal 代理账号）三方独立互证，身份错位结论第三次复现；
+另证 goal 读取/回写 API 同样 403（goal 属主校验同源）→ **产物回写也需 owner/admin 身份代执行**。
+错位机制（二轮取证 + 三轮互证一致）：
 
 - 部署授权（平台 `assertAppAccess`）要求「有效身份 == app owner 或系统管理员」，fail-closed 不放大权限；
 - app owner 与 goal `cmujpml1e006rm99i9hc33huu` 的 owner **实测为同一人** `cmuimu6w50003m9l61jj8nzxg`；

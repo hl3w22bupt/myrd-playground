@@ -1,4 +1,19 @@
-# 《牛牛打游戏》(game-8) v5 修复轮 —— 部署卡点 blocked 记录（2026-10-14，第二轮更新）
+# 《牛牛打游戏》(game-8) v5 修复轮 —— 部署卡点 blocked 记录（2026-10-14，第三轮更新）
+
+## 第三轮增量（2026-10-14 深夜，本 run）
+
+- **抓出并修复「C 结算重叠」修复未生效的锚点 bug**：场景 `ResultLabel` 为 `anchor_bottom=1`，
+  二轮的 `offset_bottom=134` 实为「label 底边悬到面板外」→ 运行时仍压按钮。补
+  `result_label.anchor_bottom = 0.0` 后，调参桥快进失败局浏览器截图实锤三段分层零重叠
+  （`qa/local-v5-verify/cd-{mobile-result,desktop-ingame,desktop-result}.png`）。
+  该缺陷一二轮均未在浏览器到过结算面板（调参桥快进局是唯一现实取证路径）。
+- 门禁四件套在含补刀的 HEAD 复跑全绿（preflight 1042 文件 / smoke@320 / fuzz seed=20260913 /
+  playtest 3 局），新 pck `3ca34b43…86f60`（2,613,856 B）自跑冒烟 PASS。
+- 本地壳链路可玩性三项新 pck 复验：P1=1365 / P2=117px / P3=173px 全 PASS。
+- 分支同步模板仓 PR #810（`311f1d2`）：mobile-web-smoke 判定脚本新增「真实事件驱动位移>阈值」
+  与「同屏可收集物>0」观测断言 + 移动门禁坐标校准 —— v5 需求要求的门禁盲区闭合已在本仓就位。
+- 部署 403 第三次独立复现（req_1791969367365）+ 平台源码/只读查库互证；**goal 读取/回写 API 同样
+  403** → 部署受理后的 artifacts 回写也需 owner/admin 代执行（详见 handoff §五）。
 
 ## 当前阻塞（1 项，结构性身份错位，需要换触发方式或换身份）
 
@@ -13,7 +28,7 @@
 2. app owner（`cmuimu6w…`）或系统管理员执行 `games/game-8/docs/v5-release-handoff.md` §六 一键部署（一条 curl）。
 
 部署受理后复验链（handoff §四/§六）：mobile-web-smoke（判定脚本）+ playability-probe（工程探针）双验 liveUrl →
-线上 pck sha256 对齐 `ec9cd0d6…31ab`（2,612,896B；初版文档写 `2a27c8b8…` 系笔误已勘误）→ 回写三要素。
+线上 pck sha256 对齐 `3ca34b43…86f60`（2,613,856B，第三轮 C 补刀后 HEAD 重导出实算）→ 回写三要素。
 
 ## 本轮（v5 第二轮）已完成
 

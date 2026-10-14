@@ -685,9 +685,13 @@ func _show_start_panel(visible_now: bool) -> void:
 ## 结算面板增强（v4 ④3）：新纪录高亮行 + 一键重开/返回合集双按钮（触达区 ≥44×44px）。
 ## v5 修复 C（结算文字压按钮）：结论行开启自动换行并降字号，三段（结论 16..134 /
 ## 新纪录 138..172 / 按钮行 180..244）互不重叠，面板加高到 320px 容纳三行结论。
+## v5 复验补刀（浏览器实测抓出）：场景里 ResultLabel 是 anchor_bottom=1（锚面板底边），
+## 顶部锚定语义下 offset_bottom=134 会把 label 底边悬到面板外 134px——文字垂直居中后
+## 正好压在按钮行。必须先把 anchor_bottom 归 0，offsets 才是「距面板顶 16..134」。
 func _build_result_panel_extras() -> void:
 	result_panel.offset_top = -180.0
 	result_panel.offset_bottom = 140.0
+	result_label.anchor_bottom = 0.0
 	result_label.offset_top = 16.0
 	result_label.offset_bottom = 134.0
 	result_label.add_theme_font_size_override("font_size", 20)

@@ -1,0 +1,125 @@
+{
+  "verdict": "PASS",
+  "url": "http://127.0.0.1:8124/apps/game-8/",
+  "preset": {
+    "width": 390,
+    "height": 844,
+    "deviceScaleFactor": 3,
+    "mobile": true,
+    "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
+  },
+  "checkedAt": "2026-10-14T09:36:54.676Z",
+  "method": "CDP 真实事件驱动（Input.dispatchKeyEvent / dispatchTouchEvent）+ 截图像素检测，非引擎级 Input.actionPress 注入",
+  "checks": [
+    {
+      "id": "P1",
+      "label": "开局 10s 内同屏可收集物 > 0（五类特征色像素检测）",
+      "status": "pass",
+      "bestHit": 1365,
+      "threshold": 200,
+      "samples": [
+        {
+          "t": "2s",
+          "normal": 820,
+          "rare": 190,
+          "clock": 355,
+          "magnet": 0,
+          "boost": 0,
+          "cow": 41,
+          "total": 1365,
+          "cowXY": [
+            170,
+            171
+          ]
+        },
+        {
+          "t": "4s",
+          "normal": 684,
+          "rare": 159,
+          "clock": 292,
+          "magnet": 0,
+          "boost": 0,
+          "cow": 35,
+          "total": 1135,
+          "cowXY": [
+            170,
+            171
+          ]
+        },
+        {
+          "t": "6s",
+          "normal": 0,
+          "rare": 5,
+          "clock": 0,
+          "magnet": 0,
+          "boost": 0,
+          "cow": 41,
+          "total": 5,
+          "cowXY": [
+            170,
+            171
+          ]
+        },
+        {
+          "t": "8s",
+          "normal": 1241,
+          "rare": 2,
+          "clock": 0,
+          "magnet": 0,
+          "boost": 0,
+          "cow": 35,
+          "total": 1243,
+          "cowXY": [
+            170,
+            171
+          ]
+        },
+        {
+          "t": "10s",
+          "normal": 1151,
+          "rare": 2,
+          "clock": 0,
+          "magnet": 0,
+          "boost": 0,
+          "cow": 35,
+          "total": 1153,
+          "cowXY": [
+            170,
+            171
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "label": "真实键盘 D 长按 1.5s 牛牛位移 > 30px（像素质心口径）",
+      "status": "pass",
+      "displacementPx": 117,
+      "threshold": 30,
+      "from": [
+        170,
+        171
+      ],
+      "to": [
+        287,
+        171
+      ]
+    },
+    {
+      "id": "P3",
+      "label": "真实触屏摇杆拖动牛牛位移 > 30px（像素质心口径）",
+      "status": "pass",
+      "displacementPx": 173,
+      "threshold": 30,
+      "from": [
+        287,
+        171
+      ],
+      "to": [
+        287,
+        344
+      ]
+    }
+  ],
+  "exemptionNote": "本文件是工程侧可玩性观测（v5 引入，闭合 v4 验收报告 §五.4 门禁盲区）；门禁判定仍以 std-skills 判定脚本与 mobile-web-smoke 的 report.json 为准"
+}
