@@ -24,6 +24,21 @@
 | N6 QA 对账 | **QA-WS-R1-20261014-01**：16 条行号级对账 · QA 独立复跑五步全绿（sha 零差异）· 修复批入口放行 | `qa/qa-r1-recon-v13.md` · `06` |
 | N7 修复批 + 重部署 | 修复批两件：①run-all ALL_GREEN 假绿打印缺陷（先红=07 日志 1 FAIL 却印 ALL_GREEN=true · 变异验证转 false）②空白征集卡移位（不弱化 ac-04 fail-closed）→ QA 互查认领 → 发布门禁五步全绿 @ **`b33bea2`** → **v14 重部署** | `08-release-verify2.log` · 部署单见下 |
 
+### R1 收口独立复核（2026-10-14 · 游戏程序 verify-claims · 当前 HEAD `9a4a12c` 树净）
+
+> 接手「已声称完成」的 R1 五节点，按 verify-claims 纪律在当前 HEAD 独立实跑验证（不照抄黑板声称）。**结论：八项声称逐项复现成立，零缺口，无需修复批，v14 维持 LIVE 不动**。
+
+| # | 复核项 | 独立取证结果 | 证据 |
+|---|---|---|---|
+| 1 | 程序批三件在盘且内容成立 | `docs/r1-program-batch.md` 三件齐：sha 三点核对单（开工时点 HEAD≠线上 v13@76954ca 如实登记）/ 埋点口径说明（A1 计时起点=first_core_action_at·A2 按局样本=run_end 一局一条·A4 通道判定=逐操作 channels≥2·A2 样本量=sampleSeeds 20）/ 操作路径清单 OP-01..07 带 id | 在盘直读 |
+| 2 | spec v1.3 = 链 v5 approved | 统一契约门禁机判「spec 为 approved 版（平台登记 v5 · cmv7hekf3000mjofivl4ebhdf）」PASS（非手工声称） | `01-verify-sh-full.log` 步① |
+| 3 | 实测报告绑 sha 有效性 | 报告绑全长 `f0fca52…`；`git diff --stat f0fca52..HEAD -- src spec tools/build.mjs` **空**（游戏源面零变更，b33bea2 仅动 run-all 打印面+qa 移位、9a4a12c 仅黑板 docs）——绑 sha 在当前 HEAD 仍有效；报告数值带来源事件名+脚本路径，A3 如实「未判定·待采」 | git diff 实跑 |
+| 4 | A4 check 扩面在盘 | ac-05 面4（fx 逐通道绑定断言）+ 面5（hrtime 逐帧采样 P95≤16ms）源码在盘，16/0 复现内 | `tests/contract/ac-05…spec.mjs:35-69` |
+| 5 | verify.sh 五步门禁 | **VERIFY_EXIT=0**：统一契约 PASS · 自有 16/0/1PEND（ac-a3 结论面 PEND=「待试玩」证据状态如实）· WS-SMOKE PASS（victory 167s + 四事件真实载荷 + 零 console 错误）· SCOPE-GUARD 双模式 PASS | `01-verify-sh-full.log` |
+| 6 | 线上三点复测（本轮重取） | ①title=麦浪小队 ✓ ②资产三件（main.mjs/spec.json/index.html）live md5 ≡ HEAD build **逐字节全等**（本轮 curl 独立拉取复算，非抄上轮日志）✓ ③WS-LIVE-SMOKE PASS **LIVE_SMOKE_EXIT=0**（紧邻取码） | `02-live-smoke.log` · `03-live-threepoint.log` |
+| 7 | 好玩判据红线 | 第 1 轮「不达」如实登记在案（A3 0/5 无真人证据）；冻结计数器 0/3 按 spec meta.baselineProtocol 单源口径不计数——**无粉饰无豁免** | 本台账「好玩判据状态」节 |
+| 8 | 边界红线 | g2-blocks / game-9 / 第三线零接触（本轮 git 提交全部限定 wheat-squad 与其黑板子目录）；不开新题不重复调研 | git log + SCOPE-GUARD ⑤ |
+
 ### 部署台账（2026-10-14 · deploy 节点 · v14 LIVE）
 
 - **部署单**：坑 `cmv36wl94001xm9mxp119q48x`（wheat-squad-2 · sourceId=wheat-squad 绑定复用）· **version 14 `cmv7htilk000vjofibg56wp5v` = running/current @ commit `b33bea2f`**（API 回读三要素：status/errorMessage=null/gitRef=本 run 分支 · durationMs 830）；通道实录 = POST 504 截断（判例）→ GET 复查已受理 → **未重发**（v13 未被误挤占，v14 正常接管）。
