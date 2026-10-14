@@ -124,6 +124,11 @@
 
 ## 六、一键部署（有权限身份执行后，本工作流恢复复验与回写）
 
+> **回写免手工（第三轮实确认）**：部署路由带 `goalId` 时由平台服务端把 hosted_app 产物
+> upsert 合并进 `Goal.artifacts`（R6/D5 语义，`apphost-deployments.ts` ③——读改写平台侧完成，
+> 无 HTTP PATCH 整组替换的清空风险）。下方命令已带 goalId，owner/admin 执行部署即自动回写；
+> **不要**再走 `PATCH /api/v1/goals/:id` 手工合并（该路由 artifacts 是整组替换，且 owner 校验）。
+
 ```bash
 # ① 干跑验证权限（403 则需换 app owner / admin 身份）
 curl -s -X POST -H "Authorization: Bearer $MYRD_TOKEN" -H "Content-Type: application/json" \
