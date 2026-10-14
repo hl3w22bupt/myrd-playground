@@ -1,5 +1,5 @@
 /**
- * 《线上抓娃娃机》(game-11) 自定义游戏落地页（伺服于 /）。
+ * 《牛牛打游戏》game-8 自定义游戏落地页（伺服于 /）。
  *
  * 与 Godot 默认壳的差异：所有二进制资产必须经 M1 文本网关中转 ——
  * 页面先从 api/public/assets/* 拉 base64 文本，还原出 wasm/pck 真实字节，
@@ -9,120 +9,91 @@
  * 单独补丁把相对文件名改写到 api/public/assets/ 下。
  *
  * 注意：页面里拉资源的路径一律不带前导斜杠（相对路径），
- * 经公网入口 /apps/game-11 访问时才能解析到网关子路径。
+ * 经公网入口 /apps/game-8 访问时才能解析到网关子路径。
  *
- * 移动端音频手势解锁器（脚本最前段，必须先于引擎加载安装）：
+ * 移动端音频手势解锁器（引擎加载前安装，硬契约）：
  * iOS/Android WebKit 的 AudioContext 创建即 suspended、打断后 interrupted（引擎不识别），
  * 引擎只在自身输入回调里 resume —— 缺壳页兜底 = 移动端无声而桌面正常。
  * 实现：包 AudioContext 构造器捕获实例 + document 级手势监听内同步 resume
  * （capture+passive 不消费事件）+ window.__audioDebug() 真机取证出口。
- * 根因取证与修复方案：games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md（F1 手势解锁 / F2 worklet 防御）。
+ * 根因取证：games/game/qa/webkit-mobile-evidence（源自 games/soccer 取证结论）。
  *
- * 调参桥（§3C 调参工作台硬契约）：引擎加载前把 URL ?tuning=<urlencoded JSON>
- * 解析进 window.__GAME_TUNING__；游戏侧 GameState._apply_web_tuning() 启动时读入，
- * 只认 TUNING_META 声明的键并按 min/max 钳制。缺这一层 = 试玩调好的参数无法用 URL 复现。
+ * 调参桥（SKILL.md §3C 调参工作台硬契约）：引擎加载**之前**解析 URL ?tuning=<JSON>
+ * 到 window.__GAME_TUNING__；游戏侧 GameState._apply_web_tuning() 启动时读入
+ * （只认 TUNING_META 声明的键、按 min/max 钳制）。试玩调好的参数用 URL 即可复现。
  */
 export const GAME_PAGE_HTML = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
-<title>线上抓娃娃机</title>
+<title>牛牛打游戏</title>
+<script>window.__ASSET_V__ = "__ASSET_V_PLACEHOLDER__";</script>
 <style>
 html, body, #canvas { margin: 0; padding: 0; border: 0; }
-body { color: #fff; background: #101426; overflow: hidden; touch-action: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { color: #fff; background: #10240f; overflow: hidden; touch-action: none; overscroll-behavior: none;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 #canvas { display: block; width: 100vw; height: 100vh; }
 #canvas:focus { outline: none; }
 #boot { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
-  background: radial-gradient(circle at 50% 30%, #28356b 0%, #1a2145 55%, #0d1024 100%); z-index: 10; transition: opacity .4s; }
+  background: radial-gradient(circle at 50% 35%, #2e6b2a 0%, #1c4a1c 55%, #0d260d 100%); z-index: 10; transition: opacity .4s; }
 #boot.hidden { opacity: 0; pointer-events: none; }
-#boot h1 { margin: 0; font-size: 2rem; letter-spacing: .14em; color: #ffe9a8;
-  text-shadow: 0 2px 0 #b4541e, 0 0 20px rgba(255,180,80,.5); }
-#boot .sub { color: #9fb0e0; font-size: .85rem; margin-top: -10px; }
-#bar-wrap { width: min(420px, 70vw); height: 14px; border-radius: 999px; background: #1c2547; overflow: hidden; border: 1px solid #3d4f8f; }
-#bar { height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(90deg, #ffb347, #ff6f91, #7ae0c3); transition: width .2s; }
-#boot-msg { color: #8fa0d0; font-size: .8rem; }
+#boot h1 { margin: 0; font-size: 2rem; letter-spacing: .12em; color: #ffe9a8;
+  text-shadow: 0 2px 0 #8a5a12, 0 0 18px rgba(255,214,120,.5); }
+#boot .sub { color: #bfe0b4; font-size: .85rem; margin-top: -10px; }
+#bar-wrap { width: min(420px, 70vw); height: 14px; border-radius: 999px; background: #1c3a1a; overflow: hidden; border: 1px solid #3f7038; }
+#bar { height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(90deg, #9be15d, #ffd166, #f5a15d); transition: width .2s; }
+#boot-msg { color: #a9cfa0; font-size: .8rem; }
 #hint { position: fixed; left: 50%; transform: translateX(-50%); bottom: 10px; z-index: 5;
-  color: #d7e0ff; background: rgba(16,22,48,.75); border: 1px solid #31407c; border-radius: 999px;
+  color: #d8ecd0; background: rgba(10,28,10,.72); border: 1px solid #3f7038; border-radius: 999px;
   padding: 6px 16px; font-size: 12px; letter-spacing: .05em; pointer-events: none; }
-#boot kbd { background: #26325e; border: 1px solid #4a5da8; border-bottom-width: 2px; border-radius: 5px; padding: 1px 7px; font-family: inherit; font-size: .92em; color: #ffe9a8; }
-#keys { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; color: #9fb0e0; font-size: .82rem; max-width: 90vw; }
+#boot kbd { background: #24491f; border: 1px solid #4f8a45; border-bottom-width: 2px; border-radius: 5px; padding: 1px 7px; font-family: inherit; font-size: .92em; color: #ffe9a8; }
+#keys { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; color: #bfe0b4; font-size: .82rem; }
 </style>
 </head>
 <body>
-<!-- canvas 由启动脚本在引擎就绪时创建（id=canvas）：启动本身耗时数秒（wasm 编译/着色器编译），
-     提前挂载会让自动化验收在引擎仍处启动 stall 时采样（画面冻结/触摸无响应假阴性）。
-     引擎库在 start() 时取文档第一个 <canvas>，动态创建等价于静态声明。 -->
+<canvas id="canvas">你的浏览器不支持 canvas。</canvas>
 <div id="boot">
-  <h1>线上抓娃娃机</h1>
-  <div class="sub">3D 抓娃娃 · 多种夹爪 × 多种娃娃 · MyRD 小游戏工坊</div>
+  <h1>牛牛打游戏</h1>
+  <div class="sub">game-8 · 休闲收集 · MyRD 小游戏工坊</div>
   <div id="bar-wrap"><div id="bar"></div></div>
-  <div id="boot-msg">正在准备机台…</div>
-  <div id="keys"><span><kbd>←↑↓→ / 摇杆</kbd> 移动爪子</span><span><kbd>空格</kbd> 下爪</span><span><kbd>Tab</kbd> 切换爪型</span><span><kbd>拖动画面</kbd> 环绕视角</span></div>
+  <div id="boot-msg">正在准备草垛…</div>
+  <div id="keys"><span><kbd>WASD</kbd>/<kbd>方向键</kbd> 移动牛牛</span><span><kbd>空格</kbd> 结算后重开</span><span>触屏：左下摇杆移动</span></div>
 </div>
-<div id="hint" style="display:none">点按画面/空格下爪 · 摇杆/方向键移动 · Tab 切爪型 · 拖动转视角</div>
+<div id="hint" style="display:none">摇杆/WASD 移动 · 收集青草垛 · 时间到按 空格 重开</div>
 <noscript>你的浏览器不支持 JavaScript。</noscript>
 <!-- 引擎引导脚本由启动脚本按 BASE_PATH 动态注入（静态 src 在无尾斜杠入口下会 404） -->
 <script>
 (function () {
-  // ---- 调参桥（硬契约：必须在引擎加载之前解析进全局）----
-  // ?tuning=<urlencoded JSON> → window.__GAME_TUNING__；游戏侧 GameState 启动时读它覆盖调参区数值
-  //（只认 TUNING_META 声明的键、按 min/max 钳制）。解析失败静默跳过，不影响正常启动。
-  var rawTuning = null;
-  try { rawTuning = new URLSearchParams(location.search).get('tuning'); } catch (e) { /* 老内核无 URLSearchParams */ }
-  if (rawTuning) {
-    try {
-      var t = JSON.parse(rawTuning);
-      if (t && typeof t === 'object' && !Array.isArray(t)) window.__GAME_TUNING__ = t;
-    } catch (e) { /* 非法 JSON：忽略，用游戏内默认值 */ }
-  }
-
-  // ---- 像素密度分级钳制（必须在引擎加载前生效）----
-  // 引擎画布后备存储 = CSS 尺寸 × devicePixelRatio，像素量随 DPR 平方增长：
-  // DPR=3 时 390×844 视口得到 1170×2532 ≈ 295 万像素的帧缓冲，WebGL 软渲染（swiftshader）
-  // 实测只有 2~5fps（门禁阈值 8），而真机 GPU 毫无压力。
-  // 画质 v2 策略 = 按 GPU 能力分级（能力检测，不是 UA 嗅探）：
-  //   软渲染（SwiftShader/llvmpipe/software）→ 钳 1：与首版部署行为一致，保住门禁帧预算；
-  //   真 GPU（真机/桌面）→ 钳 2：3x 屏上 2x 渲染已接近原生锐度，UI 文字边缘锐利（专项一），
-  //     同时省掉 3x 的功耗/发热；URL ?dpr=N 可显式覆盖（调参/对比工具）。
-  // 实现注意：devicePixelRatio 是 getter，须用 defineProperty 覆盖；引擎在画布尺寸计算
-  // （GodotDisplayScreen.getPixelRatio）与每次 resize 时读取，统一拿到钳制值。
+  // ---- 调参桥（SKILL.md §3C 硬契约：必须先于引擎加载）----
+  // URL ?tuning=<urlencoded JSON> → window.__GAME_TUNING__；
+  // 游戏侧 GameState._apply_web_tuning() 启动时读入（只认 TUNING_META 声明键、按 min/max 钳制）。
+  // 非法 JSON / 非对象一律按「无调参」处理，绝不阻塞启动。
   try {
-    var CAPPED_DPR = 2;
-    try {
-      // GPU 能力探测：建一个即弃 WebGL 上下文读 UNMASKED_RENDERER_WEBGL，
-      // 命中软渲染特征串则回落钳 1（与游戏内质量看门狗的 LOW 档同口径）。
-      // 结论同时写入 window.__SOFT_RENDER__：Web 导出里 Godot 只能看到被浏览器掩码的
-      // GL_RENDERER（不含软渲染特征串），游戏侧 adapter 名探测失效（实测 SwiftShader
-      // 门禁 runner 命不中 → 全效果 5fps）；壳页读得到 UNMASKED 值，由它把结论桥给游戏。
-      var probe = document.createElement('canvas');
-      var gl = probe.getContext('webgl') || probe.getContext('experimental-webgl');
-      window.__SOFT_RENDER__ = false;
-      if (gl) {
-        var dbg = gl.getExtension('WEBGL_debug_renderer_info');
-        var renderer = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : String(gl.getParameter(gl.RENDERER));
-        if (/swiftshader|llvmpipe|softpipe|software/i.test(renderer)) {
-          CAPPED_DPR = 1;
-          window.__SOFT_RENDER__ = true;
-        }
+    var rawTuning = new URLSearchParams(location.search).get('tuning');
+    if (rawTuning) {
+      var tuning = JSON.parse(rawTuning);
+      if (tuning && typeof tuning === 'object' && !Array.isArray(tuning)) {
+        window.__GAME_TUNING__ = tuning;
       }
-    } catch (e) { /* 探测失败按真 GPU 处理，只影响钳制档位 */ }
-    try {
-      var dprParam = new URLSearchParams(location.search).get('dpr');
-      if (dprParam) {
-        var dprOverride = Number(dprParam);
-        if (dprOverride > 0 && dprOverride <= 3) CAPPED_DPR = dprOverride;
-      }
-    } catch (e) { /* 老内核无 URLSearchParams：用分级默认值 */ }
-    var nativeDpr = Number(window.devicePixelRatio) || 1;
-    var cappedDpr = Math.min(nativeDpr, CAPPED_DPR);
-    Object.defineProperty(window, 'devicePixelRatio', {
-      get: function () { return cappedDpr; },
-      configurable: true,
-    });
-  } catch (e) { /* 极老内核 defineProperty 失败：保持原生 DPR，只损失帧率 */ }
+    }
+  } catch (e) { /* 非法 tuning 参数按无调参处理 */ }
 
-  // ---- 移动端音频手势解锁器（必须在引擎加载前安装，见文件头注释）----
+  // ---- 移动端触控卫生（v4 需求 ③3：局内触屏操作不触发页面滚动/双击缩放/长按选中）----
+  // viewport meta（user-scalable=no）+ body touch-action:none 是第一层；这里补事件层兜底：
+  // iOS Safari 的捏合（gesturestart/change）与双击缩放（dblclick）不吃 touch-action，
+  // 长按会弹系统菜单（contextmenu）或选中文字（-webkit-touch-callout 在 CSS 层已关）。
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (type) {
+    document.addEventListener(type, function (e) { e.preventDefault(); }, { passive: false });
+  });
+  document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
+  document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+  // ---- 移动端音频手势解锁器（必须在引擎加载前安装）----
+  // iOS/Android WebKit 下 AudioContext 创建即 suspended，锁屏/来电/切后台会打成
+  // interrupted（引擎状态机不识别 interrupted），引擎只在自己的输入回调里 resume ——
+  // 壳页没有这层兜底 = 移动端无声而桌面正常（games/game/qa/webkit-mobile-evidence）。
   var audioCtx = null;
   var audioLog = [];
   var audioAddModules = 0;
@@ -144,6 +115,7 @@ body { color: #fff; background: #101426; overflow: hidden; touch-action: none; f
     window.AudioContext = WrappedAudioContext;
   }
   // ② 手势内同步 resume：只在非 running 时调（覆盖 suspended 与 interrupted），幂等可重复。
+  //    必须在手势调用栈内同步执行 WebKit 才认；resume 的 Promise 落空不进控制台（无噪声）。
   function unlockAudio() {
     if (!audioCtx || audioCtx.state === 'running') return;
     try {
@@ -152,21 +124,27 @@ body { color: #fff; background: #101426; overflow: hidden; touch-action: none; f
     } catch (e) { /* resume 抛异常按无操作处理，绝不影响游戏输入 */ }
   }
   ['touchstart', 'touchend', 'pointerdown', 'keydown', 'click'].forEach(function (type) {
+    // capture + passive：先于引擎输入管线触发，且不消费事件（游戏触摸交互零感知）。
     document.addEventListener(type, unlockAudio, { capture: true, passive: true });
   });
+  // 打断再解锁：Webkit 在锁屏/来电后即使回前台也可能停在 interrupted，多给一次恢复机会。
   document.addEventListener('visibilitychange', function () {
     if (!document.hidden) unlockAudio();
   }, { passive: true });
-  // ③ 真机取证出口（移动端门禁音频契约机判此函数存在）
+  // ③ 真机取证出口：手机上打开控制台不便，全部观测收敛到一个函数。
   window.__audioDebug = function () {
     return { state: audioCtx ? audioCtx.state : 'no-ctx', addModules: audioAddModules, log: audioLog };
   };
-  // 资产基路径：公网入口 /apps/game-11（无尾斜杠）下，裸相对路径会解析到 /apps/*（网关 404）。
-  // 以页面路径推导：/apps/game-11 → /apps/game-11/ → /apps/game-11/api/public/assets/*。
+
+  // 资产基路径：公网入口 /apps/game-8（无尾斜杠）下，裸相对路径会解析到 /apps/*（网关 404）。
+  // 以页面路径推导：/apps/game-8 → /apps/game-8/ → /apps/game-8/api/public/assets/*。
   var BASE_PATH = (function () {
     var p = location.pathname.replace(/index\\.html$/, '');
     return p.charAt(p.length - 1) === '/' ? p : p + '/';
   })();
+  // 部署版本标识（index.ts 伺服本页时注入）：资产 URL 带版本参数 —— 跨部署立即换新，
+  // 同部署内浏览器可放心长缓存（配合资产路由的 immutable 头）。
+  var ASSET_V = window.__ASSET_V__ || '';
   var bar = document.getElementById('bar');
   var msg = document.getElementById('boot-msg');
   function setBar(p) { if (bar) bar.style.width = Math.max(0, Math.min(100, p * 100)) + '%'; }
@@ -176,7 +154,7 @@ body { color: #fff; background: #101426; overflow: hidden; touch-action: none; f
   }
 
   function fetchAsset(name) {
-    return fetch(BASE_PATH + 'api/public/assets/' + name).then(function (r) {
+    return fetch(BASE_PATH + 'api/public/assets/' + name + (ASSET_V ? '?v=' + ASSET_V : '')).then(function (r) {
       if (!r.ok) throw new Error(name + ' HTTP ' + r.status);
       return r.text();
     });
@@ -196,8 +174,7 @@ body { color: #fff; background: #101426; overflow: hidden; touch-action: none; f
   }
 
   // 音频 worklet 由浏览器内部加载（不经 window.fetch），单独补丁改写到相对资产端点。
-  // F2 防御（MOBILE_AUDIO_ROOT_CAUSE.md）：worklet 是音频单一故障点 —— 起播被 await 门控、
-  // addModule 的 promise 无 .catch，失败即全部事件音静默且几乎无报错。
+  // worklet 是音频单一故障点：addModule 的 promise 无 .catch，失败即全部事件音静默且几乎无报错。
   // 故：真实 URL 优先，失败降级原路径重试一次，仍失败显式 console.error。
   if (window.AudioWorkletNode && window.AudioWorklet && AudioWorklet.prototype.addModule) {
     var origAddModule = AudioWorklet.prototype.addModule;
@@ -207,12 +184,12 @@ body { color: #fff; background: #101426; overflow: hidden; touch-action: none; f
       try { file = String(url).split('/').pop().split('?')[0]; } catch (e) { /* 保原路径 */ }
       if (/\\.worklet\\.js$/.test(file)) {
         audioAddModules += 1;
-        var realUrl = BASE_PATH + 'api/public/assets/' + file;
+        var realUrl = BASE_PATH + 'api/public/assets/' + file + (ASSET_V ? '?v=' + ASSET_V : '');
         return origAddModule.call(self, realUrl, options).catch(function (err) {
-          console.error('[claw-shell] audio worklet 资产通道加载失败，降级原路径重试', file, err);
+          console.error('[game8-shell] audio worklet 资产通道加载失败，降级原路径重试', file, err);
           audioLog.push({ t: Date.now(), state: 'worklet-fallback:' + file });
           return origAddModule.call(self, url, options).catch(function (err2) {
-            console.error('[claw-shell] audio worklet 兜底加载也失败（移动端将无声）', file, err2);
+            console.error('[game8-shell] audio worklet 兜底加载也失败（移动端将无声）', file, err2);
             audioLog.push({ t: Date.now(), state: 'worklet-dead:' + file });
             throw err2;
           });
@@ -223,30 +200,23 @@ body { color: #fff; background: #101426; overflow: hidden; touch-action: none; f
   }
 
   var wasmBytes = null, pckBytes = null;
-  // 动态加载引擎引导（静态 src 在无尾斜杠入口下会 404）： onload 后 Engine 全局才可用，
-  // 后续启动逻辑全部串在 loadEngine 之后，杜绝 Engine 未定义竞态。
+  // 动态加载引擎引导（静态 src 在无尾斜杠入口下会 404）：onload 后 Engine 全局才可用。
   function loadEngine() {
     return new Promise(function (resolve, reject) {
       var s = document.createElement('script');
-      s.src = BASE_PATH + 'api/public/assets/index.js';
+      s.src = BASE_PATH + 'api/public/assets/index.js' + (ASSET_V ? '?v=' + ASSET_V : '');
       s.onload = function () { resolve(null); };
       s.onerror = function () { reject(new Error('引擎引导脚本加载失败: ' + s.src)); };
       document.head.appendChild(s);
     });
   }
-  setBar(0.15);
-  loadEngine().then(function () { setBar(0.4); msg.textContent = '下载游戏资源…'; return Promise.all([
+  loadEngine().then(function () { return Promise.all([
     fetchAsset('index.wasm.gz.b64').then(function (b64) { return gunzip(b64ToBytes(b64)); })
-      .then(function (b) { wasmBytes = b; setBar(0.85); msg.textContent = '引擎就绪，装载机台…'; }),
+      .then(function (b) { wasmBytes = b; setBar(0.85); msg.textContent = '引擎就绪，装载草垛…'; }),
     fetchAsset('index.pck.gz.b64').then(function (b64) { return gunzip(b64ToBytes(b64)); })
       .then(function (b) { pckBytes = b; setBar(0.95); })
   ]); }).then(function () {
     if (!WebAssembly.validate(wasmBytes)) throw new Error('wasm 校验失败（传输可能被破坏）');
-    // 引擎就绪才挂载画布：引擎库 start() 时取文档第一个 <canvas>，找不到会抛
-    // 'No canvas found in page' —— 在 startGame 前创建等价于静态声明（见 body 注释）。
-    var canvas = document.createElement('canvas');
-    canvas.id = 'canvas';
-    document.body.insertBefore(canvas, document.getElementById('boot'));
     // 拦截引擎对 wasm/pck 的 fetch，返回内存中的真实字节
     var realFetch = window.fetch.bind(window);
     window.fetch = function (input, init) {

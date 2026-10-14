@@ -2,6 +2,16 @@ import { Hono } from "hono";
 import { ctx } from "#apphost";
 import { getAsset } from "./lib/asset-store";
 import { GAME_PAGE_HTML } from "./game-page";
+import { createHash } from "node:crypto";
+
+// 部署版本标识：资产清单 key 每次部署都变，取其短哈希注入页面 —— 资产 URL 随部署换新，
+// 彻底消除「部署后浏览器 max-age 缓存窗口内跑旧版」（game-8 线上实锤：v5.2 上线后
+// 用户手机 5 分钟内仍看到旧 pck）。
+const ASSET_VERSION = createHash("sha256")
+  .update(process.env.APPHOST_ASSET_MANIFEST_KEY || "dev")
+  .digest("hex")
+  .slice(0, 12);
+const PAGE_HTML = GAME_PAGE_HTML.replace("__ASSET_V_PLACEHOLDER__", ASSET_VERSION);
 
 const app = new Hono();
 
@@ -10,16 +20,19 @@ const app = new Hono();
 app.get("/health", (c) =>
   c.json({
     ok: true,
-    app: "claw-machine-game-11",
+    app: "game-8",
+    game: "牛牛打游戏",
     env: ctx.environment,
     assets: "lazy/object-storage",
   }),
 );
 
 // 游戏落地页（/ 是唯一豁免 /api 前缀护栏的业务路径）。
-// 页面内所有资源走相对路径 api/public/assets/*：公网入口 /apps/game-11 下相对路径
-// 会解析到网关子路径，绝对路径会 404/被登录墙拦下（见任务契约）。
-app.get("/", (c) => c.html(GAME_PAGE_HTML));
+// 页面内含：调参桥（URL ?tuning= → window.__GAME_TUNING__，先于引擎加载）、
+// 移动端音频手势解锁器、base64 资产文本通道；所有资源走相对路径 api/public/assets/*：
+// 公网入口 /apps/game-8 下相对路径会解析到网关子路径，绝对路径会 404/被登录墙拦下。
+app.get("/", (c) =>
+  c.html(PAGE_HTML, 200, { "Cache-Control": "no-cache" }));
 
 /**
  * 游戏静态资产（底座 A：资产出 bundle，运行时从对象存储懒加载 + 内存缓存）。
@@ -37,9 +50,14 @@ app.get("/api/public/assets/:name", async (c) => {
     return c.text(`asset not found: ${name}`, 404);
   }
   const contentType = asset.encoding === "raw" ? asset.contentType : "text/plain; charset=utf-8";
+  // 带 ?v=<部署哈希> 的请求 = 版本化 URL，内容随部署不可变 → 长缓存；
+  // 无版本参数（历史路径/兜底）保持短缓存，避免倒退成每次全量拉 46MB wasm 文本。
+  const versioned = c.req.query("v") === ASSET_VERSION;
   return c.body(asset.body, 200, {
     "Content-Type": contentType,
-    "Cache-Control": "public, max-age=300",
+    "Cache-Control": versioned
+      ? "public, max-age=31536000, immutable"
+      : "public, max-age=300",
   });
 });
 
