@@ -34,3 +34,11 @@
 - **放行 N7 修复批入口**：本席未发现需打回的代码缺口——主线⑤「修复批」本轮为**空批通过**（零代码差异 ⇒ 发布 commit 复跑门禁后直接进入 deploy 节点重新部署）。
 - 放行条件（写死）：①发布 commit 上复跑 verify.sh 五步全绿（含微信红线面：SCOPE-GUARD 凭证类标识符扫描 ④⑤ 双模式）；②deploy 后线上三点复测（页面 title=麦浪小队 + main.mjs md5 ≡ 发布 commit build + WS-LIVE-SMOKE PASS）；③A3 采集窗开启（试玩入口交付）。
 - 「四件套全达」**本轮不宣称**：A3 结论面待采；本轮结束时若仍无真人证据，黑板记**好玩判据不达第 1 轮**（任务书红线，3 轮不达即冻结条款在 spec meta.baselineProtocol）。
+
+---
+
+## 五、N7 修复批互查回执（2026-10-14 · QA 认领）
+
+- **修复 1（属实）**：`tests/contract/run-all.mjs` ALL_GREEN 行在 `fail>0 && pends==0` 时假报 `ALL_GREEN=true`（先红证据 = `07-release-verify.log`：合计 15/1/0 却打印 ALL_GREEN=true——exit code 一直正确，verify.sh 步骤②以退出码 fail-closed 拦截，缺陷仅在打印面）。修复 = 全绿判定改 `fail===0 && pends.length===0` 三分支。**变异验证 PASS**：注入假 FAIL 件（0/1/0）→ `ALL_GREEN=false（零 PEND 亦非全绿——FAIL 1 件）`。
+- **修复 2（流程面处置，非码改）**：空白征集卡 `qa/playtest-records/record-round1.md` 使 ac-04 从 PEND 翻 FAIL（记录存在即严格断言——**行为忠于 spec「记录未回填 = 本条未达」，本席裁定不弱化检测**）。处置 = 卡移位至 `qa/playtest-collection-round1.md`（records 目录仅收回填证据，回填完成由主策划复制入位）。复跑 ac-04 = PEND 语义恢复（16/0/1PEND）。
+- **互查结论**：两件认领零保留；发布门禁须在新 HEAD 复跑五步（`08-release-verify2.log`）后本席方放行 deploy。

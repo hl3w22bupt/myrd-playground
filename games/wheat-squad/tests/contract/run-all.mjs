@@ -31,6 +31,10 @@ if (pends.length > 0) {
   console.log(`ALL_GREEN=false（含 pending 即非全绿——PEND ${pends.length} 件：`);
   for (const p of pends) console.log(`  PEND · ${p}`);
   console.log('）');
+} else if (fail > 0) {
+  // 修复（2026-10-14 R1 修复批 · 先红证据 gate-logs/r1-converge-20261014/07：1 FAIL 时曾打印 ALL_GREEN=true）：
+  // 全绿判定 = 零 FAIL **且** 零 PEND——exit code 一直正确（fail>0→1），仅此打印面曾误导
+  console.log(`ALL_GREEN=false（零 PEND 亦非全绿——FAIL ${fail} 件）`);
 } else {
   console.log('ALL_GREEN=true（零 FAIL 零 PEND）');
 }
