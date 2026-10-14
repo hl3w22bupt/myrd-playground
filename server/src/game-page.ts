@@ -145,7 +145,22 @@ body { color: #fff; background: #10240f; overflow: hidden; touch-action: none; o
   // 部署版本标识（index.ts 伺服本页时注入）：资产 URL 带版本参数 —— 跨部署立即换新，
   // 同部署内浏览器可放心长缓存（配合资产路由的 immutable 头）。
   var ASSET_V = window.__ASSET_V__ || '';
-  // ?debug=1 真机诊断浮层：显示触摸判定原始信号（游戏侧启动后回填 window.__TOUCH_DEBUG__）
+    // 加载画面常驻触控诊断行（v5.4：真机取证零门槛——截图即带全量信号）
+  (function () {
+    var bootMsg = document.getElementById('boot-msg');
+    var line = document.createElement('div');
+    line.style.cssText = 'font:10px/1.4 monospace;color:#9fe89a;opacity:.9;max-width:86vw;margin:2px auto;word-break:break-all;';
+    var boot = document.getElementById('boot');
+    if (boot) boot.appendChild(line);
+    var refresh = function () {
+      var t = null;
+      try { t = window.__TOUCH_DEBUG__ ? JSON.parse(window.__TOUCH_DEBUG__) : null; } catch (e) {}
+      var pre = t ? '' : '  (引擎启动后回填)';
+      line.textContent = 'TOUCH ' + (t ? JSON.stringify(t) : '{}' + pre) + ' 摇杆=显示';
+    };
+    setInterval(refresh, 800); refresh();
+  })();
+// ?debug=1 真机诊断浮层：显示触摸判定原始信号（游戏侧启动后回填 window.__TOUCH_DEBUG__）
   if (/[?&]debug=1/.test(location.search)) {
     var dbg = document.createElement('div');
     dbg.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99;background:rgba(0,0,0,.82);color:#7fff7f;font:11px/1.5 monospace;padding:6px 8px;white-space:pre-wrap;word-break:break-all;pointer-events:none;';
