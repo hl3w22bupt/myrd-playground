@@ -84,3 +84,33 @@
 | 排版核对 | G-1 `拖动队长移动 · 队员自动作战`（13 全角字符 + 2 间隔点）14px 档一屏放下 ✓（86% 宽 ≈ 335px > 文字实测 ~180px） |
 
 **a5 存在性 check 素材（manifest 对账面）**：资产 id `guidance-hint-banner`（kind=ui，文案逐字 = G-1，真源 game.ts#GUIDANCE_TEXT）——已同步登记 manifest（见 assets/manifest.json v2）。
+
+---
+
+## R1 复核 + 特效批（2026-10-14 · 游戏美术 · 主策划工作室代行节点）
+
+### §R1.1 风格卡复核（零依赖先行 · 机判三方面）
+
+- **palette 三方全等 PASS**：spec numeric.palette（8 色 + thresholdDeltaE=25）↔ `src/render/theme.ts` ↔ 本卡要素一，逐色值三方机判全等（2026-10-14 实查）。
+- **四要素零漂移**：调色板/光照/线条/比例与 v1 冻结面一致；§v1.2 增量（引导视觉权重）继续有效。
+- **陈旧锚更正（就地登记，原文保留）**：①卡头「spec 锚 = 链 v2 draft cmv4pqezm（meta 1.0）」已过时 → 现行锚 = **链 v4 approved（meta v1.2 `cmv60scie003hm9qqu91foe7v`；v1.3 入链后为 v5）**；②「封顶核对 5+1+3=9」已过时 → 现行 **13 件 = 封顶 13**（5 entity + 1 ui-kit + 1 guidance + 3 submission + 3 fx，零余量）。
+- **AC-A4 机制面走查**：manifest v3 逐件 kind/source/tokenSource 在盘（ac-11 面2 机判）· 色值面 ac-10 全绿（基线 r1-converge-20261014/01）。
+
+### §R1.2 反馈特效批（按操作路径清单 · 视觉通道绑资产 id 供 check 复算）
+
+> 形态纪律：零位图（tex-1）——fx 件 = 程序化绘制规格（procedural-draw-spec），theme.ts token 驱动；复合绑定（3 件覆盖 6 视觉通道）以满足封顶 13。
+
+| 资产 id | feedbackChannels | 操作路径 | 视觉规格（要素二/三派生） | source 锚 |
+|---|---|---|---|---|
+| `fx-kill-burst` | flash / particles / pickup-spawn | OP-02/OP-03 | accentRed 扩散环 r12→22（hitFlashMs=90ms α 线性衰减单峰）+ wheatGold 方粒 4×4 + 麦穗 pickup 圆角块 6×8 | renderer.ts#drawEffects |
+| `fx-hit-shock` | flash-invuln / knockback | OP-05 | 外圈 wheatDeep→accentRed 呼吸（无敌帧 0.8s 窗口）+ 击退位移（载体=实体重绘，无独立特效层） | renderer.ts#drawEffects |
+| `fx-hud-channels` | hud-kills / hud-hp | OP-02/OP-05 | HP 点 accentRed r5×5 顶右缘（全卡唯一警示色用面）+ 击杀计数 inkBrown（对比 ≥7:1） | renderer.ts#drawHud |
+
+- **通道覆盖完备性**：实现面 channels 全集 {flash, particles, pickup-spawn, hud-kills, flash-invuln, knockback, hud-hp} ⊆ 3 件 feedbackChannels 并集——ac-05 面4 机判（R1 新增面）。
+- **封顶与登记**：manifest v2→**v3**（10→13 件 = 封顶）；spec.assets 同批入 v1.3 修订（B 案 +7：4 补登 + 3 fx）。
+- **引导视觉与结算页打包声明（整批替换不拆改）**：引导 = guidance-hint-banner（§v1.2 增量规则，零拆改）；结算页 = ui-kit-01 covers「结算面板」+ world.uxCommitments 既有交互面，本轮以登记面打包（不拆改不重绘），视觉规格沿用要素三「结算面板框 wheatDeep 3px」。
+
+### §R1.3 交接给 check 的复算接口
+
+- 通道↔资产绑定数据面：`assets/manifest.json` fx 件 `feedbackChannels` 字段（ac-05 面4 逐通道复算）。
+- 登记集对账：manifest 逐件 id ∈ spec entities ∪ spec.assets（ac-11 面4，B 案扩严）。
