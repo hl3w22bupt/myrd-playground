@@ -208,13 +208,13 @@ export GODOT_BIN=/path/to/Godot
    但精灵零移动）。只消费单次事件的离散动作（走 `_unhandled_input` 分发）不受此限。
    **禁止**游戏逻辑脚本（player/敌人/关卡）直接监听 `InputEventScreenTouch/Drag`
    —— 那会造出第二套平行的输入路径，冒烟测试拦不住。
-2. **触摸 UI 独立成 CanvasLayer**（layer 高于游戏与 HUD），可见性由触摸能力判定，
-   不要用平台特征（`mobile`/`web`）代替 —— 触屏笔记本上键盘 UI 也该在，平板浏览器上
-   触摸 UI 也该在。Web 下的细化判定必须 **fail-open**（模板 `_touch_ui_should_show`）：
-   引擎确认有触摸能力后，仅在「确定纯桌面」（fine 主指针 + `maxTouchPoints===0` +
-   非 coarse）时才隐藏。**禁止用 `matchMedia('(pointer: coarse)')` 做一票否决** ——
-   线上真机首例（game-8 v5）：coarse 误报把真机摇杆藏掉，整局不可玩；fail-open 的
-   代价只是桌面视口多两个控件，方向必须如此。
+2. **触摸 UI 独立成 CanvasLayer**（layer 高于游戏与 HUD），可见性判定必须 **fail-open**
+   （模板 `_touch_ui_should_show`）：Web 下**不经过引擎** `is_touchscreen_available()`
+   —— 该调用在 web 实测不可靠（注入 ontouchstart 仍返回 false，game-8 线上真机两连例：
+   摇杆不显示、整局不可玩）——直接问浏览器三信号（`ontouchstart` /
+   `navigator.maxTouchPoints > 0` / `matchMedia('(pointer: coarse)')`），任一为真即显示，
+   eval 受限同样显示；非 Web 用引擎判定。**禁止任何形式的 fail-closed 隐藏逻辑**：
+   漏显桌面只是多个控件，误隐真机是整局不可玩。
 3. **摇杆用 `_unhandled_input` 跟踪触点，不用 `_gui_input`**：拖动事件在手指滑出控件
    矩形后必须继续接收，`_gui_input` 只在指针位于控件内时投递，会丢拖动轨迹。
    初始按下必须落在摇杆矩形内才接管该触点（`touch_index` 跟踪，第二根手指不抢控）。
