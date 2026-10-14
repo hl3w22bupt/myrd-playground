@@ -61,6 +61,9 @@ const RESPAWN_MAX_FRAMES: int = 90
 const NO_MISJUDGE_FRAMES: int = 4
 ## 过期断言用的短寿命（秒）：0.2s ≈ 12 物理帧。
 const SHORT_LIFETIME: float = 0.2
+## RESPAWN_EXPIRE 阶段的生成器白盒周期（秒）：0.25s ≈ 15 物理帧（SHORT_LIFETIME 同款
+## 「只压节奏不改语义」——断言的仍是 timeout→_fill_collectibles 自动补货接线，出相位还原）。
+const RESPAWN_TEST_INTERVAL: float = 0.25
 ## 大批量收集时，非目标物品的统一停放点：
 ## 必须在牛牛可达区（PLAY_RECT 钳制 [24..696, 24..1256]）之外，且距可达区最近点 >判定距离
 ## 与磁铁半径（v2 拾取判定 = 玩家判定半径 22×1.4≈30.8 + 物品半径 14 ≈44.8px；
@@ -172,6 +175,8 @@ var _saw_collect_anim: bool = false
 
 ## 噪声相位：确定种子随机事件（原始事件，不含 InputEventAction）。
 var _noise_rng := RandomNumberGenerator.new()
+## 各相位消耗的物理帧数台账（_to_phase 记账、_report 打印，预算收敛用）。
+var _phase_frames_ledger: Dictionary = {}
 
 
 func _ready() -> void:
@@ -355,28 +360,20 @@ func _advance_phase() -> void:
 
 
 func _to_phase(next_phase: SmokePhase) -> void:
+	# 帧耗台账（预算收敛用）：记录每个相位消耗的物理帧数，_report 时打印。
+	_phase_frames_ledger[_phase] = _phase_frames
 	_phase = next_phase
 	_phase_frames = 0
 
 
-## 大批量收集步进：奇帧补给 + 把目标物品摆到牛牛脚下，偶帧断言「恰好 +1」。
+## 大批量收集步进（流水线化）：每帧先断言上一帧摆放的触碰「恰好 +1」，再摆放下一次触碰。
+## 收集信号在摆放帧的物理 flush 内落账（Area2D 监控回调在物理步末触发），次帧断言的
+## 时序与原「奇帧摆放/偶帧断言」完全一致；流水线化把每触 2 帧压到 1 帧（v4 帧预算收敛，
+## 套件必须完整跑进门禁 --quit-after 兜底），50 次触碰的契约口径不变。
 ## 补给走 main 的真实生成路径（_fill_collectibles → _spawn_collectible），
 ## 判定走真实 Area2D 重叠路径；摆放只决定「哪一个物品被触碰」，不为测试另开判定旁路。
 func _mass_step(end_touch: int, next_phase: SmokePhase) -> void:
-	if _phase_frames % 2 == 1:
-		_awaiting_touch = false
-		if _main_node != null:
-			_main_node._fill_collectibles()
-		# 只碰普通物：+1 台账与 v1/v2 完全同口径（v3 的高分物/道具不进 50 连击样本）。
-		var target := _pick_fresh_collectible("normal")
-		if target == null and _main_node != null:
-			target = _main_node._spawn_collectible("normal")
-		if target != null:
-			_park_all_others(target)
-			_score_before_touch = GameState.score
-			target.global_position = _player.global_position
-			_awaiting_touch = true
-	elif _awaiting_touch:
+	if _awaiting_touch:
 		_awaiting_touch = false
 		if GameState.score != _score_before_touch + 1:
 			_failures.append("第 %d 次触碰判定不一致：触碰前 score=%d 触碰后 %d，期望恰好 +1（验收基线 2：连续 50 次无误判/漏判）" % [
@@ -386,6 +383,18 @@ func _mass_step(end_touch: int, next_phase: SmokePhase) -> void:
 		_touch_count += 1
 		if _touch_count >= end_touch:
 			_to_phase(next_phase)
+			return
+	if _main_node != null:
+		_main_node._fill_collectibles()
+	# 只碰普通物：+1 台账与 v1/v2 完全同口径（v3 的高分物/道具不进 50 连击样本）。
+	var target := _pick_fresh_collectible("normal")
+	if target == null and _main_node != null:
+		target = _main_node._spawn_collectible("normal")
+	if target != null:
+		_park_all_others(target)
+		_score_before_touch = GameState.score
+		target.global_position = _player.global_position
+		_awaiting_touch = true
 
 
 ## 挑一个还有富余寿命的可收集物（剩余 >1s）：杜绝「摆上去同帧过期被释放」的竞态。
@@ -416,10 +425,14 @@ func _park_all_others(target: Collectible) -> void:
 
 
 ## 清场 + 短寿命物品 + 自动补充观察（同一等待窗口内并行断言三条路径）。
+## v4 帧预算收敛：入相位把生成器 wait_time 白盒压到 0.25s（SHORT_LIFETIME 同款「只压
+## 节奏不改语义」——断言的仍是 timeout→自动补货接线），出相位还原为当前难度口径。
 func _respawn_expire_step() -> void:
 	if _phase_frames == 1:
 		_respawn_seen = false
 		if _main_node != null:
+			_main_node.spawn_timer.wait_time = RESPAWN_TEST_INTERVAL
+			_main_node.spawn_timer.start()  # 立即以新周期重计时（中途改 wait_time 不影响本 Countdown）
 			_main_node._clear_collectibles()
 			_expire_target = _main_node._spawn_collectible()
 			if _expire_target != null:
@@ -433,6 +446,8 @@ func _respawn_expire_step() -> void:
 	var expiry_done: bool = _expire_target == null or not is_instance_valid(_expire_target)
 	if _respawn_seen and expiry_done:
 		_assert_respawn_and_expiry()
+		if _main_node != null:
+			_main_node.spawn_timer.wait_time = GameState.spawn_interval_now()
 		_to_phase(SmokePhase.MULTITYPE)
 	elif _phase_frames >= RESPAWN_MAX_FRAMES:
 		if not _respawn_seen:
@@ -564,6 +579,16 @@ func _magnet_step() -> void:
 		_magnet_target.global_position = _player.global_position + Vector2(MAGNET_TEST_DISTANCE, 0.0)
 		_magnet_score_before = GameState.score
 		_player.activate_magnet()  # 道具真实生效入口（拾取路径调用的同一函数）
+	elif not is_instance_valid(_magnet_target):
+		# 提前退出：目标已在本帧前被吸入判定距离并真实收集（拉速内早于 cap 完成，v4 帧预算
+		# 收敛）——断言集与 cap 兜底路径完全一致，只是达成即走，不等满 cap。
+		if not _player.is_magnet_active():
+			_failures.append("磁铁生效状态 FAIL：吸入完成时 is_magnet_active 已变 false（MAGNET_DURATION 计时异常）")
+		if GameState.score != _magnet_score_before + 1:
+			_failures.append("磁铁收集计分 FAIL：score %d → %d，期望恰好 +1" % [
+				_magnet_score_before, GameState.score,
+			])
+		_to_phase(SmokePhase.BOOST)
 	elif _phase_frames >= MAGNET_MAX_FRAMES:
 		if not _player.is_magnet_active():
 			_failures.append("磁铁生效状态 FAIL：%d 帧（%.1fs）内 is_magnet_active 已变 false（MAGNET_DURATION 计时异常）" % [
@@ -1011,7 +1036,15 @@ func _key_labels(keys: Array) -> String:
 
 func _report() -> void:
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/输入映射/移动方向符号(A/←减小,D/→增大)/收集判定/50 连击一致性/波次梯度/过期回收/胜负/一键重开/持久化/v2手感基线(体型1.3~1.5x·移速60~70%)/v3扩展(开始面板·多类型计分·Combo·磁铁·加速·暂停·波次切分·音效闭环) 全部通过")
+		# 帧耗台账：供预算收敛核对（套件必须在门禁 --quit-after 兜底内完整跑完，
+		# 被截杀 = 既无 PASS 也无 FAIL 的假失败）。
+		var ledger_parts: PackedStringArray = []
+		for phase_name: String in SmokePhase.keys():
+			var phase_key: int = SmokePhase[phase_name]
+			if _phase_frames_ledger.has(phase_key):
+				ledger_parts.append("%s=%d" % [phase_name, _phase_frames_ledger[phase_key]])
+		print("[smoke] 帧耗台账 合计=%d %s" % [_total_frames, " ".join(ledger_parts)])
+		print("GODOT_SMOKE: PASS 场景实例化/输入映射/移动方向符号(A/←减小,D/→增大)/收集判定/50 连击一致性/波次梯度/过期回收/胜负/一键重开/持久化/v2手感基线(体型1.3~1.5x·移速60~70%)/v3扩展(开始面板·多类型计分·Combo·磁铁·加速·暂停·波次切分·音效闭环)/v4多帧动画·震屏相机 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:
