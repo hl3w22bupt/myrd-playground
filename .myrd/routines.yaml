@@ -36,6 +36,12 @@ routines:
     # 「240 帧预算不足系冒烟更重，非缺陷」。工作流 preHookParams 若显式传 smokeFrames
     # 则以入参为准；此默认值仅供本仓 dogfood 与本工作流缺参兜底。
     smokeFrames: 320
+    # 机器人试玩每局帧数（60 tick = 1 秒；模板红线「建议 ≈ 60 × spec.content.sessionSeconds」）。
+    # 3600 = 60 × 60s 单局口径，与工程 games/game-8/tests/playtest.json 的 frames_per_run 同值。
+    # 注意：tests/playtest.json 的 frames_per_run 当前不生效（playtest_driver.gd 的 `is int`
+    # 类型检查在 JSON 解析出的 float 上恒假，见 v4 交接文档 §六）——驱动侧只能由本参数经
+    # GODOT_PLAYTEST_FRAMES 显式传入。缺省 900 = 15 秒/局，属模板合法兜底但短于单局口径。
+    playtestFrames: "3600"
   steps:
   - name: godot-availability
     command: bash std-skills/godot-game-dev/scripts/resolve-godot.sh >/dev/null
@@ -55,6 +61,15 @@ routines:
       {{gamePath}}
     target: host
     timeout: 180
+  # 机器人试玩 —— 照抄 godot-smoke-routine.md 模板的 playtest 步（v4 轮补齐：此前本 routine
+  # 缺该步，工作流 preHook 不会跑 playtest，上轮「playtest 缺失」的结构性根因）。
+  # bot 以确定种子多局游玩，机判节奏类代理指标下限（首次得分/无反馈窗口/反馈密度/局间方差）；
+  # 3 局 × 3600 帧（60s 单局口径），wall time 数分钟 —— timeout 给足。
+  - name: playtest
+    command: GODOT_PLAYTEST_FRAMES={{playtestFrames}} GODOT_BIN="$(bash std-skills/godot-game-dev/scripts/resolve-godot.sh)" bash
+      std-skills/godot-game-dev/scripts/playtest.sh {{gamePath}}
+    target: host
+    timeout: 600
 - id: game-contract
   name: 游戏契约测试
   description: 断言工程实现与 approved 版策划案（GameDesignSpec）一致 —— 实体/关卡落点文件存在、验收项有可执行检查、关卡元素编号稳定唯一
