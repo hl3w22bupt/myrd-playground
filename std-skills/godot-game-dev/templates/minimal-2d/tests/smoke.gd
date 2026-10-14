@@ -8,12 +8,15 @@ extends Node
 ##   通过 → stdout 打印 `GODOT_SMOKE: PASS ...`，进程退出码 0
 ##   失败 → stderr 打印 `GODOT_SMOKE: FAIL <原因>`（每条一行），进程退出码 1
 ##
-## 覆盖面（对应 SKILL.md「冒烟场景必须断言什么」的五项，移植新游戏时逐项保留）：
+## 覆盖面（对应 SKILL.md「冒烟场景必须断言什么」的六项，移植新游戏时逐项保留）：
 ##   1. 场景可实例化（main.tscn → player.tscn 接线未断裂）
 ##   2. autoload 已注册且带约定信号
 ##   3. InputMap 动作已注册、物理键绑定正确（键位契约），且注入输入后对象真的动了
 ##   4. 信号真的到达订阅方（Player.moved / GameState.score_changed）
 ##   5. 每项失败给出可读原因（可直接查 references/error-signatures.md）
+##   6. 结果性事件真的挂了反馈（Juice.events 非空 —— 反馈缺失既有断言全拦不住：
+##      游戏能跑、信号能到，但玩起来是哑的；见 SKILL.md §3B）
+##   7. 调参协议可判（TUNING_META 非空、apply_tuning 钳制与未知键拒绝 —— §3C）
 ##
 ## ⚠️ 输入注入分两个阶段、互不重叠（见 references/error-signatures.md E-08）：
 ##   headless 下 `Input.parse_input_event()` 的缓冲冲刷会清掉 `Input.action_press()`
@@ -83,6 +86,7 @@ func _ready() -> void:
 		_failures.append("autoload GameState 缺少信号 score_changed")
 	else:
 		game_state.score_changed.connect(_on_score_changed)
+		_check_tuning_protocol(game_state)
 
 	_player = get_tree().root.find_child("Player", true, false) as Player
 	if _player == null:
@@ -108,6 +112,7 @@ func _physics_process(_delta: float) -> void:
 			_press_action(&"confirm")
 		elif _frames == TOTAL_FRAMES:
 			_assert_score_changed()
+			_assert_feedback_fired()
 
 	if _frames >= TOTAL_FRAMES or not _failures.is_empty():
 		_finished = true
@@ -218,9 +223,41 @@ func _assert_score_changed() -> void:
 		_failures.append("信号 GameState.score_changed 未到达订阅方：连接断裂或从未 emit（confirm 动作未触发加分）")
 
 
+## 第 6 项断言：结果性事件挂了反馈（confirm → 加分 → _on_score_changed → Juice 反馈链路）。
+## 反馈缺失是「玩起来是哑的」类缺陷：能跑、信号全通，但没有任何表现反馈 —— 只有这一层拦。
+func _assert_feedback_fired() -> void:
+	if Juice.events.is_empty():
+		_failures.append("反馈断言：confirm→加分的结果事件没有触发任何 Juice 反馈"
+			+ "（结果性事件必须挂 ≥1 条反馈，见 SKILL.md §3B；如确实移除了反馈，同步更新本断言）")
+
+
+## 调参工作台协议（SKILL.md §3C，纯逻辑、无头可判）：
+## TUNING_META 非空；apply_tuning 应用已声明键、拒绝未声明键、按 max 钳制 ——
+## 这是「试玩调参 → URL → 回写 spec」链路的机器前提，桥断了调参结果就无法复现。
+## ⚠️ 检查完必须把调过的值恢复原状 —— 协议检查不得污染被测状态（gate-selftest D5
+## 实测：不恢复的话，本检查会把「速度被静默归零」的缺陷用钳制值 600 悄悄修好，让位移
+## 断言全绿放行）。
+func _check_tuning_protocol(game_state: Node) -> void:
+	var meta: Variant = game_state.get("TUNING_META")
+	if meta is Dictionary and not (meta as Dictionary).is_empty():
+		var original_speed: Variant = game_state.get("move_speed")
+		var applied: PackedStringArray = game_state.call("apply_tuning", {"move_speed": 99999.0, "tuning_bogus_key": 1})
+		if not applied.has("move_speed"):
+			_failures.append("调参协议：apply_tuning 未应用已声明键 move_speed（应用逻辑断裂）")
+		if applied.has("tuning_bogus_key"):
+			_failures.append("调参协议：apply_tuning 应用了未声明键 tuning_bogus_key（必须只认 TUNING_META 声明的键）")
+		var speed: Variant = game_state.get("move_speed")
+		if not (speed is float or speed is int) or float(speed) > 600.0:
+			_failures.append("调参协议：move_speed=%s 超出 TUNING_META.max=600（钳制缺失）" % [speed])
+		if applied.has("move_speed") and original_speed != null:
+			game_state.set("move_speed", original_speed)
+	else:
+		_failures.append("调参协议：GameState.TUNING_META 为空或不可读（数值调参区必须声明至少一个可调键，见 SKILL.md §3C）")
+
+
 func _report() -> void:
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/autoload/输入映射/信号/物理移动 全部通过")
+		print("GODOT_SMOKE: PASS 场景实例化/autoload/输入映射/信号/物理移动/反馈触发/调参协议 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

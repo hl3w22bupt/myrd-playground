@@ -61,3 +61,17 @@ routines:
     command: node scripts/contract-check.mjs --spec {{specPath}} --project {{projectDir}}
     target: host
     timeout: 120
+- id: mobile-web-smoke
+  name: 移动端模拟可玩性门禁
+  description: headless Chrome 移动仿真（触摸/iPhone UA/390×844）打开部署后的 liveUrl，机判「移动端能不能玩」—— 网络全通/零 console 错误/画面渲染/触摸响应/音频解锁契约/视口/FPS
+  gate: false
+  # liveUrl 故意不给默认值：工作流 preHookParams 必传，缺参 = fail-closed 失败（列出可用入参），
+  # 不会静默测错应用；gamePath 默认指向本游戏工程，证据落 {{gamePath}}/qa/mobile/。
+  # 片段来源：std-skills/godot-game-dev/references/mobile-smoke-routine.md（参数化模板照抄，判定脚本零改动）。
+  params:
+    gamePath: games/game-8
+  steps:
+  - name: mobile-web-smoke
+    command: "node std-skills/godot-game-dev/scripts/mobile-web-smoke.mjs --url {{liveUrl}} --out {{gamePath}}/qa/mobile"
+    target: host
+    timeout: 180
