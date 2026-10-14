@@ -103,12 +103,15 @@ func _emit_move_actions() -> void:
 	_emit_action(MOVE_ACTIONS.down, _output.y if _output.y > 0.0 else 0.0)
 
 
+## ⚠️ v5.5：必须用状态 API（action_press/action_release）而非 parse_input_event。
+## 线上真机实锤（「只有下有效」）：每次更新连发 4 个 InputEventAction 事件时，
+## web 端输入缓冲冲刷只让**最后一个**（恰是 move_down）存活——上/左/右全部丢失。
+## 键盘不受影响（真实按键事件），headless 冒烟测不出（注入路径不同）。
 func _emit_action(action: StringName, strength: float) -> void:
-	var ev := InputEventAction.new()
-	ev.action = action
-	ev.pressed = strength > 0.0
-	ev.strength = clampf(strength, 0.0, 1.0)
-	Input.parse_input_event(ev)
+	if strength > 0.0:
+		Input.action_press(action, clampf(strength, 0.0, 1.0))
+	else:
+		Input.action_release(action)
 
 
 func _draw() -> void:

@@ -40,8 +40,72 @@ extends Node
 ## ⚠️ 输入注入分阶段互不重叠（references/error-signatures.md E-08）：
 ##   `Input.action_press()` 与 `Input.parse_input_event()` 同帧混用会互相冲掉，必须分帧。
 
+# ── 摇杆链路断言（Phase.JOYSTICK）─────────────────────────────────────
+# parse_input_event 吃窗口坐标：无头窗口 ≠ 设计视口（720×1280）时必须经
+# root.get_final_transform() 换算，否则位置被窗口→视口变换二次改写，永远落不进摇杆矩形。
+func _joy_design_center() -> Vector2:
+	if _joystick == null:
+		return Vector2.ZERO
+	return _joystick.get_global_rect().get_center()
+
+
+func _joy_window_pos(design_pos: Vector2) -> Vector2:
+	return get_tree().root.get_final_transform() * design_pos
+
+
+func _joystick_touch_press() -> void:
+	if _joystick == null:
+		return
+	var t := InputEventScreenTouch.new()
+	t.index = 0
+	t.pressed = true
+	t.position = _joy_window_pos(_joy_design_center())
+	Input.parse_input_event(t)
+
+
+func _joystick_touch_drag(design_relative: Vector2) -> void:
+	if _joystick == null:
+		return
+	var d := InputEventScreenDrag.new()
+	d.index = 0
+	d.position = _joy_window_pos(_joy_design_center() + design_relative)
+	d.relative = design_relative
+	Input.parse_input_event(d)
+
+
+func _joystick_touch_release() -> void:
+	if _joystick == null:
+		return
+	var t := InputEventScreenTouch.new()
+	t.index = 0
+	t.pressed = false
+	t.position = _joy_window_pos(_joy_design_center())
+	Input.parse_input_event(t)
+
+
+func _assert_joystick_moved() -> void:
+	if _joystick == null or _player == null:
+		return
+	var travelled: float = _player.global_position.distance_to(_joy_origin)
+	if travelled < MIN_MOVE_DISTANCE:
+		_failures.append(
+			"摇杆链路：右拖后玩家 %d 帧内位移 %.2fpx < %.2fpx —— mouse_filter 是否 IGNORE、注入是否 action_press" % [
+				JOY_HOLD_FRAMES, travelled, MIN_MOVE_DISTANCE,
+			]
+		)
+	var dx: float = _player.global_position.x - _joy_origin.x
+	var dy: float = _player.global_position.y - _joy_origin.y
+	if dx <= 0.0 or absf(dy) > absf(dx):
+		_failures.append(
+			"摇杆方向：右拖后位移错误 dx=%.2f dy=%.2f（应 dx>0 且 |dy|≤|dx|）—— 四方向连发 parse_input_event 只剩最后注入项存活（线上实例：只有 move_down 有效）" % [dx, dy]
+		)
+
+
 ## ── 噪声相位：确定种子对抗输入（悬挂手势/孤儿释放/乱键），断言仍全过 = 输入管线没被楔死 ──
 const NOISE_FRAMES: int = 24
+## 摇杆链路阶段参数：动作真正按住后的保持帧数 / 阶段帧数上限（事件驱动，见 Phase.JOYSTICK）。
+const JOY_HOLD_FRAMES: int = 10
+const JOY_MAX_FRAMES: int = 45
 ## 阶段一（方向符号断言）：单方向持续按住的物理帧数。
 ## v2 移速 145px/s ≈ 2.42px/物理帧 → 6 帧 ≈ 12~15px 位移，远超 MIN_MOVE_DISTANCE 且
 ## 帧开销极小（A/← 与 D/→ 背靠背共 13 帧，对照原先单向 11 帧，只多 2 帧）。
@@ -125,7 +189,7 @@ const KEY_CONTRACT: Dictionary = {
 ## v3 新增阶段全部走真实场景/真实输入：开始面板 → 多类型计分 → Combo → 磁铁 →
 ## 加速 → 暂停 → 波次/调参/音效/持久化（v3 需求 cmv6vkith000gjotytp4v915c）。
 enum SmokePhase {
-	NOISE, START, MOVE, COLLECT, MASS1, SETTLE1, RESTART1, MASS2, SETTLE2, RESTART2,
+	NOISE, START, JOYSTICK, MOVE, COLLECT, MASS1, SETTLE1, RESTART1, MASS2, SETTLE2, RESTART2,
 	MASS3, LOSE, RESTART3, RESPAWN_EXPIRE, MULTITYPE, COMBO, MAGNET, BOOST, PAUSE,
 	DIFFICULTY, PERSIST, DONE,
 }
@@ -136,6 +200,11 @@ var _phase_frames: int = 0
 var _total_frames: int = 0
 var _finished: bool = false
 var _player: Player
+## 摇杆链路断言用。
+var _joystick: Control
+var _joy_origin: Vector2 = Vector2.ZERO
+var _joy_drag_sent: bool = false
+var _joy_hold_frames: int = 0
 var _main_node: GameMain
 var _origin: Vector2 = Vector2.ZERO
 ## 方向符号断言的 x 基准：每次断言后滚动更新为当前 x（先 ← 后 → 各比对一次基准）。
@@ -209,6 +278,13 @@ func _ready() -> void:
 	else:
 		spawn_timer.timeout.connect(_on_main_spawn_timer_timeout)
 
+	# 摇杆链路断言准备：headless 检测不到触摸屏，TouchUI 可见性门控会藏住摇杆，显式点亮。
+	_joystick = get_tree().root.find_child("JoystickAnchor", true, false) as Control
+	if _joystick != null:
+		var touch_ui: CanvasLayer = _joystick.get_parent() as CanvasLayer
+		if touch_ui != null:
+			touch_ui.visible = true
+
 	_player = get_tree().root.find_child("Player", true, false) as Player
 	if _player == null:
 		_failures.append("场景树找不到 Player（main.tscn 未实例化 player.tscn，或实例名不是 Player）")
@@ -262,7 +338,34 @@ func _advance_phase() -> void:
 				_press_action(&"confirm")
 			elif _phase_frames >= SETTLE_FRAMES:
 				_assert_started()
-				_to_phase(SmokePhase.MOVE)
+				_to_phase(SmokePhase.JOYSTICK)
+		SmokePhase.JOYSTICK:
+			# 摇杆链路（触摸→摇杆→动作状态→位移 + **方向**断言）：
+			# 拦「mouse_filter STOP 吞触摸」「动作注入瞬态/只剩最后一个」两类真机缺陷
+			#（线上实例：v5.4 真机「只有下有效」——连发 4 个 InputEventAction 只剩最后注入的
+			# move_down 存活；位移断言不分方向全绿，故本阶段必须断言 dx>0 且 |dy|≤|dx|）。
+			if _phase_frames == 1:
+				_park_all_others(null)
+				_player.global_position = DIR_CHECK_POSITION
+				_joy_drag_sent = false
+				_joy_hold_frames = 0
+				_joy_origin = _player.global_position
+				_joystick_touch_press()
+			elif _phase_frames > JOY_MAX_FRAMES:
+				_failures.append("摇杆链路：%d 帧内注入的触摸未被摇杆接管（输入缓冲冲刷异常）" % JOY_MAX_FRAMES)
+			elif int(_joystick.get("_touch_index")) == -1:
+				pass  # 按下事件仍在输入缓冲里，等送达
+			elif not _joy_drag_sent:
+				_joystick_touch_drag(Vector2(60.0, 0.0))
+				_joy_drag_sent = true
+			elif not Input.is_action_pressed(&"move_right"):
+				pass  # 拖动事件仍在缓冲里，等 move_right 真正按住
+			else:
+				_joy_hold_frames += 1
+				if _joy_hold_frames >= JOY_HOLD_FRAMES:
+					_assert_joystick_moved()
+					_joystick_touch_release()
+					_to_phase(SmokePhase.MOVE)
 		SmokePhase.MOVE:
 			# 方向符号断言（需求 cmuktc8jk000hm97zm6l1gp4u 基线）：
 			# A/← 输入后 position.x 必须减小，D/→ 输入后必须增大 —— 以输入前后 x 符号差判定。
