@@ -188,16 +188,24 @@ export GODOT_BIN=/path/to/Godot
 
 ## 3A. 移动端触摸规范（虚拟摇杆 = 动作的生产者）
 
-模板已内置触摸支持：`TouchUI` CanvasLayer（左下虚拟摇杆 `scripts/virtual_joystick.gd`
+模板内置触摸件：`TouchUI` CanvasLayer（左下虚拟摇杆 `scripts/virtual_joystick.gd`
 + 右下确认按钮 `scripts/touch_confirm_button.gd`），由 `main.gd _ready()` 按
-`DisplayServer.is_touchscreen_available()` 决定显示 —— 桌面键盘环境完全不可见，
-从模板派生的新游戏**自动获得移动端可玩性，不得删除**。
+`DisplayServer.is_touchscreen_available()` 决定显示 —— 桌面键盘环境完全不可见。
+
+**触摸件按玩法选配，不是默认全带**：摇杆只属于「玩家在平面内移动」的玩法（收集/
+躲避/射击）；点按、消除、翻牌类游戏**必须删除** `JoystickAnchor` 节点与
+`scripts/virtual_joystick.gd`（连同 `main.tscn` 的 ext_resource 与 load_steps 一并
+清理），否则会出现「汽车连连看带摇杆」这类与玩法无关的控件。确认按钮同理按需保留。
 
 架构不变式（新加触摸控件也必须遵守）：
 
 1. **游戏逻辑仍然只读 InputMap 动作名**。触摸控件是动作的「生产者」：摇杆把手指向量
-   分解为 4 个移动动作的 `strength`，经 `InputEventAction + Input.parse_input_event()`
-   注入引擎；`Input.get_vector()` 读取 strength，玩家脚本零改动、键盘与触摸并存。
+   分解为 4 个移动动作的 `strength`，经 **`Input.action_press(action, strength)` /
+   `Input.action_release(action)`** 写入动作状态；`Input.get_vector()` 轮询读取
+   strength，玩家脚本零改动、键盘与触摸并存。**禁止用 `InputEventAction +
+   Input.parse_input_event()` 注入需要轮询的动作** —— 这种状态是瞬态的，当帧输入冲刷
+   即被清掉，`_physics_process` 里轮询到的永远是 0（实例：模板 v1 摇杆，引擎链路完好
+   但精灵零移动）。只消费单次事件的离散动作（走 `_unhandled_input` 分发）不受此限。
    **禁止**游戏逻辑脚本（player/敌人/关卡）直接监听 `InputEventScreenTouch/Drag`
    —— 那会造出第二套平行的输入路径，冒烟测试拦不住。
 2. **触摸 UI 独立成 CanvasLayer**（layer 高于游戏与 HUD），可见性只由
@@ -206,6 +214,9 @@ export GODOT_BIN=/path/to/Godot
 3. **摇杆用 `_unhandled_input` 跟踪触点，不用 `_gui_input`**：拖动事件在手指滑出控件
    矩形后必须继续接收，`_gui_input` 只在指针位于控件内时投递，会丢拖动轨迹。
    初始按下必须落在摇杆矩形内才接管该触点（`touch_index` 跟踪，第二根手指不抢控）。
+   **摇杆控件的 `mouse_filter` 必须设 `MOUSE_FILTER_IGNORE`**：默认 STOP 会让 GUI 把
+   落在摇杆上的触摸当场消费掉，`_unhandled_input` 永远收不到 —— 摇杆画得出来但
+   按上去完全无响应（实例：模板 v1 摇杆，真机全灭而门禁全绿）。
 4. **`TouchScreenButton` 用于离散动作**（确认/攻击/跳跃）：桌面端自动不响应，无需手动
    屏蔽；`pressed` 信号里注入对应动作事件，走与键盘相同的 `_unhandled_input` 路径。
 5. **移动端导出注意项**：`renderer/rendering_method.mobile="gl_compatibility"` 模板已设；

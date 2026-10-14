@@ -11,11 +11,16 @@
 // viewport + 触摸语义下「能不能玩」。范式复用 threejs browser-smoke.mjs：零 npm 依赖，
 // CDP 直驱 Chrome（Node ≥22 内置 fetch/WebSocket）。
 //
-// 用法：node mobile-web-smoke.mjs --url <liveUrl> [--out <证据目录>] [--chrome <路径>] [--seconds 60]
+// 用法：node mobile-web-smoke.mjs --url <liveUrl> [--project <godot工程目录>] [--out <证据目录>] [--chrome <路径>] [--seconds 60] [--joy-rect x1,y1,x2,y2]
 // 判定协议（对齐 GODOT_SMOKE 语义）：
 //   退出码 0 = 通过；1 = 门禁失败；2 = 环境不可用（找不到 Chrome / Node 无 WebSocket——装环境不要改代码）
 //   stdout 打印 MOBILE_SMOKE: PASS / MOBILE_SMOKE: FAIL <原因>（每条一行）
 // 证据落盘（--out，默认 ./qa/mobile/）：report.json + phase-load.png / phase-tap.png / phase-joystick.png
+//
+// 摇杆校准（--project）：从工程 project.godot 读设计视口与拉伸模式，结合页面 canvas 实际
+// CSS 矩形换算虚拟摇杆热区，swipe 打在真实摇杆上并断言「按住态摇杆区像素有变化」。
+// 不传 --project 时保留旧版固定坐标 swipe（仅取证，joystick-target 记 warning）。
+// 工程无 scripts/virtual_joystick.gd（点按类玩法按 SKILL.md §3A 合法裁撤摇杆）时跳过摇杆断言。
 //
 // 检查项（详见 report.json 的 checks 数组）：
 //   1. 网络全通：关键资源（wasm/pck/js/data/json/html/字体/bin）非 2xx、任意请求 ≥500、
@@ -28,7 +33,7 @@
 //   7. FPS 采样（informational，<8 才 FAIL；swiftshader 软渲染阈值放宽防假阳性）
 
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import os from "node:os";
 
@@ -36,11 +41,39 @@ const args = process.argv.slice(2);
 const flag = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
 const URL_ARG = flag("--url", "");
 const OUT_DIR = path.resolve(flag("--out", path.join("qa", "mobile")));
+const PROJECT_DIR = flag("--project", "");
+const JOY_RECT_ARG = flag("--joy-rect", "");
 const SECONDS = Number(flag("--seconds", "60"));
 const PORT = Number(flag("--port", "0")) || 9300 + (process.pid % 500);
 const CANDIDATES = [flag("--chrome", ""),
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
   "google-chrome-stable", "google-chrome", "chromium-browser", "chromium"].filter(Boolean);
+
+// —— 摇杆校准：读工程的 project.godot（设计视口 + 拉伸），判定是否配备虚拟摇杆 ——
+// 模板契约（SKILL.md §3A）：JoystickAnchor 锚在视口左下，offset 24..160（设计坐标）。
+function readProjectGeometry() {
+  if (!PROJECT_DIR) return null;
+  const cfgPath = path.join(PROJECT_DIR, "project.godot");
+  if (!existsSync(cfgPath)) return null;
+  const cfg = readFileSync(cfgPath, "utf8");
+  const num = (k, d) => { const m = cfg.match(new RegExp(`${k}\\s*=\\s*(\\d+)`)); return m ? Number(m[1]) : d; };
+  const str = (k, d) => { const m = cfg.match(new RegExp(`${k}\\s*=\\s*"([^"]+)"`)); return m ? m[1] : d; };
+  const vw = num("window/size/viewport_width", 640);
+  const vh = num("window/size/viewport_height", 360);
+  let designRect = [24, vh - 160, 160, vh - 24];
+  if (JOY_RECT_ARG) {
+    const parts = JOY_RECT_ARG.split(",").map(Number);
+    if (parts.length === 4 && parts.every((n) => Number.isFinite(n))) designRect = parts;
+  }
+  return {
+    vw, vh,
+    stretchMode: str("window/stretch/mode", "disabled"),
+    stretchAspect: str("window/stretch/aspect", "keep"),
+    hasJoystick: existsSync(path.join(PROJECT_DIR, "scripts", "virtual_joystick.gd")),
+    designRect,
+  };
+}
+const PROJECT = readProjectGeometry();
 
 // —— 移动仿真参数（iPhone 13 档：CSS 390×844 / DPR 3 / 触摸 / Safari UA）——
 const VIEWPORT = { width: 390, height: 844, deviceScaleFactor: 3, mobile: true };
@@ -175,9 +208,9 @@ try {
     await sleep(500);
   }
 
-  // —— 证据截图 helper：截图 + 页面内 canvas 像素采样（浏览器原生解码 PNG，零依赖）——
-  const shot = async () => {
-    const r = await send("Page.captureScreenshot", { format: "png" });
+  // —— 证据截图 helper：截图（可带 clip 裁剪）+ 页面内 canvas 像素采样（浏览器原生解码 PNG，零依赖）——
+  const shot = async (clip) => {
+    const r = await send("Page.captureScreenshot", clip ? { format: "png", clip: { ...clip, scale: 1 } } : { format: "png" });
     const data = r.result?.data;
     if (!data) throw new Error(`captureScreenshot 失败: ${JSON.stringify(r.error ?? r).slice(0, 300)}`);
     return data;
@@ -225,15 +258,93 @@ try {
   const tapCounters = await evaluate("window.__msTouch ? JSON.parse(JSON.stringify(window.__msTouch)) : null");
   const errorsAfterTap = consoleErrors.length;
 
-  // 摇杆区 swipe：起点左下 (90, 700)，向右推到 (170, 700)（TouchUI 虚拟摇杆典型热区）
-  const joyY = VIEWPORT.height - 144;
-  await touch([{ x: 90, y: joyY, id: 1 }], "touchStart");
-  for (let x = 100; x <= 170; x += 10) { await touch([{ x, y: joyY, id: 1 }], "touchMove"); await sleep(40); }
-  await touch([], "touchEnd");
-  await sleep(1500);
-  const joyShot = await shot();
-  writeFileSync(path.join(OUT_DIR, "phase-joystick.png"), Buffer.from(joyShot, "base64"));
-  const joyCounters = await evaluate("window.__msTouch ? JSON.parse(JSON.stringify(window.__msTouch)) : null");
+  // ============ 摇杆区 swipe（--project 校准热区；未校准回退旧版固定坐标仅取证） ============
+  // canvas_items + keep 的黑边数学：s=min(cw/vw, ch/vh)，游戏内容在 canvas 内居中，
+  // 摇杆设计矩形（默认模板契约左下 24..160）换算成 CSS 坐标后才是手指该按的位置。
+  let joyPlan = null;          // { mode: 'calibrated'|'skipped'|'legacy', ... }
+  let joyAreaDiff = 0;
+  let joyChurn = 0;
+  let joyCssRect = null;
+  if (PROJECT && !PROJECT.hasJoystick) {
+    joyPlan = { mode: "skipped", reason: "工程无 scripts/virtual_joystick.gd（点按类玩法按 SKILL.md §3A 裁撤摇杆）" };
+    say(`  -- 摇杆断言跳过：${joyPlan.reason}`);
+  } else {
+    const canvasRect = await evaluate(`(() => {
+      const c = document.querySelector('canvas');
+      if (!c) return null;
+      const r = c.getBoundingClientRect();
+      return { x: r.x, y: r.y, width: r.width, height: r.height };
+    })()`);
+    if (PROJECT && canvasRect) {
+      const s = Math.min(canvasRect.width / PROJECT.vw, canvasRect.height / PROJECT.vh);
+      const ox = (canvasRect.width - PROJECT.vw * s) / 2;
+      const oy = (canvasRect.height - PROJECT.vh * s) / 2;
+      const [x1, y1, x2, y2] = PROJECT.designRect;
+      joyCssRect = {
+        x: canvasRect.x + ox + x1 * s,
+        y: canvasRect.y + oy + y1 * s,
+        width: (x2 - x1) * s,
+        height: (y2 - y1) * s,
+      };
+      joyPlan = { mode: "calibrated", vw: PROJECT.vw, vh: PROJECT.vh, scale: s };
+    } else {
+      joyPlan = { mode: "legacy", reason: PROJECT ? "页面无 canvas（无法定位摇杆热区）" : "未传 --project" };
+    }
+  }
+
+  let joyCounters = null;
+  if (joyPlan.mode === "skipped") {
+    // 无摇杆游戏：保留一次任意区 swipe 作为触摸管线取证，不做摇杆断言
+    await touch([{ x: 90, y: VIEWPORT.height - 144, id: 1 }], "touchStart");
+    for (let x = 100; x <= 170; x += 10) { await touch([{ x, y: VIEWPORT.height - 144, id: 1 }], "touchMove"); await sleep(40); }
+    await touch([], "touchEnd");
+    await sleep(1500);
+    const joyShot = await shot();
+    writeFileSync(path.join(OUT_DIR, "phase-joystick.png"), Buffer.from(joyShot, "base64"));
+    joyCounters = await evaluate("window.__msTouch ? JSON.parse(JSON.stringify(window.__msTouch)) : null");
+  } else if (joyPlan.mode === "calibrated") {
+    // 按住态取证 + 断言：摇杆顶针只有按住时才偏移，touchEnd 后回中就截不到了。
+    // 判别用「变化量 vs 本底」：摇杆区常有背景粒子/道具飘过，先截两帧空载测本底抖动
+    // （churn），按住态变化必须显著高于本底（>2× 且 ≥8 点）才算顶针真的动了——
+    // 否则背景动画会把坏摇杆误判成有响应（实测旧版 game-8：本底 18 点被误判 PASS）。
+    const jc = Math.round(joyCssRect.x + joyCssRect.width / 2);
+    const jy = Math.round(joyCssRect.y + joyCssRect.height / 2);
+    const jx2 = Math.round(joyCssRect.x + joyCssRect.width * 0.95);
+    const pad = Math.round(Math.max(joyCssRect.width, joyCssRect.height) * 0.4);
+    const clipRect = {
+      x: Math.max(0, joyCssRect.x - pad), y: Math.max(0, joyCssRect.y - pad),
+      width: joyCssRect.width + pad * 2, height: joyCssRect.height + pad * 2,
+    };
+    const joyIdleA = await shot(clipRect);
+    const idleFpA = await sampleFingerprint(joyIdleA);
+    await sleep(300);
+    const joyIdleB = await shot(clipRect);
+    const idleFpB = await sampleFingerprint(joyIdleB);
+    joyChurn = idleFpA.filter((c, i) => c !== idleFpB[i]).length;
+    await touch([{ x: jc, y: jy, id: 1 }], "touchStart");
+    for (let x = jc + 10; x <= jx2; x += 10) { await touch([{ x, y: jy, id: 1 }], "touchMove"); await sleep(40); }
+    await sleep(300);
+    const joyHeldShot = await shot(clipRect);
+    writeFileSync(path.join(OUT_DIR, "phase-joystick-idle.png"), Buffer.from(joyIdleA, "base64"));
+    writeFileSync(path.join(OUT_DIR, "phase-joystick-held.png"), Buffer.from(joyHeldShot, "base64"));
+    const joyHeldFp = await sampleFingerprint(joyHeldShot);
+    joyAreaDiff = idleFpA.filter((c, i) => c !== joyHeldFp[i]).length;
+    await touch([], "touchEnd");
+    await sleep(1500);
+    const joyShot = await shot();
+    writeFileSync(path.join(OUT_DIR, "phase-joystick.png"), Buffer.from(joyShot, "base64"));
+    joyCounters = await evaluate("window.__msTouch ? JSON.parse(JSON.stringify(window.__msTouch)) : null");
+  } else {
+    // legacy：旧版固定坐标（对非 540×960 竖屏工程多半打不中摇杆），仅取证
+    const joyY = VIEWPORT.height - 144;
+    await touch([{ x: 90, y: joyY, id: 1 }], "touchStart");
+    for (let x = 100; x <= 170; x += 10) { await touch([{ x, y: joyY, id: 1 }], "touchMove"); await sleep(40); }
+    await touch([], "touchEnd");
+    await sleep(1500);
+    const joyShot = await shot();
+    writeFileSync(path.join(OUT_DIR, "phase-joystick.png"), Buffer.from(joyShot, "base64"));
+    joyCounters = await evaluate("window.__msTouch ? JSON.parse(JSON.stringify(window.__msTouch)) : null");
+  }
 
   // ============ 页面状态采样 ============
   const audioDebug = await evaluate("typeof window.__audioDebug");
@@ -282,6 +393,25 @@ try {
   check("touch-response", "触摸后画面有响应（tap 后帧差 > 0 或产生新活动）", touchResponded,
     touchResponded ? "" : "输入到达但 3s 内画面零变化零活动——引擎忽略触摸（TouchUI/输入映射坏）。若游戏确为开局静止画面，在 qa/mobile/ 放说明文件并在产物 detail 注明豁免依据");
 
+  // 4b. 摇杆响应（校准模式下机判顶针视觉位移；旧版坐标盲区的教训：硬编码 (90,700) 对
+  //     640×360 横屏 letterbox 工程打在黑边里，摇杆 100% 失效也全绿）
+  if (joyPlan?.mode === "calibrated") {
+    // warnOnly：CDP 触摸仿真下 Godot web 的 is_touchscreen_available() 常返回 false，
+    // TouchUI 整层隐藏、摇杆根本不绘制，区域像素差只能测到背景动画（旧版 game-8 实测
+    // 假阳性）。摇杆链路的权威机判在无头冒烟（tests/smoke.gd 摇杆阶段：注入触摸→断言
+    // 位移，变异验证有效）；本项保留校准坐标 swipe 与按住态取证截图，结论仅供参考。
+    const joyOk = joyAreaDiff > Math.max(joyChurn * 2, 8);
+    check("joystick-response",
+      `摇杆热区 swipe 取证（按住态变化 ${joyAreaDiff} 点 vs 本底 ${joyChurn} 点；热区 ${Math.round(joyCssRect.x)},${Math.round(joyCssRect.y)} ${Math.round(joyCssRect.width)}×${Math.round(joyCssRect.height)}）`,
+      joyOk,
+      `按住态变化 ${joyAreaDiff} 点未显著高于本底 ${joyChurn} 点。注意：CDP 仿真下 TouchUI 可能隐藏（无摇杆可见），本项不阻断——权威断言在无头冒烟的摇杆阶段；真机复验看取证截图 phase-joystick-held.png 里顶针是否跟手`, true);
+  } else if (joyPlan?.mode === "skipped") {
+    check("joystick-response", "摇杆断言跳过（工程未配备虚拟摇杆）", true, joyPlan.reason);
+  } else if (joyPlan?.mode === "legacy") {
+    check("joystick-target", "摇杆热区已校准（--project）", false,
+      `${joyPlan.reason}——回退旧版固定坐标 swipe，仅取证不断言；线上门禁应带 --project <工程目录>`, true);
+  }
+
   // 5. 音频解锁契约（壳硬契约机判化：iOS AudioContext suspended/interrupted 需手势 resume）
   check("audio-unlock", "音频手势解锁器存在（window.__audioDebug）", audioDebug === "function",
     `typeof __audioDebug === ${JSON.stringify(audioDebug)}——缺解锁层 = 移动端全部音效静默且控制台零报错（取证：games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md）`);
@@ -299,10 +429,13 @@ try {
   const report = {
     verdict: failed.length === 0 ? "PASS" : "FAIL",
     url: URL_ARG, preset: { ...VIEWPORT, ua: UA }, checkedAt: new Date().toISOString(),
-    checks: results, metrics: { colorCount, idleDiff, tapDiff, fps, ...viewportInfo },
+    checks: results, metrics: { colorCount, idleDiff, tapDiff, fps, joyAreaDiff, joyChurn, ...viewportInfo },
     networkFailures: failures, networkWarnings: warnings,
     consoleErrors: consoleErrors.slice(0, 20),
     touchCounters: { afterTap: tapCounters, afterSwipe: joyCounters },
+    joystick: { mode: joyPlan?.mode ?? "legacy", reason: joyPlan?.reason ?? "", project: PROJECT_DIR || null,
+      designViewport: PROJECT ? `${PROJECT.vw}x${PROJECT.vh}` : null,
+      designRect: PROJECT ? PROJECT.designRect : null, cssRect: joyCssRect },
     evidence: ["phase-load.png", "phase-tap.png", "phase-joystick.png"],
     exemptionNote: "touch-response 判 FAIL 但游戏确为开局静止画面时：在本目录放 EXEMPTION.md 说明依据，产物 detail 注明——不得无据豁免",
   };
