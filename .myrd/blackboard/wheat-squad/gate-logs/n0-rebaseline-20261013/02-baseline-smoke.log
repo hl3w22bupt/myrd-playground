@@ -1,0 +1,12 @@
+# 文件: 02-baseline-smoke.log | 日期: 2026-10-13T01:21:37Z | HEAD: 20facdfa793cc86c8d12b1a27af5899a1ceb87fc
+[ws-smoke] 静态服务 http://127.0.0.1:61711/（build/ 载面）
+[ws-smoke] chromium 就绪（CDP page target）
+[ws-smoke] ready ✓ __G2WS_READY=true
+[ws-smoke] 操作 ✓ tick 推进 + 击杀 1（拖动→作战链通）
+[ws-smoke] 埋点 ✓ first_core_action_at / first_kill / feedback_latency_ms 真实产生（A1/A4 面）
+[ws-smoke] 结算 ✓ phase=ended reason=victory elapsed=167s
+[ws-smoke] 埋点 ✓ run_duration_ms=167648ms reason=victory（A2 面·真实载荷）
+[ws-smoke] 重开 ✓ 结算态点按→回 running + kills 归零（结算-重开闭环）
+[ws-smoke] console/页面 零错误 ✓
+WS-SMOKE: PASS 打开→首次核心操作→单局结束→重开 + A1/A4 埋点真实产生 + console 零错误
+SMOKE_EXIT=0

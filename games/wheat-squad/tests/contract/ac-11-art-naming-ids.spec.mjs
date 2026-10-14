@@ -1,4 +1,12 @@
 // ac-11-art-naming-ids — ac-art-2（AC-A2 · auto）：清单件 id ↔ spec entities ids 逐字一致 + 无清单外资产
+//
+// ⚠️ 知情窄面披露（2026-10-13 QA 驳回 ③ · 升级主策划裁决中）：ac-art-2 statement 字面为
+// 「清单逐件 id ∈ spec entities ids；清单外未登记资产 = 违例」，而本件面1仅机判 category==='entity'
+// 类条目——manifest 中 ui-kit-01 / sub-icon / sub-sharecard-5x4 / sub-shots-3 四件非 entity 类 id
+// 既不在 spec.entities 亦不在 spec.assets，按 statement 字面即违例而本件绿（机判窄于 statement）。
+// 处置：statement 语义变更（id ∈ entities∪assets 登记集）或 spec.assets 补登四件均属 spec 修订
+// ——按红线不走程序单方面改判据，升级主策划裁决（blockers.md 本轮区段）；裁决落地前本件
+// 维持既有判据（不扩不缩、不造第二真源），窄面以本披露为知情登记。
 import { assert, loadSpec, ROOT } from './helpers.mjs';
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';

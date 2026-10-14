@@ -1,9 +1,52 @@
 # 阻塞项黑板 — wheat-squad（麦浪小队 · 第二产品线 · 可玩基线轮）
 
-> 更新时间：2026-10-12（可玩基线轮收口）· 负责人：主策划（整合人）· 阻塞超一轮未解 → 升级主人，不空转
-> 下一步：①运维/主人侧处置页面路由平台层串线（W-3，证据齐）→ 试玩入口恢复交付；②主人 5 名试玩回填（A3 结论面）
+> 更新时间：2026-10-13（spec v1.2 增量轮 · 任务书重发承接）· 负责人：主策划（整合人）· 阻塞超一轮未解 → 升级主人，不空转
+> 下一步：N1 地基（inventory + runner PEND + 埋点四事件）→ N2 spec v1.2 三合一包与修稿 → N3 审签入链 → N5 互查 → N6 deploy 复证 + W-3 复测；B 线调研刷新并行
 
-## 可玩基线轮收口态（2026-10-12）
+## 驳回修复轮（2026-10-13 · QA 五条驳回 · 游戏程序处置）
+
+> 逐条核实后处置（verify-rejections 纪律：①②④⑤ 属实直修，③ 属 spec 语义裁决升级）；修毕 verify.sh 五步绑新 HEAD 重交四件同包。证据 `gate-logs/n9-rejection-fix-20261013/`。
+
+- **① ac-a5 断言↔验收错位 · 已修（先红后绿）**：ac-16 原 38-39 行以 first_tap 断窗、statement 谓词（first_core_action_at − hint_shown ≤ 5000ms）仅冒烟面有；注释「numeric.guidance.windowMs 单源」失实（approved numeric.guidance 无此键，note 明确判定参数写死 statement）。修复 = ac-16 补 ④′ 段 statement 谓词逐字断言 + 窗值改由 approved statement 机器解析（正则提取，解析失败 fail-closed，零本地兜底）+ 注释改实；**双变异验证**：文案缺陷注入旧面绿（MUTATED_EXIT=0）/ 新断言红（GUIDANCE_TEXT ≢ spec.copy）、延迟拖动 6s 变异红（6048ms > 5000ms 判定窗）/ 还原绿。
+- **② 机判面虚报（两回执归因）· 已修**：三方 copy（spec.copy ≡ manifest.copy ≡ GUIDANCE_TEXT ≡ hint_shown.text）逐字机判断言补入 ac-16 ①′ 段（同上变异验证）；`qa/spec-v12-pre-review.md` 与 `qa/qa-n6-recon-v12.md` 三处失实归因已就地更正并注明更正轮次。
+- **③ ac-art-2 机判窄于 statement · 升级主策划裁决（本条为升级项，不擅改）**：ac-11 面1 仅机判 category==='entity' 类，manifest 之 ui-kit-01/sub-icon/sub-sharecard-5x4/sub-shots-3 四件非 entity id 既不在 spec.entities 亦不在 spec.assets——按 ac-art-2 statement 字面（「逐件 id ∈ spec entities ids；清单外未登记资产 = 违例」）即违例而机判绿。裁决选项：**A** revision 改写 statement（id ∈ entities∪assets 登记集，ac-11 随裁决扩机判）；**B** spec.assets 补登四件后扩机判逐件对账。裁决前 ac-11 维持既有判据 + 知情窄面披露注释（不扩不缩不造第二真源）。
+- **④ 证据 exit 失实 · 已修**：`gate-logs/n0-rebaseline-20261013/11-n6-deploy-live.log` 正文 DIE READY（smoke-live die=exit1 红正确）而末行 `LIVE_SMOKE_EXIT=0`——根因 = 记录 wrapper 取码隔管道（`node … | tee …; echo EXIT=$?` 取到 tee 退出码，与 2026-10-12 N5 判例「exit code 全透传」纪律同型违例）。处置 = 原件加失实注记保留历史 + 以显式取码重跑 smoke-live（线上 W-3 仍在，预期 exit=1）重归档修正版 `gate-logs/n9-rejection-fix-20261013/03-live-smoke-exit1.log`；**口径约定自此落死：证据取码必须紧邻被测命令、禁隔管道**（`node x.mjs; echo EXIT=$?` 直取，日志经重定向非管道）。
+- **⑤（轻微）README 悬空行 · 已修**：组合全景索引「下一步」节后悬空表格行（引用过时 line3-candidates-20261012.md）删除——该信息由「待主人裁决清单」#4（指向 20261013 刷新件）覆盖。
+
+## N2+N3+N5+N6 收口（2026-10-13 · spec v1.2 入链 approve + 互查放行 + 部署 v11 + W-3 维持）
+
+- **spec 链**：v1(v0.1 draft)→v2(v1.0)→v3(v1.1)→**v4 `cmv60scie003hm9qqu91foe7v` approved（meta v1.2 · acceptance 16 条）**——唯一 approved，v1..v3 superseded；链上内容≡payload 深比 True；导出件换基线（--expect-version 4）。本轮增量全落：A1–A5（新增 ac-a5-guidance-first-action auto）+ ac-a4b-restart-click-counter（a4 v1 写死）+ checkNaming 定死 `checks/<acceptance-id>.mjs`（16 条薄壳，SHIM_MAP↔spec 一致守卫）+ telemetryFields 9 键 + e-telemetry 结构化 + world.uxExisting 既有交互 5 条（4 收进 1 新增）+ W-5 闭合。
+- **流程件**：三合一包 `tri-pack-v1.2.md`（一次发全）→ 美术当天回件（style-card-v1 §v1.2 + manifest v2 guidance-hint-banner，ac-art-1/2/3 绿）；QA 只读预审 APPROVE-READY（`games/wheat-squad/qa/spec-v12-pre-review.md`，draft 未拍板声明在档）；主策划审签 `signoff-v1.2.md`（流程性，好玩终裁仍归主人）；QA 互查回执 **QA-WS-N6-20261013-01**（`games/wheat-squad/qa/qa-n6-recon-v12.md`，五线按序核全过 RECON-PASS）。
+- **门禁（HEAD `c4348e1` 树净）**：verify.sh 五步全 PASS VERIFY_EXIT=0（统一 **56/0** · 自有 **16/0/1PEND** ALL_GREEN=false 口径 · WS-SMOKE PASS 四事件真实产生 · SCOPE-GUARD 双模式）——`gate-logs/n0-rebaseline-20261013/08·09·10`。
+- **部署**：坑 `cmv36wl94001xm9mxp119q48x`（GET 核对 sourceId=wheat-squad 绑定 ✓ 复用）· **version 11** `cmv60yyfu003jm9qq1ablrdhm` = **running/current** @ commit **`e3abcb9`**（API 级三要素在档 · errorMessage=null · v10/v9 superseded）· POST 一次受理（HTTP 200 无 504）。
+- **W-3 第六次复现（维持升级运维/主人，不空转）**：页面路仍发 game-9 共享壳（title=汽车连连看，WS-LIVE-SMOKE fail-closed 红）——跨 v4/v5/v7/v8/v9/v11 六次正确 manifestPath+sourceId 部署、三种 gitRef 不收敛，平台 serving 层壳路由绑定缺陷定性不变；**资产路本轮新字节已上线**（main.mjs live≡HEAD build 逐字节 `bcde4bea…`，含四事件增量）——部署通道本身健康，仅页面路串线。证据 `gate-logs/n0-rebaseline-20261013/11-n6-deploy-live.log`。
+- **埋点本地日志开关说明**：`games/wheat-squad/docs/deployment-notes.md`（默认零外发零落盘；调试读口 `__G2WS_GAME.telemetryEntries()`；接渠道 SDK 须走 spec revision）。
+- **wx 包**：本轮不出（W-3 未解除无线上验证锚点；渠道面顺延批次，任务书「时间允许才出」且动 wx 主包必复跑全门禁）。
+
+## 本轮（2026-10-13）任务书增量识别 · N0 开工基线
+
+### 任务承接口径（重发任务书 vs 链上实况，以链上实况为准）
+
+- **任务书 = 上轮（run-cmv4k7sig，spec v1→QA→deploy）任务书重发**。上轮已完成：spec 链 v1(v0.1)→v2(v1.0)→**v3(v1.1) approved**、实现 ac-01..15、美术四契约、QA 互查多轮、部署 v9（部署面成功但页面路 W-3 串线升级中）。本轮**不重做已完成面**，只落任务书相对链 v3 的增量：
+  1. **`a5-guidance-first-action`**（新增验收：`hint_shown` 后 5s 内首次有效操作，auto）——链上无 a5；
+  2. **埋点四事件** `first_tap` / `first_loop_complete` / `restart_clicked` / `hint_shown`（含相对时间戳字段）以结构化片段写死 entities——链上 telemetryFields 5 键无此四事件；
+  3. **a4 语义强化**：「已埋点 + 真实点击本地计数 +1」（auto）落 restart_clicked 面；
+  4. **check 路径定死 `checks/<acceptance-id>.mjs`**——链上 checkNaming 现为 `tests/contract/ac-*.spec.mjs`（改名走 revision + 门禁适配）；
+  5. **runner PEND 语义**：`tests/contract/run-all.mjs` 补三态输出（PASS/FAIL/PEND，含 PEND 即非全绿口径）——现状 PEND 由测试件内部打印、聚合器不计数；
+  6. **`inventory-line2.md`**（每文件一句职责）+ 图谱注册构建；
+  7. **deploy 复证 + 埋点本地日志开关说明 + W-3 复测**；
+  8. **B 线调研刷新**（line3-candidates 更新，异品类，只攒池不开题）。
+
+### N0 基线自证（2026-10-13 · HEAD `20facdf`）
+
+- **分支**：`myrd/spec-v1-qa-deploy-cmv5zila9002jm9qqpsyos4g1` = 上轮成果分支 `myrd/wheat-squad-baseline-cmv4k7sig0026m9p8oxdk8ebt` @ `20facdf` 快进重建（远端 spec-v1 分支不存在；r9 提交只在成果分支）。worktree 曾误停旧分支 `pixel-fives-m0-m1@6d59bef`，已切回。
+- **spec 链**：`cmv4q8bng001em9qm5p78do05` v3 approved（meta v1.1）——API 实查确认（Cookie token 通道），导出件 `.myrd/spec/wheat-squad/design-spec.json` 在盘，ac-15 门禁适配视图守卫绿。
+- **契约双口径**：统一门禁 **53 PASS / 0 FAIL**（EXIT=0）+ 自有套件 **15 PASS / 0 FAIL**（ac-a3 结论面 PEND 如实展示）。
+- **冒烟**：**WS-SMOKE PASS**（打开→操作→victory 167s→重开→零错误，A1/A2/A4 埋点真实载荷）。
+- 证据：`gate-logs/n0-rebaseline-20261013/01-baseline-contracts.log · 02-baseline-smoke.log`（各带 UTC + HEAD sha + 退出码）。
+- **落点披露（沿用上轮判例）**：黑板 = `.myrd/blackboard/wheat-squad/` 子目录（顶层为 game-9 三件套，零触碰）；`inventory-line2.md` 按任务书字面落顶层；B 线候选池沿用 `research/line3-candidates-20261012.md` 刷新。
+
+## 上轮收口态（2026-10-12 · 可玩基线轮）
 
 ### 当前基线（两件事均已落实，判例落点披露）
 
@@ -17,6 +60,15 @@
 - 契约：自有套件 **13 PASS / 0 FAIL**（2 PEND=manual 明示）+ 统一门禁（approved 对账）**53 PASS / 0 FAIL · CONTRACT: PASS**
 - 冒烟：**WS-SMOKE PASS**（headless 可重复：打开→首次核心操作→victory 结算 167s→重开复位 + A1/A4 埋点真实产生 + console 零错误）
 - 违规标识符扫描：**SCOPE-GUARD PASS**（47 文件零越界，策略单源含素材文案面；n9 轮复核 49 文件零越界——文件数随新增文件自然增长，判据不变）
+
+## 部署轮 r9（2026-10-12 · workflow deploy 节点 · 重跑：worktree 切回成果分支，从当前分支部署）
+
+- **放行口径**：重跑反馈——worktree 已切回成果分支 `myrd/wheat-squad-baseline-cmv4k7sig0026m9p8oxdk8ebt` 并推远端（含全部 N0–N15 成果）。核对：本地成果分支经 `--ff-only` 快进对齐远端 `a5018b6`（`git ls-remote` 全等比对，不依赖 tracking ref），硬前置①②③全满足。
+- **部署前门禁（当前 HEAD=a5018b6 实跑）**：确定性重建 ≡ 仓内 build 逐字节全等（src/build 同批止于 729ef41）+ verify.sh 五步全 PASS **VERIFY-EXIT=0**（统一契约 · 自有契约 · WS-SMOKE 全链路 A1/A4 埋点 · 守卫双模式）。
+- **部署单**：坑 `cmv36wl94001xm9mxp119q48x`（sourceId=wheat-squad 绑定复核 ✓，复用未新建）· **version 9** `cmv4x0se5000cm95qvbgzzqo4` = **running/current** @ commit **`a5018b6`** · gitRef=**myrd/wheat-squad-baseline-cmv4k7sig0026m9p8oxdk8ebt**（当前分支）· errorMessage=null。**双单如实披露**：首次 POST 响应被网关 504 截断（服务端已受理），按 N5 判例 GET 复查发现已建单后未盲重；第二次诊断性 POST（带状态码复测）恰在 v9 受理后到达，多建 **v10**（同提交同清单字节等价，current=v9 正确，无内容风险）——「单次无重复」判例本轮破例一次，归因 504 语义模糊，留档。
+- **线上自测**：/gw/health **200** ✓ · 资产权威面 `main.mjs` **live ≡ 提交 build 字节全等**（md5 `1711423891…`）✓ · **页面路 W-3 串线第五次复现**：/gw 页面 title=汽车连连看 ≡ /apps/game-9/gw 字节全等（md5 `abb7c87b…`），壳为内联 bundle（无外链 src）→ 玩家侧 boot 断链（game-9 壳引 index.js 404），**WS-LIVE-SMOKE FAIL（exit=1，fail-closed 正确）**。
+- **结论**：部署面成功（v9 ready @a5018b6，三要素在档，gitRef 已按反馈从 main 换回成果分支）；**W-3 与 gitRef 无关**——v7（成果分支）/v8（main）/v9（成果分支）三种 gitRef × 正确 manifestPath+sourceId 五次部署，页面路一律发 game-9 共享壳，进一步收窄为平台 serving 层壳路由绑定缺陷（疑似 v3 漏 manifestPath 事故时被写坏后未随正确部署恢复）。维持升级运维/主人转发。解除判据不变：页面 title=麦浪小队 ⇒ **WS-LIVE-SMOKE PASS**。
+- 证据 `gate-logs/deploy-r9-20261012/`（01 门禁五步 · 02 live-smoke 红 · 03 串线页面字节收档）。
 
 ## 部署轮 r8（2026-10-12 · workflow deploy 节点 · 重跑放行：成果已回流 origin/main）
 
@@ -151,3 +203,11 @@
 |---|---|---|---|
 | W-1 | 放置收益基准值待校准（结构已冻结，数值占位） | 主人侧内测样本 | N5 部署试玩样本回收后 revision 校准（fv-pend PEND 条） |
 | W-2 | 好玩终裁（四件套 manual 面） | 主人（N5 部署后试玩） | 真人试玩结论；连续 3 轮不达触发冻结条款 |
+
+## 部署轮 r10（2026-10-13 · 游戏程序 · workflow deploy 节点 · v12 重发复证）
+
+- **重发复证**：坑 `cmv36wl94001xm9mxp119q48x`（slug `wheat-squad-2`，GET 核对 sourceId=wheat-squad 复用不新建）部署单 **v12** `cmv641ays003ym9qq0w2u53bg` ready @ commit **`7608768`**（gitRef=`myrd/spec-v1-qa-deploy-cmv5zila9002jm9qqpsyos4g1` · manifestPath=`games/wheat-squad/apphost.toml` · errorMessage=null，首轮轮询即 ready）。
+- **部署前门禁**：verify.sh 五步全 PASS `VERIFY_EXIT=0`（统一契约 + 自有契约 + WS-SMOKE 打开→首次核心操作→单局结束→重开 + A1/A4 四事件真实产生 + console 零错误 + SCOPE-GUARD 双模式）；确定性重建 10 文件零字节漂移（`games/wheat-squad/src` 自 `c4348e1` 起零变更，部署字节=提交字节）。证据 `gate-logs/deploy-r10-20261013/01`。
+- **W-3 第八次复现（维持升级，游戏仓侧不可修）**：页面路 title=汽车连连看；**新增决定性证据两条**——① 页面字节跨坑全等（`/apps/wheat-squad-2/gw` ≡ `/apps/game-9/gw`，md5 `abb7c87b…`，serving 层对所有 app 发同一份壳）；② 壳源码 boot 契约 Godot 专用（`index.js`→`index.wasm.gz.b64`/`index.pck.gz.b64`→`WebAssembly.validate` 硬校验→`new Engine`，无非 Godot 回退分支）+ 资产网关单段 `:name` 路由嵌套 `src/*.mjs` 全 404 实测 → TS 多模块工程经该壳必然 boot 断链。`tools/smoke-live.mjs` 对 LIVE 实测 **`LIVE_SMOKE_EXIT=1`**（预期红 fail-closed，取码紧邻命令）。证据 `gate-logs/deploy-r10-20261013/03`、`04`。
+- **资产路字节核验**：`main.mjs`/`spec.json`/`index.html` 三件 live md5 ≡ HEAD build md5（逐件全等）——v12 部署内容正确在线。
+- **试玩入口处置**：维持暂缓交付（r9 判例延续：页面路串线未解除，避免误测 game-9 壳）；解除判据不变：页面 title=麦浪小队 ⇒ smoke-live PASS。埋点本地日志开关说明已随 `games/wheat-squad/docs/deployment-notes.md` 刷新至 v12（9 事件 · 默认零外发）。wx 包本轮不出（无线上验证锚点）。

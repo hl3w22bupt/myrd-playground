@@ -1,0 +1,5 @@
+[ws-live-smoke] 目标 https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw
+[ws-live-smoke] chromium 就绪（CDP page target）
+[ws-live-smoke] DIE READY 超时（线上 boot 断链）
+Error: 引擎引导脚本加载失败: https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw/api/public/assets/index.js
+    at s.onerror (https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw:172:40)
