@@ -43,5 +43,29 @@ const emitted = new Set(st.feedbackEvents.flatMap((ev) => ev.channels));
 for (const ch of emitted) {
   assert(boundChannels.has(ch), `通道「${ch}」无 fx 资产绑定（manifest feedbackChannels 未覆盖——美术映射缺口）`);
 }
-console.log(`PASS ac-a4(auto) 反馈延迟 max=${maxLatencyMs(maxLatency)}ms ≤${fb.latencyBudgetMs}ms · 每操作通道 min=${minChannels} ≥${fb.minChannelsPerOp} · flash=${fb.hitFlashMs}ms · 通道 ${[...emitted].join('/')} 全绑 fx 件`);
+
+// 面5（2026-10-14 R1 · 任务书「A4 check 文件含帧耗时采样」）：驱动局前 60s 逐 stepSim 采样帧耗时
+// ——P95 ≤ perf.frameBudgetMs(16ms)（kernel 侧仿真步；渲染面归 smoke 浏览器档，口径同 ac-06）
+const simMod = await import(new URL('../../src/kernel/sim.ts', import.meta.url).pathname);
+const { seededRng } = await import(new URL('../../src/kernel/loop.ts', import.meta.url).pathname);
+const perf = spec.numeric.perf;
+const n5 = spec.numeric;
+const probeSeed = n5.DEFAULT_SEED + 900;
+const cfg5 = { rng: seededRng(probeSeed), field: { w: 390, h: 640 }, stepMs: n5.FIXED_STEP_MS,
+  captain: n5.captain, squad: n5.squad, enemy: n5.enemy, wave: n5.wave, upgrade: n5.upgrade,
+  firstKillBudgetSec: n5.firstKillBudgetSec, feedback: n5.feedback, perf: n5.perf, runDuration: n5.runDuration };
+const s5 = simMod.createSim(cfg5, probeSeed);
+s5.captain.target = { x: cfg5.field.w / 2, y: cfg5.field.h / 2 };
+const frameMs = [];
+for (let i = 0; i < 3750 && s5.phase === 'running'; i += 1) { // 60s × (1000/16)
+  const t0 = process.hrtime.bigint();
+  simMod.stepSim(s5, n5.FIXED_STEP_MS);
+  frameMs.push(Number(process.hrtime.bigint() - t0) / 1e6);
+  if (s5.choices) simMod.pickUpgrade(s5, 0);
+}
+frameMs.sort((a, b) => a - b);
+const p95 = frameMs[Math.ceil(frameMs.length * 0.95) - 1];
+assert(frameMs.length >= 3000, `帧采样样本不足：${frameMs.length}（需 ≥3000）`);
+assert(p95 <= perf.frameBudgetMs, `帧耗时 P95 ${p95.toFixed(3)}ms > 预算 ${perf.frameBudgetMs}ms`);
+console.log(`PASS ac-a4(auto) 反馈延迟 max=${maxLatencyMs(maxLatency)}ms ≤${fb.latencyBudgetMs}ms · 每操作通道 min=${minChannels} ≥${fb.minChannelsPerOp} · flash=${fb.hitFlashMs}ms · 通道 ${[...emitted].join('/')} 全绑 fx 件 · 帧采样 n=${frameMs.length} P95=${p95.toFixed(3)}ms ≤${perf.frameBudgetMs}ms`);
 function maxLatencyMs(v) { return v.toFixed(0); }
