@@ -30,7 +30,9 @@ export const GAME_PAGE_HTML = `<!DOCTYPE html>
 <title>牛牛打游戏</title>
 <style>
 html, body, #canvas { margin: 0; padding: 0; border: 0; }
-body { color: #fff; background: #10240f; overflow: hidden; touch-action: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { color: #fff; background: #10240f; overflow: hidden; touch-action: none; overscroll-behavior: none;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 #canvas { display: block; width: 100vw; height: 100vh; }
 #canvas:focus { outline: none; }
 #boot { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
@@ -76,6 +78,16 @@ body { color: #fff; background: #10240f; overflow: hidden; touch-action: none; f
       }
     }
   } catch (e) { /* 非法 tuning 参数按无调参处理 */ }
+
+  // ---- 移动端触控卫生（v4 需求 ③3：局内触屏操作不触发页面滚动/双击缩放/长按选中）----
+  // viewport meta（user-scalable=no）+ body touch-action:none 是第一层；这里补事件层兜底：
+  // iOS Safari 的捏合（gesturestart/change）与双击缩放（dblclick）不吃 touch-action，
+  // 长按会弹系统菜单（contextmenu）或选中文字（-webkit-touch-callout 在 CSS 层已关）。
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (type) {
+    document.addEventListener(type, function (e) { e.preventDefault(); }, { passive: false });
+  });
+  document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
+  document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
   // ---- 移动端音频手势解锁器（必须在引擎加载前安装）----
   // iOS/Android WebKit 下 AudioContext 创建即 suspended，锁屏/来电/切后台会打成

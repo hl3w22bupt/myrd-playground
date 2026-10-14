@@ -101,10 +101,11 @@ const SFX_BANK_MIN: int = 6
 const PAUSE_KEY: Key = KEY_P
 
 const REQUIRED_ACTIONS: Array[StringName] = [
-	&"move_left", &"move_right", &"move_up", &"move_down", &"confirm", &"pause",
+	&"move_left", &"move_right", &"move_up", &"move_down", &"confirm", &"pause", &"restart",
 ]
 
 ## 键位契约：动作 → 键表承诺的物理键，必须全部绑定（逐键 AND，见模板注释）。
+## v4 ④3 补充 restart=R（结算面板一键重开的键盘入口，与触摸按钮双入口并存）。
 const KEY_CONTRACT: Dictionary = {
 	&"move_left": [KEY_A, KEY_LEFT],
 	&"move_right": [KEY_D, KEY_RIGHT],
@@ -112,6 +113,7 @@ const KEY_CONTRACT: Dictionary = {
 	&"move_down": [KEY_S, KEY_DOWN],
 	&"confirm": [KEY_SPACE, KEY_ENTER],
 	&"pause": [KEY_P],
+	&"restart": [KEY_R],
 }
 
 ## 冒烟阶段状态机。
@@ -162,6 +164,11 @@ var _magnet_score_before: int = 0
 ## 加速断言：基线位移与加速位移（px）。
 var _boost_base_dx: float = 0.0
 var _boost_test_x: float = 0.0
+## ── v4 阶段用状态（角色多帧动画，需求 cmv7hnfx3000ojofistqwry8l ②1）──
+## 牛牛的 AnimatedSprite2D（player.tscn 的 Anim 节点）。
+var _anim_node: AnimatedSprite2D
+## 全程是否观测到过 collect 庆祝动画（收集路径触发的一次性动画，时序不钉帧只看出现过）。
+var _saw_collect_anim: bool = false
 
 ## 噪声相位：确定种子随机事件（原始事件，不含 InputEventAction）。
 var _noise_rng := RandomNumberGenerator.new()
@@ -203,6 +210,11 @@ func _ready() -> void:
 	else:
 		_player.moved.connect(_on_player_moved)
 		_origin = _player.global_position
+		_assert_multiframe_anim_setup()
+	# v4 ④1 震屏载体：Juice.shake 需要当前 Camera2D 才有视觉位移。
+	var camera := get_tree().root.find_child("Camera", true, false) as Camera2D
+	if camera == null or not camera.is_current():
+		_failures.append("震屏 FAIL：场景缺少当前 Camera2D（Juice.shake 只记录不位移，关键事件震屏不生效）")
 
 
 func _physics_process(_delta: float) -> void:
@@ -210,6 +222,9 @@ func _physics_process(_delta: float) -> void:
 		return
 	_total_frames += 1
 	_phase_frames += 1
+	# v4 ②1 观测：collect 庆祝动画出现过即记（不钉帧，对播放时序鲁棒）。
+	if _anim_node != null and _anim_node.animation == &"collect":
+		_saw_collect_anim = true
 	if _total_frames > TOTAL_FRAME_BUDGET:
 		_failures.append("冒烟阶段 %s 超过 %d 帧未完成（阶段推进卡死）" % [
 			SmokePhase.keys()[_phase], TOTAL_FRAME_BUDGET,
@@ -255,6 +270,9 @@ func _advance_phase() -> void:
 				_player.global_position = DIR_CHECK_POSITION
 				_dir_base_x = _player.global_position.x
 				Input.action_press(&"move_left")
+			elif _phase_frames == DIR_HOLD_FRAMES:
+				# v4 ②1：位移保持中，动画状态机应处于 move 态（随输入实时切换）。
+				_assert_anim_is(&"move")
 			elif _phase_frames == DIR_HOLD_FRAMES + 1:
 				Input.action_release(&"move_left")
 				_assert_direction_sign(-1)
@@ -276,6 +294,7 @@ func _advance_phase() -> void:
 		SmokePhase.SETTLE1:
 			if _phase_frames >= SETTLE_FRAMES:
 				_assert_settled(true)
+				_assert_collect_anim_seen()
 				_press_action(&"confirm")
 				_to_phase(SmokePhase.RESTART1)
 		SmokePhase.RESTART1:
@@ -1010,3 +1029,39 @@ func _on_score_changed(_score: int) -> void:
 
 func _on_main_spawn_timer_timeout() -> void:
 	_respawn_seen = true
+
+
+## ── v4 断言：角色多帧动画（需求 cmv7hnfx3000ojofistqwry8l ②1，替代 v3 单精灵呼吸/缩放）──
+
+## 装配断言：Anim 节点存在、SpriteFrames 含 idle/move/collect 三组、每组 ≥2 帧（帧资源入库可核验）。
+func _assert_multiframe_anim_setup() -> void:
+	_anim_node = _player.get_node_or_null("Anim") as AnimatedSprite2D
+	if _anim_node == null:
+		_failures.append("多帧动画 FAIL：player.tscn 缺少 AnimatedSprite2D 节点 Anim（角色仍是静态贴图/多边形拼装）")
+		return
+	var frames: SpriteFrames = _anim_node.sprite_frames
+	if frames == null:
+		_failures.append("多帧动画 FAIL：Anim 节点未配置 SpriteFrames")
+		return
+	var names := frames.get_animation_names()
+	for required: StringName in [&"idle", &"move", &"collect"]:
+		if not names.has(required):
+			_failures.append("多帧动画 FAIL：SpriteFrames 缺少动画组 %s（需 idle/move/collect 三组）" % required)
+		elif frames.get_frame_count(required) < 2:
+			_failures.append("多帧动画 FAIL：动画组 %s 仅 %d 帧（多帧序列要求 ≥2 帧）" % [
+				required, frames.get_frame_count(required)])
+
+
+## 运行期断言：当前动画处于期望态（位移态随输入实时切换的机判口径）。
+func _assert_anim_is(expected: StringName) -> void:
+	if _anim_node == null:
+		return
+	if _anim_node.animation != expected:
+		_failures.append("多帧动画 FAIL：位移保持中当前动画=%s 期望=%s（动画状态机未随输入切换）" % [
+			_anim_node.animation, expected])
+
+
+## 收集庆祝动画的观测断言（SETTLE1 收口核对；只看出现过，不钉播放帧）。
+func _assert_collect_anim_seen() -> void:
+	if not _saw_collect_anim:
+		_failures.append("多帧动画 FAIL：整段收集流程未观测到 collect 庆祝动画（play_collect 未接线到收集结果事件）")

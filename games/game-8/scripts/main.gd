@@ -26,10 +26,13 @@ const FLOAT_TEXT_LIFETIME: float = 0.6
 ## 磁铁吸附拉速（px/s）：生效期间范围内计分物被吸向牛牛的速度。
 const MAGNET_PULL_SPEED: float = 170.0
 ## ── v3 UI 主题（需求 ④：开始/HUD/结算统一主题；配色与目标物体系呼应）──
-const THEME_PANEL_BG := Color(0.07, 0.14, 0.10, 0.94)
-const THEME_PANEL_BORDER := Color(0.55, 0.8, 0.3, 0.9)
-const THEME_TEXT := Color(0.96, 0.97, 0.92)
-const THEME_ACCENT := Color(0.55, 0.8, 0.3)
+## 主题色板（v4 ②4 风格卡 niuniu-game8-flat-bright 对齐：扁平明快三主色，最深只到 #2c3e50）。
+const THEME_PANEL_BG := Color(0.17, 0.24, 0.31, 0.94)
+const THEME_PANEL_BORDER := Color(0.18, 0.8, 0.44, 0.9)
+const THEME_TEXT := Color(0.93, 0.94, 0.95)
+const THEME_ACCENT := Color(0.95, 0.61, 0.07)
+const THEME_PRIMARY := Color(0.2, 0.6, 0.86)
+const THEME_RECORD := Color(1.0, 0.82, 0.25)
 const THEME_COMBO := Color(1.0, 0.62, 0.2)
 ## 波次横幅副标题（跨波可感知提示）。
 const WAVE_SUBTITLES: Array[String] = [
@@ -58,8 +61,16 @@ var _bg_near: Node2D
 var _combo_label: Label
 ## 波次横幅（跨波提示，波间停顿结束后隐藏）。
 var _wave_banner: Label
+## 全局相机（v4 ④1 关键事件震屏的载体：Juice.shake 驱动 offset 抖动）。
+var _camera: Camera2D
 ## 上一帧相位（v4 ④1 UI 反馈映射用：RUNNING 迁移需区分「从暂停恢复」还是「开局/重开」）。
 var _prev_phase: int = 0
+## 结算「新纪录」高亮行（v4 ④3：刷新历史最佳时显示金色强调）。
+var _record_label: Label
+## 返回合集按钮（v4 ④3：Web 壳内跳合集门户；桌面/无头合法空转）。
+var _back_button: Button
+## 本局开局时的历史最佳（结算时对比判定「新纪录」，v4 ④3）。
+var _best_at_run_start: int = 0
 ## 暂停提示。
 var _pause_label: Label
 ## 开始面板（READY 阶段显示）。
@@ -73,6 +84,7 @@ func _ready() -> void:
 	_build_background()
 	_build_hud_extras()
 	_build_start_panel()
+	_build_camera()
 	if DisplayServer.is_touchscreen_available():
 		touch_ui.visible = true
 		_move_hint = "摇杆移动 · 收集目标物"
@@ -97,6 +109,7 @@ func _ready() -> void:
 	spawn_timer.timeout.connect(_on_spawn_timer_timeout)
 	_prev_phase = GameState.phase
 	_apply_panel_theme(result_panel)
+	_build_result_panel_extras()
 	# READY 阶段：开始面板就位，场上不铺物品（开始后才进入正式玩法）。
 	result_panel.visible = false
 	_show_start_panel(true)
@@ -129,10 +142,24 @@ func _unhandled_input(event: InputEvent) -> void:
 			GameState.pause_game()
 		elif GameState.phase == GameState.Phase.PAUSED:
 			GameState.resume_game()
+	# R 键（v4 ④3 结算双入口之一）：结算面板下一键重开，与重开按钮同路径。
+	if event.is_action_pressed("restart"):
+		if GameState.phase == GameState.Phase.WON or GameState.phase == GameState.Phase.LOST:
+			_start_or_restart()
+
+
+## 新纪录高亮（v4 ④3）：本局得分刷新历史最佳时点亮金色行，否则隐藏。
+func _show_record_banner() -> void:
+	var is_record: bool = GameState.score > _best_at_run_start and GameState.score > 0
+	# 纯文字 + 金色高亮：emoji 不在字体子集（preflight P13b 拦截，Web 会渲染缺字方块）。
+	_record_label.text = "新纪录！本局 %d 分" % GameState.score
+	_record_label.visible = is_record
 
 
 ## 开始 / 重开统一入口：状态归零 + 牛牛归位 + 道具清空 + 场上重铺 + 节奏复位 + 收起面板。
 func _start_or_restart() -> void:
+	_best_at_run_start = GameState.best_score
+	_record_label.visible = false
 	GameState.start_run()
 	player.global_position = _spawn_origin
 	player.clear_powerups()
@@ -232,8 +259,9 @@ func _on_collectible_collected(collectible: Collectible) -> void:
 					1.0 + 0.05 * mini(GameState.combo_count, 8))
 	# 收集正反馈三件套：音效 + 粒子 + 飘字（上 match 已各就各位；powerup 飘字走
 	# powerup_activated 路径，磁铁/加速不重复播计分音效）+ Juice 弹跳（反馈单例记录，
-	# §3B：反馈挂在结果事件处理函数上）。
+	# §3B：反馈挂在结果事件处理函数上）+ 牛牛庆祝动画（v4 ②1 多帧动画的 collect 态）。
 	Juice.pop(player, 1.12, 0.14)
+	player.play_collect()
 	_spawn_collect_burst(collectible.global_position, tint)
 	_spawn_vanish_ghost(collectible)
 	# 波次难度：收集越多（分越高），后续补充越快（Timer 运行中改 wait_time，下一轮生效）。
@@ -282,6 +310,8 @@ func _on_wave_changed(wave: int) -> void:
 	_wave_banner.visible = true
 	Juice.sfx(&"wave")
 	Juice.flash(_wave_banner, Color(1, 1, 1, 0.5))
+	# v4 ②3 波次切换粒子：主题蓝迸发（波间停顿期的可感知视觉事件）。
+	_spawn_collect_burst(player.global_position + Vector2(0.0, -90.0), THEME_PRIMARY)
 
 
 func _tick_wave_break(delta: float) -> void:
@@ -358,6 +388,8 @@ func _on_powerup_activated(kind: String) -> void:
 	_spawn_float_text(player.global_position + Vector2(-40.0, -60.0), text, tint)
 	Juice.sfx(&"powerup")
 	Juice.flash(player, Color(1, 1, 1, 0.4))
+	# v4 ②3 道具生效粒子：按道具本色在牛牛处迸发（自动回收）。
+	_spawn_collect_burst(player.global_position, tint)
 
 
 func _on_spawn_timer_timeout() -> void:
@@ -385,6 +417,11 @@ func _on_combo_changed(combo: int) -> void:
 	if combo >= 2:
 		_combo_label.text = "×%d 连击" % combo
 		_combo_label.visible = true
+		# v4 ④1/②3 连击里程碑反馈：×2 起步、此后每 +5 → 橙色迸发 + 震屏 + 连击牌弹跳。
+		if combo == 2 or combo % 5 == 0:
+			_spawn_collect_burst(player.global_position, THEME_COMBO)
+			Juice.shake(4.0, 0.16)
+			Juice.pop(_combo_label, 1.25, 0.18)
 	else:
 		_combo_label.visible = false
 	_update_hud()
@@ -403,12 +440,14 @@ func _on_phase_changed(phase: int) -> void:
 			]
 			Juice.sfx(&"win")
 			Juice.shake(8.0, 0.3)
+			_show_record_banner()
 		GameState.Phase.LOST:
 			result_label.text = "时间到！本局得分 %d/%d · 最高连击 ×%d · 历史最佳 %d\n按 确认 / 空格 一键重开" % [
 				GameState.score, GameState.TARGET_SCORE, GameState.run_max_combo, GameState.best_score,
 			]
 			Juice.sfx(&"lose")
 			Juice.shake(5.0, 0.25)
+			_show_record_banner()
 		GameState.Phase.PAUSED:
 			# v4 ④1 UI 反馈映射：暂停/恢复都有确认音（键盘 P 与触屏按钮同路径）。
 			Juice.sfx(&"pause")
@@ -544,7 +583,7 @@ func _build_hud_extras() -> void:
 	_wave_banner.offset_bottom = 660.0
 	_wave_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_wave_banner.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_wave_banner.add_theme_color_override("font_color", THEME_ACCENT)
+	_wave_banner.add_theme_color_override("font_color", THEME_PRIMARY)
 	_wave_banner.add_theme_font_size_override("font_size", 40)
 	_wave_banner.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
 	_wave_banner.add_theme_constant_override("shadow_offset_y", 3)
@@ -562,6 +601,16 @@ func _build_hud_extras() -> void:
 	_pause_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
 	_pause_label.visible = false
 	ui_layer.add_child(_pause_label)
+
+
+## 全局相机（v4 ④1）：固定画布正中（720×1280），Juice.shake 以 offset 抖动实现震屏；
+## 没有它 shake 只记录不位移（模板合法空转），关键事件的震屏反馈就是空话。
+func _build_camera() -> void:
+	_camera = Camera2D.new()
+	_camera.name = "Camera"
+	_camera.position = Vector2(360.0, 640.0)
+	add_child(_camera)
+	_camera.make_current()
 
 
 ## 开始面板（v3 ④2 完整流程的第一环：READY 阶段展示，点击/确认开始）。
@@ -633,6 +682,60 @@ func _show_start_panel(visible_now: bool) -> void:
 		_start_panel.visible = visible_now
 
 
+## 结算面板增强（v4 ④3）：新纪录高亮行 + 一键重开/返回合集双按钮（触达区 ≥44×44px）。
+## ResultPanel 加高到 260px；原 ResultLabel 收缩为上半结论区。
+func _build_result_panel_extras() -> void:
+	result_panel.offset_top = -160.0
+	result_panel.offset_bottom = 100.0
+	result_label.offset_top = 14.0
+	result_label.offset_bottom = 118.0
+	result_label.add_theme_font_size_override("font_size", 24)
+
+	_record_label = Label.new()
+	_record_label.name = "RecordLabel"
+	_record_label.unique_name_in_owner = true
+	_record_label.anchor_right = 1.0
+	_record_label.offset_top = 122.0
+	_record_label.offset_bottom = 158.0
+	_record_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_record_label.add_theme_font_size_override("font_size", 22)
+	_record_label.add_theme_color_override("font_color", THEME_RECORD)
+	_record_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
+	_record_label.add_theme_constant_override("shadow_offset_y", 2)
+	_record_label.visible = false
+	result_panel.add_child(_record_label)
+
+	var restart_button := Button.new()
+	restart_button.name = "RestartButton"
+	restart_button.text = "一键重开 (R)"
+	restart_button.offset_left = 24.0
+	restart_button.offset_right = 264.0
+	restart_button.offset_top = 168.0
+	restart_button.offset_bottom = 232.0
+	restart_button.add_theme_font_size_override("font_size", 22)
+	restart_button.custom_minimum_size = Vector2(240.0, 64.0)
+	restart_button.pressed.connect(_start_or_restart)
+	result_panel.add_child(restart_button)
+
+	_back_button = Button.new()
+	_back_button.name = "BackButton"
+	_back_button.text = "返回合集"
+	_back_button.offset_left = 296.0
+	_back_button.offset_right = 536.0
+	_back_button.offset_top = 168.0
+	_back_button.offset_bottom = 232.0
+	_back_button.add_theme_font_size_override("font_size", 22)
+	_back_button.custom_minimum_size = Vector2(240.0, 64.0)
+	_back_button.pressed.connect(_go_back_to_hub)
+	result_panel.add_child(_back_button)
+
+
+## 返回合集入口（v4 ④3）：Web 壳内跳转合集门户 /apps；桌面/无头环境合法空转（无可去处）。
+func _go_back_to_hub() -> void:
+	if OS.has_feature("web"):
+		JavaScriptBridge.eval("window.location.href = '/apps'", true)
+
+
 ## 触屏暂停按钮（右上角，66px 触达 ≥44px；TouchScreenButton.action 直接注入 pause 动作，
 ## 与键盘 P 走同一条 _unhandled_input 路径，无第二套输入逻辑）。
 func _build_pause_button() -> void:
@@ -677,5 +780,5 @@ func _apply_panel_theme(panel: Panel) -> void:
 	style.bg_color = THEME_PANEL_BG
 	style.border_color = THEME_PANEL_BORDER
 	style.set_border_width_all(2)
-	style.set_corner_radius_all(14)
+	style.set_corner_radius_all(24)
 	panel.add_theme_stylebox_override("panel", style)

@@ -23,10 +23,14 @@ var _magnet_left: float = 0.0
 ## 加速剩余生效时间（秒）；<=0 表示未生效。
 var _boost_left: float = 0.0
 
+@onready var _anim: AnimatedSprite2D = $Anim
+
 
 func _ready() -> void:
 	# v2 手感基线：体型倍率的唯一来源是 GameState 数值区声明键（禁止散点改场景/代码对数值）。
 	_apply_tuned_scale()
+	# v4 ②1 多帧动画：collect 一次性播放完毕后回落到位移态动画。
+	_anim.animation_finished.connect(_on_anim_finished)
 
 
 ## 磁铁是否生效（main.gd 据此吸附范围内计分物；冒烟机判道具效果）。
@@ -76,6 +80,7 @@ func _physics_process(delta: float) -> void:
 	# 非 RUNNING（结算/暂停/待开始）冻结移动，开始或重开后由 start_run 恢复。
 	if GameState.phase != GameState.Phase.RUNNING:
 		velocity = Vector2.ZERO
+		_update_locomotion_anim(false)
 		return
 	var direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	# 移速为数值区调参键（v2 基线 145）；加速道具按 BOOST_MULT 倍乘（v3 ②，可机判）。
@@ -84,8 +89,31 @@ func _physics_process(delta: float) -> void:
 	global_position = global_position.clamp(
 		PLAY_RECT.position, PLAY_RECT.position + PLAY_RECT.size
 	)
+	# v4 ②1 多帧动画状态机：move/idle 随位移切换；面朝随水平输入翻转。
+	_update_locomotion_anim(not direction.is_zero_approx())
+	if direction.x != 0.0:
+		_anim.flip_h = direction.x < 0.0
 	if direction != Vector2.ZERO:
 		moved.emit(global_position)
+
+
+## 动画状态机：collect 一次性播放优先（播完由 animation_finished 回落）；
+## 其余按「是否在移动」在 move/idle 之间切换（同态不重触发，避免帧重启）。
+func _update_locomotion_anim(moving: bool) -> void:
+	if _anim.animation == &"collect" and _anim.is_playing():
+		return
+	var desired: StringName = &"move" if moving else &"idle"
+	if _anim.animation != desired:
+		_anim.play(desired)
+
+
+## 收集瞬间的庆祝动画（main.gd 在收集结果处理函数里调用，v4 ④1 事件→反馈映射）。
+func play_collect() -> void:
+	_anim.play(&"collect")
+
+
+func _on_anim_finished() -> void:
+	_update_locomotion_anim(false)
 
 
 ## 把数值区 PLAYER_SCALE 应用到根节点 uniform scale：

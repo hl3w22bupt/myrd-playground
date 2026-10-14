@@ -1,6 +1,56 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/player.gd" id="1_player"]
+[ext_resource type="Texture2D" path="res://assets/sprites/cow/idle_0.svg" id="2_idle0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/cow/idle_1.svg" id="3_idle1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/cow/move_0.svg" id="4_move0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/cow/move_1.svg" id="5_move1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/cow/move_2.svg" id="6_move2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/cow/move_3.svg" id="7_move3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/cow/collect_0.svg" id="8_collect0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/cow/collect_1.svg" id="9_collect1"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_cow"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_idle0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_idle1")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 3.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_move0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_move1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_move2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_move3")
+}],
+"loop": true,
+"name": &"move",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("8_collect0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_collect1")
+}],
+"loop": false,
+"name": &"collect",
+"speed": 8.0
+}]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(28, 22)
@@ -11,29 +61,11 @@ radius = 22.0
 [node name="Player" type="CharacterBody2D"]
 script = ExtResource("1_player")
 
-[node name="Body" type="Polygon2D" parent="."]
-color = Color(0.96, 0.94, 0.9, 1)
-polygon = PackedVector2Array(-14, -11, 14, -11, 14, 11, -14, 11)
-
-[node name="Spot1" type="Polygon2D" parent="."]
-color = Color(0.15, 0.15, 0.15, 1)
-polygon = PackedVector2Array(-9, -6, -3, -6, -3, 0, -9, 0)
-
-[node name="Spot2" type="Polygon2D" parent="."]
-color = Color(0.15, 0.15, 0.15, 1)
-polygon = PackedVector2Array(3, 3, 9, 3, 9, 9, 3, 9)
-
-[node name="Horn1" type="Polygon2D" parent="."]
-color = Color(0.85, 0.7, 0.4, 1)
-polygon = PackedVector2Array(-12, -11, -8, -11, -10, -17)
-
-[node name="Horn2" type="Polygon2D" parent="."]
-color = Color(0.85, 0.7, 0.4, 1)
-polygon = PackedVector2Array(8, -11, 12, -11, 10, -17)
-
-[node name="Muzzle" type="Polygon2D" parent="."]
-color = Color(0.95, 0.75, 0.75, 1)
-polygon = PackedVector2Array(-5, 11, 5, 11, 5, 16, -5, 16)
+[node name="Anim" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -3)
+sprite_frames = SubResource("SpriteFrames_cow")
+animation = &"idle"
+autoplay = "idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_body")

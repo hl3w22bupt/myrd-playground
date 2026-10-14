@@ -1,0 +1,21 @@
+<svg width="34" height="28" viewBox="0 0 34 28" xmlns="http://www.w3.org/2000/svg">
+  <!-- 牛牛 collect_1：收集收尾 - 星星眼回落（与 collect_0 组成两帧庆祝） -->
+  <path d="M5 11 Q1 12 2 16" stroke="#f39c12" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <rect x="7.5" y="18.5" width="3.4" height="6.5" rx="1.7" fill="#fdf6ec" transform="rotate(8 9.2 18.5)"/>
+  <rect x="12.5" y="19" width="3.4" height="6.5" rx="1.7" fill="#fdf6ec"/>
+  <rect x="19.5" y="19" width="3.4" height="6.5" rx="1.7" fill="#fdf6ec"/>
+  <rect x="24.5" y="18.5" width="3.4" height="6.5" rx="1.7" fill="#fdf6ec" transform="rotate(-8 26.2 18.5)"/>
+  <ellipse cx="17" cy="13.6" rx="12" ry="7.6" fill="#fdf6ec"/>
+  <ellipse cx="11" cy="12.1" rx="3.6" ry="2.6" fill="#f39c12"/>
+  <ellipse cx="20" cy="16.1" rx="2.6" ry="1.9" fill="#f39c12"/>
+  <circle cx="26.5" cy="9.1" r="5.4" fill="#fdf6ec"/>
+  <ellipse cx="23" cy="4.2" rx="2.2" ry="1.5" fill="#fdf6ec" transform="rotate(-30 23 4.2)"/>
+  <path d="M24.5 4.1 Q23.5 1.1 25.8 0.8" stroke="#3498db" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M28.5 4.1 Q29.5 1.1 27.2 0.8" stroke="#3498db" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- 星形眼（奖励时刻） -->
+  <path d="M27.5 7.1 l0.5 1 1.1 0.15 -0.8 0.8 0.2 1.1 -1 -0.55 -1 0.55 0.2 -1.1 -0.8 -0.8 1.1 -0.15 z" fill="#f39c12"/>
+  <ellipse cx="29" cy="12.4" rx="3.4" ry="2.5" fill="#f5c6c6"/>
+  <circle cx="28.1" cy="12.4" r="0.55" fill="#2c3e50"/>
+  <circle cx="30" cy="12.4" r="0.55" fill="#2c3e50"/>
+  <ellipse cx="24.5" cy="11.6" rx="1.4" ry="0.9" fill="#f5a0a0" opacity="0.75"/>
+</svg>
