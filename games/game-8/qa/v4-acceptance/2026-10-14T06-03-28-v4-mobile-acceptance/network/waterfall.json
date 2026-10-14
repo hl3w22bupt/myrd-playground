@@ -1,0 +1,46 @@
+{
+  "entries": [
+    {
+      "url": "https://leomac-studio.tail49399e.ts.net/apps/game-8",
+      "status": 200,
+      "critical": false,
+      "offsetMs": 476
+    },
+    {
+      "url": "https://leomac-studio.tail49399e.ts.net/apps/game-8/api/public/assets/index.js",
+      "status": 200,
+      "critical": true,
+      "offsetMs": 492
+    },
+    {
+      "url": "https://leomac-studio.tail49399e.ts.net/apps/game-8/api/public/assets/index.wasm.gz.b64",
+      "status": 200,
+      "critical": false,
+      "offsetMs": 511
+    },
+    {
+      "url": "https://leomac-studio.tail49399e.ts.net/apps/game-8/api/public/assets/index.pck.gz.b64",
+      "status": 200,
+      "critical": false,
+      "offsetMs": 511
+    },
+    {
+      "url": "https://leomac-studio.tail49399e.ts.net/favicon.ico",
+      "status": 200,
+      "critical": false,
+      "offsetMs": 525
+    },
+    {
+      "url": "blob:https://leomac-studio.tail49399e.ts.net/8fdf1d90-6cbe-4d76-bbb2-9fce86d2278d",
+      "status": 200,
+      "critical": false,
+      "offsetMs": 4488
+    },
+    {
+      "url": "blob:https://leomac-studio.tail49399e.ts.net/8fdf1d90-6cbe-4d76-bbb2-9fce86d2278d",
+      "status": 200,
+      "critical": false,
+      "offsetMs": 7165
+    }
+  ]
+}
