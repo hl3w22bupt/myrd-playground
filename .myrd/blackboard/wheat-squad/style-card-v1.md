@@ -98,7 +98,8 @@
 
 ### §R1.2 反馈特效批（按操作路径清单 · 视觉通道绑资产 id 供 check 复算）
 
-> 形态纪律：零位图（tex-1）——fx 件 = 程序化绘制规格（procedural-draw-spec），theme.ts token 驱动；复合绑定（3 件覆盖 6 视觉通道）以满足封顶 13。
+> 形态纪律：零位图（tex-1）——fx 件 = 程序化绘制规格（procedural-draw-spec），theme.ts token 驱动；复合绑定（3 件覆盖 7 视觉通道）以满足封顶 13。
+> 【r10 更正 2026-10-14 · 游戏美术亲审】原「6 视觉通道」系代行笔误：实现面通道全集 = 击杀 4（flash/particles/pickup-spawn/hud-kills，sim.ts:149）+ 受击 3（flash-invuln/knockback/hud-hp，sim.ts:241）= **7**；manifest 三件 feedbackChannels 并集 = 7 ✓（ac-05 面4 机判绿）。原文留档见 gate-logs/art-reverify-20261014-r1b/03。
 
 | 资产 id | feedbackChannels | 操作路径 | 视觉规格（要素二/三派生） | source 锚 |
 |---|---|---|---|---|

@@ -1,0 +1,42 @@
+# art-reverify-20261014-r1b · 00-baseline-sha256
+UTC: 2026-10-14T02:56:18Z  HEAD: 5921189420b7fd8d16cb423bda4f4a6f729dd7f1  (基线对照提交: f0fca52 = R1 美术批入库点)
+工作树状态(应为净): 1 项未提交
+
+== 7 件美术交付件 sha256 (当前 HEAD 工作树) ==
+6d8b9da975fb4465470e41a202cd0ad739a2a87ffb7c3acc224ee712fb4a735e  games/wheat-squad/assets/manifest.json
+6aa2ee10e1bc1c80734c516d129186940a9c84d31dfb35fc64465854afc8f379  .myrd/blackboard/wheat-squad/style-card-v1.md
+f22e4b62189f6316786f3bb9487ae72e383e3f5663fa81bb3c838c43004e2e1a  games/wheat-squad/src/render/theme.ts
+ba08aba626657f63a85f82932e18d0a65d0e8ad1fb048934d7bac9a1eade1f25  games/wheat-squad/src/render/renderer.ts
+135a1ac737d531b60c35ee0275920f3274f6cab6369edd9d12a150b5a68d49e9  games/wheat-squad/qa/submission/sub-icon.template.svg
+747c8f8b306d1cd5f826f81dc91afe9abefe1d3e77644a68eed66fbd8b7a1cfe  games/wheat-squad/qa/submission/sub-sharecard-5x4.template.svg
+efe12e10bd4048d51ee7c797678b16fe28ab5b1cd336b8fc6c2179f4e29d1ec8  games/wheat-squad/qa/submission/sub-shots-3.template.svg
+
+== 零漂移核对: f0fca52..HEAD 工作树字节等价 (空输出=零漂移) ==
+[diff-empty-OK]
+
+== 提交跨度内美术件触面 ==
+.myrd/blackboard/wheat-squad/assets.md
+.myrd/blackboard/wheat-squad/blockers.md
+.myrd/blackboard/wheat-squad/gate-logs/r1-converge-20261014/03-head-sha.txt
+.myrd/blackboard/wheat-squad/gate-logs/r1-converge-20261014/04-a1-a4-fresh.log
+.myrd/blackboard/wheat-squad/gate-logs/r1-converge-20261014/05-a2-duration-fresh.log
+.myrd/blackboard/wheat-squad/gate-logs/r1-converge-20261014/06-qa-recheck-head.txt
+.myrd/blackboard/wheat-squad/gate-logs/r1-converge-20261014/06-qa-verify-recheck.log
+.myrd/blackboard/wheat-squad/gate-logs/r1-converge-20261014/07-release-head.txt
+.myrd/blackboard/wheat-squad/gate-logs/r1-converge-20261014/07-release-verify.log
+.myrd/blackboard/wheat-squad/gate-logs/r1-converge-20261014/08-release-head.txt
+.myrd/blackboard/wheat-squad/gate-logs/r1-converge-20261014/08-release-verify2.log
+.myrd/blackboard/wheat-squad/gate-logs/r1-converge-20261014/09-deploy-api-final.txt
+.myrd/blackboard/wheat-squad/gate-logs/r1-converge-20261014/09-live-smoke.log
+.myrd/blackboard/wheat-squad/gate-logs/r1-converge-20261014/09-live-threepoint.log
+.myrd/blackboard/wheat-squad/gate-logs/r1-verify-claims-20261014/00-head.txt
+.myrd/blackboard/wheat-squad/gate-logs/r1-verify-claims-20261014/01-verify-sh-full.log
+.myrd/blackboard/wheat-squad/gate-logs/r1-verify-claims-20261014/02-live-smoke.log
+.myrd/blackboard/wheat-squad/gate-logs/r1-verify-claims-20261014/03-live-threepoint.log
+.myrd/blackboard/wheat-squad/levels.md
+games/wheat-squad/docs/r1-measured-report.md
+games/wheat-squad/qa/local-duration-log.json
+games/wheat-squad/qa/playtest-collection-round1.md
+games/wheat-squad/qa/qa-r1-recon-v13.md
+games/wheat-squad/tests/contract/ac-05-hit-feedback.spec.mjs
+games/wheat-squad/tests/contract/run-all.mjs

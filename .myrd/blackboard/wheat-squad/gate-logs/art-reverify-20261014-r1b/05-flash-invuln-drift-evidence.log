@@ -1,0 +1,23 @@
+# 05 · flash-invuln 通道视觉实现缺失 · 漂移证据（r10 亲审发现 · 升级项）
+UTC: 2026-10-14T02:59:05Z  HEAD: 5921189420b7fd8d16cb423bda4f4a6f729dd7f1
+
+== 声称（三处同源描述）==
+1) style-card-v1.md 要素二：「队长受击 = 外圈 wheatDeep→accentRed 呼吸（无敌帧 0.8s 窗口）」（v1 冻结面 2026-10-12）
+2) assets/manifest.json fx-hit-shock.spec：「外圈 wheatDeep→accentRed 呼吸（无敌帧 0.8s 窗口）」
+3) src/kernel/sim.ts:240 注释：「视觉呼吸圈=渲染层读 invuln」
+
+== 实现面实查（grep 全 src）==
+• invulnUntilTick 定义/读写仅在 sim.ts（:29/:91/:237/:239）——渲染层 0 处读取
+• st.flashes.push 全仓仅 1 处 = sim.ts:140（击杀时害虫位置），受击块（sim.ts:234-247）不落 flash
+• renderer.ts drawSquad 无受击/无敌态分支（队长仅常显 wheatDeep α0.5 操作锚外圈 r18）
+
+== 玩家侧实际可见（受击 opId=hit@tT 三通道）==
+• knockback ✓ 可见（接触分离：害虫被推离 24px，drawPests 重绘）
+• hud-hp ✓ 可见（drawHud HP 点 accentRed r5 数量递减）
+• flash-invuln ✗ 无任何视觉载体——0.8s 无敌窗玩家无感知
+
+== 定性与边界 ==
+• spec ac-a4 判据未破：statement 要求每操作通道 ≥2（受击实得 3），机器面（发射+绑定+延迟）全绿
+• 破口在美术规格实现符合性：冻结风格卡要素二描述的呼吸圈从未实现，R1 特效批（代行）将卡面描述抄录进 manifest spec 未对实现核真
+• 不擅修：①src 变更将破坏 v14 部署字节等价（LIVE≡b33bea2f），须走程序线+QA+重部署轮次；②美术线红线「不改代码」，视觉意见走 blockers 升级主策划
+• 处置路径（供主策划裁决）：A 案=R2 批由程序线在 drawSquad 补 invuln 呼吸圈（呈现层 5 行级，随下次重部署上线）；B 案=美术更正卡+manifest 描述（「无敌窗无独立视觉，通道由击退位移+HP 扣减承载」）——两案均不动 spec 冻结面（A4 判据不涉）
