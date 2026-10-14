@@ -1,15 +1,24 @@
-# 黑板组合全景索引（2026-10-13 · spec v1.2 增量轮收口 · 主策划整合）
+# 黑板组合全景索引（2026-10-14 · **R1 打磨轮收口** · 主策划整合）
 
 > 口径：一游戏一子目录判例（顶层三件套属 game-9 存量，零触碰）；本索引 = 全线一页视图。上轮全量台账见文末「2026-10-12 可玩基线轮」存档节。
 
-## 组合全景（2026-10-13 刷新）
+## 组合全景（2026-10-14 刷新 · R1 打磨轮）
 
 | 线 | 状态 | 本轮动作 | 关键产物 |
 |---|---|---|---|
-| **game-9《汽车连连看》**（一线已交付） | 维持：等主人试玩拍板 | **零接触**（git 路径机判：本轮零变更） | 顶层三件套（存量） |
-| **g2-blocks《熔炉方块》** | 维持：提审就绪 · 被动触发器 | **零接触**（本轮零变更） | 兄弟 run 工作区 |
-| **wheat-squad《麦浪小队》**（第二产品线） | **spec v1.2 轮收口**：链 v4 approved（A1–A5 + 埋点 9 键结构化 + checks 路径定死）+ 契约 56/0·16/0/1PEND + 冒烟四事件 PASS + **部署 v11 running@e3abcb9**（**W-3 页面路第六次串线维持升级**；资产路本轮新字节已上线） | 任务书重发承接：N0 基线重建 → N1 地基（inventory+PEND 语义+四事件+a3 初值）→ N2/N3 三合一包+入链 approve → N5 互查放行 → N6 部署 | 链 v4 `cmv60scie003hm9qqu91foe7v` · 回执 QA-WS-N6-20261013-01 · inventory-line2.md · tri-pack-v1.2.md · signoff-v1.2.md |
-| **第三产品线** | **候选池刷新**（不开题不立项） | 数据刷新 D8–D14（微信畅销实时面 + IAA 面 + 抖音买量面）+ 三候选三要素补齐（含六件套可判定性预判） | `.myrd/blackboard/research/line3-candidates-20261013.md` |
+| **game-9《汽车连连看》**（一线已交付） | 维持：等主人试玩拍板 | **零接触** | 顶层三件套（存量） |
+| **g2-blocks《熔炉方块》** | 维持：提审就绪 · 被动触发器 | **零接触**（任务书红线：无主人凭证不越权提审） | 兄弟 run 工作区 |
+| **wheat-squad《麦浪小队》**（第二产品线） | **R1 打磨轮收口**：spec **v1.3 = 链 v5 approved**（B 案 assets 登记闭合）· 双线合流（W-3 平台修复 × v1.2 实现）· 实测三样绑 sha（A1/A2/A4 达标 · A3 未判定·待采）· QA 行号级对账放行 · 修复批两件（ALL_GREEN 假绿打印/征集卡移位）· **v14 重部署 LIVE @ b33bea2f**（三点复测全过 + WS-LIVE-SMOKE PASS）· **A3 采集窗已开启**；好玩判据第 1 轮**不达**（A3 无真人证据，如实登记；冻结计数器 0/3 按 spec 协议不计数） | R1 主线五节点全闭环（详见 wheat-squad/blockers.md 收口台账） | 链 v5 `cmv7hekf3000mjofivl4ebhdf` · 回执 QA-WS-R1-20261014-01 · 实测报告 r1-measured-report.md · 程序批 r1-program-batch.md · 记录卡 playtest-collection-round1.md |
+| **第三产品线** | 候选池维持（不开题不立项） | 本轮零接触（任务书「不开新题、不重复调研」红线） | `research/line3-candidates-20261013.md` |
+
+## R1 轮台账速览（2026-10-14 · wheat-squad · 全文见 wheat-squad/blockers.md「R1 收口台账」）
+
+1. **N0 双线合流** `8868d0f`：main（W-3 平台修复 76954ca）× 兄弟线（v1.2 实现）merge-base a5018b6 互补 → 零冲突合流，五步门禁全绿
+2. **N3 程序批**：sha 三点核对（HEAD≠线上如实登记）+ 埋点口径说明（9 键单源）+ 操作路径清单 OP-01..07
+3. **N4 策划批**：二义自查（任务书四项已闭合于 v1.2 不重做）→ 新发现 ac-art-2 口径二义成立 → **B 案裁决** → **spec v1.3 入链 approved（v5，唯一 approved 回查 ✓）**
+4. **N5 实测批**：A1 ✅ 1.71s · A2 ✅ P50=168.1s 20 局 victory 20/20 · A4 ✅（fx 绑定+帧采样两新面）· A3 ⏳ 未判定·待采（如实）
+5. **N6 QA 对账**：行号级 16 条 · 独立复跑全绿 · 修复批入口放行
+6. **N7 修复批 + 部署**：ALL_GREEN 假绿缺陷修复（变异验证）+ 征集卡移位（不弱检）→ 发布门禁绿 @ b33bea2 → **v14 LIVE** → 三点复测 + LIVE-SMOKE PASS → **A3 采集窗开启**
 
 ## 2026-10-12 可玩基线轮台账存档（wheat-squad · 按时间序 · N1–N17 原文保留）
 
@@ -36,7 +45,7 @@
 | # | 事项 | 入口/载体 |
 |---|---|---|
 | 1 | **W-3 页面路由平台层串线转发运维**（**第八次复现**：v12 `cmv641ays003ym9qq0w2u53bg` @ 7608768 资产路字节在线（三件 md5 全等）但页面路仍发 game-9 共享壳；本轮新增决定性证据 = 页面字节跨坑全等（md5 `abb7c87b…`）+ 壳源码 Godot-only boot 契约（index.js/wasm.gz.b64/pck.gz.b64 硬链 + 嵌套资产网关 404，TS 工程必断链）；证据 `wheat-squad/gate-logs/deploy-r10-20261013/03-live-w3-probe-v12.log`） | 黑板 blockers.md 升级项 |
-| 2 | A3 5 名试玩组织与回填 + 四件套 manual 面终裁（好玩判定归主人；A1/A2/A4 auto 面 + A3 机制面全绿，结论面 0/5 不虚报） | 量表 `games/wheat-squad/qa/playtest-record-template.md`；试玩入口（W-3 解除后） |
+| 2 | **A3 5 名试玩组织与回填（R1 更新：W-3 已解除 · v14 LIVE · 采集窗已开）** + 四件套 manual 面终裁（好玩判定归主人） | 记录卡 `games/wheat-squad/qa/playtest-collection-round1.md`（时间窗可验真）；入口 `https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw` |
 | 3 | **Q-1 缺陷修复授权**（offerIfNeeded 死阈值 5 与 sim 递增阈值不同源 → xp≥5 三选一连弹；修复涉 approved A1/A2 行为面，须走 feedbackProtocol revision——`games/wheat-squad/qa/known-defect-q1-offerif-bypass.md` 含修复方向与复测判据） | 黑板 blockers.md 升级项 |
 | 4 | 第三线候选点名（跑酷/模拟经营/io 对战三候选池已刷新，只攒池未开题） | `research/line3-candidates-20261013.md` |
 

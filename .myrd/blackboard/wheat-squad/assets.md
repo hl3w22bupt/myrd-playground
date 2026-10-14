@@ -1,8 +1,17 @@
 # 资产清单黑板 — wheat-squad（二线孵化 · 可玩基线轮）
 
-> 更新时间：2026-10-12（可玩基线轮 · N4 美术开产）· 负责人：游戏美术 · 主策划拍板：风格卡 v1 ✅ 开产授权
-> 状态：AC-A1..A3 机判三件（ac-10..12）已随 N6 入契约（本轮复证 13/0 全绿）；AC-A4 人判互查已随 N7 执行（ac-art-4 PASS，回执在档）
-> 下一步：正式提审素材止步清单待主人拍板产出正式件；A3 结论面（0/5 真人回填）待主人试玩
+> 更新时间：2026-10-14（**R1 打磨轮 · 特效批 + B 案登记闭合**）· 负责人：游戏美术 · 主策划拍板：风格卡 v1 ✅（R1 §R1.1 复核零漂移）+ B 案裁决 ✅
+> 状态：manifest **v3 = 13 件 = 封顶**（5 entity + 1 ui-kit + 1 guidance + 3 submission + **3 fx 特效批**）；spec v1.3 assets 段 9 件登记闭合（ac-11 面4 逐件对账绿）
+> 下一步：正式提审素材止步清单待主人拍板；A3 结论面试玩采集（重部署后）
+
+## R1 特效批 + 登记闭合（2026-10-14）
+
+| 件 | 状态 | 说明 |
+|---|---|---|
+| fx-kill-burst / fx-hit-shock / fx-hud-channels | ✅ 新产（程序化绘制规格·零位图） | feedbackChannels 绑 A4 六通道全集（ac-05 面4 机判）；色值 ⊆ palette（ac-art-1 绿）；manifest v3 + spec.assets v1.3 双登记 |
+| ui-kit-01 / sub-icon / sub-sharecard-5x4 / sub-shots-3 | ✅ B 案补登 | spec.assets 追溯登记（statement 字面零改动）——ac-art-2 判定口径二义闭合 |
+| 风格卡 v1 §R1 | ✅ 复核 | palette 三方机判全等 + 陈旧锚更正（链锚 v4→v5 · 件数 9→13）；§R1.2 特效批规格 + §R1.3 复算接口 |
+| guidance-hint-banner / style-card-v0 | ✅ 零漂移 | 既有登记零改动（v1.3 既有件逐字节 EQUAL 机判） |
 
 ## 本轮新增（2026-10-12 · 可玩基线轮）
 
