@@ -74,16 +74,34 @@
 
 ## 四、部署前状态
 
-- 分支已推送：`db8b9ce`（玩法修复 + 产物重导出 + 探针 + 本交接）。
-- 线上现状：仍是 v4 包（pck sha256 `7738850a…`，不可玩）；`qa/pre-deploy-live/` 为部署前基线证据。
-- 部署后核对：线上 pck sha256 应 = 本地 `2a27c8b86d8220d9c5332d29e2cfb9032bda22d1998183f98bc4c04424a17f63`
-  （2,612,896 B）；随后跑 mobile-web-smoke（判定脚本）+ playability-probe（工程探针）双验。
+- 分支已推送：`500c008`（玩法修复 db8b9ce + 探针 + 本交接；2026-10-14 晚间 `git ls-remote` 实测远端 tip 一致）。
+- 线上现状：仍是 v4 包（pck sha256 `7738850a…5d8502`，3,210,752 B，不可玩；2026-10-14 晚间经
+  `api/public/assets/index.pck.gz.b64` 下载实锤）；`qa/pre-deploy-live/` 为部署前基线证据。
+- 部署后核对：线上 pck sha256 应 = `ec9cd0d69a4115b1effd2ce42faf9ce325a55eff0ba032e1a7b13d3adeeb31ab`
+  （2,612,896 B，`db8b9ce` HEAD blob 实算——**勘误**：本文初版写的 `2a27c8b8…` 为笔误，
+  pck 打包含非确定性元数据、哈希仅作参考，权威口径仍是「线上 pck 自跑冒烟含 v5 断言」）；
+  随后跑 mobile-web-smoke（判定脚本，产出 `qa/mobile/report.json`）+ playability-probe
+  （工程探针，产出 `qa/mobile/playability.json`）双验，A/B/C/D 四项以探针实测为准。
 
-## 五、⚠️ 部署卡点（blocked，需有权限方执行）
+## 五、⚠️ 部署卡点（blocked，结构性身份错位——v5 第二轮实锤升级）
 
-本节点无 AppHost 部署凭据（沿用 v3/v4 已知约束）：`POST /api/v1/apphost/apps/cmujpmjsy006pm99ip9yws3wl/deployments`
-要求「应用所有者（`cmuimu6w…`）或系统管理员」，本执行环境无 `MYRD_TOKEN`、无平台登录凭据、
-无内部免鉴权通道（本地网关实测 401）。**未绕过、未自造判定、未直改平台库。**
+**第一轮结论（已过时）**：「无 MYRD_TOKEN、无凭据」。**第二轮实证（2026-10-14 晚间）**：本轮环境已注入
+`MYRD_TOKEN`（workflow-node 身份，scopes 含 `app:deploy`），干跑与正式 POST 各一次仍 403
+（req_1791968047179 / req_1791968912360）——**不是缺凭据，是身份错位**：
+
+- 部署授权（平台 `assertAppAccess`）要求「有效身份 == app owner 或系统管理员」，fail-closed 不放大权限；
+- app owner 与 goal `cmujpml1e006rm99i9hc33huu` 的 owner **实测为同一人** `cmuimu6w50003m9l61jj8nzxg`；
+- 本 workflow run 由**目标大师账号项目级触发**（非 goal 委派，`Task.metadata.goalId` 为空），
+  平台对项目级 run 有意签发**无 actFor** 的节点 token（2026-09-22 安全收窄）→ 有效身份 = 目标大师 ≠ owner；
+- goal-agent token（带 actFor=owner）仅由 goal 会话/节点执行链路**服务端内部**签发，无 HTTP 签发入口。
+
+**解阻路径（二选一，均有实证依据）**：
+1. **首选**：从目标 `cmujpml1e006rm99i9hc33huu` 的会话里**委派发起本工作流**（goal 委派的 run 其
+   `triggeredByUserId` = goal owner = app owner，节点 token 天然过 `assertAppAccess`，且可带 goalId
+   让平台自动回写目标卡片产物）；
+2. 由 app owner（`cmuimu6w…`）或系统管理员手动执行 §六 一键部署（一条 curl）。
+
+**未绕过、未自造判定、未直改平台库**（object-storage 直传资产等旁路均未尝试）。
 
 ## 六、一键部署（有权限身份执行后，本工作流恢复复验与回写）
 
