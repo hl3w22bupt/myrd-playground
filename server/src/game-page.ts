@@ -160,17 +160,30 @@ body { color: #fff; background: #10240f; overflow: hidden; touch-action: none; o
     };
     setInterval(refresh, 800); refresh();
   })();
-// ?debug=1 真机诊断浮层：显示触摸判定原始信号（游戏侧启动后回填 window.__TOUCH_DEBUG__）
+// ?debug=1 真机诊断浮层：加载链路全景（引擎全局/canvas/进度/启动文字/页面报错/触摸信号）
+  window.__ERRS = [];
+  window.addEventListener('error', function (e) { window.__ERRS.push(String(e.message || e.type).slice(0, 110)); });
+  window.addEventListener('unhandledrejection', function (e) { window.__ERRS.push('promise:' + String(e.reason && e.reason.message || e.reason).slice(0, 110)); });
   if (/[?&]debug=1/.test(location.search)) {
     var dbg = document.createElement('div');
     dbg.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99;background:rgba(0,0,0,.82);color:#7fff7f;font:11px/1.5 monospace;padding:6px 8px;white-space:pre-wrap;word-break:break-all;pointer-events:none;';
-    dbg.textContent = '等待引擎上报…';
+    dbg.textContent = 'DBG 初始化…';
     document.body.appendChild(dbg);
     var refresh = function () {
-      try {
-        var t = window.__TOUCH_DEBUG__ ? JSON.parse(window.__TOUCH_DEBUG__) : null;
-        dbg.textContent = 'TOUCH_DEBUG ' + JSON.stringify(t) + ' show=' + window.__TOUCH_UI_SHOW;
-      } catch (e) { dbg.textContent = 'TOUCH_DEBUG raw=' + window.__TOUCH_DEBUG__; }
+      var barEl = document.getElementById('bar');
+      var msgEl = document.getElementById('boot-msg');
+      var bootEl = document.getElementById('boot');
+      var pct = barEl ? Math.round(parseFloat(barEl.style.width) || 0) : -1;
+      var state = {
+        eng: typeof Engine !== 'undefined',
+        canvas: !!document.querySelector('canvas'),
+        boot: !!bootEl && !bootEl.classList.contains('hidden'),
+        pct: pct,
+        msg: msgEl ? String(msgEl.textContent).slice(0, 50) : '',
+        errs: (window.__ERRS || []).slice(0, 3),
+        t: window.__TOUCH_DEBUG__ || null
+      };
+      dbg.textContent = 'DBG ' + JSON.stringify(state);
     };
     setInterval(refresh, 1000); refresh();
   }
