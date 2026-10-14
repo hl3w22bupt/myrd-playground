@@ -22,15 +22,41 @@ const KIND_COLORS: Dictionary = {
 	"boost": Color(0.35, 0.9, 0.85, 1),    # 加速：青碧
 }
 ## 类型专属造型（局部坐标多边形，半径 ~14px，与 CollisionShape2D 圆 r=14 匹配）。
-## ⚠️ 用 static var 而非 const：PackedVector2Array(...) 构造不是常量表达式（Godot 4.3 实测），
-## 写 const 会 Parse Error 并连锁炸掉所有引用 Collectible 类型的脚本。
-static var KIND_POLYGONS: Dictionary = {
-	"normal": PackedVector2Array([-12, 0, 0, -12, 12, 0, 0, 12]),
-	"rare": PackedVector2Array([0, -14, 4, -5, 13, -4, 6, 2, 9, 12, 0, 6, -9, 12, -6, 2, -13, -4, -4, -5]),
-	"clock": PackedVector2Array([-6, -12, 6, -12, 12, -6, 12, 6, 6, 12, -6, 12, -12, 6, -12, -6]),
-	"magnet": PackedVector2Array([-10, -12, -4, -12, -4, 2, 4, 2, 4, -12, 10, -12, 10, 0, 4, 10, -4, 10, -10, 0]),
-	"boost": PackedVector2Array([2, -14, 10, -4, 4, -4, 8, 8, -6, 14, -2, 2, -9, 2, -5, -8]),
-}
+## ⚠️ v5 修复（线上 A 缺陷根因）：不能用 static var 持有 PackedVector2Array 字面量——
+## Godot 4.3 Web 导出（bytecode）下 static var 的 packed array 初始化数据会整体丢失
+## （size 保留、坐标全 (0,0)），物品画成退化多边形 = 线上「零刷出」假象，
+## 而 headless/桌面正常（门禁全绿盲区）。改为 static func 内字面量构造，运行时逐点建数组，
+## Web 与桌面行为一致（2026-10 线上复验：像素检测物品可见）。
+static func kind_polygon(kind: String) -> PackedVector2Array:
+	# match 分支用字符串字面量比较：GDScript 的 match 标识符模式是「绑定新变量」，
+	# 写常量名不会按常量值匹配（与 KIND_* 常量同值的字面量在此等价且直观）。
+	match kind:
+		"rare":
+			return PackedVector2Array([
+				Vector2(0, -14), Vector2(4, -5), Vector2(13, -4), Vector2(6, 2),
+				Vector2(9, 12), Vector2(0, 6), Vector2(-9, 12), Vector2(-6, 2),
+				Vector2(-13, -4), Vector2(-4, -5),
+			])
+		"clock":
+			return PackedVector2Array([
+				Vector2(-6, -12), Vector2(6, -12), Vector2(12, -6), Vector2(12, 6),
+				Vector2(6, 12), Vector2(-6, 12), Vector2(-12, 6), Vector2(-12, -6),
+			])
+		"magnet":
+			return PackedVector2Array([
+				Vector2(-10, -12), Vector2(-4, -12), Vector2(-4, 2), Vector2(4, 2),
+				Vector2(4, -12), Vector2(10, -12), Vector2(10, 0), Vector2(4, 10),
+				Vector2(-4, 10), Vector2(-10, 0),
+			])
+		"boost":
+			return PackedVector2Array([
+				Vector2(2, -14), Vector2(10, -4), Vector2(4, -4), Vector2(8, 8),
+				Vector2(-6, 14), Vector2(-2, 2), Vector2(-9, 2), Vector2(-5, -8),
+			])
+		_:
+			return PackedVector2Array([
+				Vector2(-12, 0), Vector2(0, -12), Vector2(12, 0), Vector2(0, 12),
+			])
 
 ## 类型（normal / rare / clock / magnet / boost）；由生成器在实例化后、入树前写入。
 var kind: String = "normal"
@@ -63,8 +89,7 @@ func _ready() -> void:
 ## 按类型套配色与造型（v3 画面升级②：专属造型；set_defer 兼容入树前调用）。
 func _apply_kind_visual() -> void:
 	_visual.color = KIND_COLORS.get(kind, KIND_COLORS["normal"])
-	var polygon: PackedVector2Array = KIND_POLYGONS.get(kind, KIND_POLYGONS["normal"])
-	_visual.polygon = polygon
+	_visual.polygon = kind_polygon(kind)
 
 
 func _process(delta: float) -> void:

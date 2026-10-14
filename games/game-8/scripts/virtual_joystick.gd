@@ -11,6 +11,9 @@ const BASE_RADIUS: float = 56.0
 const STICK_RADIUS: float = 26.0
 ## 摇杆偏离超过该比例视为有效输入（复用 InputMap 默认 deadzone 概念）。
 const DEADZONE_RATIO: float = 0.25
+## 判定区外扩（px）：手指落点允许比可见底盘再宽 40px（720 宽画布下 ≈ 22px 视口余量），
+## 贴边操作与快速滑动不脱靶（v5 修复：原 136px 热区在移动视口仅 ≈74 CSS px，边缘 3px 即丢触点）。
+const HIT_PADDING: float = 40.0
 
 ## 移动动作名，与 project.godot [input] 注册保持一致。
 const MOVE_ACTIONS := {
@@ -32,13 +35,16 @@ func _ready() -> void:
 	queue_redraw()
 
 
-## 用 _unhandled_input 而非 _gui_input：拖动事件在手指滑出控件矩形后仍需持续接收，
-## _gui_input 只在指针位于控件内时投递，会丢拖动轨迹。
-func _unhandled_input(event: InputEvent) -> void:
+## ⚠️ v5 修复（线上 B 缺陷根因）：必须在 _input 而非 _unhandled_input 处理 ScreenTouch——
+## Godot 4 的 Viewport 会在 GUI 阶段按位置把 ScreenTouch 消费掉（命中本节点这个 Control，
+## 转成模拟鼠标事件进 _gui_input），走 _unhandled_input 的分支永远收不到「按下」事件，
+## 摇杆从不接管触点 = 移动端移动全失效（headless 用 Input.actionPress 注入，覆盖不到此路径）。
+## _input 在事件链最前端，先于 GUI；接管后 set_input_as_handled 阻止触摸再被当作鼠标点击。
+func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		if event.pressed and _touch_index == -1:
-			# 初始按下必须落在摇杆区域内才接管该触点。
-			if Rect2(Vector2.ZERO, size).has_point(_to_local(event.position)):
+			# 初始按下必须落在摇杆判定区（含外扩余量）内才接管该触点。
+			if _hit_rect().has_point(_to_local(event.position)):
 				_touch_index = event.index
 				_accept_and_update(event.position)
 		elif not event.pressed and event.index == _touch_index:
@@ -46,6 +52,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			_release()
 	elif event is InputEventScreenDrag and event.index == _touch_index:
 		_accept_and_update(event.position)
+
+
+## 判定区 = 控件矩形向四周外扩 HIT_PADDING（局部坐标口径）。
+func _hit_rect() -> Rect2:
+	return Rect2(Vector2(-HIT_PADDING, -HIT_PADDING), size + Vector2(HIT_PADDING * 2.0, HIT_PADDING * 2.0))
 
 
 func _accept_and_update(viewport_pos: Vector2) -> void:

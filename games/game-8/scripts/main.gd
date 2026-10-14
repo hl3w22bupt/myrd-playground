@@ -85,7 +85,7 @@ func _ready() -> void:
 	_build_hud_extras()
 	_build_start_panel()
 	_build_camera()
-	if DisplayServer.is_touchscreen_available():
+	if _touch_ui_should_show():
 		touch_ui.visible = true
 		_move_hint = "摇杆移动 · 收集目标物"
 		_build_pause_button()
@@ -683,20 +683,23 @@ func _show_start_panel(visible_now: bool) -> void:
 
 
 ## 结算面板增强（v4 ④3）：新纪录高亮行 + 一键重开/返回合集双按钮（触达区 ≥44×44px）。
-## ResultPanel 加高到 260px；原 ResultLabel 收缩为上半结论区。
+## v5 修复 C（结算文字压按钮）：结论行开启自动换行并降字号，三段（结论 16..134 /
+## 新纪录 138..172 / 按钮行 180..244）互不重叠，面板加高到 320px 容纳三行结论。
 func _build_result_panel_extras() -> void:
-	result_panel.offset_top = -160.0
-	result_panel.offset_bottom = 100.0
-	result_label.offset_top = 14.0
-	result_label.offset_bottom = 118.0
-	result_label.add_theme_font_size_override("font_size", 24)
+	result_panel.offset_top = -180.0
+	result_panel.offset_bottom = 140.0
+	result_label.offset_top = 16.0
+	result_label.offset_bottom = 134.0
+	result_label.add_theme_font_size_override("font_size", 20)
+	# 长结论行（≈28 字）在 528px 宽内必须自动换行，否则画出 label 区域压住按钮（v4 线上实测）。
+	result_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 	_record_label = Label.new()
 	_record_label.name = "RecordLabel"
 	_record_label.unique_name_in_owner = true
 	_record_label.anchor_right = 1.0
-	_record_label.offset_top = 122.0
-	_record_label.offset_bottom = 158.0
+	_record_label.offset_top = 138.0
+	_record_label.offset_bottom = 172.0
 	_record_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_record_label.add_theme_font_size_override("font_size", 22)
 	_record_label.add_theme_color_override("font_color", THEME_RECORD)
@@ -710,8 +713,8 @@ func _build_result_panel_extras() -> void:
 	restart_button.text = "一键重开 (R)"
 	restart_button.offset_left = 24.0
 	restart_button.offset_right = 264.0
-	restart_button.offset_top = 168.0
-	restart_button.offset_bottom = 232.0
+	restart_button.offset_top = 180.0
+	restart_button.offset_bottom = 244.0
 	restart_button.add_theme_font_size_override("font_size", 22)
 	restart_button.custom_minimum_size = Vector2(240.0, 64.0)
 	restart_button.pressed.connect(_start_or_restart)
@@ -722,8 +725,8 @@ func _build_result_panel_extras() -> void:
 	_back_button.text = "返回合集"
 	_back_button.offset_left = 296.0
 	_back_button.offset_right = 536.0
-	_back_button.offset_top = 168.0
-	_back_button.offset_bottom = 232.0
+	_back_button.offset_top = 180.0
+	_back_button.offset_bottom = 244.0
 	_back_button.add_theme_font_size_override("font_size", 22)
 	_back_button.custom_minimum_size = Vector2(240.0, 64.0)
 	_back_button.pressed.connect(_go_back_to_hub)
@@ -772,6 +775,23 @@ func _make_circle_shape(radius: float) -> CircleShape2D:
 	var shape := CircleShape2D.new()
 	shape.radius = radius
 	return shape
+
+
+## 触屏专用 UI（虚拟摇杆/确认/暂停按钮）显示判定（v5 修复 D）：
+## 双条件 AND —— ①环境具备触摸能力；②主输入是手指（pointer: coarse）。
+## 只查 ① 会让「开了触摸仿真的桌面视口」「触屏笔记本」也显示摇杆，且壳页底部提示条
+## 与游戏内「确认」标签同屏重叠；加上 ② 后桌面键盘环境完全不可见（playtest kit §1.2 口径）。
+## Web 下用 matchMedia 精确判定（真实手机/平板 = coarse；桌面浏览器 = fine）；
+## 非 Web（桌面/无头）保持引擎判定（无触摸屏 = false）。
+func _touch_ui_should_show() -> bool:
+	if not DisplayServer.is_touchscreen_available():
+		return false
+	if OS.has_feature("web"):
+		var coarse: Variant = JavaScriptBridge.eval(
+			"window.matchMedia ? window.matchMedia('(pointer: coarse)').matches : false", true
+		)
+		return coarse == true
+	return true
 
 
 ## 统一面板主题（开始/结算共用：深底、绿描边、圆角）。
