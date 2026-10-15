@@ -6,6 +6,15 @@
 
 ## R1 复测收口轮当前基线（2026-10-15 · 主策划 · N0 开工前置）
 
+### N2-部署 · v17 LIVE + sha 对账闭环（2026-10-15 · deploy）
+
+- **线上现状**：坑 `cmv36wl94001xm9mxp119q48x`（wheat-squad-2）**v17 `cmv8xviav000em9d…` running/current @ 发布 commit `813fa38`**（零 errorMessage）；LIVE 三点全过：①title=麦浪小队 ②main.mjs md5 `6b3e349a…` ≡ 发布 build 逐字节 ③**内嵌 `__G2WS_BUILD.gitSha=7b45b44072747ca17af96f81dd109b926745f3d4` ≡ 复测报告绑定 sha（对账闭环）**+ specAnchor=链 v6 approved ④WS-LIVE-SMOKE PASS（victory 167s · 零错误）
+- **⚠️ v16 坏部署事故（程序线操作缺陷，如实披露不删账）**：部署 POST 漏传 `manifestPath` → 平台按仓库根 apphost.toml（game-9 清单）打包 → 线上面短暂呈 game-9 资产（wheat 资产 404）；根因 = 未复用兄弟判例完整请求体；处置 = 带 manifestPath 重部署 v17 覆盖修复（同 commit）。证据 `gate-logs/r2-recheck-20261015/README-deploy.md`
+- **sha 对账闭环陈述**：v15 部署物无内嵌 sha（「无法确认·需重部署」）→ 注入基建（`tools/build.mjs` `__G2WS_BUILD`）→ v17 线上自证构建源 = 复测绑定点 `7b45b44`；发布 commit 相对源面在采样断言面零差异（diff 实证）；build 内嵌语义 = 受测源面 commit（构建自指单行滞后不变量已实证）
+- **A3 采集面**：v17 线上即采集字节（试玩入口 `https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw` · 证据绑 sha `7b45b44`/`813fa38`）
+
+
+
 ### N2 · 程序批收口（2026-10-15 · sha 注入基建 + 复采三绿 + A3 待采）
 
 - **sha 对账结论（任务书三态）**：线上 v15 部署物（main.mjs md5 `f3a6a6b4…` LIVE 实取）`__G2WS_BUILD` 计数 = 0 → **「无法确认·需重部署」**；处置 = `tools/build.mjs` 注入 `__G2WS_BUILD={gitSha,specAnchor}`（确定性字段零时间戳，env 覆写 ≠ 真实 HEAD 即 fail-closed 防伪锚）→ 重建 ×2 逐字节一致 → 重部署 v16 后闭合（见部署台账）
