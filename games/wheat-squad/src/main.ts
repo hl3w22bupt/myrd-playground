@@ -22,8 +22,9 @@ async function boot(): Promise<void> {
   };
   canvas.addEventListener('pointerdown', (e) => {
     const p = toLocal(e);
+    game.recordTap(); // first_tap：会话首次点按（once，任意态；a5 首操作相对时间戳源）
     if (game.state.choices) { upgradePickerHit(game, p.x, p.y); return; }
-    if (game.state.phase === 'ended') { game.restart(); return; }
+    if (game.state.phase === 'ended') { game.recordRestartClick(); game.restart(); return; }
     game.pointer = p;
   });
   canvas.addEventListener('pointermove', (e) => { if (game.pointer) game.pointer = toLocal(e); });

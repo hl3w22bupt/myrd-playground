@@ -1,0 +1,5 @@
+PASS ac-16 埋点四事件骨架（hint_shown@0ms + first_tap once@32ms + first_loop_complete@7040ms + restart_clicked count 1→2）· a5 窗语义 5s 内可达
+(node:68374) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv5zila9002jm9qqpsyos4g1/games/wheat-squad/src/game.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv5zila9002jm9qqpsyos4g1/games/wheat-squad/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)

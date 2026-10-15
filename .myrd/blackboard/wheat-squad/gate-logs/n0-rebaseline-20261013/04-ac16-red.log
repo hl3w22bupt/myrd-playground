@@ -1,0 +1,10 @@
+file:///Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv5zila9002jm9qqpsyos4g1/games/wheat-squad/tests/contract/helpers.mjs:33
+export function assert(cond, msg) { if (!cond) throw new Error(msg); }
+                                                     ^
+
+Error: hint_shown 未产生（引导浮层未接线）
+    at assert (file:///Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv5zila9002jm9qqpsyos4g1/games/wheat-squad/tests/contract/helpers.mjs:33:54)
+    at file:///Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv5zila9002jm9qqpsyos4g1/games/wheat-squad/tests/contract/ac-16-guidance-telemetry.spec.mjs:22:1
+
+Node.js v26.7.0
+RED_EXIT=1

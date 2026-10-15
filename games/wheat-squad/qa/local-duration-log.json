@@ -1,0 +1,179 @@
+{
+  "generatedAt": "2026-10-13T01:36:47.976Z",
+  "purpose": "a3 实测初值落档（本地时长日志）——校准基线，spec 数值面零改动（revision 走链）",
+  "method": "driveRun × 20 种子（DEFAULT_SEED(20261011)+i），口径同 ac-03/ac-a2",
+  "band": {
+    "p50MinSec": 90,
+    "p50MaxSec": 180,
+    "p90MaxSec": 300
+  },
+  "result": {
+    "p50Sec": 168.1,
+    "p90Sec": 168.1,
+    "victoryCount": 20,
+    "total": 20,
+    "inBand": true
+  },
+  "rows": [
+    {
+      "seed": 20261011,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 218,
+      "waveIndex": 7
+    },
+    {
+      "seed": 20261012,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7
+    },
+    {
+      "seed": 20261013,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7
+    },
+    {
+      "seed": 20261014,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7
+    },
+    {
+      "seed": 20261015,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 230,
+      "waveIndex": 7
+    },
+    {
+      "seed": 20261016,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 222,
+      "waveIndex": 7
+    },
+    {
+      "seed": 20261017,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7
+    },
+    {
+      "seed": 20261018,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7
+    },
+    {
+      "seed": 20261019,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7
+    },
+    {
+      "seed": 20261020,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7
+    },
+    {
+      "seed": 20261021,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7
+    },
+    {
+      "seed": 20261022,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7
+    },
+    {
+      "seed": 20261023,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7
+    },
+    {
+      "seed": 20261024,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7
+    },
+    {
+      "seed": 20261025,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7
+    },
+    {
+      "seed": 20261026,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7
+    },
+    {
+      "seed": 20261027,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 230,
+      "waveIndex": 7
+    },
+    {
+      "seed": 20261028,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7
+    },
+    {
+      "seed": 20261029,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7
+    },
+    {
+      "seed": 20261030,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7
+    }
+  ]
+}

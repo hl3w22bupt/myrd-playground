@@ -4,11 +4,14 @@
 // spec 单源装载（numeric 全量注入 sim，零手抄第二份——预置件纪律 4）。
 import { seededRng } from './kernel/loop.mjs';
 import { createSim, offerUpgrades, pickUpgrade, settlementFacts, stepSim,                                UPGRADE_LABEL } from './kernel/sim.mjs';
-import { computeLayout, drawEffects, drawField, drawHud, drawPests, drawSquad,             } from './render/renderer.mjs';
+import { computeLayout, drawEffects, drawField, drawGuidance, drawHud, drawPests, drawSquad,             } from './render/renderer.mjs';
 import { THEME } from './render/theme.mjs';
 import { buildSettlement } from './settlement.mjs';
 
                                 
+
+/** 首屏引导文案单源（spec v1.2 三合一包同源逐字；a5 存在性 check 消费面） */
+export const GUIDANCE_TEXT = '拖动队长移动 · 队员自动作战';
 
 export function loadSpec()       {
   // 发现序：G2WS_SPEC_PATH → 一号仓 .myrd/spec/wheat-squad/design-spec.json（repo-one 同构判例）
@@ -24,6 +27,10 @@ export function loadSpec()       {
                  
                                            
                   
+                                                                  
+                    
+                                                         
+                             
                            
                                               
                               
@@ -56,24 +63,40 @@ export function createGame(specRaw      , canvasW = 390, canvasH = 640)       {
   const state = createSim(cfg, spec.numeric.DEFAULT_SEED);
   const telemetry                                      = [];
   const layout = computeLayout(canvasW, canvasH);
+  // 引导浮层窗口（spec v1.2 numeric.guidance.hintSec 单源，入链前容缺省 4s）
+  const hintMs = ((spec.numeric.guidance?.hintSec) ?? 4) * 1000;
+  let restartClicks = 0;
   const game       = {
     state,
     layout,
     pointer: null,
+    recordTap()       {
+      // first_tap：会话首次点按 once（任意态点按均计；atMs = 局内相对毫秒）
+      if (telemetry.some((t) => t.id === 'first_tap')) return;
+      telemetry.push({ id: 'first_tap', tick: state.tick, atMs: state.tick * spec.numeric.FIXED_STEP_MS });
+    },
+    recordRestartClick()       {
+      // restart_clicked：每次点按一条，count 本地计数递增（a4 v1 写死「真实点击本地计数 +1」）
+      restartClicks += 1;
+      telemetry.push({ id: 'restart_clicked', tick: state.tick, count: restartClicks, atMs: state.tick * spec.numeric.FIXED_STEP_MS });
+    },
     restart()       {
       const fresh = createSim(cfg, spec.numeric.DEFAULT_SEED);
       Object.assign(state, fresh);
       telemetry.push({ id: 'run_start', tick: state.tick });
     },
     step(dtMs        )       {
-      if (state.choices) return; // 三选一悬停时冻结战局（选择即生效的前置）
+      // 遥测推进先于战局冻结：三选一悬停只冻结战局，观测面（first_* 埋点）必须照常落账
+      // （否则 choices 悬停帧 first_loop_complete 永不 push——2026-10-13 ac-16 先红实证）
       if (state.phase === 'running' && telemetry.every((t) => t.id !== 'run_start')) telemetry.push({ id: 'run_start', tick: 0 });
-      state.captain.target = game.pointer;
-      stepSim(state, dtMs);
+      // hint_shown：首局 running 起始展示引导浮层（once；atMs=0，文案 GUIDANCE_TEXT 单源）
+      if (state.phase === 'running' && !telemetry.some((t) => t.id === 'hint_shown')) {
+        telemetry.push({ id: 'hint_shown', tick: state.tick, atMs: state.tick * spec.numeric.FIXED_STEP_MS, text: GUIDANCE_TEXT });
+      }
       if (state.firstKillTick !== null && !telemetry.some((t) => t.id === 'first_kill')) telemetry.push({ id: 'first_kill', tick: state.firstKillTick });
-      // 埋点三方同名（spec meta.telemetryFields = 本处 = 冒烟断言）：first_core_action_at / run_duration_ms / feedback_latency_ms
-      if (state.firstCoreActionTick !== null && !telemetry.some((t) => t.id === 'first_core_action_at')) {
-        telemetry.push({ id: 'first_core_action_at', tick: state.firstCoreActionTick, atMs: state.firstCoreActionTick * spec.numeric.FIXED_STEP_MS });
+      // first_loop_complete：首次升级三选一选择完成 = 首次核心循环闭环（拖动→击杀→掉落→拾取→升级）
+      if (state.firstUpgradeTick !== null && !telemetry.some((t) => t.id === 'first_loop_complete')) {
+        telemetry.push({ id: 'first_loop_complete', tick: state.firstUpgradeTick, atMs: state.firstUpgradeTick * spec.numeric.FIXED_STEP_MS });
       }
       const fbEv = state.feedbackEvents[0];
       if (fbEv && !telemetry.some((t) => t.id === 'feedback_latency_ms')) {
@@ -82,6 +105,16 @@ export function createGame(specRaw      , canvasW = 390, canvasH = 640)       {
       if (state.phase === 'ended' && !telemetry.some((t) => t.id === 'run_end')) {
         telemetry.push({ id: 'run_end', tick: state.tick, run_duration_ms: state.tick * spec.numeric.FIXED_STEP_MS, reason: state.endedReason });
       }
+      if (state.choices) return; // 三选一悬停时冻结战局（选择即生效的前置；遥测已在上方落账）
+      // 已知缺陷旁路（Q-1，本轮不擅修）：main/offerIfNeeded 的触发阈值硬编码 xp>=5，
+      // 与 sim 内部 nextUpgradeXp 递增阈值（5,15,25…）不同源——xp 达 5 后每帧重弹三选一。
+      // 修复会改变 approved A1/A2 行为面（P50=168s 建立在此旁路上），须走 feedbackProtocol revision。
+      state.captain.target = game.pointer;
+      stepSim(state, dtMs);
+      // 埋点三方同名（spec meta.telemetryFields = 本处 = 冒烟断言）：first_core_action_at / run_duration_ms / feedback_latency_ms
+      if (state.firstCoreActionTick !== null && !telemetry.some((t) => t.id === 'first_core_action_at')) {
+        telemetry.push({ id: 'first_core_action_at', tick: state.firstCoreActionTick, atMs: state.firstCoreActionTick * spec.numeric.FIXED_STEP_MS });
+      }
     },
     render(ctx                          )       {
       drawField(ctx, layout, state.tick);
@@ -89,6 +122,10 @@ export function createGame(specRaw      , canvasW = 390, canvasH = 640)       {
       drawEffects(ctx, state);
       drawSquad(ctx, state);
       drawHud(ctx, layout, state);
+      // 引导浮层：running 且窗口内（hint_shown 后 hintMs 内可见；a5 首操作判定窗同源）
+      if (state.phase === 'running' && !state.choices && state.tick * spec.numeric.FIXED_STEP_MS < hintMs) {
+        drawGuidance(ctx, layout, GUIDANCE_TEXT);
+      }
       if (state.choices) renderUpgradePicker(ctx, layout, state);
       if (state.phase === 'ended') renderSettlement(ctx, layout, state);
     },
@@ -161,7 +198,6 @@ export function upgradePickerHit(game      , x        , y        )              
     const cx = x0 + i * (cw + gap);
     if (x >= cx && x <= cx + cw && y >= y0 && y <= y0 + ch) {
       pickUpgrade(game.state, i);
-      game.telemetryEvents().push && void 0;
       return i;
     }
   }

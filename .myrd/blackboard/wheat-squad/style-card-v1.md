@@ -67,3 +67,20 @@
 | AC-A2 命名↔id 一致 | auto | ac-11：清单件 id ∈ entities ids，无清单外资产 |
 | AC-A3 体积上限 | auto | ac-12：逐件 ≤ artCaps，build 首包 ≤4MB |
 | AC-A4 风格一致 | manual+auto | ac-13 机制面机判（卡+走查清单在档）+ 主策划×美术互查人判 |
+
+## v1.2 增量：引导元素视觉权重规则（定稿 · 2026-10-13 · 回三合一包 tri-pack-v1.2.md）
+
+> 四要素冻结不动（调色板/光照/线条/比例沿上文）；本节 = 任务书「引导元素视觉权重规则」定稿面。
+> 实现载体 = `games/wheat-squad/src/render/renderer.ts#drawGuidance`（已在盘，本节为其美术验收依据）。
+
+| 要素 | 定稿 |
+|---|---|
+| 层级 | 信息层最顶（HUD 之上，scrimInk 遮罩与结算面板之下） |
+| 底板 | panelCream（skyCream α0.96）填充 + wheatDeep 2px 描边——与结算面板同族语言，视觉强度低于 scrim |
+| 文字 | inkBrown · 600 · 14px（HUD 同档）；**禁止 accentRed**（红色只归击杀/伤害反馈通道） |
+| 几何 | 390 宽画布上横条 86% × 44px，y=12%；文案水平居中（G-1 逐字，实现单源 GUIDANCE_TEXT） |
+| 时窗 | 首局 running 前 4s（spec numeric.guidance.hintSec=4）；无淡出动效（零动画纪律，反馈资源留给击杀面） |
+| 权重自检 | 与三选一卡（96×120+scrim）并现时引导条不夺焦——引导是「轻提示」，a5 玩家首操作（≤5s）是它的成功判据而非停留时长 |
+| 排版核对 | G-1 `拖动队长移动 · 队员自动作战`（13 全角字符 + 2 间隔点）14px 档一屏放下 ✓（86% 宽 ≈ 335px > 文字实测 ~180px） |
+
+**a5 存在性 check 素材（manifest 对账面）**：资产 id `guidance-hint-banner`（kind=ui，文案逐字 = G-1，真源 game.ts#GUIDANCE_TEXT）——已同步登记 manifest（见 assets/manifest.json v2）。
