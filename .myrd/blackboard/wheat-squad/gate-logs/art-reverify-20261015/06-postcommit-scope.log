@@ -1,0 +1,4 @@
+SCOPE-GUARD PASS 本仓库 88 文件零越界引用（策略单源 ci/scope-policy.json；spec 真源豁免面命中 0 处，属契约条款声明）
+# 一号仓库 git status 共 1 行；白名单内新增区 = games/wheat-squad/ / .myrd/blackboard/wheat-squad/ / .myrd/spec/wheat-squad/ / .myrd/spec/design-spec.json / .myrd/spec/wheat-squad-spec.json / .myrd/blackboard/gate-logs/ / .myrd/blackboard/spec-notes-line2.md / .myrd/blackboard/research/
+#   ?? .myrd/blackboard/wheat-squad/gate-logs/art-reverify-20261015/06-postcommit-scope.log
+SELF-CHECK PASS 一号仓库零接触（1 行全部在白名单内，无 tracked 工程文件改动）
