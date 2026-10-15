@@ -13,6 +13,8 @@
 | 不达判据 id 清单 | **ac-a3-restart-willingness（结论面）**——样本不足型，非数值超阈型；不烧冻结余量（计数器 0/3 维持，部分达标即重置） |
 | 分流结论 | **证据型**（QA-WS-R1RE-20261015-01 唯一 JSON）→ R1 维持「未判定·挂起」；缺陷型修复批 = 0 件；采集面 = v17 LIVE（证据绑 sha），主人圈定 5 名试玩回填后复跑 ac-a3 → 转「全绿·打磨中」路径 |
 
+**程序线 verify-claims 复核一行**（2026-10-15 · 游戏程序 · 独立实跑 @ HEAD `4f424e5`，不照抄声称）：五步门禁实跑全绿（统契约 PASS · 16/0/1PEND · WS-SMOKE victory 167s ≡ 复测报告逐值 · 双 guard PASS）+ 严格模式 `STRICT_EXIT=2` 如实（A3 挂起口径未被冲刷）；同时揪出并修复**三份顶层共板（levels/assets/blockers）合流冲突标记随库残留**（r1 合流 `5a6b979` 引入，零信息丢失机判前置后删除）+ 扩 scope-policy 共板三件精确串白名单（Run2 假红 → Run3 `VERIFY_EXIT=0`）。spec/工程/他线零触碰；R1 判定结论不变。证据 `gate-logs/levels-conflict-fix-20261015/00..04`。
+
 
 
 ## R1 打磨轮（2026-10-14 · spec v1.3 = 链 v5 approved · 实测三样绑 sha · 双线合流 HEAD `b33bea2`）
