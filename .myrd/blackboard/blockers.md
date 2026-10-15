@@ -1,8 +1,18 @@
 <<<<<<< HEAD
 # 阻塞项黑板 — 工作室组合全景（多游戏共板 · 每线各自有子黑板）
 
-> 更新时间：2026-10-11（D 轮收口 + 复跑轮 + **部署轮：两线 AppHost 双双刷新 LIVE**）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：**等主人拍板**（g2-blocks 链 v10 approve + 试玩终裁两线 + 内测三件 + 提审时点）；团队无阻塞项
+> 更新时间：2026-10-15（**R1 复测收口轮开工 + 线 3 选型备忘 v0 双轨**）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：本轮双轨推进（轨道 A = wheat-squad R1 复测收口出唯一结论；轨道 B = 线 3 备忘 v0 止步备忘）；主人侧两卡点维持升级不催办（线 1 = g2-blocks 提审凭证；线 2 = A3 真人试玩反馈）
+
+## 当前基线（2026-10-15 · 本轮开工前置 N0 · 主策划）
+
+- **黑板路径**：顶层 `.myrd/blackboard/`（多游戏共板）+ 各线子目录（`.myrd/blackboard/wheat-squad/` 为本轮主战线）
+- **spec 版本号**：产品线 2（wheat-squad）= **链 v5 `cmv7hekf3000mjofivl4ebhdf` · approved · meta.version=1.3**（2026-10-15 API 实查 approved 唯一）；导出件 `.myrd/spec/wheat-squad/design-spec.json` + 门禁适配视图 `.myrd/spec/design-spec.json` 与链上深等零漂移（锚核 PASS）
+- **分支**：`myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d`（任务书分支约定：全部提交直落此分支）· 本轮合流基线 HEAD `c6f9ea4`（R1 成果线 `5a6b979` 已 merge --no-ff 合入，合流后 verify.sh 五步 VERIFY_EXIT=0）
+- **任务书口径偏差披露**：任务书「spec v1.1→v1.2」已被链史超越（v1.3 approved @ 2026-10-14）；本轮策划批产出 v1.4 仅增补判读纪律，A1/A2/A4 阈值一律不动
+- **硬约束①实查**：A3 回填件 `games/wheat-squad/qa/playtest-collection-round1.md` = 0 行 → 主人反馈未回流，R2 直开不触发
+- **顶层 `.myrd/spec/design-spec.json` 落点变更披露**：本轮合并后该文件 = wheat-squad 门禁适配视图（R1 线判例沿用，slug 注入键）；stack-tower 主导出件 `.myrd/spec/stack-tower-spec.json` 原样在档无损（stack-tower 冻结维持，其镜像可随时由主导出件复原）
+- **合并归档披露**：顶层黑板尾部新增「他线存档区」= game-9《汽车连连看》三件套（独立 goal 线，原文零改动归档）；game-9/game-8 两线本轮零接触
 
 ## 部署轮台账（2026-10-11 · 游戏程序 · workflow deploy 节点）
 

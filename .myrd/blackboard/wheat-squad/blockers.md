@@ -1,9 +1,20 @@
 # 阻塞项黑板 — wheat-squad（麦浪小队 · 第二产品线 · 可玩基线轮）
 
-> 更新时间：2026-10-14（**R1 打磨轮收口 + r10 美术亲审 W-7 升级** · 主线五节点全闭环 + v14 重部署 LIVE）· 负责人：主策划（整合人）· 阻塞超一轮未解 → 升级主人，不空转
-> 下一步：①A3 采集窗已开启（主人圈定 5 名试玩 + 回填 `qa/playtest-collection-round1.md`）②试玩终裁归主人③g2-blocks 提审动作归主人（零接触）④W-7 flash-invuln 处置裁决归主策划（A 补环 / B 更正描述）
+> 更新时间：2026-10-15（**R1 复测收口轮开工 · N0 前置完成**）· 负责人：主策划（整合人）· 阻塞超一轮未解 → 升级主人，不空转
+> 下一步：①N1 策划批 spec v1.4 判读纪律增补 → ②N2 程序批 sha 对账+注入基建+复采 → ③N3 美术批三态清单 → ④N4 QA 唯一 JSON 结论 → ⑤分流+台账
+> 硬约束①核查：**A3 回填实查 = 0 行（`qa/playtest-collection-round1.md` 空件）→ 主人反馈未回流，R2 直开不触发**，双轨按计划执行（2026-10-15 实查）
 
-## R1 打磨轮当前基线（2026-10-14 · 主策划 · 开工前置两件事）
+## R1 复测收口轮当前基线（2026-10-15 · 主策划 · N0 开工前置）
+
+- **黑板路径**：`.myrd/blackboard/wheat-squad/`（levels.md / assets.md / blockers.md 三件套 + style-card-v1 + gate-logs）——「一游戏一子目录」判例沿袭
+- **spec 版本号（链上实况）**：链 **v5 `cmv7hekf3000mjofivl4ebhdf` · approved · meta.version=1.3**（acceptance 16 条 · A1–A5+a4b）· 2026-10-15 API 实查 approved 唯一 · 导出件 `.myrd/spec/wheat-squad/design-spec.json` + 门禁适配视图 `.myrd/spec/design-spec.json` 与链上**深等零漂移**（锚核 PASS，updatedAt 双边 `2026-10-14T02:20:27.925Z`）
+- **分支与 HEAD**：团队续接分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d`（本 run 任务书分支约定：全部提交直落此分支，不建新分支）· R1 成果线（兄弟线 `myrd/r1-spec-v11-qa @ 5a6b979`）已按双线合流判例 `merge --no-ff` 合入 → **合流基线 HEAD `c6f9ea4`**（树净）；冲突裁定 = 游戏面/spec/子黑板/routines(N10/N13)/统一契约器/server 壳取 R1 线代际（= v15 LIVE 同源壳），顶层黑板 = 工作室共板 ∪ game-9 归档区，技能件 = 平台注入版
+- **基线自证**：合流后 verify.sh 五步全绿 **VERIFY_EXIT=0** @ `c6f9ea4`（`gate-logs/r2-recheck-20261015/00`）
+- **⚠️ 任务书口径偏差披露（以链上实况为准判例，沿 R1 轮同款）**：本任务书「spec v1.1 → v1.2 修订」系按 2026-10-12 时点拟发；链上实况已推进至 **v1.3（链 v5）approved（2026-10-14）**，任务书所列三条判读纪律中的「连击清零」已由 meta.baselineProtocol 承载（任一轮部分达标即重置 0/3），但 **①「未绑新 HEAD sha 一律『未判定·待采』」②「A2 模拟局/A3 真人局口径不混算」③「同一判据连续 2 轮红 → 升级查判据」三款在 approved spec 内尚无明文**。本轮策划批（N1）将产出 **v1.4（链 v6）**——仅增补判读纪律，**A1/A2/A4 阈值一律不动（红线）**；不重做已完成面。
+- **线上实况（sha 对账输入）**：v15 LIVE `cmv7kaen8001kjofi5p7qyb2l` @ 发布 commit `762742c`（main.mjs md5 `f3a6a6b4…`）；构建内嵌面仅 `__G2WS_SPEC`（spec 内联），**无 git sha 内嵌** → 任务书「构建 sha 注入基建」待实施（N2）
+- **stack-tower / g2-blocks 两线**：本轮零接触（其生产坑 v24/v17 维持既有部署，合并未触碰其源面）
+
+### R1 轮存档结论（2026-10-14 收口态，本节以下原文保留）
 
 - **黑板路径**：`.myrd/blackboard/wheat-squad/`（levels.md / assets.md / blockers.md 三件套 + style-card-v1 + gate-logs）——「一游戏一子目录」判例沿袭（任务书字面给顶层，判例落点偏差沿判例披露；顶层 game-9 三件套零触碰）
 - **spec 版本号（链上实况）**：链 **v4 `cmv60scie003hm9qqu91foe7v` · approved · meta.version=1.2**（acceptance 16 条 · A1–A5+a4b）· API 实查 2026-10-14 · 导出件 `.myrd/spec/wheat-squad/design-spec.json` 与链上**深等零漂移**（updatedAt 锚 `2026-10-13T01:46:44.188Z` 双边全等）· 门禁适配视图 `.myrd/spec/design-spec.json`（id/slug=wheat-squad 注入键）同源 v4
