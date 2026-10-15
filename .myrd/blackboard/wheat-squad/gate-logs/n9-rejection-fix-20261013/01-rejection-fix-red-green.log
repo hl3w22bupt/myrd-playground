@@ -1,0 +1,22 @@
+# 文件: 01-rejection-fix-red-green.log | 日期: 2026-10-13T02:45:29Z | HEAD(修复提交前基线): fdab3a62e4b0c28c093e0844081613a2640da370
+# 驳回①②修复先红后绿取证（变异验证：断言有效性机判）
+
+== R1 缺陷注入（GUIDANCE_TEXT 尾加「X」）× 旧断言面（修复前 ac-16）→ 旧机判缺失实证 = 红 ==
+R1: 注入后 ac-16 PASS（旧面仅断 text 非空 + first_tap 窗），缺陷漏检——QA 驳回②「无机判」实证，MUTATED_EXIT=0
+
+== R2 同缺陷 × 新断言面（修复后 ac-16 ①′ 三方同名逐字）→ 必红 ==
+R2: Error: 文案三方同名破坏：GUIDANCE_TEXT ≢ spec.copy（「拖动队长移动 · 队员自动作战X」≢「拖动队长移动 · 队员自动作战」）ac-16:46 抓到，exit=1
+
+== R3 窗谓词变异（延迟首次拖动 6s）× 新断言 ④′ statement 谓词 → 必红 ==
+R3: Error: a5 statement 谓词破坏：first_core_action_at 6048ms − hint_shown 0ms = 6048ms > 判定窗 5000ms（窗值=statement 机器解析），exit=1
+
+== R4 缺陷与变异全还原 → 绿（当前 HEAD 树实跑）==
+PASS ac-16 埋点四事件骨架（hint_shown@0ms + first_tap once@32ms + first_loop_complete@7040ms + restart_clicked count 1→2）· a5 statement 谓词（first_core_action_at@48ms − hint@0ms ≤ 5000ms 窗）· 文案三方同名逐字机判「拖动队长移动 · 队员自动作战」
+(node:12772) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv5zila9002jm9qqpsyos4g1/games/wheat-squad/src/game.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv5zila9002jm9qqpsyos4g1/games/wheat-squad/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+R4_CLEAN_EXIT=0
+
+== 佐证：src 零变更（还原彻底）==
+SRC_DIFF_FILES=0

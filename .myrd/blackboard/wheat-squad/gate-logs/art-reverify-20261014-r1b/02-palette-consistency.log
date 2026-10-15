@@ -1,0 +1,15 @@
+# 02 · 三方色值机判独立复跑（复用 20261013 版检查器 · 结论仅对当前树有效）
+UTC: 2026-10-14T02:58:01Z  HEAD: 5921189420b7fd8d16cb423bda4f4a6f729dd7f1  检查器: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv7f2hrc004njoty0c4cwuih/.myrd/blackboard/wheat-squad/gate-logs/art-reverify-20261013/check-palette-consistency-v1.mjs
+
+[i] 卡=/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv7f2hrc004njoty0c4cwuih/.myrd/blackboard/wheat-squad/style-card-v1.md
+[i] 卡 token 数=8 · theme token 数=8 · spec palette token 数=8
+[PASS] wheatGold = #E8B84B（三方全等）
+[PASS] wheatDeep = #C99530（三方全等）
+[PASS] fieldGreen = #7FA65A（三方全等）
+[PASS] fieldDeep = #5C7F42（三方全等）
+[PASS] skyCream = #F5EDD8（三方全等）
+[PASS] pestBrown = #8A5A3B（三方全等）
+[PASS] accentRed = #D2543E（三方全等）
+[PASS] inkBrown = #4A3826（三方全等）
+RESULT: PASS — 风格卡 v1/theme.ts/approved spec 三方 8 色逐值全等，无清单外 token
+PALETTE_EXIT=0 (紧邻取码)

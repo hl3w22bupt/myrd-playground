@@ -1,0 +1,17 @@
+# 04 · 裸色值单源链扫描（r10 独立复核 · 口径沿 N9④：hex 全扫 + 真违例=rgba( 后紧跟数字；withAlpha/模板字面量不算）
+UTC: 2026-10-14T02:58:25Z  HEAD: 5921189420b7fd8d16cb423bda4f4a6f729dd7f1
+
+== A. src 面裸 hex（theme.ts 之外，应为 0）==
+非 theme.ts hex 命中数 = 0
+[零命中 OK]
+
+== B. src 面真违例 rgba（数字紧随，应为 0；withAlpha 签名/模板字面量豁免）==
+真违例命中数 = 0
+[零命中 OK]
+
+== C. 提审 SVG 模板色值 ⊆ palette 白名单（8 色）==
+[⊆ 白名单 OK] sub-icon.template.svg: #4A3826 #5C7F42 #7FA65A #C99530 #E8B84B #F5EDD8 
+[⊆ 白名单 OK] sub-sharecard-5x4.template.svg: #4A3826 #5C7F42 #7FA65A #8A5A3B #C99530 #E8B84B #F5EDD8 
+[⊆ 白名单 OK] sub-shots-3.template.svg: #4A3826 #5C7F42 #7FA65A #8A5A3B #C99530 #D2543E #E8B84B #F5EDD8 
+
+SCAN_VERDICT: hex=0 rgba=0 svg_violation=0 （三者全 0 = PASS）

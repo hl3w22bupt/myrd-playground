@@ -1,0 +1,11 @@
+== v15 线上三点复测（QA 放行条件②）@ 发布 commit 762742c · 部署单 cmv7kaen8001kjofi5p7qyb2l ==
+
+① /gw 页面：HTTP=200 title=麦浪小队（W-3 修复保持）
+   复核 HTTP=200
+
+② 资产字节：live main.mjs md5 ≡ 发布 commit build 逐字节
+   live  = f3a6a6b4cd05daaba89ae6d1f35248a1
+   local = f3a6a6b4cd05daaba89ae6d1f35248a1
+   （v15 新字节 f3a6a6b4… 上线，替换 v14 旧字节 bcde4bea…——v14 为 8868d0f 时刻陈旧产物，缺陷如实披露于 blockers.md）
+
+③ WS-LIVE-SMOKE：PASS，LIVE_SMOKE_EXIT=0（03-live-smoke-v15.log：ready→拖动击杀2→victory 167s→console 零错误）
