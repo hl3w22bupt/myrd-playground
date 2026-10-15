@@ -16,6 +16,15 @@
 
 
 
+### 部署轮 · v19 LIVE 重锚（2026-10-15 · deploy 节点 · R1 收口后本轮）
+
+- **线上现状**：坑 `cmv36wl94001xm9mxp119q48x`（wheat-squad-2 · slug 精确检索复核 `sourceId=wheat-squad` ✓ 专属坑复用未新建）**v19 `cmv95h5mf000gm90xkzq4xrcm` running/current @ 发布 commit `0031d3140ac3ffe8ec9b4387ecdf4503bb58d620`**（gitRef=当前分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` · manifestPath=games/wheat-squad/apphost.toml · mode=bundle · 零 errorMessage；入口 `https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw`）
+- **部署前确定性重建**（禁用仓内旧产物纪律）：自 v17 发布 commit `bcaa8f5` 起源面变更仅 `assets/manifest.json`（美术元文档，src 零引用不进运行时）+ ci/qa 文档 → 重建 diff = **指纹单行**（gitSha `7b45b44…`→`29e779b…`，specAnchor v6 approved 不变，spec.json 与单源逐字节全等）= 零内容漂移实证
+- **门禁**：verify.sh 五步 `VERIFY_EXIT=0`（统一契约 **56/0** · 自有 **16/0/1PEND** · WS-SMOKE PASS · SCOPE-GUARD 双模式 PASS）；证据 `gate-logs/deploy-v18-20261015/01`
+- **LIVE 三点自测**：①`/gw` title=麦浪小队 ②main.mjs md5 `ae62534dd4cbb7626f8175906882915b` ≡ 发布 build 逐字节 ③内嵌 `__G2WS_BUILD.gitSha=29e779b…` ≡ 重建时内容 HEAD（构建自指单行滞后不变量维持）+ specAnchor=链 v6 approved；**WS-LIVE-SMOKE PASS victory 167s console 零错误**（`05-live-smoke.log`，LIVE_SMOKE_EXIT=0）
+- **/health 载荷定性（非串线，W-3 收口态维持）**：`/health` 200 但 body=`"app":"game-9","title":"汽车连连看"` —— 共享壳 `server/`（package 名 `game-9-server`）静态身份常量，所有坑同串；决定性反证 = 页面路 title 麦浪小队（landing.html 优先伺服生效）+ 资产路字节逐等
+- **⚠️ 504 双受理事故（如实披露不删账）**：部署 POST 首发代理侧 504（响应体空）→ 未盲重试，先 GET 坑位发现首条已被后端受理（**v18 `cmv95gcje000em90xh5mucjyj` running@0031d31**）→ 重发产生 **v19**（同分支同字节，building→ready 覆盖为 current）；**同内容重复部署、非内容分叉**，未发第三次。教训落档：部署 504 后必须先查坑位现状再决定重试。证据 `gate-logs/deploy-v18-20261015/02–04`
+
 ### N2-部署 · v17 LIVE + sha 对账闭环（2026-10-15 · deploy）
 
 - **线上现状**：坑 `cmv36wl94001xm9mxp119q48x`（wheat-squad-2）**v17 `cmv8xviav000em9d…` running/current @ 发布 commit `813fa38`**（零 errorMessage）；LIVE 三点全过：①title=麦浪小队 ②main.mjs md5 `6b3e349a…` ≡ 发布 build 逐字节 ③**内嵌 `__G2WS_BUILD.gitSha=7b45b44072747ca17af96f81dd109b926745f3d4` ≡ 复测报告绑定 sha（对账闭环）**+ specAnchor=链 v6 approved ④WS-LIVE-SMOKE PASS（victory 167s · 零错误）

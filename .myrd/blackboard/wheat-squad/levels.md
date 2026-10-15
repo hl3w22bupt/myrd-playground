@@ -1,7 +1,7 @@
 # 关卡状态黑板 — wheat-squad（麦浪小队 · 第二产品线 · 可玩基线轮）
 
 > 更新时间：2026-10-15（**R1 复测收口轮** · 合流基线 `c6f9ea4` · spec v1.3 approved 起步）· 负责人：主策划（整合）/ 游戏程序（实现状态）
-> 下一步：R1 维持「未判定·挂起」（QA-WS-R1RE-20261015-01）· 等主人 A3 圈定 5 名试玩回填（采集面 = v17 LIVE 证据绑 sha）· 回填后复跑 ac-a3 转全绿路径 · 主人反馈回流即打断直开 R2
+> 下一步：R1 维持「未判定·挂起」（QA-WS-R1RE-20261015-01）· 等主人 A3 圈定 5 名试玩回填（采集面 = **v19 LIVE @ `0031d31`** 证据绑 sha，2026-10-15 部署轮刷新）· 回填后复跑 ac-a3 转全绿路径 · 主人反馈回流即打断直开 R2
 
 ## R1 复测收口轮（2026-10-15 · N5 台账回填 · 主策划整合）
 
@@ -16,6 +16,17 @@
 **程序线 verify-claims 复核一行**（2026-10-15 · 游戏程序 · 独立实跑 @ HEAD `4f424e5`，不照抄声称）：五步门禁实跑全绿（统契约 PASS · 16/0/1PEND · WS-SMOKE victory 167s ≡ 复测报告逐值 · 双 guard PASS）+ 严格模式 `STRICT_EXIT=2` 如实（A3 挂起口径未被冲刷）；同时揪出并修复**三份顶层共板（levels/assets/blockers）合流冲突标记随库残留**（r1 合流 `5a6b979` 引入，零信息丢失机判前置后删除）+ 扩 scope-policy 共板三件精确串白名单（Run2 假红 → Run3 `VERIFY_EXIT=0`）。spec/工程/他线零触碰；R1 判定结论不变。证据 `gate-logs/levels-conflict-fix-20261015/00..04`。
 
 
+
+## 部署轮 · v19 LIVE 重锚（2026-10-15 · deploy 节点 · R1 收口后本轮 · 采集面字节刷新）
+
+| 项 | 值 |
+|---|---|
+| 轮次号 | R1 复测收口后部署轮（deploy-only：源面运行时零内容变更，部署物指纹重锚） |
+| 发布 commit | `0031d3140ac3ffe8ec9b4387ecdf4503bb58d620`（部署物内嵌 gitSha=`29e779ba…` = 重建时内容 HEAD，「构建自指单行滞后」不变量维持；specAnchor=链 v6 approved） |
+| 坑/版本 | `cmv36wl94001xm9mxp119q48x`（wheat-squad-2）· **v19 running/current**（v18 同字节先行 running；504 双受理如实披露见 blockers 部署台账） |
+| 关卡判据面 | **零改动零复判**：R1 判定值绑 `7b45b44…` 仍有效（spec v1.4 判读纪律①绑 sha 有效性 = 受测源面 diff 为空——本部署 src 零变更实证）· A1/A2/A4 绿 · A3 结论面维持 ⏳ 未判定·待采（0/5 真人） |
+| LIVE 自测 | /health 200（共享壳静态身份串，定性非串线）· `/` 308→入口 · `/gw` title=麦浪小队 · main.mjs md5 `ae62534dd4cbb7626f8175906882915b` ≡ 发布 build 逐字节 · **WS-LIVE-SMOKE PASS victory 167s 零错误** |
+| 证据 | `gate-logs/deploy-v18-20261015/01`（verify 五步）· `02`（部署 POST）· `03–04`（坑位/轮询）· `05`（LIVE 冒烟）· `README-deploy.md` |
 
 ## R1 打磨轮（2026-10-14 · spec v1.3 = 链 v5 approved · 实测三样绑 sha · 双线合流 HEAD `b33bea2`）
 

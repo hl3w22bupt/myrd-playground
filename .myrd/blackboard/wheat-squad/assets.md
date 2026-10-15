@@ -99,3 +99,12 @@
 - **美术机判三件随 verify.sh 复证全绿**：ac-art-1（12 文件色值 ⊆ palette 8 色白名单零违例）/ ac-art-2（清单对账）/ ac-art-3（尺寸 + build 首包 0.08MB ≤ 4MB）；ac-art-4 互查回执在档 PASS。
 - **style-card-v1 §v1.2 回执 + tri-pack-v1.2 在黑板**（`.myrd/blackboard/wheat-squad/style-card-v1.md` · `tri-pack-v1.2.md`）；正式提审素材维持止步清单（待主人拍板）。
 - 证据：`gate-logs/n8-reverify-20261013/01`（verify.sh 五步全量实跑）。结论仅对 `304dacf` 有效。
+
+## 部署轮复证登记（2026-10-15 · deploy 节点 · 游戏程序 · 发布 commit `0031d31`）
+
+> R1 收口后部署轮：**资产源面零变更零触碰**——自 v17 发布 commit `bcaa8f5` 起 manifest 相关变更仅有美术批 `assets/manifest.json` v4（147f1bc 已随批收口入账），本部署轮零新增零改写。
+
+- **部署物构成机判**：build/ 面 = index.html + landing.html + main.mjs（spec 内联）+ spec.json + src 镜像 7 件，零位图零贴图（tex-1 PASS）；首包 0.08MB ≤ 4MB（ac-art-3 PASS，随 verify.sh 五步复跑）。
+- **美术四检随门禁复跑全绿**：ac-art-1/2/3 auto PASS · ac-art-4 机制面在档（`gate-logs/deploy-v18-20261015/01`）。
+- **LIVE 字节对账**：线上 main.mjs md5 `ae62534dd4cbb7626f8175906882915b` ≡ 发布 build 逐字节（manifest v4 元文档不进运行时字节，线上即 v4 登记态对应的渲染实现）。
+- 证据：`gate-logs/deploy-v18-20261015/01、05`。结论仅对 `0031d31` 有效。
