@@ -1,8 +1,34 @@
 # 资产清单黑板 — wheat-squad（二线孵化 · 可玩基线轮）
 
-> 更新时间：2026-10-14（**R1 复证轮 r10 · 美术批亲审认领 + 散文更正 + flash-invuln 升级**）· 负责人：游戏美术 · 主策划拍板：风格卡 v1 ✅（R1 §R1.1 复核零漂移）+ B 案裁决 ✅
-> 状态：manifest **v3 = 13 件 = 封顶**（5 entity + 1 ui-kit + 1 guidance + 3 submission + **3 fx 特效批**）；spec v1.3 assets 段 9 件登记闭合（ac-11 面4 逐件对账绿）；r10 亲审：7 通道绑定完备 ✓ · 散文「六通道」更正为 7 · flash-invuln 无视觉实现已升级（W-7）
-> 下一步：W-7 处置归主策划裁决（实现呼吸圈 or 更正描述）；正式提审素材止步清单待主人拍板；A3 结论面试玩采集（重部署后）
+> 更新时间：2026-10-15（**R1 复测收口轮 N3 美术批 · 资产三态清单 + 视觉基线对账 + W-7 B 案落地**）· 负责人：游戏美术 · 主策划拍板：W-7 终局 = **B 案**（描述真实态化，A 案降级 R2 候选）
+> 状态：manifest **v4 = 13 件 = 封顶**（件数零增减，仅 fx-hit-shock 通道真实态化）；run-all 复跑 **16/0/1PEND** 维持（机判面零影响留证 `gate-logs/r2-recheck-20261015/11`）
+> 下一步：正式提审素材止步清单待主人拍板（W-6）；A3 结论面试玩采集进行中（v17 LIVE）；R2 若主人反馈指向无敌窗感知缺失 → A 案补环
+
+## N3 · 资产三态清单（2026-10-15 · 任务书「已产出/缺失/占位，编号到资产」）
+
+| # | 资产 id | 类别 | 三态 | 说明 |
+|---|---|---|---|---|
+| 1 | e-captain | entity | ✅ 已产出 | 程序化绘制规格（renderer.ts#drawSquad · theme.ts token 单源），色值白名单机判绿 |
+| 2 | e-squadmate | entity | ✅ 已产出 | 同上（drawSquad） |
+| 3 | e-pest | entity | ✅ 已产出 | renderer.ts#drawPests |
+| 4 | e-bullet | entity | ✅ 已产出 | renderer.ts#drawEffects |
+| 5 | e-wheat-pickup | entity | ✅ 已产出 | renderer.ts#drawEffects |
+| 6 | ui-kit-01 | ui-kit | ✅ 已产出 | renderer.ts#drawHud（HUD 带/三选一卡/结算面板/按钮态） |
+| 7 | guidance-hint-banner | ui | ✅ 已产出 | renderer.ts#drawGuidance（文案三方同名逐字机判绿 ac-16） |
+| 8 | sub-icon | submission | ⏳ 占位 | placeholder-template（qa/submission/*.template.svg 512×512）——正式件止步清单归主人拍板（W-6） |
+| 9 | sub-sharecard-5x4 | submission | ⏳ 占位 | 同上（1000×800 · 5:4 主判据卡） |
+| 10 | sub-shots-3 | submission | ⏳ 占位 | 同上（3×1170×2080） |
+| 11 | fx-kill-burst | fx | ✅ 已产出 | 通道 flash/particles/pickup-spawn 绑定在册，ac-05 面4 机判绿 |
+| 12 | fx-hit-shock | fx | ⚠️ 部分（claimed 面缺失） | **W-7**：声称的「invuln 外圈呼吸」从未构建（渲染层零读 invulnUntilTick）——本轮 B 案勘误落改 manifest v4（channels → `['knockback']`）+ 风格卡 §R2.0 勘误；knockback 通道真实在档。**A 案补环 = R2 候选**（主人反馈触发） |
+| 13 | fx-hud-channels | fx | ✅ 已产出 | 通道 hud-kills/hud-hp 绑定在册，机判绿 |
+
+- **缺失件计数：0 整件缺失；1 件声称面缺失（fx-hit-shock invuln 环，W-7 已裁决处置）；3 件占位（提审正式件，止步清单归主人 W-6）**。
+
+## N3 · 视觉基线对账声明（资产版本 ↔ HEAD sha 一致性）
+
+- **声明**：截至本轮发布 commit **`813fa38bf1240e1ec261806ccbc248fdbb5346f5`**（v17 LIVE），视觉面基线 = **manifest v4（13 件）+ 风格卡 v1（含 §R2.0 勘误附注）+ theme.ts token 单源**；资产相关源面（renderer.ts/theme.ts/manifest.json/style-card）与该 commit 树一致，无未提交视觉变更。
+- **机判佐证**：ac-art-1（12 文件扫描 · 色值 ⊆ palette 8 色白名单 · 零违例）/ ac-art-2（13 件 ⊆ 封顶 · 零清单外资产）/ ac-art-3（体积逐件达标 · 首包 0.09MB ≤ 4MB）/ ac-art-4（机制面+互查回执在档）——四条全绿复现于 `gate-logs/r2-recheck-20261015/08·11`（绑 sha `7b45b44` 采样 + `813fa38` 发布树，采样断言面两 commit 零差异已 diff 实证）。
+- **零外部贴图纪律**：tex-1 绿（零位图文件 + 零贴图构造），全部视觉 = 程序化绘制规格（零资产文件落盘）。
 
 ## R1 特效批 + 登记闭合（2026-10-14）
 

@@ -115,3 +115,9 @@
 
 - 通道↔资产绑定数据面：`assets/manifest.json` fx 件 `feedbackChannels` 字段（ac-05 面4 逐通道复算）。
 - 登记集对账：manifest 逐件 id ∈ spec entities ∪ spec.assets（ac-11 面4，B 案扩严）。
+
+### §R2.0 勘误附注（2026-10-15 · W-7 B 案裁决 · 主策划）
+
+- **fx-hit-shock「无敌帧外圈 wheatDeep→accentRed 呼吸」从未构建**（r10 亲审升级项 W-7）：渲染层零读 `invulnUntilTick`（`renderer.ts` 零引用，`sim.ts:237` 仅内核判定），`sim.ts:240` 注释失实。本卡此前「要素二」及 spec v1.3 assets note 对该视觉的声称**更正为真实态**：无敌窗（0.8s）可感知反馈 = 击退位移（knockback 通道）+ HUD HP 扣减，**无独立视觉环**。
+- **manifest v4 随本勘误落改**：fx-hit-shock.feedbackChannels `['flash-invuln','knockback']` → `['knockback']`（机判面 ac-05 断言方向 = emitted ⊆ bound，渲染层零发 flash-invuln → 门禁面零影响，复跑 16/0/1PEND 留证）。
+- **A 案（补 invuln 呼吸圈）降级为 R2 打磨候选**：若主人试玩反馈指向「无敌窗无感知」，R2 批程序线在 drawSquad 补呼吸圈（连 spec assets note 修订一并走 revision）——归主人反馈触发，不抢跑。
