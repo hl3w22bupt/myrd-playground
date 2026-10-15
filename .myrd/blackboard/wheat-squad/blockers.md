@@ -6,6 +6,16 @@
 
 ## R1 复测收口轮当前基线（2026-10-15 · 主策划 · N0 开工前置）
 
+### N4+N5 · QA 唯一结论 + 分流 + 台账（2026-10-15 · 本轮唯一结论）
+
+- **QA 唯一 JSON 结论**：`games/wheat-squad/qa/qa-r1-recheck-v14.md`（**QA-WS-R1RE-20261015-01**）——verdict = **「证据型·样本不足（A3 结论面 0/5 待真人）→ R1 维持『未判定·挂起』，不烧冻结余量」**；逐条 feedback 4 项（A3 采集阻塞 / W-7 spec 冻结字面留待 R2 / retestProtocol 三款落地验证 / v16 事故闭环）均指 spec 条目与文件
+- **分流执行**：缺陷型修复批 = **0 件**（零数值超阈零机判红）· 证据型挂起 ✓ · 非「全绿」（A3 未判定）→ 不触发「打磨中」登记，但采集面已就绪（v17 LIVE 证据绑 sha）
+- **好玩判据状态（红线如实）**：第 1 轮 = 不达（A3 0/5）；冻结计数器 **0/3 维持**（baselineProtocol：任一轮部分达标即重置——A1/A2/A4 绿 = 部分达标）；「好不好玩」终裁归主人
+- **台账**：levels.md 产品线 2 区块已回填（轮次号/复测 sha/全绿与否/不达判据 id 清单）
+- **下一步**：①主人圈定 5 名试玩 + 回填 `qa/playtest-collection-round1.md`（回填后复跑 ac-a3 → 可转「全绿·打磨中·待 A3 真人反馈终裁」）②若主人反馈回流 → 立即打断直开 R2（硬约束①）③线 3 备忘 v0（轨道 B，见顶层）
+
+
+
 ### N2-部署 · v17 LIVE + sha 对账闭环（2026-10-15 · deploy）
 
 - **线上现状**：坑 `cmv36wl94001xm9mxp119q48x`（wheat-squad-2）**v17 `cmv8xviav000em9d…` running/current @ 发布 commit `813fa38`**（零 errorMessage）；LIVE 三点全过：①title=麦浪小队 ②main.mjs md5 `6b3e349a…` ≡ 发布 build 逐字节 ③**内嵌 `__G2WS_BUILD.gitSha=7b45b44072747ca17af96f81dd109b926745f3d4` ≡ 复测报告绑定 sha（对账闭环）**+ specAnchor=链 v6 approved ④WS-LIVE-SMOKE PASS（victory 167s · 零错误）
