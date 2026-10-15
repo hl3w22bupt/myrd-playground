@@ -3,7 +3,7 @@
 //
 // 架构：静态服务 build/ + CDP chromium（g2-blocks tools/smoke.mjs 判例同构，零 npm 依赖）。
 // 前置：node tools/build.mjs。
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, rmSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { join, dirname, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,10 +15,22 @@ const BUILD = join(ROOT, 'build');
 const say = (m) => console.log('[ws-smoke] ' + m);
 const die = (m) => { console.error('[ws-smoke] DIE ' + m); process.exit(1); };
 
+// 泄漏防护：die() 直接 process.exit，若不挂 exit 钩子，每失败一轮就漏一棵 Chrome
+// 进程树 + /tmp profile（2026-10-13 实测多轮 gate 后累计 ~90 个孤儿进程持续烧 CPU）。
+// 判例对齐平台 mobile-web-smoke.mjs 的 cleanup 模式，SIGKILL 兜底中途启动态。
+let proc = null;
+let server = null;
+let userDir = null;
+process.on('exit', () => {
+  if (proc && proc.exitCode === null) { try { proc.kill('SIGKILL'); } catch { /* 已退出 */ } }
+  try { server?.close(); } catch { /* 已关 */ }
+  if (userDir) { try { rmSync(userDir, { recursive: true, force: true }); } catch { /* 尽力 */ } }
+});
+
 if (!existsSync(join(BUILD, 'main.mjs'))) die('build/ 缺位——先 node tools/build.mjs');
 
 const MIME = { '.html': 'text/html', '.mjs': 'text/javascript', '.json': 'application/json', '.js': 'text/javascript' };
-const server = createServer((req, res) => {
+server = createServer((req, res) => {
   const url = (req.url || '/').split('?')[0];
   const p = join(BUILD, url === '/' ? 'index.html' : url.slice(1));
   if (!p.startsWith(BUILD) || !existsSync(p)) { res.writeHead(404); res.end(); return; }
@@ -37,8 +49,8 @@ const CANDIDATES = [
 ];
 const chromeBin = CANDIDATES.find((c) => existsSync(c));
 if (!chromeBin) die('chrome 未找到（装 Chrome 或 Chromium）');
-const userDir = join('/tmp', `ws-smoke-${Date.now()}`);
-const proc = execFile(chromeBin, [
+userDir = join('/tmp', `ws-smoke-${Date.now()}`);
+proc = execFile(chromeBin, [
   '--headless=new', '--no-first-run', '--no-default-browser-check',
   `--user-data-dir=${userDir}`, '--remote-debugging-port=0', 'about:blank',
 ], () => {});
@@ -112,11 +124,20 @@ if (!ready) die('READY 超时（boot 断链）\n' + consoleErrors.join('\n'));
 say('ready ✓ __G2WS_READY=true');
 
 // ② 操作：拖动（pointer 事件注入）→ 战局推进 + 击杀发生
+// 坐标从 canvas 实际 rect 取（视口 letterbox/缩放下盲打坐标会落到 canvas 外——
+// 2026-10-12 实证：此前「拖动→击杀」实为站桩被动达成，A1 埋点断言暴露此 latent 缺陷后修正）
+// 事件间留 100ms 持按：rAF 帧需观察到非空 pointer（first_core_action 语义=帧级拖动指令）。
+const rectRaw = await evalJs(`(() => { const r = document.getElementById('stage').getBoundingClientRect(); return JSON.stringify({ x: r.x, y: r.y, w: r.width, h: r.height }); })()`);
+const rect = JSON.parse(rectRaw || '{"x":0,"y":0,"w":390,"h":640}');
+const cx = Math.floor(rect.x + rect.w / 2), cy = Math.floor(rect.y + rect.h / 2);
+const dx = Math.floor(rect.w * 0.15), dy = Math.floor(rect.h * 0.12);
 const drag = async () => {
-  await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: 200, y: 400, button: 'left', clickCount: 1, pointerType: 'mouse' });
-  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 120, y: 300, button: 'left', pointerType: 'mouse' });
-  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 260, y: 480, button: 'left', pointerType: 'mouse' });
-  await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: 260, y: 480, button: 'left', pointerType: 'mouse' });
+  await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: cx, y: cy, button: 'left', clickCount: 1, pointerType: 'mouse' });
+  await new Promise((r) => setTimeout(r, 100));
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: cx - dx, y: cy - dy, button: 'left', pointerType: 'mouse' });
+  await new Promise((r) => setTimeout(r, 100));
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: cx + dx, y: cy + dy, button: 'left', pointerType: 'mouse' });
+  await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: cx + dx, y: cy + dy, button: 'left', pointerType: 'mouse' });
 };
 let kills0 = -1, moved = false;
 for (let i = 0; i < 24; i += 1) {
@@ -131,6 +152,14 @@ for (let i = 0; i < 24; i += 1) {
 if (!moved) die('战局未推进（tick 恒 0——输入链或循环断）\n' + consoleErrors.join('\n'));
 if (kills0 < 0) die('20+ 次拖动后仍零击杀（作战链断）\n' + consoleErrors.join('\n'));
 say(`操作 ✓ tick 推进 + 击杀 ${kills0}（拖动→作战链通）`);
+
+// ②' A1/A4 埋点真实产生断言（spec loop-1 + meta.telemetryFields 三方同名：first_core_action_at / feedback_latency_ms / first_kill）
+const evs = await evalJs(`JSON.stringify(globalThis.__G2WS_GAME ? globalThis.__G2WS_GAME.telemetryEvents() : [])`);
+const evList = JSON.parse(evs || '[]');
+for (const need of ['first_core_action_at', 'first_kill', 'feedback_latency_ms']) {
+  if (!evList.includes(need)) die(`A1/A4 埋点缺失：${need} 未产生（telemetryEvents=${evList.join(',')}）\n` + consoleErrors.join('\n'));
+}
+say(`埋点 ✓ first_core_action_at / first_kill / feedback_latency_ms 真实产生（A1/A4 面）`);
 
 // ③ 快进到结算：机读面直调重开循环太慢 → 用 __G2WS_GAME 快进（step 大步）不造假：仍走真实 stepSim
 const fastForward = await evalJs(`(async () => {
@@ -149,9 +178,54 @@ const ff = JSON.parse(fastForward);
 if (ff.phase !== 'ended') die(`快进后未结算: ${fastForward}`);
 say(`结算 ✓ phase=${ff.phase} reason=${ff.reason} elapsed=${ff.elapsedSec}s`);
 
-// ④ console 零错误
+// ③' run_duration_ms 埋点断言（A2 面：直读真实发射的 run_end 遥测条目与 spec 定名载荷键——禁自算替代）
+const runEnd = await evalJs(`(() => {
+  const g = globalThis.__G2WS_GAME;
+  const e = (g.telemetryEntries ? g.telemetryEntries() : []).find((t) => t.id === 'run_end');
+  return JSON.stringify(e ?? {});
+})()`);
+const re = JSON.parse(runEnd || '{}');
+if (!re.run_duration_ms || re.run_duration_ms <= 0) die(`run_duration_ms 未产生（run_end 遥测=${runEnd}）`);
+if (!['victory', 'timeout', 'defeat'].includes(re.reason)) die(`run_end.reason=${re.reason} 不在 spec 结局势 {victory, timeout, defeat}`);
+say(`埋点 ✓ run_duration_ms=${re.run_duration_ms}ms reason=${re.reason}（A2 面·真实载荷）`);
+
+// ④ 重开：结算态真实 pointerdown → restart 路径（main.ts：ended 态点按即重开）→ 状态复位回 running
+await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: cx, y: cy, button: 'left', clickCount: 1, pointerType: 'mouse' });
+await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: cx, y: cy, button: 'left', pointerType: 'mouse' });
+await new Promise((r) => setTimeout(r, 400));
+const after = await evalJs('JSON.stringify(globalThis.__G2WS_STATE ? globalThis.__G2WS_STATE() : null)');
+const as = JSON.parse(after || '{}');
+if (as.phase !== 'running' || as.kills !== 0) die(`重开未复位：phase=${as.phase} kills=${as.kills}`);
+say(`重开 ✓ 结算态点按→回 running + kills 归零（结算-重开闭环）`);
+
+// ④' 埋点四事件断言（spec v1.2 预埋：first_tap / first_loop_complete / restart_clicked / hint_shown——
+// 相对时间戳 atMs + restart_clicked 本地计数 +1（a4 v1 写死面）+ a5 判定素材（hint_shown.atMs / first_core_action_at.atMs）
+const four = await evalJs(`(() => {
+  const g = globalThis.__G2WS_GAME;
+  const es = g.telemetryEntries ? g.telemetryEntries() : [];
+  return JSON.stringify({
+    first_tap: es.find((t) => t.id === 'first_tap') ?? null,
+    first_loop_complete: es.find((t) => t.id === 'first_loop_complete') ?? null,
+    restart_clicked: es.filter((t) => t.id === 'restart_clicked'),
+    hint_shown: es.find((t) => t.id === 'hint_shown') ?? null,
+    first_core_action_at: es.find((t) => t.id === 'first_core_action_at') ?? null,
+  });
+})()`);
+const F = JSON.parse(four || '{}');
+if (!F.first_tap || typeof F.first_tap.atMs !== 'number') die(`first_tap 未产生或缺 atMs（四事件=${four}）`);
+if (!F.hint_shown || typeof F.hint_shown.atMs !== 'number' || !F.hint_shown.text) die(`hint_shown 未产生或缺 atMs/text（四事件=${four}）`);
+if (!F.first_loop_complete || typeof F.first_loop_complete.atMs !== 'number') die(`first_loop_complete 未产生或缺 atMs（四事件=${four}）`);
+if (!Array.isArray(F.restart_clicked) || F.restart_clicked.length !== 1 || F.restart_clicked[0].count !== 1) {
+  die(`restart_clicked 应恰 1 条且 count=1（真实点击本地计数 +1），实得 ${JSON.stringify(F.restart_clicked)}`);
+}
+if (F.first_core_action_at && F.first_core_action_at.atMs - F.hint_shown.atMs > 5000) {
+  die(`a5 窗语义破坏：首操作 ${F.first_core_action_at.atMs}ms - hint_shown ${F.hint_shown.atMs}ms > 5000ms`);
+}
+say(`埋点 ✓ 四事件齐（first_tap@${F.first_tap.atMs}ms · hint_shown@${F.hint_shown.atMs}ms · first_loop_complete@${F.first_loop_complete.atMs}ms · restart_clicked×${F.restart_clicked.length} count=1）+ a5 窗内`);
+
+// ⑤ console 零错误
 if (consoleErrors.length > 0) die(`console 错误 ${consoleErrors.length} 条:\n` + consoleErrors.slice(0, 5).join('\n'));
 say('console/页面 零错误 ✓');
 
 ws.close(); server.close(); proc.kill();
-console.log('WS-SMOKE: PASS 打开→操作→结算 + console 零错误');
+console.log('WS-SMOKE: PASS 打开→首次核心操作→单局结束→重开 + A1/A4 + 四事件埋点真实产生 + console 零错误');

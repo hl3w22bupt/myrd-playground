@@ -14,7 +14,7 @@ export function buildSettlement(facts
                                                        
                                                        
                                          
- , reason                       )                 {
+ , reason                      )                 {
   const headline = reason === 'timeout' ? `守住了 ${facts.waveIndex} 浪！` : `第 ${facts.waveIndex} 浪被冲散了`;
   const upRows = facts.topUpgrades.length > 0
     ? facts.topUpgrades.map((u, i) => `${i + 1}. ${UPGRADE_LABEL[u.id]} ×${u.count}`)

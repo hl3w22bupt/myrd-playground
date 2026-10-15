@@ -288,7 +288,7 @@ python3 scripts/preflight.py <工程目录>
 godot --headless --path <工程目录> --import
 
 # ③ 无头冒烟（退出码 + 日志双断言）
-godot --headless --path <工程目录> --quit-after 120 tests/smoke.tscn
+godot --headless --path <工程目录> --quit-after 600 tests/smoke.tscn
 #   或直接用封装好的门禁（含 ①提示、②导入、③运行、断言、日志摘录）：
 GODOT_BIN=<godot> bash scripts/smoke.sh <工程目录>
 ```

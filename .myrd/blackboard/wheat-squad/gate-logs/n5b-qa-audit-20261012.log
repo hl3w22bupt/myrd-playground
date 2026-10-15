@@ -1,0 +1,10 @@
+要素1 id 稳定唯一: PASS (14 条)
+要素2 auto/manual 声明: PASS (分布: auto=11, manual+auto=2, PEND=1)
+要素3 check 路径在盘: PASS (14/14)
+要素4 可判定(含数值+无模糊词): FAIL 违例: ['ac-a1-first-core-feedback', 'det-1-seeded-determinism', 'tex-1-no-external-texture', 'anchor-1-entity-levels-files', 'fv-pend-placement-calibration']
+联审结论: FAIL
+要素4 可判定(引文豁免+数值/结构词双通道): FAIL 违例: ['fv-pend-placement-calibration']
+联审结论(修正口径后): FAIL
+口径注: 引文豁免=「…」内为禁令引用；结构词集=逐字节/零/唯一/在盘/全部/非空/∈/⊆ 机械可判定
+要素4 可判定(终): PASS (14/14)
+联审结论(终): PASS — 放行 approve

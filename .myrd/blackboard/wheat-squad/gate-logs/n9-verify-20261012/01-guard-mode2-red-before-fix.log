@@ -1,0 +1,13 @@
+== RED 证据：guard-repo-scope.mjs 模式2(--self-check) 对 wheat 策略 TypeError 崩溃（2026-10-12 · 游戏程序独立实跑）
+== 根因：wheat scope-policy.json repoOne 节缺 allowedPreExistingModifiedPaths / forbiddenTouchGlobs（g2-blocks 原策略四字段，移植仅两字段）
+== 处置：策略单源补全（脚本零改动、检测规则零改动）——先红后绿
+
+file:///Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv4k7sig0026m9p8oxdk8ebt/games/wheat-squad/ci/guard-repo-scope.mjs:75
+  const allowedMod = policy.repoOne.allowedPreExistingModifiedPaths.includes(path);
+                                                                    ^
+
+TypeError: Cannot read properties of undefined (reading 'includes')
+    at file:///Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv4k7sig0026m9p8oxdk8ebt/games/wheat-squad/ci/guard-repo-scope.mjs:75:69
+
+Node.js v26.7.0
+RED-EXIT=1

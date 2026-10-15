@@ -1,0 +1,22 @@
+{
+  "$note": "wheat-squad 资产清单（AC-A2 机判接口）：逐件 id ∈ spec entities ids ∪ spec assets ids（v1.3 起登记集扩为并集，B 案裁决）；清单外源文件出现未登记资产 = 违例（ac-11 扩严机判）。总数 13 = 封顶 13（entities 数，零余量）。fx 件为反馈特效规格（feedbackChannels 绑 A4 视觉通道，供 ac-05 面4 复算）。零外部贴图（tex-1）：全部 = 程序化绘制规格（theme.ts token + renderer 绘制函数），无位图文件。",
+  "version": 3,
+  "styleCard": ".myrd/blackboard/wheat-squad/style-card-v1.md",
+  "paletteWhitelistSource": "spec.numeric.palette",
+  "assets": [
+    { "id": "e-captain", "category": "entity", "kind": "procedural-draw-spec", "source": "games/wheat-squad/src/render/renderer.ts#drawSquad", "tokenSource": "games/wheat-squad/src/render/theme.ts" },
+    { "id": "e-squadmate", "category": "entity", "kind": "procedural-draw-spec", "source": "games/wheat-squad/src/render/renderer.ts#drawSquad", "tokenSource": "games/wheat-squad/src/render/theme.ts" },
+    { "id": "e-pest", "category": "entity", "kind": "procedural-draw-spec", "source": "games/wheat-squad/src/render/renderer.ts#drawPests", "tokenSource": "games/wheat-squad/src/render/theme.ts" },
+    { "id": "e-bullet", "category": "entity", "kind": "procedural-draw-spec", "source": "games/wheat-squad/src/render/renderer.ts#drawEffects", "tokenSource": "games/wheat-squad/src/render/theme.ts" },
+    { "id": "e-wheat-pickup", "category": "entity", "kind": "procedural-draw-spec", "source": "games/wheat-squad/src/render/renderer.ts#drawEffects", "tokenSource": "games/wheat-squad/src/render/theme.ts" },
+    { "id": "ui-kit-01", "category": "ui-kit", "kind": "procedural-draw-spec", "source": "games/wheat-squad/src/render/renderer.ts#drawHud", "tokenSource": "games/wheat-squad/src/render/theme.ts", "covers": ["HUD 带", "三选一卡", "结算面板", "按钮态"] },
+    { "id": "guidance-hint-banner", "category": "ui", "kind": "procedural-draw-spec", "source": "games/wheat-squad/src/render/renderer.ts#drawGuidance", "tokenSource": "games/wheat-squad/src/render/theme.ts", "copySource": "games/wheat-squad/src/game.ts#GUIDANCE_TEXT", "copy": "拖动队长移动 · 队员自动作战", "styleRef": ".myrd/blackboard/wheat-squad/style-card-v1.md#v12-增量引导元素视觉权重规则定稿--2026-10-13--回三合一包-tri-pack-v12md", "spec": "390×44 横条（86% 宽）；panelCream 底 + wheatDeep 2px 描边 + inkBrown 600 14px；禁 accentRed" },
+    { "id": "sub-icon", "category": "submission", "kind": "placeholder-template", "source": "games/wheat-squad/qa/submission/sub-icon.template.svg", "spec": "512x512 PNG 正式件占位；≤300KB", "sizeCapKB": 300 },
+    { "id": "sub-sharecard-5x4", "category": "submission", "kind": "placeholder-template", "source": "games/wheat-squad/qa/submission/sub-sharecard-5x4.template.svg", "spec": "1000x800 (5:4)；≤1024KB", "sizeCapKB": 1024 },
+    { "id": "sub-shots-3", "category": "submission", "kind": "placeholder-template", "source": "games/wheat-squad/qa/submission/sub-shots-3.template.svg", "spec": "3x 1170x2080 (390x640@3x)；≤500KB/张", "sizeCapKB": 500 },
+    { "id": "fx-kill-burst", "category": "fx", "kind": "procedural-draw-spec", "source": "games/wheat-squad/src/render/renderer.ts#drawEffects", "tokenSource": "games/wheat-squad/src/render/theme.ts", "feedbackChannels": ["flash", "particles", "pickup-spawn"], "opPath": "OP-02/OP-03", "spec": "击杀复合反馈：accentRed 扩散环 r12→22（hitFlashMs=90ms α 线性衰减单峰）+ wheatGold 方粒 4×4 + 麦穗 pickup 圆角块 6×8（色值 ⊆ palette，要素二命中反馈光）" },
+    { "id": "fx-hit-shock", "category": "fx", "kind": "procedural-draw-spec", "source": "games/wheat-squad/src/render/renderer.ts#drawEffects", "tokenSource": "games/wheat-squad/src/render/theme.ts", "feedbackChannels": ["flash-invuln", "knockback"], "opPath": "OP-05", "spec": "受击复合反馈：外圈 wheatDeep→accentRed 呼吸（无敌帧 0.8s 窗口）+ 击退位移（载体=实体重绘 drawSquad/drawPests，无独立特效层）" },
+    { "id": "fx-hud-channels", "category": "fx", "kind": "procedural-draw-spec", "source": "games/wheat-squad/src/render/renderer.ts#drawHud", "tokenSource": "games/wheat-squad/src/render/theme.ts", "feedbackChannels": ["hud-kills", "hud-hp"], "opPath": "OP-02/OP-05", "spec": "HUD 行内提示：HP 点 accentRed r5×5 顶右缘（全卡唯一警示色用面）+ 击杀计数 inkBrown（×skyCream 对比 ≥7:1）" }
+  ]
+}
+

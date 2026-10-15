@@ -1,0 +1,10 @@
+godot-playtest: FAIL 机器人试玩未通过（退出码 1）
+GODOT_PLAYTEST: FAIL 第 1 局最长无反馈窗口 13.2s > 阈值 10s —— 节奏断档
+---- 试玩指标（如有）----
+GODOT_PLAYTEST_METRICS: {"frames_per_run":900,"runs":[{"feedback_events":6,"first_reward_seconds":0.0666666666666667,"max_feedback_gap_seconds":13.2166666666667,"outcome":"score=0|fb=6","run":1,"seed":20260913}],"thresholds":{"feedback_events_min_per_run":2,"feedback_gap_seconds_max":10,"first_reward_seconds_max":10,"seed_outcomes_min_distinct":1},"thresholds_source":"built-in"}
+---- 试玩日志末尾（最多 20 行）----
+Godot Engine v4.3.stable.official.77dcf97d8 - https://godotengine.org
+
+[playtest] seeds=[20260913, 20260914, 20260915] frames_per_run=900 thresholds={"feedback_events_min_per_run":2,"feedback_gap_seconds_max":10,"first_reward_seconds_max":10,"seed_outcomes_min_distinct":1} (source: built-in) score_signal=true feedback_signal=true actions=6 main=res://scenes/main.tscn
+GODOT_PLAYTEST_METRICS: {"frames_per_run":900,"runs":[{"feedback_events":6,"first_reward_seconds":0.0666666666666667,"max_feedback_gap_seconds":13.2166666666667,"outcome":"score=0|fb=6","run":1,"seed":20260913}],"thresholds":{"feedback_events_min_per_run":2,"feedback_gap_seconds_max":10,"first_reward_seconds_max":10,"seed_outcomes_min_distinct":1},"thresholds_source":"built-in"}
+GODOT_PLAYTEST: FAIL 第 1 局最长无反馈窗口 13.2s > 阈值 10s —— 节奏断档

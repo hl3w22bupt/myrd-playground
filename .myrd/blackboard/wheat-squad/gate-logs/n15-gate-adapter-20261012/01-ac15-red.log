@@ -1,0 +1,12 @@
+file:///Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv4k7sig0026m9p8oxdk8ebt/games/wheat-squad/tests/contract/helpers.mjs:33
+export function assert(cond, msg) { if (!cond) throw new Error(msg); }
+                                                     ^
+
+Error: 适配视图 id=undefined ≠ 单源 slug=wheat-squad
+    at assert (file:///Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv4k7sig0026m9p8oxdk8ebt/games/wheat-squad/tests/contract/helpers.mjs:33:54)
+    at file:///Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv4k7sig0026m9p8oxdk8ebt/games/wheat-squad/tests/contract/ac-15-gate-adapter.spec.mjs:17:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v26.7.0

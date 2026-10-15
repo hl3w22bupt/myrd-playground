@@ -1,0 +1,15 @@
+== GREEN 全电量（N15）==
+--- ① 自有契约套件（15 件）---
+PASS ac-15 门禁适配视图守卫（id/slug=wheat-squad 单源同源 · 剔注入键深等 · 入口在盘）
+—— wheat-squad 契约合计 15 PASS / 0 FAIL ——
+--- ② 统一契约门禁三口径 ---
+  [.myrd/spec/design-spec.json × .] CONTRACT: PASS 实现与 approved 策划案一致
+  [.myrd/spec/design-spec.json × games/wheat-squad] CONTRACT: PASS 实现与 approved 策划案一致
+  [.myrd/spec/wheat-squad/design-spec.json × games/wheat-squad] CONTRACT: PASS 实现与 approved 策划案一致
+--- ③ 守卫双模式 ---
+SCOPE-GUARD PASS 本仓库 52 文件零越界引用（策略单源 ci/scope-policy.json；spec 真源豁免面命中 0 处，属契约条款声明）
+SELF-CHECK PASS 一号仓库零接触（5 行全部在白名单内，无 tracked 工程文件改动）
+--- ④ verify.sh 连跑 2 轮 ---
+  ROUND 1 VERIFY-EXIT=0 :: 5/5 PASS
+  ROUND 2 VERIFY-EXIT=0 :: 5/5 PASS
+VERIFY: PASS wheat-squad 契约/冒烟/扫描全绿（exit 0）

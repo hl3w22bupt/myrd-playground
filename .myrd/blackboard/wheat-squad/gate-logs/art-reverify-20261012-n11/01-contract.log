@@ -1,0 +1,16 @@
+# ① 自有契约 · HEAD=9035207 · 2026-10-12T04:58:40Z
+PASS det-1 同 seed 双局逐字节一致 :: {"tick":10506,"phase":"ended","kills":218,"xp":436,"wave":7,"ups":["fireRate","damage","damage","recruit","fireRate","sp
+PASS ac-a1(auto) 首次核心正反馈 1.71s ≤10s · 5 种子首杀全部 ≤30s · 回归预算 3s/20s 保持
+PASS ac-a2(auto) 20 种子 P50=168.096s ∈[90,180] · P90=168.096s ≤300 · victory=20/20
+PEND ac-a3(manual) 机制面 PASS（重开 0ms+全复位+结算三信息+模板 schema）· 结论面 MANUAL-PENDING（记录 0/5——5 名试玩回填后复跑本件）
+PASS ac-a4(auto) 反馈延迟 max=0ms ≤100ms · 每操作通道 min=4 ≥2 · flash=90ms
+PASS perf-1 实体峰值 33 ≤220 · 单步 0.001ms ≤16ms · 机型档（中端≤33ms/首交互≤3000ms/老机≤50ms）节流仿真不崩（node 仿真步；真机走查归 QA 清单）
+PASS tex-1 零位图文件 + 7 源文件零贴图构造
+PASS anchor-1 entities 13/13 + levels 2/2 落点在盘非空
+PASS fv-pend placement 结构冻结 + 待校准语义在档（校准走 revision）
+PASS ac-art-1(auto) 12 文件扫描 · 色值全部 ⊆ palette 白名单(8 色) · 零违例
+PASS ac-art-2(auto) 清单 9 件 ≤ 封顶 13 · entity 类 id 全部 ∈ entities ids · source 锚点全在盘 · 零清单外资产
+PASS ac-art-3(auto) 落盘清单件 3 逐件达标 · build 首包 0.07MB ≤ 4MB
+PASS ac-art-4 机制面+互查回执全达（qa/style-consistency-check.md 在档）
+—— wheat-squad 契约合计 13 PASS / 0 FAIL ——
+EXIT=0

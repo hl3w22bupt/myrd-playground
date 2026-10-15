@@ -82,5 +82,28 @@ writeFileSync(join(OUT, 'index.html'), `<!doctype html>
 </html>
 `);
 
+// landing.html = AppHost 网关适配版落地页（W-3 串线收口）：共享壳 server 优先伺服
+// 清单里的 landing.html。与 index.html 的唯一差异：入口脚本走 api/public/assets/main.mjs
+// 相对路径 —— 网关子路径（/apps/<slug>/gw）下裸 ./main.mjs 会解析到 /apps/* 而 404；
+// main.mjs 内部的 ./src/** import 按模块 URL 解析，天然落在 api/public/assets/src/*。
+// index.html 保留 standalone 形态（本地直开 / 静态托管 / iframe 预览用）。
+writeFileSync(join(OUT, 'landing.html'), `<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>麦浪小队</title>
+<style>
+  html,body{margin:0;height:100%;background:#F5EDD8;display:flex;align-items:center;justify-content:center;touch-action:none}
+  canvas{max-width:100vw;max-height:100vh;touch-action:none}
+</style>
+</head>
+<body>
+<canvas id="stage" width="390" height="640"></canvas>
+<script type="module" src="api/public/assets/main.mjs"></script>
+</body>
+</html>
+`);
+
 const files = walk(OUT).map((f) => f.slice(OUT.length + 1)).sort();
-console.log('BUILD OK: build/ ' + files.length + ' 文件（spec 内联 + src 镜像 + index）');
+console.log('BUILD OK: build/ ' + files.length + ' 文件（spec 内联 + src 镜像 + index + landing）');

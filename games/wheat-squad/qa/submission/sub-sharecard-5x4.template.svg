@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="800" viewBox="0 0 1000 800">
+  <!-- sub-sharecard-5x4 占位模板 · 1000x800（5:4）· 正式件 ≤1024KB（artCaps.atlasMaxKB） -->
+  <rect width="1000" height="800" fill="#F5EDD8"/>
+  <rect x="0" y="560" width="1000" height="110" fill="#7FA65A" opacity="0.35"/>
+  <rect x="0" y="650" width="1000" height="150" fill="#5C7F42" opacity="0.5"/>
+  <!-- 对局主体剪影：队长 + 队员 + 害虫（几何全部沿 style-card-v1 要素四） -->
+  <circle cx="330" cy="430" r="66" fill="none" stroke="#C99530" stroke-width="8" opacity="0.5"/>
+  <circle cx="330" cy="430" r="52" fill="#E8B84B"/>
+  <circle cx="470" cy="470" r="36" fill="#C99530"/>
+  <circle cx="560" cy="500" r="36" fill="#C99530"/>
+  <ellipse cx="760" cy="420" rx="44" ry="34" fill="#8A5A3B"/>
+  <circle cx="778" cy="408" r="12" fill="#4A3826"/>
+  <!-- 治愈短句位（正式文案走违规标识符扫描：QA 规则清单含素材文案面） -->
+  <text x="500" y="150" font-family="system-ui" font-size="72" fill="#4A3826" text-anchor="middle">麦浪小队</text>
+  <text x="500" y="240" font-family="system-ui" font-size="40" fill="#4A3826" text-anchor="middle" opacity="0.8">拖动队长 · 守住麦浪</text>
+</svg>

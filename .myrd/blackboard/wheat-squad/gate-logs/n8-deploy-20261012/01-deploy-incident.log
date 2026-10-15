@@ -1,0 +1,22 @@
+# N8 部署轮实录（2026-10-12 · 可玩基线）
+
+## 部署单链（appId cmv36wl94001xm9mxp119q48x · slug wheat-squad-2 · sourceId=wheat-squad 复用不新建）
+- v3 cmv4qhrps running→superseded @ 0312454（**事故单**：漏传 manifestPath，平台按仓库根清单构建=game-9 壳 → 页面路由串线；与 stack-tower 轮已录判例同型）
+- v4 cmv4qmpzp superseded @ 0312454（带 manifestPath=games/wheat-squad/apphost.toml 重发纠正）
+- v5 cmv4qv16u superseded @ 0312454（零漂移重发强推，r2 判例）
+- v6 cmv4qhrps 前——空 commit 46cce20 制造新构建键
+- v7 cmv4qy689 **running @ 46cce20**（gitRef=myrd/wheat-squad-baseline-cmv4k7sig0026m9p8oxdk8ebt · durationMs 829 · errorMessage=null · currentDeploymentId=v7）
+
+## 部署后核验
+- 资产路 /gw/api/public/assets/main.mjs：LIVE md5 1711423891dfde8ea59eb9cd3829803d ≡ 本地 build main.mjs（全等）✓
+- 资产路 /gw/api/public/assets/index.html：<title>麦浪小队</title> ✓（v7 内容面正确）
+- 页面路 /gw：<title>汽车连连看</title> ✗（game-9 壳）
+- 决定性证据：/apps/wheat-squad-2/gw 与 /apps/game-9/gw 页面字节全等（md5 abb7c87b6a8217f9d049070dc6dec372）——平台 serving 层对所有 app 发同一份共享壳
+- smoke-live：DIE READY 超时（线上 boot 断链——壳加载 api/public/assets/index.js 404，Godot 壳×Canvas 资产错配）
+
+## 判例对照
+- stack-tower 轮同型事故（漏 manifestPath→串线 3 分钟→重部署即纠）本轮**不收敛**：v4/v5/v7 三次正确 manifestPath 部署均未纠正页面路——平台层行为与上轮判例不同，超出部署通道处置面
+
+## 升级项（红线：阻塞不空转）
+- 请求：平台侧页面路由/共享壳缓存排查（r2 时 2026-10-11 /gw 页面路曾正确出麦浪小队，10-12 起行为变化）
+- 期间试玩入口状态：**暂缓交付**（页面路串线，避免主人误测 game-9 壳）；资产面可验证路径见上

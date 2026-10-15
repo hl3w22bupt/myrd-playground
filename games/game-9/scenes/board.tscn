@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/board.gd" id="1_board"]
+[ext_resource type="Script" path="res://scripts/path_layer.gd" id="2_path"]
+
+[node name="Board" type="Node2D"]
+script = ExtResource("1_board")
+
+[node name="PathLayer" type="Node2D" parent="."]
+script = ExtResource("2_path")
+
+[node name="Tiles" type="Node2D" parent="."]

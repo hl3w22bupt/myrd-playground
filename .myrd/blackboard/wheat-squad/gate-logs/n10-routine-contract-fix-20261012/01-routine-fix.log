@@ -1,0 +1,20 @@
+== N10：routine「游戏契约测试」驳回修复证据包（2026-10-12 · 游戏程序）==
+HEAD：bcbb1f5
+
+== 红：驳回复现（routine 旧默认参数口径）==
+$ node scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --project .
+CONTRACT: FAIL spec 文件不存在: .myrd/spec/design-spec.json（先走策划案流程并导出 approved 版）
+RED-EXIT=1
+
+== 根因：routines.yaml game-contract 默认参数未随 N0「一游戏一子目录」判例更新（spec 实落 .myrd/spec/wheat-squad/，顶层 design-spec.json 不存在）==
+== 修复：routines.yaml params 对齐 wheat 线（specPath=.myrd/spec/wheat-squad/design-spec.json · projectDir=games/wheat-squad）；契约检查器与其余检测规则零改动 ==
+
+== 绿：routine 替换后字面命令连跑 2 轮 ==
+--- ROUND 1 ---
+—— 合计 53 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
+EXIT=0
+--- ROUND 2 ---
+—— 合计 53 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
+EXIT=0

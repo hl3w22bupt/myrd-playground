@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1170" height="2080" viewBox="0 0 1170 2080">
+  <!-- sub-shots-3 占位模板（三连之 1 帧 · 对局早期）· 1170x2080 = 390x640@3x · 正式件 ≤500KB/张（artCaps.shotMaxKB） -->
+  <!-- 正式三连 = 本帧模板 × 3 实例：①对局早期（开场接敌）②对局中期（升级三选一/多队员）③结算页（麦仓收益行） -->
+  <rect width="1170" height="2080" fill="#F5EDD8"/>
+  <rect x="0" y="1500" width="1170" height="260" fill="#7FA65A" opacity="0.35"/>
+  <rect x="0" y="1720" width="1170" height="360" fill="#5C7F42" opacity="0.5"/>
+  <!-- HUD 带（顶部 ~28px@1x = 84px@3x：HP 点 ×5 + 波次/击杀/时长） -->
+  <g fill="#D2543E">
+    <circle cx="1060" cy="60" r="15"/><circle cx="1010" cy="60" r="15"/><circle cx="960" cy="60" r="15"/><circle cx="910" cy="60" r="15"/><circle cx="860" cy="60" r="15"/>
+  </g>
+  <text x="60" y="80" font-family="system-ui" font-size="52" fill="#4A3826">WAVE 1 · KILLS 0</text>
+  <!-- 战场净区（中央 ~87%）：队长 + 害虫早期密度示意 -->
+  <circle cx="585" cy="1100" r="54" fill="none" stroke="#C99530" stroke-width="6" opacity="0.5"/>
+  <circle cx="585" cy="1100" r="30" fill="#E8B84B"/>
+  <ellipse cx="300" cy="900" rx="27" ry="21" fill="#8A5A3B"/>
+  <ellipse cx="880" cy="950" rx="27" ry="21" fill="#8A5A3B"/>
+  <!-- 底部喘息行（~18px@1x = 54px@3x） -->
+  <text x="585" y="2040" font-family="system-ui" font-size="40" fill="#4A3826" text-anchor="middle" opacity="0.8">拖动队长 · 队员自动作战</text>
+</svg>

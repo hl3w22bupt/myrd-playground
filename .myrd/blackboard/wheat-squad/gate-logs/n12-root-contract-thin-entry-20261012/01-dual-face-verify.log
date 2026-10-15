@@ -1,0 +1,25 @@
+== N12：驳回三到案处置（2026-10-12 · 游戏程序）——root tests/contract 薄壳入口 ==
+HEAD：4bea7cf
+
+== 驳回错误演进定位 ==
+  v1『spec 文件不存在』→ N10 参数修复；v2 同文 → N11 字面 specPath 符号链接；v3『契约不一致』= 弱面(projectDir=.)数值扫描丢契约镜像层（W-4 预判命中）
+
+== 修复：tests/contract → ../games/wheat-squad/tests/contract（相对符号链接，thin-proxy 判例）==
+  resolveAgainstProject('tests/contract') 的 c1 位从此任意 projectDir 皆命中同一份 wheat 契约镜像（realpath 去重，单源不变）
+
+== 断言面实证（插桩源键清单见 02）==
+  规范面 21 源 = 6 wheat src + 15 wheat 契约件（纯 wheat，无外来）
+  弱面   27 源 = 同上 21 + 糖果线遗留 fallbackList 经 c3 误命中 games/game/ 的 6 个 .gd（冻结存量，超集）
+  ⇒ 规范面独立 53/0 ⇒ 弱面 53/0 不依赖外来文件（合法超集，非假绿）
+
+== 防 flake：两口径各连跑 2 轮 ==
+--- ROUND 1 ---
+CONTRACT: PASS 实现与 approved 策划案一致
+weak-EXIT=0
+CONTRACT: PASS 实现与 approved 策划案一致
+canonical-EXIT=0
+--- ROUND 2 ---
+CONTRACT: PASS 实现与 approved 策划案一致
+weak-EXIT=0
+CONTRACT: PASS 实现与 approved 策划案一致
+canonical-EXIT=0

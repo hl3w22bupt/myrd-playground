@@ -1,0 +1,4 @@
+# ⑥ scope-guard（违规标识符扫描 · 策略单源含素材文案面）· HEAD=aa448e5 · 2026-10-12T04:44:13Z
+SCOPE-GUARD PASS 本仓库 49 文件零越界引用（策略单源 ci/scope-policy.json；spec 真源豁免面命中 0 处，属契约条款声明）
+SCOPE-GUARD PASS 本仓库 49 文件零越界引用（策略单源 ci/scope-policy.json；spec 真源豁免面命中 0 处，属契约条款声明）
+mode2-self-check-EXIT=0 · mode1-scan-EXIT=0

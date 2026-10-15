@@ -1,0 +1,14 @@
+# ⑤ 提审占位模板：尺寸机判 + 体积 + sha256 基线（hash-chain-cross-consistency 留证）
+[PASS] sub-icon: 512x512（期望 512x512）· 1063B ≤ cap 300KB · sha256=135a1ac737d531b6…
+[PASS] sub-sharecard-5x4: 1000x800（期望 1000x800）· 1258B ≤ cap 1024KB · sha256=747c8f8b306d1cd5…
+[PASS] sub-shots-3: 1170x2080（期望 1170x2080）· 1571B ≤ cap 500KB · sha256=efe12e10bd4048d5…
+[i] 清单总数=9（封顶 13）· 提审占位=3 · 实体=5 · UI套件=1
+RESULT: PASS — 三件模板尺寸逐件命中，清单 9 ≤ 13
+EXIT=0
+
+## 完整 sha256 基线（shasum 独立实算，与 manifest 源件一一对应；下轮零漂移证明比对基线）
+2b221e786fbd6866e929123efe3831bc26703e256ac2fa3309fd20d916b23981  manifest.json
+135a1ac737d531b60c35ee0275920f3274f6cab6369edd9d12a150b5a68d49e9  sub-icon.template.svg
+747c8f8b306d1cd5f826f81dc91afe9abefe1d3e77644a68eed66fbd8b7a1cfe  sub-sharecard-5x4.template.svg
+efe12e10bd4048d51ee7c797678b16fe28ab5b1cd336b8fc6c2179f4e29d1ec8  sub-shots-3.template.svg
+EXIT=0

@@ -15,6 +15,8 @@ config/icon="res://icon.svg"
 [autoload]
 
 GameState="*res://autoload/game_state.gd"
+Juice="*res://autoload/juice.gd"
+Ambience="*res://autoload/ambience.gd"
 
 [display]
 

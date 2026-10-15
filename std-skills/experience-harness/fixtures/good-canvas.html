@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!-- good-canvas：canvas 引擎形态的正向夹具 —— 持续动画（idle 帧差 >0）+ 触摸点击改变画面（tap 帧差 >0）。
+     selftest 用它验证证据包能「看见」活的画面与响应；也是默认场景的主力夹具。 -->
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>good-canvas</title>
+<style>html,body{margin:0;padding:0;background:#101418;overflow:hidden}canvas{display:block}</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+canvas.width = 390; canvas.height = 844;
+let t = 0, score = 0;
+const stars = Array.from({length: 40}, () => ({x: Math.random()*390, y: Math.random()*844, s: 0.5+Math.random()*1.5}));
+function frame() {
+  t += 1;
+  // 背景：非纯色（深蓝渐变 + 星点）
+  const g = ctx.createLinearGradient(0, 0, 0, 844);
+  g.addColorStop(0, '#16213e'); g.addColorStop(1, '#0f3460');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 390, 844);
+  ctx.fillStyle = '#eaeaea';
+  for (const s of stars) { s.y += s.s; if (s.y > 844) s.y = 0; ctx.fillRect(s.x, s.y, 2, 2); }
+  // 往复运动的主角（任何时刻截图都不同 → idle 帧差 >0）
+  const px = 195 + Math.sin(t/30)*120, py = 500 + Math.cos(t/45)*60;
+  ctx.fillStyle = '#e94560'; ctx.beginPath(); ctx.arc(px, py, 26, 0, Math.PI*2); ctx.fill();
+  // HUD：分数随点击增长 → 点击必然改变画面
+  ctx.fillStyle = '#ffffff'; ctx.font = 'bold 28px sans-serif';
+  ctx.fillText('score ' + score, 20, 60);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+// 触摸响应：点哪就在哪画一朵花并加分（画面必然变化）
+canvas.addEventListener('touchstart', (e) => {
+  const touch = e.changedTouches[0];
+  const rect = canvas.getBoundingClientRect();
+  const x = touch.clientX - rect.left, y = touch.clientY - rect.top;
+  score += 1;
+  ctx.fillStyle = '#ffd166';
+  for (let i = 0; i < 8; i++) {
+    const a = (i/8)*Math.PI*2;
+    ctx.beginPath(); ctx.arc(x + Math.cos(a)*18, y + Math.sin(a)*18, 7, 0, Math.PI*2); ctx.fill();
+  }
+}, { passive: true });
+window.__gameState = () => ({ score, t });
+</script>
+</body>
+</html>

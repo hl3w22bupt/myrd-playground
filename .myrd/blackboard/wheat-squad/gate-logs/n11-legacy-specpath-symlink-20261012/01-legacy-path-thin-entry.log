@@ -1,0 +1,24 @@
+== N11：同一驳回二次到案处置（2026-10-12 · 游戏程序）==
+HEAD：69f2016
+
+== 事实核查 ==
+1) N10 的 routines.yaml 参数修复在 HEAD 在案（9974553）——驳回仍以旧 specPath 到案 ⇒ 执行面参数并非（只）取自 routines.yaml 默认值，或本轮驳回取自修复落地前快照
+2) 字面路径 .myrd/spec/design-spec.json 此前不存在（N0 一游戏一子目录判例的合法结果）⇒ 任何携带旧 specPath 的调用方必失败
+
+== 修复：字面路径薄壳入口（相对符号链接 → approved 单源导出件，零拷贝零漂移）==
+$ ln -sfn wheat-squad/design-spec.json .myrd/spec/design-spec.json
+lrwxr-xr-x@ 1 leo  staff  28 Oct 12 12:52 .myrd/spec/design-spec.json -> wheat-squad/design-spec.json
+symlink 读取 = approved v3
+
+== 断言面核实（不缩水声明）==
+--- 规范口径（routines.yaml 现行参数）---
+—— 合计 53 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
+EXIT=0
+--- 旧 specPath + wheat projectDir 组合 ---
+CONTRACT: PASS 实现与 approved 策划案一致
+--- 已知弱面（projectDir=. 丢契约镜像层，2 数值项如实 FAIL=检查器 fail-closed 正确行为，不为其弱化）---
+  FAIL  数值 artCaps 在工程代码中无对应（数值只认 spec.numeric，禁止两头各改各的）
+  FAIL  数值 firstCore 在工程代码中无对应（数值只认 spec.numeric，禁止两头各改各的）
+—— 合计 51 PASS / 2 FAIL ——
+CONTRACT: FAIL 契约不一致（见上方 FAIL 逐条）

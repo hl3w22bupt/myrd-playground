@@ -1,0 +1,63 @@
+{
+  "$note": "wheat-squad 仓库范围与违规标识符策略（可玩基线轮 2026-10-12 · 单源）：guard-repo-scope.mjs 只读本文件，不在代码里手抄第二份。检测规则沿 g2-blocks AC-17/AC-18 判例原样平移（脚本零改动），本策略 = wheat 线规则面；QA 规则清单（.myrd/blackboard/wheat-squad/ 下 N7 件）以本文件为准防缩水。",
+  "forbiddenReferencePatterns": [
+    { "pattern": "games/stack-tower", "$why": "一号仓（stack-tower 线）路径零引用——跨线泄漏红线" },
+    { "pattern": "games/g2-blocks", "$why": "g2-blocks 线零接触（本轮任务书边界）：wheat 面不得引用其路径/产物" },
+    { "pattern": "stack-tower-spec", "$why": "一号仓 spec 导出件名零引用" },
+    { "pattern": "\\.myrd/spec/(g2-blocks|stack-tower)", "$why": "兄弟线 spec 目录零引用" },
+    { "pattern": "getFriendCloudStorage|getFriendInfo|openDataContext", "$why": "平台红线①：好友数据不出开放数据域—— wheat v1 面无开放数据域实现，出现即违例（未来接入时随 spec revision 收窄本条）" },
+    { "pattern": "password|secretKey|apiKey|access_token|credential", "$why": "平台红线②：凭证不入库——工程内不得出现凭证类标识符（占位符 only）" },
+    { "pattern": "全网最低|全网第一|第一名|NO\\.1|国家级|世界级|顶级|独家|永久免费|100%中奖", "$why": "素材文案极限词（广告法面）——含素材文案面（.md/.svg/.html），QA 规则清单同步项" }
+  ],
+  "selfExemptFiles": ["ci/scope-policy.json", "ci/guard-repo-scope.mjs"],
+  "referenceAllowedPaths": [
+    { "prefix": "qa/submission/README.md", "$note": "提审素材 README = 红线规则清单本身（声明性引用极限词/红线字面，非使用）" },
+    { "prefix": "docs/", "$note": "spec/文档面逐字声明边界条款属契约内容非越界引用" },
+    { "prefix": "tests/contract/", "$note": "契约件 FORBIDDEN 面列举（禁触列表本身）" }
+  ],
+  "scannedExtensions": [".mjs", ".js", ".ts", ".json", ".md", ".yml", ".yaml", ".html", ".css", ".svg", ".toml"],
+  "$scannedNote": "扫描扩展名含 .svg/.md/.toml = 素材文案与配置面全覆盖（QA 防缩水清单核对面）",
+  "repoOne": {
+    "$note": "一号仓零接触自检（--self-check <一号仓根>）：wheat 线为二号仓，本节声明本线自身允许落盘面 + 例外面 + 禁触面，供父级巡检与 --self-check 直接执行（g2-blocks 判例全字段平移；2026-10-12 n9 轮补齐 mode2 缺失三字段——此前 mode2 一调用即 TypeError，红证据 gate-logs/n9-verify-20261012/01。字段形态须与脚本判定逻辑严格对齐：allowedPreExistingModifiedPaths=精确串、exemptTouchPrefixes/allowedNewPaths=前缀、forbiddenTouchGlobs=纯字符串数组）",
+    "allowedNewPaths": [
+      "games/wheat-squad/",
+      ".myrd/blackboard/wheat-squad/",
+      ".myrd/spec/wheat-squad/",
+      { "prefix": ".myrd/spec/design-spec.json", "$note": "N11 字面路径薄壳入口（相对符号链接 → wheat-squad/design-spec.json approved 单源，零拷贝零漂移）——兼容携带旧 specPath 的调用方；thin-proxy 判例" },
+      { "prefix": ".myrd/spec/wheat-squad-spec.json", "$note": "N13 <slug>-spec.json 命名约定薄壳入口（符号链接 → approved 单源）——平台门禁 slug 解析可从文件名达成；同上零拷贝" },
+      { "prefix": ".myrd/blackboard/gate-logs/", "$note": "平台 contract-gate 证据落点（N13 实证：13:07:04 驳回日志即落此处）——门禁自有写作面，非 wheat 代码足迹，性质同 .myrd-platform 豁免" },
+      ".myrd/blackboard/spec-notes-line2.md",
+      ".myrd/blackboard/research/"
+    ],
+    "exemptTouchPrefixes": [
+      { "prefix": ".myrd-platform/", "$note": "平台运行时自有面（skills/mcp 等，平台层维护）——出现改动不属 wheat 足迹；g2 判例同款豁免机制（其面为 SKILLS.md 单件，本仓平台面变更面更宽故取目录前缀）" },
+      { "prefix": "tests/contract", "$note": "N12 字面路径薄壳入口（相对符号链接 → games/wheat-squad/tests/contract 契约镜像）——让统一契约检查器 tests/contract 解析位任意 projectDir 皆命中 wheat 单源；thin-proxy 判例，显式豁免非静默放行；换活跃线时须随 routines.yaml 参数一并复审" }
+    ],
+    "allowedPreExistingModifiedPaths": [
+      ".myrd/blackboard/README.md",
+      { "$note": "routine 门禁参数单源（e2e-gate pre-hook/Routines Tab 读它）：N10 轮 game-contract 参数对齐一游戏一子目录判例的正当触碰面，换活跃线时会再改" },
+      ".myrd/routines.yaml"
+    ],
+    "forbiddenTouchGlobs": [
+      "games/game/",
+      "games/game-9/",
+      "games/stack-tower",
+      "games/g2-blocks",
+      "apphost.toml",
+      "index.html",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "eslint.config.js",
+      "vitest.config.ts",
+      "vitest.bench.config.ts",
+      "src/",
+      "server/",
+      "scripts/",
+      "tests/",
+      "templates/",
+      "std-skills/",
+      "docs/"
+    ]
+  }
+}

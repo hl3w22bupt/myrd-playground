@@ -1,0 +1,92 @@
+== 独立实跑复核（当前工作树 · n9 轮 · 游戏程序）== 日期：2026-10-12 12:38:02  HEAD：20a1a9d
+
+--- [1/3] 统一契约门禁（approved spec 对账）---
+—— 契约测试输出 ——
+  PASS  spec 可解析: ../../.myrd/spec/wheat-squad/design-spec.json
+  PASS  spec 为 approved 版（平台登记 v3 · cmv4q8bng001em9qm5p78do05）
+  PASS  六段完整: meta
+  PASS  六段完整: world
+  PASS  六段完整: entities
+  PASS  六段完整: levels
+  PASS  六段完整: numeric
+  PASS  六段完整: acceptance
+  PASS  关卡元素编号唯一性核对完成（5 个）
+  PASS  数值扫描源就绪（15 个脚本，三层解析）
+  PASS  数值 DEFAULT_SEED 在工程常量区有对应
+  PASS  数值 FIXED_STEP_MS 在工程常量区有对应
+  PASS  数值 artCaps 在工程常量区有对应
+  PASS  数值 captain 在工程常量区有对应
+  PASS  数值 enemy 在工程常量区有对应
+  PASS  数值 feedback 在工程常量区有对应
+  PASS  数值 firstCore 在工程常量区有对应
+  PASS  数值 firstKillBudgetSec 在工程常量区有对应
+  PASS  数值 palette 在工程常量区有对应
+  PASS  数值 perf 在工程常量区有对应
+  PASS  数值 placement 在工程常量区有对应
+  PASS  数值 runDuration 在工程常量区有对应
+  PASS  数值 squad 在工程常量区有对应
+  PASS  数值 upgrade 在工程常量区有对应
+  PASS  数值 wave 在工程常量区有对应
+  FAIL  实体 e-kernel-loop script 悬空: games/wheat-squad/src/kernel/loop.ts#seededRng
+  FAIL  实体 e-kernel-sim script 悬空: games/wheat-squad/src/kernel/sim.ts#stepSim
+  FAIL  实体 e-captain script 悬空: games/wheat-squad/src/kernel/sim.ts#captain
+  FAIL  实体 e-squadmate script 悬空: games/wheat-squad/src/kernel/sim.ts#Squadmate
+  FAIL  实体 e-pest script 悬空: games/wheat-squad/src/kernel/sim.ts#pests
+  FAIL  实体 e-bullet script 悬空: games/wheat-squad/src/kernel/sim.ts#bullets
+  FAIL  实体 e-wheat-pickup script 悬空: games/wheat-squad/src/kernel/sim.ts#pickups
+  FAIL  实体 e-wave-manager script 悬空: games/wheat-squad/src/kernel/sim.ts#waveTimerMs
+  FAIL  实体 e-upgrade-picker script 悬空: games/wheat-squad/src/kernel/sim.ts#offerUpgrades
+  FAIL  实体 e-settlement script 悬空: games/wheat-squad/src/settlement.ts#buildSettlement
+  FAIL  实体 e-placement-bank script 悬空: games/wheat-squad/src/settlement.ts#bankGain
+  FAIL  实体 e-renderer script 悬空: games/wheat-squad/src/render/renderer.ts#drawField
+  FAIL  实体 e-renderer script 悬空: games/wheat-squad/src/render/theme.ts#THEME
+  FAIL  实体 e-telemetry script 悬空: games/wheat-squad/src/game.ts#telemetry
+  FAIL  验收项 ac-a1-first-core-feedback 依赖悬空: games/wheat-squad/tests/contract/ac-02-first30s.spec.mjs
+  FAIL  验收项 ac-a2-run-duration-band 依赖悬空: games/wheat-squad/tests/contract/ac-03-run-duration.spec.mjs
+  FAIL  验收项 ac-a3-restart-willingness 依赖悬空: games/wheat-squad/tests/contract/ac-04-restart-loop.spec.mjs
+  FAIL  验收项 ac-a4-feedback-channels 依赖悬空: games/wheat-squad/tests/contract/ac-05-hit-feedback.spec.mjs
+  FAIL  验收项 det-1-seeded-determinism 依赖悬空: games/wheat-squad/tests/contract/ac-01-seeded-determinism.spec.mjs
+  FAIL  验收项 perf-1-frame-budget 依赖悬空: games/wheat-squad/tests/contract/ac-06-perf-budget.spec.mjs
+  FAIL  验收项 tex-1-no-external-texture 依赖悬空: games/wheat-squad/tests/contract/ac-07-no-texture.spec.mjs
+  FAIL  验收项 anchor-1-entity-levels-files 依赖悬空: games/wheat-squad/tests/contract/ac-08-anchors.spec.mjs
+  FAIL  验收项 loop-1-settlement-closure 依赖悬空: games/wheat-squad/tools/smoke.mjs
+  FAIL  验收项 fv-pend-placement-calibration 依赖悬空: games/wheat-squad/tests/contract/ac-09-placement-structure.spec.mjs
+  FAIL  验收项 ac-art-1-palette-whitelist 依赖悬空: games/wheat-squad/tests/contract/ac-10-art-palette-whitelist.spec.mjs
+  FAIL  验收项 ac-art-2-naming-entity-ids 依赖悬空: games/wheat-squad/tests/contract/ac-11-art-naming-ids.spec.mjs
+  FAIL  验收项 ac-art-3-size-caps 依赖悬空: games/wheat-squad/tests/contract/ac-12-art-size-caps.spec.mjs
+  FAIL  验收项 ac-art-4-style-consistency 依赖悬空: games/wheat-squad/tests/contract/ac-13-art-style-consistency.spec.mjs
+—— 合计 25 PASS / 28 FAIL ——
+CONTRACT: FAIL 契约不一致（见上方 FAIL 逐条）
+EXIT=1
+
+--- [2/3] 自有契约套件 run-all ---
+PASS det-1 同 seed 双局逐字节一致 :: {"tick":10506,"phase":"ended","kills":218,"xp":436,"wave":7,"ups":["fireRate","damage","damage","recruit","fireRate","sp
+PASS ac-a1(auto) 首次核心正反馈 1.71s ≤10s · 5 种子首杀全部 ≤30s · 回归预算 3s/20s 保持
+PASS ac-a2(auto) 20 种子 P50=168.096s ∈[90,180] · P90=168.096s ≤300 · victory=20/20
+PEND ac-a3(manual) 机制面 PASS（重开 0ms+全复位+结算三信息+模板 schema）· 结论面 MANUAL-PENDING（记录 0/5——5 名试玩回填后复跑本件）
+PASS ac-a4(auto) 反馈延迟 max=0ms ≤100ms · 每操作通道 min=4 ≥2 · flash=90ms
+PASS perf-1 实体峰值 33 ≤220 · 单步 0.000ms ≤16ms · 机型档（中端≤33ms/首交互≤3000ms/老机≤50ms）节流仿真不崩（node 仿真步；真机走查归 QA 清单）
+PASS tex-1 零位图文件 + 7 源文件零贴图构造
+PASS anchor-1 entities 13/13 + levels 2/2 落点在盘非空
+PASS fv-pend placement 结构冻结 + 待校准语义在档（校准走 revision）
+PASS ac-art-1(auto) 12 文件扫描 · 色值全部 ⊆ palette 白名单(8 色) · 零违例
+PASS ac-art-2(auto) 清单 9 件 ≤ 封顶 13 · entity 类 id 全部 ∈ entities ids · source 锚点全在盘 · 零清单外资产
+PASS ac-art-3(auto) 落盘清单件 3 逐件达标 · build 首包 0.07MB ≤ 4MB
+PASS ac-art-4 机制面+互查回执全达（qa/style-consistency-check.md 在档）
+—— wheat-squad 契约合计 13 PASS / 0 FAIL ——
+EXIT=0
+
+--- [3/3] WS-SMOKE headless 全链路 ---
+[ws-smoke] 静态服务 http://127.0.0.1:64408/（build/ 载面）
+[ws-smoke] chromium 就绪（CDP page target）
+[ws-smoke] ready ✓ __G2WS_READY=true
+[ws-smoke] 操作 ✓ tick 推进 + 击杀 1（拖动→作战链通）
+[ws-smoke] 埋点 ✓ first_core_action_at / first_kill / feedback_latency_ms 真实产生（A1/A4 面）
+[ws-smoke] 结算 ✓ phase=ended reason=victory elapsed=167s
+[ws-smoke] 埋点 ✓ run_duration_ms=167952ms reason=victory（A2 面）
+[ws-smoke] 重开 ✓ 结算态点按→回 running + kills 归零（结算-重开闭环）
+[ws-smoke] console/页面 零错误 ✓
+WS-SMOKE: PASS 打开→首次核心操作→单局结束→重开 + A1/A4 埋点真实产生 + console 零错误
+EXIT=0
+
+== 勘误：[1/3] 首次记录 25/28 FAIL 为调用口径错误（CWD=games/wheat-squad 传 --project . ，spec 实体路径按仓根相对解析悬空）——非工程回归；正确口径=仓根调用 --project games/wheat-squad，53/0 PASS 见 03a。口径契约：统一契约门禁必须在仓根执行（routines.yaml game-contract 同款）。

@@ -105,6 +105,9 @@ for (const section of ["meta", "world", "entities", "levels", "numeric", "accept
 
 // ---- ④ 实体落点：entities[].script / scene 必须真实存在 ----
 // script 允许 {a,b,c} 花括号多路径（如 stack-tower e-pwa-shell 的 PWA 壳四落点），逐条断言存在。
+// 2026-10-12 wheat-squad 二线扩展（加法不缩水）：script 允许 `path#symbol` 符号锚——
+//   文件存在性只看 # 前的路径；# 后标识符必须作为整词在文件内容出现（符号级锚点，
+//   供 QA 审计「实体逻辑真身落点」）。旧口径（无 # / 花括号）行为逐字节不变。
 function expandBracePaths(p) {
   const m = /\{([^}]+)\}/.exec(p ?? "");
   if (!m) return [p];
@@ -112,12 +115,40 @@ function expandBracePaths(p) {
   const suffix = p.slice(m.index + m[0].length);
   return m[1].split(",").map((alt) => prefix + alt.trim() + suffix);
 }
+// `path#symbol` → { filePart, symbol }；无 # 则 symbol=null。
+function splitSymbolAnchor(p) {
+  const hash = typeof p === "string" ? p.indexOf("#") : -1;
+  if (hash < 0) return { filePart: p, symbol: null };
+  return { filePart: p.slice(0, hash), symbol: p.slice(hash + 1) };
+}
+// 实体 script 解析（文件存在 + 可选符号锚断言）。命中返回真实路径，否则返回 null（已记 fail）。
+function resolveEntityScript(entity, scriptPath) {
+  const { filePart, symbol } = splitSymbolAnchor(scriptPath);
+  const hit = resolveAgainstProject(filePart);
+  if (!hit) {
+    fail(`实体 ${entity.id} script 悬空: ${scriptPath}`);
+    return null;
+  }
+  if (symbol) {
+    if (!/^[A-Za-z_$][\w$]*$/.test(symbol)) {
+      fail(`实体 ${entity.id} script 符号锚非法（仅标识符）: ${scriptPath}`);
+      return null;
+    }
+    const text = fs.readFileSync(hit, "utf8");
+    if (new RegExp(`\\b${symbol}\\b`).test(text)) pass(`实体 ${entity.id} script 存在: ${scriptPath}（符号锚命中）`);
+    else {
+      fail(`实体 ${entity.id} script 符号悬空: ${scriptPath}（文件在盘但无该标识符）`);
+      return null;
+    }
+  } else {
+    pass(`实体 ${entity.id} script 存在: ${scriptPath}`);
+  }
+  return hit;
+}
 for (const entity of doc.entities ?? []) {
   for (const scriptPath of expandBracePaths(entity.script)) {
     if (!scriptPath) continue;
-    const hit = resolveAgainstProject(scriptPath);
-    if (hit) pass(`实体 ${entity.id} script 存在: ${scriptPath}`);
-    else fail(`实体 ${entity.id} script 悬空: ${scriptPath}`);
+    resolveEntityScript(entity, scriptPath);
   }
   if (entity.scene) {
     const hit = resolveAgainstProject(entity.scene);
@@ -156,7 +187,10 @@ function collectNumericSources() {
     if (!entity.script) continue;
     for (const scriptPath of expandBracePaths(entity.script)) {
       if (!scriptPath) continue;
-      const hit = resolveAgainstProject(scriptPath);
+      // `path#symbol` 锚：数值扫描只吃文件面（# 前路径），不做重复 pass/fail 记账
+      // （符号级断言已由实体落点段负责）。
+      const { filePart } = splitSymbolAnchor(scriptPath);
+      const hit = resolveAgainstProject(filePart);
       if (hit && isScript.test(hit)) sources.set(fs.realpathSync(hit), fs.readFileSync(hit, "utf8"));
     }
   }
@@ -172,6 +206,16 @@ function collectNumericSources() {
   for (const rel of fallbackList) {
     const hit = resolveAgainstProject(rel);
     if (hit && isScript.test(hit)) sources.set(fs.realpathSync(hit), fs.readFileSync(hit, "utf8"));
+  }
+  // 2026-10-12 wheat-squad 扩展（加法不缩水）：验收侧数值（如 firstCore/artCaps）的消费方 = 契约件
+  // （tests/contract/*.mjs 经 loadSpec 直读 spec.numeric 断言）——spec 仍单源，契约件是断言消费面，
+  // 并入扫描源使「数值在工程有对应」口径覆盖验收侧数值；引擎侧数值消费面原样保留。
+  const contractDir = resolveAgainstProject("tests/contract");
+  if (contractDir && fs.statSync(contractDir).isDirectory()) {
+    for (const f of fs.readdirSync(contractDir).filter((x) => /\.mjs$/.test(x))) {
+      const p = path.join(contractDir, f);
+      sources.set(fs.realpathSync(p), fs.readFileSync(p, "utf8"));
+    }
   }
   if (sources.size > 0) return sources;
   const EXCLUDE = new Set([".git", ".godot", "node_modules", "export", "qa", ".myrd", ".myrd-platform", "build"]);

@@ -1,0 +1,14 @@
+{
+ "bootHiddenMs": true,
+ "steps": [
+  {
+   "step": "A center(195,422)",
+   "note": "gate tap point"
+  },
+  {
+   "step": "B start(195,490)",
+   "note": "开始（轻松 4×4）按钮"
+  }
+ ],
+ "consoleErrors": []
+}

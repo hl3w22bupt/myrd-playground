@@ -14,7 +14,7 @@ export function buildSettlement(facts: {
   elapsedSec: number; kills: number; waveIndex: number;
   topUpgrades: Array<{ id: UpgradeId; count: number }>;
   nextWaveRamp: number; bankGain: number;
-}, reason: 'timeout' | 'overrun'): SettlementView {
+}, reason: 'timeout' | 'defeat'): SettlementView {
   const headline = reason === 'timeout' ? `守住了 ${facts.waveIndex} 浪！` : `第 ${facts.waveIndex} 浪被冲散了`;
   const upRows = facts.topUpgrades.length > 0
     ? facts.topUpgrades.map((u, i) => `${i + 1}. ${UPGRADE_LABEL[u.id]} ×${u.count}`)

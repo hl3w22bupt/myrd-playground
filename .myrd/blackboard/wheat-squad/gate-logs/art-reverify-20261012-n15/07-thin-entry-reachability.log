@@ -1,0 +1,7 @@
+# ⑦ 三入口可达性 + 适配视图↔单源 palette 亲核（N15 升格后 · 不转信 ac-15）· HEAD=ed3b99b
+[i] adapter 形态: 派生文件（gate-adapter 视图）
+[PASS] 单源/适配视图/slug 入口三面 8 色 palette 逐值全等（8 keys）
+[PASS] adapter 注入 id/slug=wheat-squad，派生件非第二真源（ac-15 域）美术侧独立复核一致
+EXIT=0
+—— wheat-squad 契约合计 15 PASS / 0 FAIL ——
+⑦c root tests/contract 链跑套件 EXIT=0

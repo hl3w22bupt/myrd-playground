@@ -17,9 +17,13 @@ export interface SimConfig {
   wave: { seconds: number; restSeconds: number };
   upgrade: { poolSize: number; firstAtSec: number };
   firstKillBudgetSec: number;
-  feedback: { hitFlashMs: number; latencyBudgetMs: number };
+  feedback: { hitFlashMs: number; latencyBudgetMs: number; minChannelsPerOp: number };
   perf: { maxOnScreenEntities: number };
-  runDuration: { targetMinSec: number; targetMaxSec: number };
+  runDuration: {
+    victoryWaves: number; // 通关波次：waveIndex 越过即 victory（ac-a2 主结局）
+    p50MinSec: number; p50MaxSec: number; p90MaxSec: number; sampleSeeds: number; // A2 时长带（机判面在契约，内核只存档）
+    hardTimeoutSec: number; // 硬超时保底（reason=timeout）
+  };
 }
 
 export interface Captain { pos: Vec; target: Vec | null; hp: number; invulnUntilTick: number }
@@ -44,7 +48,7 @@ export interface SimState {
   cfg: SimConfig;
   tick: number; // fixed-step 帧号
   phase: 'running' | 'ended';
-  endedReason: 'timeout' | 'overrun' | null;
+  endedReason: 'timeout' | 'defeat' | 'victory' | null;
   captain: Captain;
   mates: Squadmate[];
   pests: Pest[];
@@ -66,6 +70,8 @@ export interface SimState {
   firstKillTick: number | null;
   firstUpgradeTick: number | null;
   lastFeedbackLatencyTicks: number | null; // fv-4 机判面：命中 tick → 反馈上屏 tick 差
+  firstCoreActionTick: number | null; // A1 埋点面：首次核心操作（首次拖动= captain.target 首次非空）的 tick → first_core_action_at
+  feedbackEvents: Array<{ opId: string; tick: number; latencyMs: number; channels: string[] }>; // A4 埋点面：每操作反馈事件（channels ≥ minChannelsPerOp）
 }
 
 const UPGRADE_TARGET_SEC = (st: SimState): number => (st.cfg.upgrade.firstAtSec * 1000) / st.cfg.stepMs;
@@ -90,6 +96,7 @@ export function createSim(cfg: SimConfig, seed: number): SimState {
     kills: 0, xp: 0, upgradesPicked: [], choices: null,
     speedMul: 1, magnetRadiusPx: 96, nextUpgradeXp: 5,
     firstKillTick: null, firstUpgradeTick: null, lastFeedbackLatencyTicks: null,
+    firstCoreActionTick: null, feedbackEvents: [],
   };
 }
 
@@ -132,8 +139,15 @@ function killPest(st: SimState, p: Pest, idx: number): void {
   const flashTicks = Math.max(1, Math.round(flashMs / st.cfg.stepMs));
   st.flashes.push({ x: p.pos.x, y: p.pos.y, bornTick: st.tick, endTick: st.tick + flashTicks });
   if (st.lastFeedbackLatencyTicks === null || st.tick - st.flashes[st.flashes.length - 1].bornTick < st.lastFeedbackLatencyTicks) {
-    st.lastFeedbackLatencyTicks = 0; // 同帧入队 → 判定到反馈 0 逻辑帧（≤150ms 预算的机判事实）
+    st.lastFeedbackLatencyTicks = 0; // 同帧入队 → 判定到反馈 0 逻辑帧（A4 预算的机判事实）
   }
+  // A4 埋点面：击杀操作反馈事件（同 tick = latency 0ms；通道数 ≥ minChannelsPerOp 由契约断言）
+  st.feedbackEvents.push({
+    opId: `kill#${st.kills}@t${st.tick}`,
+    tick: st.tick,
+    latencyMs: 0,
+    channels: ['flash', 'particles', 'pickup-spawn', 'hud-kills'],
+  });
   for (let i = 0; i < 3; i += 1) {
     const a = st.cfg.rng.next() * Math.PI * 2;
     st.particles.push({ pos: { x: p.pos.x, y: p.pos.y }, vel: { x: Math.cos(a) * 60, y: Math.sin(a) * 60 }, bornTick: st.tick, kind: 'wheat' });
@@ -146,6 +160,9 @@ export function stepSim(st: SimState, dtMs: number): void {
   if (st.phase !== 'running') return;
   st.tick += 1;
   const stepSec = st.cfg.stepMs / 1000;
+
+  // A1 埋点面：首次核心操作 = 首次拖动（captain.target 首次非空）→ first_core_action_at
+  if (st.firstCoreActionTick === null && st.captain.target !== null) st.firstCoreActionTick = st.tick;
 
   // 队长移动（目标点插值；speedMul 由 speed 强化）
   const sp = st.cfg.captain.speedPxPerSec * st.speedMul * stepSec;
@@ -163,7 +180,13 @@ export function stepSim(st: SimState, dtMs: number): void {
   // 波次状态机（e-wave-manager）
   if (st.inRest) {
     st.waveTimerMs -= dtMs;
-    if (st.waveTimerMs <= 0) { st.inRest = false; st.waveIndex += 1; st.waveTimerMs = st.cfg.wave.seconds * 1000; }
+    if (st.waveTimerMs <= 0) {
+      st.inRest = false; st.waveIndex += 1;
+      if (st.waveIndex > st.cfg.runDuration.victoryWaves) { // ac-a2：通关波次达成 → victory 结算（主结局）
+        st.phase = 'ended'; st.endedReason = 'victory'; return;
+      }
+      st.waveTimerMs = st.cfg.wave.seconds * 1000;
+    }
   } else {
     st.waveTimerMs -= dtMs;
     st.spawnTimerMs -= dtMs;
@@ -214,9 +237,12 @@ export function stepSim(st: SimState, dtMs: number): void {
       && st.tick >= st.captain.invulnUntilTick) {
       st.captain.hp -= st.cfg.enemy.contactDamage;
       st.captain.invulnUntilTick = st.tick + Math.round(800 / st.cfg.stepMs); // 0.8s 无敌帧（实现面调参；接触非每帧扣血）
+      st.feedbackEvents.push({ // A4：受击操作反馈（视觉呼吸圈=渲染层读 invuln、击退分离、HP HUD）
+        opId: `hit@t${st.tick}`, tick: st.tick, latencyMs: 0, channels: ['flash-invuln', 'knockback', 'hud-hp'],
+      });
       const bl = Math.max(1, Math.hypot(dx, dy));
       p.pos.x -= (dx / bl) * 24; p.pos.y -= (dy / bl) * 24; // 接触分离（防贴合连扣）
-      if (st.captain.hp <= 0) { st.phase = 'ended'; st.endedReason = 'overrun'; return; }
+      if (st.captain.hp <= 0) { st.phase = 'ended'; st.endedReason = 'defeat'; return; }
     }
   }
 
@@ -246,9 +272,9 @@ export function stepSim(st: SimState, dtMs: number): void {
     if (st.tick > st.flashes[i].endTick) st.flashes.splice(i, 1);
   }
 
-  // 单局时长目标（fv-2：3–5 分钟；timeout = 打满目标上限自然结算）
+  // 单局时长（ac-a2：victory 为主结局；timeout = 硬超时保底）
   const elapsedSec = (st.tick * st.cfg.stepMs) / 1000;
-  if (elapsedSec >= st.cfg.runDuration.targetMaxSec) { st.phase = 'ended'; st.endedReason = 'timeout'; }
+  if (elapsedSec >= st.cfg.runDuration.hardTimeoutSec) { st.phase = 'ended'; st.endedReason = 'timeout'; }
   void UPGRADE_TARGET_SEC;
 }
 
