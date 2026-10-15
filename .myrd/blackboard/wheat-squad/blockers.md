@@ -6,6 +6,14 @@
 
 ## R1 复测收口轮当前基线（2026-10-15 · 主策划 · N0 开工前置）
 
+### N1 · 策划批收口（2026-10-15 · spec v1.4 已 approved · 链 v6）
+
+- **spec 版本号（链上实况，刷新）**：链 **v6 `cmv8xcexk0009m9dj6ev1dj0r` · approved · meta.version=1.4**（2026-10-15）· v1..v5 superseded 零覆盖 · approved 唯一回查 PASS · 导出件 + 适配视图已刷新（锚 `updatedAt=2026-10-15T02:35:50.260Z`）· verify.sh 五步复跑全绿（契约对账 v1.4）
+- **唯一增量**：meta.retestProtocol 三条款（①未绑 HEAD sha 一律「未判定·待采」②A2 模拟局/A3 真人局口径不混算 ③连击清零沿 baselineProtocol 单源 + 同一判据连续 2 轮红 → 升级查判据）——**numeric/acceptance/world/entities/levels/assets 六段零触碰（建版器守卫机判）· A1/A2/A4 阈值零漂移（红线）**
+- **approve 代持声明**：任务书明示「交主策划 approve」→ 代持人 = 主策划；QA 四要素预审 APPROVE-READY（回执 `games/wheat-squad/qa/spec-v14-pre-review.md` · QA-WS-V14-20261015-01）；红线不失效——主人一句否决 → 新修订置 draft、v6 superseded、契约随最新 approved 版重定基准
+- 通道实录：POST revisions → 201 draft · POST approve → 200 approved · 证据 `gate-logs/r2-recheck-20261015/01·02·03·04`
+
+
 - **黑板路径**：`.myrd/blackboard/wheat-squad/`（levels.md / assets.md / blockers.md 三件套 + style-card-v1 + gate-logs）——「一游戏一子目录」判例沿袭
 - **spec 版本号（链上实况）**：链 **v5 `cmv7hekf3000mjofivl4ebhdf` · approved · meta.version=1.3**（acceptance 16 条 · A1–A5+a4b）· 2026-10-15 API 实查 approved 唯一 · 导出件 `.myrd/spec/wheat-squad/design-spec.json` + 门禁适配视图 `.myrd/spec/design-spec.json` 与链上**深等零漂移**（锚核 PASS，updatedAt 双边 `2026-10-14T02:20:27.925Z`）
 - **分支与 HEAD**：团队续接分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d`（本 run 任务书分支约定：全部提交直落此分支，不建新分支）· R1 成果线（兄弟线 `myrd/r1-spec-v11-qa @ 5a6b979`）已按双线合流判例 `merge --no-ff` 合入 → **合流基线 HEAD `c6f9ea4`**（树净）；冲突裁定 = 游戏面/spec/子黑板/routines(N10/N13)/统一契约器/server 壳取 R1 线代际（= v15 LIVE 同源壳），顶层黑板 = 工作室共板 ∪ game-9 归档区，技能件 = 平台注入版

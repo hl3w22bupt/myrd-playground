@@ -328,7 +328,13 @@
           "dy"
         ]
       },
-      "revision_note": "v1.3（2026-10-14 · R1 打磨轮单点修订）：assets 登记集闭合（B 案裁决）。①补登 4 件既有件（ui-kit-01/sub-icon/sub-sharecard-5x4/sub-shots-3）——消除 ac-art-2 「清单外未登记资产 = 违例」statement 字面与机判窄面的判定口径二义（QA 驳回③升级项，主策划裁决见 signoff-r1-ambiguity-review.md：B 案登记进单源，statement 字面零改动）；②R1 美术特效批 3 件入册（fx-kill-burst/fx-hit-shock/fx-hud-channels，feedbackChannels 绑 A4 视觉通道，任务书「视觉通道绑资产 id 供 check 复算」）；manifest 同步 v3（13 件 = 封顶）。零改动段：numeric（逐字节冻结）/acceptance 16 条 statement/world/entities/levels；ac-11 扩严为逐件对账登记集（检测规则加强，非放宽）。",
+      "retestProtocol": {
+        "a2a3ScopeRule": "②A2 口径澄清（不混算）：A2 单局时长带 = 模拟局口径——自动化可判定指标，仅以 headless 种子局（numeric.runDuration.sampleSeeds）机判 P50/P90，真人局样本不进 A2 分母；A3 自然重开意愿 = 真人局口径——结论面仅以试玩记录卡真人回填判定，模拟局/机判数据不得替代或折算进 A3 结论面（A3 机制面机判仅证重开链路在位）。两口径独立采样、独立判定、互不抵充。",
+        "purpose": "R1 复测收口轮判读纪律（2026-10-15 任务书三条款）：仅增补，不改任何既有阈值/条款/数值；与 meta.baselineProtocol（冻结计数器单源）、meta.feedbackProtocol（修订接入协议）并行不互斥。",
+        "shaBindingRule": "①未绑新 HEAD sha 一律「未判定·待采」：任何实测/复测报告的判定值，若未绑定产生该值的工作区 HEAD 全长 commit sha（git rev-parse HEAD），则该判据本轮一律记「未判定·待采」——不得计绿、不得计红、不计入冻结计数器。绑 sha 有效性复核（QA 面）= git diff <报告绑定 sha>..<当前 HEAD> -- <受测源面> 为空（源面零变更则绑定点数值仍有效）。",
+        "streakRule": "③判据连击纪律：连击清零沿 meta.baselineProtocol 单源（连续 3 轮四件套全不达才计数前移，任一轮部分达标即重置——本条只引用不重定义）；另立单判据连击：同一判据 id 连续 2 轮判红（「未判定」不计红）→ 下一轮开工自动升级「查判据」——先复核判据本体（阈值/口径/check 脚本）是否失真，查实判据失真走 revision 修订、查实实现缺陷才走修复批；查判据期间该判据记「查判据中」，禁止未查先修连烧轮次。"
+      },
+      "revision_note": "v1.4（2026-10-15 · R1 复测收口轮判读纪律增补）：仅新增 meta.retestProtocol 三条款——①未绑 HEAD sha 一律「未判定·待采」（绑 sha 有效性 = 报告绑定点到当前 HEAD 受测源面 diff 为空）；②A2 模拟局口径（headless 种子局机判）/ A3 真人局口径（记录卡真人回填）独立采样判定不混算；③连击清零沿 baselineProtocol 单源 + 同一判据连续 2 轮红 → 升级查判据（先查判据本体失真再定修复，禁止连烧轮次）。零改动段：numeric（逐字节冻结）/acceptance 16 条/world/entities/levels/assets；A1/A2/A4 阈值一律不动（红线，守卫机判）。任务书「v1.1→v1.2」口径偏差：链实况已在 v1.3 approved（2026-10-14），本修订为链 v6。",
       "slug": "wheat-squad",
       "telemetryFields": {
         "feedback_latency_ms": "单次操作到反馈呈现的毫秒延迟（内核同 tick 记 0，视觉层按 hitFlashMs 记）",
@@ -342,7 +348,7 @@
         "run_start": "局开始事件（v0.1 既有，保留）"
       },
       "title": "麦浪小队",
-      "version": "1.3"
+      "version": "1.4"
     },
     "numeric": {
       "DEFAULT_SEED": 20261011,
@@ -486,13 +492,13 @@
     }
   },
   "_platform": {
-    "id": "cmv7hekf3000mjofivl4ebhdf",
-    "version": 5,
+    "id": "cmv8xcexk0009m9dj6ev1dj0r",
+    "version": 6,
     "status": "approved",
-    "parentSpecId": "cmv60scie003hm9qqu91foe7v",
+    "parentSpecId": "cmv7hekf3000mjofivl4ebhdf",
     "projectId": "cmto0g28j0002m9sqnvjdy8o7",
     "title": "麦浪小队（wheat-squad）",
-    "createdAt": "2026-10-14T02:19:18.879Z",
-    "updatedAt": "2026-10-14T02:20:27.925Z"
+    "createdAt": "2026-10-15T02:33:18.488Z",
+    "updatedAt": "2026-10-15T02:35:50.260Z"
   }
 }
