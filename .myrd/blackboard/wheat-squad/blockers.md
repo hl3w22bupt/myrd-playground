@@ -6,6 +6,16 @@
 
 ## R1 复测收口轮当前基线（2026-10-15 · 主策划 · N0 开工前置）
 
+### N2 · 程序批收口（2026-10-15 · sha 注入基建 + 复采三绿 + A3 待采）
+
+- **sha 对账结论（任务书三态）**：线上 v15 部署物（main.mjs md5 `f3a6a6b4…` LIVE 实取）`__G2WS_BUILD` 计数 = 0 → **「无法确认·需重部署」**；处置 = `tools/build.mjs` 注入 `__G2WS_BUILD={gitSha,specAnchor}`（确定性字段零时间戳，env 覆写 ≠ 真实 HEAD 即 fail-closed 防伪锚）→ 重建 ×2 逐字节一致 → 重部署 v16 后闭合（见部署台账）
+- **复采结果（绑 sha `7b45b44072747ca17af96f81dd109b926745f3d4`，与 R1 轮逐项同值 = 确定性复现）**：A1 **绿** 1.71s ≤10s（5 种子全 ≤30s）· A2 **绿** P50=168.1s ∈[90,180]（P90 ≤300 · victory 20/20 · 样本 20/20 满）· A4 **绿** max 0ms ≤100ms（通道 min 4 · fx 全绑 · 帧 P95=0.002ms）· A3 **未判定·待采**（机制面 PASS · 结论面 0/5 无真人证据——按 v1.4 retestProtocol①②不判红绿不烧余量）
+- **全量契约**：run-all **16 PASS / 0 FAIL / 1 PEND**（PEND = ac-a3 结论面，ALL_GREEN=false 如实）· 五步门禁 VERIFY_EXIT=0
+- **复测报告**：`games/wheat-squad/docs/r1-recheck-report.md`（逐条 id|阈值|实测|事件名|脚本|样本量|三态 + 原始事件计数对照 + A2 样本量进度）
+- 证据：`gate-logs/r2-recheck-20261015/05..09`
+
+
+
 ### N1 · 策划批收口（2026-10-15 · spec v1.4 已 approved · 链 v6）
 
 - **spec 版本号（链上实况，刷新）**：链 **v6 `cmv8xcexk0009m9dj6ev1dj0r` · approved · meta.version=1.4**（2026-10-15）· v1..v5 superseded 零覆盖 · approved 唯一回查 PASS · 导出件 + 适配视图已刷新（锚 `updatedAt=2026-10-15T02:35:50.260Z`）· verify.sh 五步复跑全绿（契约对账 v1.4）

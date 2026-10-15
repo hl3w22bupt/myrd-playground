@@ -1,0 +1,5 @@
+DURATION-LOG: 20 种子 P50=168.1s P90=168.1s victory=20/20 带内=true → /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv8uj9ye0028m95ffoxzk0rc/games/wheat-squad/qa/local-duration-log.json
+(node:83470) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv8uj9ye0028m95ffoxzk0rc/games/wheat-squad/src/kernel/sim.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv8uj9ye0028m95ffoxzk0rc/games/wheat-squad/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
