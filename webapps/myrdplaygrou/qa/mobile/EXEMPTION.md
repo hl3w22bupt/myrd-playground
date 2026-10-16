@@ -16,4 +16,4 @@
 
 mobile-web-smoke 11 项中：**7 项 PASS**（网络全通 / console 零错误 / 首帧非纯色 / 触摸到达 DOM / 无横向溢出 / FPS 达标 / ——均为 Web 应用核心可用性指标），**4 项游戏向判定不适用**（如上，非应用缺陷）。机器结论如实记录为「7 PASS + 4 豁免」，不伪造全绿。
 
-复测轮次记录：r1 网络项 FAIL（相对引用 404）→ 修复（base 锚定 + 资产路由）→ r2 起网络项 PASS；r2 后 4 项游戏向判定持续为「不适用豁免」。r1 证据留档 `report-r1-network404.json`。
+复测轮次记录：r1 网络项 FAIL（相对引用 404）→ 修复（base 锚定 + 资产路由）→ r2 起网络项 PASS；r2 后 4 项游戏向判定持续为「不适用豁免」。r1 证据留档 `report-r1-network404.json`。r3（2026-10-16 13:55）webapp-smoke（std-skills/web-app-dev/scripts/webapp-smoke.mjs，web 口径）对线上 v11 复测：退出码 0，WEBAPP_SMOKE: PASS（网络/console/首屏内容/触摸管线/视口 7 项全过，触控响应为静态页提示性 warn）——该口径本就不含 canvas/帧差/音频游戏向判定，无需豁免；canonical `report.json` 自 r3 起为该 PASS 报告，r2 游戏向报告留档 `report-r2-gamescript.json`（截图 gs-phase-*.png）。

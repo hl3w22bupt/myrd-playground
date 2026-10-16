@@ -57,6 +57,7 @@
 | r1 | 门禁网络项 FAIL：网关 308 去尾斜杠 → 相对引用 404 | base 锚定 + 资产改经壳路由（v5） | PASS |
 | r2 | 桌面双列失效：趋势卡 auto-placement 掉入第 1 列 | 显式 grid 定位（v8） | PASS |
 | r2 | 同币种（源=目标）时趋势请求打到非法组合 | 防呆：提示「换算恒为 1:1，趋势无意义」 | 覆盖 |
+| r3 | canonical report.json 此前为游戏向脚本 FAIL 报告（4 项游戏向判定不适用），web 口径 PASS 证据被覆盖 | 归档游戏向报告为 report-r2-gamescript.json，webapp-smoke（web 口径）复测线上 v11：exit 0 + WEBAPP_SMOKE: PASS，落为 canonical report.json | PASS（7 项全过） |
 | — | 验收脚本自身 3 处缺陷（币对设置不全/CDP 离线模拟不可靠/HTTP 缓存假成功） | 修脚本：完整币对/重启 Chrome+域名映射/clearBrowserCache | 15/15 |
 
 ## 三、人工复核清单（**待目标 owner 回填，机器不代判**）
