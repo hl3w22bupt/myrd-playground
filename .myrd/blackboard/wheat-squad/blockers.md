@@ -14,7 +14,8 @@
 | A4 重部署+新锚 | **v20 running @ `3828f49`**（manifestPath 单受理）· **内嵌 sha ≡ 报告绑定 sha 逐字符全等** · LIVE 冒烟 victory 167s 零错误；首探旧字节=切换窗口如实留痕 | gate-logs `08..13` · 报告 §新锚三点对账 |
 | A5 QA 固化核对 | **绿项固化成立**（16/16 check 薄壳在盘 + 当前 HEAD 实跑 16 PASS）；**QA 终局签字**：A1/A2/A4 绿（新锚）· A3 未判定·待采 · 分流收口成立 | triage 表 v2（QA-WS-R1RE-TRIAGE-20261016-02） |
 | A6 A3 任务单 | 任务单 **APPROVE-READY**（5 真人/防污染四条/观察点 O1-O4/达标 ≥4/5/原话留档）；**执行面升级主人** | `docs/a3-playtest-task-order-20261016.md`（QA-WS-A3-TASK-20261016-01） |
-| 提交链 | N0 `debda99` → A1/A2 `4eccaf2` → A3 `3828f49` → A4 `bcd35ee` → A6 `3c370ab`（全部直落团队分支，无 rebase） | git log |
+| 提交链 | N0 `debda99` → A1/A2 `4eccaf2` → A3 `3828f49` → A4 `bcd35ee` → A6 `3c370ab` → A7 `0ff651f`（全部直落团队分支，无 rebase） | git log |
+| 接手轮程序复核 | **verify-claims 独立实跑 @ HEAD `0ff651f`，A1-A7 声称全部复核成立**：五步门禁 `VERIFY_EXIT=0`（56/0 + 16/0/1PEND + SMOKE + 双 GUARD）· 新锚三点链复验（LIVE md5 `67a60360` ≡ build 逐字节 · 内嵌 sha ≡ 报告绑定 `4eccaf29` 逐字符）· 固化面 16/16 同名对应 · 复核零源面变更零新增阻塞 | `gate-logs/r1re-claims-recheck-20261016/00..02` |
 
 ### 升级主人（本轮 · 带证据）
 

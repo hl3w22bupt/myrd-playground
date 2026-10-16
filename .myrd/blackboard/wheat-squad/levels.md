@@ -15,6 +15,8 @@
 | 不达判据 id 清单 | **ac-a3-restart-willingness（结论面）**——样本不足型（0/5 真人）；冻结计数器 **0/3 维持**（两轮未采，既未消耗也未累积，如实登记）；「好不好玩」终裁归主人 |
 | 证据 | `gate-logs/r1re-recheck-20261016/00..13`（对账/补采/门禁/部署/LIVE 冒烟全链原始输出）· 报告 `games/wheat-squad/docs/r1re-recheck-report-20261016.md` · 分流表 `docs/r1re-triage-table-20261016.md` · 任务单 `docs/a3-playtest-task-order-20261016.md` |
 
+**程序线 verify-claims 接手复核一行**（2026-10-16 · 游戏程序 · 独立实跑 @ HEAD `0ff651f`，不照抄声称）：接手 A1-A7 完成态后五步门禁独立复跑全绿（统契约 **56/0** · 自有 **16/0/1PEND** · WS-SMOKE victory 167s 真实载荷 `run_duration_ms=167984` + 四事件 + console 零错误 · 双 GUARD PASS，`VERIFY_EXIT=0`）；新锚三点链在当前 HEAD 复验成立——LIVE `main.mjs` md5 `67a60360` ≡ 本仓 build 逐字节、内嵌 `__G2WS_BUILD.gitSha` ≡ 报告绑定 `4eccaf29` **逐字符全等**、`git diff 4eccaf2..HEAD` 源面空（HEAD 相对锚仅 docs/黑板，构建自指单行滞后不变量维持）；绿项固化面独立核对 = spec acceptance **16/16 全带 check** ↔ `tests/contract/checks/` 16 件同名一一对应实跑全过。复核零源面变更，A1-A7 结论全部维持，不新增不推翻。证据 `gate-logs/r1re-claims-recheck-20261016/00..02`。
+
 
 
 ## R1 复测收口轮（2026-10-15 · N5 台账回填 · 主策划整合）
