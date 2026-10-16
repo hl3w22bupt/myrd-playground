@@ -8,7 +8,7 @@
 |---|---|---|---|
 | **game-9《汽车连连看》**（一线已交付） | 维持：等主人试玩拍板 | **零接触** | 顶层三件套（存量） |
 | **g2-blocks《熔炉方块》** | 维持：提审就绪 · 被动触发器 | **零接触**（任务书红线：无主人凭证不越权提审） | 兄弟 run 工作区 |
-| **wheat-squad《麦浪小队》**（第二产品线） | **R1 复测三态分流收口轮收口**：三点对账链不成立（HEAD≠线上≠报告）→ 全量按「未判定·待采」→ **绑新 sha `4eccaf29` 补采全绿**（A1 1.71s · A2 P50=168.1s + start→end 事件链 20/20 · A4 0ms）· **绿 15 项固化 ✓（16/16 check 薄壳实跑）**· spec **v1.4 = 链 v6 approved** · **v20 LIVE @ `3828f49`**（LIVE 内嵌 sha ≡ 报告绑定 sha 逐字符全等 + WS-LIVE-SMOKE PASS）· **A3 未判定·待真人**（任务单 APPROVE-READY · 圈定 5 名真人归主人 · 机器不代采 · 冻结计数器 0/3）——**非「已完成」** | 双轨收口轮 A1-A7 全闭环 + 接手复核 + 美术复证 r12（详见 wheat-squad/blockers.md「R1 复测三态分流收口轮」区段） | 链 v6 `cmv8xcexk0009m9dj6ev1dj0r` · 分流表/补采报告 `docs/r1re-*.md` · QA-WS-R1RE-TRIAGE-20261016-01/02 · A3 任务单 `docs/a3-playtest-task-order-20261016.md` |
+| **wheat-squad《麦浪小队》**（第二产品线） | **R1 复测三态分流收口维持**（复证轮 2026-10-16 · HEAD `af399d7`）：绑新 sha `4eccaf29` 补采全绿维持（A1 1.71s · A2 P50=168.1s 链 20/20 · A4 0ms）· **绿 15 项固化 ✓**· spec **v1.4 = 链 v6 approved** · **v21 LIVE @ `af399d7`**（复证发布·零字节变化：LIVE 内嵌 sha ≡ 报告绑定 sha 逐字符全等 · md5 ≡ 仓内 build 逐字节 · WS-LIVE-SMOKE PASS victory 167s · HEAD 源面 diff 空）· v2 追加三件 QA 复签待 QA 节点 · **A3 未判定·待真人**（0/5 · 任务单 APPROVE-READY · 圈定 5 名真人归主人 · 机器不代采 · 冻结计数器 0/3）——**非「已完成」** | 双轨任务书重发复证轮（verify-claims 独立实跑不照抄声称）+ 部署轮 r14（详见 wheat-squad/blockers.md「复证轮 + 部署轮 r14」区段） | 链 v6 `cmv8xcexk0009m9dj6ev1dj0r` · 分流表/对账表/补采报告 `docs/r1re-*.md` · QA-WS-R1RE-TRIAGE-20261016-01/02 · 复证证据 `wheat-squad/gate-logs/r1re-prog-reverify-20261016/01..07` |
 | **第三产品线（单场景塔防）** | **选型拍板完成 · 待主人审签**（止步 T+0，未立项实现）：主策划拍板单场景塔防（IAA 主导·微肉鸽·确定性战局·产线 TS+Canvas）· memo v1 四字段+视觉基调全带出处（《赵云与阿斗》D25×D16 互证）· 品类查重以两线 spec 文本为基准零机制复用 · 调研简报 D15-D28 带出处（含能力轴实测 + **美术成本档位五候选**）· spec v1 draft 在链（**不 approve，审签归主人**）· **风格卡 v0 四要素 0 图**——主人未过视觉方向前零实现动作 | memo v1 + 调研简报 + 风格卡 v0 落黑板 | 链 `cmvabm4kh001jm92c4qtjy9a7` v1 draft · `line3-memo-v1.md` · `research/line3-research-brief-20261016.md` · `line3-style-card-v0.md` |
 
 ## R1 轮台账速览（2026-10-14 · wheat-squad · 全文见 wheat-squad/blockers.md「R1 收口台账」）
@@ -26,6 +26,7 @@
 2. **B 线 3**：调研简报（D15-D28 带出处 + 能力轴实测 + 美术成本档位五候选）→ memo v1 → 主策划拍板单场景塔防 → spec v1 draft 入链 + 风格卡 v0（0 图，止步 T+0）
 3. **美术复证轮 r12（游戏美术 · HEAD `c73dd31`）**：任务书再重发勘验定性复证而非重做；verify.sh 五步 VERIFY_EXIT=0（16/0/1PEND · SMOKE · 守卫双模式）+ 触达面空 diff（`0ff651f..HEAD` 游戏源/测试/契约/美术面零触碰）+ 轨道 B 美术面亲核零漂移；**零新素材零接线变更**（冻结 13/13 维持 · 线 3 止步 0 图）；证据 `wheat-squad/gate-logs/art-reverify-20261016-r1re2/`。结论仅对 `c73dd31` 有效。
 4. **美术复证轮 r13（游戏美术 · HEAD `9681546` 重锚）**：程序线 QA 驳回 F1/F2/F3 修正后跨线重证——美术交付件+门禁契约输入面空 diff 零触碰，F3 spec README 索引补登亲核认领（与 r7 三入口 palette 同构）；verify.sh 五步 VERIFY_EXIT=0 复现。证据 `wheat-squad/gate-logs/art-reverify-20261016-r1re3/`。结论仅对 `9681546` 有效。
+5. **复证轮 + 部署轮 r14（游戏程序 · HEAD `af399d7`）**：双轨任务书重发→verify-claims 独立实跑复证不重做——新锚三点链维持（报告绑定 `4eccaf29` ≡ LIVE 内嵌逐字符 ≡ 仓内 build 逐字节 · HEAD 源面 diff 空）+ verify.sh 五步 VERIFY_EXIT=0 + 重建 diff 仅 gitSha 单行 + 分流表 v2 维持（QA 复签三件不代签）+ A3 待真人 0/5 + 线3 只读亲核（spec draft 止步 T+0）→ v21 复证发布 @ `af399d7`（零字节变化·WS-LIVE-SMOKE PASS）。证据 `wheat-squad/gate-logs/r1re-prog-reverify-20261016/01..07`。结论仅对 `af399d7` 有效。
 
 ## 2026-10-12 可玩基线轮台账存档（wheat-squad · 按时间序 · N1–N17 原文保留）
 

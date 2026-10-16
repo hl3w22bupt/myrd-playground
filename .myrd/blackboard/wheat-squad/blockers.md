@@ -389,3 +389,36 @@
 - **W-3 第八次复现（维持升级，游戏仓侧不可修）**：页面路 title=汽车连连看；**新增决定性证据两条**——① 页面字节跨坑全等（`/apps/wheat-squad-2/gw` ≡ `/apps/game-9/gw`，md5 `abb7c87b…`，serving 层对所有 app 发同一份壳）；② 壳源码 boot 契约 Godot 专用（`index.js`→`index.wasm.gz.b64`/`index.pck.gz.b64`→`WebAssembly.validate` 硬校验→`new Engine`，无非 Godot 回退分支）+ 资产网关单段 `:name` 路由嵌套 `src/*.mjs` 全 404 实测 → TS 多模块工程经该壳必然 boot 断链。`tools/smoke-live.mjs` 对 LIVE 实测 **`LIVE_SMOKE_EXIT=1`**（预期红 fail-closed，取码紧邻命令）。证据 `gate-logs/deploy-r10-20261013/03`、`04`。
 - **资产路字节核验**：`main.mjs`/`spec.json`/`index.html` 三件 live md5 ≡ HEAD build md5（逐件全等）——v12 部署内容正确在线。
 - **试玩入口处置**：维持暂缓交付（r9 判例延续：页面路串线未解除，避免误测 game-9 壳）；解除判据不变：页面 title=麦浪小队 ⇒ smoke-live PASS。埋点本地日志开关说明已随 `games/wheat-squad/docs/deployment-notes.md` 刷新至 v12（9 事件 · 默认零外发）。wx 包本轮不出（无线上验证锚点）。
+
+## 复证轮 + 部署轮 r14（2026-10-16 · 游戏程序 · 双轨任务书重发 @ HEAD `af399d7`）
+
+> 定性：双轨收口轮任务书**重发**——按 verify-claims 纪律（不照抄黑板声称）在当前 HEAD 独立实跑复证，**不重做**。证据 `gate-logs/r1re-prog-reverify-20261016/01..07`（各带命令/UTC/退出码）。结论仅对 `af399d7` 有效。
+
+### A 轨复证（P0 · 产品线 2 · R1 复测三态分流收口维持）
+
+- **新锚三点链复证维持成立**：报告绑定 sha `4eccaf293b11052041860ff7b0ee3141975258fd` ≡ LIVE `main.mjs` 内嵌 `__G2WS_BUILD.gitSha`（**逐字符全等**）≡ 仓内 `build/main.mjs`（md5 `67a60360d82410d504cd96077ca31cb7` **逐字节**）；工作区 HEAD `98d1fbe→af399d7` 受测源面 diff（src/tests/ci/assets/apphost/spec）= **空**（04 号证据）→ v2 全部判定值绑定有效性维持（retestProtocol①）。
+- **verify.sh 五步门禁 @ `98d1fbe` 复跑 `VERIFY_EXIT=0`**：①统一契约 PASS ②自有契约 16 PASS/0 FAIL/1 PEND（PEND=ac-a3 结论面 0/5 真人，ALL_GREEN=false 如实）③WS-SMOKE PASS（victory 167s · console 零错误）④⑤双 SCOPE-GUARD PASS（01 号证据）。
+- **确定性重建 diff = 仅 `__G2WS_BUILD.gitSha` 单行**（`4eccaf29→98d1fbe`，构建自指滞后不变量；游戏逻辑字节逐字节全等 · specAnchor `cmv8xcexk…@v6:approved` 不变）；重建后仓内产物**已恢复原样**（build 内嵌维持 `4eccaf29`，不随 docs 提交漂移锚——02 号证据）。
+- **分流表 v2 终局维持：绿 15 / 红 0 / 未判定 1（ac-a3 结论面待真人 0/5）**；v2 追加三件 QA 复签**仍归 QA 节点**（程序不代签，PROG-WS-R1RE-REVERIFY-20261016-02 复证签字在 `docs/r1re-triage-table-20261016.md` §v2 复证登记）；红 0 条 → 条件触发链（连续 2 轮红）不触发；阈值红线零触碰；**A3 真人采集维持未判定·待采，机器不代采**（任务单 APPROVE-READY 维持，待主人圈定 5 名真人）。
+- **对账表复证节落档**：`docs/r1re-sha-reconciliation-20261016.md` §四。
+
+### B 轨亲核（P1 · 产品线 3 · 只读零写入）
+
+- 线3 spec 链 `cmvabm4kh001jm92c4qtjy9a7` v1 **status=draft（未 approve，审签归主人）** · memo v1 五件套（四字段+视觉基调）在盘 · 风格卡 v0 四要素 **0 图** · 调研简报 D15-D28 共 14 数据点带出处 · `games/` 零线3 实现目录（**止步 T+0 维持，本轮零实现动作**）· 数值面显式 PEND 不编数。
+
+### 部署轮 r14（v21 · 复证发布 · 产物零漂移也重发，把 LIVE gitRef 绑到当前分支）
+
+- **硬前置三查全过**：①分支 `game/wheat-squad` ≠ main ②推送后远端 `refs/heads/game/wheat-squad` = `af399d7` = 本地 HEAD（ls-remote 全等比对）③`games/wheat-squad/apphost.toml` 在盘（assets_dir=games/wheat-squad/build）。
+- **坑复用**：`cmv36wl94001xm9mxp119q48x`（slug `wheat-squad-2` · GET 核对 sourceId=`wheat-squad` 绑定 ✓ 专属坑复用未新建）。
+- **部署单**：**v21 `cmvafh9i1001em94lwu8osw8u` running/current @ commit `af399d7`**（gitRef=`game/wheat-squad` · manifestPath=`games/wheat-squad/apphost.toml` · mode=bundle · durationMs 834 · 零 errorMessage）。POST 响应体空截断（r10 判例同型）→ GET 复查已受理 **未重发**。
+- **LIVE 自测全绿**（06 号证据）：/health 200 · /gw 200 title=麦浪小队（页面路无串线）· `main.mjs` md5 `67a60360…` live≡local 逐字节 · 内嵌 sha `4eccaf29…` ≡ 报告绑定 sha 逐字符（**v21 重部署零字节变化，锚链未断**）。**WS-LIVE-SMOKE PASS**（`LIVE_SMOKE_EXIT=0`：ready ✓ 拖动击杀 2 → victory 167s → console 零错误，07 号证据）。
+- **产物面判读**：v20→v21 部署字节零漂移（受测源面自 `4eccaf29` 零变更）——本轮重发布为 gitRef 重绑当前分支动作，非内容更新；试玩入口维持 `https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw`（v21 即 A3 采集字节，与 v20 逐字节全等）。
+- **团队产物区**：artifact `cmv3bfs3c002lm9mx7pw3e31a` → hostedAppId `cmv36wl94001xm9mxp119q48x` status=ready（幂等复用，POST 回执在档）。
+
+### 升级/阻塞（口径不变）
+
+| 项 | 状态 | 归属 |
+|---|---|---|
+| A3 真人 5 名圈定与回填 | **维持升级**（0/5，任务单 APPROVE-READY，机判面全就绪仅缺真人） | 主人 |
+| 分流表 v2 追加三件 QA 复签 | 待 QA 节点（F1/F2 修正版证据 `gate-logs/r1re-f1-fix-20261016/`） | QA |
+| 线3 主人审签（命名/视觉方向/spec approve） | spec draft 在链，止步 T+0 | 主人 |

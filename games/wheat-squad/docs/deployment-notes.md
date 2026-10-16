@@ -1,12 +1,13 @@
-# 部署说明 — wheat-squad v1.3（spec 链 v5 · 部署 v15）
+# 部署说明 — wheat-squad v1.4（spec 链 v6 · 部署 v21）
 
-> 更新时间：2026-10-14（deploy 节点 · 部署轮 v15）· 负责人：游戏程序（部署面）· 部署单 v15 `cmv7kaen8001kjofi5p7qyb2l` running/current @ 发布 commit `762742c`（分支 `myrd/r1-spec-v11-qa-cmv7f2hrc004njoty0c4cwuih`，远端 SHA 全等后发起）
+> 更新时间：2026-10-16（游戏程序 · 复证轮 + 部署轮 r14）· 负责人：游戏程序（部署面）· 部署单 **v21 `cmvafh9i1001em94lwu8osw8u` running/current @ commit `af399d7`**（分支 `game/wheat-squad`，远端 SHA 全等后发起；坑 `cmv36wl94001xm9mxp119q48x` wheat-squad-2 · sourceId=wheat-squad）
+> 历史注记：v15（2026-10-14）修「部署字节落后代码」缺陷后，v17→v20（R1 复测收口轮）随 spec v1.4（链 v6）重锚构建指纹至 `4eccaf29`；v21 为复证发布（部署字节与 v20 逐字节全等，gitRef 重绑当前分支，非内容更新）。
 
 ## 试玩入口与现状
 
-- 入口：`https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw`（**A3 正式试玩采集窗开启中**，记录卡 `qa/playtest-collection-round1.md`）
-- **W-3 平台 serving 层页面路由串线：已解除**（v13 起平台侧修复生效）——v15 三点复测 `/gw` title=麦浪小队 HTTP 200，页面路与资产路均为本游戏内容。
-- **v15 部署轮抓到并修复「部署字节落后代码」缺陷（如实披露）**：确定性重建 diff 显示仓内 build/ 为 `8868d0f` 时刻陈旧产物——`spec.json` 缺 v1.3 B 案 assets 补登 4 件（ui-kit-01 / sub-icon / sub-sharecard-5x4 / sub-shots-3），`main.mjs` 的 `__G2WS_SPEC` 内联 spec 落后 v1.3。**v14 线上字节即该陈旧产物**（`bcde4bea…`）。处置 = 重建产物落发布 commit `762742c` → 发布 commit 上复跑五步门禁全绿 → 重部署 v15；v15 线上 `main.mjs` md5 `f3a6a6b4…` ≡ 发布 commit build 逐字节全等，**v1.3 spec 内联 + B 案补登已在线**。其余 9 件产物重建零漂移（构建确定性成立）。
+- 入口：`https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw`（**A3 正式试玩采集窗开启中**，记录卡 `qa/playtest-collection-round1.md`；采集字节 = v21 ≡ v20 逐字节，内嵌 sha `4eccaf29` ≡ 补采报告绑定 sha）
+- **W-3 平台 serving 层页面路由串线：已解除**（v13 起平台侧修复生效）——v21 复测 `/gw` title=麦浪小队 HTTP 200，页面路与资产路均为本游戏内容。
+- **v21 线上自测（2026-10-16）**：/health 200 · `main.mjs` md5 `67a60360…` live≡仓内 build 逐字节 · **WS-LIVE-SMOKE PASS**（ready→拖动击杀 2→victory 167s→console 零错误）。证据 `gate-logs/r1re-prog-reverify-20261016/06·07`。
 
 ## 埋点本地日志开关说明（v1.3 · 9 事件）
 

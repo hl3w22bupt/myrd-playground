@@ -113,3 +113,10 @@
 - **美术四检随门禁复跑全绿**：ac-art-1/2/3 auto PASS · ac-art-4 机制面在档（`gate-logs/deploy-v18-20261015/01`）。
 - **LIVE 字节对账**：线上 main.mjs md5 `ae62534dd4cbb7626f8175906882915b` ≡ 发布 build 逐字节（manifest v4 元文档不进运行时字节，线上即 v4 登记态对应的渲染实现）。
 - 证据：`gate-logs/deploy-v18-20261015/01、05`。结论仅对 `0031d31` 有效。
+
+## 复证轮 + 部署轮 r14 登记（2026-10-16 · 游戏程序 · v21 LIVE @ `af399d7`）
+
+- **资产源面零新增零触碰**：自 v20 发布起 manifest 零 diff；本轮确定性重建 diff = 仅 `__G2WS_BUILD.gitSha` 单行（游戏逻辑字节全等 · specAnchor v6 不变），重建后仓内 build 已恢复原样（内嵌维持 `4eccaf29`）。
+- **LIVE 字节对账（v21）**：线上 `main.mjs` md5 `67a60360d82410d504cd96077ca31cb7` ≡ 仓内 build 逐字节；/gw title=麦浪小队；WS-LIVE-SMOKE PASS（victory 167s 零错误）。v21 与 v20 部署字节逐字节全等（gitRef 重绑动作，非内容更新）。
+- 美术四检随门禁复跑全绿（ac-art-1/2/3 auto · ac-art-4 机制面在档）；提审素材维持止步清单（归主人）。冻结 13/13 维持。
+- 证据：`gate-logs/r1re-prog-reverify-20261016/02·06·07`。结论仅对 `af399d7` 有效。

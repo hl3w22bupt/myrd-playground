@@ -90,3 +90,9 @@
 | level-1 初浪（教学波次） | 🗄️ 上轮口径归档 | 首杀 ≤3s（实测 1.73s）+ 首升 ≤20s（实测 7.04s） | ac-02（`gate-logs/n4-scaffold-20261011/01`） |
 | level-2 涌浪（升温波次） | 🗄️ 上轮口径归档 | 300s 时限自然结算（timeout 主结局——v1.1 起 victory 为新主结局） | ac-03（同上） |
 
+
+## 复证轮登记（2026-10-16 · 游戏程序 · 双轨任务书重发 @ HEAD `af399d7`）
+
+- **关卡面零变更复证**：受测源面 diff `4eccaf29..af399d7`（src/tests/ci/assets/apphost/spec）= 空 → level-1/level-2 元素编号与判据面零漂移；verify.sh 五步 @ HEAD 复跑 `VERIFY_EXIT=0`（16/0/1PEND · SMOKE victory 167s）。
+- **判定锚不变**：绿 15 项判定仍绑补采 sha `4eccaf29`（v21 重部署零字节变化，LIVE 内嵌 sha ≡ 报告绑定 sha 逐字符）；ac-a3 结论面维持未判定·待采（真人 0/5）。
+- 证据：`gate-logs/r1re-prog-reverify-20261016/01..04`。结论仅对 `af399d7` 有效。
