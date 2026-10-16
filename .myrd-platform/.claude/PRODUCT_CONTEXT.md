@@ -2991,6 +2991,91 @@ curl -s -X POST -H "Authorization: Bearer $MYRD_TOKEN" -H "Content-Type: applica
 7. **执行链 token 与 app/goal owner 不一致时**，部署/回写会 403：按纪律停下上报、证据落盘、给出一键恢复命令（本文 §六格式），不绕权限、不伪造「已上线」。
 
 
+## 沉淀知识：《今日汇率》Web 工坊上线受阻实录——webapp-smoke 门禁资产双缺口、fail-closed 拦截与恢复路径（附 HostedApp/deployment/liveUrl 三要素核实）
+
+# 《今日汇率》Web 工坊上线受阻实录：门禁资产双缺口、fail-closed 拦截与恢复路径
+
+> 目标：创建 Web 应用《今日汇率》（goal `cmvaf7imr000jm94le9x48zfu`，projectId `proj-playground`，需求 id `cmvafe4gu0017m94la5mhgc3p`）。
+> 本文全部结论均经平台 API / git 独立复核（2026-10-16），不复述、不臆造；复核方式见 §7。
+
+## 1. 一句话结论
+
+**应用没有上线，且不是败在代码，而是败在平台模板仓库缺两份门禁资产**：门禁判定脚本 `webapp-smoke.mjs` 与 `routines.yaml` 的 `id=webapp-smoke` routine 条目双双缺失，按「来源不可得 → 立即 blocked」硬约束，流水线三个实现节点全部纪律性停止（未建工程、未部署、未绕过），review 节点 pre-hook fail-closed 拦截，两次运行同因失败。**该目标的「上线三要素」中只有 HostedApp 壳存在，deployment id 与 liveUrl 不存在。**
+
+## 2. 上线三要素核实表（本目标 artifacts 回写依据）
+
+| 要素 | 状态 | 值 / 证据 |
+|---|---|---|
+| HostedApp id | ✅ 存在（壳，从未部署） | `cmvaf7imm000hm94lw6y43t0q`（name=今日汇率，slug=`myrdplaygrou`，runtime=sandbox，sourceType=workshop，status=`creating`，createdAt=2026-10-16T03:41:09Z，`deployments=[]`，`liveUrl=null`） |
+| deployment id | ❌ 不存在 | `GET /api/v1/apphost/apps` 返回该应用 deployments 数组为空；goal artifacts 的 blocked 详情明确「部署 0 次」（三轮独立复验一致） |
+| liveUrl | ❌ 不存在 | AppHost 记录 `liveUrl=null`。参照同项目已上线应用（如 farm-yard / game-5），补齐资产并部署成功后格式应为 `https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/` |
+
+要点：AppHost 壳是 express_lane 预检节点（早于工作流运行约 48 分钟）预建的，**不代表工程已落地**——`webapps/myrdplaygrou/` 工程目录从未创建。任何下游环节不得把「壳存在」误读为「已部署」。HostedApp id 已作为 `artifactType=hosted_app` 关联回写至 goal artifacts（含三轮 blocked 复验全记录），deployment id / liveUrl 因客观不存在而无法回写，**不臆造补位**。
+
+## 3. 失败链全景（时间线）
+
+1. **2026-10-16 03:41** express_lane 预检完成，预建 AppHost 壳 `cmvaf7imm000hm94lw6y43t0q`（status=creating）。
+2. **04:29–04:41** 工作流运行 `cmvagxyf3002em94lxhtab3p9`（同型前次运行 `cmvafm2y5001km94leiaezgid`，同样结局）：
+   - **scaffold 节点（completed，结论 blocked）**：核验门禁资产双缺口，落盘 `.myrd/blocked-report.md` 并推送（commit `9eafc4d`，分支 `myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu`）。未建工程、未落风格卡、未改 routines.yaml。
+   - **implement 节点（completed，结论 blocked）**：独立复验后同一结论，追加 blocked 报告（commit `74c749a`）。未建工程、未自造判定器。另核实同目标两条兄弟分支 `myrd/web-goal-…`、`myrd/myrdplaygrou-goal-…` 均无可复用产出。
+   - **deploy/发布节点（completed，结论 blocked）**：第三轮复验（`git fetch --prune` 后 origin/main 仍停在 `6c0df4a9`），仍是双缺口，追加报告（commit `438df52`）。部署 0 次。
+   - **review 节点（failed）**：pre-hook 直接拦截，run 整体 failed。错误原文：`routines.yaml 里没有 id 为 "webapp-smoke" 的 routine（可用：git-hygiene, godot-smoke, game-contract, mobile-web-smoke, experience-pack）—— fail-closed，不放行`。
+3. 此后「指派使用验收复核」agent 试图独立核验 liveUrl，未果（无东西可验）——goal artifacts 中的 agent 产物记录了这一过程。
+
+## 4. 根因：门禁资产双缺口（fail-closed 的正确触发方式）
+
+| # | 缺失资产 | 核验证据 |
+|---|---|---|
+| 1 | 门禁判定脚本 `std-skills/web-app-dev/scripts/webapp-smoke.mjs`（webapp-smoke 移动门禁的机判依据） | 本地 HEAD、`git fetch` 后的 origin/main（`6c0df4a9`）、`git log --all -- "*web-app-dev*"` / `"*webapp-smoke*"` 全历史均为空；`std-skills/` 仅 experience-harness / experience-review / godot-game-dev 三目录 |
+| 2 | `.myrd/routines.yaml` 的 `id=webapp-smoke` routine 条目 | routines.yaml 仅 5 条全游戏向 routine；照抄用模板 `std-skills/web-app-dev/references/webapp-smoke-routine.md` 同样不在库 |
+
+**为什么注入目录里的副本不能救场**：`.myrd-platform/.claude/skills/web-app-dev/` 内确有同名脚本与模板，但它是平台注入的阅读副本（`.gitignore` 含 `.myrd-platform/`）。按「被检方不自造判定器」硬约束：门禁判定脚本必须来自被检仓库本身，否则被检方既能改实现又能改判定，门禁即失效。因此「仓库内来源不可得 → 立即 blocked」是纪律的正确执行，而非 agent 偷懒。
+
+**机制要点**：本平台的 pre-hook 门禁是 **fail-closed** 设计——配置引用了不存在的 routine id 时不告警放行，而是直接拦截节点执行。配置与资产是同一件武器的两半：脚本缺失 → 节点无法自证；routine 条目缺失 → review 纵然想做也无法挂载判定。**编排侧新增工作流引用任何 routine 前，必须先确认目标模板仓库已预置该 routine 及其判定脚本**，否则下游节点 100% 被拦。
+
+## 5. 「status=failed 不可单独为凭」的实例印证
+
+本次 run 顶层状态是 failed，但逐节点看输出：三个 completed 节点的真实结论都是 blocked（纪律性停止），失败发生在 review 的 pre-hook 拦截层。若只看顶层状态会误判为「实现乱跑/代码有缺陷」；若只看 blocked 报告又会漏掉「pre-hook 拦截」这一编排层信号。**复核失败运行的标准动作：`GET /api/v1/workflows/runs/:id` 逐节点读 output 与 result.error，再把 goal artifacts 的 blocked 详情交叉对照**——与知识库《僵尸/孤儿运行轨迹识别与处置手册（status=failed 不可单独为凭）》的口径完全一致，本例是该手册的典型正面样本：blocked 上报完整、证据链可复核、零脏产物（无半成品工程、无未授权部署）。
+
+## 6. 恢复路径（补齐资产后即可原样重跑闭环）
+
+**给运维的最小补齐清单**（改的是模板仓库，不是本仓库）：
+
+1. 补入 `std-skills/web-app-dev/scripts/webapp-smoke.mjs`（判定脚本；平台注入目录 `.myrd-platform/.claude/skills/web-app-dev/scripts/` 有阅读副本可参考移植）。
+2. 补入 `std-skills/web-app-dev/references/webapp-smoke-routine.md`（routines.yaml 追加模板，同上参考注入副本）。
+3. 重新预置模板到 playground 仓库（参考先例：express-lane 任务「对齐门禁脚本验收路径：将 std-skills 三个脚本复制到 docs/skills 并提交」曾做过同型补齐）。
+
+**补齐前的编排侧禁令**：勿再重派本流水线任一下游节点——review preHook 对 routines.yaml 缺 webapp-smoke 会继续 fail-closed，重跑只会再烧一次 token 得到同样的 blocked。
+
+**补齐后的重跑闭环**（发布节点已写明，可原样执行）：前置检查 → 建 `webapps/myrdplaygrou` 工程（gitRef=功能分支 `myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu`）→ 按模板给 routines.yaml 追加 `id=webapp-smoke` → commit/push → 部署 AppHost → 实跑 webapp-smoke 门禁 → 回写 goal artifacts（此时才具备回写 deployment id 与 liveUrl 的条件）。
+
+## 7. 独立复核清单（任何人可重放）
+
+```bash
+# A. 上线三要素（壳在、部署与 liveUrl 不在）
+curl -s "$PLATFORM_API_URL/api/v1/apphost/apps" -H "Authorization: Bearer $MYRD_TOKEN" \
+  | jq '.data[] | select(.slug=="myrdplaygrou") | {id,status,liveUrl,deployments}'
+# 期望：id=cmvaf7imm000hm94lw6y43t0q, status=creating, liveUrl=null, deployments=[]
+
+# B. 运行级失败原因（review pre-hook fail-closed）
+curl -s "$PLATFORM_API_URL/api/v1/workflows/runs/cmvagxyf3002em94lxhtab3p9" \
+  -H "Authorization: Bearer $MYRD_TOKEN" | jq '{status: .data.run.status, result: .data.run.result}'
+
+# C. 节点级 blocked 证据（三节点 output 中的 blocked 上报与 commit 号）
+#    goal artifacts：GET /api/v1/goals/cmvaf7imr000jm94le9x48zfu（artifactType=hosted_app 条目含三轮复验）
+#    git 侧：blocked-report.md @ commit 9eafc4d / 74c749a / 438df52，分支 myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu
+```
+
+## 8. 补齐资产后建工程的既定规格速查（需求已固化，勿重新发明）
+
+- **功能**：汇率换算（≥8 币种：CNY/USD/EUR/JPY/GBP/HKD/KRW/SGD，结果误差 ≤0.01%）+ 近 7/30 天走势折线图（涨跌视觉可区分）。
+- **数据**：公开汇率 API；失败降级缓存并提示「数据可能滞后」；不允许白屏/未捕获报错。
+- **视觉**：浅色清新，色板基调 `#f0f9ff` / `#0ea5e9` / `#22c55e`；换算结果大字号为首要焦点。
+- **交付形态**：HostedApp 单页、免登录、响应式（<768px 与 >1200px 均不破版）；部署过 webapp-smoke 移动门禁后才算闭环。
+
+---
+*来源：goal `cmvaf7imr000jm94le9x48zfu` artifacts、工作流运行 `cmvagxyf3002em94lxhtab3p9` 节点输出、AppHost 记录 `cmvaf7imm000hm94lw6y43t0q`，均为 2026-10-16 实测。*
+
 ## 僵尸/孤儿运行轨迹识别与处置手册（status=failed 不可单独为凭）
 
 # 知识：僵尸/孤儿运行轨迹的识别与处置
@@ -6011,6 +6096,91 @@ curl -s -X POST -H "Authorization: Bearer $MYRD_TOKEN" -H "Content-Type: applica
 6. **工作流 routine 参数带 `#` 会被注入守卫拒绝**（step 命令经 bash -c 拼接）——gameDecisions 里不要带 shell 元字符，或改在 routine step 里写死。
 7. **执行链 token 与 app/goal owner 不一致时**，部署/回写会 403：按纪律停下上报、证据落盘、给出一键恢复命令（本文 §六格式），不绕权限、不伪造「已上线」。
 
+
+## 沉淀知识：《今日汇率》Web 工坊上线受阻实录——webapp-smoke 门禁资产双缺口、fail-closed 拦截与恢复路径（附 HostedApp/deployment/liveUrl 三要素核实）
+
+# 《今日汇率》Web 工坊上线受阻实录：门禁资产双缺口、fail-closed 拦截与恢复路径
+
+> 目标：创建 Web 应用《今日汇率》（goal `cmvaf7imr000jm94le9x48zfu`，projectId `proj-playground`，需求 id `cmvafe4gu0017m94la5mhgc3p`）。
+> 本文全部结论均经平台 API / git 独立复核（2026-10-16），不复述、不臆造；复核方式见 §7。
+
+## 1. 一句话结论
+
+**应用没有上线，且不是败在代码，而是败在平台模板仓库缺两份门禁资产**：门禁判定脚本 `webapp-smoke.mjs` 与 `routines.yaml` 的 `id=webapp-smoke` routine 条目双双缺失，按「来源不可得 → 立即 blocked」硬约束，流水线三个实现节点全部纪律性停止（未建工程、未部署、未绕过），review 节点 pre-hook fail-closed 拦截，两次运行同因失败。**该目标的「上线三要素」中只有 HostedApp 壳存在，deployment id 与 liveUrl 不存在。**
+
+## 2. 上线三要素核实表（本目标 artifacts 回写依据）
+
+| 要素 | 状态 | 值 / 证据 |
+|---|---|---|
+| HostedApp id | ✅ 存在（壳，从未部署） | `cmvaf7imm000hm94lw6y43t0q`（name=今日汇率，slug=`myrdplaygrou`，runtime=sandbox，sourceType=workshop，status=`creating`，createdAt=2026-10-16T03:41:09Z，`deployments=[]`，`liveUrl=null`） |
+| deployment id | ❌ 不存在 | `GET /api/v1/apphost/apps` 返回该应用 deployments 数组为空；goal artifacts 的 blocked 详情明确「部署 0 次」（三轮独立复验一致） |
+| liveUrl | ❌ 不存在 | AppHost 记录 `liveUrl=null`。参照同项目已上线应用（如 farm-yard / game-5），补齐资产并部署成功后格式应为 `https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/` |
+
+要点：AppHost 壳是 express_lane 预检节点（早于工作流运行约 48 分钟）预建的，**不代表工程已落地**——`webapps/myrdplaygrou/` 工程目录从未创建。任何下游环节不得把「壳存在」误读为「已部署」。HostedApp id 已作为 `artifactType=hosted_app` 关联回写至 goal artifacts（含三轮 blocked 复验全记录），deployment id / liveUrl 因客观不存在而无法回写，**不臆造补位**。
+
+## 3. 失败链全景（时间线）
+
+1. **2026-10-16 03:41** express_lane 预检完成，预建 AppHost 壳 `cmvaf7imm000hm94lw6y43t0q`（status=creating）。
+2. **04:29–04:41** 工作流运行 `cmvagxyf3002em94lxhtab3p9`（同型前次运行 `cmvafm2y5001km94leiaezgid`，同样结局）：
+   - **scaffold 节点（completed，结论 blocked）**：核验门禁资产双缺口，落盘 `.myrd/blocked-report.md` 并推送（commit `9eafc4d`，分支 `myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu`）。未建工程、未落风格卡、未改 routines.yaml。
+   - **implement 节点（completed，结论 blocked）**：独立复验后同一结论，追加 blocked 报告（commit `74c749a`）。未建工程、未自造判定器。另核实同目标两条兄弟分支 `myrd/web-goal-…`、`myrd/myrdplaygrou-goal-…` 均无可复用产出。
+   - **deploy/发布节点（completed，结论 blocked）**：第三轮复验（`git fetch --prune` 后 origin/main 仍停在 `6c0df4a9`），仍是双缺口，追加报告（commit `438df52`）。部署 0 次。
+   - **review 节点（failed）**：pre-hook 直接拦截，run 整体 failed。错误原文：`routines.yaml 里没有 id 为 "webapp-smoke" 的 routine（可用：git-hygiene, godot-smoke, game-contract, mobile-web-smoke, experience-pack）—— fail-closed，不放行`。
+3. 此后「指派使用验收复核」agent 试图独立核验 liveUrl，未果（无东西可验）——goal artifacts 中的 agent 产物记录了这一过程。
+
+## 4. 根因：门禁资产双缺口（fail-closed 的正确触发方式）
+
+| # | 缺失资产 | 核验证据 |
+|---|---|---|
+| 1 | 门禁判定脚本 `std-skills/web-app-dev/scripts/webapp-smoke.mjs`（webapp-smoke 移动门禁的机判依据） | 本地 HEAD、`git fetch` 后的 origin/main（`6c0df4a9`）、`git log --all -- "*web-app-dev*"` / `"*webapp-smoke*"` 全历史均为空；`std-skills/` 仅 experience-harness / experience-review / godot-game-dev 三目录 |
+| 2 | `.myrd/routines.yaml` 的 `id=webapp-smoke` routine 条目 | routines.yaml 仅 5 条全游戏向 routine；照抄用模板 `std-skills/web-app-dev/references/webapp-smoke-routine.md` 同样不在库 |
+
+**为什么注入目录里的副本不能救场**：`.myrd-platform/.claude/skills/web-app-dev/` 内确有同名脚本与模板，但它是平台注入的阅读副本（`.gitignore` 含 `.myrd-platform/`）。按「被检方不自造判定器」硬约束：门禁判定脚本必须来自被检仓库本身，否则被检方既能改实现又能改判定，门禁即失效。因此「仓库内来源不可得 → 立即 blocked」是纪律的正确执行，而非 agent 偷懒。
+
+**机制要点**：本平台的 pre-hook 门禁是 **fail-closed** 设计——配置引用了不存在的 routine id 时不告警放行，而是直接拦截节点执行。配置与资产是同一件武器的两半：脚本缺失 → 节点无法自证；routine 条目缺失 → review 纵然想做也无法挂载判定。**编排侧新增工作流引用任何 routine 前，必须先确认目标模板仓库已预置该 routine 及其判定脚本**，否则下游节点 100% 被拦。
+
+## 5. 「status=failed 不可单独为凭」的实例印证
+
+本次 run 顶层状态是 failed，但逐节点看输出：三个 completed 节点的真实结论都是 blocked（纪律性停止），失败发生在 review 的 pre-hook 拦截层。若只看顶层状态会误判为「实现乱跑/代码有缺陷」；若只看 blocked 报告又会漏掉「pre-hook 拦截」这一编排层信号。**复核失败运行的标准动作：`GET /api/v1/workflows/runs/:id` 逐节点读 output 与 result.error，再把 goal artifacts 的 blocked 详情交叉对照**——与知识库《僵尸/孤儿运行轨迹识别与处置手册（status=failed 不可单独为凭）》的口径完全一致，本例是该手册的典型正面样本：blocked 上报完整、证据链可复核、零脏产物（无半成品工程、无未授权部署）。
+
+## 6. 恢复路径（补齐资产后即可原样重跑闭环）
+
+**给运维的最小补齐清单**（改的是模板仓库，不是本仓库）：
+
+1. 补入 `std-skills/web-app-dev/scripts/webapp-smoke.mjs`（判定脚本；平台注入目录 `.myrd-platform/.claude/skills/web-app-dev/scripts/` 有阅读副本可参考移植）。
+2. 补入 `std-skills/web-app-dev/references/webapp-smoke-routine.md`（routines.yaml 追加模板，同上参考注入副本）。
+3. 重新预置模板到 playground 仓库（参考先例：express-lane 任务「对齐门禁脚本验收路径：将 std-skills 三个脚本复制到 docs/skills 并提交」曾做过同型补齐）。
+
+**补齐前的编排侧禁令**：勿再重派本流水线任一下游节点——review preHook 对 routines.yaml 缺 webapp-smoke 会继续 fail-closed，重跑只会再烧一次 token 得到同样的 blocked。
+
+**补齐后的重跑闭环**（发布节点已写明，可原样执行）：前置检查 → 建 `webapps/myrdplaygrou` 工程（gitRef=功能分支 `myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu`）→ 按模板给 routines.yaml 追加 `id=webapp-smoke` → commit/push → 部署 AppHost → 实跑 webapp-smoke 门禁 → 回写 goal artifacts（此时才具备回写 deployment id 与 liveUrl 的条件）。
+
+## 7. 独立复核清单（任何人可重放）
+
+```bash
+# A. 上线三要素（壳在、部署与 liveUrl 不在）
+curl -s "$PLATFORM_API_URL/api/v1/apphost/apps" -H "Authorization: Bearer $MYRD_TOKEN" \
+  | jq '.data[] | select(.slug=="myrdplaygrou") | {id,status,liveUrl,deployments}'
+# 期望：id=cmvaf7imm000hm94lw6y43t0q, status=creating, liveUrl=null, deployments=[]
+
+# B. 运行级失败原因（review pre-hook fail-closed）
+curl -s "$PLATFORM_API_URL/api/v1/workflows/runs/cmvagxyf3002em94lxhtab3p9" \
+  -H "Authorization: Bearer $MYRD_TOKEN" | jq '{status: .data.run.status, result: .data.run.result}'
+
+# C. 节点级 blocked 证据（三节点 output 中的 blocked 上报与 commit 号）
+#    goal artifacts：GET /api/v1/goals/cmvaf7imr000jm94le9x48zfu（artifactType=hosted_app 条目含三轮复验）
+#    git 侧：blocked-report.md @ commit 9eafc4d / 74c749a / 438df52，分支 myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu
+```
+
+## 8. 补齐资产后建工程的既定规格速查（需求已固化，勿重新发明）
+
+- **功能**：汇率换算（≥8 币种：CNY/USD/EUR/JPY/GBP/HKD/KRW/SGD，结果误差 ≤0.01%）+ 近 7/30 天走势折线图（涨跌视觉可区分）。
+- **数据**：公开汇率 API；失败降级缓存并提示「数据可能滞后」；不允许白屏/未捕获报错。
+- **视觉**：浅色清新，色板基调 `#f0f9ff` / `#0ea5e9` / `#22c55e`；换算结果大字号为首要焦点。
+- **交付形态**：HostedApp 单页、免登录、响应式（<768px 与 >1200px 均不破版）；部署过 webapp-smoke 移动门禁后才算闭环。
+
+---
+*来源：goal `cmvaf7imr000jm94le9x48zfu` artifacts、工作流运行 `cmvagxyf3002em94lxhtab3p9` 节点输出、AppHost 记录 `cmvaf7imm000hm94lw6y43t0q`，均为 2026-10-16 实测。*
 
 ## 僵尸/孤儿运行轨迹识别与处置手册（status=failed 不可单独为凭）
 
@@ -9033,6 +9203,91 @@ curl -s -X POST -H "Authorization: Bearer $MYRD_TOKEN" -H "Content-Type: applica
 7. **执行链 token 与 app/goal owner 不一致时**，部署/回写会 403：按纪律停下上报、证据落盘、给出一键恢复命令（本文 §六格式），不绕权限、不伪造「已上线」。
 
 
+## 沉淀知识：《今日汇率》Web 工坊上线受阻实录——webapp-smoke 门禁资产双缺口、fail-closed 拦截与恢复路径（附 HostedApp/deployment/liveUrl 三要素核实）
+
+# 《今日汇率》Web 工坊上线受阻实录：门禁资产双缺口、fail-closed 拦截与恢复路径
+
+> 目标：创建 Web 应用《今日汇率》（goal `cmvaf7imr000jm94le9x48zfu`，projectId `proj-playground`，需求 id `cmvafe4gu0017m94la5mhgc3p`）。
+> 本文全部结论均经平台 API / git 独立复核（2026-10-16），不复述、不臆造；复核方式见 §7。
+
+## 1. 一句话结论
+
+**应用没有上线，且不是败在代码，而是败在平台模板仓库缺两份门禁资产**：门禁判定脚本 `webapp-smoke.mjs` 与 `routines.yaml` 的 `id=webapp-smoke` routine 条目双双缺失，按「来源不可得 → 立即 blocked」硬约束，流水线三个实现节点全部纪律性停止（未建工程、未部署、未绕过），review 节点 pre-hook fail-closed 拦截，两次运行同因失败。**该目标的「上线三要素」中只有 HostedApp 壳存在，deployment id 与 liveUrl 不存在。**
+
+## 2. 上线三要素核实表（本目标 artifacts 回写依据）
+
+| 要素 | 状态 | 值 / 证据 |
+|---|---|---|
+| HostedApp id | ✅ 存在（壳，从未部署） | `cmvaf7imm000hm94lw6y43t0q`（name=今日汇率，slug=`myrdplaygrou`，runtime=sandbox，sourceType=workshop，status=`creating`，createdAt=2026-10-16T03:41:09Z，`deployments=[]`，`liveUrl=null`） |
+| deployment id | ❌ 不存在 | `GET /api/v1/apphost/apps` 返回该应用 deployments 数组为空；goal artifacts 的 blocked 详情明确「部署 0 次」（三轮独立复验一致） |
+| liveUrl | ❌ 不存在 | AppHost 记录 `liveUrl=null`。参照同项目已上线应用（如 farm-yard / game-5），补齐资产并部署成功后格式应为 `https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/` |
+
+要点：AppHost 壳是 express_lane 预检节点（早于工作流运行约 48 分钟）预建的，**不代表工程已落地**——`webapps/myrdplaygrou/` 工程目录从未创建。任何下游环节不得把「壳存在」误读为「已部署」。HostedApp id 已作为 `artifactType=hosted_app` 关联回写至 goal artifacts（含三轮 blocked 复验全记录），deployment id / liveUrl 因客观不存在而无法回写，**不臆造补位**。
+
+## 3. 失败链全景（时间线）
+
+1. **2026-10-16 03:41** express_lane 预检完成，预建 AppHost 壳 `cmvaf7imm000hm94lw6y43t0q`（status=creating）。
+2. **04:29–04:41** 工作流运行 `cmvagxyf3002em94lxhtab3p9`（同型前次运行 `cmvafm2y5001km94leiaezgid`，同样结局）：
+   - **scaffold 节点（completed，结论 blocked）**：核验门禁资产双缺口，落盘 `.myrd/blocked-report.md` 并推送（commit `9eafc4d`，分支 `myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu`）。未建工程、未落风格卡、未改 routines.yaml。
+   - **implement 节点（completed，结论 blocked）**：独立复验后同一结论，追加 blocked 报告（commit `74c749a`）。未建工程、未自造判定器。另核实同目标两条兄弟分支 `myrd/web-goal-…`、`myrd/myrdplaygrou-goal-…` 均无可复用产出。
+   - **deploy/发布节点（completed，结论 blocked）**：第三轮复验（`git fetch --prune` 后 origin/main 仍停在 `6c0df4a9`），仍是双缺口，追加报告（commit `438df52`）。部署 0 次。
+   - **review 节点（failed）**：pre-hook 直接拦截，run 整体 failed。错误原文：`routines.yaml 里没有 id 为 "webapp-smoke" 的 routine（可用：git-hygiene, godot-smoke, game-contract, mobile-web-smoke, experience-pack）—— fail-closed，不放行`。
+3. 此后「指派使用验收复核」agent 试图独立核验 liveUrl，未果（无东西可验）——goal artifacts 中的 agent 产物记录了这一过程。
+
+## 4. 根因：门禁资产双缺口（fail-closed 的正确触发方式）
+
+| # | 缺失资产 | 核验证据 |
+|---|---|---|
+| 1 | 门禁判定脚本 `std-skills/web-app-dev/scripts/webapp-smoke.mjs`（webapp-smoke 移动门禁的机判依据） | 本地 HEAD、`git fetch` 后的 origin/main（`6c0df4a9`）、`git log --all -- "*web-app-dev*"` / `"*webapp-smoke*"` 全历史均为空；`std-skills/` 仅 experience-harness / experience-review / godot-game-dev 三目录 |
+| 2 | `.myrd/routines.yaml` 的 `id=webapp-smoke` routine 条目 | routines.yaml 仅 5 条全游戏向 routine；照抄用模板 `std-skills/web-app-dev/references/webapp-smoke-routine.md` 同样不在库 |
+
+**为什么注入目录里的副本不能救场**：`.myrd-platform/.claude/skills/web-app-dev/` 内确有同名脚本与模板，但它是平台注入的阅读副本（`.gitignore` 含 `.myrd-platform/`）。按「被检方不自造判定器」硬约束：门禁判定脚本必须来自被检仓库本身，否则被检方既能改实现又能改判定，门禁即失效。因此「仓库内来源不可得 → 立即 blocked」是纪律的正确执行，而非 agent 偷懒。
+
+**机制要点**：本平台的 pre-hook 门禁是 **fail-closed** 设计——配置引用了不存在的 routine id 时不告警放行，而是直接拦截节点执行。配置与资产是同一件武器的两半：脚本缺失 → 节点无法自证；routine 条目缺失 → review 纵然想做也无法挂载判定。**编排侧新增工作流引用任何 routine 前，必须先确认目标模板仓库已预置该 routine 及其判定脚本**，否则下游节点 100% 被拦。
+
+## 5. 「status=failed 不可单独为凭」的实例印证
+
+本次 run 顶层状态是 failed，但逐节点看输出：三个 completed 节点的真实结论都是 blocked（纪律性停止），失败发生在 review 的 pre-hook 拦截层。若只看顶层状态会误判为「实现乱跑/代码有缺陷」；若只看 blocked 报告又会漏掉「pre-hook 拦截」这一编排层信号。**复核失败运行的标准动作：`GET /api/v1/workflows/runs/:id` 逐节点读 output 与 result.error，再把 goal artifacts 的 blocked 详情交叉对照**——与知识库《僵尸/孤儿运行轨迹识别与处置手册（status=failed 不可单独为凭）》的口径完全一致，本例是该手册的典型正面样本：blocked 上报完整、证据链可复核、零脏产物（无半成品工程、无未授权部署）。
+
+## 6. 恢复路径（补齐资产后即可原样重跑闭环）
+
+**给运维的最小补齐清单**（改的是模板仓库，不是本仓库）：
+
+1. 补入 `std-skills/web-app-dev/scripts/webapp-smoke.mjs`（判定脚本；平台注入目录 `.myrd-platform/.claude/skills/web-app-dev/scripts/` 有阅读副本可参考移植）。
+2. 补入 `std-skills/web-app-dev/references/webapp-smoke-routine.md`（routines.yaml 追加模板，同上参考注入副本）。
+3. 重新预置模板到 playground 仓库（参考先例：express-lane 任务「对齐门禁脚本验收路径：将 std-skills 三个脚本复制到 docs/skills 并提交」曾做过同型补齐）。
+
+**补齐前的编排侧禁令**：勿再重派本流水线任一下游节点——review preHook 对 routines.yaml 缺 webapp-smoke 会继续 fail-closed，重跑只会再烧一次 token 得到同样的 blocked。
+
+**补齐后的重跑闭环**（发布节点已写明，可原样执行）：前置检查 → 建 `webapps/myrdplaygrou` 工程（gitRef=功能分支 `myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu`）→ 按模板给 routines.yaml 追加 `id=webapp-smoke` → commit/push → 部署 AppHost → 实跑 webapp-smoke 门禁 → 回写 goal artifacts（此时才具备回写 deployment id 与 liveUrl 的条件）。
+
+## 7. 独立复核清单（任何人可重放）
+
+```bash
+# A. 上线三要素（壳在、部署与 liveUrl 不在）
+curl -s "$PLATFORM_API_URL/api/v1/apphost/apps" -H "Authorization: Bearer $MYRD_TOKEN" \
+  | jq '.data[] | select(.slug=="myrdplaygrou") | {id,status,liveUrl,deployments}'
+# 期望：id=cmvaf7imm000hm94lw6y43t0q, status=creating, liveUrl=null, deployments=[]
+
+# B. 运行级失败原因（review pre-hook fail-closed）
+curl -s "$PLATFORM_API_URL/api/v1/workflows/runs/cmvagxyf3002em94lxhtab3p9" \
+  -H "Authorization: Bearer $MYRD_TOKEN" | jq '{status: .data.run.status, result: .data.run.result}'
+
+# C. 节点级 blocked 证据（三节点 output 中的 blocked 上报与 commit 号）
+#    goal artifacts：GET /api/v1/goals/cmvaf7imr000jm94le9x48zfu（artifactType=hosted_app 条目含三轮复验）
+#    git 侧：blocked-report.md @ commit 9eafc4d / 74c749a / 438df52，分支 myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu
+```
+
+## 8. 补齐资产后建工程的既定规格速查（需求已固化，勿重新发明）
+
+- **功能**：汇率换算（≥8 币种：CNY/USD/EUR/JPY/GBP/HKD/KRW/SGD，结果误差 ≤0.01%）+ 近 7/30 天走势折线图（涨跌视觉可区分）。
+- **数据**：公开汇率 API；失败降级缓存并提示「数据可能滞后」；不允许白屏/未捕获报错。
+- **视觉**：浅色清新，色板基调 `#f0f9ff` / `#0ea5e9` / `#22c55e`；换算结果大字号为首要焦点。
+- **交付形态**：HostedApp 单页、免登录、响应式（<768px 与 >1200px 均不破版）；部署过 webapp-smoke 移动门禁后才算闭环。
+
+---
+*来源：goal `cmvaf7imr000jm94le9x48zfu` artifacts、工作流运行 `cmvagxyf3002em94lxhtab3p9` 节点输出、AppHost 记录 `cmvaf7imm000hm94lw6y43t0q`，均为 2026-10-16 实测。*
+
 ## 僵尸/孤儿运行轨迹识别与处置手册（status=failed 不可单独为凭）
 
 # 知识：僵尸/孤儿运行轨迹的识别与处置
@@ -12052,6 +12307,91 @@ curl -s -X POST -H "Authorization: Bearer $MYRD_TOKEN" -H "Content-Type: applica
 7. **执行链 token 与 app/goal owner 不一致时**，部署/回写会 403：按纪律停下上报、证据落盘、给出一键恢复命令（本文 §六格式），不绕权限、不伪造「已上线」。
 
 
+## 沉淀知识：《今日汇率》Web 工坊上线受阻实录——webapp-smoke 门禁资产双缺口、fail-closed 拦截与恢复路径（附 HostedApp/deployment/liveUrl 三要素核实）
+
+# 《今日汇率》Web 工坊上线受阻实录：门禁资产双缺口、fail-closed 拦截与恢复路径
+
+> 目标：创建 Web 应用《今日汇率》（goal `cmvaf7imr000jm94le9x48zfu`，projectId `proj-playground`，需求 id `cmvafe4gu0017m94la5mhgc3p`）。
+> 本文全部结论均经平台 API / git 独立复核（2026-10-16），不复述、不臆造；复核方式见 §7。
+
+## 1. 一句话结论
+
+**应用没有上线，且不是败在代码，而是败在平台模板仓库缺两份门禁资产**：门禁判定脚本 `webapp-smoke.mjs` 与 `routines.yaml` 的 `id=webapp-smoke` routine 条目双双缺失，按「来源不可得 → 立即 blocked」硬约束，流水线三个实现节点全部纪律性停止（未建工程、未部署、未绕过），review 节点 pre-hook fail-closed 拦截，两次运行同因失败。**该目标的「上线三要素」中只有 HostedApp 壳存在，deployment id 与 liveUrl 不存在。**
+
+## 2. 上线三要素核实表（本目标 artifacts 回写依据）
+
+| 要素 | 状态 | 值 / 证据 |
+|---|---|---|
+| HostedApp id | ✅ 存在（壳，从未部署） | `cmvaf7imm000hm94lw6y43t0q`（name=今日汇率，slug=`myrdplaygrou`，runtime=sandbox，sourceType=workshop，status=`creating`，createdAt=2026-10-16T03:41:09Z，`deployments=[]`，`liveUrl=null`） |
+| deployment id | ❌ 不存在 | `GET /api/v1/apphost/apps` 返回该应用 deployments 数组为空；goal artifacts 的 blocked 详情明确「部署 0 次」（三轮独立复验一致） |
+| liveUrl | ❌ 不存在 | AppHost 记录 `liveUrl=null`。参照同项目已上线应用（如 farm-yard / game-5），补齐资产并部署成功后格式应为 `https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/` |
+
+要点：AppHost 壳是 express_lane 预检节点（早于工作流运行约 48 分钟）预建的，**不代表工程已落地**——`webapps/myrdplaygrou/` 工程目录从未创建。任何下游环节不得把「壳存在」误读为「已部署」。HostedApp id 已作为 `artifactType=hosted_app` 关联回写至 goal artifacts（含三轮 blocked 复验全记录），deployment id / liveUrl 因客观不存在而无法回写，**不臆造补位**。
+
+## 3. 失败链全景（时间线）
+
+1. **2026-10-16 03:41** express_lane 预检完成，预建 AppHost 壳 `cmvaf7imm000hm94lw6y43t0q`（status=creating）。
+2. **04:29–04:41** 工作流运行 `cmvagxyf3002em94lxhtab3p9`（同型前次运行 `cmvafm2y5001km94leiaezgid`，同样结局）：
+   - **scaffold 节点（completed，结论 blocked）**：核验门禁资产双缺口，落盘 `.myrd/blocked-report.md` 并推送（commit `9eafc4d`，分支 `myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu`）。未建工程、未落风格卡、未改 routines.yaml。
+   - **implement 节点（completed，结论 blocked）**：独立复验后同一结论，追加 blocked 报告（commit `74c749a`）。未建工程、未自造判定器。另核实同目标两条兄弟分支 `myrd/web-goal-…`、`myrd/myrdplaygrou-goal-…` 均无可复用产出。
+   - **deploy/发布节点（completed，结论 blocked）**：第三轮复验（`git fetch --prune` 后 origin/main 仍停在 `6c0df4a9`），仍是双缺口，追加报告（commit `438df52`）。部署 0 次。
+   - **review 节点（failed）**：pre-hook 直接拦截，run 整体 failed。错误原文：`routines.yaml 里没有 id 为 "webapp-smoke" 的 routine（可用：git-hygiene, godot-smoke, game-contract, mobile-web-smoke, experience-pack）—— fail-closed，不放行`。
+3. 此后「指派使用验收复核」agent 试图独立核验 liveUrl，未果（无东西可验）——goal artifacts 中的 agent 产物记录了这一过程。
+
+## 4. 根因：门禁资产双缺口（fail-closed 的正确触发方式）
+
+| # | 缺失资产 | 核验证据 |
+|---|---|---|
+| 1 | 门禁判定脚本 `std-skills/web-app-dev/scripts/webapp-smoke.mjs`（webapp-smoke 移动门禁的机判依据） | 本地 HEAD、`git fetch` 后的 origin/main（`6c0df4a9`）、`git log --all -- "*web-app-dev*"` / `"*webapp-smoke*"` 全历史均为空；`std-skills/` 仅 experience-harness / experience-review / godot-game-dev 三目录 |
+| 2 | `.myrd/routines.yaml` 的 `id=webapp-smoke` routine 条目 | routines.yaml 仅 5 条全游戏向 routine；照抄用模板 `std-skills/web-app-dev/references/webapp-smoke-routine.md` 同样不在库 |
+
+**为什么注入目录里的副本不能救场**：`.myrd-platform/.claude/skills/web-app-dev/` 内确有同名脚本与模板，但它是平台注入的阅读副本（`.gitignore` 含 `.myrd-platform/`）。按「被检方不自造判定器」硬约束：门禁判定脚本必须来自被检仓库本身，否则被检方既能改实现又能改判定，门禁即失效。因此「仓库内来源不可得 → 立即 blocked」是纪律的正确执行，而非 agent 偷懒。
+
+**机制要点**：本平台的 pre-hook 门禁是 **fail-closed** 设计——配置引用了不存在的 routine id 时不告警放行，而是直接拦截节点执行。配置与资产是同一件武器的两半：脚本缺失 → 节点无法自证；routine 条目缺失 → review 纵然想做也无法挂载判定。**编排侧新增工作流引用任何 routine 前，必须先确认目标模板仓库已预置该 routine 及其判定脚本**，否则下游节点 100% 被拦。
+
+## 5. 「status=failed 不可单独为凭」的实例印证
+
+本次 run 顶层状态是 failed，但逐节点看输出：三个 completed 节点的真实结论都是 blocked（纪律性停止），失败发生在 review 的 pre-hook 拦截层。若只看顶层状态会误判为「实现乱跑/代码有缺陷」；若只看 blocked 报告又会漏掉「pre-hook 拦截」这一编排层信号。**复核失败运行的标准动作：`GET /api/v1/workflows/runs/:id` 逐节点读 output 与 result.error，再把 goal artifacts 的 blocked 详情交叉对照**——与知识库《僵尸/孤儿运行轨迹识别与处置手册（status=failed 不可单独为凭）》的口径完全一致，本例是该手册的典型正面样本：blocked 上报完整、证据链可复核、零脏产物（无半成品工程、无未授权部署）。
+
+## 6. 恢复路径（补齐资产后即可原样重跑闭环）
+
+**给运维的最小补齐清单**（改的是模板仓库，不是本仓库）：
+
+1. 补入 `std-skills/web-app-dev/scripts/webapp-smoke.mjs`（判定脚本；平台注入目录 `.myrd-platform/.claude/skills/web-app-dev/scripts/` 有阅读副本可参考移植）。
+2. 补入 `std-skills/web-app-dev/references/webapp-smoke-routine.md`（routines.yaml 追加模板，同上参考注入副本）。
+3. 重新预置模板到 playground 仓库（参考先例：express-lane 任务「对齐门禁脚本验收路径：将 std-skills 三个脚本复制到 docs/skills 并提交」曾做过同型补齐）。
+
+**补齐前的编排侧禁令**：勿再重派本流水线任一下游节点——review preHook 对 routines.yaml 缺 webapp-smoke 会继续 fail-closed，重跑只会再烧一次 token 得到同样的 blocked。
+
+**补齐后的重跑闭环**（发布节点已写明，可原样执行）：前置检查 → 建 `webapps/myrdplaygrou` 工程（gitRef=功能分支 `myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu`）→ 按模板给 routines.yaml 追加 `id=webapp-smoke` → commit/push → 部署 AppHost → 实跑 webapp-smoke 门禁 → 回写 goal artifacts（此时才具备回写 deployment id 与 liveUrl 的条件）。
+
+## 7. 独立复核清单（任何人可重放）
+
+```bash
+# A. 上线三要素（壳在、部署与 liveUrl 不在）
+curl -s "$PLATFORM_API_URL/api/v1/apphost/apps" -H "Authorization: Bearer $MYRD_TOKEN" \
+  | jq '.data[] | select(.slug=="myrdplaygrou") | {id,status,liveUrl,deployments}'
+# 期望：id=cmvaf7imm000hm94lw6y43t0q, status=creating, liveUrl=null, deployments=[]
+
+# B. 运行级失败原因（review pre-hook fail-closed）
+curl -s "$PLATFORM_API_URL/api/v1/workflows/runs/cmvagxyf3002em94lxhtab3p9" \
+  -H "Authorization: Bearer $MYRD_TOKEN" | jq '{status: .data.run.status, result: .data.run.result}'
+
+# C. 节点级 blocked 证据（三节点 output 中的 blocked 上报与 commit 号）
+#    goal artifacts：GET /api/v1/goals/cmvaf7imr000jm94le9x48zfu（artifactType=hosted_app 条目含三轮复验）
+#    git 侧：blocked-report.md @ commit 9eafc4d / 74c749a / 438df52，分支 myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu
+```
+
+## 8. 补齐资产后建工程的既定规格速查（需求已固化，勿重新发明）
+
+- **功能**：汇率换算（≥8 币种：CNY/USD/EUR/JPY/GBP/HKD/KRW/SGD，结果误差 ≤0.01%）+ 近 7/30 天走势折线图（涨跌视觉可区分）。
+- **数据**：公开汇率 API；失败降级缓存并提示「数据可能滞后」；不允许白屏/未捕获报错。
+- **视觉**：浅色清新，色板基调 `#f0f9ff` / `#0ea5e9` / `#22c55e`；换算结果大字号为首要焦点。
+- **交付形态**：HostedApp 单页、免登录、响应式（<768px 与 >1200px 均不破版）；部署过 webapp-smoke 移动门禁后才算闭环。
+
+---
+*来源：goal `cmvaf7imr000jm94le9x48zfu` artifacts、工作流运行 `cmvagxyf3002em94lxhtab3p9` 节点输出、AppHost 记录 `cmvaf7imm000hm94lw6y43t0q`，均为 2026-10-16 实测。*
+
 ## 僵尸/孤儿运行轨迹识别与处置手册（status=failed 不可单独为凭）
 
 # 知识：僵尸/孤儿运行轨迹的识别与处置
@@ -15052,3 +15392,88 @@ curl -s -X POST -H "Authorization: Bearer $MYRD_TOKEN" -H "Content-Type: applica
 6. **工作流 routine 参数带 `#` 会被注入守卫拒绝**（step 命令经 bash -c 拼接）——gameDecisions 里不要带 shell 元字符，或改在 routine step 里写死。
 7. **执行链 token 与 app/goal owner 不一致时**，部署/回写会 403：按纪律停下上报、证据落盘、给出一键恢复命令（本文 §六格式），不绕权限、不伪造「已上线」。
 
+
+## 沉淀知识：《今日汇率》Web 工坊上线受阻实录——webapp-smoke 门禁资产双缺口、fail-closed 拦截与恢复路径（附 HostedApp/deployment/liveUrl 三要素核实）
+
+# 《今日汇率》Web 工坊上线受阻实录：门禁资产双缺口、fail-closed 拦截与恢复路径
+
+> 目标：创建 Web 应用《今日汇率》（goal `cmvaf7imr000jm94le9x48zfu`，projectId `proj-playground`，需求 id `cmvafe4gu0017m94la5mhgc3p`）。
+> 本文全部结论均经平台 API / git 独立复核（2026-10-16），不复述、不臆造；复核方式见 §7。
+
+## 1. 一句话结论
+
+**应用没有上线，且不是败在代码，而是败在平台模板仓库缺两份门禁资产**：门禁判定脚本 `webapp-smoke.mjs` 与 `routines.yaml` 的 `id=webapp-smoke` routine 条目双双缺失，按「来源不可得 → 立即 blocked」硬约束，流水线三个实现节点全部纪律性停止（未建工程、未部署、未绕过），review 节点 pre-hook fail-closed 拦截，两次运行同因失败。**该目标的「上线三要素」中只有 HostedApp 壳存在，deployment id 与 liveUrl 不存在。**
+
+## 2. 上线三要素核实表（本目标 artifacts 回写依据）
+
+| 要素 | 状态 | 值 / 证据 |
+|---|---|---|
+| HostedApp id | ✅ 存在（壳，从未部署） | `cmvaf7imm000hm94lw6y43t0q`（name=今日汇率，slug=`myrdplaygrou`，runtime=sandbox，sourceType=workshop，status=`creating`，createdAt=2026-10-16T03:41:09Z，`deployments=[]`，`liveUrl=null`） |
+| deployment id | ❌ 不存在 | `GET /api/v1/apphost/apps` 返回该应用 deployments 数组为空；goal artifacts 的 blocked 详情明确「部署 0 次」（三轮独立复验一致） |
+| liveUrl | ❌ 不存在 | AppHost 记录 `liveUrl=null`。参照同项目已上线应用（如 farm-yard / game-5），补齐资产并部署成功后格式应为 `https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/` |
+
+要点：AppHost 壳是 express_lane 预检节点（早于工作流运行约 48 分钟）预建的，**不代表工程已落地**——`webapps/myrdplaygrou/` 工程目录从未创建。任何下游环节不得把「壳存在」误读为「已部署」。HostedApp id 已作为 `artifactType=hosted_app` 关联回写至 goal artifacts（含三轮 blocked 复验全记录），deployment id / liveUrl 因客观不存在而无法回写，**不臆造补位**。
+
+## 3. 失败链全景（时间线）
+
+1. **2026-10-16 03:41** express_lane 预检完成，预建 AppHost 壳 `cmvaf7imm000hm94lw6y43t0q`（status=creating）。
+2. **04:29–04:41** 工作流运行 `cmvagxyf3002em94lxhtab3p9`（同型前次运行 `cmvafm2y5001km94leiaezgid`，同样结局）：
+   - **scaffold 节点（completed，结论 blocked）**：核验门禁资产双缺口，落盘 `.myrd/blocked-report.md` 并推送（commit `9eafc4d`，分支 `myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu`）。未建工程、未落风格卡、未改 routines.yaml。
+   - **implement 节点（completed，结论 blocked）**：独立复验后同一结论，追加 blocked 报告（commit `74c749a`）。未建工程、未自造判定器。另核实同目标两条兄弟分支 `myrd/web-goal-…`、`myrd/myrdplaygrou-goal-…` 均无可复用产出。
+   - **deploy/发布节点（completed，结论 blocked）**：第三轮复验（`git fetch --prune` 后 origin/main 仍停在 `6c0df4a9`），仍是双缺口，追加报告（commit `438df52`）。部署 0 次。
+   - **review 节点（failed）**：pre-hook 直接拦截，run 整体 failed。错误原文：`routines.yaml 里没有 id 为 "webapp-smoke" 的 routine（可用：git-hygiene, godot-smoke, game-contract, mobile-web-smoke, experience-pack）—— fail-closed，不放行`。
+3. 此后「指派使用验收复核」agent 试图独立核验 liveUrl，未果（无东西可验）——goal artifacts 中的 agent 产物记录了这一过程。
+
+## 4. 根因：门禁资产双缺口（fail-closed 的正确触发方式）
+
+| # | 缺失资产 | 核验证据 |
+|---|---|---|
+| 1 | 门禁判定脚本 `std-skills/web-app-dev/scripts/webapp-smoke.mjs`（webapp-smoke 移动门禁的机判依据） | 本地 HEAD、`git fetch` 后的 origin/main（`6c0df4a9`）、`git log --all -- "*web-app-dev*"` / `"*webapp-smoke*"` 全历史均为空；`std-skills/` 仅 experience-harness / experience-review / godot-game-dev 三目录 |
+| 2 | `.myrd/routines.yaml` 的 `id=webapp-smoke` routine 条目 | routines.yaml 仅 5 条全游戏向 routine；照抄用模板 `std-skills/web-app-dev/references/webapp-smoke-routine.md` 同样不在库 |
+
+**为什么注入目录里的副本不能救场**：`.myrd-platform/.claude/skills/web-app-dev/` 内确有同名脚本与模板，但它是平台注入的阅读副本（`.gitignore` 含 `.myrd-platform/`）。按「被检方不自造判定器」硬约束：门禁判定脚本必须来自被检仓库本身，否则被检方既能改实现又能改判定，门禁即失效。因此「仓库内来源不可得 → 立即 blocked」是纪律的正确执行，而非 agent 偷懒。
+
+**机制要点**：本平台的 pre-hook 门禁是 **fail-closed** 设计——配置引用了不存在的 routine id 时不告警放行，而是直接拦截节点执行。配置与资产是同一件武器的两半：脚本缺失 → 节点无法自证；routine 条目缺失 → review 纵然想做也无法挂载判定。**编排侧新增工作流引用任何 routine 前，必须先确认目标模板仓库已预置该 routine 及其判定脚本**，否则下游节点 100% 被拦。
+
+## 5. 「status=failed 不可单独为凭」的实例印证
+
+本次 run 顶层状态是 failed，但逐节点看输出：三个 completed 节点的真实结论都是 blocked（纪律性停止），失败发生在 review 的 pre-hook 拦截层。若只看顶层状态会误判为「实现乱跑/代码有缺陷」；若只看 blocked 报告又会漏掉「pre-hook 拦截」这一编排层信号。**复核失败运行的标准动作：`GET /api/v1/workflows/runs/:id` 逐节点读 output 与 result.error，再把 goal artifacts 的 blocked 详情交叉对照**——与知识库《僵尸/孤儿运行轨迹识别与处置手册（status=failed 不可单独为凭）》的口径完全一致，本例是该手册的典型正面样本：blocked 上报完整、证据链可复核、零脏产物（无半成品工程、无未授权部署）。
+
+## 6. 恢复路径（补齐资产后即可原样重跑闭环）
+
+**给运维的最小补齐清单**（改的是模板仓库，不是本仓库）：
+
+1. 补入 `std-skills/web-app-dev/scripts/webapp-smoke.mjs`（判定脚本；平台注入目录 `.myrd-platform/.claude/skills/web-app-dev/scripts/` 有阅读副本可参考移植）。
+2. 补入 `std-skills/web-app-dev/references/webapp-smoke-routine.md`（routines.yaml 追加模板，同上参考注入副本）。
+3. 重新预置模板到 playground 仓库（参考先例：express-lane 任务「对齐门禁脚本验收路径：将 std-skills 三个脚本复制到 docs/skills 并提交」曾做过同型补齐）。
+
+**补齐前的编排侧禁令**：勿再重派本流水线任一下游节点——review preHook 对 routines.yaml 缺 webapp-smoke 会继续 fail-closed，重跑只会再烧一次 token 得到同样的 blocked。
+
+**补齐后的重跑闭环**（发布节点已写明，可原样执行）：前置检查 → 建 `webapps/myrdplaygrou` 工程（gitRef=功能分支 `myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu`）→ 按模板给 routines.yaml 追加 `id=webapp-smoke` → commit/push → 部署 AppHost → 实跑 webapp-smoke 门禁 → 回写 goal artifacts（此时才具备回写 deployment id 与 liveUrl 的条件）。
+
+## 7. 独立复核清单（任何人可重放）
+
+```bash
+# A. 上线三要素（壳在、部署与 liveUrl 不在）
+curl -s "$PLATFORM_API_URL/api/v1/apphost/apps" -H "Authorization: Bearer $MYRD_TOKEN" \
+  | jq '.data[] | select(.slug=="myrdplaygrou") | {id,status,liveUrl,deployments}'
+# 期望：id=cmvaf7imm000hm94lw6y43t0q, status=creating, liveUrl=null, deployments=[]
+
+# B. 运行级失败原因（review pre-hook fail-closed）
+curl -s "$PLATFORM_API_URL/api/v1/workflows/runs/cmvagxyf3002em94lxhtab3p9" \
+  -H "Authorization: Bearer $MYRD_TOKEN" | jq '{status: .data.run.status, result: .data.run.result}'
+
+# C. 节点级 blocked 证据（三节点 output 中的 blocked 上报与 commit 号）
+#    goal artifacts：GET /api/v1/goals/cmvaf7imr000jm94le9x48zfu（artifactType=hosted_app 条目含三轮复验）
+#    git 侧：blocked-report.md @ commit 9eafc4d / 74c749a / 438df52，分支 myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu
+```
+
+## 8. 补齐资产后建工程的既定规格速查（需求已固化，勿重新发明）
+
+- **功能**：汇率换算（≥8 币种：CNY/USD/EUR/JPY/GBP/HKD/KRW/SGD，结果误差 ≤0.01%）+ 近 7/30 天走势折线图（涨跌视觉可区分）。
+- **数据**：公开汇率 API；失败降级缓存并提示「数据可能滞后」；不允许白屏/未捕获报错。
+- **视觉**：浅色清新，色板基调 `#f0f9ff` / `#0ea5e9` / `#22c55e`；换算结果大字号为首要焦点。
+- **交付形态**：HostedApp 单页、免登录、响应式（<768px 与 >1200px 均不破版）；部署过 webapp-smoke 移动门禁后才算闭环。
+
+---
+*来源：goal `cmvaf7imr000jm94le9x48zfu` artifacts、工作流运行 `cmvagxyf3002em94lxhtab3p9` 节点输出、AppHost 记录 `cmvaf7imm000hm94lw6y43t0q`，均为 2026-10-16 实测。*
