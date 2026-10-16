@@ -1,8 +1,8 @@
 {
-  "generatedAtUtc": "2026-10-16T01:38:47.673Z",
+  "generatedAtUtc": "2026-10-16T01:40:17.078Z",
   "purpose": "R1 复测三态分流收口轮 · A2 start→end 事件链计数补采（≥20 完整模拟局，禁混真人局——retestProtocol②）",
   "binding": {
-    "gitSha": "debda99c0613c0c3518bd34cda5e4a8f62562143",
+    "gitSha": "4eccaf293b11052041860ff7b0ee3141975258fd",
     "specChainId": null,
     "specChainVersion": null,
     "specChainStatus": null,

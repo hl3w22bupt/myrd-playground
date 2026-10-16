@@ -36,12 +36,29 @@
 - [x] 条件触发链不触发判定正确（0 红项，无「连续 2 轮红」面）
 - QA 签字：**QA-WS-R1RE-TRIAGE-20261016-01 · verdict=分流表 v1 口径 PASS（全量未判定·待采成立，进入绑新 sha 补采分支）**
 
-## v2 · 绑新 sha 补采后判定（程序 · 补采完成后回填）
+## v2 · 绑新 sha 补采后判定（程序 · 2026-10-16 · 绑定 sha `4eccaf293b11052041860ff7b0ee3141975258fd`）
 
-> 补采报告：`docs/r1re-recheck-report-20261016.md`（绑新 sha）· 新锚对账表：同文件 §新锚三点对账
+> 补采报告：`docs/r1re-recheck-report-20261016.md`（绑新 sha）· 五步门禁 `gate-logs/r1re-recheck-20261016/07`（VERIFY_EXIT=0 同 HEAD）
 
-（待补采后回填）
+| 判据编号 | 本轮终局三态 | 补采实测 | 判据依据 |
+|---|---|---|---|
+| ac-a1-first-core-feedback | **绿** | 1.71s ≤10s · 5/5 种子 ≤30s | 绑新 sha 实跑（run-all @ `4eccaf29`）· 地基=新锚链（报告 sha ≡ 构建内嵌 sha 逐字全等） |
+| ac-a2-run-duration-band | **绿** | P50=168.096s ∈[90,180] · victory 20/20 · **start→end 链 20/20 完整** | 同上 + 事件链计数面（`qa/r1re-a2-chain-log-2026-10-16.json`）双面同值 |
+| ac-a3-restart-willingness | **未判定·待采** | 机制面 PASS；结论面 0/5（回填件 0 行） | 真人证据缺位（待主人圈定 5 名真人）；不判红绿不烧余量 |
+| ac-a4-feedback-channels（面1/2/4/5） | **绿** | max 0ms · min 4 通道 · fx 全绑 · 帧 P95=0.001ms | 绑新 sha 实跑 |
+| ac-a5-guidance-first-action | **绿** | 48ms ≤5000ms 窗 · 文案三方同名逐字 | 绑新 sha 实跑 |
+| ac-a4b-restart-click-counter | **绿** | count 1→2 真实点击 | 绑新 sha 实跑 |
+| det-1 / perf-1 / tex-1 / anchor-1 / loop-1 | **绿** | 逐字节复现（tick 10506 · kills 218 · wave 7） | 同上 |
+| fv-pend（结构面） | **绿**（结构冻结+行为对拍） | 数值校准面维持设计内 PEND（非缺陷） | 同上 |
+| ac-art-1..4 | **绿** | 色值白名单 12 文件零违例 · 清单 13 件封顶 · 3 件逐件达标 · 互查回执在档 | 同上 |
+| ac-14 / ac-15 / ac-16 | **绿** | 9 键逐字 · 适配视图守卫 · 四事件骨架 | 同上 |
 
-## QA 终局核对签字（v2 · 待补采后）
+**终局清点**：绿 = 15 项（含扩面）· 红 = **0 条** · 未判定 = **1 项（ac-a3 结论面，待真人）**。缺陷型修复批 0 件；条件触发链不触发（0 红项）；阈值红线零触碰。
 
-（待补采后回填）
+## QA 终局核对签字（v2 · 2026-10-16）
+
+- [x] 补采绑新 sha 实证：报告绑定 `4eccaf29…` ≡ `build/main.mjs` 内嵌 `__G2WS_BUILD.gitSha`（重建指纹单行 diff 实证，`02-a1-sourceface-diff.log` 同源面口径）；五步门禁同 HEAD 复跑 VERIFY_EXIT=0
+- [x] 绿项固化核对（任务书：spec acceptance 标 `check` 的每条落到测试文件）：16 条 acceptance 的 check 薄壳 `tests/contract/checks/` 全部在盘且经 run-all 实跑（`05-runall-rere.log` 16 PASS / 0 FAIL / 1 PEND）；**缺一即未固化——本面无缺，固化成立（ac-a3 结论面除外，其非可固化绿项）**
+- [x] A2 事件链计数口径核验：链长=2 有序不重不漏 · 20/20 · durationMs ≡ tick×16ms 断言 · 全模拟局（真人局零混入）
+- [x] 红项 0 条 → R2 修复批不触发、条件触发链不触发，判定正确
+- QA 签字：**QA-WS-R1RE-TRIAGE-20261016-02 · verdict=A1/A2/A4 绿（新锚）· A3 未判定·待采（0/5）· 分流收口成立**
