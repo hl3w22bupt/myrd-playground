@@ -1,6 +1,6 @@
 {
   "url": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/",
-  "at": "2026-10-16T05:23:12.165Z",
+  "at": "2026-10-16T05:43:17.332Z",
   "viewportMobile": {
     "width": 390,
     "height": 844,
@@ -23,34 +23,8 @@
     "rate": "1 CNY ≈ 0.1492 USD · 100 CNY 兑换所得"
   },
   "total": 15,
-  "passed": 10,
-  "failed": [
-    {
-      "id": "convert-usd-cny",
-      "pass": false,
-      "evidence": "USD→CNY 页面 $100.00 vs 复算 14.92 误差 570.29850%（rates.CNY=6.702985）"
-    },
-    {
-      "id": "swap-button",
-      "pass": false,
-      "evidence": "交换前 USD→USD / 交换后 USD→USD"
-    },
-    {
-      "id": "trend-30d",
-      "pass": false,
-      "evidence": "30 天: 数据点=6(>7天的6) 涨跌标注=\"▲ 区间上涨 0.17%\""
-    },
-    {
-      "id": "offline-fallback",
-      "pass": false,
-      "evidence": "断网渲染: 结果=\"$1.48\" 明细行=7 趋势点=6 滞后提示可见=false(\"⚠ 当前展示缓存数据，汇率可能滞后\") 新鲜度=\"数据来源：实时获取 · 更新于 2026/10/16 13:23:06\""
-    },
-    {
-      "id": "responsive-desktop-two-col",
-      "pass": false,
-      "evidence": "1440×900: grid 列数=2，卡片横向分布 1 个不同 x 位（≥2 即并排），无溢出 1440≤1440"
-    }
-  ],
+  "passed": 15,
+  "failed": [],
   "consoleErrors": [],
   "results": [
     {
@@ -65,13 +39,13 @@
     },
     {
       "id": "convert-usd-cny",
-      "pass": false,
-      "evidence": "USD→CNY 页面 $100.00 vs 复算 14.92 误差 570.29850%（rates.CNY=6.702985）"
+      "pass": true,
+      "evidence": "USD→CNY 页面 ¥670.30 vs 复算 670.30 误差 0.00022%（rates.CNY=6.702985）"
     },
     {
       "id": "swap-button",
-      "pass": false,
-      "evidence": "交换前 USD→USD / 交换后 USD→USD"
+      "pass": true,
+      "evidence": "交换前 USD→CNY / 交换后 CNY→USD"
     },
     {
       "id": "trend-7d",
@@ -80,8 +54,8 @@
     },
     {
       "id": "trend-30d",
-      "pass": false,
-      "evidence": "30 天: 数据点=6(>7天的6) 涨跌标注=\"▲ 区间上涨 0.17%\""
+      "pass": true,
+      "evidence": "30 天: 数据点=23(>7天的6) 涨跌标注=\"▲ 区间上涨 0.30%\""
     },
     {
       "id": "visual-hierarchy",
@@ -110,8 +84,8 @@
     },
     {
       "id": "offline-fallback",
-      "pass": false,
-      "evidence": "断网渲染: 结果=\"$1.48\" 明细行=7 趋势点=6 滞后提示可见=false(\"⚠ 当前展示缓存数据，汇率可能滞后\") 新鲜度=\"数据来源：实时获取 · 更新于 2026/10/16 13:23:06\""
+      "pass": true,
+      "evidence": "断网渲染: 结果=\"$1.48\" 明细行=7 趋势点=6 滞后提示可见=true(\"⚠ 当前展示缓存数据，汇率可能滞后\") 新鲜度=\"数据来源：本地缓存 · 更新于 2026/10/16 13:43:03\""
     },
     {
       "id": "no-blank-screen",
@@ -125,8 +99,8 @@
     },
     {
       "id": "responsive-desktop-two-col",
-      "pass": false,
-      "evidence": "1440×900: grid 列数=2，卡片横向分布 1 个不同 x 位（≥2 即并排），无溢出 1440≤1440"
+      "pass": true,
+      "evidence": "1440×900: grid 列数=2，卡片横向分布 2 个不同 x 位（≥2 即并排），无溢出 1440≤1440"
     }
   ],
   "note": "本报告为 DOM 向使用验收取证（机器可验证项）。主观体验（清新明亮观感、留白舒适度等）的结论权在人工复核，见 EXEMPTION.md 与验收报告。"
