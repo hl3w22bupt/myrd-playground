@@ -1,33 +1,41 @@
 # 阻塞项黑板 — 工作室组合全景（多游戏共板 · 每线各自有子黑板）
 
-> 更新时间：2026-10-15（**R1 复测收口轮收口 + 线 3 选型备忘 v0 双轨完成**）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：**等主人**（线 2 = A3 试玩圈定与回填 + 好玩终裁；线 1 = g2-blocks 提审凭证与 v10 approve）——两卡点维持升级不催办；主人反馈回流即打断直开 R2
+> 更新时间：2026-10-16（**轨道 A 线 2 R1 复测三态分流收口 + 轨道 B 线 3 选型拍板 双轨完成**）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：**等主人三件**（线 2 = 圈定 5 名真人试玩执行 A3；线 3 = spec v1 draft 审签 approve + 工作命名 + 视觉方向；线 1 = 提审凭证维持）——均带证据升级不催办
 
-## 本轮决策登记（2026-10-15 · R1 复测收口轮 + 线 3 备忘 v0 · 主策划）
+## 本轮决策登记（2026-10-16 · 轨道 A + 轨道 B · 主策划）
 
 | 轨道 | 决策/结论 | 落点（证据绑 sha） |
 |---|---|---|
-| **A · 线 2 R1 复测收口（P0）** | **唯一结论 = 证据型·样本不足 → R1 维持「未判定·挂起」，不烧冻结余量**（QA-WS-R1RE-20261015-01 唯一 JSON：A1/A2/A4 绿 · A3 结论面 0/5 未判定·待采 · 缺陷型修复批 0 件 · 冻结计数器 0/3 维持） | 回执 `games/wheat-squad/qa/qa-r1-recheck-v14.md` · 台账 `wheat-squad/levels.md` · 复测报告绑 `7b45b44` · LIVE v17 内嵌同 sha（对账闭环）@ 发布 `813fa38` |
-| **A · spec 版本链** | **v1.4 入链 approved（链 v6 `cmv8xcexk0009m9dj6ev1dj0r`）**——仅 meta.retestProtocol 三条判读纪律；任务书「v1.1→v1.2」口径偏差如实披露（链实况 v1.3 approved 在先）；A1/A2/A4 阈值零改动（红线，六段零触碰守卫机判） | `wheat-squad/blockers.md` N1 段 · `qa/spec-v14-pre-review.md` · approve 代持（任务书授权「交主策划 approve」） |
-| **A · 程序基建** | 构建 sha 注入基建落地（`__G2WS_BUILD{gitSha,specAnchor}` 确定性 · 防伪锚 fail-closed）；sha 对账「v15 无法确认·需重部署」→ v17 闭环；⚠️ v16 坏部署事故（漏 manifestPath）如实披露并由 v17 修复 | `tools/build.mjs` · `gate-logs/r2-recheck-20261015/README-deploy.md` |
-| **A · 美术批** | 资产三态清单（13 件：0 整件缺失 / 1 声称面缺失 = fx-hit-shock invuln 环 / 3 提审占位）+ 视觉基线对账（绑 `813fa38`）；**W-7 终局裁决 = B 案**（manifest v4 通道真实态化 + 风格卡 §R2.0 勘误；A 案降级 R2 候选，主人反馈触发） | `wheat-squad/assets.md` N3 段 · 机判 16/0/1PEND 零影响留证 `11` |
-| **B · 线 3 选型备忘 v0（P1）** | **止步备忘完成**：5 候选（塔防/IO 对撞/轻经营⚠️标注放置面重叠/弹射角度/链式消除⚠️标注与线 1 大类近）+ 4 硬排除（线 2 同品类/合成/堆叠/match-3 直系）+ 产线盘点（TS+Canvas 首选）+ **美术 0 图**（挂起件凭证：候选拍板后才启风格卡预研）；**不拍板选题** | `.myrd/blackboard/line3-memo-v0.md` |
+| **A · 线 2 sha 地基验证（P0）** | **三点对账链不成立**（工作区 HEAD ≠ 线上内嵌 `29e779b` ≠ 10/15 报告绑 `7b45b44`，逐字符两两不等）→ 按任务口径 R1 报告**全量「未判定·待采」**；源面零漂移如实附注不推翻口径 | `games/wheat-squad/docs/r1re-sha-reconciliation-20261016.md` · gate-logs `r1re-recheck-20261016/01..03` |
+| **A · 三态分流 + 补采** | 分流表：红 0 条 · 未判定 → **绑新 sha `4eccaf29` 补采全绿**（A1 1.71s · A2 P50=168.096s + **start→end 事件链 20/20** · A4 0ms/4 通道 · 16/0/1PEND）· **绿 15 项固化 ✓（16/16 check 薄壳实跑）· A3 未判定·待采（0/5 真人）**；QA 双签；条件触发链不触发；冻结计数器 0/3 维持 | `docs/r1re-triage-table-20261016.md` · `docs/r1re-recheck-report-20261016.md` · QA-WS-R1RE-TRIAGE-20261016-01/02 |
+| **A · 重部署闭环** | **v20 running @ 发布 commit `3828f49`**（manifestPath 单次受理 · 504 判例先 GET 复查未盲重发）· **LIVE 内嵌 sha ≡ 报告绑定 sha 逐字符全等** · WS-LIVE-SMOKE PASS victory 167s 零错误；首探旧字节=运行面切换窗口如实留痕 | gate-logs `08..13` · 试玩入口 `https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw` |
+| **A · A3 真人试玩任务单** | **APPROVE-READY**（5 真人 · 防主持人污染四条 · 可判定观察点 O1-O4 · 达标线 ≥4/5 正向重开动机 · 原话逐字留档）· **执行面升级主人**；达标预告 → 线 2 转「提审就绪预备」+ 双平台材料清单（主人凭证项届时标注） | `docs/a3-playtest-task-order-20261016.md` · QA-WS-A3-TASK-20261016-01 |
+| **B · 线 3 新鲜调研（P1）** | 调研简报落档（**D15-D28 全带出处+日期**，二源交叉为主；跑酷品类数据不足如实标注降权）· 程序能力轴实测（**TS+Canvas：零依赖/契约 16 条判例/本轮零新增基建 1.5h 闭环；Godot 4.3 在机 · preflight 15 类 0.106s · gate-selftest 32s PASS**）· 美术成本档位五候选 · QA 抽查（中文媒体域名直抓全被工具侧拦截→多源交叉降级口径如实） | `research/line3-research-brief-20261016.md` + `research/godot-baseline-probe-20261016.log` + `ts-canvas-reuse-probe-20261016.log` |
+| **B · 线 3 选型拍板** | **主策划拍板（任务书授权）：单场景塔防（IAA 主导 · 微肉鸽 · 确定性战局）· 产线 TS+Canvas**；四字段+视觉基调全带出处（《赵云与阿斗》6 人团队双平台双榜第一 D25×D16 互证）；品类查重以两线 spec 文本为基准零机制复用；**止步 T+0：spec v1 draft 入链 + 风格卡 v0 文字卡，不开实现不建工程** | `.myrd/blackboard/line3-memo-v1.md` · `.myrd/blackboard/line3-style-card-v0.md` · 链 `cmvabm4kh001jm92c4qtjy9a7` v1 **draft**（201/回查 ✓，**不 approve——审签归主人**） |
 
-## 组合全景（2026-10-15 本轮收口时点）
+## 组合全景（2026-10-16 本轮收口时点）
 
 | 线 | 状态 | 一句话 | 基线指针 |
 |---|---|---|---|
-| **线 1 g2-blocks（熔炉方块）** | **提审就绪 · 维持不动**（硬约束③） | 本轮零接触（合并未触碰其源面；生产坑 v17 维持）· 等主人：提审凭证（dy-appid/类目/资质）+ 链 v10 approve | 源仓 sync/dy-v1.3 @ `9c27438` · 链 v9 approved + v10 draft · 子黑板 `g2-blocks/` |
-| **stack-tower** | **冻结 · 维持** | 零接触延续 | spec v1.5 approved · 主线 spec `stack-tower-spec.json` 在档无损 |
-| **线 2 wheat-squad（麦浪小队）** | **R1 未判定·挂起（证据型）· v17 LIVE 试玩采集开启** | R1 复测收口唯一结论已出（A1/A2/A4 绿 · A3 待真人）· spec v1.4 approved · 采集面 = v17 线上（证据绑 sha） | 试玩 `https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw` · 链 v6 · 子黑板 `wheat-squad/` · HEAD `dce2d73`+ |
-| **线 3（未立项）** | **备忘 v0 · 止步** | 5 候选待主人拍板；候选收敛前 0 图 | `.myrd/blackboard/line3-memo-v0.md` |
-| （他线）game-8 / game-9 | 独立 goal 线 · 零接触 | game-9 三件套已归档至顶层黑板尾部存档区 | 各自 goal 线 |
+| **线 1 g2-blocks（熔炉方块）** | **提审就绪 · 卡主人凭证**（维持不动） | 本轮零接触 · 生产坑维持 | 源仓 sync/dy-v1.3 @ `9c27438` · 链 v9 approved + v10 draft · 子黑板 `g2-blocks/` |
+| **stack-tower** | **冻结 · 维持** | 零接触延续 | spec v1.5 approved |
+| **线 2 wheat-squad（麦浪小队）** | **复测分流收口：绿 15 项固化 + A3 未判定·待真人**（非「已完成」——A3 执行与好玩终裁未到） | 采集面 = **v20 LIVE @ `3828f49`**（证据绑 sha `4eccaf29` 逐字符对账）· spec v1.4 approved · 冻结计数器 0/3 | 试玩入口同上 · 链 v6 · 子黑板 `wheat-squad/` · HEAD `3c370ab`+ |
+| **线 3（单场景塔防 · 已拍板未立项实现）** | **选型拍板中 → 主策划已拍板 · 待主人审签** | spec v1 draft 在链（slug `line3-tower-defense`）· 风格卡 v0 文字卡（0 图）· 工作名待主人定 · 建工程轮下轮开 | 链 `cmvabm4kh001jm92c4qtjy9a7` · memo v1 + style-card v0 在黑板 |
+| （他线）game-8 / game-9 | 独立 goal 线 · 零接触 | game-9 三件套存档区维持 | 各自 goal 线 |
 
-### 升级主人（维持 · 不重复催办）
+### 升级主人（2026-10-16 · 带证据 · 不催办）
 
-1. **线 1 凭证**：g2-blocks 提审凭证（正式 dy-appid + 类目/资质）+ 链 v10 approve + wx/dy 提审时点——维持「提审就绪」表述，团队只交包与入口。
-2. **线 2 A3 反馈**：圈定 5 名试玩 + 回填 `games/wheat-squad/qa/playtest-collection-round1.md`（采集窗开启中，v17 LIVE 证据绑 sha）；回填后复跑 ac-a3 即可转「全绿·打磨中」；「好不好玩」终裁归主人。
-3. **线 3 选型**（本轮新增，备忘输入件已备）：如启动第三线，从 memo v0 五候选拍板（或另给方向）；未拍板前全团队止步备忘。
+1. **线 2 A3 执行**（阻塞跨轮维持）：圈定 5 名真人 + 知情同意 → 48h 窗回填。机判面全就绪（任务单 APPROVE-READY + 采集字节 v20 对账）；仅缺真人，机器不代采。达标 ≥4/5 → 线 2 转「提审就绪预备」+ 双平台材料清单（凭证项标注）升级发布拍板；不达标 → 冻结计数器 +1（0/3 起）。
+2. **线 3 审签**（新增）：spec v1 draft（`cmvabm4kh001jm92c4qtjy9a7`）approve 与否 + 工作命名 + 视觉方向（风格卡 v0 三问：①极简高对比方向认不认 ②三国题材还是自选皮 ③8 色占位方向过不过）。**主人未 approve 前线 3 零实现动作。**
+3. **线 1 凭证**（维持）：提审凭证（dy-appid/类目/资质）+ v10 approve。
+
+## 当前基线（2026-10-16 · N0 · 主策划）
+
+- **黑板路径**：顶层 `.myrd/blackboard/`（共板）+ 各线子目录（`wheat-squad/` 主战线 · 线 3 件在顶层 `line3-*`）
+- **spec 版本号**：线 2 = 链 v6 `cmv8xcexk0009m9dj6ev1dj0r` approved（meta v1.4，导出件 DEEP_EQUAL=True 零漂移实查）；线 3 = 链 v1 `cmvabm4kh001jm92c4qtjy9a7` **draft**（无 approved——契约面不存在，零契约运行为纪律面）
+- **分支与 HEAD**：`myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `3c370ab`+（已 push `3828f49`）；分支续接实证：远端无 `game/wheat-squad`，两条 wheat 旧分支 0 领先（无孤儿成果）；**`origin/main` 实证单提交孤儿快照线（`6c0df4a`，603 文件，merge-base=∅）→ 不并入（防 graft 伪历史断证据链），偏差如实披露**
+- **基线自证**：N0 verify 五步 VERIFY_EXIT=0 @ `6cf28ad`；补采轮五步复跑 VERIFY_EXIT=0 @ `4eccaf29`（gate-logs `00` / `07`）
 
 
 ## 当前基线（2026-10-15 · 本轮开工前置 N0 · 主策划）

@@ -1,0 +1,28 @@
+# B2 Godot 基线实测 · UTC 2026-10-16T01:53:09Z
+## ① resolve-godot（引擎可得性，60s 上限）
+godot
+bash .claude/skills/godot-game-dev/scripts/resolve-godot.sh  0.00s user 0.00s system 72% cpu 0.006 total
+RESOLVE_EXIT=0
+## ② preflight.py（模板体检）
+PREFLIGHT: PASS 15 类前置一致性检查全部通过（45 个工程文件，不含 .godot/ 导入缓存）
+python3 .claude/skills/godot-game-dev/scripts/preflight.py   0.06s user 0.02s system 84% cpu 0.106 total
+## ③ gate-selftest.sh（Godot 门禁链自检——导入+冒烟实跑）
+gate-selftest: FAIL 参照工程目录不存在：
+bash .claude/skills/godot-game-dev/scripts/gate-selftest.sh  0.00s user 0.00s system 75% cpu 0.010 total
+GATESELFTEST_EXIT=0
+## ③' gate-selftest.sh <模板工程>（带参照工程重跑）
+gate-selftest: 参照工程 = /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmva9tncj0020m9rsa9vxnxc4/.claude/skills/godot-game-dev/templates/minimal-2d
+gate-selftest: Godot    = 4.3.stable.official.77dcf97d8
+gate-selftest: 对参照工程注入 8 类必然缺陷（D1-D5 模板层 + D6-D8 参照工程层），逐一验证门禁必须拦下且原因可读
+
+gate-selftest: PASS D1 场景实例化断裂 → 找不到 Player
+gate-selftest: PASS D2 autoload 未注册 → autoload GameState 未注册
+gate-selftest: PASS D3 InputMap 缺动作 → InputMap 缺少动作 move_right
+gate-selftest: PASS D4 信号未到达订阅方 → 信号 Player.moved 未到达订阅方
+gate-selftest: PASS D5 静默逻辑 bug(SPEED=0) → 位移 0.00px
+gate-selftest: PASS D6 视觉↔判定漂移 → SKIP（参照工程无 scenes/coin.tscn 或缺锚点，本注入不适用）
+gate-selftest: PASS D7 实例化静默减员 → SKIP（参照工程无 scenes/coin.tscn 或缺锚点，本注入不适用）
+gate-selftest: PASS D8 一触双收币位 → SKIP（参照工程无 scripts/main.gd 或缺锚点，本注入不适用）
+
+gate-selftest: PASS 必然缺陷全部被拦（SKIP 的注入不适用于当前参照工程）、失败原因均可读 —— godot-smoke 门禁断言有效（非空转）
+GATESELFTEST_EXIT=0 ELAPSED=32s

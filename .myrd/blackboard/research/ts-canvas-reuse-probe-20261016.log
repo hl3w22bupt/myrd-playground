@@ -1,0 +1,14 @@
+# B2 TS+Canvas 复用度实测 · UTC 2026-10-16T01:54:43Z
+## wheat-squad src 面（TS+Canvas 产线第二例）
+       7
+     832
+## tests/contract 面（可复用契约判例）
+      16
+      16
+59
+## tools 面（构建/门禁/部署链）
+      13
+## npm 依赖（零依赖纪律）
+deps= {} devDeps= {}
+## g2-blocks 产线对称面（第一例）
+       0
