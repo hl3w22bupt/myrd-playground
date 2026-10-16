@@ -138,7 +138,8 @@ function renderTrend() {
   const t = state.trend;
   if (!t || !t.dates || t.dates.length < 2) {
     els.trendLoading.hidden = false;
-    els.trendLoading.textContent = t && t.failed ? "趋势数据暂不可用（已展示缓存）" : "趋势数据加载中…";
+    els.trendLoading.textContent = t && t.samePair ? "源币种与目标币种相同，换算恒为 1:1，趋势无意义"
+      : t && t.failed ? "趋势数据暂不可用（已展示缓存）" : "趋势数据加载中…";
     els.trendChange.textContent = "--";
     els.trendChange.className = "trend-change";
     return;
@@ -213,6 +214,11 @@ async function fetchLatest() {
 }
 
 async function fetchTrend() {
+  // 防呆：源=目标时汇率恒为 1，趋势无意义；直接给提示态，不发非法请求
+  if (state.from === state.to) {
+    state.trend = { samePair: true };
+    return;
+  }
   const cacheKey = `${LS_KEYS.trend}:${state.from}:${state.to}:${state.range}`;
   const end = new Date();
   const start = new Date(end.getTime() - (state.range + 1) * 86400000);

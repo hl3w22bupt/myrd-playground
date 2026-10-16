@@ -8,7 +8,11 @@
     "mobile": true,
     "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
   },
+<<<<<<< HEAD
   "checkedAt": "2026-10-16T05:27:07.429Z",
+=======
+  "checkedAt": "2026-10-16T05:20:53.211Z",
+>>>>>>> 282ffa7 (fix(webapps): 桌面双列显式定位+同币种防呆提示；qa/acceptance.mjs 使用验收取证脚本（15 项 DOM 向检查）)
   "checks": [
     {
       "id": "network",
@@ -26,7 +30,11 @@
       "id": "render",
       "label": "首屏截图非纯色（400 点采样 ≥2 种量化色）",
       "status": "pass",
+<<<<<<< HEAD
       "detail": "采样仅 9 种颜色——页面没渲染出来（白屏/黑屏）"
+=======
+      "detail": "采样仅 9 种颜色——画面没渲染出来（黑屏/白屏）"
+>>>>>>> 282ffa7 (fix(webapps): 桌面双列显式定位+同币种防呆提示；qa/acceptance.mjs 使用验收取证脚本（15 项 DOM 向检查）)
     },
     {
       "id": "content",
@@ -55,6 +63,10 @@
   ],
   "metrics": {
     "colorCount": 9,
+<<<<<<< HEAD
+=======
+    "idleDiff": 0,
+>>>>>>> 282ffa7 (fix(webapps): 桌面双列显式定位+同币种防呆提示；qa/acceptance.mjs 使用验收取证脚本（15 项 DOM 向检查）)
     "tapDiff": 0,
     "textLength": 527,
     "hasContentElement": true,

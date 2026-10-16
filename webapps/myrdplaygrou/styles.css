@@ -198,6 +198,8 @@ body {
 @media (min-width: 1200px) {
   .page { display: grid; grid-template-columns: 5fr 6fr; gap: 24px; align-items: start; }
   .page-head, .page-foot { grid-column: 1 / -1; }
-  .rate-table-card { grid-column: 1 / -1; }
+  .convert-card { grid-column: 1; grid-row: 2; }
+  .trend-card { grid-column: 2; grid-row: 2; }
+  .rate-table-card { grid-column: 1 / -1; grid-row: 3; }
   .result-value { font-size: 56px; }
 }

@@ -1,0 +1,133 @@
+{
+  "url": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/",
+  "at": "2026-10-16T05:23:12.165Z",
+  "viewportMobile": {
+    "width": 390,
+    "height": 844,
+    "deviceScaleFactor": 3,
+    "mobile": true
+  },
+  "viewportDesktop": {
+    "width": 1440,
+    "height": 900,
+    "deviceScaleFactor": 1,
+    "mobile": false
+  },
+  "snapshotRates": {
+    "base": "CNY",
+    "usd": 0.149188,
+    "out": "$14.92",
+    "amount": "100",
+    "from": "CNY",
+    "to": "USD",
+    "rate": "1 CNY ≈ 0.1492 USD · 100 CNY 兑换所得"
+  },
+  "total": 15,
+  "passed": 10,
+  "failed": [
+    {
+      "id": "convert-usd-cny",
+      "pass": false,
+      "evidence": "USD→CNY 页面 $100.00 vs 复算 14.92 误差 570.29850%（rates.CNY=6.702985）"
+    },
+    {
+      "id": "swap-button",
+      "pass": false,
+      "evidence": "交换前 USD→USD / 交换后 USD→USD"
+    },
+    {
+      "id": "trend-30d",
+      "pass": false,
+      "evidence": "30 天: 数据点=6(>7天的6) 涨跌标注=\"▲ 区间上涨 0.17%\""
+    },
+    {
+      "id": "offline-fallback",
+      "pass": false,
+      "evidence": "断网渲染: 结果=\"$1.48\" 明细行=7 趋势点=6 滞后提示可见=false(\"⚠ 当前展示缓存数据，汇率可能滞后\") 新鲜度=\"数据来源：实时获取 · 更新于 2026/10/16 13:23:06\""
+    },
+    {
+      "id": "responsive-desktop-two-col",
+      "pass": false,
+      "evidence": "1440×900: grid 列数=2，卡片横向分布 1 个不同 x 位（≥2 即并排），无溢出 1440≤1440"
+    }
+  ],
+  "consoleErrors": [],
+  "results": [
+    {
+      "id": "zh-interface",
+      "pass": true,
+      "evidence": "lang=zh-CN title=今日汇率 · 汇率换算与趋势 关键中文文案齐全=true"
+    },
+    {
+      "id": "convert-cny-usd",
+      "pass": true,
+      "evidence": "页面 $14.92 vs 同快照复算 14.9188 误差 0.00804%（rates.USD=0.149188）"
+    },
+    {
+      "id": "convert-usd-cny",
+      "pass": false,
+      "evidence": "USD→CNY 页面 $100.00 vs 复算 14.92 误差 570.29850%（rates.CNY=6.702985）"
+    },
+    {
+      "id": "swap-button",
+      "pass": false,
+      "evidence": "交换前 USD→USD / 交换后 USD→USD"
+    },
+    {
+      "id": "trend-7d",
+      "pass": true,
+      "evidence": "7 天: 折线=true 数据点=6 涨跌标注=\"▲ 区间上涨 0.17%\"(trend-change up)"
+    },
+    {
+      "id": "trend-30d",
+      "pass": false,
+      "evidence": "30 天: 数据点=6(>7天的6) 涨跌标注=\"▲ 区间上涨 0.17%\""
+    },
+    {
+      "id": "visual-hierarchy",
+      "pass": true,
+      "evidence": "结果字号 44px ÷ 正文 15px = 2.9×（要求 ≥2.5×）；主色 #14b8a6；底色 rgb(244, 251, 249)"
+    },
+    {
+      "id": "no-blocking-modal",
+      "pass": true,
+      "evidence": "页面无 dialog 阻断"
+    },
+    {
+      "id": "console-clean-online",
+      "pass": true,
+      "evidence": "在线使用全程 console 零 error 零未捕获异常"
+    },
+    {
+      "id": "responsive-mobile-no-overflow",
+      "pass": true,
+      "evidence": "390×844 视口 scrollWidth=390 ≤ clientWidth=390"
+    },
+    {
+      "id": "localStorage-persist",
+      "pass": true,
+      "evidence": "reload 后恢复: 金额=234.5(期望 234.5) 源币种=JPY(期望 JPY) 目标=USD"
+    },
+    {
+      "id": "offline-fallback",
+      "pass": false,
+      "evidence": "断网渲染: 结果=\"$1.48\" 明细行=7 趋势点=6 滞后提示可见=false(\"⚠ 当前展示缓存数据，汇率可能滞后\") 新鲜度=\"数据来源：实时获取 · 更新于 2026/10/16 13:23:06\""
+    },
+    {
+      "id": "no-blank-screen",
+      "pass": true,
+      "evidence": "正文 1069 字符（>200），截图 qa-09-offline-fallback.png 非白屏"
+    },
+    {
+      "id": "console-clean-offline",
+      "pass": true,
+      "evidence": "断网降级全程零未捕获异常（预期内的资源加载失败不算 error）"
+    },
+    {
+      "id": "responsive-desktop-two-col",
+      "pass": false,
+      "evidence": "1440×900: grid 列数=2，卡片横向分布 1 个不同 x 位（≥2 即并排），无溢出 1440≤1440"
+    }
+  ],
+  "note": "本报告为 DOM 向使用验收取证（机器可验证项）。主观体验（清新明亮观感、留白舒适度等）的结论权在人工复核，见 EXEMPTION.md 与验收报告。"
+}
