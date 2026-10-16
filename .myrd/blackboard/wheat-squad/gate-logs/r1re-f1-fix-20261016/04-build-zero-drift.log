@@ -1,0 +1,14 @@
+# F1 修正轮 · build 零漂移证明（tools/ 不进构建面）
+## 确定性重建（node tools/build.mjs，REBUILD_EXIT=0）
+重建前 md5 = 67a60360d82410d504cd96077ca31cb7（入库字节 = LIVE）
+重建后 md5 = ec015267e318232d666b30766b37d81e
+## 重建产物 vs LIVE 字节逐行 diff（02-live-main-bytes.mjs 归档件）
+diff 行数 = 2（1 处变更行）——仅第 2 行 __G2WS_BUILD.gitSha 单行：
+  LIVE/入库 = 4eccaf29…（补采锚 = 构建时内容 HEAD）
+  重建     = b086c6f5…（本轮构建时 HEAD——构建自指单行滞后不变量）
+specAnchor = cmv8xcexk0009m9dj6ev1dj0r@v6:approved 两面全等；游戏逻辑字节逐字节全等（零内容漂移）。
+build.mjs:62 口径自证：「__G2WS_BUILD = { gitSha, specAnchor } 只含确定性字段，零时间戳」。
+## 处置
+1. src/ 零触碰（本轮变更面 = tools/qa/docs/黑板）→ 未触发「重部署对账」条件
+2. 入库 build/ 已还原为提交字节 67a60360（= LIVE）→ 三点对账不变
+3. 结论：运行面字节零漂移，无需重部署；tools 修改仅进证据生态，verify 全套复跑见 05

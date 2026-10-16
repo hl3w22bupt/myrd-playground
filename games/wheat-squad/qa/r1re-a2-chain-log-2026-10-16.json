@@ -1,18 +1,22 @@
 {
-  "generatedAtUtc": "2026-10-16T01:40:17.078Z",
-  "purpose": "R1 复测三态分流收口轮 · A2 start→end 事件链计数补采（≥20 完整模拟局，禁混真人局——retestProtocol②）",
+  "generatedAtUtc": "2026-10-16T02:56:51.898Z",
+  "purpose": "A2 start→end 事件链计数补采（≥20 完整模拟局，禁混真人局——retestProtocol②）· F1 修正版：20 真实种子局",
   "binding": {
-    "gitSha": "4eccaf293b11052041860ff7b0ee3141975258fd",
-    "specChainId": null,
-    "specChainVersion": null,
-    "specChainStatus": null,
-    "specMetaVersion": "1.4"
+    "gitSha": "b086c6f5bf765ff7a7f1070d7cbcab8902d4ad19",
+    "specChainId": "cmv8xcexk0009m9dj6ev1dj0r",
+    "specChainVersion": 6,
+    "specChainStatus": "approved",
+    "specMetaVersion": "1.4",
+    "seedAssembly": "createGame 装配后、首个 tick 消费前覆写 cfg.rng=seededRng(seed)（cfg.rng 单一确定性面，≡契约 helpers.driveRun opts.seed 装配语义）"
   },
-  "method": "createGame × 20 种子（DEFAULT_SEED(20261011)+i）· game.ts 装配面真实 step 驱动 · 遥测 run_start/run_end 链计数",
+  "method": "createGame × 20 真实种子（DEFAULT_SEED(20261011)+i，i∈[0,20)）· 装配后注入 cfg.rng · game.ts 装配面真实 step 驱动 · 遥测 run_start/run_end 链计数 + 种子敏感机判",
   "result": {
     "chains": 20,
     "chainsRequired": 20,
     "chainsComplete": true,
+    "seedSensitive": true,
+    "uniqueKills": 4,
+    "uniqueDurationMs": 1,
     "p50Sec": 168.1,
     "p90Sec": 168.1,
     "victoryCount": 20,
@@ -32,6 +36,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 218,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     },
@@ -42,6 +48,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     },
@@ -52,6 +60,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     },
@@ -62,6 +72,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     },
@@ -72,6 +84,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 230,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     },
@@ -82,6 +96,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 222,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     },
@@ -92,6 +108,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     },
@@ -102,6 +120,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     },
@@ -112,6 +132,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     },
@@ -122,6 +144,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     },
@@ -132,6 +156,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     },
@@ -142,6 +168,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     },
@@ -152,6 +180,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     },
@@ -162,6 +192,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     },
@@ -172,6 +204,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     },
@@ -182,6 +216,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     },
@@ -192,6 +228,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 230,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     },
@@ -202,6 +240,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     },
@@ -212,6 +252,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     },
@@ -222,6 +264,8 @@
       "durationMs": 168096,
       "durationSec": 168.1,
       "reason": "victory",
+      "kills": 231,
+      "waveIndex": 7,
       "ok": true,
       "fail": []
     }

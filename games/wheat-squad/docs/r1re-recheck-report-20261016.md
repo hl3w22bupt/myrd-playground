@@ -10,11 +10,11 @@
 
 | 项 | 值 |
 |---|---|
-| 工具 | `tools/r1re-a2-chain-count.mjs`（game.ts 装配面真实 step 驱动 · 遥测直读，禁自算替代） |
-| 结果 | **20/20 链完整**（每局恰 1 条 `run_start` 且其后恰 1 条 `run_end`，链长=2 有序）· P50=168.1s ∈[90,180] · P90=168.1s ≤300 · **victory 20/20** · 带内=true |
-| 口径纪律 | 全部模拟局（DEFAULT_SEED+i），**禁混真人局**（真人面归 ac-a3，retestProtocol② 不混算）；ac-a3 机制面 check 与契约判定面（checks/ac-a2 → ac-03 spec）零改动 |
-| 落档 | `qa/r1re-a2-chain-log-2026-10-16.json`（逐种子链 + durationMs ≡ tick×16ms 断言 + binding.gitSha=本报告绑定 sha） |
-| 双面对拍 | 内核面（duration-log/run-all ac-a2）P50=168.096s ≡ 装配面（game.ts 遥测链）P50=168.1s **同值** |
+| 工具 | `tools/r1re-a2-chain-count.mjs`（game.ts 装配面真实 step 驱动 · 遥测直读，禁自算替代）· **F1 驳回修正版（2026-10-16）**：装配后、首个 tick 消费前覆写 `cfg.rng=seededRng(seed)`——修正前 seed 只进标签未传装配，20 行实为同一种子复制（红证据 `gate-logs/r1re-f1-fix-20261016/00..02`） |
+| 结果 | **20/20 链完整**（每局恰 1 条 `run_start` 且其后恰 1 条 `run_end`，链长=2 有序）· P50=168.1s ∈[90,180] · P90=168.1s ≤300 · **victory 20/20** · 带内=true · **种子敏感机判过（kills 唯一值=4 ≥2，fail-closed 断言）** |
+| 口径纪律 | 全部模拟局（**20 真实种子 = DEFAULT_SEED+i 经 cfg.rng 装配生效**，样本意图 = spec ac-a2 statement `sampleSeeds(20) 种子局`），**禁混真人局**（真人面归 ac-a3，retestProtocol② 不混算）；ac-a3 机制面 check 与契约判定面（checks/ac-a2 → ac-03 判例经 helpers.driveRun 真实变 seed）零改动 |
+| 落档 | `qa/r1re-a2-chain-log-2026-10-16.json`（逐种子链 + durationMs ≡ tick×16ms 断言 + 种子敏感披露 + binding.gitSha=重采时 HEAD `b086c6f`/链锚 v6 approved——F2 修正：绑定面改 loadSpecRow()，specChainId/Version/Status 不再 null） |
+| 双面对拍 | 内核面（duration-log/run-all ac-a2）P50=168.096s ≡ 装配面（game.ts 遥测链）P50=168.1s **同值**；时长同值 = 仿真结构性质（victory 局时长由波次节拍 victoryWaves×wave.seconds 决定，种子敏感面在敌序列/击杀数——kills 唯一值=4 机判披露），非复制 |
 
 ## 二、A1 · 首次核心正反馈（ac-a1 · auto）→ **绿（新锚）**
 
@@ -68,3 +68,15 @@
 | A4 | ✅ 绿（含 fx 绑定 + 帧采样扩面） | 绑新 sha 机判实测 ≤ 阈值 |
 | A3 | ⏳ 未判定·待采 | 真人局 0/5（结论面）；任务单已出，执行待主人圈定 5 名真人 |
 | 红项 | **0 条** | 无证据行号型超阈缺陷；条件触发链（连续 2 轮红）不触发 |
+
+## 九、QA 驳回修正记录（F1/F2/F3 · 2026-10-16 · 游戏程序 · 先红后绿）
+
+> 驳回全文见 QA 反馈件；本段为程序侧逐条修正闭环，**分流表 QA 复签待 QA 节点执行**（程序不代签）。
+
+| 项 | 驳回伤情（已核实属实） | 修正动作 | 红绿证据 |
+|---|---|---|---|
+| **F1** A2 链计数证据失真 | `tools/r1re-a2-chain-count.mjs:31-32` seed 只进标签；`src/game.ts` createGame 硬绑 DEFAULT_SEED 无 seed 形参；`src/kernel/sim.ts:80` void seed（真实种子面=cfg.rng）→ 链日志 20 行同一种子逐字节复制（durationMs 全=168096），§一「全部模拟局（DEFAULT_SEED+i）」失实，不符 ac-a2 statement `sampleSeeds(20) 种子局` 样本意图 | 采解锁动作第二路径（**不触 src**）：工具装配后、首个 tick 消费前覆写 `cfg.rng=seededRng(seed)`（≡契约 helpers.driveRun opts.seed 装配语义；sim 内全部随机消费点 `st.cfg.rng.next()`）真实重采 20 种子；新增种子敏感机判 fail-closed（kills 唯一值 <2 ⇒ 显式失败）；method 串与 §一同步如实改写 | 红：旧件备份 `00` + 旧工具复跑 `01` + 机检 FAIL exit=1 `02`；绿：重采 exit=0 `03`（20/20 链 · P50=168.1s · victory 20/20 · **kills 唯一值=4**）· 连跑二次判定面逐字节同值（仅 generatedAtUtc 时间戳行异）`06/07` 非 flaky |
+| **F2** 链日志绑定三链字段 null | `loadSpec()` 回 `.spec` 内容面剥 `_platform` → binding.specChainId/Version/Status 恒 null | 绑定面改 `loadSpecRow()`（wrapped 全件）；重采后 binding = `cmv8xcexk0009m9dj6ev1dj0r` @ v6 `approved` 全非 null（见 03/06 号日志 binding 段） | 随 F1 重采件生效 |
+| **F3** spec README 索引滞后（记账不阻塞） | `.myrd/spec/README.md` 未登记 wheat-squad spec 导出件与顶层 design-spec.json 门禁适配视图化 | 已补登记（本修正轮 commit 内 `.myrd/spec/README.md`） | 记账面，无门禁耦合 |
+
+**未触 src 声明与部署对账不变**：本轮变更面 = `tools/` + `qa/` + `docs/` + 黑板，`src/tests/ci/assets/apphost/spec` 零 diff → 驳回条件句「若触 src 复跑 verify 全套并重部署」中重部署分支不触发。确定性重建零内容漂移证明：重建 vs LIVE 字节 diff = 仅 `__G2WS_BUILD.gitSha` 单行（构建自指滞后不变量，build.mjs 只写 HEAD sha 零时间戳），游戏逻辑字节逐字节全等，specAnchor v6 不变（`gate-logs/r1re-f1-fix-20261016/04`）。verify 五步全量复跑 **VERIFY_EXIT=0**（56/0 + 16/0/1PEND + SMOKE + 双 GUARD，`05`）——零回归，A1/A2/A4 绿判定维持绑 `4eccaf29`（src 面零变更，retestProtocol①「受测源面 diff 为空」口径不变）。

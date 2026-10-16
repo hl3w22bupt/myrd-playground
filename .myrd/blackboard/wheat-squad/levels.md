@@ -17,6 +17,8 @@
 
 **程序线 verify-claims 接手复核一行**（2026-10-16 · 游戏程序 · 独立实跑 @ HEAD `0ff651f`，不照抄声称）：接手 A1-A7 完成态后五步门禁独立复跑全绿（统契约 **56/0** · 自有 **16/0/1PEND** · WS-SMOKE victory 167s 真实载荷 `run_duration_ms=167984` + 四事件 + console 零错误 · 双 GUARD PASS，`VERIFY_EXIT=0`）；新锚三点链在当前 HEAD 复验成立——LIVE `main.mjs` md5 `67a60360` ≡ 本仓 build 逐字节、内嵌 `__G2WS_BUILD.gitSha` ≡ 报告绑定 `4eccaf29` **逐字符全等**、`git diff 4eccaf2..HEAD` 源面空（HEAD 相对锚仅 docs/黑板，构建自指单行滞后不变量维持）；绿项固化面独立核对 = spec acceptance **16/16 全带 check** ↔ `tests/contract/checks/` 16 件同名一一对应实跑全过。复核零源面变更，A1-A7 结论全部维持，不新增不推翻。证据 `gate-logs/r1re-claims-recheck-20261016/00..02`。
 
+**QA 驳回 F1/F2/F3 修正轮一行**（2026-10-16 · 游戏程序 · 先红后绿）：F1 属实——链计数工具 seed 只进标签未传装配（createGame 硬绑 DEFAULT_SEED / sim.ts void seed），20 行同种子复制、报告 §一「DEFAULT_SEED+i」串失实 → 修正 = 装配后首个 tick 前覆写 `cfg.rng=seededRng(seed)`（≡契约 helpers.driveRun 装配语义，**不触 src**）真实重采 20 种子 + 新增种子敏感机判 fail-closed（**kills 唯一值=4 ≥2** 过）+ method/§一串如实改写；F2 属实——绑定改 `loadSpecRow()`，binding 三链字段 = `cmv8xcexk…@v6 approved` 全非 null；F3 记账——`.myrd/spec/README.md` 补 wheat-squad 两行登记。**ac-a2 判定值不变（P50=168.096s ∈[90,180] · victory 20/20 · 链 20/20）**；时长同值=仿真结构性质（波次节拍决定），种子敏感面在 kills 已机判披露；修正轮未触 src → 三点对账与绿判定绑 `4eccaf29` 维持、重部署分支不触发（重建 vs LIVE 字节 diff 仅 gitSha 单行）；verify 五步复跑 **VERIFY_EXIT=0** 零回归；连跑二次判定面逐字节同值非 flaky。**分流表 QA 复签待 QA 节点**（程序不代签，PROG-WS-R1RE-F1FIX-20261016-01）。证据 `gate-logs/r1re-f1-fix-20261016/00..07`（红 00-02 / 绿 03-07）。
+
 
 
 ## R1 复测收口轮（2026-10-15 · N5 台账回填 · 主策划整合）

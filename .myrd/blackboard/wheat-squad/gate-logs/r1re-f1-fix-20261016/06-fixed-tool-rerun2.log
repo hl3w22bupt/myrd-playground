@@ -1,0 +1,5 @@
+A2-CHAIN-COUNT: 20/20 链完整 P50=168.1s P90=168.1s victory=20/20 带内=true 种子敏感=true(kills 唯一值=4, durationMs 唯一值=1) → /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmva9tncj0020m9rsa9vxnxc4/games/wheat-squad/qa/r1re-a2-chain-log-2026-10-16.json
+(node:50832) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmva9tncj0020m9rsa9vxnxc4/games/wheat-squad/src/game.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmva9tncj0020m9rsa9vxnxc4/games/wheat-squad/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)

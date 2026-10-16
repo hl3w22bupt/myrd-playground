@@ -1,6 +1,7 @@
 # .myrd/spec/ — 策划案导出件索引（分游戏独立路径，2026-09-25 M2.1 起施行）
 
 > 更新时间：2026-09-29（**B1 上头循环轮 · N1 spec v1.4 登记+approve 完成 · 主策划**：平台 v6 `cmulzwv6c005km9lfo3zek574` approved 唯一，v5 superseded；content.retention 新段（scope_gate=narrow 落死：仅 daily-challenge + streak-display，missions 顺延——N0 三门槛实测样本量 0）+ assets 追加 4 项 meta 四件套 + acceptance 追加 8 条 acc-b1..b8（总 40）；world/entities/levels/numeric 四段与 v1.3 逐字节一致，numeric sha256 `c3af773b…74957d` 沿用 v1.3 存档锚；基线契约 31/31 全绿零回归）
+> 〔索引补登记 2026-10-16 · 游戏程序 · QA F3〕补 wheat-squad 两行（`wheat-squad/design-spec.json` 契约单源 + 顶层 `design-spec.json` 门禁适配视图）；原 stack-tower 顶层专属行加视图化改写存档注记。内容零变更，纯索引记账。
 > 负责人：主策划（版本链唯一看护；任何内容修订必须走版本链 version+1，禁止覆盖旧版）
 > 下一步：N2 美术（meta 四件套 + 参考卡 meta 扩展）‖ N3 程序（sfc32 seed / 存档迁移 / 埋点三类 / SW v2）→ N4 门禁 → deploy（仅 PWA）
 
@@ -8,8 +9,10 @@
 
 | 文件 | 游戏 | 版本/状态 | 契约测试调用 |
 |---|---|---|---|
+| `wheat-squad/design-spec.json` | **wheat-squad 麦浪小队（`games/wheat-squad/`）** | **v1.4（平台链 v6 `cmv8xcexk0009m9dj6ev1dj0r`）· approved**（F3 补登记 2026-10-16：本索引此前漏登本件——线 2 契约唯一单源，六段+meta.telemetryFields 判据自本件读入） | `bash games/wheat-squad/verify.sh`（①步 `node scripts/contract-check.mjs --spec .myrd/spec/wheat-squad/design-spec.json --project games/wheat-squad`）· `node games/wheat-squad/tests/contract/run-all.mjs`（helpers.loadSpecRow 自动发现，`G2WS_SPEC_PATH` 可显式锚定） |
+| `design-spec.json`（顶层） | **wheat-squad（门禁适配视图）** | wheat-squad spec 的适配视图化第二落点（`id=wheat-squad` · approved · `_platform.updatedAt=2026-10-15`；F3 补登记 2026-10-16）——**非契约单源**，routine 断言一律走上行 wheat-squad 单源件（`.myrd/routines.yaml` game-contract specPath 已显式指向 `wheat-squad/design-spec.json`，旧顶层 specPath 缺失判例 `gate-logs/n10`）；旧「stack-tower 专属」口径见下行存档注记 | 只读视图（无独立契约引用） |
 | `stack-tower-spec.json` | **Stack Tower 叠塔（`games/stack-tower/`）** | **v1.4（平台 v6）· approved**（platformSpecId `cmulzwv6c005km9lfo3zek574`；v5 `cmukkjc10001ym9nb3dnc5kt6` superseded）。v1.4 = B1 上头循环轮：仅新增 content.retention 段（scope_gate=narrow 落死 + items 七条各带 id+落点+check + 双附录 A/B + N0 摘要）+ assets 追加 4 项 meta 四件套（daily-challenge-card/mission-panel/streak-badge/icon-badge）+ acceptance 追加 8 条 acc-b1..b8；四段（world/entities/levels/numeric）与 v1.3 逐字节一致；numeric sha256 `c3af773b…74957d` 沿用 v1.3 存档锚；既有 32 条 acceptance 零增改 | `node games/stack-tower/tests/contract/run-all.mjs`（runner 自动读本文件） |
-| `design-spec.json` | **Stack Tower 叠塔（r4 起）** | 同上（v1.3 approved 同内容第二落点，2026-09-28 以接口为准回写）——原糖果线遗留内容 2026-09-25 前已丢失（git 不可回滚），本文件自此为 stack-tower 专属，糖果线契约不得引用 | 同上（只读镜像） |
+| `design-spec.json` | **Stack Tower 叠塔（r4 起）** | 同上（v1.3 approved 同内容第二落点，2026-09-28 以接口为准回写）——原糖果线遗留内容 2026-09-25 前已丢失（git 不可回滚），本文件自此为 stack-tower 专属，糖果线契约不得引用。**〔存档注记 2026-10-15〕本路径此后被改写为 wheat-squad 门禁适配视图（见上表 wheat-squad 顶层行）；stack-tower 契约单源 = `stack-tower-spec.json`，旧口径就此存档** | （历史口径存档） |
 | `stack-tower-spec-v1.4-payload.json` | 同上（v1.4 建版载荷） | POST /revisions 载荷 `{spec, detail}`；复现链 `node games/stack-tower/tools/build-spec-v14.mjs`（四段冻结守卫 + numeric≡v1.3 存档锚断言，违反即拒绝产出）；新增文件清单存档 `stack-tower-spec-v1.4-new-files.txt`（23 项） | 只读审计 |
 | `stack-tower-spec-v1.3-payload.json` | 同上（v1.3 建版载荷） | POST /revisions 载荷 `{spec, detail}`；复现链 `node games/stack-tower/tools/build-spec-v13.mjs`（四段冻结守卫，违反即拒绝产出） | 只读审计 |
 | `stack-tower-spec-v1.3-numeric-sha256.txt` | 同上（**唯一冻结基线存档**） | `c3af773b6483164c22ca0a039623967cb3b67ff9b2b658749f927baeee74957d`（sortKeys 规范化）；`scripts/check-numeric-freeze.mjs` **只复算本档，禁止现场自算** | `node games/stack-tower/scripts/check-numeric-freeze.mjs` |

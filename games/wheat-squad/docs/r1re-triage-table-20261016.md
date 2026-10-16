@@ -43,7 +43,7 @@
 | 判据编号 | 本轮终局三态 | 补采实测 | 判据依据 |
 |---|---|---|---|
 | ac-a1-first-core-feedback | **绿** | 1.71s ≤10s · 5/5 种子 ≤30s | 绑新 sha 实跑（run-all @ `4eccaf29`）· 地基=新锚链（报告 sha ≡ 构建内嵌 sha 逐字全等） |
-| ac-a2-run-duration-band | **绿** | P50=168.096s ∈[90,180] · victory 20/20 · **start→end 链 20/20 完整** | 同上 + 事件链计数面（`qa/r1re-a2-chain-log-2026-10-16.json`）双面同值 |
+| ac-a2-run-duration-band | **绿** | P50=168.096s ∈[90,180] · victory 20/20 · **start→end 链 20/20 完整** · F1 修正重采：20 真实种子（cfg.rng 装配生效，kills 唯一值=4 种子敏感机判 fail-closed 过） | 同上 + 事件链计数面（`qa/r1re-a2-chain-log-2026-10-16.json` **F1 修正版**）双面同值 |
 | ac-a3-restart-willingness | **未判定·待采** | 机制面 PASS；结论面 0/5（回填件 0 行） | 真人证据缺位（待主人圈定 5 名真人）；不判红绿不烧余量 |
 | ac-a4-feedback-channels（面1/2/4/5） | **绿** | max 0ms · min 4 通道 · fx 全绑 · 帧 P95=0.001ms | 绑新 sha 实跑 |
 | ac-a5-guidance-first-action | **绿** | 48ms ≤5000ms 窗 · 文案三方同名逐字 | 绑新 sha 实跑 |
@@ -62,3 +62,11 @@
 - [x] A2 事件链计数口径核验：链长=2 有序不重不漏 · 20/20 · durationMs ≡ tick×16ms 断言 · 全模拟局（真人局零混入）
 - [x] 红项 0 条 → R2 修复批不触发、条件触发链不触发，判定正确
 - QA 签字：**QA-WS-R1RE-TRIAGE-20261016-02 · verdict=A1/A2/A4 绿（新锚）· A3 未判定·待采（0/5）· 分流收口成立**
+
+## v2 追加 · QA 驳回 F1/F2 修正与复签请求（2026-10-16 · 程序侧修正件，**待 QA 复签**）
+
+> QA 驳回（F1 证据失真 / F2 绑定缺失 / F3 记账）已逐条核实属实并修正，详见补采报告 **§九 驳回修正记录**（红绿证据 `gate-logs/r1re-f1-fix-20261016/00..07`）。
+- [ ] **待 QA 复签项 ①**：v2 签字所引「事件链计数面」证据件链日志失真（20 行同一种子复制、标签 DEFAULT_SEED+i 未生效、binding 三链字段 null）——修正版链日志已重采落档（20 真实种子 cfg.rng 装配生效 · kills 唯一值=4 种子敏感机判 fail-closed 过 · binding=cmv8xcexk…@v6:approved 全非 null），ac-a2 判定值（P50=168.096s ∈[90,180] · victory 20/20）不变
+- [ ] **待 QA 复签项 ②**：修正轮未触 src（变更面 = tools/qa/docs/黑板）→ 三点对账与绿判定绑 `4eccaf29` 维持有效（retestProtocol① 源面 diff 为空）；确定性重建 vs LIVE 字节 diff 仅 gitSha 单行（构建自指滞后）+ verify 五步复跑 VERIFY_EXIT=0
+- [ ] **待 QA 复签项 ③**：v2 签字核对项「全模拟局（真人局零混入）」结论维持成立（真人局仍 0 局），但其证据基础由失真标签件换为修正版链日志件——复签时以修正版为准
+- 程序修正签字：**PROG-WS-R1RE-F1FIX-20261016-01 · verdict=F1/F2 修正闭环（先红后绿证据在档）· F3 记账已补 · 待 QA 复签后本表 v2 终局维持**
