@@ -8,7 +8,7 @@
     "mobile": true,
     "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
   },
-  "checkedAt": "2026-10-16T05:47:17.809Z",
+  "checkedAt": "2026-10-16T05:48:45.802Z",
   "checks": [
     {
       "id": "network",
@@ -58,7 +58,7 @@
     "tapDiff": 0,
     "textLength": 527,
     "hasContentElement": true,
-    "textHead": "¥\n今日汇率\n\n数据来源：实时获取 · 更新于 2026/10/16 13:47:07\n\n金额\n从\n人民币 CNY\n美元",
+    "textHead": "¥\n今日汇率\n\n数据来源：实时获取 · 更新于 2026/10/16 13:48:37\n\n金额\n从\n人民币 CNY\n美元",
     "scrollWidth": 390,
     "clientWidth": 390,
     "hasViewportMeta": true
