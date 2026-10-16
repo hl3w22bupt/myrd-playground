@@ -95,3 +95,50 @@
 
 - 把 playtest.sh（及配套 playtest_driver.gd，注入目录内有阅读副本可参考）补入模板仓库
   std-skills/godot-game-dev/scripts/ 并重新预置；补齐后本节点重跑即可闭环机判试玩门禁。
+
+---
+
+# Blocked 上报 — scaffold 节点《今日汇率》web 工程线（run cmvafm2y5001km94leiaezgid）
+
+- **status: blocked**
+- **detail: 模板仓库未预置门禁脚本：std-skills/web-app-dev/scripts/webapp-smoke.mjs；请运维把模板仓库补上技能资产**
+- **detail（第二项）: 模板仓库未预置技能资产 —— std-skills/web-app-dev/references/webapp-smoke-routine.md 同样缺失，.myrd/routines.yaml 无 id=webapp-smoke 条目且无模板可照抄**
+- 时间：2026-10-16
+- 目标：cmvaf7imr000jm94le9x48zfu（《今日汇率》HostedApp）；AppHost：myrdplaygrou（cmvaf7imm000hm94lw6y43t0q）
+- 所在分支：myrd/myrdplaygrou-goal-cmvaf7imr000jm94le9x48zfu
+
+## 触发依据
+
+任务硬约束「来源不可得 → 立即 blocked」列出两类必须**预置在项目仓库内**的门禁资产：
+① 判定脚本 `std-skills/web-app-dev/scripts/webapp-smoke.mjs`；② 门禁配置模板
+`std-skills/web-app-dev/references/webapp-smoke-routine.md`（.myrd/routines.yaml 无
+id=webapp-smoke 时照抄追加用）。本节点开工前校验发现**两类均缺失**，按约束立即停止。
+
+## 排查证据
+
+1. 仓库 `std-skills/` 仅三个技能目录：experience-harness / experience-review / godot-game-dev
+   —— **无 web-app-dev 目录**（scripts/、references/ 均不存在）。
+2. `git fetch origin --prune` 后 `git log --all -- "*web-app-dev*"` 与
+   `git log --all -- "*webapp-smoke*"` 均为空：本地全部分支 + 远端最新 main（6c0df4a）
+   **全部历史从未存在过该资产**，非路径变动。
+3. `.myrd/routines.yaml` 在库且含 git-hygiene / godot-smoke / game-contract / mobile-web-smoke /
+   experience-pack 五个 routine，**无 id=webapp-smoke** → 触发「缺 → 照抄模板追加」路径，
+   而模板文件不存在 → 第二类资产同样不可得。
+4. 全仓 grep "webapp-smoke"：命中仅在 `.myrd-platform/.claude/skills/web-app-dev/`（平台注入
+   **阅读副本**，.gitignore 第 7 行覆盖、未跟踪）与 PRODUCT_CONTEXT.md；仓库工具链
+   （routines.yaml、scripts/、README）零引用。注入副本含 webapp-smoke.mjs 与
+   webapp-smoke-routine.md，但任务明令「不得把注入目录当判定脚本来源，也不得现场改写/自行编写」。
+5. `git check-ignore` 确认 std-skills 路径未被 .gitignore 忽略 —— 缺失是真缺失，非忽略所致。
+6. 同目标旧分支 `myrd/web-goal-cmvaf7imr000jm94le9x48zfu`（write_document 节点 auto-commit）
+   亦无 webapps/ 与 web-app-dev 资产，无可复用产出。
+7. 先例一致：本报告上方 godot 线 playtest.sh 缺失时，scaffold 节点同样「立即停止、不搭工程」
+   blocked（后运维补齐解除）。
+
+## 处置
+
+- 按约束立即停止：未编写/未复制/未以等价命令替代任何判定脚本，未改动 .myrd/routines.yaml，
+  未搭建 webapps/myrdplaygrou，未做任何绕过（工程尚未开始，无半成品与返工成本）。
+- blocked 报告落盘本文件并 commit + push 到目标功能分支，产物可回收。
+- 待运维把 web-app-dev 技能资产（至少 scripts/webapp-smoke.mjs +
+  references/webapp-smoke-routine.md，注入目录内有阅读副本可参考）补入模板仓库并重新预置后，
+  本节点可原样重跑闭环。
