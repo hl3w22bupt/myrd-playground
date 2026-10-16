@@ -1,0 +1,5 @@
+# 门禁4 perf 相对判（两层制 CI 层） · 2026-09-27 11:08:52 · 命令: node tests/perf-relative-check.mjs（cwd games/stack-tower）
+[perf] 相对判：当前块 P95=9.0631ms/2000帧 vs 基线 8.3353ms（2026-09-27）→ 差异 8.73%（容忍 ±10%）
+[perf] 绝对阈值（P95≤16.6ms / 峰值≥55fps）按真机口径单列，CI 不判（两层制）
+RESULT: PASS — perf 相对判
+exit=0

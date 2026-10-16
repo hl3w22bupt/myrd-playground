@@ -1,0 +1,21 @@
+# 命令: node tests/wx/wx-runtime-surface.spec.mjs（B0 N3 wx 轨 · 2026-09-28 10:05:18）
+  PASS  deviceOrientation=portrait
+  PASS  openDataContext=open-data-context
+  PASS  AppID 在位（touristappid 占位或正式号）
+  PASS  compileType=game
+  PASS  AppID 占位策略留痕（description 声明）
+  PASS  game.js → require('./build-wx/app/boot-wx.js')
+  PASS  boot-wx 产物落包
+  PASS  exports.createWxPlatform（装配体导出）
+  PASS  生命周期：wx.onShow / wx.onHide 接线
+  PASS  输入：wx.onTouchStart → 意图
+  PASS  时钟：requestAnimationFrame 帧链
+  PASS  音频：createWebAudioContext 桥 + 静音同源键
+  PASS  资产：wx.createImage 装载（404 → null 降级）
+  PASS  分享注册面：onShareAppMessage / onShareTimeline / showShareMenu
+  PASS  DOM shim：getElementById(hud/stage) + createElement
+  PASS  视口上报 setViewport（横屏遮罩口径与 web 一致）
+  PASS  HUD 画布直绘（无 DOM 环境的分数可见性）
+  PASS  主包编译产物为 CommonJS（exports 定义）
+RESULT: PASS  — wx 运行时表面 16 项断言全绿
+# exit=0（10:05:18）

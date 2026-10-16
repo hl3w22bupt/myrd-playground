@@ -1,0 +1,8 @@
+  ok    HTTP：/ 200 且引用 build/main.js；/build/main.js 200
+  ok    模块图：25 个 build 模块相对导入全部可解析
+  ok    无头核心循环：seed=20260925 连续 3 次落块成功，score=120
+  ok    浏览器：页面打开，画布 480×720 就绪
+  ok    核心循环：3 次点击落块生效，HUD "分数 45"
+  ok    重开：R 键后 HUD "分数 0"（分数/连击清零）
+  ok    零页面错误（pageerror / console.error 均无）
+RESULT: PASS (browser)

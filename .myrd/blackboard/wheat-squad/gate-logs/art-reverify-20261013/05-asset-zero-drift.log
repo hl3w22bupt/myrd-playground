@@ -1,0 +1,23 @@
+== ③c 资产交付件零漂移证明 · HEAD=c33a8165de3a138126ddbd1dbdc19f11d686b52a vs N8 复核锚 304dacf ==
+（方法：git cat-file blob 304dacf:<path> 实算 sha256 ↔ 本轮工作树 sha256（01-baseline）逐行全等 + git diff 路径零触及双证；首跑因 zsh 词切分缺陷落空一版，本版为显式逐件循环修正版）
+
+[PASS] 零漂移 games/wheat-squad/assets/manifest.json
+       sha256=23fc3e86d0f3e5bea43a8419184760c86caee570d6f2c8afe92f889a69b246ec
+[PASS] 零漂移 games/wheat-squad/src/render/theme.ts
+       sha256=f22e4b62189f6316786f3bb9487ae72e383e3f5663fa81bb3c838c43004e2e1a
+[PASS] 零漂移 games/wheat-squad/src/render/renderer.ts
+       sha256=ba08aba626657f63a85f82932e18d0a65d0e8ad1fb048934d7bac9a1eade1f25
+[PASS] 零漂移 .myrd/blackboard/wheat-squad/style-card-v1.md
+       sha256=a85dfac3d4d41e780a2ef6d43154b330944e36430db4f8b35d832d33fd49cd1d
+[PASS] 零漂移 games/wheat-squad/qa/submission/sub-icon.template.svg
+       sha256=135a1ac737d531b60c35ee0275920f3274f6cab6369edd9d12a150b5a68d49e9
+[PASS] 零漂移 games/wheat-squad/qa/submission/sub-sharecard-5x4.template.svg
+       sha256=747c8f8b306d1cd5f826f81dc91afe9abefe1d3e77644a68eed66fbd8b7a1cfe
+[PASS] 零漂移 games/wheat-squad/qa/submission/sub-shots-3.template.svg
+       sha256=efe12e10bd4048d51ee7c797678b16fe28ab5b1cd336b8fc6c2179f4e29d1ec8
+
+--- git diff 路径面（304dacf..HEAD，games/wheat-squad + .myrd/spec）---
+触及文件数=0（0 = PASS）
+
+RESULT: PASS — 7 件美术交付件对 N8 复核锚逐字节零漂移 + 路径面零触及
+RESULT-EXIT=0

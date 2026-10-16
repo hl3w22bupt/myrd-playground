@@ -1,0 +1,10 @@
+# 命令: node scripts/contract-check.mjs
+# 时间: 2026-09-30 09:53:34 +0800
+[A] spec 基线：.myrd/spec/stack-tower-spec.json · platformSpecId=cmunf6r1e014cm9lfamzllk2h v7 status=approved acceptance=40 levels=1 entities=20 assets=24
+[B] acceptance 命令化 + 实跑：39/40 PASS（not-runnable 1：acc-a7（check=npx vitest run tests/audio/events.test.ts），单列不计绿）
+[C] 双向映射：level/element 8 ↔ elements 9（折入核验 1：lvl-01-stack-tower/e09-opening-stack）；横切 acceptance 31 ↔ 契约文件 39（run-all 聚合全量核对）
+[D] entities 落盘 20/20（含锚点实体 3，契约可追溯）；kernel 纯净性 10 文件扫描完成
+[E] assets 落盘 24/24（全部 generated，零外部资源）
+
+说明：acceptance 实跑即「契约测试通过记录」（B 段逐条执行 tests/contract/*.spec.mjs）。
+RESULT: PASS（spec ↔ 工程一致）

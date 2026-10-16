@@ -1,0 +1,2 @@
+SCOPE-GUARD RED 越界引用（代码/工程文件不得引用一号仓库路径；spec 真源按策略豁免）：
+  - ci/__probe.mjs :: games/stack-tower

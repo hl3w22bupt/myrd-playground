@@ -1,0 +1,6 @@
+# 命令: node scripts/check-wx-bundle-size.mjs（B0 N3 wx 轨 · 2026-09-28 10:05:19）
+[size] 主包 317.8KB / 4MB —— PASS
+[size] 开放数据域 5.7KB / 1024KB —— PASS（分列口径）
+[size] manifest 一致性：62 件，漂移 0
+RESULT: PASS
+# exit=0（10:05:19）

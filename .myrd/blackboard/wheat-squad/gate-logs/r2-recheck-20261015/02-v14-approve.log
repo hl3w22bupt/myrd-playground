@@ -1,0 +1,3 @@
+[2026-10-15T02:35:50.231Z] QA 预审：acceptance 零改动=true · id 集 16 条 · numeric 深等=true · retestProtocol 键=4
+[2026-10-15T02:35:50.265Z] POST /approve → HTTP 200
+[2026-10-15T02:35:50.272Z] 回查①：id=cmv8xcexk0009m9dj6ev1dj0r · version=6 · status=approved · sortKeys READBACK DRIFT

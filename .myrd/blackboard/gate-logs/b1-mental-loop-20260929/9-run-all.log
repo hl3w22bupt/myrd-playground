@@ -1,0 +1,4 @@
+# 9 · 全量契约（2026-09-29）
+$ node tests/contract/run-all.mjs
+==== 契约汇总 ====
+PASS 39 / FAIL 0 / not-runnable 0 （共 39）

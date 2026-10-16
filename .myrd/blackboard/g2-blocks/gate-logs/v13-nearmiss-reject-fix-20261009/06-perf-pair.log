@@ -1,0 +1,9 @@
+# cmd: perf-report 双侧（基线 /tmp worktree @6d3db6a 钉 G2_SPEC_PATH · HEAD=g2-blocks-v13）
+# utc: 2026-10-09T03:46:07Z
+== 基线 6d3db6a ==
+[perf] 基准跑（throttle×1）: samples=434 fps=68.66 p50=12.5ms p95=27.135ms p99=34.967ms max=37.5ms jank=60(13.82%)
+PERF-REPORT: PASS P95 报告已产出（基准 P95=27.135ms · 代理口径披露在案）
+== HEAD（驳回修复后）==
+[perf] 基准跑（throttle×1）: samples=446 fps=69.33 p50=12.4ms p95=27.1ms p99=35.255ms max=36.4ms jank=60(13.45%)
+PERF-REPORT: PASS P95 报告已产出（基准 P95=27.1ms · 代理口径披露在案）
+EXIT=0

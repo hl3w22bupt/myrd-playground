@@ -1,0 +1,18 @@
+# 独立核验（游戏程序 · 本 run 实跑）· 2026-10-04T02:20:11Z
+g2-blocks HEAD: eab0df0376326cc8c4291a5c9b0faa8ab1776c93
+
+## numeric 冻结锚（同口径 sha256(sortKeys(numeric)) 独立重算）
+approved v1.1 : 302e63367f3dea63212ad689a33703d83886d145862db0d724df98e97fea2d89 → MATCH 302e6336…
+chain v4 draft: 1720df8ec6ac0d00b7cad6725892b80e368019d72941fc0063643ea9d7d0eb5c → MATCH 1720df8e…
+
+## v1.1 既有 12 组 numeric 逐字节对比（approved vs 链 v4）
+组数 12 → 14 · 既有组漂移: 无（零漂移） · 新增组: ['daily', 'feel']
+
+## 顺延项零渗漏（src 面）
+src 顺延键命中数（须 0）: 0
+
+## 冒烟判据面零变化
+tools/smoke.mjs diff 行数（须 0）: 0
+
+## 一号仓本轮区间 games/ 触碰（须 0）
+games/ 触碰文件数: 0

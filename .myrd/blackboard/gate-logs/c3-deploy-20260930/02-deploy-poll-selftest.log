@@ -1,0 +1,10 @@
+# 02-deploy-poll-selftest.log
+# 日期：2026-09-30
+# 命令：POST $PLATFORM_API_URL/api/v1/apphost/apps/cmugttipt000km9299oej5z9b/deployments（mode=bundle, deployedBy=workflow, gitRef=myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d, manifestPath=games/stack-tower/apphost.toml, sourceId=stack-tower）
+# 执行目录：<repo 根>（= git rev-parse --show-toplevel = run 工作区根）
+# 摘要：POST HTTP=504（代理 30s 截断）→ GET 复查部署单已受理 cmuo5gf3h01d1m9lfogqku3s9（v24 building）
+#       → 轮询 70s 后 status=running（在服形态），commitHash=b7b22ae1（≡ 本轮 HEAD），durationMs=833，errorMessage=null
+#       自测：/health 200 {"ok":true,"app":"stack-tower"}；/ 308→200 text/html（壳 index.html，<base href="api/public/assets/">）
+#       新版本指纹 4/4 = 200（/api/public/assets/ 路由）：sw.js / build/platform/tt.js / build/app/boot-tt.js / build/main.js
+#       坑位：appId cmugttipt000km9299oej5z9b · slug stack-tower-3 · sourceId stack-tower（GET 实查 sourceType=game-studio 绑定即本游戏，防挤占校验通过，未建新坑）
+#       上一生产版 v23（cmumy0u0g0134m9lfql75zkkq · commit 885324a · 2026-09-29）被本次 superseded

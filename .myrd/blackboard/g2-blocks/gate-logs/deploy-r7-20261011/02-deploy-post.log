@@ -1,0 +1,8 @@
+# 部署轮 r7 部署通道实录
+# UTC: 2026-10-11T04:08:03Z · 执行节点: 游戏程序（部署）
+# POST /api/v1/apphost/apps/cmuqelj2r0046m9zr4emgdgdg/deployments
+# body: {mode:bundle,deployedBy:workflow,gitRef:myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d,manifestPath:games/g2-blocks/apphost.toml,sourceId:g2-blocks}
+# 部署提交: 2bb69c7（ls-remote 全等后单次 POST）
+
+HTTP=
+504

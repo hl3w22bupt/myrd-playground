@@ -1,0 +1,5 @@
+PASS ac-a1(auto) 首次核心正反馈 1.71s ≤10s · 5 种子首杀全部 ≤30s · 回归预算 3s/20s 保持
+(node:83459) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv8uj9ye0028m95ffoxzk0rc/games/wheat-squad/src/kernel/sim.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv8uj9ye0028m95ffoxzk0rc/games/wheat-squad/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)

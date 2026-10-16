@@ -1,0 +1,19 @@
+# 命令: node tests/wx/bgm-loop-wx.spec.mjs（B0 N3 wx 轨 · 2026-09-28 10:05:19）
+  PASS  start() 未解锁不启动（入队挂起）
+  PASS  unlock() 补启挂起的 start（首触解锁口径）
+  PASS  圈长常量 LOOP_MS=9600 与素材 manifest 一致
+  PASS  距圈尾 LOOKAHEAD_MS 预约下一圈
+  PASS  圈界换圈缝隙=0（连续）
+  PASS  缝隙 > 40ms 记违例
+  PASS  onHide → 暂停（sink stop，环态 paused）
+  PASS  onShow → 恢复出声（重新 start）
+  PASS  resume 幂等
+  PASS  静音态：环静音（isAudible=false）且零输出槽生效
+  PASS  解除静音：环恢复可听
+  PASS  InnerAudioContext loop=true（wx 环出口）
+  PASS  obeyMuteSwitch=true（跟随系统静音键）
+  PASS  BGM 素材接线 assets/bgm/neon-loop.m4a
+  PASS  onShow resume / onHide pause 接线
+  PASS  首触解锁：onTouchStart 内 unlock（BGM 补启）
+RESULT: PASS  — bgm-loop wx 结果就绪（14 断言，被测=export/wx/build-wx 同一份代码）
+# exit=0（10:05:19）

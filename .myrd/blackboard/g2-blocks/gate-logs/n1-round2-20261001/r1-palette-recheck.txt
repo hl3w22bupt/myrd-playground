@@ -1,0 +1,1 @@
+threshold(现读 spec)=25 | # 结果: ALL-GREEN 红对数=0/21 minΔE=26.555 阈值=25 margin=1.555 selftest=18/18

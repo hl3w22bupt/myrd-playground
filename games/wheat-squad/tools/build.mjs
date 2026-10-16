@@ -5,6 +5,7 @@
 // 确定性：同输入逐字节一致（同 seed/同 strip 语义）；spec.json = 平台回读导出件直拷（零手抄）。
 import { mkdirSync, readFileSync, writeFileSync, rmSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
+import { execSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -57,13 +58,36 @@ for (const f of srcFiles) {
 }
 
 // 入口：main.mjs（spec 内联注入 = spec.json fetch 双保险；零外部依赖静态可服）
+// 构建指纹注入（R1 复测收口轮 · 任务书「构建 sha 注入基建」）：
+//   __G2WS_BUILD = { gitSha, specAnchor } —— 只含确定性字段（HEAD 全长 sha + spec 链锚），零时间戳，
+//   同输入重建逐字节一致（确定性纪律不破）；部署物可自证「构建自哪个 commit」= sha 对账闭环面。
+//   fail-closed：git 不可得即退出非零，绝不产无指纹产物；G2WS_BUILD_SHA env 覆写必须 ≡ 真实 HEAD（防伪锚）。
 const spec = readFileSync(SPEC_PATH, 'utf8');
 writeFileSync(join(OUT, 'spec.json'), spec);
 const specInline = JSON.stringify(JSON.parse(spec));
+const gitSha = (() => {
+  let real;
+  try {
+    real = execSync('git rev-parse HEAD', { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  } catch {
+    console.error('BUILD SHA 不可得：git rev-parse HEAD 失败（fail-closed，不产无指纹产物）');
+    process.exit(1);
+  }
+  const envSha = process.env.G2WS_BUILD_SHA;
+  if (envSha && envSha !== real) {
+    console.error(`构建指纹防伪拦截：G2WS_BUILD_SHA(${envSha}) ≠ 真实 HEAD(${real})——覆写必须与被构建 commit 全等`);
+    process.exit(1);
+  }
+  return real;
+})();
+const specDoc = JSON.parse(spec);
+const specAnchor = `${specDoc._platform?.id ?? 'unknown'}@v${specDoc._platform?.version ?? '?'}:${specDoc._platform?.status ?? '?'}`;
 writeFileSync(join(OUT, 'main.mjs'), `// wheat-squad 入口（tools/build.mjs 生成；勿手改）
+globalThis.__G2WS_BUILD = ${JSON.stringify({ gitSha, specAnchor })};
 globalThis.__G2WS_SPEC = ${specInline};
 import('./src/main.mjs');
 `);
+console.log(`BUILD FINGERPRINT: gitSha=${gitSha} specAnchor=${specAnchor}`);
 writeFileSync(join(OUT, 'index.html'), `<!doctype html>
 <html lang="zh">
 <head>

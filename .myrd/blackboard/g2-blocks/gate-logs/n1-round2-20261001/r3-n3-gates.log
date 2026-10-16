@@ -1,0 +1,47 @@
+# 文件名: r3-n3-gates.log
+# 日期: 2026-10-01 (UTC+8)
+# 命令: node tests/run-all.mjs
+# 目录: g2-blocks 仓库根
+# 输出摘要: ①范围守卫 PASS ②色板 21 对 ALL-GREEN ③theme 框架 PENDING-APPROVE（theme.ts 未产，冻结值实现等 approve）④零冻结值面 6/6 PASS
+
+
+=== ① 范围守卫（AC-18） ===
+$ node ci/guard-repo-scope.mjs
+SCOPE-GUARD PASS 本仓库 19 文件零越界引用（策略单源 ci/scope-policy.json；spec 真源豁免面命中 8 处，属契约条款声明）
+
+=== ② 色板双门禁 21 对（AC-12） ===
+$ node tools/palette-gate.mjs matrix --palette assets/palette/palette-n1-final.json --threshold 25 --pairs 21
+# 门禁: A=HSL三选二(dH≥25°/dL≥0.1/dS≥0.08) B=ΔE00≥25 | 色数=7 对数=21
+# 结果: ALL-GREEN 红对数=0/21 minΔE=26.555 阈值=25 margin=1.555 selftest=18/18
+
+=== ③ theme 单源断言框架（AC-11，骨架态= PENDING-APPROVE） ===
+$ node tests/theme.spec.mjs
+# AC-11 theme 单源断言（真源 = spec numeric.palette）
+# spec: id=cmuovwra0004gm97tinha15zq v1 status=draft anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmuouq3u0003im97tyhjci0kc/.myrd/spec/g2-blocks/design-spec.json
+# 冻结块键集: block-01=#21458C block-03=#38B279 block-04=#DB6B43 block-05=#A472CA block-02=#C89C19 block-06=#4B2B25 block-07=#E3B5BF
+# spec status = draft（approve 是主人拍板位）
+# 被测件 src/render/theme.ts 不存在 —— 冻结值相关实现按任务书红线等 approve 后再写
+PENDING-APPROVE  ac-11-theme-single-source
+# 框架自检: 断言框架可加载冻结块（7 键），被测件缺位时输出 PENDING-APPROVE（非绿非红）
+# 结果: PASS=0 RED=0 PENDING-APPROVE=1
+
+=== ④ 零冻结值依赖面自测（ac-12/14/17/18 + harness） ===
+$ node tests/framework.spec.mjs
+# N3 前置件自测（零冻结值依赖面）
+# spec: id=cmuovwra0004gm97tinha15zq v1 status=draft anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmuouq3u0003im97tyhjci0kc/.myrd/spec/g2-blocks/design-spec.json
+PASS  ac-12-palette-double-gate
+PASS  ac-14-deterministic-kernel
+PASS  harness/rng-determinism
+PASS  harness/spec-anchor-stable
+PASS  ac-18-ci-guard-repo-scope
+PASS  ac-17-repo-one-zero-touch
+# 结果: PASS=6 RED=0 PENDING-APPROVE=0
+
+=== N3 门禁台账 ===
+PASS  ① 范围守卫（AC-18）
+PASS  ② 色板双门禁 21 对（AC-12）
+PASS  ③ theme 单源断言框架（AC-11，骨架态= PENDING-APPROVE）
+PASS  ④ 零冻结值依赖面自测（ac-12/14/17/18 + harness）
+# 结论: 门禁绿（骨架态）——冻结值相关实现与门禁等 approve 后补齐，不装绿

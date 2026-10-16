@@ -1,0 +1,4 @@
+# 命令: shasum -a 256 games/stack-tower/export/wx/manifest.json（提审包复合 sha256 = sha256(manifest.json)，对照 blockers.md N4 登记）
+# 时刻: 2026-09-28 10:16:15
+7ee13ab741fc3586b7477e43f89e94f6d2a3c32eafd49357cbd0c8b19208225f  /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmukjzps1001rm9nb9xu634e0/games/stack-tower/export/wx/manifest.json
+EXPECT=7ee13ab741fc3586b7477e43f89e94f6d2a3c32eafd49357cbd0c8b19208225f

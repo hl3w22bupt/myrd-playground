@@ -1,0 +1,8 @@
+[A] spec 基线：.myrd/spec/stack-tower-spec.json · platformSpecId=cmugok2uz000xm9ilx42t8pnl v3 status=approved acceptance=22 levels=1 entities=17 assets=7
+[B] acceptance 命令化 + 实跑：22/22 PASS
+[C] 双向映射：level/element 8 ↔ elements 8；横切 acceptance 14 ↔ m21 契约 14
+[D] entities 落盘 17/17；kernel 纯净性 10 文件扫描完成
+[E] assets 落盘 7/7（全部 generated，零外部资源）
+
+说明：acceptance 实跑即「契约测试通过记录」（B 段逐条执行 tests/contract/*.spec.mjs）。
+RESULT: PASS（spec ↔ 工程一致）

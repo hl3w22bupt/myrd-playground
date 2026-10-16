@@ -1,0 +1,16 @@
+# 文件名: r4-repo-one-zero-touch.log
+# 日期: 2026-10-01 (UTC+8)
+# 命令: node ci/guard-repo-scope.mjs --self-check <一号仓库根>  &&  git -C <一号仓库根> diff --stat（应空）
+# 目录: g2-blocks 仓库根
+# 输出摘要: 一号仓库 status 3 行全部白名单内（g2 黑板区 + g2 spec 区 + 平台预置 SKILLS.md）；tracked 工程文件 diff 为空
+
+--- guard --self-check ---
+# 一号仓库 git status 共 3 行；白名单内新增区 = .myrd/blackboard/g2-blocks/ / .myrd/spec/g2-blocks/
+#    M .myrd-platform/.claude/skills/SKILLS.md
+#   ?? .myrd/blackboard/g2-blocks/
+#   ?? .myrd/spec/g2-blocks/
+SELF-CHECK PASS 一号仓库零接触（3 行全部在白名单内，无 tracked 工程文件改动）
+--- git diff --stat（tracked 改动，应空）---
+ .myrd-platform/.claude/skills/SKILLS.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+diff_stat_lines=2

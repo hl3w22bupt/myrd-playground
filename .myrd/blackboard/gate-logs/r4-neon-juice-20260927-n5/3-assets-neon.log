@@ -1,0 +1,14 @@
+PASS  a08-bg-night-gradient
+PASS  a09-block-skin-base-01
+PASS  a10-block-skin-base-02
+PASS  a11-block-skin-base-03
+PASS  a12-block-skin-base-04
+PASS  a13-block-skin-base-05
+PASS  a14-block-skin-base-06
+PASS  a15-fx-cut-face
+PASS  a16-fx-ripple-ring
+PASS  a17-fx-perfect-glow
+PASS  a18-ui-btn-primary
+PASS  a19-ui-panel-hud
+PASS  a20-ui-icon-sound
+RESULT: PASS (13/13) — P0 资产逐件查表

@@ -1,0 +1,16 @@
+# 3 · 持久化（2026-09-29）
+$ node tests/contract/b1-acc-b5-save-migration.spec.mjs
+[contract] acc-b5 · lvl-01-stack-tower/e-meta-save-migration
+  ok    真实 v1.3 fixture 非空：muted + anonId 两键齐备
+  ok    迁移零损：既有两键逐字节一致；v2 段 schemaVersion=2 + 时间戳
+  ok    重复迁移幂等：meta 段零变化（created=false）
+  ok    损坏 JSON 安全降级：不抛错、meta 段重建、既有键保留
+RESULT: PASS (4/4)
+
+$ node tests/contract/b1-acc-b4-streak.spec.mjs
+[contract] acc-b4 · lvl-01-stack-tower/e-meta-streak
+  ok    计分口径：clear +1 / game-over 清零 / 重开不清零
+  ok    徽章视图：零连胜不渲染；有连胜 visible + count
+  ok    徽章 DOM 注入式：update 驱动 display/text；零连胜零占位
+  ok    持久：结果写入存档后 saveMetaSave 落盘可见
+RESULT: PASS (4/4)

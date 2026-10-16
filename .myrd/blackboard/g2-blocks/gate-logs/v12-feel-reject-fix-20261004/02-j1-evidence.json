@@ -1,0 +1,16 @@
+{
+  "measuredMs": 173.59999999403954,
+  "budgetMs": 400,
+  "startMark": "j1_settle_start",
+  "doneMark": "j1_feedback_done",
+  "throttleX": 4,
+  "viewportPx": "390x844",
+  "browser": "chrome-headless-shell（CDP）",
+  "specVersion": 2,
+  "specStatus": "approved",
+  "hands": [
+    181.7999999821186,
+    173.80000001192093
+  ],
+  "at": "2026-10-04T03:02:53.933Z"
+}

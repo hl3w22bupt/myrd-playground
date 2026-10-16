@@ -1,0 +1,12 @@
+# 6 · 埋点口径（2026-09-29）
+$ node tests/contract/b1-acc-b6-telemetry-meta.spec.mjs（白名单双向+去重 id 必填）
+  ok    事件族枚举封闭（附录 B 五事件）+ acc-e1 核心六事件不受影响
+  ok    dedupe_id 必填 + 断网入队 + 恢复按序补报 + 队首失败即停
+  ok    去重：同 dedupe_id 不重复送达（崩溃后重复入队 → flush 丢弃）
+  ok    白名单双向断言：白名单外丢弃 / 类型不符整条拒发 / 枚举外丢弃
+  ok    队列容量 200：满丢最旧（丢旧不丢新）
+RESULT: PASS (5/5)
+
+$ node tests/contract/telemetry-acc-e1-hooks.spec.mjs（核心六事件不受影响）
+  ok    异常隔离：sink 抛错不外溢、后续事件继续
+RESULT: PASS (4/4)

@@ -1,0 +1,12 @@
+# A1 三点对账 LIVE 实探（2026-10-16T01:28:06Z）
+## 1) 工作区 HEAD
+debda99c0613c0c3518bd34cda5e4a8f62562143
+11e100a60720111472bd7b52f6a73b5dc31516dd
+## 2) LIVE main.mjs md5 + 内嵌指纹
+http=200 bytes=24716
+ae62534dd4cbb7626f8175906882915b
+__G2WS_BUILD = {"gitSha":"29e779ba7590c55b96e8073861f143b004347061","specAnchor":"cmv8xcexk0009m9dj6ev1dj0r@v6:approved"}
+## 3) 本仓 build/main.mjs md5
+ae62534dd4cbb7626f8175906882915b
+## 4) 10/15 报告绑定 sha
+7b45b44072747ca17af96f81dd109b926745f3d4

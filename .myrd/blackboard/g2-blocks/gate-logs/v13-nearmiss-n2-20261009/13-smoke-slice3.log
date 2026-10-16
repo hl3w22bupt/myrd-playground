@@ -1,0 +1,24 @@
+== cmd: G2_SPEC_PATH=<v8> node tools/smoke.mjs（切片3 遥测回归） ==
+[smoke] 静态服务 http://127.0.0.1:64716/
+[smoke] viewport=390x844 throttle=4x（spec numeric.perf.j1.device）
+[smoke] 浏览器可开：页面加载完成
+[smoke] 游戏就绪 __G2_READY=true
+[smoke] 盘面 64 格满员
+[smoke] 手1（首消+提示）: score 0 → 160（chain 1） J1=208.20000004768372ms
+[smoke] 手2（连击路径）: score 160 → 240（chain 2） J1=203ms
+[smoke] 消除粒子上屏 ✓（drawn=8 · 存活帧命中 8/8 · 消亡后复采 0）
+[smoke] J1 实测 186.89999997615814ms / 预算 400ms（达标）
+[smoke] J1 证据 → tests/contract/.j1-evidence.json
+[smoke] 重开全复位 ✓（score=0 status=playing）
+[smoke] level-2 入口可达 ✓（HUD 目标「升温局 · 20 手内打出 3 连击」= spec goal 现读）
+[smoke] level-2 手1（可玩性）: score 0 → 160（chain 1） J1=207.30000007152557ms
+[smoke] level-1/level-2 切换回路 ✓
+[smoke] 结算页三区块 ✓（P0–P2 + 归因 + 行动层 · 触达 ≥48 · inputSeal=cooled-existing）
+[smoke] near-miss 构造面 ✓（__G2_NM 机读 bannerActive=true · 频控/超限计数在册）
+[smoke] 行动层重开同源 ✓（doRestart 同路径 · 结算页复位）
+[smoke] SW 注册受理 ✓ scope=http://127.0.0.1:64716/
+[smoke] PWA Service Worker 激活 ✓（registrations=1）
+[smoke] manifest 可达 ✓
+[smoke] 控制台零错误 ✓
+SMOKE: PASS 浏览器可开 + 核心循环可玩 + PWA 就绪（J1 证据已落档）
+EXIT_SMOKE=0

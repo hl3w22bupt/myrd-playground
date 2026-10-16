@@ -1,0 +1,244 @@
+{
+  "specRange": "a08..a20 (v1.2 P0 13 项)",
+  "generatedBy": "tools/gen-neon-assets.mjs",
+  "items": [
+    {
+      "id": "a08-bg-night-gradient",
+      "file": "assets/neon/bg-night-gradient.png",
+      "sha256": "5c0642830ec8d13f8e331e2937b60fe92b1a9aae076250a8a65791e6034f2f07",
+      "width": 200,
+      "height": 360,
+      "kind": "背景层",
+      "expectedHex": {
+        "top": "#0b1026",
+        "bottom": "#0d2b33"
+      },
+      "gradient": "vertical-one-way"
+    },
+    {
+      "id": "a09-block-skin-base-01",
+      "file": "assets/neon/block-skin-base-01.png",
+      "sha256": "bad74e82b0693bc4a65c11a4798ad15f765ed967e4fc56b81dfa07b98b811978",
+      "width": 120,
+      "height": 28,
+      "kind": "贴图",
+      "expectedHex": {
+        "core": "#00e5ff"
+      },
+      "bands": {
+        "top": 1,
+        "mid": 0.88,
+        "bottom": 0.76
+      },
+      "geometry": {
+        "width": 120,
+        "height": 28
+      },
+      "outlineFree": true
+    },
+    {
+      "id": "a10-block-skin-base-02",
+      "file": "assets/neon/block-skin-base-02.png",
+      "sha256": "97e0c05d306fe47debe79648b2e461de2c2238bebb5273f22de33295f9d21ea1",
+      "width": 120,
+      "height": 28,
+      "kind": "贴图",
+      "expectedHex": {
+        "core": "#ff2d95"
+      },
+      "bands": {
+        "top": 1,
+        "mid": 0.88,
+        "bottom": 0.76
+      },
+      "geometry": {
+        "width": 120,
+        "height": 28
+      },
+      "outlineFree": true
+    },
+    {
+      "id": "a11-block-skin-base-03",
+      "file": "assets/neon/block-skin-base-03.png",
+      "sha256": "f7997951050797630669f0e3b3623508ee1151972409bc87d99cdaa92b67e855",
+      "width": 120,
+      "height": 28,
+      "kind": "贴图",
+      "expectedHex": {
+        "core": "#ffb300"
+      },
+      "bands": {
+        "top": 1,
+        "mid": 0.88,
+        "bottom": 0.76
+      },
+      "geometry": {
+        "width": 120,
+        "height": 28
+      },
+      "outlineFree": true
+    },
+    {
+      "id": "a12-block-skin-base-04",
+      "file": "assets/neon/block-skin-base-04.png",
+      "sha256": "e8aed843713f576e62fcaea73f4cbb44de30b95e2d5e4971f40ca9027596062e",
+      "width": 120,
+      "height": 28,
+      "kind": "贴图",
+      "expectedHex": {
+        "core": "#76ff03"
+      },
+      "bands": {
+        "top": 1,
+        "mid": 0.88,
+        "bottom": 0.76
+      },
+      "geometry": {
+        "width": 120,
+        "height": 28
+      },
+      "outlineFree": true
+    },
+    {
+      "id": "a13-block-skin-base-05",
+      "file": "assets/neon/block-skin-base-05.png",
+      "sha256": "848191a2977892b90c4a6611c4eb3452d0473452010de7703a958c4e28b89c07",
+      "width": 120,
+      "height": 28,
+      "kind": "贴图",
+      "expectedHex": {
+        "core": "#b388ff"
+      },
+      "bands": {
+        "top": 1,
+        "mid": 0.88,
+        "bottom": 0.76
+      },
+      "geometry": {
+        "width": 120,
+        "height": 28
+      },
+      "outlineFree": true
+    },
+    {
+      "id": "a14-block-skin-base-06",
+      "file": "assets/neon/block-skin-base-06.png",
+      "sha256": "da68abbc3ff6b31cd38d9e6119abd63ebe438b57352e920fbe59ac6ada2c2c6f",
+      "width": 120,
+      "height": 28,
+      "kind": "贴图",
+      "expectedHex": {
+        "core": "#ff6d3a"
+      },
+      "bands": {
+        "top": 1,
+        "mid": 0.88,
+        "bottom": 0.76
+      },
+      "geometry": {
+        "width": 120,
+        "height": 28
+      },
+      "outlineFree": true
+    },
+    {
+      "id": "a15-fx-cut-face",
+      "file": "assets/neon/fx-cut-face.png",
+      "sha256": "6f05a1c4ddee21237266c7e13f8b857a316114f95d3aa9e4067feecc1309dcb0",
+      "width": 120,
+      "height": 6,
+      "kind": "fx",
+      "expectedHex": {
+        "core": "#ffffff"
+      },
+      "outlineFree": true,
+      "geometry": {
+        "width": 120,
+        "height": 6
+      }
+    },
+    {
+      "id": "a16-fx-ripple-ring",
+      "file": "assets/neon/fx-ripple-ring.png",
+      "sha256": "6861c845f14cfd4a90dd6980367d79091258020747ec6160b8ed21bb243c2080",
+      "width": 80,
+      "height": 24,
+      "kind": "fx",
+      "expectedHex": {
+        "core": "#00e5ff"
+      },
+      "symmetric": "center",
+      "geometry": {
+        "width": 80,
+        "height": 24
+      }
+    },
+    {
+      "id": "a17-fx-perfect-glow",
+      "file": "assets/neon/fx-perfect-glow.png",
+      "sha256": "4b85f081527dcd33905a707f1b74758f7ffebf7c9cf39b3168b3cdbc84e28323",
+      "width": 64,
+      "height": 64,
+      "kind": "fx",
+      "expectedHex": {
+        "core": "#ffe57f"
+      },
+      "composite": "additive-shape",
+      "geometry": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "id": "a18-ui-btn-primary",
+      "file": "assets/neon/ui-btn-primary.png",
+      "sha256": "df9bfbba589c91d5fde18c53238e84431447096c78e45155226bd75d6b4ff969",
+      "width": 180,
+      "height": 48,
+      "kind": "ui",
+      "expectedHex": {
+        "border": "#00e5ff",
+        "fill": "#060c1c"
+      },
+      "geometry": {
+        "width": 180,
+        "height": 48,
+        "cornerRadius": 10,
+        "radiusTolerancePct": 10
+      }
+    },
+    {
+      "id": "a19-ui-panel-hud",
+      "file": "assets/neon/ui-panel-hud.png",
+      "sha256": "d21fef7a16cc600e632de2eeb270cd8df52edca83f99a1d190119da788a00111",
+      "width": 240,
+      "height": 64,
+      "kind": "ui",
+      "expectedHex": {
+        "core": "#060c1c"
+      },
+      "alpha": 0.72,
+      "outlineFree": true,
+      "geometry": {
+        "width": 240,
+        "height": 64
+      }
+    },
+    {
+      "id": "a20-ui-icon-sound",
+      "file": "assets/neon/ui-icon-sound.png",
+      "sha256": "ef3a7e1bb579ba24ac8762d1dad7ef7fcbaa4a19465a672f7de4b7760383d49b",
+      "width": 36,
+      "height": 36,
+      "kind": "ui",
+      "expectedHex": {
+        "core": "#9be7ff"
+      },
+      "geometry": {
+        "width": 36,
+        "height": 36
+      },
+      "glyph": "speaker-2-arc"
+    }
+  ]
+}

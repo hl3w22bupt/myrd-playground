@@ -1,0 +1,8 @@
+== 首跑 03-art-recheck-v13.mjs A08/f 误报留档（复证器缺陷，非源仓缺陷）==
+== 根因：复证器首版自带亮度混合式 desaturate 近似（手抄第二份公式），与 theme.ts 真源
+   HSL 降饱和实现不同（#d8b8bf ≠ #dcbcb5）。同跑 C/a 已证 theme 单源现值
+   NEARMISS_UI.edge = #dcbcb5 ≡ pack —— 派生关系无缺陷，错在复证器判据实现。
+== 修正：A08/f 改 import theme.desaturate 单源现算，删除自带公式（零手抄第二份纪律）。
+== 首跑原文（FAIL 行）：
+FAIL  A08/f edge 派生复算 #d8b8bf ≡ pack #dcbcb5（desat(coolBannerText,0.3)）
+== 首跑总结：ART-RECHECK-V13: RED 26/27 EXIT=1

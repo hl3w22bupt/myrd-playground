@@ -1,0 +1,42 @@
+{
+  "gate": "M1",
+  "verdict": "pass",
+  "issued_at": "2026-09-22",
+  "issued_by": "游戏 QA（主审，逐项三态）× 主策划（整合联署）",
+  "ledger": ".myrd/blackboard/m1-rejection-ledger-v2.md（2026-09-21 16:00 三态清单 · 唯一底账）",
+  "scope": {
+    "candy": "games/game《糖果粉碎传奇》（代号 Pixel Fives）· spec v1 approved",
+    "pixel_fives": "pixel-fives/《像素街机足球 Pixel Fives》· spec v1.2 approved"
+  },
+  "machine_gates": {
+    "candy": {
+      "contract_dual": "46 PASS / 0 FAIL（双口径 diff 为空）",
+      "smoke": "GODOT_SMOKE: PASS",
+      "audio_same_tick": "AUDIO_SAME_TICK: PASS",
+      "fx_settlement": "FX_SETTLE_PERSIST: PASS（PERF avg 61.0 / 稳态最差 53.6）",
+      "verify": "PREFLIGHT: PASS（110 文件）+ smoke PASS"
+    },
+    "pixel_fives": {
+      "acc01_full_match": "9/9 PASS（fps_min 87918 / p95 0.002ms / 时长 90s / 比分 5:2 / 13 射门）",
+      "acc02_red_line": "13/13 PASS（射门判定同 tick）",
+      "acc03_04_bot_sim": "100 场 exit 0，goal_range_ratio=1.0，duration_in_range_ratio=1.0，29/29 契约（同 seed 复跑逐字节一致）",
+      "acc05_onboarding": "8/8 PASS（淡出 0.6s ≤ 3s，当日交付当日复验）",
+      "acc06_goal_flow": "23/23 PASS",
+      "acc07_contract_check": "43 PASS / 0 FAIL / 1 WARN（重建版，spec v1.2 导出件字节级还原）",
+      "acc08_asset_budget": "15,532B ≤ 1,572,864B"
+    }
+  },
+  "rejected_count": 0,
+  "placeholder_ledger": [
+    { "id": "B-#1", "item": "结算三态（WIN/LOSE/RESUME）真机触摸复跑", "due": "2026-09-26", "owner": "真机复验批次（需真机环境）" },
+    { "id": "B-#3", "item": "分数本地持久化真机浏览器刷新复验", "due": "2026-09-26", "owner": "真机复验批次（需真机环境）" },
+    { "id": "C 区真机两项", "item": "snake-ghost iOS Safari 帧率录屏 + 反馈延迟逐帧 + 机型清单", "due": "2026-09-26", "owner": "真机复验批次（随 N1 立项令补证条款）" },
+    { "id": "acc-09 回报", "item": "槽位翻转已完成（2026-09-22），回报主策划留痕（本判定即留痕）", "due": "2026-09-22", "owner": "游戏程序 → 主策划（已闭环）" }
+  ],
+  "human_approval": "pending —— 机器层全绿是 M1 宣告的必要条件而非充分条件；好不好玩归主人最终裁决",
+  "evidence": [
+    ".myrd/blackboard/gate-logs/m1-recap-20260922-candy/（6 份原文）",
+    ".myrd/blackboard/gate-logs/m1-recap-20260922-pixel-fives/（8 份原文）",
+    ".myrd/blackboard/m1-rejection-ledger-v2.md（9/22 批次增补）"
+  ]
+}

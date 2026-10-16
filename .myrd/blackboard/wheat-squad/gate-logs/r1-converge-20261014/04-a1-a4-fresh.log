@@ -1,0 +1,6 @@
+== A1 (ac-02-first30s · ac-a1) ==
+PASS ac-a1(auto) 首次核心正反馈 1.71s ≤10s · 5 种子首杀全部 ≤30s · 回归预算 3s/20s 保持
+EXIT=0
+== A4 (ac-05-hit-feedback · ac-a4 含面4 fx绑定 + 面5 帧采样) ==
+PASS ac-a4(auto) 反馈延迟 max=0ms ≤100ms · 每操作通道 min=4 ≥2 · flash=90ms · 通道 flash/particles/pickup-spawn/hud-kills 全绑 fx 件 · 帧采样 n=3750 P95=0.002ms ≤16ms
+EXIT=0

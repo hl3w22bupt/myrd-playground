@@ -1,0 +1,13 @@
+# 文件: 00-red-checkv13-default-mode-a.log | 日期: 2026-10-11T02:25:02Z | HEAD: 1fdd787c0fa54a92b3ff523ac1fce5924163c93d (sync/dy-v1.3)
+# 复跑 scripts/check-v13.mjs（零 env · CI 同入口默认态）→ RED Mode A 计数不符，REAL_EXIT=1
+== Mode A (approved v1.1) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv34u4y0000tm9mxr9gy7y45/.myrd/spec/g2-blocks/design-spec.json
+—— 合计 29 PASS / 0 FAIL / 1 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v9 approved 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准 · PEND 1 条显式挂起）
+RED Mode A (approved v1.1) :: 计数不符 got={"pass":29,"fail":0,"pend":1} want={"pass":18,"fail":0,"pend":0}
+== Mode B (chain v4 draft) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv34u4y0000tm9mxr9gy7y45/.myrd/spec/g2-blocks/design-spec-v1.3-feel-draft.json
+—— 合计 25 PASS / 0 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v4 draft 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准）
+== Mode C (chain v8 draft) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv34u4y0000tm9mxr9gy7y45/.myrd/spec/g2-blocks/design-spec-v13-batch-draft.json
+—— 合计 29 PASS / 0 FAIL / 1 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v8 draft 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准 · PEND 1 条显式挂起）
+CHECK-V13: RED（1 态未过）

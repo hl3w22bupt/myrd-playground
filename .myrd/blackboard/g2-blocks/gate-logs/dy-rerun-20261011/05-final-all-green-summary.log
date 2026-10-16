@@ -1,0 +1,18 @@
+# 文件: 05-final-all-green-summary.log | 日期: 2026-10-11T02:43:21Z | HEAD(dz): 82150964e07fb1593986f4089b5da09d69e2d8a9 (sync/dy-v1.3 · 修复已提交 8215096)
+# 复跑轮终态汇总（全部 CI 同入口实跑，exit code 机读）
+check-v13 零env 四态 r1 EXIT=0 · r2 EXIT=0（18 / 25 / 29+1PEND / 29+1PEND）
+CHECK-V13: PASS（四态计数全符 · 18 / 25 / 29+1PEND / 29+1PEND）
+tests/run-all 全量 r1 EXIT=0 · r2 EXIT=0（palette3+platform5+framework8+acmap8+主面20 全绿）
+# 结果: PASS=3 RED=0 PENDING-APPROVE=0
+# 结果: PASS=5 RED=0 PENDING-APPROVE=0
+# 结果: PASS=8 RED=0 PENDING-APPROVE=0
+# 结果: PASS=8 RED=0 PENDING-APPROVE=0
+contract v9(approved 共同输入) EXIT=0:
+—— 合计 29 PASS / 0 FAIL / 1 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v9 approved 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准 · PEND 1 条显式挂起）
+contract v10(draft) EXIT=0:
+—— 合计 29 PASS / 0 FAIL / 1 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v10 draft 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准 · PEND 1 条显式挂起）
+web SMOKE EXIT=0（J1=177.3ms≤400 · 结算页三区块 · near-miss 机读 · SW 激活 · 零控制台错误）
+dy build EXIT=0（38 件 · 主包 267494B≤4MB）· dy 三条目查 11+6+10 EXIT=0 · DY-SMOKE EXIT=0（引导229ms · J1=150.7ms · score=9432750≡上轮逐字节）
+wx 反扫三向零命中 · wx 三条目查 7+9+15 EXIT=0 · wx worktree 4fba03a 树净零触碰

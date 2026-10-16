@@ -207,6 +207,17 @@ func _ready() -> void:
 	elif not _start_overlay.visible:
 		_failures.append("开始遮罩初始不可见：未点开始按钮前对局应处于待开始态")
 	_check_touch_buttons()
+	## 存档确定性（分数持久化接线后的新增前置）：user:// 跨进程持久，上次运行/真人会话
+	## 可能留下「可续局」快照 —— 不擦除会让本场景的「开始」落入续玩分支，开局断言失真。
+	## 擦除后重跑主场景的续玩探测，开始遮罩恢复为全新开局单入口。
+	var save_state_node := get_tree().root.get_node_or_null("SaveState")
+	if save_state_node == null:
+		_failures.append("autoload SaveState 未注册（project.godot [autoload] 缺失，分数持久化无处落地）")
+	else:
+		save_state_node.wipe()
+		var main_script: Node = _main as Node
+		if main_script != null and main_script.has_method("setup_resume_offer"):
+			main_script.call("setup_resume_offer")
 
 
 ## 阶段 0 静态断言：竖屏设计分辨率 + expand 拉伸 + 手持竖屏朝向（窄屏适配的工程接线）。

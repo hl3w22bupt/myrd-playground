@@ -1,0 +1,4 @@
+# cmd: node tools/build.mjs  (git=6d3db6a)
+BUILD 22 modules → build/
+PWA build/（index + manifest + sw + 22 modules）· spec v2 approved
+# EXIT=0

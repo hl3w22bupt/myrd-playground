@@ -1,0 +1,13 @@
+# cmd: G2_SPEC_PATH=<本run>/design-spec.json G2_REPO_ONE_ROOT=<本run> node scripts/contract-check.mjs && npm run gate
+# gitRef: fe5fd3861bd7f1e1db70a99cc1b5277ea5e37267（HEAD = fe5fd38 · working-tree clean · 双清单重出提交后）
+# at: 2026-10-03T03:03:00Z
+--- contract ---
+PASS  ac-18-ci-guard-repo-scope :: 仓库范围守卫 PASS（零一号路径引用，策略单源 ci/scope-policy.json）
+—— 合计 18 PASS / 0 FAIL ——
+CONTRACT: PASS 契约全绿（实现与 approved 策划案一致）
+CONTRACT EXIT=0
+--- gates ---
+—— 合计 20 PASS / 0 FAIL ——
+PASS  ⑧ 工程前置面（A 轮 N3）：T1 storage/audio 门面 · T2 帧率埋点 · T3 时钟/时区
+# 结论: 门禁绿（骨架态）——冻结值相关实现与门禁等 approve 后补齐，不装绿
+GATES EXIT=0

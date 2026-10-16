@@ -1,0 +1,26 @@
+# 部署轮 r6 部署前门禁复跑（源仓 @ 26ba1d9 · sha 绑定）
+# UTC: 2026-10-10T02:49:42Z · 执行节点: 游戏程序（部署）· 本节点实跑, 非转抄
+
+## 1) 三态契约 node scripts/check-v13.mjs（源仓 worktree g2-blocks-main, exit=0）
+== Mode A (approved v1.1) —— 合计 18 PASS / 0 FAIL / 0 PEND —— CONTRACT: PASS
+== Mode B (chain v4 draft) —— 合计 25 PASS / 0 FAIL / 0 PEND —— CONTRACT: PASS
+== Mode C (chain v8 draft) —— 合计 29 PASS / 0 FAIL / 1 PEND（显式挂起）—— CONTRACT: PASS
+CHECK-V13: PASS（三态计数全符 · 18 / 25 / 29+1PEND）
+v13_exit=0
+
+## 2) 冒烟门禁 node tools/smoke.mjs（同源仓, exit=0）
+[smoke] 静态服务 http://127.0.0.1:64209/
+[smoke] viewport=390x844 throttle=4x（spec numeric.perf.j1.device）
+[smoke] 浏览器可开：页面加载完成 / __G2_READY=true / 盘面 64 格满员
+[smoke] 手1: score 0 → 160（chain 1） / 手2: 160 → 240（chain 2）
+[smoke] 消除粒子上屏 ✓ drawn=8（存活帧命中 8/8）
+[smoke] J1 实测 174.29999999701977ms / 预算 400ms（达标）· 证据 tests/contract/.j1-evidence.json
+[smoke] 重开全复位 ✓ / level-1↔level-2 切换回路 ✓
+[smoke] 结算页三区块 ✓（P0–P2 + 归因 + 行动层 · 触达 ≥48 · inputSeal=cooled-existing）
+[smoke] near-miss 构造面 ✓（__G2_NM bannerActive=true · 频控/超限计数在册）
+[smoke] 行动层重开同源 ✓ / SW 注册受理 + PWA 激活 ✓ / manifest 可达 ✓ / 控制台零错误 ✓
+SMOKE: PASS 浏览器可开 + 核心循环可玩 + PWA 就绪
+smoke_exit=0
+
+## 结论
+部署前门禁全绿（契约三态 + 冒烟），与 v13-head-reverify-20261010 归档结论一致（复证非重做）。

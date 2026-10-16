@@ -1,0 +1,15 @@
+# 命令: node tools/gen-wx-assets.mjs（B0 N2 美术线收口复核 · 2026-09-28 10:22:20）
+[ok  ] wx-share-card-5x4  500x400  3.3KB
+[ok  ] wx-share-timeline-1x1  500x500  5.9KB
+[ok  ] wx-store-screenshot-01  1242x2208  16.5KB
+[ok  ] wx-store-screenshot-02  1242x2208  28.2KB
+[ok  ] wx-store-screenshot-03  1242x2208  20.8KB
+[ok  ] wx-friend-rank-ui  460x560  3.7KB
+[ok  ] wx-icon  120x120  1.0KB
+[out ] /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmukjzps1001rm9nb9xu634e0/games/stack-tower/assets/wx/manifest.json（7 件，逐件 sha256）
+[done] 平台素材 7 项生成完成（NEON 派生 · 零新编风格 · 确定性可复现）
+# exit=0（10:22:20）
+
+# 零漂移取证：重生成前后 sha256 比对（7/7 逐字节一致）
+7/7 byte-identical ZERO-DRIFT
+# git 差集：1 项 = 本轮新增证据目录自身（untracked）；src/ assets/ 零触碰

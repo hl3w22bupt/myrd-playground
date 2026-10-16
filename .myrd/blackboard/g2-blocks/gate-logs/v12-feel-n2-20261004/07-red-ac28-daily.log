@@ -1,0 +1,9 @@
+# 切片5 红证据：daily 存储键漂移（daily→dailyx）（D2 重归档 · 隔离 worktree 构造态真红取证）
+# 基座 = 01c2f06bb6efb0061fa6c8a74de781cfa344d6ee（最终实现态）· 注入 = s/"storageKey": "daily",/"storageKey": "dailyx",/ · 构造态仅存于临时 worktree，不入实现树
+$ sed -i 's/"storageKey": "daily",/"storageKey": "dailyx",/' src/generated/feel-data.ts   # 制造实现↔spec 漂移
+$ G2_REPO_ONE_ROOT=/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmut4m9ww00bvic7qxd1wpl7y G2_SPEC_PATH=<design-spec-v1.3-feel-draft.json> node scripts/contract-check.mjs --only ac-28-daily-hook-min-loop
+# g2-blocks contract-check · spec v4 (draft) anchor=1720df8ec6ac0d00…
+RED  ac-28-daily-hook-min-loop :: 执行异常 实现 DAILY 漂移: {"entryHook":"hud-entry+badge","note":"daily-challenge 最小闭环（链 v4）：种子 = 本地时区日期码（seedBasis 口径）纯函数派生（src/kernel/datetime.ts dailySeed）；进度跨本地零点重置；streak 窗口 = streakTrack。时钟倒拨语义（backdatePolicy）属主人裁决项，本版不声明 ≠ {"entryHook":"hud-entry+badge","note":"daily-challenge 最小闭环（链 v4）：种子 = 本地时区日期码（seedBasis 口径）纯函数派生（src/kernel/datetime.ts dailySeed）；进度跨本地零点重置；streak 窗口 = streakTrack。时钟倒拨语义（backdatePolicy）属主人裁决项，本版不声明
+—— 合计 0 PASS / 1 FAIL ——
+CONTRACT: RED 契约未全绿，禁止提交
+EXIT=1
