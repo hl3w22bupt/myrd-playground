@@ -187,3 +187,47 @@ id=webapp-smoke 时照抄追加用）。本节点开工前校验发现**两类�
   id=webapp-smoke 条目——该文件在库前节点不得自行撰写 YAML）。
 - 补齐后本节点可原样重跑闭环：建工程 → 实现 → 本地自检 → commit/push → 部署 AppHost →
   以仓库内判定器实跑 webapp-smoke 门禁。
+
+---
+
+# Blocked 上报（延续）— 发布/部署节点《今日汇率》AppHost 部署 + webapp-smoke 门禁（run cmvafm2y5001km94leiaezgid）
+
+- **status: blocked**
+- **detail: 模板仓库未预置门禁脚本：std-skills/web-app-dev/scripts/webapp-smoke.mjs；请运维把模板仓库补上技能资产**
+- **detail（第二项）: 模板仓库未预置技能资产 —— .myrd/routines.yaml 无 id=webapp-smoke 条目，且照抄用模板 std-skills/web-app-dev/references/webapp-smoke-routine.md 在仓库内不存在**
+- 时间：2026-10-16（implement 轮 12:01 上报之后、发布轮开工时复验仍缺失）
+- 目标：cmvaf7imr000jm94le9x48zfu（《今日汇率》HostedApp）；AppHost：myrdplaygrou（cmvaf7imm000hm94lw6y43t0q，liveUrl https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/）
+- 所在分支：myrd/myrdplaygrou-goal-cmvaf7imr000jm94le9x48zfu（已 checkout 并与 origin 同步）
+
+## 发布轮的处置口径（与 implement 轮的差异）
+
+- 本节点是部署节点：前置检查（分支/仓库/门禁资产）是**部署的硬前置**，门禁资产缺失 →
+  按约束「不要发起部署」。且仓库内**无 webapps/myrdplaygrou 工程**（implement 轮按约束停在
+  动工前，分支上该目录 0 文件）——无门禁、无产物，发起部署只会产出一个无法机判验收的空壳。
+- 因此本轮：未建工程、未写 AppHost 壳、**未调用部署 API**（连一次都未发起）、未自造判定器、
+  未改 .myrd/routines.yaml、未把注入目录当判定脚本来源。
+
+## 发布轮排查证据（独立复验，非照抄前轮）
+
+1. `git fetch origin --prune` 后：origin/main 最新提交仍为 `6c0df4a9`（chore(std-skills): 同步
+   触摸 UI 判定 v5.2），即 implement 轮 12:01 blocked 上报之后**远端无任何新增**；
+   新 fetch 到的仅游戏线分支 chore/wheat-squad-infra-20261016、game/wheat-squad，与本资产无关。
+2. `git ls-tree origin/main std-skills/` 仍只有 experience-harness / experience-review /
+   godot-game-dev；`git show origin/main:.myrd/routines.yaml | grep webapp-smoke` 为空
+   （现存五 routine 全为游戏向）。
+3. `git log --all --oneline -- "*webapp-smoke*"` 与 `-- "*web-app-dev*"` 均为空：含新分支在内
+   的全部引用历史**从未存在过该资产**。
+4. `git ls-tree -r origin/myrd/myrdplaygrou-goal-cmvaf7imr000jm94le9x48zfu | grep -c
+   "webapps/myrdplaygrou"` = 0：功能分支上无 web 工程，`grep -c "std-skills/web-app-dev"` = 0。
+5. 注入副本确认存在于本轮运行工作区 `.myrd-platform/.claude/skills/web-app-dev/`
+   （scripts/webapp-smoke.mjs + references/webapp-smoke-routine.md），可作运维补库参考，
+   但按任务硬约束不得当判定脚本来源。
+
+## 待运维动作（与前两轮相同，一次补齐即可解除全部节点）
+
+- 把 `scripts/webapp-smoke.mjs`（可连同 `webapp_smoke_selftest.mjs`）与
+  `references/webapp-smoke-routine.md` 从注入目录补入**模板仓库**并重新预置到本仓库
+  `std-skills/web-app-dev/`。
+- 补齐后发布轮可原样重跑：前置检查 → 建工程/壳（若 implement 轮仍缺位则一并补）→ commit/push →
+  部署 AppHost（gitRef=功能分支，sourceId=cmvaf7imr000jm94le9x48zfu）→ 以仓库内判定器实跑
+  webapp-smoke 门禁 → 回写产物。
