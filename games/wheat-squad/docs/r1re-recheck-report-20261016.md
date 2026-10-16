@@ -52,8 +52,10 @@
 | 点 | 值 | 状态 |
 |---|---|---|
 | 报告绑定 sha | `4eccaf29…`（补采时工作区 HEAD，源面干净） | 基准 |
-| 线上部署包内嵌 `__G2WS_BUILD.gitSha` | 部署后 LIVE 实取（见部署台账） | 待 LIVE 复核回填 |
+| 线上部署包内嵌 `__G2WS_BUILD.gitSha` | `4eccaf293b11052041860ff7b0ee3141975258fd`（**v20 `cmvab0wd2000qm92cul589eyq` running @ 发布 commit `3828f49` LIVE 实取**） | **≡ 报告绑定 sha 逐字符全等 ✓**（`10/12` 号证据） |
 | 工作区 HEAD（验证时点） | 部署后含 docs 提交，源面 diff = 空（指纹单行滞后不变量） | 按 retestProtocol① 口径有效 |
+
+**LIVE 三点自测（v20）**：①`/gw` title=麦浪小队 ✓ ②LIVE `main.mjs` md5 `67a60360d82410d504cd96077ca31cb7` ≡ 发布 build **逐字节** ✓ ③内嵌 sha ≡ 报告绑定 sha ✓ + specAnchor=链 v6 approved ✓；**WS-LIVE-SMOKE PASS**（ready→拖动击杀 2→victory 167s→console 零错误，LIVE_SMOKE_EXIT=0）。⚠️ 首探（01:45:12Z，POST 后 71s）仍取到 v19 旧字节 = 运行面切换窗口，21s 后复探即新字节——如实留痕 `10/12` 号证据，非部署缺陷。A3 真人试玩采集面 = **v20 LIVE @ 报告绑定 sha**。
 
 > 逐字符等式声明：**报告绑定 sha ≡ 构建内嵌 sha**（`build/main.mjs` @ H2 重建于 H1，内嵌=HEAD=H1，指纹单行 diff 实证）；「工作区 HEAD = 报告 sha」按 spec v1.4 retestProtocol①「受测源面 diff 为空」口径成立（docs/黑板提交除外，逐 commit diff 可验）。严格三点头部字符全等受「构建自指单行滞后」不变量限制，如实披露，是否放宽为闭环口径待主人认可。
 
