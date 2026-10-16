@@ -1,0 +1,9 @@
+# 《今日汇率》(myrdplaygrou) AppHost 部署清单 —— Web 应用工坊产出
+# 复用仓库根共享壳 server/（landing.html 机制：资产目录里的 landing.html 由 GET / 伺服）；
+# 部署时必须带 manifestPath=webapps/myrdplaygrou/apphost.toml，勿动仓库根 apphost.toml（game-9 所有）。
+name = "今日汇率"
+runtime = "node20"
+health = "/health"
+
+# 底座 A：资产出 bundle（部署时平台把该目录上传对象存储，壳 server 用 asset-store 懒加载）
+assets_dir = "webapps/myrdplaygrou"
