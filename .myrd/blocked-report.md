@@ -95,3 +95,51 @@
 
 - 把 playtest.sh（及配套 playtest_driver.gd，注入目录内有阅读副本可参考）补入模板仓库
   std-skills/godot-game-dev/scripts/ 并重新预置；补齐后本节点重跑即可闭环机判试玩门禁。
+
+---
+
+# Blocked 上报 — scaffold 节点（run cmvagxyf3002em94lxhtab3p9）
+
+- **status: blocked**
+- **detail: 模板仓库未预置门禁脚本：std-skills/web-app-dev/scripts/webapp-smoke.mjs；请运维把模板仓库补上技能资产**
+- 时间：2026-10-16
+- 目标：cmvaf7imr000jm94le9x48zfu（《今日汇率》HostedApp）；AppHost：myrdplaygrou（cmvaf7imm000hm94lw6y43t0q）
+- 所在分支：myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu
+
+## 触发依据
+
+任务硬约束「来源不可得 → 立即 blocked」两类资产本轮核验**同时缺失**：
+
+1. 判定脚本 `std-skills/web-app-dev/scripts/webapp-smoke.mjs`（要求已提交在仓库且不在 .gitignore）；
+2. 门禁配置依赖的参数化模板 `std-skills/web-app-dev/references/webapp-smoke-routine.md` ——
+   `.myrd/routines.yaml` 现无 id=webapp-smoke 的 routine，按任务要求须照抄仓库内该模板追加，模板不在库则同样 blocked。
+
+## 排查证据
+
+1. 仓库 `std-skills/` 仅 experience-harness / experience-review / godot-game-dev 三个技能目录；
+   `git ls-tree HEAD std-skills/` 与 `git ls-tree main std-skills/` 一致，均无 web-app-dev。
+2. `git log --all -- "*web-app-dev*"`、`git log --all -- "*webapp-smoke*"` 均为空：
+   全部历史（含 origin/main）从未存在过 web-app-dev 技能资产。
+3. `git fetch origin` 成功、`git ls-remote` 可达 —— 排除本地克隆不全 / 网络问题；远端 origin/main 同样没有。
+4. 全仓 find：`webapp-smoke.mjs` 与 `webapp-smoke-routine.md` 仅存在于平台注入目录
+   `.myrd-platform/.claude/skills/web-app-dev/`（.gitignore 含 `.myrd-platform/`，属平台注入的阅读副本）。
+   任务明令：判定脚本只能由模板仓库预置在 `std-skills/web-app-dev/scripts/`，不得把注入目录当判定脚本来源，
+   不得现场改写 / 自行编写 / 复制充当仓库资产。
+5. `.myrd/routines.yaml` 现有 5 个 routine：git-hygiene / godot-smoke / game-contract / mobile-web-smoke /
+   experience-pack，均为游戏向检查，**无 id=webapp-smoke**；其口径注释表明按游戏仓库自洽检查维护，
+   无模板依据时本节点不得擅改（避免混入无判定器的 web routine 让门禁 fail 时无权威判定器可跑）。
+6. `.gitignore` 不含 std-skills 相关条目 —— 排除「文件在库但被忽略」，确属模板仓库未预置。
+
+## 处置
+
+- 按硬约束立即停止：未搭建 `webapps/myrdplaygrou/`、未落风格卡、未改 `.myrd/routines.yaml`、
+  未编写 / 未复制任何判定脚本或配置模板，未做任何绕过。
+- 本提交仅含本 blocked 上报（.myrd/blocked-report.md），推送至目标分支供编排侧与运维核验。
+  （工作区内 .myrd-platform/ 注入副本的 tracked 漂移为平台注入产物，非本节点产出，未纳入提交。）
+
+## 待运维动作
+
+把 `std-skills/web-app-dev/`（至少 `scripts/webapp-smoke.mjs` + `references/webapp-smoke-routine.md`；
+平台注入目录 `.myrd-platform/.claude/skills/web-app-dev/` 内有阅读副本可参考）补入模板仓库并重新预置到本仓库。
+补齐后本节点重跑即可闭环：校验门禁资产 → 建 webapps/myrdplaygrou 静态工程 → 落 .myrd/style-card.md →
+按模板给 routines.yaml 追加 id=webapp-smoke → 本地自检 → push → 部署过移动门禁。
