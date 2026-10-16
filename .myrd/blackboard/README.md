@@ -25,6 +25,7 @@
 1. **A1-A7 主线**：sha 三点对账（链不成立→全量未判定·待采）→ 绑新 sha `4eccaf29` 补采全绿 → 分流表 v2 + QA 双签 → 绿 15 项固化 16/16 → v20 部署闭环 → A3 任务单 APPROVE-READY → A7 整合 `0ff651f`；接手复核 `15f51b3`（verify-claims @ `0ff651f` 全部声称复核成立）
 2. **B 线 3**：调研简报（D15-D28 带出处 + 能力轴实测 + 美术成本档位五候选）→ memo v1 → 主策划拍板单场景塔防 → spec v1 draft 入链 + 风格卡 v0（0 图，止步 T+0）
 3. **美术复证轮 r12（游戏美术 · HEAD `c73dd31`）**：任务书再重发勘验定性复证而非重做；verify.sh 五步 VERIFY_EXIT=0（16/0/1PEND · SMOKE · 守卫双模式）+ 触达面空 diff（`0ff651f..HEAD` 游戏源/测试/契约/美术面零触碰）+ 轨道 B 美术面亲核零漂移；**零新素材零接线变更**（冻结 13/13 维持 · 线 3 止步 0 图）；证据 `wheat-squad/gate-logs/art-reverify-20261016-r1re2/`。结论仅对 `c73dd31` 有效。
+4. **美术复证轮 r13（游戏美术 · HEAD `9681546` 重锚）**：程序线 QA 驳回 F1/F2/F3 修正后跨线重证——美术交付件+门禁契约输入面空 diff 零触碰，F3 spec README 索引补登亲核认领（与 r7 三入口 palette 同构）；verify.sh 五步 VERIFY_EXIT=0 复现。证据 `wheat-squad/gate-logs/art-reverify-20261016-r1re3/`。结论仅对 `9681546` 有效。
 
 ## 2026-10-12 可玩基线轮台账存档（wheat-squad · 按时间序 · N1–N17 原文保留）
 
