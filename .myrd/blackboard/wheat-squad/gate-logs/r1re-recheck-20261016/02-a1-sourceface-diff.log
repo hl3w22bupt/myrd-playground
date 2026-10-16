@@ -1,0 +1,10 @@
+## 5) 源面 diff：报告sha→线上内嵌sha (7b45b44→29e779b)
+[diff exit=0]
+## 6) 源面 diff：线上内嵌sha→工作区HEAD (29e779b→HEAD)
+[diff exit=0]
+## 7) 全树 diff：发布commit→HEAD (0031d31→HEAD)
+ .myrd/blackboard/wheat-squad/assets.md             |   9 ++
+ .myrd/blackboard/wheat-squad/blockers.md           |  26 ++++-
+ .../r1re-recheck-20261016/00-verify-baseline.log   | 117 +++++++++++++++++++++
+ .myrd/blackboard/wheat-squad/levels.md             |  13 ++-
+ 13 files changed, 329 insertions(+), 4 deletions(-)
