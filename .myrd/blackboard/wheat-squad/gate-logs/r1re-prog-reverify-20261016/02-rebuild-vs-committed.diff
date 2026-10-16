@@ -1,0 +1,8 @@
+# 重建(HEAD 98d1fbe3e72fb5acb4d916f676d8beae1e20bb10) vs 仓内提交 build(内嵌 4eccaf29) 全量 diff
+# 预期：仅 __G2WS_BUILD.gitSha 单行（构建自指滞后不变量·零时间戳）；游戏逻辑字节全等
+diff --color -r /tmp/ws-build-committed/main.mjs games/wheat-squad/build/main.mjs
+2c2
+< globalThis.__G2WS_BUILD = {"gitSha":"4eccaf293b11052041860ff7b0ee3141975258fd","specAnchor":"cmv8xcexk0009m9dj6ev1dj0r@v6:approved"};
+---
+> globalThis.__G2WS_BUILD = {"gitSha":"98d1fbe3e72fb5acb4d916f676d8beae1e20bb10","specAnchor":"cmv8xcexk0009m9dj6ev1dj0r@v6:approved"};
+DIFF_EXIT=1

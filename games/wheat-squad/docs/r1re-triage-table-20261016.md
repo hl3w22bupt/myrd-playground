@@ -70,3 +70,14 @@
 - [ ] **待 QA 复签项 ②**：修正轮未触 src（变更面 = tools/qa/docs/黑板）→ 三点对账与绿判定绑 `4eccaf29` 维持有效（retestProtocol① 源面 diff 为空）；确定性重建 vs LIVE 字节 diff 仅 gitSha 单行（构建自指滞后）+ verify 五步复跑 VERIFY_EXIT=0
 - [ ] **待 QA 复签项 ③**：v2 签字核对项「全模拟局（真人局零混入）」结论维持成立（真人局仍 0 局），但其证据基础由失真标签件换为修正版链日志件——复签时以修正版为准
 - 程序修正签字：**PROG-WS-R1RE-F1FIX-20261016-01 · verdict=F1/F2 修正闭环（先红后绿证据在档）· F3 记账已补 · 待 QA 复签后本表 v2 终局维持**
+
+## v2 复证登记（2026-10-16 · 游戏程序 · 双轨任务书重发 @ HEAD `98d1fbe` · 不重做只复证）
+
+> verify-claims 纪律：当前 HEAD 独立实跑，不照抄声称。证据 `gate-logs/r1re-prog-reverify-20261016/01..04`。
+
+- [x] 新锚三点链复证维持成立：报告绑定 `4eccaf29…` ≡ LIVE 内嵌 sha（逐字符）≡ 仓内 build（md5 `67a60360…` 逐字节）；HEAD 受测源面 diff（`4eccaf29..HEAD`：src/tests/ci/assets/apphost/spec）= 空 → v2 全部判定值绑定有效性维持（retestProtocol①）
+- [x] verify.sh 五步门禁 @ `98d1fbe` 复跑 **VERIFY_EXIT=0**（16/0/1PEND · SMOKE victory 167s · 双 GUARD）→ 零回归
+- [x] 绿 15 项固化面复证：16 条 check 薄壳实跑全过（run-all 同输出）· **缺一即未固化——本面无缺**
+- [x] 红 0 条 → R2 修复批不触发 · 条件触发链不触发 · 阈值红线零触碰；未判定 1 项（ac-a3 结论面 0/5 真人）维持待采
+- [ ] v2 追加三件 QA 复签**仍待 QA 节点执行**（程序不代签）——复证不改变复签队列
+- 程序复证签字：**PROG-WS-R1RE-REVERIFY-20261016-02 · verdict=v2 终局维持（绿 15/红 0/未判定 1）· 锚 `4eccaf29` 不变**

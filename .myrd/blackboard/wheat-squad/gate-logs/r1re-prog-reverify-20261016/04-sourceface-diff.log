@@ -1,0 +1,12 @@
+# 受测源面 diff：报告绑定 sha 4eccaf29 → 当前 HEAD 98d1fbe
+# 源面口径（v2 复签项②同面）：src tests ci assets apphost.toml .myrd/spec/wheat-squad/design-spec.json
+--- 受测源面 diff（预期空）---
+SOURCEFACE_DIFF_EXIT=0（空输出=零漂移）
+
+--- 4eccaf29..HEAD 全树变更文件分类 ---
+  49 .myrd
+   6 .myrd-platform
+   3 games/wheat-squad/docs
+   2 games/wheat-squad/qa
+   1 games/wheat-squad/tools
+   1 games/wheat-squad/build

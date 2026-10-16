@@ -1,0 +1,14 @@
+# LIVE 探针（wheat-squad-2）@ 2026-10-16T03:44:54Z
+## GET /gw/api/public/assets/main.mjs
+HTTP=200 SIZE=24716B
+LIVE_MD5=67a60360d82410d504cd96077ca31cb7
+LOCAL_BUILD_MD5=67a60360d82410d504cd96077ca31cb7
+LIVE_EMBEDDED="gitSha":"4eccaf293b11052041860ff7b0ee3141975258fd"
+LIVE_ANCHOR="specAnchor":"cmv8xcexk0009m9dj6ev1dj0r@v6:approved"
+REPORT_BOUND_SHA=4eccaf293b11052041860ff7b0ee3141975258fd
+
+## GET /gw 页面 title
+<title>麦浪小队</title>
+
+## GET /health
+HEALTH_HTTP=200
