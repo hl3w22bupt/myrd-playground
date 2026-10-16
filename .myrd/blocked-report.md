@@ -178,3 +178,44 @@ scaffold 轮 blocked 上报后平台将目标重派到本节点；本节点开�
 
 把 `std-skills/web-app-dev/`（至少 `scripts/webapp-smoke.mjs` + `references/webapp-smoke-routine.md`）补入模板仓库
 并重新预置到本仓库后，本节点重跑即可完成：建工程 → 按模板追加 id=webapp-smoke routine → 部署 → 移动门禁闭环。
+
+---
+
+# Blocked 上报（第三轮，发布节点）— run cmvagxyf3002em94lxhtab3p9，goal cmvaf7imr000jm94le9x48zfu
+
+- **status: blocked**
+- **detail: 模板仓库未预置门禁脚本：std-skills/web-app-dev/scripts/webapp-smoke.mjs；请运维把模板仓库补上技能资产**
+- 时间：2026-10-16 ｜ 分支：myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu（本提交为分支 HEAD）
+- 目标：cmvaf7imr000jm94le9x48zfu（《今日汇率》HostedApp）｜ AppHost：myrdplaygrou（cmvaf7imm000hm94lw6y43t0q）
+- 节点职责（第三步·发布）：前置检查 → AppHost 壳 → 部署（gitRef=本分支）→ 实跑 webapp-smoke 移动门禁 → 回写产物
+
+## 与前两轮的差异：同因重派，结论未变（禁止盲目重试口径）
+
+scaffold 轮与功能开发轮 blocked 上报后，平台将本 run 重派到发布节点。本节点开工前按自身硬约束
+以全新证据链重新核验，两类门禁资产**仍然缺失**：
+
+1. `git fetch origin --prune` 成功；`git ls-tree -r origin/main --name-only | grep std-skills/` 共 112 个文件，
+   技能目录仍只有 experience-harness / experience-review / godot-game-dev —— **无 web-app-dev**；
+2. `git log --all -- "*web-app-dev*"` 与 `git log --all -- "*webapp-smoke*"` 仍为空 —— 全部历史（含 origin/main）从未存在；
+3. `.myrd/routines.yaml` 仍无 id=webapp-smoke 的 routine（可用：git-hygiene, godot-smoke, game-contract,
+   mobile-web-smoke, experience-pack，与 review 节点 preHook fail-closed 报错所列完全一致）；
+4. goal artifacts 第 1 条即本 AppHost 的 blocked 条目，另有一条工作流失败记录：review 节点
+   （cmvafm2y5001km94leiaezgid）preHook 因同一缺因被 fail-closed 拒绝 —— 缺陷会向下游传导，上游补齐前
+   重派任何后续节点都不会自愈；
+5. 本地工作树 `webapps/` 不存在、`templates/apphost/myrd-app/` 存在（壳可按契约直出，非阻塞项）；
+   注入目录 `.myrd-platform/.claude/skills/web-app-dev/`（webapp-smoke.mjs + webapp-smoke-routine.md）仍仅为
+   `.gitignore` 内的阅读副本，按硬约束不得当判定脚本来源，也未现场改写/复制。
+
+## 本节点处置
+
+- 按硬约束「来源不可得 → 立即 blocked」**立即停止**：未搭建 `webapps/myrdplaygrou/`、未建 AppHost 壳、
+  **未发起任何部署（0 次）**、未编写/未复制/未以等价命令替代任何判定脚本或配置模板、未改 `.myrd/routines.yaml`。
+- 本提交仅含本 blocked 上报（.myrd/blocked-report.md），推送至目标分支供编排侧与运维核验。
+
+## 给编排侧的建议（避免再次空转）
+
+在模板仓库补齐 `std-skills/web-app-dev/` 并重新预置到本仓库之前，**请不要再次重派本流水线的
+任何下游节点**（功能开发 / 发布 / review）—— 验收标准第 2 条把这两项资产列为工程就位的硬前提，
+review 节点 preHook 也会继续 fail-closed。补齐后发布节点可原样重跑闭环：
+前置检查 → 复制/直出 AppHost 壳 → 建静态工程 → commit/push → 部署（gitRef=功能分支）→
+实跑 webapp-smoke 门禁 → 回写产物（liveUrl + WEBAPP_SMOKE 结论 + 证据路径）。
