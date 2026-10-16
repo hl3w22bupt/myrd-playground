@@ -1,8 +1,19 @@
 # 阻塞项黑板 — wheat-squad（麦浪小队 · 第二产品线 · 可玩基线轮）
 
-> 更新时间：2026-10-15（**R1 复测收口轮开工 · N0 前置完成**）· 负责人：主策划（整合人）· 阻塞超一轮未解 → 升级主人，不空转
-> 下一步：①N1 策划批 spec v1.4 判读纪律增补 → ②N2 程序批 sha 对账+注入基建+复采 → ③N3 美术批三态清单 → ④N4 QA 唯一 JSON 结论 → ⑤分流+台账
-> 硬约束①核查：**A3 回填实查 = 0 行（`qa/playtest-collection-round1.md` 空件）→ 主人反馈未回流，R2 直开不触发**，双轨按计划执行（2026-10-15 实查）
+> 更新时间：2026-10-16（**R1 复测三态分流收口轮开工 · N0 前置完成**）· 负责人：主策划（整合人）· 阻塞超一轮未解 → 升级主人，不空转
+> 下一步：①A1 程序批 sha 三点对账表（逐字符）→ ②A2 程序+QA 三态分流表 → ③A3 绑新 sha 补采（A2 ≥20 完整模拟局 start→end 链计数）→ ④A4 重部署+新锚对账 → ⑤A5 QA 固化核对 → ⑥A6 A3 真人试玩任务单 → ⑦A7 整合回填（轨道 B 线 3 选型并行见 `line3-memo-v1`）
+> 硬约束①核查：**A3 回填实查 = 0 行（`qa/playtest-collection-round1.md` 空件）→ 主人反馈未回流**（2026-10-16 复查维持），补采轮按计划执行
+
+## R1 复测三态分流收口轮当前基线（2026-10-16 · 主策划 · N0 开工前置）
+
+- **黑板路径**：`.myrd/blackboard/wheat-squad/`（本轮主战线）· 顶层共板组合全景另行刷新
+- **spec 版本号（链上实况，2026-10-16 API 实查）**：链 **v6 `cmv8xcexk0009m9dj6ev1dj0r` · approved · meta.version=1.4** · 导出件 `.myrd/spec/wheat-squad/design-spec.json` 与链上 **DEEP_EQUAL=True 零漂移**（`--expect-version 6` 实跑）· 契约输入即此件
+- **分支与 HEAD**：`myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ **`6cf28ad`**（= 远端 tip，团队线零漂移）
+- **分支续接结果（开工协议实证）**：①远端**无** `game/wheat-squad` 分支（`git ls-remote` 全量核）②两条 wheat 相关旧分支（`fix/wheat-squad-landing-w3` @6c9afff、`myrd/wheat-squad-baseline-*` @20facdf）`HEAD..` 计数 = **0/0**，成果全部已在团队线内，无孤儿 ③**⚠️ `origin/main` 实证为单提交孤儿快照线**（`6c0df4a`，603 文件/56596 行，`git merge-base HEAD origin/main` = 空 exit 1 无共同祖先）——任务书口径「merge origin/main 吸收基建」**不机械执行**：并入需 `--allow-unrelated-histories`，会 graft 伪历史节点断证据链（合并禁 rebase 的同一立法理由）；其 std-skills 内容面已由平台注入以工作树形态在场（`.myrd-platform/.claude/skills/*` 6 文件 modified，保持不提交不触碰）。**此偏差如实披露，以仓上实况为准判例沿袭**
+- **基线自证**：verify.sh 五步 **VERIFY_EXIT=0** @ `6cf28ad`（统契约 PASS·六段完整·符号锚命中 · 自有 **16 PASS / 0 FAIL / 1 PEND**（PEND=ac-a3 结论面 0/5 真人，如实挂起）· WS-SMOKE PASS · SCOPE-GUARD 双模式 PASS；A1=1.71s / A2 P50=168.096s victory 20/20 / A4 max=0ms·4 通道·P95=0.001ms）· 证据 `gate-logs/r1re-recheck-20261016/00-verify-baseline.log`
+- **线上现状（待 A1 独立实探复核）**：v19 `cmv95h5mf000gm90xkzq4xrcm` running/current @ 发布 commit `0031d31`（上轮部署台账）；坑 `cmv36wl94001xm9mxp119q48x`（wheat-squad-2）
+- **本轮关键预判（待 A1 实证）**：三点对账链（工作区 HEAD `6cf28ad` ∥ 线上部署包内嵌 `29e779b…` ∥ 10/15 报告绑定 sha `7b45b44…`）**头部字符两两不等** → 按本轮任务书口径「不成立则全部『未判定·待采』」→ A2 分流表全量按未判定登记 → 走「绑新 sha 补采」分支
+
 
 ## R1 复测收口轮当前基线（2026-10-15 · 主策划 · N0 开工前置）
 
