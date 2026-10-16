@@ -143,3 +143,38 @@
 平台注入目录 `.myrd-platform/.claude/skills/web-app-dev/` 内有阅读副本可参考）补入模板仓库并重新预置到本仓库。
 补齐后本节点重跑即可闭环：校验门禁资产 → 建 webapps/myrdplaygrou 静态工程 → 落 .myrd/style-card.md →
 按模板给 routines.yaml 追加 id=webapp-smoke → 本地自检 → push → 部署过移动门禁。
+
+---
+
+# Blocked 上报（延续）— 功能开发节点（run cmvagxyf3002em94lxhtab3p9，goal cmvaf7imr000jm94le9x48zfu）
+
+- **status: blocked**
+- **detail: 模板仓库未预置门禁脚本：std-skills/web-app-dev/scripts/webapp-smoke.mjs；请运维把模板仓库补上技能资产**
+- 时间：2026-10-16 ｜ 分支：myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu
+- 目标：cmvaf7imr000jm94le9x48zfu（《今日汇率》HostedApp）｜ AppHost：myrdplaygrou（cmvaf7imm000hm94lw6y43t0q）
+- 节点职责：在 webapps/myrdplaygrou 建静态工程（换算 + 7/30 天趋势）→ 部署 → 过移动门禁
+
+## 与 scaffold 轮的差异（重新核验，结论未变）
+
+scaffold 轮 blocked 上报后平台将目标重派到本节点；本节点开工前按自身硬约束重新核验，两类资产**仍同时缺失**：
+
+1. `git fetch origin` 成功；`git ls-tree -r origin/main --name-only` 无任何 `std-skills/web-app-dev` 条目；
+2. `git log --all -- "*web-app-dev*"` 与 `git log --all -- "*webapp-smoke*"` 仍为空 —— 全部历史从未存在；
+3. 远端同目标兄弟分支 `myrd/web-goal-cmvaf7imr000jm94le9x48zfu`、`myrd/myrdplaygrou-goal-cmvaf7imr000jm94le9x48zfu`
+   均无 `webapps/myrdplaygrou/` 产出、也无 web-app-dev 资产 —— 排除「资产在别处/工程已由他人建成」两种可能；
+4. `.myrd/routines.yaml`（本地 HEAD 与 origin/main 一致）仍无 id=webapp-smoke routine，
+   参数化模板 `std-skills/web-app-dev/references/webapp-smoke-routine.md` 仍不在库；
+5. 注入目录 `.myrd-platform/.claude/skills/web-app-dev/`（scripts/webapp-smoke.mjs、
+   scripts/webapp_smoke_selftest.mjs、references/webapp-smoke-routine.md、SKILL.md）仍仅为阅读副本，
+   且 `.gitignore` 含 `.myrd-platform/` —— 按硬约束不作判定脚本来源。
+
+## 处置
+
+- 本节点完成标准含「过移动门禁」，判定器与门禁配置双双缺失，按硬约束**立即停止**：
+  未搭建 `webapps/myrdplaygrou/`、未编写/未复制任何判定脚本或配置模板、未改 `.myrd/routines.yaml`、未部署、无任何绕过。
+- 本提交仅含本 blocked 上报（.myrd/blocked-report.md），推送至目标分支供编排侧与运维核验。
+
+## 待运维动作（同 scaffold 轮）
+
+把 `std-skills/web-app-dev/`（至少 `scripts/webapp-smoke.mjs` + `references/webapp-smoke-routine.md`）补入模板仓库
+并重新预置到本仓库后，本节点重跑即可完成：建工程 → 按模板追加 id=webapp-smoke routine → 部署 → 移动门禁闭环。
