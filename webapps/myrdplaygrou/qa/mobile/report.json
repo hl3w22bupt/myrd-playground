@@ -1,5 +1,5 @@
 {
-  "verdict": "FAIL",
+  "verdict": "PASS",
   "url": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/",
   "preset": {
     "width": 390,
@@ -8,19 +8,13 @@
     "mobile": true,
     "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
   },
-  "checkedAt": "2026-10-16T05:16:06.304Z",
+  "checkedAt": "2026-10-16T05:27:07.429Z",
   "checks": [
     {
       "id": "network",
       "label": "关键资源网络全通（无 5xx / 404 / 登录墙重定向）",
-      "status": "fail",
-      "detail": "404 https://leomac-studio.tail49399e.ts.net/apps/app.js（关键资源不可得：相对路径/资产清单排查）"
-    },
-    {
-      "id": "network-warn",
-      "label": "非关键资源异常（不阻断）",
-      "status": "warn",
-      "detail": "404 https://leomac-studio.tail49399e.ts.net/apps/styles.css"
+      "status": "pass",
+      "detail": ""
     },
     {
       "id": "console",
@@ -29,77 +23,48 @@
       "detail": ""
     },
     {
-      "id": "canvas",
-      "label": "canvas 存在（引擎产物已挂载）",
-      "status": "fail",
-      "detail": "20s 内未出现 canvas——引擎未启动/加载挂死"
-    },
-    {
       "id": "render",
-      "label": "首帧截图非纯色（400 点采样 ≥2 种量化色）",
+      "label": "首屏截图非纯色（400 点采样 ≥2 种量化色）",
       "status": "pass",
-      "detail": "采样仅 8 种颜色——画面没渲染出来（黑屏/白屏）"
+      "detail": "采样仅 9 种颜色——页面没渲染出来（白屏/黑屏）"
     },
     {
-      "id": "animate",
-      "label": "画面在动（1.5s 双时点帧差 > 0）",
-      "status": "fail",
-      "detail": "400 采样点零变化——主循环挂死或渲染冻结"
+      "id": "content",
+      "label": "DOM 有内容（文本非空或存在内容元素）",
+      "status": "pass",
+      "detail": "innerText=527 字、无 img/svg/form/button 等内容元素——结构没挂载或被壳挡住"
     },
     {
       "id": "touch-pipeline",
-      "label": "触摸事件到达 DOM（tap/swipe 均被派发）",
+      "label": "触摸事件到达 DOM（tap 与滚动 swipe 均被派发）",
       "status": "pass",
-      "detail": "tap={\"touchstart\":1,\"touchmove\":0,\"touchend\":1} swipe={\"touchstart\":2,\"touchmove\":7,\"touchend\":2}——事件没到页面=壳层挡了输入"
+      "detail": "tap={\"touchstart\":1,\"touchmove\":0,\"touchend\":1} swipe={\"touchstart\":2,\"touchmove\":9,\"touchend\":2}——事件没到页面=壳层挡了输入"
     },
     {
       "id": "touch-response",
-      "label": "触摸后画面有响应（tap 后帧差 > 0 或产生新活动）",
-      "status": "fail",
-      "detail": "输入到达但 3s 内画面零变化零活动——引擎忽略触摸（TouchUI/输入映射坏）。若游戏确为开局静止画面，在 qa/mobile/ 放说明文件并在产物 detail 注明豁免依据"
-    },
-    {
-      "id": "joystick-target",
-      "label": "摇杆热区已校准（--project）",
+      "label": "触摸后画面有变化或产生新活动（静态页可为 0，仅提示）",
       "status": "warn",
-      "detail": "未传 --project——回退旧版固定坐标 swipe，仅取证不断言；线上门禁应带 --project <工程目录>"
-    },
-    {
-      "id": "audio-unlock",
-      "label": "音频手势解锁器存在（window.__audioDebug）",
-      "status": "fail",
-      "detail": "typeof __audioDebug === \"undefined\"——缺解锁层 = 移动端全部音效静默且控制台零报错（取证：games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md）"
+      "detail": "tap 后画面零变化——若页面本就无点击交互属正常；有按钮/交互元素则检查事件绑定"
     },
     {
       "id": "viewport",
       "label": "无横向溢出（scrollWidth ≤ clientWidth+1）",
       "status": "pass",
       "detail": "scrollWidth=390 vs clientWidth=390"
-    },
-    {
-      "id": "fps",
-      "label": "FPS ≥ 8（swiftshader 软渲染口径）",
-      "status": "pass",
-      "detail": "实测 61 fps"
     }
   ],
   "metrics": {
-    "colorCount": 8,
-    "idleDiff": 0,
+    "colorCount": 9,
     "tapDiff": 0,
-    "fps": 61,
-    "joyAreaDiff": 0,
-    "joyChurn": 0,
+    "textLength": 527,
+    "hasContentElement": true,
+    "textHead": "¥\n今日汇率\n\n数据来源：实时获取 · 更新于 2026/10/16 13:26:57\n\n金额\n从\n人民币 CNY\n美元",
     "scrollWidth": 390,
     "clientWidth": 390,
     "hasViewportMeta": true
   },
-  "networkFailures": [
-    "404 https://leomac-studio.tail49399e.ts.net/apps/app.js（关键资源不可得：相对路径/资产清单排查）"
-  ],
-  "networkWarnings": [
-    "404 https://leomac-studio.tail49399e.ts.net/apps/styles.css"
-  ],
+  "networkFailures": [],
+  "networkWarnings": [],
   "consoleErrors": [],
   "touchCounters": {
     "afterTap": {
@@ -109,22 +74,12 @@
     },
     "afterSwipe": {
       "touchstart": 2,
-      "touchmove": 7,
+      "touchmove": 9,
       "touchend": 2
     }
   },
-  "joystick": {
-    "mode": "legacy",
-    "reason": "未传 --project",
-    "project": null,
-    "designViewport": null,
-    "designRect": null,
-    "cssRect": null
-  },
   "evidence": [
     "phase-load.png",
-    "phase-tap.png",
-    "phase-joystick.png"
-  ],
-  "exemptionNote": "touch-response 判 FAIL 但游戏确为开局静止画面时：在本目录放 EXEMPTION.md 说明依据，产物 detail 注明——不得无据豁免"
+    "phase-tap.png"
+  ]
 }

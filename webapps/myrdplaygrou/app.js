@@ -222,8 +222,12 @@ async function fetchTrend() {
     const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const j = await res.json();
-    const dates = Object.keys(j.rates || {}).sort();
-    const rates = dates.map((d) => j.rates[d][state.to]).filter((v) => isFinite(v));
+    const dates = [];
+    const rates = [];
+    for (const d of Object.keys(j.rates || {}).sort()) {
+      const v = j.rates[d]?.[state.to];
+      if (isFinite(v)) { dates.push(d); rates.push(v); } // 日期与数值同步收录，保证坐标一一对应
+    }
     if (rates.length < 2) throw new Error("trend too short");
     const rec = { dates, rates, fetchedAt: Date.now(), stale: false };
     state.trend = rec;
