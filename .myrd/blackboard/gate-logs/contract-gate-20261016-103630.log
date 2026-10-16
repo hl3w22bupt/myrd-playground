@@ -1,0 +1,110 @@
+== [verify.sh] ① 统一契约门禁（approved spec 对账） ==
+—— 契约测试输出 ——
+  PASS  spec 可解析: .myrd/spec/wheat-squad/design-spec.json
+  PASS  spec 为 approved 版（平台登记 v6 · cmv8xcexk0009m9dj6ev1dj0r）
+  PASS  六段完整: meta
+  PASS  六段完整: world
+  PASS  六段完整: entities
+  PASS  六段完整: levels
+  PASS  六段完整: numeric
+  PASS  六段完整: acceptance
+  PASS  实体 e-kernel-loop script 存在: games/wheat-squad/src/kernel/loop.ts#seededRng（符号锚命中）
+  PASS  实体 e-kernel-sim script 存在: games/wheat-squad/src/kernel/sim.ts#stepSim（符号锚命中）
+  PASS  实体 e-captain script 存在: games/wheat-squad/src/kernel/sim.ts#captain（符号锚命中）
+  PASS  实体 e-squadmate script 存在: games/wheat-squad/src/kernel/sim.ts#Squadmate（符号锚命中）
+  PASS  实体 e-pest script 存在: games/wheat-squad/src/kernel/sim.ts#pests（符号锚命中）
+  PASS  实体 e-bullet script 存在: games/wheat-squad/src/kernel/sim.ts#bullets（符号锚命中）
+  PASS  实体 e-wheat-pickup script 存在: games/wheat-squad/src/kernel/sim.ts#pickups（符号锚命中）
+  PASS  实体 e-wave-manager script 存在: games/wheat-squad/src/kernel/sim.ts#waveTimerMs（符号锚命中）
+  PASS  实体 e-upgrade-picker script 存在: games/wheat-squad/src/kernel/sim.ts#offerUpgrades（符号锚命中）
+  PASS  实体 e-settlement script 存在: games/wheat-squad/src/settlement.ts#buildSettlement（符号锚命中）
+  PASS  实体 e-placement-bank script 存在: games/wheat-squad/src/settlement.ts#bankGain（符号锚命中）
+  PASS  实体 e-renderer script 存在: games/wheat-squad/src/render/renderer.ts#drawField（符号锚命中）
+  PASS  实体 e-renderer script 存在: games/wheat-squad/src/render/theme.ts#THEME（符号锚命中）
+  PASS  实体 e-telemetry script 存在: games/wheat-squad/src/game.ts#telemetry（符号锚命中）
+  PASS  关卡元素编号唯一性核对完成（5 个）
+  PASS  数值扫描源就绪（25 个脚本，三层解析）
+  PASS  数值 DEFAULT_SEED 在工程常量区有对应
+  PASS  数值 FIXED_STEP_MS 在工程常量区有对应
+  PASS  数值 artCaps 在工程常量区有对应
+  PASS  数值 captain 在工程常量区有对应
+  PASS  数值 enemy 在工程常量区有对应
+  PASS  数值 feedback 在工程常量区有对应
+  PASS  数值 firstCore 在工程常量区有对应
+  PASS  数值 firstKillBudgetSec 在工程常量区有对应
+  PASS  数值 guidance 在工程常量区有对应
+  PASS  数值 palette 在工程常量区有对应
+  PASS  数值 perf 在工程常量区有对应
+  PASS  数值 placement 在工程常量区有对应
+  PASS  数值 runDuration 在工程常量区有对应
+  PASS  数值 squad 在工程常量区有对应
+  PASS  数值 upgrade 在工程常量区有对应
+  PASS  数值 wave 在工程常量区有对应
+  PASS  验收项 ac-a1-first-core-feedback 依赖存在: games/wheat-squad/tests/contract/checks/ac-a1-first-core-feedback.mjs
+  PASS  验收项 ac-a2-run-duration-band 依赖存在: games/wheat-squad/tests/contract/checks/ac-a2-run-duration-band.mjs
+  PASS  验收项 ac-a3-restart-willingness 依赖存在: games/wheat-squad/tests/contract/checks/ac-a3-restart-willingness.mjs
+  PASS  验收项 ac-a4-feedback-channels 依赖存在: games/wheat-squad/tests/contract/checks/ac-a4-feedback-channels.mjs
+  PASS  验收项 ac-a5-guidance-first-action 依赖存在: games/wheat-squad/tests/contract/checks/ac-a5-guidance-first-action.mjs
+  PASS  验收项 ac-a4b-restart-click-counter 依赖存在: games/wheat-squad/tests/contract/checks/ac-a4b-restart-click-counter.mjs
+  PASS  验收项 det-1-seeded-determinism 依赖存在: games/wheat-squad/tests/contract/checks/det-1-seeded-determinism.mjs
+  PASS  验收项 perf-1-frame-budget 依赖存在: games/wheat-squad/tests/contract/checks/perf-1-frame-budget.mjs
+  PASS  验收项 tex-1-no-external-texture 依赖存在: games/wheat-squad/tests/contract/checks/tex-1-no-external-texture.mjs
+  PASS  验收项 anchor-1-entity-levels-files 依赖存在: games/wheat-squad/tests/contract/checks/anchor-1-entity-levels-files.mjs
+  PASS  验收项 loop-1-settlement-closure 依赖存在: games/wheat-squad/tests/contract/checks/loop-1-settlement-closure.mjs
+  PASS  验收项 fv-pend-placement-calibration 依赖存在: games/wheat-squad/tests/contract/checks/fv-pend-placement-calibration.mjs
+  PASS  验收项 ac-art-1-palette-whitelist 依赖存在: games/wheat-squad/tests/contract/checks/ac-art-1-palette-whitelist.mjs
+  PASS  验收项 ac-art-2-naming-entity-ids 依赖存在: games/wheat-squad/tests/contract/checks/ac-art-2-naming-entity-ids.mjs
+  PASS  验收项 ac-art-3-size-caps 依赖存在: games/wheat-squad/tests/contract/checks/ac-art-3-size-caps.mjs
+  PASS  验收项 ac-art-4-style-consistency 依赖存在: games/wheat-squad/tests/contract/checks/ac-art-4-style-consistency.mjs
+—— 合计 56 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
+== [verify.sh] ① 统一契约门禁（approved spec 对账） :: PASS ==
+
+== [verify.sh] ② 自有契约套件 ==
+PASS det-1 同 seed 双局逐字节一致 :: {"tick":10506,"phase":"ended","kills":218,"xp":436,"wave":7,"ups":["fireRate","damage","damage","recruit","fireRate","sp
+PASS ac-a1(auto) 首次核心正反馈 1.71s ≤10s · 5 种子首杀全部 ≤30s · 回归预算 3s/20s 保持
+PASS ac-a2(auto) 20 种子 P50=168.096s ∈[90,180] · P90=168.096s ≤300 · victory=20/20
+PEND ac-a3(manual) 机制面 PASS（重开 0ms+全复位+结算三信息+模板 schema）· 结论面 MANUAL-PENDING（记录 0/5——5 名试玩回填后复跑本件）
+PASS ac-a4(auto) 反馈延迟 max=0ms ≤100ms · 每操作通道 min=4 ≥2 · flash=90ms · 通道 flash/particles/pickup-spawn/hud-kills 全绑 fx 件 · 帧采样 n=3750 P95=0.001ms ≤16ms
+PASS perf-1 实体峰值 33 ≤220 · 单步 0.000ms ≤16ms · 机型档（中端≤33ms/首交互≤3000ms/老机≤50ms）节流仿真不崩（node 仿真步；真机走查归 QA 清单）
+PASS tex-1 零位图文件 + 7 源文件零贴图构造
+PASS anchor-1 entities 13/13 + levels 2/2 落点在盘非空
+PASS fv-pend placement 结构冻结（spec 文本 + 公式实体行为级对拍）+ 待校准语义在档（校准走 revision）
+PASS ac-art-1(auto) 12 文件扫描 · 色值全部 ⊆ palette 白名单(8 色) · 零违例
+PASS ac-art-2(auto) 清单 13 件 ≤ 封顶 13 · entity 类 id 全部 ∈ entities ids · source 锚点全在盘 · 零清单外资产
+PASS ac-art-3(auto) 落盘清单件 3 逐件达标 · build 首包 0.09MB ≤ 4MB
+PASS ac-art-4 机制面+互查回执全达（qa/style-consistency-check.md 在档）
+PASS ac-14 埋点定名三方同名（接线+断言面 9 键逐字 · 结局势 {defeat,timeout,victory} 同源 · placementOffline 冻结式行为锁定）
+PASS ac-15 门禁适配视图守卫（id/slug=wheat-squad 单源同源 · 剔注入键深等 · 入口在盘）
+PASS ac-16 埋点四事件骨架（hint_shown@0ms + first_tap once@32ms + first_loop_complete@7040ms + restart_clicked count 1→2）· a5 statement 谓词（first_core_action_at@48ms − hint@0ms ≤ 5000ms 窗）· 文案三方同名逐字机判「拖动队长移动 · 队员自动作战」
+—— wheat-squad 契约合计 16 PASS / 0 FAIL / 1 PEND ——
+ALL_GREEN=false（含 pending 即非全绿——PEND 1 件：
+  PEND · ac-a3-restart-willingness 结论面：5 名试玩记录未回填（0/5）——manual 结论面待真人，回填后复跑本件转 PASS
+）
+== [verify.sh] ② 自有契约套件 :: PASS ==
+
+== [verify.sh] ③ WS-SMOKE headless 全链路 ==
+[ws-smoke] 静态服务 http://127.0.0.1:64961/（build/ 载面）
+[ws-smoke] chromium 就绪（CDP page target）
+[ws-smoke] ready ✓ __G2WS_READY=true
+[ws-smoke] 操作 ✓ tick 推进 + 击杀 1（拖动→作战链通）
+[ws-smoke] 埋点 ✓ first_core_action_at / first_kill / feedback_latency_ms 真实产生（A1/A4 面）
+[ws-smoke] 结算 ✓ phase=ended reason=victory elapsed=167s
+[ws-smoke] 埋点 ✓ run_duration_ms=167968ms reason=victory（A2 面·真实载荷）
+[ws-smoke] 重开 ✓ 结算态点按→回 running + kills 归零（结算-重开闭环）
+[ws-smoke] 埋点 ✓ 四事件齐（first_tap@2640ms · hint_shown@0ms · first_loop_complete@7760ms · restart_clicked×1 count=1）+ a5 窗内
+[ws-smoke] console/页面 零错误 ✓
+WS-SMOKE: PASS 打开→首次核心操作→单局结束→重开 + A1/A4 + 四事件埋点真实产生 + console 零错误
+== [verify.sh] ③ WS-SMOKE headless 全链路 :: PASS ==
+
+== [verify.sh] ④ SCOPE-GUARD 违规标识符扫描（本仓） ==
+SCOPE-GUARD PASS 本仓库 94 文件零越界引用（策略单源 ci/scope-policy.json；spec 真源豁免面命中 0 处，属契约条款声明）
+== [verify.sh] ④ SCOPE-GUARD 违规标识符扫描（本仓） :: PASS ==
+
+== [verify.sh] ⑤ SCOPE-GUARD 父仓足迹自检 ==
+# 一号仓库 git status 共 1 行；白名单内新增区 = games/wheat-squad/ / .myrd/blackboard/wheat-squad/ / .myrd/spec/wheat-squad/ / .myrd/spec/design-spec.json / .myrd/spec/wheat-squad-spec.json / .myrd/blackboard/gate-logs/ / .myrd/blackboard/spec-notes-line2.md / .myrd/blackboard/research/
+#   ?? .myrd/blackboard/gate-logs/contract-gate-20261016-103630.log
+SELF-CHECK PASS 一号仓库零接触（1 行全部在白名单内，无 tracked 工程文件改动）
+== [verify.sh] ⑤ SCOPE-GUARD 父仓足迹自检 :: PASS ==
+
+VERIFY: PASS wheat-squad 契约/冒烟/扫描全绿（exit 0）
