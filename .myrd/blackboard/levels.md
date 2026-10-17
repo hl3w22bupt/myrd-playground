@@ -8,6 +8,7 @@
 > g2-blocks：v1.3 首批对账收口（关卡面零新增，v1.1/v1.2 冻结关卡零漂移，契约三态复跑全绿）· **主仓 HEAD `26ba1d9` 独立复证全绿**（程序线：契约三态 18/25/29+1PEND + 根契约 18/0 + 八门禁 + 冒烟 J1=170.4ms + 部署面 30 文件逐字节复证，原文 `g2-blocks/gate-logs/v13-head-reverify-20261010/`）
 > stack-tower：冻结维持（零接触，机判留证 `v13-head-reverify-20261010/03`）；第二线：孵化调研中（未立项未建关，B2 预置件空壳冒烟 4/4 复证）
 > 各线明细：g2-blocks 子黑板 `.myrd/blackboard/g2-blocks/` · 第二线 `.myrd/blackboard/next-line/`
+> **双轨轮程序线复核（游戏程序 verify-claims @ HEAD `476090c` · 2026-10-17，供主策划整合引用）**：轨道 A 线 2 = A1 重锚三点闭环本轮 LIVE 重测复验成立（内嵌 `9945257` ≡ 报告绑定逐字符 · md5 ≡ build 逐字节 · 源面 diff 空）+ A2 判定面复跑逐值一致（16/0/1PEND · 红 0）+ A3 互斥均不触发，维持等主人圈定 5 名真人；轨道 B 线 3 = **spec v1 已 approved**（链 v2 `cmvbqgzbl0029m9ax64foxd37` @ 01:44:41Z，六判据全 PASS）+ B3 骨架三件复核成立（图谱 45 节点/inventory 24 文件/埋点桩，approve 前 105 行纯占位零玩法）；五步门禁 @ `476090c` `VERIFY_EXIT=0`；两线黑板三件套齐。证据 `wheat-squad/gate-logs/dualtrack-recheck-20261017/`。组合全景头部仍为 10/16 口径，整合更新归主策划。
 
 ---
 

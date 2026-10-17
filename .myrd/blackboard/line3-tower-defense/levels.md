@@ -3,6 +3,8 @@
 > 更新时间：2026-10-17（双轨轮 · B 轨：spec v1 六件套起草至 approve）· 负责人：主策划（整合）/ 游戏策划（spec）/ 游戏程序（骨架）/ 游戏美术（风格卡）/ 游戏 QA（预审）
 > 下一步：B2 六件套 → 三合一包 → B4 风格卡 v1 → B5 QA 预审 → B6 主策划 approve
 
+**B 轨程序线复核一行**（2026-10-17 · 游戏程序 · 独立实查 @ HEAD `476090c`）：**B3 三件与 B6 approve 复核成立**——① 图谱：`.code-review-graph/graph.db` 实查含 **line3-tower-defense 节点 45 个**（File/Class/Function 入图，full build @ `0ac1fcf`，build_state=complete）；口径披露：库内实查 File=667/节点总数=6135，与 B3 行构建时点 stdout 口径「669 文件/6385 节点」存在小幅出入（统计口径差，注册事实不受影响，如实登记）；② `docs/inventory.md` 24 文件逐条一句职责在盘 ✓；③ 埋点桩 `src/telemetry/emitter.ts` + `fnd-1-td-telemetry-fieldnames.mjs` 在盘 ✓，且 0ac1fcf 时点 src 16 文件共 **105 行纯占位常量 fail-closed**（`git show 0ac1fcf --stat` 实证）——「approve 前零玩法」合规 ✓；④ B6：`gate-logs/b6-six-criteria.md` 六判据全 PASS + approve 动作 POST 200（01:44:41Z）+ 链上 v2 `cmvbqgzbl0029m9ax64foxd37` approved 在档 ✓。
+
 ## B 轨节点状态（2026-10-17 双轨轮 · **B 轨收口：approve 完成**）
 
 | 节点 | 负责人 | 状态 | 产物落点 |
