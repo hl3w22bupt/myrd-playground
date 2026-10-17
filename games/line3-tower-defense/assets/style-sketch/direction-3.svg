@@ -40,17 +40,17 @@
 <rect x="136" y="200" width="16" height="16" rx="3" fill="#B75D69" stroke="#202A38" stroke-width="2"/>
 <rect x="324" y="201" width="14" height="14" rx="3" fill="#B75D69" stroke="#202A38" stroke-width="2"/>
 <rect x="489" y="198" width="20" height="20" rx="3" fill="#B75D69" stroke="#202A38" stroke-width="2"/>
-<circle cx="240" cy="144" r="56" fill="none" stroke="#F4F1DE" stroke-width="2" stroke-dasharray="6 6" opacity="0.5"/>
-<rect x="228" y="132" width="24" height="24" rx="4" fill="#81b29a" stroke="#202A38" stroke-width="2"/>
-<circle cx="240" cy="144" r="4" fill="#F4F1DE"/>
-<circle cx="464" cy="144" r="56" fill="none" stroke="#F4F1DE" stroke-width="2" stroke-dasharray="6 6" opacity="0.5"/>
-<rect x="451" y="131" width="26" height="26" rx="4" fill="#92bba4" stroke="#202A38" stroke-width="2"/>
-<circle cx="464" cy="144" r="4" fill="#F4F1DE"/>
-<circle cx="688" cy="144" r="56" fill="none" stroke="#F4F1DE" stroke-width="2" stroke-dasharray="6 6" opacity="0.5"/>
-<rect x="674" y="130" width="28" height="28" rx="4" fill="#a9c8b2" stroke="#202A38" stroke-width="2"/>
-<circle cx="688" cy="144" r="4" fill="#F4F1DE"/>
+<circle cx="128" cy="144" r="56" fill="none" stroke="#F4F1DE" stroke-width="2" stroke-dasharray="6 6" opacity="0.5"/>
+<rect x="116" y="132" width="24" height="24" rx="4" fill="#81B29A" stroke="#202A38" stroke-width="2"/>
+<circle cx="128" cy="144" r="4" fill="#F4F1DE"/>
+<circle cx="304" cy="144" r="56" fill="none" stroke="#F4F1DE" stroke-width="2" stroke-dasharray="6 6" opacity="0.5"/>
+<rect x="291" y="131" width="26" height="26" rx="4" fill="#92BBA4" stroke="#202A38" stroke-width="2"/>
+<circle cx="304" cy="144" r="4" fill="#F4F1DE"/>
+<circle cx="480" cy="144" r="56" fill="none" stroke="#F4F1DE" stroke-width="2" stroke-dasharray="6 6" opacity="0.5"/>
+<rect x="466" y="130" width="28" height="28" rx="4" fill="#A9C8B2" stroke="#202A38" stroke-width="2"/>
+<circle cx="480" cy="144" r="4" fill="#F4F1DE"/>
 <rect x="544" y="160" width="64" height="64" rx="4" fill="#E76F51" stroke="#202A38" stroke-width="2"/>
 <rect y="384" width="640" height="40" fill="#202A38"/>
 <text x="16" y="410" font-family="sans-serif" font-size="16" fill="#F4F1DE">核心 10 · 军费 120 · 波次 1/8</text>
-<text x="624" y="410" text-anchor="end" font-family="sans-serif" font-size="16" fill="#F4F1DE">方向3 · 沉稳原阶</text>
+<text x="624" y="410" text-anchor="end" font-family="sans-serif" font-size="16" fill="#F4F1DE">方向3 · 沉稳原阶（候选）</text>
 </svg>

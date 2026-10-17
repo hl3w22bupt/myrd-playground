@@ -1,0 +1,24 @@
+# 旧稿基线 sha256（git HEAD 0ac1fcf 版方向稿，逐件 git show 实算）
+--- direction-1.svg
+117d968074da12d9aff4b7f91cc8d31a6d436120ac687d6ab1533907208b4b41  -
+--- direction-2.svg
+10e706e1a8c9c427b125e28080a2400ee02fba34b7d346edfb27ce0ee49bd94a  -
+--- direction-3.svg
+984f056cffd55bfcddba7640ca931db1c0f24ce510b340450ac68731c0102aa3  -
+
+# 修复后第 1/2 次重跑（确定性验证）
+SKETCH /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvbp9ptb001jm9axmzpgbl05/games/line3-tower-defense/assets/style-sketch/direction-1.svg sha256前8=09c4d565
+SKETCH /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvbp9ptb001jm9axmzpgbl05/games/line3-tower-defense/assets/style-sketch/direction-2.svg sha256前8=7fda59ec
+SKETCH /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvbp9ptb001jm9axmzpgbl05/games/line3-tower-defense/assets/style-sketch/direction-3.svg sha256前8=4185b770
+SKETCH PASS 3 张方向稿生成（确定性：同输入重跑逐字节一致；manifest.json 已更新）
+-- 第 2 次 --
+SKETCH /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvbp9ptb001jm9axmzpgbl05/games/line3-tower-defense/assets/style-sketch/direction-1.svg sha256前8=09c4d565
+SKETCH /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvbp9ptb001jm9axmzpgbl05/games/line3-tower-defense/assets/style-sketch/direction-2.svg sha256前8=7fda59ec
+SKETCH /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvbp9ptb001jm9axmzpgbl05/games/line3-tower-defense/assets/style-sketch/direction-3.svg sha256前8=4185b770
+SKETCH PASS 3 张方向稿生成（确定性：同输入重跑逐字节一致；manifest.json 已更新）
+
+# 修复后落盘 sha256（shasum 独立实算）
+09c4d565e9dbcef575fad30e87725196d6d0651e2e509e605914f9eae61153be  games/line3-tower-defense/assets/style-sketch/direction-1.svg
+7fda59ec11eab34c71d28f9cfcaf3ff1372bab285f3d5c70f70f2aca8d1eeddb  games/line3-tower-defense/assets/style-sketch/direction-2.svg
+4185b770f1806746c8274ef61906ef3a3c841d18b7f8c1c8546c787984e28246  games/line3-tower-defense/assets/style-sketch/direction-3.svg
+e3df7a2de89ac212caf317dd2a0138a7dcec42a6d920d866eb269dc1ff47cd12  games/line3-tower-defense/assets/style-sketch/manifest.json

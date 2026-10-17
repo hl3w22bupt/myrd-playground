@@ -1,7 +1,7 @@
 # 资产清单黑板 — line3-tower-defense（第三产品线）
 
-> 更新时间：2026-10-17（双轨轮 · B4 风格卡 v1 锁定）· 负责人：游戏美术（四要素/方向稿）+ 游戏程序（生成器/manifest）
-> 下一步：palette 8 色随 spec v1.0 定稿冻结（numeric.palette）→ 方向稿 2-3 张出稿 → 实现轮资产逐件登记（首批 ≤13 件封顶，ac-art-2）
+> 更新时间：2026-10-17（美术复证轮 · 方向稿缺陷修复 + 独立零漂移实证）· 负责人：游戏美术（四要素/方向稿）+ 游戏程序（生成器/manifest）
+> 下一步：W-L3-2 主人过目三方向拍板（采纳方向 2/3 须走 spec revision 改 deriveRule）→ 实现轮资产逐件登记（首批 ≤13 件封顶，ac-art-2）
 > 判例：与产品线 2 风格卡**分文件**（线 2 = `.myrd/blackboard/wheat-squad/style-card-v1.md`，互不引用互不覆盖）；色值改动必须走 spec revision（沿 wheat-squad 判例）
 
 ## 风格卡 v1（2026-10-17 · 美术锁定 · 四要素）
@@ -61,13 +61,24 @@
 
 > 美术核签：上表与 spec v1.0 acceptance/world.operationPaths 逐条对得上（对不上打回策划的口径自查通过，映射表随 ac-art-4 机判）。
 
-## 方向稿（2-3 张 · 不阻塞骨架）
+## 方向稿（3 张已出稿 · 复证轮修复后定稿 · 不阻塞骨架）
 
-- 生成器：`games/line3-tower-defense/tools/style-sketch.mjs`（确定性 SVG：输入=风格卡 token，输出 3 张方向稿，重跑逐字节一致——deterministic-asset-pipeline 判例）
-- 落点：`games/line3-tower-defense/assets/style-sketch/`（B3 骨架落位后生成，状态见下方清单）
+- 生成器：`games/line3-tower-defense/tools/style-sketch.mjs`（确定性 SVG：token 启动自校验 theme.ts 单源，漂移即 fail-closed；重跑逐字节一致——deterministic-asset-pipeline 判例）
+- 审计器：`games/line3-tower-defense/tools/style-sketch-audit.mjs`（独立机判：白名单读 approved spec + 派生色独立重算 + hash 逐件实算，零 hex 字面量）
+- 落点：`games/line3-tower-defense/assets/style-sketch/`
 
-## 资产清单（首批 · 状态：0 件落盘，规划 ≤13 件封顶）
+| 件 | sha256（前 8） | 方向 | 状态 |
+|---|---|---|---|
+| `direction-1.svg` | `09c4d565` | 方向1 · 治愈绿阶（基线 = theme.ts DERIVE 原阶，实现轮直接可用） | 已出稿·审计 PASS |
+| `direction-2.svg` | `7fda59ec` | 方向2 · 亮阶轻快（**候选**） | 已出稿·审计 PASS |
+| `direction-3.svg` | `4185b770` | 方向3 · 沉稳原阶（**候选**） | 已出稿·审计 PASS |
+| `manifest.json` | `e3df7a2d` | 逐件 file/sha256/seed/turretMixT/label | 随生成器产出 |
+
+- **候选纪律**：方向 2/3 的炮塔混合比（0.1/0.3/0.5、0/0.15/0.35）≠ spec `numeric.palette.deriveRule` 冻结值（0/20/40%）。主人（W-L3-2）若采纳方向 2/3，**必须先走 spec revision 改 deriveRule**，实现层严禁直接采用（ac-art-1 派生规则声明面）。
+- **复证轮修复登记**（2026-10-17，证据 `gate-logs/art-sketch-fix-20261017/`）：①Lv3 炮塔出画（cx=688>640）→ 布点 128+176i 画内化；②mix() 小写 hex → 大写规范化（Lv1 基色与白名单逐字符全等）；③token 单源自校验 fail-closed 化。跨线认领：生成器名义共管归程序，美术以视觉合规面直接修、palette 零触碰，**待程序线复签**。
+
+## 资产清单（首批实现资产 · 状态：0 件落盘，规划 ≤13 件封顶）
 
 | # | 件 | 状态 | 备注 |
 |---|---|---|---|
-| — | — | 0/13 | 实现轮逐件登记（id/hash/生成器行号），本轮仅风格卡+方向稿 |
+| — | — | 0/13 | 实现轮逐件登记（id/hash/生成器行号）。**方向稿 3 张 + manifest 属 B4 设计件，不计入本封顶口径**（spec.ac-art-2 口径=「首批可见资产」=实现轮交付物） |
