@@ -1,0 +1,10 @@
+# B5 QA 预审机检 v3（final）· v2④ 断言误要求 a5 statement 含斜杠连写串——按「逐名包含」校正（内容零改动，断言修正第二次留痕）
+① 禁词扫描: PASS 零命中
+② 样本量具体值: PASS
+③ auto/manual+check 文件名: PASS 15/15
+④ 埋点四件逐字符: payload.telemetryFields ✓ 源码常量集全等 ✓ a5 逐名包含 ✓ → PASS
+⑤ 差异点三列(=3行)+不同品类声明: PASS
+⑥ 未判定项负责人+采样计划: PASS
+
+B5 预审总判: PASS（六口径全过，draft 可进入 B6 approve）
+QA 签字: QA-L3-SPECV1-PREAUDIT-20261017-01 · mode=纸面预审（工程未实现，check 薄壳=规划落点属 draft 期合规）· 断言修正两次均系机检过严，spec 内容自 v1 起零改动
