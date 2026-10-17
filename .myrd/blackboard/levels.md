@@ -9,6 +9,7 @@
 > stack-tower：冻结维持（零接触，机判留证 `v13-head-reverify-20261010/03`）；第二线：孵化调研中（未立项未建关，B2 预置件空壳冒烟 4/4 复证）
 > 各线明细：g2-blocks 子黑板 `.myrd/blackboard/g2-blocks/` · 第二线 `.myrd/blackboard/next-line/`
 > **双轨轮程序线复核（游戏程序 verify-claims @ HEAD `476090c` · 2026-10-17，供主策划整合引用）**：轨道 A 线 2 = A1 重锚三点闭环本轮 LIVE 重测复验成立（内嵌 `9945257` ≡ 报告绑定逐字符 · md5 ≡ build 逐字节 · 源面 diff 空）+ A2 判定面复跑逐值一致（16/0/1PEND · 红 0）+ A3 互斥均不触发，维持等主人圈定 5 名真人；轨道 B 线 3 = **spec v1 已 approved**（链 v2 `cmvbqgzbl0029m9ax64foxd37` @ 01:44:41Z，六判据全 PASS）+ B3 骨架三件复核成立（图谱 45 节点/inventory 24 文件/埋点桩，approve 前 105 行纯占位零玩法）；五步门禁 @ `476090c` `VERIFY_EXIT=0`；两线黑板三件套齐。证据 `wheat-squad/gate-logs/dualtrack-recheck-20261017/`。组合全景头部仍为 10/16 口径，整合更新归主策划。
+> **双轨重发复证 + 部署轮 v24（游戏程序 @ HEAD `701180b` · 2026-10-17T03:12-03:20Z）**：任务书重发勘验零重做——两轨收口复证四绿（源面 `9945257..HEAD` diff 空 · 三方 sha 逐字符对账 `9945257` · verify.sh 五步 `VERIFY_EXIT=0` @ `701180b` · 确定性重建仅 gitSha 自指单行）+ 线 3 链 v2 approved 导出件实查一致；**v24 `cmvbtt76q003qm9axucrlbdoy` running/current @ `game/wheat-squad`**（字节 ≡ v23 逐字节 · 复证发布 · gitRef 重绑本分支）· WS-LIVE-SMOKE PASS victory 167s；**A3 结论面维持未判定·待真人 0/5 不变**（采集面 v24 ≡ 锚 `9945257` 字节等效）；服务器侧 v22/v23 版本号与上轮 verdict 记账互换已修正登记（字节结论不受影响）。证据 `wheat-squad/gate-logs/deploy-v24-20261017/00..06`，结论仅对 `701180b` 有效。
 
 ---
 

@@ -1,0 +1,10 @@
+# 命令原文: node games/wheat-squad/tools/build.mjs && diff -r 仓内HEAD版 vs 重建版
+# UTC: 2026-10-17T03:13:04Z
+ games/wheat-squad/build/main.mjs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+# 确定性重建对照 · UTC 2026-10-17T03:13:19Z · HEAD 701180b7fa5f52aaa431b064050b52c69b2bb5b1
+# 命令: node games/wheat-squad/tools/build.mjs
+# 结论: 11 文件仅 main.mjs 1 行 diff = gitSha 自指行（锚 9945257 vs HEAD 701180b）· specAnchor 不变 · 逻辑字节全等
+# 处置: 按判例恢复锚定产物（部署字节≡v23，报告绑定 sha 不失效）
+-globalThis.__G2WS_BUILD = {"gitSha":"994525799e0842f518166846824753a8ad7fcbc7","specAnchor":"cmv8xcexk0009m9dj6ev1dj0r@v6:approved"};
++globalThis.__G2WS_BUILD = {"gitSha":"701180b7fa5f52aaa431b064050b52c69b2bb5b1","specAnchor":"cmv8xcexk0009m9dj6ev1dj0r@v6:approved"};

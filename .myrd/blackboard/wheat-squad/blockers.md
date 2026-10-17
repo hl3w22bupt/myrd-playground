@@ -19,6 +19,16 @@
 - **F1FIX 复签闭环**：上轮三项待复签（①链证据失真修正 ②未触 src ③全模拟局口径）本轮 QA 复签全部通过（`a2-verdict-20261017.json` carryOverResign）。
 - 历史区段（R1 轮及更早）原样保留于下方，不覆盖不删改。
 
+### 部署轮 v24（游戏程序 · 2026-10-17T03:12-03:20Z · 双轨任务书重发复证 + 部署节点）
+
+- **定性**：任务书重发勘验——两轨收口声明独立复证成立，**零重做零新玩法**；本轮增量 = 复证取证 + gitRef 重绑复证发布。
+- **复证四绿**：①源面零漂移（`git diff 9945257..HEAD -- src tests tools ci package.json` = 空）②三方 sha 逐字符对账（仓内 build 内嵌 ≡ 报告绑定 ≡ LIVE 内嵌 = `9945257`）③verify.sh 五步 @ HEAD `701180b` `VERIFY_EXIT=0`（16/0/1PEND · SMOKE victory 167s · 双 GUARD）④确定性重建 11 文件仅 gitSha 自指单行 diff（逻辑字节全等，锚产物已恢复，md5 `53eaebce` 复原）。
+- **轨道 B 只读核签**：线 3 链 v2 `cmvbqgzbl0029m9ax64foxd37` approved（2026-10-17T01:44:41Z · acceptance 15/entities 12/levels 2）——导出件 `_platform` 实查，与黑板声明一致。
+- **部署**：v24 `cmvbtt76q003qm9axucrlbdoy` **running/current @ `game/wheat-squad`（HEAD `701180b`）**——POST 504 空体截断（判例复现）→ GET 复查已受理未盲重发；前置②分支先推远端（`ls-remote` 服务器实况 = 本地 HEAD；本地跟踪引用过期因 fetch refspec 仅配 main，已同步）。
+- **线上自测全绿**：/health 200 · 页面 md5 `724c04b0` ≡ 仓内 landing.html · main.mjs md5 `53eaebce` ≡ 仓内 build 逐字节 · 内嵌 `9945257` ≡ 报告绑定 · WS-LIVE-SMOKE PASS victory 167s 零 console 错误。**v24 ≡ v23 零字节变化，A3 采集等效性未破坏。**
+- **记账修正**：服务器侧 v22=`cmvbqnwlu…`（superseded）/ v23=`cmvbqro9v…`（上轮 01:52 单）——上轮 verdict JSON「v23 cmvbqnwlu」为版本号记账漂移（字节结论不受影响）；v24 已把 gitRef 从团队续接分支重绑回 `game/wheat-squad`。
+- **升级项维持**：W-NEW-1 治理面 + A3 待真人 0/5 不变（见上）；证据 `games/wheat-squad/gate-logs/deploy-v24-20261017/00..06`，结论仅对 `701180b` 有效。
+
 ## R1 复测三态分流收口轮决策登记（2026-10-16 · 主策划整合 · A7）
 
 | 节点 | 结论 | 证据落点 |

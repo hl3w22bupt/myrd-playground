@@ -1,13 +1,14 @@
-# 部署说明 — wheat-squad v1.4（spec 链 v6 · 部署 v21）
+# 部署说明 — wheat-squad v1.4（spec 链 v6 · 部署 v24）
 
-> 更新时间：2026-10-16（游戏程序 · 复证轮 + 部署轮 r14）· 负责人：游戏程序（部署面）· 部署单 **v21 `cmvafh9i1001em94lwu8osw8u` running/current @ commit `af399d7`**（分支 `game/wheat-squad`，远端 SHA 全等后发起；坑 `cmv36wl94001xm9mxp119q48x` wheat-squad-2 · sourceId=wheat-squad）
-> 历史注记：v15（2026-10-14）修「部署字节落后代码」缺陷后，v17→v20（R1 复测收口轮）随 spec v1.4（链 v6）重锚构建指纹至 `4eccaf29`；v21 为复证发布（部署字节与 v20 逐字节全等，gitRef 重绑当前分支，非内容更新）。
+> 更新时间：2026-10-17（游戏程序 · 双轨轮重发复证 + 部署轮 v24）· 负责人：游戏程序（部署面）· 部署单 **v24 `cmvbtt76q003qm9axucrlbdoy` running/current @ 分支 `game/wheat-squad`（HEAD `701180b`）**（mode=bundle · manifestPath=`games/wheat-squad/apphost.toml` · sourceId=wheat-squad；坑 `cmv36wl94001xm9mxp119q48x` wheat-squad-2）
+> 历史注记：v21（10/16）复证发布 @ `af399d7`（锚 `4eccaf29`）；双轨轮 v22/v23（10/17，gitRef=团队续接分支）随 A1 重锚把构建指纹重锚至 `9945257`；**v24 为重发复证发布——gitRef 重绑本工作流分支 `game/wheat-squad`，部署字节与 v23 逐字节全等（复证发布，非内容更新）**。
+> **记账修正（v24 轮实测）**：坑位服务器侧部署版本号与上轮黑板记录存在互换——服务器实况 v22=`cmvbqnwlu…`（superseded，即上轮「HTTP 000 误窗单」）、v23=`cmvbqro9v…`（上轮 01:52 受理单）；上轮 verdict JSON 内「v23 cmvbqnwlu」为版本号记账漂移，**字节面结论不受影响**（两单字节均锚 `9945257`，v24 轮 LIVE 实测复证）。
 
 ## 试玩入口与现状
 
-- 入口：`https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw`（**A3 正式试玩采集窗开启中**，记录卡 `qa/playtest-collection-round1.md`；采集字节 = v21 ≡ v20 逐字节，内嵌 sha `4eccaf29` ≡ 补采报告绑定 sha）
-- **W-3 平台 serving 层页面路由串线：已解除**（v13 起平台侧修复生效）——v21 复测 `/gw` title=麦浪小队 HTTP 200，页面路与资产路均为本游戏内容。
-- **v21 线上自测（2026-10-16）**：/health 200 · `main.mjs` md5 `67a60360…` live≡仓内 build 逐字节 · **WS-LIVE-SMOKE PASS**（ready→拖动击杀 2→victory 167s→console 零错误）。证据 `gate-logs/r1re-prog-reverify-20261016/06·07`。
+- 入口：`https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw`（**A3 正式试玩采集窗开启中**，记录卡 `qa/playtest-collection-round1.md`；采集字节 = v24 ≡ v23 ≡ v22 逐字节，内嵌 sha `9945257` ≡ 报告绑定 sha）
+- **W-3 平台 serving 层页面路由串线：已解除**（v13 起平台侧修复生效）——v24 复测 `/gw` title=麦浪小队 HTTP 200，页面路与资产路均为本游戏内容。
+- **v24 线上自测（2026-10-17）**：/health 200 · `/gw` 页面 md5 `724c04b0…` ≡ 仓内 `build/landing.html` 逐字节 · `main.mjs`（资产路 `api/public/assets/main.mjs`，24716B）md5 `53eaebce…` live≡仓内 build 逐字节 · 内嵌 sha `9945257` ≡ 报告绑定 sha 逐字符 · **WS-LIVE-SMOKE PASS**（ready→拖动击杀 2→victory 167s→console 零错误）。证据 `gate-logs/deploy-v24-20261017/00..06`。
 
 ## 埋点本地日志开关说明（v1.3 · 9 事件）
 

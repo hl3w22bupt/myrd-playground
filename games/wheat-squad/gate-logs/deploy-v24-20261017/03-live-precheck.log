@@ -1,0 +1,9 @@
+# 部署前 LIVE 三点实测（v23 running @ gitRef myrd/pixel-fives-m0-m1-…）· UTC 2026-10-17T03:15:51Z
+--- /health ---
+health HTTP=200
+root HTTP=200
+# 部署前 LIVE 三点实测 · UTC 2026-10-17T03:17:27Z
+页面 /gw HTTP=200 md5=724c04b0f43227420c1283817977a22a（≡仓内 build/landing.html 逐字节）
+main.mjs（页面基准路径 api/public/assets/main.mjs）HTTP=200 size=24716 md5=53eaebce53e49be5170b82989b018f80
+EMB=__G2WS_BUILD = {"gitSha":"994525799e0842f518166846824753a8ad7fcbc7","specAnchor":"cmv8xcexk0009m9dj6ev1dj0r@v6:approved"}
+≡ 仓内 build/main.mjs md5 53eaebce 逐字节 ✓ · ≡ 报告绑定 sha 9945257 ✓（锚链未断）

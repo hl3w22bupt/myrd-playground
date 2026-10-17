@@ -1,0 +1,5 @@
+# POST deployment · UTC 2026-10-17T03:18:11Z
+# body: {mode:bundle,deployedBy:workflow,gitRef:game/wheat-squad,manifestPath:games/wheat-squad/apphost.toml,sourceId:wheat-squad}
+
+HTTP_CODE=504
+# v24 受理 · UTC 2026-10-17T03:17:47Z · id=cmvbtt76q003qm9axucrlbdoy version=24 status=building gitRef=game/wheat-squad
