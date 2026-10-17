@@ -1,0 +1,510 @@
+{
+  "schemaVersion": "v0",
+  "spec": {
+    "acceptance": [
+      {
+        "check": "node games/line3-tower-defense/tests/contract/checks/a1-td-first-placement-feedback.mjs",
+        "id": "a1-td-first-placement-feedback",
+        "mode": "auto",
+        "statement": "首 30 秒体验目标：5/5 种子（DEFAULT_SEED+i，i=0..4）首 30 秒内完成首次布防且 first_placement_at ≤ firstPlacementBudgetSec(20s)，首次命中反馈延迟 ≤ feedback.latencyMaxMs(100ms)。判定面全部为数值谓词与计数谓词。样本量=5 种子。"
+      },
+      {
+        "check": "node games/line3-tower-defense/tests/contract/checks/a2-td-wave-duration-band.mjs",
+        "id": "a2-td-wave-duration-band",
+        "mode": "auto",
+        "statement": "单局时长带（模拟局口径，禁混真人局）：20 完整模拟局（DEFAULT_SEED+i，i=0..19，start→end 事件链 20/20 完整）P50 ∈ [waveBand.p50MinSec(240), waveBand.p50MaxSec(420)]s 且 P90 ≤ p90MaxSec(600)s，结局 ∈ {victory, defeat}。样本量=20。"
+      },
+      {
+        "check": "真人记录卡核（非自动判据）：games/line3-tower-defense/qa/playtest-collection-round1.md（沿 wheat-squad A3 任务单判例形制，实现轮建卡）",
+        "id": "a3-td-restart-willingness",
+        "mode": "manual",
+        "statement": "自然重开意愿（好玩判据主条·真人局口径）：5 名真人（样本量=5，主人圈定）中 ≥4 人自然重开 ≥2 局且重开理由原话非空（防主持人污染+原话留档）。样本不足=未判定·待采，不烧冻结余量。未判定负责人：主人（圈定 5 名真人）+ 游戏 QA（记录卡回收核真）；采样计划：采集窗前置=实现轮可玩面部署 LIVE（绑当轮报告 sha），复用 wheat-squad qa/playtest-collection-round1.md 形制建卡，与线 2 W-6 同批可合并采集。"
+      },
+      {
+        "check": "node games/line3-tower-defense/tests/contract/checks/a4-td-feedback-channels.mjs",
+        "id": "a4-td-feedback-channels",
+        "mode": "auto",
+        "statement": "反馈延迟与通道：每操作到反馈呈现 ≤ feedback.latencyMaxMs(100ms)；每操作反馈通道 ≥ feedback.channelsPerActionMin(2)（候选=flash/particles/hud-jump/projectile-trace ≥4 备选）；帧耗时 P95 ≤ feedback.frameP95Ms(16ms)，帧采样 n ≥ feedback.frameSampleN(3000)。样本量=逐操作全采样+帧 n≥3000。"
+      },
+      {
+        "check": "node games/line3-tower-defense/tests/contract/checks/det-1-td-seeded-determinism.mjs",
+        "id": "det-1-td-seeded-determinism",
+        "mode": "auto",
+        "statement": "同 seed 战局逐字节一致：DEFAULT_SEED 双局全 tick 状态 hash 逐字节相等，且波次编成序列/敌路径推进序列/索敌开火序列/掉落序列四表逐值一致。样本量=2 局全 tick 对拍。零 Math.random/Date.now（源扫描为证）。"
+      },
+      {
+        "check": "node games/line3-tower-defense/tests/contract/checks/tex-1-td-no-external-texture.mjs",
+        "id": "tex-1-td-no-external-texture",
+        "mode": "auto",
+        "statement": "零外部贴图：源文件零位图构造调用（Image/bitmap 源扫描=0 命中），可见资产全部程序化生成并入 manifest 逐件带 hash。样本量=全仓源扫描。"
+      },
+      {
+        "check": "node games/line3-tower-defense/tests/contract/checks/perf-1-td-entity-cap.mjs",
+        "id": "perf-1-td-entity-cap",
+        "mode": "auto",
+        "statement": "实体与步进预算：同屏实体峰值 ≤ perf.entityCap(220)；单步耗时 ≤ perf.stepBudgetMs(16ms)；中端档节流仿真单步 ≤ perf.midTierStepMs(33ms) 且不崩；首交互 ≤ perf.firstInteractionMs(3000ms)。样本量=全 waveTable 8 波全量步进采样。"
+      },
+      {
+        "check": "node games/line3-tower-defense/tests/contract/checks/a5-td-onboarding-four-events.mjs",
+        "id": "a5-td-onboarding-four-events",
+        "mode": "auto",
+        "statement": "首屏引导四事件骨架：hint_shown@0ms → first_tap（once）→ first_loop_complete=首波结束 tick×FIXED_STEP_MS → restart_clicked count 1→2（结算页真实点击）；首操作须落 hint 后 ≤5000ms 窗（path-guidance-dismiss-01）；首屏文案三方逐字同名：spec.world.firstScreenCopy ≡ 渲染层 GUIDANCE 常量 ≡ hint_shown.text（copy-hint-place 逐字）。样本量=1 headless 全链路局。"
+      },
+      {
+        "check": "node games/line3-tower-defense/tests/contract/checks/a6-td-operation-paths.mjs",
+        "id": "a6-td-operation-paths",
+        "mode": "auto",
+        "statement": "操作路径 5 条全部 headless 可达且各带视觉锚断言：path-place-turret-01 / path-upgrade-turret-01 / path-speed-toggle-01 / path-restart-01 / path-guidance-dismiss-01（步骤与锚以 world.operationPaths 为准）。样本量=5/5 条全过。"
+      },
+      {
+        "check": "node games/line3-tower-defense/tests/contract/checks/ac-art-1-td-palette-whitelist.mjs",
+        "id": "ac-art-1-td-palette-whitelist",
+        "mode": "auto",
+        "statement": "色值白名单：src+tools 全仓 hex 字面量扫描，仅 numeric.palette.whitelist 8 色（+#include 派生规则声明面）零违例。样本量=全仓扫描。"
+      },
+      {
+        "check": "node games/line3-tower-defense/tests/contract/checks/ac-art-2-td-asset-manifest-cap.mjs",
+        "id": "ac-art-2-td-asset-manifest-cap",
+        "mode": "auto",
+        "statement": "资产清单封顶：首批可见资产 ≤13 件，manifest 逐件带生成器行号+hash 且重生成 hash 不变（确定性）。样本量=manifest 全件数核。"
+      },
+      {
+        "check": "node games/line3-tower-defense/tests/contract/checks/ac-art-3-td-stylecard-tokensource.mjs",
+        "id": "ac-art-3-td-stylecard-tokensource",
+        "mode": "auto",
+        "statement": "风格卡 token 单源：渲染层只读 theme.ts token（src+tools 裸 hex 扫描=0 命中，白名单声明面除外）；theme.ts 四要素与 .myrd/blackboard/line3-tower-defense/assets.md 风格卡 v1 逐值一致。样本量=全仓扫描+逐值对表。"
+      },
+      {
+        "check": "node games/line3-tower-defense/tests/contract/checks/ac-art-4-td-visual-signature.mjs",
+        "id": "ac-art-4-td-visual-signature",
+        "mode": "auto",
+        "statement": "视觉签名全覆盖：assets.md 视觉签名映射表在盘且「需视觉可观察=是」的判据/路径条目（a1/a4/a5 + 5 条 path id）逐条有映射键，机判=键集合全等。样本量=映射表全键核。"
+      },
+      {
+        "check": "node games/line3-tower-defense/tests/contract/checks/inv-1-td-entity-file-alignment.mjs",
+        "id": "inv-1-td-entity-file-alignment",
+        "mode": "auto",
+        "statement": "实体-文件对账：spec.entities[].script 落点文件逐条在盘且 docs/inventory.md 登记行一一对应（id/路径/一句职责）。样本量=entities 12 条全量。"
+      },
+      {
+        "check": "node games/line3-tower-defense/tests/contract/checks/fnd-1-td-telemetry-fieldnames.mjs",
+        "id": "fnd-1-td-telemetry-fieldnames",
+        "mode": "auto",
+        "statement": "埋点定名逐字符：meta.telemetryFields 键集合 ≡ 源码事件名常量集合（含四件定名 first_tap/first_loop_complete/restart_clicked/hint_shown 逐字符），双方剥注释后字符串全等。样本量=键集合全量对拍。"
+      }
+    ],
+    "entities": [
+      {
+        "expect": "mulberry32 seededRng + fixed-step 累计推进（承 wheat-squad 判例平移）；零 Math.random/Date.now——确定性战局的根",
+        "id": "e-kernel-loop",
+        "kind": "kernel",
+        "scene": "-",
+        "script": "games/line3-tower-defense/src/kernel/loop.ts"
+      },
+      {
+        "expect": "stepSim 纯函数步进：敌军沿路径推进 × 炮塔索敌开火 × 弹丸命中 × 经济入账 × 漏怪扣核心，全可机判；×1/×2 加速=步频倍率非步长改变",
+        "id": "e-kernel-sim",
+        "kind": "kernel",
+        "scene": "-",
+        "script": "games/line3-tower-defense/src/kernel/sim.ts"
+      },
+      {
+        "expect": "20×12 布防网格：路径格+核心区禁建；格占用状态机（空/已建）同 seed 确定",
+        "id": "e-grid",
+        "kind": "world",
+        "scene": "src/scene/battlefield.ts",
+        "script": "games/line3-tower-defense/src/world/grid.ts"
+      },
+      {
+        "expect": "核心据点 2×2 格·生命 10（numeric.coreLives）；受击闪 core-coral；生命归零=defeat 结算",
+        "id": "e-core",
+        "kind": "world",
+        "scene": "src/scene/battlefield.ts",
+        "script": "games/line3-tower-defense/src/world/core.ts"
+      },
+      {
+        "expect": "炮塔：格位+射程圈+等级 1..3（同位升级强化）；索敌=路径推进序首个进射程者（同 seed 序列确定）",
+        "id": "e-turret",
+        "kind": "player-side",
+        "scene": "src/scene/battlefield.ts",
+        "script": "games/line3-tower-defense/src/entities/turret.ts"
+      },
+      {
+        "expect": "敌军三型（小兵16/快速14/重甲20 逻辑px）：血量带+波次编成表驱动；到路径终点=漏怪（核心-1）",
+        "id": "e-enemy",
+        "kind": "hostile",
+        "scene": "src/scene/battlefield.ts",
+        "script": "games/line3-tower-defense/src/entities/enemy.ts"
+      },
+      {
+        "expect": "弹丸：发射点→命末点直线 2px，命中判定按 tick 离散结算（零浮点漂移面）",
+        "id": "e-projectile",
+        "kind": "hostile",
+        "scene": "src/scene/battlefield.ts",
+        "script": "games/line3-tower-defense/src/entities/projectile.ts"
+      },
+      {
+        "expect": "波次导演：编成表（numeric.waveTable）驱动出怪节奏+波间结算；首波 ×0.5 宽松（前 10s 敌量减半）；victoryWaves=8 通关即 victory 结算；波次推进节拍面与线 2 waveIndex 形态相近但机制主体不同（防守目标 vs 走位刷怪）",
+        "id": "e-wave-director",
+        "kind": "system",
+        "scene": "-",
+        "script": "games/line3-tower-defense/src/systems/waveDirector.ts"
+      },
+      {
+        "expect": "击杀掉落军费→布防/升级支出闭环；数值=numeric.economy 初始锚定值",
+        "id": "e-economy",
+        "kind": "system",
+        "scene": "-",
+        "script": "games/line3-tower-defense/src/systems/economy.ts"
+      },
+      {
+        "expect": "埋点四件+通用事件发射器：telemetryFields 键名逐字符常量（fnd-1 机判）；默认只缓冲零外发零落盘（wheat-squad 判例）",
+        "id": "e-telemetry",
+        "kind": "system",
+        "scene": "-",
+        "script": "games/line3-tower-defense/src/telemetry/emitter.ts"
+      },
+      {
+        "expect": "Canvas 2D 渲染层：只读 theme.ts token（ac-art-3）；双层平涂+2px 描边+零渐变（风格卡 v1②③）；20×12 逻辑面等比适配",
+        "id": "e-render",
+        "kind": "presentation",
+        "scene": "src/scene/battlefield.ts",
+        "script": "games/line3-tower-defense/src/render/renderer.ts"
+      },
+      {
+        "expect": "触控/指针输入：operationPaths 5 条的交互承接（放置/升级/加速/重开/引导消散）；first_tap/first_placement_at 事件源",
+        "id": "e-input",
+        "kind": "presentation",
+        "scene": "-",
+        "script": "games/line3-tower-defense/src/input/touch.ts"
+      }
+    ],
+    "levels": [
+      {
+        "elements": [
+          {
+            "expect": "首波编成 ×0.5 宽松（前 10 秒敌量减半），路径箭头常显",
+            "id": "level-1/el-warmup",
+            "kind": "wave"
+          },
+          {
+            "expect": "≤20 秒完成首次布防（numeric.firstPlacementBudgetSec=20；a1 判据锚）",
+            "id": "level-1/el-first-placement",
+            "kind": "milestone"
+          },
+          {
+            "expect": "首波结束前达成首次升级（copy-hint-upgrade 二段引导一次）",
+            "id": "level-1/el-first-upgrade",
+            "kind": "milestone"
+          },
+          {
+            "expect": "首波全部敌军结算完成 → first_loop_complete@首波结束 tick×16ms（a5 判据锚）",
+            "id": "level-1/el-first-loop",
+            "kind": "milestone"
+          }
+        ],
+        "goal": "3 波内完成首次布防→首次升级→守住核心的完整心智建立；操作锚（射程圈/路径箭头）可见性优先",
+        "id": "level-1",
+        "name": "首潮（教学波次）"
+      },
+      {
+        "elements": [
+          {
+            "expect": "第 8 波清空即 victory 结算（numeric.victoryWaves=8；结算页三信息：copy-result-win/copy-core-label 生命/copy-gold-label 军费）",
+            "id": "level-2/el-victory-at-8",
+            "kind": "milestone"
+          },
+          {
+            "expect": "敌量与 hp 按 numeric.enemy.hpGrowthPerWave=1.35 逐波爬升",
+            "id": "level-2/el-ramp",
+            "kind": "wave"
+          },
+          {
+            "expect": "漏怪=核心生命-1（numeric.coreLives=10 起），归零即 defeat（copy-result-lose）",
+            "id": "level-2/el-leak-cost",
+            "kind": "rule"
+          }
+        ],
+        "goal": "victoryWaves=8 波通关即胜利结算；敌量/血量 1.35×/波爬升，漏怪即损核心，布防经济规划为主体策略面",
+        "id": "level-2",
+        "name": "涨潮（波次爬升）"
+      }
+    ],
+    "meta": {
+      "approval": {
+        "pending": "B6 主策划按六判据 approve（2026-10-17 双轨轮任务书授权）；approve 后版本锁定、埋点定名一次性收口不再改名",
+        "好玩终裁": "归主人：spec approve 仅代表契约面六判据成立，a3 真人样本与最终好玩判定始终归主人"
+      },
+      "baselineProtocol": "冻结计数器：同一判据连续 3 轮不达触发冻结评估转新题；样本不足型未判定不烧余量；a3 结论面样本量门槛=5 名真人",
+      "checkNaming": "checks/<判据id>.mjs（薄壳单职责，runner=tests/contract/run-all.mjs 逐件对账 spec acceptance id+命令）",
+      "engine": "ts-canvas（TS + Canvas 2D · 零外部贴图 · 零 npm 依赖构建——wheat-squad 产线判例平移）",
+      "genre": "单场景塔防（炮塔防守 · 波次切面 · IAA 主导 · 微肉鸽）",
+      "lineage": "line3-memo-v1 主策划拍板（2026-10-16，任务书授权）× 本轮（2026-10-17 双轨轮）任务书授权 B2 六件套起草 + B6 主策划按六判据 approve；输入 = research/line3-research-brief-20261016.md（D15-D28）+ line3-memo-v0/v1 + 风格卡 v1（2026-10-17 美术锁定）。好玩终裁归主人（ac-a3 真人面），spec approve ≠ 好玩判定",
+      "oneLiner": "预判敌潮路线、布防升级炮塔守住核心的波次塔防：确定性战局同 seed 逐字节可复现，程序化关卡谱系给每日挑战公平竞技。",
+      "platform": {
+        "note": "v1.0 契约面完整定义；web 可玩面 = 实现轮交付，wx/dy 沿两线判例顺延批次",
+        "target": [
+          "web",
+          "wx",
+          "dy"
+        ]
+      },
+      "retestProtocol": "①绑 sha 有效性：判定值只对报告绑定 sha 有效；工作区 HEAD 相对绑定点源面 diff 必须为空（docs/黑板除外，逐 commit 可验）②模拟局与真人局禁混算：a2 用 20 完整模拟局（start→end 事件链计数），a3 只认真人回填记录卡 ③每轮复测报告必须带三方 sha 对账表（工作区 HEAD / 线上部署包内嵌 sha / 报告绑定 sha）+ 采样计划（若三点不全等）",
+      "revision_note": "v1.0（2026-10-17 双轨轮六件套完整版）：承 v0.1 骨架（platform v1 approved）id 连续性——a1/a2/a3/a4/det-1/tex-1/perf-1 不改名，statement 升格为可判定数值+具体样本量；新增 a5 四事件骨架/a6 操作路径/ac-art-1..4 资产纪律/inv-1 实体对账/fnd-1 埋点定名共 8 条（acceptance 7→15）；world 段新增差异点三列+不同品类声明+首屏文案 12 条逐字枚举+操作路径 5 条带 path id；entities 6→12 条补 script/scene 落点；numeric 待校准 PEND 升格为初始锚定值（承 wheat-squad 波次节拍判例与对标结构推算，非实测值，实测后 revision 校准）+ palette 8 色冻结（风格卡 v1）；level-2 涨潮新增。diff 摘要：六段全量升格，零删除既有 id",
+      "slug": "line3-tower-defense",
+      "telemetryFields": {
+        "feedback_latency_ms": "单次操作到反馈呈现的毫秒延迟（内核同 tick 记 0）",
+        "first_loop_complete": "首次核心循环闭环=首波全部敌军结算完成（击杀或漏怪）；字段 atMs:number=首波结束 tick×FIXED_STEP_MS，once",
+        "first_placement_at": "首次布防完成时刻；字段 atMs:number=放置确认 tick×FIXED_STEP_MS，once（a1 判据锚）",
+        "first_tap": "会话首次点按；字段 atMs:number=局内相对毫秒（tick×FIXED_STEP_MS），once",
+        "hint_shown": "首屏引导浮层展示；字段 atMs:number=0（首帧）· text:string=world.firstScreenCopy 中 copy-hint-place 逐字值",
+        "restart_clicked": "结算页「再来一局」点击；字段 count:number=累计点击数（首局结束后第 1 次=1）· atMs:number=点击时刻",
+        "run_end": "战局结束；字段 run_duration_ms:number=tick×FIXED_STEP_MS · reason:victory|defeat",
+        "run_start": "战局开始；字段 seed:number=本局种子"
+      },
+      "title": "单场景塔防（线 3 · 工作名待主人定，slug=line3-tower-defense）",
+      "version": "1.0"
+    },
+    "numeric": {
+      "DEFAULT_SEED": 20261016,
+      "FIXED_STEP_MS": 16,
+      "_calibrationNote": "本段全部为初始锚定值（承 wheat-squad 波次节拍判例结构 + memo v1 对标核心循环推算的设计承诺值，非实测值）；实现轮首批模拟局实测后走 revision 校准，校准前契约测试按本段数值机判",
+      "coreLives": 10,
+      "economy": {
+        "killRewardBase": 8,
+        "killRewardGrowthPerWave": 1.02,
+        "startGold": 120
+      },
+      "enemy": {
+        "bountyBase": 8,
+        "hpBase": 30,
+        "hpGrowthPerWave": 1.35,
+        "spawnIntervalBaseMs": 900,
+        "speedTilesPerSec": 1.2,
+        "types": {
+          "brute": {
+            "hpMul": 3,
+            "sizePx": 20,
+            "speedMul": 0.7
+          },
+          "grunt": {
+            "hpMul": 1,
+            "sizePx": 16,
+            "speedMul": 1
+          },
+          "runner": {
+            "hpMul": 0.6,
+            "sizePx": 14,
+            "speedMul": 1.6
+          }
+        }
+      },
+      "feedback": {
+        "channelsPerActionMin": 2,
+        "frameP95Ms": 16,
+        "frameSampleN": 3000,
+        "hitFlashMs": 90,
+        "latencyMaxMs": 100
+      },
+      "firstPlacementBudgetSec": 20,
+      "palette": {
+        "deriveRule": "仅允许白名单两色按 theme.ts 常量比例混合（炮塔阶= turret-green×text-cream 0/20/40%；敌血带= enemy-berry×bg-deep 0/30%）；新增色相=违例",
+        "status": "v1.0 冻结（风格卡 v1 · 2026-10-17 美术锁定；改动必须走 revision）",
+        "whitelist": {
+          "bg-deep": "#202A38",
+          "core-coral": "#E76F51",
+          "enemy-berry": "#B75D69",
+          "field": "#2F4156",
+          "grid-line": "#47617C",
+          "path-sand": "#E9D8A6",
+          "text-cream": "#F4F1DE",
+          "turret-green": "#81B29A"
+        }
+      },
+      "perf": {
+        "entityCap": 220,
+        "firstInteractionMs": 3000,
+        "midTierStepMs": 33,
+        "stepBudgetMs": 16,
+        "机型档": "中端≤33ms/首交互≤3000ms/老机≤50ms（承 wheat-squad perf-1 判例口径）"
+      },
+      "turret": {
+        "costPlace": 50,
+        "costUpgradeBase": 80,
+        "costUpgradeGrowth": 1.6,
+        "dmgGrowthPerLevel": 1.6,
+        "dmgPerShotBase": 10,
+        "fireIntervalDecayPerLevel": 0.85,
+        "fireIntervalMsBase": 800,
+        "levels": 3,
+        "rangeGrowthPerLevel": 0.5,
+        "rangeTilesBase": 2.5
+      },
+      "victoryWaves": 8,
+      "waveBand": {
+        "p50MaxSec": 420,
+        "p50MinSec": 240,
+        "p90MaxSec": 600,
+        "sampleSeeds": 20,
+        "status": "初始锚定值（结构冻结：P50/P90 带 + 20 种子采样口径 + start→end 事件链计数；实测后 revision 校准）"
+      },
+      "waveTable": {
+        "enemiesGrowthPerWave": 1.35,
+        "enemiesPerWaveBase": 6,
+        "firstWaveLeniency": "前 10 秒敌量 ×0.5（level-1/el-warmup）",
+        "waves": 8
+      }
+    },
+    "world": {
+      "differentiation": {
+        "三列": [
+          {
+            "line": "线1 g2-blocks",
+            "relation": "消除/三连交换大类——本作无交换棋盘、无三连机制，零机制复用",
+            "specText": "在 8×8 的熔炉板上交换相邻方块凑成三连……趁热把连击打满"
+          },
+          {
+            "line": "线2 wheat-squad",
+            "relation": "割草生存+放置——本作玩家行为主体是布防/升级防线（预置策略），非拖动走位（实时操作），无局外放置面，零机制复用",
+            "specText": "单指拖动小队移动、队员自动作战的局内割草生存 + 局外放置收益成长"
+          },
+          {
+            "line": "相近面披露",
+            "relation": "本作同为波次推进——形态相近、机制主体不同（防守目标 vs 走位刷怪），不构成同品类",
+            "specText": "wheat-squad 有 waveIndex 波次节拍面"
+          }
+        ],
+        "品类结论": "单场景塔防与线 1 消除、线 2 割草放置互为不同品类；另 stack-tower（堆叠·冻结线）、game-8/9（牧场收集/连连看）亦零复用（memo v1 §一.④ 全表）",
+        "声明": "本作与既有两线产品零机制复用（不同品类声明），三列对照如下（复述 memo v1 §一.④ 品类查重表，出处=两线 spec oneLiner 原文）"
+      },
+      "firstScreenCopy": [
+        {
+          "id": "copy-title",
+          "landing": "首屏标题（render 层 GUIDANCE.title）",
+          "text": "敌潮将至"
+        },
+        {
+          "id": "copy-subtitle",
+          "landing": "首屏副题（GUIDANCE.subtitle）",
+          "text": "布防 · 升级 · 守住核心"
+        },
+        {
+          "id": "copy-start",
+          "landing": "开始按钮（GUIDANCE.start）",
+          "text": "开始布防"
+        },
+        {
+          "id": "copy-hint-place",
+          "landing": "引导浮层正文（GUIDANCE.hint ≡ hint_shown.text，三方逐字同名锚）",
+          "text": "点击空地，放置第一座炮塔"
+        },
+        {
+          "id": "copy-hint-upgrade",
+          "landing": "二段引导（GUIDANCE.hintUpgrade）",
+          "text": "选中炮塔，升级火力"
+        },
+        {
+          "id": "copy-core-label",
+          "landing": "HUD 核心生命标签",
+          "text": "核心"
+        },
+        {
+          "id": "copy-gold-label",
+          "landing": "HUD 资源标签",
+          "text": "军费"
+        },
+        {
+          "id": "copy-wave-label",
+          "landing": "HUD 波次标签",
+          "text": "波次"
+        },
+        {
+          "id": "copy-speed-label",
+          "landing": "加速按钮 ×1/×2",
+          "text": "加速"
+        },
+        {
+          "id": "copy-result-win",
+          "landing": "胜利结算标题",
+          "text": "守住啦"
+        },
+        {
+          "id": "copy-result-lose",
+          "landing": "败局结算标题",
+          "text": "核心失守"
+        },
+        {
+          "id": "copy-restart",
+          "landing": "结算页重开按钮（restart_clicked 事件锚）",
+          "text": "再来一局"
+        }
+      ],
+      "operationPaths": [
+        {
+          "anchoredAcceptance": "a1/a4",
+          "id": "path-place-turret-01",
+          "steps": [
+            "点选空布防格",
+            "放置菜单确认（军费 ≥ costPlace）",
+            "炮塔落位+射程圈显现"
+          ],
+          "visualAnchor": "落位弹跳 200ms + 射程圈虚线圆"
+        },
+        {
+          "anchoredAcceptance": "a6",
+          "id": "path-upgrade-turret-01",
+          "steps": [
+            "点选已建炮塔",
+            "升级按钮（军费 ≥ 升级价）",
+            "等级+1 属性刷新"
+          ],
+          "visualAnchor": "等级星标+1 + 射程圈扩大 200ms"
+        },
+        {
+          "anchoredAcceptance": "a6",
+          "id": "path-speed-toggle-01",
+          "steps": [
+            "点按加速按钮",
+            "仿真步频 ×1↔×2 切换"
+          ],
+          "visualAnchor": "按钮态色块 grid-line↔turret-green"
+        },
+        {
+          "anchoredAcceptance": "a5/a6",
+          "id": "path-restart-01",
+          "steps": [
+            "战局结束进结算页",
+            "点按「再来一局」",
+            "全复位重开（restart_clicked count+1）"
+          ],
+          "visualAnchor": "结算面板淡出 200ms + 复位帧"
+        },
+        {
+          "anchoredAcceptance": "a5",
+          "id": "path-guidance-dismiss-01",
+          "steps": [
+            "hint 浮层展示（hint_shown@0ms）",
+            "5s 窗内首次有效操作",
+            "浮层淡出不再复现"
+          ],
+          "visualAnchor": "浮层淡出 200ms"
+        }
+      ],
+      "references": "主对标《赵云与阿斗》（D25 钛媒体 2026-06-25：IAA 塔防+文字拼图+肉鸽融合，核心循环=波次开始→敌军沿路线推进→布防/升级拦截→击杀得资源→强化防线→撑过波次→难度爬升→败局结算+激励视频位）；副对标《保卫向日葵》（仅对标长线验证面，不引入合体机制——合成品类纪律）",
+      "sceneSpec": "单场景固定路线：20×12 格战场（640×384 逻辑面）· 1 条敌军路径（path-sand 常显虚线箭头）· 网格化布防位（禁建区=路径格+核心 2×2）· 核心据点 2×2 格·生命 10；波次切面起步，不做大地图关卡树",
+      "styleDerivation": "派生规则：world 主题词（极简/高对比/轻拟物）→ 风格卡 v1 四要素（调色板/光照/线条/比例）→ theme.ts token 单源 → 渲染层只读 token；色值改动必须走 spec revision（numeric.palette 块），禁止两头各改各的",
+      "styleRef": ".myrd/blackboard/line3-tower-defense/assets.md（风格卡 v1 · 2026-10-17 美术锁定 · 含视觉签名映射）",
+      "theme": "极简高对比色块战场（对标《赵云与阿斗》视觉基调）× 治愈系微调（暖沙路径+治愈绿炮塔；正式视觉待主人过目）"
+    }
+  },
+  "_platform": {
+    "id": "cmvbqgzbl0029m9ax64foxd37",
+    "version": 2,
+    "status": "approved",
+    "parentSpecId": "cmvabm4kh001jm92c4qtjy9a7",
+    "projectId": "cmto0g28j0002m9sqnvjdy8o7",
+    "title": "游戏策划案",
+    "createdAt": "2026-10-17T01:44:12.753Z",
+    "updatedAt": "2026-10-17T01:44:41.379Z"
+  }
+}
