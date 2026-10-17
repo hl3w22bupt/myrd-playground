@@ -1,0 +1,14 @@
+# A1 三方 sha 原文采集 · UTC 2026-10-17T01:25:47Z
+## ① 工作区 HEAD 原文
+98d1fbe3e72fb5acb4d916f676d8beae1e20bb10
+98d1fbe 2026-10-16 11:10:57 +0800 myrd: workflow auto-commit [skip ci]
+## ② 10/16 报告绑定 sha 原文（games/wheat-squad/docs/r1re-recheck-report-20261016.md）
+3:> 署名：游戏程序（主策划工作室代行节点）· **绑定 sha：`4eccaf293b11052041860ff7b0ee3141975258fd`**（补采时工作区 HEAD，干净源面）
+50:## 七、新锚三点对账表（绑定 sha `4eccaf29`）
+54:| 报告绑定 sha | `4eccaf29…`（补采时工作区 HEAD，源面干净） | 基准 |
+## ③ 线上部署包构建清单 sha 原文（LIVE 实取 · UTC 2026-10-17T01:26:04Z）
+URL=https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/api/public/assets/main.mjs
+LIVE_md5=67a60360d82410d504cd96077ca31cb7
+bytes=   24716
+__G2WS_BUILD 原文：
+__G2WS_BUILD = {"gitSha":"4eccaf293b11052041860ff7b0ee3141975258fd","specAnchor":"cmv8xcexk0009m9dj6ev1dj0r@v6:approved"};
