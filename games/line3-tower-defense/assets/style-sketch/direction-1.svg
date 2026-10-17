@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="424" viewBox="0 0 640 424">
+<rect width="640" height="424" fill="#202A38"/>
+<rect y="0" width="640" height="384" fill="#2F4156"/>
+<line x1="0" y1="0" x2="0" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="32" y1="0" x2="32" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="64" y1="0" x2="64" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="96" y1="0" x2="96" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="128" y1="0" x2="128" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="160" y1="0" x2="160" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="192" y1="0" x2="192" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="224" y1="0" x2="224" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="256" y1="0" x2="256" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="288" y1="0" x2="288" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="320" y1="0" x2="320" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="352" y1="0" x2="352" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="384" y1="0" x2="384" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="416" y1="0" x2="416" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="448" y1="0" x2="448" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="480" y1="0" x2="480" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="512" y1="0" x2="512" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="544" y1="0" x2="544" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="576" y1="0" x2="576" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="608" y1="0" x2="608" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="640" y1="0" x2="640" y2="384" stroke="#47617C" stroke-width="1"/>
+<line x1="0" y1="0" x2="640" y2="0" stroke="#47617C" stroke-width="1"/>
+<line x1="0" y1="32" x2="640" y2="32" stroke="#47617C" stroke-width="1"/>
+<line x1="0" y1="64" x2="640" y2="64" stroke="#47617C" stroke-width="1"/>
+<line x1="0" y1="96" x2="640" y2="96" stroke="#47617C" stroke-width="1"/>
+<line x1="0" y1="128" x2="640" y2="128" stroke="#47617C" stroke-width="1"/>
+<line x1="0" y1="160" x2="640" y2="160" stroke="#47617C" stroke-width="1"/>
+<line x1="0" y1="192" x2="640" y2="192" stroke="#47617C" stroke-width="1"/>
+<line x1="0" y1="224" x2="640" y2="224" stroke="#47617C" stroke-width="1"/>
+<line x1="0" y1="256" x2="640" y2="256" stroke="#47617C" stroke-width="1"/>
+<line x1="0" y1="288" x2="640" y2="288" stroke="#47617C" stroke-width="1"/>
+<line x1="0" y1="320" x2="640" y2="320" stroke="#47617C" stroke-width="1"/>
+<line x1="0" y1="352" x2="640" y2="352" stroke="#47617C" stroke-width="1"/>
+<line x1="0" y1="384" x2="640" y2="384" stroke="#47617C" stroke-width="1"/>
+<rect y="192" width="640" height="32" fill="#E9D8A6"/>
+<line x1="0" y1="208" x2="640" y2="208" stroke="#202A38" stroke-width="4" stroke-dasharray="10 8" opacity="0.6"/>
+<rect x="119" y="200" width="16" height="16" rx="3" fill="#B75D69" stroke="#202A38" stroke-width="2"/>
+<rect x="314" y="201" width="14" height="14" rx="3" fill="#B75D69" stroke="#202A38" stroke-width="2"/>
+<rect x="471" y="198" width="20" height="20" rx="3" fill="#B75D69" stroke="#202A38" stroke-width="2"/>
+<circle cx="128" cy="144" r="56" fill="none" stroke="#F4F1DE" stroke-width="2" stroke-dasharray="6 6" opacity="0.5"/>
+<rect x="116" y="132" width="24" height="24" rx="4" fill="#81B29A" stroke="#202A38" stroke-width="2"/>
+<circle cx="128" cy="144" r="4" fill="#F4F1DE"/>
+<circle cx="304" cy="144" r="56" fill="none" stroke="#F4F1DE" stroke-width="2" stroke-dasharray="6 6" opacity="0.5"/>
+<rect x="291" y="131" width="26" height="26" rx="4" fill="#98BFA8" stroke="#202A38" stroke-width="2"/>
+<circle cx="304" cy="144" r="4" fill="#F4F1DE"/>
+<circle cx="480" cy="144" r="56" fill="none" stroke="#F4F1DE" stroke-width="2" stroke-dasharray="6 6" opacity="0.5"/>
+<rect x="466" y="130" width="28" height="28" rx="4" fill="#AFCBB5" stroke="#202A38" stroke-width="2"/>
+<circle cx="480" cy="144" r="4" fill="#F4F1DE"/>
+<rect x="544" y="160" width="64" height="64" rx="4" fill="#E76F51" stroke="#202A38" stroke-width="2"/>
+<rect y="384" width="640" height="40" fill="#202A38"/>
+<text x="16" y="410" font-family="sans-serif" font-size="16" fill="#F4F1DE">核心 10 · 军费 120 · 波次 1/8</text>
+<text x="624" y="410" text-anchor="end" font-family="sans-serif" font-size="16" fill="#F4F1DE">方向1 · 治愈绿阶（基线）</text>
+</svg>

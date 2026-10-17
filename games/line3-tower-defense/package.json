@@ -1,0 +1,10 @@
+{
+  "name": "line3-tower-defense",
+  "private": true,
+  "version": "0.1.0",
+  "description": "单场景塔防（线3）— 零 npm 依赖（node 原生 TS strip，wheat-squad 产线判例平移）· spec approve 前只建结构与占位不写玩法",
+  "scripts": {
+    "build": "echo NOT-IMPLEMENTED（spec v1.0 approved 后实现轮交付） && exit 1",
+    "contract": "node tests/contract/run-all.mjs"
+  }
+}
