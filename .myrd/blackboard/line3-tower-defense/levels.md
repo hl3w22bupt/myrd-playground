@@ -11,7 +11,7 @@
 | N2 预核（四看标准） | 游戏 QA | ✅ **放行 N4** | 四看全 PASS（显式非假绿/pending-fail 分账 14+1/编号全等 14/命令可核销 14）+ 1 口径登记项（inventory 归一化）→ `gate-logs/n4-impl-20261018/01-qa-n2-precheck.md`（QA-L3-N2-PRECHECK-20261018-01） |
 | N3 素材（三合一包→风格卡→映射表） | 游戏策划→美术 | ✅ 完成 | tri-pack-v1 ✓ + 风格卡 v1 ✓ + entities id→文件名映射表 12 行（assets.md）+ 首批资产 6/13 件落账（逐件 sha256，ac-art-2 机判输入） |
 | N4 闭环（核心循环+14 check 转真） | 游戏程序 | ✅ **完成（绑锚 `a27ca0e`）** | 核心循环全通（输入→反馈→结算→再来一局）· auto **14/14 PASS + 0 FAIL**（a3 PEND 单列）· 统一门禁 63/0 · L3-SMOKE PASS（锚内嵌 gitSha≡绑定锚）· verify ×2 同锚非 flaky · 判据映射表+实现决策披露 D1-D5 落本文件 · 证据 `gate-logs/n4-impl-20261018/02·03·04` |
-| N5 互查+部署 | 游戏 QA → AppHost | ⏳ 待 N4 | 三件套核签 JSON + 部署 LIVE + LIVE smoke |
+| N5 互查+部署 | 游戏 QA → AppHost | ✅ **完成（部署 v1 running）** | 三件套核签 JSON `qa-n5-signoff-20261018.json`（QA-L3-N5-SIGNOFF-20261018-01 · 确定性抽样 2 条独立复现 + 源面零漂移）· 部署 v1 running @ `b81d17b`（app `cmvd6lt7f002km9wl2kbex7w4`/line3-tower-defense-2 · 504 判例 GET 复查受理不盲重发）· **L3-LIVE-SMOKE PASS**（线上真实浏览器全链路 + LIVE 锚≡绑定锚 + spec.json 零漂移）· 证据 `gate-logs/n4-impl-20261018/05..08` · ⚠️ 坑位路由 `/gw` 串 game-9（W-3 指纹重现）→ **B-5 升级**；**主人试玩入口（资产面，可玩）= https://leomac-studio.tail49399e.ts.net/apps/line3-tower-defense-2/api/public/assets/index.html** |
 
 ## 判据 → 测试文件 → 结果（N4 交付面 · 绑定锚 HEAD `a27ca0e86b618e2bf0ca2f8621efbb1e8c78955e`）
 

@@ -1,0 +1,9 @@
+# N5 QA 互查 · 抽中项独立重跑核销（修正重跑）· UTC 2026-10-18T02:02:51Z · 当前 HEAD b81d17b354e96e3daeff86812a5e7a905e85a94e
+== 重跑 a1-td-first-placement-feedback ==
+PASS a1-td-first-placement-feedback 5/5 种子 [{"seed":20261016,"firstPlacementMs":0,"feedbackLatencyMs":0,"firstInteractionWallMs":0,"withinBudgetSec":true,"within30s":true,"latencyOk":true},{"seed":20261017,"firstPlacementMs":0,"feedbackLatencyMs":0,"firstInteractionWallMs":0,"withinBudgetSec":true,"within30s":true,"latencyOk":true},{"seed":20261018,"firstPlacementMs":0,"feedbackLatencyMs":0,"firstInteractionWallMs":0,"withinBudgetSec":true,"within30s":true,"latencyOk":true},{"seed":20261019,"firstPlacementMs":0,"feedbackLatencyMs":0,"firstInteractionWallMs":0,"withinBudgetSec":true,"within30s":true,"latencyOk":true},{"seed":20261020,"firstPlacementMs":0,"feedbackLatencyMs":0,"firstInteractionWallMs":0,"withinBudgetSec":true,"within30s":true,"latencyOk":true}]
+exit=0
+== 重跑 ac-art-2-td-asset-manifest-cap ==
+PASS ac-art-2-td-asset-manifest-cap 6/13 件逐件带 生成器行号+sha256 · 重生成逐字节一致
+exit=0
+== 源面零漂移核对：a27ca0e..HEAD 源目录 diff ==
+(空=源面零漂移 ✓；build/ 为部署产物面另提交 b81d17b，gitSha 内嵌≡绑定锚 a27ca0e)

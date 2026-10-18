@@ -1,0 +1,9 @@
+# N5 部署 · UTC 2026-10-18T02:03:16Z · 执行节点: 游戏程序（部署）· 部署提交 b81d17b（ls-remote 全等后单次 POST）
+POST /api/v1/apphost/apps/cmvd6h6c3002im9wlmv6034lc/deployments
+body: {mode:bundle,deployedBy:workflow,gitRef:myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d,manifestPath:games/line3-tower-defense/apphost.toml,sourceId:line3-tower-defense}
+{"error":{"code":"DEPLOY_REJECTED","message":"应用未关联 Git 仓库（project.githubUrl 为空），无法构建","requestId":"req_1792288996175"},"success":false}
+HTTP=400
+## 重试（app 带 projectId 重建 cmvd6lt7f002km9wl2kbex7w4 / slug line3-tower-defense-2）· UTC 02:03:44Z
+POST /api/v1/apphost/apps/cmvd6lt7f002km9wl2kbex7w4/deployments body 同前（sourceId:line3-tower-defense）
+
+HTTP=504
