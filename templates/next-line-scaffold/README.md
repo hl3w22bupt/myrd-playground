@@ -17,3 +17,8 @@
 2. spec acceptance `check` 唯一落点指向可跑测试；spec 有而件缺 = 红（零断言不装绿）
 3. 「好不好玩」终裁归主人；机器面只出「机制就绪、感知待真人判定」级结论
 4. 数值一律 spec 单源（生成器产数据文件，零手抄第二份）
+5. **部署壳契约（W-3/B-5 判例收口，2026-10-18 立）**：纯 Web 游戏 `build/` 必须产
+   `landing.html`（引用走 `api/public/assets/*`），否则共享壳 GET / 回落 game-9 内置页
+   ——主入口 /gw 串壳且资产面冒烟照样全绿。门禁 `ci/guard-landing-shell.mjs`（判例
+   `games/line3-tower-defense/ci/`）+ N5 验收必须断言「GET <liveUrl>/gw 含本游戏标题」。
+   契约全文：`docs/deploy-shell-contract.md`
