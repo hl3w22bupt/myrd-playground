@@ -94,6 +94,19 @@
 - 轨道 B 美术侧：线 2 归类「继续打磨 R3」已按零接触纪律落账（`g2-blocks/trackb-sha-answer-20261018.md` 随件动作），无新增素材动作、缺口清单维持。
 - 风格卡 v1 不动（冻结面，主人无新方向）；首批资产维持 6/13 不扩表（宁缺毋滥）；W-L3-2 主人拍板三方向仍为下一步唯一美术侧闸门。
 
+## 复证轮 3 登记（2026-10-18 · 美术 · ed25607 后重证 + game-art 首次 desk-check）
+
+> 现场增量：他线 `ed25607`（trackA/B 驳回修复，触及 verify/锚面）→ 按「他线触及测试/契约层必须当前树重证」纪律执行；本轮认领缺陷2/缺陷3 新规：美术复证轮只取证不重绑构建锚，门禁日志一律逐步原文落盘。
+
+| 项 | 结果 | 证据（逐步原文落点） |
+|---|---|---|
+| game-art 6 件 desk-check（首次） | **DESKCHECK PASS · 0 违例**：hex 全集 ⊆ 白名单 8 色 + deriveRule 独立重算派生 3 色（#98BFA8/#AFCBB5/#8A4E5A 逐字符全等）；零渐变/滤镜/模糊；描边面 stroke-width=2；几何锚命中（炮塔 24/26/28、敌三型 16/14/20） | `gate-logs/art-deskcheck-gameart-20261018/01-deskcheck.log` |
+| desk-check 目检补判 | ①battlefield `stroke-width=8` = path-sand 敌军路径色带（非描边线，符合「路径=暖沙色带」语义）；②battlefield 320×192 / settlement 160×96 为缩样对照稿（运行时 1:1 面由 renderer 直绘承担，ac-art-3 单源）——两者均不构成违例 | 同上日志 + 本条判读 |
+| 全量门禁 verify.sh @ HEAD `ed25607` | **VERIFY: PASS（VERIFY_EXIT=0）**：统一契约 PASS · RUN-ALL 14/14 + a3 真人面单列 PEND · L3-SMOKE 全链路零 console 错（锚 gitSha=ed25607… 与绑定锚全等）· SCOPE 25 文件零违例；美术六机判 ac-art-1/2/3/4 + tex-1 + inv-1 全绿重证 | `gate-logs/art-round3-recheck-20261018/01-verify.log` |
+| 构建锚面纪律 | verify 重建差异**仅锚位 2 处**（业务产物零差异）→ 已 restore 回部署锚面 `a27ca0e`（0 残留），不重绑、不产生提交面/部署面漂移 | `gate-logs/art-round3-recheck-20261018/02-build-anchor-diff.log` |
+
+- 素材/风格卡/生成器仍零触碰（无新做项）；本轮增量 = desk-check 首证 + 他线改动后重证 + 证据纪律归队。
+
 ## 资产清单（首批实现资产 · 2026-10-18 N3/N4 落账 · 6/13 件）
 
 > 生成器 `games/line3-tower-defense/tools/art-manifest.mjs`（token 单源派生 · 零位图 · 确定性=重生成逐字节一致）· manifest=`games/line3-tower-defense/assets/game-art/manifest.json`（逐件 生成器行号+sha256 · ac-art-2/tex-1 机判输入）
