@@ -77,8 +77,37 @@
 - **候选纪律**：方向 2/3 的炮塔混合比（0.1/0.3/0.5、0/0.15/0.35）≠ spec `numeric.palette.deriveRule` 冻结值（0/20/40%）。主人（W-L3-2）若采纳方向 2/3，**必须先走 spec revision 改 deriveRule**，实现层严禁直接采用（ac-art-1 派生规则声明面）。
 - **复证轮修复登记**（2026-10-17，证据 `gate-logs/art-sketch-fix-20261017/`）：①Lv3 炮塔出画（cx=688>640）→ 布点 128+176i 画内化；②mix() 小写 hex → 大写规范化（Lv1 基色与白名单逐字符全等）；③token 单源自校验 fail-closed 化。跨线认领：生成器名义共管归程序，美术以视觉合规面直接修、palette 零触碰，**待程序线复签**。
 
-## 资产清单（首批实现资产 · 状态：0 件落盘，规划 ≤13 件封顶）
+## 资产清单（首批实现资产 · 2026-10-18 N3/N4 落账 · 6/13 件）
 
-| # | 件 | 状态 | 备注 |
+> 生成器 `games/line3-tower-defense/tools/art-manifest.mjs`（token 单源派生 · 零位图 · 确定性=重生成逐字节一致）· manifest=`games/line3-tower-defense/assets/game-art/manifest.json`（逐件 生成器行号+sha256 · ac-art-2/tex-1 机判输入）
+
+| # | 件 | sha256（前8） | 状态 |
 |---|---|---|---|
-| — | — | 0/13 | 实现轮逐件登记（id/hash/生成器行号）。**方向稿 3 张 + manifest 属 B4 设计件，不计入本封顶口径**（spec.ac-art-2 口径=「首批可见资产」=实现轮交付物） |
+| 1 | battlefield-preview.svg | `97ddd5f2` | ✅ 已登记（战场面预览） |
+| 2 | turret-lv-sheet.svg | `2e1c654f` | ✅ 已登记（炮塔三阶） |
+| 3 | enemy-kind-sheet.svg | `53814e11` | ✅ 已登记（敌三型+血带） |
+| 4 | core-hud-sample.svg | `a0d793c4` | ✅ 已登记（核心+HUD 样例） |
+| 5 | guidance-overlay.svg | `321bb5cf` | ✅ 已登记（引导浮层） |
+| 6 | settlement-panel.svg | `9af8876e` | ✅ 已登记（结算面板） |
+
+- **占位件纪律**：实现资产落 `assets/game-art/`（游戏面），B4 方向稿落 `assets/style-sketch/`（设计面）——分目录、不打资产编号，零混装。
+- 代码内可见单元（塔/敌/核心/路径/HUD）由 Canvas 程序化直绘（renderer.ts 只读 theme token）——**零外部贴图**（tex-1 机判：src+tools 23 文件零位图构造）。
+
+## entities id → 文件名映射表（N3 交付 · 策划整包→美术校验→程序落位闭环）
+
+> 对账口径：spec.entities[].script（仓根相对）→ 工程相对（剥 `games/line3-tower-defense/` 前缀）→ inventory 登记行一一对应（inv-1 机判 12/12）
+
+| entities id | kind | 文件（工程相对） | 美术可观察面 |
+|---|---|---|---|
+| e-kernel-loop | kernel | `src/kernel/loop.ts` | —（确定性之根） |
+| e-kernel-sim | kernel | `src/kernel/sim.ts` | —（步进纯函数） |
+| e-grid | world | `src/world/grid.ts` | 网格线（grid-line 1px） |
+| e-core | world | `src/world/core.ts` | 核心 2×2（core-coral，受击闪） |
+| e-turret | player-side | `src/entities/turret.ts` | 塔三阶（turret-green×cream 0/20/40%）+ 星标 |
+| e-enemy | hostile | `src/entities/enemy.ts` | 敌三型 16/14/20px + 血带两态 |
+| e-projectile | hostile | `src/entities/projectile.ts` | 弹道 2px 实线 + 命末淡出 |
+| e-wave-director | system | `src/systems/waveDirector.ts` | HUD 波次 n/8 + 路径箭头常显 |
+| e-economy | system | `src/systems/economy.ts` | HUD 军费跳动（killPulse） |
+| e-telemetry | system | `src/telemetry/emitter.ts` | —（八键缓冲，零外发） |
+| e-render | presentation | `src/render/renderer.ts` | 全部绘制（theme token 单源） |
+| e-input | presentation | `src/input/touch.ts` | 选中圈/放置菜单/加速按钮态 |

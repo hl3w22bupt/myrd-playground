@@ -9,17 +9,44 @@
 |---|---|---|---|
 | N1 骨架（复核+pending 样例） | 游戏程序 | ✅ 完成 | 12/12 entities 落点在盘 + inventory 12 行对上（路径口径差=工程相对 vs 仓根相对，检查器归一化）+ 14 check 文件在盘 + pending 样例 `gate-logs/n4-impl-20261018/00-pending-sample.log`（run-all exit=1 显式非假绿）@ 锚 `0870263b` |
 | N2 预核（四看标准） | 游戏 QA | ✅ **放行 N4** | 四看全 PASS（显式非假绿/pending-fail 分账 14+1/编号全等 14/命令可核销 14）+ 1 口径登记项（inventory 归一化）→ `gate-logs/n4-impl-20261018/01-qa-n2-precheck.md`（QA-L3-N2-PRECHECK-20261018-01） |
-| N3 素材（三合一包→风格卡→映射表） | 游戏策划→美术 | ⏳ 进行中 | tri-pack-v1 ✓ + 风格卡 v1 ✓ + **entities id→文件名映射表（本轮补齐）** |
-| N4 闭环（核心循环+14 check 转真） | 游戏程序 | ⏳ 待 N2/N3 | 判据→测试文件→结果映射表 + 绑 HEAD 原始输出 → `gate-logs/n4-impl-20261018/` |
+| N3 素材（三合一包→风格卡→映射表） | 游戏策划→美术 | ✅ 完成 | tri-pack-v1 ✓ + 风格卡 v1 ✓ + entities id→文件名映射表 12 行（assets.md）+ 首批资产 6/13 件落账（逐件 sha256，ac-art-2 机判输入） |
+| N4 闭环（核心循环+14 check 转真） | 游戏程序 | ✅ **完成（绑锚 `a27ca0e`）** | 核心循环全通（输入→反馈→结算→再来一局）· auto **14/14 PASS + 0 FAIL**（a3 PEND 单列）· 统一门禁 63/0 · L3-SMOKE PASS（锚内嵌 gitSha≡绑定锚）· verify ×2 同锚非 flaky · 判据映射表+实现决策披露 D1-D5 落本文件 · 证据 `gate-logs/n4-impl-20261018/02·03·04` |
 | N5 互查+部署 | 游戏 QA → AppHost | ⏳ 待 N4 | 三件套核签 JSON + 部署 LIVE + LIVE smoke |
 
-## 判据 → 测试文件 → 结果（N4 交付面 · 逐行填写，QA 互查输入）
+## 判据 → 测试文件 → 结果（N4 交付面 · 绑定锚 HEAD `a27ca0e86b618e2bf0ca2f8621efbb1e8c78955e`）
 
 > 口径：0 红 ≠ 绿（pending 单列）；全绿仅对「绑定 sha」有效；a3 真人面机器不代采。
+> 证据：`gate-logs/n4-impl-20261018/02-verify-run1.log` + `03-verify-run2.log`（同锚连跑 ×2 VERIFY_EXIT=0）+ `04-regression-and-build-determinism.log`
 
-| 判据 id | 测试文件 | 结果 | 备注 |
+| 判据 id | 测试文件 | 结果 | 备注（判定值摘录） |
 |---|---|---|---|
-| （N4 填写） | | | |
+| a1-td-first-placement-feedback | `tests/contract/checks/a1-td-first-placement-feedback.mjs` | ✅ PASS | 5/5 种子 first_placement_at=0ms ≤20s 预算 ≤30s · 延迟 0ms ≤100 · 首交互 0ms |
+| a2-td-wave-duration-band | `tests/contract/checks/a2-td-wave-duration-band.mjs` | ✅ PASS | 20 局 P50=282.128s ∈[240,420] · P90=335.312s ≤600 · 链 20/20 · 结局={defeat:20} |
+| a3-td-restart-willingness | `qa/playtest-collection-round1.md`（manual） | ⏳ PEND 未判定·待采 | 0/5 真人 · 机器不代采 · 采集窗=N5 部署 LIVE 后（升级主人 W-L3-3） |
+| a4-td-feedback-channels | `tests/contract/checks/a4-td-feedback-channels.mjs` | ✅ PASS | 放置3通道/升级2通道/命中4通道(flash,particles,trace,hud) ≥2 · 延迟4样本≤100ms · 帧P95=0.033ms n=3000 |
+| a5-td-onboarding-four-events | `tests/contract/checks/a5-td-onboarding-four-events.mjs` | ✅ PASS | hint@0ms→first_tap@4800ms(≤5000窗,once)→first_loop_complete@44352ms→restart 1→2 · 文案三方逐字 12/12 |
+| a6-td-operation-paths | `tests/contract/checks/a6-td-operation-paths.mjs` | ✅ PASS | 5/5 条可达，各带视觉锚断言 + 绘桩 smoke 5 帧零异常 |
+| det-1-td-seeded-determinism | `tests/contract/checks/det-1-td-seeded-determinism.mjs` | ✅ PASS | 双局全 tick=13511 哈希逐字节等 · 四表逐值等 · src 19 文件零 Math.random/Date.now |
+| tex-1-td-no-external-texture | `tests/contract/checks/tex-1-td-no-external-texture.mjs` | ✅ PASS | src+tools 23 文件零位图构造 · manifest 6 件全带 hash |
+| perf-1-td-entity-cap | `tests/contract/checks/perf-1-td-entity-cap.mjs` | ✅ PASS | 峰值 35 ≤220 · 单步 P95=0.003ms ≤16 · 中端档 13511/13511 ≤33ms · 首交互 0.2ms ≤3000 |
+| ac-art-1-td-palette-whitelist | `tests/contract/checks/ac-art-1-td-palette-whitelist.mjs` | ✅ PASS | src+tools 22 文件 hex 扫描零违例（8 色白名单+派生声明面） |
+| ac-art-2-td-asset-manifest-cap | `tests/contract/checks/ac-art-2-td-asset-manifest-cap.mjs` | ✅ PASS | 6/13 件逐件 生成器行号+sha256 · 重生成逐字节一致 |
+| ac-art-3-td-stylecard-tokensource | `tests/contract/checks/ac-art-3-td-stylecard-tokensource.mjs` | ✅ PASS | 裸 hex 仅 config.ts 声明面（spec→config→theme 单源链）· PALETTE≡spec≡风格卡 8 行逐值 |
+| ac-art-4-td-visual-signature | `tests/contract/checks/ac-art-4-td-visual-signature.mjs` | ✅ PASS | 映射键集合全等 8/8（a1/a4/a5 + 5 path id） |
+| inv-1-td-entity-file-alignment | `tests/contract/checks/inv-1-td-entity-file-alignment.mjs` | ✅ PASS | entities 12/12 落点在盘 ∧ inventory 一一对应（归一化口径） |
+| fnd-1-td-telemetry-fieldnames | `tests/contract/checks/fnd-1-td-telemetry-fieldnames.mjs` | ✅ PASS | 键集合全等 8/8 · 四件定名逐字符在位 |
+
+**汇总：auto 14/14 PASS · 0 FAIL · manual 1 PEND（非全绿声明：a3 未判定）。统一门禁（routines 同入口）63 PASS / 0 FAIL；L3-SMOKE PASS（构建锚内嵌 gitSha=`a27ca0e` ≡ 绑定锚，specAnchor=`cmvbqgzbl0029m9ax64foxd37@v2:approved`）。**
+
+### 实现决策披露（不与 spec 冲突 · 校准候选）
+
+| # | 决策 | 依据/影响 |
+|---|---|---|
+| D1 | 首波编成全 grunt（教学波）；mix 比例 grunt60/runner25/brute15 由 seededRng 驱动 | waveTable 未规定 kind 构成；a2 判定值 P50=282s 在带内 |
+| D2 | 实现层节奏常量：wavePrepMs=8000 / waveIntermissionMs=5000 / 弹速 320px/s | 非 spec.numeric 冻结面；影响时长带落点，若校准与 numeric 同轮 revision |
+| D3 | **a2 结局=defeat 20/20（victoryWaves=8 敌量×血量双 1.35 爬升 → 波次总血量 1.82^n 复合增长）** | spec 允许 {victory,defeat} 判据过；「通关不可达」为数值校准候选（W-L3-4 升级主人，实测后走 revision，不静默改尺子） |
+| D4 | harness 自动布防策略（末段走廊 8 塔→全员 L2→逐塔 L3）为契约驱动面，非产品逻辑 | 策略收口：20 种子 P50=282s/P90=335s（校准记录） |
+| D5 | 统一门禁三处加法扩展（scene "-"=声明无场景 / checks/ 入扫描源 / `_` 前缀注记键跳过） | wheat 56/0 · stack-tower 82/0 零回归实证；加法不缩水判例 |
 
 ## 关卡结构（v1.0 口径 · 维持）
 

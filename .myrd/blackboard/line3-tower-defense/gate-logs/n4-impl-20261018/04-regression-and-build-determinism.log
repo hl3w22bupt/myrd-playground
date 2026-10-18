@@ -1,0 +1,8 @@
+# build 确定性核对：重建两次 manifest 逐字节一致 + wheat/stack-tower 门禁零回归
+## 统一门禁回滚回归（line3 63/0 · wheat 56/0 · stack-tower 82/0）
+—— 合计 63 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
+—— 合计 56 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
+—— 合计 82 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
