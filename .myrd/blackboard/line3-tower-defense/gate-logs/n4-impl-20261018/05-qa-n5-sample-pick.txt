@@ -1,0 +1,1 @@
+抽样锚=a27ca0e · 抽中: a1-td-first-placement-feedback + ac-art-2-td-asset-manifest-cap（确定性抽样：sha 数值 mod 14，非人为挑样）

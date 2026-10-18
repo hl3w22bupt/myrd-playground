@@ -1,7 +1,35 @@
 # 阻塞项黑板 — line3-tower-defense（第三产品线 · 单场景塔防）
 
-> 更新时间：2026-10-17（双轨轮 · B 轨开工）· 负责人：主策划（整合）/ 游戏程序 / 游戏美术 / 游戏 QA
-> 下一步：B2 spec v1 六件套 → 三合一包发美术 → B4 风格卡 v1 → B5 QA 预审 → B6 主策划 approve（六判据）
+> 更新时间：2026-10-18（**实现轮 · A 轨五节点 N1–N5 全收口**）· 负责人：主策划（整合）/ 游戏程序 / 游戏美术 / 游戏 QA
+> 下一步：**主人试玩**（入口见 N5 行 · A4 主观层唯一判官）+ B-5 坑位路由升级处置 + W-L3-4 数值校准拍板
+
+## 续接复核（2026-10-18 · 游戏程序 · verify 全绿 @ HEAD `1b953cd`）
+
+- **独立实跑**：绑定锚 `a27ca0e` 后分支前进 4 个纯 docs 提交至 `1b953cd`（src/tests 零改动）→ 续接线端点复跑 `verify.sh` 四步全 PASS · VERIFY_EXIT=0（契约对账 approved v2 · RUN-ALL 14/14 + a3 单列 · L3-SMOKE 锚=HEAD · SCOPE 零违例）· 构建重生成与提交面差异仅锚位两处，取证后 restore 回部署锚面。
+- **线上单次复查**：部署 v1 **running**（commitHash=`b81d17b3…`）· 资产面 manifest gitSha ≡ `a27ca0e` · index 200 → 试玩入口有效，无新增阻塞。
+- **阻塞面影响**：W-L3-1..4 / B-5 维持原状（归主人/运维），本轮零新增、零核销。证据 `gate-logs/n4-recheck-20261018-head/01·02`。
+
+## 当前基线（2026-10-18 · 实现轮开工 N0 · 主策划）
+
+| 项 | 值 |
+|---|---|
+| 黑板路径 | `.myrd/blackboard/line3-tower-defense/`（一游戏一子目录判例延续） |
+| spec 版本号 | **链上实查（2026-10-18 API 实证）**：id `cmvbqgzbl0029m9ax64foxd37` · **platform version 2 · status=approved**（2026-10-17T01:44:41Z）· 父版 v1 `cmvabm4kh001jm92c4qtjy9a7` = **superseded**（回查 ✓）· spec.meta.version=1.0（acceptance 15 条 = 14 auto + 1 manual a3）· **导出件 `.myrd/spec/line3-tower-defense/design-spec.json` 与链上回读 spec.spec 深比（Python dict 全等）= True 零漂移 PASS** |
+| 当前分支 | `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `24d545e`（团队续接成果线；工作区仅 `.myrd-platform/.claude/skills/SKILLS.md` 一处平台注入改动） |
+| 分支续接结果 | `git fetch origin` 完成（fetch_exit=0）：远端**无** `game/line3-tower-defense`（`git branch -a --list "*line3*"` 空，无可并入游戏线）；`origin/main` 与当前线 **merge-base 为空（无共同祖先孤儿快照线，HEAD `9fbc1dc`）** → 沿 `0ff651f` 判例**不并入**（其唯一增量 = std-skills/web-app-dev 门禁资产，与本轮 A/B/C 三轨无关，如实披露）；两次合并协议在「无 game/* 远端 + main 孤儿」实况下无合并对象，偏差如实披露 |
+| 平台 API 通道 | `http://localhost:3111` 可达（/api/v1/health 200 · database connected）；鉴权 = `MYRD_TOKEN` Bearer + cookie 通道 ✓（本会话环境变量在位，GET 回读实测成功） |
+| 工程落点 | `games/line3-tower-defense/`（B3 骨架 16 src 文件 + 14 check 薄壳 + run-all fail-closed 占位在盘；**本轮 N4 转真**） |
+| 部署通道 | `POST /api/v1/apphost/apps/<appId>/deployments`（deploy-r7 判例原文在档）· manifestPath 沿工程内 `apphost.toml` 判例；**线 3 AppHost app 待建（N5 节点处置）** |
+
+## 本轮升级主人（新增/维持）
+
+| # | 事项 | 负责人 | 状态 |
+|---|---|---|---|
+| W-L3-1 | 线 3 工作名待定（spec.meta.title 维持工作名占位） | 主人 | 维持挂起 |
+| W-L3-2 | 视觉方向拍板（方向稿 3 张：方向 1=基线已可用，方向 2/3=候选须先走 spec revision 改 deriveRule） | 主人 | 维持挂起，不阻塞 N4（方向 1 基线可用） |
+| W-L3-3 | ac-a3-td-restart-willingness 真人样本 5 名（**采集窗已开**：LIVE 可玩面就绪） | 主人（圈定）+ QA（采卡） | 采集窗开启，与线 2 同批可合并；0/5 维持未判定 |
+| W-L3-4 | **数值校准拍板（新增）**：a2 判据带内通过但 20/20 模拟局战败——敌量×血量双 1.35/波 → 波次总血量 1.82^n 复合增长，8 波通关不可达（levels.md 披露 D3） | 主人拍板 → 游戏 revision 校准（不静默改尺子） | 挂起待拍板；不阻塞试玩 |
+| B-5 | **坑位路由串线（新增 · 平台层）**：/gw 壳与 /health 自报 game-9（md5 `abb7c87b6a82` ≡ game-9 壳逐字节全等=W-3 决定性指纹重现）；资产面 `/api/public/assets/*` 全为本部署件（index/main.mjs/spec.json 零漂移 + LIVE-SMOKE PASS）；self-serve 无通道（PATCH 405 / publish|routes|reload 404） | 主人/运维（平台侧路由表/服务束） | 升级处置；试玩走资产面入口不受影响 |
 
 ## 当前基线（2026-10-17 · 双轨轮开工登记）
 

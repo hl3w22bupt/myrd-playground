@@ -5,7 +5,7 @@
 // 候选注记：direction-1 = 基线（=theme.ts DERIVE.turretLevelMix，实现轮直接可用）；
 //          direction-2/3 的炮塔混合比为候选提案——主人若采纳（W-L3-2）必须走 spec revision 改
 //          numeric.palette.deriveRule，严禁实现层直接采用（ac-art-1 派生规则声明面）。
-import { writeFileSync, mkdirSync, readFileSync } from "node:fs";
+import { writeFileSync, mkdirSync, readFileSync, existsSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,29 +14,28 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, "assets/style-sketch");
 mkdirSync(OUT, { recursive: true });
 
-// token（与 src/render/theme.ts 逐值镜像；下方启动自校验对 theme.ts 逐值比对，漂移即 exit 1）
-const P = {
-  bgDeep: "#202A38", field: "#2F4156", pathSand: "#E9D8A6", gridLine: "#47617C",
-  coreCoral: "#E76F51", enemyBerry: "#B75D69", turretGreen: "#81B29A", textCream: "#F4F1DE",
-};
-const TURRET_LEVEL_MIX_BASELINE = [0, 0.2, 0.4]; // ≡ theme.ts DERIVE.turretLevelMix（自校验）
+// token 单源（2026-10-18 实现轮重构）：直读 src/render/theme.ts（其本身由
+// kernel/config.MIRRORED 镜像 spec.numeric.palette 派生）——生成器零裸 hex 字面量
+//（ac-art-3 声明面=config.ts 单源链）。自校验 = token ≡ approved spec 白名单（fail-closed）。
+const { PALETTE, DERIVE } = await import("file://" + join(ROOT, "src/render/theme.ts"));
+const P = PALETTE;
+const TURRET_LEVEL_MIX_BASELINE = [...DERIVE.turretLevelMix]; // ≡ theme.ts DERIVE（实现轮基线=direction-1）
 
-// —— 单源自校验：PALETTE 8 色 + 基线混合比必须 ≡ theme.ts，否则 fail-closed（不静默出图）——
-const themeSrc = readFileSync(join(ROOT, "src/render/theme.ts"), "utf8");
-const paletteBlock = themeSrc.match(/export const PALETTE = \{([\s\S]*?)\} as const/);
-if (!paletteBlock) { console.error("TOKEN-SOURCE FAIL: theme.ts PALETTE 块解析失败"); process.exit(1); }
-const themeHexes = [...paletteBlock[1].matchAll(/#([0-9A-Fa-f]{6})/g)].map((m) => m[1].toUpperCase());
-const localHexes = Object.values(P).map((h) => h.slice(1).toUpperCase());
-const drift = localHexes.filter((h) => !themeHexes.includes(h));
-if (themeHexes.length !== 8 || drift.length > 0) {
-  console.error(`TOKEN-SOURCE FAIL: 生成器 token 与 theme.ts 漂移 theme=${themeHexes.length}色 drift=${drift.join(",")}`);
+// —— 单源自校验：PALETTE 8 色 + 基线混合比必须 ≡ approved spec 导出件白名单，否则 fail-closed ——
+const specCandidates = [join(ROOT, "..", "..", ".myrd/spec/line3-tower-defense/design-spec.json")];
+if (process.env.G2L3_SPEC_PATH) specCandidates.unshift(process.env.G2L3_SPEC_PATH);
+const specPath = specCandidates.find((c) => existsSync(c));
+if (!specPath) { console.error("TOKEN-SOURCE FAIL: approved spec 导出件未找到（设 G2L3_SPEC_PATH）"); process.exit(1); }
+const specWL = JSON.parse(readFileSync(specPath, "utf8")).spec.numeric.palette.whitelist;
+const localHexes = Object.values(P).map((h) => String(h).toUpperCase());
+const specHexes = Object.values(specWL).map((h) => String(h).toUpperCase());
+const drift = localHexes.filter((h) => !specHexes.includes(h));
+if (specHexes.length !== 8 || drift.length > 0) {
+  console.error(`TOKEN-SOURCE FAIL: 生成器 token 与 approved spec 白名单漂移 spec=${specHexes.length}色 drift=${drift.join(",")}`);
   process.exit(1);
 }
-const deriveBlock = themeSrc.match(/turretLevelMix:\s*\[([^\]]*)\]/);
-if (!deriveBlock) { console.error("TOKEN-SOURCE FAIL: theme.ts DERIVE.turretLevelMix 解析失败"); process.exit(1); }
-const themeMix = deriveBlock[1].split(",").map((s) => Number(s.trim()));
-if (themeMix.length !== TURRET_LEVEL_MIX_BASELINE.length || themeMix.some((v, i) => v !== TURRET_LEVEL_MIX_BASELINE[i])) {
-  console.error(`TOKEN-SOURCE FAIL: 基线混合比漂移 theme=[${themeMix}] sketch=[${TURRET_LEVEL_MIX_BASELINE}]`);
+if (JSON.stringify(TURRET_LEVEL_MIX_BASELINE) !== JSON.stringify([0, 0.2, 0.4])) {
+  console.error(`TOKEN-SOURCE FAIL: 基线混合比漂移 theme=[${TURRET_LEVEL_MIX_BASELINE}] 基线=[0,0.2,0.4]`);
   process.exit(1);
 }
 const CELL = 32, COLS = 20, ROWS = 12, W = COLS * CELL, H = ROWS * CELL;

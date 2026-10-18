@@ -1,7 +1,29 @@
 # 阻塞项黑板 — 工作室组合全景（多游戏共板 · 每线各自有子黑板）
 
-> 更新时间：2026-10-16（**轨道 A 线 2 R1 复测三态分流收口 + 轨道 B 线 3 选型拍板 双轨完成**）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：**等主人三件**（线 2 = 圈定 5 名真人试玩执行 A3；线 3 = spec v1 draft 审签 approve + 工作命名 + 视觉方向；线 1 = 提审凭证维持）——均带证据升级不催办
+> 更新时间：2026-10-18（**三轨执行轮收口：A=线 3 spec v1.0 实现到部署 LIVE ✅ · B=g2-blocks sha 答复+互查+归类 ✅ · C=线 4 调研刷新 ✅**）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：**等主人四件**（①线 3 试玩 ②B-5 坑位路由运维处置 ③B-6 g2 链面修复 approve（~~B-1 源仓访问面~~ 2026-10-18 勘误撤销：源仓在盘已实跑复证）④W-L3-4 数值校准拍板 ⑤线 2 A3 真人执行维持）——均带证据升级不催办
+
+## 三轨收口全景（2026-10-18）
+
+| 轨道 | 结果 | 关键产物 |
+|---|---|---|
+| **A（P0）线 3 五节点** | ✅ **全收口**：N1 骨架对账 ✓ → N2 QA 四看放行 ✓ → N3 素材映射+首批资产 6/13 ✓ → N4 核心循环全通 + **auto 14/14 PASS·0 FAIL**（a3 真人面 PEND 单列）+ 统一门禁 63/0 + L3-SMOKE PASS（verify ×2 同锚非 flaky）→ N5 QA 核签 + **部署 v1 running @ `b81d17b`** + **L3-LIVE-SMOKE PASS**（线上真实浏览器全链路，LIVE 锚≡绑定锚 `a27ca0e`，spec.json 零漂移）。**主人试玩入口（资产面·可玩）= `https://leomac-studio.tail49399e.ts.net/apps/line3-tower-defense-2/api/public/assets/index.html`** | 判据映射表+披露 D1-D5（line3 levels.md）· 核签 JSON（QA-L3-N5-SIGNOFF-20261018-01）· 证据 `line3-tower-defense/gate-logs/n4-impl-20261018/00..08` |
+| **B（P1）g2-blocks 收口** | ✅ 收口（**v2 勘误轮刷新 · 驳回缺陷1 成立**）：①sha 疑点=**失配成立且已对齐环境复跑补证**——源仓在盘 `g2-blocks`（HEAD=`dy/port-v1.1` @ `023e5838` 检出态，v1「不可达」系探测根目录错误假阴性）；复跑：`023e5838` 线 contract 18/18 + 八件聚合 8/8、`9c27438` 线（r7 部署源面）check-v13 四态 + contract v9 29+1PEND + dy 三条 27 PASS + dy-smoke PASS（J1=146.1ms/613 手，判定值与 10-11 轮逐字一致），部署镜像↔源面 diff 唯一 sw.js 缓存版本号=良性残留；映射抽验 2/2 PASS。②**维持：g2 链 v1–v10 全 superseded、approved=0** → 契约面失效（B-6 归主人）。③归类=**继续打磨（R3）**维持，R3 闸门修正为「B-6 链面修复 + 主人凭证」两项 | 答复件 v2 `g2-blocks/trackb-sha-answer-20261018.md` · 核签 v2 `qa-trackb-signoff-20261018.json`（QA-G2-TRACKB-SIGNOFF-20261018-02 · supersede -01）· 证据 `g2-blocks/gate-logs/sha-answer-rerun-20261018/00..04` |
+| **C（P2）线 4 调研刷新** | ✅ 只读简报落档（D29-D33 带出处：混合休闲 +20% IAP 增长段 · TD×Roguelike 公式活跃但拥挤 · 「先 IAA 后出海」小团队判例 · 平台分成激励）——**不拍选型不建 spec** | `research/line4-research-brief-20261018.md` |
+
+## 本轮阻塞登记（2026-10-18 收口态 · 编号制）
+
+| # | 轨道 | 事项 | 负责人 | 状态/解除判据 |
+|---|---|---|---|---|
+| B-1 | B | ~~g2 源仓访问面（sha 疑点环境对齐复跑 + 门禁复跑）~~ ✅ **勘误撤销（2026-10-18 驳回缺陷1）**：源仓在盘 `~/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks`（HEAD=`dy/port-v1.1` @ `023e5838` 检出态），v1「不可达」系探测根目录用错的假阴性；已对齐环境复跑——`023e5838` 线 contract 18/18 + 八件聚合 8/8 exit 0，`9c27438` 线 check-v13 四态 + dy 三条 27 PASS + dy-smoke PASS exit 0，日志原文 `g2-blocks/gate-logs/sha-answer-rerun-20261018/00..04` | ~~主人~~ → 已解除（程序线自查自证） | 关闭（勘误留痕，不回改 v1 原文） |
+| B-2 | A | ~~线 3 AppHost app 待建~~ ✅ 已处置（`cmvd6lt7f002km9wl2kbex7w4`/line3-tower-defense-2 · 带 projectId 重建；首建无 projectId 被 DEPLOY_REJECTED 判例留档） | — | 关闭 |
+| B-3 | A | ac-a3-td 真人样本 5 名（**采集窗已开**） | 主人+QA 采卡 | 维持 W-L3-3；机器不代采 |
+| B-4 | 全 | 线 3 工作名/视觉方向拍板（W-L3-1/W-L3-2） | 主人 | 维持挂起 |
+| B-5 | A | **线 3 坑位路由串线（平台层）**：/gw 壳与 /health 自报 game-9（md5 `abb7c87b6a82` ≡ game-9 壳=W-3 决定性指纹重现）；资产面全为本部署件且 LIVE-SMOKE PASS；self-serve 无通道（PATCH 405 / publish|routes|reload 404） | 主人/运维 | 升级；试玩走资产面入口不受影响 |
+| B-6 | B | **g2 链面修复**：链上 0 approved（契约红线 SPEC_NOT_APPROVED 口径）→ R3 需 revision 入链 + 主人 approve 恢复契约面 | 主人 approve + 源仓面配合 | 升级；R3 闸门第一条 |
+| B-7 | A | **W-L3-4 数值校准拍板（新增）**：线 3 a2 带内通过但 20/20 战败（通关不可达，D3 披露） | 主人拍板 → revision 校准 | 挂起；不阻塞试玩 |
+
+---
 
 ## 本轮决策登记（2026-10-16 · 轨道 A + 轨道 B · 主策划）
 

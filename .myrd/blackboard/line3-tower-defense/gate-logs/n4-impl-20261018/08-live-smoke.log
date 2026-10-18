@@ -1,0 +1,23 @@
+# N5 线上自测（修正重录）· UTC 2026-10-18T02:09:21Z
+## 部署终态：v1 running @ commitHash b81d17b354e96e3daeff86812a5e7a905e85a94e（与部署提交全等 · 零 errorMessage · app cmvd6lt7f002km9wl2kbex7w4 / slug line3-tower-defense-2）
+## 三点对账表
+| 面 | 值 |
+|---|---|
+| 工作区 HEAD（部署提交） | b81d17b354e96e3daeff86812a5e7a905e85a94e |
+| LIVE main.mjs 内嵌 gitSha | a27ca0e86b618e2bf0ca2f8621efbb1e8c78955e（≡ 判据映射表绑定锚；源面零漂移实证 a27ca0e..b81d17b 源目录 diff=空） |
+| LIVE spec.json 锚 | cmvbqgzbl0029m9ax64foxd37@v2:approved（≡ 本地导出件 Python 深比 True） |
+## 资产面直取核验（200 = 正确资产）
+  index.html HTTP=200 bytes=613
+  src/main.mjs HTTP=200 bytes=3310
+  spec.json HTTP=200 bytes=22280
+## L3-LIVE-SMOKE（线上真实浏览器全链路）
+[live-smoke] ready ✓
+[live-smoke] 锚={"gitSha":"a27ca0e86b618e2bf0ca2f8621efbb1e8c78955e","specAnchor":"cmvbqgzbl0029m9ax64foxd37@v2:approved"}
+[live-smoke] LIVE 放置 ✓ first_placement_at={"name":"first_placement_at","atMs":592}
+[live-smoke] LIVE 结算 ✓ status=defeat
+[live-smoke] LIVE 重开 ✓ [{"name":"restart_clicked","atMs":0,"count":1}]
+L3-LIVE-SMOKE: PASS 全链路 · 零 console 错误
+## W-3 串线证据（平台层，资产面不受影响）
+  /gw 壳 md5=abb7c87b6a82 ≡ game-9 /gw 壳逐字节全等（12227B《汽车连连看》）——2026-10-12 W-3 决定性指纹重现
+  /health 自报 app=game-9（服务束身份错配）· 自查资产面 /api/public/assets/* 全为本部署件
+  self-serve 通道核查：PATCH /apps/:id=405 · POST /publish|/routes|/reload=404 —— 无自助修复通道 → 升级（blockers B-5）

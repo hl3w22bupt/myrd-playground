@@ -1,0 +1,27 @@
+{
+  "gitSha": "a27ca0e86b618e2bf0ca2f8621efbb1e8c78955e",
+  "specAnchor": "cmvbqgzbl0029m9ax64foxd37@v2:approved",
+  "files": [
+    "index.html",
+    "spec.json",
+    "src/entities/enemy.mjs",
+    "src/entities/projectile.mjs",
+    "src/entities/turret.mjs",
+    "src/game.mjs",
+    "src/input/touch.mjs",
+    "src/kernel/config.mjs",
+    "src/kernel/loop.mjs",
+    "src/kernel/sim.mjs",
+    "src/kernel/state.mjs",
+    "src/main.mjs",
+    "src/render/guidance.mjs",
+    "src/render/renderer.mjs",
+    "src/render/theme.mjs",
+    "src/scene/battlefield.mjs",
+    "src/systems/economy.mjs",
+    "src/systems/waveDirector.mjs",
+    "src/telemetry/emitter.mjs",
+    "src/world/core.mjs",
+    "src/world/grid.mjs"
+  ]
+}
