@@ -1,20 +1,24 @@
 // 风格卡 v1 token 单源（.myrd/blackboard/line3-tower-defense/assets.md · 2026-10-17 美术锁定）
 // spec: numeric.palette.whitelist —— 渲染层只读本文件，src 零裸 hex（ac-art-1/ac-art-3）
+// 单源链：spec.numeric.palette → kernel/config.MIRRORED（镜像断言钉住）→ 本 token → 渲染层。
+// 本文件零裸 hex（ac-art-3 单源口径：白名单声明面 = spec 镜像 config.ts）。
+import { MIRRORED } from "../kernel/config.ts";
+const WL = MIRRORED.palette.whitelist;
 export const PALETTE = {
-  bgDeep: "#202A38",
-  field: "#2F4156",
-  pathSand: "#E9D8A6",
-  gridLine: "#47617C",
-  coreCoral: "#E76F51",
-  enemyBerry: "#B75D69",
-  turretGreen: "#81B29A",
-  textCream: "#F4F1DE",
+  bgDeep: WL["bg-deep"],
+  field: WL["field"],
+  pathSand: WL["path-sand"],
+  gridLine: WL["grid-line"],
+  coreCoral: WL["core-coral"],
+  enemyBerry: WL["enemy-berry"],
+  turretGreen: WL["turret-green"],
+  textCream: WL["text-cream"],
 } as const;
 // 派生规则（唯一允许的色值生成方式，新增色相=违例）
 export const DERIVE = {
   turretLevelMix: [0, 0.2, 0.4], // Lv1..3 = turret-green × text-cream 混合比
   enemyHpMix: [0, 0.3], // 满血/残血 = enemy-berry × bg-deep
-  flashMixWith: "#F4F1DE", // hitFlash 混白锚
+  flashMixWith: WL["text-cream"], // hitFlash 混白锚（token 派生零字面）
   flashMs: 90,
 } as const;
 export const STROKE = { widthPx: 2, radiusPx: 4 };

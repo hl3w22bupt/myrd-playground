@@ -4,7 +4,7 @@
 
 import { configFromSpec, type GameConfig } from "./kernel/config.ts";
 import { createRun, type SimState } from "./kernel/state.ts";
-import { stepSim, placeTurret, upgradeTurret, toggleSpeed, restartRun } from "./kernel/sim.ts";
+import { stepSim, placeTurret, upgradeTurret, toggleSpeed, restartRun, dismissGuidance } from "./kernel/sim.ts";
 import { makeEmitter, telemetrySink, type Emitter, type TelemetrySink } from "./telemetry/emitter.ts";
 import { titleHit, settlementHit, resolvePointer } from "./input/touch.ts";
 import { HINT_TEXT } from "./render/guidance.ts";
@@ -69,6 +69,7 @@ export class Game {
       if (a.kind === "start") {
         this.phase = "running";
         this.emitRunStart();
+        dismissGuidance(this.sim); // 首次有效操作=开始布防 → 引导浮层淡出不再复现（path-guidance-dismiss-01）
         this.telemetry.emit("first_tap", this.sessionMs); // 会话首点按（once）
         return true;
       }
