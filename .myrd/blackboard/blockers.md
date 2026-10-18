@@ -1,26 +1,27 @@
 # 阻塞项黑板 — 工作室组合全景（多游戏共板 · 每线各自有子黑板）
 
-> 更新时间：2026-10-18（**三轨执行轮：A=线 3 spec v1.0 实现到部署（P0）· B=线 2（g2-blocks 轨道口径）sha 答复+互查+归类（P1）· C=线 4 调研刷新（P2）**）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：A 轨 N4 实现轮主工程 → N5 部署（**主人试玩 = A4 主观层唯一判官、本轮终点**）；B 轨 1 号闸门当日必答；C 轨只读简报不拍板
+> 更新时间：2026-10-18（**三轨执行轮收口：A=线 3 spec v1.0 实现到部署 LIVE ✅ · B=g2-blocks sha 答复+互查+归类 ✅ · C=线 4 调研刷新 ✅**）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：**等主人五件**（①线 3 试玩 ②B-5 坑位路由运维处置 ③B-1/B-6 g2 源仓面+链面修复授权 ④W-L3-4 数值校准拍板 ⑤线 2 A3 真人执行维持）——均带证据升级不催办
 
-## 本轮开工基线（2026-10-18 · 三轨执行轮 · 主策划 N0）
+## 三轨收口全景（2026-10-18）
 
-| 项 | 值 |
-|---|---|
-| 黑板路径 | 顶层共板 + 各线子目录（本轮主战线 `.myrd/blackboard/line3-tower-defense/`） |
-| spec 版本号 | **A 轨（线 3）= 链 v2 `cmvbqgzbl0029m9ax64foxd37` approved（2026-10-18 API 实查 · 父版 v1 superseded · 导出件深比零漂移 True）**；线 2 = 链 v6 `cmv8xcexk0009m9dj6ev1dj0r` approved（上轮实查维持）；g2-blocks = 链 v9 approved + v10 draft（上轮实查维持） |
-| 分支与续接 | `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `24d545e`；fetch_exit=0；远端无 `game/line3-tower-defense`；`origin/main` merge-base=∅ 孤儿快照线 → 沿判例不并入（如实披露） |
-| 平台通道 | localhost:3111 健康 200；`MYRD_TOKEN` Bearer+cookie 鉴权实测可读链 ✓ |
-| 线 3 工程落点 | `games/line3-tower-defense/`（B3 骨架占位在盘，本轮 N4 转真） |
+| 轨道 | 结果 | 关键产物 |
+|---|---|---|
+| **A（P0）线 3 五节点** | ✅ **全收口**：N1 骨架对账 ✓ → N2 QA 四看放行 ✓ → N3 素材映射+首批资产 6/13 ✓ → N4 核心循环全通 + **auto 14/14 PASS·0 FAIL**（a3 真人面 PEND 单列）+ 统一门禁 63/0 + L3-SMOKE PASS（verify ×2 同锚非 flaky）→ N5 QA 核签 + **部署 v1 running @ `b81d17b`** + **L3-LIVE-SMOKE PASS**（线上真实浏览器全链路，LIVE 锚≡绑定锚 `a27ca0e`，spec.json 零漂移）。**主人试玩入口（资产面·可玩）= `https://leomac-studio.tail49399e.ts.net/apps/line3-tower-defense-2/api/public/assets/index.html`** | 判据映射表+披露 D1-D5（line3 levels.md）· 核签 JSON（QA-L3-N5-SIGNOFF-20261018-01）· 证据 `line3-tower-defense/gate-logs/n4-impl-20261018/00..08` |
+| **B（P1）g2-blocks 收口** | ✅ 收口：①sha 疑点=**失配（口径错位非造假）**——`023e583`=v1.1 移植轮历史基线，r7 v17 绑 `2bb69c7/9c27438`（API 实查 running 维持），R2 绑 2026-10-01 源仓链；源仓不在本 run → 无法复跑。②**新事实：g2 链 v1–v10 全 superseded、approved=0**（v9 因 v10 入链置 superseded+判例吻合；v10 链头 superseded 无子版记录）→ 契约面失效。③归类=**继续打磨（R3 链面修复轮 · 轮次重计）**，非提审就绪非冻结 | 答复件 `g2-blocks/trackb-sha-answer-20261018.md` · 限制性核签 `qa-trackb-signoff-20261018.json`（QA-G2-TRACKB-SIGNOFF-20261018-01） |
+| **C（P2）线 4 调研刷新** | ✅ 只读简报落档（D29-D33 带出处：混合休闲 +20% IAP 增长段 · TD×Roguelike 公式活跃但拥挤 · 「先 IAA 后出海」小团队判例 · 平台分成激励）——**不拍选型不建 spec** | `research/line4-research-brief-20261018.md` |
 
-## 本轮阻塞登记（2026-10-18 · 编号制 · 每次整合后刷新）
+## 本轮阻塞登记（2026-10-18 收口态 · 编号制）
 
 | # | 轨道 | 事项 | 负责人 | 状态/解除判据 |
 |---|---|---|---|---|
-| B-1 | B | **sha 疑点闸门（今日必答）**：「昨日 deploy 与 R2 证据绑定 sha 是否 = 注册仓 g2-blocks 当前 HEAD（`023e5838` / `dy/port-v1.1`）」——初步证据（子黑板 blockers.md L18）：`023e583` = dy/port-v1.1 **v1.1 移植轮历史基线**（2026-10-11 快照口径），非链头；g2-blocks 最近 deploy r7 v17 绑源仓 `sync/dy-v1.3 @ 9c27438`→部署提交 `2bb69c7`；源仓不在本 run 工作区（兄弟 run 工作区，本仓仅 `games/g2-blocks/export/web` 镜像）→ 本环境无法复跑源仓门禁 | 游戏程序（答复）→ 主人（源仓访问授权或环境对齐） | 本轮出证据答复（见 B 轨区段）；「对齐环境复跑」需源仓访问面，超本 run 能力 → 升级主人 |
-| B-2 | A | 线 3 AppHost app 待建（现有 apps：game-9/wheat-squad-2/g2-blocks-2/stack-tower；线 3 无坑位） | 游戏程序（N5 节点） | N5 节点建坑或复用判例处置；建不成 → 升级 |
-| B-3 | A | ac-a3-td 真人样本 5 名（采集窗前置 = N5 部署 LIVE） | 主人 | 维持 W-L3-3；机器不代采 |
-| B-4 | 全 | 工作名 W-L3-1 / 视觉方向 W-L3-2 拍板（不阻塞 N4/N5，阻塞正式视觉定稿） | 主人 | 维持挂起 |
+| B-1 | B | g2 源仓访问面（sha 疑点环境对齐复跑 + 门禁复跑） | 主人（授权/运维代跑） | 升级；解除=复跑证据回传 |
+| B-2 | A | ~~线 3 AppHost app 待建~~ ✅ 已处置（`cmvd6lt7f002km9wl2kbex7w4`/line3-tower-defense-2 · 带 projectId 重建；首建无 projectId 被 DEPLOY_REJECTED 判例留档） | — | 关闭 |
+| B-3 | A | ac-a3-td 真人样本 5 名（**采集窗已开**） | 主人+QA 采卡 | 维持 W-L3-3；机器不代采 |
+| B-4 | 全 | 线 3 工作名/视觉方向拍板（W-L3-1/W-L3-2） | 主人 | 维持挂起 |
+| B-5 | A | **线 3 坑位路由串线（平台层）**：/gw 壳与 /health 自报 game-9（md5 `abb7c87b6a82` ≡ game-9 壳=W-3 决定性指纹重现）；资产面全为本部署件且 LIVE-SMOKE PASS；self-serve 无通道（PATCH 405 / publish|routes|reload 404） | 主人/运维 | 升级；试玩走资产面入口不受影响 |
+| B-6 | B | **g2 链面修复**：链上 0 approved（契约红线 SPEC_NOT_APPROVED 口径）→ R3 需 revision 入链 + 主人 approve 恢复契约面 | 主人 approve + 源仓面配合 | 升级；R3 闸门第一条 |
+| B-7 | A | **W-L3-4 数值校准拍板（新增）**：线 3 a2 带内通过但 20/20 战败（通关不可达，D3 披露） | 主人拍板 → revision 校准 | 挂起；不阻塞试玩 |
 
 ---
 
