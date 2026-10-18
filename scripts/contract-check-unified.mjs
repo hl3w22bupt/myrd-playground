@@ -151,9 +151,15 @@ for (const entity of doc.entities ?? []) {
     resolveEntityScript(entity, scriptPath);
   }
   if (entity.scene) {
-    const hit = resolveAgainstProject(entity.scene);
-    if (hit) pass(`实体 ${entity.id} scene 存在: ${entity.scene}`);
-    else fail(`实体 ${entity.id} scene 悬空: ${entity.scene}`);
+    // 2026-10-18 line3-tower-defense 扩展（加法不缩水）：scene 值 "-" = 策划侧「声明无场景」
+    // （纯内核实体，如 kernel/systems 类，无独立场景文件）——按声明核对通过并留痕；
+    // 其余真实路径仍逐一断言存在（悬空照旧红）。
+    if (entity.scene === "-") pass(`实体 ${entity.id} scene 声明无场景（"-"）`);
+    else {
+      const hit = resolveAgainstProject(entity.scene);
+      if (hit) pass(`实体 ${entity.id} scene 存在: ${entity.scene}`);
+      else fail(`实体 ${entity.id} scene 悬空: ${entity.scene}`);
+    }
   }
 }
 
@@ -210,11 +216,26 @@ function collectNumericSources() {
   // 2026-10-12 wheat-squad 扩展（加法不缩水）：验收侧数值（如 firstCore/artCaps）的消费方 = 契约件
   // （tests/contract/*.mjs 经 loadSpec 直读 spec.numeric 断言）——spec 仍单源，契约件是断言消费面，
   // 并入扫描源使「数值在工程有对应」口径覆盖验收侧数值；引擎侧数值消费面原样保留。
-  const contractDir = resolveAgainstProject("tests/contract");
+  // 2026-10-18 line3-tower-defense 扩展（加法不缩水）：契约目录解析优先工程内
+  // <projectDir>/tests/contract，再退仓根相对 tests/contract（后者在多游戏仓可能是
+  // 他线镜像目录——工程内才是受测游戏真实断言消费面）。
+  const contractDir = [path.join(projectDir, "tests", "contract"), "tests/contract"]
+    .map((p) => (fs.existsSync(p) ? p : null))
+    .find(Boolean);
   if (contractDir && fs.statSync(contractDir).isDirectory()) {
     for (const f of fs.readdirSync(contractDir).filter((x) => /\.mjs$/.test(x))) {
       const p = path.join(contractDir, f);
       sources.set(fs.realpathSync(p), fs.readFileSync(p, "utf8"));
+    }
+    // 2026-10-18 line3-tower-defense 扩展（加法不缩水）：checks/ 子目录一并入扫描源——
+    // 独立 check 件（checks/<id>.mjs）是 numeric 的真实断言消费面（如 a1 消费
+    // firstPlacementBudgetSec、a2 消费 waveBand），不入源则「数值在工程有对应」漏判。
+    const checksDir = path.join(contractDir, "checks");
+    if (fs.existsSync(checksDir) && fs.statSync(checksDir).isDirectory()) {
+      for (const f of fs.readdirSync(checksDir).filter((x) => /\.mjs$/.test(x))) {
+        const p = path.join(checksDir, f);
+        sources.set(fs.realpathSync(p), fs.readFileSync(p, "utf8"));
+      }
     }
   }
   if (sources.size > 0) return sources;
@@ -240,6 +261,12 @@ const numericSources = collectNumericSources();
 if (numericSources.size > 0) pass(`数值扫描源就绪（${numericSources.size} 个脚本，三层解析）`);
 else fail("数值扫描源为空：spec.entities 与工程内清单均未解析到 .gd/.ts（检查 --project 口径）");
 for (const key of Object.keys(doc.numeric ?? {})) {
+  // 2026-10-18 line3-tower-defense 扩展（加法不缩水）：下划线前缀键 = 策划侧注记面
+  //（如 _calibrationNote「初始锚定值说明」），非数值字段——跳过机判（数值字段照旧全判）。
+  if (key.startsWith("_")) {
+    pass(`数值 ${key} 为注记键（下划线前缀，非数值字段，不入机判）`);
+    continue;
+  }
   const pattern = new RegExp(`\\b${key}\\b`);
   const found = [...numericSources.values()].some((text) => pattern.test(text));
   if (found) pass(`数值 ${key} 在工程常量区有对应`);
