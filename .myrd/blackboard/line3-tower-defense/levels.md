@@ -40,6 +40,8 @@
 
 > **续接复核一行（2026-10-18 · 游戏程序 · 独立复跑 @ 当前 HEAD `1b953cd24f45d5091c9b0323b41332469ae4acda`）**：绑定锚 `a27ca0e` 之后分支前进 4 个纯 docs/构建提交（c5d0933→1b953cd，源面 src/tests 零改动），本轮在续接线端点独立实跑 `verify.sh` 四步**全 PASS · VERIFY_EXIT=0**——① 统一契约 CONTRACT: PASS（「spec 为 approved 版 · 平台登记 v2 · `cmvbqgzbl0029m9ax64foxd37`」）② RUN-ALL 机判 **14/14** 全绿 · a3 真人面单列未判定（0 红 ≠ 绿口径维持）③ L3-SMOKE PASS（打开→开始→放置→加速→结算→重开 · 构建锚=HEAD `1b953cd2` · 零 console 错误）④ SCOPE: PASS（src+tools 25 文件三判零违例）。构建面按口径以 HEAD 重建，与提交面差异**仅锚位两处**（`02-build-anchor-diff.log` 实证业务产物零差异），取证后 restore 回部署锚面（b81d17b 提交面 ⊃ a27ca0e）不制造锚位漂移。线上单次复查：部署 v1 **running**（commitHash=`b81d17b3…` · errorMessage=null）+ 资产面 `/api/public/assets/manifest.json` gitSha **≡ 绑定锚 `a27ca0e`** + index.html 200。**结论：上轮全绿结论在续接线端点成立；主人试玩入口不变（资产面 URL，见 N5 行）。证据 `gate-logs/n4-recheck-20261018-head/01-verify.log` + `02-build-anchor-diff.log`。**
 
+> **驳回修复轮补档（2026-10-18 · 游戏程序 · 驳回缺陷2/缺陷3 处置）**：①美术复证轮 2（`21fefba`）assets.md 自述「verify PASS 绑 `6fe2c9b5`」但 gate-logs 无该批次日志原文 → 按驳回判定原声明**不可单独核销**（不删不改史，勘误标记留 assets.md 原行）；已以当前端点 `72be5f1` 独立实跑 `verify.sh` 四步**全 PASS · VERIFY_EXIT=0** 补档替代实证，原文 `gate-logs/art-round2-recheck-20261018/01-verify.log`（RUN-ALL 14/14 · a3 单列 · SMOKE 锚=`72be5f15` · SCOPE 零违例）。②同提交把 `build/` 锚位改嵌 `6fe2c9b5` 造成提交面↔LIVE 部署面（`a27ca0e`）漂移 → 已归一：重生成差异仅锚位两处（`02-build-anchor-diff.log`）后 `git restore --source b81d17b` 回部署锚面并随本轮提交，恢复「部署面=提交面」纪律。③缺陷3 备案：`n4-impl-20261018/04` 仅合计行无逐项输出，维持「02/03 完整日志为主证」不改判；本轮起新增门禁日志一律含逐步原文（本轮 00/01/02 号已按此口径）。
+
 ### 实现决策披露（不与 spec 冲突 · 校准候选）
 
 | # | 决策 | 依据/影响 |

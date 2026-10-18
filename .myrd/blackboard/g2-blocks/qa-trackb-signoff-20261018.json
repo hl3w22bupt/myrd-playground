@@ -1,44 +1,65 @@
 {
-  "signoffId": "QA-G2-TRACKB-SIGNOFF-20261018-01",
-  "signer": "游戏 QA（主策划工作室代行节点 · 限制性核签口径）",
-  "utc": "2026-10-18T02:20Z",
-  "subject": "g2-blocks（产品线 2 · 任务书轨道 B）三件套互查——限制性核签",
-  "limitation": "g2-blocks 源仓不在本 run 可达面（兄弟 run 工作区判例），本核签仅覆盖仓内可达证据（子黑板台账 + gate-logs 镜像 + 平台 API 实查），不构成源仓门禁复跑核签",
+  "signoffId": "QA-G2-TRACKB-SIGNOFF-20261018-02",
+  "supersedes": "QA-G2-TRACKB-SIGNOFF-20261018-01（其 limitation「源仓不在本 run 可达面」被实物证伪，驳回缺陷1·决定性）",
+  "signer": "游戏 QA（主策划工作室代行节点 · 限制性核签口径 · v2）",
+  "utc": "2026-10-18T02:50Z",
+  "subject": "g2-blocks（产品线 2 · 任务书轨道 B）三件套互查——限制性核签（v2 · 源仓已实跑复证后重出）",
+  "limitation": "源仓可达且门禁已实跑复证（本轮）；剩余限制面仅两条且均归主人：①平台链 0 approved（契约绿绑仓内 approved 存档/共同输入导出件，链上资质待 v11 approve）②提审凭证在主人处。历史 deploy（r7@2bb69c7）与 R2 轮原始证据未逐字节重放——以同源面 9c27438 复跑全绿 + 部署镜像 diff 等值作等价补证",
   "threePieces": {
     "frozenSpec": {
       "localExport": ".myrd/spec/g2-blocks/design-spec.json",
-      "localExportAnchor": { "platformId": "cmv1q9k690045m94obp29ysre", "version": 9, "statusAtExport": "approved", "metaVersion": "1.6" },
+      "localExportAnchor": {
+        "platformId": "cmv1q9k690045m94obp29ysre",
+        "version": 9,
+        "statusAtExport": "approved",
+        "metaVersion": "1.6"
+      },
       "zeroDriftVsChain": true,
       "chainStatusToday": "v1–v10 全 superseded · approved=0（v9 于 2026-10-11T01:44Z 因 v10 入链置 superseded；v10 链头 superseded @ 2026-10-11T14:57Z 无子版记录）",
-      "verdict": "契约面失效（SPEC_NOT_APPROVED 口径）——升级 B-6"
+      "verdict": "契约面失效（SPEC_NOT_APPROVED 口径）——升级 B-6 维持（归主人 approve）"
     },
     "criteriaMapping": {
-      "status": "台账面在档（R2 三批交付映射 = 源仓 assets/MAPPING.md，本仓无拷贝）",
-      "sampledCheck": "不可达（源仓）",
-      "verdict": "本 run 不出抽验结论"
+      "status": "源仓 assets/MAPPING.md @ sync/dy-v1.3 9c27438 在盘，本轮已抽验",
+      "sampledCheck": "抽第 1、第 6 交付行机判 2/2 PASS（palette sha256≡numeric.palette.sourceSha256 全等 · e-board tiles[].id≡palette.colors[].id 七枚全等）+ 4 件目标存在性 PASS；抽验脚本首轮取形错误 RED 如实留档后修正重跑",
+      "evidence": "gate-logs/sha-answer-rerun-20261018/04-mapping-sample.log",
+      "verdict": "抽中 0 错 → 整表不打回"
     },
     "boundRawOutputs": {
-      "status": "gate-logs 镜像在档（deploy-r7-20261011 / dy-rerun-20261011 等，台账口径带命令/UTC/退出码/双 HEAD sha）",
-      "replay": "不可达（源仓）",
-      "verdict": "历史证据维持 · 本轮未复证（sha 疑点答复件第二节）"
+      "status": "本轮新增源仓实跑日志原文（含退出码）4 件 + 抽验 1 件，全部落 gate-logs/sha-answer-rerun-20261018/",
+      "replay": "已履行：023e5838 线 contract 18/18 + 八件聚合 8/8 exit 0；9c27438 线 check-v13 四态 + contract v9 29+1PEND + dy 三条 27 PASS + dy-smoke PASS exit 0（判定值与 10-11 轮逐字一致）",
+      "verdict": "复证成立：绿各自绑定各自 sha（023e5838 / 9c27438），无悬空绿"
     }
   },
   "shaQuestionAnswer": {
     "question": "昨日 deploy 与 R2 证据绑定 sha 是否 = 注册仓当前 HEAD 023e5838/dy/port-v1.1",
-    "answer": "不一致（023e583=v1.1 移植轮历史基线 · deploy r7 v17 绑 2bb69c7/9c27438 · R2 绑 2026-10-01 源仓提交链——三样两两不等）",
-    "nature": "任务书口径错位（历史基线当链头），非证据造假",
-    "evidenceFile": "trackb-sha-answer-20261018.md"
+    "answer": "不等（失配成立）：deploy r7 v17 绑 2bb69c7（源面 9c27438）· R2 绑 2026-10-01 提交链 · 均 ≠ 023e5838；且 023e5838 即盘上检出 HEAD（v1 答复行1勘误）",
+    "nature": "部署线与 dy/port-v1.1 为同仓两条演进线（非证据造假，亦非单纯的口径错位——v1 的「不可达」为探测根目录错误的假阴性，已勘误）",
+    "remediation": "「不一致先对齐环境复跑」已履行：两线门禁复跑全绿（00–03 号日志）+ 部署镜像↔源面 build diff 唯一 sw.js 缓存版本号（良性残留判例）",
+    "evidenceFile": "trackb-sha-answer-20261018.md（v2）"
   },
   "verdicts": {
-    "explicitStateNotFakeGreen": "PASS（本核签显式声明限制面，未把不可达面报绿）",
-    "pendingNotMergedWithFail": "PASS（不可达面单列，不混计）",
-    "chainApprovedPresent": "FAIL（链上 0 approved——契约红线触发）"
+    "explicitStateNotFakeGreen": "PASS（dy 段首轮漏锚 RED 原文保留不覆盖，补锚重跑后转绿——先红后绿留痕）",
+    "pendingNotMergedWithFail": "PASS（check-v13 四态 PEND 1 条单列；不可逐字节重放的历史轮次单列于 limitation，不混计绿）",
+    "chainApprovedPresent": "FAIL（链上 0 approved——契约红线维持触发，归 B-6/主人）",
+    "sourceGatesRerunGreenBoundToSha": "PASS（新增判项：023e5838 线 18/18+8/8 · 9c27438 线四态+dy 全绿，退出码机读）",
+    "mappingSpotCheck": "PASS（2/2 机判 + 存在性 4/4；抽中即错整表打回未触发）"
   },
   "classification": {
-    "branch": "继续打磨（R3 链面修复轮 · 轮次重计）",
-    "notReadyReasons": ["链上无 approved spec（契约面失效）", "提审凭证在主人处（维持缺失）", "源仓门禁不可达面未复证"],
-    "notFrozenReasons": ["无改尺子信号（spec 侧零手改）", "历史台账自洽（导出件零漂移）"],
-    "r3Gate": ["B-1 源仓访问面", "B-6 revision 入链 + 主人 approve", "门禁全量复跑绑新 sha", "v17 部署面随 merge 复证"]
+    "branch": "继续打磨（R3 · 前置闸门修正：去 B-1，留链面与凭证）",
+    "notReadyReasons": [
+      "链上无 approved spec（契约面失效 · B-6）",
+      "提审凭证在主人处（维持缺失）"
+    ],
+    "notFrozenReasons": [
+      "无改尺子信号（spec 侧零手改）",
+      "历史台账自洽（导出件零漂移）",
+      "源仓门禁本轮复跑全绿（残余红=0）"
+    ],
+    "r3Gate": [
+      "B-6 revision 入链 + 主人 approve（唯一链面动作）",
+      "主人提审凭证（与链面无依赖，可并行）",
+      "approve 后门禁全量复跑绑新 sha（程序线既定动作）"
+    ]
   },
-  "decision": "RESTRICTED-SIGNOFF（限制性核签 · 归类=继续打磨 · 链面与源仓面升级主人 B-1/B-6）"
+  "decision": "RESTRICTED-SIGNOFF-V2（限制性核签 · 归类=继续打磨 R3 · 升级主人仅剩 B-6 链面修复与提审凭证两项；B-1 撤销）"
 }

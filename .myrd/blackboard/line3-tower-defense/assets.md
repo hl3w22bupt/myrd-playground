@@ -1,6 +1,6 @@
 # 资产清单黑板 — line3-tower-defense（第三产品线）
 
-> 更新时间：2026-10-18（美术复证轮 2 · 重派零新做 · 全量重证绑 HEAD 6fe2c9b5）· 负责人：游戏美术（四要素/方向稿）+ 游戏程序（生成器/manifest）
+> 更新时间：2026-10-18（美术复证轮 2 · 重派零新做 · 全量重证绑 HEAD 6fe2c9b5；**同日勘误轮：verify 行补档复跑 @ `72be5f1` + 构建锚面归一回部署锚 `a27ca0e`，见全量门禁行勘误标记**）· 负责人：游戏美术（四要素/方向稿）+ 游戏程序（生成器/manifest）
 > 下一步：W-L3-2 主人过目三方向拍板（采纳方向 2/3 须走 spec revision 改 deriveRule）→ 实现轮资产逐件登记（首批 ≤13 件封顶，ac-art-2）
 > 判例：与产品线 2 风格卡**分文件**（线 2 = `.myrd/blackboard/wheat-squad/style-card-v1.md`，互不引用互不覆盖）；色值改动必须走 spec revision（沿 wheat-squad 判例）
 
@@ -87,7 +87,7 @@
 | manifest 内容级比对 | 9/9 entries 逐条 sha256 全等 manifest.json ↔ 磁盘 | node 逐条核验 |
 | 确定性零漂移 | 基线 11 文件 → 重跑 `art-manifest.mjs` + `style-sketch.mjs` → sha256 11/11 OK ∧ `git diff` 空 | 先存基线再重生成 |
 | style-sketch-audit | PASS（3 张方向稿 · 色值/光照/画布/构成/文案五面） | 独立机判器实跑 |
-| 全量门禁 verify.sh | **VERIFY: PASS（exit 0）**：统一契约 PASS · 14 auto 绿 + a3 真人面单列 PEND（未混计）· SMOKE 全链路零 console 错 · SCOPE-GUARD 25 文件零违例；构建锚 `gitSha=6fe2c9b5` = 本轮 HEAD（build 仅锚差异，绑当前 HEAD） | 本轮实跑 |
+| 全量门禁 verify.sh | ~~**VERIFY: PASS（exit 0）**：…构建锚 `gitSha=6fe2c9b5` = 本轮 HEAD（build 仅锚差异，绑当前 HEAD）~~ ⚠️ **原声明被驳回缺陷2 判为不可核销**（gate-logs 无该批次日志原文，违反「门禁证据=含退出码的日志原文」口径）→ **已补档复跑替代实证（2026-10-18 程序线）**：verify 四步全 PASS · VERIFY_EXIT=0 @ HEAD `72be5f1`（统一契约 PASS approved v2 · RUN-ALL 14/14 + a3 单列 · SMOKE 零 console 错 · SCOPE 零违例），原文 `gate-logs/art-round2-recheck-20261018/01-verify.log`；构建锚面已归一：重生成仅锚位差异（`02-build-anchor-diff.log`）后 restore 回**部署锚面 `a27ca0e`**（b81d17b 提交面 = LIVE），提交面/部署面不再漂移 | 本轮实跑（补档） |
 | spec 对账 | spec v1.0 `palette` 白名单 8 色与风格卡 v1 逐字符全等 · entities 12 id 与映射表一一对应 · `meta.approval` B6 授权在案 | design-spec.json 读回 |
 
 - 美术四机判本轮重证全绿：ac-art-1（hex 零违例）· ac-art-2（6/13 件 hash+重生成一致）· ac-art-3（PALETTE≡spec≡风格卡 8 行逐值）· ac-art-4（签名映射 8/8）· tex-1（零位图）· inv-1（12/12）。

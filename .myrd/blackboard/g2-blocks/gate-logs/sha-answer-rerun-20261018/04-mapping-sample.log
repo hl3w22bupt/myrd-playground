@@ -1,0 +1,15 @@
+# Run6 · 映射表抽验（QA 口径：随机抽 ≥2 条，抽中即错整表打回）· UTC 2026-10-18T02:46:05Z
+# 映射表: 源仓 sync/dy-v1.3 @ 9c27438511d2638e29d48ec26778eb976421c2cc assets/MAPPING.md · spec: G2_SPEC_PATH_CUR 共同输入 design-spec.json
+# 抽样法: 8 交付行按映射表行序取第 1、第 6 行（序号固定非人为挑样，可复核）
+
+PASS  抽1 palette-n1-final.json sha≡numeric.palette.sourceSha256 :: 实算=7bc2ca033ee8d7f7… spec锚=7bc2ca033ee8d7f7…
+RED   抽2 e-board-block-tiles 块id≡palette.colors[].id(七枚) :: got=[[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]] want=[block-01,block-02,block-03,block-04,block-05,block-06,block-07]
+PASS  存在性 assets/e-renderer-ui-tokens.json :: 在盘
+PASS  存在性 assets/e-renderer-backdrop.json :: 在盘
+PASS  存在性 assets/a03-sfx-plan.json :: 在盘
+PASS  存在性 assets/style-card.json :: 在盘
+MAPPING_SAMPLE_EXIT=1
+
+# 抽2 修正重跑（首轮校验脚本取形错误如实留档：顶层键为 $deliverable/$specBind/$naming/tiles，块 id 在 .tiles[].id）· UTC 2026-10-18T02:46:22Z
+PASS  抽2(修正) e-board-block-tiles tiles[].id≡palette.colors[].id(七枚) :: got=[block-01,block-02,block-03,block-04,block-05,block-06,block-07] want=[block-01,block-02,block-03,block-04,block-05,block-06,block-07]
+MAPPING_SAMPLE_EXIT_R2=0

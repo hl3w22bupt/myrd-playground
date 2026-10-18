@@ -1,0 +1,115 @@
+# Run3/4 · r7 部署线复证 @ sync/dy-v1.3 · UTC 2026-10-18T02:43:37Z
+# 仓(worktree): /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-main · HEAD: 9c27438511d2638e29d48ec26778eb976421c2cc · 工作树: 0 处改动
+# env 四锚全显式: G2_REPO_ONE_ROOT=/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvd4ps6j001bm9wlsel1lzny G2_SPEC_PATH=/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvd4ps6j001bm9wlsel1lzny/.myrd/spec/g2-blocks/design-spec-v11-approved-archive.json G2_SPEC_PATH_V4=/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvd4ps6j001bm9wlsel1lzny/.myrd/spec/g2-blocks/design-spec-v1.3-feel-draft.json G2_SPEC_V8=/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvd4ps6j001bm9wlsel1lzny/.myrd/spec/g2-blocks/design-spec-v13-batch-draft.json G2_SPEC_PATH_CUR=/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvd4ps6j001bm9wlsel1lzny/.myrd/spec/g2-blocks/design-spec.json
+== [1/4] check-v13 四态 ==
+$ node scripts/check-v13.mjs
+== Mode A (approved v1.1) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvd4ps6j001bm9wlsel1lzny/.myrd/spec/g2-blocks/design-spec-v11-approved-archive.json
+—— 合计 18 PASS / 0 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v2 approved 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准）
+== Mode B (chain v4 draft) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvd4ps6j001bm9wlsel1lzny/.myrd/spec/g2-blocks/design-spec-v1.3-feel-draft.json
+—— 合计 25 PASS / 0 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v4 draft 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准）
+== Mode C (chain v8 draft) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvd4ps6j001bm9wlsel1lzny/.myrd/spec/g2-blocks/design-spec-v13-batch-draft.json
+—— 合计 29 PASS / 0 FAIL / 1 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v8 draft 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准 · PEND 1 条显式挂起）
+== Mode D (chain v9 approved · 共同输入) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvd4ps6j001bm9wlsel1lzny/.myrd/spec/g2-blocks/design-spec.json
+—— 合计 29 PASS / 0 FAIL / 1 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v9 approved 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准 · PEND 1 条显式挂起）
+CHECK-V13: PASS（四态计数全符 · 18 / 25 / 29+1PEND / 29+1PEND）
+CHECK_V13_EXIT=0
+== [2/4] contract-check（v9 共同输入 30 条）==
+$ G2_SPEC_PATH=<v9 design-spec.json> node scripts/contract-check.mjs
+# g2-blocks contract-check · spec v9 (approved) anchor=…
+PEND ac-30-freeze-dod-gates :: 显式挂起（calibration（门槛数值待封版后真实数据校准；首轮校准 = 内测样本人工回收 + 报告交付，不改阈值不入断言面））——不入断言面，计数单列，approve/回流后随修订转正式契约件
+PASS  ac-01-board-init-seeded :: seed=20261001 64 格满员 · 类型 0..6 · 双局逐字节一致
+PASS  ac-02-spawn-uniform-random :: uniform_random 等概率（worst 偏差 1.52%）· seededRng 复现 · 内核纯净
+PASS  ac-03-swap-adjacency-only :: ≤4 向相邻判定正确 · 非相邻交换零副作用（不耗手数/不结算）
+PASS  ac-04-match-3plus :: 横/纵/四连全消 · L/T 交点去重（5 格）· 两连不消
+PASS  ac-05-gravity-refill-cascade :: 重力+补手+结算至稳态（cleared=12）· 终盘零残留 · 满员
+PASS  ac-06-combo-four-move-vector :: 四手向量 消/消/不消/消 → +0/+50/归0/+0 逐字命中
+PASS  ac-07-deadlock-cool :: 三色防换死盘/活盘判定正确 · 全穷举 224 探针 · 双判真实时点机判（判点一含空洞盘 filled=61/64，判点二满员）
+PASS  ac-08-settlement-order :: 单手真实流水 = swap → match → score → gravity → deadlock-check → refill → match → deadlock-check（判点一含空洞盘 filled=61/64，双判收尾）· v1.3 同步修订：表现层挂接零漂移 ✓（评估输入末态 filled=64 · 结算视图只读 ✓）
+PASS  ac-09-restart-full-reset :: 五元全复位 · seed 链重新起算 · 同手确定性复现
+PASS  ac-10-perf-j1 :: J1=172.5ms ≤ budgetMs=400 @ 4x throttle 390x844（标记名逐字一致）
+PASS  ac-11-theme-single-source :: 7 色键值逐字等于 spec 冻结块 · UI token 已接 · 全仓 hex+rgb/rgba 三元组逐一溯源 theme 单源（18 色）
+PASS  ac-12-palette-double-gate :: 21 对双门禁 ALL-GREEN（阈值 25 = spec 冻结值）
+PASS  ac-13-no-external-texture :: src/ + build/ + 入口零 image 加载构造 · 仓库零位图文件（纯几何渲染）
+PASS  ac-14-deterministic-kernel :: mulberry32 确定性（seed=20261001）· 双 sim 逐字节一致 · 内核零 Math.random/Date.now
+PASS  ac-15-audio-feedback :: 消除音效与反馈同帧同步发起（chain=1）· 音频缺失零阻塞
+PASS  ac-16-persistence-minimal :: 键级最小集 muted+anonId · 未知键拒绝 · 零网络调用构造
+PASS  ac-17-repo-one-zero-touch :: 一号仓库零接触自检 PASS（白名单机判，root=run-cmvd4ps6j001bm9wlsel1lzny）
+PASS  ac-18-ci-guard-repo-scope :: 仓库范围守卫 PASS（零一号路径引用，策略单源 ci/scope-policy.json）
+PASS  ac-22-feel-land-squash :: landSquash 唯一真源 · 实现表逐值全等 · frames≡换算恒等 · 落定帧触发/frames 帧复位（注入帧断言）· 锚 1720df8ec6ac…（v4 draft）
+PASS  ac-23-feel-hard-drop-shake :: hardDrop 唯一真源 · 实现表逐值全等 · 阈值触发机判 · 曲线采样 5 点复现（≤1e-9）· frames 帧归零（v4 draft）
+PASS  ac-24-feel-clear-particles :: particles 唯一真源 · 实现表逐值全等 · 期望派生机判 · 硬顶/drop-new/零超分配压力机判 · 寿命回收复用（v4 draft）
+PASS  ac-25-feel-sfx-three-tier :: 三档边界唯一真源 · 三组独立资源+变参字段（theme 单源）· 门面档位映射机判 · 同帧发起/当帧消费（注入帧断言）· 静音缺位零阻塞（v4 draft）
+PASS  ac-26-feel-combo-feedback :: combo 三档唯一真源 · 与 sfx 同边界 · UI token 映射单源 · 切换帧/保持/回落机判（注入帧断言）· 视觉态查表驱动（v4 draft）
+PASS  ac-27-feel-restart-one-click :: restart 唯一真源 · 两层口径声明在段 · 同源同路径静态机判（键盘 R+按钮单一定义）· 注入时钟全复位 ≤ budget · 转场窗口逐帧断言（v4 draft）
+PASS  ac-28-daily-hook-min-loop :: daily 种子纯函数（同日恒定/跨日必变/uint32）· 跨本地零点重置（steppedClock）· v1 存档向后兼容 fixture · streak 连续/断档/跨窗口三口径机判 · 入口完成态可查询 · 范围外零实体（v4 draft）
+PASS  ac-29-analytics-nine-events :: 9 事件双向全等（spec 表=代码镜像）· web 面 8 事件 call site 齐（main.ts 纯新增接线）· share_clicked=wx/dy 原生路由 · 锚点 once ✓
+PASS  ac-31-nearmiss-feedback :: 链 v8 nearMiss 冻结面全绿 · 频控 1/3 · 复现轨迹 8 手 · 遥测 2 事件（seed/会话/internal 字段齐）· 音效变体 t2 下行 80ms · UX 组锚 ce4562787207…
+PASS  ac-32-settlement-ia :: 链 v8 settlement 冻结面全绿 · 六槽三方一致 · 触达 ≥48px · 文案枚举 12 条逐字一致
+PASS  ac-33-submission-bundle-zero-diff :: 提审包零 diff：diff 117 路径全白名单（v10 ④ dy 声明面）· wx 提审源面零命中 · build 35 文件零内测泄漏 · internal tag 缺省关闭 · web 入口零 dy 引用
+—— 合计 29 PASS / 0 FAIL / 1 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v9 approved 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准 · PEND 1 条显式挂起）
+CONTRACT_V9_EXIT=0
+== [3/4] dy 三条聚合 ==
+$ node tests/dy/run-all-dy.mjs
+
+=== ① dy-runtime 条目查 ===
+$ node tests/dy/dy-runtime.spec.mjs
+# dy-runtime 条目查（DY 平台段轮）
+# spec: id=cmv1q9k690045m94obp29ysre v9 status=approved anchor=…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmva9tncj0020m9rsa9vxnxc4/.myrd/spec/g2-blocks/design-spec.json
+PASS  dy-r1 (dr-acc-1) 落点在盘：src/platform/dy/{dy-env,runtime,share,adapter,boot-dy}.ts 五件齐
+PASS  dy-r2 (dr-acc-2/dy-diff-01) 存储复用 T1 门面：tt storage 适配 → StorageLike 读写往返
+PASS  dy-r3 (dr-acc-2/dy-diff-01) 音频/时钟复用门面：audio 可注入可用态 + clock 可注入 fixedClock
+PASS  dy-r4 (dy-diff-02) 容器判定真值表：有 tt+createCanvas=true；无 tt=false；tt 无 createCanvas=false
+PASS  dy-r5 (dy-diff-05) 生命周期接线：attachLifecycle 注册 tt.onShow/onHide 且双态回调可达
+PASS  dy-r6 (dy-diff-06) 视口/安全区：safeArea 缺失走 adapter 默认值不抛错 + dpr 钳制 ≤2
+PASS  dy-r7 (dy-diff-07) 触摸装配面：canvas.addEventListener 已接线（fire 目标非空）+ tt.onTouchStart→pointerdown
+PASS  dy-r8 (dr-acc-2) tt.* 直调面收口：src/ 全树扫描，tt 字面只许出现在 src/platform/dy/ 内
+PASS  dy-r8b (dr-acc-2/sync-dy-v1.3) 遥测原生桥注册：adapter 装填注册 __G2_DY_SINK 且转发 tt.reportAnalytics（telemetry 零 tt 字面的消费面）
+PASS  dy-r9 (dy-diff-08 fallback) dy 包零隐私弹窗运行时：无 privacy 件 + boot-dy 零 privacy 装配
+PASS  dy-r10 (dr-acc-2) 内核纯净同口径：dy 五件零 Math.random/Date.now 直调字面（含注释）
+# 结果: PASS=11 RED=0 PENDING-APPROVE=0
+
+=== ② dy-share-kit 条目查 ===
+$ node tests/dy/dy-share.spec.mjs
+# dy-share-kit 条目查（DY 平台段轮）
+# spec: id=cmv1q9k690045m94obp29ysre v9 status=approved anchor=…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmva9tncj0020m9rsa9vxnxc4/.myrd/spec/g2-blocks/design-spec.json
+PASS  dy-s1 (ds-acc-1) 落点在盘 + shareNow 调 tt.shareAppMessage 且载荷 sid 合规
+RED  dy-s2 (ds-acc-1/dy-diff-09) 卡规格 720×1280 = 链 v6 numeric.platform.dy.shareCard（零硬编码） :: 未找到 v6 draft 导出件：请设 G2_SPEC_PATH_V6
+PASS  dy-s3 (ds-acc-2) 分享入口纯跳转：share.ts 静态 import 面零 kernel/game/generated/numeric
+PASS  dy-s4 (ds-acc-3) 降级两路：无容器=no-dy-container；通道抛错=share-failed；均不抛错
+PASS  dy-s5 (ds-acc-4/dy-diff-04) 被动通道：installPassive 注册 onShareAppMessage+showShareMenu 同卡同参
+PASS  dy-s6 (生产接线) wireSharePassive：注入时钟生成 sid（零 PII 可复现）+ 无容器静默不抛错
+# 结果: PASS=5 RED=1 PENDING-APPROVE=0
+
+=== ③ dy-submission-kit 条目查（结构门禁档） ===
+$ node tests/dy/dy-submission.spec.mjs
+# dy-submission-kit 条目查（DY 平台段轮 · 结构门禁档）
+# spec: id=cmv1q9k690045m94obp29ysre v9 status=approved anchor=…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmva9tncj0020m9rsa9vxnxc4/.myrd/spec/g2-blocks/design-spec.json
+PASS  dy-k0 (dk-acc-2 前置) 组包器在盘：tools/build-dy.mjs
+PASS  dy-k1 (dk-acc-1) game.json 在盘可解析且 deviceOrientation 合法
+PASS  dy-k2 (dk-acc-1) project.config.json 在盘：工程形态字段在位（appid 占位，正式号主人下发）
+PASS  dy-k3 (dk-acc-1) PWA 专属三件不入包：export/dy 载面零 sw.js / manifest.webmanifest / index.html
+RED  dy-k4 (dk-acc-2) 主包 ≤ numeric.platform.dy.bundleLimitBytes（逐件实测字节求和，非估算） :: {"specError":"未找到 v6 draft 导出件：请设 G2_SPEC_PATH_V6"}
+PASS  dy-k5 (dy-diff-08 fallback 反向断言) dy 包零隐私弹窗运行时：export/dy 无 privacy 件 + assets-manifest 无弹窗投影
+PASS  dy-k6 (dk-acc-1/ds-acc-1) 分享卡入包：export/dy 内 dy-share-720x1280 资产在包且 sha256 与 A-07 源件全等
+PASS  dy-k7 (dk-acc-4) 合规文案位双口径：占位文案件在包 + 材料清单双口径节在盘
+RED  dy-k8 (dk-acc-3) 材料清单 dy 段 v2 逐 id 对照行齐（dy-share-card/dy-icon/截图≥3/主人侧占位） :: {"missing":[],"minShots":false}
+PASS  dy-k9 (dk-acc-5) 合规自查表在盘：逐条「条款编号+结论+证据路径」结构 + 无团队面红项标注
+# 结果: PASS=8 RED=2 PENDING-APPROVE=0
+
+—— DY 三条目查台账：1/3 绿（红=2）——
+[PASS] ① dy-runtime 条目查
+[RED ] ② dy-share-kit 条目查
+[RED ] ③ dy-submission-kit 条目查（结构门禁档）
+DY_ALL_EXIT=1
+== [4/4] dy-smoke ==
+$ node tests/dy/dy-smoke.mjs
+[dy-smoke] RED 未找到 v6 draft 导出件：请设 G2_SPEC_PATH_V6
+DY_SMOKE_EXIT=1
