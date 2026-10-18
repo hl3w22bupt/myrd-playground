@@ -38,6 +38,8 @@
 
 **汇总：auto 14/14 PASS · 0 FAIL · manual 1 PEND（非全绿声明：a3 未判定）。统一门禁（routines 同入口）63 PASS / 0 FAIL；L3-SMOKE PASS（构建锚内嵌 gitSha=`a27ca0e` ≡ 绑定锚，specAnchor=`cmvbqgzbl0029m9ax64foxd37@v2:approved`）。**
 
+> **续接复核一行（2026-10-18 · 游戏程序 · 独立复跑 @ 当前 HEAD `1b953cd24f45d5091c9b0323b41332469ae4acda`）**：绑定锚 `a27ca0e` 之后分支前进 4 个纯 docs/构建提交（c5d0933→1b953cd，源面 src/tests 零改动），本轮在续接线端点独立实跑 `verify.sh` 四步**全 PASS · VERIFY_EXIT=0**——① 统一契约 CONTRACT: PASS（「spec 为 approved 版 · 平台登记 v2 · `cmvbqgzbl0029m9ax64foxd37`」）② RUN-ALL 机判 **14/14** 全绿 · a3 真人面单列未判定（0 红 ≠ 绿口径维持）③ L3-SMOKE PASS（打开→开始→放置→加速→结算→重开 · 构建锚=HEAD `1b953cd2` · 零 console 错误）④ SCOPE: PASS（src+tools 25 文件三判零违例）。构建面按口径以 HEAD 重建，与提交面差异**仅锚位两处**（`02-build-anchor-diff.log` 实证业务产物零差异），取证后 restore 回部署锚面（b81d17b 提交面 ⊃ a27ca0e）不制造锚位漂移。线上单次复查：部署 v1 **running**（commitHash=`b81d17b3…` · errorMessage=null）+ 资产面 `/api/public/assets/manifest.json` gitSha **≡ 绑定锚 `a27ca0e`** + index.html 200。**结论：上轮全绿结论在续接线端点成立；主人试玩入口不变（资产面 URL，见 N5 行）。证据 `gate-logs/n4-recheck-20261018-head/01-verify.log` + `02-build-anchor-diff.log`。**
+
 ### 实现决策披露（不与 spec 冲突 · 校准候选）
 
 | # | 决策 | 依据/影响 |

@@ -1,0 +1,25 @@
+# 构建面确定性核对：重生成(HEAD 1b953cd) vs 提交面(deployed 锚 a27ca0e @ b81d17b) 差异全集
+$ git diff -- games/line3-tower-defense/build/
+diff --git a/games/line3-tower-defense/build/manifest.json b/games/line3-tower-defense/build/manifest.json
+index c34e6a6..406ff3c 100644
+--- a/games/line3-tower-defense/build/manifest.json
++++ b/games/line3-tower-defense/build/manifest.json
+@@ -1,5 +1,5 @@
+ {
+-  "gitSha": "a27ca0e86b618e2bf0ca2f8621efbb1e8c78955e",
++  "gitSha": "1b953cd24f45d5091c9b0323b41332469ae4acda",
+   "specAnchor": "cmvbqgzbl0029m9ax64foxd37@v2:approved",
+   "files": [
+     "index.html",
+diff --git a/games/line3-tower-defense/build/src/main.mjs b/games/line3-tower-defense/build/src/main.mjs
+index 4610dfe..59fcc9a 100644
+--- a/games/line3-tower-defense/build/src/main.mjs
++++ b/games/line3-tower-defense/build/src/main.mjs
+@@ -1,4 +1,4 @@
+-const __L3_BUILD__ = { gitSha: "a27ca0e86b618e2bf0ca2f8621efbb1e8c78955e", specAnchor: "cmvbqgzbl0029m9ax64foxd37@v2:approved" };
++const __L3_BUILD__ = { gitSha: "1b953cd24f45d5091c9b0323b41332469ae4acda", specAnchor: "cmvbqgzbl0029m9ax64foxd37@v2:approved" };
+ // main — 启动入口（AppHost web 面可玩装配）：canvas 全屏等比 + fixed-step 主循环 + 指针接线
+ // 构建注入 __L3_BUILD__（gitSha/specAnchor）→ LIVE 三点对账锚（wheat-squad __G2WS_BUILD 判例同构）
+ // 渲染零裸 hex：底色亦走 PALETTE token（ac-art-1/ac-art-3 单源口径）。
+
+# 结论：差异仅 __L3_BUILD__/manifest gitSha 两处锚位，业务产物零差异（确定性构建）
