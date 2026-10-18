@@ -106,7 +106,7 @@ export GODOT_BIN=/path/to/Godot
    不要凭空发挥设计。
 2. **落点与命名跟 spec 走**：`entities[].script/scene`、`levels[].scene`、`acceptance[].check`
    声明的相对路径必须真实建出；实体/关卡/元素 id 用 spec 里的编号（`l1/e3` 这类），不要私改 ——
-   契约测试（`node scripts/contract-check.mjs`，routine id `game-contract`）会逐个断言。
+   契约测试（`node std-skills/godot-game-dev/scripts/contract-check.mjs`，routine id `game-contract`）会逐个断言。
 3. **数值只认 `spec.numeric`**：速度/血量/得分等调参字段集中在 `autoload/game_state.gd`（或同级）
    并与 spec.numeric 键名对应；改数值 = 改 spec（修订产生新版本）→ 同步代码，禁止两头各改各的。
 4. **修改产生新版本**：改策划案走 `POST /api/v1/game-design-specs/:id/revisions`（version+1，
@@ -208,13 +208,12 @@ export GODOT_BIN=/path/to/Godot
    但精灵零移动）。只消费单次事件的离散动作（走 `_unhandled_input` 分发）不受此限。
    **禁止**游戏逻辑脚本（player/敌人/关卡）直接监听 `InputEventScreenTouch/Drag`
    —— 那会造出第二套平行的输入路径，冒烟测试拦不住。
-2. **触摸 UI 独立成 CanvasLayer**（layer 高于游戏与 HUD），可见性判定必须 **fail-open**
-   （模板 `_touch_ui_should_show`）：Web 下**不经过引擎** `is_touchscreen_available()`
-   —— 该调用在 web 实测不可靠（注入 ontouchstart 仍返回 false，game-8 线上真机两连例：
-   摇杆不显示、整局不可玩）——直接问浏览器三信号（`ontouchstart` /
-   `navigator.maxTouchPoints > 0` / `matchMedia('(pointer: coarse)')`），任一为真即显示，
-   eval 受限同样显示；非 Web 用引擎判定。**禁止任何形式的 fail-closed 隐藏逻辑**：
-   漏显桌面只是多个控件，误隐真机是整局不可玩。
+2. **触摸 UI 独立成 CanvasLayer**（layer 高于游戏与 HUD）。可见性判定（模板
+   `_touch_ui_should_show`）：**Web 一律显示**；非 Web 用引擎
+   `is_touchscreen_available()`。教训链（game-8 线上真机 v5→v5.4）：coarse 一票否决、
+   引擎 web 判定失真、浏览器三信号、视口宽度兜底——**每一种检测都有真实设备上的
+   假阴性案例**，任何 fail-closed 隐藏逻辑最终都会把某台真机的摇杆藏掉（整局不可玩）；
+   漏显桌面只是多个控件，方向必须 fail-open 到底。
 3. **摇杆用 `_unhandled_input` 跟踪触点，不用 `_gui_input`**：拖动事件在手指滑出控件
    矩形后必须继续接收，`_gui_input` 只在指针位于控件内时投递，会丢拖动轨迹。
    初始按下必须落在摇杆矩形内才接管该触点（`touch_index` 跟踪，第二根手指不抢控）。

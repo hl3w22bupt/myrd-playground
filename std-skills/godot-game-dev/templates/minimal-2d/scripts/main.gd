@@ -30,21 +30,18 @@ func _ready() -> void:
 		add_child(TuningPanel.new())
 
 
-## 触屏 UI 显示判定：Web 下**不经过引擎**，直接问浏览器三信号
-## （ontouchstart / maxTouchPoints>0 / pointer:coarse），任一为真即显示；eval 受限
-## 或异常按有触摸处理（fail-open）。非 Web（桌面/无头）用引擎判定。
+## 触屏 UI 显示判定（v5.4）：Web 一律显示；非 Web 用引擎判定。
 ## ⚠️ 教训链（game-8 v5→v5.1→v5.2 线上三连例）：
 ##   - v5 用 matchMedia('coarse') 一票否决 → 真机摇杆被藏（fail-closed 致整局不可玩）；
 ##   - v5.1 改 fail-open 但仍以引擎 is_touchscreen_available() 为第一道门 → 该调用在
 ##     web 实测不可靠（注入 ontouchstart 仍返回 false），真机照样不显示；
 ##   - v5.2 Web 完全绕开引擎直接问浏览器，真机/平板/触屏笔本显示，纯桌面隐藏。
 func _touch_ui_should_show() -> bool:
+	# v5.4 口径：Web 一律显示。教训链 v5→v5.4（线上真机）：任何触摸检测
+	# （引擎/浏览器三信号/视口宽度）都出现过假阴性，隐藏摇杆 = 移动端整局不可玩；
+	# 桌面多两个控件只是视觉冗余。非 Web（桌面/无头）用引擎判定。
 	if OS.has_feature("web"):
-		var touch_capable: Variant = JavaScriptBridge.eval(
-			"(function(){try{return 'ontouchstart' in window || navigator.maxTouchPoints > 0"
-			+ " || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)}"
-			+ "catch(e){return true}})()", true)
-		return touch_capable != false
+		return true
 	return DisplayServer.is_touchscreen_available()
 
 

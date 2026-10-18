@@ -268,6 +268,15 @@ func _assert_joystick_moved() -> void:
 				JOY_FRAMES, travelled, MIN_MOVE_DISTANCE,
 			]
 		)
+	# 方向断言（「能跑」≠「方向对」）：右拖必须 dx>0 且 |dy|≤|dx|。
+	# 实例（game-8 线上 v5.4）：四方向连发 parse_input_event 只剩最后注入的 move_down
+	# 存活（真机只能向下走）；位移断言不分方向时全绿放行。
+	var dx: float = _player.global_position.x - _joy_origin.x
+	var dy: float = _player.global_position.y - _joy_origin.y
+	if dx <= 0.0 or absf(dy) > absf(dx):
+		_failures.append(
+			"摇杆方向：右拖后位移错误 dx=%.2f dy=%.2f（应 dx>0 且 |dy|≤|dx|）—— 检查动作注入方式与 MOVE_ACTIONS 分解符号" % [dx, dy]
+		)
 
 
 ## 键位契约断言：目标键表 → project.godot [input] 的 physical_keycode。
