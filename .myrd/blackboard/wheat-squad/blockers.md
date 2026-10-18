@@ -19,6 +19,17 @@
 - **F1FIX 复签闭环**：上轮三项待复签（①链证据失真修正 ②未触 src ③全模拟局口径）本轮 QA 复签全部通过（`a2-verdict-20261017.json` carryOverResign）。
 - 历史区段（R1 轮及更早）原样保留于下方，不覆盖不删改。
 
+### 部署轮 v25（游戏程序 · 2026-10-18T03:17-03:28Z · 部署节点——当前成果复证发布）
+
+- **定性**：部署节点——把当前 HEAD 成果发布到专属坑，**零新玩法零设计变更**；源面自 `9945257` 起零漂移（`git diff 9945257..HEAD -- src tests tools ci package.json verify.sh .myrd/spec/wheat-squad/` = 空），增量 = 门禁复证 + 构建锚重绑。
+- **硬前置三条**：①分支 `game/wheat-squad`（非 main）✓ ②分支已推远端（部署前基线 `fa776de`；部署后发布提交 `54a1a48` 经 `ls-remote` 服务器实况 = 本地 HEAD；本地跟踪引用过期因 fetch refspec 仅配 main，判例沿用）✓ ③专属清单 `games/wheat-squad/apphost.toml` 在位（assets_dir=games/wheat-squad/build）✓。
+- **门禁**：verify.sh 五步 @ HEAD `fa776de` → **`VERIFY_EXIT=0`**（统契约 + 自有套件 + WS-SMOKE victory 167s console 零错误 + 双 SCOPE-GUARD）。
+- **确定性重建**：build/ 11 文件，specAnchor=链 v6 `cmv8xcexk0009m9dj6ev1dj0r@v6:approved` 不变；与 HEAD 树 diff **仅 main.mjs 锚自指单行**（`9945257`→`fa776de`，逻辑字节全等）。**披露**：构建锚 = `fa776de`（门禁与产物内嵌依据），发布提交 = `54a1a48`（相对锚仅增量锚行 + 证据文件，源面零变更）。
+- **部署**：v25 `cmvd9a0tz0032m9wlhr291cyw` **running/current @ commitHash `54a1a48`**（durationMs 824 · errorMessage=null · gitRef=`game/wheat-squad` · manifestPath=games/wheat-squad/apphost.toml · sourceId=wheat-squad 防挤占校验过）——POST **504 空体截断（判例三现）**→ GET 复查已受理，未盲重发。
+- **线上自测全绿**：①/health 200（**披露**：响应体为共享壳 `server/src/index.ts` 硬编码常量 `game-9/汽车连连看`，系壳固有行为非坑身份标识；坑身份以下两条字节对账为准）②/gw 200 md5 `724c04b0` ≡ 仓内 build/landing.html 逐字节 ③`api/public/assets/main.mjs` 200 md5 `1b47dab3` ≡ 仓内 build/main.mjs 逐字节（v24 为 `53eaebce` → **v25 新字节上线实证**）④内嵌 `__G2WS_BUILD.gitSha=fa776de` ≡ 门禁绑定 HEAD 逐字符 ⑤WS-LIVE-SMOKE PASS（线上 ready → 拖动击杀 2 → victory 167s → console 零错误）。
+- **团队产物区**：artifact `cmv3bfs3c002lm9mx7pw3e31a` → hostedAppId `cmv36wl94001xm9mxp119q48x`（wheat-squad-2）POST HTTP=201 status=ready（幂等复用）。试玩入口 `https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw`。
+- **升级项维持**：W-NEW-1 治理面 + A3 待真人 0/5 不变（见下）。证据 `games/wheat-squad/gate-logs/deploy-v25-20261018/00..06`；**结论仅对发布提交 `54a1a48`（构建锚 `fa776de`）有效**。
+
 ### 部署轮 v24（游戏程序 · 2026-10-17T03:12-03:20Z · 双轨任务书重发复证 + 部署节点）
 
 - **定性**：任务书重发勘验——两轨收口声明独立复证成立，**零重做零新玩法**；本轮增量 = 复证取证 + gitRef 重绑复证发布。

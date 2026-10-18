@@ -1,0 +1,14 @@
+== 2026-10-18T03:23:31Z LIVE 三点复测（v25 running）· 正确路径形态 ==
+--- /health:
+health HTTP=200
+{"ok":true,"app":"game-9","title":"汽车连连看","env":"development","assets":"lazy/object-storage"}
+--- /gw (页面):
+gw HTTP=200 size=530
+live /gw md5: 724c04b0f43227420c1283817977a22a
+repo landing.html md5: 724c04b0f43227420c1283817977a22a
+--- /api/public/assets/main.mjs:
+main.mjs HTTP=200 size=24716
+live main.mjs md5: 1b47dab317fc62df24dbd7e7c17c9db7
+repo main.mjs md5: 1b47dab317fc62df24dbd7e7c17c9db7
+--- 内嵌构建锚:
+__G2WS_BUILD = {"gitSha":"fa776def20ce91a6312af6c5bddcd8401106084c","specAnchor":"cmv8xcexk0009m9dj6ev1dj0r@v6:approved"}

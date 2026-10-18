@@ -1,0 +1,15 @@
+== 2026-10-18T03:22:41Z LIVE selftest v25 ==
+--- /health:
+HTTP=200
+{"ok":true,"app":"game-9","title":"汽车连连看","env":"development","assets":"lazy/object-storage"}
+--- / (landing):
+HTTP=308
+live landing md5: 61038d3c3d2c1ae2e6244fc2fac1ce78
+repo landing md5: 724c04b0f43227420c1283817977a22a
+--- /gw/index.html:
+HTTP=404
+--- /gw/main.mjs:
+HTTP=404
+live main.mjs md5: 1e6cd917ed71a1241e4bedc29264bd98
+repo main.mjs md5: 1b47dab317fc62df24dbd7e7c17c9db7
+--- embedded build anchor:
