@@ -3,6 +3,8 @@
   "specAnchor": "cmvbqgzbl0029m9ax64foxd37@v2:approved",
   "files": [
     "index.html",
+    "landing.html",
+    "manifest.json",
     "spec.json",
     "src/entities/enemy.mjs",
     "src/entities/projectile.mjs",
