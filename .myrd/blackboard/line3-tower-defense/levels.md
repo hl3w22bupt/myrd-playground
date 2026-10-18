@@ -7,8 +7,8 @@
 
 | 节点 | 负责人 | 状态 | 产物落点 |
 |---|---|---|---|
-| N1 骨架（复核+pending 样例） | 游戏程序 | ⏳ 进行中 | 骨架与 spec 声明路径对账 + run-all pending 样例 → `gate-logs/n4-impl-20261018/00-pending-sample.log` |
-| N2 预核（四看标准） | 游戏 QA | ⏳ 待 N1 | pending 样例四看预核回话 → 本表追加行 |
+| N1 骨架（复核+pending 样例） | 游戏程序 | ✅ 完成 | 12/12 entities 落点在盘 + inventory 12 行对上（路径口径差=工程相对 vs 仓根相对，检查器归一化）+ 14 check 文件在盘 + pending 样例 `gate-logs/n4-impl-20261018/00-pending-sample.log`（run-all exit=1 显式非假绿）@ 锚 `0870263b` |
+| N2 预核（四看标准） | 游戏 QA | ✅ **放行 N4** | 四看全 PASS（显式非假绿/pending-fail 分账 14+1/编号全等 14/命令可核销 14）+ 1 口径登记项（inventory 归一化）→ `gate-logs/n4-impl-20261018/01-qa-n2-precheck.md`（QA-L3-N2-PRECHECK-20261018-01） |
 | N3 素材（三合一包→风格卡→映射表） | 游戏策划→美术 | ⏳ 进行中 | tri-pack-v1 ✓ + 风格卡 v1 ✓ + **entities id→文件名映射表（本轮补齐）** |
 | N4 闭环（核心循环+14 check 转真） | 游戏程序 | ⏳ 待 N2/N3 | 判据→测试文件→结果映射表 + 绑 HEAD 原始输出 → `gate-logs/n4-impl-20261018/` |
 | N5 互查+部署 | 游戏 QA → AppHost | ⏳ 待 N4 | 三件套核签 JSON + 部署 LIVE + LIVE smoke |
