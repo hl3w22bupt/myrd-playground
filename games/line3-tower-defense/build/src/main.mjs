@@ -1,4 +1,4 @@
-const __L3_BUILD__ = { gitSha: "a2c3046cfc3fb6df853f586f64a15be50202d146", specAnchor: "cmvbqgzbl0029m9ax64foxd37@v2:approved" };
+const __L3_BUILD__ = { gitSha: "a27ca0e86b618e2bf0ca2f8621efbb1e8c78955e", specAnchor: "cmvbqgzbl0029m9ax64foxd37@v2:approved" };
 // main — 启动入口（AppHost web 面可玩装配）：canvas 全屏等比 + fixed-step 主循环 + 指针接线
 // 构建注入 __L3_BUILD__（gitSha/specAnchor）→ LIVE 三点对账锚（wheat-squad __G2WS_BUILD 判例同构）
 // 渲染零裸 hex：底色亦走 PALETTE token（ac-art-1/ac-art-3 单源口径）。
