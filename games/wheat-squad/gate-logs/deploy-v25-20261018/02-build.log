@@ -1,0 +1,4 @@
+BUILD FINGERPRINT: gitSha=fa776def20ce91a6312af6c5bddcd8401106084c specAnchor=cmv8xcexk0009m9dj6ev1dj0r@v6:approved
+BUILD OK: build/ 11 文件（spec 内联 + src 镜像 + index + landing）
+(node:35198) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
