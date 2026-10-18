@@ -1,7 +1,27 @@
 # 关卡状态黑板 — line3-tower-defense（单场景塔防 · 第三产品线）
 
-> 更新时间：2026-10-17（双轨轮 · B 轨：spec v1 六件套起草至 approve）· 负责人：主策划（整合）/ 游戏策划（spec）/ 游戏程序（骨架）/ 游戏美术（风格卡）/ 游戏 QA（预审）
-> 下一步：B2 六件套 → 三合一包 → B4 风格卡 v1 → B5 QA 预审 → B6 主策划 approve
+> 更新时间：2026-10-18（**实现轮 · A 轨 N1–N5**）· 负责人：主策划（整合）/ 游戏程序（N4）/ 游戏美术（N3）/ 游戏 QA（N2/N5）
+> 下一步：N4 实现轮转真 → 门禁全绿绑 HEAD → N5 互查+部署 → 主人试玩（A4 主观层唯一判官）
+
+## 实现轮节点状态（2026-10-18 · A 轨五节点）
+
+| 节点 | 负责人 | 状态 | 产物落点 |
+|---|---|---|---|
+| N1 骨架（复核+pending 样例） | 游戏程序 | ⏳ 进行中 | 骨架与 spec 声明路径对账 + run-all pending 样例 → `gate-logs/n4-impl-20261018/00-pending-sample.log` |
+| N2 预核（四看标准） | 游戏 QA | ⏳ 待 N1 | pending 样例四看预核回话 → 本表追加行 |
+| N3 素材（三合一包→风格卡→映射表） | 游戏策划→美术 | ⏳ 进行中 | tri-pack-v1 ✓ + 风格卡 v1 ✓ + **entities id→文件名映射表（本轮补齐）** |
+| N4 闭环（核心循环+14 check 转真） | 游戏程序 | ⏳ 待 N2/N3 | 判据→测试文件→结果映射表 + 绑 HEAD 原始输出 → `gate-logs/n4-impl-20261018/` |
+| N5 互查+部署 | 游戏 QA → AppHost | ⏳ 待 N4 | 三件套核签 JSON + 部署 LIVE + LIVE smoke |
+
+## 判据 → 测试文件 → 结果（N4 交付面 · 逐行填写，QA 互查输入）
+
+> 口径：0 红 ≠ 绿（pending 单列）；全绿仅对「绑定 sha」有效；a3 真人面机器不代采。
+
+| 判据 id | 测试文件 | 结果 | 备注 |
+|---|---|---|---|
+| （N4 填写） | | | |
+
+## 关卡结构（v1.0 口径 · 维持）
 
 **B 轨程序线复核一行**（2026-10-17 · 游戏程序 · 独立实查 @ HEAD `476090c`）：**B3 三件与 B6 approve 复核成立**——① 图谱：`.code-review-graph/graph.db` 实查含 **line3-tower-defense 节点 45 个**（File/Class/Function 入图，full build @ `0ac1fcf`，build_state=complete）；口径披露：库内实查 File=667/节点总数=6135，与 B3 行构建时点 stdout 口径「669 文件/6385 节点」存在小幅出入（统计口径差，注册事实不受影响，如实登记）；② `docs/inventory.md` 24 文件逐条一句职责在盘 ✓；③ 埋点桩 `src/telemetry/emitter.ts` + `fnd-1-td-telemetry-fieldnames.mjs` 在盘 ✓，且 0ac1fcf 时点 src 16 文件共 **105 行纯占位常量 fail-closed**（`git show 0ac1fcf --stat` 实证）——「approve 前零玩法」合规 ✓；④ B6：`gate-logs/b6-six-criteria.md` 六判据全 PASS + approve 动作 POST 200（01:44:41Z）+ 链上 v2 `cmvbqgzbl0029m9ax64foxd37` approved 在档 ✓。
 
