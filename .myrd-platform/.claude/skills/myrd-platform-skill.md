@@ -244,6 +244,17 @@ curl -X POST -H "Authorization: Bearer <token>" http://localhost:3111/api/v1/aut
 | POST | `/api/v1/workflows/runs/:runId/iterate` | 迭代运行 |
 | POST | `/api/v1/workflows/runs/:runId/stop-loop` | 停止循环 |
 
+**入参约束（确定性拒绝，非偶发）**：`POST /workflows/:id/run` 的入参文本（如
+`gameDecisions` 任务书）经 bash 替换通道注入节点命令，**含 `#` 等 shell 元字符会被
+确定性拒绝**（实例：game-8「牛牛打游戏」v3 迭代 run_workflow 连续 3 次 failed，主通道
+scaffold→implement→deploy→playtest 无法承载含 `#` 的任务书）。规避方式：
+
+1. 任务书避免 `#` 字符：版本号 `v#` 写作 `v3` / `第 3 版`；颜色 `#RRGGBB` 写作
+   `RRGGBB`（十六进制）或颜色名；注释语义改用「注：」。
+2. 无法改写时降级 `assign_agent` 自由文本下发（不经 bash 替换通道）。
+3. 根治需平台侧改造：入参透传不经 bash 替换，或对 `#` 做转义白名单（待平台排期，
+   本仓库不含 run_workflow 实现，无法在工作区内修复）。
+
 ### 5.8 探索
 
 | 方法 | 路径 | 说明 |
