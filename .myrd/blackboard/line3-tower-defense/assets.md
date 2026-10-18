@@ -1,6 +1,6 @@
 # 资产清单黑板 — line3-tower-defense（第三产品线）
 
-> 更新时间：2026-10-17（美术复证轮 · 方向稿缺陷修复 + 独立零漂移实证）· 负责人：游戏美术（四要素/方向稿）+ 游戏程序（生成器/manifest）
+> 更新时间：2026-10-18（美术复证轮 2 · 重派零新做 · 全量重证绑 HEAD 6fe2c9b5）· 负责人：游戏美术（四要素/方向稿）+ 游戏程序（生成器/manifest）
 > 下一步：W-L3-2 主人过目三方向拍板（采纳方向 2/3 须走 spec revision 改 deriveRule）→ 实现轮资产逐件登记（首批 ≤13 件封顶，ac-art-2）
 > 判例：与产品线 2 风格卡**分文件**（线 2 = `.myrd/blackboard/wheat-squad/style-card-v1.md`，互不引用互不覆盖）；色值改动必须走 spec revision（沿 wheat-squad 判例）
 
@@ -76,6 +76,23 @@
 
 - **候选纪律**：方向 2/3 的炮塔混合比（0.1/0.3/0.5、0/0.15/0.35）≠ spec `numeric.palette.deriveRule` 冻结值（0/20/40%）。主人（W-L3-2）若采纳方向 2/3，**必须先走 spec revision 改 deriveRule**，实现层严禁直接采用（ac-art-1 派生规则声明面）。
 - **复证轮修复登记**（2026-10-17，证据 `gate-logs/art-sketch-fix-20261017/`）：①Lv3 炮塔出画（cx=688>640）→ 布点 128+176i 画内化；②mix() 小写 hex → 大写规范化（Lv1 基色与白名单逐字符全等）；③token 单源自校验 fail-closed 化。跨线认领：生成器名义共管归程序，美术以视觉合规面直接修、palette 零触碰，**待程序线复签**。
+
+## 复证轮登记（2026-10-18 · 美术 · 任务书同文重派 → 零新做全量重证）
+
+> 现场增量核对：上轮 a623230 后仅 `.myrd-platform/.claude/skills/SKILLS.md` 一行平台自动提交，无他线新事实、无契约层改动 → 按重派协议**复证而非重做**，素材/风格卡/生成器零触碰：
+
+| 项 | 结果 | 取证方式 |
+|---|---|---|
+| manifest sha256 独立实算 | game-art 6/6 + style-sketch 3/3 与黑板登记前 8 位全等 | `sha256sum` 实机独立比对 |
+| manifest 内容级比对 | 9/9 entries 逐条 sha256 全等 manifest.json ↔ 磁盘 | node 逐条核验 |
+| 确定性零漂移 | 基线 11 文件 → 重跑 `art-manifest.mjs` + `style-sketch.mjs` → sha256 11/11 OK ∧ `git diff` 空 | 先存基线再重生成 |
+| style-sketch-audit | PASS（3 张方向稿 · 色值/光照/画布/构成/文案五面） | 独立机判器实跑 |
+| 全量门禁 verify.sh | **VERIFY: PASS（exit 0）**：统一契约 PASS · 14 auto 绿 + a3 真人面单列 PEND（未混计）· SMOKE 全链路零 console 错 · SCOPE-GUARD 25 文件零违例；构建锚 `gitSha=6fe2c9b5` = 本轮 HEAD（build 仅锚差异，绑当前 HEAD） | 本轮实跑 |
+| spec 对账 | spec v1.0 `palette` 白名单 8 色与风格卡 v1 逐字符全等 · entities 12 id 与映射表一一对应 · `meta.approval` B6 授权在案 | design-spec.json 读回 |
+
+- 美术四机判本轮重证全绿：ac-art-1（hex 零违例）· ac-art-2（6/13 件 hash+重生成一致）· ac-art-3（PALETTE≡spec≡风格卡 8 行逐值）· ac-art-4（签名映射 8/8）· tex-1（零位图）· inv-1（12/12）。
+- 轨道 B 美术侧：线 2 归类「继续打磨 R3」已按零接触纪律落账（`g2-blocks/trackb-sha-answer-20261018.md` 随件动作），无新增素材动作、缺口清单维持。
+- 风格卡 v1 不动（冻结面，主人无新方向）；首批资产维持 6/13 不扩表（宁缺毋滥）；W-L3-2 主人拍板三方向仍为下一步唯一美术侧闸门。
 
 ## 资产清单（首批实现资产 · 2026-10-18 N3/N4 落账 · 6/13 件）
 
