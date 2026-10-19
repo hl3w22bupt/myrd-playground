@@ -8,7 +8,7 @@
     "mobile": true,
     "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
   },
-  "checkedAt": "2026-10-19T01:12:34.224Z",
+  "checkedAt": "2026-10-19T01:14:56.285Z",
   "checks": [
     {
       "id": "network",
@@ -26,7 +26,7 @@
       "id": "render",
       "label": "首屏截图非纯色（400 点采样 ≥2 种量化色）",
       "status": "pass",
-      "detail": "采样仅 11 种颜色——页面没渲染出来（白屏/黑屏）"
+      "detail": "采样仅 12 种颜色——页面没渲染出来（白屏/黑屏）"
     },
     {
       "id": "content",
@@ -54,7 +54,7 @@
     }
   ],
   "metrics": {
-    "colorCount": 11,
+    "colorCount": 12,
     "tapDiff": 0,
     "textLength": 638,
     "hasContentElement": true,
