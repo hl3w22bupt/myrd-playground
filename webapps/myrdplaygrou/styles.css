@@ -42,7 +42,8 @@ body {
 
 /* ---------- 页头 ---------- */
 .page-head { display: flex; flex-direction: column; gap: 10px; }
-.brand { display: flex; align-items: center; gap: 12px; }
+.brand-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .brand-mark {
   width: 44px; height: 44px; flex: none;
   display: grid; place-items: center;
@@ -51,7 +52,28 @@ body {
   border-radius: 12px;
 }
 .page-head h1 { font-size: 24px; font-weight: 700; letter-spacing: 0.5px; }
-.page-sub { font-size: 13px; color: var(--ink-soft); }
+.page-sub { font-size: 13px; color: var(--ink-soft); line-height: 1.6; }
+
+/* 手动刷新按钮：命中区 ≥44px，三态齐全，加载态旋转反馈 */
+.refresh-btn {
+  flex: none;
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 44px; padding: 0 16px;
+  font: inherit; font-size: 14px; font-weight: 600;
+  color: var(--primary-strong);
+  background: var(--primary-soft);
+  border: none; border-radius: var(--radius-ctl);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, opacity 0.15s;
+}
+.refresh-btn:hover { background: #b5f0e4; }
+.refresh-btn:active { transform: scale(0.95); background: var(--primary); color: #fff; }
+.refresh-btn:disabled { opacity: 0.65; cursor: default; transform: none; }
+.refresh-btn.is-loading svg { animation: fx-spin 0.9s linear infinite; }
+@keyframes fx-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .refresh-btn.is-loading svg { animation: none; }
+}
 
 .stale-banner {
   font-size: 14px; color: var(--warn);

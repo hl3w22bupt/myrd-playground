@@ -19,8 +19,20 @@ const CURRENCIES = [
 
 const LS_KEYS = {
   prefs: "fx-prefs-v1",       // {from,to,amount}
-  latest: "fx-latest-v1",     // {base,rates,fetchedAt,date}
+  latest: "fx-latest-v1",     // {base,rates,date,fetchedAt,source}（fetchedAt 参与过期判定）
   trend: "fx-trend-v1",       // {base,quote,range,data:{dates,rates},fetchedAt}
+};
+
+/* ---------- 数据鲜度策略（需求 cmveivn9n：更新逻辑放在前端） ---------- */
+const FRESH_TTL_MS = 30 * 60 * 1000;    // 缓存有效期 30 分钟，过期后必须重新拉取
+const AUTO_REFRESH_MS = 30 * 60 * 1000; // 停留期定时刷新周期（与过期时长一致）
+const FETCH_TIMEOUT_MS = 8000;
+
+// 内置种子快照（USD 基准）：仅当「网络不可用 且 本地缓存缺失」时兜底展示，界面必须显著标注快照日期
+const SEED_SNAPSHOT = {
+  base: "USD",
+  seedDate: "2026-10-10",
+  rates: { USD: 1, CNY: 7.11, EUR: 0.858, JPY: 151.8, GBP: 0.742, HKD: 7.78, KRW: 1398, SGD: 1.285 },
 };
 
 const state = {
@@ -42,6 +54,18 @@ const cacheGet = (key) => {
 const cacheSet = (key, val) => {
   try { localStorage.setItem(key, JSON.stringify(val)); } catch { /* 隐私模式等，忽略 */ }
 };
+
+/** 缓存过期判定：带时间戳的记录超过 TTL 即视为过期（禁止「缓存永不过期」） */
+function isExpired(fetchedAt) {
+  return !Number.isFinite(fetchedAt) || Date.now() - fetchedAt > FRESH_TTL_MS;
+}
+
+/** 带超时的 fetch：AbortController + setTimeout，兼容不支持 AbortSignal.timeout 的旧 WebView */
+function fetchWithTimeout(url) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
+  return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(timer));
+}
 
 /** 以 base 为基准把任意币种换算为另一币种（rates[base] 均存在时使用交叉汇率） */
 export function convert(rates, base, amount, quote) {
@@ -88,9 +112,10 @@ function renderConvert() {
     els.resultRate.textContent = state.latest ? "请输入有效金额" : "汇率数据尚未就绪";
     return;
   }
-  const { rates, base } = state.latest;
-  const out = convert(rates, base, amount, state.to) ?? convert(rates, state.from, amount, state.to);
-  const unit = convert(rates, base, 1, state.to) ?? convert(rates, state.from, 1, state.to);
+  const { rates } = state.latest;
+  // 金额始终以「源币种」计：缓存/种子的 rates 基准可能与当前源币种不同，必须按 state.from 交叉换算
+  const out = convert(rates, state.from, amount, state.to);
+  const unit = convert(rates, state.from, 1, state.to);
   els.resultValue.textContent = fmtMoney(out, state.to);
   els.resultRate.textContent =
     `1 ${state.from} ≈ ${fmtNum(unit)} ${state.to} · ${fmtNum(amount)} ${state.from} 兑换所得`;
@@ -114,15 +139,48 @@ function renderRateTable() {
   }
 }
 
-/* ---------- 渲染：数据新鲜度 / 滞后提示 ---------- */
+/* ---------- 渲染：数据溯源（数据源 API · 数据日期 · 最后更新）与滞后提示 ---------- */
+const pad2 = (n) => String(n).padStart(2, "0");
+const fmtMin = (ts) => {
+  const d = new Date(ts);
+  return `${d.getMonth() + 1}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+};
+/** 数据日期：优先展示汇率数据自身的日期（er-api 的 time_last_update_utc），无则退回获取时刻 */
+function fmtDataDate(dateStr, ts) {
+  const t = Date.parse(dateStr);
+  if (Number.isFinite(t)) {
+    const d = new Date(t);
+    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  }
+  return fmtMin(ts);
+}
+
 function renderFreshness() {
   const l = state.latest;
-  if (!l) { els.dataFreshness.textContent = "汇率数据不可用"; return; }
-  const t = new Date(l.fetchedAt);
-  const src = l.stale ? "本地缓存" : "实时获取";
-  els.dataFreshness.textContent =
-    `数据来源：${src} · 更新于 ${t.toLocaleString("zh-CN", { hour12: false })}`;
-  els.staleBanner.hidden = !l.stale && !(state.trend && state.trend.stale);
+  if (!l) { els.dataFreshness.textContent = "汇率数据不可用"; els.staleBanner.hidden = true; return; }
+
+  // 溯源行：数据源（API 名称）+ 数据日期 + 最后更新时间（精确到分钟）+ 下次自动刷新时刻
+  const parts = [
+    `数据源 ${l.source}`,
+    `数据日期 ${fmtDataDate(l.date, l.fetchedAt)}`,
+    `最后更新 ${fmtMin(l.fetchedAt)}`,
+  ];
+  if (!l.stale) parts.push(`将于 ${fmtMin(l.fetchedAt + FRESH_TTL_MS)} 自动刷新`);
+  els.dataFreshness.textContent = parts.join(" · ");
+
+  // 滞后提示：按兜底来源给出具体原因 + 数据日期
+  if (l.seed) {
+    els.staleBanner.textContent = `⚠ 网络不可用且无本地缓存，当前展示内置种子数据（快照 ${fmtDataDate(l.date, l.fetchedAt)}），汇率可能严重滞后`;
+    els.staleBanner.hidden = false;
+  } else if (l.stale) {
+    els.staleBanner.textContent = `⚠ 实时汇率获取失败，当前展示本地缓存（数据日期 ${fmtDataDate(l.date, l.fetchedAt)}），数据可能滞后`;
+    els.staleBanner.hidden = false;
+  } else if (state.trend && state.trend.stale) {
+    els.staleBanner.textContent = "⚠ 趋势数据获取失败，当前展示历史缓存走势";
+    els.staleBanner.hidden = false;
+  } else {
+    els.staleBanner.hidden = true;
+  }
 }
 
 /* ---------- 趋势：SVG 折线图 ---------- */
@@ -190,25 +248,45 @@ function renderTrend() {
   els.trendChange.className = `trend-change ${up ? "up" : "down"}`;
 }
 
-/* ---------- 数据获取（含缓存降级） ---------- */
-async function fetchLatest() {
+/* ---------- 数据获取（TTL 过期判定 + 缓存→种子兜底链） ---------- */
+async function fetchLatest({ force = false } = {}) {
   const key = LS_KEYS.latest;
+  const cached = cacheGet(key);
+
+  // 缓存未过期：直接复用，不发起请求（30 分钟窗口内不重复请求）；force（手动刷新/定时刷新）跳过此短路
+  if (!force && cached && !isExpired(cached.fetchedAt)) {
+    state.latest = { ...cached, stale: false };
+    return;
+  }
+
   try {
-    const res = await fetch(`https://open.er-api.com/v6/latest/${state.from}`, { signal: AbortSignal.timeout(8000) });
+    const res = await fetchWithTimeout(`https://open.er-api.com/v6/latest/${state.from}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const j = await res.json();
     if (!j.rates || !j.rates[state.to]) throw new Error("rates missing");
-    const rec = { base: state.from, rates: j.rates, date: j.time_last_update_utc || "", fetchedAt: Date.now(), stale: false };
-    state.latest = rec;
-    cacheSet(key, rec);
+    const rec = {
+      base: state.from,
+      rates: j.rates,
+      date: j.time_last_update_utc || "",
+      fetchedAt: Date.now(),
+      source: "open.er-api.com",
+    };
+    state.latest = { ...rec, stale: false };
+    cacheSet(key, rec); // 带写入时间戳落盘，下次据此做过期判定
   } catch (e) {
-    const cached = cacheGet(key);
-    if (cached && cached.base === state.from) {
-      state.latest = { ...cached, stale: true };
-    } else if (cached) {
+    // 兜底链：本地缓存（无论是否过期，标注滞后）→ 内置种子（标注快照日期与严重滞后）
+    if (cached && cached.rates) {
       state.latest = { ...cached, stale: true };
     } else {
-      state.latest = null;
+      state.latest = {
+        base: SEED_SNAPSHOT.base,
+        rates: SEED_SNAPSHOT.rates,
+        date: SEED_SNAPSHOT.seedDate,
+        fetchedAt: Date.parse(`${SEED_SNAPSHOT.seedDate}T00:00:00Z`),
+        source: "内置种子数据",
+        stale: true,
+        seed: true,
+      };
     }
   }
 }
@@ -225,7 +303,7 @@ async function fetchTrend() {
   const iso = (d) => d.toISOString().slice(0, 10);
   try {
     const url = `https://api.frankfurter.dev/v1/${iso(start)}..${iso(end)}?base=${state.from}&symbols=${state.to}`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    const res = await fetchWithTimeout(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const j = await res.json();
     const dates = [];
@@ -247,10 +325,22 @@ async function fetchTrend() {
 
 /* ---------- 重算编排 ---------- */
 let latestSeq = 0;
-async function refreshLatest() {
+
+/** 刷新按钮忙碌态：禁用 + 旋转图标 + 文案反馈，结束后恢复（表单/按钮必有提交反馈） */
+function setRefreshing(busy) {
+  els.refreshBtn.disabled = busy;
+  els.refreshBtn.classList.toggle("is-loading", busy);
+  els.refreshLabel.textContent = busy ? "刷新中…" : "刷新";
+}
+
+async function refreshLatest({ force = false } = {}) {
   const seq = ++latestSeq;
-  renderConvert();
-  await fetchLatest();
+  setRefreshing(true);
+  try {
+    await fetchLatest({ force });
+  } finally {
+    if (seq === latestSeq) setRefreshing(false);
+  }
   if (seq !== latestSeq) return; // 用户已切换，丢弃过期结果
   renderFreshness(); renderConvert(); renderRateTable(); loadTrend();
 }
@@ -288,8 +378,10 @@ function bindEvents() {
     [state.from, state.to] = [state.to, state.from];
     els.fromCurrency.value = state.from;
     els.toCurrency.value = state.to;
-    savePrefs(); refreshLatest();
+    savePrefs(); refreshLatest({ force: true });
   });
+  // 手动刷新：立即强制重取最新数据，无视缓存 TTL
+  els.refreshBtn.addEventListener("click", () => refreshLatest({ force: true }));
   for (const btn of document.querySelectorAll(".range-tab")) {
     btn.addEventListener("click", () => {
       if (btn.classList.contains("is-active")) return;
@@ -314,6 +406,7 @@ async function init() {
     swapBtn: $("swapBtn"), resultValue: $("resultValue"), resultRate: $("resultRate"),
     rateList: $("rateList"), tableCaption: $("tableCaption"),
     dataFreshness: $("dataFreshness"), staleBanner: $("staleBanner"),
+    refreshBtn: $("refreshBtn"), refreshLabel: $("refreshLabel"),
     trendPair: $("trendPair"), trendChange: $("trendChange"),
     trendChart: $("trendChart"), trendLoading: $("trendLoading"), chartCaption: $("chartCaption"),
   });
@@ -328,7 +421,9 @@ async function init() {
   fillCurrencySelects();
   bindEvents();
   renderConvert(); renderRateTable();
-  await refreshLatest();
+  await refreshLatest(); // 进入即就绪：缓存未过期则直接复用（不发多余请求），过期/缺失则立即拉取
+  // 停留期定时自动刷新：周期与缓存 TTL 一致（30 分钟），停留超过一个周期数据自动更新
+  setInterval(() => refreshLatest({ force: true }), AUTO_REFRESH_MS);
 }
 
 init();
