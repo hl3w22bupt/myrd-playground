@@ -29,39 +29,6 @@ GitHub: https://github.com/hl3w22bupt/myrd-playground.git
 
 ## 产品关联知识
 
-## 知识：Worker SIGINT 关闭中断失败模式——现象、根因、处置与预防
-
-# 失败模式：Worker SIGINT 关闭中断
-
-## 背景
-自动化工作流节点执行长时命令时，Worker 会在命令挂起或超出预算时发送 SIGINT 关闭该 worker。此信号被归类为基础设施噪音而非 agent 缺陷，但后果是整条执行轨迹失败且经常没有任何输出，浪费后续分析与自愈资源。
-
-## 现象
-- 轨迹 status=failed，错误信息为「Worker SIGINT 关闭中断」；
-- 输出摘要为空（进程在产出任何结果前被杀）；
-- 可影响任意自动化节点类型：开发/本地测试、记忆蒸馏、进化分析等；分析类 agent 自身也会复现此失败（元失败模式）。
-
-## 根因
-- 节点命令无界挂起：等待 stdin 交互输入、等待子进程、未设超时预算；
-- 长时进程未增量保存结果、未 flush 输出，被中断后无可检查产物，形成零输出失败轨迹；
-- 上层补丁/自愈仅清理僵尸轨迹，未消除命令本身的悬挂根源，故失败持续复现。
-
-## 排查与处置
-1. 遇到 status=failed 且错误含 SIGINT：先判断是否为基础设施信号（Worker 关闭），不急于归因 agent 缺陷；
-2. 交叉核对 runId 与轨迹产物：status=failed 单独不可靠（存在僵尸轨迹误报），须核对是否有落盘产物或部分输出；
-3. 复现命令：在本地以 `timeout <sec> <cmd>` 复跑，观察是否挂起、是否在超时前有增量输出；
-4. 若为长时任务，改为临时文件增量写盘 + 完成后原子改名，确保被中断后部分产物可恢复；
-5. 对无输出的失败运行启用回收/自愈机制清理，避免僵尸轨迹污染失败统计。
-
-## 预防
-- 所有节点命令遵循「显式超时 + 非交互 + 增量落盘 + 优雅退出」纪律（见对应规范）；
-- 分析型 agent（蒸馏、进化分析等）应在开始阶段即建立输出产物、分阶段写入，避免整段结束后才一次性输出，降低中断损失；
-- 将反复出现的同类失败纳入评测用例，使修复效果可量化考核。
-
-## [H9] 负反馈指标零值语义知识卡：no-data≠断链，最小样本红线与前置过程指标
-
-negativeFeedbackRate=null 的唯一代码路径是 artifactRating 表窗口内无行（src/services/platform-health/index.ts:166-167 查询仅时间窗条件；若查询失败健康包整体不会产出——health.json 有其它字段即证明查询成功返回空集）。因此该维度当前状态是『维度零样本』（没人打分），不是『采集断链』（打了分没进表）。知识卡沉淀三条判定规则供健康度 v2 引用：①零值三分法——no-data（零样本，不入异动结论）/zero-feedback（真实零负反馈，可入结论）/查询失败（健康包缺字段，立即升级采集缺陷）；②最小样本红线——负反馈类指标样本 <5 标『不可判定』（与 v2 全局样本量红线一致），不得进入周环比结论；③前置过程指标——观测『人工评分入口曝光/使用率』（artifactRating 写入速率）作为负反馈率的分母健康度指标，区分『没人打分』与『打了分丢数据』。
-
 ## MyRD 平台能力与环境事实源（Agent 防臆造基线 · 2026-09-26 主人核定）
 
 # 目的
@@ -96,6 +63,109 @@ negativeFeedbackRate=null 的唯一代码路径是 artifactRating 表窗口内�
 - 「代码图谱注册表 0 个注册仓库」（2026-09-11~09-26 多轮）：成员 agent 缺项目成员资格所致（2026-09-26 已修），非仓库缺失。
 - 「M2.1 执行被中断、断点位置未知」（2026-09-26 补跑轮）：往轮摘要缺执行结局导致的脑补，实际 M2.1 已于 2026-09-25 完成并部署上线。
 
+
+## MyRD 平台真实仓库结构地图、文档/技能入口与常见路径陷阱
+
+# MyRD 平台真实仓库结构地图、文档/技能入口与常见路径陷阱
+
+## 背景
+agent 在涉及 MyRD 平台的任务中反复出现两类高成本问题：
+
+1. **文档/技能入口定位失败**：任务开始时多次通过 glob 搜索 `**/myrd*/**/SKILL.md`、`**/myrd-platform-skill*` 等模式均返回 0 命中，误判平台「为云端平台、本地无文档」（#18283），或技能未在预期目录找到（#18123），随后不得不多轮读取源码与文档才定位入口（#18282-18293）。myrd-platform-skill 是 agent 理解平台的标准入口（最近 14 天调用 4 次），但 agent 本地环境无法直接命中其正文，造成重复勘察，agent 花费约十余次观测重复勘察结构。
+2. **引用不存在的文件路径**：多会话（#18282-18293、#18596-18617）反复手工翻查源码才能定位平台结构，且 #18616/#18617 实证发现提案引用了不存在的 `frontend/lib/services/*` 与 `myagent-client.ts` 路径，导致提案被驳回、评审周期浪费。
+
+根因在于「文档与实际源码结构不一致」——仓库（典型根目录 `/Users/leo/workspace/myrd`）存在源码与编译产物并存、文档过时等问题。本文档给出经源码核实的真实入口、真实结构地图及高频错误路径，供涉及 MyRD 内部实现的任务直接使用，消除重复探索并防止错误路径再次出现，显著降低后续任务冷启动成本。
+
+## 关键入口（权威文档与技能）
+- **平台使用说明书（权威）**：`/Users/leo/workspace/myrd/docs/myrd-platform-skill.md`。注意：位于源码仓库 `docs/` 下，而非 `~/.claude/skills/`。内容覆盖：服务地址、JWT 认证、全部 API 分类、典型示例、数据模型、边界情况，并含平台进化系统架构说明。
+- **快速开始**：`/Users/leo/workspace/myrd/docs/guides/quick-start.md`（环境搭建 → 服务启动 → 注册 → 建项目 → 跑工作流）。
+- **工作流集成/部署状态**：`/Users/leo/workspace/myrd/WORKFLOW_INTEGRATION.md`、`/Users/leo/workspace/myrd/MYRD_SETUP_STATUS.md`。
+- **数据库 schema**：`/Users/leo/workspace/myrd/prisma/schema.prisma`（含 `AgentExecutionTrajectory` 模型，表名 `agent_execution_trajectories`）。
+
+## 真实结构（经源码核实）
+- **入口与自愈**：`src/index.ts`（worker 启动时执行 auto-heal，覆盖 WorkflowRun / ExpressLaneRun / channel_messages / agent status / goals / vibe workspace，**不含** agentExecutionTrajectory）。
+- **工作流引擎**：`src/services/workflow/engine.ts`（约 2626 行；含 `resume()` 约 443 行、`iterateFrom()` 约 784 行、`rerunFrom()`、`rollbackToCheckpoint()`、`sharedSetupProjectWorkspace()`；支持 DAG 执行 / 自愈 / 重试 / git checkpoint）。
+- **Coding-agent 实现**：`src/services/coding-agent/{claude-code-agent.ts, local-claude-agent.ts, remote-agent.ts, types.ts}`（其中 `claude-code-agent.ts` 含 10 分钟默认超时与进程清理逻辑）。
+- **进化系统服务**：`src/services/evolution/`（analyzer 等模块；支撑证据系统三类数据源、证据挖掘策略）。
+- **路由**：`src/routes/workflows.ts` 等。
+- **前端真实源码**：`frontend/` 目录存在，含 `app/` 与 `components/` 源码，如 `frontend/app/(dashboard)/projects/new/page.tsx`、`frontend/components/projects/run-workflow-button.tsx`。
+- **编译产物（非源码）**：`src/dist/`——仅含编译后声明/产物（如 `src/dist/lib/myagent-client.d.ts`、`src/dist/services/coding-agent/myagent-agent.d.ts`），**不是源码**。
+
+## 服务端口
+前端 :3001、后端 API :3111、streaming :4112、MyAgent :3000、数据库 :5432。
+
+## 高频错误路径（不存在，务必避免）
+| 常见错误引用 | 真实对应 |
+|---|---|
+| `frontend/lib/services/workflow/engine.ts` | `src/services/workflow/engine.ts` |
+| `frontend/lib/services/coding-agent/claude-code-agent.ts` | `src/services/coding-agent/claude-code-agent.ts` |
+| `myagent-client.ts`（作为源码） | 无此源码；仅有编译声明 `src/dist/lib/myagent-client.d.ts` |
+| 认为前端目录含业务服务代码 | `frontend/` 主要被 `node_modules` 占据；业务服务在 `src/services/` |
+
+## 根因
+1. 文档（含 `docs/guides/quick-start.md`）描述的结构与实际仓库不一致或已过时；
+2. agent 凭记忆/推测引用路径，未做存在性核实；
+3. `src/` 与 `src/dist/` 并存，把编译产物误当源码。
+
+## 处置（核实方法）
+- 引用任何路径前，先用 glob/grep 在仓库根目录确认文件存在；
+- 区分 `src/`（源码）与 `src/dist/`（编译产物），引用源码一律指向 `src/`；
+- 工作流引擎、coding-agent、evolution 等业务服务一律在 `src/services/` 下，不在 `frontend/lib/` 下；
+- 「文件不存在」的判断以 glob 返回空为唯一依据，不要依据记忆或文档；
+- 分析轨迹/进化数据时，直接读 `agent_execution_trajectories` 表与 `prisma/schema.prisma` 的 `AgentExecutionTrajectory` 模型，不要靠源码 glob 反推。
+
+## 预防
+- 涉及 MyRD 内部实现的提案/文档，落笔前对每个文件路径做一次 glob 核实；
+- 平台是本地源码 + 多 run 工作区（`/Users/leo/.myrd/workspaces/proj-myrd/run-*`）并存；run 工作区可能包含主干尚未合入的功能（如 express-lane、轨迹追踪迁移），分析时以对应 run 工作区为准；
+- 本文档随仓库结构变更应同步更新。
+
+## 项目开发规范
+
+# 项目开发规范
+
+## 代码风格
+- 使用 TypeScript
+- - 遵循 ESLint 规范
+- 提交前运行 lint 检查
+
+## Git 提交规范
+- 使用 Conventional Commits 格式
+- feat: 新功能
+- fix: 修复 bug
+- docs: 文档更新
+
+## [H9] 负反馈指标零值语义知识卡：no-data≠断链，最小样本红线与前置过程指标
+
+negativeFeedbackRate=null 的唯一代码路径是 artifactRating 表窗口内无行（src/services/platform-health/index.ts:166-167 查询仅时间窗条件；若查询失败健康包整体不会产出——health.json 有其它字段即证明查询成功返回空集）。因此该维度当前状态是『维度零样本』（没人打分），不是『采集断链』（打了分没进表）。知识卡沉淀三条判定规则供健康度 v2 引用：①零值三分法——no-data（零样本，不入异动结论）/zero-feedback（真实零负反馈，可入结论）/查询失败（健康包缺字段，立即升级采集缺陷）；②最小样本红线——负反馈类指标样本 <5 标『不可判定』（与 v2 全局样本量红线一致），不得进入周环比结论；③前置过程指标——观测『人工评分入口曝光/使用率』（artifactRating 写入速率）作为负反馈率的分母健康度指标，区分『没人打分』与『打了分丢数据』。
+
+## 知识：Worker SIGINT 关闭中断失败模式——现象、根因、处置与预防
+
+# 失败模式：Worker SIGINT 关闭中断
+
+## 背景
+自动化工作流节点执行长时命令时，Worker 会在命令挂起或超出预算时发送 SIGINT 关闭该 worker。此信号被归类为基础设施噪音而非 agent 缺陷，但后果是整条执行轨迹失败且经常没有任何输出，浪费后续分析与自愈资源。
+
+## 现象
+- 轨迹 status=failed，错误信息为「Worker SIGINT 关闭中断」；
+- 输出摘要为空（进程在产出任何结果前被杀）；
+- 可影响任意自动化节点类型：开发/本地测试、记忆蒸馏、进化分析等；分析类 agent 自身也会复现此失败（元失败模式）。
+
+## 根因
+- 节点命令无界挂起：等待 stdin 交互输入、等待子进程、未设超时预算；
+- 长时进程未增量保存结果、未 flush 输出，被中断后无可检查产物，形成零输出失败轨迹；
+- 上层补丁/自愈仅清理僵尸轨迹，未消除命令本身的悬挂根源，故失败持续复现。
+
+## 排查与处置
+1. 遇到 status=failed 且错误含 SIGINT：先判断是否为基础设施信号（Worker 关闭），不急于归因 agent 缺陷；
+2. 交叉核对 runId 与轨迹产物：status=failed 单独不可靠（存在僵尸轨迹误报），须核对是否有落盘产物或部分输出；
+3. 复现命令：在本地以 `timeout <sec> <cmd>` 复跑，观察是否挂起、是否在超时前有增量输出；
+4. 若为长时任务，改为临时文件增量写盘 + 完成后原子改名，确保被中断后部分产物可恢复；
+5. 对无输出的失败运行启用回收/自愈机制清理，避免僵尸轨迹污染失败统计。
+
+## 预防
+- 所有节点命令遵循「显式超时 + 非交互 + 增量落盘 + 优雅退出」纪律（见对应规范）；
+- 分析型 agent（蒸馏、进化分析等）应在开始阶段即建立输出产物、分阶段写入，避免整段结束后才一次性输出，降低中断损失；
+- 将反复出现的同类失败纳入评测用例，使修复效果可量化考核。
 
 ## 演进提案（知识勘误）：修正平台规范「轨迹有界生命周期」:154-155 双处失真——agentExecutionTrajectory 已具备启动+5 分钟周期双通道自愈（H2-b，P2）
 
@@ -233,76 +303,6 @@ MyRD Admin 提出设计一款以"情绪价值"为核心的陪伴类 App，并引
 1. 竞品深度拆解：挑选 2-3 款 AI 聊天+游戏元素的应用进行分析
 2. MVP 核心功能定义
 3. 商业模式确定
-
-## MyRD 平台真实仓库结构地图、文档/技能入口与常见路径陷阱
-
-# MyRD 平台真实仓库结构地图、文档/技能入口与常见路径陷阱
-
-## 背景
-agent 在涉及 MyRD 平台的任务中反复出现两类高成本问题：
-
-1. **文档/技能入口定位失败**：任务开始时多次通过 glob 搜索 `**/myrd*/**/SKILL.md`、`**/myrd-platform-skill*` 等模式均返回 0 命中，误判平台「为云端平台、本地无文档」（#18283），或技能未在预期目录找到（#18123），随后不得不多轮读取源码与文档才定位入口（#18282-18293）。myrd-platform-skill 是 agent 理解平台的标准入口（最近 14 天调用 4 次），但 agent 本地环境无法直接命中其正文，造成重复勘察，agent 花费约十余次观测重复勘察结构。
-2. **引用不存在的文件路径**：多会话（#18282-18293、#18596-18617）反复手工翻查源码才能定位平台结构，且 #18616/#18617 实证发现提案引用了不存在的 `frontend/lib/services/*` 与 `myagent-client.ts` 路径，导致提案被驳回、评审周期浪费。
-
-根因在于「文档与实际源码结构不一致」——仓库（典型根目录 `/Users/leo/workspace/myrd`）存在源码与编译产物并存、文档过时等问题。本文档给出经源码核实的真实入口、真实结构地图及高频错误路径，供涉及 MyRD 内部实现的任务直接使用，消除重复探索并防止错误路径再次出现，显著降低后续任务冷启动成本。
-
-## 关键入口（权威文档与技能）
-- **平台使用说明书（权威）**：`/Users/leo/workspace/myrd/docs/myrd-platform-skill.md`。注意：位于源码仓库 `docs/` 下，而非 `~/.claude/skills/`。内容覆盖：服务地址、JWT 认证、全部 API 分类、典型示例、数据模型、边界情况，并含平台进化系统架构说明。
-- **快速开始**：`/Users/leo/workspace/myrd/docs/guides/quick-start.md`（环境搭建 → 服务启动 → 注册 → 建项目 → 跑工作流）。
-- **工作流集成/部署状态**：`/Users/leo/workspace/myrd/WORKFLOW_INTEGRATION.md`、`/Users/leo/workspace/myrd/MYRD_SETUP_STATUS.md`。
-- **数据库 schema**：`/Users/leo/workspace/myrd/prisma/schema.prisma`（含 `AgentExecutionTrajectory` 模型，表名 `agent_execution_trajectories`）。
-
-## 真实结构（经源码核实）
-- **入口与自愈**：`src/index.ts`（worker 启动时执行 auto-heal，覆盖 WorkflowRun / ExpressLaneRun / channel_messages / agent status / goals / vibe workspace，**不含** agentExecutionTrajectory）。
-- **工作流引擎**：`src/services/workflow/engine.ts`（约 2626 行；含 `resume()` 约 443 行、`iterateFrom()` 约 784 行、`rerunFrom()`、`rollbackToCheckpoint()`、`sharedSetupProjectWorkspace()`；支持 DAG 执行 / 自愈 / 重试 / git checkpoint）。
-- **Coding-agent 实现**：`src/services/coding-agent/{claude-code-agent.ts, local-claude-agent.ts, remote-agent.ts, types.ts}`（其中 `claude-code-agent.ts` 含 10 分钟默认超时与进程清理逻辑）。
-- **进化系统服务**：`src/services/evolution/`（analyzer 等模块；支撑证据系统三类数据源、证据挖掘策略）。
-- **路由**：`src/routes/workflows.ts` 等。
-- **前端真实源码**：`frontend/` 目录存在，含 `app/` 与 `components/` 源码，如 `frontend/app/(dashboard)/projects/new/page.tsx`、`frontend/components/projects/run-workflow-button.tsx`。
-- **编译产物（非源码）**：`src/dist/`——仅含编译后声明/产物（如 `src/dist/lib/myagent-client.d.ts`、`src/dist/services/coding-agent/myagent-agent.d.ts`），**不是源码**。
-
-## 服务端口
-前端 :3001、后端 API :3111、streaming :4112、MyAgent :3000、数据库 :5432。
-
-## 高频错误路径（不存在，务必避免）
-| 常见错误引用 | 真实对应 |
-|---|---|
-| `frontend/lib/services/workflow/engine.ts` | `src/services/workflow/engine.ts` |
-| `frontend/lib/services/coding-agent/claude-code-agent.ts` | `src/services/coding-agent/claude-code-agent.ts` |
-| `myagent-client.ts`（作为源码） | 无此源码；仅有编译声明 `src/dist/lib/myagent-client.d.ts` |
-| 认为前端目录含业务服务代码 | `frontend/` 主要被 `node_modules` 占据；业务服务在 `src/services/` |
-
-## 根因
-1. 文档（含 `docs/guides/quick-start.md`）描述的结构与实际仓库不一致或已过时；
-2. agent 凭记忆/推测引用路径，未做存在性核实；
-3. `src/` 与 `src/dist/` 并存，把编译产物误当源码。
-
-## 处置（核实方法）
-- 引用任何路径前，先用 glob/grep 在仓库根目录确认文件存在；
-- 区分 `src/`（源码）与 `src/dist/`（编译产物），引用源码一律指向 `src/`；
-- 工作流引擎、coding-agent、evolution 等业务服务一律在 `src/services/` 下，不在 `frontend/lib/` 下；
-- 「文件不存在」的判断以 glob 返回空为唯一依据，不要依据记忆或文档；
-- 分析轨迹/进化数据时，直接读 `agent_execution_trajectories` 表与 `prisma/schema.prisma` 的 `AgentExecutionTrajectory` 模型，不要靠源码 glob 反推。
-
-## 预防
-- 涉及 MyRD 内部实现的提案/文档，落笔前对每个文件路径做一次 glob 核实；
-- 平台是本地源码 + 多 run 工作区（`/Users/leo/.myrd/workspaces/proj-myrd/run-*`）并存；run 工作区可能包含主干尚未合入的功能（如 express-lane、轨迹追踪迁移），分析时以对应 run 工作区为准；
-- 本文档随仓库结构变更应同步更新。
-
-## 项目开发规范
-
-# 项目开发规范
-
-## 代码风格
-- 使用 TypeScript
-- - 遵循 ESLint 规范
-- 提交前运行 lint 检查
-
-## Git 提交规范
-- 使用 Conventional Commits 格式
-- feat: 新功能
-- fix: 修复 bug
-- docs: 文档更新
 
 ## 架构设计文档
 
@@ -3075,6 +3075,220 @@ curl -s "$PLATFORM_API_URL/api/v1/workflows/runs/cmvagxyf3002em94lxhtab3p9" \
 
 ---
 *来源：goal `cmvaf7imr000jm94le9x48zfu` artifacts、工作流运行 `cmvagxyf3002em94lxhtab3p9` 节点输出、AppHost 记录 `cmvaf7imm000hm94lw6y43t0q`，均为 2026-10-16 实测。*
+
+## [H2][缺陷线索池 L-1·P1] reflow 回流通道评估接线缺失，6 条提案滞留 evaluation_pending（最长 22 天），闭环选择层对该通道断路 2026-W42
+
+【来源】红队裁定 Confirmed/P1，原 actionType=bug_ticket；因 E2 工单证据 11 项未齐备（缺 DB 侧评估队列状态取证），按红线本轮不开单，转缺陷线索池待补证。【现象】reflow 通道创建提案后从不触发评估且系统无 evaluation_pending 兜底消费者：6 条 reflow 提案滞留 6/18/22 天三批次，对照组 admin 注入 7/7 分钟级出分；在审合并提案 cmunm03af（轨迹终结元数据统一标准，即 H4 修复方向）被卡 18 天。【根因】评估触发为创建路径各自接线模式：intake 路由与 analyzer 转正均接自动评估，reflow 兜底通道漏接（reflow.ts:169-185 函数内无 evaluateProposal 调用；全仓生产调用点仅 intake.ts:185 / analyzer.ts:2118 / routes/evolution.ts:559 三处）；叠加 routes/evolution.ts:344-350 verdict 门禁对无评估提案 409 拦截，连人工审批也被阻断。【修复方向】① reflow.ts importOneAction 补接 evaluateProposal（与 intake 路由同款 fire-and-forget + EVOLUTION_INTAKE_AUTO_EVALUATE 同开关语义）；② scheduler 增设 evaluation_pending 超龄件兜底扫描补评；③ 存量 6 条经 routes/evolution.ts:559 手动重评解卡，优先解卡 cmunm03af。【证据锚点】src/services/self-evolution/reflow.ts:169-185（首席亲验逐字命中）；src/routes/evolution-proposals-intake.ts:182-188；pending-proposals.json evaluation_pending×6 与 reflow:×6 一一对应（首席亲数）。【E2 缺口】评估队列 DB 状态、6 条滞留件 createdAt/queuedAt 逐条取证。
+
+## [H4][缺陷线索池 L-2·P1] error=null 失败轨迹占本周 10/20（50%），唯一产生通道=引擎终结路径组合条件，无出口断言 2026-W42
+
+【来源】红队裁定 Confirmed/P1，原 actionType=bug_ticket；E2 未齐备本轮不开单，转缺陷线索池。连续两轮复发（上轮 H4 同签名立案后仍发生）。【现象】failures.json 20 条中 10 条 error=null 且 workflowRunError=null（create-pr/polish/art/design/blackboard×3/dev-test/round-plan/playtest），outputPreview 显示 agent 实际执行大量有效工作后静默失败，进化分析拿不到失败签名。【根因】engine.ts:3042 nodeError = noWorkReason ?? (exitCode!==0 ? (cliError || stripCliStderrNoise(stderr).stderr || undefined) : undefined)：exitCode≠0 且 CLI 未写 result 错误事件且 stderr 空/被滤空时 nodeError=undefined；:3045-3049 直通 finalizeAgentTrajectory，无「failed 必带 error」出口断言。典型场景=硬超时 SIGKILL 强杀/OOM/进程崩溃。红队穷举七通道闭合：其余失败通道均带 error，唯一缺口即此组合条件；自愈误报反例不成立。【修复方向】① engine.ts:3045 终结处对 failed 且 nodeError 空写入保底归因（如 exit=N（CLI 未返回错误详情），疑似强杀/OOM/崩溃）——出口断言而非源头堵漏；② startTimer 超时路径回传 timedOut 标志兜底进 error。【证据锚点】src/services/workflow/engine.ts:3042、:3045-3049（首席亲验逐字命中）；failures.json 亲数 10/20。【E2 缺口】10 条逐案 runId+产物交叉验证（真失败 vs 强杀/OOM 分布）、DB 侧 nodeError 现场取证。
+
+## [H1][缺陷线索池 L-3·P2] eval_subject 300s 超时打满后轨迹 error 被 unrecognized_model stderr 噪音冒充，benchmark 回落归因被污染（「模型识别失败」原判已证伪） 2026-W42
+
+【来源】红队裁定 Confirmed/P2，原 actionType=bug_ticket；E2 未齐备本轮不开单，转缺陷线索池。【现象】3 条 eval_subject 失败（10-15×2、10-16×1）error=[claude-code:unrecognized_model] 噪音原文，durationMs=300277/300313/300300ms 与 benchmark 默认超时 300000ms+SIGTERM 延迟精确吻合；同窗 benchmark 83.875←84.75（deltaPct=-1）。【根因】两层叠加：① 评测用例 300s 预算内未完成且未被成功重跑补齐（benchmark 样本面缺口）；② trajectory/index.ts:606 失败分支裸写 stderr 未套 stripCliStderrNoise，与 streaming-pipeline.ts:842 已过滤口径漂移。原判「[1m] 后缀未被 SDK 识别致回落」被源码证伪：该诊断非致命且有单测背书（claude-code-agent.ts:889-892 注释 + __tests__/claude-code-agent.stderr-noise.test.ts）；[1m] 系用户配置值，平台代码不产生也不清洗。【修复方向】① trajectory/index.ts:606 套用 stripCliStderrNoise（与 streaming 同口径，留中性提示）；② 评估预算对第三方长上下文模型适配评估（EVOLUTION_BENCHMARK_TIMEOUT_MS 或按用例配置）；③ 失败用例补跑机制核对。【证据锚点】src/services/trajectory/index.ts:606（首席亲验）；src/services/streaming-pipeline.ts:839-849（注释点名 glm-5.3-flash[1m]，首席亲验）；failures.json 三条 durationMs 亲数。【红线】benchmark 回落仅查执行侧，不构成放宽评测标准/进化护栏的理由。【E2 缺口】benchmark 结果行 error 归因 DB 取证、失败用例补跑记录核对。
+
+## [H10][缺陷线索池 L-4·P2] 无 runId 轨迹周期自愈以 createdAt+30min 判死，channel/express_lane 长会话存在误杀窗口（潜伏：本周无实锤样本） 2026-W42
+
+【来源】红队裁定 Confirmed/P2，原 actionType=bug_ticket；E2 未齐备本轮不开单，转缺陷线索池。红队影响面修正：标题从现在时「存在被误杀」收窄为「存在误杀窗口；本周无实锤样本；生产部署时点未锚定」。【现象】engine.ts:467 无 runId 分支以 createdAt（轨迹诞生时刻）而非 updatedAt（最近进展）判 30 分钟超时，命中即标 failed + 「僵尸轨迹：执行超时未结束」。streaming 轨迹全无 runId（streaming-pipeline.ts 全文 grep 零命中），触发面非空；同文件 :390-392 run 自愈已用 updatedAt 正确口径（注释明言「避免误杀正在正常执行的长任务」）——同函数族双时间基准并存，:467 系选型偏差。红队补强：index.ts:575-577 周期任务注释声称「活跃对象不会被误伤」与该分支实现不符。【本周反例】failures.json 20 条零「执行超时未结束」签名；无 runId 轨迹 cmv7ggiaa 存活 25h 未被误杀——强假说：该分支系近期新增、生产 worker 尚未部署（区域 ~39 行漂移佐证），无法在本会话确证，如实标注。【修复方向】① :467 改 now-(t.updatedAt ?? t.createdAt) > STALE_MS（与 :392 同款 + 历史行 updatedAt NULL 兜底）；② 回溯 failures.json「执行超时未结束」×durationMs≈30min 指纹核实历史污染面。【证据锚点】src/services/workflow/engine.ts:447、:467、:469-472（首席亲验逐字命中）。【E2 缺口】生产 worker 部署版本记录、无 runId 长轨迹执行时长分布（DB）。
+
+## [H9][缺陷线索池 L-5·P3] 用户取消标 failed（「用户已取消」），TrajectoryStatus 无 cancelled 终态，取消语义借用失败通道（潜伏口径缺陷） 2026-W42
+
+【来源】红队裁定 Confirmed/P3，原 actionType=bug_ticket；E2 未齐备（近四周取消占比统计需 DB）本轮不开单，转缺陷线索池。红队影响面修正：定性为「潜伏口径缺陷」而非「已发生污染」——本周 failures.json 20 条中 0 条「用户已取消」签名（0%<2%），但失败族分析持续以 failures.json 为底座，结构性口径风险成立；且平台规范「长任务执行韧性规范」第 4 条（必须区分取消与失败，被取消轨迹不得污染失败统计）被直接违反，规范符合性是硬事实。【根因】TrajectoryStatus 终态枚举仅 completed/failed（trajectory/index.ts:364-367 签名亲验），取消场景在 streaming-pipeline.ts:814-818（finalizeTrajectory('failed', durationMs, '用户已取消')，首席亲验）与引擎 run-cancelled 同步路径（engine.ts:460）两处均折入 failed——结构性约束非调用方疏忽。【修复顺序（防读数端丢语义）】① 先扩 TrajectoryStatus 终态枚举增加 cancelled；② 再改 streaming-pipeline:818 与 engine run-cancelled 同步路径写入 cancelled；③ 最后 failures 聚合将 cancelled 移出失败族（单列「用户取消」族）。【证据锚点】src/services/streaming-pipeline.ts:814-818；src/services/trajectory/index.ts:364-367；src/services/workflow/engine.ts:460。【E2 缺口】近四周取消轨迹占比统计（DB 聚合）、取消对历史失败率结论的影响面回溯。
+
+## [H3][知识沉淀] frozen 0→14 为 2026-10-15 Admin 拍板治理动作（超 30 天自动冻结），熔断线口径已 30→66，需台账登记与两条对账 2026-W42
+
+【来源】红队裁定 Confirmed/P3，actionType=knowledge_only。【登记三件事】① 14 条 frozen 登记为「10-15 治理动作产物」（scheduler.ts:73-93 freezeStaleBacklog 注释明示 Admin 2026-10-15 拍板，pending 超 FREEZE_AFTER_DAYS=30 天自动 frozen，10 分钟一轮+启动清存量，落 schedulerEvents backlog_frozen 含 frozenCount）——待与事件逐条对账（DB 不可读，本轮留为对账动作）；② 熔断线新口径 QUEUE_CIRCUIT_BREAKER=66 / warn=60（-6）/ escalate=63（-3）（approval-sla.ts:25-32 亲验）取代旧 30/24/27——上轮 H6/cmunm03ac 等水位类提案与 H-A3 判定式按新口径重述；时间线旁证：09-25/10-04 历史提案内嵌快照引用旧值；③ frozen 不计熔断水位/SLA 告警（scheduler.ts:75-76）的读数口径分界：冻结会永久性压低 pending 水位读数，后续水位趋势分析须区分 frozen 前后口径。【残留待办】rejected 15→19 增量 4 条逐条取 rejectReason 防静默销案。【红队补充发现（首席亲核命中）】approval-sla.ts:48 注释残留旧口径「warn ≥24 / escalate ≥27 / breaker ≥30」、scheduler.ts:115 注释「熔断线 ≥30」——两处注释过时，随本条修订（口径升级未同步注释）。【证据锚点】src/services/evolution/scheduler.ts:73-93、:115；src/services/evolution/approval-sla.ts:25-41、:48。
+
+## [H5][知识沉淀] SIGINT 轨迹「error 有文案+durationMs/outputPreview 双 null」为优雅关闭设计产物，读数端应单列「重启成本」族 2026-W42
+
+【来源】红队裁定 Confirmed/P3，actionType=knowledge_only。原疑点「SIGINT 双 null=数据损坏」证伪。【读数端纪律】failures 聚合将 SIGINT 轨迹（error 前缀 Worker SIGINT + 双 null 指纹）单列「重启成本」族，不混入失败族——本周 3 条（implement×2 + goal_delegate×1，首席亲数）对应 10-15T03:0x 一次 worker 重启；重启后自愈链齐备（run→paused→auto-resume、expressLane→failed 留现场）。【机制依据】trajectory/index.ts:346-351 shutdown finalizer 仅写 {status:'failed', error:reason, completedAt}，不写 durationMs/outputPreview（首席亲验）——双 null 是 finalizer 字段集的确定性输出；index.ts:608-641 gracefulShutdown 四步收尾、:372+:578-599 启动+周期双层自愈（5 分钟一轮）、:384-400 expressLane 自愈均亲核在仓。【低优先改进线索】finalizer 可补写 durationMs（created→shutdown 差值）与已有 outputPreview，降低「全损」观感。【证据缺口声明】3 条 SIGINT 关联 run 是否重跑成功（rerun 记录）、playtest 节点预算与 checkpoint 挂载状态在 workflow definition（DB 侧），本轮不可读。硬超时 2 条（implement 5400s/playtest 10800s）归因文案正确，属预算内未完成非机制缺失。【证据锚点】src/services/trajectory/index.ts:346-351；src/index.ts:372、:578-599、:608-641、:384-400。
+
+## [H8][知识沉淀·仪器自校准] 口径词典三条：activity.tasks 全任务口径 vs taskSamples 终态口径；other 桶=taskType null 兜底；bugClosureDays 无环比封装 2026-W42
+
+【来源】红队裁定 Confirmed/P3，actionType=knowledge_only。三处仪器漂移终局裁定（旁支台账，不进主口径）：【① 撤回转登记】health.json activity.tasks=34 与 taskSamples 三桶合计 31 之差 3=窗口内非终态任务——index.ts:199 taskCount 无 status 过滤（计入 running/paused 中间态）vs :116-118 taskSuccessRows 仅取 completed/failed（:68-69 注释「其余中间态既不入分子也不入分母」即官方口径）——两谓词口径天然不同，登记说明后每轮不再消耗取证成本。【② 打标侧演化】windows.ts:75 `row.taskType ?? 'other'`——other 是 taskType=null 的兜底桶名而非独立类型；express_lane 首现（n=1，lowConfidence）系打标侧将原 null 杂项任务标上真实类型，聚合逻辑未变，非缺陷。【③ 封装缺失成立】index.ts:277-281 bugClosureDays 裸数值返回（本周 18.4 天），同文件其他指标均有 {current, previous, deltaPct} 封装（:260 point、:266-270 benchmark），独它没有——闭环时长周环比断路；补封装列低优先代码改进线索（E2 门内，旁支台账）。【证据锚点】src/services/platform-health/index.ts:199、:68-69、:79、:277-281；src/services/platform-health/windows.ts:75（均为红队/首席亲验锚点）。
+
+## [H11][知识沉淀] commit 锚点 023e5838 与取证工作区脱钩（工作区 HEAD 红队时点 6959c10f、首席收口时点 a7fc2b0），证据基线登记与锚点治理三条 2026-W42
+
+【来源】红队亲手取证的流程发现，裁定 Confirmed/P3，actionType=knowledge_only。【事实】任务书下发并经 audit/侦探转引的锚点 023e5838 在本工作区 git 库可达范围（refs/reflog/松散对象）零痕迹；.git/logs/HEAD 共 5 行：clone @ ac6e5c73 → auto-commit c2d84662 → 6959c10f（红队取证时点）→ a7fc2b0（首席研究员收口时点亲读，红队之后又推进一拍）——工作区 HEAD 被 workflow auto-commit 持续推进，「固定锚点」与「移动工作区」天然脱钩；audit meta.baseRef 自认 independentlyVerified=false。【影响面】「同 commit 可复现」验收项无法按 023e5838 闭环；但红队已在本工作区 HEAD=6959c10f 时点逐条亲核 13 条发现全部源码锚点（漂移≤2 行），本轮判定有效性不受影响，受影响的是跨轮可复现性声明。【登记三条】① 本轮证据基线=各节点取证时点实测 HEAD（audit/侦探/红队：6959c10f 时点；首席收口：a7fc2b0），后续轮次照此口径，v5 口径裁决书引用以此为准；② 任务卡下发 commit 锚点时应同时附「取证工作区实测 HEAD」（或要求首节点先读 .git/HEAD 回锚写回产物 meta）；③ 体检师节点 baseRef.independentlyVerified=false 状态向下游（红队/首席）显式传递，作为可复现性声明的一部分。【不可断言项】023e5838 是否存在于 main 历史 pack 文件——本会话无 git 命令通道，「本工作区无法锚定」可断言，「该 commit 不存在」不可断言。【升级候选（供 Lead 裁量）】②③属工作流节点提示词/任务卡模板类软资产改进，可批准为进化提案单独立项（不改变本条 knowledge 裁定）。【证据锚点】.git/logs/HEAD（首席亲读 5 行）；.git/refs/heads/myrd/run-cmvdfmx530043m9wlxkjmnvkn（首席亲读=a7fc2b09638f7225336cad6ba1ad78644c28f027）。
+
+## MyRD 自进化周报 2026-W42
+
+# MyRD 自进化周报 2026-W42
+
+> 周期标识取自 meta.json：week=2026-W42（date=2026-10-18）。
+> 数据窗口：2026-10-11T06:16Z → 2026-10-18T06:16Z（health.json generatedAt=2026-10-18T06:16:31.126Z；failures.json 最早 2026-10-12T06:58:41Z、最晚 2026-10-18T01:29:40Z）。
+> 样本量门：activity.tasks=34 ≥ 5，**PASS**，本周允许周级结论；例外：taskSuccessRateByType.goal 分母 n=4 且 lowConfidence=true（仅方向参考）、express_lane n=1 无前值（不下结论）。
+> 证据基线声明：任务书锚点 023e5838 在本工作区不可锚定（refs/reflog/松散对象三路零痕迹，亲核）；红队取证时工作区 HEAD=6959c10f，本报告收口时亲读已推进至 a7fc2b0（workflow auto-commit 持续追加，.git/logs/HEAD 共 5 行亲读）。全部源码证据以各节点取证时点实测 file:line 为准，锚点治理见 H11。
+
+---
+
+## 一、本周结论摘要
+
+本周三条链（侦探 14 条假设 → 体检师 14 条取证 → 红队 14 条终局裁定）逐条对齐，**顶层裁定：Confirmed 14 / Refuted 0 / Uncertain 0**。核心结论四条：
+
+1. **自进化闭环「选择层」对 reflow 回流通道实质断路（本周最高优先级，P1）**。reflow 通道创建提案后从不触发评估（src/services/self-evolution/reflow.ts:169-185 亲读，函数内无 evaluateProposal 调用），系统亦无 evaluation_pending 兜底消费者；6 条 reflow 提案滞留评估 6~22 天（pending-proposals.json 亲数：evaluation_pending ×6 与 reflow: ×6 一一对应），对照组 admin 注入 7/7 分钟级出分。在审合并提案 cmunm03af（轨迹终结元数据统一标准）正被此缺陷卡住 18 天——「修复通道本身被另一缺陷阻断」的耦合是本周最需解卡的点。
+2. **失败统计口径存在两处结构性缺口（P1/P2）**：① error=null 的 failed 轨迹占本周失败 10/20（50%，failures.json 亲数），唯一产生通道已精确定位为 workflow 引擎终结路径组合条件（engine.ts:3042 亲读逐字命中）；② 无 runId 轨迹的周期自愈以 createdAt+30min 判死（engine.ts:467 亲读），channel/express_lane 长会话存在被误杀窗口（本周无实锤样本，潜伏期）。
+3. **漏斗剧变有明确代码归因，属合规治理动作（P3 台账登记）**：frozen 0→14 系 2026-10-15 Admin 拍板上线的 freezeStaleBacklog（超 30 天自动冻结，scheduler.ts:73-93 亲读注释明示），非调度器误触发；熔断线口径已 30→66（approval-sla.ts:25-32 亲读）。残留两条待办：14 条 frozen 与 backlog_frozen 事件对账（DB 不可读，本轮无法实测）、rejected 15→19 增量 4 条的个体理由需取 rejectReason 防静默销案。
+4. **负反馈闭环输入端三零持续（gateVerifiedRunRate 0/0、acceptanceTests 0/0、feedbackSamples 0/0），方向A本周无法实测**。机制链经源码复核完整在仓（采集/写入/钩子/注册四锚点全命中），缺的是执行流量过门，属流程激活问题非代码缺失。方向A三条判定式维持「预注册·待实测」。
+
+**预期管理**：代码侧缺证（DB 实体数据、schedulerEvents 对账、benchmark 结果行均不可读），本轮结论仅 E1 等级证据（工作区内可复核实证）+ 自校准记录支撑。缺陷工单本轮 **0 单**（5 条缺陷线索均未齐备 E2 工单证据 11 项，按红线转缺陷线索池）；无任何放宽护栏/边界合同的建议。
+
+---
+
+## 二、判定总表（14 条，与 findings-verified.json 逐条对应）
+
+| ID | 简题 | Verdict | Severity | 红队 actionType | 本报告落位 |
+|----|------|---------|----------|-----------------|-----------|
+| H2 | reflow 通道评估接线缺失，6 条提案滞留 | Confirmed | P1 | bug_ticket→线索池 | 短板 #1（线索池 L-1） |
+| H4 | error=null 失败轨迹唯一产生通道（引擎终结组合条件） | Confirmed | P1 | bug_ticket→线索池 | 短板 #2（线索池 L-2） |
+| H1 | eval_subject 300s 超时 + 轨迹 error 被噪音冒充（「模型识别失败」证伪） | Confirmed | P2 | bug_ticket→线索池 | 短板 #3（线索池 L-3） |
+| H10 | 无 runId 轨迹 createdAt+30min 误杀窗口 | Confirmed | P2 | bug_ticket→线索池 | 短板 #4（线索池 L-4） |
+| H9 | 用户取消标 failed，无 cancelled 终态 | Confirmed | P3 | bug_ticket→线索池 | 短板 #5（线索池 L-5） |
+| H3 | frozen 0→14=10-15 治理动作；熔断线 30→66 | Confirmed | P3 | knowledge_only | 短板 #6（知识） |
+| H5 | SIGINT 双 null=优雅关闭设计产物，非数据损坏 | Confirmed | P3 | knowledge_only | 短板 #7（知识） |
+| H8 | 仪器口径三漂移裁定（①成立②演化③撤回） | Confirmed | P3 | knowledge_only | 短板 #8（知识） |
+| H11 | 锚点 023e5838 不可锚定；基线漂移 | Confirmed | P3 | knowledge_only | 短板 #9（知识） |
+| H6 | goal 成功率口径分离已固化，n=4 维持方向参考 | Confirmed | P3 | none | 下周复测（falsification 挂账） |
+| H7 | 三零指标=流量未过门，机制链完整 | Confirmed | P2 | none | 激活跟踪（H-A2 承载） |
+| H-A1 | 方向A时间序判别式：无时间序字段→仅方向参考 | Confirmed | P3 | none | 预注册·待实测 |
+| H-A2 | 方向A输入端激活判定式 | Confirmed | P3 | none | 预注册·待实测 |
+| H-A3 | 方向A输出端消化判定式（按熔断 66 新口径） | Confirmed | P3 | none | 预注册·待实测 |
+
+> 口径注记：findings-audited.json meta.coverage=13 与 findings-verified.json meta.verdictSummary.confirmed=13 均为 H11 追加前快照；两文件数组实际条数均=14，本表以数组实数为准。
+
+---
+
+## 三、Confirmed 短板清单（每条：定级 / 证据 / 根因 / 建议动作）
+
+### 短板 #1（H2·P1）reflow 回流通道评估接线缺失，闭环选择层对该通道断路
+
+- **证据**（本首席研究员独立亲验）：reflow.ts:169-185 创建提案 `status='pending'` + `evaluation={state:'evaluation_pending'}`（:183）、溯源 `reflow:${ctx.runId}`（:180），函数内无 evaluateProposal 调用；全仓生产调用点仅 3 处（intake 路由 fire-and-forget / analyzer 转正 / routes/evolution.ts:559 手动重评），reflow 不在其中；无任何 evaluation_pending 周期兜底消费者。数据面：pending-proposals.json 亲数 evaluation_pending×6（全 reflow 前缀，滞留 6/18/22 天三批次）、unevaluated=6/13；对照组 admin 注入 7/7 分钟级出分。
+- **根因**：评估触发是「创建路径各自接线」模式，reflow 兜底通道漏接；叠加 verdict 门禁（无 evaluation → 409 拦截审批），滞留提案连人工审批也被拦——结构性断路而非容量事件（三批次复现排除偶发）。
+- **影响**：6 条治理提案（含 H2/H3/H4/H6/H9 系）无法进入审批；在审合并提案 cmunm03af（H4 修复方向）被卡 18 天。
+- **建议动作**：缺陷线索池 L-1（E2 未齐备不开单）。修复方向：①reflow.ts importOneAction 补接 evaluateProposal（与 intake 路由同款 + 同开关语义）；②scheduler 增设 evaluation_pending 超 龄件兜底扫描补评；③存量 6 条经 routes/evolution.ts:559 手动重评解卡（优先解卡 cmunm03af）。
+
+### 短板 #2（H4·P1）error=null 失败轨迹占 50%，归因断路（连续两轮复发）
+
+- **证据**：failures.json 亲数 20 条中 10 条 error=null 且 workflowRunError=null（create-pr/polish/art/design/blackboard×3/dev-test/round-plan/playtest），outputPreview 显示大量有效工作后静默失败。engine.ts:3042 `nodeError = noWorkReason ?? (exitCode!==0 ? (cliError || stripCliStderrNoise(stderr).stderr || undefined) : undefined)`（亲读逐字命中）——exitCode≠0 且 CLI 未写错误事件且 stderr 空/被滤空时 nodeError=undefined；:3045-3049 直通 finalizeAgentTrajectory，无「failed 必带 error」出口断言。红队穷举七通道闭合：其余通道失败均带 error，唯一缺口即此组合条件。
+- **根因**：硬超时 SIGKILL 强杀 / OOM / 进程崩溃场景下引擎三层兜底（noWorkReason/cliError/stderr）全部落空。上轮立案方向（终结元数据统一标准）正确，本轮精确定位到缺口点。
+- **建议动作**：缺陷线索池 L-2。修复方向：①engine.ts:3045 终结处对 failed 且 nodeError 空写入保底归因（出口断言）；②startTimer 超时路径回传 timedOut 标志兜底进 error。
+
+### 短板 #3（H1·P2）eval_subject 300s 超时打满 + 轨迹 error 被stderr 噪音冒充，benchmark 回落归因被污染
+
+- **证据**：failures.json 三条 eval_subject（10-15×2、10-16×1）error=unrecognized_model 噪音原文，durationMs=300277/300313/300300ms 与 benchmark.ts:32-35 默认超时 300000ms+SIGTERM 延迟精确吻合（亲数）；trajectory/index.ts:606 失败分支裸写 stderr 未套 stripCliStderrNoise（亲读），对照 streaming-pipeline.ts:839-849 已过滤且注释点名 glm-5.3-flash[1m]（亲读）。**假设原判「[1m] 未被 SDK 识别致回落」被证伪**——该诊断非致命且有单测背书；[1m] 系用户配置值，平台代码不产生也不清洗。
+- **根因**：两层叠加——评测用例 300s 预算内未完成且未被成功重跑补齐（benchmark 83.875←84.75 的样本面缺口）；runWithTrajectory 与 streaming 通道的 stderr 过滤口径漂移。
+- **建议动作**：缺陷线索池 L-3。修复方向：①trajectory/index.ts:606 套用 stripCliStderrNoise（与 streaming 同口径）；②评估预算对第三方长上下文模型的适配评估（EVOLUTION_BENCHMARK_TIMEOUT_MS）；③失败用例补跑机制核对。红线维持：回落仅查执行侧，不构成放宽评测标准理由。
+
+### 短板 #4（H10·P2）无 runId 轨迹周期自愈 createdAt+30min 判死，长会话误杀窗口（潜伏）
+
+- **证据**：engine.ts:447 `STALE_MS=30*60*1000`、:467 `} else if (now - t.createdAt.getTime() > STALE_MS)`（亲读逐字命中）；对照同文件 :390-392 run 自愈用 updatedAt（注释明言「避免误杀正在正常执行的长任务」）——同函数族双时间基准并存。streaming 轨迹全无 runId（streaming-pipeline.ts 全文 grep 零命中），触发面非空。红队补强：index.ts:575-577 周期任务注释声称「活跃对象不会被误伤」与该分支实现不符（注释虚假声称）。
+- **影响面修正（红队）**：本周 failures.json 无「执行超时未结束」签名、无 runId 轨迹 cmv7ggiaa 存活 25h 未被误杀——实际误杀本周未发生（或生产 worker 尚未部署该版本，区域 ~39 行漂移佐证该分支系近期新增，无法在本会话确证）。定性：代码缺陷在当前 HEAD 成立，实际危害 unverified。
+- **建议动作**：缺陷线索池 L-4。修复方向：①:467 改 `now-(t.updatedAt ?? t.createdAt)>STALE_MS`（与 :392 同款+NULL 兜底）；②回溯 failures.json「执行超时未结束」×durationMs≈30min 指纹核实历史污染面。
+
+### 短板 #5（H9·P3）用户取消标 failed，TrajectoryStatus 无 cancelled 终态（潜伏口径缺陷）
+
+- **证据**：streaming-pipeline.ts:814-818 取消路径 `finalizeTrajectory('failed', durationMs, '用户已取消')`（亲读逐字命中）；trajectory/index.ts:364-367 签名仅 `'completed' | 'failed'`（亲读），终态枚举无 cancelled 为结构性约束；engine.ts:460 cancelled run 同步折入 failed。平台规范「长任务执行韧性规范」第 4 条明确要求区分取消与失败——实现直接违反。
+- **影响面修正（红队）**：本周 failures.json 0 条「用户已取消」签名（0%<2%），「潜伏口径缺陷」而非「已发生污染」；但失败族分析持续以 failures.json 为底座，结构性风险成立，立案维持。
+- **建议动作**：缺陷线索池 L-5。修复顺序（防读数端丢语义）：先扩 TrajectoryStatus 枚举（cancelled）→ 再改 streaming:818 与 run-cancelled 同步写入 → 最后 failures 聚合将 cancelled 移出失败族。
+
+### 短板 #6（H3·P3·知识）frozen 0→14 = 10-15 治理动作产物；熔断线口径 30→66 待全链对齐
+
+- **证据**：scheduler.ts:73-93 冻结注释「Admin 2026-10-15 拍板」+ updateMany + recordSchedulerEvent('backlog_frozen', frozenCount)（亲读）；approval-sla.ts:25-32 熔断 66 / warn 60 / escalate 63、FREEZE_AFTER_DAYS=30（亲读）；时间线旁证：09-25/10-04 历史提案内嵌快照引用旧值 24/27/30。
+- **残留待办**：①14 条 frozen 与 schedulerEvents 逐条对账（DB 不可读，留为对账动作）；②rejected 15→19 增量 4 条取 rejectReason 防静默销案；③红队补充发现（亲核命中）：approval-sla.ts:48 注释残留旧口径「warn ≥24 / escalate ≥27 / breaker ≥30」、scheduler.ts:115 注释「熔断线 ≥30」——两处注释过时，随本条修订。
+- **建议动作**：知识沉淀（台账登记三件事：frozen 治理对账、熔断线 66/60/63 新口径取代 30/24/27、frozen 不计熔断水位的读数分界 scheduler.ts:75-76）。
+
+### 短板 #7（H5·P3·知识）SIGINT 轨迹双 null = 优雅关闭设计产物，读数端应单列「重启成本」族
+
+- **证据**：trajectory/index.ts:346-351 shutdown finalizer 仅写 `{status:'failed', error:reason, completedAt}`——不写 durationMs/outputPreview（亲读），与 failures.json 3 条 SIGINT（error='Worker SIGINT 关闭中断'+双 null）形态精确吻合；index.ts:608-641 gracefulShutdown 四步、:372+:578-599 启动+周期双层自愈、:384-400 expressLane 自愈均亲核在仓。
+- **定性**：非数据损坏、非自愈链缺失。2 条硬超时（implement 5400s / playtest 10800s）归因文案正确，属预算内未完成；playtest 预算与 checkpoint 挂载状态在 workflow definition（DB 侧），本节点证据缺口声明。
+- **建议动作**：知识沉淀（读数端纪律：SIGINT 轨迹按 error 前缀+'双 null'指纹单列「重启成本」族，不混入失败族；finalizer 补写 durationMs 列低优先改进线索）。
+
+### 短板 #8（H8·P3·知识）仪器口径三漂移裁定：①bugClosureDays 无环比封装②other 桶=打标演化③activity 差值=非终态任务（③按预设撤回）
+
+- **证据**：①index.ts:277-281 bugClosureDays 裸数值返回、:79 接口声明单值——同文件其他指标均有 previous/deltaPct 封装，独它没有（18.4 天无法环比）；②windows.ts:75 `row.taskType ?? 'other'`——other 是 null 兜底桶名，express_lane 首现 n=1 系打标侧演化非聚合缺陷；③index.ts:199 activity.taskCount 无 status 过滤 vs :116-118 taskSuccessRows 仅终态——34 与 31 之差 3=窗口内非终态任务，触发预设撤回条件转口径登记。
+- **建议动作**：知识沉淀（口径词典三条：activity.tasks 全任务口径 vs taskSamples 终态口径、other 桶语义、bugClosureDays 环比断路——补 {current,previous,deltaPct} 封装列低优先代码改进线索，旁支台账不进主口径）。
+
+### 短板 #9（H11·P3·知识）commit 锚点与取证工作区脱钩，证据基线轮内漂移
+
+- **证据**（本首席研究员独立亲验 + 新增读数）：.git/logs/HEAD 共 5 行亲读——clone @ ac6e5c73 → auto-commit c2d84662 → 6959c10f（红队取证时点 HEAD）→ **a7fc2b0（本报告收口时点亲读，红队之后又推进一拍）**；023e5838 不在 refs/reflog/松散对象任何一路。audit meta.baseRef 自认 independentlyVerified=false。
+- **根因**：任务书锚点下发与取证工作区实况无耦合机制；且工作区 HEAD 被 auto-commit 持续推进，「固定锚点」与「移动工作区」天然脱钩——红队 6959c10f 与首席 a7fc2b0 的读数差即实证。
+- **建议动作**：知识沉淀（流程改进三条：①任务卡下发锚点时附取证工作区实测 HEAD，或要求首节点先读 .git/HEAD 回锚；②baseRef.independentlyVerified=false 向下游显式传递；③本轮证据基线登记为「各节点取证时点实测 HEAD」（audit/侦探：6959c10f 时点；首席收口：a7fc2b0），后续轮次照此口径）。**升级候选**（供 Lead 裁量，不改变本条 knowledge 裁定）：①②属工作流节点提示词/任务卡模板类软资产改进，可批准为进化提案单独立项。
+
+### 无需动作的 Confirmed 条目（5 条，none）
+
+- **H6**（goal 成功率 0.25←0.5）：口径分离已由代码固化（platform-health/index.ts:247-250），n=4 lowConfidence 纪律生效，无源码缺陷。挂 falsification 复测：下周 goal n≥10 且成功率 ≥0.5 则销案。
+- **H7**（三零指标）：机制链四锚点（采集 windows.ts:30-33 / 写入 acceptance-tests/index.ts:109-128 / 钩子 e2e-gate.ts:57-131 / 注册 hooks/index.ts:44）全命中，缺执行流量过门。激活跟踪由 H-A2 判定式承载。
+- **H-A1 / H-A2 / H-A3**（方向A预注册三条）：均标**「预注册·待实测」**，本周不产出有效性结论。H-A1 时间序字段确认不存在（health.json schema 级核实），降级「仅方向参考」；H-A3 判定式按熔断 66 新口径更新为「applied 增量 ≥ pending+frozen 净增量的扣冻口径」后实测。
+
+---
+
+## 四、红队否决与修正记录
+
+**顶层否决：0 条**（14/14 Confirmed，本周无 Refuted 案件，无销案）。红队在本轮执行的否决/修正均作用于**子命题与表述层**，记录如下（防后续轮次误引旧定性）：
+
+| 被修正的原判 | 修正后定性 | 依据 |
+|---|---|---|
+| H1 原判「[1m] 后缀未被 SDK 识别 → benchmark 回落」 | **证伪**：该诊断非致命且有单测背书（claude-code-agent.stderr-noise.test.ts）；真因=300s 超时+归因噪音污染 | claude-code-agent.ts:889-892 注释亲核 |
+| H3 原判两分法「有意冻结 vs 调度器误触发」 | 误触发分支**证伪**：系 10-15 Admin 拍板治理动作（falsification 方向命中，转台账登记） | scheduler.ts:74 注释亲核 |
+| H5 原判疑点「SIGINT 双 null=数据损坏？」 | **证伪**：双 null 是 shutdown finalizer 字段集的确定性输出（设计取舍非故障） | trajectory/index.ts:346-351 亲核 |
+| H4 预设反例「≥8/10 系自愈误报」 | **不成立**：自愈产物必带文案（:457-463/:469-472），10 条 error=null 均非自愈产物 | 穷举七通道闭合 |
+| H10 标题现在时「存在被误杀」 | 修正为「存在误杀窗口；**本周无实锤样本**；生产部署时点未锚定」 | failures.json 零签名 + cmv7ggiaa 25h 存活反例 |
+| H9 「取消污染失败统计」降幅 | 修正为「**潜伏**口径缺陷」（本周 0 条取消签名，污染幅度 unverified） | failures.json 亲数 0/20 |
+| H-A1 audit 表述「采样触发在 admin 手动路由」 | **修正**：实测 2 个调用方（routes/evolution-feedback.ts:31 手动 + scheduler.ts:254 周期自动，每日+启动即跑） | 红队全仓 grep 实测 |
+| H8 ③「activity 34 vs 31 差 3 待解释」 | **按预设撤回**：差值=非终态任务（index.ts:199 无 status 过滤 vs :116-118 仅终态），转口径登记 | index.ts:68-69 注释提供官方口径 |
+
+---
+
+## 五、Uncertain 条目
+
+**本周 0 条 Uncertain**（findings-verified.json verdictSummary：refuted=0, uncertain=0，与数组逐条核对一致）。无待复核立案。
+
+以下两项「不可最终确证」成分已由红队在各 verdict 内如实标注（不构成独立 Uncertain 条目，随原条目维持 Confirmed）：
+- H10 的「生产 worker 是否已部署含 :467 分支的版本」——无 git blame/部署记录通道，无法确证；
+- H11 的「023e5838 是否存在于 main 历史 pack 文件」——本会话无 git 命令通道，「本工作区无法锚定 023e5838」可断言，「该 commit 不存在」不可断言。
+
+---
+
+## 六、下周建议关注点
+
+**失败族二分**（failures.json 20 条亲数口径）：
+
+| 失败族 | 条数 | 占比 | 下周动作 |
+|---|---|---|---|
+| error=null 静默失败（H4 通道） | 10 | 50% | L-2 修复后观察归因率是否归零；持续跟踪 outputPreview 反推成本 |
+| SIGINT 重启成本（H5） | 3 | 15% | 读数端按「重启成本」族单列；核对 3 条关联 run 是否重跑成功 |
+| eval_subject 超时+噪音（H1） | 3 | 15% | L-3 修复 stderr 口径；评估 300s 预算适配性；核对失败用例补跑 |
+| 节点硬超时（预算打满） | 2 | 10% | playtest 预算/checkpoint 挂载状态到 DB 侧取证 |
+| API server error（中途中断） | 1 | 5% | 观察是否成族 |
+| exit0 无 commit | 1 | 5% | 既有规范（产物持久化纪律）覆盖，观察复发 |
+
+**方向与挂账事项**：
+1. **L-1（H2）优先解卡**：存量 6 条 reflow 提案手动重评（routes/evolution.ts:559），优先 cmunm03af——它是 H4 修复方向的在审载体，解卡即打通「最大失败族」的修复通道。
+2. **goal 成功率复测**（H6 falsification：n≥10 且 ≥0.5 销案）。
+3. **三零指标激活跟踪**（H-A2：连续两周 gateVerifiedRunRate 分母>0 且 acceptanceTests.total>0 且 feedbackSamples>0 → 方向A进入可实测态；抓手=高价值 workflow 挂载 routine 门禁，运营动作）。
+4. **H3 两条对账**：14 条 frozen ↔ backlog_frozen 事件；rejected +4 逐条 rejectReason。
+5. **锚点治理落地**（H11）：任务卡模板附实测 HEAD；baseRef 状态显式传递——评估作为进化提案立项。
+6. **仪器自校准跟进**（H8）：bugClosureDays 环比封装为低优先代码改进线索，下轮核对是否已修复并恢复 bugClosureDays 周环比读数。
+
+---
+
+## 七、口径裁决输入与衔接声明（v5）
+
+**采纳的三项口径修订**（供 v5 口径裁决书定稿引用，均已具证据）：
+1. **图证据降权 + 锚点声明修正**：本轮全部源码证据的实际基线=各节点取证时点实测 HEAD（6959c10f 时点亲核，漂移 ≤2 行；收口时点 a7fc2b0）；任务书锚点 023e5838 不可锚定（H11，E1）。「同 commit 可复现」验收项按「节点时点 HEAD 登记」口径执行。
+2. **g2-blocks / 仪器自校准不进主口径**：本轮工作流未落盘 g2-blocks 建图前后计数对照表（见下方底座声明），主口径不含图证据；旁支台账仅收录 H8 三条口径登记与红线声明（benchmark 回落仅查执行侧 H1，评测标准与进化护栏零放宽）。
+3. **benchmark 口径维持**：latestScore 83.875 ← previousScore 84.75（deltaPct=-1）按执行侧故障立案（H1），不构成放宽评测标准的理由（红线 1-5 全程有效）。
+
+**双轨立案落位**：缺陷工单 **0 单**（红线：E2 工单证据 11 项未齐备不开单）；缺陷线索池 5 条（L-1~L-5，对应 H2/H4/H1/H10/H9，随 actions.json 落盘，均含 E1 级修复方向与证据锚点，待 E2 补齐后转正式工单）；进化提案 0 条（红队 14 条裁定中无 evolution_proposal 类动作；H11 的流程改进①②列升级候选，由 Lead 裁量）；知识沉淀 4 条（H3/H5/H8/H11）。g2-blocks 相关发现本轮无（无数据落盘），不立案。
+
+**底座完整性声明**（.myrd/self-evolution/ 实测 7 件）：
+- 在档：health.json、pending-proposals.json、failures.json、meta.json、findings-hypotheses.json（14 条）、findings-audited.json（14 条）、findings-verified.json（14 条）——本报告与 actions.json 基于以上全量输入产出，关键数字全部经首席研究员独立复算/亲验（health 指标、failures 20 条签名分布、pending-proposals 6/13/6、承重源码锚点 7/7 命中）。
+- 缺失（unavailable）：findings-delta-v4.json、台账 v5、g2-blocks 盲区核销报告/仪器自校准记录、v5 口径裁决书草案未随工作流落盘至本目录。按纪律不作存在性推断，缺失项登记为 unavailable；本报告第二/三/六节与 actions.json 已承载台账与裁决书所需的全部结构化输入（判定总表、趋势对比、口径修订三条、预期管理条款），供后续节点直接引用。
+- 双 SHA 校验：本会话无哈希工具通道，沿用条目数多口径交叉对齐作为完整性凭证（各文件 provenance 见 findings-hypotheses.json meta.dataProvenance）。
+
+**下周衔接**：本报告 + actions.json 作为 v6 基线输入；H6/H-A2/H-A3 三个判定式挂账待实测；线索池 L-1~L-5 待 E2 补证转工单。
+
 
 ## 僵尸/孤儿运行轨迹识别与处置手册（status=failed 不可单独为凭）
 
@@ -3135,39 +3349,6 @@ GitHub: https://github.com/hl3w22bupt/myrd-playground.git
 
 ## 产品关联知识
 
-## 知识：Worker SIGINT 关闭中断失败模式——现象、根因、处置与预防
-
-# 失败模式：Worker SIGINT 关闭中断
-
-## 背景
-自动化工作流节点执行长时命令时，Worker 会在命令挂起或超出预算时发送 SIGINT 关闭该 worker。此信号被归类为基础设施噪音而非 agent 缺陷，但后果是整条执行轨迹失败且经常没有任何输出，浪费后续分析与自愈资源。
-
-## 现象
-- 轨迹 status=failed，错误信息为「Worker SIGINT 关闭中断」；
-- 输出摘要为空（进程在产出任何结果前被杀）；
-- 可影响任意自动化节点类型：开发/本地测试、记忆蒸馏、进化分析等；分析类 agent 自身也会复现此失败（元失败模式）。
-
-## 根因
-- 节点命令无界挂起：等待 stdin 交互输入、等待子进程、未设超时预算；
-- 长时进程未增量保存结果、未 flush 输出，被中断后无可检查产物，形成零输出失败轨迹；
-- 上层补丁/自愈仅清理僵尸轨迹，未消除命令本身的悬挂根源，故失败持续复现。
-
-## 排查与处置
-1. 遇到 status=failed 且错误含 SIGINT：先判断是否为基础设施信号（Worker 关闭），不急于归因 agent 缺陷；
-2. 交叉核对 runId 与轨迹产物：status=failed 单独不可靠（存在僵尸轨迹误报），须核对是否有落盘产物或部分输出；
-3. 复现命令：在本地以 `timeout <sec> <cmd>` 复跑，观察是否挂起、是否在超时前有增量输出；
-4. 若为长时任务，改为临时文件增量写盘 + 完成后原子改名，确保被中断后部分产物可恢复；
-5. 对无输出的失败运行启用回收/自愈机制清理，避免僵尸轨迹污染失败统计。
-
-## 预防
-- 所有节点命令遵循「显式超时 + 非交互 + 增量落盘 + 优雅退出」纪律（见对应规范）；
-- 分析型 agent（蒸馏、进化分析等）应在开始阶段即建立输出产物、分阶段写入，避免整段结束后才一次性输出，降低中断损失；
-- 将反复出现的同类失败纳入评测用例，使修复效果可量化考核。
-
-## [H9] 负反馈指标零值语义知识卡：no-data≠断链，最小样本红线与前置过程指标
-
-negativeFeedbackRate=null 的唯一代码路径是 artifactRating 表窗口内无行（src/services/platform-health/index.ts:166-167 查询仅时间窗条件；若查询失败健康包整体不会产出——health.json 有其它字段即证明查询成功返回空集）。因此该维度当前状态是『维度零样本』（没人打分），不是『采集断链』（打了分没进表）。知识卡沉淀三条判定规则供健康度 v2 引用：①零值三分法——no-data（零样本，不入异动结论）/zero-feedback（真实零负反馈，可入结论）/查询失败（健康包缺字段，立即升级采集缺陷）；②最小样本红线——负反馈类指标样本 <5 标『不可判定』（与 v2 全局样本量红线一致），不得进入周环比结论；③前置过程指标——观测『人工评分入口曝光/使用率』（artifactRating 写入速率）作为负反馈率的分母健康度指标，区分『没人打分』与『打了分丢数据』。
-
 ## MyRD 平台能力与环境事实源（Agent 防臆造基线 · 2026-09-26 主人核定）
 
 # 目的
@@ -3202,6 +3383,109 @@ negativeFeedbackRate=null 的唯一代码路径是 artifactRating 表窗口内�
 - 「代码图谱注册表 0 个注册仓库」（2026-09-11~09-26 多轮）：成员 agent 缺项目成员资格所致（2026-09-26 已修），非仓库缺失。
 - 「M2.1 执行被中断、断点位置未知」（2026-09-26 补跑轮）：往轮摘要缺执行结局导致的脑补，实际 M2.1 已于 2026-09-25 完成并部署上线。
 
+
+## MyRD 平台真实仓库结构地图、文档/技能入口与常见路径陷阱
+
+# MyRD 平台真实仓库结构地图、文档/技能入口与常见路径陷阱
+
+## 背景
+agent 在涉及 MyRD 平台的任务中反复出现两类高成本问题：
+
+1. **文档/技能入口定位失败**：任务开始时多次通过 glob 搜索 `**/myrd*/**/SKILL.md`、`**/myrd-platform-skill*` 等模式均返回 0 命中，误判平台「为云端平台、本地无文档」（#18283），或技能未在预期目录找到（#18123），随后不得不多轮读取源码与文档才定位入口（#18282-18293）。myrd-platform-skill 是 agent 理解平台的标准入口（最近 14 天调用 4 次），但 agent 本地环境无法直接命中其正文，造成重复勘察，agent 花费约十余次观测重复勘察结构。
+2. **引用不存在的文件路径**：多会话（#18282-18293、#18596-18617）反复手工翻查源码才能定位平台结构，且 #18616/#18617 实证发现提案引用了不存在的 `frontend/lib/services/*` 与 `myagent-client.ts` 路径，导致提案被驳回、评审周期浪费。
+
+根因在于「文档与实际源码结构不一致」——仓库（典型根目录 `/Users/leo/workspace/myrd`）存在源码与编译产物并存、文档过时等问题。本文档给出经源码核实的真实入口、真实结构地图及高频错误路径，供涉及 MyRD 内部实现的任务直接使用，消除重复探索并防止错误路径再次出现，显著降低后续任务冷启动成本。
+
+## 关键入口（权威文档与技能）
+- **平台使用说明书（权威）**：`/Users/leo/workspace/myrd/docs/myrd-platform-skill.md`。注意：位于源码仓库 `docs/` 下，而非 `~/.claude/skills/`。内容覆盖：服务地址、JWT 认证、全部 API 分类、典型示例、数据模型、边界情况，并含平台进化系统架构说明。
+- **快速开始**：`/Users/leo/workspace/myrd/docs/guides/quick-start.md`（环境搭建 → 服务启动 → 注册 → 建项目 → 跑工作流）。
+- **工作流集成/部署状态**：`/Users/leo/workspace/myrd/WORKFLOW_INTEGRATION.md`、`/Users/leo/workspace/myrd/MYRD_SETUP_STATUS.md`。
+- **数据库 schema**：`/Users/leo/workspace/myrd/prisma/schema.prisma`（含 `AgentExecutionTrajectory` 模型，表名 `agent_execution_trajectories`）。
+
+## 真实结构（经源码核实）
+- **入口与自愈**：`src/index.ts`（worker 启动时执行 auto-heal，覆盖 WorkflowRun / ExpressLaneRun / channel_messages / agent status / goals / vibe workspace，**不含** agentExecutionTrajectory）。
+- **工作流引擎**：`src/services/workflow/engine.ts`（约 2626 行；含 `resume()` 约 443 行、`iterateFrom()` 约 784 行、`rerunFrom()`、`rollbackToCheckpoint()`、`sharedSetupProjectWorkspace()`；支持 DAG 执行 / 自愈 / 重试 / git checkpoint）。
+- **Coding-agent 实现**：`src/services/coding-agent/{claude-code-agent.ts, local-claude-agent.ts, remote-agent.ts, types.ts}`（其中 `claude-code-agent.ts` 含 10 分钟默认超时与进程清理逻辑）。
+- **进化系统服务**：`src/services/evolution/`（analyzer 等模块；支撑证据系统三类数据源、证据挖掘策略）。
+- **路由**：`src/routes/workflows.ts` 等。
+- **前端真实源码**：`frontend/` 目录存在，含 `app/` 与 `components/` 源码，如 `frontend/app/(dashboard)/projects/new/page.tsx`、`frontend/components/projects/run-workflow-button.tsx`。
+- **编译产物（非源码）**：`src/dist/`——仅含编译后声明/产物（如 `src/dist/lib/myagent-client.d.ts`、`src/dist/services/coding-agent/myagent-agent.d.ts`），**不是源码**。
+
+## 服务端口
+前端 :3001、后端 API :3111、streaming :4112、MyAgent :3000、数据库 :5432。
+
+## 高频错误路径（不存在，务必避免）
+| 常见错误引用 | 真实对应 |
+|---|---|
+| `frontend/lib/services/workflow/engine.ts` | `src/services/workflow/engine.ts` |
+| `frontend/lib/services/coding-agent/claude-code-agent.ts` | `src/services/coding-agent/claude-code-agent.ts` |
+| `myagent-client.ts`（作为源码） | 无此源码；仅有编译声明 `src/dist/lib/myagent-client.d.ts` |
+| 认为前端目录含业务服务代码 | `frontend/` 主要被 `node_modules` 占据；业务服务在 `src/services/` |
+
+## 根因
+1. 文档（含 `docs/guides/quick-start.md`）描述的结构与实际仓库不一致或已过时；
+2. agent 凭记忆/推测引用路径，未做存在性核实；
+3. `src/` 与 `src/dist/` 并存，把编译产物误当源码。
+
+## 处置（核实方法）
+- 引用任何路径前，先用 glob/grep 在仓库根目录确认文件存在；
+- 区分 `src/`（源码）与 `src/dist/`（编译产物），引用源码一律指向 `src/`；
+- 工作流引擎、coding-agent、evolution 等业务服务一律在 `src/services/` 下，不在 `frontend/lib/` 下；
+- 「文件不存在」的判断以 glob 返回空为唯一依据，不要依据记忆或文档；
+- 分析轨迹/进化数据时，直接读 `agent_execution_trajectories` 表与 `prisma/schema.prisma` 的 `AgentExecutionTrajectory` 模型，不要靠源码 glob 反推。
+
+## 预防
+- 涉及 MyRD 内部实现的提案/文档，落笔前对每个文件路径做一次 glob 核实；
+- 平台是本地源码 + 多 run 工作区（`/Users/leo/.myrd/workspaces/proj-myrd/run-*`）并存；run 工作区可能包含主干尚未合入的功能（如 express-lane、轨迹追踪迁移），分析时以对应 run 工作区为准；
+- 本文档随仓库结构变更应同步更新。
+
+## 项目开发规范
+
+# 项目开发规范
+
+## 代码风格
+- 使用 TypeScript
+- - 遵循 ESLint 规范
+- 提交前运行 lint 检查
+
+## Git 提交规范
+- 使用 Conventional Commits 格式
+- feat: 新功能
+- fix: 修复 bug
+- docs: 文档更新
+
+## [H9] 负反馈指标零值语义知识卡：no-data≠断链，最小样本红线与前置过程指标
+
+negativeFeedbackRate=null 的唯一代码路径是 artifactRating 表窗口内无行（src/services/platform-health/index.ts:166-167 查询仅时间窗条件；若查询失败健康包整体不会产出——health.json 有其它字段即证明查询成功返回空集）。因此该维度当前状态是『维度零样本』（没人打分），不是『采集断链』（打了分没进表）。知识卡沉淀三条判定规则供健康度 v2 引用：①零值三分法——no-data（零样本，不入异动结论）/zero-feedback（真实零负反馈，可入结论）/查询失败（健康包缺字段，立即升级采集缺陷）；②最小样本红线——负反馈类指标样本 <5 标『不可判定』（与 v2 全局样本量红线一致），不得进入周环比结论；③前置过程指标——观测『人工评分入口曝光/使用率』（artifactRating 写入速率）作为负反馈率的分母健康度指标，区分『没人打分』与『打了分丢数据』。
+
+## 知识：Worker SIGINT 关闭中断失败模式——现象、根因、处置与预防
+
+# 失败模式：Worker SIGINT 关闭中断
+
+## 背景
+自动化工作流节点执行长时命令时，Worker 会在命令挂起或超出预算时发送 SIGINT 关闭该 worker。此信号被归类为基础设施噪音而非 agent 缺陷，但后果是整条执行轨迹失败且经常没有任何输出，浪费后续分析与自愈资源。
+
+## 现象
+- 轨迹 status=failed，错误信息为「Worker SIGINT 关闭中断」；
+- 输出摘要为空（进程在产出任何结果前被杀）；
+- 可影响任意自动化节点类型：开发/本地测试、记忆蒸馏、进化分析等；分析类 agent 自身也会复现此失败（元失败模式）。
+
+## 根因
+- 节点命令无界挂起：等待 stdin 交互输入、等待子进程、未设超时预算；
+- 长时进程未增量保存结果、未 flush 输出，被中断后无可检查产物，形成零输出失败轨迹；
+- 上层补丁/自愈仅清理僵尸轨迹，未消除命令本身的悬挂根源，故失败持续复现。
+
+## 排查与处置
+1. 遇到 status=failed 且错误含 SIGINT：先判断是否为基础设施信号（Worker 关闭），不急于归因 agent 缺陷；
+2. 交叉核对 runId 与轨迹产物：status=failed 单独不可靠（存在僵尸轨迹误报），须核对是否有落盘产物或部分输出；
+3. 复现命令：在本地以 `timeout <sec> <cmd>` 复跑，观察是否挂起、是否在超时前有增量输出；
+4. 若为长时任务，改为临时文件增量写盘 + 完成后原子改名，确保被中断后部分产物可恢复；
+5. 对无输出的失败运行启用回收/自愈机制清理，避免僵尸轨迹污染失败统计。
+
+## 预防
+- 所有节点命令遵循「显式超时 + 非交互 + 增量落盘 + 优雅退出」纪律（见对应规范）；
+- 分析型 agent（蒸馏、进化分析等）应在开始阶段即建立输出产物、分阶段写入，避免整段结束后才一次性输出，降低中断损失；
+- 将反复出现的同类失败纳入评测用例，使修复效果可量化考核。
 
 ## 演进提案（知识勘误）：修正平台规范「轨迹有界生命周期」:154-155 双处失真——agentExecutionTrajectory 已具备启动+5 分钟周期双通道自愈（H2-b，P2）
 
@@ -3339,76 +3623,6 @@ MyRD Admin 提出设计一款以"情绪价值"为核心的陪伴类 App，并引
 1. 竞品深度拆解：挑选 2-3 款 AI 聊天+游戏元素的应用进行分析
 2. MVP 核心功能定义
 3. 商业模式确定
-
-## MyRD 平台真实仓库结构地图、文档/技能入口与常见路径陷阱
-
-# MyRD 平台真实仓库结构地图、文档/技能入口与常见路径陷阱
-
-## 背景
-agent 在涉及 MyRD 平台的任务中反复出现两类高成本问题：
-
-1. **文档/技能入口定位失败**：任务开始时多次通过 glob 搜索 `**/myrd*/**/SKILL.md`、`**/myrd-platform-skill*` 等模式均返回 0 命中，误判平台「为云端平台、本地无文档」（#18283），或技能未在预期目录找到（#18123），随后不得不多轮读取源码与文档才定位入口（#18282-18293）。myrd-platform-skill 是 agent 理解平台的标准入口（最近 14 天调用 4 次），但 agent 本地环境无法直接命中其正文，造成重复勘察，agent 花费约十余次观测重复勘察结构。
-2. **引用不存在的文件路径**：多会话（#18282-18293、#18596-18617）反复手工翻查源码才能定位平台结构，且 #18616/#18617 实证发现提案引用了不存在的 `frontend/lib/services/*` 与 `myagent-client.ts` 路径，导致提案被驳回、评审周期浪费。
-
-根因在于「文档与实际源码结构不一致」——仓库（典型根目录 `/Users/leo/workspace/myrd`）存在源码与编译产物并存、文档过时等问题。本文档给出经源码核实的真实入口、真实结构地图及高频错误路径，供涉及 MyRD 内部实现的任务直接使用，消除重复探索并防止错误路径再次出现，显著降低后续任务冷启动成本。
-
-## 关键入口（权威文档与技能）
-- **平台使用说明书（权威）**：`/Users/leo/workspace/myrd/docs/myrd-platform-skill.md`。注意：位于源码仓库 `docs/` 下，而非 `~/.claude/skills/`。内容覆盖：服务地址、JWT 认证、全部 API 分类、典型示例、数据模型、边界情况，并含平台进化系统架构说明。
-- **快速开始**：`/Users/leo/workspace/myrd/docs/guides/quick-start.md`（环境搭建 → 服务启动 → 注册 → 建项目 → 跑工作流）。
-- **工作流集成/部署状态**：`/Users/leo/workspace/myrd/WORKFLOW_INTEGRATION.md`、`/Users/leo/workspace/myrd/MYRD_SETUP_STATUS.md`。
-- **数据库 schema**：`/Users/leo/workspace/myrd/prisma/schema.prisma`（含 `AgentExecutionTrajectory` 模型，表名 `agent_execution_trajectories`）。
-
-## 真实结构（经源码核实）
-- **入口与自愈**：`src/index.ts`（worker 启动时执行 auto-heal，覆盖 WorkflowRun / ExpressLaneRun / channel_messages / agent status / goals / vibe workspace，**不含** agentExecutionTrajectory）。
-- **工作流引擎**：`src/services/workflow/engine.ts`（约 2626 行；含 `resume()` 约 443 行、`iterateFrom()` 约 784 行、`rerunFrom()`、`rollbackToCheckpoint()`、`sharedSetupProjectWorkspace()`；支持 DAG 执行 / 自愈 / 重试 / git checkpoint）。
-- **Coding-agent 实现**：`src/services/coding-agent/{claude-code-agent.ts, local-claude-agent.ts, remote-agent.ts, types.ts}`（其中 `claude-code-agent.ts` 含 10 分钟默认超时与进程清理逻辑）。
-- **进化系统服务**：`src/services/evolution/`（analyzer 等模块；支撑证据系统三类数据源、证据挖掘策略）。
-- **路由**：`src/routes/workflows.ts` 等。
-- **前端真实源码**：`frontend/` 目录存在，含 `app/` 与 `components/` 源码，如 `frontend/app/(dashboard)/projects/new/page.tsx`、`frontend/components/projects/run-workflow-button.tsx`。
-- **编译产物（非源码）**：`src/dist/`——仅含编译后声明/产物（如 `src/dist/lib/myagent-client.d.ts`、`src/dist/services/coding-agent/myagent-agent.d.ts`），**不是源码**。
-
-## 服务端口
-前端 :3001、后端 API :3111、streaming :4112、MyAgent :3000、数据库 :5432。
-
-## 高频错误路径（不存在，务必避免）
-| 常见错误引用 | 真实对应 |
-|---|---|
-| `frontend/lib/services/workflow/engine.ts` | `src/services/workflow/engine.ts` |
-| `frontend/lib/services/coding-agent/claude-code-agent.ts` | `src/services/coding-agent/claude-code-agent.ts` |
-| `myagent-client.ts`（作为源码） | 无此源码；仅有编译声明 `src/dist/lib/myagent-client.d.ts` |
-| 认为前端目录含业务服务代码 | `frontend/` 主要被 `node_modules` 占据；业务服务在 `src/services/` |
-
-## 根因
-1. 文档（含 `docs/guides/quick-start.md`）描述的结构与实际仓库不一致或已过时；
-2. agent 凭记忆/推测引用路径，未做存在性核实；
-3. `src/` 与 `src/dist/` 并存，把编译产物误当源码。
-
-## 处置（核实方法）
-- 引用任何路径前，先用 glob/grep 在仓库根目录确认文件存在；
-- 区分 `src/`（源码）与 `src/dist/`（编译产物），引用源码一律指向 `src/`；
-- 工作流引擎、coding-agent、evolution 等业务服务一律在 `src/services/` 下，不在 `frontend/lib/` 下；
-- 「文件不存在」的判断以 glob 返回空为唯一依据，不要依据记忆或文档；
-- 分析轨迹/进化数据时，直接读 `agent_execution_trajectories` 表与 `prisma/schema.prisma` 的 `AgentExecutionTrajectory` 模型，不要靠源码 glob 反推。
-
-## 预防
-- 涉及 MyRD 内部实现的提案/文档，落笔前对每个文件路径做一次 glob 核实；
-- 平台是本地源码 + 多 run 工作区（`/Users/leo/.myrd/workspaces/proj-myrd/run-*`）并存；run 工作区可能包含主干尚未合入的功能（如 express-lane、轨迹追踪迁移），分析时以对应 run 工作区为准；
-- 本文档随仓库结构变更应同步更新。
-
-## 项目开发规范
-
-# 项目开发规范
-
-## 代码风格
-- 使用 TypeScript
-- - 遵循 ESLint 规范
-- 提交前运行 lint 检查
-
-## Git 提交规范
-- 使用 Conventional Commits 格式
-- feat: 新功能
-- fix: 修复 bug
-- docs: 文档更新
 
 ## 架构设计文档
 
@@ -6181,6 +6395,220 @@ curl -s "$PLATFORM_API_URL/api/v1/workflows/runs/cmvagxyf3002em94lxhtab3p9" \
 
 ---
 *来源：goal `cmvaf7imr000jm94le9x48zfu` artifacts、工作流运行 `cmvagxyf3002em94lxhtab3p9` 节点输出、AppHost 记录 `cmvaf7imm000hm94lw6y43t0q`，均为 2026-10-16 实测。*
+
+## [H2][缺陷线索池 L-1·P1] reflow 回流通道评估接线缺失，6 条提案滞留 evaluation_pending（最长 22 天），闭环选择层对该通道断路 2026-W42
+
+【来源】红队裁定 Confirmed/P1，原 actionType=bug_ticket；因 E2 工单证据 11 项未齐备（缺 DB 侧评估队列状态取证），按红线本轮不开单，转缺陷线索池待补证。【现象】reflow 通道创建提案后从不触发评估且系统无 evaluation_pending 兜底消费者：6 条 reflow 提案滞留 6/18/22 天三批次，对照组 admin 注入 7/7 分钟级出分；在审合并提案 cmunm03af（轨迹终结元数据统一标准，即 H4 修复方向）被卡 18 天。【根因】评估触发为创建路径各自接线模式：intake 路由与 analyzer 转正均接自动评估，reflow 兜底通道漏接（reflow.ts:169-185 函数内无 evaluateProposal 调用；全仓生产调用点仅 intake.ts:185 / analyzer.ts:2118 / routes/evolution.ts:559 三处）；叠加 routes/evolution.ts:344-350 verdict 门禁对无评估提案 409 拦截，连人工审批也被阻断。【修复方向】① reflow.ts importOneAction 补接 evaluateProposal（与 intake 路由同款 fire-and-forget + EVOLUTION_INTAKE_AUTO_EVALUATE 同开关语义）；② scheduler 增设 evaluation_pending 超龄件兜底扫描补评；③ 存量 6 条经 routes/evolution.ts:559 手动重评解卡，优先解卡 cmunm03af。【证据锚点】src/services/self-evolution/reflow.ts:169-185（首席亲验逐字命中）；src/routes/evolution-proposals-intake.ts:182-188；pending-proposals.json evaluation_pending×6 与 reflow:×6 一一对应（首席亲数）。【E2 缺口】评估队列 DB 状态、6 条滞留件 createdAt/queuedAt 逐条取证。
+
+## [H4][缺陷线索池 L-2·P1] error=null 失败轨迹占本周 10/20（50%），唯一产生通道=引擎终结路径组合条件，无出口断言 2026-W42
+
+【来源】红队裁定 Confirmed/P1，原 actionType=bug_ticket；E2 未齐备本轮不开单，转缺陷线索池。连续两轮复发（上轮 H4 同签名立案后仍发生）。【现象】failures.json 20 条中 10 条 error=null 且 workflowRunError=null（create-pr/polish/art/design/blackboard×3/dev-test/round-plan/playtest），outputPreview 显示 agent 实际执行大量有效工作后静默失败，进化分析拿不到失败签名。【根因】engine.ts:3042 nodeError = noWorkReason ?? (exitCode!==0 ? (cliError || stripCliStderrNoise(stderr).stderr || undefined) : undefined)：exitCode≠0 且 CLI 未写 result 错误事件且 stderr 空/被滤空时 nodeError=undefined；:3045-3049 直通 finalizeAgentTrajectory，无「failed 必带 error」出口断言。典型场景=硬超时 SIGKILL 强杀/OOM/进程崩溃。红队穷举七通道闭合：其余失败通道均带 error，唯一缺口即此组合条件；自愈误报反例不成立。【修复方向】① engine.ts:3045 终结处对 failed 且 nodeError 空写入保底归因（如 exit=N（CLI 未返回错误详情），疑似强杀/OOM/崩溃）——出口断言而非源头堵漏；② startTimer 超时路径回传 timedOut 标志兜底进 error。【证据锚点】src/services/workflow/engine.ts:3042、:3045-3049（首席亲验逐字命中）；failures.json 亲数 10/20。【E2 缺口】10 条逐案 runId+产物交叉验证（真失败 vs 强杀/OOM 分布）、DB 侧 nodeError 现场取证。
+
+## [H1][缺陷线索池 L-3·P2] eval_subject 300s 超时打满后轨迹 error 被 unrecognized_model stderr 噪音冒充，benchmark 回落归因被污染（「模型识别失败」原判已证伪） 2026-W42
+
+【来源】红队裁定 Confirmed/P2，原 actionType=bug_ticket；E2 未齐备本轮不开单，转缺陷线索池。【现象】3 条 eval_subject 失败（10-15×2、10-16×1）error=[claude-code:unrecognized_model] 噪音原文，durationMs=300277/300313/300300ms 与 benchmark 默认超时 300000ms+SIGTERM 延迟精确吻合；同窗 benchmark 83.875←84.75（deltaPct=-1）。【根因】两层叠加：① 评测用例 300s 预算内未完成且未被成功重跑补齐（benchmark 样本面缺口）；② trajectory/index.ts:606 失败分支裸写 stderr 未套 stripCliStderrNoise，与 streaming-pipeline.ts:842 已过滤口径漂移。原判「[1m] 后缀未被 SDK 识别致回落」被源码证伪：该诊断非致命且有单测背书（claude-code-agent.ts:889-892 注释 + __tests__/claude-code-agent.stderr-noise.test.ts）；[1m] 系用户配置值，平台代码不产生也不清洗。【修复方向】① trajectory/index.ts:606 套用 stripCliStderrNoise（与 streaming 同口径，留中性提示）；② 评估预算对第三方长上下文模型适配评估（EVOLUTION_BENCHMARK_TIMEOUT_MS 或按用例配置）；③ 失败用例补跑机制核对。【证据锚点】src/services/trajectory/index.ts:606（首席亲验）；src/services/streaming-pipeline.ts:839-849（注释点名 glm-5.3-flash[1m]，首席亲验）；failures.json 三条 durationMs 亲数。【红线】benchmark 回落仅查执行侧，不构成放宽评测标准/进化护栏的理由。【E2 缺口】benchmark 结果行 error 归因 DB 取证、失败用例补跑记录核对。
+
+## [H10][缺陷线索池 L-4·P2] 无 runId 轨迹周期自愈以 createdAt+30min 判死，channel/express_lane 长会话存在误杀窗口（潜伏：本周无实锤样本） 2026-W42
+
+【来源】红队裁定 Confirmed/P2，原 actionType=bug_ticket；E2 未齐备本轮不开单，转缺陷线索池。红队影响面修正：标题从现在时「存在被误杀」收窄为「存在误杀窗口；本周无实锤样本；生产部署时点未锚定」。【现象】engine.ts:467 无 runId 分支以 createdAt（轨迹诞生时刻）而非 updatedAt（最近进展）判 30 分钟超时，命中即标 failed + 「僵尸轨迹：执行超时未结束」。streaming 轨迹全无 runId（streaming-pipeline.ts 全文 grep 零命中），触发面非空；同文件 :390-392 run 自愈已用 updatedAt 正确口径（注释明言「避免误杀正在正常执行的长任务」）——同函数族双时间基准并存，:467 系选型偏差。红队补强：index.ts:575-577 周期任务注释声称「活跃对象不会被误伤」与该分支实现不符。【本周反例】failures.json 20 条零「执行超时未结束」签名；无 runId 轨迹 cmv7ggiaa 存活 25h 未被误杀——强假说：该分支系近期新增、生产 worker 尚未部署（区域 ~39 行漂移佐证），无法在本会话确证，如实标注。【修复方向】① :467 改 now-(t.updatedAt ?? t.createdAt) > STALE_MS（与 :392 同款 + 历史行 updatedAt NULL 兜底）；② 回溯 failures.json「执行超时未结束」×durationMs≈30min 指纹核实历史污染面。【证据锚点】src/services/workflow/engine.ts:447、:467、:469-472（首席亲验逐字命中）。【E2 缺口】生产 worker 部署版本记录、无 runId 长轨迹执行时长分布（DB）。
+
+## [H9][缺陷线索池 L-5·P3] 用户取消标 failed（「用户已取消」），TrajectoryStatus 无 cancelled 终态，取消语义借用失败通道（潜伏口径缺陷） 2026-W42
+
+【来源】红队裁定 Confirmed/P3，原 actionType=bug_ticket；E2 未齐备（近四周取消占比统计需 DB）本轮不开单，转缺陷线索池。红队影响面修正：定性为「潜伏口径缺陷」而非「已发生污染」——本周 failures.json 20 条中 0 条「用户已取消」签名（0%<2%），但失败族分析持续以 failures.json 为底座，结构性口径风险成立；且平台规范「长任务执行韧性规范」第 4 条（必须区分取消与失败，被取消轨迹不得污染失败统计）被直接违反，规范符合性是硬事实。【根因】TrajectoryStatus 终态枚举仅 completed/failed（trajectory/index.ts:364-367 签名亲验），取消场景在 streaming-pipeline.ts:814-818（finalizeTrajectory('failed', durationMs, '用户已取消')，首席亲验）与引擎 run-cancelled 同步路径（engine.ts:460）两处均折入 failed——结构性约束非调用方疏忽。【修复顺序（防读数端丢语义）】① 先扩 TrajectoryStatus 终态枚举增加 cancelled；② 再改 streaming-pipeline:818 与 engine run-cancelled 同步路径写入 cancelled；③ 最后 failures 聚合将 cancelled 移出失败族（单列「用户取消」族）。【证据锚点】src/services/streaming-pipeline.ts:814-818；src/services/trajectory/index.ts:364-367；src/services/workflow/engine.ts:460。【E2 缺口】近四周取消轨迹占比统计（DB 聚合）、取消对历史失败率结论的影响面回溯。
+
+## [H3][知识沉淀] frozen 0→14 为 2026-10-15 Admin 拍板治理动作（超 30 天自动冻结），熔断线口径已 30→66，需台账登记与两条对账 2026-W42
+
+【来源】红队裁定 Confirmed/P3，actionType=knowledge_only。【登记三件事】① 14 条 frozen 登记为「10-15 治理动作产物」（scheduler.ts:73-93 freezeStaleBacklog 注释明示 Admin 2026-10-15 拍板，pending 超 FREEZE_AFTER_DAYS=30 天自动 frozen，10 分钟一轮+启动清存量，落 schedulerEvents backlog_frozen 含 frozenCount）——待与事件逐条对账（DB 不可读，本轮留为对账动作）；② 熔断线新口径 QUEUE_CIRCUIT_BREAKER=66 / warn=60（-6）/ escalate=63（-3）（approval-sla.ts:25-32 亲验）取代旧 30/24/27——上轮 H6/cmunm03ac 等水位类提案与 H-A3 判定式按新口径重述；时间线旁证：09-25/10-04 历史提案内嵌快照引用旧值；③ frozen 不计熔断水位/SLA 告警（scheduler.ts:75-76）的读数口径分界：冻结会永久性压低 pending 水位读数，后续水位趋势分析须区分 frozen 前后口径。【残留待办】rejected 15→19 增量 4 条逐条取 rejectReason 防静默销案。【红队补充发现（首席亲核命中）】approval-sla.ts:48 注释残留旧口径「warn ≥24 / escalate ≥27 / breaker ≥30」、scheduler.ts:115 注释「熔断线 ≥30」——两处注释过时，随本条修订（口径升级未同步注释）。【证据锚点】src/services/evolution/scheduler.ts:73-93、:115；src/services/evolution/approval-sla.ts:25-41、:48。
+
+## [H5][知识沉淀] SIGINT 轨迹「error 有文案+durationMs/outputPreview 双 null」为优雅关闭设计产物，读数端应单列「重启成本」族 2026-W42
+
+【来源】红队裁定 Confirmed/P3，actionType=knowledge_only。原疑点「SIGINT 双 null=数据损坏」证伪。【读数端纪律】failures 聚合将 SIGINT 轨迹（error 前缀 Worker SIGINT + 双 null 指纹）单列「重启成本」族，不混入失败族——本周 3 条（implement×2 + goal_delegate×1，首席亲数）对应 10-15T03:0x 一次 worker 重启；重启后自愈链齐备（run→paused→auto-resume、expressLane→failed 留现场）。【机制依据】trajectory/index.ts:346-351 shutdown finalizer 仅写 {status:'failed', error:reason, completedAt}，不写 durationMs/outputPreview（首席亲验）——双 null 是 finalizer 字段集的确定性输出；index.ts:608-641 gracefulShutdown 四步收尾、:372+:578-599 启动+周期双层自愈（5 分钟一轮）、:384-400 expressLane 自愈均亲核在仓。【低优先改进线索】finalizer 可补写 durationMs（created→shutdown 差值）与已有 outputPreview，降低「全损」观感。【证据缺口声明】3 条 SIGINT 关联 run 是否重跑成功（rerun 记录）、playtest 节点预算与 checkpoint 挂载状态在 workflow definition（DB 侧），本轮不可读。硬超时 2 条（implement 5400s/playtest 10800s）归因文案正确，属预算内未完成非机制缺失。【证据锚点】src/services/trajectory/index.ts:346-351；src/index.ts:372、:578-599、:608-641、:384-400。
+
+## [H8][知识沉淀·仪器自校准] 口径词典三条：activity.tasks 全任务口径 vs taskSamples 终态口径；other 桶=taskType null 兜底；bugClosureDays 无环比封装 2026-W42
+
+【来源】红队裁定 Confirmed/P3，actionType=knowledge_only。三处仪器漂移终局裁定（旁支台账，不进主口径）：【① 撤回转登记】health.json activity.tasks=34 与 taskSamples 三桶合计 31 之差 3=窗口内非终态任务——index.ts:199 taskCount 无 status 过滤（计入 running/paused 中间态）vs :116-118 taskSuccessRows 仅取 completed/failed（:68-69 注释「其余中间态既不入分子也不入分母」即官方口径）——两谓词口径天然不同，登记说明后每轮不再消耗取证成本。【② 打标侧演化】windows.ts:75 `row.taskType ?? 'other'`——other 是 taskType=null 的兜底桶名而非独立类型；express_lane 首现（n=1，lowConfidence）系打标侧将原 null 杂项任务标上真实类型，聚合逻辑未变，非缺陷。【③ 封装缺失成立】index.ts:277-281 bugClosureDays 裸数值返回（本周 18.4 天），同文件其他指标均有 {current, previous, deltaPct} 封装（:260 point、:266-270 benchmark），独它没有——闭环时长周环比断路；补封装列低优先代码改进线索（E2 门内，旁支台账）。【证据锚点】src/services/platform-health/index.ts:199、:68-69、:79、:277-281；src/services/platform-health/windows.ts:75（均为红队/首席亲验锚点）。
+
+## [H11][知识沉淀] commit 锚点 023e5838 与取证工作区脱钩（工作区 HEAD 红队时点 6959c10f、首席收口时点 a7fc2b0），证据基线登记与锚点治理三条 2026-W42
+
+【来源】红队亲手取证的流程发现，裁定 Confirmed/P3，actionType=knowledge_only。【事实】任务书下发并经 audit/侦探转引的锚点 023e5838 在本工作区 git 库可达范围（refs/reflog/松散对象）零痕迹；.git/logs/HEAD 共 5 行：clone @ ac6e5c73 → auto-commit c2d84662 → 6959c10f（红队取证时点）→ a7fc2b0（首席研究员收口时点亲读，红队之后又推进一拍）——工作区 HEAD 被 workflow auto-commit 持续推进，「固定锚点」与「移动工作区」天然脱钩；audit meta.baseRef 自认 independentlyVerified=false。【影响面】「同 commit 可复现」验收项无法按 023e5838 闭环；但红队已在本工作区 HEAD=6959c10f 时点逐条亲核 13 条发现全部源码锚点（漂移≤2 行），本轮判定有效性不受影响，受影响的是跨轮可复现性声明。【登记三条】① 本轮证据基线=各节点取证时点实测 HEAD（audit/侦探/红队：6959c10f 时点；首席收口：a7fc2b0），后续轮次照此口径，v5 口径裁决书引用以此为准；② 任务卡下发 commit 锚点时应同时附「取证工作区实测 HEAD」（或要求首节点先读 .git/HEAD 回锚写回产物 meta）；③ 体检师节点 baseRef.independentlyVerified=false 状态向下游（红队/首席）显式传递，作为可复现性声明的一部分。【不可断言项】023e5838 是否存在于 main 历史 pack 文件——本会话无 git 命令通道，「本工作区无法锚定」可断言，「该 commit 不存在」不可断言。【升级候选（供 Lead 裁量）】②③属工作流节点提示词/任务卡模板类软资产改进，可批准为进化提案单独立项（不改变本条 knowledge 裁定）。【证据锚点】.git/logs/HEAD（首席亲读 5 行）；.git/refs/heads/myrd/run-cmvdfmx530043m9wlxkjmnvkn（首席亲读=a7fc2b09638f7225336cad6ba1ad78644c28f027）。
+
+## MyRD 自进化周报 2026-W42
+
+# MyRD 自进化周报 2026-W42
+
+> 周期标识取自 meta.json：week=2026-W42（date=2026-10-18）。
+> 数据窗口：2026-10-11T06:16Z → 2026-10-18T06:16Z（health.json generatedAt=2026-10-18T06:16:31.126Z；failures.json 最早 2026-10-12T06:58:41Z、最晚 2026-10-18T01:29:40Z）。
+> 样本量门：activity.tasks=34 ≥ 5，**PASS**，本周允许周级结论；例外：taskSuccessRateByType.goal 分母 n=4 且 lowConfidence=true（仅方向参考）、express_lane n=1 无前值（不下结论）。
+> 证据基线声明：任务书锚点 023e5838 在本工作区不可锚定（refs/reflog/松散对象三路零痕迹，亲核）；红队取证时工作区 HEAD=6959c10f，本报告收口时亲读已推进至 a7fc2b0（workflow auto-commit 持续追加，.git/logs/HEAD 共 5 行亲读）。全部源码证据以各节点取证时点实测 file:line 为准，锚点治理见 H11。
+
+---
+
+## 一、本周结论摘要
+
+本周三条链（侦探 14 条假设 → 体检师 14 条取证 → 红队 14 条终局裁定）逐条对齐，**顶层裁定：Confirmed 14 / Refuted 0 / Uncertain 0**。核心结论四条：
+
+1. **自进化闭环「选择层」对 reflow 回流通道实质断路（本周最高优先级，P1）**。reflow 通道创建提案后从不触发评估（src/services/self-evolution/reflow.ts:169-185 亲读，函数内无 evaluateProposal 调用），系统亦无 evaluation_pending 兜底消费者；6 条 reflow 提案滞留评估 6~22 天（pending-proposals.json 亲数：evaluation_pending ×6 与 reflow: ×6 一一对应），对照组 admin 注入 7/7 分钟级出分。在审合并提案 cmunm03af（轨迹终结元数据统一标准）正被此缺陷卡住 18 天——「修复通道本身被另一缺陷阻断」的耦合是本周最需解卡的点。
+2. **失败统计口径存在两处结构性缺口（P1/P2）**：① error=null 的 failed 轨迹占本周失败 10/20（50%，failures.json 亲数），唯一产生通道已精确定位为 workflow 引擎终结路径组合条件（engine.ts:3042 亲读逐字命中）；② 无 runId 轨迹的周期自愈以 createdAt+30min 判死（engine.ts:467 亲读），channel/express_lane 长会话存在被误杀窗口（本周无实锤样本，潜伏期）。
+3. **漏斗剧变有明确代码归因，属合规治理动作（P3 台账登记）**：frozen 0→14 系 2026-10-15 Admin 拍板上线的 freezeStaleBacklog（超 30 天自动冻结，scheduler.ts:73-93 亲读注释明示），非调度器误触发；熔断线口径已 30→66（approval-sla.ts:25-32 亲读）。残留两条待办：14 条 frozen 与 backlog_frozen 事件对账（DB 不可读，本轮无法实测）、rejected 15→19 增量 4 条的个体理由需取 rejectReason 防静默销案。
+4. **负反馈闭环输入端三零持续（gateVerifiedRunRate 0/0、acceptanceTests 0/0、feedbackSamples 0/0），方向A本周无法实测**。机制链经源码复核完整在仓（采集/写入/钩子/注册四锚点全命中），缺的是执行流量过门，属流程激活问题非代码缺失。方向A三条判定式维持「预注册·待实测」。
+
+**预期管理**：代码侧缺证（DB 实体数据、schedulerEvents 对账、benchmark 结果行均不可读），本轮结论仅 E1 等级证据（工作区内可复核实证）+ 自校准记录支撑。缺陷工单本轮 **0 单**（5 条缺陷线索均未齐备 E2 工单证据 11 项，按红线转缺陷线索池）；无任何放宽护栏/边界合同的建议。
+
+---
+
+## 二、判定总表（14 条，与 findings-verified.json 逐条对应）
+
+| ID | 简题 | Verdict | Severity | 红队 actionType | 本报告落位 |
+|----|------|---------|----------|-----------------|-----------|
+| H2 | reflow 通道评估接线缺失，6 条提案滞留 | Confirmed | P1 | bug_ticket→线索池 | 短板 #1（线索池 L-1） |
+| H4 | error=null 失败轨迹唯一产生通道（引擎终结组合条件） | Confirmed | P1 | bug_ticket→线索池 | 短板 #2（线索池 L-2） |
+| H1 | eval_subject 300s 超时 + 轨迹 error 被噪音冒充（「模型识别失败」证伪） | Confirmed | P2 | bug_ticket→线索池 | 短板 #3（线索池 L-3） |
+| H10 | 无 runId 轨迹 createdAt+30min 误杀窗口 | Confirmed | P2 | bug_ticket→线索池 | 短板 #4（线索池 L-4） |
+| H9 | 用户取消标 failed，无 cancelled 终态 | Confirmed | P3 | bug_ticket→线索池 | 短板 #5（线索池 L-5） |
+| H3 | frozen 0→14=10-15 治理动作；熔断线 30→66 | Confirmed | P3 | knowledge_only | 短板 #6（知识） |
+| H5 | SIGINT 双 null=优雅关闭设计产物，非数据损坏 | Confirmed | P3 | knowledge_only | 短板 #7（知识） |
+| H8 | 仪器口径三漂移裁定（①成立②演化③撤回） | Confirmed | P3 | knowledge_only | 短板 #8（知识） |
+| H11 | 锚点 023e5838 不可锚定；基线漂移 | Confirmed | P3 | knowledge_only | 短板 #9（知识） |
+| H6 | goal 成功率口径分离已固化，n=4 维持方向参考 | Confirmed | P3 | none | 下周复测（falsification 挂账） |
+| H7 | 三零指标=流量未过门，机制链完整 | Confirmed | P2 | none | 激活跟踪（H-A2 承载） |
+| H-A1 | 方向A时间序判别式：无时间序字段→仅方向参考 | Confirmed | P3 | none | 预注册·待实测 |
+| H-A2 | 方向A输入端激活判定式 | Confirmed | P3 | none | 预注册·待实测 |
+| H-A3 | 方向A输出端消化判定式（按熔断 66 新口径） | Confirmed | P3 | none | 预注册·待实测 |
+
+> 口径注记：findings-audited.json meta.coverage=13 与 findings-verified.json meta.verdictSummary.confirmed=13 均为 H11 追加前快照；两文件数组实际条数均=14，本表以数组实数为准。
+
+---
+
+## 三、Confirmed 短板清单（每条：定级 / 证据 / 根因 / 建议动作）
+
+### 短板 #1（H2·P1）reflow 回流通道评估接线缺失，闭环选择层对该通道断路
+
+- **证据**（本首席研究员独立亲验）：reflow.ts:169-185 创建提案 `status='pending'` + `evaluation={state:'evaluation_pending'}`（:183）、溯源 `reflow:${ctx.runId}`（:180），函数内无 evaluateProposal 调用；全仓生产调用点仅 3 处（intake 路由 fire-and-forget / analyzer 转正 / routes/evolution.ts:559 手动重评），reflow 不在其中；无任何 evaluation_pending 周期兜底消费者。数据面：pending-proposals.json 亲数 evaluation_pending×6（全 reflow 前缀，滞留 6/18/22 天三批次）、unevaluated=6/13；对照组 admin 注入 7/7 分钟级出分。
+- **根因**：评估触发是「创建路径各自接线」模式，reflow 兜底通道漏接；叠加 verdict 门禁（无 evaluation → 409 拦截审批），滞留提案连人工审批也被拦——结构性断路而非容量事件（三批次复现排除偶发）。
+- **影响**：6 条治理提案（含 H2/H3/H4/H6/H9 系）无法进入审批；在审合并提案 cmunm03af（H4 修复方向）被卡 18 天。
+- **建议动作**：缺陷线索池 L-1（E2 未齐备不开单）。修复方向：①reflow.ts importOneAction 补接 evaluateProposal（与 intake 路由同款 + 同开关语义）；②scheduler 增设 evaluation_pending 超 龄件兜底扫描补评；③存量 6 条经 routes/evolution.ts:559 手动重评解卡（优先解卡 cmunm03af）。
+
+### 短板 #2（H4·P1）error=null 失败轨迹占 50%，归因断路（连续两轮复发）
+
+- **证据**：failures.json 亲数 20 条中 10 条 error=null 且 workflowRunError=null（create-pr/polish/art/design/blackboard×3/dev-test/round-plan/playtest），outputPreview 显示大量有效工作后静默失败。engine.ts:3042 `nodeError = noWorkReason ?? (exitCode!==0 ? (cliError || stripCliStderrNoise(stderr).stderr || undefined) : undefined)`（亲读逐字命中）——exitCode≠0 且 CLI 未写错误事件且 stderr 空/被滤空时 nodeError=undefined；:3045-3049 直通 finalizeAgentTrajectory，无「failed 必带 error」出口断言。红队穷举七通道闭合：其余通道失败均带 error，唯一缺口即此组合条件。
+- **根因**：硬超时 SIGKILL 强杀 / OOM / 进程崩溃场景下引擎三层兜底（noWorkReason/cliError/stderr）全部落空。上轮立案方向（终结元数据统一标准）正确，本轮精确定位到缺口点。
+- **建议动作**：缺陷线索池 L-2。修复方向：①engine.ts:3045 终结处对 failed 且 nodeError 空写入保底归因（出口断言）；②startTimer 超时路径回传 timedOut 标志兜底进 error。
+
+### 短板 #3（H1·P2）eval_subject 300s 超时打满 + 轨迹 error 被stderr 噪音冒充，benchmark 回落归因被污染
+
+- **证据**：failures.json 三条 eval_subject（10-15×2、10-16×1）error=unrecognized_model 噪音原文，durationMs=300277/300313/300300ms 与 benchmark.ts:32-35 默认超时 300000ms+SIGTERM 延迟精确吻合（亲数）；trajectory/index.ts:606 失败分支裸写 stderr 未套 stripCliStderrNoise（亲读），对照 streaming-pipeline.ts:839-849 已过滤且注释点名 glm-5.3-flash[1m]（亲读）。**假设原判「[1m] 未被 SDK 识别致回落」被证伪**——该诊断非致命且有单测背书；[1m] 系用户配置值，平台代码不产生也不清洗。
+- **根因**：两层叠加——评测用例 300s 预算内未完成且未被成功重跑补齐（benchmark 83.875←84.75 的样本面缺口）；runWithTrajectory 与 streaming 通道的 stderr 过滤口径漂移。
+- **建议动作**：缺陷线索池 L-3。修复方向：①trajectory/index.ts:606 套用 stripCliStderrNoise（与 streaming 同口径）；②评估预算对第三方长上下文模型的适配评估（EVOLUTION_BENCHMARK_TIMEOUT_MS）；③失败用例补跑机制核对。红线维持：回落仅查执行侧，不构成放宽评测标准理由。
+
+### 短板 #4（H10·P2）无 runId 轨迹周期自愈 createdAt+30min 判死，长会话误杀窗口（潜伏）
+
+- **证据**：engine.ts:447 `STALE_MS=30*60*1000`、:467 `} else if (now - t.createdAt.getTime() > STALE_MS)`（亲读逐字命中）；对照同文件 :390-392 run 自愈用 updatedAt（注释明言「避免误杀正在正常执行的长任务」）——同函数族双时间基准并存。streaming 轨迹全无 runId（streaming-pipeline.ts 全文 grep 零命中），触发面非空。红队补强：index.ts:575-577 周期任务注释声称「活跃对象不会被误伤」与该分支实现不符（注释虚假声称）。
+- **影响面修正（红队）**：本周 failures.json 无「执行超时未结束」签名、无 runId 轨迹 cmv7ggiaa 存活 25h 未被误杀——实际误杀本周未发生（或生产 worker 尚未部署该版本，区域 ~39 行漂移佐证该分支系近期新增，无法在本会话确证）。定性：代码缺陷在当前 HEAD 成立，实际危害 unverified。
+- **建议动作**：缺陷线索池 L-4。修复方向：①:467 改 `now-(t.updatedAt ?? t.createdAt)>STALE_MS`（与 :392 同款+NULL 兜底）；②回溯 failures.json「执行超时未结束」×durationMs≈30min 指纹核实历史污染面。
+
+### 短板 #5（H9·P3）用户取消标 failed，TrajectoryStatus 无 cancelled 终态（潜伏口径缺陷）
+
+- **证据**：streaming-pipeline.ts:814-818 取消路径 `finalizeTrajectory('failed', durationMs, '用户已取消')`（亲读逐字命中）；trajectory/index.ts:364-367 签名仅 `'completed' | 'failed'`（亲读），终态枚举无 cancelled 为结构性约束；engine.ts:460 cancelled run 同步折入 failed。平台规范「长任务执行韧性规范」第 4 条明确要求区分取消与失败——实现直接违反。
+- **影响面修正（红队）**：本周 failures.json 0 条「用户已取消」签名（0%<2%），「潜伏口径缺陷」而非「已发生污染」；但失败族分析持续以 failures.json 为底座，结构性风险成立，立案维持。
+- **建议动作**：缺陷线索池 L-5。修复顺序（防读数端丢语义）：先扩 TrajectoryStatus 枚举（cancelled）→ 再改 streaming:818 与 run-cancelled 同步写入 → 最后 failures 聚合将 cancelled 移出失败族。
+
+### 短板 #6（H3·P3·知识）frozen 0→14 = 10-15 治理动作产物；熔断线口径 30→66 待全链对齐
+
+- **证据**：scheduler.ts:73-93 冻结注释「Admin 2026-10-15 拍板」+ updateMany + recordSchedulerEvent('backlog_frozen', frozenCount)（亲读）；approval-sla.ts:25-32 熔断 66 / warn 60 / escalate 63、FREEZE_AFTER_DAYS=30（亲读）；时间线旁证：09-25/10-04 历史提案内嵌快照引用旧值 24/27/30。
+- **残留待办**：①14 条 frozen 与 schedulerEvents 逐条对账（DB 不可读，留为对账动作）；②rejected 15→19 增量 4 条取 rejectReason 防静默销案；③红队补充发现（亲核命中）：approval-sla.ts:48 注释残留旧口径「warn ≥24 / escalate ≥27 / breaker ≥30」、scheduler.ts:115 注释「熔断线 ≥30」——两处注释过时，随本条修订。
+- **建议动作**：知识沉淀（台账登记三件事：frozen 治理对账、熔断线 66/60/63 新口径取代 30/24/27、frozen 不计熔断水位的读数分界 scheduler.ts:75-76）。
+
+### 短板 #7（H5·P3·知识）SIGINT 轨迹双 null = 优雅关闭设计产物，读数端应单列「重启成本」族
+
+- **证据**：trajectory/index.ts:346-351 shutdown finalizer 仅写 `{status:'failed', error:reason, completedAt}`——不写 durationMs/outputPreview（亲读），与 failures.json 3 条 SIGINT（error='Worker SIGINT 关闭中断'+双 null）形态精确吻合；index.ts:608-641 gracefulShutdown 四步、:372+:578-599 启动+周期双层自愈、:384-400 expressLane 自愈均亲核在仓。
+- **定性**：非数据损坏、非自愈链缺失。2 条硬超时（implement 5400s / playtest 10800s）归因文案正确，属预算内未完成；playtest 预算与 checkpoint 挂载状态在 workflow definition（DB 侧），本节点证据缺口声明。
+- **建议动作**：知识沉淀（读数端纪律：SIGINT 轨迹按 error 前缀+'双 null'指纹单列「重启成本」族，不混入失败族；finalizer 补写 durationMs 列低优先改进线索）。
+
+### 短板 #8（H8·P3·知识）仪器口径三漂移裁定：①bugClosureDays 无环比封装②other 桶=打标演化③activity 差值=非终态任务（③按预设撤回）
+
+- **证据**：①index.ts:277-281 bugClosureDays 裸数值返回、:79 接口声明单值——同文件其他指标均有 previous/deltaPct 封装，独它没有（18.4 天无法环比）；②windows.ts:75 `row.taskType ?? 'other'`——other 是 null 兜底桶名，express_lane 首现 n=1 系打标侧演化非聚合缺陷；③index.ts:199 activity.taskCount 无 status 过滤 vs :116-118 taskSuccessRows 仅终态——34 与 31 之差 3=窗口内非终态任务，触发预设撤回条件转口径登记。
+- **建议动作**：知识沉淀（口径词典三条：activity.tasks 全任务口径 vs taskSamples 终态口径、other 桶语义、bugClosureDays 环比断路——补 {current,previous,deltaPct} 封装列低优先代码改进线索，旁支台账不进主口径）。
+
+### 短板 #9（H11·P3·知识）commit 锚点与取证工作区脱钩，证据基线轮内漂移
+
+- **证据**（本首席研究员独立亲验 + 新增读数）：.git/logs/HEAD 共 5 行亲读——clone @ ac6e5c73 → auto-commit c2d84662 → 6959c10f（红队取证时点 HEAD）→ **a7fc2b0（本报告收口时点亲读，红队之后又推进一拍）**；023e5838 不在 refs/reflog/松散对象任何一路。audit meta.baseRef 自认 independentlyVerified=false。
+- **根因**：任务书锚点下发与取证工作区实况无耦合机制；且工作区 HEAD 被 auto-commit 持续推进，「固定锚点」与「移动工作区」天然脱钩——红队 6959c10f 与首席 a7fc2b0 的读数差即实证。
+- **建议动作**：知识沉淀（流程改进三条：①任务卡下发锚点时附取证工作区实测 HEAD，或要求首节点先读 .git/HEAD 回锚；②baseRef.independentlyVerified=false 向下游显式传递；③本轮证据基线登记为「各节点取证时点实测 HEAD」（audit/侦探：6959c10f 时点；首席收口：a7fc2b0），后续轮次照此口径）。**升级候选**（供 Lead 裁量，不改变本条 knowledge 裁定）：①②属工作流节点提示词/任务卡模板类软资产改进，可批准为进化提案单独立项。
+
+### 无需动作的 Confirmed 条目（5 条，none）
+
+- **H6**（goal 成功率 0.25←0.5）：口径分离已由代码固化（platform-health/index.ts:247-250），n=4 lowConfidence 纪律生效，无源码缺陷。挂 falsification 复测：下周 goal n≥10 且成功率 ≥0.5 则销案。
+- **H7**（三零指标）：机制链四锚点（采集 windows.ts:30-33 / 写入 acceptance-tests/index.ts:109-128 / 钩子 e2e-gate.ts:57-131 / 注册 hooks/index.ts:44）全命中，缺执行流量过门。激活跟踪由 H-A2 判定式承载。
+- **H-A1 / H-A2 / H-A3**（方向A预注册三条）：均标**「预注册·待实测」**，本周不产出有效性结论。H-A1 时间序字段确认不存在（health.json schema 级核实），降级「仅方向参考」；H-A3 判定式按熔断 66 新口径更新为「applied 增量 ≥ pending+frozen 净增量的扣冻口径」后实测。
+
+---
+
+## 四、红队否决与修正记录
+
+**顶层否决：0 条**（14/14 Confirmed，本周无 Refuted 案件，无销案）。红队在本轮执行的否决/修正均作用于**子命题与表述层**，记录如下（防后续轮次误引旧定性）：
+
+| 被修正的原判 | 修正后定性 | 依据 |
+|---|---|---|
+| H1 原判「[1m] 后缀未被 SDK 识别 → benchmark 回落」 | **证伪**：该诊断非致命且有单测背书（claude-code-agent.stderr-noise.test.ts）；真因=300s 超时+归因噪音污染 | claude-code-agent.ts:889-892 注释亲核 |
+| H3 原判两分法「有意冻结 vs 调度器误触发」 | 误触发分支**证伪**：系 10-15 Admin 拍板治理动作（falsification 方向命中，转台账登记） | scheduler.ts:74 注释亲核 |
+| H5 原判疑点「SIGINT 双 null=数据损坏？」 | **证伪**：双 null 是 shutdown finalizer 字段集的确定性输出（设计取舍非故障） | trajectory/index.ts:346-351 亲核 |
+| H4 预设反例「≥8/10 系自愈误报」 | **不成立**：自愈产物必带文案（:457-463/:469-472），10 条 error=null 均非自愈产物 | 穷举七通道闭合 |
+| H10 标题现在时「存在被误杀」 | 修正为「存在误杀窗口；**本周无实锤样本**；生产部署时点未锚定」 | failures.json 零签名 + cmv7ggiaa 25h 存活反例 |
+| H9 「取消污染失败统计」降幅 | 修正为「**潜伏**口径缺陷」（本周 0 条取消签名，污染幅度 unverified） | failures.json 亲数 0/20 |
+| H-A1 audit 表述「采样触发在 admin 手动路由」 | **修正**：实测 2 个调用方（routes/evolution-feedback.ts:31 手动 + scheduler.ts:254 周期自动，每日+启动即跑） | 红队全仓 grep 实测 |
+| H8 ③「activity 34 vs 31 差 3 待解释」 | **按预设撤回**：差值=非终态任务（index.ts:199 无 status 过滤 vs :116-118 仅终态），转口径登记 | index.ts:68-69 注释提供官方口径 |
+
+---
+
+## 五、Uncertain 条目
+
+**本周 0 条 Uncertain**（findings-verified.json verdictSummary：refuted=0, uncertain=0，与数组逐条核对一致）。无待复核立案。
+
+以下两项「不可最终确证」成分已由红队在各 verdict 内如实标注（不构成独立 Uncertain 条目，随原条目维持 Confirmed）：
+- H10 的「生产 worker 是否已部署含 :467 分支的版本」——无 git blame/部署记录通道，无法确证；
+- H11 的「023e5838 是否存在于 main 历史 pack 文件」——本会话无 git 命令通道，「本工作区无法锚定 023e5838」可断言，「该 commit 不存在」不可断言。
+
+---
+
+## 六、下周建议关注点
+
+**失败族二分**（failures.json 20 条亲数口径）：
+
+| 失败族 | 条数 | 占比 | 下周动作 |
+|---|---|---|---|
+| error=null 静默失败（H4 通道） | 10 | 50% | L-2 修复后观察归因率是否归零；持续跟踪 outputPreview 反推成本 |
+| SIGINT 重启成本（H5） | 3 | 15% | 读数端按「重启成本」族单列；核对 3 条关联 run 是否重跑成功 |
+| eval_subject 超时+噪音（H1） | 3 | 15% | L-3 修复 stderr 口径；评估 300s 预算适配性；核对失败用例补跑 |
+| 节点硬超时（预算打满） | 2 | 10% | playtest 预算/checkpoint 挂载状态到 DB 侧取证 |
+| API server error（中途中断） | 1 | 5% | 观察是否成族 |
+| exit0 无 commit | 1 | 5% | 既有规范（产物持久化纪律）覆盖，观察复发 |
+
+**方向与挂账事项**：
+1. **L-1（H2）优先解卡**：存量 6 条 reflow 提案手动重评（routes/evolution.ts:559），优先 cmunm03af——它是 H4 修复方向的在审载体，解卡即打通「最大失败族」的修复通道。
+2. **goal 成功率复测**（H6 falsification：n≥10 且 ≥0.5 销案）。
+3. **三零指标激活跟踪**（H-A2：连续两周 gateVerifiedRunRate 分母>0 且 acceptanceTests.total>0 且 feedbackSamples>0 → 方向A进入可实测态；抓手=高价值 workflow 挂载 routine 门禁，运营动作）。
+4. **H3 两条对账**：14 条 frozen ↔ backlog_frozen 事件；rejected +4 逐条 rejectReason。
+5. **锚点治理落地**（H11）：任务卡模板附实测 HEAD；baseRef 状态显式传递——评估作为进化提案立项。
+6. **仪器自校准跟进**（H8）：bugClosureDays 环比封装为低优先代码改进线索，下轮核对是否已修复并恢复 bugClosureDays 周环比读数。
+
+---
+
+## 七、口径裁决输入与衔接声明（v5）
+
+**采纳的三项口径修订**（供 v5 口径裁决书定稿引用，均已具证据）：
+1. **图证据降权 + 锚点声明修正**：本轮全部源码证据的实际基线=各节点取证时点实测 HEAD（6959c10f 时点亲核，漂移 ≤2 行；收口时点 a7fc2b0）；任务书锚点 023e5838 不可锚定（H11，E1）。「同 commit 可复现」验收项按「节点时点 HEAD 登记」口径执行。
+2. **g2-blocks / 仪器自校准不进主口径**：本轮工作流未落盘 g2-blocks 建图前后计数对照表（见下方底座声明），主口径不含图证据；旁支台账仅收录 H8 三条口径登记与红线声明（benchmark 回落仅查执行侧 H1，评测标准与进化护栏零放宽）。
+3. **benchmark 口径维持**：latestScore 83.875 ← previousScore 84.75（deltaPct=-1）按执行侧故障立案（H1），不构成放宽评测标准的理由（红线 1-5 全程有效）。
+
+**双轨立案落位**：缺陷工单 **0 单**（红线：E2 工单证据 11 项未齐备不开单）；缺陷线索池 5 条（L-1~L-5，对应 H2/H4/H1/H10/H9，随 actions.json 落盘，均含 E1 级修复方向与证据锚点，待 E2 补齐后转正式工单）；进化提案 0 条（红队 14 条裁定中无 evolution_proposal 类动作；H11 的流程改进①②列升级候选，由 Lead 裁量）；知识沉淀 4 条（H3/H5/H8/H11）。g2-blocks 相关发现本轮无（无数据落盘），不立案。
+
+**底座完整性声明**（.myrd/self-evolution/ 实测 7 件）：
+- 在档：health.json、pending-proposals.json、failures.json、meta.json、findings-hypotheses.json（14 条）、findings-audited.json（14 条）、findings-verified.json（14 条）——本报告与 actions.json 基于以上全量输入产出，关键数字全部经首席研究员独立复算/亲验（health 指标、failures 20 条签名分布、pending-proposals 6/13/6、承重源码锚点 7/7 命中）。
+- 缺失（unavailable）：findings-delta-v4.json、台账 v5、g2-blocks 盲区核销报告/仪器自校准记录、v5 口径裁决书草案未随工作流落盘至本目录。按纪律不作存在性推断，缺失项登记为 unavailable；本报告第二/三/六节与 actions.json 已承载台账与裁决书所需的全部结构化输入（判定总表、趋势对比、口径修订三条、预期管理条款），供后续节点直接引用。
+- 双 SHA 校验：本会话无哈希工具通道，沿用条目数多口径交叉对齐作为完整性凭证（各文件 provenance 见 findings-hypotheses.json meta.dataProvenance）。
+
+**下周衔接**：本报告 + actions.json 作为 v6 基线输入；H6/H-A2/H-A3 三个判定式挂账待实测；线索池 L-1~L-5 待 E2 补证转工单。
+
 
 ## 僵尸/孤儿运行轨迹识别与处置手册（status=failed 不可单独为凭）
 
@@ -6241,39 +6669,6 @@ GitHub: https://github.com/hl3w22bupt/myrd-playground.git
 
 ## 产品关联知识
 
-## 知识：Worker SIGINT 关闭中断失败模式——现象、根因、处置与预防
-
-# 失败模式：Worker SIGINT 关闭中断
-
-## 背景
-自动化工作流节点执行长时命令时，Worker 会在命令挂起或超出预算时发送 SIGINT 关闭该 worker。此信号被归类为基础设施噪音而非 agent 缺陷，但后果是整条执行轨迹失败且经常没有任何输出，浪费后续分析与自愈资源。
-
-## 现象
-- 轨迹 status=failed，错误信息为「Worker SIGINT 关闭中断」；
-- 输出摘要为空（进程在产出任何结果前被杀）；
-- 可影响任意自动化节点类型：开发/本地测试、记忆蒸馏、进化分析等；分析类 agent 自身也会复现此失败（元失败模式）。
-
-## 根因
-- 节点命令无界挂起：等待 stdin 交互输入、等待子进程、未设超时预算；
-- 长时进程未增量保存结果、未 flush 输出，被中断后无可检查产物，形成零输出失败轨迹；
-- 上层补丁/自愈仅清理僵尸轨迹，未消除命令本身的悬挂根源，故失败持续复现。
-
-## 排查与处置
-1. 遇到 status=failed 且错误含 SIGINT：先判断是否为基础设施信号（Worker 关闭），不急于归因 agent 缺陷；
-2. 交叉核对 runId 与轨迹产物：status=failed 单独不可靠（存在僵尸轨迹误报），须核对是否有落盘产物或部分输出；
-3. 复现命令：在本地以 `timeout <sec> <cmd>` 复跑，观察是否挂起、是否在超时前有增量输出；
-4. 若为长时任务，改为临时文件增量写盘 + 完成后原子改名，确保被中断后部分产物可恢复；
-5. 对无输出的失败运行启用回收/自愈机制清理，避免僵尸轨迹污染失败统计。
-
-## 预防
-- 所有节点命令遵循「显式超时 + 非交互 + 增量落盘 + 优雅退出」纪律（见对应规范）；
-- 分析型 agent（蒸馏、进化分析等）应在开始阶段即建立输出产物、分阶段写入，避免整段结束后才一次性输出，降低中断损失；
-- 将反复出现的同类失败纳入评测用例，使修复效果可量化考核。
-
-## [H9] 负反馈指标零值语义知识卡：no-data≠断链，最小样本红线与前置过程指标
-
-negativeFeedbackRate=null 的唯一代码路径是 artifactRating 表窗口内无行（src/services/platform-health/index.ts:166-167 查询仅时间窗条件；若查询失败健康包整体不会产出——health.json 有其它字段即证明查询成功返回空集）。因此该维度当前状态是『维度零样本』（没人打分），不是『采集断链』（打了分没进表）。知识卡沉淀三条判定规则供健康度 v2 引用：①零值三分法——no-data（零样本，不入异动结论）/zero-feedback（真实零负反馈，可入结论）/查询失败（健康包缺字段，立即升级采集缺陷）；②最小样本红线——负反馈类指标样本 <5 标『不可判定』（与 v2 全局样本量红线一致），不得进入周环比结论；③前置过程指标——观测『人工评分入口曝光/使用率』（artifactRating 写入速率）作为负反馈率的分母健康度指标，区分『没人打分』与『打了分丢数据』。
-
 ## MyRD 平台能力与环境事实源（Agent 防臆造基线 · 2026-09-26 主人核定）
 
 # 目的
@@ -6308,6 +6703,109 @@ negativeFeedbackRate=null 的唯一代码路径是 artifactRating 表窗口内�
 - 「代码图谱注册表 0 个注册仓库」（2026-09-11~09-26 多轮）：成员 agent 缺项目成员资格所致（2026-09-26 已修），非仓库缺失。
 - 「M2.1 执行被中断、断点位置未知」（2026-09-26 补跑轮）：往轮摘要缺执行结局导致的脑补，实际 M2.1 已于 2026-09-25 完成并部署上线。
 
+
+## MyRD 平台真实仓库结构地图、文档/技能入口与常见路径陷阱
+
+# MyRD 平台真实仓库结构地图、文档/技能入口与常见路径陷阱
+
+## 背景
+agent 在涉及 MyRD 平台的任务中反复出现两类高成本问题：
+
+1. **文档/技能入口定位失败**：任务开始时多次通过 glob 搜索 `**/myrd*/**/SKILL.md`、`**/myrd-platform-skill*` 等模式均返回 0 命中，误判平台「为云端平台、本地无文档」（#18283），或技能未在预期目录找到（#18123），随后不得不多轮读取源码与文档才定位入口（#18282-18293）。myrd-platform-skill 是 agent 理解平台的标准入口（最近 14 天调用 4 次），但 agent 本地环境无法直接命中其正文，造成重复勘察，agent 花费约十余次观测重复勘察结构。
+2. **引用不存在的文件路径**：多会话（#18282-18293、#18596-18617）反复手工翻查源码才能定位平台结构，且 #18616/#18617 实证发现提案引用了不存在的 `frontend/lib/services/*` 与 `myagent-client.ts` 路径，导致提案被驳回、评审周期浪费。
+
+根因在于「文档与实际源码结构不一致」——仓库（典型根目录 `/Users/leo/workspace/myrd`）存在源码与编译产物并存、文档过时等问题。本文档给出经源码核实的真实入口、真实结构地图及高频错误路径，供涉及 MyRD 内部实现的任务直接使用，消除重复探索并防止错误路径再次出现，显著降低后续任务冷启动成本。
+
+## 关键入口（权威文档与技能）
+- **平台使用说明书（权威）**：`/Users/leo/workspace/myrd/docs/myrd-platform-skill.md`。注意：位于源码仓库 `docs/` 下，而非 `~/.claude/skills/`。内容覆盖：服务地址、JWT 认证、全部 API 分类、典型示例、数据模型、边界情况，并含平台进化系统架构说明。
+- **快速开始**：`/Users/leo/workspace/myrd/docs/guides/quick-start.md`（环境搭建 → 服务启动 → 注册 → 建项目 → 跑工作流）。
+- **工作流集成/部署状态**：`/Users/leo/workspace/myrd/WORKFLOW_INTEGRATION.md`、`/Users/leo/workspace/myrd/MYRD_SETUP_STATUS.md`。
+- **数据库 schema**：`/Users/leo/workspace/myrd/prisma/schema.prisma`（含 `AgentExecutionTrajectory` 模型，表名 `agent_execution_trajectories`）。
+
+## 真实结构（经源码核实）
+- **入口与自愈**：`src/index.ts`（worker 启动时执行 auto-heal，覆盖 WorkflowRun / ExpressLaneRun / channel_messages / agent status / goals / vibe workspace，**不含** agentExecutionTrajectory）。
+- **工作流引擎**：`src/services/workflow/engine.ts`（约 2626 行；含 `resume()` 约 443 行、`iterateFrom()` 约 784 行、`rerunFrom()`、`rollbackToCheckpoint()`、`sharedSetupProjectWorkspace()`；支持 DAG 执行 / 自愈 / 重试 / git checkpoint）。
+- **Coding-agent 实现**：`src/services/coding-agent/{claude-code-agent.ts, local-claude-agent.ts, remote-agent.ts, types.ts}`（其中 `claude-code-agent.ts` 含 10 分钟默认超时与进程清理逻辑）。
+- **进化系统服务**：`src/services/evolution/`（analyzer 等模块；支撑证据系统三类数据源、证据挖掘策略）。
+- **路由**：`src/routes/workflows.ts` 等。
+- **前端真实源码**：`frontend/` 目录存在，含 `app/` 与 `components/` 源码，如 `frontend/app/(dashboard)/projects/new/page.tsx`、`frontend/components/projects/run-workflow-button.tsx`。
+- **编译产物（非源码）**：`src/dist/`——仅含编译后声明/产物（如 `src/dist/lib/myagent-client.d.ts`、`src/dist/services/coding-agent/myagent-agent.d.ts`），**不是源码**。
+
+## 服务端口
+前端 :3001、后端 API :3111、streaming :4112、MyAgent :3000、数据库 :5432。
+
+## 高频错误路径（不存在，务必避免）
+| 常见错误引用 | 真实对应 |
+|---|---|
+| `frontend/lib/services/workflow/engine.ts` | `src/services/workflow/engine.ts` |
+| `frontend/lib/services/coding-agent/claude-code-agent.ts` | `src/services/coding-agent/claude-code-agent.ts` |
+| `myagent-client.ts`（作为源码） | 无此源码；仅有编译声明 `src/dist/lib/myagent-client.d.ts` |
+| 认为前端目录含业务服务代码 | `frontend/` 主要被 `node_modules` 占据；业务服务在 `src/services/` |
+
+## 根因
+1. 文档（含 `docs/guides/quick-start.md`）描述的结构与实际仓库不一致或已过时；
+2. agent 凭记忆/推测引用路径，未做存在性核实；
+3. `src/` 与 `src/dist/` 并存，把编译产物误当源码。
+
+## 处置（核实方法）
+- 引用任何路径前，先用 glob/grep 在仓库根目录确认文件存在；
+- 区分 `src/`（源码）与 `src/dist/`（编译产物），引用源码一律指向 `src/`；
+- 工作流引擎、coding-agent、evolution 等业务服务一律在 `src/services/` 下，不在 `frontend/lib/` 下；
+- 「文件不存在」的判断以 glob 返回空为唯一依据，不要依据记忆或文档；
+- 分析轨迹/进化数据时，直接读 `agent_execution_trajectories` 表与 `prisma/schema.prisma` 的 `AgentExecutionTrajectory` 模型，不要靠源码 glob 反推。
+
+## 预防
+- 涉及 MyRD 内部实现的提案/文档，落笔前对每个文件路径做一次 glob 核实；
+- 平台是本地源码 + 多 run 工作区（`/Users/leo/.myrd/workspaces/proj-myrd/run-*`）并存；run 工作区可能包含主干尚未合入的功能（如 express-lane、轨迹追踪迁移），分析时以对应 run 工作区为准；
+- 本文档随仓库结构变更应同步更新。
+
+## 项目开发规范
+
+# 项目开发规范
+
+## 代码风格
+- 使用 TypeScript
+- - 遵循 ESLint 规范
+- 提交前运行 lint 检查
+
+## Git 提交规范
+- 使用 Conventional Commits 格式
+- feat: 新功能
+- fix: 修复 bug
+- docs: 文档更新
+
+## [H9] 负反馈指标零值语义知识卡：no-data≠断链，最小样本红线与前置过程指标
+
+negativeFeedbackRate=null 的唯一代码路径是 artifactRating 表窗口内无行（src/services/platform-health/index.ts:166-167 查询仅时间窗条件；若查询失败健康包整体不会产出——health.json 有其它字段即证明查询成功返回空集）。因此该维度当前状态是『维度零样本』（没人打分），不是『采集断链』（打了分没进表）。知识卡沉淀三条判定规则供健康度 v2 引用：①零值三分法——no-data（零样本，不入异动结论）/zero-feedback（真实零负反馈，可入结论）/查询失败（健康包缺字段，立即升级采集缺陷）；②最小样本红线——负反馈类指标样本 <5 标『不可判定』（与 v2 全局样本量红线一致），不得进入周环比结论；③前置过程指标——观测『人工评分入口曝光/使用率』（artifactRating 写入速率）作为负反馈率的分母健康度指标，区分『没人打分』与『打了分丢数据』。
+
+## 知识：Worker SIGINT 关闭中断失败模式——现象、根因、处置与预防
+
+# 失败模式：Worker SIGINT 关闭中断
+
+## 背景
+自动化工作流节点执行长时命令时，Worker 会在命令挂起或超出预算时发送 SIGINT 关闭该 worker。此信号被归类为基础设施噪音而非 agent 缺陷，但后果是整条执行轨迹失败且经常没有任何输出，浪费后续分析与自愈资源。
+
+## 现象
+- 轨迹 status=failed，错误信息为「Worker SIGINT 关闭中断」；
+- 输出摘要为空（进程在产出任何结果前被杀）；
+- 可影响任意自动化节点类型：开发/本地测试、记忆蒸馏、进化分析等；分析类 agent 自身也会复现此失败（元失败模式）。
+
+## 根因
+- 节点命令无界挂起：等待 stdin 交互输入、等待子进程、未设超时预算；
+- 长时进程未增量保存结果、未 flush 输出，被中断后无可检查产物，形成零输出失败轨迹；
+- 上层补丁/自愈仅清理僵尸轨迹，未消除命令本身的悬挂根源，故失败持续复现。
+
+## 排查与处置
+1. 遇到 status=failed 且错误含 SIGINT：先判断是否为基础设施信号（Worker 关闭），不急于归因 agent 缺陷；
+2. 交叉核对 runId 与轨迹产物：status=failed 单独不可靠（存在僵尸轨迹误报），须核对是否有落盘产物或部分输出；
+3. 复现命令：在本地以 `timeout <sec> <cmd>` 复跑，观察是否挂起、是否在超时前有增量输出；
+4. 若为长时任务，改为临时文件增量写盘 + 完成后原子改名，确保被中断后部分产物可恢复；
+5. 对无输出的失败运行启用回收/自愈机制清理，避免僵尸轨迹污染失败统计。
+
+## 预防
+- 所有节点命令遵循「显式超时 + 非交互 + 增量落盘 + 优雅退出」纪律（见对应规范）；
+- 分析型 agent（蒸馏、进化分析等）应在开始阶段即建立输出产物、分阶段写入，避免整段结束后才一次性输出，降低中断损失；
+- 将反复出现的同类失败纳入评测用例，使修复效果可量化考核。
 
 ## 演进提案（知识勘误）：修正平台规范「轨迹有界生命周期」:154-155 双处失真——agentExecutionTrajectory 已具备启动+5 分钟周期双通道自愈（H2-b，P2）
 
@@ -6445,76 +6943,6 @@ MyRD Admin 提出设计一款以"情绪价值"为核心的陪伴类 App，并引
 1. 竞品深度拆解：挑选 2-3 款 AI 聊天+游戏元素的应用进行分析
 2. MVP 核心功能定义
 3. 商业模式确定
-
-## MyRD 平台真实仓库结构地图、文档/技能入口与常见路径陷阱
-
-# MyRD 平台真实仓库结构地图、文档/技能入口与常见路径陷阱
-
-## 背景
-agent 在涉及 MyRD 平台的任务中反复出现两类高成本问题：
-
-1. **文档/技能入口定位失败**：任务开始时多次通过 glob 搜索 `**/myrd*/**/SKILL.md`、`**/myrd-platform-skill*` 等模式均返回 0 命中，误判平台「为云端平台、本地无文档」（#18283），或技能未在预期目录找到（#18123），随后不得不多轮读取源码与文档才定位入口（#18282-18293）。myrd-platform-skill 是 agent 理解平台的标准入口（最近 14 天调用 4 次），但 agent 本地环境无法直接命中其正文，造成重复勘察，agent 花费约十余次观测重复勘察结构。
-2. **引用不存在的文件路径**：多会话（#18282-18293、#18596-18617）反复手工翻查源码才能定位平台结构，且 #18616/#18617 实证发现提案引用了不存在的 `frontend/lib/services/*` 与 `myagent-client.ts` 路径，导致提案被驳回、评审周期浪费。
-
-根因在于「文档与实际源码结构不一致」——仓库（典型根目录 `/Users/leo/workspace/myrd`）存在源码与编译产物并存、文档过时等问题。本文档给出经源码核实的真实入口、真实结构地图及高频错误路径，供涉及 MyRD 内部实现的任务直接使用，消除重复探索并防止错误路径再次出现，显著降低后续任务冷启动成本。
-
-## 关键入口（权威文档与技能）
-- **平台使用说明书（权威）**：`/Users/leo/workspace/myrd/docs/myrd-platform-skill.md`。注意：位于源码仓库 `docs/` 下，而非 `~/.claude/skills/`。内容覆盖：服务地址、JWT 认证、全部 API 分类、典型示例、数据模型、边界情况，并含平台进化系统架构说明。
-- **快速开始**：`/Users/leo/workspace/myrd/docs/guides/quick-start.md`（环境搭建 → 服务启动 → 注册 → 建项目 → 跑工作流）。
-- **工作流集成/部署状态**：`/Users/leo/workspace/myrd/WORKFLOW_INTEGRATION.md`、`/Users/leo/workspace/myrd/MYRD_SETUP_STATUS.md`。
-- **数据库 schema**：`/Users/leo/workspace/myrd/prisma/schema.prisma`（含 `AgentExecutionTrajectory` 模型，表名 `agent_execution_trajectories`）。
-
-## 真实结构（经源码核实）
-- **入口与自愈**：`src/index.ts`（worker 启动时执行 auto-heal，覆盖 WorkflowRun / ExpressLaneRun / channel_messages / agent status / goals / vibe workspace，**不含** agentExecutionTrajectory）。
-- **工作流引擎**：`src/services/workflow/engine.ts`（约 2626 行；含 `resume()` 约 443 行、`iterateFrom()` 约 784 行、`rerunFrom()`、`rollbackToCheckpoint()`、`sharedSetupProjectWorkspace()`；支持 DAG 执行 / 自愈 / 重试 / git checkpoint）。
-- **Coding-agent 实现**：`src/services/coding-agent/{claude-code-agent.ts, local-claude-agent.ts, remote-agent.ts, types.ts}`（其中 `claude-code-agent.ts` 含 10 分钟默认超时与进程清理逻辑）。
-- **进化系统服务**：`src/services/evolution/`（analyzer 等模块；支撑证据系统三类数据源、证据挖掘策略）。
-- **路由**：`src/routes/workflows.ts` 等。
-- **前端真实源码**：`frontend/` 目录存在，含 `app/` 与 `components/` 源码，如 `frontend/app/(dashboard)/projects/new/page.tsx`、`frontend/components/projects/run-workflow-button.tsx`。
-- **编译产物（非源码）**：`src/dist/`——仅含编译后声明/产物（如 `src/dist/lib/myagent-client.d.ts`、`src/dist/services/coding-agent/myagent-agent.d.ts`），**不是源码**。
-
-## 服务端口
-前端 :3001、后端 API :3111、streaming :4112、MyAgent :3000、数据库 :5432。
-
-## 高频错误路径（不存在，务必避免）
-| 常见错误引用 | 真实对应 |
-|---|---|
-| `frontend/lib/services/workflow/engine.ts` | `src/services/workflow/engine.ts` |
-| `frontend/lib/services/coding-agent/claude-code-agent.ts` | `src/services/coding-agent/claude-code-agent.ts` |
-| `myagent-client.ts`（作为源码） | 无此源码；仅有编译声明 `src/dist/lib/myagent-client.d.ts` |
-| 认为前端目录含业务服务代码 | `frontend/` 主要被 `node_modules` 占据；业务服务在 `src/services/` |
-
-## 根因
-1. 文档（含 `docs/guides/quick-start.md`）描述的结构与实际仓库不一致或已过时；
-2. agent 凭记忆/推测引用路径，未做存在性核实；
-3. `src/` 与 `src/dist/` 并存，把编译产物误当源码。
-
-## 处置（核实方法）
-- 引用任何路径前，先用 glob/grep 在仓库根目录确认文件存在；
-- 区分 `src/`（源码）与 `src/dist/`（编译产物），引用源码一律指向 `src/`；
-- 工作流引擎、coding-agent、evolution 等业务服务一律在 `src/services/` 下，不在 `frontend/lib/` 下；
-- 「文件不存在」的判断以 glob 返回空为唯一依据，不要依据记忆或文档；
-- 分析轨迹/进化数据时，直接读 `agent_execution_trajectories` 表与 `prisma/schema.prisma` 的 `AgentExecutionTrajectory` 模型，不要靠源码 glob 反推。
-
-## 预防
-- 涉及 MyRD 内部实现的提案/文档，落笔前对每个文件路径做一次 glob 核实；
-- 平台是本地源码 + 多 run 工作区（`/Users/leo/.myrd/workspaces/proj-myrd/run-*`）并存；run 工作区可能包含主干尚未合入的功能（如 express-lane、轨迹追踪迁移），分析时以对应 run 工作区为准；
-- 本文档随仓库结构变更应同步更新。
-
-## 项目开发规范
-
-# 项目开发规范
-
-## 代码风格
-- 使用 TypeScript
-- - 遵循 ESLint 规范
-- 提交前运行 lint 检查
-
-## Git 提交规范
-- 使用 Conventional Commits 格式
-- feat: 新功能
-- fix: 修复 bug
-- docs: 文档更新
 
 ## 架构设计文档
 
@@ -9287,6 +9715,220 @@ curl -s "$PLATFORM_API_URL/api/v1/workflows/runs/cmvagxyf3002em94lxhtab3p9" \
 
 ---
 *来源：goal `cmvaf7imr000jm94le9x48zfu` artifacts、工作流运行 `cmvagxyf3002em94lxhtab3p9` 节点输出、AppHost 记录 `cmvaf7imm000hm94lw6y43t0q`，均为 2026-10-16 实测。*
+
+## [H2][缺陷线索池 L-1·P1] reflow 回流通道评估接线缺失，6 条提案滞留 evaluation_pending（最长 22 天），闭环选择层对该通道断路 2026-W42
+
+【来源】红队裁定 Confirmed/P1，原 actionType=bug_ticket；因 E2 工单证据 11 项未齐备（缺 DB 侧评估队列状态取证），按红线本轮不开单，转缺陷线索池待补证。【现象】reflow 通道创建提案后从不触发评估且系统无 evaluation_pending 兜底消费者：6 条 reflow 提案滞留 6/18/22 天三批次，对照组 admin 注入 7/7 分钟级出分；在审合并提案 cmunm03af（轨迹终结元数据统一标准，即 H4 修复方向）被卡 18 天。【根因】评估触发为创建路径各自接线模式：intake 路由与 analyzer 转正均接自动评估，reflow 兜底通道漏接（reflow.ts:169-185 函数内无 evaluateProposal 调用；全仓生产调用点仅 intake.ts:185 / analyzer.ts:2118 / routes/evolution.ts:559 三处）；叠加 routes/evolution.ts:344-350 verdict 门禁对无评估提案 409 拦截，连人工审批也被阻断。【修复方向】① reflow.ts importOneAction 补接 evaluateProposal（与 intake 路由同款 fire-and-forget + EVOLUTION_INTAKE_AUTO_EVALUATE 同开关语义）；② scheduler 增设 evaluation_pending 超龄件兜底扫描补评；③ 存量 6 条经 routes/evolution.ts:559 手动重评解卡，优先解卡 cmunm03af。【证据锚点】src/services/self-evolution/reflow.ts:169-185（首席亲验逐字命中）；src/routes/evolution-proposals-intake.ts:182-188；pending-proposals.json evaluation_pending×6 与 reflow:×6 一一对应（首席亲数）。【E2 缺口】评估队列 DB 状态、6 条滞留件 createdAt/queuedAt 逐条取证。
+
+## [H4][缺陷线索池 L-2·P1] error=null 失败轨迹占本周 10/20（50%），唯一产生通道=引擎终结路径组合条件，无出口断言 2026-W42
+
+【来源】红队裁定 Confirmed/P1，原 actionType=bug_ticket；E2 未齐备本轮不开单，转缺陷线索池。连续两轮复发（上轮 H4 同签名立案后仍发生）。【现象】failures.json 20 条中 10 条 error=null 且 workflowRunError=null（create-pr/polish/art/design/blackboard×3/dev-test/round-plan/playtest），outputPreview 显示 agent 实际执行大量有效工作后静默失败，进化分析拿不到失败签名。【根因】engine.ts:3042 nodeError = noWorkReason ?? (exitCode!==0 ? (cliError || stripCliStderrNoise(stderr).stderr || undefined) : undefined)：exitCode≠0 且 CLI 未写 result 错误事件且 stderr 空/被滤空时 nodeError=undefined；:3045-3049 直通 finalizeAgentTrajectory，无「failed 必带 error」出口断言。典型场景=硬超时 SIGKILL 强杀/OOM/进程崩溃。红队穷举七通道闭合：其余失败通道均带 error，唯一缺口即此组合条件；自愈误报反例不成立。【修复方向】① engine.ts:3045 终结处对 failed 且 nodeError 空写入保底归因（如 exit=N（CLI 未返回错误详情），疑似强杀/OOM/崩溃）——出口断言而非源头堵漏；② startTimer 超时路径回传 timedOut 标志兜底进 error。【证据锚点】src/services/workflow/engine.ts:3042、:3045-3049（首席亲验逐字命中）；failures.json 亲数 10/20。【E2 缺口】10 条逐案 runId+产物交叉验证（真失败 vs 强杀/OOM 分布）、DB 侧 nodeError 现场取证。
+
+## [H1][缺陷线索池 L-3·P2] eval_subject 300s 超时打满后轨迹 error 被 unrecognized_model stderr 噪音冒充，benchmark 回落归因被污染（「模型识别失败」原判已证伪） 2026-W42
+
+【来源】红队裁定 Confirmed/P2，原 actionType=bug_ticket；E2 未齐备本轮不开单，转缺陷线索池。【现象】3 条 eval_subject 失败（10-15×2、10-16×1）error=[claude-code:unrecognized_model] 噪音原文，durationMs=300277/300313/300300ms 与 benchmark 默认超时 300000ms+SIGTERM 延迟精确吻合；同窗 benchmark 83.875←84.75（deltaPct=-1）。【根因】两层叠加：① 评测用例 300s 预算内未完成且未被成功重跑补齐（benchmark 样本面缺口）；② trajectory/index.ts:606 失败分支裸写 stderr 未套 stripCliStderrNoise，与 streaming-pipeline.ts:842 已过滤口径漂移。原判「[1m] 后缀未被 SDK 识别致回落」被源码证伪：该诊断非致命且有单测背书（claude-code-agent.ts:889-892 注释 + __tests__/claude-code-agent.stderr-noise.test.ts）；[1m] 系用户配置值，平台代码不产生也不清洗。【修复方向】① trajectory/index.ts:606 套用 stripCliStderrNoise（与 streaming 同口径，留中性提示）；② 评估预算对第三方长上下文模型适配评估（EVOLUTION_BENCHMARK_TIMEOUT_MS 或按用例配置）；③ 失败用例补跑机制核对。【证据锚点】src/services/trajectory/index.ts:606（首席亲验）；src/services/streaming-pipeline.ts:839-849（注释点名 glm-5.3-flash[1m]，首席亲验）；failures.json 三条 durationMs 亲数。【红线】benchmark 回落仅查执行侧，不构成放宽评测标准/进化护栏的理由。【E2 缺口】benchmark 结果行 error 归因 DB 取证、失败用例补跑记录核对。
+
+## [H10][缺陷线索池 L-4·P2] 无 runId 轨迹周期自愈以 createdAt+30min 判死，channel/express_lane 长会话存在误杀窗口（潜伏：本周无实锤样本） 2026-W42
+
+【来源】红队裁定 Confirmed/P2，原 actionType=bug_ticket；E2 未齐备本轮不开单，转缺陷线索池。红队影响面修正：标题从现在时「存在被误杀」收窄为「存在误杀窗口；本周无实锤样本；生产部署时点未锚定」。【现象】engine.ts:467 无 runId 分支以 createdAt（轨迹诞生时刻）而非 updatedAt（最近进展）判 30 分钟超时，命中即标 failed + 「僵尸轨迹：执行超时未结束」。streaming 轨迹全无 runId（streaming-pipeline.ts 全文 grep 零命中），触发面非空；同文件 :390-392 run 自愈已用 updatedAt 正确口径（注释明言「避免误杀正在正常执行的长任务」）——同函数族双时间基准并存，:467 系选型偏差。红队补强：index.ts:575-577 周期任务注释声称「活跃对象不会被误伤」与该分支实现不符。【本周反例】failures.json 20 条零「执行超时未结束」签名；无 runId 轨迹 cmv7ggiaa 存活 25h 未被误杀——强假说：该分支系近期新增、生产 worker 尚未部署（区域 ~39 行漂移佐证），无法在本会话确证，如实标注。【修复方向】① :467 改 now-(t.updatedAt ?? t.createdAt) > STALE_MS（与 :392 同款 + 历史行 updatedAt NULL 兜底）；② 回溯 failures.json「执行超时未结束」×durationMs≈30min 指纹核实历史污染面。【证据锚点】src/services/workflow/engine.ts:447、:467、:469-472（首席亲验逐字命中）。【E2 缺口】生产 worker 部署版本记录、无 runId 长轨迹执行时长分布（DB）。
+
+## [H9][缺陷线索池 L-5·P3] 用户取消标 failed（「用户已取消」），TrajectoryStatus 无 cancelled 终态，取消语义借用失败通道（潜伏口径缺陷） 2026-W42
+
+【来源】红队裁定 Confirmed/P3，原 actionType=bug_ticket；E2 未齐备（近四周取消占比统计需 DB）本轮不开单，转缺陷线索池。红队影响面修正：定性为「潜伏口径缺陷」而非「已发生污染」——本周 failures.json 20 条中 0 条「用户已取消」签名（0%<2%），但失败族分析持续以 failures.json 为底座，结构性口径风险成立；且平台规范「长任务执行韧性规范」第 4 条（必须区分取消与失败，被取消轨迹不得污染失败统计）被直接违反，规范符合性是硬事实。【根因】TrajectoryStatus 终态枚举仅 completed/failed（trajectory/index.ts:364-367 签名亲验），取消场景在 streaming-pipeline.ts:814-818（finalizeTrajectory('failed', durationMs, '用户已取消')，首席亲验）与引擎 run-cancelled 同步路径（engine.ts:460）两处均折入 failed——结构性约束非调用方疏忽。【修复顺序（防读数端丢语义）】① 先扩 TrajectoryStatus 终态枚举增加 cancelled；② 再改 streaming-pipeline:818 与 engine run-cancelled 同步路径写入 cancelled；③ 最后 failures 聚合将 cancelled 移出失败族（单列「用户取消」族）。【证据锚点】src/services/streaming-pipeline.ts:814-818；src/services/trajectory/index.ts:364-367；src/services/workflow/engine.ts:460。【E2 缺口】近四周取消轨迹占比统计（DB 聚合）、取消对历史失败率结论的影响面回溯。
+
+## [H3][知识沉淀] frozen 0→14 为 2026-10-15 Admin 拍板治理动作（超 30 天自动冻结），熔断线口径已 30→66，需台账登记与两条对账 2026-W42
+
+【来源】红队裁定 Confirmed/P3，actionType=knowledge_only。【登记三件事】① 14 条 frozen 登记为「10-15 治理动作产物」（scheduler.ts:73-93 freezeStaleBacklog 注释明示 Admin 2026-10-15 拍板，pending 超 FREEZE_AFTER_DAYS=30 天自动 frozen，10 分钟一轮+启动清存量，落 schedulerEvents backlog_frozen 含 frozenCount）——待与事件逐条对账（DB 不可读，本轮留为对账动作）；② 熔断线新口径 QUEUE_CIRCUIT_BREAKER=66 / warn=60（-6）/ escalate=63（-3）（approval-sla.ts:25-32 亲验）取代旧 30/24/27——上轮 H6/cmunm03ac 等水位类提案与 H-A3 判定式按新口径重述；时间线旁证：09-25/10-04 历史提案内嵌快照引用旧值；③ frozen 不计熔断水位/SLA 告警（scheduler.ts:75-76）的读数口径分界：冻结会永久性压低 pending 水位读数，后续水位趋势分析须区分 frozen 前后口径。【残留待办】rejected 15→19 增量 4 条逐条取 rejectReason 防静默销案。【红队补充发现（首席亲核命中）】approval-sla.ts:48 注释残留旧口径「warn ≥24 / escalate ≥27 / breaker ≥30」、scheduler.ts:115 注释「熔断线 ≥30」——两处注释过时，随本条修订（口径升级未同步注释）。【证据锚点】src/services/evolution/scheduler.ts:73-93、:115；src/services/evolution/approval-sla.ts:25-41、:48。
+
+## [H5][知识沉淀] SIGINT 轨迹「error 有文案+durationMs/outputPreview 双 null」为优雅关闭设计产物，读数端应单列「重启成本」族 2026-W42
+
+【来源】红队裁定 Confirmed/P3，actionType=knowledge_only。原疑点「SIGINT 双 null=数据损坏」证伪。【读数端纪律】failures 聚合将 SIGINT 轨迹（error 前缀 Worker SIGINT + 双 null 指纹）单列「重启成本」族，不混入失败族——本周 3 条（implement×2 + goal_delegate×1，首席亲数）对应 10-15T03:0x 一次 worker 重启；重启后自愈链齐备（run→paused→auto-resume、expressLane→failed 留现场）。【机制依据】trajectory/index.ts:346-351 shutdown finalizer 仅写 {status:'failed', error:reason, completedAt}，不写 durationMs/outputPreview（首席亲验）——双 null 是 finalizer 字段集的确定性输出；index.ts:608-641 gracefulShutdown 四步收尾、:372+:578-599 启动+周期双层自愈（5 分钟一轮）、:384-400 expressLane 自愈均亲核在仓。【低优先改进线索】finalizer 可补写 durationMs（created→shutdown 差值）与已有 outputPreview，降低「全损」观感。【证据缺口声明】3 条 SIGINT 关联 run 是否重跑成功（rerun 记录）、playtest 节点预算与 checkpoint 挂载状态在 workflow definition（DB 侧），本轮不可读。硬超时 2 条（implement 5400s/playtest 10800s）归因文案正确，属预算内未完成非机制缺失。【证据锚点】src/services/trajectory/index.ts:346-351；src/index.ts:372、:578-599、:608-641、:384-400。
+
+## [H8][知识沉淀·仪器自校准] 口径词典三条：activity.tasks 全任务口径 vs taskSamples 终态口径；other 桶=taskType null 兜底；bugClosureDays 无环比封装 2026-W42
+
+【来源】红队裁定 Confirmed/P3，actionType=knowledge_only。三处仪器漂移终局裁定（旁支台账，不进主口径）：【① 撤回转登记】health.json activity.tasks=34 与 taskSamples 三桶合计 31 之差 3=窗口内非终态任务——index.ts:199 taskCount 无 status 过滤（计入 running/paused 中间态）vs :116-118 taskSuccessRows 仅取 completed/failed（:68-69 注释「其余中间态既不入分子也不入分母」即官方口径）——两谓词口径天然不同，登记说明后每轮不再消耗取证成本。【② 打标侧演化】windows.ts:75 `row.taskType ?? 'other'`——other 是 taskType=null 的兜底桶名而非独立类型；express_lane 首现（n=1，lowConfidence）系打标侧将原 null 杂项任务标上真实类型，聚合逻辑未变，非缺陷。【③ 封装缺失成立】index.ts:277-281 bugClosureDays 裸数值返回（本周 18.4 天），同文件其他指标均有 {current, previous, deltaPct} 封装（:260 point、:266-270 benchmark），独它没有——闭环时长周环比断路；补封装列低优先代码改进线索（E2 门内，旁支台账）。【证据锚点】src/services/platform-health/index.ts:199、:68-69、:79、:277-281；src/services/platform-health/windows.ts:75（均为红队/首席亲验锚点）。
+
+## [H11][知识沉淀] commit 锚点 023e5838 与取证工作区脱钩（工作区 HEAD 红队时点 6959c10f、首席收口时点 a7fc2b0），证据基线登记与锚点治理三条 2026-W42
+
+【来源】红队亲手取证的流程发现，裁定 Confirmed/P3，actionType=knowledge_only。【事实】任务书下发并经 audit/侦探转引的锚点 023e5838 在本工作区 git 库可达范围（refs/reflog/松散对象）零痕迹；.git/logs/HEAD 共 5 行：clone @ ac6e5c73 → auto-commit c2d84662 → 6959c10f（红队取证时点）→ a7fc2b0（首席研究员收口时点亲读，红队之后又推进一拍）——工作区 HEAD 被 workflow auto-commit 持续推进，「固定锚点」与「移动工作区」天然脱钩；audit meta.baseRef 自认 independentlyVerified=false。【影响面】「同 commit 可复现」验收项无法按 023e5838 闭环；但红队已在本工作区 HEAD=6959c10f 时点逐条亲核 13 条发现全部源码锚点（漂移≤2 行），本轮判定有效性不受影响，受影响的是跨轮可复现性声明。【登记三条】① 本轮证据基线=各节点取证时点实测 HEAD（audit/侦探/红队：6959c10f 时点；首席收口：a7fc2b0），后续轮次照此口径，v5 口径裁决书引用以此为准；② 任务卡下发 commit 锚点时应同时附「取证工作区实测 HEAD」（或要求首节点先读 .git/HEAD 回锚写回产物 meta）；③ 体检师节点 baseRef.independentlyVerified=false 状态向下游（红队/首席）显式传递，作为可复现性声明的一部分。【不可断言项】023e5838 是否存在于 main 历史 pack 文件——本会话无 git 命令通道，「本工作区无法锚定」可断言，「该 commit 不存在」不可断言。【升级候选（供 Lead 裁量）】②③属工作流节点提示词/任务卡模板类软资产改进，可批准为进化提案单独立项（不改变本条 knowledge 裁定）。【证据锚点】.git/logs/HEAD（首席亲读 5 行）；.git/refs/heads/myrd/run-cmvdfmx530043m9wlxkjmnvkn（首席亲读=a7fc2b09638f7225336cad6ba1ad78644c28f027）。
+
+## MyRD 自进化周报 2026-W42
+
+# MyRD 自进化周报 2026-W42
+
+> 周期标识取自 meta.json：week=2026-W42（date=2026-10-18）。
+> 数据窗口：2026-10-11T06:16Z → 2026-10-18T06:16Z（health.json generatedAt=2026-10-18T06:16:31.126Z；failures.json 最早 2026-10-12T06:58:41Z、最晚 2026-10-18T01:29:40Z）。
+> 样本量门：activity.tasks=34 ≥ 5，**PASS**，本周允许周级结论；例外：taskSuccessRateByType.goal 分母 n=4 且 lowConfidence=true（仅方向参考）、express_lane n=1 无前值（不下结论）。
+> 证据基线声明：任务书锚点 023e5838 在本工作区不可锚定（refs/reflog/松散对象三路零痕迹，亲核）；红队取证时工作区 HEAD=6959c10f，本报告收口时亲读已推进至 a7fc2b0（workflow auto-commit 持续追加，.git/logs/HEAD 共 5 行亲读）。全部源码证据以各节点取证时点实测 file:line 为准，锚点治理见 H11。
+
+---
+
+## 一、本周结论摘要
+
+本周三条链（侦探 14 条假设 → 体检师 14 条取证 → 红队 14 条终局裁定）逐条对齐，**顶层裁定：Confirmed 14 / Refuted 0 / Uncertain 0**。核心结论四条：
+
+1. **自进化闭环「选择层」对 reflow 回流通道实质断路（本周最高优先级，P1）**。reflow 通道创建提案后从不触发评估（src/services/self-evolution/reflow.ts:169-185 亲读，函数内无 evaluateProposal 调用），系统亦无 evaluation_pending 兜底消费者；6 条 reflow 提案滞留评估 6~22 天（pending-proposals.json 亲数：evaluation_pending ×6 与 reflow: ×6 一一对应），对照组 admin 注入 7/7 分钟级出分。在审合并提案 cmunm03af（轨迹终结元数据统一标准）正被此缺陷卡住 18 天——「修复通道本身被另一缺陷阻断」的耦合是本周最需解卡的点。
+2. **失败统计口径存在两处结构性缺口（P1/P2）**：① error=null 的 failed 轨迹占本周失败 10/20（50%，failures.json 亲数），唯一产生通道已精确定位为 workflow 引擎终结路径组合条件（engine.ts:3042 亲读逐字命中）；② 无 runId 轨迹的周期自愈以 createdAt+30min 判死（engine.ts:467 亲读），channel/express_lane 长会话存在被误杀窗口（本周无实锤样本，潜伏期）。
+3. **漏斗剧变有明确代码归因，属合规治理动作（P3 台账登记）**：frozen 0→14 系 2026-10-15 Admin 拍板上线的 freezeStaleBacklog（超 30 天自动冻结，scheduler.ts:73-93 亲读注释明示），非调度器误触发；熔断线口径已 30→66（approval-sla.ts:25-32 亲读）。残留两条待办：14 条 frozen 与 backlog_frozen 事件对账（DB 不可读，本轮无法实测）、rejected 15→19 增量 4 条的个体理由需取 rejectReason 防静默销案。
+4. **负反馈闭环输入端三零持续（gateVerifiedRunRate 0/0、acceptanceTests 0/0、feedbackSamples 0/0），方向A本周无法实测**。机制链经源码复核完整在仓（采集/写入/钩子/注册四锚点全命中），缺的是执行流量过门，属流程激活问题非代码缺失。方向A三条判定式维持「预注册·待实测」。
+
+**预期管理**：代码侧缺证（DB 实体数据、schedulerEvents 对账、benchmark 结果行均不可读），本轮结论仅 E1 等级证据（工作区内可复核实证）+ 自校准记录支撑。缺陷工单本轮 **0 单**（5 条缺陷线索均未齐备 E2 工单证据 11 项，按红线转缺陷线索池）；无任何放宽护栏/边界合同的建议。
+
+---
+
+## 二、判定总表（14 条，与 findings-verified.json 逐条对应）
+
+| ID | 简题 | Verdict | Severity | 红队 actionType | 本报告落位 |
+|----|------|---------|----------|-----------------|-----------|
+| H2 | reflow 通道评估接线缺失，6 条提案滞留 | Confirmed | P1 | bug_ticket→线索池 | 短板 #1（线索池 L-1） |
+| H4 | error=null 失败轨迹唯一产生通道（引擎终结组合条件） | Confirmed | P1 | bug_ticket→线索池 | 短板 #2（线索池 L-2） |
+| H1 | eval_subject 300s 超时 + 轨迹 error 被噪音冒充（「模型识别失败」证伪） | Confirmed | P2 | bug_ticket→线索池 | 短板 #3（线索池 L-3） |
+| H10 | 无 runId 轨迹 createdAt+30min 误杀窗口 | Confirmed | P2 | bug_ticket→线索池 | 短板 #4（线索池 L-4） |
+| H9 | 用户取消标 failed，无 cancelled 终态 | Confirmed | P3 | bug_ticket→线索池 | 短板 #5（线索池 L-5） |
+| H3 | frozen 0→14=10-15 治理动作；熔断线 30→66 | Confirmed | P3 | knowledge_only | 短板 #6（知识） |
+| H5 | SIGINT 双 null=优雅关闭设计产物，非数据损坏 | Confirmed | P3 | knowledge_only | 短板 #7（知识） |
+| H8 | 仪器口径三漂移裁定（①成立②演化③撤回） | Confirmed | P3 | knowledge_only | 短板 #8（知识） |
+| H11 | 锚点 023e5838 不可锚定；基线漂移 | Confirmed | P3 | knowledge_only | 短板 #9（知识） |
+| H6 | goal 成功率口径分离已固化，n=4 维持方向参考 | Confirmed | P3 | none | 下周复测（falsification 挂账） |
+| H7 | 三零指标=流量未过门，机制链完整 | Confirmed | P2 | none | 激活跟踪（H-A2 承载） |
+| H-A1 | 方向A时间序判别式：无时间序字段→仅方向参考 | Confirmed | P3 | none | 预注册·待实测 |
+| H-A2 | 方向A输入端激活判定式 | Confirmed | P3 | none | 预注册·待实测 |
+| H-A3 | 方向A输出端消化判定式（按熔断 66 新口径） | Confirmed | P3 | none | 预注册·待实测 |
+
+> 口径注记：findings-audited.json meta.coverage=13 与 findings-verified.json meta.verdictSummary.confirmed=13 均为 H11 追加前快照；两文件数组实际条数均=14，本表以数组实数为准。
+
+---
+
+## 三、Confirmed 短板清单（每条：定级 / 证据 / 根因 / 建议动作）
+
+### 短板 #1（H2·P1）reflow 回流通道评估接线缺失，闭环选择层对该通道断路
+
+- **证据**（本首席研究员独立亲验）：reflow.ts:169-185 创建提案 `status='pending'` + `evaluation={state:'evaluation_pending'}`（:183）、溯源 `reflow:${ctx.runId}`（:180），函数内无 evaluateProposal 调用；全仓生产调用点仅 3 处（intake 路由 fire-and-forget / analyzer 转正 / routes/evolution.ts:559 手动重评），reflow 不在其中；无任何 evaluation_pending 周期兜底消费者。数据面：pending-proposals.json 亲数 evaluation_pending×6（全 reflow 前缀，滞留 6/18/22 天三批次）、unevaluated=6/13；对照组 admin 注入 7/7 分钟级出分。
+- **根因**：评估触发是「创建路径各自接线」模式，reflow 兜底通道漏接；叠加 verdict 门禁（无 evaluation → 409 拦截审批），滞留提案连人工审批也被拦——结构性断路而非容量事件（三批次复现排除偶发）。
+- **影响**：6 条治理提案（含 H2/H3/H4/H6/H9 系）无法进入审批；在审合并提案 cmunm03af（H4 修复方向）被卡 18 天。
+- **建议动作**：缺陷线索池 L-1（E2 未齐备不开单）。修复方向：①reflow.ts importOneAction 补接 evaluateProposal（与 intake 路由同款 + 同开关语义）；②scheduler 增设 evaluation_pending 超 龄件兜底扫描补评；③存量 6 条经 routes/evolution.ts:559 手动重评解卡（优先解卡 cmunm03af）。
+
+### 短板 #2（H4·P1）error=null 失败轨迹占 50%，归因断路（连续两轮复发）
+
+- **证据**：failures.json 亲数 20 条中 10 条 error=null 且 workflowRunError=null（create-pr/polish/art/design/blackboard×3/dev-test/round-plan/playtest），outputPreview 显示大量有效工作后静默失败。engine.ts:3042 `nodeError = noWorkReason ?? (exitCode!==0 ? (cliError || stripCliStderrNoise(stderr).stderr || undefined) : undefined)`（亲读逐字命中）——exitCode≠0 且 CLI 未写错误事件且 stderr 空/被滤空时 nodeError=undefined；:3045-3049 直通 finalizeAgentTrajectory，无「failed 必带 error」出口断言。红队穷举七通道闭合：其余通道失败均带 error，唯一缺口即此组合条件。
+- **根因**：硬超时 SIGKILL 强杀 / OOM / 进程崩溃场景下引擎三层兜底（noWorkReason/cliError/stderr）全部落空。上轮立案方向（终结元数据统一标准）正确，本轮精确定位到缺口点。
+- **建议动作**：缺陷线索池 L-2。修复方向：①engine.ts:3045 终结处对 failed 且 nodeError 空写入保底归因（出口断言）；②startTimer 超时路径回传 timedOut 标志兜底进 error。
+
+### 短板 #3（H1·P2）eval_subject 300s 超时打满 + 轨迹 error 被stderr 噪音冒充，benchmark 回落归因被污染
+
+- **证据**：failures.json 三条 eval_subject（10-15×2、10-16×1）error=unrecognized_model 噪音原文，durationMs=300277/300313/300300ms 与 benchmark.ts:32-35 默认超时 300000ms+SIGTERM 延迟精确吻合（亲数）；trajectory/index.ts:606 失败分支裸写 stderr 未套 stripCliStderrNoise（亲读），对照 streaming-pipeline.ts:839-849 已过滤且注释点名 glm-5.3-flash[1m]（亲读）。**假设原判「[1m] 未被 SDK 识别致回落」被证伪**——该诊断非致命且有单测背书；[1m] 系用户配置值，平台代码不产生也不清洗。
+- **根因**：两层叠加——评测用例 300s 预算内未完成且未被成功重跑补齐（benchmark 83.875←84.75 的样本面缺口）；runWithTrajectory 与 streaming 通道的 stderr 过滤口径漂移。
+- **建议动作**：缺陷线索池 L-3。修复方向：①trajectory/index.ts:606 套用 stripCliStderrNoise（与 streaming 同口径）；②评估预算对第三方长上下文模型的适配评估（EVOLUTION_BENCHMARK_TIMEOUT_MS）；③失败用例补跑机制核对。红线维持：回落仅查执行侧，不构成放宽评测标准理由。
+
+### 短板 #4（H10·P2）无 runId 轨迹周期自愈 createdAt+30min 判死，长会话误杀窗口（潜伏）
+
+- **证据**：engine.ts:447 `STALE_MS=30*60*1000`、:467 `} else if (now - t.createdAt.getTime() > STALE_MS)`（亲读逐字命中）；对照同文件 :390-392 run 自愈用 updatedAt（注释明言「避免误杀正在正常执行的长任务」）——同函数族双时间基准并存。streaming 轨迹全无 runId（streaming-pipeline.ts 全文 grep 零命中），触发面非空。红队补强：index.ts:575-577 周期任务注释声称「活跃对象不会被误伤」与该分支实现不符（注释虚假声称）。
+- **影响面修正（红队）**：本周 failures.json 无「执行超时未结束」签名、无 runId 轨迹 cmv7ggiaa 存活 25h 未被误杀——实际误杀本周未发生（或生产 worker 尚未部署该版本，区域 ~39 行漂移佐证该分支系近期新增，无法在本会话确证）。定性：代码缺陷在当前 HEAD 成立，实际危害 unverified。
+- **建议动作**：缺陷线索池 L-4。修复方向：①:467 改 `now-(t.updatedAt ?? t.createdAt)>STALE_MS`（与 :392 同款+NULL 兜底）；②回溯 failures.json「执行超时未结束」×durationMs≈30min 指纹核实历史污染面。
+
+### 短板 #5（H9·P3）用户取消标 failed，TrajectoryStatus 无 cancelled 终态（潜伏口径缺陷）
+
+- **证据**：streaming-pipeline.ts:814-818 取消路径 `finalizeTrajectory('failed', durationMs, '用户已取消')`（亲读逐字命中）；trajectory/index.ts:364-367 签名仅 `'completed' | 'failed'`（亲读），终态枚举无 cancelled 为结构性约束；engine.ts:460 cancelled run 同步折入 failed。平台规范「长任务执行韧性规范」第 4 条明确要求区分取消与失败——实现直接违反。
+- **影响面修正（红队）**：本周 failures.json 0 条「用户已取消」签名（0%<2%），「潜伏口径缺陷」而非「已发生污染」；但失败族分析持续以 failures.json 为底座，结构性风险成立，立案维持。
+- **建议动作**：缺陷线索池 L-5。修复顺序（防读数端丢语义）：先扩 TrajectoryStatus 枚举（cancelled）→ 再改 streaming:818 与 run-cancelled 同步写入 → 最后 failures 聚合将 cancelled 移出失败族。
+
+### 短板 #6（H3·P3·知识）frozen 0→14 = 10-15 治理动作产物；熔断线口径 30→66 待全链对齐
+
+- **证据**：scheduler.ts:73-93 冻结注释「Admin 2026-10-15 拍板」+ updateMany + recordSchedulerEvent('backlog_frozen', frozenCount)（亲读）；approval-sla.ts:25-32 熔断 66 / warn 60 / escalate 63、FREEZE_AFTER_DAYS=30（亲读）；时间线旁证：09-25/10-04 历史提案内嵌快照引用旧值 24/27/30。
+- **残留待办**：①14 条 frozen 与 schedulerEvents 逐条对账（DB 不可读，留为对账动作）；②rejected 15→19 增量 4 条取 rejectReason 防静默销案；③红队补充发现（亲核命中）：approval-sla.ts:48 注释残留旧口径「warn ≥24 / escalate ≥27 / breaker ≥30」、scheduler.ts:115 注释「熔断线 ≥30」——两处注释过时，随本条修订。
+- **建议动作**：知识沉淀（台账登记三件事：frozen 治理对账、熔断线 66/60/63 新口径取代 30/24/27、frozen 不计熔断水位的读数分界 scheduler.ts:75-76）。
+
+### 短板 #7（H5·P3·知识）SIGINT 轨迹双 null = 优雅关闭设计产物，读数端应单列「重启成本」族
+
+- **证据**：trajectory/index.ts:346-351 shutdown finalizer 仅写 `{status:'failed', error:reason, completedAt}`——不写 durationMs/outputPreview（亲读），与 failures.json 3 条 SIGINT（error='Worker SIGINT 关闭中断'+双 null）形态精确吻合；index.ts:608-641 gracefulShutdown 四步、:372+:578-599 启动+周期双层自愈、:384-400 expressLane 自愈均亲核在仓。
+- **定性**：非数据损坏、非自愈链缺失。2 条硬超时（implement 5400s / playtest 10800s）归因文案正确，属预算内未完成；playtest 预算与 checkpoint 挂载状态在 workflow definition（DB 侧），本节点证据缺口声明。
+- **建议动作**：知识沉淀（读数端纪律：SIGINT 轨迹按 error 前缀+'双 null'指纹单列「重启成本」族，不混入失败族；finalizer 补写 durationMs 列低优先改进线索）。
+
+### 短板 #8（H8·P3·知识）仪器口径三漂移裁定：①bugClosureDays 无环比封装②other 桶=打标演化③activity 差值=非终态任务（③按预设撤回）
+
+- **证据**：①index.ts:277-281 bugClosureDays 裸数值返回、:79 接口声明单值——同文件其他指标均有 previous/deltaPct 封装，独它没有（18.4 天无法环比）；②windows.ts:75 `row.taskType ?? 'other'`——other 是 null 兜底桶名，express_lane 首现 n=1 系打标侧演化非聚合缺陷；③index.ts:199 activity.taskCount 无 status 过滤 vs :116-118 taskSuccessRows 仅终态——34 与 31 之差 3=窗口内非终态任务，触发预设撤回条件转口径登记。
+- **建议动作**：知识沉淀（口径词典三条：activity.tasks 全任务口径 vs taskSamples 终态口径、other 桶语义、bugClosureDays 环比断路——补 {current,previous,deltaPct} 封装列低优先代码改进线索，旁支台账不进主口径）。
+
+### 短板 #9（H11·P3·知识）commit 锚点与取证工作区脱钩，证据基线轮内漂移
+
+- **证据**（本首席研究员独立亲验 + 新增读数）：.git/logs/HEAD 共 5 行亲读——clone @ ac6e5c73 → auto-commit c2d84662 → 6959c10f（红队取证时点 HEAD）→ **a7fc2b0（本报告收口时点亲读，红队之后又推进一拍）**；023e5838 不在 refs/reflog/松散对象任何一路。audit meta.baseRef 自认 independentlyVerified=false。
+- **根因**：任务书锚点下发与取证工作区实况无耦合机制；且工作区 HEAD 被 auto-commit 持续推进，「固定锚点」与「移动工作区」天然脱钩——红队 6959c10f 与首席 a7fc2b0 的读数差即实证。
+- **建议动作**：知识沉淀（流程改进三条：①任务卡下发锚点时附取证工作区实测 HEAD，或要求首节点先读 .git/HEAD 回锚；②baseRef.independentlyVerified=false 向下游显式传递；③本轮证据基线登记为「各节点取证时点实测 HEAD」（audit/侦探：6959c10f 时点；首席收口：a7fc2b0），后续轮次照此口径）。**升级候选**（供 Lead 裁量，不改变本条 knowledge 裁定）：①②属工作流节点提示词/任务卡模板类软资产改进，可批准为进化提案单独立项。
+
+### 无需动作的 Confirmed 条目（5 条，none）
+
+- **H6**（goal 成功率 0.25←0.5）：口径分离已由代码固化（platform-health/index.ts:247-250），n=4 lowConfidence 纪律生效，无源码缺陷。挂 falsification 复测：下周 goal n≥10 且成功率 ≥0.5 则销案。
+- **H7**（三零指标）：机制链四锚点（采集 windows.ts:30-33 / 写入 acceptance-tests/index.ts:109-128 / 钩子 e2e-gate.ts:57-131 / 注册 hooks/index.ts:44）全命中，缺执行流量过门。激活跟踪由 H-A2 判定式承载。
+- **H-A1 / H-A2 / H-A3**（方向A预注册三条）：均标**「预注册·待实测」**，本周不产出有效性结论。H-A1 时间序字段确认不存在（health.json schema 级核实），降级「仅方向参考」；H-A3 判定式按熔断 66 新口径更新为「applied 增量 ≥ pending+frozen 净增量的扣冻口径」后实测。
+
+---
+
+## 四、红队否决与修正记录
+
+**顶层否决：0 条**（14/14 Confirmed，本周无 Refuted 案件，无销案）。红队在本轮执行的否决/修正均作用于**子命题与表述层**，记录如下（防后续轮次误引旧定性）：
+
+| 被修正的原判 | 修正后定性 | 依据 |
+|---|---|---|
+| H1 原判「[1m] 后缀未被 SDK 识别 → benchmark 回落」 | **证伪**：该诊断非致命且有单测背书（claude-code-agent.stderr-noise.test.ts）；真因=300s 超时+归因噪音污染 | claude-code-agent.ts:889-892 注释亲核 |
+| H3 原判两分法「有意冻结 vs 调度器误触发」 | 误触发分支**证伪**：系 10-15 Admin 拍板治理动作（falsification 方向命中，转台账登记） | scheduler.ts:74 注释亲核 |
+| H5 原判疑点「SIGINT 双 null=数据损坏？」 | **证伪**：双 null 是 shutdown finalizer 字段集的确定性输出（设计取舍非故障） | trajectory/index.ts:346-351 亲核 |
+| H4 预设反例「≥8/10 系自愈误报」 | **不成立**：自愈产物必带文案（:457-463/:469-472），10 条 error=null 均非自愈产物 | 穷举七通道闭合 |
+| H10 标题现在时「存在被误杀」 | 修正为「存在误杀窗口；**本周无实锤样本**；生产部署时点未锚定」 | failures.json 零签名 + cmv7ggiaa 25h 存活反例 |
+| H9 「取消污染失败统计」降幅 | 修正为「**潜伏**口径缺陷」（本周 0 条取消签名，污染幅度 unverified） | failures.json 亲数 0/20 |
+| H-A1 audit 表述「采样触发在 admin 手动路由」 | **修正**：实测 2 个调用方（routes/evolution-feedback.ts:31 手动 + scheduler.ts:254 周期自动，每日+启动即跑） | 红队全仓 grep 实测 |
+| H8 ③「activity 34 vs 31 差 3 待解释」 | **按预设撤回**：差值=非终态任务（index.ts:199 无 status 过滤 vs :116-118 仅终态），转口径登记 | index.ts:68-69 注释提供官方口径 |
+
+---
+
+## 五、Uncertain 条目
+
+**本周 0 条 Uncertain**（findings-verified.json verdictSummary：refuted=0, uncertain=0，与数组逐条核对一致）。无待复核立案。
+
+以下两项「不可最终确证」成分已由红队在各 verdict 内如实标注（不构成独立 Uncertain 条目，随原条目维持 Confirmed）：
+- H10 的「生产 worker 是否已部署含 :467 分支的版本」——无 git blame/部署记录通道，无法确证；
+- H11 的「023e5838 是否存在于 main 历史 pack 文件」——本会话无 git 命令通道，「本工作区无法锚定 023e5838」可断言，「该 commit 不存在」不可断言。
+
+---
+
+## 六、下周建议关注点
+
+**失败族二分**（failures.json 20 条亲数口径）：
+
+| 失败族 | 条数 | 占比 | 下周动作 |
+|---|---|---|---|
+| error=null 静默失败（H4 通道） | 10 | 50% | L-2 修复后观察归因率是否归零；持续跟踪 outputPreview 反推成本 |
+| SIGINT 重启成本（H5） | 3 | 15% | 读数端按「重启成本」族单列；核对 3 条关联 run 是否重跑成功 |
+| eval_subject 超时+噪音（H1） | 3 | 15% | L-3 修复 stderr 口径；评估 300s 预算适配性；核对失败用例补跑 |
+| 节点硬超时（预算打满） | 2 | 10% | playtest 预算/checkpoint 挂载状态到 DB 侧取证 |
+| API server error（中途中断） | 1 | 5% | 观察是否成族 |
+| exit0 无 commit | 1 | 5% | 既有规范（产物持久化纪律）覆盖，观察复发 |
+
+**方向与挂账事项**：
+1. **L-1（H2）优先解卡**：存量 6 条 reflow 提案手动重评（routes/evolution.ts:559），优先 cmunm03af——它是 H4 修复方向的在审载体，解卡即打通「最大失败族」的修复通道。
+2. **goal 成功率复测**（H6 falsification：n≥10 且 ≥0.5 销案）。
+3. **三零指标激活跟踪**（H-A2：连续两周 gateVerifiedRunRate 分母>0 且 acceptanceTests.total>0 且 feedbackSamples>0 → 方向A进入可实测态；抓手=高价值 workflow 挂载 routine 门禁，运营动作）。
+4. **H3 两条对账**：14 条 frozen ↔ backlog_frozen 事件；rejected +4 逐条 rejectReason。
+5. **锚点治理落地**（H11）：任务卡模板附实测 HEAD；baseRef 状态显式传递——评估作为进化提案立项。
+6. **仪器自校准跟进**（H8）：bugClosureDays 环比封装为低优先代码改进线索，下轮核对是否已修复并恢复 bugClosureDays 周环比读数。
+
+---
+
+## 七、口径裁决输入与衔接声明（v5）
+
+**采纳的三项口径修订**（供 v5 口径裁决书定稿引用，均已具证据）：
+1. **图证据降权 + 锚点声明修正**：本轮全部源码证据的实际基线=各节点取证时点实测 HEAD（6959c10f 时点亲核，漂移 ≤2 行；收口时点 a7fc2b0）；任务书锚点 023e5838 不可锚定（H11，E1）。「同 commit 可复现」验收项按「节点时点 HEAD 登记」口径执行。
+2. **g2-blocks / 仪器自校准不进主口径**：本轮工作流未落盘 g2-blocks 建图前后计数对照表（见下方底座声明），主口径不含图证据；旁支台账仅收录 H8 三条口径登记与红线声明（benchmark 回落仅查执行侧 H1，评测标准与进化护栏零放宽）。
+3. **benchmark 口径维持**：latestScore 83.875 ← previousScore 84.75（deltaPct=-1）按执行侧故障立案（H1），不构成放宽评测标准的理由（红线 1-5 全程有效）。
+
+**双轨立案落位**：缺陷工单 **0 单**（红线：E2 工单证据 11 项未齐备不开单）；缺陷线索池 5 条（L-1~L-5，对应 H2/H4/H1/H10/H9，随 actions.json 落盘，均含 E1 级修复方向与证据锚点，待 E2 补齐后转正式工单）；进化提案 0 条（红队 14 条裁定中无 evolution_proposal 类动作；H11 的流程改进①②列升级候选，由 Lead 裁量）；知识沉淀 4 条（H3/H5/H8/H11）。g2-blocks 相关发现本轮无（无数据落盘），不立案。
+
+**底座完整性声明**（.myrd/self-evolution/ 实测 7 件）：
+- 在档：health.json、pending-proposals.json、failures.json、meta.json、findings-hypotheses.json（14 条）、findings-audited.json（14 条）、findings-verified.json（14 条）——本报告与 actions.json 基于以上全量输入产出，关键数字全部经首席研究员独立复算/亲验（health 指标、failures 20 条签名分布、pending-proposals 6/13/6、承重源码锚点 7/7 命中）。
+- 缺失（unavailable）：findings-delta-v4.json、台账 v5、g2-blocks 盲区核销报告/仪器自校准记录、v5 口径裁决书草案未随工作流落盘至本目录。按纪律不作存在性推断，缺失项登记为 unavailable；本报告第二/三/六节与 actions.json 已承载台账与裁决书所需的全部结构化输入（判定总表、趋势对比、口径修订三条、预期管理条款），供后续节点直接引用。
+- 双 SHA 校验：本会话无哈希工具通道，沿用条目数多口径交叉对齐作为完整性凭证（各文件 provenance 见 findings-hypotheses.json meta.dataProvenance）。
+
+**下周衔接**：本报告 + actions.json 作为 v6 基线输入；H6/H-A2/H-A3 三个判定式挂账待实测；线索池 L-1~L-5 待 E2 补证转工单。
+
 
 ## 僵尸/孤儿运行轨迹识别与处置手册（status=failed 不可单独为凭）
 
@@ -9345,39 +9987,6 @@ GitHub: https://github.com/hl3w22bupt/myrd-playground.git
 
 ## 产品关联知识
 
-## 知识：Worker SIGINT 关闭中断失败模式——现象、根因、处置与预防
-
-# 失败模式：Worker SIGINT 关闭中断
-
-## 背景
-自动化工作流节点执行长时命令时，Worker 会在命令挂起或超出预算时发送 SIGINT 关闭该 worker。此信号被归类为基础设施噪音而非 agent 缺陷，但后果是整条执行轨迹失败且经常没有任何输出，浪费后续分析与自愈资源。
-
-## 现象
-- 轨迹 status=failed，错误信息为「Worker SIGINT 关闭中断」；
-- 输出摘要为空（进程在产出任何结果前被杀）；
-- 可影响任意自动化节点类型：开发/本地测试、记忆蒸馏、进化分析等；分析类 agent 自身也会复现此失败（元失败模式）。
-
-## 根因
-- 节点命令无界挂起：等待 stdin 交互输入、等待子进程、未设超时预算；
-- 长时进程未增量保存结果、未 flush 输出，被中断后无可检查产物，形成零输出失败轨迹；
-- 上层补丁/自愈仅清理僵尸轨迹，未消除命令本身的悬挂根源，故失败持续复现。
-
-## 排查与处置
-1. 遇到 status=failed 且错误含 SIGINT：先判断是否为基础设施信号（Worker 关闭），不急于归因 agent 缺陷；
-2. 交叉核对 runId 与轨迹产物：status=failed 单独不可靠（存在僵尸轨迹误报），须核对是否有落盘产物或部分输出；
-3. 复现命令：在本地以 `timeout <sec> <cmd>` 复跑，观察是否挂起、是否在超时前有增量输出；
-4. 若为长时任务，改为临时文件增量写盘 + 完成后原子改名，确保被中断后部分产物可恢复；
-5. 对无输出的失败运行启用回收/自愈机制清理，避免僵尸轨迹污染失败统计。
-
-## 预防
-- 所有节点命令遵循「显式超时 + 非交互 + 增量落盘 + 优雅退出」纪律（见对应规范）；
-- 分析型 agent（蒸馏、进化分析等）应在开始阶段即建立输出产物、分阶段写入，避免整段结束后才一次性输出，降低中断损失；
-- 将反复出现的同类失败纳入评测用例，使修复效果可量化考核。
-
-## [H9] 负反馈指标零值语义知识卡：no-data≠断链，最小样本红线与前置过程指标
-
-negativeFeedbackRate=null 的唯一代码路径是 artifactRating 表窗口内无行（src/services/platform-health/index.ts:166-167 查询仅时间窗条件；若查询失败健康包整体不会产出——health.json 有其它字段即证明查询成功返回空集）。因此该维度当前状态是『维度零样本』（没人打分），不是『采集断链』（打了分没进表）。知识卡沉淀三条判定规则供健康度 v2 引用：①零值三分法——no-data（零样本，不入异动结论）/zero-feedback（真实零负反馈，可入结论）/查询失败（健康包缺字段，立即升级采集缺陷）；②最小样本红线——负反馈类指标样本 <5 标『不可判定』（与 v2 全局样本量红线一致），不得进入周环比结论；③前置过程指标——观测『人工评分入口曝光/使用率』（artifactRating 写入速率）作为负反馈率的分母健康度指标，区分『没人打分』与『打了分丢数据』。
-
 ## MyRD 平台能力与环境事实源（Agent 防臆造基线 · 2026-09-26 主人核定）
 
 # 目的
@@ -9412,6 +10021,109 @@ negativeFeedbackRate=null 的唯一代码路径是 artifactRating 表窗口内�
 - 「代码图谱注册表 0 个注册仓库」（2026-09-11~09-26 多轮）：成员 agent 缺项目成员资格所致（2026-09-26 已修），非仓库缺失。
 - 「M2.1 执行被中断、断点位置未知」（2026-09-26 补跑轮）：往轮摘要缺执行结局导致的脑补，实际 M2.1 已于 2026-09-25 完成并部署上线。
 
+
+## MyRD 平台真实仓库结构地图、文档/技能入口与常见路径陷阱
+
+# MyRD 平台真实仓库结构地图、文档/技能入口与常见路径陷阱
+
+## 背景
+agent 在涉及 MyRD 平台的任务中反复出现两类高成本问题：
+
+1. **文档/技能入口定位失败**：任务开始时多次通过 glob 搜索 `**/myrd*/**/SKILL.md`、`**/myrd-platform-skill*` 等模式均返回 0 命中，误判平台「为云端平台、本地无文档」（#18283），或技能未在预期目录找到（#18123），随后不得不多轮读取源码与文档才定位入口（#18282-18293）。myrd-platform-skill 是 agent 理解平台的标准入口（最近 14 天调用 4 次），但 agent 本地环境无法直接命中其正文，造成重复勘察，agent 花费约十余次观测重复勘察结构。
+2. **引用不存在的文件路径**：多会话（#18282-18293、#18596-18617）反复手工翻查源码才能定位平台结构，且 #18616/#18617 实证发现提案引用了不存在的 `frontend/lib/services/*` 与 `myagent-client.ts` 路径，导致提案被驳回、评审周期浪费。
+
+根因在于「文档与实际源码结构不一致」——仓库（典型根目录 `/Users/leo/workspace/myrd`）存在源码与编译产物并存、文档过时等问题。本文档给出经源码核实的真实入口、真实结构地图及高频错误路径，供涉及 MyRD 内部实现的任务直接使用，消除重复探索并防止错误路径再次出现，显著降低后续任务冷启动成本。
+
+## 关键入口（权威文档与技能）
+- **平台使用说明书（权威）**：`/Users/leo/workspace/myrd/docs/myrd-platform-skill.md`。注意：位于源码仓库 `docs/` 下，而非 `~/.claude/skills/`。内容覆盖：服务地址、JWT 认证、全部 API 分类、典型示例、数据模型、边界情况，并含平台进化系统架构说明。
+- **快速开始**：`/Users/leo/workspace/myrd/docs/guides/quick-start.md`（环境搭建 → 服务启动 → 注册 → 建项目 → 跑工作流）。
+- **工作流集成/部署状态**：`/Users/leo/workspace/myrd/WORKFLOW_INTEGRATION.md`、`/Users/leo/workspace/myrd/MYRD_SETUP_STATUS.md`。
+- **数据库 schema**：`/Users/leo/workspace/myrd/prisma/schema.prisma`（含 `AgentExecutionTrajectory` 模型，表名 `agent_execution_trajectories`）。
+
+## 真实结构（经源码核实）
+- **入口与自愈**：`src/index.ts`（worker 启动时执行 auto-heal，覆盖 WorkflowRun / ExpressLaneRun / channel_messages / agent status / goals / vibe workspace，**不含** agentExecutionTrajectory）。
+- **工作流引擎**：`src/services/workflow/engine.ts`（约 2626 行；含 `resume()` 约 443 行、`iterateFrom()` 约 784 行、`rerunFrom()`、`rollbackToCheckpoint()`、`sharedSetupProjectWorkspace()`；支持 DAG 执行 / 自愈 / 重试 / git checkpoint）。
+- **Coding-agent 实现**：`src/services/coding-agent/{claude-code-agent.ts, local-claude-agent.ts, remote-agent.ts, types.ts}`（其中 `claude-code-agent.ts` 含 10 分钟默认超时与进程清理逻辑）。
+- **进化系统服务**：`src/services/evolution/`（analyzer 等模块；支撑证据系统三类数据源、证据挖掘策略）。
+- **路由**：`src/routes/workflows.ts` 等。
+- **前端真实源码**：`frontend/` 目录存在，含 `app/` 与 `components/` 源码，如 `frontend/app/(dashboard)/projects/new/page.tsx`、`frontend/components/projects/run-workflow-button.tsx`。
+- **编译产物（非源码）**：`src/dist/`——仅含编译后声明/产物（如 `src/dist/lib/myagent-client.d.ts`、`src/dist/services/coding-agent/myagent-agent.d.ts`），**不是源码**。
+
+## 服务端口
+前端 :3001、后端 API :3111、streaming :4112、MyAgent :3000、数据库 :5432。
+
+## 高频错误路径（不存在，务必避免）
+| 常见错误引用 | 真实对应 |
+|---|---|
+| `frontend/lib/services/workflow/engine.ts` | `src/services/workflow/engine.ts` |
+| `frontend/lib/services/coding-agent/claude-code-agent.ts` | `src/services/coding-agent/claude-code-agent.ts` |
+| `myagent-client.ts`（作为源码） | 无此源码；仅有编译声明 `src/dist/lib/myagent-client.d.ts` |
+| 认为前端目录含业务服务代码 | `frontend/` 主要被 `node_modules` 占据；业务服务在 `src/services/` |
+
+## 根因
+1. 文档（含 `docs/guides/quick-start.md`）描述的结构与实际仓库不一致或已过时；
+2. agent 凭记忆/推测引用路径，未做存在性核实；
+3. `src/` 与 `src/dist/` 并存，把编译产物误当源码。
+
+## 处置（核实方法）
+- 引用任何路径前，先用 glob/grep 在仓库根目录确认文件存在；
+- 区分 `src/`（源码）与 `src/dist/`（编译产物），引用源码一律指向 `src/`；
+- 工作流引擎、coding-agent、evolution 等业务服务一律在 `src/services/` 下，不在 `frontend/lib/` 下；
+- 「文件不存在」的判断以 glob 返回空为唯一依据，不要依据记忆或文档；
+- 分析轨迹/进化数据时，直接读 `agent_execution_trajectories` 表与 `prisma/schema.prisma` 的 `AgentExecutionTrajectory` 模型，不要靠源码 glob 反推。
+
+## 预防
+- 涉及 MyRD 内部实现的提案/文档，落笔前对每个文件路径做一次 glob 核实；
+- 平台是本地源码 + 多 run 工作区（`/Users/leo/.myrd/workspaces/proj-myrd/run-*`）并存；run 工作区可能包含主干尚未合入的功能（如 express-lane、轨迹追踪迁移），分析时以对应 run 工作区为准；
+- 本文档随仓库结构变更应同步更新。
+
+## 项目开发规范
+
+# 项目开发规范
+
+## 代码风格
+- 使用 TypeScript
+- - 遵循 ESLint 规范
+- 提交前运行 lint 检查
+
+## Git 提交规范
+- 使用 Conventional Commits 格式
+- feat: 新功能
+- fix: 修复 bug
+- docs: 文档更新
+
+## [H9] 负反馈指标零值语义知识卡：no-data≠断链，最小样本红线与前置过程指标
+
+negativeFeedbackRate=null 的唯一代码路径是 artifactRating 表窗口内无行（src/services/platform-health/index.ts:166-167 查询仅时间窗条件；若查询失败健康包整体不会产出——health.json 有其它字段即证明查询成功返回空集）。因此该维度当前状态是『维度零样本』（没人打分），不是『采集断链』（打了分没进表）。知识卡沉淀三条判定规则供健康度 v2 引用：①零值三分法——no-data（零样本，不入异动结论）/zero-feedback（真实零负反馈，可入结论）/查询失败（健康包缺字段，立即升级采集缺陷）；②最小样本红线——负反馈类指标样本 <5 标『不可判定』（与 v2 全局样本量红线一致），不得进入周环比结论；③前置过程指标——观测『人工评分入口曝光/使用率』（artifactRating 写入速率）作为负反馈率的分母健康度指标，区分『没人打分』与『打了分丢数据』。
+
+## 知识：Worker SIGINT 关闭中断失败模式——现象、根因、处置与预防
+
+# 失败模式：Worker SIGINT 关闭中断
+
+## 背景
+自动化工作流节点执行长时命令时，Worker 会在命令挂起或超出预算时发送 SIGINT 关闭该 worker。此信号被归类为基础设施噪音而非 agent 缺陷，但后果是整条执行轨迹失败且经常没有任何输出，浪费后续分析与自愈资源。
+
+## 现象
+- 轨迹 status=failed，错误信息为「Worker SIGINT 关闭中断」；
+- 输出摘要为空（进程在产出任何结果前被杀）；
+- 可影响任意自动化节点类型：开发/本地测试、记忆蒸馏、进化分析等；分析类 agent 自身也会复现此失败（元失败模式）。
+
+## 根因
+- 节点命令无界挂起：等待 stdin 交互输入、等待子进程、未设超时预算；
+- 长时进程未增量保存结果、未 flush 输出，被中断后无可检查产物，形成零输出失败轨迹；
+- 上层补丁/自愈仅清理僵尸轨迹，未消除命令本身的悬挂根源，故失败持续复现。
+
+## 排查与处置
+1. 遇到 status=failed 且错误含 SIGINT：先判断是否为基础设施信号（Worker 关闭），不急于归因 agent 缺陷；
+2. 交叉核对 runId 与轨迹产物：status=failed 单独不可靠（存在僵尸轨迹误报），须核对是否有落盘产物或部分输出；
+3. 复现命令：在本地以 `timeout <sec> <cmd>` 复跑，观察是否挂起、是否在超时前有增量输出；
+4. 若为长时任务，改为临时文件增量写盘 + 完成后原子改名，确保被中断后部分产物可恢复；
+5. 对无输出的失败运行启用回收/自愈机制清理，避免僵尸轨迹污染失败统计。
+
+## 预防
+- 所有节点命令遵循「显式超时 + 非交互 + 增量落盘 + 优雅退出」纪律（见对应规范）；
+- 分析型 agent（蒸馏、进化分析等）应在开始阶段即建立输出产物、分阶段写入，避免整段结束后才一次性输出，降低中断损失；
+- 将反复出现的同类失败纳入评测用例，使修复效果可量化考核。
 
 ## 演进提案（知识勘误）：修正平台规范「轨迹有界生命周期」:154-155 双处失真——agentExecutionTrajectory 已具备启动+5 分钟周期双通道自愈（H2-b，P2）
 
@@ -9550,76 +10262,6 @@ MyRD Admin 提出设计一款以"情绪价值"为核心的陪伴类 App，并引
 2. MVP 核心功能定义
 3. 商业模式确定
 
-## MyRD 平台真实仓库结构地图、文档/技能入口与常见路径陷阱
-
-# MyRD 平台真实仓库结构地图、文档/技能入口与常见路径陷阱
-
-## 背景
-agent 在涉及 MyRD 平台的任务中反复出现两类高成本问题：
-
-1. **文档/技能入口定位失败**：任务开始时多次通过 glob 搜索 `**/myrd*/**/SKILL.md`、`**/myrd-platform-skill*` 等模式均返回 0 命中，误判平台「为云端平台、本地无文档」（#18283），或技能未在预期目录找到（#18123），随后不得不多轮读取源码与文档才定位入口（#18282-18293）。myrd-platform-skill 是 agent 理解平台的标准入口（最近 14 天调用 4 次），但 agent 本地环境无法直接命中其正文，造成重复勘察，agent 花费约十余次观测重复勘察结构。
-2. **引用不存在的文件路径**：多会话（#18282-18293、#18596-18617）反复手工翻查源码才能定位平台结构，且 #18616/#18617 实证发现提案引用了不存在的 `frontend/lib/services/*` 与 `myagent-client.ts` 路径，导致提案被驳回、评审周期浪费。
-
-根因在于「文档与实际源码结构不一致」——仓库（典型根目录 `/Users/leo/workspace/myrd`）存在源码与编译产物并存、文档过时等问题。本文档给出经源码核实的真实入口、真实结构地图及高频错误路径，供涉及 MyRD 内部实现的任务直接使用，消除重复探索并防止错误路径再次出现，显著降低后续任务冷启动成本。
-
-## 关键入口（权威文档与技能）
-- **平台使用说明书（权威）**：`/Users/leo/workspace/myrd/docs/myrd-platform-skill.md`。注意：位于源码仓库 `docs/` 下，而非 `~/.claude/skills/`。内容覆盖：服务地址、JWT 认证、全部 API 分类、典型示例、数据模型、边界情况，并含平台进化系统架构说明。
-- **快速开始**：`/Users/leo/workspace/myrd/docs/guides/quick-start.md`（环境搭建 → 服务启动 → 注册 → 建项目 → 跑工作流）。
-- **工作流集成/部署状态**：`/Users/leo/workspace/myrd/WORKFLOW_INTEGRATION.md`、`/Users/leo/workspace/myrd/MYRD_SETUP_STATUS.md`。
-- **数据库 schema**：`/Users/leo/workspace/myrd/prisma/schema.prisma`（含 `AgentExecutionTrajectory` 模型，表名 `agent_execution_trajectories`）。
-
-## 真实结构（经源码核实）
-- **入口与自愈**：`src/index.ts`（worker 启动时执行 auto-heal，覆盖 WorkflowRun / ExpressLaneRun / channel_messages / agent status / goals / vibe workspace，**不含** agentExecutionTrajectory）。
-- **工作流引擎**：`src/services/workflow/engine.ts`（约 2626 行；含 `resume()` 约 443 行、`iterateFrom()` 约 784 行、`rerunFrom()`、`rollbackToCheckpoint()`、`sharedSetupProjectWorkspace()`；支持 DAG 执行 / 自愈 / 重试 / git checkpoint）。
-- **Coding-agent 实现**：`src/services/coding-agent/{claude-code-agent.ts, local-claude-agent.ts, remote-agent.ts, types.ts}`（其中 `claude-code-agent.ts` 含 10 分钟默认超时与进程清理逻辑）。
-- **进化系统服务**：`src/services/evolution/`（analyzer 等模块；支撑证据系统三类数据源、证据挖掘策略）。
-- **路由**：`src/routes/workflows.ts` 等。
-- **前端真实源码**：`frontend/` 目录存在，含 `app/` 与 `components/` 源码，如 `frontend/app/(dashboard)/projects/new/page.tsx`、`frontend/components/projects/run-workflow-button.tsx`。
-- **编译产物（非源码）**：`src/dist/`——仅含编译后声明/产物（如 `src/dist/lib/myagent-client.d.ts`、`src/dist/services/coding-agent/myagent-agent.d.ts`），**不是源码**。
-
-## 服务端口
-前端 :3001、后端 API :3111、streaming :4112、MyAgent :3000、数据库 :5432。
-
-## 高频错误路径（不存在，务必避免）
-| 常见错误引用 | 真实对应 |
-|---|---|
-| `frontend/lib/services/workflow/engine.ts` | `src/services/workflow/engine.ts` |
-| `frontend/lib/services/coding-agent/claude-code-agent.ts` | `src/services/coding-agent/claude-code-agent.ts` |
-| `myagent-client.ts`（作为源码） | 无此源码；仅有编译声明 `src/dist/lib/myagent-client.d.ts` |
-| 认为前端目录含业务服务代码 | `frontend/` 主要被 `node_modules` 占据；业务服务在 `src/services/` |
-
-## 根因
-1. 文档（含 `docs/guides/quick-start.md`）描述的结构与实际仓库不一致或已过时；
-2. agent 凭记忆/推测引用路径，未做存在性核实；
-3. `src/` 与 `src/dist/` 并存，把编译产物误当源码。
-
-## 处置（核实方法）
-- 引用任何路径前，先用 glob/grep 在仓库根目录确认文件存在；
-- 区分 `src/`（源码）与 `src/dist/`（编译产物），引用源码一律指向 `src/`；
-- 工作流引擎、coding-agent、evolution 等业务服务一律在 `src/services/` 下，不在 `frontend/lib/` 下；
-- 「文件不存在」的判断以 glob 返回空为唯一依据，不要依据记忆或文档；
-- 分析轨迹/进化数据时，直接读 `agent_execution_trajectories` 表与 `prisma/schema.prisma` 的 `AgentExecutionTrajectory` 模型，不要靠源码 glob 反推。
-
-## 预防
-- 涉及 MyRD 内部实现的提案/文档，落笔前对每个文件路径做一次 glob 核实；
-- 平台是本地源码 + 多 run 工作区（`/Users/leo/.myrd/workspaces/proj-myrd/run-*`）并存；run 工作区可能包含主干尚未合入的功能（如 express-lane、轨迹追踪迁移），分析时以对应 run 工作区为准；
-- 本文档随仓库结构变更应同步更新。
-
-## 项目开发规范
-
-# 项目开发规范
-
-## 代码风格
-- 使用 TypeScript
-- - 遵循 ESLint 规范
-- 提交前运行 lint 检查
-
-## Git 提交规范
-- 使用 Conventional Commits 格式
-- feat: 新功能
-- fix: 修复 bug
-- docs: 文档更新
-
 ## 架构设计文档
 
 # 架构设计
@@ -12392,6 +13034,220 @@ curl -s "$PLATFORM_API_URL/api/v1/workflows/runs/cmvagxyf3002em94lxhtab3p9" \
 ---
 *来源：goal `cmvaf7imr000jm94le9x48zfu` artifacts、工作流运行 `cmvagxyf3002em94lxhtab3p9` 节点输出、AppHost 记录 `cmvaf7imm000hm94lw6y43t0q`，均为 2026-10-16 实测。*
 
+## [H2][缺陷线索池 L-1·P1] reflow 回流通道评估接线缺失，6 条提案滞留 evaluation_pending（最长 22 天），闭环选择层对该通道断路 2026-W42
+
+【来源】红队裁定 Confirmed/P1，原 actionType=bug_ticket；因 E2 工单证据 11 项未齐备（缺 DB 侧评估队列状态取证），按红线本轮不开单，转缺陷线索池待补证。【现象】reflow 通道创建提案后从不触发评估且系统无 evaluation_pending 兜底消费者：6 条 reflow 提案滞留 6/18/22 天三批次，对照组 admin 注入 7/7 分钟级出分；在审合并提案 cmunm03af（轨迹终结元数据统一标准，即 H4 修复方向）被卡 18 天。【根因】评估触发为创建路径各自接线模式：intake 路由与 analyzer 转正均接自动评估，reflow 兜底通道漏接（reflow.ts:169-185 函数内无 evaluateProposal 调用；全仓生产调用点仅 intake.ts:185 / analyzer.ts:2118 / routes/evolution.ts:559 三处）；叠加 routes/evolution.ts:344-350 verdict 门禁对无评估提案 409 拦截，连人工审批也被阻断。【修复方向】① reflow.ts importOneAction 补接 evaluateProposal（与 intake 路由同款 fire-and-forget + EVOLUTION_INTAKE_AUTO_EVALUATE 同开关语义）；② scheduler 增设 evaluation_pending 超龄件兜底扫描补评；③ 存量 6 条经 routes/evolution.ts:559 手动重评解卡，优先解卡 cmunm03af。【证据锚点】src/services/self-evolution/reflow.ts:169-185（首席亲验逐字命中）；src/routes/evolution-proposals-intake.ts:182-188；pending-proposals.json evaluation_pending×6 与 reflow:×6 一一对应（首席亲数）。【E2 缺口】评估队列 DB 状态、6 条滞留件 createdAt/queuedAt 逐条取证。
+
+## [H4][缺陷线索池 L-2·P1] error=null 失败轨迹占本周 10/20（50%），唯一产生通道=引擎终结路径组合条件，无出口断言 2026-W42
+
+【来源】红队裁定 Confirmed/P1，原 actionType=bug_ticket；E2 未齐备本轮不开单，转缺陷线索池。连续两轮复发（上轮 H4 同签名立案后仍发生）。【现象】failures.json 20 条中 10 条 error=null 且 workflowRunError=null（create-pr/polish/art/design/blackboard×3/dev-test/round-plan/playtest），outputPreview 显示 agent 实际执行大量有效工作后静默失败，进化分析拿不到失败签名。【根因】engine.ts:3042 nodeError = noWorkReason ?? (exitCode!==0 ? (cliError || stripCliStderrNoise(stderr).stderr || undefined) : undefined)：exitCode≠0 且 CLI 未写 result 错误事件且 stderr 空/被滤空时 nodeError=undefined；:3045-3049 直通 finalizeAgentTrajectory，无「failed 必带 error」出口断言。典型场景=硬超时 SIGKILL 强杀/OOM/进程崩溃。红队穷举七通道闭合：其余失败通道均带 error，唯一缺口即此组合条件；自愈误报反例不成立。【修复方向】① engine.ts:3045 终结处对 failed 且 nodeError 空写入保底归因（如 exit=N（CLI 未返回错误详情），疑似强杀/OOM/崩溃）——出口断言而非源头堵漏；② startTimer 超时路径回传 timedOut 标志兜底进 error。【证据锚点】src/services/workflow/engine.ts:3042、:3045-3049（首席亲验逐字命中）；failures.json 亲数 10/20。【E2 缺口】10 条逐案 runId+产物交叉验证（真失败 vs 强杀/OOM 分布）、DB 侧 nodeError 现场取证。
+
+## [H1][缺陷线索池 L-3·P2] eval_subject 300s 超时打满后轨迹 error 被 unrecognized_model stderr 噪音冒充，benchmark 回落归因被污染（「模型识别失败」原判已证伪） 2026-W42
+
+【来源】红队裁定 Confirmed/P2，原 actionType=bug_ticket；E2 未齐备本轮不开单，转缺陷线索池。【现象】3 条 eval_subject 失败（10-15×2、10-16×1）error=[claude-code:unrecognized_model] 噪音原文，durationMs=300277/300313/300300ms 与 benchmark 默认超时 300000ms+SIGTERM 延迟精确吻合；同窗 benchmark 83.875←84.75（deltaPct=-1）。【根因】两层叠加：① 评测用例 300s 预算内未完成且未被成功重跑补齐（benchmark 样本面缺口）；② trajectory/index.ts:606 失败分支裸写 stderr 未套 stripCliStderrNoise，与 streaming-pipeline.ts:842 已过滤口径漂移。原判「[1m] 后缀未被 SDK 识别致回落」被源码证伪：该诊断非致命且有单测背书（claude-code-agent.ts:889-892 注释 + __tests__/claude-code-agent.stderr-noise.test.ts）；[1m] 系用户配置值，平台代码不产生也不清洗。【修复方向】① trajectory/index.ts:606 套用 stripCliStderrNoise（与 streaming 同口径，留中性提示）；② 评估预算对第三方长上下文模型适配评估（EVOLUTION_BENCHMARK_TIMEOUT_MS 或按用例配置）；③ 失败用例补跑机制核对。【证据锚点】src/services/trajectory/index.ts:606（首席亲验）；src/services/streaming-pipeline.ts:839-849（注释点名 glm-5.3-flash[1m]，首席亲验）；failures.json 三条 durationMs 亲数。【红线】benchmark 回落仅查执行侧，不构成放宽评测标准/进化护栏的理由。【E2 缺口】benchmark 结果行 error 归因 DB 取证、失败用例补跑记录核对。
+
+## [H10][缺陷线索池 L-4·P2] 无 runId 轨迹周期自愈以 createdAt+30min 判死，channel/express_lane 长会话存在误杀窗口（潜伏：本周无实锤样本） 2026-W42
+
+【来源】红队裁定 Confirmed/P2，原 actionType=bug_ticket；E2 未齐备本轮不开单，转缺陷线索池。红队影响面修正：标题从现在时「存在被误杀」收窄为「存在误杀窗口；本周无实锤样本；生产部署时点未锚定」。【现象】engine.ts:467 无 runId 分支以 createdAt（轨迹诞生时刻）而非 updatedAt（最近进展）判 30 分钟超时，命中即标 failed + 「僵尸轨迹：执行超时未结束」。streaming 轨迹全无 runId（streaming-pipeline.ts 全文 grep 零命中），触发面非空；同文件 :390-392 run 自愈已用 updatedAt 正确口径（注释明言「避免误杀正在正常执行的长任务」）——同函数族双时间基准并存，:467 系选型偏差。红队补强：index.ts:575-577 周期任务注释声称「活跃对象不会被误伤」与该分支实现不符。【本周反例】failures.json 20 条零「执行超时未结束」签名；无 runId 轨迹 cmv7ggiaa 存活 25h 未被误杀——强假说：该分支系近期新增、生产 worker 尚未部署（区域 ~39 行漂移佐证），无法在本会话确证，如实标注。【修复方向】① :467 改 now-(t.updatedAt ?? t.createdAt) > STALE_MS（与 :392 同款 + 历史行 updatedAt NULL 兜底）；② 回溯 failures.json「执行超时未结束」×durationMs≈30min 指纹核实历史污染面。【证据锚点】src/services/workflow/engine.ts:447、:467、:469-472（首席亲验逐字命中）。【E2 缺口】生产 worker 部署版本记录、无 runId 长轨迹执行时长分布（DB）。
+
+## [H9][缺陷线索池 L-5·P3] 用户取消标 failed（「用户已取消」），TrajectoryStatus 无 cancelled 终态，取消语义借用失败通道（潜伏口径缺陷） 2026-W42
+
+【来源】红队裁定 Confirmed/P3，原 actionType=bug_ticket；E2 未齐备（近四周取消占比统计需 DB）本轮不开单，转缺陷线索池。红队影响面修正：定性为「潜伏口径缺陷」而非「已发生污染」——本周 failures.json 20 条中 0 条「用户已取消」签名（0%<2%），但失败族分析持续以 failures.json 为底座，结构性口径风险成立；且平台规范「长任务执行韧性规范」第 4 条（必须区分取消与失败，被取消轨迹不得污染失败统计）被直接违反，规范符合性是硬事实。【根因】TrajectoryStatus 终态枚举仅 completed/failed（trajectory/index.ts:364-367 签名亲验），取消场景在 streaming-pipeline.ts:814-818（finalizeTrajectory('failed', durationMs, '用户已取消')，首席亲验）与引擎 run-cancelled 同步路径（engine.ts:460）两处均折入 failed——结构性约束非调用方疏忽。【修复顺序（防读数端丢语义）】① 先扩 TrajectoryStatus 终态枚举增加 cancelled；② 再改 streaming-pipeline:818 与 engine run-cancelled 同步路径写入 cancelled；③ 最后 failures 聚合将 cancelled 移出失败族（单列「用户取消」族）。【证据锚点】src/services/streaming-pipeline.ts:814-818；src/services/trajectory/index.ts:364-367；src/services/workflow/engine.ts:460。【E2 缺口】近四周取消轨迹占比统计（DB 聚合）、取消对历史失败率结论的影响面回溯。
+
+## [H3][知识沉淀] frozen 0→14 为 2026-10-15 Admin 拍板治理动作（超 30 天自动冻结），熔断线口径已 30→66，需台账登记与两条对账 2026-W42
+
+【来源】红队裁定 Confirmed/P3，actionType=knowledge_only。【登记三件事】① 14 条 frozen 登记为「10-15 治理动作产物」（scheduler.ts:73-93 freezeStaleBacklog 注释明示 Admin 2026-10-15 拍板，pending 超 FREEZE_AFTER_DAYS=30 天自动 frozen，10 分钟一轮+启动清存量，落 schedulerEvents backlog_frozen 含 frozenCount）——待与事件逐条对账（DB 不可读，本轮留为对账动作）；② 熔断线新口径 QUEUE_CIRCUIT_BREAKER=66 / warn=60（-6）/ escalate=63（-3）（approval-sla.ts:25-32 亲验）取代旧 30/24/27——上轮 H6/cmunm03ac 等水位类提案与 H-A3 判定式按新口径重述；时间线旁证：09-25/10-04 历史提案内嵌快照引用旧值；③ frozen 不计熔断水位/SLA 告警（scheduler.ts:75-76）的读数口径分界：冻结会永久性压低 pending 水位读数，后续水位趋势分析须区分 frozen 前后口径。【残留待办】rejected 15→19 增量 4 条逐条取 rejectReason 防静默销案。【红队补充发现（首席亲核命中）】approval-sla.ts:48 注释残留旧口径「warn ≥24 / escalate ≥27 / breaker ≥30」、scheduler.ts:115 注释「熔断线 ≥30」——两处注释过时，随本条修订（口径升级未同步注释）。【证据锚点】src/services/evolution/scheduler.ts:73-93、:115；src/services/evolution/approval-sla.ts:25-41、:48。
+
+## [H5][知识沉淀] SIGINT 轨迹「error 有文案+durationMs/outputPreview 双 null」为优雅关闭设计产物，读数端应单列「重启成本」族 2026-W42
+
+【来源】红队裁定 Confirmed/P3，actionType=knowledge_only。原疑点「SIGINT 双 null=数据损坏」证伪。【读数端纪律】failures 聚合将 SIGINT 轨迹（error 前缀 Worker SIGINT + 双 null 指纹）单列「重启成本」族，不混入失败族——本周 3 条（implement×2 + goal_delegate×1，首席亲数）对应 10-15T03:0x 一次 worker 重启；重启后自愈链齐备（run→paused→auto-resume、expressLane→failed 留现场）。【机制依据】trajectory/index.ts:346-351 shutdown finalizer 仅写 {status:'failed', error:reason, completedAt}，不写 durationMs/outputPreview（首席亲验）——双 null 是 finalizer 字段集的确定性输出；index.ts:608-641 gracefulShutdown 四步收尾、:372+:578-599 启动+周期双层自愈（5 分钟一轮）、:384-400 expressLane 自愈均亲核在仓。【低优先改进线索】finalizer 可补写 durationMs（created→shutdown 差值）与已有 outputPreview，降低「全损」观感。【证据缺口声明】3 条 SIGINT 关联 run 是否重跑成功（rerun 记录）、playtest 节点预算与 checkpoint 挂载状态在 workflow definition（DB 侧），本轮不可读。硬超时 2 条（implement 5400s/playtest 10800s）归因文案正确，属预算内未完成非机制缺失。【证据锚点】src/services/trajectory/index.ts:346-351；src/index.ts:372、:578-599、:608-641、:384-400。
+
+## [H8][知识沉淀·仪器自校准] 口径词典三条：activity.tasks 全任务口径 vs taskSamples 终态口径；other 桶=taskType null 兜底；bugClosureDays 无环比封装 2026-W42
+
+【来源】红队裁定 Confirmed/P3，actionType=knowledge_only。三处仪器漂移终局裁定（旁支台账，不进主口径）：【① 撤回转登记】health.json activity.tasks=34 与 taskSamples 三桶合计 31 之差 3=窗口内非终态任务——index.ts:199 taskCount 无 status 过滤（计入 running/paused 中间态）vs :116-118 taskSuccessRows 仅取 completed/failed（:68-69 注释「其余中间态既不入分子也不入分母」即官方口径）——两谓词口径天然不同，登记说明后每轮不再消耗取证成本。【② 打标侧演化】windows.ts:75 `row.taskType ?? 'other'`——other 是 taskType=null 的兜底桶名而非独立类型；express_lane 首现（n=1，lowConfidence）系打标侧将原 null 杂项任务标上真实类型，聚合逻辑未变，非缺陷。【③ 封装缺失成立】index.ts:277-281 bugClosureDays 裸数值返回（本周 18.4 天），同文件其他指标均有 {current, previous, deltaPct} 封装（:260 point、:266-270 benchmark），独它没有——闭环时长周环比断路；补封装列低优先代码改进线索（E2 门内，旁支台账）。【证据锚点】src/services/platform-health/index.ts:199、:68-69、:79、:277-281；src/services/platform-health/windows.ts:75（均为红队/首席亲验锚点）。
+
+## [H11][知识沉淀] commit 锚点 023e5838 与取证工作区脱钩（工作区 HEAD 红队时点 6959c10f、首席收口时点 a7fc2b0），证据基线登记与锚点治理三条 2026-W42
+
+【来源】红队亲手取证的流程发现，裁定 Confirmed/P3，actionType=knowledge_only。【事实】任务书下发并经 audit/侦探转引的锚点 023e5838 在本工作区 git 库可达范围（refs/reflog/松散对象）零痕迹；.git/logs/HEAD 共 5 行：clone @ ac6e5c73 → auto-commit c2d84662 → 6959c10f（红队取证时点）→ a7fc2b0（首席研究员收口时点亲读，红队之后又推进一拍）——工作区 HEAD 被 workflow auto-commit 持续推进，「固定锚点」与「移动工作区」天然脱钩；audit meta.baseRef 自认 independentlyVerified=false。【影响面】「同 commit 可复现」验收项无法按 023e5838 闭环；但红队已在本工作区 HEAD=6959c10f 时点逐条亲核 13 条发现全部源码锚点（漂移≤2 行），本轮判定有效性不受影响，受影响的是跨轮可复现性声明。【登记三条】① 本轮证据基线=各节点取证时点实测 HEAD（audit/侦探/红队：6959c10f 时点；首席收口：a7fc2b0），后续轮次照此口径，v5 口径裁决书引用以此为准；② 任务卡下发 commit 锚点时应同时附「取证工作区实测 HEAD」（或要求首节点先读 .git/HEAD 回锚写回产物 meta）；③ 体检师节点 baseRef.independentlyVerified=false 状态向下游（红队/首席）显式传递，作为可复现性声明的一部分。【不可断言项】023e5838 是否存在于 main 历史 pack 文件——本会话无 git 命令通道，「本工作区无法锚定」可断言，「该 commit 不存在」不可断言。【升级候选（供 Lead 裁量）】②③属工作流节点提示词/任务卡模板类软资产改进，可批准为进化提案单独立项（不改变本条 knowledge 裁定）。【证据锚点】.git/logs/HEAD（首席亲读 5 行）；.git/refs/heads/myrd/run-cmvdfmx530043m9wlxkjmnvkn（首席亲读=a7fc2b09638f7225336cad6ba1ad78644c28f027）。
+
+## MyRD 自进化周报 2026-W42
+
+# MyRD 自进化周报 2026-W42
+
+> 周期标识取自 meta.json：week=2026-W42（date=2026-10-18）。
+> 数据窗口：2026-10-11T06:16Z → 2026-10-18T06:16Z（health.json generatedAt=2026-10-18T06:16:31.126Z；failures.json 最早 2026-10-12T06:58:41Z、最晚 2026-10-18T01:29:40Z）。
+> 样本量门：activity.tasks=34 ≥ 5，**PASS**，本周允许周级结论；例外：taskSuccessRateByType.goal 分母 n=4 且 lowConfidence=true（仅方向参考）、express_lane n=1 无前值（不下结论）。
+> 证据基线声明：任务书锚点 023e5838 在本工作区不可锚定（refs/reflog/松散对象三路零痕迹，亲核）；红队取证时工作区 HEAD=6959c10f，本报告收口时亲读已推进至 a7fc2b0（workflow auto-commit 持续追加，.git/logs/HEAD 共 5 行亲读）。全部源码证据以各节点取证时点实测 file:line 为准，锚点治理见 H11。
+
+---
+
+## 一、本周结论摘要
+
+本周三条链（侦探 14 条假设 → 体检师 14 条取证 → 红队 14 条终局裁定）逐条对齐，**顶层裁定：Confirmed 14 / Refuted 0 / Uncertain 0**。核心结论四条：
+
+1. **自进化闭环「选择层」对 reflow 回流通道实质断路（本周最高优先级，P1）**。reflow 通道创建提案后从不触发评估（src/services/self-evolution/reflow.ts:169-185 亲读，函数内无 evaluateProposal 调用），系统亦无 evaluation_pending 兜底消费者；6 条 reflow 提案滞留评估 6~22 天（pending-proposals.json 亲数：evaluation_pending ×6 与 reflow: ×6 一一对应），对照组 admin 注入 7/7 分钟级出分。在审合并提案 cmunm03af（轨迹终结元数据统一标准）正被此缺陷卡住 18 天——「修复通道本身被另一缺陷阻断」的耦合是本周最需解卡的点。
+2. **失败统计口径存在两处结构性缺口（P1/P2）**：① error=null 的 failed 轨迹占本周失败 10/20（50%，failures.json 亲数），唯一产生通道已精确定位为 workflow 引擎终结路径组合条件（engine.ts:3042 亲读逐字命中）；② 无 runId 轨迹的周期自愈以 createdAt+30min 判死（engine.ts:467 亲读），channel/express_lane 长会话存在被误杀窗口（本周无实锤样本，潜伏期）。
+3. **漏斗剧变有明确代码归因，属合规治理动作（P3 台账登记）**：frozen 0→14 系 2026-10-15 Admin 拍板上线的 freezeStaleBacklog（超 30 天自动冻结，scheduler.ts:73-93 亲读注释明示），非调度器误触发；熔断线口径已 30→66（approval-sla.ts:25-32 亲读）。残留两条待办：14 条 frozen 与 backlog_frozen 事件对账（DB 不可读，本轮无法实测）、rejected 15→19 增量 4 条的个体理由需取 rejectReason 防静默销案。
+4. **负反馈闭环输入端三零持续（gateVerifiedRunRate 0/0、acceptanceTests 0/0、feedbackSamples 0/0），方向A本周无法实测**。机制链经源码复核完整在仓（采集/写入/钩子/注册四锚点全命中），缺的是执行流量过门，属流程激活问题非代码缺失。方向A三条判定式维持「预注册·待实测」。
+
+**预期管理**：代码侧缺证（DB 实体数据、schedulerEvents 对账、benchmark 结果行均不可读），本轮结论仅 E1 等级证据（工作区内可复核实证）+ 自校准记录支撑。缺陷工单本轮 **0 单**（5 条缺陷线索均未齐备 E2 工单证据 11 项，按红线转缺陷线索池）；无任何放宽护栏/边界合同的建议。
+
+---
+
+## 二、判定总表（14 条，与 findings-verified.json 逐条对应）
+
+| ID | 简题 | Verdict | Severity | 红队 actionType | 本报告落位 |
+|----|------|---------|----------|-----------------|-----------|
+| H2 | reflow 通道评估接线缺失，6 条提案滞留 | Confirmed | P1 | bug_ticket→线索池 | 短板 #1（线索池 L-1） |
+| H4 | error=null 失败轨迹唯一产生通道（引擎终结组合条件） | Confirmed | P1 | bug_ticket→线索池 | 短板 #2（线索池 L-2） |
+| H1 | eval_subject 300s 超时 + 轨迹 error 被噪音冒充（「模型识别失败」证伪） | Confirmed | P2 | bug_ticket→线索池 | 短板 #3（线索池 L-3） |
+| H10 | 无 runId 轨迹 createdAt+30min 误杀窗口 | Confirmed | P2 | bug_ticket→线索池 | 短板 #4（线索池 L-4） |
+| H9 | 用户取消标 failed，无 cancelled 终态 | Confirmed | P3 | bug_ticket→线索池 | 短板 #5（线索池 L-5） |
+| H3 | frozen 0→14=10-15 治理动作；熔断线 30→66 | Confirmed | P3 | knowledge_only | 短板 #6（知识） |
+| H5 | SIGINT 双 null=优雅关闭设计产物，非数据损坏 | Confirmed | P3 | knowledge_only | 短板 #7（知识） |
+| H8 | 仪器口径三漂移裁定（①成立②演化③撤回） | Confirmed | P3 | knowledge_only | 短板 #8（知识） |
+| H11 | 锚点 023e5838 不可锚定；基线漂移 | Confirmed | P3 | knowledge_only | 短板 #9（知识） |
+| H6 | goal 成功率口径分离已固化，n=4 维持方向参考 | Confirmed | P3 | none | 下周复测（falsification 挂账） |
+| H7 | 三零指标=流量未过门，机制链完整 | Confirmed | P2 | none | 激活跟踪（H-A2 承载） |
+| H-A1 | 方向A时间序判别式：无时间序字段→仅方向参考 | Confirmed | P3 | none | 预注册·待实测 |
+| H-A2 | 方向A输入端激活判定式 | Confirmed | P3 | none | 预注册·待实测 |
+| H-A3 | 方向A输出端消化判定式（按熔断 66 新口径） | Confirmed | P3 | none | 预注册·待实测 |
+
+> 口径注记：findings-audited.json meta.coverage=13 与 findings-verified.json meta.verdictSummary.confirmed=13 均为 H11 追加前快照；两文件数组实际条数均=14，本表以数组实数为准。
+
+---
+
+## 三、Confirmed 短板清单（每条：定级 / 证据 / 根因 / 建议动作）
+
+### 短板 #1（H2·P1）reflow 回流通道评估接线缺失，闭环选择层对该通道断路
+
+- **证据**（本首席研究员独立亲验）：reflow.ts:169-185 创建提案 `status='pending'` + `evaluation={state:'evaluation_pending'}`（:183）、溯源 `reflow:${ctx.runId}`（:180），函数内无 evaluateProposal 调用；全仓生产调用点仅 3 处（intake 路由 fire-and-forget / analyzer 转正 / routes/evolution.ts:559 手动重评），reflow 不在其中；无任何 evaluation_pending 周期兜底消费者。数据面：pending-proposals.json 亲数 evaluation_pending×6（全 reflow 前缀，滞留 6/18/22 天三批次）、unevaluated=6/13；对照组 admin 注入 7/7 分钟级出分。
+- **根因**：评估触发是「创建路径各自接线」模式，reflow 兜底通道漏接；叠加 verdict 门禁（无 evaluation → 409 拦截审批），滞留提案连人工审批也被拦——结构性断路而非容量事件（三批次复现排除偶发）。
+- **影响**：6 条治理提案（含 H2/H3/H4/H6/H9 系）无法进入审批；在审合并提案 cmunm03af（H4 修复方向）被卡 18 天。
+- **建议动作**：缺陷线索池 L-1（E2 未齐备不开单）。修复方向：①reflow.ts importOneAction 补接 evaluateProposal（与 intake 路由同款 + 同开关语义）；②scheduler 增设 evaluation_pending 超 龄件兜底扫描补评；③存量 6 条经 routes/evolution.ts:559 手动重评解卡（优先解卡 cmunm03af）。
+
+### 短板 #2（H4·P1）error=null 失败轨迹占 50%，归因断路（连续两轮复发）
+
+- **证据**：failures.json 亲数 20 条中 10 条 error=null 且 workflowRunError=null（create-pr/polish/art/design/blackboard×3/dev-test/round-plan/playtest），outputPreview 显示大量有效工作后静默失败。engine.ts:3042 `nodeError = noWorkReason ?? (exitCode!==0 ? (cliError || stripCliStderrNoise(stderr).stderr || undefined) : undefined)`（亲读逐字命中）——exitCode≠0 且 CLI 未写错误事件且 stderr 空/被滤空时 nodeError=undefined；:3045-3049 直通 finalizeAgentTrajectory，无「failed 必带 error」出口断言。红队穷举七通道闭合：其余通道失败均带 error，唯一缺口即此组合条件。
+- **根因**：硬超时 SIGKILL 强杀 / OOM / 进程崩溃场景下引擎三层兜底（noWorkReason/cliError/stderr）全部落空。上轮立案方向（终结元数据统一标准）正确，本轮精确定位到缺口点。
+- **建议动作**：缺陷线索池 L-2。修复方向：①engine.ts:3045 终结处对 failed 且 nodeError 空写入保底归因（出口断言）；②startTimer 超时路径回传 timedOut 标志兜底进 error。
+
+### 短板 #3（H1·P2）eval_subject 300s 超时打满 + 轨迹 error 被stderr 噪音冒充，benchmark 回落归因被污染
+
+- **证据**：failures.json 三条 eval_subject（10-15×2、10-16×1）error=unrecognized_model 噪音原文，durationMs=300277/300313/300300ms 与 benchmark.ts:32-35 默认超时 300000ms+SIGTERM 延迟精确吻合（亲数）；trajectory/index.ts:606 失败分支裸写 stderr 未套 stripCliStderrNoise（亲读），对照 streaming-pipeline.ts:839-849 已过滤且注释点名 glm-5.3-flash[1m]（亲读）。**假设原判「[1m] 未被 SDK 识别致回落」被证伪**——该诊断非致命且有单测背书；[1m] 系用户配置值，平台代码不产生也不清洗。
+- **根因**：两层叠加——评测用例 300s 预算内未完成且未被成功重跑补齐（benchmark 83.875←84.75 的样本面缺口）；runWithTrajectory 与 streaming 通道的 stderr 过滤口径漂移。
+- **建议动作**：缺陷线索池 L-3。修复方向：①trajectory/index.ts:606 套用 stripCliStderrNoise（与 streaming 同口径）；②评估预算对第三方长上下文模型的适配评估（EVOLUTION_BENCHMARK_TIMEOUT_MS）；③失败用例补跑机制核对。红线维持：回落仅查执行侧，不构成放宽评测标准理由。
+
+### 短板 #4（H10·P2）无 runId 轨迹周期自愈 createdAt+30min 判死，长会话误杀窗口（潜伏）
+
+- **证据**：engine.ts:447 `STALE_MS=30*60*1000`、:467 `} else if (now - t.createdAt.getTime() > STALE_MS)`（亲读逐字命中）；对照同文件 :390-392 run 自愈用 updatedAt（注释明言「避免误杀正在正常执行的长任务」）——同函数族双时间基准并存。streaming 轨迹全无 runId（streaming-pipeline.ts 全文 grep 零命中），触发面非空。红队补强：index.ts:575-577 周期任务注释声称「活跃对象不会被误伤」与该分支实现不符（注释虚假声称）。
+- **影响面修正（红队）**：本周 failures.json 无「执行超时未结束」签名、无 runId 轨迹 cmv7ggiaa 存活 25h 未被误杀——实际误杀本周未发生（或生产 worker 尚未部署该版本，区域 ~39 行漂移佐证该分支系近期新增，无法在本会话确证）。定性：代码缺陷在当前 HEAD 成立，实际危害 unverified。
+- **建议动作**：缺陷线索池 L-4。修复方向：①:467 改 `now-(t.updatedAt ?? t.createdAt)>STALE_MS`（与 :392 同款+NULL 兜底）；②回溯 failures.json「执行超时未结束」×durationMs≈30min 指纹核实历史污染面。
+
+### 短板 #5（H9·P3）用户取消标 failed，TrajectoryStatus 无 cancelled 终态（潜伏口径缺陷）
+
+- **证据**：streaming-pipeline.ts:814-818 取消路径 `finalizeTrajectory('failed', durationMs, '用户已取消')`（亲读逐字命中）；trajectory/index.ts:364-367 签名仅 `'completed' | 'failed'`（亲读），终态枚举无 cancelled 为结构性约束；engine.ts:460 cancelled run 同步折入 failed。平台规范「长任务执行韧性规范」第 4 条明确要求区分取消与失败——实现直接违反。
+- **影响面修正（红队）**：本周 failures.json 0 条「用户已取消」签名（0%<2%），「潜伏口径缺陷」而非「已发生污染」；但失败族分析持续以 failures.json 为底座，结构性风险成立，立案维持。
+- **建议动作**：缺陷线索池 L-5。修复顺序（防读数端丢语义）：先扩 TrajectoryStatus 枚举（cancelled）→ 再改 streaming:818 与 run-cancelled 同步写入 → 最后 failures 聚合将 cancelled 移出失败族。
+
+### 短板 #6（H3·P3·知识）frozen 0→14 = 10-15 治理动作产物；熔断线口径 30→66 待全链对齐
+
+- **证据**：scheduler.ts:73-93 冻结注释「Admin 2026-10-15 拍板」+ updateMany + recordSchedulerEvent('backlog_frozen', frozenCount)（亲读）；approval-sla.ts:25-32 熔断 66 / warn 60 / escalate 63、FREEZE_AFTER_DAYS=30（亲读）；时间线旁证：09-25/10-04 历史提案内嵌快照引用旧值 24/27/30。
+- **残留待办**：①14 条 frozen 与 schedulerEvents 逐条对账（DB 不可读，留为对账动作）；②rejected 15→19 增量 4 条取 rejectReason 防静默销案；③红队补充发现（亲核命中）：approval-sla.ts:48 注释残留旧口径「warn ≥24 / escalate ≥27 / breaker ≥30」、scheduler.ts:115 注释「熔断线 ≥30」——两处注释过时，随本条修订。
+- **建议动作**：知识沉淀（台账登记三件事：frozen 治理对账、熔断线 66/60/63 新口径取代 30/24/27、frozen 不计熔断水位的读数分界 scheduler.ts:75-76）。
+
+### 短板 #7（H5·P3·知识）SIGINT 轨迹双 null = 优雅关闭设计产物，读数端应单列「重启成本」族
+
+- **证据**：trajectory/index.ts:346-351 shutdown finalizer 仅写 `{status:'failed', error:reason, completedAt}`——不写 durationMs/outputPreview（亲读），与 failures.json 3 条 SIGINT（error='Worker SIGINT 关闭中断'+双 null）形态精确吻合；index.ts:608-641 gracefulShutdown 四步、:372+:578-599 启动+周期双层自愈、:384-400 expressLane 自愈均亲核在仓。
+- **定性**：非数据损坏、非自愈链缺失。2 条硬超时（implement 5400s / playtest 10800s）归因文案正确，属预算内未完成；playtest 预算与 checkpoint 挂载状态在 workflow definition（DB 侧），本节点证据缺口声明。
+- **建议动作**：知识沉淀（读数端纪律：SIGINT 轨迹按 error 前缀+'双 null'指纹单列「重启成本」族，不混入失败族；finalizer 补写 durationMs 列低优先改进线索）。
+
+### 短板 #8（H8·P3·知识）仪器口径三漂移裁定：①bugClosureDays 无环比封装②other 桶=打标演化③activity 差值=非终态任务（③按预设撤回）
+
+- **证据**：①index.ts:277-281 bugClosureDays 裸数值返回、:79 接口声明单值——同文件其他指标均有 previous/deltaPct 封装，独它没有（18.4 天无法环比）；②windows.ts:75 `row.taskType ?? 'other'`——other 是 null 兜底桶名，express_lane 首现 n=1 系打标侧演化非聚合缺陷；③index.ts:199 activity.taskCount 无 status 过滤 vs :116-118 taskSuccessRows 仅终态——34 与 31 之差 3=窗口内非终态任务，触发预设撤回条件转口径登记。
+- **建议动作**：知识沉淀（口径词典三条：activity.tasks 全任务口径 vs taskSamples 终态口径、other 桶语义、bugClosureDays 环比断路——补 {current,previous,deltaPct} 封装列低优先代码改进线索，旁支台账不进主口径）。
+
+### 短板 #9（H11·P3·知识）commit 锚点与取证工作区脱钩，证据基线轮内漂移
+
+- **证据**（本首席研究员独立亲验 + 新增读数）：.git/logs/HEAD 共 5 行亲读——clone @ ac6e5c73 → auto-commit c2d84662 → 6959c10f（红队取证时点 HEAD）→ **a7fc2b0（本报告收口时点亲读，红队之后又推进一拍）**；023e5838 不在 refs/reflog/松散对象任何一路。audit meta.baseRef 自认 independentlyVerified=false。
+- **根因**：任务书锚点下发与取证工作区实况无耦合机制；且工作区 HEAD 被 auto-commit 持续推进，「固定锚点」与「移动工作区」天然脱钩——红队 6959c10f 与首席 a7fc2b0 的读数差即实证。
+- **建议动作**：知识沉淀（流程改进三条：①任务卡下发锚点时附取证工作区实测 HEAD，或要求首节点先读 .git/HEAD 回锚；②baseRef.independentlyVerified=false 向下游显式传递；③本轮证据基线登记为「各节点取证时点实测 HEAD」（audit/侦探：6959c10f 时点；首席收口：a7fc2b0），后续轮次照此口径）。**升级候选**（供 Lead 裁量，不改变本条 knowledge 裁定）：①②属工作流节点提示词/任务卡模板类软资产改进，可批准为进化提案单独立项。
+
+### 无需动作的 Confirmed 条目（5 条，none）
+
+- **H6**（goal 成功率 0.25←0.5）：口径分离已由代码固化（platform-health/index.ts:247-250），n=4 lowConfidence 纪律生效，无源码缺陷。挂 falsification 复测：下周 goal n≥10 且成功率 ≥0.5 则销案。
+- **H7**（三零指标）：机制链四锚点（采集 windows.ts:30-33 / 写入 acceptance-tests/index.ts:109-128 / 钩子 e2e-gate.ts:57-131 / 注册 hooks/index.ts:44）全命中，缺执行流量过门。激活跟踪由 H-A2 判定式承载。
+- **H-A1 / H-A2 / H-A3**（方向A预注册三条）：均标**「预注册·待实测」**，本周不产出有效性结论。H-A1 时间序字段确认不存在（health.json schema 级核实），降级「仅方向参考」；H-A3 判定式按熔断 66 新口径更新为「applied 增量 ≥ pending+frozen 净增量的扣冻口径」后实测。
+
+---
+
+## 四、红队否决与修正记录
+
+**顶层否决：0 条**（14/14 Confirmed，本周无 Refuted 案件，无销案）。红队在本轮执行的否决/修正均作用于**子命题与表述层**，记录如下（防后续轮次误引旧定性）：
+
+| 被修正的原判 | 修正后定性 | 依据 |
+|---|---|---|
+| H1 原判「[1m] 后缀未被 SDK 识别 → benchmark 回落」 | **证伪**：该诊断非致命且有单测背书（claude-code-agent.stderr-noise.test.ts）；真因=300s 超时+归因噪音污染 | claude-code-agent.ts:889-892 注释亲核 |
+| H3 原判两分法「有意冻结 vs 调度器误触发」 | 误触发分支**证伪**：系 10-15 Admin 拍板治理动作（falsification 方向命中，转台账登记） | scheduler.ts:74 注释亲核 |
+| H5 原判疑点「SIGINT 双 null=数据损坏？」 | **证伪**：双 null 是 shutdown finalizer 字段集的确定性输出（设计取舍非故障） | trajectory/index.ts:346-351 亲核 |
+| H4 预设反例「≥8/10 系自愈误报」 | **不成立**：自愈产物必带文案（:457-463/:469-472），10 条 error=null 均非自愈产物 | 穷举七通道闭合 |
+| H10 标题现在时「存在被误杀」 | 修正为「存在误杀窗口；**本周无实锤样本**；生产部署时点未锚定」 | failures.json 零签名 + cmv7ggiaa 25h 存活反例 |
+| H9 「取消污染失败统计」降幅 | 修正为「**潜伏**口径缺陷」（本周 0 条取消签名，污染幅度 unverified） | failures.json 亲数 0/20 |
+| H-A1 audit 表述「采样触发在 admin 手动路由」 | **修正**：实测 2 个调用方（routes/evolution-feedback.ts:31 手动 + scheduler.ts:254 周期自动，每日+启动即跑） | 红队全仓 grep 实测 |
+| H8 ③「activity 34 vs 31 差 3 待解释」 | **按预设撤回**：差值=非终态任务（index.ts:199 无 status 过滤 vs :116-118 仅终态），转口径登记 | index.ts:68-69 注释提供官方口径 |
+
+---
+
+## 五、Uncertain 条目
+
+**本周 0 条 Uncertain**（findings-verified.json verdictSummary：refuted=0, uncertain=0，与数组逐条核对一致）。无待复核立案。
+
+以下两项「不可最终确证」成分已由红队在各 verdict 内如实标注（不构成独立 Uncertain 条目，随原条目维持 Confirmed）：
+- H10 的「生产 worker 是否已部署含 :467 分支的版本」——无 git blame/部署记录通道，无法确证；
+- H11 的「023e5838 是否存在于 main 历史 pack 文件」——本会话无 git 命令通道，「本工作区无法锚定 023e5838」可断言，「该 commit 不存在」不可断言。
+
+---
+
+## 六、下周建议关注点
+
+**失败族二分**（failures.json 20 条亲数口径）：
+
+| 失败族 | 条数 | 占比 | 下周动作 |
+|---|---|---|---|
+| error=null 静默失败（H4 通道） | 10 | 50% | L-2 修复后观察归因率是否归零；持续跟踪 outputPreview 反推成本 |
+| SIGINT 重启成本（H5） | 3 | 15% | 读数端按「重启成本」族单列；核对 3 条关联 run 是否重跑成功 |
+| eval_subject 超时+噪音（H1） | 3 | 15% | L-3 修复 stderr 口径；评估 300s 预算适配性；核对失败用例补跑 |
+| 节点硬超时（预算打满） | 2 | 10% | playtest 预算/checkpoint 挂载状态到 DB 侧取证 |
+| API server error（中途中断） | 1 | 5% | 观察是否成族 |
+| exit0 无 commit | 1 | 5% | 既有规范（产物持久化纪律）覆盖，观察复发 |
+
+**方向与挂账事项**：
+1. **L-1（H2）优先解卡**：存量 6 条 reflow 提案手动重评（routes/evolution.ts:559），优先 cmunm03af——它是 H4 修复方向的在审载体，解卡即打通「最大失败族」的修复通道。
+2. **goal 成功率复测**（H6 falsification：n≥10 且 ≥0.5 销案）。
+3. **三零指标激活跟踪**（H-A2：连续两周 gateVerifiedRunRate 分母>0 且 acceptanceTests.total>0 且 feedbackSamples>0 → 方向A进入可实测态；抓手=高价值 workflow 挂载 routine 门禁，运营动作）。
+4. **H3 两条对账**：14 条 frozen ↔ backlog_frozen 事件；rejected +4 逐条 rejectReason。
+5. **锚点治理落地**（H11）：任务卡模板附实测 HEAD；baseRef 状态显式传递——评估作为进化提案立项。
+6. **仪器自校准跟进**（H8）：bugClosureDays 环比封装为低优先代码改进线索，下轮核对是否已修复并恢复 bugClosureDays 周环比读数。
+
+---
+
+## 七、口径裁决输入与衔接声明（v5）
+
+**采纳的三项口径修订**（供 v5 口径裁决书定稿引用，均已具证据）：
+1. **图证据降权 + 锚点声明修正**：本轮全部源码证据的实际基线=各节点取证时点实测 HEAD（6959c10f 时点亲核，漂移 ≤2 行；收口时点 a7fc2b0）；任务书锚点 023e5838 不可锚定（H11，E1）。「同 commit 可复现」验收项按「节点时点 HEAD 登记」口径执行。
+2. **g2-blocks / 仪器自校准不进主口径**：本轮工作流未落盘 g2-blocks 建图前后计数对照表（见下方底座声明），主口径不含图证据；旁支台账仅收录 H8 三条口径登记与红线声明（benchmark 回落仅查执行侧 H1，评测标准与进化护栏零放宽）。
+3. **benchmark 口径维持**：latestScore 83.875 ← previousScore 84.75（deltaPct=-1）按执行侧故障立案（H1），不构成放宽评测标准的理由（红线 1-5 全程有效）。
+
+**双轨立案落位**：缺陷工单 **0 单**（红线：E2 工单证据 11 项未齐备不开单）；缺陷线索池 5 条（L-1~L-5，对应 H2/H4/H1/H10/H9，随 actions.json 落盘，均含 E1 级修复方向与证据锚点，待 E2 补齐后转正式工单）；进化提案 0 条（红队 14 条裁定中无 evolution_proposal 类动作；H11 的流程改进①②列升级候选，由 Lead 裁量）；知识沉淀 4 条（H3/H5/H8/H11）。g2-blocks 相关发现本轮无（无数据落盘），不立案。
+
+**底座完整性声明**（.myrd/self-evolution/ 实测 7 件）：
+- 在档：health.json、pending-proposals.json、failures.json、meta.json、findings-hypotheses.json（14 条）、findings-audited.json（14 条）、findings-verified.json（14 条）——本报告与 actions.json 基于以上全量输入产出，关键数字全部经首席研究员独立复算/亲验（health 指标、failures 20 条签名分布、pending-proposals 6/13/6、承重源码锚点 7/7 命中）。
+- 缺失（unavailable）：findings-delta-v4.json、台账 v5、g2-blocks 盲区核销报告/仪器自校准记录、v5 口径裁决书草案未随工作流落盘至本目录。按纪律不作存在性推断，缺失项登记为 unavailable；本报告第二/三/六节与 actions.json 已承载台账与裁决书所需的全部结构化输入（判定总表、趋势对比、口径修订三条、预期管理条款），供后续节点直接引用。
+- 双 SHA 校验：本会话无哈希工具通道，沿用条目数多口径交叉对齐作为完整性凭证（各文件 provenance 见 findings-hypotheses.json meta.dataProvenance）。
+
+**下周衔接**：本报告 + actions.json 作为 v6 基线输入；H6/H-A2/H-A3 三个判定式挂账待实测；线索池 L-1~L-5 待 E2 补证转工单。
+
+
 ## 僵尸/孤儿运行轨迹识别与处置手册（status=failed 不可单独为凭）
 
 # 知识：僵尸/孤儿运行轨迹的识别与处置
@@ -12441,34 +13297,6 @@ GitHub: https://github.com/hl3w22bupt/myrd-playground.git
 
 ## 产品关联知识
 
-## 僵尸/孤儿运行轨迹识别与处置手册（status=failed 不可单独为凭）
-
-# 知识：僵尸/孤儿运行轨迹的识别与处置
-
-## 背景
-运行（run）的真实状态与已落库的轨迹（trajectory）记录可能失步，平台用「自愈清理」把这类孤儿记录强制归为 failed。这造成大量「假失败」：运行实际被取消/超时/暂停，轨迹却显示 failed，干扰失败统计与工作流评测。该问题在多个项目（心伴、MyRD Playground）跨多天反复出现，命中 85+ 条记忆记录。
-
-## 现象
-- 运行被取消后留下轨迹并被标记 failed（常见于取消的 workflow 运行，如心伴前端转换节点的 cancelled 运行被误报为失败）。
-- 执行超时未结束、run 已 paused/failed 但轨迹未同步，被自愈清理标记为 failed。
-- 报错形如「No conversation found with session ID: ...」或「执行超时未结束，启动自愈清理为 failed」。
-- 归因时出现「Agent 退出码 0 但未产生 git commit」之类的伪失败（见内容节点 skipGitCheck 规范）。
-
-## 根因
-run 状态与轨迹持久化的执行上下文不同步：取消、超时、暂停等路径没有及时把轨迹状态对齐到真实 run 状态，系统以自愈清理兜底归为 failed。
-
-## 识别与处置步骤
-1. 看到 status=failed 时，先不要认定 agent 失败。用 runId 与轨迹/会话记录交叉验证：该 run 是否真的执行过？是否被用户/调度取消？是否超时？
-2. 检查磁盘持久化产物：若 run 已产出文件且内容完整，即使状态为 failed 也说明实际成功过，应视为成功而非失败。
-3. 区分三类伪失败：SIGINT 基础设施中断、取消产生的僵尸轨迹、skipGitCheck 未设置的 git 校验误判；真实失败应具备「有明确工具错误 / 无产物」特征。
-4. 避免重试风暴：对已确认为僵尸/误报的 failed 不做自动重试。
-5. 长期修复：确认所有执行入口统一收敛到同一 pipeline，使状态快照与轨迹持久化保持一致。
-
-## 预防
-- 新增 workflow/节点时检查 skipGitCheck 与持久化配置。
-- 取消运行后留意残留轨迹，优先用 runId 交叉核验再下结论。
-- 归因报告须引用 runId 而非仅引用 status 字段。
-
 ## MyRD 平台能力与环境事实源（Agent 防臆造基线 · 2026-09-26 主人核定）
 
 # 目的
@@ -12504,6 +13332,25 @@ run 状态与轨迹持久化的执行上下文不同步：取消、超时、暂�
 - 「M2.1 执行被中断、断点位置未知」（2026-09-26 补跑轮）：往轮摘要缺执行结局导致的脑补，实际 M2.1 已于 2026-09-25 完成并部署上线。
 
 
+## 项目开发规范
+
+# 项目开发规范
+
+## 代码风格
+- 使用 TypeScript
+- - 遵循 ESLint 规范
+- 提交前运行 lint 检查
+
+## Git 提交规范
+- 使用 Conventional Commits 格式
+- feat: 新功能
+- fix: 修复 bug
+- docs: 文档更新
+
+## [H9] 负反馈指标零值语义知识卡：no-data≠断链，最小样本红线与前置过程指标
+
+negativeFeedbackRate=null 的唯一代码路径是 artifactRating 表窗口内无行（src/services/platform-health/index.ts:166-167 查询仅时间窗条件；若查询失败健康包整体不会产出——health.json 有其它字段即证明查询成功返回空集）。因此该维度当前状态是『维度零样本』（没人打分），不是『采集断链』（打了分没进表）。知识卡沉淀三条判定规则供健康度 v2 引用：①零值三分法——no-data（零样本，不入异动结论）/zero-feedback（真实零负反馈，可入结论）/查询失败（健康包缺字段，立即升级采集缺陷）；②最小样本红线——负反馈类指标样本 <5 标『不可判定』（与 v2 全局样本量红线一致），不得进入周环比结论；③前置过程指标——观测『人工评分入口曝光/使用率』（artifactRating 写入速率）作为负反馈率的分母健康度指标，区分『没人打分』与『打了分丢数据』。
+
 ## 知识：Worker SIGINT 关闭中断失败模式——现象、根因、处置与预防
 
 # 失败模式：Worker SIGINT 关闭中断
@@ -12532,6 +13379,34 @@ run 状态与轨迹持久化的执行上下文不同步：取消、超时、暂�
 - 所有节点命令遵循「显式超时 + 非交互 + 增量落盘 + 优雅退出」纪律（见对应规范）；
 - 分析型 agent（蒸馏、进化分析等）应在开始阶段即建立输出产物、分阶段写入，避免整段结束后才一次性输出，降低中断损失；
 - 将反复出现的同类失败纳入评测用例，使修复效果可量化考核。
+
+## 僵尸/孤儿运行轨迹识别与处置手册（status=failed 不可单独为凭）
+
+# 知识：僵尸/孤儿运行轨迹的识别与处置
+
+## 背景
+运行（run）的真实状态与已落库的轨迹（trajectory）记录可能失步，平台用「自愈清理」把这类孤儿记录强制归为 failed。这造成大量「假失败」：运行实际被取消/超时/暂停，轨迹却显示 failed，干扰失败统计与工作流评测。该问题在多个项目（心伴、MyRD Playground）跨多天反复出现，命中 85+ 条记忆记录。
+
+## 现象
+- 运行被取消后留下轨迹并被标记 failed（常见于取消的 workflow 运行，如心伴前端转换节点的 cancelled 运行被误报为失败）。
+- 执行超时未结束、run 已 paused/failed 但轨迹未同步，被自愈清理标记为 failed。
+- 报错形如「No conversation found with session ID: ...」或「执行超时未结束，启动自愈清理为 failed」。
+- 归因时出现「Agent 退出码 0 但未产生 git commit」之类的伪失败（见内容节点 skipGitCheck 规范）。
+
+## 根因
+run 状态与轨迹持久化的执行上下文不同步：取消、超时、暂停等路径没有及时把轨迹状态对齐到真实 run 状态，系统以自愈清理兜底归为 failed。
+
+## 识别与处置步骤
+1. 看到 status=failed 时，先不要认定 agent 失败。用 runId 与轨迹/会话记录交叉验证：该 run 是否真的执行过？是否被用户/调度取消？是否超时？
+2. 检查磁盘持久化产物：若 run 已产出文件且内容完整，即使状态为 failed 也说明实际成功过，应视为成功而非失败。
+3. 区分三类伪失败：SIGINT 基础设施中断、取消产生的僵尸轨迹、skipGitCheck 未设置的 git 校验误判；真实失败应具备「有明确工具错误 / 无产物」特征。
+4. 避免重试风暴：对已确认为僵尸/误报的 failed 不做自动重试。
+5. 长期修复：确认所有执行入口统一收敛到同一 pipeline，使状态快照与轨迹持久化保持一致。
+
+## 预防
+- 新增 workflow/节点时检查 skipGitCheck 与持久化配置。
+- 取消运行后留意残留轨迹，优先用 runId 交叉核验再下结论。
+- 归因报告须引用 runId 而非仅引用 status 字段。
 
 ## 演进提案（知识勘误）：修正平台规范「轨迹有界生命周期」:154-155 双处失真——agentExecutionTrajectory 已具备启动+5 分钟周期双通道自愈（H2-b，P2）
 
@@ -12687,25 +13562,6 @@ agent 在涉及 MyRD 平台的任务中反复出现两类高成本问题：
 - 平台是本地源码 + 多 run 工作区（`/Users/leo/.myrd/workspaces/proj-myrd/run-*`）并存；run 工作区可能包含主干尚未合入的功能（如 express-lane、轨迹追踪迁移），分析时以对应 run 工作区为准；
 - 本文档随仓库结构变更应同步更新。
 
-## 项目开发规范
-
-# 项目开发规范
-
-## 代码风格
-- 使用 TypeScript
-- - 遵循 ESLint 规范
-- 提交前运行 lint 检查
-
-## Git 提交规范
-- 使用 Conventional Commits 格式
-- feat: 新功能
-- fix: 修复 bug
-- docs: 文档更新
-
-## [H9] 负反馈指标零值语义知识卡：no-data≠断链，最小样本红线与前置过程指标
-
-negativeFeedbackRate=null 的唯一代码路径是 artifactRating 表窗口内无行（src/services/platform-health/index.ts:166-167 查询仅时间窗条件；若查询失败健康包整体不会产出——health.json 有其它字段即证明查询成功返回空集）。因此该维度当前状态是『维度零样本』（没人打分），不是『采集断链』（打了分没进表）。知识卡沉淀三条判定规则供健康度 v2 引用：①零值三分法——no-data（零样本，不入异动结论）/zero-feedback（真实零负反馈，可入结论）/查询失败（健康包缺字段，立即升级采集缺陷）；②最小样本红线——负反馈类指标样本 <5 标『不可判定』（与 v2 全局样本量红线一致），不得进入周环比结论；③前置过程指标——观测『人工评分入口曝光/使用率』（artifactRating 写入速率）作为负反馈率的分母健康度指标，区分『没人打分』与『打了分丢数据』。
-
 ## 架构设计文档
 
 # 架构设计
@@ -15477,3 +16333,217 @@ curl -s "$PLATFORM_API_URL/api/v1/workflows/runs/cmvagxyf3002em94lxhtab3p9" \
 
 ---
 *来源：goal `cmvaf7imr000jm94le9x48zfu` artifacts、工作流运行 `cmvagxyf3002em94lxhtab3p9` 节点输出、AppHost 记录 `cmvaf7imm000hm94lw6y43t0q`，均为 2026-10-16 实测。*
+
+## [H2][缺陷线索池 L-1·P1] reflow 回流通道评估接线缺失，6 条提案滞留 evaluation_pending（最长 22 天），闭环选择层对该通道断路 2026-W42
+
+【来源】红队裁定 Confirmed/P1，原 actionType=bug_ticket；因 E2 工单证据 11 项未齐备（缺 DB 侧评估队列状态取证），按红线本轮不开单，转缺陷线索池待补证。【现象】reflow 通道创建提案后从不触发评估且系统无 evaluation_pending 兜底消费者：6 条 reflow 提案滞留 6/18/22 天三批次，对照组 admin 注入 7/7 分钟级出分；在审合并提案 cmunm03af（轨迹终结元数据统一标准，即 H4 修复方向）被卡 18 天。【根因】评估触发为创建路径各自接线模式：intake 路由与 analyzer 转正均接自动评估，reflow 兜底通道漏接（reflow.ts:169-185 函数内无 evaluateProposal 调用；全仓生产调用点仅 intake.ts:185 / analyzer.ts:2118 / routes/evolution.ts:559 三处）；叠加 routes/evolution.ts:344-350 verdict 门禁对无评估提案 409 拦截，连人工审批也被阻断。【修复方向】① reflow.ts importOneAction 补接 evaluateProposal（与 intake 路由同款 fire-and-forget + EVOLUTION_INTAKE_AUTO_EVALUATE 同开关语义）；② scheduler 增设 evaluation_pending 超龄件兜底扫描补评；③ 存量 6 条经 routes/evolution.ts:559 手动重评解卡，优先解卡 cmunm03af。【证据锚点】src/services/self-evolution/reflow.ts:169-185（首席亲验逐字命中）；src/routes/evolution-proposals-intake.ts:182-188；pending-proposals.json evaluation_pending×6 与 reflow:×6 一一对应（首席亲数）。【E2 缺口】评估队列 DB 状态、6 条滞留件 createdAt/queuedAt 逐条取证。
+
+## [H4][缺陷线索池 L-2·P1] error=null 失败轨迹占本周 10/20（50%），唯一产生通道=引擎终结路径组合条件，无出口断言 2026-W42
+
+【来源】红队裁定 Confirmed/P1，原 actionType=bug_ticket；E2 未齐备本轮不开单，转缺陷线索池。连续两轮复发（上轮 H4 同签名立案后仍发生）。【现象】failures.json 20 条中 10 条 error=null 且 workflowRunError=null（create-pr/polish/art/design/blackboard×3/dev-test/round-plan/playtest），outputPreview 显示 agent 实际执行大量有效工作后静默失败，进化分析拿不到失败签名。【根因】engine.ts:3042 nodeError = noWorkReason ?? (exitCode!==0 ? (cliError || stripCliStderrNoise(stderr).stderr || undefined) : undefined)：exitCode≠0 且 CLI 未写 result 错误事件且 stderr 空/被滤空时 nodeError=undefined；:3045-3049 直通 finalizeAgentTrajectory，无「failed 必带 error」出口断言。典型场景=硬超时 SIGKILL 强杀/OOM/进程崩溃。红队穷举七通道闭合：其余失败通道均带 error，唯一缺口即此组合条件；自愈误报反例不成立。【修复方向】① engine.ts:3045 终结处对 failed 且 nodeError 空写入保底归因（如 exit=N（CLI 未返回错误详情），疑似强杀/OOM/崩溃）——出口断言而非源头堵漏；② startTimer 超时路径回传 timedOut 标志兜底进 error。【证据锚点】src/services/workflow/engine.ts:3042、:3045-3049（首席亲验逐字命中）；failures.json 亲数 10/20。【E2 缺口】10 条逐案 runId+产物交叉验证（真失败 vs 强杀/OOM 分布）、DB 侧 nodeError 现场取证。
+
+## [H1][缺陷线索池 L-3·P2] eval_subject 300s 超时打满后轨迹 error 被 unrecognized_model stderr 噪音冒充，benchmark 回落归因被污染（「模型识别失败」原判已证伪） 2026-W42
+
+【来源】红队裁定 Confirmed/P2，原 actionType=bug_ticket；E2 未齐备本轮不开单，转缺陷线索池。【现象】3 条 eval_subject 失败（10-15×2、10-16×1）error=[claude-code:unrecognized_model] 噪音原文，durationMs=300277/300313/300300ms 与 benchmark 默认超时 300000ms+SIGTERM 延迟精确吻合；同窗 benchmark 83.875←84.75（deltaPct=-1）。【根因】两层叠加：① 评测用例 300s 预算内未完成且未被成功重跑补齐（benchmark 样本面缺口）；② trajectory/index.ts:606 失败分支裸写 stderr 未套 stripCliStderrNoise，与 streaming-pipeline.ts:842 已过滤口径漂移。原判「[1m] 后缀未被 SDK 识别致回落」被源码证伪：该诊断非致命且有单测背书（claude-code-agent.ts:889-892 注释 + __tests__/claude-code-agent.stderr-noise.test.ts）；[1m] 系用户配置值，平台代码不产生也不清洗。【修复方向】① trajectory/index.ts:606 套用 stripCliStderrNoise（与 streaming 同口径，留中性提示）；② 评估预算对第三方长上下文模型适配评估（EVOLUTION_BENCHMARK_TIMEOUT_MS 或按用例配置）；③ 失败用例补跑机制核对。【证据锚点】src/services/trajectory/index.ts:606（首席亲验）；src/services/streaming-pipeline.ts:839-849（注释点名 glm-5.3-flash[1m]，首席亲验）；failures.json 三条 durationMs 亲数。【红线】benchmark 回落仅查执行侧，不构成放宽评测标准/进化护栏的理由。【E2 缺口】benchmark 结果行 error 归因 DB 取证、失败用例补跑记录核对。
+
+## [H10][缺陷线索池 L-4·P2] 无 runId 轨迹周期自愈以 createdAt+30min 判死，channel/express_lane 长会话存在误杀窗口（潜伏：本周无实锤样本） 2026-W42
+
+【来源】红队裁定 Confirmed/P2，原 actionType=bug_ticket；E2 未齐备本轮不开单，转缺陷线索池。红队影响面修正：标题从现在时「存在被误杀」收窄为「存在误杀窗口；本周无实锤样本；生产部署时点未锚定」。【现象】engine.ts:467 无 runId 分支以 createdAt（轨迹诞生时刻）而非 updatedAt（最近进展）判 30 分钟超时，命中即标 failed + 「僵尸轨迹：执行超时未结束」。streaming 轨迹全无 runId（streaming-pipeline.ts 全文 grep 零命中），触发面非空；同文件 :390-392 run 自愈已用 updatedAt 正确口径（注释明言「避免误杀正在正常执行的长任务」）——同函数族双时间基准并存，:467 系选型偏差。红队补强：index.ts:575-577 周期任务注释声称「活跃对象不会被误伤」与该分支实现不符。【本周反例】failures.json 20 条零「执行超时未结束」签名；无 runId 轨迹 cmv7ggiaa 存活 25h 未被误杀——强假说：该分支系近期新增、生产 worker 尚未部署（区域 ~39 行漂移佐证），无法在本会话确证，如实标注。【修复方向】① :467 改 now-(t.updatedAt ?? t.createdAt) > STALE_MS（与 :392 同款 + 历史行 updatedAt NULL 兜底）；② 回溯 failures.json「执行超时未结束」×durationMs≈30min 指纹核实历史污染面。【证据锚点】src/services/workflow/engine.ts:447、:467、:469-472（首席亲验逐字命中）。【E2 缺口】生产 worker 部署版本记录、无 runId 长轨迹执行时长分布（DB）。
+
+## [H9][缺陷线索池 L-5·P3] 用户取消标 failed（「用户已取消」），TrajectoryStatus 无 cancelled 终态，取消语义借用失败通道（潜伏口径缺陷） 2026-W42
+
+【来源】红队裁定 Confirmed/P3，原 actionType=bug_ticket；E2 未齐备（近四周取消占比统计需 DB）本轮不开单，转缺陷线索池。红队影响面修正：定性为「潜伏口径缺陷」而非「已发生污染」——本周 failures.json 20 条中 0 条「用户已取消」签名（0%<2%），但失败族分析持续以 failures.json 为底座，结构性口径风险成立；且平台规范「长任务执行韧性规范」第 4 条（必须区分取消与失败，被取消轨迹不得污染失败统计）被直接违反，规范符合性是硬事实。【根因】TrajectoryStatus 终态枚举仅 completed/failed（trajectory/index.ts:364-367 签名亲验），取消场景在 streaming-pipeline.ts:814-818（finalizeTrajectory('failed', durationMs, '用户已取消')，首席亲验）与引擎 run-cancelled 同步路径（engine.ts:460）两处均折入 failed——结构性约束非调用方疏忽。【修复顺序（防读数端丢语义）】① 先扩 TrajectoryStatus 终态枚举增加 cancelled；② 再改 streaming-pipeline:818 与 engine run-cancelled 同步路径写入 cancelled；③ 最后 failures 聚合将 cancelled 移出失败族（单列「用户取消」族）。【证据锚点】src/services/streaming-pipeline.ts:814-818；src/services/trajectory/index.ts:364-367；src/services/workflow/engine.ts:460。【E2 缺口】近四周取消轨迹占比统计（DB 聚合）、取消对历史失败率结论的影响面回溯。
+
+## [H3][知识沉淀] frozen 0→14 为 2026-10-15 Admin 拍板治理动作（超 30 天自动冻结），熔断线口径已 30→66，需台账登记与两条对账 2026-W42
+
+【来源】红队裁定 Confirmed/P3，actionType=knowledge_only。【登记三件事】① 14 条 frozen 登记为「10-15 治理动作产物」（scheduler.ts:73-93 freezeStaleBacklog 注释明示 Admin 2026-10-15 拍板，pending 超 FREEZE_AFTER_DAYS=30 天自动 frozen，10 分钟一轮+启动清存量，落 schedulerEvents backlog_frozen 含 frozenCount）——待与事件逐条对账（DB 不可读，本轮留为对账动作）；② 熔断线新口径 QUEUE_CIRCUIT_BREAKER=66 / warn=60（-6）/ escalate=63（-3）（approval-sla.ts:25-32 亲验）取代旧 30/24/27——上轮 H6/cmunm03ac 等水位类提案与 H-A3 判定式按新口径重述；时间线旁证：09-25/10-04 历史提案内嵌快照引用旧值；③ frozen 不计熔断水位/SLA 告警（scheduler.ts:75-76）的读数口径分界：冻结会永久性压低 pending 水位读数，后续水位趋势分析须区分 frozen 前后口径。【残留待办】rejected 15→19 增量 4 条逐条取 rejectReason 防静默销案。【红队补充发现（首席亲核命中）】approval-sla.ts:48 注释残留旧口径「warn ≥24 / escalate ≥27 / breaker ≥30」、scheduler.ts:115 注释「熔断线 ≥30」——两处注释过时，随本条修订（口径升级未同步注释）。【证据锚点】src/services/evolution/scheduler.ts:73-93、:115；src/services/evolution/approval-sla.ts:25-41、:48。
+
+## [H5][知识沉淀] SIGINT 轨迹「error 有文案+durationMs/outputPreview 双 null」为优雅关闭设计产物，读数端应单列「重启成本」族 2026-W42
+
+【来源】红队裁定 Confirmed/P3，actionType=knowledge_only。原疑点「SIGINT 双 null=数据损坏」证伪。【读数端纪律】failures 聚合将 SIGINT 轨迹（error 前缀 Worker SIGINT + 双 null 指纹）单列「重启成本」族，不混入失败族——本周 3 条（implement×2 + goal_delegate×1，首席亲数）对应 10-15T03:0x 一次 worker 重启；重启后自愈链齐备（run→paused→auto-resume、expressLane→failed 留现场）。【机制依据】trajectory/index.ts:346-351 shutdown finalizer 仅写 {status:'failed', error:reason, completedAt}，不写 durationMs/outputPreview（首席亲验）——双 null 是 finalizer 字段集的确定性输出；index.ts:608-641 gracefulShutdown 四步收尾、:372+:578-599 启动+周期双层自愈（5 分钟一轮）、:384-400 expressLane 自愈均亲核在仓。【低优先改进线索】finalizer 可补写 durationMs（created→shutdown 差值）与已有 outputPreview，降低「全损」观感。【证据缺口声明】3 条 SIGINT 关联 run 是否重跑成功（rerun 记录）、playtest 节点预算与 checkpoint 挂载状态在 workflow definition（DB 侧），本轮不可读。硬超时 2 条（implement 5400s/playtest 10800s）归因文案正确，属预算内未完成非机制缺失。【证据锚点】src/services/trajectory/index.ts:346-351；src/index.ts:372、:578-599、:608-641、:384-400。
+
+## [H8][知识沉淀·仪器自校准] 口径词典三条：activity.tasks 全任务口径 vs taskSamples 终态口径；other 桶=taskType null 兜底；bugClosureDays 无环比封装 2026-W42
+
+【来源】红队裁定 Confirmed/P3，actionType=knowledge_only。三处仪器漂移终局裁定（旁支台账，不进主口径）：【① 撤回转登记】health.json activity.tasks=34 与 taskSamples 三桶合计 31 之差 3=窗口内非终态任务——index.ts:199 taskCount 无 status 过滤（计入 running/paused 中间态）vs :116-118 taskSuccessRows 仅取 completed/failed（:68-69 注释「其余中间态既不入分子也不入分母」即官方口径）——两谓词口径天然不同，登记说明后每轮不再消耗取证成本。【② 打标侧演化】windows.ts:75 `row.taskType ?? 'other'`——other 是 taskType=null 的兜底桶名而非独立类型；express_lane 首现（n=1，lowConfidence）系打标侧将原 null 杂项任务标上真实类型，聚合逻辑未变，非缺陷。【③ 封装缺失成立】index.ts:277-281 bugClosureDays 裸数值返回（本周 18.4 天），同文件其他指标均有 {current, previous, deltaPct} 封装（:260 point、:266-270 benchmark），独它没有——闭环时长周环比断路；补封装列低优先代码改进线索（E2 门内，旁支台账）。【证据锚点】src/services/platform-health/index.ts:199、:68-69、:79、:277-281；src/services/platform-health/windows.ts:75（均为红队/首席亲验锚点）。
+
+## [H11][知识沉淀] commit 锚点 023e5838 与取证工作区脱钩（工作区 HEAD 红队时点 6959c10f、首席收口时点 a7fc2b0），证据基线登记与锚点治理三条 2026-W42
+
+【来源】红队亲手取证的流程发现，裁定 Confirmed/P3，actionType=knowledge_only。【事实】任务书下发并经 audit/侦探转引的锚点 023e5838 在本工作区 git 库可达范围（refs/reflog/松散对象）零痕迹；.git/logs/HEAD 共 5 行：clone @ ac6e5c73 → auto-commit c2d84662 → 6959c10f（红队取证时点）→ a7fc2b0（首席研究员收口时点亲读，红队之后又推进一拍）——工作区 HEAD 被 workflow auto-commit 持续推进，「固定锚点」与「移动工作区」天然脱钩；audit meta.baseRef 自认 independentlyVerified=false。【影响面】「同 commit 可复现」验收项无法按 023e5838 闭环；但红队已在本工作区 HEAD=6959c10f 时点逐条亲核 13 条发现全部源码锚点（漂移≤2 行），本轮判定有效性不受影响，受影响的是跨轮可复现性声明。【登记三条】① 本轮证据基线=各节点取证时点实测 HEAD（audit/侦探/红队：6959c10f 时点；首席收口：a7fc2b0），后续轮次照此口径，v5 口径裁决书引用以此为准；② 任务卡下发 commit 锚点时应同时附「取证工作区实测 HEAD」（或要求首节点先读 .git/HEAD 回锚写回产物 meta）；③ 体检师节点 baseRef.independentlyVerified=false 状态向下游（红队/首席）显式传递，作为可复现性声明的一部分。【不可断言项】023e5838 是否存在于 main 历史 pack 文件——本会话无 git 命令通道，「本工作区无法锚定」可断言，「该 commit 不存在」不可断言。【升级候选（供 Lead 裁量）】②③属工作流节点提示词/任务卡模板类软资产改进，可批准为进化提案单独立项（不改变本条 knowledge 裁定）。【证据锚点】.git/logs/HEAD（首席亲读 5 行）；.git/refs/heads/myrd/run-cmvdfmx530043m9wlxkjmnvkn（首席亲读=a7fc2b09638f7225336cad6ba1ad78644c28f027）。
+
+## MyRD 自进化周报 2026-W42
+
+# MyRD 自进化周报 2026-W42
+
+> 周期标识取自 meta.json：week=2026-W42（date=2026-10-18）。
+> 数据窗口：2026-10-11T06:16Z → 2026-10-18T06:16Z（health.json generatedAt=2026-10-18T06:16:31.126Z；failures.json 最早 2026-10-12T06:58:41Z、最晚 2026-10-18T01:29:40Z）。
+> 样本量门：activity.tasks=34 ≥ 5，**PASS**，本周允许周级结论；例外：taskSuccessRateByType.goal 分母 n=4 且 lowConfidence=true（仅方向参考）、express_lane n=1 无前值（不下结论）。
+> 证据基线声明：任务书锚点 023e5838 在本工作区不可锚定（refs/reflog/松散对象三路零痕迹，亲核）；红队取证时工作区 HEAD=6959c10f，本报告收口时亲读已推进至 a7fc2b0（workflow auto-commit 持续追加，.git/logs/HEAD 共 5 行亲读）。全部源码证据以各节点取证时点实测 file:line 为准，锚点治理见 H11。
+
+---
+
+## 一、本周结论摘要
+
+本周三条链（侦探 14 条假设 → 体检师 14 条取证 → 红队 14 条终局裁定）逐条对齐，**顶层裁定：Confirmed 14 / Refuted 0 / Uncertain 0**。核心结论四条：
+
+1. **自进化闭环「选择层」对 reflow 回流通道实质断路（本周最高优先级，P1）**。reflow 通道创建提案后从不触发评估（src/services/self-evolution/reflow.ts:169-185 亲读，函数内无 evaluateProposal 调用），系统亦无 evaluation_pending 兜底消费者；6 条 reflow 提案滞留评估 6~22 天（pending-proposals.json 亲数：evaluation_pending ×6 与 reflow: ×6 一一对应），对照组 admin 注入 7/7 分钟级出分。在审合并提案 cmunm03af（轨迹终结元数据统一标准）正被此缺陷卡住 18 天——「修复通道本身被另一缺陷阻断」的耦合是本周最需解卡的点。
+2. **失败统计口径存在两处结构性缺口（P1/P2）**：① error=null 的 failed 轨迹占本周失败 10/20（50%，failures.json 亲数），唯一产生通道已精确定位为 workflow 引擎终结路径组合条件（engine.ts:3042 亲读逐字命中）；② 无 runId 轨迹的周期自愈以 createdAt+30min 判死（engine.ts:467 亲读），channel/express_lane 长会话存在被误杀窗口（本周无实锤样本，潜伏期）。
+3. **漏斗剧变有明确代码归因，属合规治理动作（P3 台账登记）**：frozen 0→14 系 2026-10-15 Admin 拍板上线的 freezeStaleBacklog（超 30 天自动冻结，scheduler.ts:73-93 亲读注释明示），非调度器误触发；熔断线口径已 30→66（approval-sla.ts:25-32 亲读）。残留两条待办：14 条 frozen 与 backlog_frozen 事件对账（DB 不可读，本轮无法实测）、rejected 15→19 增量 4 条的个体理由需取 rejectReason 防静默销案。
+4. **负反馈闭环输入端三零持续（gateVerifiedRunRate 0/0、acceptanceTests 0/0、feedbackSamples 0/0），方向A本周无法实测**。机制链经源码复核完整在仓（采集/写入/钩子/注册四锚点全命中），缺的是执行流量过门，属流程激活问题非代码缺失。方向A三条判定式维持「预注册·待实测」。
+
+**预期管理**：代码侧缺证（DB 实体数据、schedulerEvents 对账、benchmark 结果行均不可读），本轮结论仅 E1 等级证据（工作区内可复核实证）+ 自校准记录支撑。缺陷工单本轮 **0 单**（5 条缺陷线索均未齐备 E2 工单证据 11 项，按红线转缺陷线索池）；无任何放宽护栏/边界合同的建议。
+
+---
+
+## 二、判定总表（14 条，与 findings-verified.json 逐条对应）
+
+| ID | 简题 | Verdict | Severity | 红队 actionType | 本报告落位 |
+|----|------|---------|----------|-----------------|-----------|
+| H2 | reflow 通道评估接线缺失，6 条提案滞留 | Confirmed | P1 | bug_ticket→线索池 | 短板 #1（线索池 L-1） |
+| H4 | error=null 失败轨迹唯一产生通道（引擎终结组合条件） | Confirmed | P1 | bug_ticket→线索池 | 短板 #2（线索池 L-2） |
+| H1 | eval_subject 300s 超时 + 轨迹 error 被噪音冒充（「模型识别失败」证伪） | Confirmed | P2 | bug_ticket→线索池 | 短板 #3（线索池 L-3） |
+| H10 | 无 runId 轨迹 createdAt+30min 误杀窗口 | Confirmed | P2 | bug_ticket→线索池 | 短板 #4（线索池 L-4） |
+| H9 | 用户取消标 failed，无 cancelled 终态 | Confirmed | P3 | bug_ticket→线索池 | 短板 #5（线索池 L-5） |
+| H3 | frozen 0→14=10-15 治理动作；熔断线 30→66 | Confirmed | P3 | knowledge_only | 短板 #6（知识） |
+| H5 | SIGINT 双 null=优雅关闭设计产物，非数据损坏 | Confirmed | P3 | knowledge_only | 短板 #7（知识） |
+| H8 | 仪器口径三漂移裁定（①成立②演化③撤回） | Confirmed | P3 | knowledge_only | 短板 #8（知识） |
+| H11 | 锚点 023e5838 不可锚定；基线漂移 | Confirmed | P3 | knowledge_only | 短板 #9（知识） |
+| H6 | goal 成功率口径分离已固化，n=4 维持方向参考 | Confirmed | P3 | none | 下周复测（falsification 挂账） |
+| H7 | 三零指标=流量未过门，机制链完整 | Confirmed | P2 | none | 激活跟踪（H-A2 承载） |
+| H-A1 | 方向A时间序判别式：无时间序字段→仅方向参考 | Confirmed | P3 | none | 预注册·待实测 |
+| H-A2 | 方向A输入端激活判定式 | Confirmed | P3 | none | 预注册·待实测 |
+| H-A3 | 方向A输出端消化判定式（按熔断 66 新口径） | Confirmed | P3 | none | 预注册·待实测 |
+
+> 口径注记：findings-audited.json meta.coverage=13 与 findings-verified.json meta.verdictSummary.confirmed=13 均为 H11 追加前快照；两文件数组实际条数均=14，本表以数组实数为准。
+
+---
+
+## 三、Confirmed 短板清单（每条：定级 / 证据 / 根因 / 建议动作）
+
+### 短板 #1（H2·P1）reflow 回流通道评估接线缺失，闭环选择层对该通道断路
+
+- **证据**（本首席研究员独立亲验）：reflow.ts:169-185 创建提案 `status='pending'` + `evaluation={state:'evaluation_pending'}`（:183）、溯源 `reflow:${ctx.runId}`（:180），函数内无 evaluateProposal 调用；全仓生产调用点仅 3 处（intake 路由 fire-and-forget / analyzer 转正 / routes/evolution.ts:559 手动重评），reflow 不在其中；无任何 evaluation_pending 周期兜底消费者。数据面：pending-proposals.json 亲数 evaluation_pending×6（全 reflow 前缀，滞留 6/18/22 天三批次）、unevaluated=6/13；对照组 admin 注入 7/7 分钟级出分。
+- **根因**：评估触发是「创建路径各自接线」模式，reflow 兜底通道漏接；叠加 verdict 门禁（无 evaluation → 409 拦截审批），滞留提案连人工审批也被拦——结构性断路而非容量事件（三批次复现排除偶发）。
+- **影响**：6 条治理提案（含 H2/H3/H4/H6/H9 系）无法进入审批；在审合并提案 cmunm03af（H4 修复方向）被卡 18 天。
+- **建议动作**：缺陷线索池 L-1（E2 未齐备不开单）。修复方向：①reflow.ts importOneAction 补接 evaluateProposal（与 intake 路由同款 + 同开关语义）；②scheduler 增设 evaluation_pending 超 龄件兜底扫描补评；③存量 6 条经 routes/evolution.ts:559 手动重评解卡（优先解卡 cmunm03af）。
+
+### 短板 #2（H4·P1）error=null 失败轨迹占 50%，归因断路（连续两轮复发）
+
+- **证据**：failures.json 亲数 20 条中 10 条 error=null 且 workflowRunError=null（create-pr/polish/art/design/blackboard×3/dev-test/round-plan/playtest），outputPreview 显示大量有效工作后静默失败。engine.ts:3042 `nodeError = noWorkReason ?? (exitCode!==0 ? (cliError || stripCliStderrNoise(stderr).stderr || undefined) : undefined)`（亲读逐字命中）——exitCode≠0 且 CLI 未写错误事件且 stderr 空/被滤空时 nodeError=undefined；:3045-3049 直通 finalizeAgentTrajectory，无「failed 必带 error」出口断言。红队穷举七通道闭合：其余通道失败均带 error，唯一缺口即此组合条件。
+- **根因**：硬超时 SIGKILL 强杀 / OOM / 进程崩溃场景下引擎三层兜底（noWorkReason/cliError/stderr）全部落空。上轮立案方向（终结元数据统一标准）正确，本轮精确定位到缺口点。
+- **建议动作**：缺陷线索池 L-2。修复方向：①engine.ts:3045 终结处对 failed 且 nodeError 空写入保底归因（出口断言）；②startTimer 超时路径回传 timedOut 标志兜底进 error。
+
+### 短板 #3（H1·P2）eval_subject 300s 超时打满 + 轨迹 error 被stderr 噪音冒充，benchmark 回落归因被污染
+
+- **证据**：failures.json 三条 eval_subject（10-15×2、10-16×1）error=unrecognized_model 噪音原文，durationMs=300277/300313/300300ms 与 benchmark.ts:32-35 默认超时 300000ms+SIGTERM 延迟精确吻合（亲数）；trajectory/index.ts:606 失败分支裸写 stderr 未套 stripCliStderrNoise（亲读），对照 streaming-pipeline.ts:839-849 已过滤且注释点名 glm-5.3-flash[1m]（亲读）。**假设原判「[1m] 未被 SDK 识别致回落」被证伪**——该诊断非致命且有单测背书；[1m] 系用户配置值，平台代码不产生也不清洗。
+- **根因**：两层叠加——评测用例 300s 预算内未完成且未被成功重跑补齐（benchmark 83.875←84.75 的样本面缺口）；runWithTrajectory 与 streaming 通道的 stderr 过滤口径漂移。
+- **建议动作**：缺陷线索池 L-3。修复方向：①trajectory/index.ts:606 套用 stripCliStderrNoise（与 streaming 同口径）；②评估预算对第三方长上下文模型的适配评估（EVOLUTION_BENCHMARK_TIMEOUT_MS）；③失败用例补跑机制核对。红线维持：回落仅查执行侧，不构成放宽评测标准理由。
+
+### 短板 #4（H10·P2）无 runId 轨迹周期自愈 createdAt+30min 判死，长会话误杀窗口（潜伏）
+
+- **证据**：engine.ts:447 `STALE_MS=30*60*1000`、:467 `} else if (now - t.createdAt.getTime() > STALE_MS)`（亲读逐字命中）；对照同文件 :390-392 run 自愈用 updatedAt（注释明言「避免误杀正在正常执行的长任务」）——同函数族双时间基准并存。streaming 轨迹全无 runId（streaming-pipeline.ts 全文 grep 零命中），触发面非空。红队补强：index.ts:575-577 周期任务注释声称「活跃对象不会被误伤」与该分支实现不符（注释虚假声称）。
+- **影响面修正（红队）**：本周 failures.json 无「执行超时未结束」签名、无 runId 轨迹 cmv7ggiaa 存活 25h 未被误杀——实际误杀本周未发生（或生产 worker 尚未部署该版本，区域 ~39 行漂移佐证该分支系近期新增，无法在本会话确证）。定性：代码缺陷在当前 HEAD 成立，实际危害 unverified。
+- **建议动作**：缺陷线索池 L-4。修复方向：①:467 改 `now-(t.updatedAt ?? t.createdAt)>STALE_MS`（与 :392 同款+NULL 兜底）；②回溯 failures.json「执行超时未结束」×durationMs≈30min 指纹核实历史污染面。
+
+### 短板 #5（H9·P3）用户取消标 failed，TrajectoryStatus 无 cancelled 终态（潜伏口径缺陷）
+
+- **证据**：streaming-pipeline.ts:814-818 取消路径 `finalizeTrajectory('failed', durationMs, '用户已取消')`（亲读逐字命中）；trajectory/index.ts:364-367 签名仅 `'completed' | 'failed'`（亲读），终态枚举无 cancelled 为结构性约束；engine.ts:460 cancelled run 同步折入 failed。平台规范「长任务执行韧性规范」第 4 条明确要求区分取消与失败——实现直接违反。
+- **影响面修正（红队）**：本周 failures.json 0 条「用户已取消」签名（0%<2%），「潜伏口径缺陷」而非「已发生污染」；但失败族分析持续以 failures.json 为底座，结构性风险成立，立案维持。
+- **建议动作**：缺陷线索池 L-5。修复顺序（防读数端丢语义）：先扩 TrajectoryStatus 枚举（cancelled）→ 再改 streaming:818 与 run-cancelled 同步写入 → 最后 failures 聚合将 cancelled 移出失败族。
+
+### 短板 #6（H3·P3·知识）frozen 0→14 = 10-15 治理动作产物；熔断线口径 30→66 待全链对齐
+
+- **证据**：scheduler.ts:73-93 冻结注释「Admin 2026-10-15 拍板」+ updateMany + recordSchedulerEvent('backlog_frozen', frozenCount)（亲读）；approval-sla.ts:25-32 熔断 66 / warn 60 / escalate 63、FREEZE_AFTER_DAYS=30（亲读）；时间线旁证：09-25/10-04 历史提案内嵌快照引用旧值 24/27/30。
+- **残留待办**：①14 条 frozen 与 schedulerEvents 逐条对账（DB 不可读，留为对账动作）；②rejected 15→19 增量 4 条取 rejectReason 防静默销案；③红队补充发现（亲核命中）：approval-sla.ts:48 注释残留旧口径「warn ≥24 / escalate ≥27 / breaker ≥30」、scheduler.ts:115 注释「熔断线 ≥30」——两处注释过时，随本条修订。
+- **建议动作**：知识沉淀（台账登记三件事：frozen 治理对账、熔断线 66/60/63 新口径取代 30/24/27、frozen 不计熔断水位的读数分界 scheduler.ts:75-76）。
+
+### 短板 #7（H5·P3·知识）SIGINT 轨迹双 null = 优雅关闭设计产物，读数端应单列「重启成本」族
+
+- **证据**：trajectory/index.ts:346-351 shutdown finalizer 仅写 `{status:'failed', error:reason, completedAt}`——不写 durationMs/outputPreview（亲读），与 failures.json 3 条 SIGINT（error='Worker SIGINT 关闭中断'+双 null）形态精确吻合；index.ts:608-641 gracefulShutdown 四步、:372+:578-599 启动+周期双层自愈、:384-400 expressLane 自愈均亲核在仓。
+- **定性**：非数据损坏、非自愈链缺失。2 条硬超时（implement 5400s / playtest 10800s）归因文案正确，属预算内未完成；playtest 预算与 checkpoint 挂载状态在 workflow definition（DB 侧），本节点证据缺口声明。
+- **建议动作**：知识沉淀（读数端纪律：SIGINT 轨迹按 error 前缀+'双 null'指纹单列「重启成本」族，不混入失败族；finalizer 补写 durationMs 列低优先改进线索）。
+
+### 短板 #8（H8·P3·知识）仪器口径三漂移裁定：①bugClosureDays 无环比封装②other 桶=打标演化③activity 差值=非终态任务（③按预设撤回）
+
+- **证据**：①index.ts:277-281 bugClosureDays 裸数值返回、:79 接口声明单值——同文件其他指标均有 previous/deltaPct 封装，独它没有（18.4 天无法环比）；②windows.ts:75 `row.taskType ?? 'other'`——other 是 null 兜底桶名，express_lane 首现 n=1 系打标侧演化非聚合缺陷；③index.ts:199 activity.taskCount 无 status 过滤 vs :116-118 taskSuccessRows 仅终态——34 与 31 之差 3=窗口内非终态任务，触发预设撤回条件转口径登记。
+- **建议动作**：知识沉淀（口径词典三条：activity.tasks 全任务口径 vs taskSamples 终态口径、other 桶语义、bugClosureDays 环比断路——补 {current,previous,deltaPct} 封装列低优先代码改进线索，旁支台账不进主口径）。
+
+### 短板 #9（H11·P3·知识）commit 锚点与取证工作区脱钩，证据基线轮内漂移
+
+- **证据**（本首席研究员独立亲验 + 新增读数）：.git/logs/HEAD 共 5 行亲读——clone @ ac6e5c73 → auto-commit c2d84662 → 6959c10f（红队取证时点 HEAD）→ **a7fc2b0（本报告收口时点亲读，红队之后又推进一拍）**；023e5838 不在 refs/reflog/松散对象任何一路。audit meta.baseRef 自认 independentlyVerified=false。
+- **根因**：任务书锚点下发与取证工作区实况无耦合机制；且工作区 HEAD 被 auto-commit 持续推进，「固定锚点」与「移动工作区」天然脱钩——红队 6959c10f 与首席 a7fc2b0 的读数差即实证。
+- **建议动作**：知识沉淀（流程改进三条：①任务卡下发锚点时附取证工作区实测 HEAD，或要求首节点先读 .git/HEAD 回锚；②baseRef.independentlyVerified=false 向下游显式传递；③本轮证据基线登记为「各节点取证时点实测 HEAD」（audit/侦探：6959c10f 时点；首席收口：a7fc2b0），后续轮次照此口径）。**升级候选**（供 Lead 裁量，不改变本条 knowledge 裁定）：①②属工作流节点提示词/任务卡模板类软资产改进，可批准为进化提案单独立项。
+
+### 无需动作的 Confirmed 条目（5 条，none）
+
+- **H6**（goal 成功率 0.25←0.5）：口径分离已由代码固化（platform-health/index.ts:247-250），n=4 lowConfidence 纪律生效，无源码缺陷。挂 falsification 复测：下周 goal n≥10 且成功率 ≥0.5 则销案。
+- **H7**（三零指标）：机制链四锚点（采集 windows.ts:30-33 / 写入 acceptance-tests/index.ts:109-128 / 钩子 e2e-gate.ts:57-131 / 注册 hooks/index.ts:44）全命中，缺执行流量过门。激活跟踪由 H-A2 判定式承载。
+- **H-A1 / H-A2 / H-A3**（方向A预注册三条）：均标**「预注册·待实测」**，本周不产出有效性结论。H-A1 时间序字段确认不存在（health.json schema 级核实），降级「仅方向参考」；H-A3 判定式按熔断 66 新口径更新为「applied 增量 ≥ pending+frozen 净增量的扣冻口径」后实测。
+
+---
+
+## 四、红队否决与修正记录
+
+**顶层否决：0 条**（14/14 Confirmed，本周无 Refuted 案件，无销案）。红队在本轮执行的否决/修正均作用于**子命题与表述层**，记录如下（防后续轮次误引旧定性）：
+
+| 被修正的原判 | 修正后定性 | 依据 |
+|---|---|---|
+| H1 原判「[1m] 后缀未被 SDK 识别 → benchmark 回落」 | **证伪**：该诊断非致命且有单测背书（claude-code-agent.stderr-noise.test.ts）；真因=300s 超时+归因噪音污染 | claude-code-agent.ts:889-892 注释亲核 |
+| H3 原判两分法「有意冻结 vs 调度器误触发」 | 误触发分支**证伪**：系 10-15 Admin 拍板治理动作（falsification 方向命中，转台账登记） | scheduler.ts:74 注释亲核 |
+| H5 原判疑点「SIGINT 双 null=数据损坏？」 | **证伪**：双 null 是 shutdown finalizer 字段集的确定性输出（设计取舍非故障） | trajectory/index.ts:346-351 亲核 |
+| H4 预设反例「≥8/10 系自愈误报」 | **不成立**：自愈产物必带文案（:457-463/:469-472），10 条 error=null 均非自愈产物 | 穷举七通道闭合 |
+| H10 标题现在时「存在被误杀」 | 修正为「存在误杀窗口；**本周无实锤样本**；生产部署时点未锚定」 | failures.json 零签名 + cmv7ggiaa 25h 存活反例 |
+| H9 「取消污染失败统计」降幅 | 修正为「**潜伏**口径缺陷」（本周 0 条取消签名，污染幅度 unverified） | failures.json 亲数 0/20 |
+| H-A1 audit 表述「采样触发在 admin 手动路由」 | **修正**：实测 2 个调用方（routes/evolution-feedback.ts:31 手动 + scheduler.ts:254 周期自动，每日+启动即跑） | 红队全仓 grep 实测 |
+| H8 ③「activity 34 vs 31 差 3 待解释」 | **按预设撤回**：差值=非终态任务（index.ts:199 无 status 过滤 vs :116-118 仅终态），转口径登记 | index.ts:68-69 注释提供官方口径 |
+
+---
+
+## 五、Uncertain 条目
+
+**本周 0 条 Uncertain**（findings-verified.json verdictSummary：refuted=0, uncertain=0，与数组逐条核对一致）。无待复核立案。
+
+以下两项「不可最终确证」成分已由红队在各 verdict 内如实标注（不构成独立 Uncertain 条目，随原条目维持 Confirmed）：
+- H10 的「生产 worker 是否已部署含 :467 分支的版本」——无 git blame/部署记录通道，无法确证；
+- H11 的「023e5838 是否存在于 main 历史 pack 文件」——本会话无 git 命令通道，「本工作区无法锚定 023e5838」可断言，「该 commit 不存在」不可断言。
+
+---
+
+## 六、下周建议关注点
+
+**失败族二分**（failures.json 20 条亲数口径）：
+
+| 失败族 | 条数 | 占比 | 下周动作 |
+|---|---|---|---|
+| error=null 静默失败（H4 通道） | 10 | 50% | L-2 修复后观察归因率是否归零；持续跟踪 outputPreview 反推成本 |
+| SIGINT 重启成本（H5） | 3 | 15% | 读数端按「重启成本」族单列；核对 3 条关联 run 是否重跑成功 |
+| eval_subject 超时+噪音（H1） | 3 | 15% | L-3 修复 stderr 口径；评估 300s 预算适配性；核对失败用例补跑 |
+| 节点硬超时（预算打满） | 2 | 10% | playtest 预算/checkpoint 挂载状态到 DB 侧取证 |
+| API server error（中途中断） | 1 | 5% | 观察是否成族 |
+| exit0 无 commit | 1 | 5% | 既有规范（产物持久化纪律）覆盖，观察复发 |
+
+**方向与挂账事项**：
+1. **L-1（H2）优先解卡**：存量 6 条 reflow 提案手动重评（routes/evolution.ts:559），优先 cmunm03af——它是 H4 修复方向的在审载体，解卡即打通「最大失败族」的修复通道。
+2. **goal 成功率复测**（H6 falsification：n≥10 且 ≥0.5 销案）。
+3. **三零指标激活跟踪**（H-A2：连续两周 gateVerifiedRunRate 分母>0 且 acceptanceTests.total>0 且 feedbackSamples>0 → 方向A进入可实测态；抓手=高价值 workflow 挂载 routine 门禁，运营动作）。
+4. **H3 两条对账**：14 条 frozen ↔ backlog_frozen 事件；rejected +4 逐条 rejectReason。
+5. **锚点治理落地**（H11）：任务卡模板附实测 HEAD；baseRef 状态显式传递——评估作为进化提案立项。
+6. **仪器自校准跟进**（H8）：bugClosureDays 环比封装为低优先代码改进线索，下轮核对是否已修复并恢复 bugClosureDays 周环比读数。
+
+---
+
+## 七、口径裁决输入与衔接声明（v5）
+
+**采纳的三项口径修订**（供 v5 口径裁决书定稿引用，均已具证据）：
+1. **图证据降权 + 锚点声明修正**：本轮全部源码证据的实际基线=各节点取证时点实测 HEAD（6959c10f 时点亲核，漂移 ≤2 行；收口时点 a7fc2b0）；任务书锚点 023e5838 不可锚定（H11，E1）。「同 commit 可复现」验收项按「节点时点 HEAD 登记」口径执行。
+2. **g2-blocks / 仪器自校准不进主口径**：本轮工作流未落盘 g2-blocks 建图前后计数对照表（见下方底座声明），主口径不含图证据；旁支台账仅收录 H8 三条口径登记与红线声明（benchmark 回落仅查执行侧 H1，评测标准与进化护栏零放宽）。
+3. **benchmark 口径维持**：latestScore 83.875 ← previousScore 84.75（deltaPct=-1）按执行侧故障立案（H1），不构成放宽评测标准的理由（红线 1-5 全程有效）。
+
+**双轨立案落位**：缺陷工单 **0 单**（红线：E2 工单证据 11 项未齐备不开单）；缺陷线索池 5 条（L-1~L-5，对应 H2/H4/H1/H10/H9，随 actions.json 落盘，均含 E1 级修复方向与证据锚点，待 E2 补齐后转正式工单）；进化提案 0 条（红队 14 条裁定中无 evolution_proposal 类动作；H11 的流程改进①②列升级候选，由 Lead 裁量）；知识沉淀 4 条（H3/H5/H8/H11）。g2-blocks 相关发现本轮无（无数据落盘），不立案。
+
+**底座完整性声明**（.myrd/self-evolution/ 实测 7 件）：
+- 在档：health.json、pending-proposals.json、failures.json、meta.json、findings-hypotheses.json（14 条）、findings-audited.json（14 条）、findings-verified.json（14 条）——本报告与 actions.json 基于以上全量输入产出，关键数字全部经首席研究员独立复算/亲验（health 指标、failures 20 条签名分布、pending-proposals 6/13/6、承重源码锚点 7/7 命中）。
+- 缺失（unavailable）：findings-delta-v4.json、台账 v5、g2-blocks 盲区核销报告/仪器自校准记录、v5 口径裁决书草案未随工作流落盘至本目录。按纪律不作存在性推断，缺失项登记为 unavailable；本报告第二/三/六节与 actions.json 已承载台账与裁决书所需的全部结构化输入（判定总表、趋势对比、口径修订三条、预期管理条款），供后续节点直接引用。
+- 双 SHA 校验：本会话无哈希工具通道，沿用条目数多口径交叉对齐作为完整性凭证（各文件 provenance 见 findings-hypotheses.json meta.dataProvenance）。
+
+**下周衔接**：本报告 + actions.json 作为 v6 基线输入；H6/H-A2/H-A3 三个判定式挂账待实测；线索池 L-1~L-5 待 E2 补证转工单。
+
