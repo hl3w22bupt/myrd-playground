@@ -50,3 +50,4 @@
 
 - 门禁资产（`std-skills/web-app-dev/scripts/webapp-smoke.mjs`、`.myrd/routines.yaml id=webapp-smoke`）在仓且本 run 未改动；review 节点以 liveUrl 实跑门禁为准，证据归档 `qa/mobile/`。
 - 色板沿用风格卡（`#f4fbf9/#14b8a6/#38bdf8`，薄荷+天蓝清新明亮方向）；与流水线口径 `#f0f9ff/#0ea5e9/#22c55e` 同属「浅底+蓝绿」清新明亮族，本 run 为数据鲜度修复迭代，不换肤以免破坏已过两轮门禁与使用验收的视觉基线（风格卡为 CSS 变量唯一事实来源，微调仅限明度/饱和度）。
+  > **2026-10-19 发布节点修订（覆盖上一条）**：流水线把色板 `#f0f9ff/#0ea5e9/#22c55e` 列为用户拍板的硬约束（偏离条件=技术不可行，「保护门禁基线」不构成）；且本次部署为鲜度机制首滚，门禁与使用验收证据本就全部重出，换肤无额外门禁代价。已逐 token 对齐：`--bg #f0f9ff / --primary #0ea5e9 / --primary-strong #0284c7 / --primary-soft #e0f2fe / --accent #22c55e`，SVG 图表线/点 `#0284c7`、渐隐填充 `#0ea5e9`，favicon `#0ea5e9`；布局、留白、字号三档、触控 44px、涨跌三重编码（中式红涨绿跌）全部不变。style-card.md 同步修订为唯一事实来源。

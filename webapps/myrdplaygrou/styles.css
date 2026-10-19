@@ -1,20 +1,22 @@
-/* 《今日汇率》—— 色板与风格令牌以 .myrd/style-card.md 为唯一事实来源 */
+/* 《今日汇率》—— 色板与风格令牌以 .myrd/style-card.md 为唯一事实来源
+ * 2026-10-19 发布节点对齐：流水线口径色板 #f0f9ff/#0ea5e9/#22c55e（硬约束，用户拍板），
+ * 由薄荷调浅底换为天蓝调浅底，清新明亮方向与布局/留白/字号体系全部保持不变。 */
 :root {
-  --bg: #f4fbf9;
+  --bg: #f0f9ff;
   --surface: #ffffff;
-  --primary: #14b8a6;
-  --primary-strong: #0d9488;
-  --primary-soft: #ccfbf1;
-  --sky: #38bdf8;
-  --ink: #0f2e2b;
-  --ink-soft: #5b7470;
+  --primary: #0ea5e9;
+  --primary-strong: #0284c7;
+  --primary-soft: #e0f2fe;
+  --accent: #22c55e;
+  --ink: #0c2a3f;
+  --ink-soft: #52708a;
   --up: #e11d48;
   --down: #059669;
-  --line: #d7e8e4;
+  --line: #d9e8f4;
   --warn: #b45309;
   --radius-card: 16px;
   --radius-ctl: 12px;
-  --shadow: 0 6px 24px rgba(13, 148, 136, 0.08);
+  --shadow: 0 6px 24px rgba(14, 165, 233, 0.10);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,7 +26,7 @@ html { -webkit-text-size-adjust: 100%; }
 body {
   font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
   background:
-    radial-gradient(1200px 400px at 50% -120px, rgba(56, 189, 248, 0.12), transparent 70%),
+    radial-gradient(1200px 400px at 50% -120px, rgba(14, 165, 233, 0.12), transparent 70%),
     var(--bg);
   color: var(--ink);
   line-height: 1.5;
@@ -47,7 +49,7 @@ body {
 .brand-mark {
   width: 44px; height: 44px; flex: none;
   display: grid; place-items: center;
-  background: linear-gradient(135deg, var(--primary), var(--sky));
+  background: linear-gradient(135deg, var(--primary), var(--accent));
   color: #fff; font-size: 22px; font-weight: 700;
   border-radius: 12px;
 }
@@ -66,7 +68,7 @@ body {
   cursor: pointer;
   transition: background 0.15s, transform 0.1s, opacity 0.15s;
 }
-.refresh-btn:hover { background: #b5f0e4; }
+.refresh-btn:hover { background: #bae6fd; }
 .refresh-btn:active { transform: scale(0.95); background: var(--primary); color: #fff; }
 .refresh-btn:disabled { opacity: 0.65; cursor: default; transform: none; }
 .refresh-btn.is-loading svg { animation: fx-spin 0.9s linear infinite; }
@@ -104,7 +106,7 @@ body {
   width: 100%;
   font: inherit;
   color: var(--ink);
-  background: #fbfefd;
+  background: #f8fcff;
   border: 1.5px solid var(--line);
   border-radius: var(--radius-ctl);
   padding: 12px 14px;
@@ -113,14 +115,14 @@ body {
 }
 .amount-input { font-size: 26px; font-weight: 700; }
 .currency-select { font-size: 16px; appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%235b7470' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%2352708a' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
   padding-right: 38px;
 }
 .amount-input:focus, .currency-select:focus {
   outline: none; border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.18);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18);
 }
 
 .swap-btn {
@@ -133,7 +135,7 @@ body {
   cursor: pointer;
   transition: background 0.15s, transform 0.1s;
 }
-.swap-btn:hover { background: #b5f0e4; }
+.swap-btn:hover { background: #bae6fd; }
 .swap-btn:active { transform: scale(0.94); background: var(--primary); color: #fff; }
 
 .currency-row { display: flex; gap: 12px; }
@@ -141,7 +143,7 @@ body {
 .result-block {
   margin-top: 4px;
   padding: 20px 18px;
-  background: linear-gradient(160deg, rgba(204, 251, 241, 0.55), rgba(255, 255, 255, 0.4));
+  background: linear-gradient(160deg, rgba(224, 242, 254, 0.6), rgba(255, 255, 255, 0.4));
   border: 1px solid var(--primary-soft);
   border-radius: var(--radius-card);
   text-align: center;
@@ -164,7 +166,7 @@ body {
 .rate-list li {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   padding: 11px 14px;
-  background: #fbfefd;
+  background: #f8fcff;
   border: 1px solid var(--line);
   border-radius: var(--radius-ctl);
   font-size: 15px;
@@ -185,7 +187,7 @@ body {
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
-.range-tab.is-active { background: var(--surface); color: var(--primary-strong); box-shadow: 0 1px 4px rgba(13,148,136,0.15); }
+.range-tab.is-active { background: var(--surface); color: var(--primary-strong); box-shadow: 0 1px 4px rgba(2,132,199,0.15); }
 
 .trend-meta { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .trend-pair { font-size: 16px; font-weight: 700; }

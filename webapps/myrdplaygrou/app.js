@@ -222,19 +222,19 @@ function renderTrend() {
   const linePts = rates.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
   const defs = mk("defs", {});
   defs.innerHTML = `<linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#14b8a6" stop-opacity="0.22"/>
-    <stop offset="1" stop-color="#14b8a6" stop-opacity="0.02"/></linearGradient>`;
+    <stop offset="0" stop-color="#0ea5e9" stop-opacity="0.22"/>
+    <stop offset="1" stop-color="#0ea5e9" stop-opacity="0.02"/></linearGradient>`;
   svg.appendChild(defs);
   svg.appendChild(mk("polygon", { points: `${pad.l},${CHART.H - pad.b} ${linePts} ${CHART.W - pad.r},${CHART.H - pad.b}`, fill: "url(#g)", stroke: "none" }));
-  svg.appendChild(mk("polyline", { points: linePts, fill: "none", stroke: "#0d9488", "stroke-width": 2.5, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+  svg.appendChild(mk("polyline", { points: linePts, fill: "none", stroke: "#0284c7", "stroke-width": 2.5, "stroke-linejoin": "round", "stroke-linecap": "round" }));
 
   // 涨跌参照线（首日值）+ 数据点抽样标注
   svg.appendChild(mk("line", { x1: pad.l, x2: CHART.W - pad.r, y1: y(rates[0]), y2: y(rates[0]), stroke: "#38bdf8", "stroke-width": 1, "stroke-dasharray": "4 4", opacity: 0.7 }));
   const step = Math.max(1, Math.ceil(n / 12));
   dates.forEach((d, i) => {
-    svg.appendChild(mk("circle", { cx: x(i), cy: y(rates[i]), r: i % step === 0 || i === n - 1 ? 3.5 : 2, fill: "#0d9488" }));
+    svg.appendChild(mk("circle", { cx: x(i), cy: y(rates[i]), r: i % step === 0 || i === n - 1 ? 3.5 : 2, fill: "#0284c7" }));
     if (i % step === 0 || i === n - 1) {
-      const tx = mk("text", { x: x(i), y: CHART.H - 10, "text-anchor": "middle", "font-size": 11, fill: "#5b7470" });
+      const tx = mk("text", { x: x(i), y: CHART.H - 10, "text-anchor": "middle", "font-size": 11, fill: "#52708a" });
       tx.textContent = d.slice(5).replace("-", "/");
       svg.appendChild(tx);
     }
