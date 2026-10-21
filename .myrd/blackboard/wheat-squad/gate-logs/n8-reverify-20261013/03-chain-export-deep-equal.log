@@ -1,0 +1,8 @@
+# 文件: 03-chain-export-deep-equal.log | 日期: 2026-10-13T02:06:48Z | HEAD: 304dacf01cac6e7ad192ac8dffbd26513cd48eee
+EXPORTED 麦浪小队（wheat-squad） v4 (approved) -> /tmp/ws-n8-export.json
+_platform.updatedAt=2026-10-13T01:46:44.188Z
+EXPORT_EXIT=0
+DEEP_EQUAL=true（链上 v4 approved ≡ 仓内单源逐字节）
+id=cmv60scie003hm9qqu91foe7v version=4 status=approved specVersion=1.2
+acceptance16=16条
+e-telemetry锚=games/wheat-squad/src/game.ts#telemetry

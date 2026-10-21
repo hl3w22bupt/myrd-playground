@@ -1,0 +1,14 @@
+# 文件: 08-n3-chain-v4-gates.log | 日期: 2026-10-13T01:47:32Z | 链 v4 cmv60scie003hm9qqu91foe7v approved | HEAD: 0adff06aad568e7b61b64acd9ee501d281c00d68
+## ① 统一门禁（v4 对账·新 check 路径首验）
+  PASS  验收项 ac-art-3-size-caps 依赖存在: games/wheat-squad/tests/contract/checks/ac-art-3-size-caps.mjs
+  PASS  验收项 ac-art-4-style-consistency 依赖存在: games/wheat-squad/tests/contract/checks/ac-art-4-style-consistency.mjs
+—— 合计 56 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
+UNIFIED_EXIT=0
+
+## ② 自有套件（ac-14 九键口径）
+—— wheat-squad 契约合计 16 PASS / 0 FAIL / 1 PEND ——
+ALL_GREEN=false（含 pending 即非全绿——PEND 1 件：
+  PEND · ac-a3-restart-willingness 结论面：5 名试玩记录未回填（0/5）——manual 结论面待真人，回填后复跑本件转 PASS
+）
+OWN_EXIT=0

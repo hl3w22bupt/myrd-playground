@@ -1,6 +1,6 @@
 {
-  "$note": "wheat-squad 资产清单（AC-A2 机判接口）：entity 类 id 必须 ∈ spec entities ids；清单外源文件出现未登记资产 = 违例（ac-11）。总数 9 ≤ 封顶 13（entities 数）。零外部贴图（tex-1）：实体资产 = 程序化绘制规格（theme.ts token + renderer 绘制函数），无位图文件。",
-  "version": 1,
+  "$note": "wheat-squad 资产清单（AC-A2 机判接口）：entity 类 id 必须 ∈ spec entities ids；清单外源文件出现未登记资产 = 违例（ac-11）。总数 10 ≤ 封顶 13（entities 数）。零外部贴图（tex-1）：实体资产 = 程序化绘制规格（theme.ts token + renderer 绘制函数），无位图文件。",
+  "version": 2,
   "styleCard": ".myrd/blackboard/wheat-squad/style-card-v1.md",
   "paletteWhitelistSource": "spec.numeric.palette",
   "assets": [
@@ -10,6 +10,7 @@
     { "id": "e-bullet", "category": "entity", "kind": "procedural-draw-spec", "source": "games/wheat-squad/src/render/renderer.ts#drawEffects", "tokenSource": "games/wheat-squad/src/render/theme.ts" },
     { "id": "e-wheat-pickup", "category": "entity", "kind": "procedural-draw-spec", "source": "games/wheat-squad/src/render/renderer.ts#drawEffects", "tokenSource": "games/wheat-squad/src/render/theme.ts" },
     { "id": "ui-kit-01", "category": "ui-kit", "kind": "procedural-draw-spec", "source": "games/wheat-squad/src/render/renderer.ts#drawHud", "tokenSource": "games/wheat-squad/src/render/theme.ts", "covers": ["HUD 带", "三选一卡", "结算面板", "按钮态"] },
+    { "id": "guidance-hint-banner", "category": "ui", "kind": "procedural-draw-spec", "source": "games/wheat-squad/src/render/renderer.ts#drawGuidance", "tokenSource": "games/wheat-squad/src/render/theme.ts", "copySource": "games/wheat-squad/src/game.ts#GUIDANCE_TEXT", "copy": "拖动队长移动 · 队员自动作战", "styleRef": ".myrd/blackboard/wheat-squad/style-card-v1.md#v12-增量引导元素视觉权重规则定稿--2026-10-13--回三合一包-tri-pack-v12md", "spec": "390×44 横条（86% 宽）；panelCream 底 + wheatDeep 2px 描边 + inkBrown 600 14px；禁 accentRed" },
     { "id": "sub-icon", "category": "submission", "kind": "placeholder-template", "source": "games/wheat-squad/qa/submission/sub-icon.template.svg", "spec": "512x512 PNG 正式件占位；≤300KB", "sizeCapKB": 300 },
     { "id": "sub-sharecard-5x4", "category": "submission", "kind": "placeholder-template", "source": "games/wheat-squad/qa/submission/sub-sharecard-5x4.template.svg", "spec": "1000x800 (5:4)；≤1024KB", "sizeCapKB": 1024 },
     { "id": "sub-shots-3", "category": "submission", "kind": "placeholder-template", "source": "games/wheat-squad/qa/submission/sub-shots-3.template.svg", "spec": "3x 1170x2080 (390x640@3x)；≤500KB/张", "sizeCapKB": 500 }
