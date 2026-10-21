@@ -1,0 +1,9 @@
+== ③d 三入口 palette 可读亲核 · HEAD=c33a8165de3a138126ddbd1dbdc19f11d686b52a ==
+（入口：① approved 单源 wheat-squad/design-spec.json ② 门禁适配视图 design-spec.json ③ slug 薄壳 wheat-squad-spec.json）
+
+[wheat-squad/design-spec.json] accentRed=#D2543E fieldDeep=#5C7F42 fieldGreen=#7FA65A inkBrown=#4A3826 pestBrown=#8A5A3B skyCream=#F5EDD8 wheatDeep=#C99530 wheatGold=#E8B84B | n=8
+[design-spec.json] accentRed=#D2543E fieldDeep=#5C7F42 fieldGreen=#7FA65A inkBrown=#4A3826 pestBrown=#8A5A3B skyCream=#F5EDD8 wheatDeep=#C99530 wheatGold=#E8B84B | n=8
+[wheat-squad-spec.json] accentRed=#D2543E fieldDeep=#5C7F42 fieldGreen=#7FA65A inkBrown=#4A3826 pestBrown=#8A5A3B skyCream=#F5EDD8 wheatDeep=#C99530 wheatGold=#E8B84B | n=8
+
+PASS: 三入口 8 色 palette 逐值全等（单源链对任意调用方不断）
+RESULT-EXIT=0

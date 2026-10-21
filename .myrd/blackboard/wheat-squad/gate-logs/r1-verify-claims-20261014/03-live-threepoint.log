@@ -1,0 +1,13 @@
+== 线上三点复测（verify-claims 独立取证）@ HEAD 9a4a12c · 2026-10-14T02:44:08Z ==
+--- ① 页面路 title ---
+<title>麦浪小队</title>
+--- ② 资产三件 md5（live vs HEAD build，全等） ---
+main.mjs  live=bcde4bea67cfc6a1af57ce7ae4297e2d local=bcde4bea67cfc6a1af57ce7ae4297e2d
+spec.json  live=dba2d74239f3fdfcd2a5c58673730575 local=dba2d74239f3fdfcd2a5c58673730575
+index.html live=d035b3a2d6a0c0f60eaac0aa4df56c1b local=d035b3a2d6a0c0f60eaac0aa4df56c1b
+--- ③ LIVE-SMOKE ---
+[ws-live-smoke] 操作 ✓ tick 推进 + 击杀 2（线上拖动→作战链通）
+[ws-live-smoke] 结算 ✓ phase=ended reason=victory elapsed=167s
+[ws-live-smoke] console/页面 零错误 ✓
+WS-LIVE-SMOKE: PASS 线上打开→操作→结算 + console 零错误
+LIVE_SMOKE_EXIT=0

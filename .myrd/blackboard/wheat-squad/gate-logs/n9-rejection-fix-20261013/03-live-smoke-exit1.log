@@ -1,0 +1,8 @@
+# 文件: 03-live-smoke-exit1.log | 日期: 2026-10-13T02:44:35Z | HEAD: fdab3a62e4b0c28c093e0844081613a2640da370
+# ④ 驳回处置：显式取码（重定向非管道、紧邻命令）复跑线上冒烟——W-3 未解除预期 exit=1（fail-closed 红正确）
+[ws-live-smoke] 目标 https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw
+[ws-live-smoke] chromium 就绪（CDP page target）
+[ws-live-smoke] DIE READY 超时（线上 boot 断链）
+Error: 引擎引导脚本加载失败: https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw/api/public/assets/index.js
+    at s.onerror (https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw:172:40)
+LIVE_SMOKE_EXIT=1

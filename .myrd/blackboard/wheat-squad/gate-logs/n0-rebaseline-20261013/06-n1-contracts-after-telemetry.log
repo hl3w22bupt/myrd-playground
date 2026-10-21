@@ -1,0 +1,15 @@
+# 文件: 06-n1-contracts-after-telemetry.log | 日期: 2026-10-13T01:35:50Z | HEAD: 129bf560e159e79140c6c2a0b2cce113d102bd20（工作区含 N1 埋点增量）
+## ① 统一门禁
+  PASS  验收项 ac-art-4-style-consistency 依赖存在: games/wheat-squad/tests/contract/ac-13-art-style-consistency.spec.mjs
+—— 合计 53 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
+UNIFIED_EXIT=0
+
+## ② 自有套件（16 件含 ac-16）
+PASS ac-15 门禁适配视图守卫（id/slug=wheat-squad 单源同源 · 剔注入键深等 · 入口在盘）
+PASS ac-16 埋点四事件骨架（hint_shown@0ms + first_tap once@32ms + first_loop_complete@7040ms + restart_clicked count 1→2）· a5 窗语义 5s 内可达
+—— wheat-squad 契约合计 16 PASS / 0 FAIL / 1 PEND ——
+ALL_GREEN=false（含 pending 即非全绿——PEND 1 件：
+  PEND · ac-a3-restart-willingness 结论面：5 名试玩记录未回填（0/5）——manual 结论面待真人，回填后复跑本件转 PASS
+）
+OWN_EXIT=0

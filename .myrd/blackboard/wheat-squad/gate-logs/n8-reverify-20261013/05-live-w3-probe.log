@@ -1,0 +1,6 @@
+# 文件: 05-live-w3-probe.log | 日期: 2026-10-13T02:07:04Z | HEAD: 304dacf01cac6e7ad192ac8dffbd26513cd48eee
+== 线上 W-3 现状复测（页面路 title）==
+<title>汽车连连看</title>
+== 资产路指纹（live main.mjs md5 vs 仓内 build）==
+live  main.mjs md5: bcde4bea67cfc6a1af57ce7ae4297e2d
+local main.mjs md5: bcde4bea67cfc6a1af57ce7ae4297e2d
