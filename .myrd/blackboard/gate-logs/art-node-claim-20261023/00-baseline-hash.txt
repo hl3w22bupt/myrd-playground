@@ -1,0 +1,34 @@
+# 游戏美术节点认领复证 · 证据（2026-10-23 组合推进轮 · HEAD 76d7cd473e6a2a7ace0b8899950869c92bfd6385)
+
+## 01 · PL3 素材基线 sha256（重生成前）
+97ddd5f2fd0209b29cdd2f349c92f005fd55af27faba2090fd5dc740cc971c2d  games/line3-tower-defense/assets/game-art/battlefield-preview.svg
+a0d793c4fb80b59fa4d00ab888d13b0074cba9fc67e833102f44ab766cfe614f  games/line3-tower-defense/assets/game-art/core-hud-sample.svg
+53814e11fef17174bc6ca8df580537053bb735f214030a9aeb660f97f72b1384  games/line3-tower-defense/assets/game-art/enemy-kind-sheet.svg
+321bb5cfb7e7343b800d943cbd8f4308b820e27f5065fc41586f1702b6d7b86b  games/line3-tower-defense/assets/game-art/guidance-overlay.svg
+9af8876e581129b225ccb68a7b6af825b8af46e839c365968bb1129ec255ef24  games/line3-tower-defense/assets/game-art/settlement-panel.svg
+2e1c654ff24bfd2da8c91d35bd411cbd880afa48be888e2bfcdad62de5a985f7  games/line3-tower-defense/assets/game-art/turret-lv-sheet.svg
+77e4308b2ea22bb04799c003d6ded563b03f23fa22169f4f7656f2fdd6713547  games/line3-tower-defense/assets/game-art/manifest.json
+09c4d565e9dbcef575fad30e87725196d6d0651e2e509e605914f9eae61153be  games/line3-tower-defense/assets/style-sketch/direction-1.svg
+7fda59ec11eab34c71d28f9cfcaf3ff1372bab285f3d5c70f70f2aca8d1eeddb  games/line3-tower-defense/assets/style-sketch/direction-2.svg
+4185b770f1806746c8274ef61906ef3a3c841d18b7f8c1c8546c787984e28246  games/line3-tower-defense/assets/style-sketch/direction-3.svg
+e3df7a2de89ac212caf317dd2a0138a7dcec42a6d920d866eb269dc1ff47cd12  games/line3-tower-defense/assets/style-sketch/manifest.json
+
+## 02 · 重生成后 sha256 + 独立审计器 + git diff
+--- style-sketch-audit exit 与结论 ---
+AUDIT_EXIT=0
+
+SKETCH-AUDIT PASS（3 张方向稿：色值/光照/画布/构成/文案五面全过）
+--- 重生成后 sha256（与基线逐行比对）---
+97ddd5f2fd0209b29cdd2f349c92f005fd55af27faba2090fd5dc740cc971c2d  games/line3-tower-defense/assets/game-art/battlefield-preview.svg
+a0d793c4fb80b59fa4d00ab888d13b0074cba9fc67e833102f44ab766cfe614f  games/line3-tower-defense/assets/game-art/core-hud-sample.svg
+53814e11fef17174bc6ca8df580537053bb735f214030a9aeb660f97f72b1384  games/line3-tower-defense/assets/game-art/enemy-kind-sheet.svg
+321bb5cfb7e7343b800d943cbd8f4308b820e27f5065fc41586f1702b6d7b86b  games/line3-tower-defense/assets/game-art/guidance-overlay.svg
+9af8876e581129b225ccb68a7b6af825b8af46e839c365968bb1129ec255ef24  games/line3-tower-defense/assets/game-art/settlement-panel.svg
+2e1c654ff24bfd2da8c91d35bd411cbd880afa48be888e2bfcdad62de5a985f7  games/line3-tower-defense/assets/game-art/turret-lv-sheet.svg
+77e4308b2ea22bb04799c003d6ded563b03f23fa22169f4f7656f2fdd6713547  games/line3-tower-defense/assets/game-art/manifest.json
+09c4d565e9dbcef575fad30e87725196d6d0651e2e509e605914f9eae61153be  games/line3-tower-defense/assets/style-sketch/direction-1.svg
+7fda59ec11eab34c71d28f9cfcaf3ff1372bab285f3d5c70f70f2aca8d1eeddb  games/line3-tower-defense/assets/style-sketch/direction-2.svg
+4185b770f1806746c8274ef61906ef3a3c841d18b7f8c1c8546c787984e28246  games/line3-tower-defense/assets/style-sketch/direction-3.svg
+e3df7a2de89ac212caf317dd2a0138a7dcec42a6d920d866eb269dc1ff47cd12  games/line3-tower-defense/assets/style-sketch/manifest.json
+--- git status/diff（工作树应净）---
+DIFF_EMPTY_CHECK: 0 条变更

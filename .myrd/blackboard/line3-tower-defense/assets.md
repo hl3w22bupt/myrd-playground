@@ -156,3 +156,5 @@
 | 方向稿/占位件 | `assets/game-art/` 6 件 + `assets/style-sketch/` 方向稿——本轮零触碰零重绘 | 冻结维持 |
 | 零新资产声明 | 本轮美术面仅本盘点落账，未产任何新图、未改接线、未动 numeric.palette | ✓ 纪律遵守 |
 
+- **美术节点独立重证（2026-10-23 收口后 · 跨线认领纪律）**：当前轮末 HEAD `76d7cd4` 下重跑——11/11 件（game-art 6 + style-sketch 3 + 双 manifest）sha256 与上表登记逐件全等；双生成器确定性重生成 11/11 逐字节零漂移（`git status` 工作树净）；`style-sketch-audit` PASS（exit=0，色值/光照/画布/构成/文案五面）。本段各行结论在最新提交上复验成立。机判原文 `../gate-logs/art-node-claim-20261023/00-baseline-hash.txt`
+
