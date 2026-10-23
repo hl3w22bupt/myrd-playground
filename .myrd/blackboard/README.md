@@ -11,7 +11,7 @@
 | **PL2 g2-blocks《熔炉方块》** | **退「打磨中」（R3）**：四查未全过（链上 0 approved=G-1 决定性 + 凭证=G-2，均主人侧）；旧「提审就绪」口径作废勘误 | QA 四查 + 策划派生核对表 + 美术合规自查/体积预算（三线包 ≤2MB）+ 程序缺口清单（G-1..G-8） | `g2-blocks/p0-2-four-checks-20261023.md` |
 | **PL3 line3-tower-defense《敌潮将至(工作名)》** | **备而不动收口**：verify 五步复跑全绿 @ `fa71074`（部署面良性漂移记录差异）· **spec v1.1 = 链 v4 `cmvkb2d8y001fm968778whydc` approved（唯一）** · 埋点方案 v1 · 美术零新资产 | 复跑+健康核查+三问预审（1 不可测→修订）+ v1.1 入链 approve 全留痕 + 双门禁 v4 基线 EXIT=0 | 子黑板 P0-3 区段 · `acceptance-preaudit-20261023.md` · `telemetry-plan-v1.md` |
 | **PL4 next-line** | **新鲜调研收口（不开题，立项权归主人）**：四条硬验收 PASS → Top3（①文字/找茬/脑洞 主推 · ②挪车/挤压 次推 · ③合成×经营 观察）+ 排除区（塔防/足球/重SLG/宫斗IP/多人实时） | 简报 v2（D34–D44）+ QA 核验 + 拍板三问备忘 | `next-line/` 三件套 |
-| 他线（wheat-squad / stack-tower / game-9 / 糖果线） | 零接触维持 | — | — |
+| 他线（wheat-squad / stack-tower / game-9 / 糖果线） | 组合推进轮零接触维持；**部署节点单动作：wheat-squad v26 复证发布**（`cmvkf37db002im968oebxf2am` running/current @ `game/wheat-squad` 提交 `f473f3a` · 构建锚 `64de797` · 门禁五步 VERIFY_EXIT=0 · LIVE 三点字节全等 + LIVE-SMOKE victory · 坑 `wheat-squad-2` sourceId 绑定核对过；游戏逻辑面零变更，仅锚行重绑+证据）· stack-tower / game-9 / 糖果线零接触 | 部署轮 v26（六步走+防挤占坑位核对） | `games/wheat-squad/gate-logs/deploy-v26-20261023/00..08` · 子板 blockers.md「部署轮 v26」 |
 
 ## 组合全景（2026-10-17 双轨执行轮收口时点 · 存档）
 

@@ -1,0 +1,9 @@
+== 2026-10-23T03:38:24Z LIVE 三点复测 v26（修正取证方式：curl -o 分离 body）==
+gw HTTP=200 size=530
+live /gw md5: 724c04b0f43227420c1283817977a22a
+repo landing.html md5: 724c04b0f43227420c1283817977a22a
+main.mjs HTTP=200 size=24716
+live main.mjs md5: e21bd56ac2eebe281f15d38b57f4b3a8
+repo main.mjs md5: e21bd56ac2eebe281f15d38b57f4b3a8
+--- 内嵌构建锚:
+EMB=__G2WS_BUILD = {"gitSha":"64de7972d7c8097057eaf8c26af7b2626b48d940","specAnchor":"cmv8xcexk0009m9dj6ev1dj0r@v6:approved"}

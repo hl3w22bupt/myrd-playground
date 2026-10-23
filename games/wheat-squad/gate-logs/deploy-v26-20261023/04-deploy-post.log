@@ -1,0 +1,5 @@
+# POST deployment · UTC 2026-10-23T03:35:29Z
+# body: {"mode":"bundle","deployedBy":"workflow","gitRef":"game/wheat-squad","manifestPath":"games/wheat-squad/apphost.toml","sourceId":"wheat-squad"}
+HTTP_CODE=504
+
+HTTP_CODE=504
