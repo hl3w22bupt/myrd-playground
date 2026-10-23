@@ -1,7 +1,20 @@
 # 阻塞项黑板 — 工作室组合全景（多游戏共板 · 每线各自有子黑板）
 
-> 更新时间：2026-10-18（**三轨执行轮收口：A=线 3 spec v1.0 实现到部署 LIVE ✅ · B=g2-blocks sha 答复+互查+归类 ✅ · C=线 4 调研刷新 ✅**）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：**等主人三件**（①线 3 试玩 —— 正式入口已恢复 `/apps/line3-tower-defense-2/gw`，见 B-5 勘误 ~~②B-5 坑位路由运维处置~~ 2026-10-18 已修复关闭：根因=本游戏 build 缺 landing.html 非平台层串线 ③B-6 g2 链面修复 approve（~~B-1 源仓访问面~~ 2026-10-18 勘误撤销：源仓在盘已实跑复证）④W-L3-4 数值校准拍板 ⑤线 2 A3 真人执行维持）——均带证据升级不催办
+> 更新时间：2026-10-23（**组合推进轮开工：P0-1 底账对账 / P0-2 PL2 收口 / P0-3 PL3 备而不动 / P1 PL4 新鲜调研**）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+
+## 当前基线（2026-10-23 · 组合推进轮开工 N0 · 主策划）
+
+| 项 | 值 |
+|---|---|
+| 黑板路径 | 顶层 `.myrd/blackboard/`（共板，本轮对账表/全景）+ 各线子目录（`g2-blocks/`＝本轮 P0-2 · `line3-tower-defense/`＝本轮 P0-3 · `next-line/`＝本轮 P1）；PL1 件落共板 `recon-line123-20261023.md`（足球线无子黑板，落位核对见对账表） |
+| 本轮产品线落位（实证） | **PL1=pixel-fives《像素街机足球》**（仓根 `pixel-fives/`，spec v1.2 approved **落文盖章版·平台链未建**，M1 收口，最后触达 `ec2c2bb` 2026-09-22）· **PL2=g2-blocks《熔炉方块》**（源仓 `~/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks`，一号仓仅 `games/g2-blocks/` 部署镜像壳；链 v1–v10 全 superseded、approved=0）· **PL3=line3-tower-defense**（`games/line3-tower-defense/`，链 v2 `cmvbqgzbl0029m9ax64foxd37` approved v1.0）· **PL4=next-line**（`.myrd/blackboard/next-line/`）· 他线 wheat-squad / stack-tower / game-9 本轮零接触 |
+| 当前分支与 HEAD | `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `0b547f4284b9135a14849507e218ddad2df98262`（任务书约定分支，直接提交不切分支） |
+| 分支续接结果 | `git fetch origin` 完成：远端**仅 `origin/main`**，无任何 `game/<slug>` 远端分支（`git branch -r` 实证）→ 第一次合并无对象，如实披露；`origin/main` @ `9fbc1dc` 仍为**单提交孤儿快照线（607 文件，merge-base=∅）**→ 沿 10/16 判例（`0ff651f`）**不并入**（防 graft 伪历史断证据链），偏差如实披露；无 rebase |
+| spec 版本号（本轮契约输入） | PL3=`.myrd/spec/line3-tower-defense/design-spec.json`（链 v2 approved v1.0，契约测试与 QA 共同输入）· PL2=`.myrd/spec/g2-blocks/design-spec.json`（锚 v9/1.6，**链上 0 approved=契约面失效，B-6 维持**）· PL1=`.myrd/spec/design-spec-pixel-fives.json`（v1.2 approved 落文盖章版，**平台链 pending homecoming**）· ⚠️ 顶层 `.myrd/spec/design-spec.json` = wheat-squad 门禁适配视图（他线冻结件，本轮不作任何线的契约输入） |
+| 平台 API 通道 | `http://localhost:3111` **可达**（/api/v1/health 200 · database connected · 2026-10-23 本会话实测）；鉴权 `MYRD_TOKEN` Bearer admin 实查 `/api/v1/auth/me` 200（admin@myrd.dev）——本会话可执行真实接口操作（spec 回查/revision 入链） |
+| 装配面实况（如实上报） | 本会话工具清单**无 assign_agent 派活通道**（与 10/18 轮「主策划工作室代行节点」判例同型）：四职能件（程序/QA/策划/美术）由主策划会话**代行产出并逐件署名落盘**，QA 核签口径沿「限制性核签」判例；无「非项目成员/0 仓库」装配异常，代行限制面记入 blockers 不降级为纸面件 |
+| 部署物基线（10/18 收口态） | PL3=**v2 running @ `f9d9834`**（line3-tower-defense-2 坑 · appId `cmvd6lt7f002km9wl2kbex7w4`）· PL2=**v17 running @ `2bb69c7`**（g2-blocks-2 坑，2026-10-11 部署后无重部署）· PL1=**无部署记录**（全部历史与黑板零命中）——10/18 部署构建记录出处逐行见 `recon-line123-20261023.md` |
+> 下一步：**本轮四包串行执行中**（P0-1 对账 → P0-3 PL3 复跑与预审 → P0-2 PL2 收口 → P1 PL4 调研），轮末登记组合全景与本轮决策；等主人事项沿旧（PL3 试玩 / B-6 g2 链面 approve / W-L3-4 数值校准 / PL2 凭证）——均带证据升级不催办
 
 ## 三轨收口全景（2026-10-18）
 

@@ -1,0 +1,14 @@
+== PL3 健康核查（只打 10/18 部署记录真实地址 /gw 与 /gw/health，不探针已销案资产面入口）==
+-- GET /gw --
+HTTP=200 type=text/html; charset=utf-8 bytes=645
+-- GET /gw/health --
+{"ok":true,"app":"game-9","title":"汽车连连看","env":"development","assets":"lazy/object-storage"}
+-- GET /gw/landing.html 首 2 行（壳身份）--
+404 Not Found
+-- 部署面 manifest gitSha（经 /api/public/assets/ 部署契约路由）--
+LIVE manifest gitSha = a27ca0e86b618e2bf0ca2f8621efbb1e8c78955e
+== landing.html 逐字节对账（LIVE /gw vs 本仓 build/landing.html）==
+1ee3ff09f53d8fa0077dd07b244e0473
+1ee3ff09f53d8fa0077dd07b244e0473
+== 本地 landing.html 字节数 ==
+     645

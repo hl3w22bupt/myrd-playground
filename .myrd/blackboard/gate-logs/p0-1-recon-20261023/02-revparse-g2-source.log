@@ -1,0 +1,18 @@
+== PL2 源仓 git 实查（检出态）==
+dy/port-v1.1
+023e5838b5e833875fab2e37711d8d3e2d714e2e
+== worktrees ==
+/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks       023e583 [dy/port-v1.1]
+/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-main  9c27438 [sync/dy-v1.3]
+/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-n1    2e6cc36 [feat/v1.3-batch-n1]
+/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-v13   ded8e8f [feat/v1.3-nearmiss-settlement]
+/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-wx    4fba03a [wx/port-v1.1]
+== 各线头 ==
+9c27438511d2638e29d48ec26778eb976421c2cc 2026-10-11 10:49:11 +0800 fix(gates): 生成件重烘焙后重出包（dy 主包 267494B→301279B≤4MB）+ 真源快照字面三处守卫豁免随件落账
+4fba03ae1552f5efc73d9ffb0a8f63391e0f6cf6 2026-10-05 16:51:16 +0800 chore(build): Web 产物随 HEAD 重 build——theme.mjs 隐私 token + sw.js 清单 + platform/wx 惰性件（部署导出源定稿）
+cee01357c4bdce68f72b77a28f56d32fc2e47978 2026-10-11 09:35:44 +0800 fix(contract): D-01 ac-22 基线守卫升级为链锚核对(锚存档唯一真源 6719edd2…) + O-01 部署面白名单对象形态规范化(startsWith 恒 false 缺陷)——三态复绿 18/0/0·25/0/0·29/0+1PEND
+== 2bb69c7 在源仓？==
+fatal: Not a valid object name 2bb69c7
+error: malformed object name 2bb69c7
+== 一号仓有 2bb69c7？==
+commit
