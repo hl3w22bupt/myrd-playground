@@ -9,6 +9,7 @@
 > stack-tower：冻结维持（零接触，机判留证 `v13-head-reverify-20261010/03`）；第二线：孵化调研中（未立项未建关，B2 预置件空壳冒烟 4/4 复证）
 > 各线明细：g2-blocks 子黑板 `.myrd/blackboard/g2-blocks/` · 第二线 `.myrd/blackboard/next-line/`
 > **双轨轮程序线复核（游戏程序 verify-claims @ HEAD `476090c` · 2026-10-17，供主策划整合引用）**：轨道 A 线 2 = A1 重锚三点闭环本轮 LIVE 重测复验成立（内嵌 `9945257` ≡ 报告绑定逐字符 · md5 ≡ build 逐字节 · 源面 diff 空）+ A2 判定面复跑逐值一致（16/0/1PEND · 红 0）+ A3 互斥均不触发，维持等主人圈定 5 名真人；轨道 B 线 3 = **spec v1 已 approved**（链 v2 `cmvbqgzbl0029m9ax64foxd37` @ 01:44:41Z，六判据全 PASS）+ B3 骨架三件复核成立（图谱 45 节点/inventory 24 文件/埋点桩，approve 前 105 行纯占位零玩法）；五步门禁 @ `476090c` `VERIFY_EXIT=0`；两线黑板三件套齐。证据 `wheat-squad/gate-logs/dualtrack-recheck-20261017/`。组合全景头部仍为 10/16 口径，整合更新归主策划。
+> **组合推进轮程序线收口复核（游戏程序 @ HEAD `e9a3f87` · 2026-10-23）**：PL3 line3 = **verify.sh 六步全绿 exit=0 @ 当前 HEAD**（契约门禁识别链 **v4** `cmvkb2d8y001fm968778whydc` approved · L3-SMOKE 锚 `e9a3f87`+v4 · SCOPE 零违例）· 线上三点复验（`/gw` 200 landing 逐字节全等 · LIVE 锚 ≡ `a27ca0e` · 部署 v2 running）· PL2 `/gw` 200 存活 · PL1 维持无部署零探针；三线底账对账 `recon-line123-20261023.md`（§七 轮末补记交代 HEAD 快照时点差）。证据 `line3-tower-defense/gate-logs/roundend-rerun-20261023/01..03`。本轮零关卡面变更（备而不动），组合全景整合仍归主策划。
 
 ---
 

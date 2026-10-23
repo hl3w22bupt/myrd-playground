@@ -17,6 +17,15 @@
 
 **阻塞面变化**：零新增；W-L3-1（工作名）/W-L3-2（视觉方向）/W-L3-3（a3 真人 5 名+埋点导出件同批回收）/W-L3-4（数值校准）维持挂起归主人。B-5 已关闭维持（勘误留痕）。
 
+## 轮末续接复核（2026-10-23 · 游戏程序 · verify 六步全绿 @ HEAD `e9a3f87` · v4 新基线）
+
+> 背景：上表「程序·门禁复跑」锚 `fa71074`+specAnchor v2 是**修订入链前**的基线取证；v4 approved 落地后分支又前进 3 个纯黑板提交（13a787c/e9a3f87 等）→ 轮末以**当前 HEAD + v4 基线**重跑一次，作为本轮交付的最终门禁口径。
+
+- **独立实跑**：`bash games/line3-tower-defense/verify.sh`（cwd=仓根、无裁剪、冒烟不跳过）六步全 PASS · **exit=0**（72s）——统一契约门禁识别「平台登记 **v4** `cmvkb2d8y001fm968778whydc`」+ run-all 14/14 + a3 PEND 单列 + 构建面 + 部署壳守卫 + **L3-SMOKE 锚 gitSha=`e9a3f87` + specAnchor=`cmvkb2d8y001fm968778whydc@v4:approved`** + SCOPE 零违例。
+- **构建面**：重建漂移=3 文件纯锚位（`a27ca0e`/v2 → `e9a3f87`/v4），行为面零差异；取证后 restore 回部署锚面树净（残余 0，manifest gitSha 回 `a27ca0e`）。
+- **线上单次复查**（10:09）：`/gw` 200 · 645B md5 `1ee3ff09…` ≡ 本仓 build/landing.html 逐字节全等 · 线上 manifest gitSha ≡ `a27ca0e`（specAnchor 字段=v2，系部署时点内嵌，与链面 v4 并存如实并记）；部署单 v2 **running**（API 回读 commitHash=`f9d9834942be…` errorMessage=null）。
+- **链面回读**：v4 `cmvkb2d8y001fm968778whydc` **approved**（acceptance 15 条）· v3 `cmvkb0818…` superseded —— 与导出件 `_platform` 段逐字段一致。
+- **阻塞面影响**：零新增、零核销；W-L3-1..4 维持归主人。证据 `gate-logs/roundend-rerun-20261023/01-verify-full.log · 02-build-restore.log · 03-recheck-live-and-chain.log`（命令原文+时刻+exit 码齐）。
 
 ## 续接复核（2026-10-18 · 游戏程序 · verify 全绿 @ HEAD `1b953cd`）
 
