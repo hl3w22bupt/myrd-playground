@@ -1,0 +1,3 @@
+payload written; acc= 15 meta.version= 1.0
+frozen segments deep-equal: numeric/world/entities/levels OK
+a1/a2 thresholds preserved verbatim OK; ids & checks unchanged OK

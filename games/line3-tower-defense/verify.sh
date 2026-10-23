@@ -32,6 +32,9 @@ step "② 自有契约套件（14 auto + a3 PEND）" \
 step "⓪ 构建面（确定性产物，冒烟前置）" \
   node "$GAME/tools/build.mjs"
 
+step "⓪+B 部署壳契约（landing.html 缺失即回落 game-9 内置壳，W-3/B-5 收口）" \
+  node "$GAME/ci/guard-landing-shell.mjs"
+
 if [ "${L3_VERIFY_SKIP_SMOKE:-0}" = "1" ]; then
   echo "== [verify.sh] ③ L3-SMOKE :: SKIP（L3_VERIFY_SKIP_SMOKE=1，非门禁口径）=="
 else

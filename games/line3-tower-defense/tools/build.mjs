@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // tools/build.mjs — line3-tower-defense 确定性构建（零 npm 依赖 · stripTypeScriptTypes 判例承 wheat-squad）
-// 产物：build/（index.html + main.mjs + src/**.mjs 镜像 + spec.json）——AppHost assets_dir 面。
+// 产物：build/（landing.html + index.html + main.mjs + src/**.mjs 镜像 + spec.json）——AppHost assets_dir 面。
 // 确定性：同输入逐字节一致；spec.json = approved 导出件直拷（零手抄）；
 //         main.mjs 头部注入 __L3_BUILD__（gitSha/specAnchor）→ LIVE 三点对账锚。
 import { mkdirSync, readFileSync, writeFileSync, rmSync, readdirSync, statSync, existsSync } from 'node:fs';
@@ -59,14 +59,20 @@ function walk(dir, rel = '') {
 }
 walk(join(ROOT, 'src'), 'src');
 
-// ② index.html（壳 + spec.json 预载注入）+ spec.json（approved 导出件直拷 → 运行时 __L3_SPEC__ 单源装配）
-writeFileSync(join(OUT, 'spec.json'), JSON.stringify(specRow));
-writeFileSync(join(OUT, 'index.html'), readFileSync(join(ROOT, 'index.html'), 'utf8')
+// ② index.html（壳 + spec.json 预载注入）+ landing.html（apphost 共享壳 server/ 的 GET / 契约面：
+//    引用一律走 api/public/assets/* 相对路径，wheat-squad 判例同构——缺它即回落 game-9 内置壳）
+//    + spec.json（approved 导出件直拷 → 运行时 __L3_SPEC__ 单源装配）
+const shellHtml = readFileSync(join(ROOT, 'index.html'), 'utf8')
   .replace('<script type="module" src="./src/main.mjs"></script>',
 `<script>
   window.__L3_SPEC__ = fetch('./spec.json').then(function (r) { return r.json(); });
 </script>
-<script type="module" src="./src/main.mjs"></script>`));
+<script type="module" src="./src/main.mjs"></script>`);
+writeFileSync(join(OUT, 'spec.json'), JSON.stringify(specRow));
+writeFileSync(join(OUT, 'index.html'), shellHtml);
+writeFileSync(join(OUT, 'landing.html'), shellHtml
+  .replace("fetch('./spec.json')", "fetch('api/public/assets/spec.json')")
+  .replace('src="./src/main.mjs"', 'src="api/public/assets/src/main.mjs"'));
 
 // ③ 产物清单（确定性对账面：重跑逐字节一致）
 const files = [];

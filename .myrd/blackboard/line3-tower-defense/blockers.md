@@ -1,7 +1,31 @@
 # 阻塞项黑板 — line3-tower-defense（第三产品线 · 单场景塔防）
 
-> 更新时间：2026-10-18（**实现轮 · A 轨五节点 N1–N5 全收口**）· 负责人：主策划（整合）/ 游戏程序 / 游戏美术 / 游戏 QA
-> 下一步：**主人试玩**（入口见 N5 行 · A4 主观层唯一判官）+ B-5 坑位路由升级处置 + W-L3-4 数值校准拍板
+> 更新时间：2026-10-23（**组合推进轮 P0-3「备而不动」收口**）· 负责人：主策划（整合）/ 游戏程序 / 游戏美术 / 游戏 QA
+> 下一步：**等主人反馈回流**（试玩 + a3 记录卡 + 埋点导出件同批回收）；反馈未回流不开 R1、不产新资产
+
+## P0-3 收口区段（2026-10-23 · 组合推进轮）
+
+| 节点 | 结论 | 产物 |
+|---|---|---|
+| 程序·门禁复跑 | **verify.sh 五步全绿 VERIFY_EXIT=0 @ HEAD `fa71074`**（复跑前不认任何「门禁已过」；L3-SMOKE 锚 gitSha=`fa71074` + specAnchor=`cmvbqgzbl0029m9ax64foxd37@v2:approved` 当时基线；重建面差异仅锚位 2 处，取证后 restore 回部署锚面树净） | `gate-logs/p0-3-rerun-20261023/01..02` |
+| 程序·健康核查 | `/gw` 200（645B landing.html 与本仓逐字节全等 md5 `1ee3ff09…`）+ 线上 manifest gitSha `a27ca0e` ≡ 本仓 ≡ f9d9834 时点三方同值；部署单 v2 running（API 回读）；**对账表判「良性漂移：HEAD 领先 1 docs/门禁提交，构建面零差异，记录差异不重部署**（共板 `recon-line123-20261023.md`） | `p0-1-recon-20261023/03..04` |
+| 程序·埋点方案 | **telemetry-plan-v1**（首 30 秒流失/单局时长/再来一局点击，八键零新增，本地持久层零平台 API，实现轮落码） | `line3-tower-defense/telemetry-plan-v1.md` |
+| 策划+QA·三问预审 | a1/a2/a4 **可测** · a3 **条件可测（待真人 0/5）** · 首 30 秒流失（真人面）**不可测**→按任务口径出修订；「首 30 秒体验」第一分钟目标行为=a1 已写，硬规则不触发（两结论并记） | `acceptance-preaudit-20261023.md` |
+| 策划·spec v1.1 | **链 v4 `cmvkb2d8y001fm968778whydc` approved（2026-10-23T01:43:57Z，唯一 approved）**——只补 a1/a2 真人面可测表述+测量方法，冻结四段深等、id/check 零改动、阈值一字不动；v3 系 meta.version 漏自增修正轮（未 approve 即 superseded，如实留痕）；不计打磨轮 R1、不受「等反馈」约束（主策划裁定） | REVISIONS.md v3/v4 行 · `gate-logs/p0-3-rerun-20261023/10..20` |
+| QA·契约同步 | 新基线双门禁复跑 EXIT=0（统一契约门禁识别「平台登记 v4」+ run-all 14/14 auto + a3 PEND 单列） | `20-post-revision-gates.log` |
+| 美术·资产盘点 | **零新资产**：可见资产 6/13 封顶内，hash 确定性/风格卡 token/视觉签名映射三面复跑 PASS，方向稿冻结维持 | `assets.md` P0-3 盘点段 |
+
+**阻塞面变化**：零新增；W-L3-1（工作名）/W-L3-2（视觉方向）/W-L3-3（a3 真人 5 名+埋点导出件同批回收）/W-L3-4（数值校准）维持挂起归主人。B-5 已关闭维持（勘误留痕）。
+
+## 轮末续接复核（2026-10-23 · 游戏程序 · verify 六步全绿 @ HEAD `e9a3f87` · v4 新基线）
+
+> 背景：上表「程序·门禁复跑」锚 `fa71074`+specAnchor v2 是**修订入链前**的基线取证；v4 approved 落地后分支又前进 3 个纯黑板提交（13a787c/e9a3f87 等）→ 轮末以**当前 HEAD + v4 基线**重跑一次，作为本轮交付的最终门禁口径。
+
+- **独立实跑**：`bash games/line3-tower-defense/verify.sh`（cwd=仓根、无裁剪、冒烟不跳过）六步全 PASS · **exit=0**（72s）——统一契约门禁识别「平台登记 **v4** `cmvkb2d8y001fm968778whydc`」+ run-all 14/14 + a3 PEND 单列 + 构建面 + 部署壳守卫 + **L3-SMOKE 锚 gitSha=`e9a3f87` + specAnchor=`cmvkb2d8y001fm968778whydc@v4:approved`** + SCOPE 零违例。
+- **构建面**：重建漂移=3 文件纯锚位（`a27ca0e`/v2 → `e9a3f87`/v4），行为面零差异；取证后 restore 回部署锚面树净（残余 0，manifest gitSha 回 `a27ca0e`）。
+- **线上单次复查**（10:09）：`/gw` 200 · 645B md5 `1ee3ff09…` ≡ 本仓 build/landing.html 逐字节全等 · 线上 manifest gitSha ≡ `a27ca0e`（specAnchor 字段=v2，系部署时点内嵌，与链面 v4 并存如实并记）；部署单 v2 **running**（API 回读 commitHash=`f9d9834942be…` errorMessage=null）。
+- **链面回读**：v4 `cmvkb2d8y001fm968778whydc` **approved**（acceptance 15 条）· v3 `cmvkb0818…` superseded —— 与导出件 `_platform` 段逐字段一致。
+- **阻塞面影响**：零新增、零核销；W-L3-1..4 维持归主人。证据 `gate-logs/roundend-rerun-20261023/01-verify-full.log · 02-build-restore.log · 03-recheck-live-and-chain.log`（命令原文+时刻+exit 码齐）。
 
 ## 续接复核（2026-10-18 · 游戏程序 · verify 全绿 @ HEAD `1b953cd`）
 

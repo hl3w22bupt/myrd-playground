@@ -1,13 +1,79 @@
 # 阻塞项黑板 — 工作室组合全景（多游戏共板 · 每线各自有子黑板）
 
-> 更新时间：2026-10-18（**三轨执行轮收口：A=线 3 spec v1.0 实现到部署 LIVE ✅ · B=g2-blocks sha 答复+互查+归类 ✅ · C=线 4 调研刷新 ✅**）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
-> 下一步：**等主人四件**（①线 3 试玩 ②B-5 坑位路由运维处置 ③B-6 g2 链面修复 approve（~~B-1 源仓访问面~~ 2026-10-18 勘误撤销：源仓在盘已实跑复证）④W-L3-4 数值校准拍板 ⑤线 2 A3 真人执行维持）——均带证据升级不催办
+> 更新时间：2026-10-23（**组合推进轮开工：P0-1 底账对账 / P0-2 PL2 收口 / P0-3 PL3 备而不动 / P1 PL4 新鲜调研**）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+
+## 当前基线（2026-10-23 · 组合推进轮开工 N0 · 主策划）
+
+| 项 | 值 |
+|---|---|
+| 黑板路径 | 顶层 `.myrd/blackboard/`（共板，本轮对账表/全景）+ 各线子目录（`g2-blocks/`＝本轮 P0-2 · `line3-tower-defense/`＝本轮 P0-3 · `next-line/`＝本轮 P1）；PL1 件落共板 `recon-line123-20261023.md`（足球线无子黑板，落位核对见对账表） |
+| 本轮产品线落位（实证） | **PL1=pixel-fives《像素街机足球》**（仓根 `pixel-fives/`，spec v1.2 approved **落文盖章版·平台链未建**，M1 收口，最后触达 `ec2c2bb` 2026-09-22）· **PL2=g2-blocks《熔炉方块》**（源仓 `~/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks`，一号仓仅 `games/g2-blocks/` 部署镜像壳；链 v1–v10 全 superseded、approved=0）· **PL3=line3-tower-defense**（`games/line3-tower-defense/`，链 v2 `cmvbqgzbl0029m9ax64foxd37` approved v1.0）· **PL4=next-line**（`.myrd/blackboard/next-line/`）· 他线 wheat-squad / stack-tower / game-9 本轮零接触 |
+| 当前分支与 HEAD | `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `0b547f4284b9135a14849507e218ddad2df98262`（任务书约定分支，直接提交不切分支） |
+| 分支续接结果 | `git fetch origin` 完成：远端**仅 `origin/main`**，无任何 `game/<slug>` 远端分支（`git branch -r` 实证）→ 第一次合并无对象，如实披露；`origin/main` @ `9fbc1dc` 仍为**单提交孤儿快照线（607 文件，merge-base=∅）**→ 沿 10/16 判例（`0ff651f`）**不并入**（防 graft 伪历史断证据链），偏差如实披露；无 rebase |
+| spec 版本号（本轮契约输入） | PL3=`.myrd/spec/line3-tower-defense/design-spec.json`（链 v2 approved v1.0，契约测试与 QA 共同输入）· PL2=`.myrd/spec/g2-blocks/design-spec.json`（锚 v9/1.6，**链上 0 approved=契约面失效，B-6 维持**）· PL1=`.myrd/spec/design-spec-pixel-fives.json`（v1.2 approved 落文盖章版，**平台链 pending homecoming**）· ⚠️ 顶层 `.myrd/spec/design-spec.json` = wheat-squad 门禁适配视图（他线冻结件，本轮不作任何线的契约输入） |
+| 平台 API 通道 | `http://localhost:3111` **可达**（/api/v1/health 200 · database connected · 2026-10-23 本会话实测）；鉴权 `MYRD_TOKEN` Bearer admin 实查 `/api/v1/auth/me` 200（admin@myrd.dev）——本会话可执行真实接口操作（spec 回查/revision 入链） |
+| 装配面实况（如实上报） | 本会话工具清单**无 assign_agent 派活通道**（与 10/18 轮「主策划工作室代行节点」判例同型）：四职能件（程序/QA/策划/美术）由主策划会话**代行产出并逐件署名落盘**，QA 核签口径沿「限制性核签」判例；无「非项目成员/0 仓库」装配异常，代行限制面记入 blockers 不降级为纸面件 |
+| 部署物基线（10/18 收口态） | PL3=**v2 running @ `f9d9834`**（line3-tower-defense-2 坑 · appId `cmvd6lt7f002km9wl2kbex7w4`）· PL2=**v17 running @ `2bb69c7`**（g2-blocks-2 坑，2026-10-11 部署后无重部署）· PL1=**无部署记录**（全部历史与黑板零命中）——10/18 部署构建记录出处逐行见 `recon-line123-20261023.md` |
+
+## 组合推进轮收口（2026-10-23 · 四包全收口 · 主策划整合）
+
+### 组合全景（本轮收口时点）
+
+| 线 | 状态 | 本轮动作 | 关键产物 |
+|---|---|---|---|
+| **PL1 pixel-fives《像素街机足球》** | 维持：M1 收口静默期 · **底账双差项升级**（spec 落文盖章版平台链未建 · README 契约指引漂移） | 对账=**无记录**（零部署，不重部署）；落位核对=仓根判例在案 + 黑板登记缺口本轮补齐 | `recon-line123-20261023.md` §一/§四 |
+| **PL2 g2-blocks《熔炉方块》** | **退「打磨中」（R3 继续）**——四查未全过（G-1 链上 0 approved 决定性 + G-2 凭证，均主人侧）；旧「提审就绪」头部口径作废勘误留痕 | 四查 + 三配合件（策划派生核对/美术合规+体积预算/程序缺口清单）；部署面存活探针 ✓ 不重部署 | `g2-blocks/p0-2-four-checks-20261023.md` + 配合件三份 |
+| **PL3 line3-tower-defense《敌潮将至(工作名)》** | **备而不动收口**：门禁复跑全绿（复跑前不认任何「已过」）· 对账=良性漂移记录差异 · **spec v1.1 = 链 v4 `cmvkb2d8y001fm968778whydc` approved（唯一 approved）** · 埋点方案 v1 落档 · 美术零新资产 | 复跑 + 健康核查 + 三问预审（1 不可测→修订，阈值一字不动）+ 修订入链 approve 全链留痕 | `line3-tower-defense/` 子黑板 P0-3 区段 + `gate-logs/p0-3-rerun-20261023/01..20` |
+| **PL4 next-line** | **新鲜调研收口（不开题）**：四条硬验收全过 → Top3 候选（①文字/找茬/脑洞 主推 · ②挪车/挤压 次推 · ③合成×经营 观察）+ 主策划拍板三问登记；**立项权归主人** | 简报 v2（D34–D44 带出处）+ QA 核验 + 选型备忘 v2 | `next-line/` 三件套 |
+| 他线（wheat-squad / stack-tower / game-9 / 糖果线） | 零接触维持 | — | — |
+
+### 本轮决策（主策划裁定登记）
+
+1. **P0-1 三行处理决定**：PL1 无记录→记录差异+双差项升级（不擅建 spec 链面，待主人授权）；PL2 漂移→不重部署（重锚随 R3）；PL3 漂移→良性记录差异（构建面零差异 + LIVE landing 逐字节全等实证）。
+2. **P0-2 裁决**：退打磨中（R3）——QA 核签判例口径（chainApprovedPresent=FAIL 即不可提审就绪）；差项 G-1..G-8 逐项负责人+关闭判据落账。
+3. **P0-3 修订裁定**：三问预审出 1 不可测项（首 30 秒流失真人面）→ 按任务口径出 spec v1.1（**不计打磨轮 R1、不受「等反馈」约束**——任务书授权主策划裁定口径）；修订只补可测表述/测量方法，冻结四段深等、阈值一字不动；v3 漏自增修正轮如实留痕不 approve。
+4. **P1 拍板**：主推候选 ①（三问登记备忘）；**立项权归主人，点名前零 spec 零资产**。
+
+### 下一步（团队面）
+
+- PL3：等主人反馈回流（试玩 + a3 记录卡 + 埋点导出件同批）；回流后按 a3 判据走结论面（≥4/5 → 提审预备评估）。
+- PL2：R3 闸门等主人（G-1 approve + G-2 凭证）；团队侧收口批（wx 复跑/截图重摄/merge 归一）在闸门开后一次做齐。
+- PL4：主人点名后开题（建议候选 ①，备忘三问在手）。
+- PL1：主人授权后补建 spec 平台链面（API 已验证可达）+ 修 README 契约指引。
+
+### 升级主人（本轮新增/维持 · 带证据不催办）
+
+| # | 事项 | 载体 |
+|---|---|---|
+| 1 | **PL3 试玩反馈回流**（试玩 + a3 真人记录卡 0/5 + 埋点导出件） | 入口 `https://leomac-studio.tail49399e.ts.net/apps/line3-tower-defense-2/gw`（存活实证 10-23） |
+| 2 | **PL2 凭证与链面**（G-2 AppID/私钥/类目资质 + G-1 revision approve） | `g2-blocks/p0-2-four-checks-20261023.md` 差项表 |
+| 3 | PL3 工作名/视觉方向（W-L3-1/2）+ 数值校准拍板（W-L3-4）维持 | line3 子黑板升级表 |
+| 4 | PL4 选型点名（候选 ①/②/③ 或顺延） | `next-line/selection-memo-v2-20261023.md` |
+| 5 | PL1 spec 链面归位授权 | `recon-line123-20261023.md` §一 PL1 行 |
+
+### 程序线收口续接（2026-10-23 10:01–10:15 · 游戏程序 · 同轮续接会话）
+
+> 前序 implement 轨迹在 `e9a3f87` 提交后中断于 push 前。本轮续接只做**核实与收尾**，零重做、零新设计决策：
+
+- **四包产物逐包核实成立**（证据原件在盘、非转述）：P0-1 对账表六段+证据 `p0-1-recon-20261023/01..05`；P0-3 复跑 `p0-3-rerun-20261023/01..20`；P0-2 程序缺口清单；PL4 简报 v2 §五程序产线轴。
+- **门禁口径刷新到轮末 HEAD**：`verify.sh` 六步全绿 **exit=0 @ `e9a3f87`**（契约识别 v4 approved + 冒烟锚 `e9a3f87`+v4）——取代「fa71074+v2」成为本轮最终门禁记录；构建面重生成漂移=纯锚位，restore 回部署锚 `a27ca0e` 树净。证据 `line3-tower-defense/gate-logs/roundend-rerun-20261023/01..03`。
+- **对账表补 §七 轮末补记**（HEAD 快照时点差如实交代，三行结论在最新提交上复验不变）；共板 levels.md 头部按程序线复核判例补一行；line3 子板补「轮末续接复核」段。
+> 下一步：**本轮四包串行执行中**（P0-1 对账 → P0-3 PL3 复跑与预审 → P0-2 PL2 收口 → P1 PL4 调研），轮末登记组合全景与本轮决策；等主人事项沿旧（PL3 试玩 / B-6 g2 链面 approve / W-L3-4 数值校准 / PL2 凭证）——均带证据升级不催办
+
+### 美术节点认领复证（2026-10-23 · 游戏美术 · 同轮续接）
+
+> 本轮三件美术署名件（PL2 自查+体积预算 / PL3 底账盘点 / PL4 简报 §六方法论）轮内先期落盘；美术节点按跨线认领纪律逐项机判亲核后认领，机判原文 `gate-logs/art-node-claim-20261023/`：
+
+- **PL3**（@ 轮末 HEAD `76d7cd4`）：11/11 件 sha256 与登记全等 + 双生成器确定性重生成零漂移（工作树净）+ `style-sketch-audit` PASS exit=0 → 盘点段结论成立，零新资产维持。
+- **PL2**：三线包体字节（301,279/178,793/151,768 B）逐字吻合 + 图标 sha/尺寸 + 截图 3/3↔manifest + 合规四槽位 + 分享卡 IHDR 全过；**就地勘误 2 处 PL3 口径误植**（自查表行8「8 色」→冻结色板 **7 hex**（ac-12「7 色 21 对」三面同证）· 预算表「6/13 封顶」→g2 自有 A/F/G-xx 分包口径）——两项 ✅ 判定方向与 P0-2 退打磨中（R3）裁决不变。
+- **PL4**：§六为零资产产出（`e9a3f87` 触达面仅 3 个 md，零图）；方法论四步与 line3 风格卡 v1 判例同构，候选风格方向零图登记无漂移。
+- 升级主人事项零新增：PL2 凭证（G-2）/链面 approve（G-1）/W-L3-2 视觉方向拍板维持原载体。
 
 ## 三轨收口全景（2026-10-18）
 
 | 轨道 | 结果 | 关键产物 |
 |---|---|---|
-| **A（P0）线 3 五节点** | ✅ **全收口**：N1 骨架对账 ✓ → N2 QA 四看放行 ✓ → N3 素材映射+首批资产 6/13 ✓ → N4 核心循环全通 + **auto 14/14 PASS·0 FAIL**（a3 真人面 PEND 单列）+ 统一门禁 63/0 + L3-SMOKE PASS（verify ×2 同锚非 flaky）→ N5 QA 核签 + **部署 v1 running @ `b81d17b`** + **L3-LIVE-SMOKE PASS**（线上真实浏览器全链路，LIVE 锚≡绑定锚 `a27ca0e`，spec.json 零漂移）。**主人试玩入口（资产面·可玩）= `https://leomac-studio.tail49399e.ts.net/apps/line3-tower-defense-2/api/public/assets/index.html`** | 判据映射表+披露 D1-D5（line3 levels.md）· 核签 JSON（QA-L3-N5-SIGNOFF-20261018-01）· 证据 `line3-tower-defense/gate-logs/n4-impl-20261018/00..08` |
+| **A（P0）线 3 五节点** | ✅ **全收口**：N1 骨架对账 ✓ → N2 QA 四看放行 ✓ → N3 素材映射+首批资产 6/13 ✓ → N4 核心循环全通 + **auto 14/14 PASS·0 FAIL**（a3 真人面 PEND 单列）+ 统一门禁 63/0 + L3-SMOKE PASS（verify ×2 同锚非 flaky）→ N5 QA 核签 + **部署 v1 running @ `b81d17b`** + **L3-LIVE-SMOKE PASS**（线上真实浏览器全链路，LIVE 锚≡绑定锚 `a27ca0e`，spec.json 零漂移）。**主人试玩入口（资产面·可玩）= `https://leomac-studio.tail49399e.ts.net/apps/line3-tower-defense-2/api/public/assets/index.html`**。**〔2026-10-18 勘误增记〕`/gw` 正式入口已由主人运维修复**（根因=本游戏 build 缺 landing.html → 共享壳回落 game-9 内置页，非平台层串线，详见 B-5 勘误行；重部署 v2 running @ `f9d9834`），试玩入口恢复 `https://leomac-studio.tail49399e.ts.net/apps/line3-tower-defense-2/gw`——上文资产面入口为当时绕道留痕，N5 冒烟当时未含「主入口 /gw 返回本游戏壳」断言属检查单缺口（已随 `docs/deploy-shell-contract.md` 收口） | 判据映射表+披露 D1-D5（line3 levels.md）· 核签 JSON（QA-L3-N5-SIGNOFF-20261018-01）· 证据 `line3-tower-defense/gate-logs/n4-impl-20261018/00..08` |
 | **B（P1）g2-blocks 收口** | ✅ 收口（**v2 勘误轮刷新 · 驳回缺陷1 成立**）：①sha 疑点=**失配成立且已对齐环境复跑补证**——源仓在盘 `g2-blocks`（HEAD=`dy/port-v1.1` @ `023e5838` 检出态，v1「不可达」系探测根目录错误假阴性）；复跑：`023e5838` 线 contract 18/18 + 八件聚合 8/8、`9c27438` 线（r7 部署源面）check-v13 四态 + contract v9 29+1PEND + dy 三条 27 PASS + dy-smoke PASS（J1=146.1ms/613 手，判定值与 10-11 轮逐字一致），部署镜像↔源面 diff 唯一 sw.js 缓存版本号=良性残留；映射抽验 2/2 PASS。②**维持：g2 链 v1–v10 全 superseded、approved=0** → 契约面失效（B-6 归主人）。③归类=**继续打磨（R3）**维持，R3 闸门修正为「B-6 链面修复 + 主人凭证」两项 | 答复件 v2 `g2-blocks/trackb-sha-answer-20261018.md` · 核签 v2 `qa-trackb-signoff-20261018.json`（QA-G2-TRACKB-SIGNOFF-20261018-02 · supersede -01）· 证据 `g2-blocks/gate-logs/sha-answer-rerun-20261018/00..04` |
 | **C（P2）线 4 调研刷新** | ✅ 只读简报落档（D29-D33 带出处：混合休闲 +20% IAP 增长段 · TD×Roguelike 公式活跃但拥挤 · 「先 IAA 后出海」小团队判例 · 平台分成激励）——**不拍选型不建 spec** | `research/line4-research-brief-20261018.md` |
 
@@ -19,7 +85,7 @@
 | B-2 | A | ~~线 3 AppHost app 待建~~ ✅ 已处置（`cmvd6lt7f002km9wl2kbex7w4`/line3-tower-defense-2 · 带 projectId 重建；首建无 projectId 被 DEPLOY_REJECTED 判例留档） | — | 关闭 |
 | B-3 | A | ac-a3-td 真人样本 5 名（**采集窗已开**） | 主人+QA 采卡 | 维持 W-L3-3；机器不代采 |
 | B-4 | 全 | 线 3 工作名/视觉方向拍板（W-L3-1/W-L3-2） | 主人 | 维持挂起 |
-| B-5 | A | **线 3 坑位路由串线（平台层）**：/gw 壳与 /health 自报 game-9（md5 `abb7c87b6a82` ≡ game-9 壳=W-3 决定性指纹重现）；资产面全为本部署件且 LIVE-SMOKE PASS；self-serve 无通道（PATCH 405 / publish|routes|reload 404） | 主人/运维 | 升级；试玩走资产面入口不受影响 |
+| B-5 | A | ~~线 3 坑位路由串线（平台层）：/gw 壳与 /health 自报 game-9（md5 `abb7c87b6a82` ≡ game-9 壳=W-3 决定性指纹重现）；资产面全为本部署件且 LIVE-SMOKE PASS；self-serve 无通道（PATCH 405 / publish|routes|reload 404）~~ ✅ **已修复 + 因果勘误（2026-10-18 · 主人运维侧处置）**：真实成因**不是平台层路由串线**，而是本游戏 `build/` 未按仓约定产出 `landing.html`——共享壳 `server/src/index.ts` 的 GET / 优先伺服 landing.html、缺它回落内置页（game-9 Godot 壳，即「md5 ≡ game-9 壳」指纹的真实来源；wheat-squad 当年 W-3 八轮「平台层串线」升级同为此成因，靠补 landing.html 解除，当时因果未写回黑板致本轮照抄误诊）。修复 = 仓 `f9d9834` 补产 landing.html（引用走 api/public/assets/*）+ 重部署 **v2 running @ `f9d9834`**，`/gw` 已返回本游戏壳；防复发 = `ci/guard-landing-shell.mjs` 门禁挂入 verify.sh（⓪+B 步），契约全文 `docs/deploy-shell-contract.md` | ~~主人/运维~~ → 已解除（主人运维侧） | 关闭（勘误留痕，W-3「平台层」定性作废） |
 | B-6 | B | **g2 链面修复**：链上 0 approved（契约红线 SPEC_NOT_APPROVED 口径）→ R3 需 revision 入链 + 主人 approve 恢复契约面 | 主人 approve + 源仓面配合 | 升级；R3 闸门第一条 |
 | B-7 | A | **W-L3-4 数值校准拍板（新增）**：线 3 a2 带内通过但 20/20 战败（通关不可达，D3 披露） | 主人拍板 → revision 校准 | 挂起；不阻塞试玩 |
 

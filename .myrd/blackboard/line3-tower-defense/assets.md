@@ -141,3 +141,20 @@
 | e-telemetry | system | `src/telemetry/emitter.ts` | —（八键缓冲，零外发） |
 | e-render | presentation | `src/render/renderer.ts` | 全部绘制（theme token 单源） |
 | e-input | presentation | `src/input/touch.ts` | 选中圈/放置菜单/加速按钮态 |
+
+## P0-3 资产底账盘点（2026-10-23 · 组合推进轮 · 游戏美术署名件 · 零新资产轮）
+
+> 更新时间：2026-10-23 ｜ 下一步：零动作维持（备而不动：反馈未回流不开 R1、不产新资产——本轮任务书口径）；下一轮产出仅在新行为面变更轮/主人视觉拍板后启动
+
+| 盘点项 | 实况（本轮复证） | 判定 |
+|---|---|---|
+| 可见资产件数 | **6/13**（ac-art-2 封顶口径；build/manifest.json 23 文件含代码件，可见资产 6 件） | 封顶内 ✓ 零新增 |
+| 逐件 hash 确定性 | ac-art-2 复跑（v4 基线 `20-post-revision-gates.log`）：「6/13 件逐件带 生成器行号+sha256 · 重生成逐字节一致」 | ✓ 零漂移 |
+| 风格卡 token 单源 | ac-art-3 复跑 PASS：PALETTE ≡ spec ≡ 风格卡 8 行逐值一致（8 色冻结 v1.0） | ✓ 零改动 |
+| 视觉签名映射 | ac-art-4 复跑 PASS：映射键集合全等 8/8（a1/a4/a5 + 5 path id） | ✓ 零改动 |
+| 零外部贴图 | tex-1 复跑 PASS：src+tools 25 文件零位图构造 | ✓ 维持 |
+| 方向稿/占位件 | `assets/game-art/` 6 件 + `assets/style-sketch/` 方向稿——本轮零触碰零重绘 | 冻结维持 |
+| 零新资产声明 | 本轮美术面仅本盘点落账，未产任何新图、未改接线、未动 numeric.palette | ✓ 纪律遵守 |
+
+- **美术节点独立重证（2026-10-23 收口后 · 跨线认领纪律）**：当前轮末 HEAD `76d7cd4` 下重跑——11/11 件（game-art 6 + style-sketch 3 + 双 manifest）sha256 与上表登记逐件全等；双生成器确定性重生成 11/11 逐字节零漂移（`git status` 工作树净）；`style-sketch-audit` PASS（exit=0，色值/光照/画布/构成/文案五面）。本段各行结论在最新提交上复验成立。机判原文 `../gate-logs/art-node-claim-20261023/00-baseline-hash.txt`
+
