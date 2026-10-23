@@ -1,0 +1,18 @@
+{
+ "id": "cmv36wl94001xm9mxp119q48x",
+ "slug": "wheat-squad-2",
+ "name": "wheat-squad（麦浪小队）",
+ "sourceId": "wheat-squad",
+ "sourceType": "game-studio",
+ "status": "ready",
+ "liveUrl": "https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/",
+ "currentDeploymentId": "cmvd9a0tz0032m9wlhr291cyw",
+ "latest": {
+  "id": "cmvd9a0tz0032m9wlhr291cyw",
+  "version": 25,
+  "commitHash": "54a1a4818aa1fe3d167c2ce57dd0127a362e8a70",
+  "gitRef": "game/wheat-squad",
+  "status": "running",
+  "errorMessage": null
+ }
+}

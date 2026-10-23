@@ -1,0 +1,8 @@
+BUILD FINGERPRINT: gitSha=64de7972d7c8097057eaf8c26af7b2626b48d940 specAnchor=cmv8xcexk0009m9dj6ev1dj0r@v6:approved
+BUILD OK: build/ 11 文件（spec 内联 + src 镜像 + index + landing）
+(node:3819) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+# 确定性重建对照 · UTC 2026-10-23T03:35:03Z · HEAD 64de7972d7c8097057eaf8c26af7b2626b48d940
+# 命令: node games/wheat-squad/tools/build.mjs
+# 结论: 11 文件仅 main.mjs 1 行 diff = gitSha 自指锚行（fa776de → 64de797）· specAnchor 不变（cmv8xcexk0009m9dj6ev1dj0r@v6:approved）· 逻辑字节全等
+# 处置: 按 v25 判例保留重绑产物并提交（部署字节=提交字节；构建自指单行滞后披露口径维持）
