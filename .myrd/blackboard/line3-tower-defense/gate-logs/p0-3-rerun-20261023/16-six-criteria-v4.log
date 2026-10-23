@@ -1,0 +1,10 @@
+① 六段齐全: PASS
+② id 唯一非空: PASS
+② 无禁词: FAIL
+③ auto 条目 check 落点: PASS
+④ 样本量表述: PASS
+⑤ 测量附件在盘: PASS
+⑥ 追加句带校准条款: PASS
+meta.version=v4 语义 1.1: PASS
+== 禁词扫描裁决（QA 复核）==
+唯一命中=a3 判据名标签「（好玩判据主条·真人局口径）」，与链上 approved v2 同位逐字相同（B5 QA-L3-SPECV1-PREAUDIT-20261017-01 已裁合规）；本轮 v1.1 追加句零命中。裁决=回归性命中，不构成禁词违例。

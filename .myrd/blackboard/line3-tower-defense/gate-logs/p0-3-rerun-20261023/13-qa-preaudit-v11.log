@@ -1,0 +1,10 @@
+numeric DEEP-EQUAL ✓
+world DEEP-EQUAL ✓
+entities DEEP-EQUAL ✓
+levels DEEP-EQUAL ✓
+a1-td-first-placement-feedback -> statement 追加式修改 ✓（原文逐字保留）
+a2-td-wave-duration-band -> statement 追加式修改 ✓（原文逐字保留）
+changed acceptance ids: ["a1-td-first-placement-feedback","a2-td-wave-duration-band"]
+meta.version: 1.0 -> 1.0
+meta changed keys: ["revision_note"]
+QA-PREAUDIT: PASS（改动面=预期最小面：a1/a2 追加句 + meta.revision_note，冻结段深等，id/check 零改动）

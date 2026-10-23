@@ -6,13 +6,13 @@
         "check": "node games/line3-tower-defense/tests/contract/checks/a1-td-first-placement-feedback.mjs",
         "id": "a1-td-first-placement-feedback",
         "mode": "auto",
-        "statement": "首 30 秒体验目标：5/5 种子（DEFAULT_SEED+i，i=0..4）首 30 秒内完成首次布防且 first_placement_at ≤ firstPlacementBudgetSec(20s)，首次命中反馈延迟 ≤ feedback.latencyMaxMs(100ms)。判定面全部为数值谓词与计数谓词。样本量=5 种子。"
+        "statement": "首 30 秒体验目标：5/5 种子（DEFAULT_SEED+i，i=0..4）首 30 秒内完成首次布防且 first_placement_at ≤ firstPlacementBudgetSec(20s)，首次命中反馈延迟 ≤ feedback.latencyMaxMs(100ms)。判定面全部为数值谓词与计数谓词。样本量=5 种子。真人局对应面（v1.1 增补，不改上述机面阈值）：真人首 30 秒流失=会话内 run_start 后 30000ms 内无 first_placement_at 且无 run_end（含中途离开，经本地埋点持久化面回捞）计为流失；测量方法=本地埋点方案 v1（.myrd/blackboard/line3-tower-defense/telemetry-plan-v1.md，零平台 API 依赖）；阈值=观测型初始锚定（窗=30s、目标行为=完成首次布防），真人样本回流后 revision 校准。"
       },
       {
         "check": "node games/line3-tower-defense/tests/contract/checks/a2-td-wave-duration-band.mjs",
         "id": "a2-td-wave-duration-band",
         "mode": "auto",
-        "statement": "单局时长带（模拟局口径，禁混真人局）：20 完整模拟局（DEFAULT_SEED+i，i=0..19，start→end 事件链 20/20 完整）P50 ∈ [waveBand.p50MinSec(240), waveBand.p50MaxSec(420)]s 且 P90 ≤ p90MaxSec(600)s，结局 ∈ {victory, defeat}。样本量=20。"
+        "statement": "单局时长带（模拟局口径，禁混真人局）：20 完整模拟局（DEFAULT_SEED+i，i=0..19，start→end 事件链 20/20 完整）P50 ∈ [waveBand.p50MinSec(240), waveBand.p50MaxSec(420)]s 且 P90 ≤ p90MaxSec(600)s，结局 ∈ {victory, defeat}。样本量=20。真人局对应面（v1.1 增补，不改上述模拟局阈值带）：真人单局时长取 run_end.run_duration_ms 本地埋点字段（零平台 API 依赖），逐局分布 P50/P90，与模拟局口径分开统计不混算；阈值=观测型初始锚定，真人样本 ≥5 局回流后 revision 校准。"
       },
       {
         "check": "真人记录卡核（非自动判据）：games/line3-tower-defense/qa/playtest-collection-round1.md（沿 wheat-squad A3 任务单判例形制，实现轮建卡）",
@@ -250,7 +250,11 @@
         ]
       },
       "retestProtocol": "①绑 sha 有效性：判定值只对报告绑定 sha 有效；工作区 HEAD 相对绑定点源面 diff 必须为空（docs/黑板除外，逐 commit 可验）②模拟局与真人局禁混算：a2 用 20 完整模拟局（start→end 事件链计数），a3 只认真人回填记录卡 ③每轮复测报告必须带三方 sha 对账表（工作区 HEAD / 线上部署包内嵌 sha / 报告绑定 sha）+ 采样计划（若三点不全等）",
-      "revision_note": "v1.0（2026-10-17 双轨轮六件套完整版）：承 v0.1 骨架（platform v1 approved）id 连续性——a1/a2/a3/a4/det-1/tex-1/perf-1 不改名，statement 升格为可判定数值+具体样本量；新增 a5 四事件骨架/a6 操作路径/ac-art-1..4 资产纪律/inv-1 实体对账/fnd-1 埋点定名共 8 条（acceptance 7→15）；world 段新增差异点三列+不同品类声明+首屏文案 12 条逐字枚举+操作路径 5 条带 path id；entities 6→12 条补 script/scene 落点；numeric 待校准 PEND 升格为初始锚定值（承 wheat-squad 波次节拍判例与对标结构推算，非实测值，实测后 revision 校准）+ palette 8 色冻结（风格卡 v1）；level-2 涨潮新增。diff 摘要：六段全量升格，零删除既有 id",
+      "revision_note": [
+        "v1.0（2026-10-17 双轨轮六件套完整版）：承 v0.1 骨架（platform v1 approved）id 连续性——a1/a2/a3/a4/det-1/tex-1/perf-1 不改名，statement 升格为可判定数值+具体样本量；新增 a5 四事件骨架/a6 操作路径/ac-art-1..4 资产纪律/inv-1 实体对账/fnd-1 埋点定名共 8 条（acceptance 7→15）；world 段新增差异点三列+不同品类声明+首屏文案 12 条逐字枚举+操作路径 5 条带 path id；entities 6→12 条补 script/scene 落点；numeric 待校准 PEND 升格为初始锚定值（承 wheat-squad 波次节拍判例与对标结构推算，非实测值，实测后 revision 校准）+ palette 8 色冻结（风格卡 v1）；level-2 涨潮新增。diff 摘要：六段全量升格，零删除既有 id",
+        "v1.1（2026-10-23 P0-3 组合推进轮）：acceptance 可测性三问预审出 1 项不可测（首 30 秒流失真人面）+1 项条件可测（真人口径单局时长），按任务口径出本修订——只补 a1/a2 真人面对应面可测表述与测量方法（telemetry-plan-v1 附件），numeric/world/entities/levels 逐段冻结深等，acceptance id 与 check 命令零改动，既有阈值一字不动；本修订不计打磨轮 R1、不受「等反馈」约束（主策划裁定口径）。",
+        "v1.1 台账修正（同轮）：v3 载荷 meta.version 漏自增（仍 1.0），本 v4 为唯一内容差异=meta.version→1.1 + 本行追加；其余与 v3 逐字相同。v3 不 approve，随本版 superseded。"
+      ],
       "slug": "line3-tower-defense",
       "telemetryFields": {
         "feedback_latency_ms": "单次操作到反馈呈现的毫秒延迟（内核同 tick 记 0）",
@@ -263,7 +267,7 @@
         "run_start": "战局开始；字段 seed:number=本局种子"
       },
       "title": "单场景塔防（线 3 · 工作名待主人定，slug=line3-tower-defense）",
-      "version": "1.0"
+      "version": "1.1"
     },
     "numeric": {
       "DEFAULT_SEED": 20261016,
@@ -498,13 +502,13 @@
     }
   },
   "_platform": {
-    "id": "cmvbqgzbl0029m9ax64foxd37",
-    "version": 2,
+    "id": "cmvkb2d8y001fm968778whydc",
+    "version": 4,
     "status": "approved",
-    "parentSpecId": "cmvabm4kh001jm92c4qtjy9a7",
+    "parentSpecId": "cmvkb0818001dm968tzdoh0mk",
     "projectId": "cmto0g28j0002m9sqnvjdy8o7",
     "title": "游戏策划案",
-    "createdAt": "2026-10-17T01:44:12.753Z",
-    "updatedAt": "2026-10-17T01:44:41.379Z"
+    "createdAt": "2026-10-23T01:42:52.306Z",
+    "updatedAt": "2026-10-23T01:43:57.225Z"
   }
 }
