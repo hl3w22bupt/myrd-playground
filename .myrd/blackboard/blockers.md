@@ -1,19 +1,52 @@
 # 阻塞项黑板 — 工作室组合全景（多游戏共板 · 每线各自有子黑板）
 
-> 更新时间：2026-10-23（**组合推进轮开工：P0-1 底账对账 / P0-2 PL2 收口 / P0-3 PL3 备而不动 / P1 PL4 新鲜调研**）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 更新时间：2026-10-24（**选型落档 + spec v0 执笔轮收口**）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
 
-## 当前基线（2026-10-23 · 组合推进轮开工 N0 · 主策划）
+## 当前基线（2026-10-24 · 终审轮 N0 · 主策划）
 
 | 项 | 值 |
 |---|---|
-| 黑板路径 | 顶层 `.myrd/blackboard/`（共板，本轮对账表/全景）+ 各线子目录（`g2-blocks/`＝本轮 P0-2 · `line3-tower-defense/`＝本轮 P0-3 · `next-line/`＝本轮 P1）；PL1 件落共板 `recon-line123-20261023.md`（足球线无子黑板，落位核对见对账表） |
-| 本轮产品线落位（实证） | **PL1=pixel-fives《像素街机足球》**（仓根 `pixel-fives/`，spec v1.2 approved **落文盖章版·平台链未建**，M1 收口，最后触达 `ec2c2bb` 2026-09-22）· **PL2=g2-blocks《熔炉方块》**（源仓 `~/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks`，一号仓仅 `games/g2-blocks/` 部署镜像壳；链 v1–v10 全 superseded、approved=0）· **PL3=line3-tower-defense**（`games/line3-tower-defense/`，链 v2 `cmvbqgzbl0029m9ax64foxd37` approved v1.0）· **PL4=next-line**（`.myrd/blackboard/next-line/`）· 他线 wheat-squad / stack-tower / game-9 本轮零接触 |
-| 当前分支与 HEAD | `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `0b547f4284b9135a14849507e218ddad2df98262`（任务书约定分支，直接提交不切分支） |
-| 分支续接结果 | `git fetch origin` 完成：远端**仅 `origin/main`**，无任何 `game/<slug>` 远端分支（`git branch -r` 实证）→ 第一次合并无对象，如实披露；`origin/main` @ `9fbc1dc` 仍为**单提交孤儿快照线（607 文件，merge-base=∅）**→ 沿 10/16 判例（`0ff651f`）**不并入**（防 graft 伪历史断证据链），偏差如实披露；无 rebase |
-| spec 版本号（本轮契约输入） | PL3=`.myrd/spec/line3-tower-defense/design-spec.json`（链 v2 approved v1.0，契约测试与 QA 共同输入）· PL2=`.myrd/spec/g2-blocks/design-spec.json`（锚 v9/1.6，**链上 0 approved=契约面失效，B-6 维持**）· PL1=`.myrd/spec/design-spec-pixel-fives.json`（v1.2 approved 落文盖章版，**平台链 pending homecoming**）· ⚠️ 顶层 `.myrd/spec/design-spec.json` = wheat-squad 门禁适配视图（他线冻结件，本轮不作任何线的契约输入） |
-| 平台 API 通道 | `http://localhost:3111` **可达**（/api/v1/health 200 · database connected · 2026-10-23 本会话实测）；鉴权 `MYRD_TOKEN` Bearer admin 实查 `/api/v1/auth/me` 200（admin@myrd.dev）——本会话可执行真实接口操作（spec 回查/revision 入链） |
-| 装配面实况（如实上报） | 本会话工具清单**无 assign_agent 派活通道**（与 10/18 轮「主策划工作室代行节点」判例同型）：四职能件（程序/QA/策划/美术）由主策划会话**代行产出并逐件署名落盘**，QA 核签口径沿「限制性核签」判例；无「非项目成员/0 仓库」装配异常，代行限制面记入 blockers 不降级为纸面件 |
-| 部署物基线（10/18 收口态） | PL3=**v2 running @ `f9d9834`**（line3-tower-defense-2 坑 · appId `cmvd6lt7f002km9wl2kbex7w4`）· PL2=**v17 running @ `2bb69c7`**（g2-blocks-2 坑，2026-10-11 部署后无重部署）· PL1=**无部署记录**（全部历史与黑板零命中）——10/18 部署构建记录出处逐行见 `recon-line123-20261023.md` |
+| 黑板路径 | 顶层 `.myrd/blackboard/`（共板全景）+ 各线子目录（`line4-unblock-jam/`＝本轮新建 PL4 子黑板三件套 · `g2-blocks/`＝本轮 P1 包2 · `line3-tower-defense/`＝本轮 P1 包3 · `next-line/`＝拍板记录落档）；**顶层 levels.md / assets.md 属 game-9 存量零触碰**（判例） |
+| 本轮产品线落位（实证） | PL1=pixel-fives（仓根，底账不动）· PL2=g2-blocks（源仓 `~/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks`）· PL3=line3-tower-defense（`games/line3-tower-defense/`）· **PL4=line4-unblock-jam（本轮立项：`games/line4-unblock-jam/` + 子黑板三件套，slug 定死）** |
+| 当前分支与 HEAD | `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ 轮末见 git log（任务书约定分支，直接提交不切分支） |
+| 分支续接结果 | `git fetch origin` 完成：远端**仅 `origin/main`**（本轮多出 3 个 stack-tower release tag，无 `game/<slug>` 分支）→ 首并无对象；`origin/main` 孤儿快照线 **merge-base=∅** → 沿 10/16 判例不并入；无 rebase |
+| spec 版本号（本轮契约输入） | **PL4=链 v1 `cmvlpx0uf0019m94iyuroz578` draft（本轮新建，禁覆盖，待主人正式审查）** · PL3=链 v4 `cmvkb2d8y001fm968778whydc` approved（唯一，今日回查不变）· PL2=**链 v1–v10 全 superseded、approved=0（今日 API 实测，G-1 决定性维持）** · PL1=v1.2 approved 落文盖章版（链 pending homecoming，底账不动）· ⚠️ 顶层 `.myrd/spec/design-spec.json` = wheat-squad 冻结件不作任何线契约输入 |
+| 平台 API 通道 | `http://localhost:3111` 可达（/api/v1/health 200 · 本轮实测）· spec 创建/回查/列表接口本轮实操作（PL4 入链 201 留痕） |
+| 装配面实况（如实上报） | 无 assign_agent 派活通道（判例同型）：四职能件由主策划会话代行产出并逐件署名落盘，QA 核签沿「限制性核签」判例 |
+| 部署物基线 | 沿 10/18 收口态不变（PL3 v2 running @ `f9d9834` · PL2 v17 running @ `2bb69c7` · PL1 无部署）；本轮零部署动作 |
+
+## 组合收口（2026-10-24 · 选型落档 + spec v0 执笔轮 · 主策划整合）
+
+### 组合全景（本轮收口时点）
+
+| 线 | 状态 | 本轮动作 | 关键产物 |
+|---|---|---|---|
+| **PL1 pixel-fives《像素街机足球》** | 底账清（已销案 · 零接触维持） | 无（红线：不动已销案底账） | — |
+| **PL2 g2-blocks《熔炉方块》** | **终审唯一结论：退「打磨中」（R3）**——受审 spec 版本号缺失（链上 0 approved 今日实测，决定性）→ 按「不再找补直接退打磨中」口径裁决 | 程序出证三样 + 策划 acceptance 映射（悬空）+ QA 四查核签；三 sha 今日零位移；今日契约复跑 17/1 如实登记（FAIL=环境面 G-9 新增） | `g2-blocks/p0-2-final-review-20261024.md` + `gate-logs/p0-2-final-review-20261024/00` |
+| **PL3 line3-tower-defense《敌潮将至(工作名)》** | **待主人试玩（止步登记，不空转）**——反馈归集条件触发检查：零回流件 | 全检索零反馈 → 「待主人试玩」止步；试玩入口/基线回查在案 | line3 子黑板头部登记段 |
+| **PL4 line4-unblock-jam《挪出一条路(工作名待主人定)》** | **已拍板（B 生效）+ v0 执笔完成 → 转主人正式审查**；QA 七条缺陷 7/7 核销；工程五件+美术三件当日交付；玩法与契约断言零（红线） | 拍板落档（双出处核对 PASS）→ spec v0 入链（链 v1 draft，禁覆盖）→ 五件工程准备（SCAFFOLD-SMOKE 4/4 · PORT-GATE exit=0）→ 美术三件 | `next-line/decision-record-v1-20261024.md` · `.myrd/spec/line4-unblock-jam/`（链+契约件+REVISIONS）· `games/line4-unblock-jam/` · 子黑板三件套 |
+| 他线（wheat-squad / stack-tower / game-9 / 糖果线） | 零接触维持 | — | — |
+
+### 本轮决策（主策划裁定登记）
+
+1. **拍板 B 映射判定**：任务书 A/B/C ↔ 简报 ①②③ 直映射（备选集与简报候选③/§四排除区互证），**B=候选②「超休闲解压·物理小解谜（挪车/切开/挤压类）」生效**；slug 定死 `line4-unblock-jam`，黑板登记块名定死 `.myrd/blackboard/line4-unblock-jam/`。
+2. **品类避让双出处核对 PASS**：PL3 `meta.genre` 原文（单场景塔防）≠ 候选②（挪车物理小解谜），不撞线 → 拍板有效；撞线预案（轻模拟经营/io 对战重打分）登记不触发。
+3. **PL2 裁决**：退打磨中（R3）——「任何一份缺失不再找补」口径直接适用（受审 spec 版本号缺失）；今日复跑 FAIL 项如实登记为 G-9（环境面），不作找补不掩盖。
+4. **PL3 处置**：零反馈 → 待主人试玩止步（不空转）；回流后走四元组打磨清单。
+5. **三红冻结规则自 v0 生效**：红轮三边界数值（redRoundStepBudget=12 / redRoundFailDowngrade=2）进 spec numeric，改动必须走 revision。
+
+### 下一步（团队面）
+
+- PL4：等主人正式审查（approve/驳回/修订指令）；通过后按 README「转真顺序」进实现轮（玩法+8 条 check 转真+20 冒烟局）。
+- PL2：R3 闸门等主人（G-1 approve + G-2 凭证 + G-9 环境定性）；团队收口批（wx 复跑/截图重摄/merge 归一）在闸门开后一次做齐。
+- PL3：等试玩反馈回流（四元组归集预案已挂在子黑板）。
+
+### 升级主人（本轮 · 至多两项带证据）
+
+| # | 事项 | 载体 |
+|---|---|---|
+| 1 | **PL2 提审凭证与链面**（G-2 凭证 + G-1 revision approve + G-9 工作区脏文件定性）——终审唯一结论已出：退打磨中 | `g2-blocks/p0-2-final-review-20261024.md` |
+| 2 | **PL4 spec v0 正式审查**（approve/驳回/修订）+ **PL3 试玩反馈回流**（试玩+a3 记录卡+埋点导出同批）——两线同点：等主人 | PL4=`cmvlpx0uf0019m94iyuroz578` draft · PL3=试玩入口（存活实证 10-23） |
 
 ## 组合推进轮收口（2026-10-23 · 四包全收口 · 主策划整合）
 
