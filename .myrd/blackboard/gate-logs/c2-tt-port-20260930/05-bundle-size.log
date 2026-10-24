@@ -1,0 +1,6 @@
+# 命令: node games/stack-tower/scripts/check-tt-bundle-size.mjs
+# 时间: 2026-09-30 09:53:59 +0800
+[size] 主包 293.4KB / 4MB —— PASS
+[size] 子包 0B —— PASS（分列口径：抖音无开放数据域独立子包机制）
+[size] manifest 一致性：63 件，漂移 0
+RESULT: PASS

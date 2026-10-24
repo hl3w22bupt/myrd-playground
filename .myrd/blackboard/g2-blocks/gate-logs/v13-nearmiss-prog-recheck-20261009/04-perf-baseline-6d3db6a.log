@@ -1,0 +1,8 @@
+# cmd: G2_SPEC_PATH=<workspace approved v1.1 export> node tools/perf-report.mjs
+# cwd: /tmp/g2-perf-baseline (worktree @ 6d3db6a = v1.2 发布 commit)
+# utc: 2026-10-09T02:52:07Z
+[perf] 基准跑（throttle×1）: samples=436 fps=70.06 p50=12.15ms p95=27.1ms p99=34.965ms max=35.4ms jank=52(11.93%)
+[perf] 规格跑（spec j1 同环境）（throttle×4）: samples=136 fps=16.94 p50=60.3ms p95=73.825ms p99=79.5ms max=80ms jank=136(100.00%)
+[perf] 报告 → docs/evidence/perf-p95-report.md + .json
+PERF-REPORT: PASS P95 报告已产出（基准 P95=27.1ms · 代理口径披露在案）
+EXIT=0

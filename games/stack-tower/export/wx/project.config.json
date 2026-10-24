@@ -1,0 +1,14 @@
+{
+  "description": "Stack Tower（霓虹夜塔）· B0 微信小游戏移植轮。AppID 未到位：以测试号 touristappid 占位推进 devtools 侧（spec v1.3 content.platform wx-runtime.appIdPolicy）；正式 AppID + 类目/资质到位后由主人下发替换，真机轨与提审在此之前不执行。",
+  "appid": "touristappid",
+  "compileType": "game",
+  "projectname": "stack-tower-neon-night",
+  "libVersion": "latest",
+  "setting": {
+    "es6": true,
+    "enhance": true,
+    "urlCheck": false,
+    "postcss": false,
+    "minified": true
+  }
+}

@@ -1,0 +1,12 @@
+$ node /tmp/g2-live-smoke.mjs https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/gw
+[live-smoke] navigate → https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/gw
+[live-smoke] 页面加载完成
+[live-smoke] __G2_READY=true（游戏就绪）
+[live-smoke] 盘面 64 格满员（levelId=level-1）
+[live-smoke] 线上真实 tap 得分 0 → 160（chain 1）
+[live-smoke] 重开全复位 ✓
+[live-smoke] 控制台零错误 ✓
+[live-smoke] 页面 URL: https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/gw
+LIVE-SMOKE: PASS 已部署包可开 + 核心循环可玩 + 控制台零错误
+EXIT=0
+HTTP=200

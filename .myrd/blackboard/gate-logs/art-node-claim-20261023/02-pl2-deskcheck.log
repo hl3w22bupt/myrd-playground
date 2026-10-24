@@ -1,0 +1,20 @@
+# 02 · PL2 g2-blocks 美术署名件亲核机判（art-compliance-selfcheck-20261023.md 桌检）
+时点：2026-10-23 · 执行：游戏美术节点 · 源仓：g2-blocks-main @ 9c274385（sync/dy-v1.3）
+
+[1] 三线包体字节实测（vs 自查表 §二）
+    dy 部署源面 export/dy = 301279 B  ← 表载 301,279B
+    dy 检出线   export/dy = 178793 B  ← 表载 178,793B
+    wx 线       export    = 151768 B  ← 表载 151,768B
+    线头：dy/port-v1.1 @ 023e5838 · sync/dy-v1.3 @ 9c274385 · wx/port-v1.1 @ 4fba03ae
+
+[2] dy-icon-512.png IHDR=512x512 sha256=8a971534… ← 表载 8a971534 ✓
+[3] dy-share-720x1280.png IHDR=720x1280 · A-07 美术复核 PASS 在档（g2 assets.md L166）✓
+[4] 商店截图 3/3：磁盘 sha256+bytes ↔ assets/dy/shots/manifest.json 逐件全等（4ff406f3/b40e7312/9075e3ce）✓
+[5] compliance-copy.json 四槽位在盘：game-name/share-title/privacy-summary/age-rating ✓（行 5/6/7 引用成立）
+[6] palette 事实：palette-n1-final.json colors=7（block-01..07）· 全文件 sha256=7bc2ca03（≡ 07-asset-determinism.log『≡numeric.palette.sourceSha256 锚』历史机判）
+    ac-12 契约原文：『7 色 21 对双门禁（HSL 三选二 + ΔE(CIEDE2000)）』（tests/contract/ac-12-palette-double-gate.spec.mjs L1）
+    顶部风格卡要素1：『冻结色板 7 hex（block-01..07，真源 = spec numeric.palette）』
+    ★ 漂移1：自查表行8『palette 白名单 8 色』与三处权威口径不符 → 系 PL3 line3 风格卡 8 色口径误植，就地勘误
+[7] 资产件数口径：g2 侧资产纪律 = A/F/G-xx 分包编号制（A 轮 9 件 / F 七件 / G-05 证据包 6 张），『6/13 封顶』在 g2 仓与黑板零出处（grep 6/13 → 无）
+    ★ 漂移2：预算表行『可见资产件数 6/13 封顶（ac-art 同构纪律）』系 PL3 line3 ac-art-2 口径误植 → 就地勘误为 g2 自有口径
+[8] PL3 侧（交叉核对）：line3 game-art 6 件 + style-sketch 3 件 + 双 manifest sha256 与黑板登记 11/11 全等；确定性重生成 11/11 逐字节零漂移 + git 工作树净（见 00-baseline-hash.txt）；style-sketch-audit PASS exit=0

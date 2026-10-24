@@ -1,0 +1,9 @@
+# 命令: node games/stack-tower/tests/tt/run-tt-gate.mjs
+# 时间: 2026-09-30 09:53:55 +0800
+===== tt 轨门禁聚合（C 抖音移植轮 · 可机跑面）=====
+[PASS]  dy-runtime（tt-runtime-surface 条目查）   RESULT: PASS  — dy-runtime 运行时表面（55 项断言全绿）
+[PASS]  dy-share-loop（tt-share-loop 条目查）   RESULT: PASS  — dy-share-loop 分享闭环（主判据 dy-share-card 500×400）（25 项断言全绿）
+[PASS]  dy-submission-kit（tt-submission-kit 条目查）   RESULT: PASS  — dy-submission-kit 提审包与材料清单（29 项断言全绿）
+[PASS]  包体积分列（check-tt-bundle-size）   RESULT: PASS
+[PASS]  numeric 零漂移（check-numeric-freeze）   RESULT: PASS
+tt-GATE: PASS (5/5)

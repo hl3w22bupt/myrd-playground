@@ -1,0 +1,19 @@
+== 确定性重建（tools/build.mjs）后工作树差异 ==
+ M games/line3-tower-defense/build/manifest.json
+ M games/line3-tower-defense/build/spec.json
+ M games/line3-tower-defense/build/src/main.mjs
+== manifest.json 锚位差异原文 ==
+-  "gitSha": "a27ca0e86b618e2bf0ca2f8621efbb1e8c78955e",
+-  "specAnchor": "cmvbqgzbl0029m9ax64foxd37@v2:approved",
++  "gitSha": "e9a3f87e284111860bdd0743e3b94f2d38fc131b",
++  "specAnchor": "cmvkb2d8y001fm968778whydc@v4:approved",
+-    "manifest.json",
+== build/src/main.mjs 锚位差异（截断至 220 字/行）==
+-const __L3_BUILD__ = { gitSha: "a27ca0e86b618e2bf0ca2f8621efbb1e8c78955e", specAnchor: "cmvbqgzbl0029m9ax64foxd37@v2:approved" };
++const __L3_BUILD__ = { gitSha: "e9a3f87e284111860bdd0743e3b94f2d38fc131b", specAnchor: "cmvkb2d8y001fm968778whydc@v4:approved" };
+== build/spec.json：整份 spec 内嵌行更替（v2→v4），46KB 不整贴，仅证行数 ==
+2
+== 还原部署锚面（同 p0-3-rerun 02 号判例：git checkout -- build/）==
+还原后残余改动文件数：0
+还原后 build/manifest.json gitSha："gitSha": "a27ca0e86b618e2bf0ca2f8621efbb1e8c78955e"
+restored-ok

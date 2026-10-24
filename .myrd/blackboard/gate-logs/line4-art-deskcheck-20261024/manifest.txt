@@ -1,0 +1,31 @@
+# PL4 美术 desk-check 证据清单（line4-art-deskcheck-20261024）
+
+- 轮次：同文任务书重派轮（非首产轮）· 执行者：游戏美术 · 时刻：2026-10-24T02:0xZ（UTC）
+- 取证 HEAD：6972489（myrd: workflow auto-commit）· 分支 myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d
+- 性质：复证而非重做 —— 美术三件已于 4f4053f 落档（风格卡 v1/资产清单6件/对标对照表/视效预算），
+  本轮对既有交付做 desk-check 静态机判（先机判后目检判例），零素材产出、零接线（spec draft → 生成前零图 = approval gate 合规态）。
+
+## 文件
+- deskcheck.mjs        机判脚本（只读三源核对：assets.md × design-spec.json × src/platform/theme.ts；脚本落本目录，不进 games/）
+- 00-deskcheck-raw.log 首跑原文：PASS=11 FAIL=1（C2b）FINDING=1 —— FAIL 为校验脚本自身缺陷（双扩展名 .spec.json 剥层不足），非资产命名缺陷；脚本已修，原样留档不掩盖
+- 01-deskcheck-raw.log 复跑原文（黑板编辑前）：PASS=12 FAIL=0 FINDING=1 · exit 0
+- 02-deskcheck-raw.log **终版权威跑（黑板编辑后）**：PASS=12 FAIL=0 FINDING=1 · exit 0（本清单结论以此跑为准）
+- 过程披露：黑板 §五 登记后曾出现一次中间假绿（C10 报「词条两侧均有」，根因=检测作用域为文档级，§五 缺陷描述里的「五要素」被误计为词条存在；该中间跑输出在 /tmp 未入档）——已将 C10 作用域修正为 §四 切片，02 跑恢复 FINDING=1 与编辑前一致。假绿原因与修法留档备查。
+
+## 复跑结论（01 号，exit 0）
+- C1  风格卡 §一 8 色 ≡ spec numeric.palette.colors ≡ theme.ts PALETTE（逐字符·保序全等）
+- C2  资产清单 6 件 id×file 与 spec assets[] 集合全等
+- C2b id 与落点路径段全部 kebab-case（含 a06 双扩展名基名）
+- C3  判据 g-01 ↔ 资产 a04-guide-hand 双向挂接（spec acceptance/levels × assets.md）
+- C4  正反馈三通道名 acc-02 ≡ assets.md §四 ≡ e-exit expect 全等
+- C5/C5b F4 三定死（performance.now/中端60fps/N=20/stepBudgetMs=16）+ 实体帽 60 逐项命中
+- C6  theme.ts PALETTE_HEX_LIST 单源出口在位；C6b 渲染/tests 面零裸 hex 零裸 rgba(（theme.ts/generated 豁免）
+- C7  games/line4-unblock-jam/assets/ 位图数=0（draft 态零图合规）
+- C8  spec world.styleRef §一/§三 + acc-02 §四 锚点全部存在
+- C9  对标条目号 D35/D40 双源一致
+- FINDING F-01（P3 · 非阻塞 · 文字面）：spec acc-02 与 QA 核销表 F1 行引用「assets.md §四 五要素」，
+  §四 无该词条。修订权归主策划（spec 禁覆盖走 revision）；已登记 blockers.md L4-4。
+
+## 交叉复核范围声明（跨线）
+- theme.ts 为程序线代写的美术 token 件，本轮按跨线纪律逐项复核其美术口径（C1/C6/C6b），复核成立。
+- 前 00/01 两跑均未触碰 games/ 源面与 .myrd/spec/（脚本只读；本轮变更面=本证据目录 + 子黑板两文档）。

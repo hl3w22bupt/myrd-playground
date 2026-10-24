@@ -1,0 +1,8 @@
+verify: Godot = 4.3.stable.official.77dcf97d8（godot）
+verify: 工程 = /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmu94gra4000vm9kjjtw8ys6z/games/game
+
+==> [1/2] preflight（静态前置一致性检查，12 类）
+PREFLIGHT: FAIL [P5] qa/snake-ghost-spike/spike_main.tscn 引用的资源不存在：res://spike_main.gd
+PREFLIGHT: FAIL [P6] qa/snake-ghost-spike/spike_main.tscn ext_resource id=1_spike 指向的文件不存在：res://spike_main.gd
+PREFLIGHT: FAIL 共 2 处不一致（13 类检查）
+verify: FAIL preflight 未通过（退出码 1），先修静态问题再跑冒烟

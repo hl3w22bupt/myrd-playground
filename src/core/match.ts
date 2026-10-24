@@ -4,10 +4,8 @@
  */
 
 import { DEFAULT_CONTENT_PACK, ENTITY_CAP, TICK_MS } from '../content';
-import { PICKUP_RADIUS_M } from '../content/constants';
 import type { ContentPack } from '../content';
 import { Rng } from './rng';
-import { dist2D } from './geom';
 import {
   createEntity,
   pushEvent,
@@ -35,7 +33,6 @@ import type {
   MatchHandle,
   MatchResult,
   MatchStatus,
-  NearbyLoot,
   PlayerIntent,
   PlayerViewSnapshot,
   Vec3,
@@ -278,8 +275,6 @@ export function buildSnapshot(w: World): WorldSnapshot {
       p.medkitUntilMs !== null && p.medkitItemSlot !== null
         ? (p.inventory[p.medkitItemSlot]?.item ?? null)
         : null,
-    nearbyLoot: findNearbyLoot(w, p),
-    outsideZone: isPlayerOutsideZone(w, p),
   };
 
   return {
@@ -352,21 +347,3 @@ export function createMatch(config: MatchConfig): MatchHandle & { world: World }
 
 export type { LootItem };
 export { pushEvent, TICK_MS };
-
-function findNearbyLoot(w: World, p: Entity): NearbyLoot | null {
-  if (p.state !== 'ground' || !p.alive) return null;
-  let best: NearbyLoot | null = null;
-  for (const l of w.loots) {
-    if (l.taken) continue;
-    const d = dist2D(p.pos.x, p.pos.z, l.pos.x, l.pos.z);
-    if (d <= PICKUP_RADIUS_M && (best === null || d < best.dist)) {
-      best = { id: l.id, item: l.item, dist: d };
-    }
-  }
-  return best;
-}
-
-function isPlayerOutsideZone(w: World, p: Entity): boolean {
-  if (!p.alive || p.state === 'dead') return false;
-  return dist2D(p.pos.x, p.pos.z, w.zone.center.x, w.zone.center.z) > w.zone.radius;
-}

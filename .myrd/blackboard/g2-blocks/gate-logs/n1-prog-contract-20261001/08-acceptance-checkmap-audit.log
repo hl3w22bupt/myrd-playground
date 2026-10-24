@@ -1,0 +1,18 @@
+MISSING  ac-01-board-init-seeded  ->  g2-blocks/tests/board-init.spec.mjs
+MISSING  ac-02-spawn-uniform-random  ->  g2-blocks/tests/spawn-rng.spec.mjs
+MISSING  ac-03-swap-adjacency-only  ->  g2-blocks/tests/swap-rule.spec.mjs
+MISSING  ac-04-match-3plus  ->  g2-blocks/tests/match-detect.spec.mjs
+MISSING  ac-05-gravity-refill-cascade  ->  g2-blocks/tests/cascade.spec.mjs
+MISSING  ac-06-combo-four-move-vector  ->  g2-blocks/tests/combo-vector.spec.mjs
+MISSING  ac-07-deadlock-cool  ->  g2-blocks/tests/deadlock-cool.spec.mjs
+MISSING  ac-08-settlement-order  ->  g2-blocks/tests/settle-order.spec.mjs
+MISSING  ac-09-restart-full-reset  ->  g2-blocks/tests/restart.spec.mjs
+MISSING  ac-10-perf-j1  ->  g2-blocks/tests/perf-j1.spec.mjs
+EXISTS   ac-11-theme-single-source  ->  g2-blocks/tests/theme.spec.mjs
+MISSING  ac-12-palette-double-gate  ->  node g2-blocks/tools/palette-gate.mjs matrix --palette g2-blocks/assets/palette/palette-n1-final.json --threshold 25 --pairs 21
+MISSING  ac-13-no-external-texture  ->  g2-blocks/tests/no-texture.spec.mjs
+EXISTS   ac-14-deterministic-kernel  ->  g2-blocks/tests/kernel-purity.spec.mjs
+MISSING  ac-15-audio-feedback  ->  g2-blocks/tests/audio-feedback.spec.mjs
+MISSING  ac-16-persistence-minimal  ->  g2-blocks/tests/persistence.spec.mjs
+MISSING  ac-17-repo-one-zero-touch  ->  g2-blocks/ci/guard-repo-scope.mjs --self-check
+EXISTS   ac-18-ci-guard-repo-scope  ->  g2-blocks/ci/guard-repo-scope.mjs

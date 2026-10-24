@@ -1,0 +1,8 @@
+# g2-blocks（熔炉方块）专属部署清单 —— 每游戏一份，共享仓库根壳 server/。
+# 部署时以 manifestPath=games/g2-blocks/apphost.toml 传入，勿改仓库根 apphost.toml（糖果线）。
+# 游戏源仓 = 平台 g2-blocks 线（TS/Web，spec v1.1 = 链 v2 approved，numeric 锚 302e6336…）；
+# 本目录 export/web 为源仓 build/ 的确定性导出（零外部贴图、零运行时依赖）。
+name = "g2-blocks（熔炉方块）"
+runtime = "node20"
+health = "/health"
+assets_dir = "games/g2-blocks/export/web"

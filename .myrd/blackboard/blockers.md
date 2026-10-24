@@ -1,3 +1,757 @@
+# 阻塞项黑板 — 工作室组合全景（多游戏共板 · 每线各自有子黑板）
+
+> 更新时间：2026-10-24（**选型落档 + spec v0 执笔轮收口**）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+
+## 当前基线（2026-10-24 · 终审轮 N0 · 主策划）
+
+| 项 | 值 |
+|---|---|
+| 黑板路径 | 顶层 `.myrd/blackboard/`（共板全景）+ 各线子目录（`line4-unblock-jam/`＝本轮新建 PL4 子黑板三件套 · `g2-blocks/`＝本轮 P1 包2 · `line3-tower-defense/`＝本轮 P1 包3 · `next-line/`＝拍板记录落档）；**顶层 levels.md / assets.md 属 game-9 存量零触碰**（判例） |
+| 本轮产品线落位（实证） | PL1=pixel-fives（仓根，底账不动）· PL2=g2-blocks（源仓 `~/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks`）· PL3=line3-tower-defense（`games/line3-tower-defense/`）· **PL4=line4-unblock-jam（本轮立项：`games/line4-unblock-jam/` + 子黑板三件套，slug 定死）** |
+| 当前分支与 HEAD | `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ 轮末见 git log（任务书约定分支，直接提交不切分支） |
+| 分支续接结果 | `git fetch origin` 完成：远端**仅 `origin/main`**（本轮多出 3 个 stack-tower release tag，无 `game/<slug>` 分支）→ 首并无对象；`origin/main` 孤儿快照线 **merge-base=∅** → 沿 10/16 判例不并入；无 rebase |
+| spec 版本号（本轮契约输入） | **PL4=链 v1 `cmvlpx0uf0019m94iyuroz578` draft（本轮新建，禁覆盖，待主人正式审查）** · PL3=链 v4 `cmvkb2d8y001fm968778whydc` approved（唯一，今日回查不变）· PL2=**链 v1–v10 全 superseded、approved=0（今日 API 实测，G-1 决定性维持）** · PL1=v1.2 approved 落文盖章版（链 pending homecoming，底账不动）· ⚠️ 顶层 `.myrd/spec/design-spec.json` = wheat-squad 冻结件不作任何线契约输入 |
+| 平台 API 通道 | `http://localhost:3111` 可达（/api/v1/health 200 · 本轮实测）· spec 创建/回查/列表接口本轮实操作（PL4 入链 201 留痕） |
+| 装配面实况（如实上报） | 无 assign_agent 派活通道（判例同型）：四职能件由主策划会话代行产出并逐件署名落盘，QA 核签沿「限制性核签」判例 |
+| 部署物基线 | 沿 10/18 收口态不变（PL3 v2 running @ `f9d9834` · PL2 v17 running @ `2bb69c7` · PL1 无部署）；本轮零部署动作 |
+
+## 组合收口（2026-10-24 · 选型落档 + spec v0 执笔轮 · 主策划整合）
+
+### 组合全景（本轮收口时点）
+
+| 线 | 状态 | 本轮动作 | 关键产物 |
+|---|---|---|---|
+| **PL1 pixel-fives《像素街机足球》** | 底账清（已销案 · 零接触维持） | 无（红线：不动已销案底账） | — |
+| **PL2 g2-blocks《熔炉方块》** | **终审唯一结论：退「打磨中」（R3）**——受审 spec 版本号缺失（链上 0 approved 今日实测，决定性）→ 按「不再找补直接退打磨中」口径裁决 | 程序出证三样 + 策划 acceptance 映射（悬空）+ QA 四查核签；三 sha 今日零位移；今日契约复跑 17/1 如实登记（FAIL=环境面 G-9 新增） | `g2-blocks/p0-2-final-review-20261024.md` + `gate-logs/p0-2-final-review-20261024/00` |
+| **PL3 line3-tower-defense《敌潮将至(工作名)》** | **待主人试玩（止步登记，不空转）**——反馈归集条件触发检查：零回流件 | 全检索零反馈 → 「待主人试玩」止步；试玩入口/基线回查在案 | line3 子黑板头部登记段 |
+| **PL4 line4-unblock-jam《挪出一条路(工作名待主人定)》** | **已拍板（B 生效）+ v0 执笔完成 → 转主人正式审查**；QA 七条缺陷 7/7 核销；工程五件+美术三件当日交付；玩法与契约断言零（红线） | 拍板落档（双出处核对 PASS）→ spec v0 入链（链 v1 draft，禁覆盖）→ 五件工程准备（SCAFFOLD-SMOKE 4/4 · PORT-GATE exit=0）→ 美术三件 | `next-line/decision-record-v1-20261024.md` · `.myrd/spec/line4-unblock-jam/`（链+契约件+REVISIONS）· `games/line4-unblock-jam/` · 子黑板三件套 |
+| 他线（wheat-squad / stack-tower / game-9 / 糖果线） | 零接触维持 | — | — |
+
+### 本轮决策（主策划裁定登记）
+
+1. **拍板 B 映射判定**：任务书 A/B/C ↔ 简报 ①②③ 直映射（备选集与简报候选③/§四排除区互证），**B=候选②「超休闲解压·物理小解谜（挪车/切开/挤压类）」生效**；slug 定死 `line4-unblock-jam`，黑板登记块名定死 `.myrd/blackboard/line4-unblock-jam/`。
+2. **品类避让双出处核对 PASS**：PL3 `meta.genre` 原文（单场景塔防）≠ 候选②（挪车物理小解谜），不撞线 → 拍板有效；撞线预案（轻模拟经营/io 对战重打分）登记不触发。
+3. **PL2 裁决**：退打磨中（R3）——「任何一份缺失不再找补」口径直接适用（受审 spec 版本号缺失）；今日复跑 FAIL 项如实登记为 G-9（环境面），不作找补不掩盖。
+4. **PL3 处置**：零反馈 → 待主人试玩止步（不空转）；回流后走四元组打磨清单。
+5. **三红冻结规则自 v0 生效**：红轮三边界数值（redRoundStepBudget=12 / redRoundFailDowngrade=2）进 spec numeric，改动必须走 revision。
+
+### 下一步（团队面）
+
+- PL4：等主人正式审查（approve/驳回/修订指令）；通过后按 README「转真顺序」进实现轮（玩法+8 条 check 转真+20 冒烟局）。
+- PL2：R3 闸门等主人（G-1 approve + G-2 凭证 + G-9 环境定性）；团队收口批（wx 复跑/截图重摄/merge 归一）在闸门开后一次做齐。
+- PL3：等试玩反馈回流（四元组归集预案已挂在子黑板）。
+
+### 升级主人（本轮 · 至多两项带证据）
+
+| # | 事项 | 载体 |
+|---|---|---|
+| 1 | **PL2 提审凭证与链面**（G-2 凭证 + G-1 revision approve + G-9 工作区脏文件定性）——终审唯一结论已出：退打磨中 | `g2-blocks/p0-2-final-review-20261024.md` |
+| 2 | **PL4 spec v0 正式审查**（approve/驳回/修订）+ **PL3 试玩反馈回流**（试玩+a3 记录卡+埋点导出同批）——两线同点：等主人 | PL4=`cmvlpx0uf0019m94iyuroz578` draft · PL3=试玩入口（存活实证 10-23） |
+
+## 组合推进轮收口（2026-10-23 · 四包全收口 · 主策划整合）
+
+### 组合全景（本轮收口时点）
+
+| 线 | 状态 | 本轮动作 | 关键产物 |
+|---|---|---|---|
+| **PL1 pixel-fives《像素街机足球》** | 维持：M1 收口静默期 · **底账双差项升级**（spec 落文盖章版平台链未建 · README 契约指引漂移） | 对账=**无记录**（零部署，不重部署）；落位核对=仓根判例在案 + 黑板登记缺口本轮补齐 | `recon-line123-20261023.md` §一/§四 |
+| **PL2 g2-blocks《熔炉方块》** | **退「打磨中」（R3 继续）**——四查未全过（G-1 链上 0 approved 决定性 + G-2 凭证，均主人侧）；旧「提审就绪」头部口径作废勘误留痕 | 四查 + 三配合件（策划派生核对/美术合规+体积预算/程序缺口清单）；部署面存活探针 ✓ 不重部署 | `g2-blocks/p0-2-four-checks-20261023.md` + 配合件三份 |
+| **PL3 line3-tower-defense《敌潮将至(工作名)》** | **备而不动收口**：门禁复跑全绿（复跑前不认任何「已过」）· 对账=良性漂移记录差异 · **spec v1.1 = 链 v4 `cmvkb2d8y001fm968778whydc` approved（唯一 approved）** · 埋点方案 v1 落档 · 美术零新资产 | 复跑 + 健康核查 + 三问预审（1 不可测→修订，阈值一字不动）+ 修订入链 approve 全链留痕 | `line3-tower-defense/` 子黑板 P0-3 区段 + `gate-logs/p0-3-rerun-20261023/01..20` |
+| **PL4 next-line** | **新鲜调研收口（不开题）**：四条硬验收全过 → Top3 候选（①文字/找茬/脑洞 主推 · ②挪车/挤压 次推 · ③合成×经营 观察）+ 主策划拍板三问登记；**立项权归主人** | 简报 v2（D34–D44 带出处）+ QA 核验 + 选型备忘 v2 | `next-line/` 三件套 |
+| 他线（wheat-squad / stack-tower / game-9 / 糖果线） | 零接触维持 | — | — |
+
+### 本轮决策（主策划裁定登记）
+
+1. **P0-1 三行处理决定**：PL1 无记录→记录差异+双差项升级（不擅建 spec 链面，待主人授权）；PL2 漂移→不重部署（重锚随 R3）；PL3 漂移→良性记录差异（构建面零差异 + LIVE landing 逐字节全等实证）。
+2. **P0-2 裁决**：退打磨中（R3）——QA 核签判例口径（chainApprovedPresent=FAIL 即不可提审就绪）；差项 G-1..G-8 逐项负责人+关闭判据落账。
+3. **P0-3 修订裁定**：三问预审出 1 不可测项（首 30 秒流失真人面）→ 按任务口径出 spec v1.1（**不计打磨轮 R1、不受「等反馈」约束**——任务书授权主策划裁定口径）；修订只补可测表述/测量方法，冻结四段深等、阈值一字不动；v3 漏自增修正轮如实留痕不 approve。
+4. **P1 拍板**：主推候选 ①（三问登记备忘）；**立项权归主人，点名前零 spec 零资产**。
+
+### 下一步（团队面）
+
+- PL3：等主人反馈回流（试玩 + a3 记录卡 + 埋点导出件同批）；回流后按 a3 判据走结论面（≥4/5 → 提审预备评估）。
+- PL2：R3 闸门等主人（G-1 approve + G-2 凭证）；团队侧收口批（wx 复跑/截图重摄/merge 归一）在闸门开后一次做齐。
+- PL4：主人点名后开题（建议候选 ①，备忘三问在手）。
+- PL1：主人授权后补建 spec 平台链面（API 已验证可达）+ 修 README 契约指引。
+
+### 升级主人（本轮新增/维持 · 带证据不催办）
+
+| # | 事项 | 载体 |
+|---|---|---|
+| 1 | **PL3 试玩反馈回流**（试玩 + a3 真人记录卡 0/5 + 埋点导出件） | 入口 `https://leomac-studio.tail49399e.ts.net/apps/line3-tower-defense-2/gw`（存活实证 10-23） |
+| 2 | **PL2 凭证与链面**（G-2 AppID/私钥/类目资质 + G-1 revision approve） | `g2-blocks/p0-2-four-checks-20261023.md` 差项表 |
+| 3 | PL3 工作名/视觉方向（W-L3-1/2）+ 数值校准拍板（W-L3-4）维持 | line3 子黑板升级表 |
+| 4 | PL4 选型点名（候选 ①/②/③ 或顺延） | `next-line/selection-memo-v2-20261023.md` |
+| 5 | PL1 spec 链面归位授权 | `recon-line123-20261023.md` §一 PL1 行 |
+
+### 程序线收口续接（2026-10-23 10:01–10:15 · 游戏程序 · 同轮续接会话）
+
+> 前序 implement 轨迹在 `e9a3f87` 提交后中断于 push 前。本轮续接只做**核实与收尾**，零重做、零新设计决策：
+
+- **四包产物逐包核实成立**（证据原件在盘、非转述）：P0-1 对账表六段+证据 `p0-1-recon-20261023/01..05`；P0-3 复跑 `p0-3-rerun-20261023/01..20`；P0-2 程序缺口清单；PL4 简报 v2 §五程序产线轴。
+- **门禁口径刷新到轮末 HEAD**：`verify.sh` 六步全绿 **exit=0 @ `e9a3f87`**（契约识别 v4 approved + 冒烟锚 `e9a3f87`+v4）——取代「fa71074+v2」成为本轮最终门禁记录；构建面重生成漂移=纯锚位，restore 回部署锚 `a27ca0e` 树净。证据 `line3-tower-defense/gate-logs/roundend-rerun-20261023/01..03`。
+- **对账表补 §七 轮末补记**（HEAD 快照时点差如实交代，三行结论在最新提交上复验不变）；共板 levels.md 头部按程序线复核判例补一行；line3 子板补「轮末续接复核」段。
+> 下一步：**本轮四包串行执行中**（P0-1 对账 → P0-3 PL3 复跑与预审 → P0-2 PL2 收口 → P1 PL4 调研），轮末登记组合全景与本轮决策；等主人事项沿旧（PL3 试玩 / B-6 g2 链面 approve / W-L3-4 数值校准 / PL2 凭证）——均带证据升级不催办
+
+### 美术节点认领复证（2026-10-23 · 游戏美术 · 同轮续接）
+
+> 本轮三件美术署名件（PL2 自查+体积预算 / PL3 底账盘点 / PL4 简报 §六方法论）轮内先期落盘；美术节点按跨线认领纪律逐项机判亲核后认领，机判原文 `gate-logs/art-node-claim-20261023/`：
+
+- **PL3**（@ 轮末 HEAD `76d7cd4`）：11/11 件 sha256 与登记全等 + 双生成器确定性重生成零漂移（工作树净）+ `style-sketch-audit` PASS exit=0 → 盘点段结论成立，零新资产维持。
+- **PL2**：三线包体字节（301,279/178,793/151,768 B）逐字吻合 + 图标 sha/尺寸 + 截图 3/3↔manifest + 合规四槽位 + 分享卡 IHDR 全过；**就地勘误 2 处 PL3 口径误植**（自查表行8「8 色」→冻结色板 **7 hex**（ac-12「7 色 21 对」三面同证）· 预算表「6/13 封顶」→g2 自有 A/F/G-xx 分包口径）——两项 ✅ 判定方向与 P0-2 退打磨中（R3）裁决不变。
+- **PL4**：§六为零资产产出（`e9a3f87` 触达面仅 3 个 md，零图）；方法论四步与 line3 风格卡 v1 判例同构，候选风格方向零图登记无漂移。
+- 升级主人事项零新增：PL2 凭证（G-2）/链面 approve（G-1）/W-L3-2 视觉方向拍板维持原载体。
+
+## 三轨收口全景（2026-10-18）
+
+| 轨道 | 结果 | 关键产物 |
+|---|---|---|
+| **A（P0）线 3 五节点** | ✅ **全收口**：N1 骨架对账 ✓ → N2 QA 四看放行 ✓ → N3 素材映射+首批资产 6/13 ✓ → N4 核心循环全通 + **auto 14/14 PASS·0 FAIL**（a3 真人面 PEND 单列）+ 统一门禁 63/0 + L3-SMOKE PASS（verify ×2 同锚非 flaky）→ N5 QA 核签 + **部署 v1 running @ `b81d17b`** + **L3-LIVE-SMOKE PASS**（线上真实浏览器全链路，LIVE 锚≡绑定锚 `a27ca0e`，spec.json 零漂移）。**主人试玩入口（资产面·可玩）= `https://leomac-studio.tail49399e.ts.net/apps/line3-tower-defense-2/api/public/assets/index.html`**。**〔2026-10-18 勘误增记〕`/gw` 正式入口已由主人运维修复**（根因=本游戏 build 缺 landing.html → 共享壳回落 game-9 内置页，非平台层串线，详见 B-5 勘误行；重部署 v2 running @ `f9d9834`），试玩入口恢复 `https://leomac-studio.tail49399e.ts.net/apps/line3-tower-defense-2/gw`——上文资产面入口为当时绕道留痕，N5 冒烟当时未含「主入口 /gw 返回本游戏壳」断言属检查单缺口（已随 `docs/deploy-shell-contract.md` 收口） | 判据映射表+披露 D1-D5（line3 levels.md）· 核签 JSON（QA-L3-N5-SIGNOFF-20261018-01）· 证据 `line3-tower-defense/gate-logs/n4-impl-20261018/00..08` |
+| **B（P1）g2-blocks 收口** | ✅ 收口（**v2 勘误轮刷新 · 驳回缺陷1 成立**）：①sha 疑点=**失配成立且已对齐环境复跑补证**——源仓在盘 `g2-blocks`（HEAD=`dy/port-v1.1` @ `023e5838` 检出态，v1「不可达」系探测根目录错误假阴性）；复跑：`023e5838` 线 contract 18/18 + 八件聚合 8/8、`9c27438` 线（r7 部署源面）check-v13 四态 + contract v9 29+1PEND + dy 三条 27 PASS + dy-smoke PASS（J1=146.1ms/613 手，判定值与 10-11 轮逐字一致），部署镜像↔源面 diff 唯一 sw.js 缓存版本号=良性残留；映射抽验 2/2 PASS。②**维持：g2 链 v1–v10 全 superseded、approved=0** → 契约面失效（B-6 归主人）。③归类=**继续打磨（R3）**维持，R3 闸门修正为「B-6 链面修复 + 主人凭证」两项 | 答复件 v2 `g2-blocks/trackb-sha-answer-20261018.md` · 核签 v2 `qa-trackb-signoff-20261018.json`（QA-G2-TRACKB-SIGNOFF-20261018-02 · supersede -01）· 证据 `g2-blocks/gate-logs/sha-answer-rerun-20261018/00..04` |
+| **C（P2）线 4 调研刷新** | ✅ 只读简报落档（D29-D33 带出处：混合休闲 +20% IAP 增长段 · TD×Roguelike 公式活跃但拥挤 · 「先 IAA 后出海」小团队判例 · 平台分成激励）——**不拍选型不建 spec** | `research/line4-research-brief-20261018.md` |
+
+## 本轮阻塞登记（2026-10-18 收口态 · 编号制）
+
+| # | 轨道 | 事项 | 负责人 | 状态/解除判据 |
+|---|---|---|---|---|
+| B-1 | B | ~~g2 源仓访问面（sha 疑点环境对齐复跑 + 门禁复跑）~~ ✅ **勘误撤销（2026-10-18 驳回缺陷1）**：源仓在盘 `~/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks`（HEAD=`dy/port-v1.1` @ `023e5838` 检出态），v1「不可达」系探测根目录用错的假阴性；已对齐环境复跑——`023e5838` 线 contract 18/18 + 八件聚合 8/8 exit 0，`9c27438` 线 check-v13 四态 + dy 三条 27 PASS + dy-smoke PASS exit 0，日志原文 `g2-blocks/gate-logs/sha-answer-rerun-20261018/00..04` | ~~主人~~ → 已解除（程序线自查自证） | 关闭（勘误留痕，不回改 v1 原文） |
+| B-2 | A | ~~线 3 AppHost app 待建~~ ✅ 已处置（`cmvd6lt7f002km9wl2kbex7w4`/line3-tower-defense-2 · 带 projectId 重建；首建无 projectId 被 DEPLOY_REJECTED 判例留档） | — | 关闭 |
+| B-3 | A | ac-a3-td 真人样本 5 名（**采集窗已开**） | 主人+QA 采卡 | 维持 W-L3-3；机器不代采 |
+| B-4 | 全 | 线 3 工作名/视觉方向拍板（W-L3-1/W-L3-2） | 主人 | 维持挂起 |
+| B-5 | A | ~~线 3 坑位路由串线（平台层）：/gw 壳与 /health 自报 game-9（md5 `abb7c87b6a82` ≡ game-9 壳=W-3 决定性指纹重现）；资产面全为本部署件且 LIVE-SMOKE PASS；self-serve 无通道（PATCH 405 / publish|routes|reload 404）~~ ✅ **已修复 + 因果勘误（2026-10-18 · 主人运维侧处置）**：真实成因**不是平台层路由串线**，而是本游戏 `build/` 未按仓约定产出 `landing.html`——共享壳 `server/src/index.ts` 的 GET / 优先伺服 landing.html、缺它回落内置页（game-9 Godot 壳，即「md5 ≡ game-9 壳」指纹的真实来源；wheat-squad 当年 W-3 八轮「平台层串线」升级同为此成因，靠补 landing.html 解除，当时因果未写回黑板致本轮照抄误诊）。修复 = 仓 `f9d9834` 补产 landing.html（引用走 api/public/assets/*）+ 重部署 **v2 running @ `f9d9834`**，`/gw` 已返回本游戏壳；防复发 = `ci/guard-landing-shell.mjs` 门禁挂入 verify.sh（⓪+B 步），契约全文 `docs/deploy-shell-contract.md` | ~~主人/运维~~ → 已解除（主人运维侧） | 关闭（勘误留痕，W-3「平台层」定性作废） |
+| B-6 | B | **g2 链面修复**：链上 0 approved（契约红线 SPEC_NOT_APPROVED 口径）→ R3 需 revision 入链 + 主人 approve 恢复契约面 | 主人 approve + 源仓面配合 | 升级；R3 闸门第一条 |
+| B-7 | A | **W-L3-4 数值校准拍板（新增）**：线 3 a2 带内通过但 20/20 战败（通关不可达，D3 披露） | 主人拍板 → revision 校准 | 挂起；不阻塞试玩 |
+
+---
+
+## 本轮决策登记（2026-10-16 · 轨道 A + 轨道 B · 主策划）
+
+| 轨道 | 决策/结论 | 落点（证据绑 sha） |
+|---|---|---|
+| **A · 线 2 sha 地基验证（P0）** | **三点对账链不成立**（工作区 HEAD ≠ 线上内嵌 `29e779b` ≠ 10/15 报告绑 `7b45b44`，逐字符两两不等）→ 按任务口径 R1 报告**全量「未判定·待采」**；源面零漂移如实附注不推翻口径 | `games/wheat-squad/docs/r1re-sha-reconciliation-20261016.md` · gate-logs `r1re-recheck-20261016/01..03` |
+| **A · 三态分流 + 补采** | 分流表：红 0 条 · 未判定 → **绑新 sha `4eccaf29` 补采全绿**（A1 1.71s · A2 P50=168.096s + **start→end 事件链 20/20** · A4 0ms/4 通道 · 16/0/1PEND）· **绿 15 项固化 ✓（16/16 check 薄壳实跑）· A3 未判定·待采（0/5 真人）**；QA 双签；条件触发链不触发；冻结计数器 0/3 维持 | `docs/r1re-triage-table-20261016.md` · `docs/r1re-recheck-report-20261016.md` · QA-WS-R1RE-TRIAGE-20261016-01/02 |
+| **A · 重部署闭环** | **v20 running @ 发布 commit `3828f49`**（manifestPath 单次受理 · 504 判例先 GET 复查未盲重发）· **LIVE 内嵌 sha ≡ 报告绑定 sha 逐字符全等** · WS-LIVE-SMOKE PASS victory 167s 零错误；首探旧字节=运行面切换窗口如实留痕 | gate-logs `08..13` · 试玩入口 `https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw` |
+| **A · A3 真人试玩任务单** | **APPROVE-READY**（5 真人 · 防主持人污染四条 · 可判定观察点 O1-O4 · 达标线 ≥4/5 正向重开动机 · 原话逐字留档）· **执行面升级主人**；达标预告 → 线 2 转「提审就绪预备」+ 双平台材料清单（主人凭证项届时标注） | `docs/a3-playtest-task-order-20261016.md` · QA-WS-A3-TASK-20261016-01 |
+| **B · 线 3 新鲜调研（P1）** | 调研简报落档（**D15-D28 全带出处+日期**，二源交叉为主；跑酷品类数据不足如实标注降权）· 程序能力轴实测（**TS+Canvas：零依赖/契约 16 条判例/本轮零新增基建 1.5h 闭环；Godot 4.3 在机 · preflight 15 类 0.106s · gate-selftest 32s PASS**）· 美术成本档位五候选 · QA 抽查（中文媒体域名直抓全被工具侧拦截→多源交叉降级口径如实） | `research/line3-research-brief-20261016.md` + `research/godot-baseline-probe-20261016.log` + `ts-canvas-reuse-probe-20261016.log` |
+| **B · 线 3 选型拍板** | **主策划拍板（任务书授权）：单场景塔防（IAA 主导 · 微肉鸽 · 确定性战局）· 产线 TS+Canvas**；四字段+视觉基调全带出处（《赵云与阿斗》6 人团队双平台双榜第一 D25×D16 互证）；品类查重以两线 spec 文本为基准零机制复用；**止步 T+0：spec v1 draft 入链 + 风格卡 v0 文字卡，不开实现不建工程** | `.myrd/blackboard/line3-memo-v1.md` · `.myrd/blackboard/line3-style-card-v0.md` · 链 `cmvabm4kh001jm92c4qtjy9a7` v1 **draft**（201/回查 ✓，**不 approve——审签归主人**） |
+
+## 组合全景（2026-10-16 本轮收口时点）
+
+| 线 | 状态 | 一句话 | 基线指针 |
+|---|---|---|---|
+| **线 1 g2-blocks（熔炉方块）** | **提审就绪 · 卡主人凭证**（维持不动） | 本轮零接触 · 生产坑维持 | 源仓 sync/dy-v1.3 @ `9c27438` · 链 v9 approved + v10 draft · 子黑板 `g2-blocks/` |
+| **stack-tower** | **冻结 · 维持** | 零接触延续 | spec v1.5 approved |
+| **线 2 wheat-squad（麦浪小队）** | **复测分流收口：绿 15 项固化 + A3 未判定·待真人**（非「已完成」——A3 执行与好玩终裁未到） | 采集面 = **v20 LIVE @ `3828f49`**（证据绑 sha `4eccaf29` 逐字符对账）· spec v1.4 approved · 冻结计数器 0/3 | 试玩入口同上 · 链 v6 · 子黑板 `wheat-squad/` · HEAD `3c370ab`+ |
+| **线 3（单场景塔防 · 已拍板未立项实现）** | **选型拍板中 → 主策划已拍板 · 待主人审签** | spec v1 draft 在链（slug `line3-tower-defense`）· 风格卡 v0 文字卡（0 图）· 工作名待主人定 · 建工程轮下轮开 | 链 `cmvabm4kh001jm92c4qtjy9a7` · memo v1 + style-card v0 在黑板 |
+| （他线）game-8 / game-9 | 独立 goal 线 · 零接触 | game-9 三件套存档区维持 | 各自 goal 线 |
+
+### 升级主人（2026-10-16 · 带证据 · 不催办）
+
+1. **线 2 A3 执行**（阻塞跨轮维持）：圈定 5 名真人 + 知情同意 → 48h 窗回填。机判面全就绪（任务单 APPROVE-READY + 采集字节 v20 对账）；仅缺真人，机器不代采。达标 ≥4/5 → 线 2 转「提审就绪预备」+ 双平台材料清单（凭证项标注）升级发布拍板；不达标 → 冻结计数器 +1（0/3 起）。
+2. **线 3 审签**（新增）：spec v1 draft（`cmvabm4kh001jm92c4qtjy9a7`）approve 与否 + 工作命名 + 视觉方向（风格卡 v0 三问：①极简高对比方向认不认 ②三国题材还是自选皮 ③8 色占位方向过不过）。**主人未 approve 前线 3 零实现动作。**
+3. **线 1 凭证**（维持）：提审凭证（dy-appid/类目/资质）+ v10 approve。
+
+## 当前基线（2026-10-16 · N0 · 主策划）
+
+- **黑板路径**：顶层 `.myrd/blackboard/`（共板）+ 各线子目录（`wheat-squad/` 主战线 · 线 3 件在顶层 `line3-*`）
+- **spec 版本号**：线 2 = 链 v6 `cmv8xcexk0009m9dj6ev1dj0r` approved（meta v1.4，导出件 DEEP_EQUAL=True 零漂移实查）；线 3 = 链 v1 `cmvabm4kh001jm92c4qtjy9a7` **draft**（无 approved——契约面不存在，零契约运行为纪律面）
+- **分支与 HEAD**：`myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `3c370ab`+（已 push `3828f49`）；分支续接实证：远端无 `game/wheat-squad`，两条 wheat 旧分支 0 领先（无孤儿成果）；**`origin/main` 实证单提交孤儿快照线（`6c0df4a`，603 文件，merge-base=∅）→ 不并入（防 graft 伪历史断证据链），偏差如实披露**
+- **基线自证**：N0 verify 五步 VERIFY_EXIT=0 @ `6cf28ad`；补采轮五步复跑 VERIFY_EXIT=0 @ `4eccaf29`（gate-logs `00` / `07`）
+
+
+## 当前基线（2026-10-15 · 本轮开工前置 N0 · 主策划）
+
+- **黑板路径**：顶层 `.myrd/blackboard/`（多游戏共板）+ 各线子目录（`.myrd/blackboard/wheat-squad/` 为本轮主战线）
+- **spec 版本号**：产品线 2（wheat-squad）= **链 v5 `cmv7hekf3000mjofivl4ebhdf` · approved · meta.version=1.3**（2026-10-15 API 实查 approved 唯一）；导出件 `.myrd/spec/wheat-squad/design-spec.json` + 门禁适配视图 `.myrd/spec/design-spec.json` 与链上深等零漂移（锚核 PASS）
+- **分支**：`myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d`（任务书分支约定：全部提交直落此分支）· 本轮合流基线 HEAD `c6f9ea4`（R1 成果线 `5a6b979` 已 merge --no-ff 合入，合流后 verify.sh 五步 VERIFY_EXIT=0）
+- **任务书口径偏差披露**：任务书「spec v1.1→v1.2」已被链史超越（v1.3 approved @ 2026-10-14）；本轮策划批产出 v1.4 仅增补判读纪律，A1/A2/A4 阈值一律不动
+- **硬约束①实查**：A3 回填件 `games/wheat-squad/qa/playtest-collection-round1.md` = 0 行 → 主人反馈未回流，R2 直开不触发
+- **顶层 `.myrd/spec/design-spec.json` 落点变更披露**：本轮合并后该文件 = wheat-squad 门禁适配视图（R1 线判例沿用，slug 注入键）；stack-tower 主导出件 `.myrd/spec/stack-tower-spec.json` 原样在档无损（stack-tower 冻结维持，其镜像可随时由主导出件复原）
+- **合并归档披露**：顶层黑板尾部新增「他线存档区」= game-9《汽车连连看》三件套（独立 goal 线，原文零改动归档）；game-9/game-8 两线本轮零接触
+
+## 部署轮台账（2026-10-11 · 游戏程序 · workflow deploy 节点）
+
+> 分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d`（非 main）· 每笔部署前 `git ls-remote` 与本地 HEAD 全等 · 两坑均 GET 核对 sourceId 绑定（防挤占）· 单次 POST（504 网关截断判例：GET 复查受理、不重发）· 全部轮询至 running 零 errorMessage。
+
+| 线 | 坑（appId/slug） | 本轮部署 | 部署提交 | 产物面 | 线上自测 |
+|---|---|---|---|---|---|
+| **g2-blocks（r7）** | `cmuqelj2r0046m9zr4emgdgdg` / g2-blocks-2 | **v17** `cmv3ay800002fm9mx78gm80ym` running（v16 被接管） | `2bb69c7` | 源仓 sync/dy-v1.3 @ `9c27438` 重建 build 镜像 35 文件（+platform/dy×5 · spec-data 重烘焙至链 v9 锚 · analytics tt 收口 · sw 缓存纪元刷新）；30→35 增量 = D 轮 dy 轮产物首次上部署面（r4 先部署后 merge 判例；merge 仍等 v10 approve） | 门禁 ×2 绿（check-v13 四态 18/25/29+1PEND/29+1PEND · SMOKE J1=169.6ms）+ 指纹 7/7 对账闭合（`main.mjs=92d563b7…` 玩法面零漂移 · sw 新纪元在线） |
+| **wheat-squad（r2）** | `cmv36wl94001xm9mxp119q48x` / wheat-squad-2 | **v2** `cmv3b9cwe002jm9mx3rzu6fuq` running（v1 被接管） | `66ef76f` | `git diff 4a58fb9..66ef76f -- games/wheat-squad/build` 空 = 产物零漂移复证发布（内容 ≡ N5 试玩版）；随轮修复 `tools/build.mjs` 回退发现 `dirname` 多上一级缺陷（无 env 必 ENOENT → 红→绿，重建 ≡ HEAD 逐字节） | 契约 9/0 + WS-SMOKE PASS + **WS-LIVE-SMOKE PASS**（线上打开→拖动击杀→300s 结算→零错误）· API 级部署单核对补齐（上轮口径缺口） |
+
+- 证据：`g2-blocks/gate-logs/deploy-r7-20261011/00·01·02` · `wheat-squad/gate-logs/deploy-r2-20261011/00·01`（各带命令/UTC/退出码）。
+- 边界：本轮止于「提审就绪维持 + 试玩面刷新」；wx/dy 渠道提审动作、链 v10 approve、两线「好不好玩」终裁仍归主人；stack-tower 线零接触（本轮未读未写其任何文件）。
+
+## 复跑轮台账（2026-10-11 · 游戏程序 · verify-claims 独立复验两线）
+
+> 触发：接手「已声称完成」的六节点台账，按纪律不照抄黑板声称、在当前 HEAD 独立实跑复验。结论：**两线声称全部复现成立，提审就绪态与试玩部署态维持**；另暴露并修复 **2 组上轮门禁未覆盖的真红**（细节见各线子黑板）。
+
+- **g2-blocks dy 线**：CI 同入口（零 env）默认态复跑暴露 check-v13 Mode A 计数不符（EXIT=1，env 覆盖语义掩盖）+ tests/run-all 全量 8 红（生成件锚过期/acmap b-c PEND 与形态/spec-anchor 恒缺字段/ac-13 生成件字面误报）——全部先红后绿修复，源仓 `624c8ed`/`d9ab197`/`8215096`；生成件重烘焙后**重出包**（dy 主包 267494B→301279B≤4MB · 玩法面零漂移实证 = DY-SMOKE score=9432750 ≡ 上轮逐字节 · web/dy 双 SMOKE PASS）+ 三处真源快照字面守卫豁免随件落账，源仓 `9c27438`。复绿终态 ×2：四态契约 18/25/29+1PEND/29+1PEND · tests 全量绿 · contract v9/v10 各 29/0+1PEND · dy 门禁 11+6+10 · wx 反扫零命中 · wx 门禁 7+9+15（wx `4fba03a` 树净）。证据 `gate-logs/dy-rerun-20261011/00..06`。
+- **wheat-squad 线**：契约 9/0 EXIT=0 · 本地冒烟 PASS · LIVE 资产三点全等（LIVE ≡ git `4a58fb9e` ≡ HEAD，md5 逐件；index.html DIFF=壳层 base 注入设计行为；**LIVE md5 口径修正为复测值 `cc454a07…`**，原登记 `259fc5b4…` 为部署当时历史值）· 新增 `tools/smoke-live.mjs` → **WS-LIVE-SMOKE PASS**（线上可玩直接实证）。证据 `wheat-squad/gate-logs/rerun-20261011/01·02`。
+- **守卫制度随拓扑规范化（随件走，非一次性放行）**：g2-blocks `ci/scope-policy.json` 新增 `exemptTouchPrefixes: games/wheat-squad/`（二线部署面，任务书授权，一号仓 `6092bd6` 起既有事实；**禁触 stack-tower 红线不变**）+ `src/generated/spec-data.ts` 真源快照豁免；acmap/anchor/ac-13 三处守卫升级为可机判强口径（PEND 双字段豁免与 contract-check 主面同源、归一化 check 比对、实算锚两次装载全等）。
+- **给主人的口径补充**：①v10 链 ac-29..33 check 字面为游戏仓相对形态，守卫已归一化兼容，如需链上字面统一随 v10 revision 处理（非阻塞）；②wheat-squad 部署单 API 态（running/errorMessage）本地无 JWT 未做 API 级核对，以 LIVE 三点全等 + 线上冒烟替代证明部署存活。
+
+## D 轮收口台账（2026-10-11 · 主策划 · N6）
+
+### 本轮决策与执行（六节点全闭环）
+
+| 节点 | 结论 | 关键产物（sha 绑定） |
+|---|---|---|
+| N0 开工前置 | 链 v9 approve 代持落账（授权三件依据；approve 后回查 approved 唯一 PASS · 零覆盖 · 内容全等）+ 契约输入换基线 v1.6 + v1.1 存档独立落盘 | 一号仓 `f81dd9d`/`e9c2f7e` |
+| N1 对账（QA） | **放行 N2**（10/10 全过）+ 打回 D-01（ac-22 基线守卫过时）+ 零回退双源证据 | 回执 QA-RECON-D1-20261011-01 · 源仓 main `db01bc7` |
+| N2 dy 重出包（程序+美术） | sync/dy-v1.3 @ `1fdd787`：D-01 修复三态复绿 + 链 v10 入链（draft · ac-33④ 声明面）+ 三适配缺陷修复（location 垫片/装载显式化/tt 收口）+ dy 全门禁 11+6+10+3/3 + wx 反扫零命中（三样一致）+ 美术四要素归零 + 材料清单 v3「已同步·提审就绪」| 源仓 `cee0135`/`8504d0c`/`d2a4b72`/`1fdd787` · 一号仓 `b778331` |
+| N3 二线拍板（主策划） | **放置割草《麦浪小队》（wheat-squad）**七要素全项 + 三待校准显式挂账 | 纪要 `.myrd/blackboard/next-line/selection-memo-v1.md` |
+| N4 spec v0 + 骨架（策划+程序+美术） | 链起点 `cmv36ewn8001sm9mxvsyvbvuc`（v1 draft · meta 0.1 · 回读全等）+ 骨架 entities 13/13 落点 + 契约 **9/0** + WS-SMOKE PASS + 参考卡三件套 | 一号仓 `6092bd6` |
+| N5 互查 + 部署（QA+美术） | QA 五线零悬空放行 + 美术四要素打回当场闭环 + AppHost **wheat-squad-2 上线**（v1 running @ `4a58fb9e` · LIVE-SMOKE PASS）| 回执 QA-WS-N5-20261011-01 · 一号仓 `4a58fb9`/`bc304f7` |
+
+### DoD 四项第二轮校准态（g2-blocks 封版 DoD · ac-30 · 如实登记不编数）
+
+- **状态：待校准（第二轮，样本仍 0）**。四项阈值零改动：D1 次日留存 ≥30% / D7 七日留存 ≥10% / 局均时长 ≥3min / 重开率 ≥40%。
+- **所缺数据项（逐项列明）**：①内测名单圈定（Q6，归主人）；②样本回收方式与时点（Q7）；③近-miss 感知真人在局样本（Q8 + 链 v9 试玩终裁）——三项未到位前无校准值可回写，ac-30 维持 PEND，复测方法 = ac-30.calibrationRound1 规格。
+- 本轮 dy 同步对 DoD 数据面零影响（提审包零 diff，ac-33④ 契约机判）。
+
+### 升级主人（本轮新增/延续）
+
+1. **g2-blocks 链 v10 approve**（ac-33④ dy 同步轮声明面；approve 后 sync/dy-v1.3 可 fast-forward 回 main）——本轮不代持（任务书对 v10 无 approved 预设，区别于 N0 的 v9 输入前提）。
+2. **g2-blocks 真人试玩终裁**（near-miss 感知 + 好不好玩）+ 内测三件（Q6/Q7/Q8）+ wx/dy 提审动作与时点——延续挂账。
+3. **wheat-squad 试玩终裁**（四件套 manual 面）：入口 `https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw`；连续 3 轮 ≥2 轮 fv-1/fv-3 双 manual 不达 → 冻结转新题条款自动生效。
+
+### 下一步（团队面）
+
+- g2-blocks：~~部署轮把 dy 包产物同步部署面~~ ✅ **已执行（部署轮 r7 v17 LIVE @ `2bb69c7`，见顶部部署轮台账）**；等主人 v10 approve 后 merge sync/dy-v1.3 回 main（fast-forward，届时部署面随 merge 提交复证一轮即可）。
+- wheat-squad：试玩样本回收 → fv-pend 校准 revision；美术下批 = dy 截图重摄（g2-blocks）+ wheat-squad 占位资产色值核对入机判门禁（v0.2）。
+
+## D 轮开工登记（2026-10-11 · 主策划）
+
+- **本轮目标**：① g2-blocks 完成 dy 同步重出包与双向门禁复跑（维持提审就绪）；② 第二产品线完成选型拍板 + spec v0 入链 + 可玩骨架部署供主人试玩。
+- **开工前置完成（N0）**：黑板本轮区段已刷新（顶层 + g2-blocks 子黑板 + next-line）；**链 v9 approve 代持落账**（授权依据=任务书输入前提「approved spec v1.3 revision 入链版」+ 反审批指令 + B3 判例；approve 后回查 approved 唯一 PASS · 零覆盖 · 内容全等）；契约输入导出件 `.myrd/spec/g2-blocks/design-spec.json` 换基线为链 v9（meta.version=1.6 · 30 条 acceptance）。
+- **stack-tower 线**：**继续冻结维持，本轮零接触**（同大类红线延续）。
+- **硬约束（全程生效）**：① v1.2 冻结范围与 v1.3 条款零回退，改动走 revision 接口；② 好友数据不出开放数据域；③ 提审/发布拍板归主人，本轮止于提审就绪 + 试玩部署；④ 二线品类 ≠ g2-blocks（≠ 消除大类）；⑤ 数据不足标「待校准 + 所缺数据项」，不编数；⑥ 阻塞超一轮进 blockers.md 升级主人。
+
+## 组合全景登记（2026-10-11 · D 轮开工时点）
+
+| 线 | 状态 | 一句话 | 基线指针 |
+|---|---|---|---|
+| **g2-blocks（熔炉方块）** | **已发布 · 打磨中 · dy 已同步·提审就绪** | v1.3 四件同包 main + **r7 v17 LIVE（dy 轮产物上部署面，2026-10-11 部署轮）** + 链 v9 approved（v1.6）；D 轮 N1 对账放行（10/10）+ N2 dy 重出包（sync/dy-v1.3 终版 @ `9c27438` · 双向门禁三样一致 · 链 v10 draft 待 approve）| 源仓 main `26ba1d9`（零触碰）· sync 分支 `9c27438` · 链 v9 approved + 链 v10 `cmv35u0hd001qm9mxnwboe0qv`（draft）· AppHost **v17 LIVE** @ `2bb69c7` · 子黑板 `.myrd/blackboard/g2-blocks/blockers.md` |
+| **stack-tower** | **冻结 · 维持** | 同大类红线（与消除/堆叠同大类）+ 举证责任在数据 + 成本账；解除条件已写明（B-C-001 存档节） | 主线 spec v1.5 approved · AppHost v24 · 本轮**零接触**（git status 机判） |
+| **第二产品线（wheat-squad 麦浪小队）** | **孵化 · 可玩骨架已部署试玩（v2 LIVE）** | D 轮 N3 拍板放置割草（idle×survivor-like，七要素纪要）→ N4 spec v0.1 入链（`cmv36ewn8001sm9mxvsyvbvuc` v1 draft · 契约 9/0）→ N5 互查放行 + AppHost 上线 → **部署轮 r2 复证发布 v2 @ `66ef76f`（产物零漂移 · WS-LIVE-SMOKE PASS · 顺修 build.mjs 回退发现缺陷）**；**等主人试玩终裁** | 试玩 `https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw` · 子黑板 `.myrd/blackboard/wheat-squad/` · 纪要 `.myrd/blackboard/next-line/selection-memo-v1.md` |
+
+## 本轮三项裁决执行台账（2026-10-10 · 主策划）
+
+| 裁决 | 执行结果 | 证据（HEAD sha 绑定） |
+|---|---|---|
+| ① v1.3 基线降级为「待对账」 | **对账完成**：定位（未注册分支排除 / worktree 真源确认 / 部署面来源树确认）→ 四件同包 merge `e4c65f95ab0d1cb6c8546ec6514fef08ccf3e958` → HEAD 复跑三门禁全绿（三态 18/25/29+1PEND · Mode A · 冒烟 J1=175.8ms）→ 绑 sha 证据 7 件落档 | `gate-logs/v13-a1-merge-20261010/00–04`（四要素头） |
+| ② 第二线开题简报先行 | **简报已落账**：微信畅销/人气/畅玩/IAA 政策 + 抖音畅销/白皮书/内容热度 10 个数据点全带出处与日期；≥4 候选均与消除/堆叠大类错开；stack-tower 零接触维持 | `.myrd/blackboard/next-line/research-brief-v1.md` |
+| ③ stack-tower 冻结 | **维持执行**：本轮全部 git 变更路径不含 `games/stack-tower` / `games/game` / 根 `apphost.toml` | 一号仓 `cadb2f4` 提交内容机判 |
+
+## 带 HEAD sha 的证据链（本轮汇总）
+
+| 环节 | sha / id | 证据件 |
+|---|---|---|
+| 四件同包 merge | 源仓 main `e4c65f95ab0d1cb6c8546ec6514fef08ccf3e958` | gate-logs/v13-a1-merge-20261010/00·01·02·03·04 |
+| A2 链 v9 入链 | 链 v9 `cmv1q9k690045m94obp29ysre`（draft · 锚 `6719edd27d7e121a…` 不变） | 同目录 06（READBACK EQUAL · v1..v8 零覆盖） |
+| A2/A3 复检 | 复检器 9/9 APPROVE-READY @ e4c65f9 | 同目录 05 |
+| 部署轮 r5 | 一号仓 `cadb2f424a884c149c8330390b99d939892f9560` · deployment v15 `cmv1qhojj004km94o8tgy6kij` | 同目录 07（LIVE 自测 · sha 三向全等） |
+| 主仓 HEAD 独立复证 | 源仓 main `26ba1d9a1c663edb53ad537777abf902fe6fd296`（= r5 部署面源 · 树净）：契约三态 18/25/29+1PEND + 根契约 18/0 + 八门禁 ①–⑧ + 冒烟 J1=170.4ms 全绿 · 部署面 30 文件逐字节复证 · 预置件空壳冒烟 4/4 · 跨线零接触机判 | `g2-blocks/gate-logs/v13-head-reverify-20261010/`（README + 00–03，各带命令/UTC/退出码） |
+| 预置件空壳冒烟 | SCAFFOLD-SMOKE PASS 4/4 | `templates/next-line-scaffold/`（可复跑；复证原文并入 `v13-head-reverify-20261010/03`） |
+
+## 升级主人（不越权维持）
+
+- 链 v9 approve · 真人试玩（near-miss 感知终裁）· 内测三件（Q6/Q7/Q8）· wx/dy 提审动作与时点 · 第二线三轴选型输入。
+- 提审凭证事项维持「提审就绪」表述；团队只交包与入口，提审动作与「好不好玩」终裁不代行。
+
+---
+
+# 存档：stack-tower 线黑板（C 抖音小游戏移植轮 · 2026-09-30 收口态）
+
+## C · 抖音小游戏移植轮（2026-09-30 开工 · 主策划 · **N1 收口态**）
+
+> 更新时间：2026-09-30（**C 轮 N2 收口 + deploy 上线 · AppHost v24 · commit `b7b22ae` · 游戏程序**；B-C-001 解除 · 证据见下）
+> 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：**N4 QA 对抗互查**（三份输入已齐：spec v1.5 approved + `docs/dy-submission-kit-c3.md`（repo 根/黑板指针）+ `gate-logs/c2-tt-port-20260930/` 机器证据）；主人侧挂账 = ①正式 AppID + 类目/资质下发（真机档与提审动作前置）②是否提审拍板。团队只交包，提审动作不代行。
+
+### 当前基线（C 轮 · 2026-09-30）
+
+- **黑板路径**：`.myrd/blackboard/`（levels.md / assets.md / blockers.md + gate-logs/）
+- **spec 版本号**：**v1.5 · approved（平台 v7 `cmunf6r1e014cm9lfamzllk2h`，2026-09-30 API 实查 approved 唯一；v6 `cmulzwv6c005km9lfo3zek574` 及更早全 superseded）；`meta.version="1.5"` 显式落账（1.4 及以前版本标识仅存 revision_note，本版起补显式字段，平台已保留该字段——实查回读全等）**
+- **导出件双落点**：`.myrd/spec/stack-tower-spec.json` 主 + `.myrd/spec/design-spec.json` 镜像（wrapped 形状 `{schemaVersion, spec, _platform}`，`_platform` 已刷新为 v7 approved；2026-09-30 以接口实查回写，v7 回读与 payload sortKeys 全等）
+- **numeric 冻结锚**：sha256(sortKeys) = `c3af773b6483164c22ca0a039623967cb3b67ff9b2b658749f927baeee74957d` ≡ v1.3 唯一存档锚（`.myrd/spec/stack-tower-spec-v1.3-numeric-sha256.txt`，**未新建 v1.5 存档文件**——check-numeric-freeze 只复算本档的机制不变，避免多锚漂移）；落账后复跑 `check-numeric-freeze.mjs` **PASS** + 根 `contract-check.mjs` **PASS**（A 段自动识别 v7 approved，39/40 实跑 + acc-a7 not-runnable 既有态单列）
+- **C 轮目标**：可提审抖音小游戏包 + 材料清单回流；**是否提审由主人拍板，团队只交包**
+
+### C 轮 N1 · spec v1.5 落账台账（2026-09-30 · 游戏策划）
+
+- **建版器**：`games/stack-tower/tools/build-spec-v15.mjs`（守卫五道：B 锚复算 / 幂等 / 编号三方自洽 / C' retention 一字不动 / A' 六面修改后深比——真守卫设计：修改前快照 + 落盘前复比，杜绝 copy 前自比恒真）
+- **payload**：`.myrd/spec/stack-tower-spec-v1.5-payload.json`；**落点声明**：`.myrd/spec/stack-tower-spec-v1.5-dy-files.txt`（dy 文件均由 N2 产出，N1 时点不存在，spec 先行声明沿 wx B0 判例）
+- **变更面（payload ↔ v1.4 payload 精确 diff 实证，仅三处）**：① `content.platform.items` 追加 dy 三条目（`dy-runtime` / `dy-share-loop` / `dy-submission-kit`，wx 四条目逐条零 diff、容器其余字段零 diff）；② `meta.revision_note` 前缀追加 v1.5 段；③ `meta.version` 新增 `"1.5"`。
+- **零漂移实证**：world / levels / numeric / entities / assets（顶层）/ acceptance（顶层 40 条）六面 **ZERO-DIFF**；零数值改动；missions（content.retention）一字不动；scope_gate 不抢跑（留存评估顺延 ≥7 天真实样本，主策划发起）。
+- **三件套一次给全**：稳定 id（条目 3 + 素材 5：dy-share-card / dy-store-screenshot-01..03 / dy-icon + 能力 optional 1：录屏分享/高光封面卡）；落点一律「以 repo 根为基准的相对路径」（`games/stack-tower/…` 前缀，建版器 FILE/ASSET GUARD 机械断言）；口径 = QA 四条验收口径原文收录条目 acceptance（①好友榜 tt 云存储「接入或显式降级且门禁输出可见」落死不写「视情况」②tt.shareAppMessage 最小闭环配图绑 dy-share-card ③录屏分享/高光封面卡显式标 optional、未标注 optional 而缺失按 spec 缺陷打回 ④N4 三份输入缺一停审、结论仅 JSON）。
+- **版本链（revisions 保序，未覆盖任何旧版）**：
+
+| 版本 | 平台 id | 内容 | 状态 |
+|---|---|---|---|
+| v1.3 = 平台 v5 | `cmukkjc10001ym9nb3dnc5kt6` | B0 微信移植轮（platform 四条目 + 素材 7 id） | superseded |
+| v1.4 = 平台 v6 | `cmulzwv6c005km9lfo3zek574` | B1 上头循环（retention 段 + meta 四件套 + acc-b1..b8） | superseded |
+| **v1.5 = 平台 v7** | `cmunf6r1e014cm9lfamzllk2h` | C 抖音移植轮：仅 platform 段增量 dy 三条目 + QA 四条口径 + meta.version 显式落账；六面零 diff | **approved（唯一）** |
+
+- **approve 代持声明（沿 B3 判例）**：主人任务书显式「不要进入 plan mode 或等待人工审批，直接实现需求并提交代码」+ C 轮节点链以「v1.5 approved」为 N2/N3 开工前提 + 「approved 唯一」版本链约束；代持人 = 主策划。红线不失效：主人一句否决 → 新修订置 draft、v7 superseded、契约随最新 approved 版重定基准。approve 前 spec↔payload 全等实查已留证（`.myrd/spec/c3/platform-v7-draft-raw.json`）。
+
+### C 轮 N2 程序线收口台账（2026-09-30 · 游戏程序 · 可核对证据）
+
+- **落点与 spec 对齐**：dy 三条目声明落点全部落盘且逐字对齐（`tests/tt/tt-runtime-surface.spec.mjs` ① 段断言「落点在盘 repo 根相对逐字」6/6 PASS）；对称新增件（非穷举声明面，wx B0 判例同构——`src/app/boot-wx.ts` 亦不在 wx 条目 files 内而工程在档）：`src/app/boot-tt.ts` / `tsconfig.tt.json` / `tools/gen-tt-assets.mjs` / `tests/tt/*`（3 条目查 + 1 聚合器 + 1 harness）。
+- **门禁四件（任务书口径）**：①API 冒烟 devtools/真机双档（devtools=机跑 fake tt 宿主行为冒烟；真机=显式 blocked 不造假数据）②numeric 逐字节零漂移断言（≡ v1.3 存档锚 `c3af773b…`）③UTC+8 seed 边界用例（15:59:59Z/16:00:00Z 翻日 + meta 存档同键跨边界）④`dy-*` 编号核对（spec 条目 3 ↔ 素材 5 ↔ 接线面三方对齐）——全部落 `tests/tt/` 三份条目查，**tt-GATE 5/5 PASS（111 项断言，r2 轮）**。
+- **平台适配（逻辑层零裸调用）**：`src/platform/tt.ts` 只实现 `platform/index.ts` 的 Platform 接口（tt 全局面仅 tt.ts/boot-tt.ts 消费，内核零改动、零 import）；存储同源（`MUTED_STORAGE_KEY`/`META_SAVE_KEY` 常量单源 import，tt.ts 零字面键名重抄）；系统信息/安全区仅作表现层布局输入（tt.js 零 kernel 触碰，门禁断言）。
+- **好友榜落死条款**：tt 云存储单通道 `resolveDyFriendRank`（接入=cloud / 显式降级三因 missing-api·auth-denied·no-tt-container）；门禁输出可见行实测：`DY_FRIEND_RANK=degraded reason=no-tt-container`、`reason=missing-api`、`DY_FRIEND_RANK=cloud`（r2 轮档 `gate-logs/c2-tt-port-20260930-r2/01-tt-gate.log` 实测三行在档：missing-api / no-tt-container / cloud；r1 档因聚合器只留 RESULT 行缺三行，驳回②已修——聚合器子门 stdout 全量透传）。主包零好友数据落点（行为断言：读取不写任何存储键）。
+- **分享闭环主判据**：`tt.shareAppMessage`（主动 shareNow）+ `onShareAppMessage`（被动）双通道，配图绑 `dy-share-card`（500×400，spec↔manifest↔磁盘↔包内四向 sha256 一致）；载荷 `sid=`（零 PII 正则断言）；不可用/失败两路静默降级保留入口（行为断言）。
+- **埋点合规巡检（只读，零调优建议）**：tt 面零网络调用（tt.request/uploadFile/connectSocket/fetch/XHR 均无）、零 PII、会话五钩子仍由共享组装根承载未重抄（r2 轮档 `…c2-tt-port-20260930-r2/01-tt-gate.log` 巡检段 4/4 PASS）。
+- **提审包**：`export/tt/` 63 件（`tools/build-tt.mjs`），主包 300,222B（N3 覆写素材重建包）≤ 4MB 分列 PASS、子包 0B；manifest 逐件 sha256 零漂移；包指纹（game.js）`580991cc…` 入 `docs/dy-submission-kit-c3.md`；材料清单 5 id 三向一致（§2 表）。
+- **挂账（N2 线，归主人/N4）**：①真机档 + IDE 上传 = AppID + 类目/资质到位后主人侧执行；②是否提审拍板归主人；③`export/web/build` 镜像已同步（`diff -rq build export/web/build` 空，`MIRROR-EQUAL` 留证），deploy 动作归 deploy 节点。
+- **判例偏离留痕（N2 决策，可复核）**：dy 平台素材 5 件由 N2 以确定性生成器 `tools/gen-tt-assets.mjs` 产出（NEON 表唯一色值源、仅规格裁切、重跑逐字节一致）——沿 wx B0 同构判例（`tools/gen-wx-assets.mjs` 同为程序线产线件）；N3 美术可覆写重生成（id / manifest 口径不变，覆写后重跑 tt-GATE 即可再证）。
+- **wx 轨测试作用域修正（1 行，非包非 spec 变更）**：`tests/wx/wx-submission-kit.spec.mjs` 的「提审材料 id 全集」原把 spec **全平台**素材 id 当 wx 单轨口径，spec v1.5 新增 5 个 dy id 后该假设失真（FAIL 12/18）；已收窄为 `id.startsWith('wx-')` 轨内作用域 → wx-GATE 恢复 **6/6**，`export/wx/` 零触碰（`git status --porcelain export/wx wx/` = 空）。
+
+
+
+### C 轮 N2 驳回收口台账（2026-09-30 · 游戏程序 · QA 三项驳回修复回流）
+
+- **驳回①（kit 文书失真）→ 已修**：`docs/dy-submission-kit-c3.md` §1 主包体积 300,401B→**300,222B**、§2 五件 sha256 全部刷新为 N3 覆写版磁盘真源（≡ `assets/tt/manifest.json`，逐件核对 5/5）；`tests/tt/tt-submission-kit.spec.mjs` 增补两条防漂移断言（「文书材料 sha256 ≡ assets/tt/manifest.json 逐件相等」+「文书主包体积 ≡ export/tt/manifest.json sizes.mainBytes 且禁 300,401 旧值回潮」）——条目查断言 29→31。
+- **驳回②（门禁输出可见存档缺失）→ 已修**：`tests/tt/run-tt-gate.mjs` 子门 stdout **全量透传**（原仅留 RESULT 行）；`tests/tt/tt-runtime-surface.spec.mjs` 补 `DY_FRIEND_RANK=cloud` 行打印（原只断言未输出）。r2 档 `gate-logs/c2-tt-port-20260930-r2/01-tt-gate.log` 实测三行在档：`reason=missing-api` / `reason=no-tt-container` / `DY_FRIEND_RANK=cloud`（grep 可复现）。本台账「好友榜落死条款」行指认已同步更正为 r2 档。
+- **驳回③（证据条款 D3 四要素）→ 已修**：r2 轮日志统一四要素头（文件名/日期/命令/执行目录 + 输出摘要尾注）；`c3-art-overwrite-20260930/02b-root-contract.log` 重写为带头独立留档（根分发器 `scripts/contract-check.mjs`，头部显式说明与 02-contract.log（游戏工程版直呼）的 dispatch 同源对应）；新增 `c3-art-overwrite-20260930/04-bundle-size.log`（N3 重建包 300,222B 独立体积分列留档）。
+- **复跑证据（r2 档，四要素齐备）**：`01-tt-gate.log` tt-GATE **PASS 5/5**（55+25+31 断言）· `02-root-contract.log` 根契约 **PASS**（39/40+acc-a7 单列）· `03-bundle-size.log` 分列 **PASS**（300,222B ≤ 4MB）· `04-smoke.log` 冒烟 **PASS (browser)**。
+
+### C 轮 deploy 台账（2026-09-30 · 游戏程序/deploy · C 轮成果上 AppHost）
+
+- **坑（沿用不新建，黑板 appId 优先）**：appId `cmugttipt000km9299oej5z9b` · platformSlug `stack-tower-3` · sourceId `stack-tower`（GET 实查 `sourceType=game-studio` 绑定即本游戏，防挤占校验通过）；manifestPath 恒为 `games/stack-tower/apphost.toml`。
+- **本轮部署**：deploymentId `cmuo5gf3h01d1m9lfogqku3s9`（**version 24**，mode=bundle，deployedBy=workflow，durationMs 833，errorMessage null）· gitRef `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` = commit **`b7b22ae`**（部署前 `git ls-remote` 实证与远端全等；工作区干净）。上一生产版 version 23（`cmumy0u0g0134m9lfql75zkkq` · commit `885324a` · 2026-09-29）被本次 superseded——`git merge-base --is-ancestor` 实证 `885324a` 为 HEAD 祖先，即 C 轮 N2/N3/QA 三笔成果首次上发布面。
+- **导出复核（产物 ≡ 代码）**：`npm run build`（tsc）后 `diff -rq build export/web/build` = 空（MIRROR-EQUAL）+ `index.html`/`sw.js`/`manifest.webmanifest` 三件 EQUAL → **零漂移，无需新导出提交**；发布面增量 4 文件（`build/app/boot-tt.js` +230 / `build/platform/tt.js` +275 / `build/platform/share.js` +14 / `build/audio/bgm.js` ±4）系 C 轮 N2 tt 装配体首次入生产（上一生产版先于 N2 提交）。
+- **部署前门禁（同轮取证）**：根契约 `contract-check.mjs --spec .myrd/spec/stack-tower-spec.json` **PASS 82/82** · tt-GATE **PASS 5/5** · 游戏契约 `run-all.mjs` **PASS 39/0/0**（not-runnable 0）· 冒烟 **PASS (browser)**。
+- **通道留痕**（`gate-logs/c3-deploy-20260930/`）：POST HTTP=**504**（代理 30s 截断，B1 判例同形态）→ 依判例**先 GET 复查再决定**：部署单**已受理**（v24 building）→ 轮询 70s 至 running，非盲目重发（`01-deploy-post.log` + `02-deploy-poll-selftest.log`，四要素头）。
+- **自测（2026-09-30 实测）**：liveUrl `https://leomac-studio.tail49399e.ts.net/apps/stack-tower-3/gw` —— `/health` **200** `{"ok":true,"app":"stack-tower",…}`；`/` **308→200** text/html（壳 index.html，`<base href="api/public/assets/">`）；**新版本指纹 4/4 = 200**（`/api/public/assets/` 路由：`sw.js` / `build/platform/tt.js` / `build/app/boot-tt.js` / `build/main.js`）= 新部署实际生效，非旧缓存。
+- **团队产物区入口**：artifacts POST 幂等命中 `cmugut4ck000vm929ufwgefhl`（hostedAppSlug `stack-tower-3`，status ready）。
+- **注**：deploy 成功 ≠ 发布成功；抖音侧「真机档 + IDE 上传 + 是否提审」仍归主人（B-C 挂账不变，本段只交 Web 发布面与提审包）。
+
+### 🚨 B-C-001 实查与升级（2026-09-30 · 已升级主人）→ **✅ 解除（2026-09-30 · N2 依任务书放行）**
+
+- **任务书前提**：「stack-tower 仓库根路径缺失——N1 不受阻即刻开工；N2/N3 落盘、N4 开审硬阻塞；请主人提供仓库根路径（或恢复/注册仓库）」。
+- **N1 轮实查（如实留证）**：仓库根**在本 run 工作区在位且完整**——`git rev-parse --show-toplevel` = `/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmunesx300146m9lfeoyat8w7`（= `pwd`）；分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` HEAD `e2044d0`（B1 收口态），工作区开工时干净；`games/stack-tower/` 工程完整（src / tests / docs / tools / export/wx / assets 齐备，wx B0 提审包在档）。
+- **解除依据（2026-09-30 · N2 复核 + 任务书指令）**：① N2 开工前独立复核与 N1 实查一致（`git rev-parse --show-toplevel` 同路径、HEAD `df2550d` = N1 收口提交、工作区干净、工程树完整）——「路径缺失」前提在本工作区**不成立**；② 主人任务书同令「**不要进入 plan mode 或等待人工审批，直接实现需求并提交代码**」+「**路径一到位即放行并行段**」→ 路径既已在位，放行条件达成，N2 即刻开工（不空转等答复）。
+- **留痕**：本条保留全历史（不删不改旧结论），解除动作与证据见上「C 轮 N2 程序线收口台账」。若主人所指实为**另一个**独立 stack-tower 仓库，则本轮产物落点（`games/stack-tower/`）与 B0/B1 判例同根，迁移成本为零（可整目录搬移）。
+- **N2/N3 放行双重前提**：v1.5 approved ✅（已达成）+ B-C-001 解除 ✅（本条）→ **已放行，N2 已收口**。
+
+### C 轮继承挂账（不变，逐条保留）
+
+1. wx 提审拍板（归主人）：正式 AppID + 类目/资质材料未下发，B0 挂账延续；C 轮 wx 包零触碰。
+2. U6/R2 壳层缺陷三选一裁决（归主人，B0 挂账延续）；「好不好玩」试玩终裁（归主人，B1 挂账延续）。
+3. META_CACHE_EPOCH 1→2 回头用户触达（归主策划拍板，B1 挂账延续）。
+
+
+
+## 当前基线（B1 · 2026-09-29 开工 · 主策划）
+
+- **黑板路径**：`.myrd/blackboard/`（levels.md / assets.md / blockers.md + gate-logs/）
+- **spec 版本号**：v1.3 · approved（平台 v5 `cmukkjc10001ym9nb3dnc5kt6`；导出件 `.myrd/spec/stack-tower-spec.json` 主 + `design-spec.json` 镜像）；B1 目标 = v1.4（走 revisions version+1，numeric 四段逐字节冻结）
+- **numeric 冻结锚**：sha256(sortKeys) = `c3af773b6483164c22ca0a039623967cb3b67ff9b2b658749f927baeee74957d`（存档 `.myrd/spec/stack-tower-spec-v1.3-numeric-sha256.txt`，check 只复算本档）
+- **wx 提审包红线**：`games/stack-tower/export/wx/` 整包 sha256 = `7ee13ab741fc3586b7477e43f89e94f6d2a3c32eafd49357cbd0c8b19208225f`（B0 在案基线，B1 零变更，N4 以 git diff 留证）
+
+## B1 · 上头循环轮（2026-09-29 开工 · 主策划）
+
+> 更新时间：2026-09-29（**B1 收口态 · N4 门禁全绿 + deploy 已发布 · 主策划**）
+> 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：**等主人两项拍板**——①「好不好玩」试玩终裁（连胜/每日挑战激励强度人工判定）；②U6/R2 壳层缺陷三选一裁决（B0 挂账延续）。missions 运行时顺延下一轮（附录 A schema 已定稿）
+
+### B1 追加 deploy（2026-09-30 01:27 UTC+8 · deploy）— **v23 已发布（N2 美术接线增量上坑）**
+
+- **部署单** `cmumy0u0g0134m9lfql75zkkq` · **version 23** · commitHash **`885324a`**（= 本轮分支 HEAD，`git ls-remote` 预核对一致）· status=running（在服形态，同 v22）· `durationMs=824` · errorMessage=null · app `cmugttipt000km9299oej5z9b`（stack-tower-3）current 已切 · appStatus=ready。v22（`cmum141az…` @ c0a31f6）被 superseded。**坑复用不新建**：sourceId=`stack-tower` 绑定即本游戏（GET 实证）。
+- **本轮增量**：自 c0a31f6 起仅 N2 美术线接线（`main.ts`/`assets.ts`/`meta-daily-card.ts` + build/export 镜像 + sw.js 一行，59271a2）——范围与 B1「仅 PWA 增量」口径一致，wx 零触碰。
+- **导出面**：`npm run build` 后 `diff -rq build export/web/build` **空** + index/sw/manifest 相等 → **无新增导出提交**（产物 ≡ 代码）；发布前基线 `node scripts/contract-check.mjs` **PASS**（39/40 可跑）。
+- **通道实录**：POST 返回 504@30s 代理截断，GET 复查**有单**（已受理，version 23 building）→ 未重发、无双单；轮询 building→deploying→running。
+- **线上自测**：/health 200 · / 308→200 出壳 · 指纹 **17/17 全等**（含本轮新增 `build/ui/meta-daily-card.js` + meta 五模块 + meta 四件套资产；二进制经平台 base64 封装传输，解码后比对）· live-smoke **核心循环 7/7**。FAIL 3 项 = U6/R2 已立案既有态复现（同形态，非回归，不碰壳）。
+- **产物区**：artifacts POST **201**（`cmugut4ck000vm929ufwgefhl` · hostedAppSlug=stack-tower-3，幂等命中）。
+- **证据**：`gate-logs/b1-redeploy-20260930-deploy/deploy-evidence.md`（前置核对/导出一致性/通道/指纹/live-smoke 全记录）。
+- **挂账不变**：META_CACHE_EPOCH 1→2（回头用户触达）仍待主策划拍板；U6/R2 三选一、wx 提审拍板归主人。
+
+### B1 收口态 deploy（2026-09-29 · deploy）— **已发布，仅 PWA 增量**
+
+- **部署单** `cmum141az006tm9lfwrc7c6a2` · commitHash **`c0a31f6`** · status=running（在服形态）· app `cmugttipt000km9299oej5z9b`（stack-tower-3）current 已切 · app status=ready · liveUrl `https://leomac-studio.tail49399e.ts.net/apps/stack-tower-3/`。
+- **通道坑位（三条，如实留痕 `gate-logs/b1-mental-loop-20260929/11-deploy.log`）**：① 真 POST 通道 = `/api/v1/apphost/apps/:id/deployments`（`/api/v1/deployments` 404、apphost/deployments POST 405）；② 一次 504@30s 代理截断——GET 复查**无单**（未受理，与 B0「504≠失败」案例不同形态：那是有单，这次无单）→ 修正 body（mode/commitHash 字段名对齐 B0 单）重发，非盲目重试；③ **部署输入 = gitRef 远端 HEAD**——首两次构建的都是远端 487640c，push（`487640c..c0a31f6`，ls-remote 实证）后重发才发布 B1 产物。
+- **线上自测全绿**：/health 200 · / 308→200 出壳 · **线上 sw.js = st-precache-v2 + META_CACHE_EPOCH=1 + index network-first** · 模块指纹 **8/8 全等**（main + meta 六模块 + telemetry-meta）· assets/meta/manifest.json 200 · live-smoke **核心循环 7/7**（画布/分数 0→45/重开复位/PNG·M4A/音频可解码）。
+- **FAIL 三项 = B0 已立案 U6/R2 既有态**（SW 未控制页面 / 断网 reload / SW scope 壳层成因）——非本轮回归，沿 B0 裁定不碰壳，维持升级主人。
+- **产物区**：products POST 201（B1 条目 `hostedAppSlug=stack-tower-3`）；artifacts 端点 404 未复现（B0 形态已变，非阻塞）。
+- **门禁**：run-all **39/39** + 根 contract-check PASS + numeric ≡ `c3af773b…` + wx 体积分列 PASS + 冒烟 browser PASS + wx 目录 git diff 零变更。QA 回执 `games/stack-tower/docs/qa-b1.md`（8 条拒绝线零命中）。
+
+### 美术线增账（2026-09-29 · N2 接线收口 · 非阻塞）
+
+3. **meta 接线增量的回头用户触达（归主策划）**：四件套已按窄口径接线（streak-badge / daily-challenge-card / icon-badge；mission-panel 预留），发布面已镜像全等、新装用户即刻生效；但 SW CACHE 冻结 `st-precache-v2`（acc-b8 断言字面 REVISION=1+EPOCH=1）→ **已缓存 v2 的回头用户暂拿不到 main.js 增量**。如需触达：`META_CACHE_EPOCH` 1→2（CACHE→v3），牵动 acc-b8 断言与 spec sw-cache-bump 条款改口，须主策划拍板后由程序/QA 协同改口，美术不擅动门禁/spec。证据 `gate-logs/b1-art-wiring-20260929/`。
+
+
+### N0 · 数据盘点结论（2026-09-29 当日完成 · 全文见 `n0-data-audit-b1.md`）
+
+- **三行门槛（85% / 3局 / 20%）实测全部无数据，样本量 0**——采集通道未建成（sink no-op + 服务端无端点 + 无事件持久化，三条实证可复现）→ **不足以决策三钩子全量**。
+- **主策划拍板（锁定决策①分支）**：scope_gate = 窄口径，B1 仅 `daily-challenge` + `streak-display`；`missions` 顺延下一轮，JSON 校验器/幂等发奖/`mission-panel` 资产 id 作预留登记。
+- **SW 现状**：cache-first + index 在 precache（旧壳滞留风险）；版本递增与 numeric 冻结冲突 → 拍板工具侧 `META_CACHE_EPOCH` 叠加（v2），PRECACHE_REVISION 维持 1 冻结，口径进 v1.4 附录。
+- **存档现状**：仅 muted + anonId 两键、无版本 → B1 迁移 = 新增 `st.meta.save.v2`（带 schemaVersion），既有键零触碰。
+- **三钩子就绪度（给美术）**：daily-challenge 🟢 / streak-display 🟢 / missions 🟡（顺延）——美术按「两种范围通用」先做参考卡 meta 扩展与四件套。
+
+### 首批阻塞（继承，不新增）
+
+1. **wx 提审拍板（归主人）**：正式 AppID + 类目/资质材料未下发；是否提审未拍板。B1 不解锁 wx 任何动作（包零变更），不阻塞 B1 主链。
+2. **抖音移植（backlog）**：等 wx 提审结果再议，B1 不动。
+
+
+
+## B0 · 微信小游戏移植轮（2026-09-28 开工 · 主策划 · **N4 收口态**）
+
+> 更新时间：2026-09-28（N3 三轨门禁 + N4 回流完成 · 主策划）
+> 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：**等主人两项拍板**——①下发正式 AppID + 类目/资质材料（解锁真机轨复跑与提审）；②是否提审（不点头 B0 不闭环）
+
+### B0 收口态 deploy（第 7 次 · 2026-09-28 · 程序/deploy）— **已发布，AppHost 浏览器可玩**
+- **坑（沿用不新建）**：appId `cmugttipt000km9299oej5z9b` · slug `stack-tower-3` · sourceId `stack-tower`（防挤占校验过：绑定即本游戏）· manifestPath `games/stack-tower/apphost.toml`。
+- **liveUrl**：`https://leomac-studio.tail49399e.ts.net/apps/stack-tower-3/`（/health 200；/ 308→200 出壳）。
+- **本轮 gitRef**：`myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `3ff05c3`（远端=本地，ls-remote 实证）；部署单 `cmul7cf4r000om9lftgu63lmw` status=running（本平台在服形态）。⚠️ 通道事实：deployments POST 经代理 30s 截断回 504 但服务端已受理，**504≠失败**，必须 GET 复查（本轮重试产生第二张同载荷单 `cmul7blzr000mm9lfcqhz6gd3`，已被 superseded，无副作用）。
+- **导出对齐**：`npm run build` 多出 4 个 wx 适配模块，`export/web/build` 本轮补齐，恢复 `build/ ≡ export/web/build/` **34 文件逐字节全等**（web 入口对 4 模块零静态引用 → 行为零变化）；commit `3ff05c3`。
+- **自测**：部署前门禁 4/4 绿（根契约 / numeric ≡ `c3af773b…` / wx 体积分列 / smoke browser）+ 线上 4/4 模块指纹全等 ≡ `3ff05c3` + live-smoke **核心循环 PASS**（画布 480×720 / 分数 0→45→复位 / PNG·M4A 字节通道 / 音频可解码）。
+- **FAIL 三项 = 既有立案 U6/R2（非本轮回归）**：SW scope 缺陷（壳层 `server/` 成因，待主人三选一裁决），v16 线上同形态，本轮不改壳。证据：`gate-logs/b0-deploy-20260928/README.md`。
+
+### N4 · 提审包与材料回流对照（2026-09-28）
+- **接续复核轮（同日 · 程序）**：上轮收口态全量复核 **9/9 绿零漂移**——根契约 PASS / wx-GATE 6/6 / 体积分列 PASS / numeric 三向对账 ≡ `c3af773b…74957d` / 双 typecheck / 冒烟 (browser) / run-all 31/31 / **提审包 sha256 复算 ≡ `7ee13ab7…8225f`**；零代码改动（`git status` 干净）。证据 `gate-logs/b0-wx-port-20260928/recheck-20260928-prog/`（9 份日志 + README，四要素齐）。
+- **提审包 = `games/stack-tower/export/wx/`，整包复合 sha256 = `7ee13ab741fc3586b7477e43f89e94f6d2a3c32eafd49357cbd0c8b19208225f`**（= sha256(manifest.json)；62 件逐件 sha256 经磁盘一致性校验）；主包 317.8KB≤4MB / 开放数据域 5.7KB≤1MB 分列 PASS。
+- 提审材料按 id 逐项对照：**7/7 三向一致**（spec v1.3 content.platform ↔ assets/wx/manifest.json ↔ 磁盘，`wx-submission-kit.spec.mjs` 13 断言 PASS）——wx-share-card-5x4（主判据 5:4 卡）/ wx-share-timeline-1x1 / wx-store-screenshot-01..03 / wx-friend-rank-ui / wx-icon。
+- 非素材待主人下发项：正式 AppID（现 touristappid 测试号占位）/ 类目与资质材料 / 服务域名与服务账号口径（预计「无/无需」）——全清单见 `games/stack-tower/docs/wx-submission-kit-b0.md` §三。
+- 回执：`games/stack-tower/docs/qa-wx-b0.md`（三轨 + 六条拒绝线逐条判定）；证据链 `.myrd/blackboard/gate-logs/b0-wx-port-20260928/`（web 回归 4 份 + wx 轨 9 份）。
+
+### N3 · 三轨门禁结论（2026-09-28）
+- 轨1 web 回归：**PASS**——run-all **31/31**（四判据全绿，0 FAIL 0 not-runnable）+ typecheck + P0 查表 + 零页面错误冒烟；web 链路源码零触碰（既有 tracked 文件零改动）。
+- 轨2 wx devtools（可机跑面）：**PASS 6/6**——四条目查（16+12+11+13 断言）+ **bgm-loop wx 冒烟 14 断言（有 wx 结果，拒绝线③正面闭环）** + 素材查表 7/7；两脚本（分列体积 / numeric 只复算存档）双 PASS。
+- 轨3 真机：**BLOCKED**（AppID / devtools CLI / 真机设备三缺）——按红线不执行不造假，升级主人；挂起清单见回执 §一.轨3。
+- **六条拒绝线零命中**（numeric 不一致 / 差集非空 / bgm-loop 无 wx 结果 / 超预算 / web 回归失败 / 条目缺落点或缺 check，逐条判定见回执 §二）。
+
+### 🚨 阻塞升级（立即 · 2026-09-28）：AppID + 类目/资质材料未到位
+- **需主人一句话下发**：①微信小游戏 **AppID**（正式号）；②**类目与资质材料**（软著/备案/类目证明等提审必需项）。
+- 处置：devtools 侧用**测试号（touristappid）占位推进，不空转**；**真机轨（Android+iOS）与提审动作在 AppID 到位前不执行、不造假数据**；真机轨开跑前仍未到位 → 按红线停下升级（任务书明示授权）。
+- 环境事实（开工首笔实查）：**微信开发者工具 CLI 未安装**（/Applications 仅 WeChat.app，无 wechatwebdevtools.app / cli）→ devtools 打开工程/预览/上传等 CLI 动作不可执行，本轮以结构门禁 + 测试号占位把包与材料做到「工具到位即可一键打开」。
+
+### B0 当前基线（黑板路径 + spec 版本号）
+- **工程注册：stack-tower = `games/stack-tower/`**（仓库根 = 本 run 工作区根；cwd ≠ repo root 异常本轮未复现，`pwd` = `git rev-parse --show-toplevel`）。黑板 = `.myrd/blackboard/`（levels.md / assets.md / blockers.md 三份）。派活单与 QA 三轨门禁一律锚定此两路径（派活单：`.myrd/blackboard/b0-work-orders.md`）。
+- **spec 版本号：v1.3（平台 v5）· approved**（platformSpecId `cmukkjc10001ym9nb3dnc5kt6`，2026-09-28 API 实查 approved 唯一；v4 及更早全 superseded）；**numeric 段 sha256 = `c3af773b6483164c22ca0a039623967cb3b67ff9b2b658749f927baeee74957d`**（sortKeys 规范化，N1 存档唯一冻结锚，check-numeric-freeze 只复算本档）。
+- 契约与 QA 共同输入：`.myrd/spec/stack-tower-spec.json` + `.myrd/spec/design-spec.json`（v1.3 approved 导出件双落点，2026-09-28 以接口为准回写并复核）。
+- B0 目标达成度：spec v1.3 approved ✓ / wx 适配+分享+开放数据域+BGM 环落码 ✓ / 平台素材 7 id ✓ / 提审包+材料清单回流 ✓ / **真机轨 BLOCKED（AppID 未到位）** / **是否提审待主人拍板（不点头 B0 不闭环）**。
+
+### B0 · 版本链登记
+| 版本 | 平台 id | 内容 | 状态 |
+|---|---|---|---|
+| v1.2 = 平台 v4 | `cmuj5f6ik00hkm9l64r5uickm` | 霓虹夜塔 juice 冲刺（B0 冻结基线） | superseded |
+| **v1.3 = 平台 v5** | `cmukkjc10001ym9nb3dnc5kt6` | B0 微信移植轮：仅新增 content.platform 四条目（wx-runtime / wx-share-loop / wx-open-data-rank / wx-submission-kit，各带落点+可执行 check；schema v0 白名单 422 实证后落 content.platform，条目结构不变）+ 素材 id 7 项定稿 + QA 两条验收口径原文写死 + numeric 存档冻结锚；四段与 v1.2 逐字节一致；acceptance 32 条零增改 | **approved（唯一）** |
+
+> 前轮纪要：2026-09-27（**霓虹夜塔视觉与 juice 冲刺 r4 · N5 收口**：spec v1.2（平台 v4）approved；门禁 7/7 全绿（run-all 31 条含四判据+首局无弹窗+埋点三要素+P0 查表+数值闸）；9/24、9/25 正式销案记账完成（案 A–E，见 §销案台账）；**N6 人工拍板待主人**。开工首笔：环境异常留痕 §E0 / 平台 API 通道修复 §E1。deploy 节点：**v16 已发布**（commit `af04fe9`，线上自测全绿 + 新版本指纹 4/4，证据 §B7）。前轮纪要：2026-09-26（**复验轮（r2）收口 + r3 对象对齐轮收口**：r2 = U6 工程修复全量落码（`6a6b4a8` = tag `stack-tower-m2.1-release-r2`）+ 八道门禁全绿 + deploy 成功 + **N6 FAIL（R2 平台层缺陷，三层实测）** → R2 升级主人；r3 = 响应驳回：发布对象对齐 run 分支 HEAD（`a15f66b` 快进至含 U6 修复树，tag `stack-tower-m2.1-release-r3` @ `26a53d7`）+ 程序侧发布链补全（11 项门禁全绿 + 对内回执 QA-REL-M21-20260926-05 PASS）+ **N6 未复跑（R2 未解，两轮 FAIL 后不硬推）** → notes 维持 HELD。过程见 `docs/release-healthcheck-m21-r3.md` 与 `docs/qa-release-receipt-m21-r3.md`）
+> 前轮纪要：2026-09-26 上午（r1）：N1 体检→N2 对内 PASS（QA-REL-M21-20260926-01）→N3 素材终检→N4 notes HELD→N5 deploy 成功（tag `stack-tower-m2.1-release` @ `5a3284f`）→ N6 对外 FAIL（U6 线上 SW scope 缺陷）→ R1 立案；2026-09-25（M2.1 复验轮）：六道门禁全绿取证
+> 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：**等主人裁决 R2**（三选一见 qa-live-check-m21-r2 §三：代理放行头 / 放宽路由护栏 / 指认非代理托管形态）；R2 解除后复跑 N6（工程侧已备妥，无需重新体检）→ notes 生效 → 版本链登记收口。仍欠：试玩终裁 + 真机三项 + D5 答复
+
+## E0 · 开工首笔环境异常留痕（r4 · 2026-09-27 09:19–09:25，两条独立通道四次复现）
+
+- **OD 守护进程 127.0.0.1:7456 不可达——异常确认，如实上报待修**：
+  - 通道① curl 直探：09:18:59 三连复现，`http://127.0.0.1:7456/` 全部 `000 / exit 7`（connection refused）；
+  - 通道② open-design MCP 工具 `get_active_context`：报错原文 `cannot reach the Open Design daemon at http://127.0.0.1:7456. Is it running? Start it with 'pnpm tools-dev'`。
+- **cwd 非 repo root 异常——本轮不复现**：`pwd` = `git rev-parse --show-toplevel` = `/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmuj4opll00hem9l6gvw2ddnb`，实查一致（历史三方复现现象未在本轮出现，如实记录不冒领）。
+- **处置裁定（主策划，非降级为纸面件）**：①本冲刺风格卡/基准四联图/P0 资产产物一律落 git 仓库文件（`games/stack-tower/assets/reference/` 等）+ 黑板登记，**不依赖 OD 画布承载验收物**——OD 不可达不阻塞本轮执行面；②按纪律升级主人：请修复 OD 守护进程（`pnpm tools-dev` 或等效方式）；恢复前 N2 风格卡以「repo 文件 + hash」为准，恢复后可回流 OD 复核（不构成新门禁）。
+- **平台 API 通道修复（E1，本轮打通）**：前端代理会剥 `Authorization` 头 → Bearer 通道 UNAUTHORIZED（本地 3001 与远程 tailnet 双复现）；改走 **cookie `token` 通道**（引擎注入的 `MYRD_TOKEN` 工作流代行身份，via=workflow-node）→ 本地/远程 `/api/v1/auth/me` 双 200。本轮 spec v1.2 登记全部走此通道，全程留痕。历史「平台 API 鉴权恢复」的成因就此闭环：非 token 失效，是通道差异。
+- **美术线复检轮复核（2026-09-27，T3 美术，开工首笔）**：①OD 守护进程 `127.0.0.1:7456` **仍不可达**——open-design MCP `get_active_context` 独立复现（报错原文同上），跨轮累计**第 3 次**，维持升级主人待修；本轮资产产物继续以 repo 文件 + hash 为准（风格卡回流 OD 复核项继续挂起，不构成新门禁）。②cwd 非 repo root：**未复现**（本轮 shell 初始即 repo root；执行中差异系美术自查主动切目录，非环境异常，不冒领）。取证 `gate-logs/r4-neon-juice-20260927-art-recheck/README.md` §1。
+- **美术线复核·第 4 次（同日第二轮开工首笔）**：OD 守护进程 `127.0.0.1:7456` 仍不可达（open-design MCP 原文报错同上）——**异常持续，维持升级主人**；cwd = repo root 未复现。资产面在 §E3 落树后重证零漂移 + 门禁全绿（见 assets.md §r4 复检增记）。
+- **美术线复核·第 5 次（同日第三轮开工首笔）**：OD 守护进程 `127.0.0.1:7456` 仍不可达（open-design MCP 原文报错同上）——**异常持续（第 5 次跨轮复现），维持升级主人**；cwd = repo root 未复现。资产面重证零漂移 + 门禁全绿（assets.md §r4 复检增记·第三轮）。
+- **deploy 节点·第 6 次（2026-09-27 发布轮开工首笔，程序/deploy）**：OD 守护进程 `127.0.0.1:7456` 仍不可达——curl 直探 `/` 返回 `000 / exit 7`（connection refused），**第 6 次跨轮复现，维持升级主人待修**；本轮发布面导出走 repo 文件（E0 处置裁定继续有效），不依赖 OD。cwd 非 repo root：**未复现**（`pwd` = `git rev-parse --show-toplevel` = run 工作区根，不冒领）。部署通道预检：`PLATFORM_API_URL=http://localhost:3111`，`MYRD_TOKEN`/`MYRD_TEAM_ID`/`MYRD_RUN_ID` 均在位；目标坑沿用 §B7 登记 `cmugttipt000km9299oej5z9b`（platformSlug `stack-tower-3`），manifestPath 恒为 `games/stack-tower/apphost.toml`、sourceId `stack-tower`，不建新坑不挤占。
+
+## E0b · 程序线复跑与裸调用契约门禁修复（r4 · 2026-09-27 11:07–11:14，程序）
+
+- **发现**：提交前置口径的裸调用契约门禁 `node scripts/contract-check.mjs`（A–E 版）在 spec v1.2 导出形状下**首跑即崩溃**
+  （`contract-check-stack-tower.mjs:151` TypeError: join undefined）——该工具仍是 v3 形状假设，未跟上 v1.2，属**门禁工具失配**（N5 的 7 道门禁不含它，故未在 N5 暴露）。三处失配：
+  ① 登记凭据读取 `_platform.id` ≠ 实际字段 `_platform.platformSpecId` → 「缺 platformSpecId」误报路径；
+  ② v1.2 新增 3 个锚点实体（e-theme-constants / e-ripple-renderer / e-telemetry-emitter，`kind:entity` + `expect`，无 `script`）→ D 段 join(undefined) 崩溃；
+  ③ e09 开局摆位为 levels 元素、断言按 spec revision_note 显式折入 e01/e03/e08（无独立 acceptance）→ C 段反向映射误判孤儿；acc-a7（spec 内置 D4 冻结）无显式 not-runnable 通道。
+- **修复（只动门禁工具，零游戏代码/零设计变更）**：①③字段与折入口径对齐 v1.2；② 锚点实体双闸核验（expect 非空 + expect 具名落点 repo/游戏工程双根存在 + 契约文件可追溯）；并加两条**新护栏**：not-runnable 挂起必须有 spec 原文挂账条款背书（无据挂起 = FAIL）；每个契约文件必须列入 run-all 门禁清单（「文件在、门禁不跑」= 假绿）。
+- **复跑（8 道门禁全绿，证据 `gate-logs/r4-neon-juice-20260927-prog-recheck/`）**：typecheck / run-all 31 条 / P0 查表 13 件 / perf 相对判（+8.73%，容差 ±10%）/ M2.1 资产运行时 / 端到端冒烟 / 壳形态模拟（U7 NOTE 维持立案）/ **裸调用契约门禁 PASS**（A 段 platformSpecId=cmuj5f6ik00hkm9l64r5uickm v4 approved；B 段 31/32 + acc-a7 显式挂起；C 段 8↔9 元素 + 23↔31 契约 + run-all 聚合全量核对；D 段 20/20 实体 + kernel 纯净；E 段 20/20 资产）。
+- **acc-j1 负载敏感性（2026-09-27 驳回①更正本条表述）**：裸调用首跑曾现 1 次 acc-j1 瞬时 FAIL（页内时钟 >3000ms），与同期门禁 4 观测的负载尖峰（perf +8.73%，较 N5 首跑 -12.73%）同源；独立复跑 5/5 PASS 后取证。预算仍 3000ms、无重试。**原「测试实现与 spec 语句一致」表述失实**：当时实现缺 4x CPU 节流注入、仅 390x844 单视口，不符合 spec acc-j1 + numeric.benchmark_device 实验口径——已按驳回①修复并按 spec 口径复测（见 §E3）。
+- **E0 复核（11:11:53，双通道）**：OD 守护进程 127.0.0.1:7456 仍不可达（curl `http_code=000` + open-design MCP 原文报错）→ **维持升级主人待修**；本轮产物继续以 repo 文件 + hash 为准。cwd 非 repo root 异常：未复现（`pwd` = `git rev-parse --show-toplevel`）。
+
+## E3 · 驳回三项处置（一致性 acc-j1 / N6 物证 / 证据条款 · 2026-09-27 11:20–11:55，程序）
+
+- **① 一致性 acc-j1 → 成立，已按 spec 口径修复（程序不得反向私改语义）**：spec acc-j1 语句明载
+  「实验口径 playwright chromium + 4x throttle（numeric.benchmark_device）」，且 `content.benchmark.freeze`
+  冻结条款写明「换节流档位/换视口必须先升策划案版本再改测试」→ 修复方向 = 测试就范于 spec。
+  - `_browser.mjs` 新增 `newBenchmarkPage()`（CDP `Emulation.setCPUThrottlingRate`，goto 前注入全局生效）；
+  - `juice-acc-j1-first-block.spec.mjs` 重写：口径参数自 `loadSpec().spec.numeric.benchmark_device` 读入
+    （LAB_CPU_THROTTLE_X=4 + LAB_VIEWPORTS_PX 两档 390x844/360x640），逐档测量逐档断言，两档全过才计绿；
+  - spec 口径复测：**419ms/163ms（单测）、310ms/166ms（run-all 内）@4x throttle，判据 ≤3000ms 成立**；
+    节流真实生效反证 = 20x 档探针 242ms→599ms（注入若失效两者应相等）；
+  - 复跑：run-all **31/31**（`prog-recheck/9-run-all-post-rejection1.log`）+ 裸调用契约门禁 **PASS**
+    （`10-contract-check-bare-post-rejection1.log`）。四判据冒烟全绿的 acc-j1 一条自此在 spec 口径下证立。
+  - 失实表述两处同步更正：§E0b acc-j1 行 + `prog-recheck/README.md` acc-j1 节（原「测试实现与 spec 语句一致」不成立）。
+- **② N6 物证标识 → 成立，已更正**：`docs/n6-master-decision-memo-r4.md` §二.1 首图定稿对象 sha256
+  由作废 `01ea413e15e4c6ed…` 更正为现行 **`098e28b7f1a29479…`**（三处一致基准：manifest.json + 磁盘实算
+  + 风格卡 §5 勘误 + assets.md §r4 复检记录），备忘补「全值见 .manifest.json」指针。可呈主人拍板。
+- **③ 证据条款 → 成立，已补正**：N5 `1-typecheck.log` 原件 0 字节无效（缺命令/日期/摘要）——原件保留
+  + 文件内补记行，**typecheck 四要素证据转移至 `prog-recheck/1-typecheck.log`（11:08:08 exit=0）**；
+  N5 README 重写为「四要素补正版」（2–7 号命令补录 + 证据转移登记 + acc-j1 特别登记）；本文件头部
+  「七文件每文件含命令+日期+输出摘要」失实表述已更正（见上）。
+- **附带观测（如实）**：浏览器级契约在门禁机连续重负载窗口存在偶发抖动（acc-j1 负载敏感 + acc-j5 于
+  门禁 10 第一次复跑瞬败 1 次，状态断言非时序判据，独立 3/3 PASS）。未对任何测试加重试/豁免，判据语义零变更；
+  建议 QA 空载窗口复核一轮浏览器级判据。
+
+## r4 当前基线（霓虹夜塔冲刺 · N5 收口后状态）
+
+
+- 黑板路径：`.myrd/blackboard/`（levels.md / assets.md / blockers.md 三份齐备，本轮增量见各文件顶部 r4 段）
+- **spec 版本号：v1.2（平台 v4）· approved**（platformSpecId `cmuj5f6ik00hkm9l64r5uickm`，2026-09-27 API 实查 approved 唯一；v3 `cmugok2uz000xm9ilx42t8pnl` superseded）
+- 契约与 QA 共同输入 = `.myrd/spec/stack-tower-spec.json`（approved v4 导出件）+ `.myrd/spec/design-spec.json`（任务书指定路径同内容第二落点，README 已留痕）
+- 冲刺目标达成度：spec v1.2 approved ✓ / 四判据冒烟全绿 ✓ / P0 资产对照过检 13/13 ✓ / **N6 人工拍板待主人（未过不算完）**
+- 门禁：7/7 全绿（typecheck / run-all 31 条 / P0 查表 13 件 / perf 相对判 / M2.1 资产运行时 / 端到端冒烟 / 壳形态模拟），证据 = `.myrd/blackboard/gate-logs/r4-neon-juice-20260927-n5/`（**2026-09-27 驳回③更正：原「七文件每文件含命令+日期+输出摘要」表述失实**——1 号原件 0 字节无效、2–7 号缺命令/时刻头；四要素补正登记见该目录 README「证据条款补正」节，完整四要素复跑链 = `gate-logs/r4-neon-juice-20260927-prog-recheck/`）；QA 回执 = `games/stack-tower/docs/qa-r4-neon-juice.md`（QA-R4-NEON-20260927-01）
+
+### r4 · 9/24、9/25 正式销案台账（账务结论，2026-09-27；每案保留一次代码级复核权）
+
+- **案 A 历史失败轮挂账（9/24，溯 9/23）→ 销案关账**：平台轨迹实查 9/24 failed×4（workflow×2 无 error / routines×1 unrecognized_model / evolution_merge×1 SIGINT）、9/25 failed×1（workflow 无 error）→ 定性 = 平台基础设施层中断与配置错配，非游戏产物缺陷；吸收去向 = 平台执行纪律规范固化 + 本轮 7 门禁全绿接管游戏面。复核入口 = 轨迹表 9/23–25 failed 行（上列 id 可查）。
+- **案 B spec v1.1 登记挂账（9/25 判例→9/26 冻结 D4/D5）→ 销案（吸收升级）**：v1.1-ready 内容（D1/D2/D3）零丢失折入 **spec v1.2（平台 v4）**，一次 revisions 落账；权限障碍经 cookie 通道打通留痕。复核入口 = `tools/build-spec-v12.mjs` 冻结守卫 + 平台 v3→v4 revisions 链。
+- **案 C sfx-pack-v1（9/25 复验轮）→ 销案（已交付）**：12 文件双签交付维持零漂移，acc-a1 本轮 PASS。复核入口 = `m21-acc-a1` 契约。
+- **案 D PWA 安装项（9/25 起线上既存，U6/R2）→ 工程面销案 / 线上面保留待裁决**：修复代码经壳形态模拟门禁实证（shell-sim PASS，本轮证据 `7-shell-sim.log`）；线上「可安装/断网可玩」宣告继续冻结至主人 R2 裁决 + N6 复跑（`tests/live-smoke.mjs <gw-url>`）。复核入口 = shell-sim + live-smoke。
+- **案 E U7 线上贴图程序化形态 → 不销案维持立案**（修复 ~3 行属工程改动，本轮冻结不夹带；shell-sim NOTE 如实注记）。复核入口 = shell-sim NOTE 行。
+- 台账明细与证据条款全文见 `games/stack-tower/docs/qa-r4-neon-juice.md` §四。
+
+### r4 · 版本链登记
+
+| 版本 | 平台 id | 内容 | 状态 |
+|---|---|---|---|
+| v1–v3 | `cmuga6tq…` / `cmugal9o…` / `cmugok2u…` | T2 初稿 / M2 建版 / M2.1 有声可装（22 条 acceptance） | superseded |
+| （v1.1-ready） | 未登记 | D1/D2/D3 纸面终稿 | **已吸收**（零丢失折入 v4） |
+| **v1.2 = 平台 v4** | `cmuj5f6ik00hkm9l64r5uickm` | 霓虹夜塔 juice 冲刺：acceptance 22→32（四判据 j1–j4 + j5 首局无弹窗 + e1 埋点 + t1 theme 单源 + a8 P0 查表 + num 冻结闸）；levels +e09 开局 3–5 块（落点 tower.ts buildOpeningStack + numeric.opening）；entities +3；assets +13（a08..a20）；numeric +opening/benchmark_device（冻结七键 sha256 相等机械断言） | **approved（唯一）** |
+
+## r4 开工时基线（存档，N5 收口后见上节）
+
+## E2 · spec v1.2 版本映射与增量口径（主策划拍板，r4）
+
+- **版本映射**：平台链 v1/v2/v3 = 任务书口径「v1 系」（v3=当前 approved）；「v1.1-ready」= 2026-09-26 纸面终稿（D1 benchmark_device / D2 acc-a7 / D3 evidence 证据条款）**未单独登记**；本轮一次 `POST /revisions`（version 3→4）落账，**平台 v4 ≡ 任务书口径 spec v1.2**（含 v1.1 未登记增量的完整折入 + 本轮 juice 冲刺增量，零内容丢失、零覆盖——平台 revisions 机制天然保序）。
+- **numeric 冻结口径（沿用黑板判例 + 升级为机械断言）**：「numeric 段与 v1 逐字节一致」= **v1 冻结七键**（DEFAULT_SEED / FIXED_STEP_MS / MAX_DT_MS / perfect_window / cut_width / scoring / difficulty）v1 vs v1.2 键序无关深比全等 + sha256 hash 相等断言（`numeric-acc-num-frozen-gate` 进契约门禁）；v3 已合法增量组（audio/mobile/deploy）与 v1.1 D1（benchmark_device）不在冻结键集，随 v1.2 保留；本轮新增 `numeric.opening` 组（开局摆位，镜像 `src/kernel/numeric.ts`，维持「spec.numeric ↔ numeric.ts 一一对应」世界规则）。
+- **开局摆位与 e08 口径修订（显式留痕）**：levels 段按任务书要求写明「开局 3–5 块初始摆位」落点文件+参数名（`src/kernel/tower.ts` + `numeric.opening`）；既有 e08「重开后塔回单块」与新特性直接互斥，spec 不留自相矛盾条款 → e01/e08 语句随特性同步修订（e01 塔基块规格不变；e08 改「塔回初始摆位」），其余语义（game-over 触发/分数连击清零/摆速窗口回 L1）逐字保留。revision_note 记录修订理由。
+- **P0 资产计数口径**：任务书「P0 资产 13 项」按逐项点名清点 = bg-night-gradient(1) + block-skin-base-01..06(6) + **cut-face fx 三件套**(3) + UI 三件(3) = 13（「cut-face / fx 三件套」读作切面 FX 三件：fx-cut-face / fx-ripple-ring / fx-perfect-glow）。spec assets 段 a08..a20 逐项登记，assets.md 对齐同 id。
+- **音画判据（采纳 QA 重定义）**：acc-j3 = perfect_hit dispatch → AudioContext 播放调用 ≤50ms（替代旧「音画同步」模糊口径，可 spy 可测）。
+
+## 正式发布轮（2026-09-26 · M2.1 增量构建 · 两段式放行）
+
+### R0 · 仓库注册表扫描：0 异常（开工前置，2026-09-26 实查）
+- `git fsck --no-progress` exit 0 零输出（无悬空/损坏对象）；`git status --porcelain` 0 行（工作区干净，无未提交）；分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` HEAD = `eddcf0c`，与 origin/main 同源含全量 M2.1 历史；平台 API 鉴权恢复（9/26 B8 待办②的 FORBIDDEN 已解除，admin token 实查 `/api/v1/auth/me` 200）；生产 URL `https://leomac-studio.tail49399e.ts.net/apps/stack-tower-3/gw/health` 200 且壳身份 `{"app":"stack-tower"}` 正确。**注册表异常计数 = 0。**
+
+### 当前基线（正式发布轮）
+- 黑板路径：`.myrd/blackboard/`（levels.md / assets.md / blockers.md，三份齐备）
+- **spec 版本号：v3 · approved（platformSpecId `cmugok2uz000xm9ilx42t8pnl`，2026-09-26 API 实查 status=approved version=3）**
+  - 任务书口径映射（沿 2026-09-25 判例「以接口实查为准」）：「spec v1 冻结基线」= v1 系冻结数值组（v1/v3 键序无关深比全等，本轮体检机验留证）；「证据条款按 v1.1 approved 版」= v1.1 纸面终稿 D3 证据格式（文件名+日期+命令+输出摘要），本轮即按此执行
+  - v1.1 平台登记维持冻结于 D4/D5（payload `.myrd/spec/stack-tower-spec-v1.1-payload.json` 就绪；权限障碍已解除，待 D4 落盘 + 主人答复 D5 后一键登记）——**本轮不做 spec 版本事件**（铁律：spec 零改动；登记将引入 acc-a7 无契约文件 + e07 数值总闸失配，破坏「全量门禁全绿」）
+  - 契约与 QA 共同输入 = `.myrd/spec/stack-tower-spec.json`（approved v3 导出件；`design-spec.json` 为 B4 冻结撞车件不写入，B4 治理口径不变，此处为对执行要求「导出 design-spec.json」的显式偏差记录）
+- 发布锚点：对比基线 = 9/25 已部署版 `75debf9`；发布对象 = 当前分支 HEAD `eddcf0c`；发布面字节全等已验（`git diff 75debf9..HEAD -- export/ src/ sw.js manifest.webmanifest assets/ server/` 为空）
+
+### 四项裁定（主策划，全轮有效）
+1. 契约与实现唯一依据 = 平台 v3 approved；本轮零 spec 版本事件；v1.1 证据格式本轮先行执行（D3）。
+2. SW 缓存 REVISION 真源 = spec `numeric.deploy.PRECACHE_REVISION=1`（gen-sw.mjs 单真源读取）；发布面字节全等 → 同缓存名无陈旧内容风险，递增即触碰 spec 冻结数值 → 体检记「机制验证通过 + 本轮不递增（附理由）」，QA 以「老用户升级」线上冒烟实证无陈旧缓存。
+3. 增量清单逐文件分类（发布相关文档/工具/测试 | 平台注入 | 范围外→阻断），「范围外文件零容忍」按每一文件可归类可解释执行。
+4. `tests/audio/events.test.ts` / `tests/audio/bgm-loop.test.ts`（任务书门禁清单所列「audio events / bgm-loop 冒烟」）属 D4 冻结件，仓库不存在（2026-09-26 实查）→ 不计门禁红，QA 回执「已知未收口项」单列，随终报升级主人（等 D5 答复）。
+
+### 本轮发布节点台账
+| 节点 | 职能 | 产物落点 | 状态 |
+|---|---|---|---|
+| N1 发布体检 | 程序 | `games/stack-tower/docs/release-healthcheck-m21.md` + `gate-logs/release-m21-20260926/` | **完成**（六道门禁全绿非降级；tag `stack-tower-m2.1-release` @ `5a3284fa137a3926fabb5f7b4fcdd098bd075df3`；门禁树→tag 树发布面 delta=0 字节） |
+| N2 对内放行 | QA | `games/stack-tower/docs/qa-release-receipt-m21.md`（含编号回执 + 已知未收口项） | **完成**（回执 QA-REL-M21-20260926-01 签发：对内放行 PASS；U1–U5 单列） |
+| N3 素材终检 | 美术 | `.myrd/blackboard/gate-logs/release-m21-20260926/art-final-check.md` | **完成**（四项全 PASS；maskable 0px 出圆；sfx 注册表双签完成——程序侧 healthcheck §5 + 美术侧 art-final-check §会签） |
+| N4 release notes | 策划 | `games/stack-tower/docs/release-notes-m21.md` + 溯源映射表 + spec 字段包（扣住不生效） | **完成**（四件套 + 11 行溯源映射 + 字段包；状态=HELD 扣住，待 N6 全绿后 N7 改签生效） |
+| N5 deploy | 程序/deploy | AppHost 坑位 `cmugttipt000km9299oej5z9b`（slug `stack-tower-3`） | **完成**（deploymentId `cmuhwtimk0015m97cgvmvcvh7` · commit `5a3284f` · dryRun 先行验证 catch「tag 未推 origin」；live /health 200 壳身份正确；旧部署 75debf9 → superseded；**deploy 成功 ≠ 发布成功**） |
+| N6 对外放行 | QA | 线上冒烟记录（入回执 §对外放行） | **不通过（FAIL）**：`games/stack-tower/docs/qa-live-check-m21.md`（QA-LIVE-M21-20260926-02）——L3 断网 / L4 离线三步 / L5 老用户升级机制 = 线上 SW scope 硬缺陷（U6）；L2 首触听测机判受限归真机；L1 在线可玩 PASS |
+| N7 版本链登记 | 主策划 | blockers.md §版本链登记 + notes 生效 | **登记为「未完成轮」**（对外放行未过 → notes 不生效；登记如实入 §版本链登记） |
+
+### R1 · U6 线上 SW scope 缺陷立案（对外放行 FAIL 的直接原因，2026-09-26，**待主人裁决**）
+
+- **缺陷**：壳落地页注入 `<base href="api/public/assets/">`（`server/src/index.ts:55`）→ `register('sw.js')`（`src/app/main.ts:136`）按文档 base URL 解析 → script 落 `…/api/public/assets/sw.js`，无显式 scope 且响应无 `Service-Worker-Allowed` 头 → scope 默认 = script 目录，**页面 `/gw` 不受 SW 控制**（线上 controller=false 实测；本地根路径形态 controller=true 对照）→ 断网供源 / activate 清旧缓存 / skipWaiting-claim 全部空转。
+- **波及**：9/25 已部署版同缺陷（非本轮回归）；「可装」的离线承诺自始未在线上成立；既有 d1/d2 契约在本地 serve 形态跑，**形态盲区**（线上 gw 形态无门禁覆盖）。
+- **修复方案（估算 ~10 行 + 门禁补盲区，2 文件）**：① `server/src/index.ts` 资产路由对 `sw.js` 响应加 `Service-Worker-Allowed: <应用根路径>`；② `src/app/main.ts` 注册改显式解析（`new URL` 基于 `location.pathname` 求得 gw 根 + `{ scope: <gw 根> }`）；③ 补门禁：live-smoke 增加「SW controller 断言 + 离线 reload 可玩」（消灭形态盲区，防回归）。
+- **流程**：修复 = 改码，与「程序只体检不改码」铁律冲突 → **未经主人解冻不擅动**；主人批准后走「修复 → N1 六道门禁 + 新 SW 门禁 → 重打 tag（版本+1 语义）→ N2 对内 → N6 对外」完整复验，不得只验单项。
+- **临时口径**：线上当前内容与 9/25 字节全等，在线可玩 PASS，无回滚必要；对外口径暂不得宣称「可安装/断网可玩」。
+
+### R1-R2 · 解冻裁定与本轮修复范围（复验轮，2026-09-26 第二次发布尝试）
+
+- **裁定依据**：主人重发发布轮任务书（同口径 M2.1 增量构建·两段式放行）+ 任务书显式「**不要进入 plan mode 或等待人工审批。直接实现需求并提交代码**」+ 完成判据含「对外放行（线上冒烟含老用户升级全绿）」。对外放行全绿的唯一障碍即 U6 → 重发任务视为主人对 R1 修复的**解冻授权**（沿 B3 代持判例：主人显式反审批指令 + 既定方案实施）。裁定人=主策划（代持），全程可追溯。
+- **本轮修复范围 = R1 定稿三件，零夹带**：① `server/src/index.ts` sw.js 响应加 `Service-Worker-Allowed`；② `games/stack-tower/src/app/main.ts` SW 注册改显式 script/scope；③ `tests/live-smoke.mjs` 补「SW controller 断言 + 断网 reload 可玩」（消灭形态盲区门禁）。不含任何调优/新功能；不动 v1 冻结数值；spec 零改动；美术只检不新做。
+- **实测修正 R1 假设（2026-09-26 线上探针，`/tmp/probe-sw-register.mjs`）**：线上 `document.baseURI` = `…/apps/stack-tower-3/api/public/assets/`（相对 `<base href>` **吞掉 /gw 段**）→ scope 正确推导 = **页面目录**（`new URL('./', location.href)` = `…/apps/stack-tower-3/`），非「gw 根」；`register` 现状默认 scope **注册成功但无用**（scope=`…/api/public/assets/` 不含页面）；`Service-Worker-Allowed` 头缺失经报错原文实证（`The path of the provided scope … is not under the max scope allowed`）。
+- **U7 立案（新发现，与 SW 无关、线上既有，本轮不改）**：壳形态下 `Image` 贴图经 boot 补丁 `origFetch` 取回 base64 文本后 `blob()` 为文本 blob → `img.onerror` → 表现层按设计降级程序化绘制（`loadGameAssets` → `resolve(null)`）。实证：线上 `new Image()` 加载 `assets/sprites/e01-spawn-first-block.png` 得 ERROR（src=blob:text）。**影响**：线上贴图自 9/25 起即为程序化绘制形态，在线/离线一致，不影响可玩性与门禁；修复点=`server/src/boot-script.ts` Image 补丁改用已还原字节的 fetch（约 3 行）→ 待主人排期，不夹带本轮。
+
+### r3 复验轮节点台账（2026-09-26 · 发布对象对齐 + 链补全，响应驳回①②③④）
+
+| 节点 | 职能 | 产物落点 | 状态 |
+|---|---|---|---|
+| N1'' 发布体检 | 程序 | `docs/release-healthcheck-m21-r3.md` | **完成**（对象对齐 + 11 项门禁全绿 + 发布面与生产字节全等） |
+| N2'' 对内放行 | QA | `docs/qa-release-receipt-m21-r3.md`（回执 **QA-REL-M21-20260926-05**） | **完成 · PASS**（U1–U5/U7/R2 单列） |
+| N3'' 素材终检 | 美术 | `gate-logs/release-m21-20260926-r3/art-final-check.md` + 1/2/3 号日志 | **完成 · 四项全 PASS + 复签**（检对象 436be68 与 tag 树发布面字节全等，证据可转移） |
+| N4'' notes | 策划 | `docs/release-notes-m21.md` | **维持 HELD**（未生效） |
+| N5'' deploy | 程序/deploy | 沿用 r2 deployment `cmuhzflkk001mm97cxzu1tphg` @ `6a6b4a8` | **不重复部署**（发布面字节全等，零价值空跑规避） |
+| N6'' 对外放行 | QA | **未复跑**（R2 未解 + 两轮 FAIL → 铁律不硬推） | **闸门关闭中**，等主人三选一裁决 |
+| N7'' 版本链登记 | 主策划 | 本表 + §版本链登记 r3 行 | **完成（登记为「对外闸关闭中」）** |
+
+### R1 落地结果（复验轮执行记录，2026-09-26）
+
+- **工程侧全量完成并部署**：tag `stack-tower-m2.1-release-r2` @ `6a6b4a8` = 生产 deployment `cmuhzflkk001mm97cxzu1tphg`。①头（实例直连实测已发 ✓）②显式注册（scope=页面目录）③live-smoke 补 SW/断网断言 ④资产路由目录形态回落地页（新发现：网关 308 归一化后 `./` 落点 404 → addAll 整体拒绝、install 永不完成）⑤`index.html` 资产路由回注入版落地页（新发现：precache 离线导航回退页无 `<base>`）+ **新增壳形态模拟门禁 `tests/shell-sim.mjs`**（复现→修复后 PASS：断网 reload 落块得分 35）。八道门禁全绿（证据 `gate-logs/release-m21-20260926-r2/`，含 server 侧 `npx tsc --noEmit` 与平台构建 step2b 同命令）。
+- **sw.js 本体与 spec 零改动**：PRECACHE_REVISION=1 冻结不动，gen-sw 复跑 55 项零漂移；v1 冻结七组键序无关深比全等。
+- **R2 立案（平台层缺陷，升级主人——本次对外放行 FAIL 的直接原因）**：
+  1. `Service-Worker-Allowed` 三层实测：实例直连（`127.0.0.1:41007`）**有头 ✓** → 平台公网代理（`:3001/apps/<slug>/…`）**无头 ✗**（cache-control/content-type 透传、该头被滤）→ funnel 仅转发。
+  2. 部署护栏拒绝绕开方案：`/sw.js` 应用根路由（precache 键重写，壳形态门禁 PASS）被 catch「护栏违规：业务路由必须位于 /api/* 下（/health 豁免）。违规路由: /sw.js」（deployment `cmuhz1xds001jm97c9y2wzrp7`），已回退（`b44c016` → `6a6b4a8`）。
+  3. 几何结论：页面固定 `/apps/<slug>/gw` + 脚本必须在 `/api/*` 下 ⇒ 脚本目录（默认 max scope）永不为页面路径前缀 ⇒ **无该头则 SW 无法覆盖页面，仓库侧无解**。
+  4. **处置三选一（主人裁决）**：a) apphost 代理响应头白名单放行 `Service-Worker-Allowed`（推荐，实例已在发，放行即通）；b) 放宽护栏允许应用根静态 `.js`（绕开方案已实现过）；c) 指认非代理 HTTPS 托管形态（B5 口径）。R2 解除后复跑 N6 即可，工程侧无需再动。
+- **deploy 事故披露（已纠正）**：首次 deploy 漏传 `manifestPath`，平台按仓库根清单（糖果线）上传资产 → 生产串线约 3 分钟（`cmuhynlf7001dm97c8qbxvwx1`，05:40–05:43，线上短暂呈现糖果线页面）→ 正确清单重部署纠正。教训入台账：**本坑位 deploy 必带 `manifestPath=games/stack-tower/apphost.toml`**。
+
+### 版本链登记（正式发布轮 · 2026-09-26，r1/r2/r3）——**对外闸关闭中，如实登记**
+
+| 字段 | r1（2026-09-26 上午） | r2 复验轮（2026-09-26，本轮） |
+|---|---|---|
+| 轮次 | M2.1 正式发布轮（两段式放行） | M2.1 增量构建 · R1 解冻修复轮 |
+| 结果 | **发布未完成**：对内 PASS → deploy 成功 → 对外 FAIL（U6） | **发布未完成**：工程修复全量落码+八道门禁全绿+deploy 成功 → 对外 FAIL（R2 平台层） |
+| tag | `stack-tower-m2.1-release` @ `5a3284f` | `stack-tower-m2.1-release-r2` @ `6a6b4a8`（= 线上运行树） |
+| spec | v3 approved（`cmugok2uz000xm9ilx42t8pnl`）；数值 = v1 冻结段（深比全等） | 同左（零 spec 事件；PRECACHE_REVISION=1 未动） |
+| 生产 | deploymentId `cmuhwtimk0015m97cgvmvcvh7`（superseded） | deploymentId `cmuhzflkk001mm97cxzu1tphg`（running）· URL `https://leomac-studio.tail49399e.ts.net/apps/stack-tower-3/gw` |
+| QA 回执 | 对内 QA-REL-M21-20260926-01（PASS）· 对外 QA-LIVE-M21-20260926-02（FAIL） | 对内 QA-REL-M21-20260926-03（PASS）· 对外 QA-LIVE-M21-20260926-04（FAIL，R2） |
+| notes | HELD | **维持 HELD**（r2 增记已写入 notes 头，R2 解除后无需改稿） |
+| 证据目录 | `gate-logs/release-m21-20260926/`（6 件）+ `docs/release-healthcheck-m21.md` | `gate-logs/release-m21-20260926-r2/`（10 件）+ `docs/release-healthcheck-m21-r2.md` + `docs/qa-release-receipt-m21-r2.md` + `docs/qa-live-check-m21-r2.md` |
+| **r3（复验轮 · 对象对齐）** | — | **发布未完成（闸门关闭中）**：发布对象对齐 run 分支 HEAD + 程序侧发布链补全 + 11 项门禁全绿 + 对内 PASS（QA-REL-M21-20260926-05）+ **N6 未复跑（R2 未解，铁律不硬推）** · tag `stack-tower-m2.1-release-r3` @ `26a53d7`（= run 分支 HEAD）· 生产沿用 r2 部署（发布面字节全等）· 证据 `gate-logs/release-m21-20260926-r3/`（11 件）+ `docs/release-healthcheck-m21-r3.md` + `docs/qa-release-receipt-m21-r3.md` |
+
+- r1/r2 两轮对内面均 PASS、两轮对外面均 FAIL；**r1 拦的是工程缺陷（已修复销案），r2 拦的是平台缺陷（R2，需主人裁决）**；r3 为对象对齐+链补全轮（未触碰对外闸）。对外宣告以线上冒烟全绿为闸，在此之前「可安装/断网可玩」不得出口。
+
+### 历史失败轮挂账（2026-09-23 / 09-24，与本次解耦）
+
+- 9/23、9/24 两轮为失败轮，**另立挂账、与本次发布轮解耦**：其失败结论不因本轮产物而核销，本轮结论也不因其历史而加重；细节以平台轨迹（agentExecutionTrajectory）为准，本黑板不重复推断。后续复盘若需并入版本链叙事，须单独立项，不在发布轮内搭车处理。
+
+## M2.1 收口区（前轮基线，2026-09-25/26）
+- 黑板路径：`.myrd/blackboard/`（levels.md / assets.md / blockers.md）
+- **spec 版本号：v3 · approved（platformSpecId `cmugok2uz000xm9ilx42t8pnl`）**
+  - 版本链：v1（T2 初稿）→ v2 `cmugal9ob0013gqlok6dstuyc`（M2 首卡，superseded）→ **v3（M2.1 增量：14 条新 acceptance，8 条冻结保留）**
+  - 任务书所称「v1 冻结基线 / v1.1 / v1.2」与平台实查版本链不符 → 按红线以接口实查为准，本轮走 **v3**（POST revisions，version+1，未覆盖 v2）
+  - 工作基线导出：`.myrd/spec/stack-tower-spec.json`（契约与 QA 共同输入；独立路径，见 B4）
+- **总验收判据对账（M2.1）**
+  - spec v3 含 14 条可测增量 acceptance 且标 approved ✅（另 8 条冻结 gameplay acceptance 原样保留）
+  - `assets/sfx/` 12 文件（6 事件 × m4a+ogg，44.1kHz 单声道，A6=sfx-restart 198ms≤200）+ 3 图标（192/512 maskable + apple-touch-180）命名合规 ✅
+  - 断网冒烟全链路通过 ✅（acc-d2：离线冷启动→一局→重开→静音持久 + sfx 404 负面用例）
+  - 音频/输入/移动端契约测试全绿 ✅（14/14）；总盘 `PASS 22 / FAIL 0 / not-runnable 0`（含 8 条冻结回归）
+  - 中端机基准自动化项：p95/jank 达标 ✅（acc-a5b 自动化口径；真机口径挂 §真机清单）
+- QA 终审：`games/stack-tower/docs/qa-m21-verification.md`（22 条三件套 + 缺陷台账 + 真机清单）
+- M1 状态：转维护（`games/game` 糖果粉碎 Godot 卡 + pubg-web-core 主干），本冲刺未改 M1 代码
+
+## 开放阻塞项
+
+### B5 · HTTPS 托管地址待主人指认（acc-d1 需要，不阻塞开发）— 2026-09-25 部署轮实质缓解
+- **HTTPS 托管已具备**：AppHost liveUrl `https://leomac-studio.tail49399e.ts.net/apps/stack-tower-3/gw`（tailscale HTTPS，安全上下文，PWA install 面可用），安装面真机核销已具备执行条件（并入 B6 排期）。
+- 仍待主人：若另有正式对外托管地址（内网 nginx / 云端静态托管 / GitHub Pages），一句话指认后以指认地址为准复跑 `acc-d1`。
+
+### B7 · AppHost 专属坑位与部署登记（2026-09-25 部署轮，供后续轮复用同一坑）
+- **坑位（一游戏一坑，后续轮次复用，禁止再建/挤占他坑）**：appId `cmugttipt000km9299oej5z9b` · platformSlug `stack-tower-3`（slug `stack-tower`/`stack-tower-2` 被两次误建后软删占位无法释放，平台自动加后缀；坑↔游戏仍一一对应，manifestPath 恒为 `games/stack-tower/apphost.toml`）
+- **liveUrl（HTTPS）**：`https://leomac-studio.tail49399e.ts.net/apps/stack-tower-3/gw` · **本轮 gitRef**：`myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d`（部署 commit `75debf9`）
+- 部署自测（2026-09-25 实测）：/health 200 `{"app":"stack-tower"}`；live 冒烟 PASS——画布 480×720、3 连点「分数 45」、R 重开归零、PNG 魔数 ✓、sfx-place.m4a 经 AudioContext 解码 ✓（48kHz 重采样输出）、**零 404 / 零 pageerror**；复现 `node games/stack-tower/tests/live-smoke.mjs <gw-url>`
+- 壳改造（本分支 `server/`，糖果线不受影响——各线部署按各自分支构建壳）：糖果落地页已替换为 stack-tower 专属壳；对齐平台契约三事实——`/gw` 网关别名 + 子路径透传、image/audio 响应 502 黑名单（二进制以 base64 文本回传 + 页面 boot 脚本还原）、`/api/*` 路由护栏（公开资产走 `/api/public/assets/*`）
+- 经验教训：slug 一旦误建软删后**不可释放**，建坑前必须先 `GET /api/v1/apphost/apps?slug=` 检索；仓库根 `server/` 是「各分支各自的游戏壳」，不是通用静态托管——新游戏部署前先确认壳身份（/health 的 app 字段）
+- **本轮部署（2026-09-26，M2.1 正式发布轮 · r3 分支增量）**：deploymentId `cmui1by9x000am9ufovp99u2t`（version 15，mode=bundle，deployedBy=workflow）· gitRef `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` = commit `9538239`（r3 tag `26a53d7` + 门禁刷新/黑板收口 docs，与过门禁树零代码漂移）· manifestPath `games/stack-tower/apphost.toml` + sourceId `stack-tower`（防挤占校验通过，未建新坑，复用 `cmugttipt000km9299oej5z9b`）。导出复核：`npm run build + assets/audio/sw:generate` 全 PASS（12 资产 34.1KB / sfx-pack-v1 12 文件 / precache 55 项 REVISION=1），export/web 与 HEAD 树 diff 为空（sfx 再生字节漂移已回退，部署字节 ≡ 过门禁 r3 树）。上一生产版 r2 tag（`6a6b4a8`，version 14，human 2026-09-26 06:02）被本次 superseded。自测（2026-09-26 实测）：`/gw/health` 200 `{"ok":true,"app":"stack-tower"}`；`/gw/` 308→200 text/html。注：deploy 成功 ≠ 发布成功，对外放行以线上冒烟全绿为闸（QA 第二段）。
+- **本轮部署（2026-09-27，霓虹夜塔 r4 · N5 收口后发布轮）**：deploymentId `cmujgrnfj000dm9enlqmoq1yh`（**version 16**，mode=bundle，deployedBy=workflow，durationMs 835，errorMessage null）· gitRef `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` = commit `af04fe9`（= 开工首笔 `99ea562` + 发布面导出 `af04fe9`，push 后部署，平台 clone 核对 commitHash 一致）· manifestPath `games/stack-tower/apphost.toml` + sourceId `stack-tower`（防挤占校验通过；坑复用 `cmugttipt000km9299oej5z9b` / platformSlug `stack-tower-3`，未建新坑；slug 精确检索曾命中软删占位 `cmugts0ip000gm929wcnap4x9`〔slug `stack-tower`，status=suspended、零部署〕，已按「黑板 appId 优先」避开）。导出面增量：theme/ripple-renderer/telemetry 编译产物 + neon 13 件 + reference 四联图首次入镜像，sw.js precache 55→**74 项**（REVISION=1 不变）；门禁同轮取证：`contract-check 74/74 PASS` + `smoke PASS (browser)`。上一生产版 version 15（`cmui1by9x000am9ufovp99u2t`）被本次 superseded。自测（2026-09-27 实测，liveUrl `https://leomac-studio.tail49399e.ts.net/apps/stack-tower-3/gw`）：`/health` 200 `{"ok":true,"app":"stack-tower"}`；`/gw/` 308→200 text/html；**新版本指纹 4/4 = 200**（经 `/api/public/assets/` 静态路由：`build/render/theme.js`、`build/render/ripple-renderer.js`、`build/telemetry/emitter.js`、`assets/neon/bg-night-gradient.png`）；线上 `sw.js` 200 且 precache 含 theme/ripple/telemetry/neon×14/reference×2（= 新部署实际生效，非旧缓存）。团队产物区入口已登记（artifact `cmugut4ck000vm929ufwgefhl` → hostedAppSlug `stack-tower-3`）。注：deploy 成功 ≠ 发布成功，N6 人工拍板（首图定稿+发布包终审）仍待主人，此关不过冲刺不算完。
+
+### B8 · spec v1.1「登记就绪版」挂账（2026-09-26，纸面终稿已落盘，未登记）
+- **产物链（可复现）**：`games/stack-tower/tools/build-spec-v11-ready.mjs`（冻结守卫 + 只增不改）→ `.myrd/spec/stack-tower-spec-v1.1-payload.json`（POST /revisions 载荷 `{spec, detail}`）→ `scripts/spec-v11-emit-yaml.py`（发射 + 5 项就绪校验全绿）→ `.myrd/spec/stack-tower-spec-v1.1-ready.yaml`（全文 yaml 终稿）。
+- **折入内容（QA 三处缺陷修复一次性）**：D1 `numeric_add` benchmark_device（实验室=playwright chromium + 4x CPU throttle + 390x844/360x640；真机单列注明型号+UA）+ content.benchmark；D2 `acceptance_add` acc-a7「冷启动首触即放置」（`tests/audio/events.test.ts`）+ world 实现约束（闸门不得吞掉或延后首次出声，仍受 50ms 约束），不设 iOS 豁免；D3 content.evidence 全局证据条款（每条冒烟留文件名+日期+命令+输出摘要）+ BGM 接缝双轨证据（听测留档 + `tests/audio/bgm-loop.test.ts` 调度连续性断言并行，均不可省）。
+- **版本口径（沿 2026-09-25 判例）**：任务书所称 v1.1 ≡ 平台链 v3（approved `cmugok2uz000xm9ilx42t8pnl`）下一版；登记 = POST revisions version+1 单版落账，旧版自动 superseded；v1 起冻结数值七键 v1/v3/v1.1 三方键序无关深比全等（diff 为空）；版本链仅此一版，不产生 v1.2。基线门禁复跑 run-all PASS 22 / FAIL 0 / not-runnable 0（2026-09-26，基线导出件未动）。
+- **待办**：① 游戏 QA 纸面预审（仅核 D1/D2/D3 关闭 + 两锚点；**不构成 M2.1 核销**）；② 平台项目面权限不可达（GET `game-design-specs?projectId=` → FORBIDDEN「您不是该项目的成员」，2026-09-26 实查）——环境恢复后按 payload 一键登记；③ D4 两用例落盘与全部核销冻结不变（等主人答复 D5）；④ 登记 + D4 落盘时同步 `src/kernel/numeric.ts` 镜像 benchmark_device 组（契约 e07 数值总闸全量深比）。
+
+### B6 · 真机三项 + 帧率/安装面挂日期（2026-09-26 待排期，不阻塞代码收口）
+- acc-a2（iOS 首手势解锁）/ acc-m2（触控归一）/ acc-m3（遮罩暂停）真机核销 + acc-a5b 帧率面板录屏 + acc-d1 安装面。
+- 证据形式：设备型号 + 录屏（清单见 `games/stack-tower/docs/qa-m21-verification.md` §3）。自动化面已全绿，真机未核销前不判「已完成」。
+
+### B4 · spec 导出件路径撞车复发（糖果线导出件丢失，本轮起分路径治理）
+- 现象：`.myrd/spec/design-spec.json` 当前内容 = stack-tower v2（M2 冲刺写入），糖果线（`games/game`，代号 Pixel Fives）的 approved v1 导出件被覆盖，且本分支 git 历史无可回滚版本（该路径首现于 c73e390 即 stack-tower 版）。
+- 处置：stack-tower 基线迁 `.myrd/spec/stack-tower-spec.json`（契约 runner + e07 数值总闸同批改指）；`design-spec.json` 冻结现状不再写入；`.myrd/spec/README.md` 同步改口径。
+- 需要主人：糖果线导出件从平台或原分支找回后归位（找回前糖果线 contract-check 不得作为验收依据）。
+
+### B1 · T1 终裁记录原文平台不可达（已升级主人，冲刺内按任务锚点执行完毕）
+- 现象：知识库（global 23/project 1）、决策记录、项目频道、goals/loopHistory、本地 workspaces 定点 grep 均无 2026-09-25 T1 终裁原文。
+- 处置：以任务描述转述的四项锚点执行（首卡=stack-tower / world 段文本已固化进 spec v2 / tower-ripple 契约 / acceptance 两条必改）；QA 反例清单 8 项重建并固化为 QNC-01~08（见 `games/stack-tower/docs/qa-precheck.md` §0）。
+- 需要主人：回传或指认 T1 终裁原文落点；若与任务转述有出入，以原文为准触发 spec 升版（v2 保留 superseded）。
+
+### B2 · M1 占位项挂账（禁核销）
+- `games/game`（糖果粉碎）与 pubg-web-core 的占位实现/未闭环项：本冲刺只挂账、不核销、不投入。
+- 需要主人：维护期排期时逐项裁决。
+
+### B3 · spec v3 为「approved 候选版」（代持台账，待主人终拍；沿 v2 同一依据）
+- 代持依据：主人显式指令「不要进入 plan mode 或等待人工审批，直接实现需求并提交代码」；主策划据此代记 approved（沿 v2 / transport-ship-3d 先例）。
+- 版本链完整性：v1/v2 均保留 superseded 未覆盖；v3 approve 前程序以 draft 走完全部契约（22/22 在 approved 后复跑全绿）。
+- 红线不失效：好不好玩的最终裁决归主人试玩；一句否决 → 新修订置 draft，v3 superseded，契约随最新 approved 版重定基准。
+
+## 已解决
+- [x] QNC-05（sessionSeconds 口径不自洽）→ v2 修复（单关会话护栏口径 + 228 层推导显式化），QA 复审清零（2026-09-25）
+- [x] 契约 runner 对齐检查取错文件名 bug → `process.argv[1]` 修复，8/8 对齐校验通过
+
+## 收口区（M2 冲刺产物台账）
+| 交付线 | 产物 | 落点 | 状态 |
+|---|---|---|---|
+| T2 策划 | spec v2 终稿（numeric 四组写死 / 首关 e01–e08 编号 / acceptance 8 条全命令化 / tower-ripple 契约） | 平台 spec + `.myrd/spec/design-spec.json` | approved 候选版 |
+| T3 美术 | 风格卡 v0（四要素 + 留槽 S1–S5 + §6 实体素材命名映射）+ 文字情绪板（12 关键词 + 8 色 + 构图脚本 + 落选卡归档）+ **assets/ 实体贴图 9 件（29.19KB，按 e01–e08 命名，程序化生成器产出，接线三态降级）** | `games/stack-tower/docs/style-card-v0.md` `moodboard-stack-tower.md` `assets/`（sprites/tileset/ui）`tools/gen-assets.mjs` | v0 落盘 + 实体化已接线（门禁 `npm run assets:check` PASS (browser)，含 404 负面用例） |
+| T4 程序 | 技术方案 v2 + 五件脚手架 + 三态契约 runner + 8 条契约（全部转绿）+ 内核/表现/平台实现 + 冒烟门禁 | `games/stack-tower/`（docs/src/tests/index.html/serve.mjs/build）+ 仓库根 `scripts/contract-check.mjs` | **implemented → green**：run-all 8/8 PASS；contract-check [A]–[E] 全 PASS；smoke PASS (browser) |
+| T5 QA | 预审记录（逐条三态 + QNC-01~08 + 打回复审闭环） | `games/stack-tower/docs/qa-precheck.md` | CERTIFIED（骨架态）→ 实现态复跑证据已回填（见 qa-precheck §6，仅补证据不改三态结论） |
+
+## 终局整合小结（M2 首卡生产就绪冲刺 · 2026-09-25）
+
+### ① 预审三态闭环核对（QA 预审 ↔ 契约实跑，无遗漏）
+- acceptance 8 条全部落「可执行」列：`node scripts/contract-check.mjs` B 段逐条实跑 = 8/8 PASS（含每条 RESULT: PASS 校验）。
+- 三态无第四种静默：run-all 汇总 `PASS 8 / FAIL 0 / not-runnable 0`（not-runnable 通道保留、本轮为零）。
+- 「人工」列保留 2 项不越权：开局不劝退体感（e05）、HUD 真实呈现（e07 的 DOM 呈现面）——机器只断言 formatHud 代理 + 冒烟点击后 HUD 文本变化，好玩与否归主人试玩。
+- 「打回」列清零：QNC-05 已在 v2 修复并复审清零；实现冲刺未新增打回项。
+
+### ② tower-ripple 事件契约闭环核对
+- spec 双落点：content.towerRipple（payload/trigger/forbidden）+ world.architecture_rules。
+- 内核：kernel/ripple.ts 载荷恰四业务字段（+type 判别），window_ms=perfectWindowMs(level)、duration_ms=300∈[250,350]；perfect 同 tick 上抛。
+- 表现：消费点恰两个（renderer 波纹按 duration_ms 播放；sfx 完美叮一次性），无 screen-flash/整屏 aha 通道（契约 e06 第 4 条机判通过）。
+
+### ③ numeric 齐备性闭环核对（四组全为写死数值，无「调优决定」）
+- 完美判定窗口：140 −(l−1)×8，60 封底（L1=140）
+- 切面宽度：BLOCK 120 / 行程 ±240 / 下限 36（=120×0.30）
+- 计分：place +10；perfect 25+min(5×(combo−1),75)（连击 1/2/3 → 35/75/120 机判通过）
+- 难度曲线：速度 160+24(l−1) 封顶 420；层目标 8+2(l−1)；12 关累计 228 层
+- 防漂移双闸：kernel/numeric.ts 键序对齐 spec 导出序 + 契约 e07「数值总闸」序列化深比；契约检查 D 段另扫 kernel 违禁引用（Math.random/Date.now/performance.now/DOM）零命中。
+
+### ④ 挂账与移交
+- spec v2 维持「approved 候选版」代持（B3）；唯一未闭环 = 主人试玩终裁「好不好玩」。
+- B1（T1 终裁原文回传）/B2（M1 占位项禁核销）维持开放，不因本冲刺收口而核销。
+
+
+---
+
+# M2.1「有声可装」收口台账（2026-09-25）
+
+## 交付线产物
+
+| 交付线 | 产物 | 落点 | 状态 |
+|---|---|---|---|
+| T2 策划（D1） | spec v3（14 条增量 acceptance + numeric audio/mobile/deploy 三组 + entities 五个 + sfxPack/mobile/pwa 段 + towerRipple.restart 事件契约；冻结四组与 world/levels 零改动） | 平台 v3 `cmugok2uz000xm9ilx42t8pnl` approved + `.myrd/spec/stack-tower-spec.json` | approved 候选版（B3 代持） |
+| T3 美术（D2） | sfx-pack-v1 12 文件（place/perfect/miss/game-over/restart/level-clear × m4a+ogg，44.1kHz 单声道，66.74KB）+ 3 PWA 图标（4.68KB）；**附 pnglib 灰度缺陷修复与 12 件贴图重生成** | `games/stack-tower/assets/sfx/`（+manifest.json）`assets/icons/`；生成器 `tools/gen-audio.mjs` / `tools/gen-assets.mjs` | 落盘 + 合规（restart 198ms≤200） |
+| T4 程序（D3 三波） | W1 AudioManager（解锁/预解码/8 音池/gain 0.9/静音持久/占位 buffer）+ TouchInput 守卫 + RotateOverlay + style 真源；W2 sfx-pack 接入（连击升调 cap+12、miss 重置、critical 不挤占）+ restart(source) 事件；W3 PWA 壳（manifest+sw.js 版本化 precache）+ ?fps=1 面板 | `src/audio/audio-manager.ts` `src/audio/voices.ts` `src/platform/*` `src/ui/{style,rotate-overlay,fps-overlay,hud}.ts` `src/kernel/{types,sim}.ts` `src/app/main.ts` `manifest.webmanifest` `sw.js` | implemented → green（22/22） |
+| T4 契约 | 14 条 M2.1 契约（a1–a6 / m1–m4 / d1–d2）+ runner not-runnable 显式通道 + e07 总闸键序无关化 | `games/stack-tower/tests/contract/m21-*.spec.mjs` + `_runner.mjs` + `run-all.mjs` | 14/14 PASS |
+| T5 QA（D4） | 22 条三件套核销 + QA 4 项修正落条核对 + 真机清单挂日期 + 缺陷台账（5 项）+ 机器口径边界声明 | `games/stack-tower/docs/qa-m21-verification.md` | 自动化面全绿；真机挂账 B6 |
+
+## 缺陷销账（本轮发现即修，回归证据在 qa-m21 §4）
+- [x] pnglib blend 通道缺陷（M2 遗留，全图灰度）→ 修复 + 12 件重生成 + 色值抽样
+- [x] 遮罩激活未冻结内核（tick 继续推进摆块）→ main 帧循环 paused 整段跳过
+- [x] unlock 补放早于预解码（降级语义倒挂）→ await preload 后补放
+- [x] gen-audio manifest 键名覆盖 → m4aKb/oggKb
+- [x] e07 数值总闸键序敏感 vs 平台键序归一化 → stableStringify 键序无关深比
+- [x] **contract-check A–E 提交前置门禁 spec 基线漏切**（B4 迁移漏网：run-all/e07 已切 v3，但 `scripts/contract-check-stack-tower.mjs` 仍读已冻结的 `design-spec.json`，实跑仍对 v2 断言 8 条 acceptance / 12 实体 / 5 资产）→ 修复于 `scripts/contract-check-stack-tower.mjs`：① 基线解析改「一游戏一文件」优先（`stack-tower-spec.json`，缺失才回退 design-spec.json）；② `_platform` 元数据形状兼容（platformSpecId/status/version）；③ C 段两族映射（id 前缀 `ac-lvl*` ↔ levels[].elements 8↔8；横切 `acc-*` ↔ m21 契约文件 14↔14 双向防孤儿）；④ D 段实体落点花括号多路径展开（e-pwa-shell 四落点）。**复跑取证：RESULT: PASS**——[A] v3 基线 acceptance=22/entities=17/assets=7 · [B] 22/22 实跑 PASS · [C] 8↔8 + 14↔14 · [D] 17/17 + kernel 纯净性 10 文件 · [E] 7/7（2026-09-25，随 M2.1 复验轮）
+- [x] **playwright 装载器环境缺口**（复验轮实捕：三处测试各写一份装载器且只认 `PLAYWRIGHT_MODULE_DIR` 显式注入 → 干净 shell 下 m1/m3/d2 三条浏览器级契约集体 not-runnable，A–E 汇总假 FAIL(3)，与黑板「22/22 全绿」口径冲突）→ 装载统一收敛 `games/stack-tower/tests/contract/_browser.mjs`（本包 → 环境变量 → `npm root -g` 自动发现，非交互、失败路径显式 null → not-runnable 不静默计绿）；`tests/assets-check.mjs` / `tests/smoke.mjs` 改指共享装载器。**复跑取证：干净 shell 全绿**（`gate-logs/m21-reverify-20260925-art-final/`：1-contract-check 22/22 · 5-run-all 22/0/0 · m1/m3/d2 逐条 PASS）（2026-09-25）
+- [x] **sw.js precache 清单落后 build 产物 5 项**（M2.1 新模块 audio-manager/voices/fps-overlay/rotate-overlay/style 未进预缓存；生成件生成早于模块编译入库，回填机制兜底掩盖了冷启动离线缺件面）→ `node tools/gen-sw.mjs` 重生成（清单 = build/ 目录真实扫描，确定性产出，precache 55 项）。**回归取证：d1/d2 契约 PASS + run-all 22/0/0**（2026-09-25）
+- [x] **routine「游戏契约测试」SPEC_NOT_APPROVED（第四轮驳回，三层根因）**：① `.myrd/routines.yaml` game-contract 的 specPath 仍指已冻结撞车件 `design-spec.json`（B4 治理漏网第三处：run-all / e07 总闸 / A–E 门禁已切，routine 参数漏切）；② `contract-check-unified.mjs` approved 判定只认糖果线 `meta.status` 形状，不认平台登记 `_platform.status`（stack-tower v3 自撞车起即结构性不可能过）；③ 业务六段与数值扫描的 Godot 形状假设（顶层六段 + 纯 `.gd` 扫描），对 `spec.spec` 六段嵌套与 TS 工程失配 → 修复：routine specPath 改指 `stack-tower-spec.json`（附注释锚 README 口径）；unified 检查器 approved 判定三代形状兼容（`_platform.status` / 顶层 `status` / `meta.status` / `meta.approval.approved`）+ `spec.spec ?? spec` 六段解析 + 实体落点花括号多路径展开（e-pwa-shell）+ 数值扫描 `.gd`/`.ts` 双栈且 `games/stack-tower/src/kernel/numeric.ts`（stack-tower 数值 SSOT）恒并入候选清单；镜像 `games/game/scripts/contract-check.mjs` 同步（门禁镜像纪律）。**复跑取证：`node scripts/contract-check.mjs --spec .myrd/spec/stack-tower-spec.json --project .` → CONTRACT: PASS 62 PASS / 0 FAIL · exit 0**；裸口径 A–E RESULT: PASS + smoke PASS (browser) 同轮复绿（2026-09-25）
+- 澄清（非缺陷）：`gen-audio` 为**内容稳定、字节不稳定**——afconvert 写容器时间戳、oggenc 随机化 OggS 序列号+CRC（实测 sfx-place.m4a 仅 12 字节头差异、尺寸逐字节相等，载荷一致）；「重复运行逐字节一致」口径仅适用于 `gen-assets`（PNG，复验零漂移）。音频再生成后如无内容变化，回退即可，勿入库制造 churn。
+
+## 挂账（不阻塞代码收口）
+- B5：HTTPS 托管地址待主人指认（acc-d1 安装面需要）。
+- B6：真机三项 + 帧率/安装面（acc-a2/m2/m3/a5b 真机口径/d1 安装）挂 2026-09-26 排期，证据=设备型号+录屏。
+- B7（已销案 · 2026-09-26 主人核实）：平台从未内置「Open Design / 设计工作台 daemon」，127.0.0.1:7456 无任何服务——该条目源于 2026-09-11 讨论中的臆测并被交叉探针误证实（详见知识库《MyRD 平台能力与环境事实源》）。自本条起从环境探针清单除名，不得再作为依赖或环境阻塞证据；视觉资产走仓库内程序化生成器（gen-assets/gen-audio），自动化门禁不依赖任何 daemon。
+- sfx_mapping 文案与 miss 绑定出入（spec v3 content.sfxPack）→ 下一版修订（文案级，不涉数值/acceptance）。
+- 玩法落点裁决记录：主人已裁 **PWA 可安装**；微信/抖音小游戏进下期 backlog，主人可一句话改判。
+
+
+---
+
+# 【他线存档区】game-9《汽车连连看》（独立 goal 线三件套 · 合并归档 2026-10-15，原文零改动）
+
 # 《汽车连连看》(game-9) 阻塞项（第三轮线上版复核后更新 2026-10-07）
 
 ## 当前阻塞（1 项，需要人）

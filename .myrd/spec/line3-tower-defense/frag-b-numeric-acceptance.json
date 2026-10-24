@@ -1,0 +1,39 @@
+{
+  "numeric": {
+    "_calibrationNote": "本段全部为初始锚定值（承 wheat-squad 波次节拍判例结构 + memo v1 对标核心循环推算的设计承诺值，非实测值）；实现轮首批模拟局实测后走 revision 校准，校准前契约测试按本段数值机判",
+    "DEFAULT_SEED": 20261016,
+    "FIXED_STEP_MS": 16,
+    "victoryWaves": 8,
+    "coreLives": 10,
+    "firstPlacementBudgetSec": 20,
+    "waveBand": { "p50MinSec": 240, "p50MaxSec": 420, "p90MaxSec": 600, "sampleSeeds": 20, "status": "初始锚定值（结构冻结：P50/P90 带 + 20 种子采样口径 + start→end 事件链计数；实测后 revision 校准）" },
+    "waveTable": { "waves": 8, "enemiesPerWaveBase": 6, "enemiesGrowthPerWave": 1.35, "firstWaveLeniency": "前 10 秒敌量 ×0.5（level-1/el-warmup）" },
+    "turret": { "levels": 3, "dmgPerShotBase": 10, "dmgGrowthPerLevel": 1.6, "rangeTilesBase": 2.5, "rangeGrowthPerLevel": 0.5, "fireIntervalMsBase": 800, "fireIntervalDecayPerLevel": 0.85, "costPlace": 50, "costUpgradeBase": 80, "costUpgradeGrowth": 1.6 },
+    "enemy": { "hpBase": 30, "hpGrowthPerWave": 1.35, "speedTilesPerSec": 1.2, "spawnIntervalBaseMs": 900, "bountyBase": 8, "types": { "grunt": { "sizePx": 16, "hpMul": 1.0, "speedMul": 1.0 }, "runner": { "sizePx": 14, "hpMul": 0.6, "speedMul": 1.6 }, "brute": { "sizePx": 20, "hpMul": 3.0, "speedMul": 0.7 } } },
+    "economy": { "startGold": 120, "killRewardBase": 8, "killRewardGrowthPerWave": 1.02 },
+    "feedback": { "hitFlashMs": 90, "latencyMaxMs": 100, "channelsPerActionMin": 2, "frameP95Ms": 16, "frameSampleN": 3000 },
+    "perf": { "entityCap": 220, "stepBudgetMs": 16, "midTierStepMs": 33, "firstInteractionMs": 3000, "机型档": "中端≤33ms/首交互≤3000ms/老机≤50ms（承 wheat-squad perf-1 判例口径）" },
+    "palette": {
+      "status": "v1.0 冻结（风格卡 v1 · 2026-10-17 美术锁定；改动必须走 revision）",
+      "whitelist": { "bg-deep": "#202A38", "field": "#2F4156", "path-sand": "#E9D8A6", "grid-line": "#47617C", "core-coral": "#E76F51", "enemy-berry": "#B75D69", "turret-green": "#81B29A", "text-cream": "#F4F1DE" },
+      "deriveRule": "仅允许白名单两色按 theme.ts 常量比例混合（炮塔阶= turret-green×text-cream 0/20/40%；敌血带= enemy-berry×bg-deep 0/30%）；新增色相=违例"
+    }
+  },
+  "acceptance": [
+    { "id": "a1-td-first-placement-feedback", "mode": "auto", "check": "node games/line3-tower-defense/tests/contract/checks/a1-td-first-placement-feedback.mjs", "statement": "首 30 秒体验目标：5/5 种子（DEFAULT_SEED+i，i=0..4）首 30 秒内完成首次布防且 first_placement_at ≤ firstPlacementBudgetSec(20s)，首次命中反馈延迟 ≤ feedback.latencyMaxMs(100ms)。判定面全部为数值谓词与计数谓词。样本量=5 种子。" },
+    { "id": "a2-td-wave-duration-band", "mode": "auto", "check": "node games/line3-tower-defense/tests/contract/checks/a2-td-wave-duration-band.mjs", "statement": "单局时长带（模拟局口径，禁混真人局）：20 完整模拟局（DEFAULT_SEED+i，i=0..19，start→end 事件链 20/20 完整）P50 ∈ [waveBand.p50MinSec(240), waveBand.p50MaxSec(420)]s 且 P90 ≤ p90MaxSec(600)s，结局 ∈ {victory, defeat}。样本量=20。" },
+    { "id": "a3-td-restart-willingness", "mode": "manual", "check": "真人记录卡核（非自动判据）：games/line3-tower-defense/qa/playtest-collection-round1.md（沿 wheat-squad A3 任务单判例形制，实现轮建卡）", "statement": "自然重开意愿（好玩判据主条·真人局口径）：5 名真人（样本量=5，主人圈定）中 ≥4 人自然重开 ≥2 局且重开理由原话非空（防主持人污染+原话留档）。样本不足=未判定·待采，不烧冻结余量。未判定负责人：主人（圈定 5 名真人）+ 游戏 QA（记录卡回收核真）；采样计划：采集窗前置=实现轮可玩面部署 LIVE（绑当轮报告 sha），复用 wheat-squad qa/playtest-collection-round1.md 形制建卡，与线 2 W-6 同批可合并采集。" },
+    { "id": "a4-td-feedback-channels", "mode": "auto", "check": "node games/line3-tower-defense/tests/contract/checks/a4-td-feedback-channels.mjs", "statement": "反馈延迟与通道：每操作到反馈呈现 ≤ feedback.latencyMaxMs(100ms)；每操作反馈通道 ≥ feedback.channelsPerActionMin(2)（候选=flash/particles/hud-jump/projectile-trace ≥4 备选）；帧耗时 P95 ≤ feedback.frameP95Ms(16ms)，帧采样 n ≥ feedback.frameSampleN(3000)。样本量=逐操作全采样+帧 n≥3000。" },
+    { "id": "det-1-td-seeded-determinism", "mode": "auto", "check": "node games/line3-tower-defense/tests/contract/checks/det-1-td-seeded-determinism.mjs", "statement": "同 seed 战局逐字节一致：DEFAULT_SEED 双局全 tick 状态 hash 逐字节相等，且波次编成序列/敌路径推进序列/索敌开火序列/掉落序列四表逐值一致。样本量=2 局全 tick 对拍。零 Math.random/Date.now（源扫描为证）。" },
+    { "id": "tex-1-td-no-external-texture", "mode": "auto", "check": "node games/line3-tower-defense/tests/contract/checks/tex-1-td-no-external-texture.mjs", "statement": "零外部贴图：源文件零位图构造调用（Image/bitmap 源扫描=0 命中），可见资产全部程序化生成并入 manifest 逐件带 hash。样本量=全仓源扫描。" },
+    { "id": "perf-1-td-entity-cap", "mode": "auto", "check": "node games/line3-tower-defense/tests/contract/checks/perf-1-td-entity-cap.mjs", "statement": "实体与步进预算：同屏实体峰值 ≤ perf.entityCap(220)；单步耗时 ≤ perf.stepBudgetMs(16ms)；中端档节流仿真单步 ≤ perf.midTierStepMs(33ms) 且不崩；首交互 ≤ perf.firstInteractionMs(3000ms)。样本量=全 waveTable 8 波全量步进采样。" },
+    { "id": "a5-td-onboarding-four-events", "mode": "auto", "check": "node games/line3-tower-defense/tests/contract/checks/a5-td-onboarding-four-events.mjs", "statement": "首屏引导四事件骨架：hint_shown@0ms → first_tap（once）→ first_loop_complete=首波结束 tick×FIXED_STEP_MS → restart_clicked count 1→2（结算页真实点击）；首操作须落 hint 后 ≤5000ms 窗（path-guidance-dismiss-01）；首屏文案三方逐字同名：spec.world.firstScreenCopy ≡ 渲染层 GUIDANCE 常量 ≡ hint_shown.text（copy-hint-place 逐字）。样本量=1 headless 全链路局。" },
+    { "id": "a6-td-operation-paths", "mode": "auto", "check": "node games/line3-tower-defense/tests/contract/checks/a6-td-operation-paths.mjs", "statement": "操作路径 5 条全部 headless 可达且各带视觉锚断言：path-place-turret-01 / path-upgrade-turret-01 / path-speed-toggle-01 / path-restart-01 / path-guidance-dismiss-01（步骤与锚以 world.operationPaths 为准）。样本量=5/5 条全过。" },
+    { "id": "ac-art-1-td-palette-whitelist", "mode": "auto", "check": "node games/line3-tower-defense/tests/contract/checks/ac-art-1-td-palette-whitelist.mjs", "statement": "色值白名单：src+tools 全仓 hex 字面量扫描，仅 numeric.palette.whitelist 8 色（+#include 派生规则声明面）零违例。样本量=全仓扫描。" },
+    { "id": "ac-art-2-td-asset-manifest-cap", "mode": "auto", "check": "node games/line3-tower-defense/tests/contract/checks/ac-art-2-td-asset-manifest-cap.mjs", "statement": "资产清单封顶：首批可见资产 ≤13 件，manifest 逐件带生成器行号+hash 且重生成 hash 不变（确定性）。样本量=manifest 全件数核。" },
+    { "id": "ac-art-3-td-stylecard-tokensource", "mode": "auto", "check": "node games/line3-tower-defense/tests/contract/checks/ac-art-3-td-stylecard-tokensource.mjs", "statement": "风格卡 token 单源：渲染层只读 theme.ts token（src+tools 裸 hex 扫描=0 命中，白名单声明面除外）；theme.ts 四要素与 .myrd/blackboard/line3-tower-defense/assets.md 风格卡 v1 逐值一致。样本量=全仓扫描+逐值对表。" },
+    { "id": "ac-art-4-td-visual-signature", "mode": "auto", "check": "node games/line3-tower-defense/tests/contract/checks/ac-art-4-td-visual-signature.mjs", "statement": "视觉签名全覆盖：assets.md 视觉签名映射表在盘且「需视觉可观察=是」的判据/路径条目（a1/a4/a5 + 5 条 path id）逐条有映射键，机判=键集合全等。样本量=映射表全键核。" },
+    { "id": "inv-1-td-entity-file-alignment", "mode": "auto", "check": "node games/line3-tower-defense/tests/contract/checks/inv-1-td-entity-file-alignment.mjs", "statement": "实体-文件对账：spec.entities[].script 落点文件逐条在盘且 docs/inventory.md 登记行一一对应（id/路径/一句职责）。样本量=entities 12 条全量。" },
+    { "id": "fnd-1-td-telemetry-fieldnames", "mode": "auto", "check": "node games/line3-tower-defense/tests/contract/checks/fnd-1-td-telemetry-fieldnames.mjs", "statement": "埋点定名逐字符：meta.telemetryFields 键集合 ≡ 源码事件名常量集合（含四件定名 first_tap/first_loop_complete/restart_clicked/hint_shown 逐字符），双方剥注释后字符串全等。样本量=键集合全量对拍。" }
+  ]
+}

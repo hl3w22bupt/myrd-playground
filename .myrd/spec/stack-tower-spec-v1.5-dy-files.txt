@@ -1,0 +1,40 @@
+# spec v1.5 dy 条目落点声明清单（C 抖音移植轮 N1 · 2026-09-30）
+# 性质：spec 先行声明（wx B0 判例同构）——下列文件在 N1 落账时点均不存在，
+# 由 N2（游戏程序 ‖ 游戏美术）在 v1.5 approved 且 B-C-001 解除后产出。
+# 落点一律以 repo 根为基准的相对路径（本仓库根 = run 工作区根）。
+# N4 对抗互查口径：三份输入缺一停审（approved spec + 产物带 repo 根/黑板指针 + 机器证据）。
+
+[dy-runtime · files]
+games/stack-tower/src/platform/tt.ts
+games/stack-tower/src/audio/bgm.ts            # 既有件：接入 tt BGM 环，零 web 行为变化
+games/stack-tower/tt/game.json
+games/stack-tower/tt/game.js
+games/stack-tower/tt/project.config.json
+games/stack-tower/tools/build-tt.mjs
+[dy-runtime · check]
+node games/stack-tower/tests/tt/tt-runtime-surface.spec.mjs
+
+[dy-share-loop · files]
+games/stack-tower/src/platform/share.ts       # 既有件：复用（wx B0 已建）
+games/stack-tower/tt/game.js
+[dy-share-loop · check]
+node games/stack-tower/tests/tt/tt-share-loop.spec.mjs
+[dy-share-loop · assets]
+games/stack-tower/assets/tt/share-card.png    # dy-share-card 500x400 必选（主判据配图）
+
+[dy-submission-kit · files]
+games/stack-tower/export/tt/
+games/stack-tower/export/tt/manifest.json
+games/stack-tower/scripts/check-tt-bundle-size.mjs
+games/stack-tower/scripts/check-numeric-freeze.mjs   # 既有件：复用（锚唯一来源 v1.3 存档）
+games/stack-tower/docs/dy-submission-kit-c3.md
+[dy-submission-kit · check]
+node games/stack-tower/tests/tt/tt-submission-kit.spec.mjs
+[dy-submission-kit · assets]
+games/stack-tower/assets/tt/store-screenshot-01.png   # 1242x2208 必选
+games/stack-tower/assets/tt/store-screenshot-02.png   # 1242x2208 必选
+games/stack-tower/assets/tt/store-screenshot-03.png   # 1242x2208 必选
+games/stack-tower/assets/tt/icon.png                  # 512x512 必选
+
+[能力级 optional（不新增独立素材 id）]
+录屏分享（tt.getGameRecorder 系）+ 高光封面卡（本局录屏帧派生，禁新编风格）

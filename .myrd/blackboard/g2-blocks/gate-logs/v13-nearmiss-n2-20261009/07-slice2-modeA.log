@@ -1,0 +1,5 @@
+== cmd: G2_SPEC_PATH=<approved> node scripts/contract-check.mjs（Mode A） ==
+PASS  ac-18-ci-guard-repo-scope :: 仓库范围守卫 PASS（零一号路径引用，策略单源 ci/scope-policy.json）
+—— 合计 18 PASS / 0 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v2 approved 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准）
+EXIT_A=

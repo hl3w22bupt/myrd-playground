@@ -1,0 +1,27 @@
+
+> g2-blocks@0.1.0-n1-scaffold gate:palette
+> node tools/palette-gate.mjs matrix --palette assets/palette/palette-n1-final.json --threshold 25 --pairs 21
+
+# 门禁: A=HSL三选二(dH≥25°/dL≥0.1/dS≥0.08) B=ΔE00≥25 | 色数=7 对数=21
+PASS block-01|block-03    HSL=3/3 dE=54.33 (dH=67.8 dL=0.120 dS=0.097)
+PASS block-01|block-04    HSL=2/3 dE=49.15 (dH=156.0 dL=0.222 dS=0.060)
+PASS block-01|block-05    HSL=3/3 dE=28.51 (dH=54.3 dL=0.280 dS=0.165)
+PASS block-01|block-02    HSL=3/3 dE=64.71 (dH=174.9 dL=0.102 dS=0.159)
+PASS block-01|block-06    HSL=3/3 dE=30.27 (dH=149.7 dL=0.120 dS=0.279)
+PASS block-01|block-07    HSL=3/3 dE=52.10 (dH=127.1 dL=0.461 dS=0.168)
+PASS block-03|block-04    HSL=3/3 dE=56.50 (dH=136.2 dL=0.102 dS=0.157)
+PASS block-03|block-05    HSL=2/3 dE=46.23 (dH=122.1 dL=0.161 dS=0.068)
+PASS block-03|block-02    HSL=2/3 dE=34.71 (dH=107.1 dL=0.018 dS=0.256)
+PASS block-03|block-06    HSL=3/3 dE=57.74 (dH=142.5 dL=0.239 dS=0.182)
+PASS block-03|block-07    HSL=2/3 dE=49.08 (dH=165.0 dL=0.341 dS=0.070)
+PASS block-04|block-05    HSL=2/3 dE=38.22 (dH=101.7 dL=0.059 dS=0.225)
+PASS block-04|block-02    HSL=3/3 dE=28.17 (dH=29.1 dL=0.120 dS=0.099)
+PASS block-04|block-06    HSL=2/3 dE=35.75 (dH=6.3 dL=0.341 dS=0.339)
+PASS block-04|block-07    HSL=3/3 dE=26.67 (dH=28.8 dL=0.239 dS=0.228)
+PASS block-05|block-02    HSL=3/3 dE=58.89 (dH=130.8 dL=0.178 dS=0.324)
+PASS block-05|block-06    HSL=3/3 dE=40.32 (dH=95.4 dL=0.400 dS=0.114)
+PASS block-05|block-07    HSL=2/3 dE=26.56 (dH=72.9 dL=0.180 dS=0.003)
+PASS block-02|block-06    HSL=3/3 dE=49.93 (dH=35.4 dL=0.222 dS=0.438)
+PASS block-02|block-07    HSL=3/3 dE=36.85 (dH=58.0 dL=0.359 dS=0.327)
+PASS block-06|block-07    HSL=2/3 dE=57.02 (dH=22.5 dL=0.580 dS=0.112)
+# 结果: ALL-GREEN 红对数=0/21 minΔE=26.555 阈值=25 margin=1.555 selftest=18/18

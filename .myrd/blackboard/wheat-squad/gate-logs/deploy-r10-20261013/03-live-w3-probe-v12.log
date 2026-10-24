@@ -1,0 +1,19 @@
+# 文件: 03-live-w3-probe-v12.log | 日期: 2026-10-13T03:22:53Z | HEAD: 76087683439e6184ccc1b2b6be529ddbc5848b37 | 部署单 v12 cmv641ays003ym9qq0w2u53bg status=ready
+== W-3 第 8 次复现：页面路 title ==
+<title>汽车连连看</title>
+== 页面字节跨坑全等（决定性证据，同 n8 判据）==
+wheat-squad-2 /gw md5: abb7c87b6a8217f9d049070dc6dec372
+game-9       /gw md5: abb7c87b6a8217f9d049070dc6dec372
+== health 体（壳自报 app）==
+{"ok":true,"app":"game-9","title":"汽车连连看","env":"development","assets":"lazy/object-storage"}
+== 资产路指纹（live vs 本地 build，全等即新字节在线）==
+live  main.mjs    md5: bcde4bea67cfc6a1af57ce7ae4297e2d
+local main.mjs    md5: bcde4bea67cfc6a1af57ce7ae4297e2d
+live  spec.json   md5: dba2d74239f3fdfcd2a5c58673730575
+local spec.json   md5: dba2d74239f3fdfcd2a5c58673730575
+live  index.html  md5: d035b3a2d6a0c0f60eaac0aa4df56c1b
+local index.html  md5: d035b3a2d6a0c0f60eaac0aa4df56c1b
+== 嵌套资产（boot 链必需，网关 :name 单段路由 404）==
+src/main.mjs: HTTP 404
+src/game.mjs: HTTP 404
+== 壳 boot 契约（/tmp 共享壳源码要点）==; loadEngine→assets/index.js → fetchAsset index.wasm.gz.b64+index.pck.gz.b64 → WebAssembly.validate 硬校验 → new Engine(godot)——无非 Godot 回退分支；fail 文案自证「M1 网关仅支持文本通道」

@@ -1,0 +1,5 @@
+[i] 白名单（theme.ts 单源）= #E8B84B #C99530 #7FA65A #5C7F42 #F5EDD8 #8A5A3B #D2543E #4A3826
+[i] 规则面一扫描完成（src 除 theme.ts，命中 0）
+[i] manifest.json 裸hex = 0
+[i] SVG 模板 3 件 · 色值 28 处（非白名单命中已计入 fail）
+RESULT: PASS — 两规则面零违例（代码面零裸 hex/rgba · manifest 零 hex · SVG ⊆ 白名单 8 色）

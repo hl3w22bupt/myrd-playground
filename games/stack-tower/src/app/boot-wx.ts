@@ -1,0 +1,196 @@
+/**
+ * wx 入口装配（B0 · wx/game.js require 本模块编译产物）。
+ *
+ * 职责：在动态 import 组装根（app/main.js）之前安装最小 DOM shim（boot 的依赖面：
+ * hud/stage/window/location/navigator——rotate/fps/SW 均空安全或守卫），使游戏代码零改动跑在
+ * wx 运行时；HUD 由 shim 直绘 wx 画布（分数/连击/关卡/状态 + 重开/静音两按钮，静音键与
+ * AudioManager 同源）。web 链路（main.ts）不 import 本文件 → web 行为零变化。
+ */
+import { createWxPlatform, createWxShareRegistrar, type WxCanvas } from '../platform/wx.js';
+import { installShareMenu } from '../platform/share.js';
+
+/** wx 全局最小面（仅本入口消费；运行时由小游戏宿主提供） */
+declare const wx: {
+  getSystemInfoSync(): { windowWidth: number; windowHeight: number; pixelRatio: number };
+  createCanvas(): WxCanvas;
+  requestAnimationFrame(cb: (now: number) => void): void;
+  onShow(cb: () => void): void;
+  onHide(cb: () => void): void;
+};
+
+/** 会话 id：本地 UUID v4（与埋点 anon_id 同源语义，零 PII） */
+function sessionId(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
+interface Rect { x: number; y: number; w: number; h: number }
+const BTN_W = 128;
+const BTN_H = 34;
+
+/** HUD 画布直绘层：行文案 + 重开/静音按钮（触控命中在 wx 装配体拦截） */
+function createHudLayer(ctx: CanvasRenderingContext2D, viewW: number) {
+  const lines: { name: string; text: string }[] = [];
+  const buttons = new Map<string, { text: string; rect: Rect; handlers: (() => void)[] }>();
+  const panel = 'rgba(6,12,28,0.72)';
+  const cyan = '#00e5ff';
+  const white = '#e8f6ff';
+
+  return {
+    setLine(name: string, text: string): void {
+      const l = lines.find((x) => x.name === name);
+      if (l) l.text = text;
+      else lines.push({ name, text });
+    },
+    addButton(name: string): void {
+      if (!buttons.has(name)) buttons.set(name, { text: '', rect: { x: 0, y: 0, w: BTN_W, h: BTN_H }, handlers: [] });
+    },
+    setButtonText(name: string, text: string): void {
+      const b = buttons.get(name);
+      if (b) b.text = text;
+    },
+    bindHandler(name: string, handler: () => void): void {
+      buttons.get(name)?.handlers.push(handler);
+    },
+    /** 触控命中：true = 按钮消费（不产生落块意图） */
+    hitTest(x: number, y: number): boolean {
+      for (const b of buttons.values()) {
+        const r = b.rect;
+        if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) {
+          b.handlers.forEach((h) => h());
+          return true;
+        }
+      }
+      return false;
+    },
+    /** 每帧末尾覆盖绘制（注册晚于游戏帧链 → 永在最上层） */
+    draw(viewH: number): void {
+      const names = [...buttons.keys()];
+      names.forEach((name, i) => {
+        const b = buttons.get(name);
+        if (b) b.rect = { x: i === 0 ? 16 : viewW - BTN_W - 16, y: viewH - BTN_H - 18, w: BTN_W, h: BTN_H };
+      });
+      const lineH = 22;
+      ctx.fillStyle = panel;
+      ctx.fillRect(8, 8, Math.min(viewW - 16, 220), lines.length * lineH + 16);
+      ctx.font = '14px sans-serif';
+      ctx.textBaseline = 'middle';
+      lines.forEach((l, i) => {
+        ctx.fillStyle = l.name.includes('status') ? cyan : white;
+        ctx.fillText(l.text, 18, 18 + i * lineH);
+      });
+      for (const b of buttons.values()) {
+        ctx.fillStyle = panel;
+        ctx.fillRect(b.rect.x, b.rect.y, b.rect.w, b.rect.h);
+        ctx.strokeStyle = cyan;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(b.rect.x, b.rect.y, b.rect.w, b.rect.h);
+        ctx.fillStyle = cyan;
+        ctx.fillText(b.text, b.rect.x + 14, b.rect.y + BTN_H / 2);
+      }
+    },
+  };
+}
+
+type El = Record<string, unknown>;
+
+/** 最小 DOM shim：className/textContent 按钮与 HUD 行直路由；其余 no-op（boot 依赖面外零假设） */
+function installDomShim(hud: ReturnType<typeof createHudLayer>) {
+  const noop = (): void => {};
+  let windowListeners: Record<string, (() => void)[]> = {};
+
+  const makeEl = (tag: string): El => {
+    const el: El = {
+      tagName: tag.toUpperCase(),
+      children: [] as unknown[],
+      style: new Proxy<Record<string, string>>({}, { set: () => true, get: () => '' }),
+      appendChild(child: unknown): void { (el.children as unknown[]).push(child); },
+      setAttribute: noop,
+      removeEventListener: noop,
+    };
+    if (tag === 'button') {
+      let name = '';
+      Object.defineProperty(el, 'className', {
+        set(v: string) {
+          name = v.includes('restart') ? 'st-hud-restart' : v.includes('mute') ? 'st-hud-mute' : v;
+          hud.addButton(name);
+        },
+        get: () => name,
+      });
+      Object.defineProperty(el, 'textContent', {
+        set(v: string) { hud.setButtonText(name, String(v)); },
+        get: () => '',
+      });
+      el.addEventListener = (type: string, handler: () => void): void => {
+        if (type === 'click') hud.bindHandler(name, handler);
+      };
+    } else {
+      let cls = '';
+      Object.defineProperty(el, 'className', { set(v: string) { cls = v; }, get: () => cls });
+      Object.defineProperty(el, 'textContent', {
+        set(v: string) { if (cls.startsWith('st-hud-')) hud.setLine(cls, String(v)); },
+        get: () => '',
+      });
+      el.addEventListener = noop;
+    }
+    return el;
+  };
+
+  const hudEl = makeEl('div');
+  const stageEl = makeEl('div');
+  Object.assign(globalThis, {
+    document: {
+      getElementById: (id: string) => (id === 'hud' ? hudEl : id === 'stage' ? stageEl : null),
+      createElement: (tag: string) => makeEl(tag),
+      body: makeEl('body'),
+      head: makeEl('head'),
+      addEventListener: noop,
+    },
+    window: {
+      addEventListener(type: string, h: () => void): void { (windowListeners[type] ??= []).push(h); },
+      removeEventListener(type: string, h: () => void): void {
+        windowListeners[type] = (windowListeners[type] ?? []).filter((x) => x !== h);
+      },
+      __dispatch(type: string): void { (windowListeners[type] ?? []).forEach((h) => h()); },
+    },
+    location: { search: '' },
+    navigator: {},
+  });
+  return () => {
+    windowListeners = {};
+  };
+}
+
+export async function bootWx(): Promise<void> {
+  const info = wx.getSystemInfoSync();
+  const canvas = wx.createCanvas();
+  const sid = sessionId();
+  const hud = createHudLayer(canvas.getContext('2d'), info.windowWidth);
+  const resetWindowListeners = installDomShim(hud);
+
+  const handles = createWxPlatform({
+    canvas,
+    sessionId: sid,
+    interceptTouch: (x, y) => hud.hitTest(x, y),
+  });
+
+  const { boot } = await import('./main.js');
+  const session = boot(handles.platform);
+  session.setViewport(info.windowWidth, info.windowHeight);
+
+  // 分享闭环（wx-share-loop）：会话卡主判据 + 朋友圈附带项，注册面在 platform/wx.ts
+  installShareMenu(createWxShareRegistrar(), sid);
+
+  // wx 生命周期补发 web 语义事件（pagehide → session_end 埋点口径对齐）
+  wx.onHide(() => (globalThis.window as unknown as { __dispatch(t: string): void }).__dispatch('pagehide'));
+
+  // HUD 绘制链：注册晚于游戏帧链 → 每帧覆盖绘制在最上层
+  const drawHud = (): void => {
+    hud.draw(info.windowHeight);
+    wx.requestAnimationFrame(drawHud);
+  };
+  wx.requestAnimationFrame(drawHud);
+  void resetWindowListeners;
+}

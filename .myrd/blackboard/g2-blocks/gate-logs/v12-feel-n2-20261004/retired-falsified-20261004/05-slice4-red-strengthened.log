@@ -1,0 +1,5 @@
+# 切片4 红证据（ac-27 加固轮）
+# 时间: 2026-10-04 · 会话实跑
+# 事件: 首版 ac-27 在按钮实体缺位时即 PASS（验证缺口）→ 加固契约（机判 drawRestartButton/restartRect 实体）
+# 加固后首跑原文（grep -cE '^RED' 输出）: 1
+# 红因: 按钮命中区缺失（一键入口未实现）→ 实现 renderer.drawRestartButton + main.restartRect 命中路径 → 绿

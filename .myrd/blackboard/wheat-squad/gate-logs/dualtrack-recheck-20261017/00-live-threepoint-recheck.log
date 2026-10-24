@@ -1,0 +1,7 @@
+# 本轮独立复核 · LIVE 三点实测 · UTC 2026-10-17T02:04:22Z · 执行人：游戏程序
+cmd: curl -sS  -o /tmp/ws-live-main-rk.mjs && md5 && grep __G2WS_BUILD
+HTTP=200 bytes=24716
+LIVE_md5=53eaebce53e49be5170b82989b018f80
+__G2WS_BUILD = {"gitSha":"994525799e0842f518166846824753a8ad7fcbc7","specAnchor":"cmv8xcexk0009m9dj6ev1dj0r@v6:approved"}
+绑定基准=994525799e0842f518166846824753a8ad7fcbc7（r2x-recheck-report-20261017.md 第3行）
+build 侧 md5=53eaebce53e49be5170b82989b018f80

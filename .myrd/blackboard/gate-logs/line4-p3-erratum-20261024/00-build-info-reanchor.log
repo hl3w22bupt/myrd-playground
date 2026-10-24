@@ -1,0 +1,3 @@
+CMD: node games/line4-unblock-jam/tools/gen-build-info.mjs（sha 重锚本轮 HEAD）
+[gen-build-info] OK -> /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvlpfu4b0013m94ip2nru46y/games/line4-unblock-jam/src/generated/build-info.mjs（sha=75653d80c0e6 dirty=true）
+EXIT=0

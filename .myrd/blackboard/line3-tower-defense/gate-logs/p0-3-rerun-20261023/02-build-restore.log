@@ -1,0 +1,15 @@
+== 重建后工作树差异（预期仅锚位）==
+ M games/line3-tower-defense/build/manifest.json
+ M games/line3-tower-defense/build/src/main.mjs
+ games/line3-tower-defense/build/manifest.json | 3 +--
+ games/line3-tower-defense/build/src/main.mjs  | 2 +-
+ 2 files changed, 2 insertions(+), 3 deletions(-)
+== 锚位差异原文 ==
+-  "gitSha": "a27ca0e86b618e2bf0ca2f8621efbb1e8c78955e",
++  "gitSha": "fa71074adb6f53013c31af302a45264e9b5ed225",
+-const __L3_BUILD__ = { gitSha: "a27ca0e86b618e2bf0ca2f8621efbb1e8c78955e", specAnchor: "cmvbqgzbl0029m9ax64foxd37@v2:approved" };
++const __L3_BUILD__ = { gitSha: "fa71074adb6f53013c31af302a45264e9b5ed225", specAnchor: "cmvbqgzbl0029m9ax64foxd37@v2:approved" };
+ // 构建注入 __L3_BUILD__（gitSha/specAnchor）→ LIVE 三点对账锚（wheat-squad __G2WS_BUILD 判例同构）
+== 还原到部署锚面 ==
+       0
+restored-ok

@@ -1,0 +1,14 @@
+# 部署轮 r7 确定性重建核对（源仓 sync/dy-v1.3 @ 9c27438 · worktree g2-blocks-main）
+# UTC: 2026-10-11T03:5x+08:00 轮 · 执行节点: 游戏程序（部署）· 本节点实跑, 非转抄
+# 命令: find build -type f -exec shasum -a 256 {} + （重建前后各一次, diff 比对）
+#       node tools/build.mjs
+# 执行目录: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-main
+
+BUILD 32 modules → build/  · BUILD EXIT=0
+PWA build/（index + manifest + sw + 32 modules）· spec v9 approved
+
+重建前后比对: 35 文件中 34 件 sha256 逐字节全等; 唯一差异:
+< 1ec99afe…  sw.js  (const CACHE = 'g2-9-1791686811864')
+> 073b3794…  sw.js  (const CACHE = 'g2-9-1791691488754')
+判定: 仅缓存版本号时间戳差异 = PWA 缓存失效机制良性残留（cache-timestamp-diff-is-benign 判例）
+→ 确定性重建成立, 部署字节 = 提交字节（sw.js 以重建产物为准, 内容面零漂移）

@@ -1,0 +1,9 @@
+[live-smoke] 打开 https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/gw
+[live-smoke] 浏览器可开：__G2_READY=true
+[live-smoke] location.pathname = /apps/g2-blocks-2/gw
+[live-smoke] 盘面 64 格满员（score=0 status=playing）
+[live-smoke] 核心循环可玩：score 0 → 160（chain 1）
+[live-smoke] SW registrations = {"n":1,"scopes":["https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/api/public/assets/"]}
+[live-smoke] 重开全复位 ✓（score=0 status=playing）
+[live-smoke] 控制台零错误 ✓
+[live-smoke] LIVE-SMOKE: PASS https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/gw

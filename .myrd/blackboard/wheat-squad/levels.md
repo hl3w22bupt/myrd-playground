@@ -1,7 +1,111 @@
 # 关卡状态黑板 — wheat-squad（麦浪小队 · 第二产品线 · 可玩基线轮）
 
-> 更新时间：2026-10-12 · 负责人：主策划（整合）/ 游戏程序（实现状态）
-> 下一步：W-3 页面路由解除 → 试玩入口交付 → 主人 5 名试玩回填（A3 结论面）
+> 更新时间：2026-10-17（**双轨轮 · 轨道 A「三态分流后续分支」收口**）· 负责人：主策划（整合）/ 游戏程序（实现状态）
+> 下一步：重锚部署 + A2 QA 核签收口 → A3 分支判定 → 维持等主人圈定 5 名真人（`docs/a3-playtest-task-order-20261016.md`）
+
+**双轨轮程序线复核一行**（2026-10-17 · 游戏程序 · verify-claims 纪律 · 独立实跑 @ HEAD `476090c`，不照抄前轮声称）：**上轮 A1→A2→A3 收口声明全部复核成立，零源面变更零新增阻塞**。① A1 三点 LIVE 本轮重测（UTC 02:04:22Z 实取）：内嵌 `__G2WS_BUILD.gitSha` = `994525799e0842f518166846824753a8ad7fcbc7` ≡ 报告绑定 sha **逐字符全等** ✓ · LIVE md5 `53eaebce` ≡ 本仓 build **逐字节** ✓ · `git diff 9945257..HEAD -- src tests tools ci verify.sh package.json` = **空**（源面零漂移口径维持）✓；② 五步门禁独立复跑 `VERIFY_EXIT=0`（统契约 56/0 + 自有 **16/0/1PEND** + WS-SMOKE victory 167s 四事件真实载荷 console 零错误 + 双 GUARD）——判定面与前轮**逐值一致**（ac-a2 P50=168.096s 同值复现 · ac-a3 结论面 0/5 维持 PEND · 红 0 条）；③ A3 互斥判定复核：红 0 → R2 不开 ✓、非全绿（1 PEND）→ 提审就绪不开 ✓。证据 `gate-logs/dualtrack-recheck-20261017/00-01`（LIVE 三点实测原文 + verify 五步全文带退出码）。
+
+## 2026-10-17 双轨轮 · 轨道 A（P0 · 串行闸门 A1→A2→A3）
+
+### A1 地基对账（游戏程序 · 三方 sha 原文逐字符对照）
+
+证据：`gate-logs/dualtrack-20261017/00-a1-sha-sources.log`（三方原文）· LIVE 实取 UTC 2026-10-17T01:26:04Z
+
+| 点 | sha 原文 | 来源 |
+|---|---|---|
+| ① 工作区 HEAD（对账时点） | `98d1fbe3e72fb5acb4d916f676d8beae1e20bb10` | `git rev-parse HEAD` |
+| ② 线上部署包内嵌 gitSha | `4eccaf293b11052041860ff7b0ee3141975258fd` | LIVE `main.mjs`（md5 `67a60360d82410d504cd96077ca31cb7`，24716 bytes）`__G2WS_BUILD` 原文 |
+| ③ 10/16 报告记录 sha | `4eccaf293b11052041860ff7b0ee3141975258fd` | `docs/r1re-recheck-report-20261016.md` 第 3 行绑定原文 |
+
+**判定：②≡③ 逐字符全等 ✓；① 与之不等 ✗ → 「任一不等」成立 → 按 2026-10-17 任务口径全部「未判定·待采」+ 当轮执行采样计划。**
+
+### 采样计划（当轮给出并执行）
+
+1. **重锚绑定**：以「构建自指」约束把三方拉平——在采样 HEAD 重建 `build/`（内嵌 sha=采样 HEAD）→ 同 HEAD 连跑门禁 ×2（严格「同一 HEAD 连续两次实跑一致」）→ 报告绑定采样 HEAD → 部署后 LIVE 内嵌 ≡ 报告绑定 逐字符全等。
+2. **源面零漂移护栏**：`git diff <绑定点>..HEAD -- games/wheat-squad` 必须为空（docs/黑板/证据除外，逐 commit 可验）——retestProtocol① 判定值有效性口径维持。
+3. **部署重锚**：v21 部署（坑 `cmv36wl94001xm9mxp119q48x` 复用）→ LIVE 三点复测（title/md5 逐字节/内嵌 sha≡报告绑定/specAnchor=v6 approved）→ WS-LIVE-SMOKE。
+4. **A2/A3 串行后续**：A1 复核过闸后 A2 分支判读（QA 核签）→ A3 互斥分支判定。
+5. 预跑佐证（同轮先期）：`01/02-verify-run{1,2}.log` @ `98d1fbe` 两次 VERIFY_EXIT=0、判定面逐字节一致（当时源面与后续提交零交集——`0ac1fcf`/`9945257` 均为线 3 新目录，`git diff 98d1fbe..HEAD -- games/wheat-squad` 仅 blackboard 证据件）。
+
+### A1→A3 串行终局（2026-10-17 · 报告 `games/wheat-squad/docs/r2x-recheck-report-20261017.md` · QA 签 QA-WS-DUAL-20261017-01）
+
+| 闸门 | 终局 | 依据 |
+|---|---|---|
+| A1 复核 | **过闸** | 新锚三点：报告绑定 `9945257` ≡ v23 LIVE 内嵌 `9945257` **逐字符全等** ✓；工作区 HEAD 相对绑定点源面 diff=空 ✓（构建自指滞后披露维持） |
+| A2 分支判读 | **收口成立** | 绿=实跑绿（同 HEAD 连跑 ×2 判定面逐字节一致，固化非 flaky）· 红 0 条（无证据行号型缺陷）· 未判定 1（ac-a3 结论面 0/5 真人）；结论 JSON=`a2-verdict-20261017.json` |
+| A3 分支执行 | **互斥二选一均不触发**：红 0 → R2 不开（判据映射表交付物随 R2 取消，无判据异议）；非全绿 → 提审就绪分支不开（ac-a3 未判定） | 固化面维持成立（16/16 check 在盘实跑）· F1FIX 三项 QA 复签通过 · 冻结计数器 0/3 维持 · 治理预授权未触发 |
+| 采集面 | **v23 LIVE @ `9945257`**（WS-LIVE-SMOKE PASS victory 167s 零错误） | 等主人圈定 5 名真人回填 ac-a3（任务单维持 APPROVE-READY） |
+| 新发现（升级主人） | v21 外来部署单（10/16T03:48Z @ `af399d7`，commit 不在本仓历史）曾接管坑位——服务字节与 v20 同源未破等效性，但坑位治理面需主人关注 | `04-live-threepoint-v23.log` + 报告 §四 |
+
+
+
+
+## R1 复测三态分流收口轮（2026-10-16 · 主策划整合）
+
+| 项 | 值 |
+|---|---|
+| 轮次号 | **R1 复测三态分流收口轮**（任务书：sha 地基验证 → 三态分流 → 分支处理 → 条件触发链 → A3 任务单） |
+| sha 地基验证（A1） | **三点对账链不成立**（工作区 HEAD ≠ 线上内嵌 `29e779b` ≠ 10/15 报告绑 `7b45b44`，逐字符两两不等）→ 按任务口径 R1 报告全量「未判定·待采」；源面零漂移如实附注不推翻口径 | 
+| 补采（A3） | **绑新 sha `4eccaf293b11052041860ff7b0ee3141975258fd`**：run-all **16 PASS / 0 FAIL / 1 PEND** · A1=1.71s · A2 P50=168.096s victory 20/20 + **start→end 事件链 20/20 完整**（新工具 `tools/r1re-a2-chain-count.mjs`，装配面≡内核面同值）· A4 max=0ms·4 通道·P95=0.001ms · 与 R1 轮逐项同值（确定性复现） |
+| 分流结论（A2） | **绿 15 项（固化 ✓ 16/16 check 薄壳在盘实跑）· 红 0 条 · 未判定 1 项（ac-a3 结论面 0/5 真人）**；缺陷型修复批 0 件；条件触发链（连续 2 轮红）不触发；QA 双签（QA-WS-R1RE-TRIAGE-20261016-01/02） |
+| 部署（A4） | **v20 `cmvabm4wd…` running @ 发布 commit `3828f49`**（带 manifestPath 单次受理，504 判例先 GET 复查未盲重发）· LIVE 三点全过（md5 `67a60360` 逐字节 + **内嵌 sha ≡ 报告绑定 sha `4eccaf29` 逐字符全等** + specAnchor v6）· WS-LIVE-SMOKE PASS victory 167s 零错误 |
+| 不达判据 id 清单 | **ac-a3-restart-willingness（结论面）**——样本不足型（0/5 真人）；冻结计数器 **0/3 维持**（两轮未采，既未消耗也未累积，如实登记）；「好不好玩」终裁归主人 |
+| 证据 | `gate-logs/r1re-recheck-20261016/00..13`（对账/补采/门禁/部署/LIVE 冒烟全链原始输出）· 报告 `games/wheat-squad/docs/r1re-recheck-report-20261016.md` · 分流表 `docs/r1re-triage-table-20261016.md` · 任务单 `docs/a3-playtest-task-order-20261016.md` |
+
+**程序线 verify-claims 接手复核一行**（2026-10-16 · 游戏程序 · 独立实跑 @ HEAD `0ff651f`，不照抄声称）：接手 A1-A7 完成态后五步门禁独立复跑全绿（统契约 **56/0** · 自有 **16/0/1PEND** · WS-SMOKE victory 167s 真实载荷 `run_duration_ms=167984` + 四事件 + console 零错误 · 双 GUARD PASS，`VERIFY_EXIT=0`）；新锚三点链在当前 HEAD 复验成立——LIVE `main.mjs` md5 `67a60360` ≡ 本仓 build 逐字节、内嵌 `__G2WS_BUILD.gitSha` ≡ 报告绑定 `4eccaf29` **逐字符全等**、`git diff 4eccaf2..HEAD` 源面空（HEAD 相对锚仅 docs/黑板，构建自指单行滞后不变量维持）；绿项固化面独立核对 = spec acceptance **16/16 全带 check** ↔ `tests/contract/checks/` 16 件同名一一对应实跑全过。复核零源面变更，A1-A7 结论全部维持，不新增不推翻。证据 `gate-logs/r1re-claims-recheck-20261016/00..02`。
+
+**QA 驳回 F1/F2/F3 修正轮一行**（2026-10-16 · 游戏程序 · 先红后绿）：F1 属实——链计数工具 seed 只进标签未传装配（createGame 硬绑 DEFAULT_SEED / sim.ts void seed），20 行同种子复制、报告 §一「DEFAULT_SEED+i」串失实 → 修正 = 装配后首个 tick 前覆写 `cfg.rng=seededRng(seed)`（≡契约 helpers.driveRun 装配语义，**不触 src**）真实重采 20 种子 + 新增种子敏感机判 fail-closed（**kills 唯一值=4 ≥2** 过）+ method/§一串如实改写；F2 属实——绑定改 `loadSpecRow()`，binding 三链字段 = `cmv8xcexk…@v6 approved` 全非 null；F3 记账——`.myrd/spec/README.md` 补 wheat-squad 两行登记。**ac-a2 判定值不变（P50=168.096s ∈[90,180] · victory 20/20 · 链 20/20）**；时长同值=仿真结构性质（波次节拍决定），种子敏感面在 kills 已机判披露；修正轮未触 src → 三点对账与绿判定绑 `4eccaf29` 维持、重部署分支不触发（重建 vs LIVE 字节 diff 仅 gitSha 单行）；verify 五步复跑 **VERIFY_EXIT=0** 零回归；连跑二次判定面逐字节同值非 flaky。**分流表 QA 复签待 QA 节点**（程序不代签，PROG-WS-R1RE-F1FIX-20261016-01）。证据 `gate-logs/r1re-f1-fix-20261016/00..07`（红 00-02 / 绿 03-07）。
+
+
+
+## R1 复测收口轮（2026-10-15 · N5 台账回填 · 主策划整合）
+
+| 项 | 值 |
+|---|---|
+| 轮次号 | **R1-复测收口轮**（spec v1.4 = 链 v6 approved 判读纪律生效后首轮复测判定） |
+| 复测 sha | 采样绑 **`7b45b44072747ca17af96f81dd109b926745f3d4`** · 发布 commit **`813fa38bf1240e1ec261806ccbc248fdbb5346f5`**（v17 LIVE，部署物内嵌 gitSha ≡ 采样绑定点 = 对账闭环） |
+| 全绿与否 | **否——非全绿（如实）**：A1 ✅绿 / A2 ✅绿（20 局满，模拟局口径）/ A4 ✅绿 / A3 ⏳**未判定·待采**（机制面 PASS，结论面 0/5 无真人回填）；run-all 16 PASS / 0 FAIL / 1 PEND |
+| 不达判据 id 清单 | **ac-a3-restart-willingness（结论面）**——样本不足型，非数值超阈型；不烧冻结余量（计数器 0/3 维持，部分达标即重置） |
+| 分流结论 | **证据型**（QA-WS-R1RE-20261015-01 唯一 JSON）→ R1 维持「未判定·挂起」；缺陷型修复批 = 0 件；采集面 = v17 LIVE（证据绑 sha），主人圈定 5 名试玩回填后复跑 ac-a3 → 转「全绿·打磨中」路径 |
+
+**程序线 verify-claims 复核一行**（2026-10-15 · 游戏程序 · 独立实跑 @ HEAD `4f424e5`，不照抄声称）：五步门禁实跑全绿（统契约 PASS · 16/0/1PEND · WS-SMOKE victory 167s ≡ 复测报告逐值 · 双 guard PASS）+ 严格模式 `STRICT_EXIT=2` 如实（A3 挂起口径未被冲刷）；同时揪出并修复**三份顶层共板（levels/assets/blockers）合流冲突标记随库残留**（r1 合流 `5a6b979` 引入，零信息丢失机判前置后删除）+ 扩 scope-policy 共板三件精确串白名单（Run2 假红 → Run3 `VERIFY_EXIT=0`）。spec/工程/他线零触碰；R1 判定结论不变。证据 `gate-logs/levels-conflict-fix-20261015/00..04`。
+
+
+
+## 部署轮 · v19 LIVE 重锚（2026-10-15 · deploy 节点 · R1 收口后本轮 · 采集面字节刷新）
+
+| 项 | 值 |
+|---|---|
+| 轮次号 | R1 复测收口后部署轮（deploy-only：源面运行时零内容变更，部署物指纹重锚） |
+| 发布 commit | `0031d3140ac3ffe8ec9b4387ecdf4503bb58d620`（部署物内嵌 gitSha=`29e779ba…` = 重建时内容 HEAD，「构建自指单行滞后」不变量维持；specAnchor=链 v6 approved） |
+| 坑/版本 | `cmv36wl94001xm9mxp119q48x`（wheat-squad-2）· **v19 running/current**（v18 同字节先行 running；504 双受理如实披露见 blockers 部署台账） |
+| 关卡判据面 | **零改动零复判**：R1 判定值绑 `7b45b44…` 仍有效（spec v1.4 判读纪律①绑 sha 有效性 = 受测源面 diff 为空——本部署 src 零变更实证）· A1/A2/A4 绿 · A3 结论面维持 ⏳ 未判定·待采（0/5 真人） |
+| LIVE 自测 | /health 200（共享壳静态身份串，定性非串线）· `/` 308→入口 · `/gw` title=麦浪小队 · main.mjs md5 `ae62534dd4cbb7626f8175906882915b` ≡ 发布 build 逐字节 · **WS-LIVE-SMOKE PASS victory 167s 零错误** |
+| 证据 | `gate-logs/deploy-v18-20261015/01`（verify 五步）· `02`（部署 POST）· `03–04`（坑位/轮询）· `05`（LIVE 冒烟）· `README-deploy.md` |
+
+## R1 打磨轮（2026-10-14 · spec v1.3 = 链 v5 approved · 实测三样绑 sha · 双线合流 HEAD `b33bea2`）
+
+| 关卡/面 | 状态 | 判据面（本轮实测值） | 证据 |
+|---|---|---|---|
+| level-1 初浪 | ✅ 实测达标 | A1 首杀 1.71s ≤10s + 5 种子 ≤30s 全达（计时起点=first_core_action_at） | `gate-logs/r1-converge-20261014/04`（绑 sha f0fca52） |
+| level-2 涌浪 | ✅ 实测达标 | A2 20 完整局 P50=168.1s∈[90,180] · P90=168.1s≤300 · victory 20/20（样本量门槛 20=numeric 冻结） | `05`（tools/duration-log.mjs） |
+| A4 反馈面 | ✅ 实测达标（含 R1 两新面） | max 0ms ≤100ms · min 4 通道 ≥2 · fx 三件绑定全过（面4）· 帧采样 n=3750 P95=0.002ms ≤16ms（面5） | `04`（ac-05 五面） |
+| A3 结论面 | ⏳ 未判定·待采 | 记录 0/5；采集窗前置 = v14 重部署复测 PASS（线上包须含 v1.2+ 埋点 9 键）；记录卡 `qa/playtest-collection-round1.md`（时间窗 ISO 可验真） | ac-a3 PEND 口径（16/0/1PEND 非全绿） |
+| 结算-重开闭环 | ✅ 门禁五步复现 | 统一 56/0 + 自有 16/0/1PEND + SMOKE + GUARD 双模式 VERIFY_EXIT=0 | `08-release-verify2.log` @ b33bea2 |
+
+## spec v1.2 增量轮（2026-10-13 · 链 v4 approved · A1–A5 · N8 独立复核实测，HEAD `304dacf` 树净）
+
+| 关卡/面 | 状态 | 判据面（实测值） | 证据 |
+|---|---|---|---|
+| level-1 初浪（教学波次） | ✅ v1.2 口径复证 | A1：首次核心正反馈 ≤10s（实测 1.71s）+ 5 种子首杀 ≤30s 全达 + 回归预算 3s/20s 保持 | ac-a1 PASS（`gate-logs/n8-reverify-20261013/01` 步②） |
+| level-2 涌浪（升温波次） | ✅ v1.2 口径复证 | A2：20 种子 P50=168.096s ∈[90,180] · P90 ≤300 · victory=20/20；**a3 实测初值已落档**（`qa/local-duration-log.json`，P50=168.1s，N8 复跑逐值一致） | ac-a2 PASS + duration-log 复跑（同上 01 + 04） |
+| 首分钟引导（a5 面） | ✅ auto 判据绿 | 四事件骨架：hint_shown@0ms + first_tap once + first_loop_complete@7040ms + restart_clicked count 1→2；a5 窗（hint 后 5s 内首操作）冒烟实测窗内可达 | ac-16 PASS + WS-SMOKE 四事件真实载荷（同上 01 步②③） |
+| A3 结论面 | ⏳ PEND（机判口径=**非全绿**） | 5 名试玩记录 0/5 未回填；机制面（重开 0ms+全复位+结算三信息）PASS；严格模式 `WS_CONTRACT_STRICT_GREEN=1` → exit 2 样例已交 QA 预核 | ac-a3 PEND + `gate-logs/n8-reverify-20261013/02`（STRICT_EXIT=2） |
+| 结算-重开闭环 | ✅ headless 可重复 | 打开→首次核心操作→单局结束（victory 167s）→重开复位 + 四事件 + A1/A4 埋点真实载荷 + console 零错误 | WS-SMOKE PASS（同上 01 步③） |
+
+**N8 独立复核一行**（游戏程序 · verify-claims 纪律 · HEAD `304dacf`）：verify.sh 五步 VERIFY_EXIT=0（统一契约 **56/0** · 自有 **16/0/1PEND** ALL_GREEN=false · 冒烟四事件 · SCOPE-GUARD 双模式）+ 链 v4 approved ≡ 仓内单源逐字节（`--expect-version 4` DEEP_EQUAL=true）+ 确定性重建 `git diff build/`=0 + 线上 W-3 第七次复测仍串线（title=汽车连连看；资产路 live main.mjs md5 `bcde4bea…` ≡ HEAD build）。证据 `gate-logs/n8-reverify-20261013/01–05`。结论仅对该 sha 有效。
+
+**N9 驳回修复轮一行**（2026-10-13 · QA 五条驳回 · 游戏程序）：① ac-16 补 a5 statement 谓词逐字断言（first_core_action_at − hint_shown ≤ 窗，窗值由 approved statement 机器解析 fail-closed）+ ② 三方 copy 逐字机判（spec.copy ≡ manifest.copy ≡ GUIDANCE_TEXT ≡ hint_shown.text）——双变异验证先红后绿（文案缺陷注入旧面绿/新断言红；延迟拖动 6s 红因 6048ms>5000ms 窗；还原绿）；③ ac-art-2 机判窄于 statement **升级主策划裁决**（选项 A statement 改 entities∪assets / B spec.assets 补登四件，ac-11 知情窄面披露不擅改）；④ LIVE_SMOKE exit 失实以显式取码重归档 **exit=1**（红正确）+ wrapper 取码口径落死；⑤ README 悬空行删除；两 QA 回执失实归因就地更正。spec 零变更（③ 走裁决未动链）。证据 `gate-logs/n9-rejection-fix-20261013/`。
 
 ## 可玩基线轮（2026-10-12 · spec v1.1 approved · victory 终局结构）
 

@@ -1,0 +1,4 @@
+== PL2 存活探针（只打 g2-blocks-2 真实部署地址）==
+/gw HTTP=200 type=text/html; charset=utf-8 bytes=3703
+{"ok":true,"app":"stack-tower","env":"development","assets":"lazy/object-storage"}
+manifest: asset not found: manifest.json

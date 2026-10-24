@@ -1,0 +1,26 @@
+# P0-1 对账证据采集（2026-10-23 · 游戏程序 · 本仓三线 rev-parse 原文）
+== 仓/分支/HEAD ==
+myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d
+0b547f4284b9135a14849507e218ddad2df98262
+ M .myrd-platform/.claude/skills/SKILLS.md
+ M .myrd-platform/CODE_MAP.md
+ M .myrd/blackboard/blockers.md
+== PL1 足球线最后触达 ==
+== PL3 工程最后触达 ==
+== PL3 部署物 f9d9834..HEAD 差异面 ==
+ .myrd/blackboard/blockers.md                       |  6 +--
+ docs/deploy-shell-contract.md                      | 61 ++++++++++++++++++++++
+ .../line3-tower-defense/ci/guard-landing-shell.mjs | 45 ++++++++++++++++
+ games/line3-tower-defense/verify.sh                |  3 ++
+ templates/next-line-scaffold/README.md             |  5 ++
+ 5 files changed, 117 insertions(+), 3 deletions(-)
+== PL3 构建面差异（应为空）==
+== f9d9834 存在性 ==
+commit
+f9d9834942be66faf7d4a0b5b73732a596a26d83
+== PL1 足球线最后触达（补采，pathspec 自仓根）==
+ec2c2bbf918b15f4fde638e50b1ccc35b1cdb085 2026-09-22 10:53:13 +0800 docs(art): 足球线资产台账归位刷新 —— A01–A08 approved 状态 + 接线实况落文 + 双线门禁独立复跑全绿归档
+== PL3 工程最后触达 ==
+0b547f4284b9135a14849507e218ddad2df98262 2026-10-18 13:15:45 +0800 docs(line3)+gates: 部署壳契约收口 —— B-5 关闭勘误 + landing.html 门禁挂闸（W-3 误诊链条掐断）
+== PL1 spec 导出件最后触达 ==
+5af7a4b2a89f79543f703fd11fb671fed72e3f64 2026-09-22 10:25:56 +0800 myrd: shutdown checkpoint [skip ci]

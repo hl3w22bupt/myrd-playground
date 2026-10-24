@@ -1,0 +1,24 @@
+# 美术复验 · 契约 Mode A（approved v1.1 · 默认装载）· 2026-10-04T02:27:52Z · HEAD 01c2f06
+$ node scripts/contract-check.mjs
+# g2-blocks contract-check · spec v2 (approved) anchor=302e63367f3dea63…
+PASS  ac-01-board-init-seeded :: seed=20261001 64 格满员 · 类型 0..6 · 双局逐字节一致
+PASS  ac-02-spawn-uniform-random :: uniform_random 等概率（worst 偏差 1.52%）· seededRng 复现 · 内核纯净
+PASS  ac-03-swap-adjacency-only :: ≤4 向相邻判定正确 · 非相邻交换零副作用（不耗手数/不结算）
+PASS  ac-04-match-3plus :: 横/纵/四连全消 · L/T 交点去重（5 格）· 两连不消
+PASS  ac-05-gravity-refill-cascade :: 重力+补手+结算至稳态（cleared=12）· 终盘零残留 · 满员
+PASS  ac-06-combo-four-move-vector :: 四手向量 消/消/不消/消 → +0/+50/归0/+0 逐字命中
+PASS  ac-07-deadlock-cool :: 三色防换死盘/活盘判定正确 · 全穷举 224 探针 · 双判真实时点机判（判点一含空洞盘 filled=61/64，判点二满员）
+PASS  ac-08-settlement-order :: 单手真实流水 = swap → match → score → gravity → deadlock-check → refill → match → deadlock-check（判点一含空洞盘 filled=61/64，双判收尾）
+PASS  ac-09-restart-full-reset :: 五元全复位 · seed 链重新起算 · 同手确定性复现
+PASS  ac-10-perf-j1 :: J1=172.09999999403954ms ≤ budgetMs=400 @ 4x throttle 390x844（标记名逐字一致）
+PASS  ac-11-theme-single-source :: 7 色键值逐字等于 spec 冻结块 · UI token 已接 · 全仓 hex+rgb/rgba 三元组逐一溯源 theme 单源（18 色）
+PASS  ac-12-palette-double-gate :: 21 对双门禁 ALL-GREEN（阈值 25 = spec 冻结值）
+PASS  ac-13-no-external-texture :: src/ + build/ + 入口零 image 加载构造 · 仓库零位图文件（纯几何渲染）
+PASS  ac-14-deterministic-kernel :: mulberry32 确定性（seed=20261001）· 双 sim 逐字节一致 · 内核零 Math.random/Date.now
+PASS  ac-15-audio-feedback :: 消除音效与反馈同帧同步发起（chain=1）· 音频缺失零阻塞
+PASS  ac-16-persistence-minimal :: 键级最小集 muted+anonId · 未知键拒绝 · 零网络调用构造
+PASS  ac-17-repo-one-zero-touch :: 一号仓库零接触自检 PASS（白名单机判，root=run-cmut4m9ww00bvic7qxd1wpl7y）
+PASS  ac-18-ci-guard-repo-scope :: 仓库范围守卫 PASS（零一号路径引用，策略单源 ci/scope-policy.json）
+—— 合计 18 PASS / 0 FAIL ——
+CONTRACT: PASS 契约全绿（实现与 approved 策划案一致）
+EXIT=0

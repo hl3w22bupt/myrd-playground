@@ -1,0 +1,49 @@
+{
+  "round": "2026-10-17 双轨轮 · 轨道 A「三态分流后续分支」收口",
+  "generatedAtUTC": "2026-10-17T01:56:00Z",
+  "qaSignoff": {
+    "id": "QA-WS-DUAL-20261017-01",
+    "role": "游戏 QA（主策划工作室代行节点）",
+    "basis": "独立实跑证据（不照抄声称）：gate-logs/dualtrack-20261017/00..05 + games/wheat-squad/docs/r2x-recheck-report-20261017.md"
+  },
+  "anchor": {
+    "bindingSha": "994525799e0842f518166846824753a8ad7fcbc7",
+    "bindingShaSource": "采样/构建时点工作区 HEAD（构建自指）",
+    "liveEmbeddedSha": "994525799e0842f518166846824753a8ad7fcbc7",
+    "liveEmbeddedEqualsBinding": true,
+    "liveDeployment": "v23 cmvbqnwlu002jm9axo2xszcp8 running @ c325b2791963b55b7113909d4568741d4b2e6f7d",
+    "workspaceHeadAtReview": "c325b2791963b55b7113909d4568741d4b2e6f7d 及其后证据提交",
+    "sourceFaceDiffEmpty": true,
+    "buildSelfRefLagDisclosed": "严格三点字符全等受构建自指单行滞后限制（披露维持，最终闭环口径待主人认可）",
+    "specAnchor": "cmv8xcexk0009m9dj6ev1dj0r@v6:approved"
+  },
+  "gateRuns": [
+    { "run": 3, "head": "994525799e0842f518166846824753a8ad7fcbc7", "exit": 0, "result": "16 PASS / 0 FAIL / 1 PEND" },
+    { "run": 4, "head": "994525799e0842f518166846824753a8ad7fcbc7", "exit": 0, "result": "16 PASS / 0 FAIL / 1 PEND（判定面逐字节一致，非 flaky）" },
+    { "run": "1/2（先期佐证）", "head": "98d1fbe3e72fb5acb4d916f676d8beae1e20bb10", "exit": 0, "result": "同值 ×2（跨 HEAD 源面零交集）" }
+  ],
+  "triage": {
+    "green": ["ac-a1-first-core-feedback", "ac-a2-run-duration-band", "ac-a4-feedback-channels(面1/2/4/5)", "ac-a5-guidance-first-action", "ac-a4b-restart-click-counter", "det-1", "perf-1", "tex-1", "anchor-1", "loop-1", "fv-pend(结构面)", "ac-art-1", "ac-art-2", "ac-art-3", "ac-art-4"],
+    "red": [],
+    "pending": ["ac-a3-restart-willingness（结论面 0/5 真人，机制面 PASS；样本不足型不烧冻结余量）"],
+    "counts": { "green": 15, "red": 0, "pending": 1 },
+    "solidified": "16/16 acceptance check 薄壳同名在盘且实跑全过（固化成立）"
+  },
+  "branchDecision": {
+    "A1": "不过（首轮 ②≡③、①不等）→ 按口径全量未判定·待采 + 采样计划当轮执行 → 重锚后 A1 复核过闸（绑定≡LIVE 内嵌逐字符全等）",
+    "A2": "本轮判读成立：绿=实跑绿 ✓、红=0（无证据行号型缺陷）、未判定=1（真人面）",
+    "A3": "互斥二选一：红 0 → R2 修复批不触发（判据映射表三列交付物随 R2 取消，无判据异议）；非全绿 → 提审就绪分支不触发；固化面维持 + A3 真人面挂起待主人圈定 5 名真人（采集面=v23 LIVE @ 9945257）",
+    "freezeCounter": "0/3 维持（两轮未采，既未消耗也未累积）",
+    "governanceClause": "治理预授权（复测核心判据仍红→冻结评估）未触发；「三轮不达」未触发"
+  },
+  "carryOverResign": {
+    "item1_chainEvidence": "复签通过：修正版链日志在档，ac-a2 判定值同值复现（P50=168.096s · victory 20/20 · 链 20/20）",
+    "item2_noSrcTouch": "复签通过：本轮重锚亦零源面变更；绑定点演进 4eccaf29→9945257 经全量重采而非沿用",
+    "item3_simOnly": "复签通过：以修正版证据+本轮实跑为准，真人局 0 局零混入"
+  },
+  "discoveries": [
+    "v21（10/16T03:48Z）外来部署单 running@af399d7——该 commit 不在本仓历史；服务字节与 v20 同源（md5 67a60360 探测实证），A3 采集面字节等效未破坏；坑位治理风险升级主人关注",
+    "v22 误窗：POST HTTP=000 截断但已受理（504 判例 GET 复查，未盲重发）；取推送前远端 HEAD 98d1fbe 旧产物，随即被 v23 接管",
+    "v23 重锚成功：LIVE md5 53eaebce… ≡ build 逐字节 · 内嵌 9945257 ≡ 绑定 · WS-LIVE-SMOKE PASS victory 167s"
+  ]
+}

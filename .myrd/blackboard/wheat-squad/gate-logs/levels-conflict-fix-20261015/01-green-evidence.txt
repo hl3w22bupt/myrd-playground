@@ -1,0 +1,11 @@
+# 绿证据：levels.md 冲突标记修复
+时间(UTC+8): 2026-10-15 11:03:34 +0800
+修复: 删除 HEAD 侧保留(组合全景版) + theirs 侧(5a6b979 game-9 旧版)删除——该内容已在【他线存档区】(150 行起)原文归档,零信息丢失
+回查: .myrd/blackboard/levels.md:0 .myrd/blackboard/wheat-squad/levels.md:0 
+全仓标记残留: 2
+
+## 追加（assets.md / blockers.md 同步修复）
+- 机判前置：python 提取 theirs 侧文本（assets 37 行 / blockers 28 行）确认 `theirs_txt in 存档区文本` = True/True → 零信息丢失后删除
+- 修复：assets.md 336→296 行 · blockers.md 684→653 行（保留 HEAD 侧 + 【他线存档区】）
+- 全仓回查：grep -rn '<<<<<<<|>>>>>>>|^=======$' --include='*.md' → 零残留
+- 文件头 sanity：三文件首行均为正文标题（# 关卡状态黑板 / # 资产清单黑板 / # 阻塞项黑板）

@@ -1,0 +1,8 @@
+
+# 构建面差异核对（重生成 @72be5f1 vs 提交面 21fefba 内嵌 6fe2c9b5 vs 部署锚面 b81d17b 内嵌 a27ca0e）
+$ git diff -- games/line3-tower-defense/build/
+-  "gitSha": "6fe2c9b5f873c75a6ce86897eaa64173233764f5",
++  "gitSha": "72be5f15374c3d73c8bebad1db0938a56094d8cf",
+-const __L3_BUILD__ = { gitSha: "6fe2c9b5f873c75a6ce86897eaa64173233764f5", specAnchor: "cmvbqgzbl0029m9ax64foxd37@v2:approved" };
++const __L3_BUILD__ = { gitSha: "72be5f15374c3d73c8bebad1db0938a56094d8cf", specAnchor: "cmvbqgzbl0029m9ax64foxd37@v2:approved" };
+# 结论：业务产物零差异，仅 __L3_BUILD__/manifest gitSha 锚位差异（确定性构建）；取证后 restore 回部署锚面 b81d17b（内嵌 a27ca0e=LIVE）

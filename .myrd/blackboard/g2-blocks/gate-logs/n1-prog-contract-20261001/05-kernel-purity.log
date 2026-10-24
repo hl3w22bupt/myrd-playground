@@ -1,0 +1,14 @@
+# ac-14 内核确定性（spec 声明落点 tests/kernel-purity.spec.mjs）
+# spec: id=cmuovwra0004gm97tinha15zq v1 status=draft anchor=302e63367f3dea63…
+# specPath: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmuouq3u0003im97tyhjci0kc/.myrd/spec/g2-blocks/design-spec.json
+# numeric.rng = {"algorithm":"mulberry32","forbidDateNow":true,"forbidMathRandom":true,"testHook":"seededRng"}
+# spec status = draft（approve 是主人拍板位）
+PASS  ac-14/a 内核纯净（零 Math.random/Date.now/performance.now）
+PASS  ac-14/b 同 seed 两路序列逐字节一致
+PASS  ac-14/c 默认 seed ≡ spec DEFAULT_SEED（真源唯一）
+PASS  ac-14/d 异 seed 序列必异
+PASS  ac-14/e 纯函数隔离（无共享内部状态，可复现）
+PASS  ac-14/f uniformInt 值域/边界/非法入参
+PASS  ac-14/g rng 值域 [0,1) 且类型 number
+PASS  ac-14/h 本件零冻结 seed 字面量（自证）
+# 结果: PASS=8 RED=0 PENDING-APPROVE=0

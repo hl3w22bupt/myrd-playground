@@ -1,0 +1,29 @@
+# 程序线 verify-claims 独立复核 · UTC 2026-10-16T02:1xZ（接手 A1-A7 已声称完成态，不照抄声称）
+## 0) 范围声明
+本目录 = 接手轮独立实跑取证。声称面：A1 sha 地基验证 / A2 三态分流 / A3 绑新 sha 补采 / A4 v20 部署新锚闭合 / A6 任务单 / A7 双轨整合。复核面：五步门禁 @ HEAD + 新锚三点链 @ 当前 HEAD + 固化面 16/16 + 查重基准 spec 原文命中。
+## 1) 五步门禁 @ HEAD 0ff651f21a0b3f8c794e9dafcce9c061ecf710e7（原始输出见 00）
+① 统一契约门禁（approved spec 对账）PASS 56/0
+② 自有契约套件 PASS 16 PASS / 0 FAIL / 1 PEND（PEND=ac-a3 结论面 0/5 真人，非全绿口径未被冲刷）
+③ WS-SMOKE PASS：打开→首操作→victory 167s（run_duration_ms=167984 真实载荷）→重开 + 四事件 + console 零错误
+④ SCOPE-GUARD 本仓 PASS（94 文件零越界）
+⑤ SCOPE-GUARD 父仓 PASS（工作树仅 6 行 .myrd-platform 平台技能模板维护面，白名单内，非本轮范围不纳入提交）
+VERIFY_EXIT=0
+## 2) 新锚三点链 @ 当前 HEAD（独立实探，非照抄台账）
+工作区 HEAD           = 0ff651f21a0b3f8c794e9dafcce9c061ecf710e7
+受测源面（构建内嵌锚）= 4eccaf293b11052041860ff7b0ee3141975258fd（补采绑定 sha）
+git diff 4eccaf2..HEAD -- src tests tools ci assets apphost.toml spec → 空（exit 0，源面零漂移，HEAD 相对锚仅 docs/黑板）
+LIVE main.mjs（/apps/wheat-squad-2/gw/api/public/assets/main.mjs）http=200 bytes=24716
+LIVE_md5 = 67a60360d82410d504cd96077ca31cb7
+BUILD_md5 = 67a60360d82410d504cd96077ca31cb7（本仓 games/wheat-squad/build/main.mjs，逐字节全等）
+LIVE 内嵌 __G2WS_BUILD.gitSha = 4eccaf293b11052041860ff7b0ee3141975258fd
+报告绑定 sha                   = 4eccaf293b11052041860ff7b0ee3141975258fd（≡ 逐字符全等）
+specAnchor = cmv8xcexk0009m9dj6ev1dj0r@v6:approved（spec 文件实测 version=6）
+→ 新锚三点链成立（报告 sha ≡ LIVE 内嵌 sha ≡ 受测源面；HEAD 为其后 docs 层，构建自指单行滞后不变量维持，与 A1 对账表口径一致）
+## 3) 绿项固化面（独立核对）
+spec acceptance 总数 16，带 check 16/16；tests/contract/checks/ 16 件同名一一对应；run-all 实跑 16 PASS（②步原始输出）→「缺一即未固化」面无缺。
+## 4) 品类查重基准（QA 抽查复验，spec 原文逐字命中）
+线2 wheat-squad spec：「单指拖动小队移动、队员自动作战的局内割草生存 + 局外放置收益成长」✓
+线1 g2-blocks spec：「在 8×8 的熔炉板上交换相邻方块凑成三连：连击不断火就越旺，加成一路往上叠；一旦无路可走，炉子就冷——趁热把连击打满。」✓
+→ memo v1 §一.④ 引用与 spec 原文一致，零机制复用判读成立。
+## 5) 范围红线复核
+git diff 3828f49..HEAD 全树 = 黑板/证据/线3 spec draft payload/线2 两份 docs，零工程源文件 → 线3 止步 T+0 成立（不建工程不写 src）；本轮程序复核零源面变更。

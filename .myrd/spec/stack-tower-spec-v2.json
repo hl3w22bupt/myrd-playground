@@ -1,0 +1,312 @@
+{
+  "schemaVersion": "v0",
+  "spec": {
+    "acceptance": [
+      {
+        "check": "node games/stack-tower/tests/contract/lvl-01-stack-tower_e01-spawn-first-block.spec.mjs",
+        "id": "ac-lvl01-e01-spawn",
+        "statement": "首块生成（lvl-01-stack-tower/e01-spawn-first-block）：seed=20260925 启动后塔基块存在，宽度=BLOCK_BASE_WIDTH(120)，中心 x=逻辑宽中点，静止无速度。"
+      },
+      {
+        "check": "node games/stack-tower/tests/contract/lvl-01-stack-tower_e02-swing-motion.spec.mjs",
+        "id": "ac-lvl01-e02-swing",
+        "statement": "摆动确定性（lvl-01-stack-tower/e02-swing-motion）：L1 摆速=160px/s 线性往返行程 ±240px；同 seed fastForward 两次逐 tick 快照全等，且与解析解偏差=0。"
+      },
+      {
+        "check": "node games/stack-tower/tests/contract/lvl-01-stack-tower_e03-drop-input.spec.mjs",
+        "id": "ac-lvl01-e03-input",
+        "statement": "落块输入（lvl-01-stack-tower/e03-drop-input）：注入 {type:'drop'} 后同一 tick 摆动块转已落块、速度归零，且下一摆动块在同一 tick 序内生成。"
+      },
+      {
+        "check": "node games/stack-tower/tests/contract/lvl-01-stack-tower_e04-overlap-cut.spec.mjs",
+        "id": "ac-lvl01-e04-cut",
+        "statement": "切面切割（lvl-01-stack-tower/e04-overlap-cut）：offset=30 保留 90；|offset|≥width 整块掉落不加分；keepWidth<WIDTH_FLOOR_PX(36) → game-over。"
+      },
+      {
+        "check": "node games/stack-tower/tests/contract/lvl-01-stack-tower_e05-perfect-window.spec.mjs",
+        "id": "ac-lvl01-e05-window",
+        "statement": "完美判定窗口（lvl-01-stack-tower/e05-perfect-window）：perfectWindowMs(1)=140，perfect 距离阈值=22.4px；必改①——不存在「任何输入必失败」的无窗局面：模拟玩家前 3 次输入内存在 ≥1 个可命中窗口（|offset|≤22.4px 可达），perfect 成立后块宽不变。"
+      },
+      {
+        "check": "node games/stack-tower/tests/contract/lvl-01-stack-tower_e06-tower-ripple.spec.mjs",
+        "id": "ac-lvl01-e06-ripple",
+        "statement": "tower-ripple 事件契约（lvl-01-stack-tower/e06-tower-ripple）：perfect 同 tick 上抛事件；载荷恰为 {level_id, element_id, window_ms, duration_ms} 四字段且类型正确；window_ms=140（本关实际窗口）；duration_ms∈[250,350]（默认 300）；必改②——断言不存在整屏 aha/闪屏通道（事件无 screen-flash 语义、表现层无全屏闪白调用）。"
+      },
+      {
+        "check": "node games/stack-tower/tests/contract/lvl-01-stack-tower_e07-score-hud.spec.mjs",
+        "id": "ac-lvl01-e07-score",
+        "statement": "计分与 HUD（lvl-01-stack-tower/e07-score-hud）：place=+10；perfect 连击 1/2/3 次 bonus=25/30/35（step 5、cap 75）；HUD 三项显示与内核状态逐 tick 一致。"
+      },
+      {
+        "check": "node games/stack-tower/tests/contract/lvl-01-stack-tower_e08-fail-recover.spec.mjs",
+        "id": "ac-lvl01-e08-recover",
+        "statement": "失败与重开（lvl-01-stack-tower/e08-fail-recover）：keepWidth<36 触发 game-over；重开后塔回单块、分数/连击清零、摆速与窗口回 L1 值（160px/s / 140ms），无状态残留。"
+      }
+    ],
+    "assets": [
+      {
+        "file": "games/stack-tower/src/render/palette.ts",
+        "generator": "procedural:constant-table",
+        "id": "a01-block-palette",
+        "kind": "palette",
+        "license": "仓库内自产，无第三方素材",
+        "source": "generated"
+      },
+      {
+        "file": "games/stack-tower/src/render/textures.ts",
+        "generator": "procedural:canvas2d",
+        "id": "a02-block-face",
+        "kind": "image",
+        "license": "仓库内程序化生成",
+        "source": "generated"
+      },
+      {
+        "file": "games/stack-tower/src/render/backdrop.ts",
+        "generator": "procedural:canvas2d",
+        "id": "a03-bg-sky",
+        "kind": "image",
+        "license": "仓库内程序化生成",
+        "source": "generated"
+      },
+      {
+        "file": "games/stack-tower/src/audio/sfx.ts",
+        "generator": "procedural:webaudio",
+        "id": "a04-sfx-place",
+        "kind": "audio",
+        "license": "仓库内合成",
+        "source": "generated"
+      },
+      {
+        "file": "games/stack-tower/src/audio/sfx.ts",
+        "generator": "procedural:webaudio",
+        "id": "a05-sfx-perfect",
+        "kind": "audio",
+        "license": "仓库内合成",
+        "source": "generated"
+      }
+    ],
+    "content": {
+      "formulas": {
+        "keepWidth(offset,width)": "width − |offset|；|offset|≥width → 整块掉落；keepWidth<36 → game-over",
+        "perfectDistance(level)": "swingSpeed(level) × perfectWindowMs(level) / 1000  → L1=22.4px",
+        "perfectWindowMs(level)": "max(140 − (level−1)×8, 60)  → L1=140，L11 起封底 60",
+        "score(perfect)": "+25 + min((combo−1)×5, 75)，combo=连续 perfect 次数，非 perfect 清零",
+        "score(place)": "+10",
+        "swingSpeed(level)": "min(160 + (level−1)×24, 420)  → L1=160，L11 起封顶 420（px/s）",
+        "targetLayers(level)": "8 + (level−1)×2  → L1=8 层过关，L12=30 层通关"
+      },
+      "levelCount": 12,
+      "replayHooks": [
+        "fastForward(tick) 无头复现",
+        "同 seed 同意图序列逐 tick 快照比对"
+      ],
+      "sessionScopeNote": "sessionSeconds=180 为「单关会话护栏」（秒）：任一关从进入到达成 targetLayers(level) 或 game-over 的时长上限；12 关全长时长以试玩实测回填（QNC-05 复审项）。难度曲线总层数 = Σ(8+2(l−1)), l=1..12 = 228 层，单关 8~30 层在 180s 护栏内自洽。",
+      "sessionSeconds": 180,
+      "towerRipple": {
+        "consumers": [
+          "render-canvas2d：塔身波纹动画，时长=duration_ms",
+          "audio-sfx：完美叮（一次性，不随 duration 循环）"
+        ],
+        "duration_ms": {
+          "nominal": 300,
+          "range": [
+            250,
+            350
+          ],
+          "tolerance": 50
+        },
+        "event": "tower-ripple",
+        "forbidden": "禁止升级为整屏 aha/闪屏特效；事件不得携带 screen-flash 语义字段（T1 必改②）",
+        "payload": {
+          "duration_ms": "number（表现时长，ms）",
+          "element_id": "string",
+          "level_id": "string",
+          "window_ms": "number（本关实际判定窗口，ms）"
+        },
+        "trigger": "perfect 判定成立的同一 tick，先于渲染帧消费"
+      }
+    },
+    "entities": [
+      {
+        "id": "e-kernel-sim",
+        "name": "确定性仿真内核",
+        "role": "fixed 16ms 步长累加器 + MAX_DT 钳制；fastForward(tick) 供无头契约测试；状态={tower[], moving, score, combo, level, status}",
+        "script": "games/stack-tower/src/kernel/sim.ts"
+      },
+      {
+        "id": "e-kernel-rng",
+        "name": "seeded RNG",
+        "role": "mulberry32；摆块方向/摆幅噪声/色板轮转全部取自 RNG，同 seed 逐 tick 复现",
+        "script": "games/stack-tower/src/kernel/rng.ts"
+      },
+      {
+        "id": "e-tower-stack",
+        "name": "塔身栈",
+        "role": "已落块有序栈（x,width,y 层高）；塔基块宽度=BLOCK_BASE_WIDTH；提供顶部参照与 keepWidth 下限校验",
+        "script": "games/stack-tower/src/kernel/tower.ts"
+      },
+      {
+        "id": "e-block-moving",
+        "name": "摆动块",
+        "role": "当前待落块：线性往返摆动，速度=swingSpeed(level)，到达行程边界反向（零随机游走，保确定性）",
+        "script": "games/stack-tower/src/kernel/block.ts"
+      },
+      {
+        "id": "e-cut-system",
+        "name": "切面切割",
+        "role": "落块时计算 |offset|：保留 overlap=width−|offset|，切掉部分转为掉落碎块（仅表现层动画用）；keepWidth<WIDTH_FLOOR 绝对值 → game-over",
+        "script": "games/stack-tower/src/kernel/cut.ts"
+      },
+      {
+        "id": "e-perfect-judge",
+        "name": "完美判定",
+        "role": "把 perfectWindowMs(level) 换算为距离阈值 |offset|≤speed×window/1000 → perfect：宽度不减、combo+1、发射 tower-ripple",
+        "script": "games/stack-tower/src/kernel/judge.ts"
+      },
+      {
+        "id": "e-ripple-emitter",
+        "name": "tower-ripple 事件发射器",
+        "role": "perfect 同 tick 上抛 {level_id, element_id, window_ms, duration_ms}；window_ms=本关实际判定窗口；duration_ms 默认 300 且 ∈[250,350]",
+        "script": "games/stack-tower/src/kernel/ripple.ts"
+      },
+      {
+        "id": "e-difficulty-scheduler",
+        "name": "难度调度",
+        "role": "按 content.formulas 推进关卡与层目标 targetLayers(level)；速度/窗口只从公式取值，禁止散落魔法数",
+        "script": "games/stack-tower/src/kernel/difficulty.ts"
+      },
+      {
+        "id": "e-input-intent",
+        "name": "输入意图",
+        "role": "点击/空格/触摸 → {type:'drop'} 单一意图；platform/ 适配层负责去抖与多点触控归一",
+        "script": "games/stack-tower/src/platform/input.ts"
+      },
+      {
+        "id": "e-render-canvas2d",
+        "name": "Canvas2D 表现层",
+        "role": "快照→画布：塔块/摆块/掉落碎块/涟漪（读 tower-ripple 的 duration_ms 播放 300±50ms 波纹）；零玩法逻辑",
+        "script": "games/stack-tower/src/render/renderer.ts"
+      },
+      {
+        "id": "e-hud-dom",
+        "name": "HUD 层",
+        "role": "DOM 直写分数/连击/关卡进度/重开入口；数值取自内核状态，不自行计算",
+        "script": "games/stack-tower/src/ui/hud.ts"
+      },
+      {
+        "id": "e-audio-sfx",
+        "name": "合成音效",
+        "role": "WebAudio 程序化：落块闷响/完美叮/失败音；由事件驱动，不通晓玩法",
+        "script": "games/stack-tower/src/audio/sfx.ts"
+      }
+    ],
+    "levels": [
+      {
+        "elements": [
+          {
+            "expect": "seed=20260925 启动即见塔基块：宽度 120、中心在画布逻辑宽中点、y=塔基层、静止",
+            "id": "lvl-01-stack-tower/e01-spawn-first-block",
+            "kind": "spawn"
+          },
+          {
+            "expect": "摆动块以 160px/s 线性往返（行程 ±240px），边界反向无停顿；fastForward 解析解逐 tick 一致",
+            "id": "lvl-01-stack-tower/e02-swing-motion",
+            "kind": "motion"
+          },
+          {
+            "expect": "注入 drop 意图后同一 tick 内摆动块转为已落块，速度归零，下一摆动块生成且方向由 RNG 决定",
+            "id": "lvl-01-stack-tower/e03-drop-input",
+            "kind": "input"
+          },
+          {
+            "expect": "offset=30 → 保留 90 并产生掉落碎块；|offset|≥width → 整块掉落不加分不升层",
+            "id": "lvl-01-stack-tower/e04-overlap-cut",
+            "kind": "rule"
+          },
+          {
+            "expect": "本关判定窗口 140ms；前 3 次输入内存在 ≥1 个可命中窗口（160px/s×140ms=22.4px 距离阈值可达），达成 perfect 后宽度不减",
+            "id": "lvl-01-stack-tower/e05-perfect-window",
+            "kind": "rule"
+          },
+          {
+            "expect": "perfect 同 tick 上抛 tower-ripple，载荷恰四字段，duration_ms∈[250,350]（默认 300），无整屏 aha 通道",
+            "id": "lvl-01-stack-tower/e06-tower-ripple",
+            "kind": "event"
+          },
+          {
+            "expect": "落块 +10；perfect 连击 1/2/3 次 bonus=25/30/35（step 5、cap 75）；HUD 显示与内核状态逐 tick 一致",
+            "id": "lvl-01-stack-tower/e07-score-hud",
+            "kind": "hud"
+          },
+          {
+            "expect": "keepWidth<36（=120×0.30）→ game-over；重开输入后全量复位：塔回单块、分数连击清零、摆速窗口回 L1 值",
+            "id": "lvl-01-stack-tower/e08-fail-recover",
+            "kind": "rule"
+          }
+        ],
+        "expect": "玩家在 8 层目标内学会「看切面—等对齐—点下去」；塔基稳固、摆速最慢、窗口最宽，完美时有涟漪与叮声双反馈",
+        "id": "lvl-01-stack-tower",
+        "name": "第一层 · 对齐的手感"
+      }
+    ],
+    "meta": {
+      "engine": "TypeScript 5.x + Canvas 2D + vanilla（零框架、零外部运行时依赖）",
+      "genre": "休闲叠塔（单点时机判定）",
+      "lineage": "T1 终裁（2026-09-25）首卡拍板 stack-tower；M2 生产就绪冲刺建版；spec 结构沿用 transport-ship-3d v3（platformSpecId cmue00o2z003tm9y3159fb6xl）八段范式",
+      "oneLiner": "一块一块往上叠：看准摆动块的切面，在它扫过塔顶的瞬间点下去，切得越准塔越高，完美对齐会激起一圈塔身涟漪。",
+      "platform": "Web 单页（免安装客户端，Canvas2D 即开即玩）",
+      "revision_note": "v2：QA 预审打回 QNC-05（sessionSeconds 口径不自洽）→ 修复为「单关会话护栏」口径并显式标注总层数推导；v1（draft，superseded）为 T2 初稿。",
+      "title": "Stack Tower（叠塔）"
+    },
+    "numeric": {
+      "DEFAULT_SEED": 20260925,
+      "FIXED_STEP_MS": 16,
+      "MAX_DT_MS": 100,
+      "cut_width": {
+        "BLOCK_BASE_WIDTH": 120,
+        "SWING_TRAVEL_PX": 240,
+        "WIDTH_FLOOR_PX": 36,
+        "WIDTH_FLOOR_RATIO": 0.3
+      },
+      "difficulty": {
+        "LAYERS_PER_LEVEL_BASE": 8,
+        "LAYERS_PER_LEVEL_GROWTH": 2,
+        "LEVEL_COUNT": 12,
+        "SWING_SPEED_BASE_PXS": 160,
+        "SWING_SPEED_CAP_PXS": 420,
+        "SWING_SPEED_GROWTH_PXS": 24
+      },
+      "perfect_window": {
+        "PERFECT_WINDOW_BASE_MS": 140,
+        "PERFECT_WINDOW_DECAY_MS_PER_LEVEL": 8,
+        "PERFECT_WINDOW_MIN_MS": 60
+      },
+      "scoring": {
+        "PERFECT_BONUS_BASE": 25,
+        "PERFECT_COMBO_BONUS_CAP": 75,
+        "PERFECT_COMBO_STEP": 5,
+        "PLACE_SCORE": 10
+      }
+    },
+    "world": {
+      "architecture_rules": [
+        "确定性内核（src/kernel/）零 DOM 零 Canvas：fixed timestep（16ms 累加器，dt 钳制 MAX_DT）+ seeded RNG（mulberry32），Node 可直接运行与无头测试",
+        "表现层（src/render/）只做「内核快照 → 画布」映射；平台差异（输入/时钟/RAF/音频）全部经 platform/ 适配层注入，内核不得直接触碰 window/document/AudioContext",
+        "事件单向流：内核上抛事件（含 tower-ripple），main 翻译成表现层副作用；内核不等待、不轮询表现层",
+        "数值唯一来源 = src/kernel/numeric.ts，与 spec.numeric 一一对应；改数值必须先改策划案版本",
+        "事件契约 tower-ripple：perfect 判定成立的同一 tick 由内核上抛，先于渲染；载荷恰为 {level_id:string, element_id:string, window_ms:number, duration_ms:number}，duration_ms 名义 300、容差 ±50（合法区间 [250,350]）；禁止携带整屏 aha/闪屏语义（T1 必改②：aha 特效降维为本事件契约）"
+      ],
+      "art_style": "冷灰蓝黄昏天空 + 暖色系塔块（陶土橙/砖红/沙黄循环）+ 白色切面高亮；全资产程序化（Canvas2D 渐变与几何 + WebAudio 合成音效），零外部资源",
+      "logline": "黄昏的工地上没有起重机，只有你和一个不知疲倦的吊臂：混凝土块在塔顶左右摆荡，你要在它与塔身对齐的一瞬放手——切面留下的每一道错口都是塔的年轮，而完美的一击会让整座塔泛起一圈涟漪。",
+      "reference": "T1 终裁锚点（首卡 stack-tower）；范式基准 transport-ship-3d spec v3（确定性内核 + 契约测试 + 代持拍板）"
+    }
+  },
+  "_platform": {
+    "id": "cmugal9ob0013gqlok6dstuyc",
+    "version": 2,
+    "status": "approved",
+    "title": "Stack Tower（叠塔）",
+    "parentSpecId": "cmuga6tq90011gqlo3wkh9k7a",
+    "createdAt": "2026-09-25T01:38:47.484Z"
+  }
+}

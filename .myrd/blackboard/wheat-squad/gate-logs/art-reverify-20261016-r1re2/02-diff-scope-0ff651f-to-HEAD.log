@@ -1,0 +1,31 @@
+# 触达面证明：0ff651f（A7 整合/最后全量复核锚）→ HEAD（本轮复证锚）
+# 时间：2026-10-16T02:33:27Z · 执行：游戏美术复证轮 r12
+
+## HEAD
+c73dd3181aa0240e75d177f4f855da514b07bbe9
+c73dd31 myrd: workflow auto-commit [skip ci]
+15f51b3 docs(wheat-squad): R1 复测三态分流收口轮接手复核——程序线 verify-claims 独立实跑 @ HEAD 0ff651f 不照抄声称(A1-A7 声称全部复核成立):五步门禁 VERIFY_EXIT=0(56/0+16/0/1PEND+SMOKE victory 167s 真实载荷+双 GUARD)·新锚三点链复验(LIVE md5 67a60360≡build 逐字节·内嵌 sha≡报告绑定 4eccaf29 逐字符·源面 diff 4eccaf2..HEAD 空)·固化面 16/16 同名对应实跑全过·线3 查重基准两线 spec 原文逐字命中·零源面变更零新增阻塞·黑板三处登记+证据 gate-logs/r1re-claims-recheck-20261016/00..02·仍等主人圈定 5 名真人(维持不写已完成)
+0ff651f docs(blackboard): 双轨收口轮 A7 整合——组合全景刷新(线2 复测分流收口=绿15固化+A3待真人·v20 LIVE·非完成态如实/线3 选型拍板=主策划拍板单场景塔防·spec v1 draft cmvabm4kh001jm92c4qtjy9a7·风格卡v0·0图·止步T+0/线1 提审就绪卡凭证维持)+升级主人三件带证据(线2圈5真人/线3审签命名视觉/线1凭证)+线3调研简报(D15-D28带出处+Godot实测32s+TS+Canvas复用度实测+QA抽查环境限制如实)+memo v1+风格卡v0+分支续接偏差披露(origin-main 孤儿快照线不并入)
+
+## 全量 diff --stat 0ff651f..HEAD
+ .myrd-platform/.claude/skills/SKILLS.md            |   3 +
+ .../.claude/skills/godot-game-dev/SKILL.md         |  43 +++++---
+ .../templates/minimal-2d/project.godot             |   1 +
+ .../templates/minimal-2d/scripts/main.gd           |  19 +++-
+ .../templates/minimal-2d/tests/smoke.gd            | 115 ++++++++++++++++++++-
+ .../.claude/skills/webgame-prototype/SKILL.md      |   4 +-
+ .myrd/blackboard/levels.md                         |   1 +
+ .myrd/blackboard/wheat-squad/assets.md             |   1 +
+ .myrd/blackboard/wheat-squad/blockers.md           |   3 +-
+ .../00-verify-head-0ff651f.log                     | 115 +++++++++++++++++++++
+ .../01-live-reprobe-sourcediff-0ff651f.log         |  29 ++++++
+ .../02-live-main-bytes.mjs                         |   4 +
+ .myrd/blackboard/wheat-squad/levels.md             |   2 +
+ 13 files changed, 320 insertions(+), 20 deletions(-)
+
+## 非黑板触达面（games/ src/ tests/ scripts/ server/ templates/ package.json）——空 = 零触碰
+(exit=0 · 上方无输出行 = 空 diff)
+
+## 工作树状态
+?? .myrd/blackboard/wheat-squad/gate-logs/art-reverify-20261016-r1re2/
+(仅本轮证据目录未跟踪 = 取样自污染沿 r9/r10 判例披露)

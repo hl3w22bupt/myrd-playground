@@ -1,0 +1,13 @@
+# 03 · 散文更正前原文留档（2026-10-14 · 游戏美术 r10 亲审）
+
+== style-card-v1.md §R1.2 原句（已更正 6→7）==
+> 形态纪律：零位图（tex-1）——fx 件 = 程序化绘制规格（procedural-draw-spec），theme.ts token 驱动；复合绑定（3 件覆盖 6 视觉通道）以满足封顶 13。
+
+== wheat-squad/assets.md 头部表原句（已更正）==
+| fx-kill-burst / fx-hit-shock / fx-hud-channels | ✅ 新产（程序化绘制规格·零位图） | feedbackChannels 绑 A4 六通道全集（ac-05 面4 机判）；色值 ⊆ palette（ac-art-1 绿）；manifest v3 + spec.assets v1.3 双登记 |
+
+== 判定依据（实现面单源）==
+sim.ts:149  channels: ['flash','particles','pickup-spawn','hud-kills']   (击杀, opId=kill#N@tT)
+sim.ts:241  channels: ['flash-invuln','knockback','hud-hp']             (受击, opId=hit@tT)
+并集 = 7 条；manifest v3 三件 fx feedbackChannels 并集 = {flash,particles,pickup-spawn,flash-invuln,knockback,hud-kills,hud-hp} = 7 ✓
+锚安全核验：ac-13 对风格卡仅断言四要素小节标题+numeric.palette 声明在档（本更正不触）；manifest 多门禁读件未改动

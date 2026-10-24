@@ -1,0 +1,41 @@
+# 美术复验 · 资产面确定性重跑（四生成器 → 树零 diff）· 2026-10-04T02:29:05Z · HEAD 01c2f06
+$ node tools/gen-release-assets.mjs && node tools/gen-theme.mjs && G2_SPEC_V13=<draft> node tools/gen-feel-pack.mjs && node tools/palette-design.mjs && git status --porcelain
+--- 1/4 gen-release-assets
+[assets] icons/icon-512.png :: A-01 PWA icon 512 · 512x512 · 14564B
+[assets] icons/icon-maskable-512.png :: A-02 maskable（安全区 80%） · 512x512 · 12451B
+[assets] icons/icon-192.png :: A-03 PWA icon 192 · 192x192 · 4451B
+[assets] favicon/favicon-32.png :: A-04 favicon 32 · 32x32 · 887B
+[assets] favicon/favicon-16.png :: A-04 favicon 16 · 16x16 · 484B
+[assets] favicon/apple-touch-icon-180.png :: A-04 apple-touch 180 · 180x180 · 3700B
+[assets] share/og-1200x630.png :: A-05 OG 图 · 1200x630 · 66712B
+[assets] share/wx-share-500x400.png :: A-06 wx 分享卡 5:4 · 500x400 · 33076B
+[assets] share/dy-share-720x1280.png :: A-07 dy 分享卡 9:16 · 720x1280 · 74572B
+[assets] manifest → assets/release/release-assets.json（9 件）
+RELEASE-ASSETS: PASS 素材包 9 件（色值 = theme 单源 · 尺寸逐张机判）
+--- 2/4 gen-theme
+THEME /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks/src/render/theme.ts
+PALETTE 7 色 · UI 9 token · SFX 5 类 · FEEL_UI（combo/restart/daily 映射）
+--- 3/4 gen-feel-pack
+FEEL-DATA /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks/src/generated/feel-data.ts
+FEEL 锚 77439768399158228b0739d701cff419da49b99414f0832035eefb50f84e459e
+ASSET-PACK assets/feel/{motion,particle,ui-feel,daily-entry}-pack.json
+GEN-FEEL-PACK: PASS（真源 = 链 v4 numeric.feel/daily · 恒等式守卫通过）
+--- 4/4 palette-design
+# 门 A 判据: dH>=25 dL>=0.1 dS>=0.08 三选二
+# 阈值校准（冻结 6 对）= 25
+block-01 深海蓝   #21458C  hsl(220,0.62,0.34)
+block-03 翡翠绿   #38B279  hsl(152,0.52,0.46)
+block-04 赤陶红   #DB6B43  hsl(16,0.68,0.56)
+block-05 紫水晶   #A472CA  hsl(274,0.45,0.62)
+block-02 余烬金   #C89C19  hsl(45,0.78,0.44)
+block-06 深余烬褐  #4B2B25  hsl(10,0.34,0.22)
+block-07 绯玫瑰   #E3B5BF  hsl(346,0.46,0.8)
+# 06/07 最小归一裕度: 06=0.1269 07=0.0622
+--- tree diff after 4 generators:
+ M assets/release/release-assets.json
+DIFF_LINES=1
+--- palette artifact sha256:
+7bc2ca033ee8d7f7a20e63810b174e8cbdabcb92560a0db8dc72a10d553cd2ff  assets/palette/palette-n1-final.json
+EXIT=0
+--- 处置：manifest 仅 gitRef+generatedAt 两行随 HEAD/时点变动（9 件资产 sha256/尺寸零变化 = 良性运行残留）；树已复位
+DIFF_LINES_AFTER=0

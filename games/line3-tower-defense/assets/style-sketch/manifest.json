@@ -1,0 +1,39 @@
+{
+  "generator": "tools/style-sketch.mjs",
+  "paletteSource": "src/render/theme.ts",
+  "items": [
+    {
+      "file": "assets/style-sketch/direction-1.svg",
+      "sha256": "09c4d565e9dbcef575fad30e87725196d6d0651e2e509e605914f9eae61153be",
+      "seed": 20261016,
+      "turretMixT": [
+        0,
+        0.2,
+        0.4
+      ],
+      "label": "方向1 · 治愈绿阶（基线）"
+    },
+    {
+      "file": "assets/style-sketch/direction-2.svg",
+      "sha256": "7fda59ec11eab34c71d28f9cfcaf3ff1372bab285f3d5c70f70f2aca8d1eeddb",
+      "seed": 20261017,
+      "turretMixT": [
+        0.1,
+        0.3,
+        0.5
+      ],
+      "label": "方向2 · 亮阶轻快（候选）"
+    },
+    {
+      "file": "assets/style-sketch/direction-3.svg",
+      "sha256": "4185b770f1806746c8274ef61906ef3a3c841d18b7f8c1c8546c787984e28246",
+      "seed": 20261018,
+      "turretMixT": [
+        0,
+        0.15,
+        0.35
+      ],
+      "label": "方向3 · 沉稳原阶（候选）"
+    }
+  ]
+}

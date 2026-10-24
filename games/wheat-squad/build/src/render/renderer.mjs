@@ -97,6 +97,22 @@ export function drawEffects(ctx                          , st          )       {
   }
 }
 
+/** 首屏引导浮层（hint_shown 窗口内可见；文案单源 = game.ts GUIDANCE_TEXT；色值 ⊆ palette 派生 token） */
+export function drawGuidance(ctx                          , L        , text        )       {
+  const w = L.w * 0.86, h = 44;
+  const x = (L.w - w) / 2, y = L.h * 0.12;
+  ctx.fillStyle = THEME.panelCream;
+  ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = THEME.wheatDeep;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x, y, w, h);
+  ctx.fillStyle = THEME.inkBrown;
+  ctx.font = '600 14px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(text, L.w / 2, y + h / 2 + 5);
+  ctx.textAlign = 'left';
+}
+
 /** HUD：HP 心形点 + 波次/击杀/时长（inkBrown 文字，system-ui 零字体资产） */
 export function drawHud(ctx                          , L        , st          )       {
   ctx.fillStyle = THEME.inkBrown;

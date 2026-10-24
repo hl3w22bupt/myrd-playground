@@ -1,0 +1,5 @@
+# 文件: 02-deploy-api.log | 日期: 2026-10-13T03:17:54Z | HEAD: 76087683439e6184ccc1b2b6be529ddbc5848b37 | 分支: myrd/spec-v1-qa-deploy-cmv5zila9002jm9qqpsyos4g1
+## 目标坑 slug=wheat-squad-2 appId=cmv36wl94001xm9mxp119q48x sourceId=wheat-squad
+## 部署请求 body: {"mode":"bundle","deployedBy":"workflow","gitRef":"myrd/spec-v1-qa-deploy-cmv5zila9002jm9qqpsyos4g1","manifestPath":"games/wheat-squad/apphost.toml","sourceId":"wheat-squad"}
+## 部署响应:
+{"data":{"deploymentId":"cmv641ays003ym9qq0w2u53bg","liveUrl":"https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/","status":"running"},"success":true}

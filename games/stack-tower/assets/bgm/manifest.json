@@ -1,0 +1,9 @@
+{
+  "id": "bgm-neon-loop-v1",
+  "file": "neon-loop.m4a",
+  "durationMs": 9600,
+  "sampleRate": 44100,
+  "channels": 1,
+  "sha256": "38a81058c31e449ed157ca144bd209b6ea4ea7f05ee36ddaaacf391847914fa2",
+  "note": "wx BGM 环素材（f0 锁相无缝环）；LOOP_MS 常量在 src/audio/bgm.ts，两者同值由 tests/wx/bgm-loop-wx.spec.mjs 断言"
+}

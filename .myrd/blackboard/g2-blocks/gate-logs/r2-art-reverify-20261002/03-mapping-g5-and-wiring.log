@@ -1,0 +1,7 @@
+PASS G5/a 映射表交付件全在盘 :: 6 件引用 · json=6
+PASS G5/b 块tile id ↔ 色板id 全等 :: block-01,block-02,block-03,block-04,block-05,block-06,block-07
+PASS G5/c 三向绑定齐（e-board/e-renderer/a03-sfx-pack）
+PASS G5/d 黑板三批登记可达（本 run）
+PASS 接线 theme.ts 含 7/7 冻结 hex :: 命中 7/7（单源 ac-11 机判同口径）
+PASS 色板交付件 sha256 ≡ spec sourceSha256 锚 :: 7bc2ca033ee8…
+# 结论: ALL-GREEN（G5/a–d + 接线 + 锚，共 7/7 绿）
