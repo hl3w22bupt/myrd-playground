@@ -1,0 +1,6 @@
+# 04 部署 POST
+命令: curl -s -X POST -H "Authorization: Bearer $MYRD_TOKEN" -H "Content-Type: application/json" "http://localhost:3111/api/v1/apphost/apps/cmv36wl94001xm9mxp119q48x/deployments" -d '{"mode":"bundle","deployedBy":"workflow","gitRef":"game/wheat-squad","manifestPath":"games/wheat-squad/apphost.toml","sourceId":"wheat-squad"}'
+UTC: 2026-10-24T03:44:45Z  发布提交: 5544416a1075fc03f6fb6130f94d2652c20e3c15
+--- POST 响应 ---
+
+HTTP_CODE=000

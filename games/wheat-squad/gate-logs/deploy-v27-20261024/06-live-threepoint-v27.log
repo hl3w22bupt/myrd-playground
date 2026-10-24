@@ -1,0 +1,15 @@
+# 06 LIVE 三点自测（v27）
+UTC: 2026-10-24T03:48:09Z  目标: https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw
+--- ① /health ---
+health HTTP=200
+--- ② /gw 页面（landing）字节对账 ---
+gw HTTP=200 size=530
+live md5:  724c04b0f43227420c1283817977a22a
+local md5: 724c04b0f43227420c1283817977a22a
+<title>麦浪小队</title>
+--- ③ 资产权威面 main.mjs ---
+main.mjs HTTP=200 size=24716
+live md5:  08a99b52925e0a192362833dfd8eae68
+local md5: 08a99b52925e0a192362833dfd8eae68
+live 内嵌锚: __G2WS_BUILD = {"gitSha":"2d7daa33cf4a2dde2407e7ff6ae1c802a2ed191c","specAnchor":"cmv8xcexk0009m9dj6ev1dj0r@v6:approved"}
+门禁绑定锚: gitSha=2d7daa33cf4a2dde2407e7ff6ae1c802a2ed191c（构建锚；发布提交 5544416 相对锚仅增量锚行）

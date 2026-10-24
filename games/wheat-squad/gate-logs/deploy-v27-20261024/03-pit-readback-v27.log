@@ -1,0 +1,5 @@
+# 03 坑位归属回读（防挤占核对）
+命令: curl -s -H "Authorization: Bearer $MYRD_TOKEN" "http://localhost:3111/api/v1/apphost/apps/cmv36wl94001xm9mxp119q48x"
+UTC: 2026-10-24T03:44:32Z
+--- 响应关键字段 ---
+{"data":{"createdAt":"2026-10-11T02:14:19.288Z","currentDeploymentId":"cmvkf37db002im968oebxf2am","deployments":[{"appId":"cmv36wl94001xm9mxp119q48x","buildLogKey":"apphost/cmv36wl94001xm9mxp119q48x/cmvkf37db002im968oebxf2am/build.log","bundleKey":"apphost/cmv36wl94001xm9mxp119q48x/cmvkf37db002im968oebxf2am/bundle.js","commitHash":"f473f3a4e606fbc3d4aee629b3a22aa35234c50d","createdAt":"2026-10-23T

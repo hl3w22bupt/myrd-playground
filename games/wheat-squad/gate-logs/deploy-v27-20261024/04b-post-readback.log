@@ -1,0 +1,9 @@
+# 04b POST 后 GET 复查（000 空体判例 → 复查不盲重发）
+UTC: 2026-10-24T03:45:27Z
+app: undefined slug: undefined sourceId: undefined status: undefined
+currentDeployment.id: undefined
+version: undefined status: undefined gitRef: undefined commitHash: undefined
+manifestPath: undefined mode: undefined errorMessage: undefined
+--- 最近 3 单 ---
+# 04b POST 后 GET 复查（000 空体判例 → 复查不盲重发）
+结论：v27 已受理 cmvluuykm0039m94i800xa9wl status=building gitRef=game/wheat-squad createdAt=2026-10-24T03:44:45.190Z（响应体含 data 包装层）
