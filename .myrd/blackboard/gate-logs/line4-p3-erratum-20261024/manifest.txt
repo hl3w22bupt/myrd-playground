@@ -1,0 +1,2 @@
+# line4 驳回勘误轮（P3×2）门禁证据 @ HEAD 75653d8 · 链 v2 cmvlrc0ma001tm94ialxeykjn(draft) · 2026-10-24T02:08:33Z
+SELF_CHECK: PASS（五断言：冒烟4/4+双口径移植门禁+契约fail-closed+6键全等）

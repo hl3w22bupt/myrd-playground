@@ -1,0 +1,10 @@
+CMD: node games/line4-unblock-jam/tools/port-gate-checklist.mjs --target wx
+[port-gate] P-01 契约件在位 ✓ /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvlpfu4b0013m94ip2nru46y/.myrd/spec/line4-unblock-jam/design-spec.json
+[port-gate] P-02 契约链 approved 资质 ✗ 链上状态=draft（draft=契约面未生效，移植轮止步预检）
+[port-gate] P-03 内核纯度（零 Math.random/Date.now/零平台 import） ✓ 3 文件全净
+[port-gate] P-04 零外部贴图（源码零位图构造） ✓ 
+[port-gate] P-05 telemetry 键集合 ≡ spec numeric.telemetry ✓ 6 键全等
+[port-gate] P-06-wx 宿主实现面 host-wx/（移植轮落地件） ✗ 缺=预检提示，不阻塞本轮中性面
+[port-gate] GATE-NOTE: 契约链 链上状态=draft（draft=契约面未生效，移植轮止步预检）——移植轮开工前置=spec approved（红线，非本轮缺陷）
+PORT-GATE(wx): PASS（硬检 4 项中 FAIL=0）
+EXIT=0

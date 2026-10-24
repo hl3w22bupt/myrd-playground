@@ -1,0 +1,10 @@
+# line4-unblock-jam 续接核实轮门禁证据 @ HEAD aff6fd08b5e8167846b8bc66fc1f6ce3b8632862 · 2026-10-24T01:42:20Z
+00-build-info-reanchor .myrd/blackboard/gate-logs/line4-continuity-20261024/00-build-info-reanchor.log:EXIT=0
+01-scaffold-smoke .myrd/blackboard/gate-logs/line4-continuity-20261024/01-scaffold-smoke.log:EXIT=0
+02-port-gate-web .myrd/blackboard/gate-logs/line4-continuity-20261024/02-port-gate-web.log:EXIT=0
+03-port-gate-wx .myrd/blackboard/gate-logs/line4-continuity-20261024/03-port-gate-wx.log:EXIT=0
+## 预期口径
+01 冒烟=SCAFFOLD-SMOKE PASS 4/4 exit 0；02/03 移植门禁=硬检 FAIL=0 exit 0；04 契约=SPEC_NOT_APPROVED exit 1（draft 态 fail-closed，红线机判成立——预期正确行为非缺陷）
+## 取证时点
+HEAD=aff6fd08b5e8167846b8bc66fc1f6ce3b8632862 · 树面含 port-gate target 解析修复 + build-info sha 重锚 aff6fd0；本轮其后提交仅黑板文档与证据目录（源码面零变更，结论对 aff6fd0 有效）
+SELF_CHECK: PASS（五断言全命中）
