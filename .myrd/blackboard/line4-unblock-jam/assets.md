@@ -94,4 +94,16 @@
 - 机判原文：`.myrd/blackboard/gate-logs/line4-art-deskcheck-20261024/`（首跑 C2b 校验脚本自身缺陷已披露留档；**结论以终版 `02-deskcheck-raw.log` PASS=12 FAIL=0 FINDING=1 · exit 0 为准**，黑板编辑后复跑与编辑前一致；中间一次作用域假绿已在 manifest 披露）。
 - 本轮零素材产出、零接线：spec draft → 生成前零图（§二 清单为规划落点）；生成器仍为 `tools/gen-assets.mjs`（审查通过轮落地）。
 
+### 链 v2 复证（2026-10-24 · 勘误轮 `17de9b4` 后 · 美术署名）
+
+> 判定前提变化（链 v1 → 链 v2 `cmvlrc0ma001tm94ialxeykjn` v0.2 draft）触发上轮结论重审：desk-check 全表对链 v2 重跑。**PASS=14 FAIL=0 FINDING=0 · exit 0**（终版 `04-deskcheck-chain-v2-final.log`；03 号为校验器提取正则缺陷跑 FAIL，原样留档）。
+
+| # | 复证项 | 结果 |
+|---|---|---|
+| R1 | **美术五对账面逐字节未漂移**：palette 8 色（C1）/ 资产清单 6 件（C2）/ 三通道名（C4）/ F4 口径+实体帽（C5）/ 对标 D35/D40（C9）在 v0.2 下全绿 —— 印证勘误声明「entities/levels/numeric/assets/world 逐字节不动」 | ✅ |
+| R2 | **F-01 解除态机判**（C10）：acc-02=「三通道规格（通道/预算/硬顶）」≡ §四 表头 + QA 核销表 F1 行同步留痕 | ✅ 核销确认 |
+| R3 | **生成件锚随链更新**（C11 新增）：`SPEC_ANCHOR.id ≡ spec.id`（cmvlrc0ma…）· 锚 version=2 · build-info sha=`75653d8`（滞后一笔=已披露惯例） | ✅ |
+| R4 | **跨线代改复核**（程序 `17de9b4` 改本文件 F-01 行 + QA 表 F1 行）：措辞与 spec v0.2 新文案、L4-4 解除记录三方一致，美术口径成立，本轮认领登记；theme.ts 两 commit blob 哈希全等（`739f1b20`）= 美术 token 件零触碰亲核 | ✅ |
+| R5 | draft 态零图合规维持（C7：assets/ 位图数=0）；素材产出仍待 L4-1 对**链 v2** approve | ⏸ 合规态 |
+
 ——游戏美术（desk-check 复证）

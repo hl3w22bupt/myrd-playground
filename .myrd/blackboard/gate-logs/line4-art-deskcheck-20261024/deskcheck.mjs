@@ -116,15 +116,31 @@ ok('C8-spec-anchors', anchorsOk, 'spec world.styleRef §一/§三 + acc-02 §四
 ok('C9-benchmark-d35-d40', assetsMd.includes('D35') && assetsMd.includes('D40') && spec.spec.meta.lineage.includes('D35') && spec.spec.meta.lineage.includes('D40'),
   '对标双条目号 D35（上个了车）/D40（挪了下车）：assets.md §三 ≡ spec meta.lineage');
 
-// ---------- F1 五要素指代缺陷（文字面，登记不代改）----------
+// ---------- F1 五要素指代缺陷（v0.2 起改为解除态机判）----------
 // 作用域=§四 切片：§五 复证记录提及「五要素」属缺陷描述引用，不算词条存在
 const sec4 = assetsMd.slice(assetsMd.indexOf('## 四'), assetsMd.indexOf('## 五') > 0 ? assetsMd.indexOf('## 五') : undefined);
 if (acc02.statement.includes('五要素') && !sec4.includes('五要素')) {
   finding('F-01 五要素指代缺陷',
     `spec acc-02 statement 与 QA 核销表 F1 行两处引用「assets.md §四 五要素」，但 assets.md §四 无「五要素」词条（表头=通道/预算/硬顶）。修订权归主策划（spec 禁覆盖走 revision）；可选修法：acc-02 改「三通道规格」或 §四 补「五要素」定义词条。`);
-} else if (sec4.includes('五要素')) {
-  ok('C10-five-element-term', true, '「五要素」词条在 §四 有定义（缺陷消除）');
+} else if (!acc02.statement.includes('五要素')) {
+  const qaMd = readFileSync(join(ROOT, '.myrd/blackboard/line4-unblock-jam/qa-seven-defects-clearance-20261024.md'), 'utf8');
+  const qaSynced = qaMd.includes('三通道规格') && qaMd.includes('v0.2 勘误更正');
+  ok('C10-five-element-closed', qaSynced,
+    `F-01 已核销：acc-02 改「三通道规格（通道/预算/硬顶）」≡ §四 表头；QA 核销表 F1 行同步留痕（三通道规格+v0.2 勘误更正）=${qaSynced}`);
 }
+
+// ---------- C11 spec 链锚 × 生成件单源链（勘误轮起新增）----------
+const genSpec = readFileSync(join(ROOT, 'games/line4-unblock-jam/src/generated/spec-data.mjs'), 'utf8');
+const anchorJsonM = genSpec.match(/export const SPEC_ANCHOR = (\{[^;]+\});/);
+let specAnchor = '(未找到)', anchorVer = '(未找到)';
+if (anchorJsonM) { try { const a = JSON.parse(anchorJsonM[1]); specAnchor = a.id; anchorVer = a.version; } catch { /* keep placeholders */ } }
+ok('C11-spec-anchor-chain', specAnchor === spec.id,
+  `生成件 SPEC_ANCHOR.id(${specAnchor}) ≡ spec.id(${spec.id}) · 锚version=${anchorVer} · 链版本=${spec.spec.meta.version} parent=${spec.parentSpecId ?? 'null'}`);
+
+const buildInfo = readFileSync(join(ROOT, 'games/line4-unblock-jam/src/generated/build-info.mjs'), 'utf8');
+const shaM = buildInfo.match(/[0-9a-f]{40}|[0-9a-f]{7,12}/i);
+const head = process.argv[2] || '';
+console.log(`INFO build-info sha=${shaM ? shaM[0] : '(未找到)'} · 取证 HEAD=${head || '(未传)'}（sha 滞后一笔=已披露惯例，只报告不断言）`);
 
 console.log('---');
 console.log(`DESKCHECK-SUMMARY: PASS=${pass} FAIL=${fail} FINDING=${findings.length}`);

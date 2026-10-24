@@ -1,0 +1,17 @@
+PASS C1-palette-3way :: 风格卡8色 ≡ spec.numeric.palette ≡ theme.ts（逐字符·保序）：["#F2EFE6","#D9D2C5","#2B2D42","#111111","#EF4444","#F59E0B","#10B981","#3B82F6"]
+PASS C2-asset-list-parity :: 清单6件 id×file 集合全等（清单=6 spec=6）
+PASS C2b-kebab-case :: id 与落点路径段全部 kebab-case：a01-lot-tiles,a02-car-set,a03-exit-gate,a04-guide-hand,a05-ui-hud,a06-sfx-pack
+PASS C3-g01-a04-binding :: spec acceptance g-01 statement ✓ a04 · spec levels el-g01 expect ✓ a04 · assets.md a04 行挂 g-01（双向）
+PASS C4-vf-channels :: 三通道名 acc-02≡assets.md §四≡e-exit expect：vf-car-exit-burst/vf-combo-pop/vf-level-clear
+PASS C5-f4-measurement :: F4 三定死：时钟源 performance.now() · 档位中端60fps · 采样 N=20（assets.md §四 引述逐项命中）
+PASS C5b-perf-caps :: 实体帽 60 ≡ §四 常态帧「实体峰值 ≤60」
+PASS C6-theme-single-source :: theme.ts 导出 PALETTE_HEX_LIST=Object.values(PALETTE)（token 单源出口在位）
+PASS C6b-no-bare-color :: 渲染/tests 面（theme.ts 与 generated 豁免外）零裸 hex / 零裸 rgba(数字
+PASS C7-draft-zero-image :: games/line4-unblock-jam/assets/ 位图数=0（spec draft → 生成前零图 = approval gate 合规态；清单为规划落点）
+PASS C8-spec-anchors :: spec world.styleRef §一/§三 + acc-02 §四 引用锚点在 assets.md 全部存在
+PASS C9-benchmark-d35-d40 :: 对标双条目号 D35（上个了车）/D40（挪了下车）：assets.md §三 ≡ spec meta.lineage
+PASS C10-five-element-closed :: F-01 已核销：acc-02 改「三通道规格（通道/预算/硬顶）」≡ §四 表头；QA 核销表 F1 行同步留痕（三通道规格+v0.2 勘误更正）=true
+PASS C11-spec-anchor-chain :: 生成件 SPEC_ANCHOR.id(cmvlrc0ma001tm94ialxeykjn) ≡ spec.id(cmvlrc0ma001tm94ialxeykjn) · 锚version=2 · 链版本=0.2 parent=cmvlpx0uf0019m94iyuroz578
+INFO build-info sha=75653d80c0e6b160bb1b7cca9038f3554b1b2105 · 取证 HEAD=17de9b4（sha 滞后一笔=已披露惯例，只报告不断言）
+---
+DESKCHECK-SUMMARY: PASS=14 FAIL=0 FINDING=0
