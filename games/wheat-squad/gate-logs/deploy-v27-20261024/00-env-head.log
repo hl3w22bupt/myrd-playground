@@ -1,0 +1,16 @@
+# deploy-v27-20261024 · 00 env/head 锚定
+UTC: 2026-10-24T03:43:16Z
+pwd: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvlpfu4b0013m94ip2nru46y
+branch: game/wheat-squad
+HEAD: 2d7daa33cf4a2dde2407e7ff6ae1c802a2ed191c
+remote(ls-remote): 2d7daa33cf4a2dde2407e7ff6ae1c802a2ed191c	refs/heads/game/wheat-squad
+ahead-of-remote: [8] 条
+status: 1 个未提交变更
+--- 受测源面自 v26 发布提交 f473f3a 的漂移 ---
+diff-exit=0 （空输出=源面零漂移，本轮=复证发布轮）
+--- HEAD 近 5 提交 ---
+2d7daa3 merge: 本轮成果回流 ¼¼
+6b51102 docs(PL4,美术): 链 v2 复证轮——desk-check 全表重跑 14/14 全绿 + F-01 核销认领 + 跨线代改复核
+17de9b4 fix(P3勘误,PL4+PL2): 驳回反馈两件落办——spec v0.2落链v2 + PL2终审件编号勘误
+75653d8 docs(PL4,美术): 同文任务书重派轮——美术三件复证而非重做，desk-check 机判 12/12 全绿
+6972489 myrd: workflow auto-commit [skip ci]
