@@ -32,9 +32,9 @@
 
 | # | 事项 | 负责人 | 状态/解除判据 |
 |---|---|---|---|
-| L4-1 | **spec v0 正式审查（approve）** | 主人 | QA 七条缺陷核销后转正式审查即升级；approve 前零玩法逻辑零 contract 断言（红线） |
+| L4-1 | **spec v0.2（链 v2）正式审查（approve）** | 主人 | v1 首审驳回 1 件 P3 勘误（g-01 二义）已落链 v2 并同批核销 L4-4 → **待主人对链 v2 `cmvlrc0ma001tm94ialxeykjn` 重审 approve**；approve 前零玩法逻辑零 contract 断言（红线） |
 | L4-2 | 工作名与视觉方向拍板（W-L4-1/W-L4-2） | 主人 | 《挪出一条路》为工作名占位；风格卡 v1 已冻结（拍板可改，改动走 revision） |
 | L4-3 | a3 真人面（好玩终裁 5 名真人） | 主人+QA | 前置=可玩面 LIVE；机器不代采 |
-| L4-4 | **P3 文字面指代缺陷（美术 desk-check 发现，非阻塞）**：spec acc-02 statement 与 QA 核销表 F1 行引用「assets.md §四 五要素」，但 §四 无「五要素」词条（表头=通道/预算/硬顶） | 主策划 | spec 禁覆盖走 revision：acc-02 改「三通道规格」或 §四 补「五要素」定义词条，二选一；不阻塞 approve 判读（通道名三处全等已机判）。证据 `gate-logs/line4-art-deskcheck-20261024/` F-01 |
+| L4-4 | **P3 文字面指代缺陷（美术 desk-check 发现，非阻塞）**：spec acc-02 statement 与 QA 核销表 F1 行引用「assets.md §四 五要素」，但 §四 无「五要素」词条（表头=通道/预算/硬顶） | 主策划（登记）· 程序（按主人驳回反馈②代办执行，措辞取登记件 Option A） | **已解除（2026-10-24）**：链 v2 `cmvlrc0ma001tm94ialxeykjn`（v0.2）取「acc-02 改三通道规格」选项落链（POST /revisions **201** 实证）+ QA 核销表引用行同步。证据 `.myrd/spec/line4-unblock-jam/spec-v0.2-revision-response.json` |
 
-> 无团队侧阻塞。以上三项均主人侧动作，带证据升级不催办。
+> 无团队侧阻塞。L4-1/L4-2/L4-3 三项均主人侧动作，带证据升级不催办；L4-4 已解除（勘误落链，同批驳回反馈②）。

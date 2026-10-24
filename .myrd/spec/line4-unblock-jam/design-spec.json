@@ -1,9 +1,9 @@
 {
-  "createdAt": "2026-10-24T01:26:23.367Z",
+  "createdAt": "2026-10-24T02:06:02.530Z",
   "createdByUserId": "cmoqv70b80000m9d4b58k27zt",
   "goalId": null,
-  "id": "cmvlpx0uf0019m94iyuroz578",
-  "parentSpecId": null,
+  "id": "cmvlrc0ma001tm94ialxeykjn",
+  "parentSpecId": "cmvlpx0uf0019m94iyuroz578",
   "projectId": "cmto0g28j0002m9sqnvjdy8o7",
   "schemaVersion": "v0",
   "sourceTrajectoryId": null,
@@ -19,13 +19,13 @@
         "check": "games/line4-unblock-jam/tests/contract/checks/g-01-first-60s-guide.mjs（规划落点，审查通过版落地转真）",
         "id": "g-01-first-60s-guide",
         "mode": "auto",
-        "statement": "首 60s 引导判据（判据编号 g-01 挂资产编号 a04-guide-hand）：20 冒烟局 bot 面全部在 60s 窗口内完成「首次拖动→首次驶出→通关」三步；first60s_guide_done_rate ≥0.90。"
+        "statement": "首 60s 引导判据（判据编号 g-01 挂资产编号 a04-guide-hand）：bot 面 20 局达成率 ≥0.90（≥18/20）——20 冒烟局（seeds 42..61）中 ≥18 局在 60s 窗口内完成「首次拖动→首次驶出→通关」三步；first60s_guide_done_rate ≥0.90。"
       },
       {
         "check": "games/line4-unblock-jam/tests/contract/checks/acc-02-exit-feedback-latency.mjs（规划落点，审查通过版落地转真）",
         "id": "acc-02-exit-feedback-latency",
         "mode": "auto",
-        "statement": "驶出正反馈延迟：car.exit 判定帧→vf-car-exit-burst 事件同帧发出，car_exit_latency_ms_p95 ≤100ms（正反馈具体事件名写死 vf-car-exit-burst/vf-combo-pop/vf-level-clear 三通道，五要素规格见 assets.md §四）。"
+        "statement": "驶出正反馈延迟：car.exit 判定帧→vf-car-exit-burst 事件同帧发出，car_exit_latency_ms_p95 ≤100ms（正反馈具体事件名写死 vf-car-exit-burst/vf-combo-pop/vf-level-clear 三通道，三通道规格（通道/预算/硬顶）见 assets.md §四）。"
       },
       {
         "check": "games/line4-unblock-jam/tests/contract/checks/acc-03-combo-pending-invariant.mjs（规划落点，审查通过版落地转真）",
@@ -226,10 +226,13 @@
           "dy"
         ]
       },
-      "revision_note": "v0.1（T+0 骨架版 2026-10-24）：版本链起点。QA 七条缺陷逐条核销（F1 核心动作/正反馈事件名+首 60s 引导判据挂资产编号 · F3 判读证据定死 dev HUD+冒烟 N=20 局 · F4 测量口径定死 时钟源 performance.now()/设备档中端 60fps/采样 20 局全量帧 · 三红轮边界数值写死 · 计数控名人写死 src/kernel/session.ts+pending 不计连击 · 黑板登记块名写死 .myrd/blackboard/line4-unblock-jam/ · entities/levels 落点文件路径写死 · 双对标引简报条目号 D35/D40 写死——核销表 .myrd/blackboard/line4-unblock-jam/qa-seven-defects-clearance-20261024.md）。数值面=判读判据全冻结 + 谱系布局参数显式 PEND-待校准（不编数）；check 薄壳路径=规划落点，审查通过版落地后转真才生效（line3 v0.1 判例）。",
+      "revision_note": [
+        "v0.1（T+0 骨架版 2026-10-24）：版本链起点。QA 七条缺陷逐条核销（F1 核心动作/正反馈事件名+首 60s 引导判据挂资产编号 · F3 判读证据定死 dev HUD+冒烟 N=20 局 · F4 测量口径定死 时钟源 performance.now()/设备档中端 60fps/采样 20 局全量帧 · 三红轮边界数值写死 · 计数控名人写死 src/kernel/session.ts+pending 不计连击 · 黑板登记块名写死 .myrd/blackboard/line4-unblock-jam/ · entities/levels 落点文件路径写死 · 双对标引简报条目号 D35/D40 写死——核销表 .myrd/blackboard/line4-unblock-jam/qa-seven-defects-clearance-20261024.md）。数值面=判读判据全冻结 + 谱系布局参数显式 PEND-待校准（不编数）；check 薄壳路径=规划落点，审查通过版落地后转真才生效（line3 v0.1 判例）。",
+        "v0.2（P3 勘误修订 2026-10-24，主人驳回反馈②）：g-01 statement 二义消解——『20 局全部完成』与『≥0.90』同句二义，定死为达成率口径 ≥0.90（≥18/20），冻结 target 不动（驳回二选一之 Option A）；acc-02 指代勘误「五要素规格」→「三通道规格」（assets.md §四 实为通道/预算/硬顶，L4-4/F-01 同批核销）。纯文字面消歧：entities/levels/numeric/assets/world 逐字节不动，零数值零结构变更。"
+      ],
       "slug": "line4-unblock-jam",
       "title": "挪出一条路（线 4 · 工作名待主人定）",
-      "version": "0.1"
+      "version": "0.2"
     },
     "numeric": {
       "DEFAULT_SEED": 20261024,
@@ -311,16 +314,16 @@
   },
   "status": "draft",
   "title": "游戏策划案",
-  "updatedAt": "2026-10-24T01:26:23.367Z",
-  "version": 1,
+  "updatedAt": "2026-10-24T02:06:02.530Z",
+  "version": 2,
   "_platform": {
-    "id": "cmvlpx0uf0019m94iyuroz578",
-    "version": 1,
+    "id": "cmvlrc0ma001tm94ialxeykjn",
+    "version": 2,
     "status": "draft",
-    "parentSpecId": null,
+    "parentSpecId": "cmvlpx0uf0019m94iyuroz578",
     "projectId": "cmto0g28j0002m9sqnvjdy8o7",
-    "title": "挪出一条路（线 4 · 工作名待主人定）",
-    "createdAt": "2026-10-24T01:26:23.367Z",
-    "updatedAt": "2026-10-24T01:26:23.367Z"
+    "title": "游戏策划案",
+    "createdAt": "2026-10-24T02:06:02.530Z",
+    "updatedAt": "2026-10-24T02:06:02.530Z"
   }
 }

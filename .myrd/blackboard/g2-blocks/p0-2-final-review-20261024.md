@@ -23,7 +23,7 @@
 ### ③ 双平台 contract-check + 冒烟原始输出及 spec×sha 映射
 
 - **存档面（10/18，绑同 sha 023e5838/9c27438，线头今日零位移 → 记录仍对应当前 sha）**：`gate-logs/sha-answer-rerun-20261018/00..04`——`023e5838` 线 contract 18/18 + 八件聚合 8/8；`9c27438` 线 check-v13 四态 + contract v9 29+1PEND + dy 三条 27 PASS + dy-smoke PASS（J1=146.1ms/613 手）。**今日未重跑冒烟**（如实披露；对裁决无影响，见下）。
-- **今日复跑（新增原始输出）**：`gate-logs/p0-2-final-review-20261024/00-contract-today-023e5838.log`——`023e5838` 线 **17 PASS / 1 FAIL**（CONTRACT_EXIT=1）。**FAIL=ac-18 仓库范围守卫**：守卫扫到**本 run 工作区一处本轮外脏文件**（`.myrd-platform/.claude/skills/godot-game-dev/references/godot-smoke-routine.md`，+14 行，会话开工前已存在，上轮 auto-commit `aa448e5` 触达面，非 g2 源面改动、非本轮任何产物）；已按 B-1 判例做 `G2_REPO_ONE_ROOT` 环境对齐复跑，结果不变。**定性：run 工作区环境面条件，非工程面回归**——不作找补（任务口径），登记为 R3 复跑批前置事项（工作区净化或守卫白名单口径判定）。
+- **今日复跑（新增原始输出）**：`gate-logs/p0-2-final-review-20261024/00-contract-today-023e5838.log`——`023e5838` 线 **17 PASS / 1 FAIL**（CONTRACT_EXIT=1）。**FAIL=ac-17-repo-one-zero-touch（一号仓库零接触守卫）**【2026-10-24 驳回勘误：原误标「ac-18 仓库范围守卫」——日志原文第 22 行 `RED ac-17-repo-one-zero-touch`、第 28 行 `PASS ac-18-ci-guard-repo-scope`；FAIL 计数 17/1 与裁决不变，仅编号/守卫名更正】：守卫扫到**本 run 工作区一处本轮外脏文件**（`.myrd-platform/.claude/skills/godot-game-dev/references/godot-smoke-routine.md`，+14 行，会话开工前已存在，上轮 auto-commit `aa448e5` 触达面，非 g2 源面改动、非本轮任何产物）；已按 B-1 判例做 `G2_REPO_ONE_ROOT` 环境对齐复跑，结果不变。**定性：run 工作区环境面条件，非工程面回归**——不作找补（任务口径），登记为 R3 复跑批前置事项（工作区净化或守卫白名单口径判定）。
 - **spec×sha 映射**：**无法闭合**——契约绿绑的是仓内存档锚（v11 存档 / 导出件 v9/1.6），链上对应版本全 superseded → **映射目标无 approved 资质**（G-1 连带，与 10/23 四查结论一致）。
 
 ## 二、game-designer · acceptance 版本映射（配合件）
@@ -62,6 +62,6 @@
 | G-6 | 商店截图三张 v1.3 形态重摄 | 游戏美术 | 维持挂账 |
 | G-7 | DC-07/DC-09 提审日人工核对 | 主人（提审日） | 维持 |
 | G-8 | DC-10 抖音 CLI 本机未装 | 主人（环境） | 维持 |
-| **G-9（新增）** | run 工作区环境面：`.myrd-platform/...godot-smoke-routine.md` 本轮外脏文件触发 g2 守卫 ac-18（今日复跑 17/1 唯一 FAIL 源） | 主策划登记 → 主人/平台侧定性 | R3 复跑批前置：工作区净化或守卫白名单口径判定（**本轮不动它，不越权处置基建路径**） |
+| **G-9（新增）** | run 工作区环境面：`.myrd-platform/...godot-smoke-routine.md` 本轮外脏文件触发 g2 守卫 **ac-17-repo-one-zero-touch**（今日复跑 17/1 唯一 FAIL 源；勘误留痕 2026-10-24：原误标 ac-18，该条第 28 行实为 PASS） | 主策划登记 → 主人/平台侧定性 | R3 复跑批前置：工作区净化或守卫白名单口径判定（**本轮不动它，不越权处置基建路径**） |
 
 ——联署：游戏程序（出证三样）· 游戏策划（acceptance 映射）· 游戏 QA（四查核签 · 唯一结论）· 主策划（裁决登记）· 2026-10-24

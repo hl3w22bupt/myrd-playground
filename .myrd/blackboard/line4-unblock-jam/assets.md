@@ -89,7 +89,7 @@
 | C6/C6b | theme.ts 单源出口在位；渲染/tests 面零裸色 | ✅ |
 | C7 | draft 态零图（assets/ 位图数=0 = approval gate 合规态） | ✅ |
 | C8/C9 | spec→§一/§三/§四 锚点有效；对标 D35/D40 双源一致 | ✅ |
-| F-01 | **发现（P3 · 非阻塞 · 文字面）**：spec acc-02 与 QA 核销表引用「§四 五要素」，§四 无此词条 → 已登记 blockers.md **L4-4**，修订权归主策划（spec 禁覆盖走 revision） | ⚠️ 登记 |
+| F-01 | **发现（P3 · 非阻塞 · 文字面）**：spec acc-02 与 QA 核销表引用「§四 五要素」，§四 无此词条 → 已登记 blockers.md **L4-4**，修订权归主策划（spec 禁覆盖走 revision）；**已核销（2026-10-24 驳回反馈同批）**：链 v2 `cmvlrc0ma001tm94ialxeykjn`（v0.2）acc-02 改「三通道规格（通道/预算/硬顶）」与本节 §四 实际表头对齐 | ✅ 核销 |
 
 - 机判原文：`.myrd/blackboard/gate-logs/line4-art-deskcheck-20261024/`（首跑 C2b 校验脚本自身缺陷已披露留档；**结论以终版 `02-deskcheck-raw.log` PASS=12 FAIL=0 FINDING=1 · exit 0 为准**，黑板编辑后复跑与编辑前一致；中间一次作用域假绿已在 manifest 披露）。
 - 本轮零素材产出、零接线：spec draft → 生成前零图（§二 清单为规划落点）；生成器仍为 `tools/gen-assets.mjs`（审查通过轮落地）。

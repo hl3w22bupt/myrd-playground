@@ -1,7 +1,7 @@
 // 由 tools/gen-spec-data.mjs 生成 —— 零手抄；单源=/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvlpfu4b0013m94ip2nru46y/.myrd/spec/line4-unblock-jam/design-spec.json
-// spec 锚：cmvlpx0uf0019m94iyuroz578@v1:draft
+// spec 锚：cmvlrc0ma001tm94ialxeykjn@v2:draft
 // 重生成请跑：node tools/gen-spec-data.mjs
-export const SPEC_ANCHOR = {"id":"cmvlpx0uf0019m94iyuroz578","version":1,"status":"draft","slug":"line4-unblock-jam"};
+export const SPEC_ANCHOR = {"id":"cmvlrc0ma001tm94ialxeykjn","version":2,"status":"draft","slug":"line4-unblock-jam"};
 
 export const NUMERIC = {
   "DEFAULT_SEED": 20261024,

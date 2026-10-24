@@ -6,7 +6,7 @@
 
 | # | 缺陷（任务书原文摘要） | spec 核销锚点（原文定位） | 核销判定 |
 |---|---|---|---|
-| 1 | **F1**：核心动作与正反馈具体事件名写死 + 首 60s 引导判据（判据编号挂资产编号） | 核心动作=拖动沿朝向轴（world.sceneSpec + e-car）；事件名写死 `car.drag_start/car.drag_end/car.exit/level.complete/level.fail`（levels level-1/el-g01-guide + acc-02 statement）；正反馈通道名写死 `vf-car-exit-burst/vf-combo-pop/vf-level-clear`（acc-02 statement + assets.md §四 五要素）；首 60s 判据=`g-01`（levels level-1/el-g01-guide：60s 窗口三步），**判据编号 g-01 挂资产编号 a04-guide-hand**（同 element + assets 段 a04 expect + acc-01/g-01 statement） | ✅ 核销 |
+| 1 | **F1**：核心动作与正反馈具体事件名写死 + 首 60s 引导判据（判据编号挂资产编号） | 核心动作=拖动沿朝向轴（world.sceneSpec + e-car）；事件名写死 `car.drag_start/car.drag_end/car.exit/level.complete/level.fail`（levels level-1/el-g01-guide + acc-02 statement）；正反馈通道名写死 `vf-car-exit-burst/vf-combo-pop/vf-level-clear`（acc-02 statement + assets.md §四 三通道规格〔原「五要素」，v0.2 勘误更正〕）；首 60s 判据=`g-01`（levels level-1/el-g01-guide：60s 窗口三步），**判据编号 g-01 挂资产编号 a04-guide-hand**（同 element + assets 段 a04 expect + acc-01/g-01 statement） | ✅ 核销 |
 | 2 | **F3**：判读证据写死（dev HUD/冒烟自测 N 局，N 定死） | `numeric.measurement.sampling`=「冒烟自测 N=20 局（seeds 42..61）全量帧采样」+ `smokeN:20`；telemetry 三列 sampling 列逐键写死「冒烟 20 局/dev HUD first60s 读数」（numeric.telemetry[0].sampling 原文） | ✅ 核销（N=20 定死） |
 | 3 | **F4**：测量口径定死（时钟源/设备档位/采样量） | 时钟源=`numeric.measurement.clockSource`（表现层 performance.now() · 内核零 Date.now）；设备档位=`numeric.perf.deviceTier`（中端 60fps 基准 · stepBudgetMs=16 · 首交互 ≤3000ms）；采样量=`measurement.sampling`（20 局全量帧 + a3 真人 5 名另列） | ✅ 核销（三要素全定死） |
 | 4 | **三红轮边界写死** | levels level-2 三 element：`el-red-entry`（进入边界：前关步数 ≤ par 才入红轮）/ `el-red-clear`（完成边界：`numeric.redRoundStepBudget=12` 内驶出）/ `el-red-fail`（失败边界：超预算即 fail + `redRoundFailDowngrade=2` 连败降级）；断言面=acc-04 | ✅ 核销（三边界数值/谓词全写死） |
@@ -26,3 +26,7 @@
 **七条缺陷全部核销（7/7）→ spec v0 转正式审查**：提请主人对链 v1 `cmvlpx0uf0019m94iyuroz578` 行使 approve/驳回/修订指令。审查通过前：零玩法逻辑、零 contract-check 断言（任务书红线维持，脚手架空壳冒烟除外）。
 
 ——游戏 QA（七条缺陷核销签）· 2026-10-24
+
+## 勘误同步（2026-10-24 · 主人驳回反馈② · 签名面不变）
+
+主人正式审查驳回 1 件 P3 文字面缺陷：g-01 statement「20 局全部完成」与「≥0.90」同句二义（机判口径无法唯一确定）。已走链 v2 `cmvlrc0ma001tm94ialxeykjn`（v0.2，POST 201 实证）定死为**达成率口径 ≥0.90（≥18/20）**（驳回二选一之 Option A，冻结 target 不动），同批核销 L4-4/F-01（acc-02「五要素规格」→「三通道规格」）。本表 F1 行引用同步更正；**七条核销判定不受影响**（F1 锚=事件名写死+判据编号挂资产编号，两处勘误均为指代/口径消歧，未触碰锚点实质）；核销对象版本锚自本注记起 = 链 v2 draft。
