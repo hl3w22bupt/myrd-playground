@@ -11,7 +11,11 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const gameRoot = resolve(here, '..');
 const repoRoot = resolve(gameRoot, '../..');
-const target = (process.argv[process.argv.indexOf('--target') + 1] ?? 'web').toLowerCase();
+// --target 缺省=web。缺陷修复（2026-10-24 续接核实轮）：旧写法 indexOf('--target')+1 在未传参时=0，
+// 把 argv[0]（node 二进制路径）当 target，门禁标签失真（PORT-GATE(/opt/.../node)）；含 '/' 一律视为无效回退 web。
+const targetIdx = process.argv.indexOf('--target');
+const targetRaw = targetIdx !== -1 ? process.argv[targetIdx + 1] : 'web';
+const target = (targetRaw && !targetRaw.includes('/') ? targetRaw : 'web').toLowerCase();
 
 const results = [];
 const check = (id, name, ok, detail = '') => { results.push({ id, name, ok, detail }); };
