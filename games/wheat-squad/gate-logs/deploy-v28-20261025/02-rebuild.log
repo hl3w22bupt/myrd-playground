@@ -1,0 +1,16 @@
+# 02 确定性重建
+命令: G2WS_REPO_ONE_ROOT=$PWD node games/wheat-squad/tools/build.mjs
+UTC: 2026-10-25T10:14:49Z
+HEAD: 2204605e5acbf39759432b693f32a888f6e22e70
+BUILD FINGERPRINT: gitSha=2204605e5acbf39759432b693f32a888f6e22e70 specAnchor=cmv8xcexk0009m9dj6ev1dj0r@v6:approved
+BUILD OK: build/ 11 文件（spec 内联 + src 镜像 + index + landing）
+(node:89034) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+BUILD_EXIT=0
+--- diff vs HEAD tree ---
+ M games/wheat-squad/build/main.mjs
+--- 逐文件 diff 明细 ---
+ games/wheat-squad/build/main.mjs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+-globalThis.__G2WS_BUILD = {"gitSha":"2d7daa33cf4a2dde2407e7ff6ae1c802a2ed191c","specAnchor":"cmv8xcexk0009m9dj6ev1dj0r@v6:approved"};
++globalThis.__G2WS_BUILD = {"gitSha":"2204605e5acbf39759432b693f32a888f6e22e70","specAnchor":"cmv8xcexk0009m9dj6ev1dj0r@v6:approved"};
