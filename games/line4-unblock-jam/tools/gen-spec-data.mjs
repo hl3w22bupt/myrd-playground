@@ -44,6 +44,8 @@ const out = `${banner}export const SPEC_ANCHOR = ${JSON.stringify({ id: platform
   stepBudgetMs: num.perf?.stepBudgetMs ?? null,
   clockSource: num.measurement?.clockSource ?? null,
   deviceTier: num.perf?.deviceTier ?? null,
+  levelGen: num.levelGen ?? null,
+  measurement: num.measurement ?? null,
 }, null, 2)};\n\nexport const TELEMETRY_COLUMNS = ${JSON.stringify(telemetry, null, 2)};\n\nexport const TELEMETRY_KEYS = TELEMETRY_COLUMNS.map((c) => c.key);\n`;
 
 const outPath = resolve(here, '../src/generated/spec-data.mjs');

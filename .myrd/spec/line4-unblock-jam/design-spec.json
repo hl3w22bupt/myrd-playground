@@ -312,18 +312,18 @@
       "theme": "极简色块俯视停车场（车=圆角色块、拥挤感靠密度不靠描边、零光照零渐变）——风格卡 v1 冻结（8 色色值写死：#F2EFE6/#D9D2C5/#2B2D42/#111111/#EF4444/#F59E0B/#10B981/#3B82F6）"
     }
   },
-  "status": "draft",
+  "status": "approved",
   "title": "游戏策划案",
-  "updatedAt": "2026-10-24T02:06:02.530Z",
+  "updatedAt": "2026-10-24T08:43:25.904Z",
   "version": 2,
   "_platform": {
     "id": "cmvlrc0ma001tm94ialxeykjn",
     "version": 2,
-    "status": "draft",
+    "status": "approved",
     "parentSpecId": "cmvlpx0uf0019m94iyuroz578",
     "projectId": "cmto0g28j0002m9sqnvjdy8o7",
     "title": "游戏策划案",
     "createdAt": "2026-10-24T02:06:02.530Z",
-    "updatedAt": "2026-10-24T02:06:02.530Z"
+    "updatedAt": "2026-10-24T08:43:25.904Z"
   }
 }

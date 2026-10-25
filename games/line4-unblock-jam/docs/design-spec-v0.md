@@ -1,6 +1,6 @@
 # 策划案 v0（人读版）— 挪出一条路（线 4 · 工作名待主人定）
 
-> 链 v1 `cmvlpx0uf0019m94iyuroz578` · **draft**（2026-10-24 入链，禁覆盖；approve 归主人正式审查）
+> 链 v2 `cmvlrc0ma001tm94ialxeykjn` · **approved**（2026-10-24T08:43:25.904Z 主人平台侧拍板，GET 200 实测；链 v1 `cmvlpx0uf0019m94iyuroz578` superseded 原文留档于下——**2026-10-25 驳回项4 勘误落盘**，本行此前停留 draft 口径）
 > 机读契约件：`.myrd/spec/line4-unblock-jam/design-spec.json`（整行含 `_platform` 锚）· 版本链记账：同目录 `REVISIONS.md`
 > 拍板依据：`.myrd/blackboard/next-line/decision-record-v1-20261024.md`（拍板 B ≡ 简报 v2 候选② · 品类避让双出处核对 PASS）
 
@@ -45,4 +45,4 @@ acc-01 确定性 · g-01 首 60s 引导 · acc-02 驶出反馈延迟 · acc-03 p
 
 ## 状态
 
-**draft · 转正式审查**（QA 七条缺陷 7/7 核销，核销表 `.myrd/blackboard/line4-unblock-jam/qa-seven-defects-clearance-20261024.md`）。审查通过前零玩法逻辑零 contract 断言；工程面仅中性脚手架五件（见同仓 `README.md`）。
+**approved · 链 v2 锁版本**（2026-10-25 驳回项4 勘误落盘；本节此前停留「draft · 转正式审查」口径）。审查链走毕：QA 七条缺陷 7/7 核销（核销表 `.myrd/blackboard/line4-unblock-jam/qa-seven-defects-clearance-20261024.md`）→ 主人 10-24 平台侧拍板 approve → 过审链当日完成：四实体灌实（lot/car/exit/director）+ 8 条 acceptance checks 转真 + 契约 29/0 全绿 + 部署面预检（smoke 4/4 · port-gate web/wx PASS）。**真实 deploy 冒烟待实现轮 export/web 产出后由工作流 deploy 节点补**。
