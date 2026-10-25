@@ -75,3 +75,9 @@
 | T5 | QA 对最新款二次会签避让（排除区核对） | T4 选型候选出 | ⏳ |
 
 > 节奏纪律：预研不开题不立新游戏（主人立项权红线）；PL4 过审后主线=灌实轮收尾 + 真人样本采集，PL5 预研并行不占工程面。
+
+## 工作流 deploy 节点交接面（2026-10-25 · 主策划→工作流）
+
+- **契约件已预置**：`games/line4-unblock-jam/apphost.toml`（name/runtime=node20/health/assets_dir=export/web 四键，stack-tower 判例同型）；**部署通道预检在位**：`PLATFORM_API_URL=http://localhost:3111` + `MYRD_TOKEN`/`MYRD_TEAM_ID`/`MYRD_RUN_ID` 均实测可用（本轮 API 通道全程 200）。
+- **deploy 冒烟输出（今日）**：smoke 4/4 + port-gate web/wx 硬检 0 FAIL（gate-logs 08..10）——部署面健康证据绑 HEAD `402919f`。
+- **待触发**：export/web 首批导出面产出（实现轮）→ 工作流 deploy 节点以本件 manifestPath 真实上线 → 喂 a3 真人样本采集窗开。**apphost 预置不冒领部署**（脚手架期零 UI 无线上面）。

@@ -1,0 +1,8 @@
+# line4-unblock-jam（《挪出一条路》工作名）专属部署清单 —— 每游戏一份，共享仓库根壳 server/。
+# 部署时以 manifestPath=games/line4-unblock-jam/apphost.toml 传入，勿改仓库根 apphost.toml。
+# 状态注记（2026-10-25）：脚手架期 export/web 未产出（中性壳零 UI · smoke=headless）；
+# 实现轮首批导出面产出后本件即工作流 deploy 节点挂载契约（assets_dir 落点已定死）。
+name = "line4-unblock-jam"
+runtime = "node20"
+health = "/health"
+assets_dir = "games/line4-unblock-jam/export/web"
