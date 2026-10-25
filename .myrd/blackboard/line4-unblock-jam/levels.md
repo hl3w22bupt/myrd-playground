@@ -8,8 +8,8 @@
 |---|---|
 | 选型 | 拍板 B ≡ 简报 v2 候选②「超休闲解压·物理小解谜（挪车/切开/挤压类）」（三轴 12 分 · 次推位，主人点名生效） |
 | 品类避让双出处 | ①PL3 spec `meta.genre` 原文＝「单场景塔防（炮塔防守 · 波次切面 · IAA 主导 · 微肉鸽）」②简报 v2 候选②条目原文＝「超休闲解压·物理小解谜（挪车/切开/挤压类）」——品类不同轴不撞线，**拍板 B 有效**（核对全文见 `../next-line/decision-record-v1-20261024.md`） |
-| spec | **v0.2（链 v2 `cmvlrc0ma001tm94ialxeykjn` draft，v1 superseded）**：主人首审驳回 1 件 P3（g-01「全部完成」vs「≥0.90」二义）→ 定死**达成率口径 ≥0.90（≥18/20）**（驳回 Option A，冻结 target 不动）+ 同批核销 L4-4/F-01（acc-02「五要素规格」→「三通道规格」）；五段 entities/levels/numeric/world/assets 机判逐字节零变更；`POST /revisions` 201 实证（原件 `../../spec/line4-unblock-jam/spec-v0.2-revision-response.json`） |
-| 工程 | `games/line4-unblock-jam/` 中性脚手架五件（单局制模板）——**玩法逻辑与 contract-check 断言零**，只认审查通过版；五件 @ `aff6fd0` 续接复核成立（telemetry 6 键≡spec 三列机判 / 计数控名人+pending 恒等机制面 / HUD F1~F4 / sha 重锚 `aff6fd08b5e8` / 移植门禁脚本），证据 `.myrd/blackboard/gate-logs/line4-continuity-20261024/` |
+| spec | **v0.2（链 v2 `cmvlrc0ma001tm94ialxeykjn`）= approved 唯一现行**（主人 2026-10-24T08:43:25.904Z 平台侧拍板；10/25 复核轮 GET 200 实测 status/version/updatedAt 三锚，证据 `../gate-logs/line4-verify-rerun-20261025/07-platform-spec-get.log`）；v1 superseded。首审驳回 1 件 P3（g-01 二义）已核销=达成率口径 ≥0.90（≥18/20）+ L4-4/F-01（acc-02「五要素」→「三通道规格」）；六段零漂移机判在档 |
+| 工程 | `games/line4-unblock-jam/`：五件脚手架 @ `aff6fd0` + **approve 后四实体灌实（lot/car/exit/director @ `402919f`，谱系 20 局 seeds 42..61 全可解机判）+ 8 条 checks 转真**；telemetry 6 键≡spec 三列机判 / 计数控名人+pending 恒等 / HUD F1~F4 / sha 重锚，历史证据 `.myrd/blackboard/gate-logs/line4-continuity-20261024/` |
 | 产线 | ts-canvas 判例平移（零外部贴图 · 零 npm 依赖 · 确定性内核 mulberry32 + fixed-step） |
 
 ## 关卡谱系（v0 结构冻结 · 数值见 spec numeric）

@@ -27,6 +27,22 @@
 > **14:00 检查点结论：四条件 4/4 齐 → 正式审查通过 → 链 v2 approved 版本锁生效 → 过审链条（灌实+门禁+冒烟）当日走完。**
 > 单列待采（不计绿不阻塞）：a3 真人 5 名（0/5 · 终裁归主人）· wx 宿主面 host-wx/（移植轮落地件）。
 
+## 独立复核轮（2026-10-25 · 游戏程序署名 · 五门禁本机复现 + 平台 approved 实测 + 分支推送）
+
+> 背景：10/25 交付包五项交付已由前序执行落盘（`402919f` + `17ed50b`）。本轮程序侧**独立复核**：不采信任何日志文字，只认本机实跑——「写没写」之外验证「跑不跑得绿」。
+
+| # | 复核项 | 方法 | 结果 |
+|---|---|---|---|
+| 1 | 主人 approve 真伪（决定性） | `GET /api/v1/game-design-specs/:id`（Bearer，凭据不落盘） | **HTTP 200 实测：`data.spec.status=approved · version=2 · updatedAt=2026-10-24T08:43:25.904Z`**，id/parentSpecId 与仓内导出件逐字节同值 → 链上唯一 approved 成立，非本地伪记 |
+| 2 | 契约门禁 | `node scripts/contract-check.mjs --spec .myrd/spec/line4-unblock-jam/design-spec.json --project games/line4-unblock-jam` | **29 PASS / 0 FAIL · exit 0**（与前轮 07 号日志同口径同值） |
+| 3 | 自有套件 | 8 条 acceptance checks + ac-template 逐件实跑 | **9 件全 exit=0**（聚合 49 PASS 断言，逐件计数见日志） |
+| 4 | 冒烟 + 移植门禁 | `tools/smoke.mjs` / `tools/port-gate-checklist.mjs --target web\|wx` | SCAFFOLD-SMOKE **4/4** · PORT-GATE web/wx 双 PASS（FAIL=0） |
+| 5 | 一键复跑口（本轮新增） | `games/line4-unblock-jam/verify.sh`（wheat-squad 判例同型薄壳：契约→套件→冒烟→移植门禁，exit 全透传，`GATE_LOG_DIR=` 落证据） | **首跑 12 步全 PASS · exit 0**（WX=1 含 wx 口径）——后续任何人/工作流一条命令可复现本轮全部结论 |
+
+- **证据**：`.myrd/blackboard/gate-logs/line4-verify-rerun-20261025/`（00 manifest + 01 契约 + 02 套件 + 03 冒烟 + 04/05 移植门禁 + 06 verify.sh 全跑 + 07 平台 GET 原文，四要素齐：命令原文+时刻+exit+输出）。
+- **分支推送**：`myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` 前轮两笔 + 本轮复核笔已推远端——部署硬前置「分支在远端」补齐（export/web 未产出，真实上线仍待触发，见下）。
+- **待触发不变**：export/web 首批导出面产出（实现轮）→ 工作流 deploy 节点以 `games/line4-unblock-jam/apphost.toml` manifestPath 真实上线 → a3 真人采集窗开（L4-3）。**不冒领部署维持**。
+
 ## 续接核实轮（2026-10-24 · 游戏程序署名件）
 
 前轮（`4f4053f` 包1五件+美术三件 / `aff6fd0` 包2包3+轮末收口）产物逐项机核，**全部复核成立，零重复实现**：
