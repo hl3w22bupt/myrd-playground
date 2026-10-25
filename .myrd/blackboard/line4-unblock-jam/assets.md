@@ -128,3 +128,18 @@
 - 证据目录：`.myrd/blackboard/gate-logs/line4-art-reverify-20261025/`（台账件 manifest-art.txt sha256 前 16 位 `a905ad71eee577ea`；本区约定=工作区本地留存不入 git）（00 HEAD+脚本 sha 对账 · 01/02 desk-check 两跑 · 03 前提专检 · verify/ 13 件门禁原文+manifest · 04 PL3 重核对 · manifest-art.txt 台账）。
 
 ——游戏美术（approved 态复证）
+
+### 勘误轮接替复证（2026-10-25 · `c983817` 后 · 美术署名）
+
+> 程序驳回勘误轮（审查意见五项落办）落在本轮 §六 之后：spec **零改动**（链 v2 approved 版本锁不受影响）；五项均程序/文档面，零美术分工项。判定前提未失效 → §六 A1–A6 结论平移，本轮做接替复证三跑 + 一处口径接替认领。
+
+| # | 接替复证项 | 结果 |
+|---|---|---|
+| B1 | desk-check 全表 @ `c983817` 重跑：PASS=14 FAIL=0 FINDING=0 · exit 0（c983817 未触 assets.md/spec/theme.ts，五对账面零漂移） | ✅ |
+| B2 | 前提专检 6/6 · exit 0（QA verdict 被勘误 8 行后，D3b「资产 id 冻结」claim 仍机判成立） | ✅ |
+| B3 | verify.sh 全量本机重跑（WX=1）：**13 步全 PASS · exit 0**，含强化后 acc-04 **PASS=10/0**（红轮边界 +2 断言）与 acc-05 **PASS=4/0**（零外部贴图维持） | ✅ |
+| B4 | **口径接替认领（驳回项5）**：本文件 §六 A3 行「冒烟」按勘误口径精确化 = SCAFFOLD-SMOKE/门禁套件冒烟，**非工作流 deploy 冒烟**（真实 deploy 冒烟待实现轮 export/web 产出后由工作流 deploy 节点补跑）；美术登记面不含任何部署主张 | ✅ 认领 |
+
+- 证据追加：`…/line4-art-reverify-20261025/`（05 head+desk-check 日志 · 06 前提专检 · verify-c983817/ 13 件门禁原文+manifest；与 05 前跑 verify/（ef45565 锚）分目录并存）。
+
+——游戏美术（勘误轮接替复证）
