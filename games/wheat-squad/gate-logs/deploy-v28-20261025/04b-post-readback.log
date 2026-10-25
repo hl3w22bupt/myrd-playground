@@ -1,0 +1,6 @@
+topKeys= createdAt,currentDeploymentId,deployments,description,id,liveUrl,name,ownerId,projectId,publishedAppId,runtime,slug,sourceId,sourceType,status,updatedAt
+currentDeployment= undefined
+status= ready liveUrl= https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/ currentDeploymentId= cmvluuykm0039m94i800xa9wl
+deployments count= 20
+{"id":"cmvno956p00mhm9gbpf0zn2bo","version":28,"status":"building","commitHash":null,"gitRef":"game/wheat-squad","errorMessage":null,"durationMs":null,"createdAt":"2026-10-25T10:15:21.985Z"}
+{"id":"cmvluuykm0039m94i800xa9wl","version":27,"status":"running","commitHash":"5544416a1075fc03f6fb6130f94d2652c20e3c15","gitRef":"game/wheat-squad","errorMessage":null,"durationMs":841,"createdAt":"2026-10-24T03:44:45.190Z"}

@@ -1,0 +1,10 @@
+app.status= ready currentDeploymentId= cmvno956p00mhm9gbpf0zn2bo
+{
+ "id": "cmvno956p00mhm9gbpf0zn2bo",
+ "version": 28,
+ "status": "running",
+ "commitHash": "9b65c59a2565731090d0bb778e5818aec88ac6d3",
+ "gitRef": "game/wheat-squad",
+ "errorMessage": null,
+ "durationMs": 832
+}
