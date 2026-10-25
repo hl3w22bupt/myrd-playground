@@ -107,3 +107,24 @@
 | R5 | draft 态零图合规维持（C7：assets/ 位图数=0）；素材产出仍待 L4-1 对**链 v2** approve | ⏸ 合规态 |
 
 ——游戏美术（desk-check 复证）
+
+---
+
+## 六、approved 态复证轮（2026-10-25 · 10/25 交付包任务书重派 · 美术署名）
+
+> 判定前提变化（链 v2 draft → **approved**，主人 2026-10-24T08:43:25.904Z 拍板 · `402919f` 回写状态锚）+ 他线三笔触契约/门禁层（`402919f` 四实体灌实 / `17ed50b` apphost / `ef45565` verify.sh）→ 按跨线重证纪律在当前 HEAD `ef45565` 复证而非重做。**零素材产出、零接线、零源面/spec 触碰**（变更面=本段+证据目录）。
+
+| # | 复证项 | 结果 |
+|---|---|---|
+| A1 | **desk-check 全表对 approved 态重跑 @ `ef45565`**：PASS=14 FAIL=0 FINDING=0 · exit 0（校验脚本 sha256 对账：v1 原件冻结、本轮 v2 仅 C6b 作用域修正，见下判例行） | ✅ |
+| A2 | **前提专检 6/6**：状态锚双 approved（updatedAt=主人拍板时点）· **七段本体对链 v2 入链 payload 逐段深等=上轮结论平移合法** · 跨线头部认领 D3a/b/c · acc-05 语义（engine 零外部贴图 + assets 全件 generated） | ✅ |
+| A3 | **verify.sh 全量门禁本机重跑**（WX=1）：12 步全 PASS · exit 0（契约 46 断言 + 8 checks 转真 + 冒烟 + 移植门禁 web/wx）——他线触契约/门禁层后的美术轮重证 | ✅ |
+| A4 | **C6b 作用域判例**（发现即披露）：首跑 FAIL=1（car.ts 注释两处 `#EF4444` 引注）→ 目检裁定=注释属可追溯性标注、非渲染取色（可执行面用 `color:'red'`+token 单源；沿「签名/模板字面量不判违规」同构判例）→ v2 剥注释重扫，**非弱检**（可执行面规则零放宽）；v1 首跑原样留档 exit=1，v1/v2 差异全解释 | ✅ 无缺陷登记 |
+| A5 | **R5 接替判定**：approved 后零图态语义刷新——「draft 态待审零图」→「**approved 后贴图素材为零仍是合规结论**」（acc-05 验收条原文：源文件零位图构造、资产全部程序化生成入 manifest；勿把 approved 误解为要补产贴图） | ✅ 合规态 |
+| A6 | **P1-4 PL3 只读重核对**：game-art 6/6 + style-sketch 3/3 = **9/9 全在位**（basename 归一），与晨间美术署名登记一致零漂移，风格卡 v1 未动 | ✅ |
+
+- **资产 id 冻结态复核**：与 QA 检查点条件④一致——冻结 = 风格卡 v1 四要素 + a01–a06 id↔落点↔expect 三联（a04↔g-01 挂接实证维持）；**冻结 ≠ 已生成**。
+- **边界重申**：本轮（10/25 交付包 = spec 质量门锁定）不含首批资产生成；生成 =「过审版落地轮」开工项，届时按 acc-05 走确定性生成器（程序化产出 + manifest 逐件 hash + 重生成 hash 不变），src/ 位图引用持续为零，超出 §二 清单的资产须走 revision 增补。
+- 证据目录：`.myrd/blackboard/gate-logs/line4-art-reverify-20261025/`（台账件 manifest-art.txt sha256 前 16 位 `a905ad71eee577ea`；本区约定=工作区本地留存不入 git）（00 HEAD+脚本 sha 对账 · 01/02 desk-check 两跑 · 03 前提专检 · verify/ 13 件门禁原文+manifest · 04 PL3 重核对 · manifest-art.txt 台账）。
+
+——游戏美术（approved 态复证）
