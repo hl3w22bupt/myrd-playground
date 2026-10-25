@@ -4,7 +4,10 @@
 任务涉及对应领域时，**优先通过 Skill 工具按名调用**；若当前 CLI 没有技能调用工具（或工具被白名单移除），再用 Read 完整读取该技能的入口文件，并遵循其中的规范与验证协议。
 
 - **Verification** — `.myrd-platform/.claude/skills/Verification.md`
+- **myrd-standard-code-review** — `.myrd-platform/.claude/skills/myrd-standard-code-review.md`
 - **myrd-platform-skill** — `.myrd-platform/.claude/skills/myrd-platform-skill.md`
+- **experience-harness** — `.myrd-platform/.claude/skills/experience-harness/SKILL.md`
+- **experience-review** — `.myrd-platform/.claude/skills/experience-review/SKILL.md`
 - **godot-game-dev** — `.myrd-platform/.claude/skills/godot-game-dev/SKILL.md`
 - **lark** — `.myrd-platform/.claude/skills/lark/SKILL.md`
 - **onboarding-review** — `.myrd-platform/.claude/skills/onboarding-review/SKILL.md`
