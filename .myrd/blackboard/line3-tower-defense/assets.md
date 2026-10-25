@@ -1,6 +1,8 @@
 # 资产清单黑板 — line3-tower-defense（第三产品线）
 
-> 更新时间：2026-10-18（美术复证轮 2 · 重派零新做 · 全量重证绑 HEAD 6fe2c9b5；**同日勘误轮：verify 行补档复跑 @ `72be5f1` + 构建锚面归一回部署锚 `a27ca0e`，见全量门禁行勘误标记**）· 负责人：游戏美术（四要素/方向稿）+ 游戏程序（生成器/manifest）
+> **10/25 资产落库只读核对（P1-4 · 美术署名动作 · 风格卡 v1 零动不新增发挥）**：manifest ↔ 实存 **9/9 全在位**（game-art 6 件 + style-sketch 3 方向稿，零缺失零多出）；palette 镜像链 **8/8 全等**（spec.numeric.palette → kernel/config.MIRRORED → render/theme.ts 零裸 hex 判例形态确认）；缺口=零，**无缺陷登记**。仓库注册：PL3 仓库注册给美术=黑板登记制（本文件+blockers.md 通道，两方 10/17-10/18 已实际使用）。
+>
+> 更新时间：2026-10-25（10/25 交付包轮 P1-4 · 只读核对登记；下接 2026-10-18 美术复证轮 2 · 重派零新做 · 全量重证绑 HEAD 6fe2c9b5；**同日勘误轮：verify 行补档复跑 @ `72be5f1` + 构建锚面归一回部署锚 `a27ca0e`，见全量门禁行勘误标记**）· 负责人：游戏美术（四要素/方向稿）+ 游戏程序（生成器/manifest）
 > 下一步：W-L3-2 主人过目三方向拍板（采纳方向 2/3 须走 spec revision 改 deriveRule）→ 实现轮资产逐件登记（首批 ≤13 件封顶，ac-art-2）
 > 判例：与产品线 2 风格卡**分文件**（线 2 = `.myrd/blackboard/wheat-squad/style-card-v1.md`，互不引用互不覆盖）；色值改动必须走 spec revision（沿 wheat-squad 判例）
 

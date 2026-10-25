@@ -3,6 +3,19 @@
 > 口径：一游戏一子目录判例（顶层三件套属 game-9 存量，零触碰）；本索引 = 全线一页视图。**本轮权威组合全景 = 下表**；上轮（2026-10-23 组合推进轮）全景降档至其后，原文保留。
 > 产品线编号（实证落位）：**PL1=pixel-fives（足球线）· PL2=g2-blocks · PL3=line3-tower-defense · PL4=line4-unblock-jam（本轮立项，slug 定死）**。
 
+## 组合全景（2026-10-25 · **10/25 交付包轮：PL4 spec 质量门锁定** · 主策划整合 · 权威）
+
+| 线 | 状态 | 本轮动作 | 关键产物 |
+|---|---|---|---|
+| **PL1 pixel-fives《像素街机足球》** | 底账清（已销案 · 零接触） | 无（红线：不动已销案底账） | — |
+| **PL2 g2-blocks《熔炉方块》** | **退「打磨中」（R3）维持** · P0-3 收口跟踪已出 QA 二选一结论：**pending 登记**（10/18 后 wx 侧复跑记录核原文「给不出」：dy 口径四段 + 终审件 L20 G-4 原文 + 本仓 git 零命中）；升级件②（凭证 AppID/上传私钥/类目资质 + 材料清单）已发 | 凭证未到位止步材料清单，不越权提审（红线） | `escalation-owner-pack-20261025.md` 件②③ · `g2-blocks/gate-logs/sha-answer-rerun-20261018/` |
+| **PL3 line3-tower-defense《敌潮将至(工作名)》** | **待主人试玩**（零回流件维持止步不空转）· **P1-4 资产落库只读核对全绿**：manifest↔实存 9/9（game-art 6 + style-sketch 3）· palette 镜像链 8/8 全等（spec→config.MIRRORED→theme.ts）· 风格卡 v1 零动零新增；升级件①（试玩催办+5 局真人样本一人一票理由原话入档）已发 | 仓库注册给美术=黑板登记制（两方实际使用中）；反馈回流走既定版本链不打断 PL4 | `line3-tower-defense/assets.md` 10/25 登记段 |
+| **PL4 line4-unblock-jam《挪出一条路(工作名待主人定)》** | **spec 质量门锁定（今日主线完成）**：链 v2 `cmvlrc0ma001tm94ialxeykjn` **approved 唯一**（主人 10-24 拍板实测回写）→ 检查点四条件 **4/4 齐** → 四清单零打回 → 契约 8 checks 转真 46 断言全绿 → 门禁 **29 PASS/0 FAIL exit 0** → deploy 冒烟（smoke 4/4 + port-gate web/wx P-02 ✓）；**四实体灌实**（lot/car/exit/director · 谱系 20 局全可解） | 14:00 检查点结论=正式审查通过；单列待采：a3 真人 0/5（终裁主人）· wx 宿主面（移植轮）· 谱系参数 PEND（首批数据后 revision） | `qa-checkpoint-verdict-20261025.md` · `v0.2-review-submission-20261025.md` · `gate-logs/line4-gate-20261025/`（11 件原始输出） |
+| 他线（wheat-squad / stack-tower / game-9 / 糖果线） | 零接触维持 | — | — |
+
+**升级主人（打包已发）**：件① PL3 试玩催办 + 5 局真人样本参与请求；件② PL2 凭证呈报 + 提审材料清单（随 `escalation-owner-pack-20261025.md`）。
+**PL5 预研触发器**：T1 已成立（PL4 过审）→ T2 明晨（10/26）带数据出处新鲜简报 → T3 调研问题清单 → T4 选型三问 → T5 QA 二次会签避让（见 line4 子黑板 blockers.md 触发器表）。
+
 ## 组合全景（2026-10-24 选型落档 + spec v0 执笔轮收口时点 · 权威）
 
 | 线 | 状态 | 本轮动作 | 关键产物 |

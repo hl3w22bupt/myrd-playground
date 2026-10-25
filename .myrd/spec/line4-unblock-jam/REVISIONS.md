@@ -16,3 +16,12 @@
 - 前两次 POST 422（assets 缺 file/source、缺 kind）如实留痕于本轮轨迹，未产生任何链上版本（禁覆盖红线未触碰）。
 - **v2 修订（2026-10-24）**：请求体原件 `spec-v0.2-revision-payload.json` · 响应原件 `spec-v0.2-revision-response.json`（HTTP 201）· 回查后机读契约件导出 `design-spec.json`（`_platform` 锚 v2 draft，parentSpecId=`cmvlpx0uf0019m94iyuroz578`）；v1 回查实测 status=superseded。
 - v2 变更面（机判）：仅 acceptance[g-01-first-60s-guide].statement 与 acceptance[acc-02-exit-feedback-latency].statement 两处 + meta.version（0.1→0.2）+ meta.revision_note（str→array 追加）；entities/levels/numeric/world/assets 五段逐字节零变更。
+
+| 3 | v2（同版） | v0.2 | `cmvlrc0ma001tm94ialxeykjn` | **approved（唯一现行）** | **主人平台侧拍板 approve**（`POST /:id/approve`，version 不变·approve 不产新版本）：平台 GET 200 实测 `updatedAt=2026-10-24T08:43:25.904Z`（北京时间 16:43，上轮 run 收口后）；同 scope 仅 v1(superseded)+v2(approved)，**approved 唯一性成立**。spec 六段本体零变更（本地件与链上 7/7 段逐字节 MATCH 机判）——本行为**链面实测回写记账**（非新版本）；本地导出件 status 锚 draft→approved 同步（2026-10-25） | 2026-10-25（实测回写） |
+
+## approve 后转真记录（2026-10-25 · 10/25 交付包 P0-1）
+
+- 契约门禁两态实证：draft 锚 `SPEC_NOT_APPROVED exit 1`（红线）→ approved 锚 **`29 PASS / 0 FAIL exit 0`**（`gate-logs/line4-gate-20261025/01→07`）。
+- acceptance 8 条 auto check 转真（`tests/contract/checks/`）实跑 **46 断言全 PASS**；a3 真人面单列（0/5 待采，终裁归主人）。
+- deploy 冒烟：scaffold smoke 4/4 + port-gate web/wx 硬检 0 FAIL + **P-02 转 ✓**（两态对照 draft=GATE-NOTE → approved=✓）。
+- 玩法灌实（过审解锁）：四实体落地 `src/entities/{lot,car,exit}.ts` + `src/levels/director.ts`（谱系 20 局全可解 · BFS 解序列稳定 · 红轮三边界执行者）。
