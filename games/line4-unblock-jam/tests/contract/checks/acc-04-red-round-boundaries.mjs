@@ -28,6 +28,15 @@ const f2 = judge({ exited: false, redMoves: B + 5, prevMoves: 0, par: 4, budget:
 t(f1.verdict === 'fail' && f1.shouldDowngrade === false && f1.nextStreak === 1, `失败边界：超预算=fail（首败不降级 · streak=1）`);
 t(f2.verdict === 'fail' && f2.shouldDowngrade === true && f2.nextStreak === 2, '失败边界：连败 2 → downgrade 触发降级回标准轮');
 
+// ③′ 失败边界·驶出不豁免（2026-10-25 驳回项1 指名补测）：exited=true 且 redMoves=B+1 → fail
+// spec 原文：el-red-clear「预算 12 内驶出即通关」/ el-red-fail「超预算即 level.fail」——超预算无豁免。
+const f3 = judge({ exited: true, redMoves: B + 1, prevMoves: 0, par: 4, budget: B, failStreak: 0, downgrade: D });
+t(f3.verdict === 'fail' && f3.shouldDowngrade === false && f3.nextStreak === 1,
+  `失败边界：驶出但 ${B + 1} 步=超预算即 fail（驶出不豁免 · streak=1）`);
+const f4 = judge({ exited: true, redMoves: B + 1, prevMoves: 0, par: 4, budget: B, failStreak: 1, downgrade: D });
+t(f4.verdict === 'fail' && f4.shouldDowngrade === true && f4.nextStreak === 2,
+  `失败边界：驶出超预算 + 连败=2 → downgrade 触发（与未驶出同口径）`);
+
 // ④ 数值锚：budget=12 / downgrade=2 读生成件（断言冻结值不被手抄漂移）
 t(B === 12 && D === 2, `数值锚读生成件（budget=${B} · downgrade=${D}）`);
 

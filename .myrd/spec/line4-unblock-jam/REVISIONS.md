@@ -23,5 +23,5 @@
 
 - 契约门禁两态实证：draft 锚 `SPEC_NOT_APPROVED exit 1`（红线）→ approved 锚 **`29 PASS / 0 FAIL exit 0`**（`gate-logs/line4-gate-20261025/01→07`）。
 - acceptance 8 条 auto check 转真（`tests/contract/checks/`）实跑 **46 断言全 PASS**；a3 真人面单列（0/5 待采，终裁归主人）。
-- deploy 冒烟：scaffold smoke 4/4 + port-gate web/wx 硬检 0 FAIL + **P-02 转 ✓**（两态对照 draft=GATE-NOTE → approved=✓）。
+- 部署面预检（2026-10-25 驳回项5 措辞降格，原「deploy 冒烟」不成立——工作流 deploy 节点未实跑）：scaffold smoke 4/4 + port-gate web/wx 硬检 0 FAIL + **P-02 转 ✓**（两态对照 draft=GATE-NOTE → approved=✓）；真实 deploy 冒烟待实现轮 export/web 产出后工作流 deploy 节点补。
 - 玩法灌实（过审解锁）：四实体落地 `src/entities/{lot,car,exit}.ts` + `src/levels/director.ts`（谱系 20 局全可解 · BFS 解序列稳定 · 红轮三边界执行者）。

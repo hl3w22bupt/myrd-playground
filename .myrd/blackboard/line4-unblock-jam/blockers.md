@@ -27,6 +27,20 @@
 > **14:00 检查点结论：四条件 4/4 齐 → 正式审查通过 → 链 v2 approved 版本锁生效 → 过审链条（灌实+门禁+冒烟）当日走完。**
 > 单列待采（不计绿不阻塞）：a3 真人 5 名（0/5 · 终裁归主人）· wx 宿主面 host-wx/（移植轮落地件）。
 
+## 驳回勘误轮（2026-10-25 · 游戏程序署名 · 审查意见五项逐项落办）
+
+> 驳回主因=红轮边界语义分歧（实现违背 spec 写死面）。**处置路线选择依据**：spec 原文 `el-red-clear`（「redRoundStepBudget=12 内驶出即红轮通关」）与 `el-red-fail`（「红轮步数超预算即 level.fail」）两处**无二义**，不构成「需策划修订语义」的情形 → 按驳回给定的第一选项「程序按 spec 原文改实现」，**不走 revisions**（不动 approved spec 一个字）。
+
+| # | 驳回项 | 落办 | 实证 |
+|---|---|---|---|
+| 1 | 红轮边界「驶出即完成」违背 spec + acc-04 零覆盖该分歧格 | 删除 director.ts#planRedRound 豁免分支；acc-04 补 `exited=true, redMoves=B+1`（首败不降级）与 `+连败2降级` 两条边界断言 | acc-04 **10 PASS/0 FAIL exit 0** |
+| 2 | 「7/7 零漂移」无原件可核（幽灵引用 00-chain-readback-drift.log） | 重跑平台 GET 全文对比：canonical-JSON 排键逐段 sha + deep-equal，六段全文落盘 | **7/7 段字节级 MATCH**，全文原件 `gate-logs/line4-rejection-fix-20261025/09-chain-readback-drift.log`；送审件/verdict 引用改实存 |
+| 3 | 「3 关 12 elements」错账 | 送审件 §2.3 + QA verdict 清单 B 两处改 8（2+4+2，三方同值） | 两文件断言清零「12 elements」 |
+| 4 | design-spec-v0.md 勘误未落盘 + F 编号注记自相矛盾 | L3 链锚/L48 状态 draft→approved 链 v2 落盘；送审件 F 编号改「行序=核销表行序，F 签不连续并披露映射」如实口径 | 七项程序化断言全过（含「无 draft 残留」「v1 仅留档一处」） |
+| 5 | 「deploy 冒烟输出」措辞越界 | QA verdict §三第3条 + REVISIONS 降格为「部署面预检输出」，真实 deploy 冒烟明示待实现轮工作流 deploy 节点补 | 两文件断言清零「deploy 冒烟输出」 |
+
+**勘误后全量复跑**：`WX=1 GATE_LOG_DIR=… bash games/line4-unblock-jam/verify.sh` → **13 步全 PASS exit 0**（`08-verify-fullrun-post-fix.log`）——acc-04 新增断言随全量一起绿。spec 零改动（无 revisions），approved 版本锁（链 v2）不受影响。
+
 ## 独立复核轮（2026-10-25 · 游戏程序署名 · 五门禁本机复现 + 平台 approved 实测 + 分支推送）
 
 > 背景：10/25 交付包五项交付已由前序执行落盘（`402919f` + `17ed50b`）。本轮程序侧**独立复核**：不采信任何日志文字，只认本机实跑——「写没写」之外验证「跑不跑得绿」。

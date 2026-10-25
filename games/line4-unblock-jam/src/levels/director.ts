@@ -150,12 +150,14 @@ export interface RedRoundInput {
   downgrade: number;      // numeric.redRoundFailDowngrade=2
 }
 
-/** 三红轮边界唯一裁判（数值只读 spec.numeric，禁本文件写死第二份） */
+/** 三红轮边界唯一裁判（数值只读 spec.numeric，禁本文件写死第二份）
+ *  语义依 approved spec 写死面：level-2/el-red-clear「redRoundStepBudget 内驶出即红轮通关」、
+ *  level-2/el-red-fail「红轮步数超预算即 level.fail」——驶出不豁免超预算（2026-10-25 驳回项1 勘误，
+ *  删除旧「驶出即完成（预算只影响评价面）」分支：该分支违背 spec 原文）。 */
 export function planRedRound(i: RedRoundInput): { verdict: RedRoundVerdict; shouldDowngrade: boolean; nextStreak: number } {
   if (i.exited && i.redMoves <= i.budget) return { verdict: 'clear', shouldDowngrade: false, nextStreak: 0 };
-  if (i.exited) return { verdict: 'clear', shouldDowngrade: false, nextStreak: 0 };      // 驶出即完成（预算只影响评价面）
   const nextStreak = i.failStreak + 1;
-  return { verdict: 'fail', shouldDowngrade: nextStreak >= i.downgrade, nextStreak };    // 超预算未驶出=fail+降级判定
+  return { verdict: 'fail', shouldDowngrade: nextStreak >= i.downgrade, nextStreak };    // 超预算（驶出亦不豁免）或未驶出 = fail + 连败计数
 }
 
 /** 红轮进入边界（进入谓词独立成函数，acc-04 机判逐条过） */
