@@ -3,28 +3,29 @@
 > 需求 cmvp2c164003em91ku0scqas4：①趋势加载态无终态 ②趋势图无 hover/touch 数值提示 + 附带 t.failed 文案。
 > 本包只交付「怎么验收 + 机器可判项的实测证据」；**四问主观结论一律待用户回填**，验收判定权在人。
 
-## 0. 元信息（2026-10-26 18:36–18:41 实测）
+## 0. 元信息（首轮实测 2026-10-26 18:36–18:41；验收节点终态复验 18:52–18:56）
 
 | 项 | 值 |
 |---|---|
-| 应用 | 今日汇率（实用工具 · AppHost HostedApp id `cmvaf7imm000hm94lw6y43t0q`，slug `myrdplaygrou`） |
+| 应用 | 今日汇率（实用工具 · AppHost HostedApp id `cmvaf7imm000hm94lw6y43t0q`，slug `myrdplaygrou`，status=ready） |
 | liveUrl | https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/ （跟随 308 → 200） |
-| 分支 | myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu，本地 HEAD = 远端 FETCH_HEAD = `e9c0055`（已快进同步） |
-| 部署版本核验 | 线上 `api/public/assets/app.js` HTTP 200，sha256 `e9072c2e8444…8684de5` ≡ 本地 HEAD `webapps/myrdplaygrou/app.js`（**字节级一致，线上即修复版**） |
+| 分支 | myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu（终态复验时本地 HEAD = `15ba6da`，含发布节点门禁终跑提交） |
+| **部署三要素** | HostedApp id `cmvaf7imm000hm94lw6y43t0q` · **deployment id `cmvp3vvbo004bm91kowxtp46j`（v17，createdAt 2026-10-26T10:20:42Z，AppHost API 实查 status=running）** · liveUrl 如上（部署记录见 `qa/mobile/DEPLOY-cmvp2c164003.md`） |
+| 部署版本核验（终态复验） | 线上 `api/public/assets/app.js` HTTP 200，sha256 `e9072c2e8444…8684de5` ≡ 本地 HEAD `webapps/myrdplaygrou/app.js`；线上 index.html 同法对拍 `c1953a0b…` 一致（**字节级一致，线上即 v17 修复版**；终态复验 18:52 重做，非沿用首轮结论） |
 | 目标 id | cmvaf7imr000jm94le9x48zfu |
-| 取证方式 | experience-harness sessiond/session-step（移动 390×844 + 桌面 1280×800 双会话，只产证据不判定） |
+| 取证方式 | 首轮：experience-harness sessiond/session-step（移动 390×844 + 桌面 1280×800 双会话，只产证据不判定）；终态复验：版本哈希对拍 + 门禁复跑核读 + 上线文件静态走查 + 三张实测截图目视核对（同一线上版本字节未变，首轮 M1–M5 行为证据继续有效） |
 
 ## 1. 前置核验事实链
 
 - 门禁判定脚本来源核验：`std-skills/web-app-dev/scripts/webapp-smoke.mjs` 存在于项目仓库（模板预置），未改写；`.myrd-platform/.claude/skills/web-app-dev/` 同名副本仅作阅读，未参与判定。
 - 门禁配置核验：`.myrd/routines.yaml` 存在 `id: webapp-smoke` routine，参数化模板照抄 `std-skills/web-app-dev/references/webapp-smoke-routine.md`，`appPath: webapps/myrdplaygrou` 对齐本工程。
-- preHook 门禁证据：`qa/mobile/report.json`（checkedAt 2026-10-26T10:31:52Z，本分支未提交改动即本轮门禁落盘）+ `qa/mobile/phase-load.png` / `phase-tap.png`。
+- preHook 门禁证据：`qa/mobile/report.json` + `qa/mobile/phase-load.png` / `phase-tap.png`。**v17 上线后共两轮 PASS**：① 发布节点终跑 checkedAt `2026-10-26T10:49:05Z`（已随 commit `15ba6da` 入库）；② 验收节点 preHook 复跑 checkedAt `2026-10-26T10:51:41Z`（工作区落盘，与 ① diff 仅 checkedAt，判定不变）。本验收以 ② 为本节点前置证据。metrics.textHead 首屏实拉「数据源 open.er-api.com · 数据日期 2026-10-26 · 最后更新 10-26 1…」——生产环境当日数据。
 
 ### 1.1 门禁证据完整阅读记录（不只看 verdict）
 
-verdict = **PASS**，6 项 check 全 pass。但按证据全文通读，存在以下**不粉饰的瑕疵**（不影响 PASS 判定的机器口径，但记录在案）：
+verdict = **PASS**，6 项 check 全 pass。但按证据全文通读，存在以下**不粉饰的瑕疵**（不影响 PASS 判定的机器口径，但记录在案；**两轮报告 10:49 / 10:51 同样存在**，终态复验已逐项复核确认）：
 
-1. **pass 态却拼接失败提示语（文案缺陷，沿用既有形态）**：render / content / touch-pipeline 三项的 detail 均为「失败时才该出现」的提示文本（如「页面没渲染出来（白屏/黑屏）」「结构没挂载或被壳挡住」「事件没到页面=壳层挡了输入」），与同项的 pass 状态及 metrics 实况（色 11 种非纯色、innerText 628 字、tap/swipe 计数器均已派发）相矛盾。这是报告生成器的模板拼接问题，非应用缺陷。
+1. **pass 态却拼接失败提示语（文案缺陷，沿用既有形态）**：render / content / touch-pipeline 三项的 detail 均为「失败时才该出现」的提示文本（如「页面没渲染出来（白屏/黑屏）」「结构没挂载或被壳挡住」「事件没到页面=壳层挡了输入」），与同项的 pass 状态及 metrics 实况（色 11 种非纯色、innerText 628 字、tap/swipe 计数器均已派发）相矛盾。这是报告生成器的模板拼接问题，非应用缺陷。判定以 status+metrics 为准，判定器不改写仅留痕。
 2. **tapDiff=1**：tap 后画面量化差异仅 1（tap 点落在页面空白处，无视觉反馈可观测）。本应用为信息工具页，tap 无画面变化属预期事实，此处如实记录供人工复核参考。
 3. **content 项 detail 与 metrics 矛盾**：detail 称「无 img/svg/form/button 等内容元素」，而 `hasContentElement: true`（趋势 SVG 实际存在）。同为模板文案问题。
 
@@ -39,6 +40,20 @@ verdict = **PASS**，6 项 check 全 pass。但按证据全文通读，存在以
 | M5 | 触控目标 ≥44×44px | probe `getBoundingClientRect` | 趋势图 SVG 命中层移动端 324×132px、桌面 517×210px（图表容器 `min-height:200px` 全宽），**远超 44×44**。注：全站其余按钮未逐一实测，静态口径见 style-card「触控目标 ≥44」约束 |
 | M6 | t.failed 文案 | 静态走查（HEAD app.js） | error 态文案 `趋势数据获取失败，请检查网络后重试`（retryable=true，语义一致）；另有提示型 `趋势数据不完整，请重试`。**真实网络失败态未做行为触发**（备源链路在真实环境难稳定触发），此为静态核验口径 |
 | M7 | 修复代码在位 | 静态走查 | fx-trend-bug-load（四态状态机，任何路径显式关掉其余态）+ fx-trend-bug-tip（pointermove/pointerdown 双通道 + pointercancel 收起 + 读屏同步）+ error 态重试入口，注释与实现一致 |
+
+### 2.1 验收节点终态复验（本节点亲测，2026-10-26 18:52–18:56）
+
+发布节点在首轮验收之后又做过一次门禁终跑并提交（HEAD 前进至 `15ba6da`），故本节点**不沿用首轮结论**，重新取证：
+
+| # | 复验项 | 方法与结果 |
+|---|---|---|
+| R1 | 线上版本 = 修复版 | 线上 `api/public/assets/app.js` sha256 `e9072c2e…` ≡ 本地 HEAD `webapps/myrdplaygrou/app.js`；index.html 同法对拍 `c1953a0b…` 一致（跟随 308、经壳资产路由，HTTP 200） |
+| R2 | 部署三要素 | AppHost API `GET /api/v1/apphost/apps`（token 实查）：HostedApp `cmvaf7imm000hm94lw6y43t0q` status=ready，deployments 含 `cmvp3vvbo004bm91kowxtp46j`（createdAt 2026-10-26T10:20:42Z，status=running），liveUrl 与固定参数一致 |
+| R3 | 门禁复跑判定 | preHook 10:51:41Z 报告全 6 项 pass（§1.1 瑕疵项两轮一致，均已留痕） |
+| R4 | 状态机/tooltip 标记在上线产物 | 上线 index.html 含 `trendError`×2、`trendTip`×2、`trendRetryBtn`×1；「趋势数据加载中」在 app.js / index.html 各仅 1 处（loading 态渲染分支，非全局残留） |
+| R5 | 行为证据图证目视核对 | `rv-trend-tooltip-touch.png`（2026-10-21 · 1 CNY ≈ 0.14979 USD + 竖参考线 + 高亮点）、`rv-trend-terminal-state-mobile.png`（success 终态无加载残留、▲ 红涨三重编码）、`rv-trend-tooltip-desktop.png`（双列布局 + $14.98 大字号 + 溯源行「数据日期 2026-10-26 · 将于 19:10 自动刷新」+ tooltip）三张均已逐张查看，与 M1–M3 记载一致 |
+
+> 复验边界：R1–R5 为版本/静态/证据核对口径；真实网络失败态（error 态重试闭环）仍未做行为触发（同 M6 备注），以静态走查 + 实现自测记录（`.myrd/trend-fix-selftest*.json`，22/22）为据。
 
 ## 3. 使用指引（怎么用、看什么）
 
@@ -82,15 +97,18 @@ verdict = **PASS**，6 项 check 全 pass。但按证据全文通读，存在以
 
 | 文件 | 说明 |
 |---|---|
-| `qa/mobile/report.json` + `phase-load.png` / `phase-tap.png` | preHook webapp-smoke 门禁证据（本轮落盘，PASS） |
+| `qa/mobile/report.json` + `phase-load.png` / `phase-tap.png` | preHook webapp-smoke 门禁证据（v17 两轮 PASS：10:49 发布终跑已入库 + 10:51 验收 preHook 复跑） |
 | `qa/mobile/rv-trend-terminal-state-mobile.png` | M1 移动加载终态（无「加载中」残留） |
 | `qa/mobile/rv-trend-tooltip-touch.png` | M2 移动触摸 tooltip（日期+汇率） |
 | `qa/mobile/rv-trend-tooltip-desktop.png` | M3 桌面输入 tooltip（日期+汇率） |
+| `qa/mobile/DEPLOY-cmvp2c164003.md` | 部署与门禁留痕（deployment id、gitRef、v16→v17 演进、上线核验） |
 | `webapps/myrdplaygrou/.myrd/style-card.md` | 风格基准（四问③对照物） |
 | `webapps/myrdplaygrou/.myrd/fix-notes-cmvp2c164003.md` | 前置节点根因取证/修复口径 |
+| `webapps/myrdplaygrou/.myrd/trend-fix-selftest.json` / `trend-fix-selftest-r2.json` | 实现节点两轮自测记录（10/10 与 22/22，含重试闭环/竞态连切/降级缓存） |
 
-## 7. 平台 artifacts 回写状态（本节点增量上报，不粉饰）
+## 7. 平台 artifacts 回写状态（本节点已亲自写回，2026-10-26 18:5x 实测）
 
-- **review_kit 条目未能写入目标 artifacts**：`GET /api/v1/goals/cmvaf7imr000jm94le9x48zfu` 返回 403 `FORBIDDEN「无权访问」`（requestId `req_1793011551206`，2026-10-26 18:47 实测；`/api/v1/goals/:id/artifacts` 端点 404）。与本分支前置提交 e9c0055 上报同因：**workflow 身份无 goal 读写权限**，运维需给该身份补 goal scope。
-- 部署三要素已在 artifacts（无需重复回写）：HostedApp id `cmvaf7imm000hm94lw6y43t0q`、deployment id `cmvp3vvbo004bm91kowxtp46j`（v17，mode=bundle，commit `7b7848b`）、liveUrl——由部署 API `POST /api/v1/apphost/apps/:id/deployments` 的 goalId 联动在 deploy 节点写入（见 `qa/mobile/DEPLOY-cmvp2c164003.md`）。
-- 待有权限方一键落账：`GET /api/v1/goals/cmvaf7imr000jm94le9x48zfu` → artifacts 数组**追加**（不覆盖既有条目）一条 `op=review_kit, artifactType=review_kit, artifactId=REVIEW-KIT-cmvp2c164003, status=completed`，detail 指向本文件路径 `webapps/myrdplaygrou/qa/review/REVIEW-KIT.md`（含四问检查单待回填口径）→ 整体 PATCH 写回。
+- **前序受阻已解除**：首轮执行时 `GET /api/v1/goals/:id` 曾 403（workflow token 无 goal 权限，见本分支提交 `6ea4765` / `e9c0055` 上报）；本节点复测同端点返回 **200**——运维已补权限，无需再代为落账。
+- **本轮回写已成功并回读校验**：`GET → artifacts 数组追加一条 → 整体 PATCH /api/v1/goals/cmvaf7imr000jm94le9x48zfu`，PATCH 200；回读 22 条（原 21 条逐字节无变化，diff 为空），新条目 `op=review_kit, artifactType=review_kit, artifactId=review-kit-cmvp2c164003-trend-fix, status=pending_user_review`，detail 含部署三要素 / 版本哈希对拍 / 门禁两轮 PASS 与瑕疵留痕 / M1–M5 机器可判项 / 四问待回填口径，并指向本文件。
+- 部署三要素此前已由 deploy 节点经部署 API goalId 联动在 artifacts（`deploy_tool` 条目 `cmvp3vvbo004bm91kowxtp46j` 等）；本条 review_kit 与其并存，不覆盖。
+- 检查单状态：**待用户验收**。收到用户四问作答 + 缺陷清单后，再按「追加不覆盖」纪律回写 `op=review_feedback` 条目；迭代修复走目标下一轮，不在本节点内代改。
