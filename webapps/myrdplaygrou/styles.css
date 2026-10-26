@@ -196,14 +196,44 @@ body {
 .trend-change.down { color: var(--down); }
 
 .chart-wrap { position: relative; min-height: 200px; }
-#trendChart { width: 100%; height: auto; display: block; }
+#trendChart { width: 100%; height: auto; display: block; touch-action: pan-y; }
 .trend-loading, .trend-error {
   position: absolute; inset: 0;
   display: grid; place-items: center;
   font-size: 14px; color: var(--ink-soft);
 }
+/* 作者样式的 display:grid 特异性压过 UA 的 [hidden]{display:none}，必须显式恢复，否则
+   加载/终态文案会视觉常驻（需求 cmvp2c164003 缺陷①的视觉兜底） */
+.trend-loading[hidden], .trend-error[hidden] { display: none; }
 .trend-error { color: var(--warn); }
 .chart-cap { font-size: 13px; color: var(--ink-soft); }
+
+/* ---------- 趋势图 hover/touch 数值提示（需求 cmvp2c164003 缺陷②） ---------- */
+.fx-chart-tip {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 12px));
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  padding: 7px 12px;
+  background: var(--ink);
+  color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(12, 42, 63, 0.28);
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 5;
+  font-variant-numeric: tabular-nums;
+}
+.fx-chart-tip[hidden] { display: none; }
+.fx-chart-tip .tip-date { font-size: 12px; opacity: 0.82; }
+.fx-chart-tip .tip-rate { font-size: 14px; font-weight: 700; }
+
+/* 仅供屏幕阅读器的提示同步文本 */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  clip: rect(0 0 0 0); clip-path: inset(50%);
+  overflow: hidden; white-space: nowrap;
+}
 
 .page-foot { text-align: center; font-size: 13px; color: var(--ink-soft); padding-top: 8px; }
 

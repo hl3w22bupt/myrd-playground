@@ -186,18 +186,31 @@ function renderFreshness() {
 /* ---------- 趋势：SVG 折线图 ---------- */
 const CHART = { W: 640, H: 260, PAD: { t: 18, r: 14, b: 30, l: 14 } };
 
+/** 趋势记录有效性：dates 与 rates 必须同为数组、长度≥2 且一一对应。
+ * 需求 cmvp2c164003：缓存兜底记录可能缺 dates（旧格式/半写损坏），无效缓存不得进入渲染管线。 */
+function isValidTrend(rec) {
+  return !!rec && Array.isArray(rec.dates) && Array.isArray(rec.rates)
+    && rec.dates.length >= 2 && rec.rates.length === rec.dates.length;
+}
+
 function renderTrend() {
   const svg = els.trendChart;
   svg.innerHTML = "";
+  hideTrendTip();
   els.trendLoading.hidden = true;
   els.trendPair.textContent = `${state.from} → ${state.to}`;
   els.chartCaption.textContent = state.range === 7 ? "近 7 天走势（公开汇率 API）" : "近 30 天走势（公开汇率 API）";
 
   const t = state.trend;
-  if (!t || !t.dates || t.dates.length < 2) {
+  // 终态判定（需求 cmvp2c164003）：仅「尚无结果」才算加载中；
+  // 凡已有结果但数据不可用（failed / samePair / 缓存记录缺 dates 等损坏形态）都必须给出确定终态文案，
+  // 绝不让「趋势数据加载中…」成为永久停留态。
+  if (!t || !isValidTrend(t)) {
     els.trendLoading.hidden = false;
     els.trendLoading.textContent = t && t.samePair ? "源币种与目标币种相同，换算恒为 1:1，趋势无意义"
-      : t && t.failed ? "趋势数据暂不可用（已展示缓存）" : "趋势数据加载中…";
+      : t && t.failed ? "趋势数据暂不可用（网络获取失败，且无可用缓存）"
+      : t ? "趋势数据暂不可用（缓存记录损坏，请点「刷新」重试）"
+      : "趋势数据加载中…";
     els.trendChange.textContent = "--";
     els.trendChange.className = "trend-change";
     return;
@@ -246,6 +259,113 @@ function renderTrend() {
   const up = pct >= 0;
   els.trendChange.textContent = `${up ? "▲" : "▼"} 区间${up ? "上涨" : "下跌"} ${Math.abs(pct).toFixed(2)}%`;
   els.trendChange.className = `trend-change ${up ? "up" : "down"}`;
+
+  // 交互层数据点：坐标须用本分支闭包内的 x()/y()（模块级函数访问不到），在此构建后传入
+  const pts = dates.map((d, i) => ({ x: x(i), y: y(rates[i]), date: d, rate: rates[i] }));
+  mountTrendInteraction(pts);
+}
+
+/* ---------- 趋势交互：hover/touch 数值提示（需求 cmvp2c164003 缺陷②） ----------
+ * PC 悬停 / 触摸按住或点按图表 → 命中最近数据点，浮层显示「日期 + 汇率数值」；
+ * 命中区为整块图表（渲染尺寸远大于 44×44px 触控最小目标）。
+ * 浮层用 HTML（不受 preserveAspectRatio="none" 拉伸影响）；竖线/高亮点用 SVG 图元（无文字）。 */
+const tipState = { box: null, live: null, pts: [], svgRect: null, keep: false, bound: false };
+
+function ensureTrendTipLayer(svg) {
+  const wrap = els.trendChart.parentElement; // .chart-wrap（position:relative，见 styles.css）
+  if (!tipState.box) {
+    tipState.box = document.createElement("div");
+    tipState.box.className = "fx-chart-tip";
+    tipState.box.setAttribute("aria-hidden", "true");
+    tipState.box.hidden = true;
+    tipState.live = document.createElement("span");
+    tipState.live.className = "visually-hidden";
+    tipState.live.setAttribute("role", "status");
+    tipState.live.setAttribute("aria-live", "polite");
+    wrap.appendChild(tipState.box);
+    wrap.appendChild(tipState.live);
+  }
+  if (!svg.querySelector(".tip-layer")) {
+    const NS = "http://www.w3.org/2000/svg";
+    const g = document.createElementNS(NS, "g");
+    g.setAttribute("class", "tip-layer");
+    g.style.pointerEvents = "none";
+    const line = document.createElementNS(NS, "line");
+    const dot = document.createElementNS(NS, "circle");
+    dot.setAttribute("r", "5");
+    dot.setAttribute("fill", "#0284c7");
+    dot.setAttribute("stroke", "#ffffff");
+    dot.setAttribute("stroke-width", "2");
+    for (const el of [line, dot]) { el.style.display = "none"; g.appendChild(el); }
+    svg.appendChild(g);
+    tipState.line = line;
+    tipState.dot = dot;
+  }
+}
+
+function hideTrendTip() {
+  tipState.keep = false;
+  if (tipState.box) tipState.box.hidden = true;
+  if (tipState.line) tipState.line.style.display = "none";
+  if (tipState.dot) tipState.dot.style.display = "none";
+}
+
+/** 把指针事件换算为 SVG viewBox 坐标并显示最近数据点的提示 */
+function showTrendTipAt(clientX) {
+  const svg = els.trendChart;
+  const rect = svg.getBoundingClientRect();
+  if (!rect.width || tipState.pts.length === 0) return;
+  const sx = ((clientX - rect.left) / rect.width) * CHART.W; // preserveAspectRatio="none"，按渲染宽度线性映射
+  let best = tipState.pts[0];
+  for (const p of tipState.pts) if (Math.abs(p.x - sx) < Math.abs(best.x - sx)) best = p;
+
+  // SVG 高亮：竖线 + 放大点
+  tipState.line.setAttribute("x1", best.x);
+  tipState.line.setAttribute("x2", best.x);
+  tipState.line.setAttribute("y1", CHART.PAD.t);
+  tipState.line.setAttribute("y2", CHART.H - CHART.PAD.b);
+  tipState.dot.setAttribute("cx", best.x);
+  tipState.dot.setAttribute("cy", best.y);
+  tipState.line.style.display = "";
+  tipState.dot.style.display = "";
+
+  // HTML 浮层：日期 + 数值（左右贴边时向内收，避免越界裁剪）
+  const rate = fmtNum(best.rate);
+  tipState.box.innerHTML = `<span class="tip-date">${best.date}</span><span class="tip-rate">1 ${state.from} = ${rate} ${state.to}</span>`;
+  const leftPct = Math.min(88, Math.max(12, (best.x / CHART.W) * 100));
+  tipState.box.style.left = `${leftPct}%`;
+  tipState.box.style.top = `${(best.y / CHART.H) * rect.height}px`;
+  tipState.box.hidden = false;
+  tipState.live.textContent = `${best.date} 1 ${state.from} = ${rate} ${state.to}`;
+}
+
+function mountTrendInteraction(pts) {
+  const svg = els.trendChart;
+  ensureTrendTipLayer(svg);
+  tipState.pts = pts;
+
+  if (!tipState.bound) {
+    tipState.bound = true;
+    const wrap = svg.parentElement;
+    // PC 悬停跟随；触摸按住/点按命中（触控目标 = 整块图表，≥44×44px）
+    wrap.addEventListener("pointermove", (ev) => {
+      if (ev.pointerType !== "mouse") return;
+      showTrendTipAt(ev.clientX);
+    });
+    wrap.addEventListener("pointerdown", (ev) => {
+      tipState.keep = ev.pointerType !== "mouse";
+      showTrendTipAt(ev.clientX);
+    });
+    wrap.addEventListener("pointerleave", (ev) => {
+      // 触摸抬起后的合成 pointerleave 不隐藏：触摸端提示保留可见，直到下一次点按图表外
+      if (tipState.keep && ev.pointerType !== "mouse") return;
+      hideTrendTip();
+    });
+    // 点按图表外 → 收起（触摸端「保留显示」的退出路径）
+    document.addEventListener("pointerdown", (ev) => {
+      if (!wrap.contains(ev.target)) { tipState.keep = false; if (tipState.box) tipState.box.hidden = true; }
+    });
+  }
 }
 
 /* ---------- 数据获取（TTL 过期判定 + 缓存→种子兜底链） ---------- */
@@ -318,8 +438,10 @@ async function fetchTrend() {
     cacheSet(cacheKey, rec);
     cacheSet(LS_KEYS.trend, { pair: `${state.from}:${state.to}`, range: state.range, rec });
   } catch (e) {
+    // 兜底链：仅「有效」的本地缓存可复用（缺陷 cmvp2c164003：旧记录可能缺 dates/rates，
+    // 直接透传会让渲染管线误判为「加载中」而永久停留）；无效缓存视同无缓存 → failed 终态。
     const cached = cacheGet(cacheKey) || (cacheGet(LS_KEYS.trend) || {}).rec;
-    state.trend = cached ? { ...cached, stale: true } : { failed: true };
+    state.trend = isValidTrend(cached) ? { ...cached, stale: true } : { failed: true };
   }
 }
 
@@ -352,7 +474,13 @@ async function loadTrend() {
   els.trendLoading.hidden = false;
   els.trendLoading.textContent = "趋势数据加载中…";
   renderTrend();
-  await fetchTrend();
+  try {
+    await fetchTrend();
+  } finally {
+    // 终态保险（需求 cmvp2c164003）：fetchTrend 任何路径都不应留下 null；
+    // 万一出现未预期异常导致 state.trend 仍为 null，强制落 failed 终态，杜绝「加载中」永久悬挂。
+    if (state.trend == null) state.trend = { failed: true };
+  }
   if (seq !== trendSeq) return;
   renderFreshness(); renderTrend();
 }
