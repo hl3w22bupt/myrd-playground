@@ -1,17 +1,29 @@
 # 阻塞项黑板 — line4-unblock-jam（第四产品线）
 
-> 更新时间：2026-10-25（**10/25 交付包轮：链 v2 approved 实测回写 + 审查链开审**）｜ 负责人：主策划（整合）/ 游戏程序 / 游戏美术 / 游戏 QA ｜ 下一步：链 v2 `cmvlrc0ma001tm94ialxeykjn` **链上已 approved（主人 2026-10-24T08:43:25Z 实测）** → 本轮四清单开审 + 本地账面回写 + deploy 冒烟；灌实玩法轮随 approve 解锁
+> 更新时间：2026-10-26（**10/26 交付包轮：N0 闸门核对 → 可玩基线落地 → N5 过审 → deploy 交接**）｜ 负责人：主策划（整合）/ 游戏程序 / 游戏美术 / 游戏 QA ｜ 下一步：工作流 deploy 节点上线 → 主人试玩 + a3 真人采集窗开
 
-## 当前基线（2026-10-25 · 主策划整合刷新）
+## 当前基线（2026-10-26 · 主策划整合刷新）
 
 | 项 | 值 |
 |---|---|
 | 黑板路径 | `.myrd/blackboard/line4-unblock-jam/`（三件套 · **黑板登记块名写死于此**，spec 缺陷⑥核销锚点） |
-| spec 版本号 | **链 v2 `cmvlrc0ma001tm94ialxeykjn` = approved（唯一现行，平台 GET 200 实测 2026-10-25）**；链 v1 `cmvlpx0uf0019m94iyuroz578` = superseded（同 GET 实测）；同 scope（projectId `cmto0g28j0002m9sqnvjdy8o7`）链上仅此 2 版，**approved 唯一性成立**。approve 动作发生于上轮 run 收口（02:13Z）之后、平台侧 `updatedAt=2026-10-24T08:43:25.904Z`（北京时间 16:43）——判定为**主人亲自链上拍板**；本地导出件此前停留在 draft 锚，本轮回写（spec 六段本体逐字节零漂移机判 PASS，仅 status/updatedAt 两锚更新） |
-| 当前分支与续接 | `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `6b51102`（本轮开工 HEAD）；git fetch 实测远端仅 `origin/main`（孤儿快照线 merge-base=∅ → 沿 10/16 判例不并入，无 rebase，判例维持） |
-| 平台 API | `http://localhost:3111` 本轮实测可达（/api/v1/health 200 · projects 21）；鉴权 = `MYRD_TOKEN` Bearer + cookie 双通道（/api/v1/auth/me 200 · admin 代行身份）；GET 回查 200 留痕 |
-| 产线 | ts-canvas 判例平移 · 零外部贴图 · 零 npm 依赖 |
-| 今日主线 | P0-1 PL4 审查链（四条件核验 → 四清单开审 → approve 已成立回写 → deploy 冒烟）；P0-2 主人升级件×2；P0-3 PL2 收口跟踪；P1-4 PL3 仓库注册+资产核对；P1-5 轮末登记 |
+| spec 版本号 | **链 v2 `cmvlrc0ma001tm94ialxeykjn` = approved（唯一现行，平台 GET 200 实测 2026-10-26 当日复证）**；链 v1 superseded；同 scope 仅 2 版，approved 唯一性成立；本地导出件 7/7 段零漂移机判 MATCH（`gate-logs/line4-n0-gate-20261026/03`）；**本轮 spec 零改动（无 revision）** |
+| 当前分支与续接 | `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `5f9972f`（可玩基线轮）；git fetch 实测远端仅 `origin/main`（孤儿快照线 merge-base=∅ → 沿 10/16 判例不并入，无 rebase，判例维持） |
+| 平台 API | `http://localhost:3111` 可达（specs GET 200 · apphost apps GET 200 实测 2026-10-26）；鉴权 = `MYRD_TOKEN` Bearer |
+| 产线 | ts-canvas 判例平移 · 零外部贴图 · 零 npm 依赖（构建走 node 内置 stripTypeScriptTypes） |
+| 今日主线 | **P0 PL4 实现闭环 N0→N5（本轮已走完至 deploy 交接）**；P1 PL2 终核+升级 / PL3 巡检；P2 PL5 简报 |
+
+## 10/26 交付包轮（2026-10-26 · 主策划署名 · N0→N5 逐节点）
+
+| 节点 | 交付 | 状态与证据 |
+|---|---|---|
+| N0 闸门核对 | ① spec 导出件↔锁定版本：平台 GET 200（v2 approved 唯一）+ 本地件 7/7 段零漂移机判；② 脚手架入库：31 文件全 tracked @ `bc3cd56`、工作树净；③ 落点一致性：契约门禁 29/0 当日复跑 | ✅ `gate-logs/line4-n0-gate-20261026/01..04` |
+| N1 骨架核对 | entities 8 落点/levels 3·elements 8 编号/acceptance 9 check/assets 6 落点逐项 desk-check；**零私建零私改，编号无二义 → 零 revision** | ✅ `games/line4-unblock-jam/docs/spec/n1-skeleton-desk-check-20261026.md` |
+| N2 QA 预核 | 判据↔测试↔断言映射表 + 四看标准 4/4（显式数值非假绿 / pending 单列 / 判据对 acceptance / 一键复跑） | ✅ `games/line4-unblock-jam/docs/qa/n2-precheck-20261026.md` |
+| N3 素材 | 策划：F3 判读细则（HUD 字段/N=20·seeds 42..61/六键通过区间数值化）+ id↔落点四方对照表；美术：**资产六件量产落地**（a01..a06，pnglib 零依赖生成器，双跑逐字节一致，kebab-case 对 id） | ✅ `docs/spec/f3-interpretation-20261026.md` + `assets/`（check-assets 31 断言 PASS） |
+| N4 契约+冒烟 | verify.sh 扩至 **17 步全 PASS exit 0**（新增：06 资产门禁 / 07 确定性构建→`export/web/` 21 文件 / 08 壳契约 guard / 09 可玩面 bot 冒烟 **20/20 通关 68 断言**=F3 六键实测）；引用 id↔文件存在性断言由 01（acceptance 9 条）+06（assets 6 件）双面机判 | ✅ `gate-logs/line4-n4-verify-20261026/01..09+manifest` |
+| N5 互查 | 三份输入齐开审；四清单（一致性 5/完整性 5/可玩性 4/新手引导 4）逐条可核对路径全过 → **过审=可玩基线成立**；a3 真人面单列待采（0/5） | ✅ `games/line4-unblock-jam/docs/qa/n5-crosscheck-20261026.md` |
+| deploy 交接 | apphost 契约件在位（assets_dir=export/web 定死）+ landing.html 壳契约 guard PASS + 构建/冒烟绑 commit；**待工作流 deploy 节点执行上线**（app 坑位需 `POST /api/v1/apphost/apps` 绑 projectId，slug=line4-unblock-jam） | ⏳ 本轮执行（见下节实时回写） |
 
 ## 10/25 交付包轮（2026-10-25 · 主策划署名 · 逐节点落盘）
 

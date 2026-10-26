@@ -1,6 +1,21 @@
 # 资产清单黑板 — line4-unblock-jam《挪出一条路（工作名待主人定）》（第四产品线）
 
-> 更新时间：2026-10-25（**10/25 交付包轮 · 链 v2 approved + 资产 id 冻结核验通过**）· 负责人：游戏美术 ｜ 下一步：**过审版落地轮开首批资产生成**（a01–a06 程序化 · manifest 逐件 hash · 重生成 hash 不变机判）；asset id↔落点↔expect 三联冻结维持（a04↔g-01 挂接实证）
+> 更新时间：2026-10-26（**10/26 交付包轮 · 首批资产六件量产落地**）· 负责人：游戏美术 ｜ 下一步：真人试玩反馈回流后按 revision 口径调资产（拟改先登记本卡，防部署巡检误报）；a01–a06 已在盘，重生成 hash 不变机判维持
+
+## ⓪ 首批量产落地（2026-10-26 · 游戏美术 · 逐件登记）
+
+| spec 资产 id | 落点（kebab-case 对 id） | 规格 | sha256（前 12） | 门禁 |
+|---|---|---|---|---|
+| a01-lot-tiles | `games/line4-unblock-jam/assets/a01-lot-tiles.png` | 144×48 图集 3 帖（地面+网格/网格单元/障碍 4px 圆角） | c280e58157fd | check-assets PASS |
+| a02-car-set | `…/assets/a02-car-set.png` | 384×48 四色档 1×2（8px 圆角 + 12% 投影 offset2） | 1fa47319c7ba | 同上 |
+| a03-exit-gate | `…/assets/a03-exit-gate.png` | 192×48 双态（绿=通/红=堵，2 格宽） | bc759363500f | 同上 |
+| a04-guide-hand | `…/assets/a04-guide-hand.png` | 96×96 引导手指+滑动箭头（g-01 挂件） | 72db18102666 | 同上 |
+| a05-ui-hud | `…/assets/a05-ui-hud.png` | 48×48 九宫底板（8px 边距） | 8c57d16133da | 同上 |
+| a06-sfx-pack | `…/assets/a06-sfx-pack.spec.json` + `assets/audio/{drag,exit,clear}.wav` 派生 | 3 档（拖动/驶出/通关 · 波形/时长/增益数值化） | fe5858f718b4 | 同上（派生 hash 同锚） |
+
+- 生成器：`tools/gen-assets.mjs`（pnglib 零依赖 · 色值单源=theme.ts · **零噪声零时钟零随机**）；manifest 逐件 sha256：`assets/manifest.json`。
+- 确定性机判：同命令重跑整树 diff 逐字节一致 + check-assets 临时目录重生成 hash 全等（31 断言 PASS，`gate-logs/line4-n4-verify-20261026/06`）。
+- 口径披露：a01–a06 为**资产管线件**（清单+manifest 对账）；可玩面渲染为程序化 Canvas 直绘（零位图引用，acc-05 机判），web 音效经 WebAudio 合成（参数镜像 a06 tiers）。
 
 ---
 

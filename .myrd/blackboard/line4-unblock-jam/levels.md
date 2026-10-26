@@ -1,6 +1,16 @@
 # 关卡状态黑板 — line4-unblock-jam《挪出一条路（工作名待主人定）》（第四产品线 · 挪车/挤压超休闲物理解谜）
 
-> 更新时间：2026-10-25（**10/25 交付包轮 · 链 v2 approved 版本锁生效**）· 负责人：主策划（整合）/ 游戏策划（执笔）/ 游戏程序 / 游戏美术 / 游戏 QA ｜ 下一步：**链 v2 `cmvlrc0ma001tm94ialxeykjn` approved（主人 10-24 拍板，实测回写）** → 四实体已灌实（lot/car/exit/director）· 契约 8 checks 转真 29/0 全绿 · a3 真人 5 名待采（终裁归主人）；谱系参数 PEND-待校准随首批真人数据 revision 校准
+> 更新时间：2026-10-26（**10/26 交付包轮 · 可玩基线落地 + N5 过审 + deploy 交接**）· 负责人：主策划（整合）/ 游戏策划（执笔）/ 游戏程序 / 游戏美术 / 游戏 QA ｜ 下一步：工作流 deploy 节点上线 → 主人试玩 + a3 采集窗开；谱系参数 PEND-待校准随首批真人数据 revision 校准
+
+## 10/26 可玩基线增量（本轮）
+
+| 项 | 值 |
+|---|---|
+| web 可玩面 | `src/main.ts` + `src/web/{game,render,input,sfx}.ts` 落地（@ `5b16b2d`）：level-1 教学（g-01 三步引导）→ level-2 红轮首现 → level-proc-gen 日种子谱系；计数控名人经 session 结算通道（零第二写点） |
+| 可玩性机判 | `tools/smoke-playable.mjs`（消费构建产物 export/web）：**20 局 bot 全通关（seeds 42..61 逐局 WIN）· 68 断言 PASS exit 0**——g-01 达成率 1.00、combo 违例 0（逐局审计 55 帧）、红轮接线 2 断言、同帧延迟机制面 0.05ms |
+| 部署面 | `export/web/` 21 文件（确定性构建 · landing.html 壳契约 guard PASS · spec.json 直拷 · manifest.json 对账面）；apphost `assets_dir` 定死落点 |
+| 门禁 | verify.sh **17 步全 PASS exit 0**（新增 06 资产/07 构建/08 壳契约/09 可玩冒烟）；证据 `../gate-logs/line4-n4-verify-20261026/` |
+| 关卡链会话层 | 红轮进入=前关步数 ≤ par（director 谓词透传）；红轮预算 12 步耗尽即 level.fail（超预算无豁免）；连败 2 降级回标准轮（数值全读生成件零手抄） |
 
 ## 线状态（本轮开工时点）
 
