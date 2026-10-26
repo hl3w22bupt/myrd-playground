@@ -137,3 +137,4 @@ verdict = **PASS**，6 项 check 全 pass。但按证据全文通读，存在以
 - **本轮回写已成功并回读校验**：`GET → artifacts 数组追加一条 → 整体 PATCH /api/v1/goals/cmvaf7imr000jm94le9x48zfu`，PATCH 200；回读 22 条（原 21 条逐字节无变化，diff 为空），新条目 `op=review_kit, artifactType=review_kit, artifactId=review-kit-cmvp2c164003-trend-fix, status=pending_user_review`，detail 含部署三要素 / 版本哈希对拍 / 门禁两轮 PASS 与瑕疵留痕 / M1–M5 机器可判项 / 四问待回填口径，并指向本文件。
 - 部署三要素此前已由 deploy 节点经部署 API goalId 联动在 artifacts（`deploy_tool` 条目 `cmvp3vvbo004bm91kowxtp46j` 等）；本条 review_kit 与其并存，不覆盖。
 - 检查单状态：**待用户验收**。收到用户四问作答 + 缺陷清单后，再按「追加不覆盖」纪律回写 `op=review_feedback` 条目；迭代修复走目标下一轮，不在本节点内代改。
+- **第三轮独立复验回写（2026-10-26 19:3x 实测）**：`GET（22 条）→ 末位追加 → PATCH 200 → 回读校验 23 条`，既有 22 条逐条比对无变化；新条目 `review-kit-cmvp2c164003-trend-fix-r3`（op=review_kit, status=pending_user_review），与既有条目并存不覆盖。
