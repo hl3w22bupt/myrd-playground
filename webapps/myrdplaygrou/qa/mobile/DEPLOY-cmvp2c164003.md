@@ -41,6 +41,16 @@
 - 唯一 WARN（非阻断）：「tap 后画面零变化」——脚本自述静态页可为 0；tap 落点为非交互区，属提示性条目
 - v16 轮次同判据 PASS（exit 0，无 WARN）；两轮证据均落本目录 `report.json` + `phase-load.png` / `phase-tap.png`
 
+## 复验轮（2026-10-26，重派独立复检）
+
+- 分支/远端：HEAD `c6de7f5` == `FETCH_HEAD`（远端无新提交，本地无领先），工作区干净
+- 线上即修复版实证：`GET /api/public/assets/app.js` 与本地 `3b1ea65`（=HEAD）**逐字节 diff 一致**；
+  `trendPhase` / `fx-trend-bug-tip` / `showTrendTipAt` / `pointerdown` 标记在 26.8KB 上线文件中齐备
+- `/health` → 200（game-9 共享壳，assets_dir 复用符合预期）；`/` → 308 归一 → 200（HTML 正常，zh-CN + viewport）
+- 部署列表 API 对本 token 返回 403（非 app owner，仅部署口可用）→ 以「liveUrl 200 + 资产==HEAD」作为部署完成证据，**未重复部署**（避免 v17 被无变化记录覆盖）
+- 源码逐条复核三修复落地：① CSS L205 显式 `[hidden]{display:none!important}` 守卫 + `trendPhase` 四态状态机（error 态重试按钮 82×44px≥44×44）；② tooltip 双通道（pointermove=PC hover / pointerdown=移动点按，命中层盖全图、`touch-action:pan-y` 不劫持滚动、读屏走 `trendTipLive` aria-live）；③ `t.failed` 折叠文案已换语义准确的「趋势数据获取失败，请检查网络后重试」
+- **本轮新鲜门禁：WEBAPP_SMOKE: PASS（exit 0，六项全绿，无 WARN）**，证据落本目录 `report.json`（checkedAt 2026-10-26T10:27Z）+ `phase-load.png` / `phase-tap.png`
+
 ## 环境事件（处置记录）
 
 1. 跑门禁前发现 `liveUrl` 整体不可达（curl reset），根因是**本机 Tailscale 已停止**；

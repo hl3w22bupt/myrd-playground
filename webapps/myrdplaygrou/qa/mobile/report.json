@@ -8,7 +8,7 @@
     "mobile": true,
     "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
   },
-  "checkedAt": "2026-10-26T10:22:23.083Z",
+  "checkedAt": "2026-10-26T10:27:44.482Z",
   "checks": [
     {
       "id": "network",
@@ -26,7 +26,7 @@
       "id": "render",
       "label": "首屏截图非纯色（400 点采样 ≥2 种量化色）",
       "status": "pass",
-      "detail": "采样仅 13 种颜色——页面没渲染出来（白屏/黑屏）"
+      "detail": "采样仅 11 种颜色——页面没渲染出来（白屏/黑屏）"
     },
     {
       "id": "content",
@@ -41,12 +41,6 @@
       "detail": "tap={\"touchstart\":1,\"touchmove\":0,\"touchend\":1} swipe={\"touchstart\":2,\"touchmove\":9,\"touchend\":2}——事件没到页面=壳层挡了输入"
     },
     {
-      "id": "touch-response",
-      "label": "触摸后画面有变化或产生新活动（静态页可为 0，仅提示）",
-      "status": "warn",
-      "detail": "tap 后画面零变化——若页面本就无点击交互属正常；有按钮/交互元素则检查事件绑定"
-    },
-    {
       "id": "viewport",
       "label": "无横向溢出（scrollWidth ≤ clientWidth+1）",
       "status": "pass",
@@ -54,8 +48,8 @@
     }
   ],
   "metrics": {
-    "colorCount": 13,
-    "tapDiff": 0,
+    "colorCount": 11,
+    "tapDiff": 1,
     "textLength": 628,
     "hasContentElement": true,
     "textHead": "¥\n今日汇率\n\n数据源 open.er-api.com · 数据日期 2026-10-26 · 最后更新 10-26 1",
