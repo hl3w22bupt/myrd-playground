@@ -19,6 +19,20 @@
 - **F1FIX 复签闭环**：上轮三项待复签（①链证据失真修正 ②未触 src ③全模拟局口径）本轮 QA 复签全部通过（`a2-verdict-20261017.json` carryOverResign）。
 - 历史区段（R1 轮及更早）原样保留于下方，不覆盖不删改。
 
+### 部署轮 v29（游戏程序 · 2026-10-26T03:26-03:35Z · 部署节点——10/26 交付包轮成果发布 + PL4 闭环机核 + 四线部署物巡检）
+
+- **定性**：部署节点——把当前 HEAD 成果发布到专属坑，**零新玩法零设计变更**；受测源面自 v28 发布提交 `9b65c59` **零漂移**（`git diff 9b65c59..HEAD -- games/wheat-squad/{src,tests,tools,ci,assets,package.json,verify.sh,apphost.toml} .myrd/spec/wheat-squad/` = 空，exit 0 机判，01 号证据前置核对）；本轮增量 = 五步门禁复证 + 构建锚重绑 + PL4 已交付面机核（不重做）+ PL1/2/3/4 部署物巡检。
+- **硬前置三条**：①分支 `game/wheat-squad`（非 main）✓ ②分支已推远端（部署前 `ls-remote` 服务器实况 `e3870d1` = 本地 HEAD——本地跟踪引用过期因 fetch refspec 未含本分支，判例沿用；部署后发布提交 `56fa871` 同法推送拉平）✓ ③专属清单 `games/wheat-squad/apphost.toml` 在位（assets_dir=games/wheat-squad/build）✓。
+- **门禁**：verify.sh 五步 @ HEAD `e3870d1` → **`VERIFY_EXIT=0`**（统一契约 + 自有契约 **16/0/1PEND**（PEND=ac-a3 结论面 0/5 真人，如实挂起）+ WS-SMOKE 全链路 + 双 SCOPE-GUARD PASS，01 号证据，始末 UTC `03:26:46Z` 起记）。
+- **确定性重建**：`G2WS_REPO_ONE_ROOT` 显式锚定当前 run；与仓内树 diff **仅 main.mjs 锚自指单行**（`2204605`→`e3870d1`，逻辑字节全等）+ **双跑逐字节一致**（BUILD_EXIT_A/B=0）；specAnchor=链 v6 `cmv8xcexk0009m9dj6ev1dj0r@v6:approved` 不变（02 号证据）。**披露**：构建锚 = `e3870d1`，发布提交 = `56fa871`（相对锚仅增量锚行 + 证据文件）。
+- **坑位归属核对**：GET `cmv36wl94001xm9mxp119q48x` 回读 name=`wheat-squad（麦浪小队）` · slug=`wheat-squad-2` · **sourceId=`wheat-squad` 绑定 ✓**（03 号证据）——专属坑复用未新建；slug 检索同名 suspended 假坑 `cmv36vmqi001vm9mxdtq9dw96` 不可作依据（判例维持，本轮 apps 全列表 23 实查再证）。
+- **部署**：v29 `cmvop73go002mm91kt64ktwy6` **running/current @ commitHash `56fa871e60d968880a0da31d987195042a5550c8`**（durationMs 847 · errorMessage=null · gitRef=`game/wheat-squad` · routeAnalysis=壳三路由 · sourceId=wheat-squad 防挤占校验过）——POST **504 空体截断（判例七现）**→ GET 复查已受理恰 1 单（v29 building）→ 未盲重发（04/04b/05 号证据）。
+- **线上自测（1.5/3 点全绿 + 1.5 点挂账，如实不冒领）**：①**`/gw` 200：页面字节 ≡ 仓内 build/landing.html 逐字节全等**（530B；md5 记录差异系取证命令 `-w` 自附 HTTP 码 10B，diff 实证）+ **title=麦浪小队 ⇒ 页面路零串线**（W-3 指纹未现，清单绑定正确之决定性证据）②资产路字节与内嵌锚：**我方沙箱不可达**——网关不代理应用资产路（4 种路径变体全 404，与 line3/line4 三坑同型签名）+ tailscale 域名 000 → **挂账由具备 tailscale 通道方一键归档**：`curl -s https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/api/public/assets/main.mjs | md5`（预期 = `f386ee57cb01b8fa0c720d521622e851`）且内嵌 `__G2WS_BUILD.gitSha` 预期 = `56fa871e…`（部署单 commitHash 逐字符已核）③live 玩法冒烟同挂账（网关路实测 `DIE READY` exit=1 = 资产路断链 fail-closed 正确，06/07 号证据）。
+- **团队产物区**：artifact `cmv3bfs3c002lm9mx7pw3e31a` → hostedAppId `cmv36wl94001xm9mxp119q48x`（wheat-squad-2）POST **HTTP=201** status=ready（幂等复用，08 号证据）。试玩入口 `https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw`。
+- **PL4 闭环机核（verify-claims 逐包核实，不重做）**：谱系——`0d40be6`/`5f9972f`/`bc3cd56`/`4f8ad155` 全部为 HEAD 祖先（merge-base 机判 4/4）；证据目录——`line4-n0-gate-20261026/01..04` + `line4-n4-verify-20261026/01..09` + `line4-deploy-20261026/` + `line4-recheck-20261026-continuation/` 全部在盘；LIVE——坑 `cmvollw2z001dm91k4ptf30aw` v1 running @ `4f8ad155` err=null 与子板当日登记逐字段同值；**完成定义三件（N5 过审/可玩基线部署/主人可试玩入口）黑板声明与机器实况一致，维持成立**。
+- **四线部署物巡检（patrol-20261026，`../../gate-logs/patrol-20261026/`）**：PL1 无坑（apps 全列表实查零命中）≡ 已销案零接触 ✓；PL2 g2-blocks-2 v17 @ `2bb69c7e` ≡ r7 登记逐字段同值 ✓；PL3 line3 v2 @ `f9d98349` 健康、仓内产物面 `f9d98349..HEAD` diff 空=零字节漂移，唯 assets.md 记的 LIVE 锚 `b81d17b` **滞后一个 B-5 修复增量**（+landing.html/manifest，均已入链）→ 记账刷新建议（line3 面下轮），非阻塞不升级；PL4 见上条 ✓。
+- **升级项维持**：W-NEW-1 治理面 + A3 待真人 0/5 不变（见下）；关卡状态（levels.md）与资产清单（assets.md）本轮零变更（部署轮不改关卡/资产面）。证据 `games/wheat-squad/gate-logs/deploy-v29-20261026/00..08`；**结论仅对发布提交 `56fa871`（构建锚 `e3870d1`）有效**。
+
 ### 部署轮 v28（游戏程序 · 2026-10-25T10:14-10:22Z · 部署节点——10/25 交付包轮成果回流后复证发布）
 
 - **定性**：部署节点——把当前 HEAD 成果发布到专属坑，**零新玩法零设计变更**；受测源面自 v27 发布提交 `5544416` 零漂移（`git diff 5544416..HEAD -- games/wheat-squad/build src tests tools ci` = 空，机判留痕见 02 号证据 diff 形态），v27 后增量全部为 PL4（line4-unblock-jam）线工作与黑板/docs 面；本轮增量 = 五步门禁复证 + 构建锚重绑。

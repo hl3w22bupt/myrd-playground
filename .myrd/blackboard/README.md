@@ -3,6 +3,21 @@
 > 口径：一游戏一子目录判例（顶层三件套属 game-9 存量，零触碰）；本索引 = 全线一页视图。**本轮权威组合全景 = 下表**；上轮（2026-10-23 组合推进轮）全景降档至其后，原文保留。
 > 产品线编号（实证落位）：**PL1=pixel-fives（足球线）· PL2=g2-blocks · PL3=line3-tower-defense · PL4=line4-unblock-jam（本轮立项，slug 定死）**。
 
+## 组合全景（2026-10-26 · **部署节点轮：wheat-squad v29 + PL4 闭环机核 + 四线巡检** · 游戏程序署名）
+
+> 本节 = 部署节点轮登记（程序面）；全线权威整合仍归主策划（下表 10/25 版及其后续整合版为准），本节供下轮整合收编。
+
+| 线 | 状态 | 本轮动作 | 关键产物 |
+|---|---|---|---|
+| **PL1 pixel-fives** | 已销案维持 | **零接触**（红线）；巡检面 = apps 全列表 23 实查零命中，与销案口径一致 | `gate-logs/patrol-20261026/` |
+| **PL2 g2-blocks《熔炉方块》** | 退打磨中维持 · 等主人凭证 | **巡检零漂移**：LIVE v17 running @ `2bb69c7e` err=null ≡ r7 登记逐字段同值 | `gate-logs/patrol-20261026/01-PL2.json` |
+| **PL3 line3-tower-defense《敌潮将至》** | 待主人试玩维持 | **巡检字节面零漂移**：LIVE v2 @ `f9d98349`（10-18 B-5 修复提交）健康 err=null，`f9d98349..HEAD` build 面 diff 空；**登记一笔记账滞后**：assets.md 所记 LIVE 锚 `b81d17b` 落后实况一个 B-5 增量（已入链提交，非漂移）→ line3 面下轮刷新锚记录 | `gate-logs/patrol-20261026/01-PL3.json` + 00-manifest §结论 |
+| **PL4 line4-unblock-jam《挪出一条路》** | **闭环维持**（N5 过审 + 可玩基线部署 + 主人入口已开，10/26 子板当日登记） | **verify-claims 机核成立零重做**：谱系 4 提交（`0d40be6`/`5f9972f`/`bc3cd56`/`4f8ad155`）全为 HEAD 祖先 + 四组 gate-logs 目录在盘 + LIVE v1 running @ `4f8ad155` err=null 与登记逐字段同值 | `line4-*` gate-logs 目录群 + `patrol-20261026/01-PL4.json` |
+| **wheat-squad《麦浪小队》**（本轮部署对象） | 打磨中维持 · **v29 LIVE** | **部署轮 v29**：硬前置三条 ✓（`ls-remote` 实证远端=HEAD）→ verify.sh 五步 `VERIFY_EXIT=0`（16/0/1PEND）→ 确定性重建仅锚行 diff + 双跑逐字节一致 → 坑位三锚核对（sourceId=wheat-squad）→ POST 504 截断（判例七现）GET 复查恰 1 单 → **v29 `cmvop73go002mm91kt64ktwy6` running/current @ 发布提交 `56fa871`（构建锚 `e3870d1`）**；线上自测：/gw 200 **页面字节 ≡ 仓内 build/landing.html 逐字节 + title=麦浪小队**（页面路零串线）；资产路字节与 live 冒烟挂账（沙箱网关资产路 404 三坑同型 + tailscale 000，一键归档命令在 06 号证据，预期 main.mjs md5 `f386ee57`）；源面自 v28 发布提交 `9b65c59` 零漂移，仅锚行重绑 | `games/wheat-squad/gate-logs/deploy-v29-20261026/00..08` · 子板 blockers.md「部署轮 v29」 |
+
+**升级项维持（不新增）**：W-NEW-1 治理面 · PL2 凭证 · PL3 试玩回流 · PL4/PL3 a3 真人采集（终裁主人）。
+**PL5 触发器状态**：T2/T4 已完成——`next-line/pl5-research-brief-v0-20261026.md`（三轴打分表初稿）+ `pl5-selection-verdict-20261026.md`（三问裁决·只拍板不代写）两件当日已在盘，PL5 开题仍待主人点名。
+
 ## 组合全景（2026-10-25 · **10/25 交付包轮：PL4 spec 质量门锁定** · 主策划整合 · 权威）
 
 | 线 | 状态 | 本轮动作 | 关键产物 |
