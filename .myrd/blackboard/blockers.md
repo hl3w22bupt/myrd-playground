@@ -34,7 +34,29 @@
 
 > 沙箱可达性边界（如实）：资产面 LIVE 直读经 :3111 网关 404 与 line3 同型（面限制非缺陷）；tailscale 域名沙箱不可达（HTTP 000）——主人浏览器可达即真实试玩面。
 
+## 续接核实轮（2026-10-26 · 游戏程序署名 · 逐包机核）
 
+> 性质：交付包轮（@ `0d40be6`）后的续接轮——不采信黑板文字，只认本机实跑与平台 GET 实测。证据 `.myrd/blackboard/gate-logs/line4-recheck-20261026-continuation/00-manifest.md`（四要素齐）。取证时点 HEAD=`0d40be6`。
+
+### 复证结论（零缺口需补做）
+
+| 包 | 复证方法 | 结果 |
+|---|---|---|
+| PL4 N0① | 平台 GET spec 单条（Bearer） | **HTTP 200 `v2·approved`**，updatedAt/parentSpecId 与本地导出件逐值同 → 非本地伪记 |
+| PL4 N0③/N4 | 本机复跑契约门禁 + verify.sh 全量 | 契约 **29/0 EXIT=0**；verify **17 步全 PASS exit 0**（WX=1）；09 可玩冒烟 **20/20 局全 WIN · 68 断言 PASS** |
+| PL4 deploy | 部署单 GET（单次查询）+ 坑位 GET + 网关探针 | `cmvolm4s7001fm91knv2x7mci` **running · err=null**；坑 `cmvollw2z001dm91k4ptf30aw` slug/sourceId/projectId 三锚正确；`/apps/line4-unblock-jam/gw` **200 + 本游戏标题**（零串壳）→ **完成定义三件齐** |
+| PL2 | 三 sha 本机 `git rev-parse` 复算 + G-1 链面复证实测 | 三 sha **逐值一致**（023e5838…/9c274385…/4fba03ae…）+ 源仓净；g2-blocks **v1–v10 全 superseded · approved=0** 本轮独立复证 → G-1 维持 |
+| PL3 | 提案件读核 + 链面底座抽核 | 四判据一轮为限合规；**发现一处引用失真**（见下 B-P-1） |
+| PL5 | 简报 v0 + 裁决件读核 | 三轴打分带出处（D34–D46）+ 混休独立计分列 + 异品类排除区核对 + 「只拍板不代写」→ 合规 |
+| PL1 | apphost apps 列表（23 坑）slug 对账 | 无 pixel-fives 坑 → 「无部署维持」成立 |
+
+### 新阻塞登记（本轮唯一新增）
+
+**B-P-1 · 平台链「同 projectId 全局唯一 approved」语义跨线漂移（程序面发现 · 升级主人）**
+- 事实（`06-crossline-approved-scan.json` · 52 条全量）：全链 **approved 仅 1 条 = line4 v2**；line3 v4 `cmvkb2d8y001fm968778whydc` superseded @ `2026-10-24T08:43:25.902Z`（line4 v2 approve 前 2ms 同事务窗）；wheat-squad v6 superseded @ `2026-10-16T02:34:48`；stack-tower v6 superseded @ `2026-09-30T01:21:51`——**approve 新 spec 会把同项目其它线已 approved 的 spec 连带顶成 superseded**。
+- 影响面：各线「链上 approved 唯一」类**口径主张**（黑板/文档时点表述）与未来平台 GET 复证场景；**工程契约面零影响**（各线契约单源=本地导出件 approve 时点快照，本轮 line4 契约 29/0 实跑佐证；line3 契约 runner 尚为占位 fail-closed，同样不受影响）。
+- 负责人/解除判据：**主人+平台侧**——① 确认该语义是否符合预期；② 若否，平台侧恢复各线链面 approved（或明确「链面 approved 以最新 approve 线为准」的口径并回写各线文档）。团队侧不越平台权自行改链。
+- 连带勘误：`line3-tower-defense/polish-proposal-20261026.md` 证据底座一行已补程序署名注记（原文不动）。
 
 ## 当前基线（2026-10-24 · 终审轮 N0 · 主策划）
 

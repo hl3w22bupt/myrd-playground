@@ -1,0 +1,6 @@
+== 命令原文：node games/line4-unblock-jam/tools/smoke-playable.mjs
+== 时刻：2026-10-26 10:05:36
+== 输出：
+[smoke-playable] 42:WIN(1步) 43:WIN(1步) 44:WIN(1步) 45:WIN(3步) 46:WIN(2步) 47:WIN(1步) 48:WIN(1步) 49:WIN(3步) 50:WIN(1步) 51:WIN(2步) 52:WIN(2步) 53:WIN(3步) 54:WIN(2步) 55:WIN(2步) 56:WIN(2步) 57:WIN(1步) 58:WIN(2步) 59:WIN(2步) 60:WIN(2步) 61:WIN(1步)
+[smoke-playable] PASS=68 FAIL=0
+== exit=0 ==
