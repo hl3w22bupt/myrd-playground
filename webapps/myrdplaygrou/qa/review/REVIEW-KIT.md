@@ -88,3 +88,9 @@ verdict = **PASS**，6 项 check 全 pass。但按证据全文通读，存在以
 | `qa/mobile/rv-trend-tooltip-desktop.png` | M3 桌面输入 tooltip（日期+汇率） |
 | `webapps/myrdplaygrou/.myrd/style-card.md` | 风格基准（四问③对照物） |
 | `webapps/myrdplaygrou/.myrd/fix-notes-cmvp2c164003.md` | 前置节点根因取证/修复口径 |
+
+## 7. 平台 artifacts 回写状态（本节点增量上报，不粉饰）
+
+- **review_kit 条目未能写入目标 artifacts**：`GET /api/v1/goals/cmvaf7imr000jm94le9x48zfu` 返回 403 `FORBIDDEN「无权访问」`（requestId `req_1793011551206`，2026-10-26 18:47 实测；`/api/v1/goals/:id/artifacts` 端点 404）。与本分支前置提交 e9c0055 上报同因：**workflow 身份无 goal 读写权限**，运维需给该身份补 goal scope。
+- 部署三要素已在 artifacts（无需重复回写）：HostedApp id `cmvaf7imm000hm94lw6y43t0q`、deployment id `cmvp3vvbo004bm91kowxtp46j`（v17，mode=bundle，commit `7b7848b`）、liveUrl——由部署 API `POST /api/v1/apphost/apps/:id/deployments` 的 goalId 联动在 deploy 节点写入（见 `qa/mobile/DEPLOY-cmvp2c164003.md`）。
+- 待有权限方一键落账：`GET /api/v1/goals/cmvaf7imr000jm94le9x48zfu` → artifacts 数组**追加**（不覆盖既有条目）一条 `op=review_kit, artifactType=review_kit, artifactId=REVIEW-KIT-cmvp2c164003, status=completed`，detail 指向本文件路径 `webapps/myrdplaygrou/qa/review/REVIEW-KIT.md`（含四问检查单待回填口径）→ 整体 PATCH 写回。
