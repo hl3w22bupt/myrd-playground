@@ -219,3 +219,37 @@ scaffold 轮与功能开发轮 blocked 上报后，平台将本 run 重派到发
 review 节点 preHook 也会继续 fail-closed。补齐后发布节点可原样重跑闭环：
 前置检查 → 复制/直出 AppHost 壳 → 建静态工程 → commit/push → 部署（gitRef=功能分支）→
 实跑 webapp-smoke 门禁 → 回写产物（liveUrl + WEBAPP_SMOKE 结论 + 证据路径）。
+
+---
+
+# Blocked 上报（复验轮，发布节点·仅回写通道受阻）— goal cmvaf7imr000jm94le9x48zfu
+
+- **status: blocked（仅 goal artifacts API 回写；应用本体与门禁已闭环，非工程阻断）**
+- **detail: 目标卡 GET/PATCH 对 workflow token 均返回 403（无权访问/无权操作）；HostedApp、deployment、liveUrl 与门禁证据已全部交付，请编排侧以有权限身份完成最后回写**
+- 时间：2026-10-26 ｜ 分支：myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu @ `35b148c`（已推送）
+
+## 已完成（全部有实证，无虚构）
+
+1. 修复核验：需求 cmvp2c164003 三项修复在 HEAD 源码逐条落地（fx-trend-bug-load 状态机+[hidden] CSS 守卫+44×44 重试钮；fx-trend-bug-tip 双通道 tooltip+读屏同步+trendTipLive；t.failed 折叠文案已换语义准确文案）。
+2. 部署在证：liveUrl `/health` 200、`/` 308→200；上线 `api/public/assets/app.js`（26,843B）与 HEAD 的 `3b1ea65` 版**逐字节 diff 一致**（含 trendPhase/showTrendTipAt/pointerdown 标记）→ 线上即修复版，未重复部署（v17 `cmvp3vvbo004bm91kowxtp46j`，gitRef=本功能分支）。
+3. 本轮新鲜门禁：仓库内判定器 `std-skills/web-app-dev/scripts/webapp-smoke.mjs` 实跑 liveUrl → **WEBAPP_SMOKE: PASS（exit 0，六项全绿）**，证据归档 `webapps/myrdplaygrou/qa/mobile/`（report.json checkedAt 2026-10-26T10:27Z + phase-load/tap 截图），commit `35b148c` 已推送。
+
+## 阻断点（最小证据）
+
+- `GET  $PLATFORM_API_URL/api/v1/goals/cmvaf7imr000jm94le9x48zfu` → 403 `无权访问`
+- `GET  $PLATFORM_API_URL/api/v1/goals?limit=50` → 200 但 `data.goals=[]`（该身份列表不可见）
+- `PATCH $PLATFORM_API_URL/api/v1/goals/…`（非法 payload 探测，未触碰数据）→ 403 `无权操作`
+- `GET  $PLATFORM_API_URL/api/v1/apphost/apps/cmvaf7imm000hm94lw6y43t0q/deployments` → 403 `仅应用所有者或系统管理员可操作`
+- 结论：workflow 身份仅有部署 POST 权限，无 goal 读写权限 → 无法执行「GET 现有 artifacts → 合并 PATCH」；
+  为不违反「不得覆盖丢失已有条目」，未盲写。
+
+## 待有权限方动作（HANDOFF）
+
+以 app owner / 管理员身份对 goal `cmvaf7imr000jm94le9x48zfu` 合并追加（若 deploy_tool 的 v17 条目已由平台 goalId 联动写入则仅需补本轮复验条目）：
+
+```json
+{"op":"run_workflow","artifactId":"cmvaf7imm000hm94lw6y43t0q","artifactType":"hosted_app",
+ "url":"/apps/myrdplaygrou/gw","title":"《今日汇率》已部署（复验轮：线上即修复版）","status":"completed",
+ "detail":"liveUrl=https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/；deploymentId=cmvp3vvbo004bm91kowxtp46j(v17,gitRef=myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu)；移动端门禁=WEBAPP_SMOKE PASS（exit0 六项全绿，本轮新鲜证据 webapps/myrdplaygrou/qa/mobile/ report.json 2026-10-26T10:27Z）；上线 app.js 与 HEAD 3b1ea65 逐字节一致；复验留痕 commit 35b148c"}
+```
+
