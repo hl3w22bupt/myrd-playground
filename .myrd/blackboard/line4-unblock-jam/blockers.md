@@ -23,7 +23,16 @@
 | N3 素材 | 策划：F3 判读细则（HUD 字段/N=20·seeds 42..61/六键通过区间数值化）+ id↔落点四方对照表；美术：**资产六件量产落地**（a01..a06，pnglib 零依赖生成器，双跑逐字节一致，kebab-case 对 id） | ✅ `docs/spec/f3-interpretation-20261026.md` + `assets/`（check-assets 31 断言 PASS） |
 | N4 契约+冒烟 | verify.sh 扩至 **17 步全 PASS exit 0**（新增：06 资产门禁 / 07 确定性构建→`export/web/` 21 文件 / 08 壳契约 guard / 09 可玩面 bot 冒烟 **20/20 通关 68 断言**=F3 六键实测）；引用 id↔文件存在性断言由 01（acceptance 9 条）+06（assets 6 件）双面机判 | ✅ `gate-logs/line4-n4-verify-20261026/01..09+manifest` |
 | N5 互查 | 三份输入齐开审；四清单（一致性 5/完整性 5/可玩性 4/新手引导 4）逐条可核对路径全过 → **过审=可玩基线成立**；a3 真人面单列待采（0/5） | ✅ `games/line4-unblock-jam/docs/qa/n5-crosscheck-20261026.md` |
-| deploy 交接 | apphost 契约件在位（assets_dir=export/web 定死）+ landing.html 壳契约 guard PASS + 构建/冒烟绑 commit；**待工作流 deploy 节点执行上线**（app 坑位需 `POST /api/v1/apphost/apps` 绑 projectId，slug=line4-unblock-jam） | ⏳ 本轮执行（见下节实时回写） |
+| deploy 交接 | **已上线（2026-10-26 01:50Z）**：建坑 201 `cmvollw2z001dm91k4ptf30aw`（slug `line4-unblock-jam` 无后缀 · projectId 已绑）→ 部署 POST 504 → GET 复查恰 1 单（零重复）→ **`cmvolm4s7001fm91knv2x7mci` running @ `4f8ad155`**；LIVE 主入口对账 PASS（`/apps/line4-unblock-jam/gw` 200 + 本游戏标题 + 壳引用走公开资产路由，零 game-9 串壳）；资产面 LIVE 直读=本地网关面限制（line3 同型 404 对照 + tailscale 沙箱不可达 000），不冒领 | ✅ `gate-logs/line4-deploy-20261026/00-manifest.md` |
+
+## 10/26 部署实录与试玩入口（deploy 交接执行节）
+
+- **部署单**：`cmvolm4s7001fm91knv2x7mci` · running（live）@ commit `4f8ad155c45a5e7d194fb10227ad49a30da56845`（远端=本地 ls-remote 实证）· manifestPath=`games/line4-unblock-jam/apphost.toml` · mode=bundle · errorMessage=null。
+- **app 坑位**：`cmvollw2z001dm91k4ptf30aw`（slug `line4-unblock-jam` · sourceId 同名防挤占）。
+- **试玩入口（主人）**：`https://leomac-studio.tail49399e.ts.net/apps/line4-unblock-jam/`（或 `/gw`）——**L4-3 a3 真人采集窗随本入口开启**（5 名真人重开意愿，QA 记录卡）。
+- **504 判例再证**：部署 POST 代理 30s 截断回 504，GET 复查已受理（恰 1 张单，零重复部署）。
+- **沙箱可达性边界（如实）**：资产面 LIVE 直读（main.mjs/spec.json 锚线上比对）经 :3111 网关 404——与 line3（10-18 起健康 running）同型，判为本地网关面限制非部署缺陷；tailscale 域名沙箱不可达（000）。仓内面锚对账（export/web/manifest.json gitSha=4f8ad15 + specAnchor v2:approved + smoke-playable 68 断言消费该产物）全 PASS。
+- **完成定义对账（P0 PL4）**：N5 过审 ✅ + 可玩基线部署 ✅（running）+ **主人可试玩 ✅（入口已开，待主人进）**——闭环三件已齐，试玩反馈回流走 spec revision 版本链。
 
 ## 10/25 交付包轮（2026-10-25 · 主策划署名 · 逐节点落盘）
 
