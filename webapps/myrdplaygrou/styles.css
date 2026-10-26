@@ -196,44 +196,74 @@ body {
 .trend-change.down { color: var(--down); }
 
 .chart-wrap { position: relative; min-height: 200px; }
-#trendChart { width: 100%; height: auto; display: block; touch-action: pan-y; }
-.trend-loading, .trend-error {
+#trendChart { width: 100%; height: auto; display: block; }
+
+/* ⚠ bug fx-trend-bug-load 真根因①的修复：下面三个覆盖层的作者样式 display（grid/flex）
+ * 与 UA 样式表的 [hidden]{display:none} 同特异性（0,1,0），而作者样式表在级联中恒胜出，
+ * 导致 JS 的 hidden = true 从不生效、「趋势数据加载中…」永不消失。
+ * 必须显式补 [hidden] 守卫，把 hidden 语义夺回来。 */
+.trend-loading[hidden], .trend-error[hidden], .trend-tip[hidden] { display: none !important; }
+
+/* loading 态：纯提示，不拦截下方交互（此时无图可点） */
+.trend-loading {
   position: absolute; inset: 0;
   display: grid; place-items: center;
   font-size: 14px; color: var(--ink-soft);
-}
-/* 作者样式的 display:grid 特异性压过 UA 的 [hidden]{display:none}，必须显式恢复，否则
-   加载/终态文案会视觉常驻（需求 cmvp2c164003 缺陷①的视觉兜底） */
-.trend-loading[hidden], .trend-error[hidden] { display: none; }
-.trend-error { color: var(--warn); }
-.chart-cap { font-size: 13px; color: var(--ink-soft); }
-
-/* ---------- 趋势图 hover/touch 数值提示（需求 cmvp2c164003 缺陷②） ---------- */
-.fx-chart-tip {
-  position: absolute;
-  transform: translate(-50%, calc(-100% - 12px));
-  display: flex; flex-direction: column; align-items: center; gap: 1px;
-  padding: 7px 12px;
-  background: var(--ink);
-  color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 14px rgba(12, 42, 63, 0.28);
   pointer-events: none;
-  white-space: nowrap;
-  z-index: 5;
-  font-variant-numeric: tabular-nums;
 }
-.fx-chart-tip[hidden] { display: none; }
-.fx-chart-tip .tip-date { font-size: 12px; opacity: 0.82; }
-.fx-chart-tip .tip-rate { font-size: 14px; font-weight: 700; }
 
-/* 仅供屏幕阅读器的提示同步文本 */
+/* error 态：错误说明 + ≥44px 重试按钮（fx-trend-bug-load：失败必须有重试入口，不得停在加载态） */
+.trend-error {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px;
+  padding: 16px;
+  text-align: center;
+  font-size: 14px; color: var(--warn);
+  background: rgba(240, 249, 255, 0.78); /* 淡天蓝（风格卡 --bg）蒙层，盖住空图区 */
+  border-radius: 8px;
+}
+.trend-error-msg { max-width: 30em; line-height: 1.6; }
+.trend-retry {
+  font: inherit; font-size: 15px; font-weight: 600;
+  min-height: 44px; min-width: 44px; padding: 0 26px; /* 触控命中区 ≥44×44px */
+  color: #fff; background: var(--primary-strong);
+  border: none; border-radius: var(--radius-ctl);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.trend-retry:hover { background: var(--primary); }
+.trend-retry:active { transform: scale(0.95); background: var(--accent); }
+.trend-retry:focus-visible { outline: 3px solid rgba(14, 165, 233, 0.45); outline-offset: 2px; }
+
+/* tooltip 数值提示（fx-trend-bug-tip）：日期 + 具体汇率值，桌面 hover / 移动触摸双通道 */
+.trend-tip {
+  position: absolute; z-index: 2;
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--primary-soft);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  font-size: 13px; line-height: 1.45;
+  white-space: nowrap;
+  pointer-events: none; /* 纯展示，绝不挡住图表命中层 */
+}
+.trend-tip .tip-date { color: var(--ink-soft); font-weight: 600; }
+.trend-tip .tip-rate { color: var(--primary-strong); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* SVG 命中层：桌面十字光标；pan-y 保留页面垂直滚动，横滑/点按才进 tooltip 通道 */
+.chart-overlay { cursor: crosshair; touch-action: pan-y; }
+
+/* 仅供屏幕阅读器的提示同步文本（tooltip 为 aria-hidden 视觉件，读屏走这里） */
 .visually-hidden {
   position: absolute; width: 1px; height: 1px;
   margin: -1px; padding: 0; border: 0;
   clip: rect(0 0 0 0); clip-path: inset(50%);
   overflow: hidden; white-space: nowrap;
 }
+
+.chart-cap { font-size: 13px; color: var(--ink-soft); }
 
 .page-foot { text-align: center; font-size: 13px; color: var(--ink-soft); padding-top: 8px; }
 

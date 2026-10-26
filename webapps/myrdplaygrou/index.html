@@ -82,7 +82,13 @@
       </div>
       <div class="chart-wrap" id="chartWrap">
         <svg id="trendChart" viewBox="0 0 640 260" preserveAspectRatio="none" role="img" aria-label="汇率走势折线图"></svg>
-        <p id="trendLoading" class="trend-loading">趋势数据加载中…</p>
+        <p id="trendLoading" class="trend-loading" role="status" aria-live="polite">趋势数据加载中…</p>
+        <div id="trendError" class="trend-error" role="alert" hidden>
+          <p id="trendErrorMsg" class="trend-error-msg">趋势数据获取失败</p>
+          <button id="trendRetryBtn" class="trend-retry" type="button">重试</button>
+        </div>
+        <div id="trendTip" class="trend-tip" aria-hidden="true" hidden></div>
+        <span id="trendTipLive" class="visually-hidden" role="status" aria-live="polite"></span>
       </div>
       <p class="chart-cap" id="chartCaption">--</p>
     </section>

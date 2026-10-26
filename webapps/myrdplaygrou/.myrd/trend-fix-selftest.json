@@ -1,0 +1,138 @@
+{
+  "pass": 22,
+  "total": 22,
+  "results": [
+    {
+      "id": "A1",
+      "name": "冷启动进入 loading 态（药丸可见）",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "A2",
+      "name": "成功回调后 loading 药丸计算样式 display=none（hidden 真正生效）",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "A3",
+      "name": "success 态：折线渲染 + 涨跌徽标有值 + error 卡隐藏",
+      "pass": true,
+      "detail": "{\"line\":true,\"change\":\"▲ 区间上涨 0.10%\",\"errHidden\":true}"
+    },
+    {
+      "id": "A4",
+      "name": "数据点与日期标注已绘制",
+      "pass": true,
+      "detail": "{\"circles\":7,\"texts\":6}"
+    },
+    {
+      "id": "A5",
+      "name": "同币种 → 提示型终态（文案含「相同」、无重试、loading 消失）",
+      "pass": true,
+      "detail": "{\"msg\":\"源币种与目标币种相同，换算恒为 1:1，趋势无意义\",\"retryHidden\":true,\"loadingGone\":true}"
+    },
+    {
+      "id": "A6",
+      "name": "切回不同币种自动重载 success",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "B1",
+      "name": "失败且无缓存 → error 态 + 重试按钮可见 + loading 消失",
+      "pass": true,
+      "detail": "{\"msg\":\"趋势数据获取失败，请检查网络后重试\",\"retryVisible\":true,\"retrySize\":{\"w\":82,\"h\":44},\"loadingGone\":true}"
+    },
+    {
+      "id": "B2",
+      "name": "重试按钮命中区 ≥44×44px",
+      "pass": true,
+      "detail": "{\"w\":82,\"h\":44}"
+    },
+    {
+      "id": "B3",
+      "name": "持续失败时点重试 → 仍为 error 态（不悬空回 loading）",
+      "pass": true,
+      "detail": "{\"errVisible\":true,\"loadingGone\":true}"
+    },
+    {
+      "id": "B4",
+      "name": "网络恢复后重试 → success（重试闭环）",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "C1",
+      "name": "失败但有缓存 → 降级 success 成图 + 「趋势…缓存」滞后标注",
+      "pass": true,
+      "detail": "{\"line\":true,\"banner\":\"⚠ 趋势数据获取失败，当前展示历史缓存走势\",\"bannerVisible\":true,\"loadingGone\":true}"
+    },
+    {
+      "id": "D1",
+      "name": "桌面 hover → 提示可见：日期 + 具体汇率值 + 参考线",
+      "pass": true,
+      "detail": "{\"visible\":true,\"text\":\"2026-10-151 CNY ≈ 0.14006 USD\",\"guideOp\":\"set\"}"
+    },
+    {
+      "id": "D2",
+      "name": "hover 移动 → 数值提示随位置更新",
+      "pass": true,
+      "detail": "2026-10-151 CNY ≈ 0.14006 USD → 2026-10-131 CNY ≈ 0.14002 USD"
+    },
+    {
+      "id": "D3",
+      "name": "hover 移出图区 → 提示收起",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "D4",
+      "name": "边缘 hover 提示被夹在图区内（不溢出）",
+      "pass": true,
+      "detail": "{\"ok\":true,\"l\":939.453125,\"wl\":586.453125,\"r\":1099.109375,\"wr\":1103}"
+    },
+    {
+      "id": "D5",
+      "name": "切 30 天：重绘更多数据点且 loading 消失",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "id": "E1",
+      "name": "移动触摸点按 → 提示可见（日期 + 汇率值）",
+      "pass": true,
+      "detail": "{\"visible\":true,\"text\":\"2026-10-141 CNY ≈ 0.14004 USD\"}"
+    },
+    {
+      "id": "E2",
+      "name": "触摸另一点 → 提示更新",
+      "pass": true,
+      "detail": "2026-10-141 CNY ≈ 0.14004 USD → 2026-10-161 CNY ≈ 0.14008 USD"
+    },
+    {
+      "id": "E3",
+      "name": "390×844 无横向溢出",
+      "pass": true,
+      "detail": "scrollWidth=390"
+    },
+    {
+      "id": "F1",
+      "name": "快速连切区间 → 终态与最后意图一致（30 天 + 成图 + 无 loading/error 残留）",
+      "pass": true,
+      "detail": "{\"caption\":\"近 30 天走势（公开汇率 API）\",\"line\":true,\"loadingGone\":true,\"errHidden\":true}"
+    },
+    {
+      "id": "G1",
+      "name": "1440×900 双列布局 + 无溢出",
+      "pass": true,
+      "detail": "{\"twoCol\":true,\"sw\":1440}"
+    },
+    {
+      "id": "H1",
+      "name": "全程无非预期 console error / 未捕获异常",
+      "pass": true,
+      "detail": "0 条"
+    }
+  ]
+}
