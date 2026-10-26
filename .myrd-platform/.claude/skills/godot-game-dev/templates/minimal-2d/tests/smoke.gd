@@ -17,6 +17,8 @@ extends Node
 ##   6. 结果性事件真的挂了反馈（Juice.events 非空 —— 反馈缺失既有断言全拦不住：
 ##      游戏能跑、信号能到，但玩起来是哑的；见 SKILL.md §3B）
 ##   7. 调参协议可判（TUNING_META 非空、apply_tuning 钳制与未知键拒绝 —— §3C）
+##   8. 摇杆链路真断言（触摸摇杆区 → 虚拟摇杆 → 动作状态 → 玩家位移）——
+##      没有 JoystickAnchor（点按类游戏合法删除）时本项跳过不算失败
 ##
 ## ⚠️ 输入注入分两个阶段、互不重叠（见 references/error-signatures.md E-08）：
 ##   headless 下 `Input.parse_input_event()` 的缓冲冲刷会清掉 `Input.action_press()`
@@ -29,12 +31,14 @@ extends Node
 ## 只注入原始事件（Key/Mouse/Touch），不注入 InputEventAction —— 动作级投递断言的判定不被噪声污染。
 const NOISE_FRAMES: int = 30
 
+## 阶段 J：摇杆链路断言（触摸按下 → 右拖 → 位移）占用的帧数。
+const JOY_FRAMES: int = 8
 ## 阶段一：按住 move_right 让玩家移动的帧数。
 const MOVE_FRAMES: int = 10
 ## 阶段二：注入 confirm 事件后等待信号送达的帧数。
 const SCORE_FRAMES: int = 4
 ## 总帧数上限（超过即出报告，防止死循环；smoke.sh 另有 --quit-after 兜底）。
-const TOTAL_FRAMES: int = NOISE_FRAMES + MOVE_FRAMES + SCORE_FRAMES + 2
+const TOTAL_FRAMES: int = NOISE_FRAMES + JOY_FRAMES + MOVE_FRAMES + SCORE_FRAMES + 2
 ## 判定「真的移动了」的最小位移（像素）。
 const MIN_MOVE_DISTANCE: float = 1.0
 
@@ -65,6 +69,9 @@ var _player: Player
 var _origin: Vector2 = Vector2.ZERO
 var _moved_seen: bool = false
 var _score_seen: bool = false
+## 摇杆链路断言用：JoystickAnchor 实例与按触摸时的玩家起点。
+var _joystick: Control
+var _joy_origin: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
@@ -95,6 +102,15 @@ func _ready() -> void:
 		_player.moved.connect(_on_player_moved)
 		_origin = _player.global_position
 
+	# 摇杆链路断言的准备：JoystickAnchor 不存在（点按类游戏按 §3A 合法删除）则整段跳过。
+	_joystick = get_tree().root.find_child("JoystickAnchor", true, false) as Control
+	if _joystick != null:
+		# headless 检测不到触摸屏，TouchUI 可见性门控会把摇杆藏住；
+		# 真机上摇杆本就随触摸屏出现，这里显式点亮只为让断言路径确定。
+		var touch_ui: CanvasLayer = _joystick.get_parent() as CanvasLayer
+		if touch_ui != null:
+			touch_ui.visible = true
+
 
 func _physics_process(_delta: float) -> void:
 	if _finished:
@@ -105,8 +121,29 @@ func _physics_process(_delta: float) -> void:
 		if _frames <= NOISE_FRAMES:
 			_inject_noise_frame()
 		elif _frames == NOISE_FRAMES + 1:
+			# 阶段 J 前置清洗：噪声相位的原始 Key/Touch 事件不会自动释放（悬挂按键会让
+			# move_right 一直按住），摇杆断言的位移必须只归因于摇杆本身。
+			for action in REQUIRED_ACTIONS:
+				Input.action_release(action)
+			for touch_id in [0, 1]:
+				var orphan := InputEventScreenTouch.new()
+				orphan.index = touch_id
+				orphan.pressed = false
+				orphan.position = Vector2.ZERO
+				Input.parse_input_event(orphan)
+			# 阶段 J：触摸摇杆中心按下（无摇杆则本阶段为空转，帧数照走）。
+			_joystick_touch_press()
+		elif _frames == NOISE_FRAMES + 2:
+			# 阶段 J：向右拖动（超过死区，output 达到满偏）。
+			_joystick_touch_drag(Vector2(60.0, 0.0))
+		elif _frames == NOISE_FRAMES + JOY_FRAMES:
+			_assert_joystick_moved()
+			_joystick_touch_release()
+		elif _frames == NOISE_FRAMES + JOY_FRAMES + 1:
+			# 阶段一：键盘动作路径。基线重置到摇杆阶段后的当前位置。
+			_origin = _player.global_position if _player != null else _origin
 			Input.action_press(&"move_right")
-		elif _frames == NOISE_FRAMES + MOVE_FRAMES:
+		elif _frames == NOISE_FRAMES + JOY_FRAMES + MOVE_FRAMES:
 			Input.action_release(&"move_right")
 			_assert_player_moved()
 			_press_action(&"confirm")
@@ -168,6 +205,78 @@ func _press_action(action: StringName) -> void:
 	event.action = action
 	event.pressed = true
 	Input.parse_input_event(event)
+
+
+# ── 阶段 J：摇杆链路断言 ─────────────────────────────────────────────
+# 模拟手指在摇杆上按下/拖动/抬起。parse_input_event 吃的是**窗口坐标**：
+# 无头窗口尺寸 ≠ 设计视口时，必须经 root.get_final_transform() 把设计坐标换算成
+# 窗口坐标再注入 —— 直接注设计坐标会被引擎的窗口→视口变换二次改写，永远落不进
+# 摇杆矩形（真机浏览器触摸事件同走窗口坐标路径，与这里等价）。
+func _joy_design_center() -> Vector2:
+	if _joystick == null:
+		return Vector2.ZERO
+	return _joystick.get_global_rect().get_center()
+
+
+func _joy_window_pos(design_pos: Vector2) -> Vector2:
+	return get_tree().root.get_final_transform() * design_pos
+
+
+func _joystick_touch_press() -> void:
+	if _joystick == null or _player == null:
+		return
+	_joy_origin = _player.global_position
+	var t := InputEventScreenTouch.new()
+	t.index = 0
+	t.pressed = true
+	t.position = _joy_window_pos(_joy_design_center())
+	Input.parse_input_event(t)
+
+
+func _joystick_touch_drag(design_relative: Vector2) -> void:
+	if _joystick == null:
+		return
+	var to: Vector2 = _joy_design_center() + design_relative
+	var d := InputEventScreenDrag.new()
+	d.index = 0
+	d.position = _joy_window_pos(to)
+	d.relative = design_relative
+	Input.parse_input_event(d)
+
+
+func _joystick_touch_release() -> void:
+	if _joystick == null:
+		return
+	var t := InputEventScreenTouch.new()
+	t.index = 0
+	t.pressed = false
+	t.position = _joy_window_pos(_joy_design_center())
+	Input.parse_input_event(t)
+
+
+## 第 8 项断言：触摸→摇杆→动作状态→位移 全链路。
+## 拦两类「链路完好但按了没反应」的缺陷（均真机全灭而旧门禁全绿，实例见 §3A）：
+##   - mouse_filter 被改回 STOP：GUI 当场吞掉摇杆上的触摸，_unhandled_input 收不到；
+##   - 动作注入误用 parse_input_event(InputEventAction)：状态瞬态，轮询恒 0。
+func _assert_joystick_moved() -> void:
+	if _joystick == null or _player == null:
+		return
+	var travelled: float = _player.global_position.distance_to(_joy_origin)
+	if travelled < MIN_MOVE_DISTANCE:
+		_failures.append(
+			"摇杆链路：触摸摇杆区右拖后玩家 %d 帧内位移 %.2fpx < %.2fpx —— 检查 JoystickAnchor.mouse_filter 是否为 IGNORE（STOP 会被 GUI 吞触摸）、_emit_action 是否用 action_press/action_release（parse_input_event 是瞬态状态）" % [
+				JOY_FRAMES, travelled, MIN_MOVE_DISTANCE,
+			]
+		)
+	# 方向断言（「能跑」≠「方向对」）：右拖必须 dx>0 且 |dy|≤|dx|。
+	# 实例（game-8 线上 v5.4）：四方向连发 parse_input_event 只剩最后注入的 move_down
+	# 存活（真机只能向下走）；位移断言不分方向时全绿放行。
+	var dx: float = _player.global_position.x - _joy_origin.x
+	var dy: float = _player.global_position.y - _joy_origin.y
+	if dx <= 0.0 or absf(dy) > absf(dx):
+		_failures.append(
+			"摇杆方向：右拖后位移错误 dx=%.2f dy=%.2f（应 dx>0 且 |dy|≤|dx|）—— 检查动作注入方式与 MOVE_ACTIONS 分解符号" % [dx, dy]
+		)
 
 
 ## 键位契约断言：目标键表 → project.godot [input] 的 physical_keycode。
@@ -257,7 +366,7 @@ func _check_tuning_protocol(game_state: Node) -> void:
 
 func _report() -> void:
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 场景实例化/autoload/输入映射/信号/物理移动/反馈触发/调参协议 全部通过")
+		print("GODOT_SMOKE: PASS 场景实例化/autoload/输入映射/信号/物理移动/摇杆链路/反馈触发/调参协议 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:
