@@ -1,0 +1,159 @@
+{
+  "meta": {
+    "title": "趋势缺陷修复 · 独立复验（第 2 轮，implement 节点重派后复验）",
+    "date": "2026-10-26",
+    "commitUnderTest": "7b7848b9c920fff96532833aaa5cd99e872aab52（远端功能分支 HEAD，与本地一致）",
+    "bugs": [
+      "fx-trend-bug-load 趋势数据加载中…不消失",
+      "fx-trend-bug-tip 趋势图无日期/数值提示"
+    ],
+    "method": "无头 Chrome CDP（Node 26 内建 WebSocket，零依赖）+ 本地静态伺服复刻壳资产路由 /apps/myrdplaygrou/api/public/assets/*",
+    "extra": "附带全交互元素 44×44 命中区机审（390×844 移动视口 computed 实测）：refreshBtn 84x44 / amount 324x59 / swapBtn 48x48 / selects 156x50 / range-tab 77x44·86x44 / chart-overlay 324x132 / retryBtn 82x44 —— ALL >=44x44",
+    "harnessNotes": [
+      "E3 教训：快速连切被 seq 丢弃的请求，其 fetchTrendData 成功路径仍会写缓存（设计如此，缓存与展示意图解耦）——测试「失败且无缓存」场景必须清缓存后静置 2.5s 再清一次，否则迟到缓存降级 success 会误判",
+      "H2 口径：网络层 ERR_FAILED（fetchWithTimeout 超时中止 / 故意拦截 Fetch.failRequest）是容错链按设计的预期触发，不算应用缺陷；应用级判据 = 无未捕获异常 + 无 console.error"
+    ]
+  },
+  "pass": 23,
+  "total": 23,
+  "results": [
+    {
+      "id": "A1",
+      "name": "success 后 loading 药丸计算样式 display=none（CSS 级联守卫生效）",
+      "pass": true,
+      "detail": "display=none"
+    },
+    {
+      "id": "A2",
+      "name": "success 态成图 + 涨跌徽标有值",
+      "pass": true,
+      "detail": "pts=6 change=▲ 区间上涨 0.24%"
+    },
+    {
+      "id": "A3",
+      "name": "success 态 error 卡隐藏、caption 为 7 天",
+      "pass": true,
+      "detail": "errHidden=true caption=近 7 天走势（公开汇率 API）"
+    },
+    {
+      "id": "B1",
+      "name": "hover → 提示可见：日期 + 具体汇率值",
+      "pass": true,
+      "detail": "2026-10-211 CNY ≈ 0.14979 USD"
+    },
+    {
+      "id": "B2",
+      "name": "hover → SVG 参考线点亮",
+      "pass": true,
+      "detail": "op=0.55"
+    },
+    {
+      "id": "B3",
+      "name": "hover 移动 → 提示随位置更新",
+      "pass": true,
+      "detail": "2026-10-211 CNY ≈ 0.14979 USD → 2026-10-191 CNY ≈ 0.14968 USD"
+    },
+    {
+      "id": "B4",
+      "name": "hover 左缘 → 提示夹在图区内不裁剪",
+      "pass": true,
+      "detail": "tipL=608.0 wrapL=579.0"
+    },
+    {
+      "id": "B5",
+      "name": "hover 移出 → 提示收起",
+      "pass": true,
+      "detail": "hidden=true"
+    },
+    {
+      "id": "C1",
+      "name": "触摸点按+抬起 → 提示可见且保留",
+      "pass": true,
+      "detail": "2026-10-201 CNY ≈ 0.14974 USD"
+    },
+    {
+      "id": "C2",
+      "name": "触摸另一点 → 提示更新",
+      "pass": true,
+      "detail": "2026-10-211 CNY ≈ 0.14979 USD → 2026-10-221 CNY ≈ 0.14983 USD"
+    },
+    {
+      "id": "C3",
+      "name": "触摸手势被滚动接管(pointercancel) → 提示收起",
+      "pass": true,
+      "detail": "hidden=true"
+    },
+    {
+      "id": "D1",
+      "name": "快速连切 30→7 → 终态与最后意图一致且无 loading/error 残留",
+      "pass": true,
+      "detail": "caption=近 7 天走势（公开汇率 API） pts=6 load=none errHidden=true"
+    },
+    {
+      "id": "E1",
+      "name": "失败且无缓存 → error 态：错误卡可见 + loading 消失",
+      "pass": true,
+      "detail": "msg=趋势数据获取失败，请检查网络后重试 load=none"
+    },
+    {
+      "id": "E2",
+      "name": "重试按钮命中区 ≥44×44px 且可见",
+      "pass": true,
+      "detail": "w=82 h=44"
+    },
+    {
+      "id": "E3",
+      "name": "持续失败点重试 → 仍为 error 终态（不悬空回 loading）",
+      "pass": true,
+      "detail": "errHidden=false load=none"
+    },
+    {
+      "id": "E4",
+      "name": "失败但有缓存 → 降级 success 成图 + 滞后横幅",
+      "pass": true,
+      "detail": "pts=4 banner=⚠ 趋势数据获取失败，当前展示历史缓存走势"
+    },
+    {
+      "id": "E5",
+      "name": "网络恢复点重试 → success + 滞后横幅消失",
+      "pass": true,
+      "detail": "pts=21"
+    },
+    {
+      "id": "E6",
+      "name": "同币种 → 提示型终态：文案含「相同」、无重试、loading 消失",
+      "pass": true,
+      "detail": "msg=源币种与目标币种相同，换算恒为 1:1，趋势无意义"
+    },
+    {
+      "id": "F1",
+      "name": "390×844 无横向溢出",
+      "pass": true,
+      "detail": "scrollWidth=390 vw=390"
+    },
+    {
+      "id": "F2",
+      "name": "图表触摸命中区 ≥44px 高",
+      "pass": true,
+      "detail": "chartH=132"
+    },
+    {
+      "id": "F3",
+      "name": "1440×900 双列布局 + 无溢出",
+      "pass": true,
+      "detail": "cols=2 sw=1425"
+    },
+    {
+      "id": "H1",
+      "name": "全程无未捕获异常 / console.error（应用级）",
+      "pass": true,
+      "detail": "0 条"
+    },
+    {
+      "id": "H2",
+      "name": "网络层失败仅为故意拦截 / 超时中止（容错链按设计触发），无白屏无崩溃",
+      "pass": true,
+      "detail": "netLog=3 netFailed=[{\"url\":\"https://api.frankfurter.dev/v1/2026-09-25..2026-10-26?base=CNY&symbols=USD\",\"err\":\"net::ERR_FAILED\"},{\"url\":\"https://api.frankfurter.dev/v1/2026-09-25..2026-10-26?base=CNY&symbols=USD\",\"err\":\"net::ERR_FAILED\"},{\"url\":\"https://api.frankfurter.dev/v1/2026-09-25..2026-10-26?base=CNY&symbols=USD\",\"err\":\"net::ERR_FAILED\"}]"
+    }
+  ]
+}

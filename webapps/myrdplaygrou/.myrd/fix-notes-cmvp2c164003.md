@@ -36,3 +36,14 @@
 - manifestPath：`webapps/myrdplaygrou/apphost.toml`（HostedApp id `cmvaf7imm000hm94lw6y43t0q`，slug `myrdplaygrou`；勿动仓库根 apphost.toml——game-9 所有）
 - liveUrl：`https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/`（review 节点 preHook `webapp-smoke` 门禁以它为准，不过自动打回 deploy）
 - 部署完成把 HostedApp id / deployment id / liveUrl 回写目标 artifacts（goal `cmvaf7imr000jm94le9x48zfu`）
+
+## 5. 复验记录（第 2 轮，2026-10-26，implement 节点重派后独立复验）
+
+> 背景：本修复已由前次执行随 commit `3b1ea65` 推上远端功能分支（现 HEAD `7b7848b`）。重派执行按「不沿用上轮结论」纪律独立复验，**不重复改码**。
+
+- **复验对象**：远端分支 HEAD `7b7848b9c920fff96532833aaa5cd99e872aab52`（与本地一致，`git ls-remote` 核实）。
+- **方法**：无头 Chrome CDP 直连（Node 26 内建 WebSocket，零依赖 harness，一次性脚本不入仓库）+ 本地静态伺服复刻壳资产路由（`/apps/myrdplaygrou/api/public/assets/*` 与无前缀双形态，MIME 校验通过）。
+- **结果**：**23/23 PASS**（详见 `trend-fix-selftest-r2.json`）。关键项：冷启动 success 后 loading 药丸 computed display=none（根因① CSS 守卫实证）；失败且无缓存 → error 终态 + 重试 82×44px；持续失败重试不悬空；失败有缓存降级 success + 滞后横幅；网络恢复重试闭环 success；快速连切 30→7 终态与最后意图一致；hover/触摸双通道显示日期 + 具体汇率值（如 `2026-10-21 1 CNY ≈ 0.14979 USD`）；390×844 无横向溢出；1440 双列；应用级 console 零 error。
+- **附带机审**：全部交互元素命中区 ≥44×44（390 视口 computed 实测，见 evidence meta）。
+- **测试口径留痕**（两条 harness 教训，已写进 evidence meta，复测者必读）：① seq 丢弃请求仍会写趋势缓存（设计如此），「失败且无缓存」场景需清缓存后静置再清；② 网络层 ERR_FAILED 是超时中止/故意拦截的预期产物，应用级判据 = 无异常 + 无 console.error。
+- **给下游**：部署契约见 §4（gitRef=`myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu`，manifestPath=`webapps/myrdplaygrou/apphost.toml`，HostedApp id `cmvaf7imm000hm94lw6y43t0q`）；review 节点 preHook `webapp-smoke` 以 liveUrl 为准，证据归档 `qa/mobile/`。
