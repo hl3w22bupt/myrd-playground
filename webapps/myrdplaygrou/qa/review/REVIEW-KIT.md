@@ -9,7 +9,7 @@
 |---|---|
 | 应用 | 今日汇率（实用工具 · AppHost HostedApp id `cmvaf7imm000hm94lw6y43t0q`，slug `myrdplaygrou`，status=ready） |
 | liveUrl | https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/ （跟随 308 → 200） |
-| 分支 | myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu（终态复验时本地 HEAD = `15ba6da`，含发布节点门禁终跑提交） |
+| 分支 | myrd/fx-app-goal-cmvaf7imr000jm94le9x48zfu（第三轮独立复验时本地已对齐远端 HEAD = `bc7dab1`；终态复验时为 `15ba6da`，含发布节点门禁终跑提交） |
 | **部署三要素** | HostedApp id `cmvaf7imm000hm94lw6y43t0q` · **deployment id `cmvp3vvbo004bm91kowxtp46j`（v17，createdAt 2026-10-26T10:20:42Z，AppHost API 实查 status=running）** · liveUrl 如上（部署记录见 `qa/mobile/DEPLOY-cmvp2c164003.md`） |
 | 部署版本核验（终态复验） | 线上 `api/public/assets/app.js` HTTP 200，sha256 `e9072c2e8444…8684de5` ≡ 本地 HEAD `webapps/myrdplaygrou/app.js`；线上 index.html 同法对拍 `c1953a0b…` 一致（**字节级一致，线上即 v17 修复版**；终态复验 18:52 重做，非沿用首轮结论） |
 | 目标 id | cmvaf7imr000jm94le9x48zfu |
@@ -55,6 +55,28 @@ verdict = **PASS**，6 项 check 全 pass。但按证据全文通读，存在以
 
 > 复验边界：R1–R5 为版本/静态/证据核对口径；真实网络失败态（error 态重试闭环）仍未做行为触发（同 M6 备注），以静态走查 + 实现自测记录（`.myrd/trend-fix-selftest*.json`，22/22）为据。
 
+### 2.2 第三轮独立复验（本节点亲测，2026-10-26 19:07–19:24，证据 `qa/mobile/accept-r4/`）
+
+前两轮之后线上版本字节未变（本轮再次对拍确认），本轮**不复述前轮结论**，全部重新取证，并在行为复现之外**新增同源数值复算与 TTL 确定性测试**（机器可读全量记录见 `qa/mobile/accept-r4/evidence-r4.json`）：
+
+| # | 探测 | 方法 | 结果 |
+|---|---|---|---|
+| A1 | ①趋势加载态结束（移动 390×844） | probe `#trendLoading` hidden/computed | **PASS**：`hidden=true` 且 `display:none`（「趋势数据加载中…」仅存于 loading 态渲染分支）；error 态隐藏；折线 1 条 + 6 数据点；涨跌「▲ 区间上涨 0.24%」；无降级横幅。视觉证据 `mb-trend-terminal-390.png`（目视核对：趋势卡 success 终态、无加载残留） |
+| A2 | ①趋势图正常渲染 | probe SVG 折线/圆点/x 轴刻度 | **PASS**：polyline points 非空，数据点 10/16–10/23 共 6 个 ECB 交易日（跳过周末，与 frankfurter 报价日一致） |
+| A3 | ②移动触摸 tooltip | 合成 `pointerdown(pointerType=touch)` 图中心 | **PASS**：`2026-10-21 \| 1 CNY ≈ 0.14979 USD`，读屏区同步（独立复现上轮 M2 同值）。视觉证据 `mb-tooltip-touch-390.png`（目视核对：浮层「2026-10-21 / 1 CNY ≈ 0.14979 USD」+ 竖参考线 + 高亮点清晰可见） |
+| A4 | ②桌面 hover tooltip + 移出收起 | 合成 `pointermove/pointerleave(pointerType=mouse)` | **PASS**：hover 30%→`2026-10-19 ≈ 0.14968 USD`，leave→`hidden=true`（mouse 通道收起生效），再 hover 80%→`2026-10-22 ≈ 0.14983 USD`（跟随指针逐点更新） |
+| A5 | ②30 天页签 + tooltip（桌面 1280×800） | 点击「近 30 天」 | **PASS**：21 个数据点（30 天窗口 ECB 交易日数）、x 轴 09/25–10/23、涨跌「▲ 区间上涨 0.64%」、tooltip `2026-10-20 ≈ 0.14974 USD`。证据 `dt-004-probe.png` |
+| B1 | ③换算同源复算（CNY→USD） | 实抓 `open.er-api.com/v6/latest/CNY` 对拍应用缓存与显示 | **PASS**：API `USD=0.149758`（数据日期 2026-10-26 00:02:31 UTC）≡ 应用缓存 ≡ 显示（0.1498 为 4dp 舍入）；`100 CNY=$14.98` 自洽 |
+| B2 | ③跨币种交叉换算复算（USD→JPY 250） | UI 实测 + er-api 同快照复算 | **PASS**：应用 `¥39,248.79`；复算 `250×(23.511284/0.149758)=39248.79`，相对误差 1.2e-05%（≪0.01% 容差）；显示汇率 156.9952 为全精度 156.995179 的 4dp 舍入，结果用全精度计算，自洽 |
+| B3 | ③趋势 tooltip 数值同源复算 | 实抓 `api.frankfurter.dev/v1/2026-10-19..2026-10-26?base=CNY&symbols=USD`（应用同款趋势源） | **PASS**：tooltip 四次采样 0.14968(10-19)/0.14979(10-21)/0.14983(10-22)/0.14974(10-20) 与 ECB 同日值**全部精确一致**；周末无报价被正确跳过（x 轴 10/16–10/23 共 6 交易日） |
+| B4 | ③TTL 过期重取（确定性触发） | 篡改 `fx-latest-v1.fetchedAt` 至 31 分钟前 → reload | **PASS**：`fetchedAt` 更新为 5 秒前（缓存被新拉取覆盖，30 分钟内不重复请求的短路被过期判定正确放行）；数据日期保持 er-api 自身日期（设计口径）；溯源行「最后更新 19:07 · 将于 19:37 自动刷新」直接实证 TTL=定时刷新=30min |
+| B5 | ③移动端视口 | 会话 probe scrollWidth/clientWidth | **PASS**：390=390 无横向溢出（与门禁 viewport 项交叉一致） |
+
+- **版本基线（本轮重做）**：线上 `api/public/assets/app.js` sha256 `e9072c2e…8684de5` ≡ 本地 HEAD `bc7dab1` 的 `webapps/myrdplaygrou/app.js`（HTTP 200、跟随 308、经壳资产路由）——**字节级一致，线上即修复版，本表全部结论有效对应被验收对象**。
+- **门禁交叉比对（本轮重读）**：`qa/mobile/report.json`（preHook，checkedAt=2026-10-26T10:51:41Z，v17）verdict=PASS、6/6 pass、console 0 error、network 0 failure、touchCounters tap/swipe 均派发、textHead 首屏当日数据——与本轮独立实测交叉一致；§1.1 三项瑕疵（pass 项拼接失败话术 / tapDiff=1 / content detail 与 metrics 矛盾）两轮一致，继续如实留痕。
+- **边界**：真实网络失败态（error 态重试闭环）仍未行为触发（同 M6）；「7 圆点 = 6 数据点 + 1 触摸高亮点（chartGeom.dot）」已核实非异常。
+- **落盘事故如实记录**：本轮首次归档时桌面截图与移动截图同名互覆（`001/002-probe.png` 被桌面会话同名文件覆盖），移动视觉证据已用同口径重拍并目视核对（`mb-*` 前缀）；DOM 探针口径的触摸 tooltip 值在三轮会话中独立复现同值 `0.14979`（19:07 / 19:17 / 19:2x），证据链完整。教训已固化：多会话截图归档一律使用会话区分前缀。
+
 ## 3. 使用指引（怎么用、看什么）
 
 一句话定位：**人民币、美金和其它主流货币的汇率换算关系和趋势**。打开 liveUrl 后按下面的面核对：
@@ -98,6 +120,9 @@ verdict = **PASS**，6 项 check 全 pass。但按证据全文通读，存在以
 | 文件 | 说明 |
 |---|---|
 | `qa/mobile/report.json` + `phase-load.png` / `phase-tap.png` | preHook webapp-smoke 门禁证据（v17 两轮 PASS：10:49 发布终跑已入库 + 10:51 验收 preHook 复跑） |
+| `qa/mobile/accept-r4/evidence-r4.json` | 第三轮独立复验机器可读全量记录（A1–A5/B1–B5 + 版本哈希 + 门禁交叉比对 + 瑕疵留痕） |
+| `qa/mobile/accept-r4/mb-trend-terminal-390.png` / `mb-tooltip-touch-390.png` | 移动 390×844 视觉证据（已目视核对）：趋势 success 终态无加载残留（A1）/ 触摸 tooltip「2026-10-21 · 0.14979」+参考线+高亮点（A3） |
+| `qa/mobile/accept-r4/dt-004-probe.png`（另 dt-001–003） | 桌面 1280×800：近 30 天页签 21 数据点 + hover tooltip（A4） |
 | `qa/mobile/rv-trend-terminal-state-mobile.png` | M1 移动加载终态（无「加载中」残留） |
 | `qa/mobile/rv-trend-tooltip-touch.png` | M2 移动触摸 tooltip（日期+汇率） |
 | `qa/mobile/rv-trend-tooltip-desktop.png` | M3 桌面输入 tooltip（日期+汇率） |

@@ -1,0 +1,136 @@
+{
+  "round": "accept-r4",
+  "roundKind": "独立复验轮（第三轮使用验收，不复述前轮结论，全部重新取证）",
+  "executedAt": "2026-10-26T19:07-19:24 local (UTC+8)",
+  "acceptanceAgent": "使用验收（本节点亲测，experience-harness sessiond/session-step）",
+  "target": {
+    "goalId": "cmvaf7imr000jm94le9x48zfu",
+    "bugs": [
+      "fx-trend-bug-load（趋势加载态无终态）",
+      "fx-trend-bug-tip（趋势图无 hover/touch 数值提示）"
+    ],
+    "liveUrl": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/",
+    "deployment": {
+      "id": "cmvp3vvbo004bm91kowxtp46j",
+      "version": 17,
+      "createdAt": "2026-10-26T10:20:42.708Z",
+      "finishedAt": "2026-10-26T10:21:01.949Z",
+      "error": null
+    },
+    "apphost": {
+      "id": "cmvaf7imm000hm94lw6y43t0q",
+      "status": "ready"
+    },
+    "localHead": "bc7dab17705f6ac75ba40f7df3ee153e3de1c7c2"
+  },
+  "versionBaseline": {
+    "method": "curl -sL https://…/apps/myrdplaygrou/api/public/assets/app.js（跟随 308、经壳资产路由、HTTP 200）sha256 对拍本地 HEAD webapps/myrdplaygrou/app.js",
+    "onlineSha256": "e9072c2e8444a3e892ba87478870abbc176e7dca1bef8c77bd7934be58684de5",
+    "localSha256": "e9072c2e8444a3e892ba87478870abbc176e7dca1bef8c77bd7934be58684de5",
+    "conclusion": "BYTE-IDENTICAL，线上即修复版（含 3b1ea65 状态机驱动 + 数值提示）"
+  },
+  "checks": [
+    {
+      "id": "A1",
+      "item": "①趋势加载态结束（移动 390×844）",
+      "method": "session probe：#trendLoading hidden/computed display + SVG 折线/圆点 + 涨跌徽标",
+      "result": "PASS",
+      "evidence": "loadingHidden=true, loadingVisible=\"none\", errorHidden=true, polyline=1, change=\"▲ 区间上涨 0.24%\", pair=\"CNY → USD\", caption=\"近 7 天走势（公开汇率 API）\", staleBannerHidden=true",
+      "shot": "mb-trend-terminal-390.png"
+    },
+    {
+      "id": "A2",
+      "item": "①趋势图正常渲染",
+      "result": "PASS",
+      "evidence": "polyline points 非空（14.0,230.0 136.4,159.3 …），数据点 x 轴刻度 10/16 10/19 10/20 10/21 10/22 10/23（6 个 ECB 交易日，跳过周末，与 frankfurter 报价日一致）"
+    },
+    {
+      "id": "A3",
+      "item": "②移动端触摸 tooltip（pointerdown pointerType=touch）",
+      "result": "PASS",
+      "evidence": "tipHidden=false, tipHTML=\"<span class=tip-date>2026-10-21</span><span class=tip-rate>1 CNY ≈ 0.14979 USD</span>\", 读屏 #trendTipLive 同步",
+      "shot": "mb-tooltip-touch-390.png"
+    },
+    {
+      "id": "A4",
+      "item": "②桌面 hover tooltip（pointermove pointerType=mouse）",
+      "result": "PASS",
+      "evidence": "hover 30% → \"2026-10-19 | 1 CNY ≈ 0.14968 USD\"；pointerleave(mouse) → hidden=true display=false（移出收起）；再 hover 80% → \"2026-10-22 | 1 CNY ≈ 0.14983 USD\"（跟随指针逐点更新）"
+    },
+    {
+      "id": "A5",
+      "item": "②30 天页签切换 + tooltip（桌面 1280×800）",
+      "result": "PASS",
+      "evidence": "caption=\"近 30 天走势（公开汇率 API）\", 数据点 21 个（30 天窗口 ECB 交易日数）, x 轴 09/25–10/23, 涨跌 \"▲ 区间上涨 0.64%\", tooltip=\"2026-10-20 | 1 CNY ≈ 0.14974 USD\"",
+      "shot": "dt-004-probe.png"
+    },
+    {
+      "id": "B1",
+      "item": "③换算同源复算（CNY→USD 基准）",
+      "result": "PASS",
+      "evidence": "open.er-api.com/v6/latest/CNY 实抓 USD=0.149758, time_last_update_utc=\"Mon, 26 Oct 2026 00:02:31+0000\"；应用缓存 fx-latest-v1 同值 0.149758、同数据日期；界面显示 1 CNY ≈ 0.1498 USD（4dp 四舍五入）与 100 CNY=$14.98 自洽"
+    },
+    {
+      "id": "B2",
+      "item": "③跨币种换算同源复算（USD→JPY 250，走交叉换算路径）",
+      "result": "PASS",
+      "evidence": "应用 1 USD ≈ 156.9952 JPY、250 USD=¥39,248.79；er-api 同快照复算 cross=23.511284/0.149758=156.995179、250×cross=39248.79，相对误差 1.2e-05%（≪0.01% 容差）"
+    },
+    {
+      "id": "B3",
+      "item": "③趋势 tooltip 数值同源同快照复算（frankfurter，应用同款趋势源）",
+      "result": "PASS",
+      "evidence": "api.frankfurter.dev/v1/2026-10-19..2026-10-26?base=CNY&symbols=USD 返回 10-19=0.14968 / 10-20=0.14974 / 10-21=0.14979 / 10-22=0.14983 / 10-23=0.14992；tooltip 三次采样 0.14968(10-19)/0.14979(10-21)/0.14983(10-22)/0.14974(10-20,30d) 全部与同日 ECB 值精确一致"
+    },
+    {
+      "id": "B4",
+      "item": "③TTL 过期重取（确定性触发，不真实等待 30 分钟）",
+      "method": "localStorage fx-latest-v1.fetchedAt 篡改为 31 分钟前 → reload → 读回",
+      "result": "PASS",
+      "evidence": "篡改 1793012841649→1793011142654(delta=31min)；reload 后 fetchedAt=1793013003906（age=5s，缓存被新拉取覆盖）；date 保持 er-api 数据自身日期（设计如此）；换算值不变（同日数据预期）。溯源行「最后更新 19:07 · 将于 19:37 自动刷新」直接实证 30min TTL/定时刷新调度"
+    },
+    {
+      "id": "B5",
+      "item": "③移动端可用性（视口溢出）",
+      "result": "PASS",
+      "evidence": "移动会话 scrollWidth=390 = clientWidth=390，无横向溢出"
+    }
+  ],
+  "gateCrossCheck": {
+    "source": "qa/mobile/report.json（验收节点 preHook webapp-smoke，checkedAt=2026-10-26T10:51:41.707Z，v17）",
+    "verdict": "PASS，6/6 pass（network/console/render/content/touch-pipeline/viewport）",
+    "metrics": {
+      "consoleErrors": 0,
+      "networkFailures": 0,
+      "textHead": "数据源 open.er-api.com · 数据日期 2026-10-26 …",
+      "touchCounters": {
+        "afterTap": {
+          "touchstart": 1,
+          "touchend": 1
+        },
+        "afterSwipe": {
+          "touchstart": 2,
+          "touchmove": 9,
+          "touchend": 2
+        }
+      },
+      "viewport": "scrollWidth=390 vs clientWidth=390"
+    },
+    "flawsRecordedAsIs": [
+      "pass 项 detail 拼接失败话术（render「页面没渲染出来（白屏/黑屏）」/ content「结构没挂载或被壳挡住」/ touch「事件没到页面=壳层挡了输入」）——报告生成器模板文案缺陷，与 metrics 实况矛盾（色 11 种非纯色、innerText 628 字、触摸计数已派发、hasContentElement=true），判定以 status+metrics 为准，判定器不改写仅留痕",
+      "tapDiff=1：tap 点落在空白处无视觉反馈，信息工具页预期事实，如实记录"
+    ],
+    "conclusion": "与本轮独立实测（console 干净、触摸派发、390 无溢出、首屏当日数据）交叉一致"
+  },
+  "subjectiveItems": "四问检查单（①10 秒可懂 ②流程顺畅度 ③观感风格 ④移动端阻断性缺陷）一律待用户回填，本 agent 不代填",
+  "evidenceFiles": [
+    "mb-trend-terminal-390.png",
+    "mb-tooltip-touch-390.png",
+    "dt-001-probe.png",
+    "dt-002-probe.png",
+    "dt-003-probe.png",
+    "dt-004-probe.png",
+    "evidence-r4.json"
+  ],
+  "evidenceNote": "移动端两张为目视核对过的视觉证据（视口滚至趋势区后触发）：mb-trend-terminal-390=success 终态无加载残留；mb-tooltip-touch-390=触摸 tooltip「2026-10-21 / 1 CNY ≈ 0.14979 USD」+竖参考线+高亮点。dt-* 四张均为桌面 1280×800 会话（dt-004=近 30 天+hover tooltip）。注：首轮落盘时桌面截图与移动截图同名互覆，移动视觉证据已用同口径重拍（DOM 探针三次独立复现同值 0.14979），如实记录。"
+}
