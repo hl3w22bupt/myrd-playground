@@ -1,0 +1,14 @@
+== acc-05 美术面扫描 @ HEAD 9166bf55668a：运行面位图引用（应零命中）==
+-- src/ 源面 --
+(零命中)
+-- export/web/src 导出面 --
+(零命中)
+-- 位图件清单（仅 assets/ 管线面）--
+a01-lot-tiles.png
+a02-car-set.png
+a03-exit-gate.png
+a04-guide-hand.png
+a05-ui-hud.png
+a06-sfx-pack.spec.json
+audio
+manifest.json
