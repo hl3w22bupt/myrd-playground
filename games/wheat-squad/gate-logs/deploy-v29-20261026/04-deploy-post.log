@@ -1,0 +1,8 @@
+
+HTTP_CODE=504
+CURL_EXIT=0
+
+--- POST 请求体（复现凭据）---
+POST /api/v1/apphost/apps/cmv36wl94001xm9mxp119q48x/deployments
+{"mode":"bundle","deployedBy":"workflow","gitRef":"game/wheat-squad","manifestPath":"games/wheat-squad/apphost.toml","sourceId":"wheat-squad"}
+响应：代理 30s 截断 HTTP_CODE=504（判例第七现）→ 04b GET 复查已受理恰 1 单（v29 cmvop73go002mm91kt64ktwy6）零重复未盲重发

@@ -1,0 +1,6 @@
+manifestPath: undefined
+routeAnalysis:
+  GET /health [static]
+  GET / [static]
+  GET /api/public/assets/:name{.+} [public]
+route count: 3

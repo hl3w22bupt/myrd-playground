@@ -1,0 +1,20 @@
+# 06 线上三点字节对账（经 :3111 网关）
+UTC: 2026-10-26T03:31:49Z
+
+--- ① /gw 页面 ---
+<title>麦浪小队</title>
+page md5: fe00f303af7b9e6c8d16b146ade37bdd
+repo landing.html md5: 724c04b0f43227420c1283817977a22a
+
+--- ② main.mjs 资产 ---
+HTTP=404
+live md5: 1c3ebf59cf1279217175dcd925d7f5e8
+repo build/main.mjs md5: f386ee57cb01b8fa0c720d521622e851
+
+--- ③ 内嵌锚 ---
+
+--- 结论（2026-10-26 补录）---
+① /gw 200：页面字节 ≡ 仓内 build/landing.html（530B 逐字节全等；早前 md5 差异系取证命令 -w 自附 HTTP 码 10B，diff 实证）+ title=麦浪小队 ⇒ 页面路零串线（W-3 反证指纹未现）
+②③ 资产路字节与内嵌锚：网关不代理应用资产路（4 种路径变体全 404，同 body md5 1c3ebf59）→ 与 line3/line4 三坑同型签名，判本地网关面限制非部署缺陷；tailscale 域名沙箱 000 → 挂账由具备 tailscale 通道方一键归档：
+   curl -s https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/api/public/assets/main.mjs | md5   # 预期 = 仓内 build/main.mjs md5 f386ee57cb01b8fa0c720d521622e851
+   且首行内嵌 __G2WS_BUILD.gitSha 预期 = 56fa871e60d968880a0da31d987195042a5550c8（部署单 commitHash 逐字符已核）

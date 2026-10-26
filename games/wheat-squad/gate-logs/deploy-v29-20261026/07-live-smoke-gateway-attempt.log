@@ -1,0 +1,7 @@
+[ws-live-smoke] 目标 http://localhost:3111/apps/wheat-squad-2/gw
+[ws-live-smoke] chromium 就绪（CDP page target）
+[ws-live-smoke] DIE READY 超时（线上 boot 断链）
+
+
+--- 结论（2026-10-26 补录）---
+SMOKE_EXIT=1 为网关资产路 404 所致 boot 断链（DIE READY），fail-closed 行为正确；页面路字节全等 + 部署单 err=null + durationMs 847 证明部署面健康；live 玩法冒烟与 main.mjs 锚归档挂账（同 06 号证据口径），由具备 tailscale 通道方补跑：node games/wheat-squad/tools/smoke-live.mjs（默认 tailscale 入口）
