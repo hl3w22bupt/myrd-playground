@@ -30,7 +30,7 @@
 | PL1 | 无部署 | 维持（对账=无记录） |
 | PL2 | v17 running @ `2bb69c7e`（坑 g2-blocks-2） | 零漂移（部署后本仓 games/g2-blocks 0 笔变更） |
 | PL3 | v2 running @ `f9d98349`（坑 line3-tower-defense-2 · app `cmvd6lt7f002km9wl2kbex7w4`） | 良性漂移 1 笔（`0b547f4` 门禁面增补，非源码/构建面）→ 不升级 |
-| PL4 | **v1 running @ `4f8ad155`（本轮新上线 · app `cmvollw2z001dm91k4ptf30aw`）** | 首次部署；504→GET 复查恰 1 单零重复；LIVE 主入口对账 PASS（/gw 200 + 本游戏标题） |
+| PL4 | **v1 running @ `4f8ad155`（本轮新上线 · app `cmvollw2z001dm91k4ptf30aw`）** | 首次部署；504→GET 复查恰 1 单零重复；LIVE 主入口对账 PASS（/gw 200 + 本游戏标题）；**触达面机判（续接核实轮补）：`git diff --stat 4f8ad155..0d40be6 -- games/line4-unblock-jam/src games/line4-unblock-jam/export` = 空（EXIT 0 零触达，源码/构建面零变更）→ 部署字节对 0d40be6 及其后黑板文档笔仍有效，无需重部署**；构建锚三值对账（仓内 bc3cd56 / 重建 0d40be6 / 部署 commit 4f8ad155）见 `gate-logs/line4-deploy-20261026/00-manifest.md` §三锚表，线上 `__L4_BUILD__` 归档挂账具备 tailscale 通道方 |
 
 > 沙箱可达性边界（如实）：资产面 LIVE 直读经 :3111 网关 404 与 line3 同型（面限制非缺陷）；tailscale 域名沙箱不可达（HTTP 000）——主人浏览器可达即真实试玩面。
 

@@ -52,3 +52,5 @@
 - reject 通道（本轮未触发）：reject 必指文件与 spec 条目（判例口径保留）。
 
 —— 游戏 QA（N5 互查 · 限制性核签：不判好玩，好玩终裁归主人）· 2026-10-26
+
+> **〔驳回修复回执 2026-10-26 · 游戏程序署名 · 上文 QA 判定正文不动〕**续接核实轮被驳回两缺陷（均部署对账证据面）已修复并复证：缺陷1 部署 manifest 第 7 步虚记（4f8ad15）已按实物勘误为 bc3cd56（三值对账表 `../../../../.myrd/blackboard/gate-logs/line4-deploy-20261026/00-manifest.md` §三锚表；线上锚归档挂账具备 tailscale 通道方，一键命令在案）；缺陷2 共板巡检台账 PL4 行已补 `4f8ad155..0d40be6` 触达面机判（零触达 EXIT 0）。修复回执 `.myrd/blackboard/gate-logs/line4-rejection-fix-20261026/00-manifest.md`；修复后契约复跑 29/0 EXIT=0（`02-contract-postfix.log`）。QA 反馈「缺陷1/2 修复并复证后本轮 N5 结论可翻为 pass」——翻绿核签待 QA 按回执复核，程序不代行。

@@ -31,7 +31,7 @@
 - **app 坑位**：`cmvollw2z001dm91k4ptf30aw`（slug `line4-unblock-jam` · sourceId 同名防挤占）。
 - **试玩入口（主人）**：`https://leomac-studio.tail49399e.ts.net/apps/line4-unblock-jam/`（或 `/gw`）——**L4-3 a3 真人采集窗随本入口开启**（5 名真人重开意愿，QA 记录卡）。
 - **504 判例再证**：部署 POST 代理 30s 截断回 504，GET 复查已受理（恰 1 张单，零重复部署）。
-- **沙箱可达性边界（如实）**：资产面 LIVE 直读（main.mjs/spec.json 锚线上比对）经 :3111 网关 404——与 line3（10-18 起健康 running）同型，判为本地网关面限制非部署缺陷；tailscale 域名沙箱不可达（000）。仓内面锚对账（export/web/manifest.json gitSha=4f8ad15 + specAnchor v2:approved + smoke-playable 68 断言消费该产物）全 PASS。
+- **沙箱可达性边界（如实）**：资产面 LIVE 直读（main.mjs/spec.json 锚线上比对）经 :3111 网关 404——与 line3（10-18 起健康 running）同型，判为本地网关面限制非部署缺陷；tailscale 域名沙箱不可达（000）。仓内面锚对账（~~export/web/manifest.json gitSha=4f8ad15~~ **〔勘误 2026-10-26 续接核实轮：实锚=`bc3cd56…`（manifest.json:2 与 main.mjs:1 双文件同值），原记 4f8ad15 系把部署 commit 误当构建锚的虚记；续接轮重建锚=`0d40be68`（仅锚行差异，零源码漂移）——三值对账表见 `../gate-logs/line4-deploy-20261026/00-manifest.md` §三锚表〕** + specAnchor v2:approved + smoke-playable 68 断言消费该产物）全 PASS。**线上 `__L4_BUILD__` 归档挂账**：我方沙箱不可达，由具备 tailscale 通道方一键归档（`curl -s https://leomac-studio.tail49399e.ts.net/apps/line4-unblock-jam/api/public/assets/src/main.mjs | head -1`，预期 `bc3cd56…`；若∉{bc3cd56,4f8ad155} → 查部署构建输入并重部署）。
 - **完成定义对账（P0 PL4）**：N5 过审 ✅ + 可玩基线部署 ✅（running）+ **主人可试玩 ✅（入口已开，待主人进）**——闭环三件已齐，试玩反馈回流走 spec revision 版本链。
 
 ## 10/25 交付包轮（2026-10-25 · 主策划署名 · 逐节点落盘）
@@ -100,7 +100,7 @@
 |---|---|---|---|
 | L4-1 | **spec v0.2（链 v2）正式审查（approve）** | 主人 | **已解除（2026-10-25 实测回写）**：主人 2026-10-24T08:43:25.904Z 平台侧拍板 approve（GET 200 实证）；10/25 检查点四条件 4/4 齐 + 四清单零打回 + 契约门禁 29/0 全绿 = 审查链当日走完；版本锁=链 v2 approved 唯一 |
 | L4-2 | 工作名与视觉方向拍板（W-L4-1/W-L4-2） | 主人 | 《挪出一条路》为工作名占位；风格卡 v1 已冻结（拍板可改，改动走 revision） |
-| L4-3 | a3 真人面（好玩终裁 5 名真人） | 主人+QA | 前置=可玩面 LIVE；机器不代采 |
+| L4-3 | a3 真人面（好玩终裁 5 名真人） | 主人+QA | 前置=可玩面 LIVE；机器不代采；**驳回建议②并入（2026-10-26）：a3 记录卡同批回收 dev HUD F4 真机 perf 读数，闭合 telemetry 真机面** |
 | L4-4 | **P3 文字面指代缺陷（美术 desk-check 发现，非阻塞）**：spec acc-02 statement 与 QA 核销表 F1 行引用「assets.md §四 五要素」，但 §四 无「五要素」词条（表头=通道/预算/硬顶） | 主策划（登记）· 程序（按主人驳回反馈②代办执行，措辞取登记件 Option A） | **已解除（2026-10-24）**：链 v2 `cmvlrc0ma001tm94ialxeykjn`（v0.2）取「acc-02 改三通道规格」选项落链（POST /revisions **201** 实证）+ QA 核销表引用行同步。证据 `.myrd/spec/line4-unblock-jam/spec-v0.2-revision-response.json` |
 
 > 无团队侧阻塞。L4-1/L4-2/L4-3 三项均主人侧动作，带证据升级不催办；L4-4 已解除（勘误落链，同批驳回反馈②）。
@@ -114,6 +114,8 @@
 | 3 | PL4 wx 宿主面 host-wx/（移植轮落地件 · P-06-wx 预检提示） | 游戏程序 | 移植轮开工项；web/wx port-gate 硬检已 0 FAIL |
 | 4 | PL3 试玩反馈 + 5 局真人样本（升级件①已发） | 主人（已升级） | 入口存活；回流走既定版本链，PL4 主线不受影响 |
 | 5 | **PL2 wx 门禁复跑记录 pending（独立跟踪 · P0-3 QA 结论）** | 游戏程序（R3 复跑批一次做齐） | 10/18 后 wx 侧复跑记录**不存在**（QA 核原文：dy 口径四段 + 终审件 L20「G-4 维持」+ 本仓 git 零命中）；pending 登记，解除=R3 复跑批产出 wx 口径实跑档案；凭证（G-2）未到位前止步材料清单 |
+| 6 | **驳回建议①挂账（styleDerivation 渲染层 token 断言面 · 2026-10-26 驳回反馈非阻塞项）** | 游戏程序（下一部署批一次做齐） | `src/main.ts:35-38` 裸 hex（#F2EFE6/#2B2D42）改引 `src/platform/theme.ts` token + acc-05 增「渲染层零裸 hex（theme.ts 唯一 hex 落点）」断言 + 重建；**捆同批**：重部署 + 线上 `__L4_BUILD__` 归档——本轮不做理由=触构建产物会打破 bc3cd56 三锚闭环（回执 `../gate-logs/line4-rejection-fix-20261026/00-manifest.md`） |
+| 7 | **线上锚归档 + N5 翻 pass 核签（2026-10-26 驳回缺陷1 收口）** | 具备 tailscale 通道方（归档）+ QA（核签） | 仓内/部署 manifest 双锚=bc3cd56 在案；线上锚我方沙箱不可达（000/404 在案），一键归档命令见 `gate-logs/line4-deploy-20261026/00-manifest.md` §三锚表；若线上锚∉{bc3cd56,4f8ad155} → 查部署构建输入并重部署；QA 按修复回执复核后 N5 结论翻 pass |
 
 ## PL5 预研触发器（2026-10-25 登记 · 状态：**已触发第一步**）
 
