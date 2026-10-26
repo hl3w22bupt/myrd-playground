@@ -1,0 +1,13 @@
+== 美术独立实算复证 · 2026-10-26T02:21:55Z ==
+HEAD: 9166bf55668a65dae5afeca772406606eaac07fd
+branch: myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d
+tool: /usr/bin/shasum (SHA-256) — 与生成器 node:crypto 无共享实现
+
+SHA DIFF = 空（9/9 逐件全等）
+== 复证判定（游戏美术署名 · 不与生成器自证互证）==
+S1 独立 sha256 实算（/usr/bin/shasum，非生成链 node:crypto）× manifest 台账 9 件（a01..a06 + 派生 wav×3）：diff 空 = 9/9 全等 → 03-sha-diff-result.log
+S2 PNG 尺寸独立复测（/usr/bin/sips 读 IHDR）：144×48 / 384×48 / 192×48 / 96×96 / 48×48，与 manifest 及风格卡 §⓪ 规格逐件一致 → 04-ihdr-dims-sips.log
+S3 仓内快门禁 check-assets @ HEAD 9166bf55668a 重跑：PASS=31 FAIL=0 exit=0（与 N4 轮 06 号证据同值）→ 05-check-assets-head.log
+S4 acc-05 美术面扫描：src/ 与 export/web/src/ 位图引用零命中；位图件仅存 assets/ 管线面（口径=管线件对账，运行面程序化 Canvas 直绘维持）→ 06-acc05-no-bitmap-ref.log
+== 结论 ==
+本轮=重派协议复证轮：零素材产出、零接线变更、零 spec/theme 触碰；a01–a06 交付面在当前 HEAD 复证成立（9/9 hash + 5/5 尺寸 + 31/31 门禁 + 0 位图引用）。

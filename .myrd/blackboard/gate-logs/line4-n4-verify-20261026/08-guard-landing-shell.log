@@ -1,0 +1,5 @@
+== 命令原文：node games/line4-unblock-jam/ci/guard-landing-shell.mjs
+== 时刻：2026-10-26 09:42:18
+== 输出：
+LANDING-SHELL: PASS landing.html 在产且引用走 api/public/assets/*（部署壳契约收口）
+== exit=0 ==

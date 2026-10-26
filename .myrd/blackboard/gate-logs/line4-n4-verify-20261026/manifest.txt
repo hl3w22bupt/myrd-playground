@@ -1,0 +1,17 @@
+01-contract-unified | node scripts/contract-check.mjs --spec .myrd/spec/line4-unblock-jam/design-spec.json --project games/line4-unblock-jam | 2026-10-26 09:42:17 | exit=0
+02-check-acc-01-seeded-determinism | node games/line4-unblock-jam/tests/contract/checks/acc-01-seeded-determinism.mjs | 2026-10-26 09:42:17 | exit=0
+02-check-acc-02-exit-feedback-latency | node games/line4-unblock-jam/tests/contract/checks/acc-02-exit-feedback-latency.mjs | 2026-10-26 09:42:17 | exit=0
+02-check-acc-03-combo-pending-invariant | node games/line4-unblock-jam/tests/contract/checks/acc-03-combo-pending-invariant.mjs | 2026-10-26 09:42:17 | exit=0
+02-check-acc-04-red-round-boundaries | node games/line4-unblock-jam/tests/contract/checks/acc-04-red-round-boundaries.mjs | 2026-10-26 09:42:17 | exit=0
+02-check-acc-05-no-external-texture | node games/line4-unblock-jam/tests/contract/checks/acc-05-no-external-texture.mjs | 2026-10-26 09:42:17 | exit=0
+02-check-acc-06-perf-caps | node games/line4-unblock-jam/tests/contract/checks/acc-06-perf-caps.mjs | 2026-10-26 09:42:18 | exit=0
+02-check-acc-07-telemetry-key-parity | node games/line4-unblock-jam/tests/contract/checks/acc-07-telemetry-key-parity.mjs | 2026-10-26 09:42:18 | exit=0
+02-check-g-01-first-60s-guide | node games/line4-unblock-jam/tests/contract/checks/g-01-first-60s-guide.mjs | 2026-10-26 09:42:18 | exit=0
+02-check-ac-template.spec | node games/line4-unblock-jam/tests/contract/ac-template.spec.mjs | 2026-10-26 09:42:18 | exit=0
+03-scaffold-smoke | node games/line4-unblock-jam/tools/smoke.mjs | 2026-10-26 09:42:18 | exit=0
+04-port-gate-web | node games/line4-unblock-jam/tools/port-gate-checklist.mjs --target web | 2026-10-26 09:42:18 | exit=0
+05-port-gate-wx | node games/line4-unblock-jam/tools/port-gate-checklist.mjs --target wx | 2026-10-26 09:42:18 | exit=0
+06-assets-gate | node games/line4-unblock-jam/tools/check-assets.mjs | 2026-10-26 09:42:18 | exit=0
+07-build | node games/line4-unblock-jam/tools/build.mjs | 2026-10-26 09:42:18 | exit=0
+08-guard-landing-shell | node games/line4-unblock-jam/ci/guard-landing-shell.mjs | 2026-10-26 09:42:18 | exit=0
+09-playable-smoke | node games/line4-unblock-jam/tools/smoke-playable.mjs | 2026-10-26 09:42:18 | exit=0

@@ -1,6 +1,21 @@
 # 资产清单黑板 — line4-unblock-jam《挪出一条路（工作名待主人定）》（第四产品线）
 
-> 更新时间：2026-10-25（**10/25 交付包轮 · 链 v2 approved + 资产 id 冻结核验通过**）· 负责人：游戏美术 ｜ 下一步：**过审版落地轮开首批资产生成**（a01–a06 程序化 · manifest 逐件 hash · 重生成 hash 不变机判）；asset id↔落点↔expect 三联冻结维持（a04↔g-01 挂接实证）
+> 更新时间：2026-10-26（**10/26 交付包轮 · 首批资产六件量产落地 + 同文任务书重派·独立实算复证轮 + 跨线重证轮（程序驳回修复后）**）· 负责人：游戏美术 ｜ 下一步：真人试玩反馈回流后按 revision 口径调资产（拟改先登记本卡，防部署巡检误报）；a01–a06 已在盘，独立实算 hash 9/9 全等（§七）· 19f60ce 后全量门禁 17 步复绿（§八）
+
+## ⓪ 首批量产落地（2026-10-26 · 游戏美术 · 逐件登记）
+
+| spec 资产 id | 落点（kebab-case 对 id） | 规格 | sha256（前 12） | 门禁 |
+|---|---|---|---|---|
+| a01-lot-tiles | `games/line4-unblock-jam/assets/a01-lot-tiles.png` | 144×48 图集 3 帖（地面+网格/网格单元/障碍 4px 圆角） | c280e58157fd | check-assets PASS |
+| a02-car-set | `…/assets/a02-car-set.png` | 384×48 四色档 1×2（8px 圆角 + 12% 投影 offset2） | 1fa47319c7ba | 同上 |
+| a03-exit-gate | `…/assets/a03-exit-gate.png` | 192×48 双态（绿=通/红=堵，2 格宽） | bc759363500f | 同上 |
+| a04-guide-hand | `…/assets/a04-guide-hand.png` | 96×96 引导手指+滑动箭头（g-01 挂件） | 72db18102666 | 同上 |
+| a05-ui-hud | `…/assets/a05-ui-hud.png` | 48×48 九宫底板（8px 边距） | 8c57d16133da | 同上 |
+| a06-sfx-pack | `…/assets/a06-sfx-pack.spec.json` + `assets/audio/{drag,exit,clear}.wav` 派生 | 3 档（拖动/驶出/通关 · 波形/时长/增益数值化） | fe5858f718b4 | 同上（派生 hash 同锚） |
+
+- 生成器：`tools/gen-assets.mjs`（pnglib 零依赖 · 色值单源=theme.ts · **零噪声零时钟零随机**）；manifest 逐件 sha256：`assets/manifest.json`。
+- 确定性机判：同命令重跑整树 diff 逐字节一致 + check-assets 临时目录重生成 hash 全等（31 断言 PASS，`gate-logs/line4-n4-verify-20261026/06`）。
+- 口径披露：a01–a06 为**资产管线件**（清单+manifest 对账）；可玩面渲染为程序化 Canvas 直绘（零位图引用，acc-05 机判），web 音效经 WebAudio 合成（参数镜像 a06 tiers）。
 
 ---
 
@@ -143,3 +158,40 @@
 - 证据追加：`…/line4-art-reverify-20261025/`（05 head+desk-check 日志 · 06 前提专检 · verify-c983817/ 13 件门禁原文+manifest；与 05 前跑 verify/（ef45565 锚）分目录并存）。
 
 ——游戏美术（勘误轮接替复证）
+
+---
+
+## 七、同文任务书重派轮 · 独立实算复证（2026-10-26 · 美术署名）
+
+> 10/26 交付包已在 `9166bf5` 前轮收口（N0→N5+deploy+逐包机核零缺口），本轮按重派协议处置：**复证而非重做**。新事实核查=零（工作树净 · `gate-logs/` 最新目录即前轮 `line4-recheck-20261026-continuation` · 各线无新登记）。增量动作=前轮未做过的**独立工具链实算**——前轮 hash 证据出自生成链（node:crypto 自算自比），本轮改用与生成器零共享实现的独立工具重算，不与生成器自证互证。
+
+| # | 复证项 | 结果 |
+|---|---|---|
+| S1 | **独立 sha256 实算**（`/usr/bin/shasum`）× manifest 台账 9 件（a01–a06 本体 + a06 派生 wav×3）：`diff` 空 = **9/9 逐件全等** | ✅ |
+| S2 | **PNG 尺寸独立复测**（`/usr/bin/sips` 读 IHDR）：144×48 / 384×48 / 192×48 / 96×96 / 48×48，与 manifest 及 §⓪ 规格逐件一致 | ✅ |
+| S3 | **仓内快门禁 check-assets @ `9166bf5` 重跑**：PASS=31 FAIL=0 · exit 0（与 N4 轮 06 号证据同值） | ✅ |
+| S4 | **acc-05 美术面扫描**：`src/` 与 `export/web/src/` 位图引用（.png/.jpg/.webp/new Image/drawImage）**零命中**；位图件仅存 `assets/` 管线面 →「管线件对账 + 运行面程序化 Canvas 直绘」口径维持，**位图接线不做**（approved spec acc-05 零外部贴图为冻结面，改口径走 spec revision，修订权归主策划） | ✅ 合规态 |
+
+- **边界重申**：本轮零素材产出、零接线变更、零 spec/theme/玩法触碰；PL2 视觉物料复核（g2-blocks §二）与 PL3 拟改登记面前轮已署名落盘，本轮无美术侧新拟改项。
+- 证据目录：`.myrd/blackboard/gate-logs/line4-art-sha-recheck-20261026/`（00 台账 · 01 独立 shasum 原文 · 02 期望/实算双排序件 · 03 空 diff · 04 sips 尺寸 · 05 快门禁 · 06 零位图扫描）。
+
+——游戏美术（重派轮独立实算复证）
+
+---
+
+## 八、跨线重证轮（2026-10-26 · 程序驳回修复 `19f60ce` 后 · 美术署名）
+
+> 判定前提变化（他线 `19f60ce` 驳回修复轮落盘：部署对账证据面两缺陷勘误 + 挂账项①②登记）→ 按跨线重证纪律三件套处置。**本轮改动面=本段+证据目录，零素材产出、零接线变更、零 spec/theme/src 触碰。**
+
+| # | 复证项 | 结果 |
+|---|---|---|
+| (a) | **spec 链面专检**：无新 revision/新链 —— status=approved · version=2 · 锚 `cmvlrc0ma001tm94ialxeykjn@v2:approved`（main.mjs 实读） | ✅ 前提未变 |
+| (b1) | **程序勘误主张亲核**：export/web/manifest.json:2 与 main.mjs:1 双锚同值 `bc3cd5669e…` ——「原记 4f8ad15 系虚记」勘误成立；共板 blockers.md 部署实录勘误句认领 | ✅ |
+| (b2) | **theme.ts 零触碰**：blob @`19f60ce` = `739f1b20…` ≡ 10/25 判例值（末次变更仍是 `4f4053f`） | ✅ |
+| (b3) | **挂账项①美术预审**（blockers verdict #6 · owner=程序）：main.ts 4 处裸 hex 全部 token 等值（`#F2EFE6`×2≡`PALETTE.ground` · `#2B2D42`×2≡`PALETTE.ink`），白名单外零取色 → **纯引用替换、零视觉漂移，美术口径预审通过**；执行提示：`'#F2EFE6'}cc` 处 alpha 后缀须随替换保留（token 给色值，alpha 属模板面） | ✅ 预审放行 |
+| (c) | **全量 verify.sh @ `19f60ce` 重跑（WX=1）**：17 步全 PASS · exit 0（契约 29/0 + 8 checks + 冒烟 + port-gate web/wx + 资产门禁 31/0 + 构建 + 壳契约 + 可玩冒烟）；跑后 build 重写锚 → `git restore` 恢复产物，锚回 `bc3cd56` · 工作树净（沿前轮「跑门禁恢复产物」惯例，三锚闭环未破） | ✅ |
+
+- 证据目录：`.myrd/blackboard/gate-logs/line4-art-crossline-reverify-20261026/`（00 前提+判定台账 · verify/01..09+manifest.txt）。
+- 交接不变项：挂账项①执行仍归程序线下一部署批（本轮不做理由=触构建产物破 bc3cd56 三锚，程序回执已披露）；线上锚归档仍挂账具备 tailscale 通道方；N5 翻 pass 核签待 QA。
+
+——游戏美术（跨线重证）

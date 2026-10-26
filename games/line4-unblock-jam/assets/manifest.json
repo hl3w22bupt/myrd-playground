@@ -1,0 +1,92 @@
+{
+  "generatedBy": "games/line4-unblock-jam/tools/gen-assets.mjs",
+  "paletteSource": "src/platform/theme.ts（≡ spec numeric.palette ≡ 风格卡 v1 · FROZEN-v1）",
+  "palette": [
+    "#F2EFE6",
+    "#D9D2C5",
+    "#2B2D42",
+    "#111111",
+    "#EF4444",
+    "#F59E0B",
+    "#10B981",
+    "#3B82F6"
+  ],
+  "determinism": "zero-noise / zero-clock / zero-random — 重生成 sha256 逐件不变",
+  "assets": [
+    {
+      "id": "a01-lot-tiles",
+      "file": "assets/a01-lot-tiles.png",
+      "kind": "image",
+      "specFile": "games/line4-unblock-jam/assets/a01-lot-tiles.png",
+      "bytes": 258,
+      "width": 144,
+      "height": 48,
+      "sha256": "c280e58157fd1d3c5b82e042b1edbcfa18201edab2ad976be6f134199723cdcf"
+    },
+    {
+      "id": "a02-car-set",
+      "file": "assets/a02-car-set.png",
+      "kind": "sprite",
+      "specFile": "games/line4-unblock-jam/assets/a02-car-set.png",
+      "bytes": 563,
+      "width": 384,
+      "height": 48,
+      "sha256": "1fa47319c7bac505e893cadb3799721469b10c3c4f4f3edf5f2d1926813ac740"
+    },
+    {
+      "id": "a03-exit-gate",
+      "file": "assets/a03-exit-gate.png",
+      "kind": "sprite",
+      "specFile": "games/line4-unblock-jam/assets/a03-exit-gate.png",
+      "bytes": 270,
+      "width": 192,
+      "height": 48,
+      "sha256": "bc759363500f7bbc30806b4cc8c551b410bd5ef7d76636f2994b54313c3a788f"
+    },
+    {
+      "id": "a04-guide-hand",
+      "file": "assets/a04-guide-hand.png",
+      "kind": "sprite",
+      "specFile": "games/line4-unblock-jam/assets/a04-guide-hand.png",
+      "bytes": 272,
+      "width": 96,
+      "height": 96,
+      "sha256": "72db1810266696c11808952b9085155c92a4bc5d10647aa90228a0d06829e300"
+    },
+    {
+      "id": "a05-ui-hud",
+      "file": "assets/a05-ui-hud.png",
+      "kind": "image",
+      "specFile": "games/line4-unblock-jam/assets/a05-ui-hud.png",
+      "bytes": 162,
+      "width": 48,
+      "height": 48,
+      "sha256": "8c57d16133da05e0dd22465adcbba1bedb5a0887e8bad1b92ec45f837023c4b4"
+    },
+    {
+      "id": "a06-sfx-pack",
+      "file": "assets/a06-sfx-pack.spec.json",
+      "kind": "sfx",
+      "specFile": "games/line4-unblock-jam/assets/a06-sfx-pack.spec.json",
+      "bytes": 1474,
+      "sha256": "fe5858f718b4eefb3f2ea08a2472ed8db3f3981f6a21563884643b6b5dbebfb1",
+      "derivatives": [
+        {
+          "file": "assets/audio/drag.wav",
+          "sha256": "5d5a437a9f44c442e5da55089c1fc38d9f8f97ef5e3bbc0184e867c3b4380c51",
+          "bytes": 2690
+        },
+        {
+          "file": "assets/audio/exit.wav",
+          "sha256": "ba416dfa1fc8bedc6ee186a1a219289456ecd207cf0a026f03fee4462459a32d",
+          "bytes": 6218
+        },
+        {
+          "file": "assets/audio/clear.wav",
+          "sha256": "5362b88e07067e4663e382f450cb4ae69776b42900d9ef3ff1771406da7ec0c4",
+          "bytes": 9746
+        }
+      ]
+    }
+  ]
+}

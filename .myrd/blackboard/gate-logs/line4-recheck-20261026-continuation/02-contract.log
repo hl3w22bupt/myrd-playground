@@ -1,0 +1,36 @@
+# 契约门禁复跑（续接核实轮 2026-10-26）
+$ date: 2026-10-26T10:05:11+0800
+$ node scripts/contract-check.mjs --spec .myrd/spec/line4-unblock-jam/design-spec.json --project games/line4-unblock-jam
+—— 契约测试输出 ——
+  PASS  spec 可解析: .myrd/spec/line4-unblock-jam/design-spec.json
+  PASS  spec 为 approved 版（平台登记 v2 · cmvlrc0ma001tm94ialxeykjn）
+  PASS  六段完整: meta
+  PASS  六段完整: world
+  PASS  六段完整: entities
+  PASS  六段完整: levels
+  PASS  六段完整: numeric
+  PASS  六段完整: acceptance
+  PASS  关卡元素编号唯一性核对完成（8 个）
+  PASS  数值扫描源就绪（10 个脚本，三层解析）
+  PASS  数值 DEFAULT_SEED 在工程常量区有对应
+  PASS  数值 FIXED_STEP_MS 在工程常量区有对应
+  PASS  数值 firstGuideWindowSec 在工程常量区有对应
+  PASS  数值 levelGen 在工程常量区有对应
+  PASS  数值 measurement 在工程常量区有对应
+  PASS  数值 palette 在工程常量区有对应
+  PASS  数值 perf 在工程常量区有对应
+  PASS  数值 redRoundFailDowngrade 在工程常量区有对应
+  PASS  数值 redRoundStepBudget 在工程常量区有对应
+  PASS  数值 telemetry 在工程常量区有对应
+  PASS  验收项 acc-01-seeded-determinism 依赖存在: games/line4-unblock-jam/tests/contract/checks/acc-01-seeded-determinism.mjs
+  PASS  验收项 g-01-first-60s-guide 依赖存在: games/line4-unblock-jam/tests/contract/checks/g-01-first-60s-guide.mjs
+  PASS  验收项 acc-02-exit-feedback-latency 依赖存在: games/line4-unblock-jam/tests/contract/checks/acc-02-exit-feedback-latency.mjs
+  PASS  验收项 acc-03-combo-pending-invariant 依赖存在: games/line4-unblock-jam/tests/contract/checks/acc-03-combo-pending-invariant.mjs
+  PASS  验收项 acc-04-red-round-boundaries 依赖存在: games/line4-unblock-jam/tests/contract/checks/acc-04-red-round-boundaries.mjs
+  PASS  验收项 acc-05-no-external-texture 依赖存在: games/line4-unblock-jam/tests/contract/checks/acc-05-no-external-texture.mjs
+  PASS  验收项 acc-06-perf-caps 依赖存在: games/line4-unblock-jam/tests/contract/checks/acc-06-perf-caps.mjs
+  PASS  验收项 acc-07-telemetry-key-parity 依赖存在: games/line4-unblock-jam/tests/contract/checks/acc-07-telemetry-key-parity.mjs
+  PASS  验收项 acc-a3-restart-willingness check 为命令型（无文件断言）
+—— 合计 29 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
+EXIT=0

@@ -1,8 +1,9 @@
-# line4-unblock-jam — 《挪出一条路（工作名待主人定）》中性脚手架（五件工程准备 · 2026-10-24）
+# line4-unblock-jam — 《挪出一条路（工作名待主人定）》可玩基线（2026-10-26）
 
-> **边界声明（红线）**：spec v0 = 链 v1 `cmvlpx0uf0019m94iyuroz578` **draft**（QA 七条缺陷 7/7 核销，待主人正式审查）。
-> **审查通过前：零玩法逻辑、零 contract-check 断言**——本目录只含中性脚手架五件，空壳冒烟可跑，无任何挪车玩法。
-> 契约件：`.myrd/spec/line4-unblock-jam/design-spec.json` · 版本链：同目录 `REVISIONS.md` · 人读版：`docs/design-spec-v0.md`
+> **当前态**：spec = 链 v2 `cmvlrc0ma001tm94ialxeykjn` **approved**（唯一现行；版本链见 `.myrd/spec/line4-unblock-jam/REVISIONS.md`）。
+> 玩法已落地：内核/实体/导演 + web 可玩面（`src/main.ts` + `src/web/`）+ 资产六件量产 + `export/web/` 部署面。
+> 契约件：`.myrd/spec/line4-unblock-jam/design-spec.json` · 人读版：`docs/design-spec-v0.md`
+> 核签链：`docs/spec/n1-skeleton-desk-check-20261026.md`（N1）· `docs/spec/f3-interpretation-20261026.md`（F3 判读细则）· `docs/qa/n2-precheck-20261026.md`（N2）· `docs/qa/n5-crosscheck-20261026.md`（N5 过审裁决）
 
 ## 五件工程准备（本轮交付）
 
@@ -17,9 +18,12 @@
 ## 运行（零 npm 依赖 · node ≥22）
 
 ```bash
-node games/line4-unblock-jam/tools/smoke.mjs                    # SCAFFOLD-SMOKE: PASS（4/4）
-node games/line4-unblock-jam/tools/port-gate-checklist.mjs      # PORT-GATE: PASS（web 预检）
-node games/line4-unblock-jam/tests/contract/ac-template.spec.mjs # 中性契约模板
+bash games/line4-unblock-jam/verify.sh                          # 一键全门禁（17 步 · GATE_LOG_DIR= 落证据）
+node games/line4-unblock-jam/tools/smoke-playable.mjs           # 可玩面 bot 冒烟 20 局（F3 判读载体）
+node games/line4-unblock-jam/tools/check-assets.mjs             # 资产门禁（存在性/hash/确定性/白名单 31 断言）
+node games/line4-unblock-jam/tools/build.mjs                    # 确定性构建 → export/web/（部署面）
+node games/line4-unblock-jam/ci/guard-landing-shell.mjs         # 部署壳契约门禁（landing.html 三条）
+node games/line4-unblock-jam/tools/gen-assets.mjs               # 资产重生成（重跑 hash 不变=确定性）
 node games/line4-unblock-jam/tools/gen-spec-data.mjs            # spec 改版后重生成（单源纪律）
 node games/line4-unblock-jam/tools/gen-build-info.mjs           # 构建 sha 重注入
 ```

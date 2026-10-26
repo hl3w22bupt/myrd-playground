@@ -1,6 +1,62 @@
 # 阻塞项黑板 — 工作室组合全景（多游戏共板 · 每线各自有子黑板）
 
-> 更新时间：2026-10-24（**选型落档 + spec v0 执笔轮收口**）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 更新时间：2026-10-26（**交付包轮：PL4 实现闭环 + PL2 终核升级 + PL3 巡检 + PL5 简报 v0**）· 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+
+## 组合收口（2026-10-26 · 交付包轮 · 主策划整合）
+
+### 组合全景（本轮收口时点）
+
+| 线 | 状态 | 本轮动作 | 关键产物 |
+|---|---|---|---|
+| **PL1 pixel-fives《像素街机足球》** | 底账清（已销案 · 零接触维持） | 巡检：零部署维持（对账=无记录，不重部署） | — |
+| **PL2 g2-blocks《熔炉方块》** | **退打磨中 R3 维持**——G-1 当日复证（链 v1–v10 全 superseded · **approved=0** API 实测）；三 sha 零位移 + 工作树净 + 部署面 v17 running 零漂移；**缺件如实列缺**：wx 复跑记录不存在（G-4）+ dy 截图三张 v1.1 形态未重摄（时效不符） | QA 终核 + 美术视觉物料单独复核 + 主策划出「提审就绪=否 + 材料清单 + 凭证需求清单」升级件（不越权提审） | `g2-blocks/p1-final-check-20261026.md` |
+| **PL3 line3-tower-defense《敌潮将至(工作名)》** | **待主人试玩止步维持**（今日复查零回流件）；巡检=良性漂移（部署 v2 running @ `f9d9834` 后仅 1 笔门禁面提交 `0b547f4`，源码/构建面零变更）；四判据自测打磨提案出炉（一轮为限：单局时长/再来一局两红灯挂 W-L3-4 拍板） | 部署物巡检 + 打磨提案 | `line3-tower-defense/polish-proposal-20261026.md` + `gate-logs/inspect-deploy-20261026/` |
+| **PL4 line4-unblock-jam《挪出一条路(工作名)》** | **P0 实现闭环达成**：N0 闸门三证据（链 v2 approved 复证+7/7 段零漂移+脚手架入库）→ N1 零 revision → N2 四看 4/4 → N3 资产六件量产+F3 细则 → N4 门禁 17 步全绿+可玩面 bot 20/20（68 断言）→ N5 四清单过审 → **deploy 上线 running @ `4f8ad155`（app `cmvollw2z001dm91k4ptf30aw`）**；试玩入口已开，a3 采集窗随开 | N0→N5 全链 + 首次真实部署 | 子黑板 10/26 区段 + `gate-logs/line4-{n0-gate,n4-verify,deploy}-20261026/` |
+| **PL5 储备** | 简报 v0 + 三问裁决落档（推荐序 ①文字找茬 13 > ③合成经营 11 混休 5 分 > ②竞拍 10 留观）；**不开题，立项权归主人** | 游戏策划出三轴打分表初稿（全带出处 + 混休独立计分 + PL4 异品类硬约束核对）+ 主策划三问裁决 | `next-line/pl5-research-brief-v0-20261026.md` + `pl5-selection-verdict-20261026.md` |
+
+### 升级主人（本轮 · 全部带证据）
+
+| # | 事项 | 载体 |
+|---|---|---|
+| 1 | **PL4 试玩入口**（可玩基线已上线）：`https://leomac-studio.tail49399e.ts.net/apps/line4-unblock-jam/`（或 `/gw`）——试玩 + a3 真人 5 名采集窗随开；工作名/视觉方向拍板（L4-2）同批 | 子黑板 10/26 部署实录节 |
+| 2 | **PL2 提审凭证链**（G-1 approve + G-2 凭证 + G-9 脏文件定性）——终核缺件清单与关闭判据已列，主人拍板后 R3 复跑批一次做齐 | `g2-blocks/p1-final-check-20261026.md` §三 |
+| 3 | **PL3 两件**：试玩反馈回流（升级件①催办维持）+ W-L3-4 数值校准拍板（打磨提案唯一红灯对） | `line3-tower-defense/polish-proposal-20261026.md` |
+| 4 | **PL5 立项点名**（①/③/均不 + 混休加权取舍 + 与 PL4 a3 采集时序） | `next-line/pl5-selection-verdict-20261026.md` |
+
+### 部署物巡检台账（2026-10-26 · 程序面机判）
+
+| 线 | 部署 | 巡检结论 |
+|---|---|---|
+| PL1 | 无部署 | 维持（对账=无记录） |
+| PL2 | v17 running @ `2bb69c7e`（坑 g2-blocks-2） | 零漂移（部署后本仓 games/g2-blocks 0 笔变更） |
+| PL3 | v2 running @ `f9d98349`（坑 line3-tower-defense-2 · app `cmvd6lt7f002km9wl2kbex7w4`） | 良性漂移 1 笔（`0b547f4` 门禁面增补，非源码/构建面）→ 不升级 |
+| PL4 | **v1 running @ `4f8ad155`（本轮新上线 · app `cmvollw2z001dm91k4ptf30aw`）** | 首次部署；504→GET 复查恰 1 单零重复；LIVE 主入口对账 PASS（/gw 200 + 本游戏标题）；**触达面机判（续接核实轮补）：`git diff --stat 4f8ad155..0d40be6 -- games/line4-unblock-jam/src games/line4-unblock-jam/export` = 空（EXIT 0 零触达，源码/构建面零变更）→ 部署字节对 0d40be6 及其后黑板文档笔仍有效，无需重部署**；构建锚三值对账（仓内 bc3cd56 / 重建 0d40be6 / 部署 commit 4f8ad155）见 `gate-logs/line4-deploy-20261026/00-manifest.md` §三锚表，线上 `__L4_BUILD__` 归档挂账具备 tailscale 通道方 |
+
+> 沙箱可达性边界（如实）：资产面 LIVE 直读经 :3111 网关 404 与 line3 同型（面限制非缺陷）；tailscale 域名沙箱不可达（HTTP 000）——主人浏览器可达即真实试玩面。
+
+## 续接核实轮（2026-10-26 · 游戏程序署名 · 逐包机核）
+
+> 性质：交付包轮（@ `0d40be6`）后的续接轮——不采信黑板文字，只认本机实跑与平台 GET 实测。证据 `.myrd/blackboard/gate-logs/line4-recheck-20261026-continuation/00-manifest.md`（四要素齐）。取证时点 HEAD=`0d40be6`。
+
+### 复证结论（零缺口需补做）
+
+| 包 | 复证方法 | 结果 |
+|---|---|---|
+| PL4 N0① | 平台 GET spec 单条（Bearer） | **HTTP 200 `v2·approved`**，updatedAt/parentSpecId 与本地导出件逐值同 → 非本地伪记 |
+| PL4 N0③/N4 | 本机复跑契约门禁 + verify.sh 全量 | 契约 **29/0 EXIT=0**；verify **17 步全 PASS exit 0**（WX=1）；09 可玩冒烟 **20/20 局全 WIN · 68 断言 PASS** |
+| PL4 deploy | 部署单 GET（单次查询）+ 坑位 GET + 网关探针 | `cmvolm4s7001fm91knv2x7mci` **running · err=null**；坑 `cmvollw2z001dm91k4ptf30aw` slug/sourceId/projectId 三锚正确；`/apps/line4-unblock-jam/gw` **200 + 本游戏标题**（零串壳）→ **完成定义三件齐** |
+| PL2 | 三 sha 本机 `git rev-parse` 复算 + G-1 链面复证实测 | 三 sha **逐值一致**（023e5838…/9c274385…/4fba03ae…）+ 源仓净；g2-blocks **v1–v10 全 superseded · approved=0** 本轮独立复证 → G-1 维持 |
+| PL3 | 提案件读核 + 链面底座抽核 | 四判据一轮为限合规；**发现一处引用失真**（见下 B-P-1） |
+| PL5 | 简报 v0 + 裁决件读核 | 三轴打分带出处（D34–D46）+ 混休独立计分列 + 异品类排除区核对 + 「只拍板不代写」→ 合规 |
+| PL1 | apphost apps 列表（23 坑）slug 对账 | 无 pixel-fives 坑 → 「无部署维持」成立 |
+
+### 新阻塞登记（本轮唯一新增）
+
+**B-P-1 · 平台链「同 projectId 全局唯一 approved」语义跨线漂移（程序面发现 · 升级主人）**
+- 事实（`06-crossline-approved-scan.json` · 52 条全量）：全链 **approved 仅 1 条 = line4 v2**；line3 v4 `cmvkb2d8y001fm968778whydc` superseded @ `2026-10-24T08:43:25.902Z`（line4 v2 approve 前 2ms 同事务窗）；wheat-squad v6 superseded @ `2026-10-16T02:34:48`；stack-tower v6 superseded @ `2026-09-30T01:21:51`——**approve 新 spec 会把同项目其它线已 approved 的 spec 连带顶成 superseded**。
+- 影响面：各线「链上 approved 唯一」类**口径主张**（黑板/文档时点表述）与未来平台 GET 复证场景；**工程契约面零影响**（各线契约单源=本地导出件 approve 时点快照，本轮 line4 契约 29/0 实跑佐证；line3 契约 runner 尚为占位 fail-closed，同样不受影响）。
+- 负责人/解除判据：**主人+平台侧**——① 确认该语义是否符合预期；② 若否，平台侧恢复各线链面 approved（或明确「链面 approved 以最新 approve 线为准」的口径并回写各线文档）。团队侧不越平台权自行改链。
+- 连带勘误：`line3-tower-defense/polish-proposal-20261026.md` 证据底座一行已补程序署名注记（原文不动）。
 
 ## 当前基线（2026-10-24 · 终审轮 N0 · 主策划）
 

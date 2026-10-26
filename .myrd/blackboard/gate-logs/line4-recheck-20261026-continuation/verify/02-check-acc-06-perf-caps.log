@@ -1,0 +1,5 @@
+== 命令原文：node games/line4-unblock-jam/tests/contract/checks/acc-06-perf-caps.mjs
+== 时刻：2026-10-26 10:05:36
+== 输出：
+[acc-06-perf-caps] PASS=7 FAIL=0
+== exit=0 ==

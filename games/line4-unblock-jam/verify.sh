@@ -49,6 +49,12 @@ if [ "${WX:-0}" = "1" ]; then
   step "05-port-gate-wx" node "$GAME/tools/port-gate-checklist.mjs" --target wx
 fi
 
+# —— 2026-10-26 可玩基线轮新增（审查通过版落地 · 部署面前置）：——
+step "06-assets-gate" node "$GAME/tools/check-assets.mjs"
+step "07-build" node "$GAME/tools/build.mjs"
+step "08-guard-landing-shell" node "$GAME/ci/guard-landing-shell.mjs"
+step "09-playable-smoke" node "$GAME/tools/smoke-playable.mjs"
+
 if [ "$FAIL" -ne 0 ]; then
   echo "VERIFY: FAIL line4-unblock-jam 门禁存在失败步（见上逐条）"
   exit 1
