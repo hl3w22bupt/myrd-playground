@@ -1,0 +1,1459 @@
+{
+ "schemaVersion": 1,
+ "spec": {
+  "acceptance": [
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-01-board-init-seeded",
+    "id": "ac-01-board-init-seeded",
+    "scope": "playable",
+    "statement": "seed=DEFAULT_SEED(20261001) 启动后炉板 64 格满员、7 类型合法；同 seed 跑两局，棋盘初始化序列逐字节一致。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-02-spawn-uniform-random",
+    "id": "ac-02-spawn-uniform-random",
+    "scope": "playable",
+    "statement": "spawn.orientation: \"uniform_random\"：每次补手从 7 类型等概率取一；seeded RNG 测试钩子（seededRng）可注入固定 seed 复现任意局面；内核零 Math.random/Date.now。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-03-swap-adjacency-only",
+    "id": "ac-03-swap-adjacency-only",
+    "scope": "playable",
+    "statement": "仅相邻（上下左右 ≤4 向）交换合法；非相邻交换无效、不消耗手数、不触发结算。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-04-match-3plus",
+    "id": "ac-04-match-3plus",
+    "scope": "playable",
+    "statement": "三连及以上即消除，含 L/T 形交点（交点块只计一次）。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-05-gravity-refill-cascade",
+    "id": "ac-05-gravity-refill-cascade",
+    "scope": "playable",
+    "statement": "消除后重力下落、顶部补手补满，连锁自动结算直至无新消除。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-06-combo-four-move-vector",
+    "id": "ac-06-combo-four-move-vector",
+    "scope": "playable",
+    "statement": "连击加成四手向量逐字裁决：消/消/不消/消 → +0/+50/归0/+0（第 1 手消除不加成 +0；连续第 2 手消除 +chainBonus=+50；中间插入非消除手 → 连击归 0；归零后再消除 +0 重新起算）。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-07-deadlock-cool",
+    "id": "ac-07-deadlock-cool",
+    "scope": "playable",
+    "statement": "炉冷判定：落定结算后+补手后各判一次，任一为真即炉冷；判定算法 = 64格×7块×≤4向全穷举（对 64 格逐格取 7 类型中在盘类型、对每格 ≤4 个相邻方向做 swap-probe，任一可成三消即存在手，全部不可成才判炉冷）。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-08-settlement-order",
+    "id": "ac-08-settlement-order",
+    "scope": "playable",
+    "statement": "单手结算顺序唯一：交换 → 消除判定 → 计分（含连击加成）→ 重力 → 补手 → 炉冷判定；实现不得自创顺序或漏判步骤。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-09-restart-full-reset",
+    "id": "ac-09-restart-full-reset",
+    "scope": "playable",
+    "statement": "重开全复位：分数、连击、棋盘、手数、炉冷态全部回到初始；重开后的 seed 链重新起算且确定性保持。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-10-perf-j1",
+    "id": "ac-10-perf-j1",
+    "scope": "playable",
+    "scopeNote": "PWA 范围标注：本轮生效面 = Web PWA 端（含 manifest / service-worker 打包）；移植端（wx/dy/Steam/Roblox）deferred 顺延下轮（任务书「明确不做」）。J1 预算与口径逐字引用 numeric.perf.j1 冻结块，零新增数值；双端标记名契约在移植端开工前仅对 Web 端生效。",
+    "statement": "J1 定义（逐字）：J1 = 一次消除从落定结算开始到该次反馈完成的墙钟时长，双端 perf 标记名逐字为 j1_settle_start / j1_feedback_done；预算 numeric.perf.j1.budgetMs=400 @ 4x CPU throttle + 390x844（基准口径见 numeric.perf.j1.device）；超预算即红，双端任一端缺标记名即红。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-11-theme-single-source",
+    "id": "ac-11-theme-single-source",
+    "scope": "playable",
+    "scopeNote": "PWA 范围标注：本轮生效。执行面单源件 = src/render/theme.ts（与 assets.a01、entities.e-renderer.script、tests/contract 断言四方一致）；statement 内「theme.js」为 N1 轮呈批件已披露的措辞二义，随本版 approve 一并裁定，实现不按其行事。",
+    "statement": "theme.js（运行时单源）的 7 个色值键名与值必须逐字等于 spec numeric.palette 冻结块；键缺失、值漂移、多源定义任一即红。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-12-palette-double-gate",
+    "id": "ac-12-palette-double-gate",
+    "scope": "playable",
+    "scopeNote": "PWA 范围标注：本轮生效。统一入口经 scripts/contract-check.mjs 内部调用美术门禁工具，判据与阈值逐字沿用 numeric.palette 冻结块（thresholdDeltaE 等），零新增数值。",
+    "statement": "色板 7 色 21 对双门禁（HSL 三选二 + ΔE(CIEDE2000)≥numeric.palette.thresholdDeltaE）全绿；红对即红。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-13-no-external-texture",
+    "id": "ac-13-no-external-texture",
+    "scope": "playable",
+    "scopeNote": "PWA 范围标注：本轮生效。三批资产（块 tile → UI/HUD → 背景/表现件）以定稿色板 token + 几何规格交付，尺寸复用黑板 assets.md 风格卡定稿口径，零新增数值、零贴图文件。",
+    "statement": "极简几何色块渲染，零外部贴图依赖（无 image/贴图文件加载）；风格漂移按缺陷打回。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-14-deterministic-kernel",
+    "id": "ac-14-deterministic-kernel",
+    "scope": "playable",
+    "statement": "内核与 seed 链路零 Math.random / Date.now（RNG 唯一来源 = e-rng mulberry32 + seededRng 测试钩子）。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-15-audio-feedback",
+    "id": "ac-15-audio-feedback",
+    "scope": "playable",
+    "statement": "消除命中 → 音效调用与反馈完成同帧发起（可 spy 可测）；音频缺失不阻塞玩法。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-16-persistence-minimal",
+    "id": "ac-16-persistence-minimal",
+    "scope": "playable",
+    "scopeNote": "PWA 范围标注：本轮生效面 = Web PWA 本地最小存档集；范围外（上报/云同步）spec 未声明，本轮不新增，deferred 以未来版本显式声明为准。",
+    "statement": "存档仅 muted + anonId 两键级最小集，零 PII 上报；无网络调用。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-17-repo-one-zero-touch",
+    "id": "ac-17-repo-one-zero-touch",
+    "scope": "playable",
+    "scopeNote": "PWA 范围标注：本轮生效。PWA 构建产物（manifest / service-worker / build 导出）一并纳入一号零接触守卫扫描范围。",
+    "statement": "一号仓库（stack-tower 线）全程零接触：本轮全部产物不修改一号仓库任何 tracked 文件、不触碰其 spec/导出包；以 git diff 留证。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-18-ci-guard-repo-scope",
+    "id": "ac-18-ci-guard-repo-scope",
+    "scope": "playable",
+    "scopeNote": "PWA 范围标注：本轮生效。CI 守卫对 PWA 构建面同规则生效，越界即红。",
+    "statement": "仓库范围守卫：g2-blocks 仓库内任何提交不得引用/修改一号仓库路径（games/stack-tower、export/wx、export/tt、.myrd/spec/stack-tower-*）；CI job 每次跑守卫，越界即红。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-22-feel-land-squash",
+    "id": "ac-22-feel-land-squash",
+    "statement": "落地挤压形变（数值面+时序面）：numeric.feel.landSquash 为唯一真源；实现常量表与 spec 逐值深比零漂移；frames 与 durationMs 满足「换算逻辑帧数（向上取整除以 FIXED_STEP_MS）」恒等式；形变在重力落定的同一逻辑帧触发（契约层注入时钟逐帧断言），持续 frames 个逻辑帧后复位为零形变。形变观感不进契约（美术校样 F-01 + 人工 rubric）。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-23-feel-hard-drop-shake",
+    "id": "ac-23-feel-hard-drop-shake",
+    "statement": "硬降震屏（数值面+时序面）：numeric.feel.hardDrop 为唯一真源；实现常量表逐值零漂移；当次手波次最大落差达 thresholdCells 即在落定逻辑帧触发；逐帧偏移 = amplitudeCellRatio × cell × 衰减包络（decayTauMs）× 振荡项（oscillationHz），曲线查表可复现（注入时钟断言采样点）；frames 帧后偏移恒为零。观感不进契约（F-02）。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-24-feel-clear-particles",
+    "id": "ac-24-feel-clear-particles",
+    "statement": "消除粒子双值与池纪律（数值面）：numeric.feel.particles 为唯一真源；同屏存活 ≤ sameScreenHardCap（硬顶），溢出按 overflowPolicy 声明口径丢弃（机判）；单次消除粒子数期望 = perClearBase + (cleared−3) × perExtraBlock；对象池 poolSize = 硬顶且预分配、运行期零超分配（池复用机判）；frames 与 lifeMs 满足换算逻辑帧数恒等式。视觉观感不进契约（F-03）。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-25-feel-sfx-three-tier",
+    "id": "ac-25-feel-sfx-three-tier",
+    "statement": "三档音效（资源面+时序面）：numeric.feel.sfx.tierBoundaries 为唯一真源（三档边界无缝覆盖 chain≥1）；三组独立资源（wave/freq/durationMs 逐档独立 + 变参微调字段独立）经 theme 单源生效（ac-11 不降）；消除命中 → 档位命中音在消除判定同一逻辑帧发起（契约层 T3 注入时钟断言；即时性阈值只约束契约层，真机不做帧级断言）；听感不进契约（F-04 + 人工 rubric）。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-26-feel-combo-feedback",
+    "id": "ac-26-feel-combo-feedback",
+    "statement": "连击计数反馈（时序面）：numeric.feel.combo.tiers 为唯一真源且与音效三档同边界（boundaryRule 口径见 numeric）；三档视觉态查表驱动，档位切换发生在对应逻辑帧（注入时钟断言）；实现常量表零漂移。视觉观感不进契约（F-05）。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-27-feel-restart-one-click",
+    "id": "ac-27-feel-restart-one-click",
+    "statement": "重开一键化（时序面）：一键入口（按钮单击）与键盘 R 同源同路径（同一处理函数机判）；契约层注入时钟断言「restart 调用 → 全复位完成（分数/连击/棋盘/手数/炉冷/表现层形变震屏粒子态）」≤ numeric.feel.restart.budgetMs；转场帧数 = transitionFrames（查表，注入时钟逐帧断言）；真机层口径 = v1.1 同机同条件多次取中位数（落 docs/release-readiness.md），不作契约断言。观感不进契约（F-06）。"
+   },
+   {
+    "check": "g2-blocks/scripts/contract-check.mjs --only ac-28-daily-hook-min-loop",
+    "id": "ac-28-daily-hook-min-loop",
+    "statement": "daily-challenge 最小闭环（钩子面）：每日种子 = 本地时区日期码（seedBasis 口径）经 datetime.dailySeed 纯函数派生（fixedClock 断言：同日恒定、跨日必变、与关卡 seed 链独立）；进度与 streak 跨本地零点重置（resetPolicy 口径，steppedClock 断言）；存档经 storage 门面迁移注册 daily 存档键（键名以 numeric.daily.storageKey 为准），v1 键级（muted/anonId）不受影响（向后兼容 fixture 断言）；streak 窗口 = streakTrack（跨窗口归零机判）；HUD 入口完成态可机判查询。范围外（上报/云同步/奖励发放/排行榜）零实体零验收。"
+   },
+   {
+    "check": "node scripts/contract-check.mjs --only ac-29-analytics-nine-events",
+    "events": [
+     {
+      "id": "session_start",
+      "once": true,
+      "owner": "程序",
+      "payload": "sessionId, ts, levelId, sink",
+      "surface": "web",
+      "trigger": "装配根完成装配（__G2_READY 后一次性）"
+     },
+     {
+      "id": "session_end",
+      "once": true,
+      "owner": "程序",
+      "payload": "sessionId, ts, levelId",
+      "surface": "web",
+      "trigger": "页面首个 hidden（visibilitychange；会话终点口径）"
+     },
+     {
+      "id": "run_start",
+      "once": false,
+      "owner": "程序",
+      "payload": "sessionId, ts, runSeq, levelId",
+      "surface": "web",
+      "trigger": "开局 / 切关 / 重开新局（createGame 与 restart 后）"
+     },
+     {
+      "id": "run_end",
+      "once": false,
+      "owner": "程序",
+      "payload": "sessionId, ts, runSeq, levelId, score, chain, movesUsed",
+      "surface": "web",
+      "trigger": "炉冷结算（每局至多一次）"
+     },
+     {
+      "id": "restart_clicked",
+      "once": false,
+      "owner": "程序",
+      "payload": "sessionId, ts, levelId, movesUsed",
+      "surface": "web",
+      "trigger": "doRestart 入口（按钮与 R 键同源）"
+     },
+     {
+      "id": "evt_first_screen",
+      "once": true,
+      "owner": "程序",
+      "payload": "sessionId, ts, levelId",
+      "surface": "web",
+      "trigger": "首个渲染帧（锚点①，实体 e-evt-first-screen）"
+     },
+     {
+      "id": "evt_first_drag",
+      "once": true,
+      "owner": "程序",
+      "payload": "sessionId, ts, a, b, levelId",
+      "surface": "web",
+      "trigger": "首次交换尝试（锚点②，实体 e-evt-first-drag）"
+     },
+     {
+      "id": "evt_first_place",
+      "once": true,
+      "owner": "程序",
+      "payload": "sessionId, ts, a, b, chain, levelId",
+      "surface": "web",
+      "trigger": "首次有效交换（锚点③，实体 e-evt-first-place）"
+     },
+     {
+      "id": "share_clicked",
+      "once": false,
+      "owner": "美术（分享卡物料）+ 程序（路由）",
+      "payload": "sessionId, ts, card",
+      "surface": "platform-only",
+      "trigger": "平台分享环点击（wx/dy 分享面）"
+     }
+    ],
+    "id": "ac-29-analytics-nine-events",
+    "scope": "playable",
+    "scopeNote": "封版冲刺 N4 已落地（web 8 事件 call site 纯新增接线 + wx/dy 原生路由声明）；零玩法 diff 由 N2 numstat 机判盯防（0 删除 0 改行）；web 未配 __G2_ANALYTICS_ENDPOINT 时只缓冲不外发（__G2_ANALYTICS_LOG 机读），如实披露。",
+    "statement": "产品埋点九事件表（程序 8 事件 + 美术 share_clicked，主人已批准并入）：session_start / session_end / run_start / run_end / restart_clicked / evt_first_screen / evt_first_drag / evt_first_place / share_clicked。代码镜像 = src/telemetry/analytics.ts ANALYTICS_EVENTS（唯一第二份，双向断言盯防）；wx=reportEvent / dy=reportAnalytics 原生上报，不自建第三方 SDK；web=缓冲 + sendBeacon + pagehide/hidden flush 兜底。"
+   },
+   {
+    "assertion": "pending",
+    "calibrationRound1": {
+     "annotation": "每个数字挂三标注：契约 id + 聚合脚本名 + 待线上复核",
+     "replayAudit": {
+      "floor": "且 ≥5 局",
+      "passCriteria": "seed 重放逐位一致",
+      "ratio": "≥10%"
+     },
+     "report": "docs/dod-calibration-round1.md（N4 交付）",
+     "runInvalidation": {
+      "fourElements": [
+       "局均时长",
+       "局级 seed",
+       "终局结果态",
+       "埋点事件完整性"
+      ],
+      "report": "作废率必须随报告上报",
+      "rule": "缺一即作废"
+     },
+     "sampleFloor": {
+      "consecutiveDays": "≥3 天",
+      "deviceTiers": "3 机型档各 ≥2 台",
+      "participants": "≥10 人",
+      "runsPerParticipant": "≥5 局",
+      "totalRuns": "≥50 局"
+     },
+     "wording": "只出校准值与建议区间；禁出「DoD 已达标」类结论；生效阈值改动 = 主人拍板后的链上修订动作"
+    },
+    "check": "PEND（待校准：首轮校准报告为人工交付物 `docs/dod-calibration-round1.md`；数据回流后随修订启用断言）",
+    "gates": [
+     {
+      "calibration": "pending",
+      "layer": "留存门",
+      "metric": "D1 次日留存",
+      "threshold": "≥30%"
+     },
+     {
+      "calibration": "pending",
+      "layer": "留存门",
+      "metric": "D7 七日留存",
+      "threshold": "≥10%"
+     },
+     {
+      "calibration": "pending",
+      "layer": "参与门",
+      "metric": "局均时长",
+      "threshold": "≥3min"
+     },
+     {
+      "calibration": "pending",
+      "layer": "回访门",
+      "metric": "重开率",
+      "threshold": "≥40%"
+     }
+    ],
+    "id": "ac-30-freeze-dod-gates",
+    "pendingWhy": "calibration（门槛数值待封版后真实数据校准；首轮校准 = 内测样本人工回收 + 报告交付，不改阈值不入断言面）",
+    "scope": "business",
+    "scopeNote": "三层门 = 留存门（D1/D7）+ 参与门（局均时长）+ 回访门（重开率）；数值为封版候选门槛，全部「待校准」。本轮（链 v8）只增「首轮校准」规格：内测样本回收的最低样本量、单局作废判定、seed 重放抽检、数字三标注与措辞红线；门槛数值零改动（DoD 只首轮校准不改生效阈值）。",
+    "statement": "封版 DoD 四项门（全部待校准，阈值零改动）：留存门 D1 次日留存 ≥30%、D7 七日留存 ≥10%；参与门 局均时长 ≥3min；回访门 重开率 ≥40%。首轮校准（内测期）：样本下限 ≥10 人 × 每人 ≥5 局 × 总局数 ≥50 局 × 连续 ≥3 天 × 3 机型档各 ≥2 台；单局四要素（局均时长 / 局级 seed / 终局结果态 / 埋点事件完整性）缺一即作废且作废率必须随报告上报；≥10%（且 ≥5 局）局级 seed 重放抽检须逐位一致；报告每个数字挂三标注（契约 id + 聚合脚本名 + 待线上复核）；校准报告只出「校准值 + 建议区间」，不得出现「DoD 已达标」类结论措辞；门槛生效 = 主人拍板后经链上修订转正式。",
+    "verification": "manual",
+    "verificationNote": "人工口径：校准报告由 QA 线产出、主人拍板；四项门槛数值的「生效与否」永远是人的动作，机器只出校准值与建议区间。"
+   },
+   {
+    "check": "node scripts/contract-check.mjs --only ac-31-nearmiss-feedback",
+    "copy": [
+     {
+      "id": "nm-copy-inplay-oneaway",
+      "text": "这一行差一步就能消",
+      "trigger": "局中 one-away 行命中（频控通过）",
+      "verification": "auto-present"
+     },
+     {
+      "id": "nm-copy-settle-chain",
+      "text": "距离 {chainTarget} 连只差 1 连",
+      "trigger": "炉冷 P1（连击差一）",
+      "verification": "auto-present"
+     },
+     {
+      "id": "nm-copy-settle-firstclear",
+      "text": "首消只差 1 步",
+      "trigger": "炉冷 P2（首消差一步）",
+      "verification": "auto-present"
+     },
+     {
+      "id": "nm-copy-settle-hands",
+      "text": "{chain} 连收尾，就差 1 手",
+      "trigger": "炉冷 P3（剩手惜败）",
+      "verification": "auto-present"
+     },
+     {
+      "id": "nm-copy-personal-best-gap",
+      "text": "个人最佳 {best}，就差 {gap} 分",
+      "trigger": "归因层补充行（个人最佳存在且非低分边界时；=0/低分 → 本条不展示，降级为下条）",
+      "verification": "auto-present"
+     },
+     {
+      "id": "nm-copy-personal-best-edge",
+      "text": "继续热身，稳住节奏",
+      "trigger": "个人最佳=0 或低分边界（e-personal-best 降级文案，替代差值文案）",
+      "verification": "auto-present"
+     },
+     {
+      "id": "nm-copy-edge-note",
+      "text": "（文案措辞观感归人工 rubric，不进契约断言）",
+      "trigger": "全体 near-miss 文案",
+      "verification": "manual"
+     }
+    ],
+    "events": [
+     {
+      "id": "nm_triggered",
+      "owner": "程序",
+      "payload": [
+       "sessionId",
+       "ts",
+       "runSeq",
+       "seed",
+       "phase(per-move|cool)",
+       "rule(P1|P2|P3|one-away-row)",
+       "rows",
+       "chain",
+       "handsLeft",
+       "score"
+      ],
+      "surface": "web",
+      "when": "弱反馈实际展示时（每行/全局频控通过后）"
+     },
+     {
+      "id": "nm_capped",
+      "owner": "程序",
+      "payload": [
+       "sessionId",
+       "ts",
+       "runSeq",
+       "seed",
+       "phase(per-move|cool)",
+       "rule",
+       "rows",
+       "capType(per-row|global)"
+      ],
+      "surface": "web",
+      "when": "命中被频控拦截（每行 1 次/局 或 全局 3 次/局）时"
+     }
+    ],
+    "id": "ac-31-nearmiss-feedback",
+    "measurement": {
+     "deviceTier": "最低机型档为频控与时序测量基准",
+     "logicFrame": "契约层注入时钟断言（T3）；真机不做帧级断言（v1.2 轮既定口径沿用）"
+    },
+    "scope": "playable",
+    "scopeNote": "v1.3 首批实现轮（链 v8 定死口径）：实现随片先红后绿，本条自链 v8 起为 active 契约条目。纯表现层：谓词只读复用 combo/goals/deadlock 探针现成面，确定性内核零改动。",
+    "statement": "near-miss 反馈系统（判定口径定死）：局中每手「消除结算后同逻辑帧末态」与炉冷结算两时点评估。候选行列同权（axisParity=row-col-equal，候选行 = 候选交换两格所在行 y 并集，tie-break = cell-index-asc）；填充计数取消除结算后同逻辑帧末态（fillCountBasis=post-clear-same-frame-endstate，禁取中级联/动画中间态）。弱反馈频控：每行 1 次/局（perRowPerRun=1）+ 全局 ≤3 次/局（globalPerRun=3），超限命中只记遥测不展示。反馈形态 = 冷色一行文案 + 弱脉冲一次（pulseMs=600 / 驻留 bannerHoldMs=2400）+ 边行高亮不常亮（transient-not-latched）+ 零粒子 + 不震屏；音效 = 三档第二档变体（durationScale=0.5 + 下行尾音）。炉冷结算三择一：P1 连击差一 / P2 首消差一步 / P3 剩手惜败（规则见 numeric.nearMiss.predicate.settlementRules，命中序 P1→P2→P3 取首中）。本版无强反馈通道（strongFeedback.inVersion=false；≤3 次/5s 仅「预留提案」，无实现无验收）。个人最佳=0/低分边界：见 e-personal-best（无个人最佳或低分时差值文案降级为通用鼓励文案）。",
+    "verification": "auto",
+    "verificationNote": "auto = 契约件（谓词单元断言 + 频控断言 + 遥测事件断言，tests/contract/ac-31）；听感/观感不进契约（G-01/G-02 + 人工 rubric 随 approve 验收走）。"
+   },
+   {
+    "check": "node scripts/contract-check.mjs --only ac-32-settlement-ia",
+    "copy": [
+     {
+      "id": "sl-copy-result-score",
+      "text": "分数",
+      "trigger": "结果层 P0 标签",
+      "verification": "auto-present"
+     },
+     {
+      "id": "sl-copy-result-chain",
+      "text": "最高连击",
+      "trigger": "结果层 P1 标签",
+      "verification": "auto-present"
+     },
+     {
+      "id": "sl-copy-result-moves",
+      "text": "用步数",
+      "trigger": "结果层 P2 标签",
+      "verification": "auto-present"
+     },
+     {
+      "id": "sl-copy-attribution-none",
+      "text": "棋盘无可消除，炉冷收场",
+      "trigger": "归因层（near-miss 未命中时）",
+      "verification": "auto-present"
+     },
+     {
+      "id": "sl-copy-action-restart",
+      "text": "再来一局",
+      "trigger": "行动层主按钮",
+      "verification": "auto-present"
+     },
+     {
+      "id": "sl-copy-action-daily",
+      "text": "每日挑战",
+      "trigger": "行动层次按钮（daily 可见时）",
+      "verification": "auto-present"
+     }
+    ],
+    "id": "ac-32-settlement-ia",
+    "measurement": {
+     "coldStart": "冷启动 = 进程冷起（SW 未命中回源路径）从首帧到结算面可交互的端到端时长；口径 = showDelayMs(400) + enterAnimMs(240) 为上限预算，实测值随内测采样上报",
+     "deviceTier": "最低机型档基准 = 三档机型中最低档（最低分辨率 + 最低主频档）实测；其余档位仅参考",
+     "hotStart": "热启动 = SW 命中回访路径同口径测量，与冷启动分列上报、不合并",
+     "touchTarget": "≥48dp 触达高度，css px @1x 换算（touchTargetMinPx=48）"
+    },
+    "scope": "playable",
+    "scopeNote": "v1.3 首批实现轮（链 v8 定死口径）：三层 IA 落地 src/render/settlement.ts + renderer 槽位绘制；零玩法逻辑改动（现成状态读取 + doRestart 同源），ac-08 结算顺序语义零改动。",
+    "slots": [
+     {
+      "content": "本局分数（现成状态面）",
+      "id": "result-slot-score",
+      "interactive": false,
+      "layer": "P0-result"
+     },
+     {
+      "content": "最高连击（现成状态面）",
+      "id": "result-slot-chain",
+      "interactive": false,
+      "layer": "P1-result"
+     },
+     {
+      "content": "用步数（现成状态面）",
+      "id": "result-slot-moves",
+      "interactive": false,
+      "layer": "P2-result"
+     },
+     {
+      "content": "near-miss 命中项 / 无可消除 / 边界降级文案",
+      "id": "result-slot-attribution",
+      "interactive": false,
+      "layer": "P3-attribution-action"
+     },
+     {
+      "content": "主按钮「再来一局」（doRestart 同源）",
+      "id": "result-slot-action-restart",
+      "interactive": true,
+      "layer": "P3-attribution-action",
+      "touchTargetMinPx": 48
+     },
+     {
+      "content": "次按钮「每日挑战」（daily.entryState().visible 时）",
+      "id": "result-slot-action-daily",
+      "interactive": true,
+      "layer": "P3-attribution-action",
+      "touchTargetMinPx": 48
+     }
+    ],
+    "statement": "结算页信息架构（三层 IA）：① 结果层 P0–P2 = 本局分数 / 最高连击 / 用步数（主视觉，全部现成状态面）；② 归因层 P3 = near-miss 命中项文案（ac-31 枚举）或「无可消除」提示一行（个人最佳=0/低分边界降级见 e-personal-best）；③ 行动层 = 主按钮「再来一局」（doRestart 同源同路径）+ 次按钮「每日挑战」（daily.entryState().visible 时）。版式沿用 UI token 九键与冻结色板（零新色零字体）；结算层出现延迟 showDelayMs=400 / 入场 enterAnimMs=240；出现期间玩法输入维持 cooled 既有封印。触达高度：全部可点槽位 ≥48dp（css px @1x 换算，numeric.settlement.touchTargetMinPx=48）。slot element id（P0–P3）：result-slot-score / result-slot-chain / result-slot-moves / result-slot-attribution / result-slot-action-restart / result-slot-action-daily。",
+    "verification": "auto",
+    "verificationNote": "auto = smoke 三区块渲染态断言 + 行动层重开同源断言 + element id 存在性断言（tools/smoke.mjs 扩展）；版式观感归人工 rubric。"
+   },
+   {
+    "check": "node scripts/contract-check.mjs --only ac-33-submission-bundle-zero-diff",
+    "id": "ac-33-submission-bundle-zero-diff",
+    "internalTools": {
+     "aggregateScript": "tools/aggregate-nearmiss.mjs（内测聚合，不进 build/ 提审包）",
+     "internalTag": "__G2_INTERNAL（内部玩家标记，缺省关闭零行为；仅 ?internal=1 显式开启并就地披露）",
+     "runSeed": "局级 seed 入埋点字段（run_start/run_end/nm_* payload.seed），零 PII"
+    },
+    "scope": "release",
+    "scopeNote": "v1.3 内测面与提审面的隔离断言：v1.3 全部改动（near-miss / 结算页 IA / 埋点补链 / 聚合脚本 / 内部玩家 tag）零渗漏进 wx/dy 提审包。",
+    "statement": "提审包零 diff：① 路径面隔离——自 v1.2 发布 commit（6d3db6a）起本线 diff 的全部路径落在白名单（src/render|telemetry、tests、tools、docs、ci、package.json），platform/ 与 export/ 与提审包组包输入面零命中；② 内测工具不进提审包——聚合脚本（tools/aggregate-*）与内部玩家 tag（__G2_INTERNAL / internalPlayer）不出现在 web build/ 产物与任何提审包入口，内测开关缺省关闭 = 零行为零上报；③ 提审包源面零接触——platform/{wx,dy} 组包输入、wx/dy 端口分支封箱件清单在 v1.3 线零改动（跨树逐件比对由 QA 独立通道复核，断言与 QA 结论双通道并存）。",
+    "verification": "auto",
+    "verificationNote": "auto = 契约件（面隔离 + 内测工具不进包 + 提审包源面零接触，tests/contract/ac-33）；跨树提审包逐件比对 = QA 双通道独立复核（N4 用 wx/dy worktree 独立跑）。"
+   }
+  ],
+  "assets": [
+   {
+    "file": "g2-blocks/src/render/theme.ts",
+    "generator": "generated:constant-table",
+    "id": "a01-block-palette",
+    "kind": "palette",
+    "license": "仓库内自产，无第三方素材",
+    "note": "运行时单源；唯一真源 = spec numeric.palette 冻结块",
+    "source": "generated"
+   },
+   {
+    "file": "g2-blocks/assets/palette/palette-n1-final.json",
+    "generator": "g2-blocks/tools/palette-design.mjs",
+    "id": "a02-palette-artifact",
+    "kind": "palette-json",
+    "license": "仓库内自产",
+    "note": "美术交付件，sha256 7bc2ca03…（见 numeric.palette.sourceSha256）",
+    "source": "generated"
+   },
+   {
+    "file": "g2-blocks/assets/audio/",
+    "generator": "procedural",
+    "id": "a03-sfx-pack",
+    "kind": "audio",
+    "license": "仓库内自产",
+    "note": "消除/连击/炉冷/重开四类，approve 后由实现产出",
+    "source": "generated"
+   },
+   {
+    "file": "g2-blocks/assets/feel/motion-pack.json",
+    "generator": "g2-blocks/tools/gen-feel-pack.mjs",
+    "id": "a04-feel-motion-pack",
+    "kind": "motion-table",
+    "license": "仓库内自产，无第三方素材",
+    "note": "落地挤压形变帧表 + 硬降震屏曲线表；数值真源 = spec numeric.feel（零手抄第二份）",
+    "source": "generated"
+   },
+   {
+    "file": "g2-blocks/assets/feel/particle-pack.json",
+    "generator": "g2-blocks/tools/gen-feel-pack.mjs",
+    "id": "a05-fx-particle-pack",
+    "kind": "fx-table",
+    "license": "仓库内自产，无第三方素材",
+    "note": "三档独立粒子规格（几何 + 冻结 token 色，零贴图）+ 合图集说明；硬顶 = numeric.feel.particles.sameScreenHardCap",
+    "source": "generated"
+   },
+   {
+    "file": "g2-blocks/assets/feel/ui-feel-pack.json",
+    "generator": "g2-blocks/tools/gen-feel-pack.mjs",
+    "id": "a06-ui-feel-pack",
+    "kind": "ui-state-table",
+    "license": "仓库内自产，无第三方素材",
+    "note": "重开按钮三态 + 转场帧 + 连击三档视觉态 token 映射；色值一律冻结 token（生成器零裸 hex）",
+    "source": "generated"
+   },
+   {
+    "file": "g2-blocks/assets/feel/daily-entry-pack.json",
+    "generator": "g2-blocks/tools/gen-feel-pack.mjs",
+    "id": "a07-daily-entry-pack",
+    "kind": "ui-entry-table",
+    "license": "仓库内自产，无第三方素材",
+    "note": "daily 入口与角标规格 + 分享卡轻更新清单（复用 A 轮 share 卡版式，零新贴图）",
+    "source": "generated"
+   },
+   {
+    "acceptance": "ac-31（G-01/G-02 校样随 approve 走人工 rubric）",
+    "file": "g2-blocks/assets/nearmiss/nearmiss-av-pack.json",
+    "generator": "g2-blocks/tools/gen-nearmiss-pack.mjs（N3 落位）",
+    "id": "a08-nearmiss-av-pack",
+    "kind": "av-variant-pack",
+    "license": "仓库内自产，无第三方素材",
+    "name": "near-miss 视听变体包",
+    "note": "数值真源 = spec numeric.nearMiss（零手抄第二份）；色值一律冻结 token 派生（生成器零裸 hex）",
+    "role": "第二档音效变体（durationScale=0.5 + 下行尾音，同源 theme 再生）+ 冷色降饱和 ~30% 边行高亮 token（冻结冷 token 派生式，零新色）+ 零粒子不震屏声明",
+    "source": "generated"
+   },
+   {
+    "acceptance": "ac-32（smoke 槽位断言 + 版式人工 rubric）",
+    "file": "g2-blocks/assets/settlement/settlement-ia-pack.json",
+    "generator": "g2-blocks/tools/gen-settlement-pack.mjs（N3 落位）",
+    "id": "a09-settlement-ia-pack",
+    "kind": "ui-state-table",
+    "license": "仓库内自产，无第三方素材",
+    "name": "结算页 P0–P3 槽位视觉包 + 分享卡模板 v1.3",
+    "note": "色值一律冻结 token（生成器零裸 hex）；槽位 id 单源 = ac-32.slots / e-settlement.elementIds",
+    "role": "三层 IA 槽位版式（UI token 九键沿用）+ result-slot-* 挂接点 + 分享卡轻更新模板",
+    "source": "generated"
+   },
+   {
+    "acceptance": "ac-32 + N4 审查证据面",
+    "file": "g2-blocks/assets/release/v13-shots/",
+    "generator": "g2-blocks/tools/screenshot.mjs（同批判据 buildSha256）",
+    "id": "a10-v13-shot-evidence",
+    "kind": "image",
+    "license": "仓库内自产",
+    "name": "v1.3 实机截图证据包（6 张 = 三态 × 两机型档）",
+    "note": "同批 manifest（shot-manifest）随件；与 wx/dy 提审包零 diff 断言（ac-33）并存",
+    "role": "三态 = near-miss 命中 / 无可消除 / 常规结算；两机型档 = 390×844（最低档基准）+ 430×932；命名挂稳定 id（shot-v13-<state>-<tier>）",
+    "source": "generated"
+   }
+  ],
+  "content": {
+   "dailyChallenge": {
+    "deferred": [
+     "cloud-sync",
+     "rewards",
+     "leaderboard",
+     "backdate-policy"
+    ],
+    "id": "daily-challenge-min-loop",
+    "inScope": [
+     "seed-derive",
+     "daily-progress",
+     "streak-window",
+     "hud-entry-badge"
+    ],
+    "reproduciblePath": "G2_SPEC_PATH=<链 v4 导出件> node scripts/contract-check.mjs --only ac-28-daily-hook-min-loop；真机入口人工复核走 docs/assembly-entry.md 只读入口",
+    "scope": "minimal-loop"
+   },
+   "levelCount": 2,
+   "note": "missions 不激活（任务书红线）；scope_gate 挂起，留存评估顺延至 ≥7 天真实样本，由主策划发起。",
+   "platform": {
+    "items": [
+     {
+      "acceptance": [
+       "wr-acc-1 五件落点在盘（src/platform/wx/wx-env|runtime|adapter|boot-wx.ts + tests/wx/wx-runtime.spec.mjs），Node 侧条目查全绿；被测件缺位 = RED 不装绿。",
+       "wr-acc-2 开发者工具验证 runbook 内嵌如下三节原文（N1 补丁①）：\n      - 步骤：① 安装微信开发者工具（稳定版）并在 设置→安全设置 开启服务端口；② 导入项目 = export/wx/，AppID=主人下发的正式号（未下发前 touristappid 仅限工具内预览）；③ 机跑 node tools/verify-wx-devtools.mjs（内部 cli preview --project export/wx）；④ 真机扫码完成首启 60 秒实点与分享/静音/重开四项手测。\n      - 预期输出：③ 成功时 CLI 输出 preview 成功并给出二维码路径（脚本归档原文）；工具内编译面板 0 error；真机首启炉板 64 格满员渲染、无白屏、无报错弹层。\n      - 判定标准：G1 编译零 error；G2 首启 ≤60 秒内完成首次交换（真人实点记录秒数）；G3 会话分享卡片实收且为 5:4 分享卡；G4 静音开关生效且重开复位。任一不过 = reject（逐条指到文件与 spec 条目）；CLI 缺席 = BLOCKED-ENV（exit 2）显式披露，不装绿。",
+       "wr-acc-3 复用门面零重抄：storage 走 src/platform/storage.ts 门面、音频走 src/platform/audio.ts 门面（静音态仍走 muted 键）、时钟走 src/platform/clock.ts（可注入）；wx 三件（runtime/share/wx-env）+ adapter/boot 零 Math.random/Date.now 直调字面。",
+       "wr-acc-4 分享卡资产绑定 5:4（500×400）——本条目不产图，复用既有 assets/release/ wx 分享卡（A-06，美术复核 PASS 在档）。"
+      ],
+      "check": "node tests/wx/wx-runtime.spec.mjs",
+      "files": [
+       "src/platform/wx/wx-env.ts",
+       "src/platform/wx/runtime.ts",
+       "src/platform/wx/adapter.ts",
+       "src/platform/wx/boot-wx.ts",
+       "tests/wx/wx-runtime.spec.mjs",
+       "tools/verify-wx-devtools.mjs"
+      ],
+      "id": "wx-runtime",
+      "kind": "platform-runtime",
+      "maturity": "final",
+      "platform": "wx",
+      "summary": "微信小游戏容器适配：容器判定 / 存储（复用 T1 storage 门面）/ 音频（复用 T1 audio 门面，合成器可注入、缺失静默跳过）/ 时钟（复用 T3 可注入时钟 + 时区纯函数）/ onShow·onHide 生命周期接线。内核零改动、零 import（玩法/数值/视觉零 diff）。"
+     },
+     {
+      "acceptance": [
+       "ws-acc-1 主判据：shareNow 调 wx.shareAppMessage 且绑定 5:4（500×400）分享卡（复用 A-06 件，sha256 随件登记 manifest）；载荷 query 含 sid= 且 sid 形如短随机 token（^[A-Za-z0-9-]{1,32}$，零 PII）。",
+       "ws-acc-2 分享入口纯跳转：share.ts 静态 import 面不含 kernel/game/generated/numeric（零数值回调）；分享成功/失败不读写任何玩法状态。",
+       "ws-acc-3 降级两路：无 wx 容器 → {ok:false, reason:\"no-wx-container\"}；通道抛错 → {ok:false, reason:\"share-failed\"}；两路均不抛错、入口保留。",
+       "ws-acc-4 被动通道：installPassive 注册 wx.onShareAppMessage + wx.showShareMenu，回参同卡同参（title/imageUrl 一致）。"
+      ],
+      "assets": [
+       {
+        "file": "assets/release/（A-06 既有件，实现组包时以 manifest 登记实际文件名与 sha256）",
+        "id": "wx-share-card",
+        "optional": false,
+        "size": "500x400"
+       }
+      ],
+      "check": "node tests/wx/wx-share.spec.mjs",
+      "files": [
+       "src/platform/wx/share.ts",
+       "tests/wx/wx-share.spec.mjs"
+      ],
+      "id": "wx-share-loop",
+      "kind": "platform-share",
+      "maturity": "final",
+      "platform": "wx",
+      "summary": "会话分享闭环：主动 shareNow（wx.shareAppMessage）+ 被动 installPassive（onShareAppMessage + showShareMenu）；配图绑 500×400（5:4）分享卡；载荷 query sid=（零 PII）；不可用/失败两路静默降级保留入口；分享入口纯跳转，无数值回调、零内核 import。"
+     },
+     {
+      "acceptance": [
+       "wk-acc-1 组包器断言三件套：export/wx/ 含 game.json（deviceOrientation 合法）+ project.config.json（compileType=game，appid 占位 touristappid）+ 载面零 sw.js/manifest.webmanifest/index.html。",
+       "wk-acc-2 主包红线：export/wx/ 逐件实测字节求和 ≤ 4MB（4*1024*1024 机判，非估算）；超线即 reject。",
+       "wk-acc-3 隐私弹窗触发时机（定死，非阻断、不作「开始玩」前置）：首启完成首帧渲染进入可交互状态后弹出；「拒绝」不阻塞任何玩法入口（拒绝态仍可开始玩，仅个性化分享图等非核心能力维持默认态）；「同意/拒绝」状态落 wx storage（经 T1 storage 门面键制注册）；弹窗不作为「开始玩」按钮的出现前置条件。",
+       "wk-acc-4 材料清单逐 id 对照（wx-icon / wx-share-card / 商店截图≥3 / 类目与资质占位=主人侧）：docs/platform/wx/wx-submission-kit.md 逐项给落点与状态。",
+       "wk-acc-5 合规自查表：docs/platform/wx/compliance-visual-checklist.md 逐条「条款编号+结论+证据路径」，无红项。"
+      ],
+      "assets": [
+       {
+        "file": "assets/release/（wx 图标，规格以微信官方文档核对为准，N3 记录条款编号+证据路径）",
+        "id": "wx-icon",
+        "optional": false,
+        "size": "官方文档核对定稿"
+       },
+       {
+        "file": "assets/release/shots/（同批截图门四机判有效，N4 选批）",
+        "id": "wx-store-screenshot-01..03",
+        "optional": false,
+        "size": "官方文档核对定稿"
+       },
+       {
+        "file": "export/wx/privacy-popup.json（三态视觉稿的机读投影，trigger/blocking 字段机判）",
+        "id": "wx-privacy-popup",
+        "optional": false,
+        "size": "n/a"
+       }
+      ],
+      "check": "node tests/wx/wx-submission.spec.mjs",
+      "files": [
+       "tools/build-wx.mjs",
+       "tests/wx/wx-submission.spec.mjs",
+       "docs/platform/wx/wx-submission-kit.md",
+       "docs/platform/wx/privacy-popup-visual.md",
+       "docs/platform/wx/compliance-visual-checklist.md"
+      ],
+      "id": "wx-submission-kit",
+      "kind": "platform-submission",
+      "maturity": "final",
+      "platform": "wx",
+      "summary": "提审材料与组包：tools/build-wx.mjs → export/wx/（game.json + project.config.json，appid 占位 touristappid，正式号主人下发后替换）；主包 ≤4MB 逐件实测断言；PWA 专属三件（sw.js/manifest.webmanifest/index.html）不入包；提审材料清单落 docs/platform/wx/wx-submission-kit.md。"
+     },
+     {
+      "acceptance": [
+       "dr-acc-1 五件落点在盘（src/platform/dy/dy-env|runtime|adapter|boot-dy.ts + tests/dy/dy-runtime.spec.mjs），Node 侧条目查全绿；被测件缺位 = RED 不装绿。",
+       "dr-acc-2 复用门面零重抄：storage 走 src/platform/storage.ts 门面（键制注册）、音频走 src/platform/audio.ts 门面（静音态仍走 muted 键）、时钟走 src/platform/clock.ts（可注入）；dy 四件零 Math.random/Date.now 直调字面；宿主 API 直调面收口：tt.* 字面只允许出现在 src/platform/dy/ 目录内，门面外（含 kernel/render/ui/main）出现 tt.* 直调即缺陷（机判扫描，tests/dy/dy-runtime.spec.mjs 断言）。",
+       "dr-acc-3 首启引导路径（显式声明，v1.4 冻结）：首屏渲染完成（炉板 64 格满员首帧上屏）→ 第一次有效操作（首次成功交换的反馈完成）构成 dy 首启引导路径；该路径预算 = numeric.platform.dy.interactionBudgetMs（400ms，与 numeric.perf.j1.budgetMs 同源同口径），perf 标记名逐字复用 j1_settle_start / j1_feedback_done（双端统一契约，零新增标记名）；dy 冒烟段机判该路径（帧预算 numeric.platform.dy.smokeFrames=240 内完成）。",
+       "dr-acc-4 行为差异按 tt↔wx 差异映射表（docs/platform/dy/tt-wx-diff-mapping.md）执行：容器判定 dy-diff-02、生命周期 dy-diff-05、视口/安全区 dy-diff-06（safeArea 缺失走 adapter 默认值不抛错）、触摸装配面 dy-diff-07（fire 目标非空）、存储 dy-diff-01；tt 缺位项按 dy-diff-08 fallback 口径（dy 包不复制 wx 隐私弹窗运行时），零空洞行。",
+       "dr-acc-5 开发者工具验证 runbook 内嵌如下三节原文（沿 wr-acc-2 格式）：\n      - 步骤：① 安装抖音开发者工具（稳定版）并在 设置→安全设置 开启服务端口；② 导入项目 = export/dy/，AppID=主人下发的正式号（未下发前占位符仅限工具内预览）；③ 机跑 node tools/verify-dy-devtools.mjs；④ 真机扫码完成首启 60 秒实点与分享/静音/重开四项手测。\n      - 预期输出：③ 成功时 CLI 输出 preview 成功并给出二维码路径（脚本归档原文）；工具内编译面板 0 error；真机首启炉板 64 格满员渲染、无白屏、无报错弹层。\n      - 判定标准：G1 编译零 error；G2 首屏完成后 60 秒内完成第一次有效操作（真人实点记录秒数，即 dr-acc-3 引导路径真机面）；G3 会话分享卡片实收且为 720×1280 竖版卡；G4 静音开关生效且重开复位。任一不过 = reject（逐条指到文件与 spec 条目）；CLI 缺席 = BLOCKED-ENV（exit 2）显式披露，不装绿。"
+      ],
+      "check": "node tests/dy/dy-runtime.spec.mjs",
+      "files": [
+       "src/platform/dy/dy-env.ts",
+       "src/platform/dy/runtime.ts",
+       "src/platform/dy/adapter.ts",
+       "src/platform/dy/boot-dy.ts",
+       "tests/dy/dy-runtime.spec.mjs",
+       "tools/verify-dy-devtools.mjs",
+       "docs/platform/dy/tt-wx-diff-mapping.md"
+      ],
+      "id": "dy-runtime",
+      "kind": "platform-runtime",
+      "maturity": "final",
+      "platform": "dy",
+      "summary": "抖音小游戏容器适配：容器判定 / 存储（复用 T1 storage 门面）/ 音频（复用 T1 audio 门面）/ 时钟（复用 T3 可注入时钟）/ tt.onShow·onHide 生命周期接线 / 触摸装配面。内核零改动、零 import（玩法/数值/视觉零 diff）；tt.* 直调只许出现在 src/platform/dy/ 门面内，门面外出现即缺陷。"
+     },
+     {
+      "acceptance": [
+       "ds-acc-1 主判据：shareNow 调 tt.shareAppMessage 且绑定 720×1280 竖版分享卡（复用 A-07 既有件 dy-share-720x1280.png，sha256 随件登记 manifest；卡规格 = numeric.platform.dy.shareCard 机判）；载荷 query 含 sid= 且 sid 形如 ^[A-Za-z0-9-]{1,32}$（零 PII）。",
+       "ds-acc-2 分享入口纯跳转：share.ts 静态 import 面不含 kernel/game/generated/numeric（零数值回调）；分享成功/失败不读写任何玩法状态。",
+       "ds-acc-3 降级两路：无 tt 容器 → {ok:false, reason:\"no-dy-container\"}；通道抛错 → {ok:false, reason:\"share-failed\"}；两路均不抛错、入口保留。",
+       "ds-acc-4 被动通道：installPassive 注册 tt.onShareAppMessage + tt.showShareMenu，回参同卡同参（title/imageUrl 一致）。"
+      ],
+      "check": "node tests/dy/dy-share.spec.mjs",
+      "files": [
+       "src/platform/dy/share.ts",
+       "tests/dy/dy-share.spec.mjs",
+       "docs/platform/dy/tt-wx-diff-mapping.md"
+      ],
+      "id": "dy-share-kit",
+      "kind": "platform-share",
+      "maturity": "final",
+      "platform": "dy",
+      "summary": "抖音分享闭环：主动 shareNow（tt.shareAppMessage）+ 被动 installPassive（tt.onShareAppMessage + tt.showShareMenu）；配图绑 720×1280 竖版分享卡（A-07 复用）；载荷 query sid=（零 PII）；不可用/失败两路静默降级保留入口；分享入口纯跳转，无数值回调、零内核 import（与 wx-share-loop 同构，仅宿主面与卡规格按映射表 dy-diff-03/04/09 改面）。"
+     },
+     {
+      "acceptance": [
+       "dk-acc-1 组包器断言三件套：export/dy/ 含 game.json（JSON 可解析且 deviceOrientation 合法）+ project.config.json（工程形态字段以官方文档核对，值允许占位）+ 载面零 sw.js/manifest.webmanifest/index.html（PWA 三件排除机判）。",
+       "dk-acc-2 主包红线：export/dy/ 逐件实测字节求和 ≤ numeric.platform.dy.bundleLimitBytes（4194304 机判，非估算）；接近超线时分包决策「先实测后定」：以实测数据为准给分包方案并随件披露，禁止拍脑袋估。",
+       "dk-acc-3 提审材料清单 dy 段 v2 逐 id 对照（dy-share-card / dy-icon / dy 商店截图 ≥ numeric.platform.dy.storeScreenshotMinCount 张 / AppID 与类目资质占位=主人侧）：docs/platform/dy/dy-submission-kit.md 逐项给落点与状态；素材规格一律取自 tt↔wx 差异映射表，表上没有的行视为缺件。",
+       "dk-acc-4 合规文案位双口径（定死，缺一即 reject）：① 占位冻结——包内合规文案位以本轮冻结的占位文案落地并由组包断言机判在位；② 提审日口径——提审前以抖音官方当日生效规范对文案位逐条人工核对，核对记录（日期+结论+核对人）入材料清单；占位文案不因人工核对改码面（改文案 = spec revisions 增补后落码，零双头维护）。",
+       "dk-acc-5 合规自查表：docs/platform/dy/compliance-visual-checklist.md 逐条「条款编号+结论+证据路径」，无团队面红项；主人侧/环境侧待办显式披露不装绿。"
+      ],
+      "check": "node tests/dy/dy-submission.spec.mjs",
+      "files": [
+       "tools/build-dy.mjs",
+       "tests/dy/dy-submission.spec.mjs",
+       "docs/platform/dy/dy-submission-kit.md",
+       "docs/platform/dy/compliance-visual-checklist.md"
+      ],
+      "id": "dy-submission-kit",
+      "kind": "platform-submission",
+      "maturity": "final",
+      "platform": "dy",
+      "summary": "提审材料与组包（提审材料清单 dy 段 v2 的 spec 锚）：tools/build-dy.mjs → export/dy/（game.json + project.config.json，appid 占位、正式号主人下发后替换）；主包 ≤ numeric.platform.dy.bundleLimitBytes 逐件实测断言（超线先实测再定分包，决策随件披露）；PWA 专属三件不入包；合规文案位双口径（占位冻结 + 提审日最新规范人工核对）；材料清单落 docs/platform/dy/dy-submission-kit.md。"
+     }
+    ],
+    "note": "v1.4 仅 dy 段增量：dy-runtime / dy-share-kit 由 draft 转 final（acceptance 升级为实现验收）+ 新增 dy-submission-kit；wx 三条目逐字节保留 v1.3 原文（零接触）；world/entities/levels/assets/acceptance(顶层18条) 与 v1.3/v1.1 逐字段相等；numeric 仅新增 platform.dy 参数组（v1.1 十二组玩法 numeric 逐字段全等，对照报告 docs/spec/v14-dy-numeric-report.json）。"
+   },
+   "replayHooks": [
+    "combo（连击上限追逐）",
+    "daily_seed（炉板每日种子）",
+    "one_more_run（炉冷即重开）"
+   ],
+   "sessionSeconds": 180,
+   "unlocks": []
+  },
+  "entities": [
+   {
+    "id": "e-kernel-sim",
+    "name": "确定性仿真内核",
+    "role": "fixed 16ms 步长累加器 + MAX_DT 钳制；fastForward(tick) 供无头契约测试；状态={board[64], score, combo, movesLeft, cool, status}",
+    "script": "g2-blocks/src/kernel/sim.ts"
+   },
+   {
+    "id": "e-board",
+    "name": "炉板（8×8）",
+    "role": "64 格棋盘，7 种方块类型；交换只允许相邻（≤4 向）",
+    "script": "g2-blocks/src/kernel/board.ts"
+   },
+   {
+    "id": "e-rng",
+    "name": "seeded RNG（mulberry32）",
+    "role": "唯一随机源；seeded RNG 测试钩子允许测试注入固定 seed；内核禁 Math.random / Date.now",
+    "script": "g2-blocks/src/kernel/rng.ts"
+   },
+   {
+    "id": "e-combo",
+    "name": "连击计数器",
+    "role": "连续消除手数计数；非消除手归零；第 2 手起每手 +chainBonus",
+    "script": "g2-blocks/src/kernel/combo.ts"
+   },
+   {
+    "id": "e-deadlock",
+    "name": "炉冷判定器",
+    "role": "落定结算后 + 补手后各判一次（任一为真即炉冷）；64格×7块×≤4向全穷举 swap-probe",
+    "script": "g2-blocks/src/kernel/deadlock.ts"
+   },
+   {
+    "id": "e-renderer",
+    "name": "表现层渲染器",
+    "role": "极简几何色块绘制；色值唯一来源 = spec numeric.palette 冻结块（theme.js 运行时单源）",
+    "script": "g2-blocks/src/render/theme.ts"
+   },
+   {
+    "id": "e-telemetry",
+    "name": "perf 埋点",
+    "role": "双端统一标记名 j1_settle_start / j1_feedback_done；performance.mark + measure",
+    "script": "g2-blocks/src/telemetry/perf.ts"
+   },
+   {
+    "attributes": {
+     "eventId": "evt_first_screen",
+     "once": "per-session",
+     "owner": "程序",
+     "payload": [
+      "sessionId",
+      "ts",
+      "levelId"
+     ],
+     "surface": "web",
+     "trigger": "loop() 首帧（firstScreenSent 本地旗标 + once 语义双保险）"
+    },
+    "id": "e-evt-first-screen",
+    "name": "引导锚点① 首屏事件",
+    "role": "首个渲染帧上屏时一次性触发（每会话至多一次）；引导漏斗第一格",
+    "script": "g2-blocks/src/telemetry/analytics.ts#firstScreen"
+   },
+   {
+    "attributes": {
+     "eventId": "evt_first_drag",
+     "once": "per-session",
+     "owner": "程序",
+     "payload": [
+      "sessionId",
+      "ts",
+      "a",
+      "b",
+      "levelId"
+     ],
+     "surface": "web",
+     "trigger": "attemptSwap() 入口（无论交换有效与否）"
+    },
+    "id": "e-evt-first-drag",
+    "name": "引导锚点② 首次拖拽事件",
+    "role": "首次交换尝试（attemptSwap 入口）时一次性触发；引导漏斗第二格",
+    "script": "g2-blocks/src/telemetry/analytics.ts#firstDrag"
+   },
+   {
+    "attributes": {
+     "eventId": "evt_first_place",
+     "once": "per-session",
+     "owner": "程序",
+     "payload": [
+      "sessionId",
+      "ts",
+      "a",
+      "b",
+      "chain",
+      "levelId"
+     ],
+     "surface": "web",
+     "trigger": "attemptSwap() 内 r.ok === true 分支"
+    },
+    "id": "e-evt-first-place",
+    "name": "引导锚点③ 首次成功放置事件",
+    "role": "首次有效交换（swap ok）时一次性触发；引导漏斗第三格（完成教学闭环）",
+    "script": "g2-blocks/src/telemetry/analytics.ts#firstPlace"
+   },
+   {
+    "attributes": {
+     "acceptance": "ac-31-nearmiss-feedback（active）",
+     "batch": "v1.3 首批（链 v8 定死口径）",
+     "copySource": "ac-31.copy（逐条枚举单源）",
+     "events": [
+      {
+       "eventId": "nm_triggered",
+       "once": "per-show",
+       "payload": [
+        "sessionId",
+        "ts",
+        "runSeq",
+        "seed",
+        "phase",
+        "rule",
+        "rows",
+        "chain",
+        "handsLeft",
+        "score"
+       ],
+       "surface": "web",
+       "trigger": "弱反馈实际展示（频控通过）"
+      },
+      {
+       "eventId": "nm_capped",
+       "once": "per-capped-hit",
+       "payload": [
+        "sessionId",
+        "ts",
+        "runSeq",
+        "seed",
+        "phase",
+        "rule",
+        "rows",
+        "capType"
+       ],
+       "surface": "web",
+       "trigger": "命中被频控拦截（per-row 或 global）"
+      }
+     ],
+     "hardConstraints": {
+      "edgeHighlight": "transient-not-latched",
+      "particles": "none",
+      "screenShake": "none"
+     },
+     "numeric": "numeric.nearMiss（正式冻结组）",
+     "personalBestBoundary": "见 e-personal-best（=0/低分 → 差值文案降级）"
+    },
+    "id": "e-nearmiss",
+    "name": "惜败反馈判定器（near-miss）",
+    "role": "局中每手「消除结算后同逻辑帧末态」与炉冷结算两时点按 nearMiss 谓词（行列同权 + 末态计数 + 频控定死，三择一结算规则见 numeric.nearMiss.predicate.settlementRules）驱动惜败反馈；纯表现层，谓词只读复用 combo/goals/deadlock 探针现成面，不进确定性内核",
+    "script": "g2-blocks/src/render/nearmiss.ts（v1.3 首批落位）"
+   },
+   {
+    "attributes": {
+     "acceptance": "ac-32-settlement-ia（active）",
+     "batch": "v1.3 首批（链 v8 定死口径）",
+     "copySource": "ac-32.copy（逐条枚举单源）",
+     "elementIds": [
+      "result-slot-score",
+      "result-slot-chain",
+      "result-slot-moves",
+      "result-slot-attribution",
+      "result-slot-action-restart",
+      "result-slot-action-daily"
+     ],
+     "measurement": "ac-32.measurement（冷/热启动分列 + 最低机型档基准 + 触达高度 ≥48dp）",
+     "numeric": "numeric.settlement（正式冻结组）",
+     "slotLayers": {
+      "P0-result": [
+       "result-slot-score"
+      ],
+      "P1-result": [
+       "result-slot-chain"
+      ],
+      "P2-result": [
+       "result-slot-moves"
+      ],
+      "P3-attribution-action": [
+       "result-slot-attribution",
+       "result-slot-action-restart",
+       "result-slot-action-daily"
+      ]
+     }
+    },
+    "id": "e-settlement",
+    "name": "结算页信息架构层（三层 IA）",
+    "role": "结果层（分数/最高连击/用步数）→ 归因层（near-miss 命中项或无可消除提示）→ 行动层（再来一局=doRestart 同源 + 每日挑战入口）；零玩法逻辑改动，出现期间维持 cooled 既有输入封印；P0–P3 槽位 element id 单源（renderer 绘制与 smoke 断言共同引用）",
+    "script": "g2-blocks/src/render/settlement.ts（v1.3 首批落位）"
+   },
+   {
+    "attributes": {
+     "disclosure": "差值文案永不早于结算层出现（showDelayMs 之后），不参与局中弱反馈频控行额度",
+     "lowScoreBoundary": "本局 score < personalBest × 0.5（低分边界，阈值冻结于实现轮契约件并随 v8 守卫盯防）→ 同降级",
+     "personalBestSource": "persistence best 键（v1.3 首批最小实现：本地存档键 bestScore，键级最小集随 ac-16 纪律在实现轮显式扩键并走契约断言）",
+     "zeroBoundary": "personalBest = 0（无记录/首局/清档）→ 不展示差值文案，用 nm-copy-personal-best-edge"
+    },
+    "id": "e-personal-best",
+    "name": "个人最佳边界条款（归因层差值文案降级）",
+    "role": "结算面归因层的差值文案边界：无个人最佳（=0，首局/清档）或本局低于低分阈值时，禁止展示「距个人最佳差 N」类差值文案，降级为通用鼓励文案（nm-copy-personal-best-edge）；差值文案不属于 near-miss 三谓词（P1/P2/P3），仅作归因层补充行，频控并入全局 ≤3 次/局",
+    "script": "g2-blocks/src/render/nearmiss.ts（v1.3 首批落位）"
+   },
+   {
+    "attributes": {
+     "acceptance": "ac-25（三档边界与同帧发起）+ ac-31（变体参数查表断言）；听感 rubric = 人工（G-01）",
+     "nearMissVariant": "numeric.nearMiss.sfx（tier=2 / durationScale=0.5 / tail=descending）",
+     "tiers": [
+      {
+       "boundary": "chain=1",
+       "tier": 1,
+       "usage": "落定/单消反馈（既有）"
+      },
+      {
+       "boundary": "chain=2..3",
+       "tier": 2,
+       "usage": "消除反馈（既有）+ near-miss 变体（本版新增：durationScale=0.5 + tail=descending，src 渲染层查表消费）"
+      },
+      {
+       "boundary": "chain≥4",
+       "tier": 3,
+       "usage": "连击爆发（既有）"
+      }
+     ]
+    },
+    "id": "e-sfx-usage",
+    "name": "三档音效用途表（near-miss = 第二档变体）",
+    "role": "三档音效资源面与用途的单一对照表：用途归属、near-miss 变体参数、听感验收归属（人工 rubric）；资源本体 = theme 单源（ac-11 不降），档位边界真源 = numeric.feel.sfx.tierBoundaries",
+    "script": "g2-blocks/src/audio.ts + src/render/nearmiss.ts（变体参数消费面）"
+   }
+  ],
+  "levels": [
+   {
+    "elements": [
+     {
+      "expect": "8×8=64 格棋盘按 DEFAULT_SEED 初始化，两局逐字节一致",
+      "id": "level-1/el-board",
+      "kind": "board"
+     },
+     {
+      "expect": "spawn.orientation: \"uniform_random\"，7 类型等概率；seeded RNG 测试钩子可注入固定 seed",
+      "id": "level-1/el-spawn",
+      "kind": "spawn"
+     },
+     {
+      "expect": "首局教学提示条：开局后高亮一对可成三消的相邻交换，玩家完成首次三消或 3 手后不再出现",
+      "id": "level-1/el-hint",
+      "kind": "hint",
+      "reason": "level-1 是教学局：在无外部文案、零贴图的极简几何前提下，必须有一个 UI 元素承担「怎么走」的教学职责，否则首局目标（3 步内首次三消）无引导路径，首局流失风险不可控；该元素只在 level-1 出现，level-2+ 不出现（难度曲线不因教学元素失真）。"
+     },
+     {
+      "expect": "落定结算后+补手后各判一次，任一为真即炉冷",
+      "id": "level-1/el-deadlock",
+      "kind": "deadlock"
+     }
+    ],
+    "goal": "3 步内完成首次三消；理解连击与炉冷两个概念",
+    "id": "level-1",
+    "name": "首炉（教学局）"
+   },
+   {
+    "elements": [
+     {
+      "expect": "同 level-1 棋盘规则；无教学提示（el-hint 仅 level-1）",
+      "id": "level-2/el-board",
+      "kind": "board"
+     },
+     {
+      "expect": "四手向量 消/消/不消/消 → +0/+50/归0/+0 机械可判",
+      "id": "level-2/el-combo",
+      "kind": "combo"
+     },
+     {
+      "expect": "64格×7块×≤4向全穷举",
+      "id": "level-2/el-deadlock",
+      "kind": "deadlock"
+     }
+    ],
+    "goal": "在 20 手内打出 ≥3 连击并存活到炉冷",
+    "id": "level-2",
+    "name": "升温局"
+   }
+  ],
+  "meta": {
+   "dodRecalibration": {
+    "at": "2026-10-10",
+    "beforeFreezeMust": "封版前必办（非数值必改项）：内测样本回收；方法 = ac-30.calibrationRound1 规格（≥10人×≥5局×≥50局×≥3天×3机型档各≥2台；单局四要素缺一即作废；≥10% 且 ≥5 局 seed 重放逐位一致；数字三标注；只出校准值+建议区间）",
+    "gatesDecision": "四门槛锁定维持待校准（D1≥30% / D7≥10% / 局均≥3min / 重开率≥40% 零改动）；样本 0（内测未启动，名单=主人件 Q6）→ 无校准值可回写，禁编数",
+    "headSha": "e4c65f95ab0d1cb6c8546ec6514fef08ccf3e958",
+    "machineEvidence": "gate-logs/v13-a1-merge-20261010/05-qa-batch-rerun.log（QA 复检器 9/9 APPROVE-READY · Q5=DoD 机判面 · Q9 P95 26.1→26.1 零退化）",
+    "numericAnchor": "6719edd27d7e121ac90be2ddca4b8ab127fdda269532bf4693c6afd805e9a739",
+    "round": "A2 · 主仓 HEAD 复跑（原首轮产自无证据链树，不采信不回写）"
+   },
+   "engine": "TypeScript 5.x + Canvas 2D + vanilla（零框架、零外部运行时依赖、零外部贴图）",
+   "genre": "休闲消除（8×8 交换三消 + 连击 + 炉冷终局）",
+   "lineage": "g2-blocks N1 修复轮：主策划已拍板的 5+1 项修法一次折入并以 version 1 一次入链（杜绝 v1→v2 空转）；色板自美术交付件 palette-n1-final.json 并入。",
+   "oneLiner": "在 8×8 的熔炉板上交换相邻方块凑成三连：连击不断火就越旺，加成一路往上叠；一旦无路可走，炉子就冷——趁热把连击打满。",
+   "platform": "Web 单页（Canvas2D，免安装即开即玩；后续平台移植面单列）",
+   "revision_note": "v1（首版入链）：① 冻结段新增 spawn.orientation=\"uniform_random\" + seeded RNG 测试钩子；② AC-06 补四手 combo 向量（消/消/不消/消 → +0/+50/归0/+0）；③ AC-07 定炉冷双判（落定结算后+补手后各判一次，任一为真即炉冷）+ 64格×7块×≤4向全穷举；④ level-1 新增 el-hint 并注明理由；⑤ AC-10 J1 定义逐字入 acceptance + 双端 perf 标记名 j1_settle_start / j1_feedback_done 写死契约；⑥(+1) 美术线色板定稿并入（余烬金弃 #FFC94A 终值 #C89C19 + 暖区第 6/7 色），21 对双门禁全绿，阈值 25 由冻结 4 色校准。\n\nv1.3（WX 移植提审轮 · 链 v5 · draft）：仅平台段增量——content.platform.items 新增五条（wx-runtime / wx-share-loop / wx-submission-kit 定稿；dy-runtime / dy-share-kit draft）。\n【源基线】v1.1 已发布基线（链 v2 cmuqa2mu50023m9zr8mh60uph · approved 导出件 · numeric 锚 302e6336…）。\n【numeric 逐字段相等声明】numeric 段与 v1.1 逐字段相等（整段 sha256(sortKeys) = 302e6336… 全等）；V1.2 手感轮（链 v4，feel/daily 两组 numeric）零接触、零并入。\n【零 diff 面】world / entities / levels / assets / acceptance（顶层 18 条）与 v1.1 逐字节相等；content 段除新增 platform 子对象外零改动。\n【地基解耦声明】工程地基三件（T1 storage/audio 门面、T3 确定性 PRNG/注入时钟/时区工具）已在 v1.1 基线 @ fe5fd38 在档（A 轮 N3 交付），与 v1.2 冻结内容解耦；wx 工作分支 cherry-pick 清单 = ∅（实查记录进黑板 levels.md）。\n【rebase 纪律】本版（v1.3-platform）落 draft；若 v1.2（链 v4 cmut5fkyf00cbic7qudea13g6）先获主人批复，本版按既定纪律 rebase 重出版（revisions version+1，基础切至批复后基线），不做双版本线并行；若主人否决 v1.2，地基独立重落、wx 线 rebase，本版条款不失效。\n【QA 两缺口补丁】① wx-runtime acceptance 内嵌开发者工具验证 runbook（步骤/预期输出/判定标准）；② dy 条目显式声明「本轮仅验收文案完整性、不验收实现」并注明 check 配置理由；③ 隐私弹窗触发时机在 wx-submission-kit 定死（非阻断、不作「开始玩」前置）。\n\nv1.4（DY 平台段校准入链轮 · 链 v6 · draft）：仅 dy 段增量——dy-runtime / dy-share-kit 由 draft 转 final（acceptance 从上轮写案「仅验收文案完整性」升级为实现验收，check 同步指向 tests/dy/*.spec.mjs）+ 新增 dy-submission-kit；numeric 仅新增 platform.dy 参数组（5 参数逐个冻结：bundleLimitBytes=4194304 / smokeFrames=240 / interactionBudgetMs=400 / shareCard=720x1280 / storeScreenshotMinCount=3，无「待定」项）。\n【源链】v5 cmuusk0p60040icryguvlev9j（v1.3-platform draft · parent=v4 cmut5fkyf00cbic7qudea13g6）；wx 三条目逐字节保留 v1.3 原文，零接触。\n【玩法 numeric 零 diff 声明】v1.1 十二组玩法 numeric 与本版逐字段全等（机判对照报告 docs/spec/v14-dy-numeric-report.json，逐组逐字段三列对照 v1.1/v1.3/v1.4）；V1.2 手感组（链 v4，feel/daily numeric）零接触、零并入；本轮新增仅 platform 一个命名空间、其中仅 dy 一个子键。\n【tt↔wx 差异映射表】docs/platform/dy/tt-wx-diff-mapping.md（稳定 id dy-diff-01..10，三栏：wx 行为 / tt 行为 / 判定口径；tt 缺位 API 恰 1 条＝dy-diff-08，fallback 口径已写死：dy 包不复制 wx 隐私弹窗运行时、合规走文案位双口径；零空洞行，表上没有的行视为缺件）。\n【合规文案位双口径】dk-acc-4 定死：占位冻结（包内机判在位）+ 提审日最新规范人工核对（核对记录入材料清单）；两口径缺一即 reject。\n【引导路径显式声明】dy 首启引导路径 = 首屏渲染完成（64 格满员首帧上屏）→ 第一次有效操作（首次成功交换的反馈完成）；预算 numeric.platform.dy.interactionBudgetMs=400ms（与 numeric.perf.j1.budgetMs 同源），标记名逐字复用 j1_settle_start / j1_feedback_done，dy 冒烟段（240 帧内）机判。\n【W-4 澄清（随件注记 · 非码面动作）】v1.1 acceptance ac-10 scopeNote「移植端（wx/dy/Steam/Roblox）deferred 顺延下轮」系 v1.1 轮任务书面文，与 v1.3 起 platform 段落地存在文面时差；本轮澄清：顶层 acceptance 18 条零改动（v1.1 锚点不降），移植端范围演进以 platform 段与各轮 revision_note 为准——wx 三条目 v1.3 定稿、dy 三条目本轮定稿、Steam/Roblox 仍 deferred（开辟决策归主人）。本注记即 W-4 的闭环落点。\n【rebase 纪律】v1.2（链 v4）先获主人批复 → 本版按既定纪律 rebase 重出版（revisions version+1，基础切至批复后基线），不做双版本线并行；主人否决 v1.2 → 地基独立重落，本版条款不失效。\n\nv7（封版就绪冲刺第 1 批 · 链 v7 / meta.version 1.5 · parent=链 v6）：\n【基线修复】找回链 v4（V1.2 核心手感轮）在 v5/v6 平台段建版时未继承的全部增量：\nnumeric.feel + numeric.daily 两组（与 v4 逐字节全等）、assets a04..a07 四项（全等）、\ncontent.dailyChallenge 段（全等）、acceptance ac-22..28 七条（全等）——v6 的平台段（content.platform / numeric.platform.dy）原样保留。\n【增量①】三引导锚点事件实体 e-evt-first-screen / e-evt-first-drag / e-evt-first-place（含属性定义）。\n【增量②】acceptance 新增 ac-29 埋点九事件表（程序 8 事件 + 美术 share_clicked，主人已批准并入；\n代码镜像 src/telemetry/analytics.ts + 双向断言 tests/contract/ac-29-analytics-nine-events.spec.mjs，N4 已落地）。\n【增量③】acceptance 新增 ac-30 封版 DoD 三层门（留存门 D1≥30% / D7≥10%、参与门 局均≥3min、回访门 重开率≥40%），\n全部标「待校准」（assertion=pending / calibration），数据回流后经修订转正式数值与契约件。\n【增量④】候选池 1/2 折入：near-miss 反馈系统（e-nearmiss + world.uxCommitments[0] + ac-31）与\n结算页信息架构（e-settlement + world.uxCommitments[1] + ac-32），实现归 v1.3 实现轮；\n数值全部走 numeric.uxProposal 提案态（status=proposal），现有全部 numeric 组零改动（守卫盯防）。\n【顺延】v3 提案（combo 倍率 / level-stars 派生式 / 第一分钟引导方案本体）继续零实体零验收不入本版。\n【approve】本版落 draft；approve 是主人动作（红线：机器不替人判断）。\n\nv8（v1.3 首批实现轮修补版 · 链 v8 / meta.version 1.6 · parent=链 v7）：\n【批次对位】任务书「v1.3 首批」= near-miss 反馈系统 + 结算页信息架构最小闭环 + 封版 DoD 四项首轮校准；\n链 meta.version 自 1.5 顺延至 1.6（历史 v1.3-feel-draft 写案版本号已占用，链上单调递增防撞车）。\n【修补①】判定口径定死：numeric.uxProposal.nearMiss/settlement 提案值转正式组 numeric.nearMiss / numeric.settlement\n（承值零调参）；predicate 增 axisParity=row-col-equal（行列同权）、fillCountBasis=post-clear-same-frame-endstate\n（填充计数取消除结算后同逻辑帧末态）、tieBreak=cell-index-asc；weakFeedback 频控 perRowPerRun=1 + globalPerRun=3。\n【修补②】本版无强反馈通道：strongFeedback.inVersion=false；numeric.uxProposal 收缩为强反馈预留提案（capPer5s=3，\nstatus 仍 =proposal，无实现无验收——预留位不占验收面）。\n【修补③】个人最佳=0/低分边界条款入 entities：新实体 e-personal-best（无个人最佳或低分时归因层差值文案降级为通用鼓励）。\n【修补④】测量口径入 acceptance 文本：ac-32.measurement（冷启动/热启动分列、最低机型档基准、触达高度 ≥48dp）+\nnumeric.settlement.touchTargetMinPx=48。\n【修补⑤】near-miss 触发/超限埋点事件 id+字段（nm_triggered / nm_capped）入 e-nearmiss.attributes.events 与 ac-31.events；\n结算页 result-slot-* element id（P0–P3 四层六槽）入 e-settlement.attributes.elementIds。\n【修补⑥】文案逐条枚举入 acceptance：ac-31.copy 7 条 / ac-32.copy 6 条；本轮修订/新增的全部 acceptance 条目\n（ac-30/31/32/33）声明 verification ∈ {auto, manual}。既有 28 条维持 v7 原文（逐字节不动守卫优先），\n其 verification 补齐归下一轮内容轮（本版不动既有条目）。\n【另】三档音效用途表入 entities：新实体 e-sfx-usage（tier1 落定 / tier2 消除+near-miss 变体 / tier3 连击爆发；\nnear-miss = 第二档变体参数 durationScale=0.5 + tail=descending）。\n【DoD】ac-30 四项门槛数值零改动（≥30%/≥10%/≥3min/≥40% 全部 pending），只增「首轮校准」规格：\n样本下限 / 作废判定 / seed 重放抽检 / 三标注 / 「只出校准值与建议区间、不改生效阈值、不出达标结论」。\n【提审包】新增 ac-33：wx/dy 提审包零 diff 契约断言 + 内测工具（聚合脚本/内部玩家 tag）不进提审包。\n【approve】本版落 draft；approve 是主人动作（红线：机器不替人判断）。",
+   "title": "g2-blocks（熔炉方块）",
+   "version": "1.6"
+  },
+  "numeric": {
+   "DEFAULT_SEED": 20261001,
+   "FIXED_STEP_MS": 16,
+   "MAX_DT_MS": 250,
+   "blockTypes": 7,
+   "combo": {
+    "appliesFromChain": 2,
+    "chainBonus": 50,
+    "fourMoveVector": "消/消/不消/消 → +0/+50/归0/+0",
+    "resetOnNonClear": true
+   },
+   "daily": {
+    "entryHook": "hud-entry+badge",
+    "note": "daily-challenge 最小闭环（链 v4）：种子 = 本地时区日期码（seedBasis 口径）纯函数派生（src/kernel/datetime.ts dailySeed）；进度跨本地零点重置；streak 窗口 = streakTrack。时钟倒拨语义（backdatePolicy）属主人裁决项，本版不声明（A 轮升级条款 Q1 维持挂账）。",
+    "resetPolicy": "local-midnight",
+    "seedBasis": "YYYYMMDD",
+    "storageKey": "daily",
+    "streakTrack": 30,
+    "timezone": "local"
+   },
+   "deadlock": {
+    "algorithm": "exhaustive_swap_probe",
+    "anyTrueMeansCool": true,
+    "checkAfterRefill": true,
+    "checkAfterSettle": true,
+    "directionsMax": 4,
+    "statement": "落定结算后+补手后各判一次，任一为真即炉冷；64格×7块×≤4向全穷举"
+   },
+   "feel": {
+    "combo": {
+     "boundaryRule": "same-as-sfx",
+     "tiers": [
+      {
+       "maxChain": 1,
+       "minChain": 1,
+       "tier": 1,
+       "visual": "count"
+      },
+      {
+       "maxChain": 3,
+       "minChain": 2,
+       "tier": 2,
+       "visual": "emphasize"
+      },
+      {
+       "maxChain": null,
+       "minChain": 4,
+       "tier": 3,
+       "visual": "blaze"
+      }
+     ]
+    },
+    "hardDrop": {
+     "amplitudeCellRatio": 0.02,
+     "curve": "damped-sine",
+     "decayTauMs": 60,
+     "durationMs": 180,
+     "frames": 12,
+     "oscillationHz": 13,
+     "thresholdCells": 4,
+     "trigger": "settle-frame"
+    },
+    "landSquash": {
+     "durationMs": 120,
+     "easing": "ease-out-quad",
+     "frames": 8,
+     "scaleX": 1.12,
+     "scaleY": 0.84,
+     "trigger": "gravity-land-frame"
+    },
+    "logicFps": 62.5,
+    "note": "核心手感 6 项冻结表（链 v4 校准）。「帧」=逻辑帧（=1000/FIXED_STEP_MS）；即时性阈值只约束契约层（T3 注入时钟），真机不做帧级断言；观感/听感不进契约（美术校样 F-01..F-07 + 人工 rubric）。",
+    "particles": {
+     "frames": 27,
+     "gravityCellPerS2": 22,
+     "lifeMs": 420,
+     "overflowPolicy": "drop-new",
+     "perClearBase": 8,
+     "perExtraBlock": 2,
+     "poolSize": 120,
+     "sameScreenHardCap": 120,
+     "speedCellPerS": 6
+    },
+    "restart": {
+     "budgetMs": 500,
+     "deviceLayer": "v1.1-same-machine-same-conditions-multi-run-median",
+     "entry": "button+keyboard-same-source",
+     "scope": "contract-layer-injected-clock",
+     "transitionFrames": 9
+    },
+    "sfx": {
+     "resourceModel": "three-independent-voices+var-param",
+     "tierBoundaries": [
+      {
+       "maxChain": 1,
+       "minChain": 1,
+       "tier": 1
+      },
+      {
+       "maxChain": 3,
+       "minChain": 2,
+       "tier": 2
+      },
+      {
+       "maxChain": null,
+       "minChain": 4,
+       "tier": 3
+      }
+     ],
+     "trigger": "same-logic-frame-as-clear"
+    }
+   },
+   "grid": {
+    "cells": 64,
+    "cols": 8,
+    "rows": 8
+   },
+   "nearMiss": {
+    "note": "near-miss 反馈冻结面（链 v8 定死）。数值承自链 v7 numeric.uxProposal 提案值零调参平移；判定口径三要素（行列同权 / 末态计数 / 弱反馈频控）为本版修补①落点。触发面 = 局中每手「消除结算后同逻辑帧末态」+ 炉冷结算两时点；零粒子、不震屏为硬约束。",
+    "predicate": {
+     "axisParity": "row-col-equal",
+     "axisParityNote": "行列同权：行方向与列方向的「一步可成消」候选同等参与候选行归并（不分行列加权、不因候选来自列方向而降权）；候选行 = 候选交换两格所在行 y 的并集。",
+     "chainDelta": 1,
+     "fillCountBasis": "post-clear-same-frame-endstate",
+     "fillCountBasisNote": "填充计数取消除结算后同逻辑帧末态：候选检索与「无可消除」判定一律取本手消除结算 + 重力补手完成后的同逻辑帧末态棋盘，禁取中级联/动画中间态。",
+     "minChain": 2,
+     "movesDelta": 1,
+     "settlementRules": "炉冷结算三择一：P1 连击差一（runMaxChain = chainTarget − chainDelta 且 < chainTarget）/ P2 首消差一步（firstClearAt − firstClearWithinMoves ∈ [1..movesDelta]）/ P3 剩手惜败（handsLeft ≤ 1 且 runMaxChain ≥ minChain）；命中序 P1→P2→P3 取首中。",
+     "sources": {
+      "chainTarget": "levels[].goal.chainTarget（game.goals() 现读，null 则 P1 不评估）",
+      "firstClearWithinMoves": "levels[].goal.firstClearWithinMoves（game.goals() 现读，null 则 P2 不评估）",
+      "handsLeft": "game.movesLeft()",
+      "oneAwayScan": "kernel/deadlock probeSwapCreatesMatch 现成探针原语复用（只读，禁改内核）",
+      "runMaxChain": "当局 combo chain 峰值（表现层只读累计，零内核改动）"
+     },
+     "tieBreak": "cell-index-asc"
+    },
+    "sfx": {
+     "durationScale": 0.5,
+     "note": "near-miss = 三档音效第二档变体（用途表见 e-sfx-usage）；听感归人工 rubric，契约只测「变体参数查表 + 与命中同帧发起」（ac-25 语义沿用）。",
+     "tail": "descending",
+     "tier": 2
+    },
+    "strongFeedback": {
+     "inVersion": false,
+     "reservedProposal": {
+      "capPer5s": 3,
+      "note": "预留提案：本版无实现、无验收、无通道（修补②落点）"
+     }
+    },
+    "telemetry": {
+     "onCap": "nm_capped",
+     "onTrigger": "nm_triggered"
+    },
+    "trigger": [
+     "per-move-settle-endstate",
+     "cool-settlement"
+    ],
+    "weakFeedback": {
+     "bannerHoldMs": 2400,
+     "capBasis": "展示计数（超限命中只记遥测 nm_capped，不展示不排程）",
+     "edgeHighlight": "transient-not-latched",
+     "globalPerRun": 3,
+     "particles": "none",
+     "perRowPerRun": 1,
+     "pulseMs": 600,
+     "screenShake": "none"
+    }
+   },
+   "palette": {
+    "calibration": {
+     "from": "block-01/03/04/05 六对（已冻结集）",
+     "rule": "floor(minΔE/5)*5"
+    },
+    "colors": [
+     {
+      "frozen": true,
+      "hex": "#21458C",
+      "hsl": [
+       220,
+       0.62,
+       0.34
+      ],
+      "id": "block-01",
+      "name": "深海蓝"
+     },
+     {
+      "frozen": true,
+      "hex": "#38B279",
+      "hsl": [
+       152,
+       0.52,
+       0.46
+      ],
+      "id": "block-03",
+      "name": "翡翠绿"
+     },
+     {
+      "frozen": true,
+      "hex": "#DB6B43",
+      "hsl": [
+       16,
+       0.68,
+       0.56
+      ],
+      "id": "block-04",
+      "name": "赤陶红"
+     },
+     {
+      "frozen": true,
+      "hex": "#A472CA",
+      "hsl": [
+       274,
+       0.45,
+       0.62
+      ],
+      "id": "block-05",
+      "name": "紫水晶"
+     },
+     {
+      "frozen": true,
+      "hex": "#C89C19",
+      "hsl": [
+       45,
+       0.78,
+       0.44
+      ],
+      "id": "block-02",
+      "name": "余烬金"
+     },
+     {
+      "frozen": false,
+      "hex": "#4B2B25",
+      "hsl": [
+       10,
+       0.34,
+       0.22
+      ],
+      "id": "block-06",
+      "name": "深余烬褐"
+     },
+     {
+      "frozen": false,
+      "hex": "#E3B5BF",
+      "hsl": [
+       346,
+       0.46,
+       0.8
+      ],
+      "id": "block-07",
+      "name": "绯玫瑰"
+     }
+    ],
+    "gate": {
+     "hueDeg": 25,
+     "lightness": 0.1,
+     "minPassed": 2,
+     "saturation": 0.08
+    },
+    "rejectedHex": "#FFC94A",
+    "sourceArtifact": "g2-blocks/assets/palette/palette-n1-final.json",
+    "sourceSha256": "7bc2ca033ee8d7f7a20e63810b174e8cbdabcb92560a0db8dc72a10d553cd2ff",
+    "thresholdDeltaE": 25
+   },
+   "perf": {
+    "j1": {
+     "budgetMs": 400,
+     "device": {
+      "browser": "playwright chromium",
+      "cpuThrottleX": 4,
+      "viewportPx": "390x844"
+     },
+     "doneMark": "j1_feedback_done",
+     "startMark": "j1_settle_start",
+     "statement": "J1 = 一次消除从落定结算开始（j1_settle_start）到该次反馈完成（j1_feedback_done）的墙钟时长；双端（Web 端与后续移植端）perf 标记名逐字统一为 j1_settle_start / j1_feedback_done，预算 400ms @ 4x CPU throttle + 390x844"
+    }
+   },
+   "platform": {
+    "dy": {
+     "bundleLimitBytes": 4194304,
+     "interactionBudgetMs": 400,
+     "shareCard": {
+      "height": 1280,
+      "width": 720
+     },
+     "smokeFrames": 240,
+     "storeScreenshotMinCount": 3
+    }
+   },
+   "rng": {
+    "algorithm": "mulberry32",
+    "forbidDateNow": true,
+    "forbidMathRandom": true,
+    "testHook": "seededRng"
+   },
+   "scoring": {
+    "baseClear3": 30,
+    "note": "基础分与超出块加成为策划基线值；连击加成见 combo（AC-06 只裁决连击加成向量）",
+    "perExtraBlock": 10
+   },
+   "settlement": {
+    "enterAnimMs": 240,
+    "inputSeal": "cooled-existing",
+    "measureBasis": {
+     "deviceTier": "lowest-tier-baseline",
+     "note": "冷/热启动与机型档口径细则在 ac-32.measurement（acceptance 文本），本组只冻结触达与时序数值。"
+    },
+    "note": "结算页信息架构冻结面（链 v8 定死）。数值承自链 v7 numeric.uxProposal.settlement 提案值零调参平移；三层 IA = 结果层 → 归因层 → 行动层；出现期间玩法输入维持 cooled 既有封印（零输入语义改动）。",
+    "showDelayMs": 400,
+    "slotOrder": [
+     "P0-result",
+     "P1-result",
+     "P2-result",
+     "P3-attribution-action"
+    ],
+    "touchTargetMinPx": 48,
+    "touchTargetNote": "触达高度 ≥48dp（css px @1x 基准换算；最低机型档为测量基准，见 ac-32.measurement）。"
+   },
+   "spawn": {
+    "orientation": "uniform_random"
+   },
+   "uxProposal": {
+    "note": "提案态（链 v8 收缩）：nearMiss / settlement 两组已随 v1.3 首批实现轮转正式（numeric.nearMiss / numeric.settlement，承值零调参平移）；本提案面仅保留强反馈预留提案（修补②）——capPer5s=3 仅供后续版本提案评审，本版无实现无验收。",
+    "status": "proposal",
+    "strongFeedback": {
+     "capPer5s": 3
+    }
+   }
+  },
+  "world": {
+   "styleRef": "黑板 assets.md 顶部风格卡四要素（本轮仅色板一要素修订，其余三要素不动）。",
+   "summary": "熔炉工坊。玩家是守炉人，8×8 炉板上是七种矿石方块；交换相邻矿石凑成三连即熔炼得分，连续熔炼让炉火升温并叠加连击加成；一旦炉板上无任何可成排列，炉火熄灭（炉冷），本轮结束。",
+   "themeZones": {
+    "cool": [
+     "block-01",
+     "block-03",
+     "block-05"
+    ],
+    "warm": [
+     "block-02",
+     "block-04",
+     "block-06",
+     "block-07"
+    ]
+   },
+   "tone": "暖色工坊 + 深底金属质感；极简几何色块，无外部贴图依赖（视觉约束见 acceptance ac-13）。",
+   "uxCommitments": [
+    {
+     "id": "ux-commit-nearmiss",
+     "summary": "near-miss 反馈（v1.3 首批 · 链 v8 定死）：局中末态 + 炉冷结算两时点评估；行列同权、填充计数取消除结算后同逻辑帧末态、弱反馈频控每行 1 次/局 + 全局 ≤3 次/局；反馈 = 冷色一行 + 弱脉冲一次 + 边行高亮不常亮，零粒子不震屏；本版无强反馈通道（≤3 次/5s 仅预留提案）；重开率差 ≥+10pp 为健康校准指标（待校准）。"
+    },
+    {
+     "id": "ux-commit-settlement-ia",
+     "summary": "结算页三层 IA（v1.3 首批 · 链 v8 定死）：结果层 P0–P2（分数/最高连击/用步数）→ 归因层 P3（near-miss 命中项或无可消除）→ 行动层（再来一局 doRestart 同源 + daily 入口）；result-slot-* element id 单源；触达高度 ≥48dp；版式沿用 UI token 九键与冻结色板，零新色零贴图。"
+    }
+   ]
+  }
+ },
+ "_platform": {
+  "id": "cmv1q9k690045m94obp29ysre",
+  "version": 9,
+  "status": "draft",
+  "title": "g2-blocks（熔炉方块）",
+  "numericAnchorSha256": "6719edd27d7e121ac90be2ddca4b8ab127fdda269532bf4693c6afd805e9a739",
+  "exportedAt": "2026-10-10T01:42:35.810Z"
+ }
+}

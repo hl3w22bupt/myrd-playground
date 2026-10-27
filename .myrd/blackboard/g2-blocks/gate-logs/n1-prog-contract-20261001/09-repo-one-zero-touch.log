@@ -1,0 +1,10 @@
+# 09-repo-one-zero-touch.log — 一号仓库零接触留证（R2 修后结构化采集）
+# 采集时点：2026-10-01 · 采集时 HEAD=a5412ee（g2 R2 修复 commit edc414f 之后）
+# 采集命令：git status --porcelain + git diff --stat <工程路径集>（一号仓库根）
+# 说明：本轮全部证据件已随 a5412ee 落库后才采集；本件自身（?? 未跟踪）在采集后随下一 commit 落库，
+#       属预期、不计入越界评估——R2 驳回④「摘要与被引日志不符」及「采集自引用」两类假象均在此口径下消除。
+#       零接触判据 = 「tracked 工程文件 diff 为空」+「status 行（除本件外）全部落在守卫白名单」。
+# --- git status --porcelain（除本件外 0 行）---
+# （上方无输出行 = 除本件外工作树完全干净；平台预置 SKILLS.md 的 M 态已由平台 auto-commit 0dab469 收走，非本轮产物）
+# --- tracked 工程文件 diff --stat（无 stat 行 = 一号工程零触碰）---
+# （上方无 stat 行）

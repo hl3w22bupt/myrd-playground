@@ -1,0 +1,24 @@
+# 部署轮 r7 部署通道 + 线上自测实录（g2-blocks）
+# UTC: 2026-10-11 · 执行节点: 游戏程序（部署）· 本节点实跑
+
+## 通道
+- 坑核对（防挤占）: GET /api/v1/apphost/apps/cmuqelj2r0046m9zr4emgdgdg →
+  name=g2-blocks（熔炉方块） slug=g2-blocks-2 sourceType=game-studio sourceId=g2-blocks status=ready（绑定即本游戏，复用不新建）
+- 部署提交: 2bb69c7（git ls-remote 与本地 HEAD 全等后）单次 POST → HTTP=504（网关 30s 截断，B1/r3/r5/r6 同形态）
+- 按「504≠失败」GET 复查: 已受理 v17 cmv3ay800002fm9mx78gm80ym building（单条，无重复单）
+- 轮询: building ×3 → running（durationMs=833 · commitHash=2bb69c7 与部署提交全等 · errorMessage=null）
+- v16（cmv1snsqx… @ f4de390）被本次 superseded
+
+## 线上自测（liveUrl https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2）
+- GET /apps/g2-blocks-2/health → 200 {"ok":true,"app":"stack-tower",...}
+  注: app 字段为共享壳 server/src/index.ts:112 硬编码值（本仓各游戏坑同形态，B1 轮 stack-tower 自测同值），
+  坑归属以 API 绑定（sourceId=g2-blocks）+ 内容指纹为准
+- GET /apps/g2-blocks-2/gw/ → 308→200 text/html 3703B
+- 指纹比对（本地 games/g2-blocks/export/web vs LIVE /gw/api/public/assets/<path>，sha256 前 12）:
+  EQUAL generated/spec-data.mjs  9a6a53de5ce7  ← 本轮重烘焙件（链 v9 锚）
+  EQUAL platform/dy/adapter.mjs  20b2e956af6a  ← 本轮新增件
+  EQUAL platform/dy/boot-dy.mjs  7a1e16d5e31a  ← 本轮新增件
+  EQUAL telemetry/analytics.mjs  b307c64fb85b  ← 本轮 tt 收口件
+  EQUAL main.mjs                 92d563b74904  ← 未变件，与 r5/r6 登记值全等（玩法面零漂移）
+  EQUAL sw.js                    073b3794a849  ← 新缓存纪元在线 = 新部署实际生效，非旧缓存
+  DIFF  index.html（= 壳层 <base href> + boot 注入设计行为，本地件注入后即一致 → 7/7 对账闭合）

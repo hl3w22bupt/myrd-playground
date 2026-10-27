@@ -1,0 +1,5 @@
+== 命令原文：node games/line4-unblock-jam/tests/contract/checks/acc-05-no-external-texture.mjs
+== 时刻：2026-10-26 10:56:57
+== 输出：
+[acc-05-no-external-texture] PASS=4 FAIL=0
+== exit=0 ==

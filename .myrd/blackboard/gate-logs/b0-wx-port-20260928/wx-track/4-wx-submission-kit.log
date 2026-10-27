@@ -1,0 +1,15 @@
+# 命令: node tests/wx/wx-submission-kit.spec.mjs（B0 N3 wx 轨 · 2026-09-28 10:05:18）
+  PASS  check-wx-bundle-size（主包/子包分列断言）PASS
+  PASS  check-numeric-freeze（只复算 N1 存档）PASS
+  PASS  提审材料 id 全集 7 项在 spec 登记
+  PASS  材料 wx-share-card-5x4（500x400）spec↔manifest↔磁盘 三向一致
+  PASS  材料 wx-share-timeline-1x1（500x500）spec↔manifest↔磁盘 三向一致
+  PASS  材料 wx-friend-rank-ui（460x560）spec↔manifest↔磁盘 三向一致
+  PASS  材料 wx-store-screenshot-01（1242x2208）spec↔manifest↔磁盘 三向一致
+  PASS  材料 wx-store-screenshot-02（1242x2208）spec↔manifest↔磁盘 三向一致
+  PASS  材料 wx-store-screenshot-03（1242x2208）spec↔manifest↔磁盘 三向一致
+  PASS  材料 wx-icon（120x120）spec↔manifest↔磁盘 三向一致
+  PASS  docs/wx-submission-kit-b0.md 在位
+  PASS  kit 文书含提审包 sha256 段（game.js 可追溯）
+RESULT: PASS  — 提审包与材料 13 项断言全绿
+# exit=0（10:05:19）

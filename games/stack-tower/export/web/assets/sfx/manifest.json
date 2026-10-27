@@ -1,0 +1,57 @@
+{
+  "id": "sfx-pack-v1",
+  "naming": "文件名 = `sfx-` + 事件 id；双格式 .m4a + .ogg 成对",
+  "sampleRateHz": 44100,
+  "channels": 1,
+  "source": "generated（tools/gen-audio.mjs ← src/audio/voices.ts 同源音色表）",
+  "events": {
+    "place": {
+      "m4a": "sfx-place.m4a",
+      "ogg": "sfx-place.ogg",
+      "durationMs": 98,
+      "critical": false,
+      "m4aKb": 4.6,
+      "oggKb": 3.8
+    },
+    "perfect": {
+      "m4a": "sfx-perfect.m4a",
+      "ogg": "sfx-perfect.ogg",
+      "durationMs": 248,
+      "critical": false,
+      "m4aKb": 5.43,
+      "oggKb": 5.12
+    },
+    "miss": {
+      "m4a": "sfx-miss.m4a",
+      "ogg": "sfx-miss.ogg",
+      "durationMs": 208,
+      "critical": true,
+      "m4aKb": 5.16,
+      "oggKb": 5.73
+    },
+    "game-over": {
+      "m4a": "sfx-game-over.m4a",
+      "ogg": "sfx-game-over.ogg",
+      "durationMs": 388,
+      "critical": true,
+      "m4aKb": 6.12,
+      "oggKb": 7.21
+    },
+    "restart": {
+      "m4a": "sfx-restart.m4a",
+      "ogg": "sfx-restart.ogg",
+      "durationMs": 198,
+      "critical": true,
+      "m4aKb": 5.31,
+      "oggKb": 5.08
+    },
+    "level-clear": {
+      "m4a": "sfx-level-clear.m4a",
+      "ogg": "sfx-level-clear.ogg",
+      "durationMs": 398,
+      "critical": false,
+      "m4aKb": 6.26,
+      "oggKb": 6.92
+    }
+  }
+}

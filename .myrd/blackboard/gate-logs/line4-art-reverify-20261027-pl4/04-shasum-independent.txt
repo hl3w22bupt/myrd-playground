@@ -1,0 +1,14 @@
+a01-lot-tiles assets/a01-lot-tiles.png MATCH c280e58157fd/c280e58157fd
+a02-car-set assets/a02-car-set.png MATCH 1fa47319c7ba/1fa47319c7ba
+a03-exit-gate assets/a03-exit-gate.png MATCH bc759363500f/bc759363500f
+a04-guide-hand assets/a04-guide-hand.png MATCH 72db18102666/72db18102666
+a05-ui-hud assets/a05-ui-hud.png MATCH 8c57d16133da/8c57d16133da
+a06-sfx-pack assets/a06-sfx-pack.spec.json MATCH fe5858f718b4/fe5858f718b4
+TOTAL=6 MISMATCH=0
+derived wavs (manifest expectation vs shasum actual):
+drag.wav  5d5a437a9f44 MATCH
+exit.wav  ba416dfa1fc8 MATCH
+clear.wav 5362b88e0706 MATCH
+TOTAL_MAIN=6 MATCH=6 MISMATCH=0
+TOTAL_DERIVED=3 MATCH=3 MISMATCH=0
+GRAND=9/9 MATCH

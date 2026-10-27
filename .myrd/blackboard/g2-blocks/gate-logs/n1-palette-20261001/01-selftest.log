@@ -1,0 +1,7 @@
+# 文件名: 01-selftest.log
+# 日期: 2026-10-01 (UTC+8)
+# 命令: node tools/palette-gate.mjs selftest
+# 目录: g2-blocks 仓库根
+# 输出摘要: CIEDE2000 实现 18/18 标准校验对全过（Sharma 2005 Table 1，容差 1e-4）
+
+SELfTEST PASS 18/18 tol=0.0001

@@ -1,0 +1,31 @@
+# 文件: 01-green-checkv13-four-state-r1-r2.log | 日期: 2026-10-11T02:26:05Z | HEAD: 1fdd787c0fa54a92b3ff523ac1fce5924163c93d (sync/dy-v1.3 · 修复未提交工作树态)
+# 修复: scripts/check-v13.mjs Mode A 默认锚切 design-spec-v11-approved-archive.json(18/0/0) + 新增 Mode D=共同输入 design-spec.json(29/0+1PEND)
+# 连跑 2 次全绿（非 flaky）: r1 EXIT=0 · r2 EXIT=0
+--- run1 ---
+== Mode A (approved v1.1) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv34u4y0000tm9mxr9gy7y45/.myrd/spec/g2-blocks/design-spec-v11-approved-archive.json
+—— 合计 18 PASS / 0 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v2 approved 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准）
+== Mode B (chain v4 draft) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv34u4y0000tm9mxr9gy7y45/.myrd/spec/g2-blocks/design-spec-v1.3-feel-draft.json
+—— 合计 25 PASS / 0 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v4 draft 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准）
+== Mode C (chain v8 draft) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv34u4y0000tm9mxr9gy7y45/.myrd/spec/g2-blocks/design-spec-v13-batch-draft.json
+—— 合计 29 PASS / 0 FAIL / 1 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v8 draft 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准 · PEND 1 条显式挂起）
+== Mode D (chain v9 approved · 共同输入) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv34u4y0000tm9mxr9gy7y45/.myrd/spec/g2-blocks/design-spec.json
+—— 合计 29 PASS / 0 FAIL / 1 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v9 approved 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准 · PEND 1 条显式挂起）
+CHECK-V13: PASS（四态计数全符 · 18 / 25 / 29+1PEND / 29+1PEND）
+--- run2 ---
+== Mode A (approved v1.1) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv34u4y0000tm9mxr9gy7y45/.myrd/spec/g2-blocks/design-spec-v11-approved-archive.json
+—— 合计 18 PASS / 0 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v2 approved 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准）
+== Mode B (chain v4 draft) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv34u4y0000tm9mxr9gy7y45/.myrd/spec/g2-blocks/design-spec-v1.3-feel-draft.json
+—— 合计 25 PASS / 0 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v4 draft 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准）
+== Mode C (chain v8 draft) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv34u4y0000tm9mxr9gy7y45/.myrd/spec/g2-blocks/design-spec-v13-batch-draft.json
+—— 合计 29 PASS / 0 FAIL / 1 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v8 draft 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准 · PEND 1 条显式挂起）
+== Mode D (chain v9 approved · 共同输入) · /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv34u4y0000tm9mxr9gy7y45/.myrd/spec/g2-blocks/design-spec.json
+—— 合计 29 PASS / 0 FAIL / 1 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v9 approved 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准 · PEND 1 条显式挂起）
+CHECK-V13: PASS（四态计数全符 · 18 / 25 / 29+1PEND / 29+1PEND）

@@ -1,0 +1,49 @@
+{
+  "generatedBy": "tools/art-manifest.mjs",
+  "deterministic": "同输入逐字节一致（重生成 hash 不变 = ac-art-2 机判）",
+  "cap": 13,
+  "assets": [
+    {
+      "id": "battlefield-preview",
+      "file": "battlefield-preview.svg",
+      "sha256": "97ddd5f2fd0209b29cdd2f349c92f005fd55af27faba2090fd5dc740cc971c2d",
+      "generator": "tools/art-manifest.mjs:28",
+      "note": "程序化 SVG（theme token 派生 · 零位图）"
+    },
+    {
+      "id": "turret-lv-sheet",
+      "file": "turret-lv-sheet.svg",
+      "sha256": "2e1c654ff24bfd2da8c91d35bd411cbd880afa48be888e2bfcdad62de5a985f7",
+      "generator": "tools/art-manifest.mjs:36",
+      "note": "程序化 SVG（theme token 派生 · 零位图）"
+    },
+    {
+      "id": "enemy-kind-sheet",
+      "file": "enemy-kind-sheet.svg",
+      "sha256": "53814e11fef17174bc6ca8df580537053bb735f214030a9aeb660f97f72b1384",
+      "generator": "tools/art-manifest.mjs:46",
+      "note": "程序化 SVG（theme token 派生 · 零位图）"
+    },
+    {
+      "id": "core-hud-sample",
+      "file": "core-hud-sample.svg",
+      "sha256": "a0d793c4fb80b59fa4d00ab888d13b0074cba9fc67e833102f44ab766cfe614f",
+      "generator": "tools/art-manifest.mjs:61",
+      "note": "程序化 SVG（theme token 派生 · 零位图）"
+    },
+    {
+      "id": "guidance-overlay",
+      "file": "guidance-overlay.svg",
+      "sha256": "321bb5cfb7e7343b800d943cbd8f4308b820e27f5065fc41586f1702b6d7b86b",
+      "generator": "tools/art-manifest.mjs:67",
+      "note": "程序化 SVG（theme token 派生 · 零位图）"
+    },
+    {
+      "id": "settlement-panel",
+      "file": "settlement-panel.svg",
+      "sha256": "9af8876e581129b225ccb68a7b6af825b8af46e839c365968bb1129ec255ef24",
+      "generator": "tools/art-manifest.mjs:74",
+      "note": "程序化 SVG（theme token 派生 · 零位图）"
+    }
+  ]
+}

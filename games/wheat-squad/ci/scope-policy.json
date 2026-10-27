@@ -36,7 +36,11 @@
     "allowedPreExistingModifiedPaths": [
       ".myrd/blackboard/README.md",
       { "$note": "routine 门禁参数单源（e2e-gate pre-hook/Routines Tab 读它）：N10 轮 game-contract 参数对齐一游戏一子目录判例的正当触碰面，换活跃线时会再改" },
-      ".myrd/routines.yaml"
+      ".myrd/routines.yaml",
+      { "$note": "顶层共板三件（2026-10-15 R1 复测收口轮扩围）：任务书逐轮授权各线回写——levels.md 台账（角色规范「黑板同步：关卡状态写进 .myrd/blackboard/levels.md」）、blockers.md（阻塞台账）、assets.md（资产清单）；历轮提交 dce2d73/bcaa8f5/4f424e5 均有触碰而白名单滞后 → 修复共板合流冲突标记时门禁⑤假红，红绿证据 gate-logs/levels-conflict-fix-20261015/。最小扩围取精确串，不放开 .myrd/blackboard/ 目录前缀（他线子黑板 g2-blocks//next-line/ 仍禁触）" },
+      ".myrd/blackboard/levels.md",
+      ".myrd/blackboard/blockers.md",
+      ".myrd/blackboard/assets.md"
     ],
     "forbiddenTouchGlobs": [
       "games/game/",

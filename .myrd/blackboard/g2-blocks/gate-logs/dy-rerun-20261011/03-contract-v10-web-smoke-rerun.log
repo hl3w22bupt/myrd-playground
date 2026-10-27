@@ -1,0 +1,59 @@
+# 文件: 03-contract-v10-web-smoke-rerun.log | 日期: 2026-10-11T02:28:13Z | HEAD(dz): 1fdd787c0fa54a92b3ff523ac1fce5924163c93d
+# 复跑：链 v10 draft 口径契约 + web SMOKE
+--- contract v10 (G2_SPEC_PATH=design-spec-v10-dy-sync-draft.json) ---
+# g2-blocks contract-check · spec v10 (draft) anchor=…
+PEND ac-30-freeze-dod-gates :: 显式挂起（calibration（门槛数值待封版后真实数据校准；首轮校准 = 内测样本人工回收 + 报告交付，不改阈值不入断言面））——不入断言面，计数单列，approve/回流后随修订转正式契约件
+PASS  ac-01-board-init-seeded :: seed=20261001 64 格满员 · 类型 0..6 · 双局逐字节一致
+PASS  ac-02-spawn-uniform-random :: uniform_random 等概率（worst 偏差 1.52%）· seededRng 复现 · 内核纯净
+PASS  ac-03-swap-adjacency-only :: ≤4 向相邻判定正确 · 非相邻交换零副作用（不耗手数/不结算）
+PASS  ac-04-match-3plus :: 横/纵/四连全消 · L/T 交点去重（5 格）· 两连不消
+PASS  ac-05-gravity-refill-cascade :: 重力+补手+结算至稳态（cleared=12）· 终盘零残留 · 满员
+PASS  ac-06-combo-four-move-vector :: 四手向量 消/消/不消/消 → +0/+50/归0/+0 逐字命中
+PASS  ac-07-deadlock-cool :: 三色防换死盘/活盘判定正确 · 全穷举 224 探针 · 双判真实时点机判（判点一含空洞盘 filled=61/64，判点二满员）
+PASS  ac-08-settlement-order :: 单手真实流水 = swap → match → score → gravity → deadlock-check → refill → match → deadlock-check（判点一含空洞盘 filled=61/64，双判收尾）· v1.3 同步修订：表现层挂接零漂移 ✓（评估输入末态 filled=64 · 结算视图只读 ✓）
+PASS  ac-09-restart-full-reset :: 五元全复位 · seed 链重新起算 · 同手确定性复现
+PASS  ac-10-perf-j1 :: J1=175ms ≤ budgetMs=400 @ 4x throttle 390x844（标记名逐字一致）
+PASS  ac-11-theme-single-source :: 7 色键值逐字等于 spec 冻结块 · UI token 已接 · 全仓 hex+rgb/rgba 三元组逐一溯源 theme 单源（18 色）
+PASS  ac-12-palette-double-gate :: 21 对双门禁 ALL-GREEN（阈值 25 = spec 冻结值）
+PASS  ac-13-no-external-texture :: src/ + build/ + 入口零 image 加载构造 · 仓库零位图文件（纯几何渲染）
+PASS  ac-14-deterministic-kernel :: mulberry32 确定性（seed=20261001）· 双 sim 逐字节一致 · 内核零 Math.random/Date.now
+PASS  ac-15-audio-feedback :: 消除音效与反馈同帧同步发起（chain=1）· 音频缺失零阻塞
+PASS  ac-16-persistence-minimal :: 键级最小集 muted+anonId · 未知键拒绝 · 零网络调用构造
+PASS  ac-17-repo-one-zero-touch :: 一号仓库零接触自检 PASS（白名单机判，root=run-cmv34u4y0000tm9mxr9gy7y45）
+PASS  ac-18-ci-guard-repo-scope :: 仓库范围守卫 PASS（零一号路径引用，策略单源 ci/scope-policy.json）
+PASS  ac-22-feel-land-squash :: landSquash 唯一真源 · 实现表逐值全等 · frames≡换算恒等 · 落定帧触发/frames 帧复位（注入帧断言）· 锚 1720df8ec6ac…（v4 draft）
+PASS  ac-23-feel-hard-drop-shake :: hardDrop 唯一真源 · 实现表逐值全等 · 阈值触发机判 · 曲线采样 5 点复现（≤1e-9）· frames 帧归零（v4 draft）
+PASS  ac-24-feel-clear-particles :: particles 唯一真源 · 实现表逐值全等 · 期望派生机判 · 硬顶/drop-new/零超分配压力机判 · 寿命回收复用（v4 draft）
+PASS  ac-25-feel-sfx-three-tier :: 三档边界唯一真源 · 三组独立资源+变参字段（theme 单源）· 门面档位映射机判 · 同帧发起/当帧消费（注入帧断言）· 静音缺位零阻塞（v4 draft）
+PASS  ac-26-feel-combo-feedback :: combo 三档唯一真源 · 与 sfx 同边界 · UI token 映射单源 · 切换帧/保持/回落机判（注入帧断言）· 视觉态查表驱动（v4 draft）
+PASS  ac-27-feel-restart-one-click :: restart 唯一真源 · 两层口径声明在段 · 同源同路径静态机判（键盘 R+按钮单一定义）· 注入时钟全复位 ≤ budget · 转场窗口逐帧断言（v4 draft）
+PASS  ac-28-daily-hook-min-loop :: daily 种子纯函数（同日恒定/跨日必变/uint32）· 跨本地零点重置（steppedClock）· v1 存档向后兼容 fixture · streak 连续/断档/跨窗口三口径机判 · 入口完成态可查询 · 范围外零实体（v4 draft）
+PASS  ac-29-analytics-nine-events :: 9 事件双向全等（spec 表=代码镜像）· web 面 8 事件 call site 齐（main.ts 纯新增接线）· share_clicked=wx/dy 原生路由 · 锚点 once ✓
+PASS  ac-31-nearmiss-feedback :: 链 v8 nearMiss 冻结面全绿 · 频控 1/3 · 复现轨迹 8 手 · 遥测 2 事件（seed/会话/internal 字段齐）· 音效变体 t2 下行 80ms · UX 组锚 ce4562787207…
+PASS  ac-32-settlement-ia :: 链 v8 settlement 冻结面全绿 · 六槽三方一致 · 触达 ≥48px · 文案枚举 12 条逐字一致
+PASS  ac-33-submission-bundle-zero-diff :: 提审包零 diff：diff 110 路径全白名单（v10 ④ dy 声明面）· wx 提审源面零命中 · build 35 文件零内测泄漏 · internal tag 缺省关闭 · web 入口零 dy 引用
+—— 合计 29 PASS / 0 FAIL / 1 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v10 draft 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准 · PEND 1 条显式挂起）
+--- web smoke ---
+[smoke] 静态服务 http://127.0.0.1:63309/
+[smoke] viewport=390x844 throttle=4x（spec numeric.perf.j1.device）
+[smoke] 浏览器可开：页面加载完成
+[smoke] 游戏就绪 __G2_READY=true
+[smoke] 盘面 64 格满员
+[smoke] 手1（首消+提示）: score 0 → 160（chain 1） J1=192.30000001192093ms
+[smoke] 手2（连击路径）: score 160 → 240（chain 2） J1=176.5ms
+[smoke] 消除粒子上屏 ✓（drawn=8 · 存活帧命中 8/8 · 消亡后复采 0）
+[smoke] J1 实测 177.30000001192093ms / 预算 400ms（达标）
+[smoke] J1 证据 → tests/contract/.j1-evidence.json
+[smoke] 重开全复位 ✓（score=0 status=playing）
+[smoke] level-2 入口可达 ✓（HUD 目标「升温局 · 20 手内打出 3 连击」= spec goal 现读）
+[smoke] level-2 手1（可玩性）: score 0 → 160（chain 1） J1=174.39999997615814ms
+[smoke] level-1/level-2 切换回路 ✓
+[smoke] 结算页三区块 ✓（P0–P2 + 归因 + 行动层 · 触达 ≥48 · inputSeal=cooled-existing）
+[smoke] near-miss 构造面 ✓（__G2_NM 机读 bannerActive=true · 频控/超限计数在册）
+[smoke] 行动层重开同源 ✓（doRestart 同路径 · 结算页复位）
+[smoke] SW 注册受理 ✓ scope=http://127.0.0.1:63309/
+[smoke] PWA Service Worker 激活 ✓（registrations=1）
+[smoke] manifest 可达 ✓
+[smoke] 控制台零错误 ✓
+SMOKE: PASS 浏览器可开 + 核心循环可玩 + PWA 就绪（J1 证据已落档）

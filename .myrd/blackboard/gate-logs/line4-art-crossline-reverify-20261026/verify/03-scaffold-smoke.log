@@ -1,0 +1,9 @@
+== 命令原文：node games/line4-unblock-jam/tools/smoke.mjs
+== 时刻：2026-10-26 10:56:58
+== 输出：
+[scaffold-smoke] 内核确定性（同 seed 双跑逐字节） ✓ tick=8 elapsedMs=128
+[scaffold-smoke] 计数控名人/pending 不计连击 ✓ pending增量=0 move=1 combo=1（唯一所有权=src/kernel/session.ts）
+[scaffold-smoke] telemetry 单一出口（非契约键拒绝 + 键集合 ≡ spec） ✓ 契约键 6 个全等 · 旁路键已拒
+[scaffold-smoke] 构建 sha 指纹在位 ✓ sha=75653d80c0e6 dirty=true
+SCAFFOLD-SMOKE: PASS（4/4 面）
+== exit=0 ==

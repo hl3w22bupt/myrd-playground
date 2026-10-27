@@ -1,0 +1,229 @@
+{
+  "generatedAtUtc": "2026-10-16T01:40:17.078Z",
+  "purpose": "R1 复测三态分流收口轮 · A2 start→end 事件链计数补采（≥20 完整模拟局，禁混真人局——retestProtocol②）",
+  "binding": {
+    "gitSha": "4eccaf293b11052041860ff7b0ee3141975258fd",
+    "specChainId": null,
+    "specChainVersion": null,
+    "specChainStatus": null,
+    "specMetaVersion": "1.4"
+  },
+  "method": "createGame × 20 种子（DEFAULT_SEED(20261011)+i）· game.ts 装配面真实 step 驱动 · 遥测 run_start/run_end 链计数",
+  "result": {
+    "chains": 20,
+    "chainsRequired": 20,
+    "chainsComplete": true,
+    "p50Sec": 168.1,
+    "p90Sec": 168.1,
+    "victoryCount": 20,
+    "total": 20,
+    "inBand": true,
+    "band": {
+      "p50MinSec": 90,
+      "p50MaxSec": 180,
+      "p90MaxSec": 300
+    }
+  },
+  "rows": [
+    {
+      "seed": 20261011,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    },
+    {
+      "seed": 20261012,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    },
+    {
+      "seed": 20261013,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    },
+    {
+      "seed": 20261014,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    },
+    {
+      "seed": 20261015,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    },
+    {
+      "seed": 20261016,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    },
+    {
+      "seed": 20261017,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    },
+    {
+      "seed": 20261018,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    },
+    {
+      "seed": 20261019,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    },
+    {
+      "seed": 20261020,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    },
+    {
+      "seed": 20261021,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    },
+    {
+      "seed": 20261022,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    },
+    {
+      "seed": 20261023,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    },
+    {
+      "seed": 20261024,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    },
+    {
+      "seed": 20261025,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    },
+    {
+      "seed": 20261026,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    },
+    {
+      "seed": 20261027,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    },
+    {
+      "seed": 20261028,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    },
+    {
+      "seed": 20261029,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    },
+    {
+      "seed": 20261030,
+      "chain": "run_start→run_end",
+      "chainLen": 2,
+      "durationMs": 168096,
+      "durationSec": 168.1,
+      "reason": "victory",
+      "ok": true,
+      "fail": []
+    }
+  ]
+}

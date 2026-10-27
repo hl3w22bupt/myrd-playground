@@ -16,6 +16,7 @@ config/icon="res://icon.svg"
 
 GameState="*res://autoload/game_state.gd"
 GameAudio="*res://autoload/audio_manager.gd"
+SaveState="*res://autoload/save_state.gd"
 
 [display]
 

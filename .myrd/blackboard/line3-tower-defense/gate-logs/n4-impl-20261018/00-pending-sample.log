@@ -1,0 +1,7 @@
+# N1 pending 输出样例 · UTC 2026-10-18T01:19:51Z · 绑定采样锚 HEAD 0870263b9f9d745936b7e9a86704ce025938b138
+## run-all（runner 占位 fail-closed 口径）
+PENDING-IMPLEMENTATION: 14 条 check 薄壳均为占位（spec approved 后实现轮转真），runner 此时不可判绿
+run-all_exit=1
+## 单条 check 薄壳样例（a1）
+PENDING-IMPLEMENTATION: a1-td-first-placement-feedback 判据机判未实现（实现轮交付后本薄壳转真）
+a1_exit=1

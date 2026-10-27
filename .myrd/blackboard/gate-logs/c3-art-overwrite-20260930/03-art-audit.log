@@ -1,0 +1,7 @@
+# C 轮 N3 美术线机器审计（风格四要素 + 安全区 + combo 高光标记锚点）
+# 日期：2026-09-30 · 执行：游戏美术（N3）
+# 命令：cd games/stack-tower && python3 <run-root>/.myrd/blackboard/gate-logs/c3-art-overwrite-20260930/art-audit.py
+# 前置强断言：grep -c '#[0-9a-fA-F]\{6\}' tools/gen-tt-assets.mjs = 0（生成器零私设 hex，色值全经 theme.ts NEON 表解析）
+
+[{"id": "dy-share-card", "size": "500x400", "ratio_ok": true, "sky_ok": true, "blocks3face_ok": true, "safe_bbox": [14, 26, 342, 341], "edge_margin": 14, "safe_ok": true, "foreign_hue_px_info": 541}, {"id": "dy-store-screenshot-01", "size": "1242x2208", "ratio_ok": true, "sky_ok": true, "blocks3face_ok": true, "safe_bbox": [50, 72, 1181, 2067], "edge_margin": 50, "safe_ok": true, "foreign_hue_px_info": 0}, {"id": "dy-store-screenshot-02", "size": "1242x2208", "ratio_ok": true, "sky_ok": true, "blocks3face_ok": true, "safe_bbox": [221, 1114, 1021, 1896], "edge_margin": 220, "safe_ok": true, "foreign_hue_px_info": 6233, "marker": {"glow_px": 12386, "ripple_exact_px": 3008, "cutface_near_white_px": 368, "marker_ok": true}}, {"id": "dy-store-screenshot-03", "size": "1242x2208", "ratio_ok": true, "sky_ok": true, "blocks3face_ok": true, "safe_bbox": [84, 168, 921, 1856], "edge_margin": 84, "safe_ok": true, "foreign_hue_px_info": 12162}, {"id": "dy-icon", "size": "512x512", "ratio_ok": true, "sky_ok": true, "blocks3face_ok": true, "safe_bbox": [98, 170, 414, 406], "edge_margin": 97, "safe_ok": true, "foreign_hue_px_info": 895}]
+ART-AUDIT: PASS

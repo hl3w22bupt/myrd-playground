@@ -1,0 +1,19 @@
+# 轮末复验（线上三点 + 平台部署回读 + spec 链回读）——游戏程序 · 2026-10-23
+== 命令原文：curl 三点探针（/gw、/gw/health、/gw/api/public/assets/manifest.json）+ 平台 API GET deployments / GET game-design-specs/:id（Authorization: Bearer $MYRD_TOKEN，token 不回显）==
+2026-10-23 10:09:44 +0800
+== PL3 线上三点 ==
+GET /gw HTTP=200 bytes=645
+md5 LIVE=/gw  : 1ee3ff09f53d8fa0077dd07b244e0473
+md5 本仓 build/landing.html: 1ee3ff09f53d8fa0077dd07b244e0473
+LIVE manifest gitSha = a27ca0e86b618e2bf0ca2f8621efbb1e8c78955e | specAnchor = cmvbqgzbl0029m9ax64foxd37@v2:approved
+{"ok":true,"app":"game-9","title":"汽车连连看","env":"development","assets":"lazy/object-storage"}
+== PL2 存活 ==
+GET /gw HTTP=200 bytes=3703
+== 平台部署回读（与 P0-1 对账表 03 号日志同字段）==
+PL3 {"version": 2, "status": "running", "commitHash": "f9d9834942be66faf7d4a0b5b73732a596a26d83", "errorMessage": null, "createdAt": "2026-10-18T04:40:06.339Z"}
+PL3 {"version": 1, "status": "superseded", "commitHash": "b81d17b354e96e3daeff86812a5e7a905e85a94e", "errorMessage": null, "createdAt": "2026-10-18T02:03:44.195Z"}
+PL2 {"version": 17, "status": "running", "commitHash": "2bb69c7ecd3de85ee2462da1ae03d4294f7f2c0f", "errorMessage": null, "createdAt": "2026-10-11T04:07:33.889Z"}
+PL2 {"version": 16, "status": "superseded", "commitHash": "f4de390f16d28041036a5986b5ccab07ec8c4078", "errorMessage": null, "createdAt": "2026-10-10T02:47:48.297Z"}
+== PL3 spec 链回读（v4 与 v3）==
+v4: {"id": "cmvkb2d8y001fm968778whydc", "version": 4, "status": "approved", "createdAt": "2026-10-23T01:42:52.306Z"} | acceptance 15 条
+v3: {"id": "cmvkb0818001dm968tzdoh0mk", "version": 3, "status": "superseded"}

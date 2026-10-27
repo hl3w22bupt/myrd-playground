@@ -1,0 +1,46 @@
+{
+  "signoffId": "QA-L3-N5-SIGNOFF-20261018-01",
+  "signer": "游戏 QA（主策划工作室代行节点 · 独立复跑口径）",
+  "utc": "2026-10-18T02:03Z",
+  "subject": "line3-tower-defense 实现轮 N5 互查——三件套核签 + 部署放行",
+  "threePieces": {
+    "frozenSpec": {
+      "path": ".myrd/spec/line3-tower-defense/design-spec.json",
+      "platform": { "id": "cmvbqgzbl0029m9ax64foxd37", "version": 2, "status": "approved" },
+      "zeroDrift": true,
+      "evidence": "2026-10-18 API 回读 spec.spec 与导出件 Python dict 深比 = True（同身份字面全等）"
+    },
+    "criteriaMapping": {
+      "path": ".myrd/blackboard/line3-tower-defense/levels.md#判据--测试文件--结果",
+      "rows": 15,
+      "auto": 14,
+      "manual": 1,
+      "anchorSha": "a27ca0e86b618e2bf0ca2f8621efbb1e8c78955e"
+    },
+    "boundRawOutputs": [
+      "gate-logs/n4-impl-20261018/02-verify-run1.log（verify ×1 全绿 VERIFY_EXIT=0 @ a27ca0e）",
+      "gate-logs/n4-impl-20261018/03-verify-run2.log（同锚连跑 ×2 非 flaky）",
+      "gate-logs/n4-impl-20261018/04-regression-and-build-determinism.log（统一门禁 line3 63/0 · wheat 56/0 · stack-tower 82/0 零回归）",
+      "gate-logs/n4-impl-20261018/05-qa-n5-sample-pick.txt（确定性抽样记录）",
+      "gate-logs/n4-impl-20261018/06-qa-n5-crosscheck.log（抽中项独立重跑核销）"
+    ]
+  },
+  "sampledCrosscheck": {
+    "method": "绑定锚 sha 数值 mod 14 确定性抽样（非人为挑样）",
+    "sampled": ["a1-td-first-placement-feedback", "ac-art-2-td-asset-manifest-cap"],
+    "result": "2/2 独立重跑复现 PASS，判定值与映射表逐字一致",
+    "rule": "抽中即错整表打回——未触发"
+  },
+  "verdicts": {
+    "explicitStateNotFakeGreen": "PASS（run-all 显式 PEND 单列 a3；0 红口径=14/14 auto PASS，未声明全绿）",
+    "pendingNotMergedWithFail": "PASS（a3 真人面 PEND 单列，不计红不计绿）",
+    "criteriaIdAlignment": "PASS（runner 双向对账：acceptance auto ids ≡ checks 文件集合 14/14）",
+    "boundShaValidity": "PASS（工作区源面 diff a27ca0e..b81d17b = 空；build/ 产物面 gitSha 内嵌 ≡ 绑定锚）",
+    "deployReadiness": "PASS（L3-SMOKE 全链路绿 · 构建锚=绑定锚 · 远端 HEAD ≡ 本地 b81d17b）"
+  },
+  "nonGreenDisclosure": {
+    "manualPending": "a3-td-restart-willingness 0/5 真人（未判定·待采 · 采集窗=部署 LIVE 后 · 机器不代采 · 归主人+QA 采卡）",
+    "defeatOnly": "a2 结局=defeat 20/20（判据在带内通过；通关不可达=数值校准候选 W-L3-4，归主人拍板后走 revision，不静默改尺子）"
+  },
+  "decision": "APPROVE-DEPLOY（部署放行 · 主人试玩 = A4 主观层唯一判官 · 本核签不构成好玩终裁）"
+}

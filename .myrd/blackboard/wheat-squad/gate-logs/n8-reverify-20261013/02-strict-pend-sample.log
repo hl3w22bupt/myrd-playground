@@ -1,0 +1,30 @@
+# 文件: 02-strict-pend-sample.log | 日期: 2026-10-13T02:06:48Z | HEAD: 304dacf01cac6e7ad192ac8dffbd26513cd48eee
+# 口径：任务书「含 pending 即非全绿」样例输出（交 QA 预核）——WS_CONTRACT_STRICT_GREEN=1 时 PEND>0 → exit 2
+PASS det-1 同 seed 双局逐字节一致 :: {"tick":10506,"phase":"ended","kills":218,"xp":436,"wave":7,"ups":["fireRate","damage","damage","recruit","fireRate","sp
+PASS ac-a1(auto) 首次核心正反馈 1.71s ≤10s · 5 种子首杀全部 ≤30s · 回归预算 3s/20s 保持
+PASS ac-a2(auto) 20 种子 P50=168.096s ∈[90,180] · P90=168.096s ≤300 · victory=20/20
+PEND ac-a3(manual) 机制面 PASS（重开 0ms+全复位+结算三信息+模板 schema）· 结论面 MANUAL-PENDING（记录 0/5——5 名试玩回填后复跑本件）
+PASS ac-a4(auto) 反馈延迟 max=0ms ≤100ms · 每操作通道 min=4 ≥2 · flash=90ms
+PASS perf-1 实体峰值 33 ≤220 · 单步 0.001ms ≤16ms · 机型档（中端≤33ms/首交互≤3000ms/老机≤50ms）节流仿真不崩（node 仿真步；真机走查归 QA 清单）
+PASS tex-1 零位图文件 + 7 源文件零贴图构造
+PASS anchor-1 entities 13/13 + levels 2/2 落点在盘非空
+PASS fv-pend placement 结构冻结（spec 文本 + 公式实体行为级对拍）+ 待校准语义在档（校准走 revision）
+PASS ac-art-1(auto) 12 文件扫描 · 色值全部 ⊆ palette 白名单(8 色) · 零违例
+PASS ac-art-2(auto) 清单 10 件 ≤ 封顶 13 · entity 类 id 全部 ∈ entities ids · source 锚点全在盘 · 零清单外资产
+PASS ac-art-3(auto) 落盘清单件 3 逐件达标 · build 首包 0.08MB ≤ 4MB
+PASS ac-art-4 机制面+互查回执全达（qa/style-consistency-check.md 在档）
+PASS ac-14 埋点定名三方同名（接线+断言面 9 键逐字 · 结局势 {defeat,timeout,victory} 同源 · placementOffline 冻结式行为锁定）
+PASS ac-15 门禁适配视图守卫（id/slug=wheat-squad 单源同源 · 剔注入键深等 · 入口在盘）
+PASS ac-16 埋点四事件骨架（hint_shown@0ms + first_tap once@32ms + first_loop_complete@7040ms + restart_clicked count 1→2）· a5 窗语义 5s 内可达
+—— wheat-squad 契约合计 16 PASS / 0 FAIL / 1 PEND ——
+ALL_GREEN=false（含 pending 即非全绿——PEND 1 件：
+  PEND · ac-a3-restart-willingness 结论面：5 名试玩记录未回填（0/5）——manual 结论面待真人，回填后复跑本件转 PASS
+）
+STRICT_EXIT=2
+
+# 宽松口径（默认，不卡 CI）：
+—— wheat-squad 契约合计 16 PASS / 0 FAIL / 1 PEND ——
+ALL_GREEN=false（含 pending 即非全绿——PEND 1 件：
+  PEND · ac-a3-restart-willingness 结论面：5 名试玩记录未回填（0/5）——manual 结论面待真人，回填后复跑本件转 PASS
+）
+LENIENT_EXIT=0

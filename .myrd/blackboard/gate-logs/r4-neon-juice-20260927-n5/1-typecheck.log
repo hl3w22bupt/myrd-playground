@@ -1,0 +1,4 @@
+[补记 2026-09-27 驳回③] 本文件原始内容为空（0 字节，2026-09-27 10:52 落盘）——缺命令/日期/输出摘要，
+按 spec v1.2 content.evidence 四要素条款判定该条 N5 门禁证据无效。原件留痕如上（本文件除本补记行外无其他内容）。
+证据转移登记：typecheck 四要素完整链 = ../r4-neon-juice-20260927-prog-recheck/1-typecheck.log
+（2026-09-27 11:08:08 · 命令 npx tsc -p tsconfig.json --noEmit · exit=0）。补正说明见同目录 README.md。

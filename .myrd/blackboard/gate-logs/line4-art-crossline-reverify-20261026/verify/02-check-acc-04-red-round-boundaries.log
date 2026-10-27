@@ -1,0 +1,5 @@
+== 命令原文：node games/line4-unblock-jam/tests/contract/checks/acc-04-red-round-boundaries.mjs
+== 时刻：2026-10-26 10:56:57
+== 输出：
+[acc-04-red-round-boundaries] PASS=10 FAIL=0
+== exit=0 ==

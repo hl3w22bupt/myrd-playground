@@ -1,0 +1,18 @@
+# cmd: 同钉值 · node tools/assembly-entry.mjs && node tools/perf-report.mjs
+# gitRef: 4f67806a5eca0c476c9ceb164c904037742ee1cf（4f67806）
+# at: 2026-10-03T02:59:30Z
+--- manifest 对账（同批判据唯 buildSha256）---
+assembly buildSha256 be310288cff10563 gitRef 4f67806
+shot     buildSha256 be310288cff10563 gitRef 4f67806
+sameBatch(buildSha256) true · gitRef identical true · sameBatchCriterion in both true
+--- assembly ---
+[assembly] build 批次 be310288cff10563… · 截图批次 be310288cff10563… · 同批 ✓
+[assembly] 入口清单 → docs/assembly-manifest.json（batchId=be310288cff10563 · 截图 4 张）
+ASSEMBLY: PASS 装配区只读入口就绪（同批 be310288cff10563 · QA/美术两用）
+EXIT=0
+--- perf-report ---
+[perf] 基准跑（throttle×1）: samples=363 fps=60 p50=16.7ms p95=16.7ms p99=16.8ms max=16.8ms jank=0(0.00%)
+[perf] 规格跑（spec j1 同环境）（throttle×4）: samples=140 fps=18.03 p50=50ms p95=66.7ms p99=66.7ms max=66.7ms jank=140(100.00%)
+[perf] 报告 → docs/evidence/perf-p95-report.md + .json
+PERF-REPORT: PASS P95 报告已产出（基准 P95=16.7ms · 代理口径披露在案）
+EXIT=0

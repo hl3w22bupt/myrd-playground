@@ -1,0 +1,27 @@
+[0] spec 单源读取：v1.0 白名单 8 色 · deriveRule 声明： 仅允许白名单两色按 theme.ts 常量比例混合（炮塔阶= turret-green×text-cream 0/20/…
+[0] deriveRule 独立重算： {"turret-lv2":"#98BFA8","turret-lv3":"#AFCBB5","enemy-hp-low":"#8A4E5A"}
+[1] battlefield-preview.svg · hex 3 种 [#2F4156,#47617C,#E9D8A6] → 白名单+派生核验 PASS
+[2] battlefield-preview.svg · 渐变/滤镜/模糊 零（双层平涂口径）
+[3] battlefield-preview.svg · stroke-width 集合 [1,8]（风格卡：描边 2px 主面）
+[4] battlefield-preview.svg · 关键几何锚命中 [320]
+[1] core-hud-sample.svg · hex 3 种 [#E76F51,#202A38,#F4F1DE] → 白名单+派生核验 PASS
+[2] core-hud-sample.svg · 渐变/滤镜/模糊 零（双层平涂口径）
+[3] core-hud-sample.svg · stroke-width 集合 [2]（风格卡：描边 2px 主面）
+[4] core-hud-sample.svg · 关键几何锚命中 []
+[1] enemy-kind-sheet.svg · hex 4 种 [#B75D69,#202A38,#8A4E5A,#F4F1DE] → 白名单+派生核验 PASS
+[2] enemy-kind-sheet.svg · 渐变/滤镜/模糊 零（双层平涂口径）
+[3] enemy-kind-sheet.svg · stroke-width 集合 [2]（风格卡：描边 2px 主面）
+[4] enemy-kind-sheet.svg · 关键几何锚命中 [16,14,20]
+[1] guidance-overlay.svg · hex 2 种 [#202A38,#F4F1DE] → 白名单+派生核验 PASS
+[2] guidance-overlay.svg · 渐变/滤镜/模糊 零（双层平涂口径）
+[3] guidance-overlay.svg · stroke-width 集合 [2]（风格卡：描边 2px 主面）
+[4] guidance-overlay.svg · 关键几何锚命中 []
+[1] settlement-panel.svg · hex 3 种 [#202A38,#F4F1DE,#98BFA8] → 白名单+派生核验 PASS
+[2] settlement-panel.svg · 渐变/滤镜/模糊 零（双层平涂口径）
+[3] settlement-panel.svg · stroke-width 集合 [2]（风格卡：描边 2px 主面）
+[4] settlement-panel.svg · 关键几何锚命中 [14]
+[1] turret-lv-sheet.svg · hex 5 种 [#81B29A,#202A38,#F4F1DE,#98BFA8,#AFCBB5] → 白名单+派生核验 PASS
+[2] turret-lv-sheet.svg · 渐变/滤镜/模糊 零（双层平涂口径）
+[3] turret-lv-sheet.svg · stroke-width 集合 [2]（风格卡：描边 2px 主面）
+[4] turret-lv-sheet.svg · 关键几何锚命中 [24,26,28]
+[5] 合计：6 件 · 违例 0 件 → DESKCHECK PASS

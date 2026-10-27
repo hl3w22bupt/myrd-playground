@@ -1,0 +1,5 @@
+CMD: node scripts/contract-check.mjs --spec .myrd/spec/line4-unblock-jam/design-spec.json --project games/line4-unblock-jam（仓根执行）
+CONTRACT: FAIL SPEC_NOT_APPROVED — 策划案未处于 approved 状态，契约测试拒绝执行。
+  _platform.status = "draft"，status = "draft"，meta.status = undefined，approval = undefined
+  恢复路径：POST /api/v1/game-design-specs 建版 → 主人拍板 POST /:id/approve → 重新导出 approved 版到 .myrd/spec/<game>-spec.json（一游戏一文件）。
+EXIT=1

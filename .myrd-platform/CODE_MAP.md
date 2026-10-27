@@ -4,9 +4,9 @@
 > 用法：根据问题用 Grep 在对应文件里搜索定位，再 Read 相关源码获取细节。
 > 本地图由 MyRD 定时增量更新（记录 commit，只重扫变更）。
 
-共 51 条导航条目。
+共 57 条导航条目。
 
-## 规范文档（51）
+## 规范文档（57）
 
 - [DOC] README(README.md::README) → `README.md`
 - [DOC] 运行(README.md::运行) → `README.md`
@@ -24,6 +24,12 @@
 - [DOC] 三、测试与门禁(PERFORMANCE.md::三、测试与门禁) → `docs/PERFORMANCE.md`
 - [DOC] 四、代码审查与修复（创建 PR 前完成）(PERFORMANCE.md::四、代码审查与修复（创建 PR 前完成）) → `docs/PERFORMANCE.md`
 - [DOC] 五、浏览器实测建议（后续收口步）(PERFORMANCE.md::五、浏览器实测建议（后续收口步）) → `docs/PERFORMANCE.md`
+- [DOC] deploy-shell-contract(deploy-shell-contract.md::deploy-shell-contract) → `docs/deploy-shell-contract.md`
+- [DOC] 1. 壳解析规则（server/src/index.ts · GET / 的唯一真源）(deploy-shell-contract.md::1. 壳解析规则（server/src/index.ts · GET / 的唯一真源）) → `docs/deploy-shell-contract.md`
+- [DOC] 2. landing.html 硬契约（构建期三条）(deploy-shell-contract.md::2. landing.html 硬契约（构建期三条）) → `docs/deploy-shell-contract.md`
+- [DOC] 3. 门禁（防复发三道）(deploy-shell-contract.md::3. 门禁（防复发三道）) → `docs/deploy-shell-contract.md`
+- [DOC] 4. 部署操作面判例（顺带收口，源自 line3 N5 实录）(deploy-shell-contract.md::4. 部署操作面判例（顺带收口，源自 line3 N5 实录）) → `docs/deploy-shell-contract.md`
+- [DOC] 5. 历史定谳（读旧黑板前先看这里）(deploy-shell-contract.md::5. 历史定谳（读旧黑板前先看这里）) → `docs/deploy-shell-contract.md`
 - [DOC] 01-rendering-and-quality(01-rendering-and-quality.md::01-rendering-and-quality) → `docs/architecture/01-rendering-and-quality.md`
 - [DOC] 1. 渲染引擎选型（ADR-001）(01-rendering-and-quality.md::1. 渲染引擎选型（ADR-001）) → `docs/architecture/01-rendering-and-quality.md`
 - [DOC] 1.1 候选对比(01-rendering-and-quality.md::1.1 候选对比) → `docs/architecture/01-rendering-and-quality.md`

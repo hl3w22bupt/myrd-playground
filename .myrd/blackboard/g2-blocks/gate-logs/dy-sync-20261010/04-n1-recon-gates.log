@@ -1,0 +1,6 @@
+# 04-n1-recon-gates.log
+# 文件: 04-n1-recon-gates.log | 日期: 2026-10-11T01:31:22Z | 执行目录: g2-blocks-main (main @ 26ba1d9)
+# 命令1: G2_REPO_ONE_ROOT=<一号仓> G2_SPEC_PATH=<v1.1存档> node scripts/check-v13.mjs
+# 结果: Mode A 18 PASS/0 FAIL · Mode B 24+1FAIL(D-01) · Mode C 28+1PEND+1FAIL(D-01)
+# 命令2: node tools/smoke.mjs (v1.6 口径) → SMOKE: PASS · 覆写件已还原树净
+# 命令3: 链 v9 双件对拍 → EQUAL

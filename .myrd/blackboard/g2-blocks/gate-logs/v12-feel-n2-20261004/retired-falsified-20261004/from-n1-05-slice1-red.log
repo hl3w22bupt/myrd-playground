@@ -1,0 +1,14 @@
+# 切片1 红证据（ac-22/ac-23 首跑 · 会话实跑原文转录 · 2026-10-04）
+# 命令: G2_SPEC_PATH=<design-spec-v1.3-feel-draft.json> node scripts/contract-check.mjs --only ac-22-feel-land-squash / ac-23-feel-hard-drop-shake
+# 红一（实现缺位——feel-data.ts / feel.ts 尚未产出）:
+RED  ac-22-feel-land-squash :: 执行异常 Cannot find module '.../g2-blocks/src/generated/feel-data.ts' imported from .../tests/contract/ac-22-feel-land-squash.spec.mjs
+—— 合计 0 PASS / 1 FAIL ——
+CONTRACT: RED 契约未全绿，禁止提交
+RED  ac-23-feel-hard-drop-shake :: 执行异常 Cannot find module '.../g2-blocks/src/generated/feel-data.ts' imported from .../tests/contract/ac-23-feel-hard-drop-shake.spec.mjs
+—— 合计 0 PASS / 1 FAIL ——
+CONTRACT: RED 契约未全绿，禁止提交
+# 红二（锚口径配错——契约误用全 numeric 锚比对 feel 子树锚）:
+RED  ac-22-feel-land-squash :: 执行异常 生成件锚过期: 774397683991… ≠ 草案 1720df8ec6ac…
+# 红三（断言点选错——t=0 曲线值恒为 0，触发语义应查窗口内非零采样）:
+RED  ac-23-feel-hard-drop-shake :: 执行异常 达阈值落定帧应触发震屏
+# 处置: 修契约件两处（锚双断言改子树口径 + 断言点改窗口采样）→ 双绿（源仓 50efa9f 提交前置）

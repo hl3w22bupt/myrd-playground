@@ -1,0 +1,26 @@
+{
+  "name": "Stack Tower（叠塔）",
+  "short_name": "叠塔",
+  "description": "一块一块往上叠：看准摆动块的切面，在它扫过塔顶的瞬间点下去。",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#1d2733",
+  "background_color": "#1d2733",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,329 @@
+{
+  "createdAt": "2026-10-24T02:06:02.530Z",
+  "createdByUserId": "cmoqv70b80000m9d4b58k27zt",
+  "goalId": null,
+  "id": "cmvlrc0ma001tm94ialxeykjn",
+  "parentSpecId": "cmvlpx0uf0019m94iyuroz578",
+  "projectId": "cmto0g28j0002m9sqnvjdy8o7",
+  "schemaVersion": "v0",
+  "sourceTrajectoryId": null,
+  "spec": {
+    "acceptance": [
+      {
+        "check": "games/line4-unblock-jam/tests/contract/checks/acc-01-seeded-determinism.mjs（规划落点，审查通过版落地转真）",
+        "id": "acc-01-seeded-determinism",
+        "mode": "auto",
+        "statement": "同 seed 谱系逐字节一致：DEFAULT_SEED 与 seeds 42..61 各局布局序列、可滑动解序列、终局态双跑逐字节一致（确定性战局根判据）。"
+      },
+      {
+        "check": "games/line4-unblock-jam/tests/contract/checks/g-01-first-60s-guide.mjs（规划落点，审查通过版落地转真）",
+        "id": "g-01-first-60s-guide",
+        "mode": "auto",
+        "statement": "首 60s 引导判据（判据编号 g-01 挂资产编号 a04-guide-hand）：bot 面 20 局达成率 ≥0.90（≥18/20）——20 冒烟局（seeds 42..61）中 ≥18 局在 60s 窗口内完成「首次拖动→首次驶出→通关」三步；first60s_guide_done_rate ≥0.90。"
+      },
+      {
+        "check": "games/line4-unblock-jam/tests/contract/checks/acc-02-exit-feedback-latency.mjs（规划落点，审查通过版落地转真）",
+        "id": "acc-02-exit-feedback-latency",
+        "mode": "auto",
+        "statement": "驶出正反馈延迟：car.exit 判定帧→vf-car-exit-burst 事件同帧发出，car_exit_latency_ms_p95 ≤100ms（正反馈具体事件名写死 vf-car-exit-burst/vf-combo-pop/vf-level-clear 三通道，三通道规格（通道/预算/硬顶）见 assets.md §四）。"
+      },
+      {
+        "check": "games/line4-unblock-jam/tests/contract/checks/acc-03-combo-pending-invariant.mjs（规划落点，审查通过版落地转真）",
+        "id": "acc-03-combo-pending-invariant",
+        "mode": "auto",
+        "statement": "pending 不计连击恒等式：20 冒烟局事件流审计 combo_pending_violations=0（comboCount 增量必伴随 car.exit 事件帧；拖拽中/pending 状态零增量）。"
+      },
+      {
+        "check": "games/line4-unblock-jam/tests/contract/checks/acc-04-red-round-boundaries.mjs（规划落点，审查通过版落地转真）",
+        "id": "acc-04-red-round-boundaries",
+        "mode": "auto",
+        "statement": "三红轮边界数值断言：进入边界（前关步数 ≤ par 才入红轮）、完成边界（redRoundStepBudget=12 内驶出）、失败边界（超预算即 fail + 连败 redRoundFailDowngrade=2 降级回标准轮）三谓词逐条机判。"
+      },
+      {
+        "check": "games/line4-unblock-jam/tests/contract/checks/acc-05-no-external-texture.mjs（规划落点，审查通过版落地转真）",
+        "id": "acc-05-no-external-texture",
+        "mode": "auto",
+        "statement": "零外部贴图：源文件零位图构造，资产全部程序化生成入 manifest（8 色白名单外零取色；重生成 hash 不变）。"
+      },
+      {
+        "check": "games/line4-unblock-jam/tests/contract/checks/acc-06-perf-caps.mjs（规划落点，审查通过版落地转真）",
+        "id": "acc-06-perf-caps",
+        "mode": "auto",
+        "statement": "性能帽：实体峰值 ≤60、单步 ≤16ms、frame_time_p95 ≤16ms、fps_min ≥55（F4 设备档位=中端 60fps 基准；20 冒烟局全量帧采样）。"
+      },
+      {
+        "check": "games/line4-unblock-jam/tests/contract/checks/acc-07-telemetry-key-parity.mjs（规划落点，审查通过版落地转真）",
+        "id": "acc-07-telemetry-key-parity",
+        "mode": "auto",
+        "statement": "埋点单一判读出口键集合全等：telemetry hub 对外键集合 ≡ numeric.telemetry 三列（key/target/sampling）键集合，逐键全等零旁路。"
+      },
+      {
+        "check": "a3 记录卡回收（真人面，机器不代采）",
+        "id": "acc-a3-restart-willingness",
+        "mode": "manual",
+        "statement": "自然重开意愿（好玩判据主条，终裁归主人）：5 名真人 ≥4 人满足正向重开动机且重开理由原话非空（沿 wheat-squad A3 判例口径：防主持人污染+原话留档）；样本不足=未判定·待采，不烧冻结余量。"
+      }
+    ],
+    "assets": [
+      {
+        "expect": "地面底+网格+障碍块平铺图集（48px 基准）；规划落点，审查通过后 tools/gen-assets.mjs 生成",
+        "file": "games/line4-unblock-jam/assets/a01-lot-tiles.png",
+        "id": "a01-lot-tiles",
+        "kind": "image",
+        "source": "generated"
+      },
+      {
+        "expect": "车块 4 色档（红目标车/橙/绿/蓝）1×2 圆角 8px；规划落点",
+        "file": "games/line4-unblock-jam/assets/a02-car-set.png",
+        "id": "a02-car-set",
+        "kind": "sprite",
+        "source": "generated"
+      },
+      {
+        "expect": "出口门高亮条 2 格宽绿/红双态；规划落点",
+        "file": "games/line4-unblock-jam/assets/a03-exit-gate.png",
+        "id": "a03-exit-gate",
+        "kind": "sprite",
+        "source": "generated"
+      },
+      {
+        "expect": "引导手指+滑动箭头（判据 g-01 挂此资产编号）；规划落点",
+        "file": "games/line4-unblock-jam/assets/a04-guide-hand.png",
+        "id": "a04-guide-hand",
+        "kind": "sprite",
+        "source": "generated"
+      },
+      {
+        "expect": "HUD 九宫：步数计/连击弹字底板/重开钮 + dev HUD F1~F4 读数面；规划落点",
+        "file": "games/line4-unblock-jam/assets/a05-ui-hud.png",
+        "id": "a05-ui-hud",
+        "kind": "image",
+        "source": "generated"
+      },
+      {
+        "expect": "音效 3 档（拖动/驶出/通关）规格件；规划落点，tools/gen-audio.mjs 产 wav",
+        "file": "games/line4-unblock-jam/assets/a06-sfx-pack.spec.json",
+        "id": "a06-sfx-pack",
+        "kind": "sfx",
+        "source": "generated"
+      }
+    ],
+    "entities": [
+      {
+        "expect": "mulberry32 seededRng + fixed-step 16ms 累计（三线判例平移）；零 Math.random/Date.now——确定性关卡谱系的根。落点文件：games/line4-unblock-jam/src/kernel/loop.ts（本轮融资已落中性模板，玩法面待审查通过版）",
+        "id": "e-kernel-loop",
+        "kind": "kernel"
+      },
+      {
+        "expect": "单局制会话状态机 ready/running/ended：一局=一关。计数控名人（QA 缺陷核销锚点）：步数计 moveCount 与连击计 comboCount 的唯一所有权落点=本实体落点文件，其余模块只读不改写。落点文件：games/line4-unblock-jam/src/kernel/session.ts",
+        "id": "e-session",
+        "kind": "kernel"
+      },
+      {
+        "expect": "车辆实体：朝向（横/纵二值）+ 占格（1×2 或 1×3）+ 滑动轴（仅沿朝向轴拖动）；目标车固定红色档 #EF4444、普通车橙/绿/蓝三档。落点文件：games/line4-unblock-jam/src/entities/car.ts",
+        "id": "e-car",
+        "kind": "player-side"
+      },
+      {
+        "expect": "场地网格：布局矩阵 + 障碍位 + 出口开口位；布局由谱系导演按 seed 派生，本实体只存不生成。落点文件：games/line4-unblock-jam/src/entities/lot.ts",
+        "id": "e-lot",
+        "kind": "world"
+      },
+      {
+        "expect": "出口门：目标车驶出判定线（车尾越线的事件帧即 car.exit）；触发 vf-car-exit-burst 反馈（首反馈 ≤1 帧渲染成本，见 assets.md §四）。落点文件：games/line4-unblock-jam/src/entities/exit.ts",
+        "id": "e-exit",
+        "kind": "world"
+      },
+      {
+        "expect": "关卡谱系导演：seed→布局参数派生（谱系参数 PEND-待校准）+ 红轮编排（三红轮边界进入/完成/失败的执行者，数值读 numeric 冻结值）。落点文件：games/line4-unblock-jam/src/levels/director.ts",
+        "id": "e-level-director",
+        "kind": "system"
+      },
+      {
+        "expect": "连击判定器：仅 car.exit 事件帧结算时 comboCount+1；pending（拖拽中未到驶出确认）一律不计连击——拖拽中断/回落零计数（QA 缺陷「pending 不计连击」核销锚点，恒等式进 acc-04 前身断言面）。落点文件：games/line4-unblock-jam/src/kernel/combo.ts",
+        "id": "e-combo",
+        "kind": "system"
+      },
+      {
+        "expect": "埋点单一判读出口（唯一 hub，禁止旁路打点）：对外键集合 ≡ numeric.telemetry 三列键集合，严格全等机判（acc-07）。落点文件：games/line4-unblock-jam/src/telemetry/telemetry.ts（本轮融资已落中性实现，键随 v0 numeric 定死）",
+        "id": "e-telemetry-hub",
+        "kind": "system"
+      }
+    ],
+    "levels": [
+      {
+        "elements": [
+          {
+            "expect": "判据编号 g-01（首 60s 引导判据，QA 缺陷①核销锚点）：60s 窗口（numeric.firstGuideWindowSec=60）内依次完成 首次拖动 ≥1 辆（car.drag_end）→ 首次驶出 1 辆（car.exit）→ 通关本关（level.complete）三步；引导视觉=a04-guide-hand（判据编号挂资产编号），判读=dev HUD first60s 读数 + 冒烟自测 N=20 局 bot 面（F3 定死口径）",
+            "id": "level-1/el-g01-guide",
+            "kind": "milestone"
+          },
+          {
+            "expect": "教学密度：堵路车 6 辆（谱系带下限）、目标车距出口 ≤3 滑步；谱系参数 PEND-待校准（结构冻结不编实测数）",
+            "id": "level-1/el-warmup-density",
+            "kind": "wave"
+          }
+        ],
+        "goal": "局始 60 秒内建立「拖动→让路→目标车驶出」完整心智；引导判据 g-01 挂资产编号 a04-guide-hand",
+        "id": "level-1",
+        "name": "首挪（教学关）"
+      },
+      {
+        "elements": [
+          {
+            "expect": "标准密度带：堵路车 10±2（PEND-待校准）；步数预算 par PEND-待校准",
+            "id": "level-2/el-standard-band",
+            "kind": "wave"
+          },
+          {
+            "expect": "三红轮边界·进入边界（数值写死面）：前一关以步数 ≤ par 达成才入红轮，否则续标准轮（par 谱系参数 PEND-待校准，进入谓词结构冻结）",
+            "id": "level-2/el-red-entry",
+            "kind": "red-round"
+          },
+          {
+            "expect": "三红轮边界·完成边界（数值写死面）：红轮步数预算 numeric.redRoundStepBudget=12 内目标车驶出即红轮通关（连击窗口 ×2）",
+            "id": "level-2/el-red-clear",
+            "kind": "red-round"
+          },
+          {
+            "expect": "三红轮边界·失败边界（数值写死面）：红轮步数超预算即 level.fail；红轮连败 numeric.redRoundFailDowngrade=2 次降级回标准轮（防卡死回退值冻结）",
+            "id": "level-2/el-red-fail",
+            "kind": "red-round"
+          }
+        ],
+        "goal": "标准布局完整局 + 红轮（高难轮）三边界首次生效",
+        "id": "level-2",
+        "name": "标准局 + 红轮首现"
+      },
+      {
+        "elements": [
+          {
+            "expect": "日种子 = DEFAULT_SEED ⊕ UTC 日期数（确定性派生，禁 Date.now 进内核——日种子在局始由会话层注入）",
+            "id": "level-proc-gen/el-daily-seed",
+            "kind": "system"
+          },
+          {
+            "expect": "谱系参数（网格 6×6 起步/车长 2-3/密度带/par 带）= PEND-待校准：首批 20 冒烟局回测后走 revision 校准，不编数",
+            "id": "level-proc-gen/el-gen-band",
+            "kind": "system"
+          }
+        ],
+        "goal": "seed 派生每日一局公平谱系：同 UTC 日全玩家同一布局（确定性判例）",
+        "id": "level-proc-gen",
+        "name": "谱系关（level-3+ 程序化）"
+      }
+    ],
+    "meta": {
+      "engine": "ts-canvas（TS + Canvas 2D · 零外部贴图 · 零 npm 依赖构建——wheat-squad/line3/pixel-fives 三线判例平移）",
+      "genre": "超休闲解压·物理小解谜（挪车/挤压类 · IAA 主导 · 关卡谱系）",
+      "lineage": "拍板 B（主人 2026-10-24 点名生效，≡简报 v2 候选②「超休闲解压·物理小解谜（挪车/切开/挤压类）」，映射判定见 decision-record-v1-20261024 §〇）× 品类避让双出处核对通过（PL3 meta.genre 原文=「单场景塔防（炮塔防守 · 波次切面 · IAA 主导 · 微肉鸽）」不撞线）。输入 = .myrd/blackboard/next-line/research-brief-v2-20261023.md（D34-D44）+ selection-memo-v2-20261023.md（拍板三问）。双对标锁定：对标1《上个了车》《看谁先上车》＝简报 v2 §三候选②行 · 出处 D35（挪车关卡节奏+失败反馈）；对标2《挪了下车》＝简报 v2 §三候选②行 · 出处 D40（跨平台人气互证）。品类与 PL1 足球/PL2 消除/PL3 塔防零机制复用。好玩终裁与 approve 归主人（spec approve ≠ 好玩判定）。",
+      "oneLiner": "拖动堵路车辆、给红色目标车让出出口的挪车小解谜：同 seed 关卡谱系逐字节可复现做每日一局公平竞技，红轮高难三边界数值写死。",
+      "platform": {
+        "note": "v0 骨架只定义契约面；web 可玩面待审查通过后建工程轮，wx/dy 沿三线判例顺延",
+        "target": [
+          "web",
+          "wx",
+          "dy"
+        ]
+      },
+      "revision_note": [
+        "v0.1（T+0 骨架版 2026-10-24）：版本链起点。QA 七条缺陷逐条核销（F1 核心动作/正反馈事件名+首 60s 引导判据挂资产编号 · F3 判读证据定死 dev HUD+冒烟 N=20 局 · F4 测量口径定死 时钟源 performance.now()/设备档中端 60fps/采样 20 局全量帧 · 三红轮边界数值写死 · 计数控名人写死 src/kernel/session.ts+pending 不计连击 · 黑板登记块名写死 .myrd/blackboard/line4-unblock-jam/ · entities/levels 落点文件路径写死 · 双对标引简报条目号 D35/D40 写死——核销表 .myrd/blackboard/line4-unblock-jam/qa-seven-defects-clearance-20261024.md）。数值面=判读判据全冻结 + 谱系布局参数显式 PEND-待校准（不编数）；check 薄壳路径=规划落点，审查通过版落地后转真才生效（line3 v0.1 判例）。",
+        "v0.2（P3 勘误修订 2026-10-24，主人驳回反馈②）：g-01 statement 二义消解——『20 局全部完成』与『≥0.90』同句二义，定死为达成率口径 ≥0.90（≥18/20），冻结 target 不动（驳回二选一之 Option A）；acc-02 指代勘误「五要素规格」→「三通道规格」（assets.md §四 实为通道/预算/硬顶，L4-4/F-01 同批核销）。纯文字面消歧：entities/levels/numeric/assets/world 逐字节不动，零数值零结构变更。"
+      ],
+      "slug": "line4-unblock-jam",
+      "title": "挪出一条路（线 4 · 工作名待主人定）",
+      "version": "0.2"
+    },
+    "numeric": {
+      "DEFAULT_SEED": 20261024,
+      "FIXED_STEP_MS": 16,
+      "firstGuideWindowSec": 60,
+      "levelGen": {
+        "baseGrid": "6x6",
+        "carLenOptions": [
+          2,
+          3
+        ],
+        "parBand": "PEND-待校准",
+        "trafficDensityBand": "PEND-待校准"
+      },
+      "measurement": {
+        "clockSource": "表现层 performance.now()；内核零 Date.now（fixed-step 16ms 累计）——F4 时钟源定死",
+        "sampling": "冒烟自测 N=20 局（seeds 42..61）全量帧采样 + a3 真人 5 名（好玩终裁另列）——F4/F3 采样量定死",
+        "smokeN": 20
+      },
+      "palette": {
+        "colors": [
+          "#F2EFE6",
+          "#D9D2C5",
+          "#2B2D42",
+          "#111111",
+          "#EF4444",
+          "#F59E0B",
+          "#10B981",
+          "#3B82F6"
+        ],
+        "status": "FROZEN-v1（风格卡 v1 冻结 2026-10-24，单源=.myrd/blackboard/line4-unblock-jam/assets.md §一；色值改动必须走 revision）"
+      },
+      "perf": {
+        "deviceTier": "中端 60fps 基准（stepBudgetMs=16 · 首交互 ≤3000ms）——承 wheat-squad perf-1/line3 判例口径（F4 设备档位定死）",
+        "entityCap": 60,
+        "stepBudgetMs": 16
+      },
+      "redRoundFailDowngrade": 2,
+      "redRoundStepBudget": 12,
+      "telemetry": [
+        {
+          "key": "first60s_guide_done_rate",
+          "sampling": "F3 判读证据定死：dev HUD first60s 读数 + 冒烟自测 N=20 局（seeds 42..61，N 定死）",
+          "target": "≥0.90（bot 面 20 局）"
+        },
+        {
+          "key": "car_exit_latency_ms_p95",
+          "sampling": "驶出判定→vf-car-exit-burst 事件帧同帧计；冒烟 20 局全量帧 performance.now() 差分",
+          "target": "≤100ms"
+        },
+        {
+          "key": "combo_pending_violations",
+          "sampling": "冒烟 20 局事件流逐帧审计",
+          "target": "=0（恒等式：comboCount 增量必伴随 car.exit 事件帧，pending 不计连击）"
+        },
+        {
+          "key": "frame_time_p95_ms",
+          "sampling": "冒烟 20 局全量帧 performance.now() 差分",
+          "target": "≤16"
+        },
+        {
+          "key": "fps_min",
+          "sampling": "冒烟 20 局全量帧",
+          "target": "≥55（中端档）"
+        },
+        {
+          "key": "session_complete_rate_bot",
+          "sampling": "冒烟 20 局 seed 谱系终局计数",
+          "target": "≥0.85（谱系可用性下限）"
+        }
+      ]
+    },
+    "world": {
+      "sceneSpec": "单场景俯视网格停车场：6×6 基准网格（谱系可扩）+ 出口门 1 处（2 格宽开口）+ 红色目标车 1 辆（1×2）+ 堵路车 N 辆（1×2/1×3，横纵两向）；单局制：一局=一关，从局始到目标车驶出（level.complete）或步数预算耗尽（level.fail）；无大地图关卡树，关间由谱系导演派生",
+      "styleDerivation": "world 主题词（极简/高对比/轻俯视）→ 风格卡四要素 → src/platform/theme.ts token 单源 → 渲染层只读 token；色值改动必须走 spec revision（palette 块），禁止两头各改各的（三线判例）",
+      "styleRef": ".myrd/blackboard/line4-unblock-jam/assets.md §一（风格卡 v1 冻结：调色板/光照/线条/比例四要素取值）+ §三（对标品四要素对照表：《上个了车》D35 ·《挪了下车》D40）",
+      "theme": "极简色块俯视停车场（车=圆角色块、拥挤感靠密度不靠描边、零光照零渐变）——风格卡 v1 冻结（8 色色值写死：#F2EFE6/#D9D2C5/#2B2D42/#111111/#EF4444/#F59E0B/#10B981/#3B82F6）"
+    }
+  },
+  "status": "approved",
+  "title": "游戏策划案",
+  "updatedAt": "2026-10-24T08:43:25.904Z",
+  "version": 2,
+  "_platform": {
+    "id": "cmvlrc0ma001tm94ialxeykjn",
+    "version": 2,
+    "status": "approved",
+    "parentSpecId": "cmvlpx0uf0019m94iyuroz578",
+    "projectId": "cmto0g28j0002m9sqnvjdy8o7",
+    "title": "游戏策划案",
+    "createdAt": "2026-10-24T02:06:02.530Z",
+    "updatedAt": "2026-10-24T08:43:25.904Z"
+  }
+}

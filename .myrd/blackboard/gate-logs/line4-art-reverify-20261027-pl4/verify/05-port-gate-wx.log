@@ -1,0 +1,11 @@
+== 命令原文：node games/line4-unblock-jam/tools/port-gate-checklist.mjs --target wx
+== 时刻：2026-10-27 10:05:04
+== 输出：
+[port-gate] P-01 契约件在位 ✓ /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvpzpt1800ium91kbspfqxt1/.myrd/spec/line4-unblock-jam/design-spec.json
+[port-gate] P-02 契约链 approved 资质 ✓ 链上状态=approved（draft=契约面未生效，移植轮止步预检）
+[port-gate] P-03 内核纯度（零 Math.random/Date.now/零平台 import） ✓ 3 文件全净
+[port-gate] P-04 零外部贴图（源码零位图构造） ✓ 
+[port-gate] P-05 telemetry 键集合 ≡ spec numeric.telemetry ✓ 6 键全等
+[port-gate] P-06-wx 宿主实现面 host-wx/（移植轮落地件） ✗ 缺=预检提示，不阻塞本轮中性面
+PORT-GATE(wx): PASS（硬检 4 项中 FAIL=0）
+== exit=0 ==

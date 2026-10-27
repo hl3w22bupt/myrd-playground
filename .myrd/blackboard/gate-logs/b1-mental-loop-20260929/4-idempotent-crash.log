@@ -1,0 +1,7 @@
+# 4 · 幂等中断测试（2026-09-29）
+$ node tests/contract/b1-acc-b7-idempotent-claim.spec.mjs
+[contract] acc-b7 · lvl-01-stack-tower/e-meta-claim
+  ok    幂等：同日重复领取只发一次（granted=true → false）
+  ok    崩溃注入：persist 抛错 → 内存回滚 → 重启后可重领且仅一次
+  ok    跨日隔离：昨日 claimed 不影响今日首次领取
+RESULT: PASS (3/3)

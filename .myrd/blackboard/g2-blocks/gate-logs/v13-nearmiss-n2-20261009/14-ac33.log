@@ -1,0 +1,12 @@
+== cmd: G2_SPEC_PATH=<v8> node scripts/contract-check.mjs --only ac-33-submission-bundle-zero-diff ==
+# g2-blocks contract-check · spec v8 (draft) anchor=…
+RED  ac-33-submission-bundle-zero-diff :: 执行异常 内测工具字面量泄漏进 build/: build/main.mjs
+—— 合计 0 PASS / 1 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: RED 契约未全绿，禁止提交
+EXIT=1
+== cmd: G2_SPEC_PATH=<v8> node scripts/contract-check.mjs --only ac-33-submission-bundle-zero-diff ==
+# g2-blocks contract-check · spec v8 (draft) anchor=…
+PASS  ac-33-submission-bundle-zero-diff :: 提审包零 diff：diff 17 路径全白名单 · 提审源面零命中 · build 30 文件零内测泄漏 · internal tag 缺省关闭
+—— 合计 1 PASS / 0 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: PASS 契约全绿（实现与 spec v8 draft 一致 · 本轮仅承诺与装载件一致，approved 资质以平台链为准）
+EXIT=0

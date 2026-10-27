@@ -1,0 +1,10 @@
+# 文件: 06-chain-v9-post.log（r2 · 对账模式重跑） · 日期: 2026-10-10T01:42:35Z · 命令: G2_REPO_ONE_ROOT=<一号仓> node tools/post-spec-v13-dod-rerun.mjs · 执行目录: g2-blocks-main @ HEAD e4c65f95ab0d1cb6c8546ec6514fef08ccf3e958
+# r1 说明：POST 已成功入链（id cmv1q9k690045m94obp29ysre），唯回读段因响应形状解析崩（未影响链面）；r2 走幂等对账模式补齐回读断言+导出件，零重复建版
+GUARDS 4/4 PASS · numericAnchor=6719edd27d7e121a…（不变）
+ALREADY-ON-CHAIN 链上已有 v9（draft · cmv1q9k690045m94obp29ysre）→ 对账模式，拒绝重复建版
+READBACK EQUAL
+ANCHOR-STABLE YES（numeric 零漂移）
+V8-INTACT YES（v8 superseded 属平台版本链语义，内容零覆盖）
+EXPORT → /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmv1pdxwj003jm94oqbnhim2z/.myrd/spec/g2-blocks/design-spec-v13-dod-rerun-draft.json
+SPEC-V13-DOD-RERUN: PASS（对账模式）链 v9 在链且全等 · 数值零漂移 · v1..v8 零覆盖
+--- EXIT=0 ---

@@ -1,0 +1,5 @@
+/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvpzpt1800ium91kbspfqxt1/games/line4-unblock-jam/assets/a01-lot-tiles.png   pixelWidth: 144   pixelHeight: 48 
+/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvpzpt1800ium91kbspfqxt1/games/line4-unblock-jam/assets/a02-car-set.png   pixelWidth: 384   pixelHeight: 48 
+/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvpzpt1800ium91kbspfqxt1/games/line4-unblock-jam/assets/a03-exit-gate.png   pixelWidth: 192   pixelHeight: 48 
+/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvpzpt1800ium91kbspfqxt1/games/line4-unblock-jam/assets/a04-guide-hand.png   pixelWidth: 96   pixelHeight: 96 
+/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/run-cmvpzpt1800ium91kbspfqxt1/games/line4-unblock-jam/assets/a05-ui-hud.png   pixelWidth: 48   pixelHeight: 48 

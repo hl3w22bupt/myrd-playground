@@ -1,0 +1,27 @@
+{
+  "gitSha": "1b101a45e49c02d60d67e4be11c693a0dc37ae12",
+  "specAnchor": "cmvlrc0ma001tm94ialxeykjn@v2:approved",
+  "files": [
+    "index.html",
+    "landing.html",
+    "spec.json",
+    "src/dev/hud.mjs",
+    "src/entities/car.mjs",
+    "src/entities/exit.mjs",
+    "src/entities/lot.mjs",
+    "src/generated/build-info.mjs",
+    "src/generated/spec-data.mjs",
+    "src/kernel/combo.mjs",
+    "src/kernel/loop.mjs",
+    "src/kernel/session.mjs",
+    "src/levels/director.mjs",
+    "src/main.mjs",
+    "src/platform/index.mjs",
+    "src/platform/theme.mjs",
+    "src/telemetry/telemetry.mjs",
+    "src/web/game.mjs",
+    "src/web/input.mjs",
+    "src/web/render.mjs",
+    "src/web/sfx.mjs"
+  ]
+}

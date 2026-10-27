@@ -1,0 +1,12 @@
+  ok    blockBase → assets/sprites/e01-spawn-first-block.png (200)
+  ok    blockMove → assets/sprites/e02-swing-motion.png (200)
+  ok    guide → assets/sprites/e03-drop-input.png (200)
+  ok    debris → assets/sprites/e04-overlap-cut.png (200)
+  ok    perfectPulse → assets/sprites/e05-perfect-window.png (200)
+  ok    rippleRing → assets/sprites/e06-tower-ripple.png (200)
+  ok    hudScrim → assets/ui/e07-score-hud.png (200)
+  ok    restartButton → assets/ui/e08-fail-recover.png (200)
+  ok    blockTileset → assets/tileset/blocks-tower.png (200)
+  ok    运行时：9 项资产请求全 200，[assets] 贴图就绪 9/9，零页面错误
+  ok    fallback：资产全 404 下核心循环可玩（HUD "分数 45"），零代码错误
+RESULT: PASS (browser)

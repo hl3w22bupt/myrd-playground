@@ -1,0 +1,6 @@
+# line3-tower-defense（单场景塔防 · 线3）专属部署清单 —— N5 部署面
+# 共享仓库根壳 server/；manifestPath=games/line3-tower-defense/apphost.toml；勿改仓库根 apphost.toml。
+name = "line3-tower-defense（敌潮将至 · 工作名待主人定 W-L3-1）"
+runtime = "node20"
+health = "/health"
+assets_dir = "games/line3-tower-defense/build"

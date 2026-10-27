@@ -1,0 +1,16 @@
+== 命令：sed -n 2p games/line4-unblock-jam/export/web/manifest.json
+== 时刻：2026-10-26 10:48:27
+  "gitSha": "bc3cd5669e31613adf266f72303461def02212ad",
+== 命令：head -1 games/line4-unblock-jam/export/web/src/main.mjs
+const __L4_BUILD__ = { gitSha: "bc3cd5669e31613adf266f72303461def02212ad", specAnchor: "cmvlrc0ma001tm94ialxeykjn@v2:approved" };
+== 命令：head -4 .myrd/blackboard/gate-logs/line4-recheck-20261026-continuation/verify/07-build.log
+== 命令原文：node games/line4-unblock-jam/tools/build.mjs
+== 时刻：2026-10-26 10:05:36
+== 输出：
+build: 21 文件 → export/web/ · gitSha=0d40be68 · specAnchor=cmvlrc0ma001tm94ialxeykjn@v2:approved
+== 命令：git diff --stat 4f8ad155..0d40be6 -- games/line4-unblock-jam/src games/line4-unblock-jam/export
+DIFF_EXIT=0（空输出+EXIT 0=零触达）
+== 线上锚探针（我方沙箱）==
+http://localhost:3111/apps/line4-unblock-jam/api/public/assets/index.html -> 404
+http://localhost:3111/api/public/assets/line4-unblock-jam/src/main.mjs -> 404
+https://leomac-studio.tail49399e.ts.net/apps/line4-unblock-jam/ -> 000

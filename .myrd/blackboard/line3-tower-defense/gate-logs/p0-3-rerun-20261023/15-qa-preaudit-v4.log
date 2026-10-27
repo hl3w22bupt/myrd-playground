@@ -1,0 +1,8 @@
+numeric DEEP-EQUAL ✓
+world DEEP-EQUAL ✓
+entities DEEP-EQUAL ✓
+levels DEEP-EQUAL ✓
+acceptance v3≡v4: ✓
+meta changed keys: ["revision_note","version"]
+meta.version: 1.0 -> 1.1
+QA-PREAUDIT-V4: PASS（唯一差异=meta.version 1.0→1.1 + revision_note 追加）

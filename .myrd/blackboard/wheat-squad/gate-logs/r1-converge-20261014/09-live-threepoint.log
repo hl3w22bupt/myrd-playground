@@ -1,0 +1,8 @@
+== 线上三点复测 @ v14 (commit b33bea2f) · 2026-10-14T02:35:18Z ==
+--- ① 页面路 title ---
+<title>麦浪小队</title>
+--- ② 资产路 main.mjs md5 三方（live vs 提交 build vs 本地 build） ---
+live HTTP 200 size=20654
+live: bcde4bea67cfc6a1af57ce7ae4297e2d
+commit 76954ca-era(旧): 1711423891dfde8ea59eb9cd3829803d
+HEAD b33bea2f build: bcde4bea67cfc6a1af57ce7ae4297e2d

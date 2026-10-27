@@ -1,0 +1,14 @@
+PASS 守卫① 基线：v1.1 approved 导出件 + 锚全等（302e6336…）
+PASS 守卫② numeric 漂移面 = 白名单两组（feel 新 / daily 新），v1.1 既有 12 组逐字节零 diff
+PASS 守卫③ 非 numeric 段：world/entities/levels/meta 零 diff；assets 恰新增 4 条（a04..a07）；content 恰新增 1 键
+PASS 守卫④ acceptance：既有 18 条逐字节不动 + 恰新增 7 条 + check 形态统一 + id 全局唯一不撞 v3
+PASS 守卫⑤ 新增 acceptance 文本零冻结数值/枚举字面量（数值与取值只在 numeric 段 = 单源；键名/指针允许）
+PASS 守卫⑥ feel 数值类型/值域 + 派生恒等式（logicFps ≡ 1000/FIXED_STEP_MS；frames ≡ 向上取整换算）
+PASS 守卫⑦ 三档边界自洽：sfx/combo 同边界、无缝覆盖 chain≥1、升序、末档开放
+PASS 守卫⑧ 顺延零渗漏：v3 提案键在本版零实体零验收
+PASS 守卫⑨ daily 组合法性：storageKey 不撞 v1 键级、口径枚举合法、streak 正整数
+# 锚：v1.1=302e63367f3dea63… → 链 v4=1720df8ec6ac0d00…（新锚）
+# numeric 漂移键：feel(新) + daily(新)；既有 12 组零 diff
+# assets 漂移：+a04..a07（spec 先行声明，N3 产出）；content 漂移：+dailyChallenge
+# acceptance：18 既有（逐字节不动）+ 7 新增（ac-22..28）
+SPEC-V13-BUILD: PASS 九道守卫全绿 · payload → docs/spec/spec-v13-feel-payload.json

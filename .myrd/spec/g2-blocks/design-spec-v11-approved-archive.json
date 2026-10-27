@@ -1,0 +1,445 @@
+{
+  "schemaVersion": "v0",
+  "spec": {
+    "acceptance": [
+      {
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-01-board-init-seeded",
+        "id": "ac-01-board-init-seeded",
+        "scope": "playable",
+        "statement": "seed=DEFAULT_SEED(20261001) 启动后炉板 64 格满员、7 类型合法；同 seed 跑两局，棋盘初始化序列逐字节一致。"
+      },
+      {
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-02-spawn-uniform-random",
+        "id": "ac-02-spawn-uniform-random",
+        "scope": "playable",
+        "statement": "spawn.orientation: \"uniform_random\"：每次补手从 7 类型等概率取一；seeded RNG 测试钩子（seededRng）可注入固定 seed 复现任意局面；内核零 Math.random/Date.now。"
+      },
+      {
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-03-swap-adjacency-only",
+        "id": "ac-03-swap-adjacency-only",
+        "scope": "playable",
+        "statement": "仅相邻（上下左右 ≤4 向）交换合法；非相邻交换无效、不消耗手数、不触发结算。"
+      },
+      {
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-04-match-3plus",
+        "id": "ac-04-match-3plus",
+        "scope": "playable",
+        "statement": "三连及以上即消除，含 L/T 形交点（交点块只计一次）。"
+      },
+      {
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-05-gravity-refill-cascade",
+        "id": "ac-05-gravity-refill-cascade",
+        "scope": "playable",
+        "statement": "消除后重力下落、顶部补手补满，连锁自动结算直至无新消除。"
+      },
+      {
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-06-combo-four-move-vector",
+        "id": "ac-06-combo-four-move-vector",
+        "scope": "playable",
+        "statement": "连击加成四手向量逐字裁决：消/消/不消/消 → +0/+50/归0/+0（第 1 手消除不加成 +0；连续第 2 手消除 +chainBonus=+50；中间插入非消除手 → 连击归 0；归零后再消除 +0 重新起算）。"
+      },
+      {
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-07-deadlock-cool",
+        "id": "ac-07-deadlock-cool",
+        "scope": "playable",
+        "statement": "炉冷判定：落定结算后+补手后各判一次，任一为真即炉冷；判定算法 = 64格×7块×≤4向全穷举（对 64 格逐格取 7 类型中在盘类型、对每格 ≤4 个相邻方向做 swap-probe，任一可成三消即存在手，全部不可成才判炉冷）。"
+      },
+      {
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-08-settlement-order",
+        "id": "ac-08-settlement-order",
+        "scope": "playable",
+        "statement": "单手结算顺序唯一：交换 → 消除判定 → 计分（含连击加成）→ 重力 → 补手 → 炉冷判定；实现不得自创顺序或漏判步骤。"
+      },
+      {
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-09-restart-full-reset",
+        "id": "ac-09-restart-full-reset",
+        "scope": "playable",
+        "statement": "重开全复位：分数、连击、棋盘、手数、炉冷态全部回到初始；重开后的 seed 链重新起算且确定性保持。"
+      },
+      {
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-10-perf-j1",
+        "id": "ac-10-perf-j1",
+        "scope": "playable",
+        "scopeNote": "PWA 范围标注：本轮生效面 = Web PWA 端（含 manifest / service-worker 打包）；移植端（wx/dy/Steam/Roblox）deferred 顺延下轮（任务书「明确不做」）。J1 预算与口径逐字引用 numeric.perf.j1 冻结块，零新增数值；双端标记名契约在移植端开工前仅对 Web 端生效。",
+        "statement": "J1 定义（逐字）：J1 = 一次消除从落定结算开始到该次反馈完成的墙钟时长，双端 perf 标记名逐字为 j1_settle_start / j1_feedback_done；预算 numeric.perf.j1.budgetMs=400 @ 4x CPU throttle + 390x844（基准口径见 numeric.perf.j1.device）；超预算即红，双端任一端缺标记名即红。"
+      },
+      {
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-11-theme-single-source",
+        "id": "ac-11-theme-single-source",
+        "scope": "playable",
+        "scopeNote": "PWA 范围标注：本轮生效。执行面单源件 = src/render/theme.ts（与 assets.a01、entities.e-renderer.script、tests/contract 断言四方一致）；statement 内「theme.js」为 N1 轮呈批件已披露的措辞二义，随本版 approve 一并裁定，实现不按其行事。",
+        "statement": "theme.js（运行时单源）的 7 个色值键名与值必须逐字等于 spec numeric.palette 冻结块；键缺失、值漂移、多源定义任一即红。"
+      },
+      {
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-12-palette-double-gate",
+        "id": "ac-12-palette-double-gate",
+        "scope": "playable",
+        "scopeNote": "PWA 范围标注：本轮生效。统一入口经 scripts/contract-check.mjs 内部调用美术门禁工具，判据与阈值逐字沿用 numeric.palette 冻结块（thresholdDeltaE 等），零新增数值。",
+        "statement": "色板 7 色 21 对双门禁（HSL 三选二 + ΔE(CIEDE2000)≥numeric.palette.thresholdDeltaE）全绿；红对即红。"
+      },
+      {
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-13-no-external-texture",
+        "id": "ac-13-no-external-texture",
+        "scope": "playable",
+        "scopeNote": "PWA 范围标注：本轮生效。三批资产（块 tile → UI/HUD → 背景/表现件）以定稿色板 token + 几何规格交付，尺寸复用黑板 assets.md 风格卡定稿口径，零新增数值、零贴图文件。",
+        "statement": "极简几何色块渲染，零外部贴图依赖（无 image/贴图文件加载）；风格漂移按缺陷打回。"
+      },
+      {
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-14-deterministic-kernel",
+        "id": "ac-14-deterministic-kernel",
+        "scope": "playable",
+        "statement": "内核与 seed 链路零 Math.random / Date.now（RNG 唯一来源 = e-rng mulberry32 + seededRng 测试钩子）。"
+      },
+      {
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-15-audio-feedback",
+        "id": "ac-15-audio-feedback",
+        "scope": "playable",
+        "statement": "消除命中 → 音效调用与反馈完成同帧发起（可 spy 可测）；音频缺失不阻塞玩法。"
+      },
+      {
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-16-persistence-minimal",
+        "id": "ac-16-persistence-minimal",
+        "scope": "playable",
+        "scopeNote": "PWA 范围标注：本轮生效面 = Web PWA 本地最小存档集；范围外（上报/云同步）spec 未声明，本轮不新增，deferred 以未来版本显式声明为准。",
+        "statement": "存档仅 muted + anonId 两键级最小集，零 PII 上报；无网络调用。"
+      },
+      {
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-17-repo-one-zero-touch",
+        "id": "ac-17-repo-one-zero-touch",
+        "scope": "playable",
+        "scopeNote": "PWA 范围标注：本轮生效。PWA 构建产物（manifest / service-worker / build 导出）一并纳入一号零接触守卫扫描范围。",
+        "statement": "一号仓库（stack-tower 线）全程零接触：本轮全部产物不修改一号仓库任何 tracked 文件、不触碰其 spec/导出包；以 git diff 留证。"
+      },
+      {
+        "check": "g2-blocks/scripts/contract-check.mjs --only ac-18-ci-guard-repo-scope",
+        "id": "ac-18-ci-guard-repo-scope",
+        "scope": "playable",
+        "scopeNote": "PWA 范围标注：本轮生效。CI 守卫对 PWA 构建面同规则生效，越界即红。",
+        "statement": "仓库范围守卫：g2-blocks 仓库内任何提交不得引用/修改一号仓库路径（games/stack-tower、export/wx、export/tt、.myrd/spec/stack-tower-*）；CI job 每次跑守卫，越界即红。"
+      }
+    ],
+    "assets": [
+      {
+        "file": "g2-blocks/src/render/theme.ts",
+        "generator": "generated:constant-table",
+        "id": "a01-block-palette",
+        "kind": "palette",
+        "license": "仓库内自产，无第三方素材",
+        "note": "运行时单源；唯一真源 = spec numeric.palette 冻结块",
+        "source": "generated"
+      },
+      {
+        "file": "g2-blocks/assets/palette/palette-n1-final.json",
+        "generator": "g2-blocks/tools/palette-design.mjs",
+        "id": "a02-palette-artifact",
+        "kind": "palette-json",
+        "license": "仓库内自产",
+        "note": "美术交付件，sha256 7bc2ca03…（见 numeric.palette.sourceSha256）",
+        "source": "generated"
+      },
+      {
+        "file": "g2-blocks/assets/audio/",
+        "generator": "procedural",
+        "id": "a03-sfx-pack",
+        "kind": "audio",
+        "license": "仓库内自产",
+        "note": "消除/连击/炉冷/重开四类，approve 后由实现产出",
+        "source": "generated"
+      }
+    ],
+    "content": {
+      "levelCount": 2,
+      "note": "missions 不激活（任务书红线）；scope_gate 挂起，留存评估顺延至 ≥7 天真实样本，由主策划发起。",
+      "replayHooks": [
+        "combo（连击上限追逐）",
+        "daily_seed（炉板每日种子）",
+        "one_more_run（炉冷即重开）"
+      ],
+      "sessionSeconds": 180,
+      "unlocks": []
+    },
+    "entities": [
+      {
+        "id": "e-kernel-sim",
+        "name": "确定性仿真内核",
+        "role": "fixed 16ms 步长累加器 + MAX_DT 钳制；fastForward(tick) 供无头契约测试；状态={board[64], score, combo, movesLeft, cool, status}",
+        "script": "g2-blocks/src/kernel/sim.ts"
+      },
+      {
+        "id": "e-board",
+        "name": "炉板（8×8）",
+        "role": "64 格棋盘，7 种方块类型；交换只允许相邻（≤4 向）",
+        "script": "g2-blocks/src/kernel/board.ts"
+      },
+      {
+        "id": "e-rng",
+        "name": "seeded RNG（mulberry32）",
+        "role": "唯一随机源；seeded RNG 测试钩子允许测试注入固定 seed；内核禁 Math.random / Date.now",
+        "script": "g2-blocks/src/kernel/rng.ts"
+      },
+      {
+        "id": "e-combo",
+        "name": "连击计数器",
+        "role": "连续消除手数计数；非消除手归零；第 2 手起每手 +chainBonus",
+        "script": "g2-blocks/src/kernel/combo.ts"
+      },
+      {
+        "id": "e-deadlock",
+        "name": "炉冷判定器",
+        "role": "落定结算后 + 补手后各判一次（任一为真即炉冷）；64格×7块×≤4向全穷举 swap-probe",
+        "script": "g2-blocks/src/kernel/deadlock.ts"
+      },
+      {
+        "id": "e-renderer",
+        "name": "表现层渲染器",
+        "role": "极简几何色块绘制；色值唯一来源 = spec numeric.palette 冻结块（theme.js 运行时单源）",
+        "script": "g2-blocks/src/render/theme.ts"
+      },
+      {
+        "id": "e-telemetry",
+        "name": "perf 埋点",
+        "role": "双端统一标记名 j1_settle_start / j1_feedback_done；performance.mark + measure",
+        "script": "g2-blocks/src/telemetry/perf.ts"
+      }
+    ],
+    "levels": [
+      {
+        "elements": [
+          {
+            "expect": "8×8=64 格棋盘按 DEFAULT_SEED 初始化，两局逐字节一致",
+            "id": "level-1/el-board",
+            "kind": "board"
+          },
+          {
+            "expect": "spawn.orientation: \"uniform_random\"，7 类型等概率；seeded RNG 测试钩子可注入固定 seed",
+            "id": "level-1/el-spawn",
+            "kind": "spawn"
+          },
+          {
+            "expect": "首局教学提示条：开局后高亮一对可成三消的相邻交换，玩家完成首次三消或 3 手后不再出现",
+            "id": "level-1/el-hint",
+            "kind": "hint",
+            "reason": "level-1 是教学局：在无外部文案、零贴图的极简几何前提下，必须有一个 UI 元素承担「怎么走」的教学职责，否则首局目标（3 步内首次三消）无引导路径，首局流失风险不可控；该元素只在 level-1 出现，level-2+ 不出现（难度曲线不因教学元素失真）。"
+          },
+          {
+            "expect": "落定结算后+补手后各判一次，任一为真即炉冷",
+            "id": "level-1/el-deadlock",
+            "kind": "deadlock"
+          }
+        ],
+        "goal": "3 步内完成首次三消；理解连击与炉冷两个概念",
+        "id": "level-1",
+        "name": "首炉（教学局）"
+      },
+      {
+        "elements": [
+          {
+            "expect": "同 level-1 棋盘规则；无教学提示（el-hint 仅 level-1）",
+            "id": "level-2/el-board",
+            "kind": "board"
+          },
+          {
+            "expect": "四手向量 消/消/不消/消 → +0/+50/归0/+0 机械可判",
+            "id": "level-2/el-combo",
+            "kind": "combo"
+          },
+          {
+            "expect": "64格×7块×≤4向全穷举",
+            "id": "level-2/el-deadlock",
+            "kind": "deadlock"
+          }
+        ],
+        "goal": "在 20 手内打出 ≥3 连击并存活到炉冷",
+        "id": "level-2",
+        "name": "升温局"
+      }
+    ],
+    "meta": {
+      "engine": "TypeScript 5.x + Canvas 2D + vanilla（零框架、零外部运行时依赖、零外部贴图）",
+      "genre": "休闲消除（8×8 交换三消 + 连击 + 炉冷终局）",
+      "lineage": "g2-blocks N1 修复轮：主策划已拍板的 5+1 项修法一次折入并以 version 1 一次入链（杜绝 v1→v2 空转）；色板自美术交付件 palette-n1-final.json 并入。",
+      "oneLiner": "在 8×8 的熔炉板上交换相邻方块凑成三连：连击不断火就越旺，加成一路往上叠；一旦无路可走，炉子就冷——趁热把连击打满。",
+      "platform": "Web 单页（Canvas2D，免安装即开即玩；后续平台移植面单列）",
+      "revision_note": "v1（首版入链）：① 冻结段新增 spawn.orientation=\"uniform_random\" + seeded RNG 测试钩子；② AC-06 补四手 combo 向量（消/消/不消/消 → +0/+50/归0/+0）；③ AC-07 定炉冷双判（落定结算后+补手后各判一次，任一为真即炉冷）+ 64格×7块×≤4向全穷举；④ level-1 新增 el-hint 并注明理由；⑤ AC-10 J1 定义逐字入 acceptance + 双端 perf 标记名 j1_settle_start / j1_feedback_done 写死契约；⑥(+1) 美术线色板定稿并入（余烬金弃 #FFC94A 终值 #C89C19 + 暖区第 6/7 色），21 对双门禁全绿，阈值 25 由冻结 4 色校准。",
+      "title": "g2-blocks（熔炉方块）",
+      "version": "1"
+    },
+    "numeric": {
+      "DEFAULT_SEED": 20261001,
+      "FIXED_STEP_MS": 16,
+      "MAX_DT_MS": 250,
+      "blockTypes": 7,
+      "combo": {
+        "appliesFromChain": 2,
+        "chainBonus": 50,
+        "fourMoveVector": "消/消/不消/消 → +0/+50/归0/+0",
+        "resetOnNonClear": true
+      },
+      "deadlock": {
+        "algorithm": "exhaustive_swap_probe",
+        "anyTrueMeansCool": true,
+        "checkAfterRefill": true,
+        "checkAfterSettle": true,
+        "directionsMax": 4,
+        "statement": "落定结算后+补手后各判一次，任一为真即炉冷；64格×7块×≤4向全穷举"
+      },
+      "grid": {
+        "cells": 64,
+        "cols": 8,
+        "rows": 8
+      },
+      "palette": {
+        "calibration": {
+          "from": "block-01/03/04/05 六对（已冻结集）",
+          "rule": "floor(minΔE/5)*5"
+        },
+        "colors": [
+          {
+            "frozen": true,
+            "hex": "#21458C",
+            "hsl": [
+              220,
+              0.62,
+              0.34
+            ],
+            "id": "block-01",
+            "name": "深海蓝"
+          },
+          {
+            "frozen": true,
+            "hex": "#38B279",
+            "hsl": [
+              152,
+              0.52,
+              0.46
+            ],
+            "id": "block-03",
+            "name": "翡翠绿"
+          },
+          {
+            "frozen": true,
+            "hex": "#DB6B43",
+            "hsl": [
+              16,
+              0.68,
+              0.56
+            ],
+            "id": "block-04",
+            "name": "赤陶红"
+          },
+          {
+            "frozen": true,
+            "hex": "#A472CA",
+            "hsl": [
+              274,
+              0.45,
+              0.62
+            ],
+            "id": "block-05",
+            "name": "紫水晶"
+          },
+          {
+            "frozen": true,
+            "hex": "#C89C19",
+            "hsl": [
+              45,
+              0.78,
+              0.44
+            ],
+            "id": "block-02",
+            "name": "余烬金"
+          },
+          {
+            "frozen": false,
+            "hex": "#4B2B25",
+            "hsl": [
+              10,
+              0.34,
+              0.22
+            ],
+            "id": "block-06",
+            "name": "深余烬褐"
+          },
+          {
+            "frozen": false,
+            "hex": "#E3B5BF",
+            "hsl": [
+              346,
+              0.46,
+              0.8
+            ],
+            "id": "block-07",
+            "name": "绯玫瑰"
+          }
+        ],
+        "gate": {
+          "hueDeg": 25,
+          "lightness": 0.1,
+          "minPassed": 2,
+          "saturation": 0.08
+        },
+        "rejectedHex": "#FFC94A",
+        "sourceArtifact": "g2-blocks/assets/palette/palette-n1-final.json",
+        "sourceSha256": "7bc2ca033ee8d7f7a20e63810b174e8cbdabcb92560a0db8dc72a10d553cd2ff",
+        "thresholdDeltaE": 25
+      },
+      "perf": {
+        "j1": {
+          "budgetMs": 400,
+          "device": {
+            "browser": "playwright chromium",
+            "cpuThrottleX": 4,
+            "viewportPx": "390x844"
+          },
+          "doneMark": "j1_feedback_done",
+          "startMark": "j1_settle_start",
+          "statement": "J1 = 一次消除从落定结算开始（j1_settle_start）到该次反馈完成（j1_feedback_done）的墙钟时长；双端（Web 端与后续移植端）perf 标记名逐字统一为 j1_settle_start / j1_feedback_done，预算 400ms @ 4x CPU throttle + 390x844"
+        }
+      },
+      "rng": {
+        "algorithm": "mulberry32",
+        "forbidDateNow": true,
+        "forbidMathRandom": true,
+        "testHook": "seededRng"
+      },
+      "scoring": {
+        "baseClear3": 30,
+        "note": "基础分与超出块加成为策划基线值；连击加成见 combo（AC-06 只裁决连击加成向量）",
+        "perExtraBlock": 10
+      },
+      "spawn": {
+        "orientation": "uniform_random"
+      }
+    },
+    "world": {
+      "styleRef": "黑板 assets.md 顶部风格卡四要素（本轮仅色板一要素修订，其余三要素不动）。",
+      "summary": "熔炉工坊。玩家是守炉人，8×8 炉板上是七种矿石方块；交换相邻矿石凑成三连即熔炼得分，连续熔炼让炉火升温并叠加连击加成；一旦炉板上无任何可成排列，炉火熄灭（炉冷），本轮结束。",
+      "themeZones": {
+        "cool": [
+          "block-01",
+          "block-03",
+          "block-05"
+        ],
+        "warm": [
+          "block-02",
+          "block-04",
+          "block-06",
+          "block-07"
+        ]
+      },
+      "tone": "暖色工坊 + 深底金属质感；极简几何色块，无外部贴图依赖（视觉约束见 acceptance ac-13）。"
+    }
+  },
+  "_platform": {
+    "id": "cmuqa2mu50023m9zr8mh60uph",
+    "version": 2,
+    "status": "approved",
+    "title": "g2-blocks（熔炉方块）",
+    "projectId": "cmto0g28j0002m9sqnvjdy8o7",
+    "goalId": null,
+    "createdAt": "2026-10-02T01:21:59.838Z",
+    "updatedAt": "2026-10-02T01:22:12.052Z",
+    "numericAnchorSha256": "302e63367f3dea63212ad689a33703d83886d145862db0d724df98e97fea2d89",
+    "exportedAt": "2026-10-02T01:23:20.975Z"
+  }
+}

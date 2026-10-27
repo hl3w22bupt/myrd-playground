@@ -1,0 +1,5 @@
+# 7 · 无不可判定措辞（2026-09-29）
+$ python3 扫描 spec v1.4 acceptance 40 条 statement 模糊词
+acceptance 总数: 40
+不可判定措辞命中: 无（0 条）
+B1 新增条目 check 全部为 node 命令: True

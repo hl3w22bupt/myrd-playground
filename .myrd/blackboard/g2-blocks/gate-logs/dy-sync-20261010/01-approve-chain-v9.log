@@ -1,0 +1,6 @@
+# 01-approve-chain-v9.log
+# 文件: 01-approve-chain-v9.log | 日期: 2026-10-11T01:22:15Z | 命令: POST /api/v1/game-design-specs/cmv1q9k690045m94obp29ysre/approve | 执行目录: 一号仓根
+# 授权依据: 本轮任务书 N1 输入前提=「approved spec v1.3 revision 入链版」+ 任务书显式「不要进入 plan mode 或等待人工审批，直接实现需求并提交代码」+ B3/C 轮 approve 代持判例；代持人=主策划；主人一句否决即可重开（红线不失效）
+}
+HTTP=200
+{"data":{"spec":{"createdAt":"2026-10-10T01:40:44.769Z","createdByUserId":"cmoqv70b80000m9d4b58k27zt","goalId":null,"id":"cmv1q9k690045m94obp29ysre","parentSpecId":"cmv0aoxtt004gm9vigjmn09bh","projectId":"cmto0g28j0002m9sqnvjdy8o7","schemaVersion":"v0","sourceTrajectoryId":null,"spec":{"acceptance":[{"check":"g2-blocks/scripts/contract-check.mjs --only ac-01-board-init-seeded","id":"ac-01-board-in

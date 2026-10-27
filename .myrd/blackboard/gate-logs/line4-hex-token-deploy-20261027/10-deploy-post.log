@@ -1,0 +1,5 @@
+== 命令原文：POST /api/v1/apphost/apps/cmvollw2z001dm91k4ptf30aw/deployments {gitRef:分支,manifestPath,commitHash:de5aefa,mode:bundle,dryRun:false}
+== 时刻：2026-10-27 09:51:17
+== 输出：
+
+HTTP=504

@@ -1,0 +1,5 @@
+== 命令原文：node games/line4-unblock-jam/tests/contract/checks/acc-07-telemetry-key-parity.mjs
+== 时刻：2026-10-26 10:56:58
+== 输出：
+[acc-07-telemetry-key-parity] PASS=10 FAIL=0
+== exit=0 ==

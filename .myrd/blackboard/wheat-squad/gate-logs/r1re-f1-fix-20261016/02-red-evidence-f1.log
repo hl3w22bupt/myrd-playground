@@ -1,0 +1,8 @@
+断言1 样本多样性: rows=20 唯一durationMs=1 唯一seed标签=20
+  spec ac-a2 statement 样本意图 = runDuration.sampleSeeds(20) 种子局（20 个独立种子的局）
+断言2 装配面: createGame 调用是否含 seed 实参 = 不含（硬绑 DEFAULT_SEED）
+  src/game.ts createGame 形参: specRaw: Json, canvasW = 390, canvasH = 640
+  src/kernel/sim.ts: createSim 第二参 void seed（真实种子面=cfg.rng）
+FAIL 断言1: durationMs 唯一值 1 < 2 ⇒ 20 局为同一种子逐字节复制，种子标签失真
+FAIL 断言2: 工具计算的 seed 从未传入装配 ⇒ 标签为未生效假想种子
+RED-EVIDENCE: FAIL（F1 伤情机判成立，exit=1）

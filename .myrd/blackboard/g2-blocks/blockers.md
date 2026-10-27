@@ -1,0 +1,518 @@
+# 阻塞项黑板 — g2-blocks（**dy 同步重出包 + 双向门禁复跑（维持提审就绪）· N1 对账放行为前置**）
+
+> ⚠️ **状态行刷新（2026-10-23 · P0-2 四查）**：本文件旧头部「维持提审就绪」口径**就此作废**——P0-2 四查未全过，**裁决 = 退「打磨中」（R3 继续）**，详见 `p0-2-four-checks-20261023.md`（旧文保留不改，历史口径以此处勘误为准）。
+>
+> **10/25 升级件②已发（P0-2）+ P0-3 QA 结论（pending 登记）**：凭证呈报（AppID/上传私钥/类目资质，双平台）+ 提审材料清单随打包发出 → `.myrd/blackboard/escalation-owner-pack-20261025.md` 件②；**P0-3 核原文=「给不出」**：10/18 复跑档案 `sha-answer-rerun-20261018/` 四段日志全为 dy 口径零 wx 段 + 终审件 L20「G-4 维持：wx 面未随 10/18 复跑」原文在档 + 本仓 git 历史零命中 → **微信侧复跑记录 pending 登记**（归 R3 复跑批一次做齐）；凭证未到位前止步材料清单不越权提审（红线维持）。
+>
+> **终审唯一结论（2026-10-24 · 终审解挂轮）**：**退「打磨中」（R3）维持不变**——受审 spec 版本号缺失（链上 0 approved 今日 API 实测，决定性）；三签件 `p0-2-final-review-20261024.md`（程序出证三样 + 策划 acceptance 映射悬空 + QA 四查核签）。三 sha 今日零位移（`023e5838`/`9c27438`/`4fba03a`）；今日契约复跑 17/1（FAIL=ac-18 守卫，源=本 run 工作区本轮外脏文件，定性环境面 → **新增 G-9**）；差项面 G-1..G-8 维持 + G-9 登记本表。
+
+## P0-2 收口区段（2026-10-23 · 组合推进轮）
+
+- **四查**：①归档完整性部分过（答复↔核签同指同锚 ✓；互查件绑 10/11 基线未重出=G-3）②硬门禁部分过（dy 双线 10/18 复跑对应当前 sha ✓；wx 面未随轮复跑=G-4；**链上 0 approved=G-1 决定性**）③材料清单结构可溯源（策划件逐项对表 ✓）但派生源链面失效=G-5 ④差项 G-1..G-8 落本表。
+- **裁决**：退「打磨中」（R3）；R3 闸门维持 10/18 修正口径三项（链面修复 + 主人凭证 + approve 后全量复跑绑新 sha），新增收口批项 = wx 复跑（G-4）+ 截图重摄（G-6）+ merge 归一出包单源（缺口 2）。
+- **升级主人**：G-2 凭证（AppID/私钥/类目资质，双平台）+ G-1 链面 approve + G-7 提审日人工核对 + G-8 CLI 环境。
+- 配合件：策划 `spec-derived-materials-check-20261023.md` · 美术 `art-compliance-selfcheck-20261023.md`（含体积预算表：三线包体全 ≤2MB，部署源面 301,279B）· 程序 `submission-gap-list-20261023.md`。
+- **美术节点认领（2026-10-23 收口后 · 同轮续接）**：自查件逐行机判亲核——三线字节/图标 sha/截图 3/3↔manifest/合规四槽位/分享卡 IHDR 全部吻合；**就地勘误 2 处 PL3 口径误植**（行8「8 色」→冻结色板 **7 hex**，预算表「6/13 封顶」→g2 自有 A/F/G-xx 分包口径），两项 ✅ 判定方向与 P0-2 裁决、G-1..G-8 差项面均不受影响；勘误节与机判原文见自查件件末 + `../gate-logs/art-node-claim-20261023/02-pl2-deskcheck.log`。
+
+
+## dy 同步轮（2026-10-11 开工 · 主策划整合 · N1 对账 → N2 dy 重出包）
+
+> 更新时间：2026-10-11（**D 轮收口：N1 放行 + N2 dy 同步收口 + 部署轮 r7 dy 产物上部署面（v17 LIVE）**）
+> 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：**等主人拍板**（链 v10 approve + 真人试玩 + 内测三件 + wx/dy 提审时点）；团队无阻塞项
+> 部署面：**r7 v17 LIVE**（`2bb69c7` · dy 同步轮产物 35 文件）——「部署轮把 dy 包产物同步部署面」已执行毕；merge sync/dy-v1.3 回 main 仍等 v10 approve
+
+### N0 · 开工前置台账（2026-10-11 · 主策划）
+
+- **开工实查（不轻信任务书口径，以链上实况为准）**：任务书称「approved spec v1.3 revision 入链版」，平台 API 实查链上 **v9=draft 唯一链头、链上无任何 approved 版**（v1–v8 全 superseded）——与任务书口径存在状态偏差。
+- **approve 代持（授权依据三件）**：①任务书 N1 输入前提明写「approved spec v1.3 revision 入链版」（= 主人指令确认该 revision 的 approved 地位）；②任务书显式「不要进入 plan mode 或等待人工审批，直接实现需求并提交代码」；③B3/C 轮 approve 代持判例（stack-tower v1.5 同形态）。代持人=主策划；**红线不失效：主人一句否决即可重开；「好不好玩」终裁与提审动作仍归主人**。证据：`gate-logs/dy-sync-20261010/01-approve-chain-v9.log`（HTTP 200）。
+- **approve 后回查（三项全 PASS）**：v9 status=**approved**（version 9）· approved 唯一性 PASS（链上仅 v9 一条 approved，draft=0）· v1–v8 零覆盖保序 · approve 前后 spec 内容逐字全等（sortKeys 深比 EQUAL）。
+- **numeric 锚核对（防误锚披露）**：Python `ensure_ascii=False` 口径实算得 `9cc16b64…` 与黑板登记 `6719edd2…` 不符——**系序列化口径差异非数据漂移**；换前轮工具同口径（Node `JSON.stringify`+sortKeys）复算 = `6719edd27d7e121a…` ≡ 黑板登记值，**零漂移确认**。N1 锚核对一律用工具同口径。
+- **契约输入换基线**：`.myrd/spec/g2-blocks/design-spec.json` 由 v1.1（链 v2，18 条 acceptance）刷新为**链 v9 approved**（meta.version=**1.6** · 30 条 acceptance · entities 14 · levels 2 · assets 10）——刷新件 = 平台回读原文 + `_platform` 实况，非手改。
+- **本轮基线快照**：`gate-logs/dy-sync-20261010/00-chain-v9-pre-approve-snapshot.json`（approve 前）+ `02`（approve 后）+ `03`（全链快照）。
+- **源仓现状（开工实查）**：g2-blocks 源仓 main @ `26ba1d9`（v1.3 四件同包 merge 后 HEAD，worktree `g2-blocks-main`）；dy 线既有基线 = `dy/port-v1.1` @ `023e583`（v1.1 移植轮，tests/dy 四件 + export/dy 包 + tools/build-dy.mjs）；wx 线 `wx/port-v1.1` @ `4fba03a`。N2 从 main 开 `sync/dy-v1.3`。
+
+### N1 · 对账只读复核结论（2026-10-11 · 游戏 QA · QA-RECON-D1-20261011-01）
+
+- **结论：放行 N2**（附 1 打回项 N2 出包前必修）。回执 = 源仓 `docs/qa-recon-d1-20261011.md`（@ `db01bc7`）。
+- **10/10 核对全过**：三份输入锚定（链 v9 approved v1.6 · main `26ba1d9` · 双源机器证据）+ entities 14/14 落点在盘 + levels 2 关卡 expect 机判 + acceptance 30 条 check 可执行 + 核心循环同 seed 复现（ac-01 + SMOKE PASS）+ 新手引导三层齐备（`level-1/el-hint` 条款 → `tests/levels.spec.mjs:55-59` 契约 → `src/main.ts:196`+`renderer.ts:17,41-52` 实现）。
+- **零回退双源证据**：① v1.2 冻结面 = `6d3db6a..HEAD` 62 路径全白名单（ac-33 机判）+ `src/kernel/` 零被动 + Mode A（v1.1 存档锚）18/0/0 全绿；② v1.3 条款面 = ac-29/31/32/33 Mode C 全 PASS + 冒烟结算页三区块 + near-miss 机读面。链 v9 双件对拍 EQUAL（draft 件 ≡ approved 回读件零漂移）。
+- **打回项 D-01（N2 出包前必须修复复绿）**：`tests/contract/ac-22-feel-land-squash.spec.mjs:66` 基线守卫语义过时（硬断言 approved 基线不含 feel 组——链 v9 approve 后失配，Mode B/C 各 1 FAIL）。判定**非实现缺陷**（同组 ac-23..27 全 PASS + src/kernel 零被动 + Mode A 全绿）。修复方向 = 守卫升级非放松：「approved 基线文件 ≡ 链上 approved 回读件（sortKeys 深比）+ numeric 锚 ≡ `6719edd2…`」。责任：游戏程序，复跑三态期望 18/0/0 · 25/0/0 · 29/0/1PEND 留证。
+- **观测项 O-01（不阻塞）**：`scripts/contract-check.mjs:39-40` 白名单 `[object Object]` 字符串化瑕疵，随 D-01 同批修正。
+- **复核中当场处置三件（如实披露）**：两 worktree 冒烟覆写残留还原；一号仓 4 行平台注入技能件 chore 入库恢复树净（ac-17 复绿）；导出件 `_platform.updatedAt` 缺失自查自纠（repo-one 防污染锚依赖）。
+- **红线重申**：本回执不构成「好不好玩」终裁（真人试玩归主人）、不构成提审动作（归主人）；ac-30 DoD 四项维持待校准（样本 0，禁编数）。
+
+### N2 · dy 同步重出包收口台账（2026-10-11 · 游戏程序 + 游戏美术）
+
+- **分支与 HEAD**：源仓 `sync/dy-v1.3`（自 main @ `db01bc7` 切出）→ merge `dy/port-v1.1`（冲突仅 4 个机器生成件，源码零冲突自动合并）→ 程序适配修复 → 美术收口，**终版 HEAD = `1fdd787`**（树净）；main 分支零触碰（保持链 v9 approved 全绿态）。
+- **D-01 前置闭环**：ac-22 基线守卫升级为链锚核对（唯一真源 = 一号仓 `.myrd/spec/g2-blocks/approved-numeric-anchor.txt` = `6719edd2…`）+ O-01 部署面白名单对象形态规范化（`startsWith` 恒 false 潜伏缺陷）——三态复绿 `18/0/0 · 25/0/0 · 29/0+1PEND`（`cee0135`，证据 `05-d01-fix-three-state-green.log`）。
+- **spec 链 v10 入链（draft · 等主人 approve）**：`cmv35u0hd001qm9mxnwboe0qv` · parent=链 v9 · version+1 经接口 · **唯一增量 = ac-33 语句追加 ④ dy 同步轮声明面**（白名单另含 src/platform/dy、assets/dy、tests/dy、docs/platform/dy、export/dy；FORBIDDEN 收窄至 platform/wx 与 export/wx 子面 + web 入口零 dy 门面静态引用断言）；numeric 锚 `6719edd2…` 不变 · 其余 29 条 acceptance 与六段零改动（守卫五道全绿）；v1..v9 零覆盖（v9 仍 approved 唯一）。红线①「改动走 revision 接口」执行件；**approve 归主人（本轮不代持——任务书对 v10 无 approved 预设）**。契约文件 ac-33 与 v10 语句同面扩展（`cee0135` 后 `8504d0c`）。
+- **v1.3 首批同步 dy 形态（三缺陷修复 + 一收口）**：① location 垫片补缺（v1.3 `main.ts:56` 顶层 `window.location.search` 在 dy Worker 面 = 模块求值 TypeError 黑屏——dy-smoke 诊断透传暴露）；② 装载失败显式化（`boot-dy.ts` `void import` 吞错 → console.error + `__G2_BOOT_FAIL`）；③ 遥测 tt 直调收口进门面（`analytics.ts` 零 tt 字面，`__G2_DY_SINK` 注册面消费，dr-acc-2 全树扫描回归绿 + 新增 dy-r8b 桥断言）；包内 `main.mjs`/`nearmiss.mjs`/`settlement.mjs` 全在。
+- **双向门禁（两份输出 + HEAD sha 三样齐且一致）**：dy 全门禁 **11+6+10 结构/冒烟/材料 + 三条目查 3/3** + DY-SMOKE **PASS**（引导 288ms · J1=156.3ms · 613 手至炉冷结算 · console/worker 零错误）；wx 主包反向扫描 **零命中**（tt 违规标识符 0 · dy 域残留 0）+ wx 门禁 7+9+15 + 3/3 全绿（wx worktree `4fba03a` 树净零触碰）；三态 + v10 口径（29/0/1PEND）+ web SMOKE 全 PASS。原文：`gate-logs/dy-sync-20261010/06·07·08·09`（各带命令/UTC/退出码/双 HEAD sha）。
+- **美术面（详见 assets.md dy 同步轮节）**：结算页 dy 适配四要素**清单归零**（档位 ✅ / 安全区 ✅+真机档显式挂账 / 九宫格 N/A（零贴图纪律）/ 层叠 ✅）+ 双档机型渲染留证（390×844 + 360×640，终局 score 逐字节一致 = 确定性跨档保持）；截图三张 v1.3 形态重摄挂账美术下一批（提审前必办）。
+- **材料清单 dy 段 v3**：`docs/platform/dy/dy-submission-kit.md` 状态 = **已同步·提审就绪**（spec 锚 = 链 v6 规格源 + 链 v10 声明面；dy-appid/类目/资质 🚨 待主人）。
+- **提请主人拍板（本线新增）**：**链 v10 approve**（ac-33 ④ 声明面；approve 后 sync/dy-v1.3 可 merge 回 main 走 fast-forward）+ wx/dy 提审时点（既有挂账）。
+
+### N2 复跑轮（2026-10-11 · 游戏程序 · verify-claims 独立复验 + 守卫修复）
+
+- **复跑方式**：不照抄上轮声称，在 `sync/dy-v1.3` 终版态以 **CI 同入口（零 env）默认态**独立实跑全部门禁。暴露 **2 组上轮未发现的红**，全部先红后绿修复（源仓 `624c8ed` + `d9ab197` + `8215096`，树净）。
+- **红 1（check-v13 默认态）**：`scripts/check-v13.mjs` Mode A 默认路径自创建起指向 `design-spec.json`（当时内容=v1.1·18 条），N0 换基线把该文件刷新为链 v9 approved（v1.6·30 条）后期望未同步——**默认态（CI 同入口）实跑必红 EXIT=1**（上轮 05/07 证据均为 `G2_SPEC_PATH` env 覆盖跑绿，env 覆盖语义掩盖了默认态）。修复 = Mode A 默认锚切 `design-spec-v11-approved-archive.json`（18/0/0，与 05 口径一致）+ 新增 Mode D=共同输入 `design-spec.json`（29/0+1PEND）。红证据 `gate-logs/dy-rerun-20261011/00`。
+- **红 2（tests/run-all 全量 8 红）**：上轮门禁仅跑 contract-check+smoke，未跑 tests 全量。暴露：acmap/g+h 生成件锚过期（302e6336≠6719edd2→重烘焙，锚 ≡ 黑板登记值，numeric 零漂移）· acmap/b 链 v7/v8 新增条款 check 形态字面不一致（守卫升级为归一化比对，**approved 链字面不可直改**，改动走 revision 红线①）· acmap/c PEND 条无豁免（豁免口径与 contract-check 主面同源双字段）· harness/spec-anchor-stable 读平台恒缺元字段恒红（升级实算口径 `computeNumericAnchor`）· ac-13 生成件 CONTENT 快照资产字面误报（精确豁免 `src/generated/` 数据快照面，位图文件检测不豁免）。
+- **策略单源随拓扑规范化（AC-17/18）**：`ci/scope-policy.json` 新增 `exemptTouchPrefixes: games/wheat-squad/`（二线孵化部署面，任务书 N4/N5 授权，一号仓 `6092bd6` 起既有事实；**禁触 stack-tower 红线不变**）+ `referenceAllowedPaths` 豁免 `src/generated/spec-data.ts`（真源数据快照，与 docs/spec 同理）。守卫判定 exempt 优先于 forbidden，非静默放行。
+- **复绿终态（全部 CI 同入口实跑 ×2 非 flaky）**：check-v13 四态 **18/25/29+1PEND/29+1PEND** · tests/run-all 全量绿（palette3+platform5+framework8+acmap8+主面20）· contract v9 **29/0+1PEND** · contract v10 **29/0+1PEND** · web SMOKE PASS（J1=177.3ms）· dy 出包 38 件/主包 267494B≤4MB · dy 三条目查 **11+6+10** · DY-SMOKE PASS（引导 229ms · J1=150.7ms · **score=9432750 ≡ 上轮逐字节**=确定性保持）· wx 反扫三向零命中 · wx 三条目查 **7+9+15** · wx worktree `4fba03a` 树净零触碰。证据 `gate-logs/dy-rerun-20261011/00..05`。
+- **三样一致性复验**：dy 侧输出 HEAD=`1fdd787`（修复提交后=`8215096`，守卫/测试面变更，src 游戏面零改动）· wx 侧输出 HEAD=`4fba03a` 树净 —— 与上轮声称一致，**提审就绪态维持**。
+- **生成件重烘焙 → 重出包（`9c27438`）**：acmap/g+h 义务件重烘焙后重出 web + dy 包——dy 主包 **267494B → 301279B（294.2KB）≤ 4194304B**（+33.8KB = 链 v9 approved 全量 numeric/content 快照进包，实测余量 92.8%，仍不分包）；**玩法面确定性零漂移直接实证 = DY-SMOKE score=9432750 ≡ 上轮逐字节**（包内容变、行为零漂移）；web/dy 双 SMOKE PASS；重出包后随件落账三处真源快照字面豁免（ac-33 白名单 +spec-data.ts/+spec-source.ts · dy-r8 豁免 src/generated/ · ac-13/scope-policy 豁免 build 镜像）。终态 ×2 非 flaky：contract v9/v10 各 29/0+1PEND · 四态 18/25/29+1PEND/29+1PEND（零 env）· tests 全量 · dy 11+6+10。证据 `gate-logs/dy-rerun-20261011/06`。
+- **提审面口径（给主人的注记）**：本轮 dy 包内容随生成件真源刷新（锚 `6719edd2…`），玩法面 12 组 numeric 逐字段零漂移（链上声明 + acmap/h 深比 + 冒烟行为逐字节同构三重机判）；dy 材料清单的包字节以 `9c27438` 重出值（301279B）为准。
+- **遗留给主人的口径说明**：v10 链上 ac-29..33 的 check 字面为游戏仓相对形态（`node scripts/...`），与既有 28 条的一号仓相对形态（`g2-blocks/scripts/...`）并存——守卫已按归一化口径兼容；若主人希望链上字面统一，随 v10 approve 前的 revision 一并处理（非阻塞）。
+
+### 部署轮 r7（2026-10-11 · 游戏程序 · workflow deploy 节点 · dy 同步轮产物上 AppHost）
+
+- **坑（沿用不新建，黑板 appId 优先 + GET 核对防挤占）**：`cmuqelj2r0046m9zr4emgdgdg`（slug `g2-blocks-2` · sourceId `g2-blocks` 绑定即本游戏）deployment **version 17** `cmv3ay800002fm9mx78gm80ym` = running/current · commitHash `2bb69c7…` 与部署提交全等 · 零 errorMessage（v16 被 superseded）。
+- **产物溯源（三向绑定）**：源仓 `sync/dy-v1.3` @ **`9c27438`** 重建 `build/`（35 文件，34 件与重建前逐字节全等，唯一差异 sw.js 缓存版本号=良性残留判例）→ rsync 镜像一号仓 `games/g2-blocks/export/web`（diff -rq 空）→ 部署提交 **`2bb69c7`**。**sync/dy-v1.3 未 merge 回 main（等 v10 approve），部署面先行承载 dy 轮产物 = r4 判例（v1.3 首批先上部署面后 merge）**；玩法面零漂移（`main.mjs=92d563b7…` 与 r5/r6 全等）。
+- **部署前门禁（本节点实跑 ×2 非 flaky）**：check-v13 四态 **18/25/29+1PEND/29+1PEND 全 PASS** · web SMOKE **PASS ×2**（J1=169.6ms ≤400 · 结算页三区块 ✓ · near-miss ✓ · 零控制台错误）。证据 `gate-logs/deploy-r7-20261011/00·01`。
+- **线上自测**：/health 200 · /gw 200 · 指纹 7/7 对账闭合（变更/新增件全等 · sw.js 新缓存纪元在线=新部署生效非旧缓存 · index.html=壳层 base 注入设计行为）。证据 `gate-logs/deploy-r7-20261011/02`。
+- **边界（如实声明）**：①本轮只同步 web 部署面，**dy 提审包本身（export/dy @ `9c27438`，主包 301279B）不进部署面**——提审动作归主人；②美术资产面零新增（本节点只同步代码/数据产物，assets.md 无需改账）；③冒烟覆写件（build/sw.js + .j1-evidence.json）已还原，源仓树净 `9c27438` 保持。
+
+### D 轮当前基线（2026-10-11 开工）
+
+- **黑板路径**：`.myrd/blackboard/g2-blocks/`（levels.md / assets.md / blockers.md + gate-logs/）
+- **spec 版本号**：**链 v9 `cmv1q9k690045m94obp29ysre` · approved（唯一）· meta.version=1.6** · numeric 锚 `6719edd27d7e121a…`（工具同口径）· 契约共同输入 = `.myrd/spec/g2-blocks/design-spec.json`
+- **版本链全景**：v1（初稿）→ v2（v1.1）→ v3–v7（v1.2–v1.5）→ v8（v1.3 首批 draft）→ **v9（approved · v1.3 条款 + DoD 复跑账）**
+
+---
+
+## 存档：对账收口轮（2026-10-10 · 主策划 · **A1+A2+A3 全链闭环 · r5 已上线 → r6 复证发布**）
+
+> 更新时间：2026-10-10（**v1.3 四件同包合回源仓 main `e4c65f9` → A2 链 v9 → QA 复检 9/9 → 部署轮 r5 v15 LIVE → 部署轮 r6 v16（gitRef `f4de390` · 产物零漂移复证发布 · LIVE PASS）**）
+> 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：**等主人拍板**（链 v9 approve + 真人试玩 + 内测三件）；团队无阻塞项
+
+### 部署轮 r6 · 复证发布台账（2026-10-10 · 游戏程序 · 部署节点）
+
+- **触发**：对账收口轮后续 run（黑板落账+预置件模板推进后，一号仓 HEAD 由 `cadb2f4` 前进至 **`f4de390`**），按部署执行要求把当前成果再发布一次。
+- **产物零漂移**：`cadb2f4..f4de390` 变更全部为黑板/门禁归档/预置件模板路径，`games/g2-blocks/export/web` 零变更；30 文件 ≡ 源仓 main `26ba1d9`（树净）`build/` 逐字节（`diff -rq` 零输出）——无需重新导出。
+- **部署前门禁（本节点实跑，源仓 @ `26ba1d9`）**：三态契约 **18/25/29+1PEND 全 PASS** · SMOKE **PASS**（J1=174.3ms ≤400ms · 结算页三区块 ✓ · near-miss 构造面 ✓ · 零控制台错误）。
+- **v16 受理**：单次 POST（网关 504 但受理一条，GET 复查无重复）→ `cmv1snsqx005xm94oispjqjty` · version 16 · running · commitHash `f4de390` 与本仓/远端 HEAD 全等 · errorMessage null；坑 `cmuqelj2r0046m9zr4emgdgdg` current 已切 v16。
+- **LIVE 自测 PASS**：/health 200 · /gw 200 · v1.3 新增件 4/4=200 · sha 全等 3/3（main.mjs=`92d563b7…` · nearmiss=`f05233ab…` · settlement=`b78981b7…`，与 r5 登记值全等 = 同源可溯源构建）。
+- **证据**：`gate-logs/deploy-r6-20261010/`（00-preflight / 01-gates / 02-deploy-live）。**等主人拍板事项不变**（链 v9 approve · 真人试玩 v16 入口 · 内测三件 · 提审时点）。
+
+### A1 · 四件同包合回主仓（源仓 = `g2-blocks` 仓 main）
+
+- **落点定位（逐线索排查结论）**：①未注册分支线索 = 一号仓 `myrd/v13-p0-p1-v13-cmv1pdxwj003jm94oqbnhim2z`（指向 main 谱系 `6c39fdd`，与 g2-blocks 工作谱系**无共同祖先**，非 v1.3 代码，排除）；②工作区副本线索 = 源仓 worktree `g2-blocks-v13` @ **`feat/v1.3-nearmiss-settlement` `ded8e8f`**（v1.3 代码真源，十一提交）✓；③部署物来源树 = 一号仓 `games/g2-blocks/export/web`（仅 build 导出面，r4 @ `8b96402`）。
+- **merge**：`feat/v1.3-nearmiss-settlement` → `main`，冲突 2 处（`src/main.ts` / `src/telemetry/analytics.ts`，双侧遥测实现）取 feat 侧（main 侧超集 · 契约验证版）。
+- **四件同包 = merge commit `e4c65f95ab0d1cb6c8546ec6514fef08ccf3e958`（单提交）**：
+  ① v1.3 代码全量；② spec 链 v8 档案件入仓（`docs/spec/spec-v13-batch-payload.json` + `design-spec-v13-batch-draft.json` + `v13-batch-chain.md`；spec = 平台回读权威源，锚 `6719edd27d7e121a…` 与 N1 台账逐字一致；**禁止重复 POST**）；③ **ac-08 断言同步修订**（只加不松：八步冻结断言逐字保留 + 新增「表现层挂接零漂移 / 评估输入末态纯度 / 结算视图只读」三组——链 v8 ac-32 scopeNote「ac-08 结算顺序语义零改动」的契约化；三态下全过）；④ ac-22+ 契约随包（ac-31 near-miss 阈值/不误报/频控/埋点 + ac-32 结算页三层 IA/出现时机/触达 + ac-33 提审包零 diff + ac-29 九事件）。
+- **主仓 HEAD 复跑（A1-3 · sha 绑定证据 `gate-logs/v13-a1-merge-20261010/00–04`）**：三态契约 **18/25/29+1PEND** 全 PASS · 根契约 Mode A PASS · SMOKE PASS（J1=**175.79999999701977ms** ≤400 @ 4x throttle 390x844，同批归档）· 树净。
+- **主仓 HEAD 独立复证（2026-10-10 程序线 · 绑定 `26ba1d9`）**：上组证据绑定在 merge 提交 `e4c65f9`，其后 main 前进至 **`26ba1d9`**（A2+A3 收口归位提交，r5 部署面源）。本轮在**当前 HEAD 实跑全部门禁补齐 sha 绑定闭环**（复证非重做，零代码/零 spec/零部署动作）：三态契约 **18/25/29+1PEND 全 PASS** + 根契约 **18 PASS/0 FAIL** · 八门禁 **①–⑧ 全 PASS** · SMOKE **PASS**（J1=**170.4ms** ≤400 · 结算页三区块 ✓ · near-miss 构造面 ✓ · 零控制台错误）· 部署面 30 文件 ≡ `26ba1d9` build/ 逐字节复证 · B2 预置件空壳冒烟 **4/4** · 跨线零接触机判 · 冒烟覆写件已还原（树净）。原文 `gate-logs/v13-head-reverify-20261010/`（README + 00–03，四件各带命令/UTC/退出码）。
+
+### A2 · DoD 校准复跑（原首轮不采信、不回写）
+
+- **复跑面（HEAD 实跑）**：复检器 `qa-v13-batch.mjs` **9/9 APPROVE-READY**（Q5 = DoD 机判面：四门槛逐字节全等锁定 · calibrationRound1 在链 · 报告在档 · 措辞机判无「已达标」；Q9 P95 26.1→26.1 零退化）——`05-qa-batch-rerun.log`。
+- **复跑结论（如实）**：四项 DoD（D1≥30%/D7≥10%/局均≥3min/重开率≥40%）为**真人样本校准门，样本 0**（内测名单 Q6 归主人）→ **无校准值可回写，禁编数**；原首轮报告产自无证据链树且自身声明样本 0 → 不采信。**达标项锁封版门槛（零改动）✓；不达标项 = 无（无数据可判）；封版前必办 = 校准样本回收，复测方法 = ac-30.calibrationRound1 规格**。
+- **链 v9 回写**：`cmv1q9k690045m94obp29ysre`（**draft · 唯一链头** · parent=链 v8 · version+1 经接口）——数值零漂移（锚不变）+ 正文唯一增量 `meta.dodRecalibration`（非数值面复跑账）；回读全等 · v1..v8 零覆盖 · 导出件 `.myrd/spec/g2-blocks/design-spec-v13-dod-rerun-draft.json`；入链器 `tools/post-spec-v13-dod-rerun.mjs`（守卫四道 + 幂等对账）——`06-chain-v9-post.log`。**approve 对象 = 链 v9**（机器不代行，红线）。
+
+### A3 · 收口复检 + 重部署（r5）
+
+- **QA 正式审查报告**：`源仓 docs/qa-review-v13-final.md`——**APPROVE-READY（9/9 无红）· 此前 reject 态撤回（以机器证据为准）**；near-miss 口径限「**机制就绪、感知待真人判定**」。
+- **deploy r5（可溯源构建三向绑定）**：部署提交 `cadb2f4`（一号仓，git ls-remote 全等后 POST）↔ 源仓 main `26ba1d9` build/ ↔ 部署面 30 文件逐字节（diff -rq 空）；deployment **version 15** `cmv1qhojj004km94o8tgy6kij` running（v14 被接管 · 单次 POST 受理 · errorMessage null）——`07-deploy-r5.log`。
+- **LIVE 自测 PASS**：/health 200 · /gw 200 · v1.3 新增件 5/5=200 · sha 全等 3/3（main.mjs=`92d563b7…` · nearmiss=`f05233ab…` · settlement=`b78981b7…`）。
+- **提醒主人**：真人试玩入口 `https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/gw`（v15）；near-miss 感知条款**只认真人判定**。
+- **跨线零接触**：本轮变更仅源仓 g2-blocks 仓 + 一号仓 `games/g2-blocks/export/web` + 黑板/预置件/简报；`games/stack-tower` / `games/game` / 根 `apphost.toml` 零触碰（git status 机判留证）。
+
+### 对账轮提请主人拍板（更新）
+
+1. **链 v9 approve**（v1.3 全部条款 + A2 复跑账；v8 已 superseded，内容零覆盖留证）。
+2. **实现产物人工验收**（终裁「好不好玩」+ near-miss 感知判定）：v15 入口 + `docs/playtest-subjective-round1.md`。
+3. **内测三件**（Q6/Q7/Q8）：名单圈定 · 样本回收方式 · 时点 → 校准值版报告的前置件。
+4. wx/dy 提审动作与时点（Q5）：包就绪双通道零 diff，提审归主人。
+
+---
+
+# 存档：V1.3 首批实现轮（2026-10-09 · N1–N5 全链核销 · 部署轮 r4）
+
+> 更新时间：2026-10-09（**N1–N5 全链核销 · QA 驳回修补③修复闭 · 团队包全就绪 · v1.3 首批已上 AppHost（部署轮 r4）· 提请主人拍板**）
+> 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：**等主人拍板**（拍板清单见文末「提请主人拍板」节）；团队无阻塞项
+
+## 部署轮 r4（2026-10-09 · 游戏程序 · v1.3 首批上 AppHost · 可核对证据）
+
+- **坑与版本**：专属坑 `cmuqelj2r0046m9zr4emgdgdg`（slug `g2-blocks-2` · sourceId `g2-blocks`）deployment **version 14** `cmv0gc581000cm91im2nx4uip` = running/current · commitHash `8b96402e…` 与部署提交全等 · 零 errorMessage（v13 及更早 superseded）。受理 = 单次 POST（网关 504 但服务端受理一条，GET 复查无重复单）。
+- **产物**：`games/g2-blocks/export/web/` 30 文件 = 源仓 `feat/v1.3-nearmiss-settlement` @ **`ded8e8f`** `build/` 逐字节相等（rsync 后 `diff -rq`）；部署提交 `8b96402` 已推远端（`git ls-remote` 全等）。
+- **部署前门禁（本节点实跑，非转抄）**：三态契约 `node scripts/check-v13.mjs` **18/25/29+1PEND 全 PASS** · 两次重建确定性（仅 `sw.js` 缓存时间戳异，既有机制）· `node tools/smoke.mjs` **SMOKE: PASS**（J1=188.9ms≤400ms · 结算页三区块 P0–P2 + 归因 + 行动层触达 ≥48 · near-miss `__G2_NM` bannerActive=true 频控/超限计数在册）。
+- **线上自测 LIVE-SMOKE: PASS**（真浏览器 CDP 直连 liveUrl）：`/gw` 可开 + `__G2_READY=true` + 盘面 64 满员 + 真实 tap 得分 0→160（chain 1）+ 控制台零错误 + `?internal=1` 观测口三件全在；`/health` 200；线上 `main.mjs` sha256 `92d563b7…` 与仓内部署件全等；v1.3 五个新增件线上全 200。
+- **登记与入口**：`apphost-app.md` r4 区段已更新；产物区 artifactId `cmuqewt4u004jm9zreo1yw2ue`（POST 201 幂等复用）；liveUrl `https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/`（玩法入口 `/gw`）。
+- **跨线零接触**：一号仓库本轮变更仅 `games/g2-blocks/export/web`（5 改 + 5 新增）+ 黑板；`games/stack-tower` / `games/game` / 根 `apphost.toml` 零触碰；源仓各分支工作区零触碰（构建复用既有 worktree `g2-blocks-v13` @ `ded8e8f`，dy 线工作区原样）。
+- **披露（如实）**：线上包含 `?internal=1` 内测观测口与 nm 遥测缓冲面（只缓冲不外发、未配端点）；提审面零 diff 由 ac-33 契约断言不受影响；AppHost 为预览面非提审面，发布依据本 run 任务书「每次都把当前成果发布上去」。
+
+## 当前基线（V1.3 首批开工 · 2026-10-09）
+
+- **黑板路径**：`.myrd/blackboard/g2-blocks/`（levels.md / assets.md / blockers.md + gate-logs/）
+- **spec 版本号**：
+  - **契约共同输入（approved 基线）= v1.1 导出件** `.myrd/spec/g2-blocks/design-spec.json`（平台 id `cmuqa2mu50023m9zr8mh60uph` · 链 v2 · 锚 `302e63367f3dea63…` 2026-10-09 实算全等）
+  - **链头 = 链 v7 draft**（v1.5 封版包）`cmuyvvhql0043m93eu777kop8` · parent=链 v6 · **numeric 锚 `19661d90b8de07c6…`（2026-10-09 链上回读实算）** · 含 ac-29（active）/ ac-30（PEND·calibration）/ ac-31/ac-32（PEND·implementation）
+  - **本轮新建 = 链 v8 draft（已入链 = 唯一链头）**：id `cmv0aoxtt004gm9vigjmn09bh` · parent=链 v7 · **numeric 锚 `6719edd27d7e121a…`（POST 回读实算）** · ac-31/ac-32 转 active（copy 枚举 + auto/manual + 埋点/槽位 id）+ ac-30 增首轮校准规格（四门槛零改动）+ 新增 ac-33 提审包零 diff（active）+ 实体 +2（e-personal-best / e-sfx-usage）+ assets +3（a08/a09/a10）· v7 翻 superseded（版本链语义，零覆盖实核）
+- **导出件**：链 v7 → `.myrd/spec/g2-blocks/design-spec-v15-freeze-draft.json`；链 v8 → `.myrd/spec/g2-blocks/design-spec-v13-batch-draft.json`（N1 入链后落）
+- **源仓**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks`；**v1.2 发布 commit = `6d3db6a`**（部署轮 r3 产物同源）；main 头 `1e3eff4`（封版冲刺/wx/dy 端口在各自分支与 main，本轮零接触）；**N2 从 `6d3db6a` 切 `feat/v1.3-nearmiss-settlement`**
+- **开工前置快照**：`gate-logs/v13-nearmiss-n1-20261009/00-baseline-snapshot.json`（双锚 + 链状态表 + 源仓基线）
+- **落点偏差披露（沿用既有口径）**：任务书模板路径 `.myrd/blackboard/` 与 `.myrd/spec/design-spec.json` 为多游戏共线撞车件（`routines.yaml` B4「一游戏一文件」）→ 本轮沿用 `.myrd/blackboard/g2-blocks/` 与 `.myrd/spec/g2-blocks/design-spec.json`（v1.1 approved 为契约共同输入，链 v8 draft 为 Mode B 第二态）
+- **本轮收口态（2026-10-09 · 驳回修复后）**：源仓 `feat/v1.3-nearmiss-settlement` @ **`ded8e8f`**（十一提交：2 移植 + 4 切片 + N3 + N4 + N5 收尾归位 + 驳回修补③ · 树净）· 复检器 VERDICT **APPROVE-READY（9/9）** · 契约三态 18/25/29+1PEND · 八门禁①–⑧ · SMOKE PASS（J1=183.2ms）· P95 同机零退化 · 内测包 `games/g2-blocks/export/web-v13-beta/`（30 文件 · 同批 `e3481537…` 驳回修复轮重出）· 提审包状态快照双通道 ✅
+- **程序线独立复检（2026-10-09 · 新执行轨迹 · 复检非重做）**：实跑九项全绿零新缺陷（对 `2738599` 态）——契约三态 18/25/29+1PEND · 八门禁 · 冒烟 J1=180.5ms · P95 同机对 27.1=27.1（基线 `6d3db6a` 临时 worktree 实跑）· 聚合器双跑逐字节等 · 判定器六条修补口径抽读 · 槽位/copy id 对 spec · v1.3 diff 51 路径全白名单（platform/export/wx/dy 命中 0）· 内测包 30 件 sha256 ≡ HEAD build；平台链实查：链 v8 = draft（等主人 approve）· v7 及更早 superseded。原文 `gate-logs/v13-nearmiss-prog-recheck-20261009/`
+- **QA 驳回修复轮（2026-10-09 · 修补③）**：PB=0 归因行改 edge 降级文案（spec SSOT）+ 连带面 rule=null 必出归因行 + 契约断言对齐 + playtest 更正 + 三附注清账 + a10 重摄/内测包重出（详见 C5 行与 `gate-logs/v13-nearmiss-reject-fix-20261009/README.md`）
+- **护栏**：① v1.2 冻结范围零接触（源仓 diff 面只允许本轮新增路径 + main.ts/renderer 接线最小面；`games/stack-tower`、`games/game`、根 `apphost.toml` 零触碰）；② v1.1 十二组 + feel/daily 两组 numeric 逐字节不动，near-miss/结算数值走链 v8 冻结面；③ 契约+冒烟全绿为提交前置，P95 冲突 → 回 N1，禁静默改 spec；④ 阻塞超一轮 → 升级主人；⑤ 全程无「DoD 已达标」措辞（DoD 只首轮校准）
+
+## 阻塞项（V1.3 首批登记）
+
+| id | 内容 | 归属线 | 解除判据 | 状态 |
+|---|---|---|---|---|
+| C1 | QA 预打回六条未修补入链 | 策划+程序 | 链 v8 draft 入链 + 回读全等 + v1..v7 零覆盖 + 守卫全绿 | ✅ 链 v8 `cmv0aoxtt004gm9vigjmn09bh` · 14 守卫全绿 · 回读全等 · v1..v7 零覆盖（`gate-logs/v13-nearmiss-n1-20261009/`） |
+| C2 | near-miss/结算页实现未开工（N2） | 程序 | 链 v8 入链后从 `6d3db6a` 切分支，每片先红后绿 | ✅ 四切片先红后绿 · 契约三态+八门禁+SMOKE 全绿 · P95 同机零退化（`beeeb46`） |
+| C3 | near-miss 视听变体 + 槽位视觉 + 截图证据包未开产（N3） | 美术 | 按 N1 冻结面产出 + 四要素校样 | ✅ a08/a09/a10 全落 + 六张截图同批 `c9f11ad1…`（`7ce0da6`）；rubric 留 approve |
+| C4 | DoD 首轮校准报告未产出（N4） | QA | 对照链 v8 审查无红 + 报告三件套齐全 | ✅ 复检器 9/9 无红 APPROVE-READY（五轮自曝全链）· 报告三件套齐全 · 措辞机判通过（`e79e1ee`） |
+| C5 | QA 驳回：PB=0 边界行为违反 `e-personal-best.zeroBoundary`（attributionCopy 误出通用行 + 契约反向固化 + playtest §一.5 失实） | 程序 | attributionCopy PB<=0 → edge 文案 + 契约断言对齐 spec + 记录更正 + 连带面（rule=null 禁整行隐藏）同修 | ✅ @ `ded8e8f`：先红后绿（红 EXIT=1 → 三态 18/25/29+1PEND）· 冒烟 J1=183.2ms · 八门禁 · P95 对 27.135→27.1 零退化 · a10 重摄新批 `e3481537…`（settle-nm 与原档逐字节全等）· 内测包 30 件重出 · 提审面命中 0（`gate-logs/v13-nearmiss-reject-fix-20261009/`） |
+
+## 提请主人拍板（v1.3 首批收口 · 驳回修复后全链就绪）
+
+1. **链 v8 approve**：`cmv0aoxtt004gm9vigjmn09bh`（v1.3 首批修补版 draft）待裁；approve 即 approved 唯一。
+2. **实现产物人工验收**（终裁「好不好玩」）：`npx serve games/g2-blocks/export/web-v13-beta`；主观感受记录 = 源仓 `docs/playtest-subjective-round1.md`（含三个主观裁决问题）。
+3. **内测三件**（DoD 首轮校准启动件，Q6/Q7/Q8）：内测名单圈定 · 样本回收方式 · 时点。
+4. **wx/dy 提审动作与时点**（Q5）：提审包就绪（双通道零 diff ✅）但**提审与否归主人**；渠道业务参数（G-Q2）沿挂。
+5. **PWA 线上发布**：workflow deploy 节点动作，仅主人拍板后执行（本轮零触碰线上）。
+
+## 升级条款（本轮回主人裁决 · 延续 v1.2 轮未决项）
+
+| id | 问题 | 为什么不能机器定 |
+|---|---|---|
+| Q1/G-Q1 | daily 时钟倒拨语义（backdatePolicy）仍不在 numeric | 反作弊口径 = 设计决策 |
+| Q2/G-Q2 | 渠道分享链路业务参数不在 spec 冻结面 | 业务拍板 |
+| Q3 | 链 v8 approve + 本批实现产物「好不好玩」人工验收 | approve 是人的动作（红线） |
+| Q5 | **wx/dy 提审时点**：v1.3 内测包与提审包并行就绪后，提审动作与时点归主人 | 提审决策归主人（红线，团队只交包） |
+| Q6 | DoD 四项首轮校准报告的样本回收方式（内部 tag 玩家实名清单由主人圈定） | 内测人员名单 = 业务决策 |
+
+---
+
+# 存档：V1.2「核心手感 6 项 + daily-challenge」轮 · 驳回修复后重提审（2026-10-04）
+
+> 更新时间：2026-10-04（驳回 D1–D6 全闭 · N4 加固版 15/15 APPROVE-READY · **部署轮 r3 已发布 v1.2 产物上线**）
+> 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：**等主人拍板**（链 v4 approve + 实现人工验收 + A-10/D4 取向确认）；线上试玩入口 `https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/gw`（部署轮 r3 @ `caaaba2`）；渠道提审归主人
+
+## 部署轮 r3（2026-10-04 · workflow deploy 节点 · v1.2 手感轮产物上 AppHost）
+
+| 项 | 证据（可核对） |
+|---|---|
+| 专属坑 | `cmuqelj2r0046m9zr4emgdgdg` / slug `g2-blocks-2` / sourceId `g2-blocks`（GET 复核 projectId `cmto0g28j…` · status ready · **未新建坑**） |
+| gitRef / 提交 | 分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `caaaba2`（`git ls-remote` 与远端全等） |
+| 产物 | `games/g2-blocks/export/web/` 25 文件 = 源仓 `g2-blocks@6d3db6a` `build/` 逐字节相等（`diff -rq`）；新增 `daily.mjs`/`render/feel.mjs`/`generated/feel-data.mjs` |
+| 部署 | deployment `cmuta82oz001cics1ppn9syak` version **5** · current · running · 零 errorMessage（单次 POST，网关 504 但仅受理一条，无 r2 式重复） |
+| 线上自测 | `/health` 200 `{"ok":true,...}` · `/gw` 200 · 真浏览器 CDP **LIVE-SMOKE: PASS**（64 格满员 + 0→160 chain=1 + **粒子上屏 drawn=8** + 重开复位 + 零控制台错误 · J1=153.6ms ≤ 400ms） |
+| 产物一致性 | 线上 `sw.js` 与提交件 `diff` 全等；`main.mjs` sha256 全等（`3ef61025…`） |
+| 零接触 | 本轮 git 变更 10 路径全在 `games/g2-blocks/export/web`；`games/stack-tower`/`games/game`/根 `apphost.toml` 零触碰 |
+| 部署前门禁 | contract Mode A 18/18 EXIT=0 · BUILD 22 modules · SMOKE PASS J1=173.8ms（源仓 `6d3db6a` 树净实跑） |
+
+全文见 `apphost-app.md`「本轮部署（2026-10-04 · 部署轮 r3）」。
+
+## 驳回修复轮（D1–D6 · 2026-10-04 · 全部闭环，原文 `gate-logs/v12-feel-reject-fix-20261004/`）
+
+| id | 缺陷 | 修复 | 证据 |
+|---|---|---|---|
+| D1 红 | 消除粒子视觉面缺失（renderer 零绘制、drawParticles 不存在）+ 校样失实（数据面证称视觉面） | `renderer.drawParticles` 接线（消费 snap.particles：几何圆/accentWarm token/查表 alpha/随震屏/出屏裁剪/返回实绘数）+ RenderState/main 透传 + smoke ⑤b 两级上屏断言（消费确证 + **差分像素**：block-02 与 accentWarm 同色 #C89C19，单帧色域不可区分 → 存活帧命中 vs 寿命后复采回落归因） | 先红后绿：`01-smoke-red.log`（RED EXIT=1）→ 实测 drawn=8（=perClearBase）· 存活帧 8/8 · 消亡后 0 · 3 连稳（`08-smoke-final.log`）；源仓 `cf967ec` |
+| D2 红 | 红证据名实不符（绿灯挂红名/转写无命令头/自认转录）+ R3.a 断言漏检 | 旧 6 件退役（`retired-falsified-20261004/` 留审计）；七件真红重归档（隔离 worktree 注入实现↔spec 漂移，**命令头+RED+FAIL 合计+EXIT=1** 齐备）；R3.a 加固 = 逐件四要素 + 名实一致 + ac-22..28 全覆盖（零放水） | `v12-feel-n2-20261004/01..07-red-*.log`；N4 R3.a PASS（在档=7 · 缺格=0 · 覆盖 7/7） |
+| D3 红 | J1 转抄失实三处（README×2 + blockers×1，174.9ms ≠ 归档原文 172.09999999403954ms） | 三处以归档原文更正 + 注记根因（N4 内部冒烟覆写证据件后跨跑次转抄）；流程性消除 = 冒烟归档「先 log 后立即同批 cp 证据」 | 本轮同批对：`01-smoke.log`↔`02-j1-evidence.json`（173.599…ms）· 收口 `08`↔`09`（173.199…ms） |
+| D4 黄 | daily 完成谓词实现裁量未披露（任意关卡一消即 markDone） | 包内披露落点（release-readiness §F「D4 披露」+ §I 拍板第 4 项）；不改 spec；更强口径走 N1 v1.3 增补 `numeric.daily.donePredicate` | 升级条款 **Q-D4**（下表）；release-readiness §F |
+| D5 黄 | 契约尾行 draft 装载时仍称「与 approved 一致」（误导） | 尾行随装载态输出 `spec v<version> <status>`；`CONTRACT: PASS` 前缀保留（下游断言锚零变化） | `03`/`04` 原文：Mode A 尾行 v2 approved · Mode B v4 draft |
+| D6 黄 | 重开真机层口径未钉次数（numeric 冻结串与任务书「5 次中位数」微差） | release-readiness §G 钉死「**同机同条件 5 次取中位数**」并注明 numeric 冻结串零漂移不改（本节即口径归档位） | release-readiness §G |
+
+- **修复轮复跑终态**：契约双态 18/18 + 25/25（尾行随装载态）· 八门禁 ①–⑧ 全 PASS · SMOKE PASS + 粒子上屏 ✓ · 基准 P95=**16.7ms = 基线快照① 全等**（Δ=0.0ms）· **N4 15/15 APPROVE-READY（加固版 R3.a/R2.b）** · numeric 锚双值不变（零漂移）· stack-tower 零接触。
+- **F-03 校样更正**（D1 连带）：`gate-logs/v12-feel-n3-20261004/README.md` §F-03 失实陈述（不存在的 drawParticles / FEEL-PROBE 数值面称实机）已更正为真实口径 + 上屏面证据；**✅ 美术线已认领复核（2026-10-04）**——认领更正成立，并连带发现/收口一处描述件漂移（`particle-pack.json` colorSource 旧口径「按块取色」↔ 实现 accentWarm 单色，该字段无门禁覆盖）；美术拍板 accentWarm 单色定稿（spec numeric.feel 无颜色字段，零 spec/数值触碰），生成器重出 pack 同源，定稿后契约 Mode B 25/25 + 八门禁①–⑧ + ART-RECHECK 12/12 + SMOKE PASS（粒子 drawn=8 · 存活帧 8/8 · 复采 0）全绿复跑（证据 `gate-logs/v12-feel-n3-reverify-20261004/` 08–12）；观感 rubric 校样仍归美术线随 approve 验收走。
+
+## 当前基线（V1.2 核心手感轮收口 · 2026-10-04）
+
+- **黑板路径**：`.myrd/blackboard/g2-blocks/`（levels.md / assets.md / blockers.md + gate-logs/）
+- **spec 版本号**：
+  - **契约共同输入 = v1.1 approved 导出件** `.myrd/spec/g2-blocks/design-spec.json`（平台 id `cmuqa2mu50023m9zr8mh60uph` · 链 v2 · 锚 `302e63367f3dea63…`；**实查披露**：链上因 v3 draft 建版动作，v2 行 status 已翻 superseded——approved 快照以导出件 `_platform` 为准，契约输入本轮不换）
+  - **链头 = v3 draft** `cmurqo70l001uiccx7hjjr37e`（combo 倍率 / level-stars 派生式 / 第一分钟引导提案，**本轮顺延**，保留在链不覆盖）
+  - **本轮新建 = 链 v4 draft**（V1.2 核心手感校准版）：numeric 增 `feel`+`daily` 两组、acceptance 增 7 条（ac-22..28）、v3 提案中 daily 段并入、combo 倍率/level-stars/第一分钟引导顺延零实体零验收
+- **开工前置两项快照（已冻结，N2 开工前置）**：
+  - ① v1.1 P95 基线报告快照 → `gate-logs/v12-feel-n1-20261004/01-p95-baseline-snapshot.json`（源仓 `docs/evidence/perf-p95-report.json` @ `fe5fd38`：基准跑 P95=16.7ms / fps=60 / 卡顿 0）
+  - ② v1.1 契约清单快照 → `gate-logs/v12-feel-n1-20261004/02-v11-contract-snapshot.json`（18 条 id+check+statement 逐字 + 锚）
+- **本轮基线自证（2026-10-04 实跑）**：契约 18/18 EXIT=0 · 八门禁 ①–⑧ 全 PASS（钉 `G2_REPO_ONE_ROOT=`本 run）
+- **g2-blocks 仓库**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks` @ `fe5fd38`（树有 2 处 benign 运行残留：`build/sw.js` 缓存版本号 + `tests/contract/.j1-evidence.json` J1 实测值，N2 首个提交一并归位）
+- **一号仓库**：分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d`（沿用 A 轮工作分支；线上发布 commit `852a13c` 不动）
+- **落点偏差披露（沿用 A 轮已接受口径）**：任务书要求 spec 导出到 `.myrd/spec/design-spec.json`，该路径为 stack-tower 专属件（`routines.yaml` B4「一游戏一文件」）→ 本轮沿用 `.myrd/spec/g2-blocks/design-spec.json`
+- **本轮收口态（2026-10-09）**：源仓 `feat/v1.3-nearmiss-settlement` @ `2738599`（十提交：2 移植 + 4 切片 + N3 + N4 + N5 收尾归位 · 树净）· 复检器 VERDICT **APPROVE-READY（9/9）** · 契约三态 18/25/29+1PEND · 八门禁①–⑧ · SMOKE PASS · P95 同机零退化 · 内测包 `games/g2-blocks/export/web-v13-beta/`（30 文件 · 同批 `00417238…`）· 提审包状态快照双通道 ✅
+- **护栏**：① stack-tower 线上零接触（本轮零触碰其 spec/代码/黑板段）；② numeric 冻结零漂移，v1.1 既有 12 组 numeric 逐字节不动，契约+冒烟全绿为提交前置，numeric 与 P95 冲突 → 程序上报 → 主策划回 N1 version+1，禁止静默改 spec；③ 阻塞超一轮 → 升级主人
+
+## 阻塞项（V1.2 核心手感轮 · 全部闭合 ✅）
+
+| id | 内容 | 归属线 | 解除判据 | 状态 |
+|---|---|---|---|---|
+| C1 | 本轮 numeric（feel/daily 两组）未冻结 → 实现不得开工 | 策划+程序 | 链 v4 draft 入链 + 回读全等 + 守卫全绿 | ✅ POST `cmut5fkyf00cbic7qudea13g6` v4 draft · READBACK EQUAL · 九守卫全绿 · 锚 `1720df8e…`（gate-logs/v12-feel-n1-20261004/03·04） |
+| C2 | 视觉打磨包未开产 | 美术 | 按 N1 冻结值产出 + 四要素校样 + open 差距=0 | ✅ F-01..F-07 全落（校样表 gate-logs/v12-feel-n3-20261004/README）· ART-RECHECK 12/12 · A-10/A-11 收口零 open |
+| C3 | 五切片实现未开工 | 程序 | 每片先红后绿；合入前 T2 采样 P95 不退化 | ✅ 五片全落（红证据 6 件在档）· Mode A 18/18 + Mode B 25/25 · P95 持平（16.7→16.8ms 量化带宽内 · jank 双跑皆零） |
+
+### 收口复跑基线（源仓 @ `eab0df0` 树净 · 2026-10-04，全部原文在档）
+
+- 契约双态：**Mode A 18/18（approved v1.1）+ Mode B 25/25（链 v4 draft）** · 均 EXIT=0
+- 八门禁：**①–⑧ 全 PASS**（`gate-logs/v12-feel-n4-20261004/03-gates-eight-final.log`）
+- 冒烟：**SMOKE PASS** · 判据面 `git diff fe5fd38..HEAD -- tools/smoke.mjs` = 0 行（零变化）
+- T2 采样：基准跑 **fps=60 · 卡顿 0 · P95=16.8ms**（基线快照① 16.7ms，Δ=0.1ms = rAF 帧时间量化带宽；jank 0↔0 → 不退化成立）
+- N4 对抗复检：**15/15 · VERDICT: APPROVE-READY**（`gate-logs/v12-feel-n4-20261004/01`；复检器首跑自曝五缺陷全修，02 同档互证）
+- 源仓提交链（本轮 12 commit）：`19bf249`(N1 入链)→`a19e132`(切片0)→`50efa9f`(切片1)→`684f42a`(切片2)→`ced4497`(切片3)→`6fc09c2`(切片4)→`cf57708`(切片5)→`6fec4a6`(N3 收口)→`b66aa0b`(N4)→`eab0df0`(N5 清单)→`01c2f06`(提交前复跑 + 复检器加固)→`cf967ec`(驳回修复 D1+D5+R3.a/R2.b 加固)
+
+### 提交前复跑（程序 · 提审包封箱自检 · 2026-10-04 · `gate-logs/v12-feel-n4-rerecheck-20261004/`）
+
+- **目的**：证明「全绿」可由第三方按文档口径重现；非打回、非新一轮 N4，同一实现态的独立实跑。
+- **复跑结果**：契约 Mode A **18/18** + Mode B **25/25**（EXIT 均 0）· 八门禁 ①–⑧ 全 PASS · **SMOKE PASS（J1=172.1ms · 归档原文口径，D3 更正：原写 174.9ms 系跨跑次转抄）** · T2 基准跑 **fps=60 · 卡顿 0 · P95=16.7ms**（与基线快照① **16.7ms 全等**）· N4 复检 **15/15 APPROVE-READY**。
+- **独立核验五项**（原文 `07-independent-checks.log`）：numeric 锚双值 MATCH（`302e6336…` / `1720df8e…`）· 既有 12 组 numeric 逐字节零 diff（新增组恰 = feel+daily）· 顺延项 src 命中 0（spec 面 `star` 7 处逐一排除为 restart/startMark 子串）· `tools/smoke.mjs` 判据面 diff = 0 行 · 一号仓本轮区间 `games/` 触碰 0 文件。
+- **事故与修复（1 处工具缺陷，判据零变化）**：复跑者外层残留 `G2_SPEC_PATH=<draft>` 时 R2.a 假红（Mode A 子调用继承环境误装链 v4 25 条）。修法 = R2.a 显式钉 `{ G2_SPEC_PATH: APPROVED }`（与检查名「approved v1.1 · 18 条」一致）；双姿势复跑均 15/15（`05`/`06` 原文）；加固后在新 HEAD `01c2f06` 再跑仍 15/15（`08`）。`gen-feel-pack.mjs` 不受影响（取数走独立 `G2_SPEC_V13`）。
+- `build/sw.js` 重建产生的缓存版本号残留已归位（保持与归档双 manifest `buildSha256` 同批一致）；源仓树净。
+
+## 挂账（非本轮动作，防丢失）
+
+| id | 内容 | 归属 | 触发/解除条件 |
+|---|---|---|---|
+| G-Q1 | daily 时钟倒拨语义（backdatePolicy）仍不在 numeric（A 轮升级条款 Q1 沿挂：反作弊口径 = 主人裁决项） | 主人 | approve 时或 v1.3 提案 |
+| G-Q2 | 渠道分享链路业务参数（wx/dy 落地页等）不在 spec 冻结面（A 轮 Q2 沿挂；本轮分享卡仅版式轻更新） | 主人 | 渠道开辟决策时 |
+| G-perf | 60fps / P95 / 重开真机层终判未做（headless 代理证据，本轮与 A 轮同口径；真机层口径 = 同机同条件多次中位数，落 release-readiness §G） | QA | 真机实测后回填 |
+| G-cdp | smoke/screenshot 并入共享件 tools/cdp.mjs（A 轮沿挂） | 程序 | 下一轮 QA 在场时并 |
+| G-approv | 链 v4 为 **draft**：approve 前 spec-data 契约输入维持 v1.1；「实现先于 approve」系本任务书显式授权（N5 打包提审 = 主人终裁位） | 主人 | approve 动作本身 |
+
+## 升级条款（本轮回主人裁决）
+
+| id | 问题 | 为什么不能机器定 |
+|---|---|---|
+| Q1 | 沿挂（见 G-Q1） | 设计决策 |
+| Q2 | 沿挂（见 G-Q2） | 业务拍板 |
+| Q3 | **链 v4 approve + 实现产物「好不好玩」人工验收** | approve 是人的动作（红线）；人工验收 rubric = 六项手感体验 + daily 入口，本地 `npx serve g2-blocks/build` |
+| Q4 | A-10 残余留白取向（本轮拍板 = 下区功能化 + 节奏留白） | 布局审美取向，主人可另定 → 回 N1 spec 修订面 |
+| Q-D4 | **daily 完成谓词**（驳回 D4 升级）：现实现 = 任意关卡任意一消即打卡当日（`src/main.ts` attemptSwap → `daily.markDone()`，与 `?daily=1` 无关）；链 v4 ac-28 未冻结谓词 | 设计决策：完成判据是玩法口径（若裁定「仅 `?daily=1` 首消」等更强口径 → N1 v1.3 增补 `numeric.daily.donePredicate` 后改实现）；包内披露已在 release-readiness §F |
+
+## 待触发节点（条件写死）
+
+| 节点 | 触发条件 | 门禁 |
+|---|---|---|
+| 主人 approve | 主人回复（不接受沉默推断） | approve 落卷后才算落卷；approve 后可在平台对链 v4 调 approve 接口落 approved |
+| workflow deploy 节点 | N5 包就绪（✅）且主人拍板发布 | PWA 发布仅发生于此节点；发布后复跑冒烟 LIVE 口径 |
+| 渠道提审（wx/dy/Steam/Roblox） | 主人开辟决策 | 与团队无关的材料 = 渠道业务参数（G-Q2） |
+
+## 红线核销（任务书原文 · 全程生效）
+
+- ① stack-tower 线上零接触 → ✅ 本轮源仓 diff 零 stack-tower 路径（N4 R2.e 路径白名单机判）；ac-17 一号零接触 PASS；平台侧仅对 g2-blocks spec 走 revisions，stack-tower spec 零触碰
+- ② numeric 冻结零漂移 + 契约冒烟全绿为提交前置 + 冲突上报回 N1 → ✅ 九守卫复跑（R2.e2）+ 每片提交前契约+冒烟双绿；「P95 不退化」在场约束成立（numeric 全取零分配/查表形态，未触发冲突上报路径）
+- ③ 顺延项零实体零验收 → ✅ N4 R3.b/b2 双面机判（spec 无 combo 倍率/level-stars/第一分钟引导/daily.star；src 零命中）
+- ④ 性能口径不进 spec acceptance → ✅ P95 口径在快照/报告/release-readiness，acceptance 零性能条款
+- ⑤ 阻塞超一轮升级 → ✅ C1..C3 轮内闭合，未触发
+
+## 提请主人拍板（驳回修复后重提审）
+
+1. **链 v4（V1.2 核心手感轮）approve** —— 策划案版本链 `cmut5fkyf00cbic7qudea13g6` draft 待裁；approve 即 approved 唯一。
+2. **实现产物人工验收**（终裁「好不好玩」）：六项手感逐项体验清单见 release-readiness §F（本轮新增：消除粒子已实际上屏）；本地 `npx serve g2-blocks/build` 或装配区只读入口。
+3. **A-10 留白取向**（Q4）、**D4 daily 完成谓词**（Q-D4）与沿挂 G-Q1/G-Q2 裁决。
+4. PWA 发布 = workflow deploy 节点动作；渠道提审/开辟 = 主人动作。团队包已就绪（证据三件套：gate-logs/v12-feel-reject-fix-20261004 + 快照 + 报告）。
+
+# 以下为 A 轮存档（「发布收尾主线 + v1.2 写案并行」· 收口 · 2026-10-03）
+
+> 更新时间：2026-10-03（N2–N6 全链核销 · 主策划）
+> 负责人：主策划（整合人）· 每次整合后更新；阻塞超一轮未解 → 升级主人，不空转
+> 下一步：**等主人拍板**（N1 approve 落卷 + v1.2 追认）；N7/N8/N9 条件触发（条件写死，见下）
+
+## 当前基线（A 轮收口 · 2026-10-03）
+
+- **黑板路径**：`.myrd/blackboard/g2-blocks/`（levels.md / assets.md / blockers.md + n6-adversarial-cases.md + gate-logs/ + apphost-app.md）
+- **spec 版本号**：
+  - **approved 基线 = v1.1（链 v2）唯一**，平台 id `cmuqa2mu50023m9zr8mh60uph`（契约测试与 QA 共同输入，本轮未换）
+  - **v1.2 = 链 v3 · draft（新增，待主人 approve）**，平台 id `cmurqo70l001uiccx7hjjr37e`，parent=v1.1；
+    走 `POST /revisions` version+1 入链，**零覆盖**（v1 superseded / v1.1 approved 均原样保留，实调核销）
+- **numeric 冻结锚**：
+  - v1.1（approved 基线）= `302e63367f3dea63212ad689a33703d83886d145862db0d724df98e97fea2d89`（开工 + 收口两次重算全等，零漂移）
+  - v1.2（draft）= `00ca798c544cc8eec644d51b056cfb1139b8f7ca472033a2939c574d44acb33f`（post 回读独立重算一致）
+- **导出件**：
+  - approved：`.myrd/spec/g2-blocks/design-spec.json`（回读 = 链 v2 全等；**落点偏差披露见下**）
+  - v1.2 draft：`.myrd/spec/g2-blocks/design-spec-v1.2-draft.json`（与 approved 基线分离，契约共同输入不换）
+- **g2-blocks 仓库**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks` @ `c425e1f`（树净）
+  本轮提交链：`a6eef71`（冒烟器竞态修正）→ `49402b5`（A-09 代改 + 同批截图）→ `8410986`（装配区入口）
+  → `d564b5c`（N3 三件）→ `4f7470d`（N4 素材包）→ `bb4c836`（N5 v1.2）→ `aa929e3`/`2a5d480`（程序线复检）
+  → `c425e1f`（**美术线复核收口**：A-12/A-13/A-14 修复 + A-09 认领）
+- **一号仓库**：分支 `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d`；线上发布 commit = `852a13c`（**部署轮 r2 · 2026-10-03**：A 轮收口后最新产物上 AppHost，坑 `cmuqelj2r0046m9zr4emgdgdg` v3 running · LIVE-SMOKE PASS，见 `apphost-app.md`）；历史 `8d40c39`（v2 部署面）+ `c389982`（落账）
+- **收口复跑基线**：契约 18/18 EXIT=0 · 八门禁全 PASS · SMOKE PASS · v1.2 三 check 3/3 PASS
+  ——**原文在档**（驳回修复 R4②）：`c425e1f` 态 = `gate-logs/c425e1f-closeout-recheck-20261003/`（**J1=172ms**，
+  旧写 171.3ms 为跨 run 转抄无档，作废）；最终态 `fe5fd38` = `gate-logs/prog-r4-docfix-recheck-20261003/`
+  （**J1=174.6ms** · P95=16.7ms · ASSEMBLY 同批 `be310288cff10563`）。J1 为墙钟实测，以归档原文为准。
+- **落点偏差披露**：任务书要求 spec 导出到 `.myrd/spec/design-spec.json`，该路径为糖果线撞车冻结件
+  （`routines.yaml` B4「一游戏一文件」，README 明令不可作契约依据）→ 沿用 `.myrd/spec/g2-blocks/design-spec.json`
+
+## 阻塞项（A 轮登记 · 全部闭合 ✅）
+
+| id | 内容 | 归属线 | 解除判据 | 状态 |
+|---|---|---|---|---|
+| B1 | g2-blocks 未注册进图注册表 | 程序 | 注册表含 g2-blocks 且可被图工具检索 | ✅ `list_repos` 返回 alias=g2-blocks（N2①） |
+| B2 | 装配区只读入口缺失（QA/美术无同一把钥匙） | 程序 | 只读入口 + 同批截图索引，机判同批 | ✅ ASSEMBLY: PASS · 同批 `be310288cff10563`（N2②；10/3 复检重建导出后同批重拍） |
+| B3 | 10/2 发布 commit 原始输出未归档 | 程序 | 原文落 gate-logs（含命令/钉值/退出码/J1） | ✅ `gate-logs/deploy-20261002/` 三件（N2③） |
+
+### 程序线复检修复记录（2026-10-03 · 新 run 工作区实跑发现，判据零放宽）
+
+#### R4（第二次驳回 · 4 处文档/证据链缺陷 · 机器面与玩法面零改动 · `4f67806` + `fe5fd38`）
+
+| id | 缺陷 | 修法 | 证据 |
+|---|---|---|---|
+| R4① | `assembly-entry.md` 钥匙手抄 batchId 陈旧值 | 改为引用 `assembly-manifest.json` 字段，文档零手抄批次值 | `docs/assembly-entry.md` |
+| R4② | 收口态复跑数字无原文归档（违「归档 = 复跑 stdout 原文」） | worktree 干净 `c425e1f` 实跑归档 + 最终态 `fe5fd38` 全量归档；J1 更正为有档值 | `gate-logs/c425e1f-closeout-recheck-20261003/` · `gate-logs/prog-r4-docfix-recheck-20261003/` |
+| R4③ | `release-readiness.md` §C/§E 滞后 assets.md 收口态 | §C 同步（素材复核 PASS / A-09 已认领 / ART-RECHECK 12/12）+ §E.1/E.2 划账给证 | `docs/release-readiness.md` |
+| R4④ | 双 manifest gitRef 异锚 → QA 必核第三条歧义（根因：必核项自带「gitRef 一致」） | 双生成器落 `sameBatchCriterion` 随件字段 + 必核项更正 + 双清单重出同锚 `4f67806`；同批判据唯 `buildSha256` | `docs/assembly-manifest.json` · `assets/release/shot-manifest.json` · `assembly-entry.md`「同批判据」表 |
+| R4⑤（连带） | levels.md N6 计数 38 与实数不符 | 更正 **42 条**（6+6+7+8+7+8） | `levels.md` N6 行 · `n6-adversarial-cases.md` |
+
+| id | 缺陷 | 修法 | 证据 |
+|---|---|---|---|
+| R2 | `scripts/contract-check.mjs --only <id>` 指向不在当前装载 spec 的 id 时**零断言仍报全绿**（违本脚本反审查约束②；裸跑 ac-19/20/21 必假绿） | 零断言显式 RED + EXIT=1 + 恢复路径提示（`G2_SPEC_PATH=<draft>`） | 裸跑 ac-19 实测 RED/EXIT=1；带钉 3/3 PASS |
+| R3 | tracked `build/` 导出与 src 漂移（src 禁 API 字面量注释措辞改动后未重建，违「确定性导出」） | 重建 `build/` + 同批重拍 4 张实机帧 + P95 报告重出 | 重建 diff 仅 2 文件注释 + sw 版本号；ASSEMBLY 同批 `be310288cff10563`；SMOKE PASS J1=171.5ms |
+
+## 挂账（非本轮动作，防丢失）
+
+| id | 内容 | 归属 | 触发/解除条件 |
+|---|---|---|---|
+| G-A09 | ~~`typeScale` 代改待美术线认领~~ **✅ 10/3 美术线认领**：机判 4 条（三处数值逐字相等 / 基准=layout.h 源码命中 / 390×844 实测 30.4/13.5/36.3px / 门禁全绿不降）；复核同时立案并修复 A-12/A-13/A-14 三缺陷（素材 token 漂移 + 未冻结数值文案 + 内部元数据外泄，源仓 `c425e1f`），证据 `gate-logs/a4-art-recheck-20261003/`（ART-RECHECK 12/12） | 美术 | 已解除 |
+| G-locator | ~~发现器 tie-break 不确定~~ **✅ 10/3 程序线修复**：`repo-one.mjs` tie-break 改「spec updatedAt → git HEAD 提交时刻最新（活跃工作区）」，字母序根源消除；env 双钉仍最优先（已归档证据按原钉值可复跑，证据链不作废）。复跑：不设 env 时 ac-17 detail `root=run-cmurp7sf…`（本 run）· 契约 18/18 · 门禁 ①–⑧ 全绿 | 程序 | 已解除（levels.md「程序线独立复检」R1） |
+| G-A10 | 棋盘纵向定位（提示条隐没后下方留白 ≈25% 屏高） | 美术 | 下一轮 spec 修订 / 美术拍板 `computeLayout` 权重 |
+| G-A11 | 炉冷终局实机帧缺失（需耗尽手数构造） | QA | round-2 用 `__G2_SET_LEVEL` + 长链路构造补帧 |
+| G-cdp | `tools/smoke.mjs` / `screenshot.mjs` 未并入共享件 `tools/cdp.mjs` | 程序 | 两件被 QA 复检器钉档，本轮不代改；下一轮 QA 在场时并 |
+| G-perf | 60fps / P95≤16.7ms 真机终判未做（本轮为 headless 代理证据） | QA | 真机实测后回填 `docs/release-readiness.md` |
+
+## 升级条款（本轮回主人裁决，已超「待确认」级）
+
+| id | 问题 | 为什么不能机器定 |
+|---|---|---|
+| Q1 | daily 时钟倒拨语义（`allowBackdate`）未在 numeric 声明 | 反作弊口径 = 设计决策；建议 v1.3 补 `daily.backdatePolicy=ignore` |
+| Q2 | wx/dy 分享链路（标题/缩略图/落地页）不在 spec 冻结面 | 渠道发布参数属业务拍板；建议归发布就绪清单或 v1.3 补 `share` 段 |
+| Q3 | v1.2 是否 approve（三提案 numeric + 第一分钟引导） | approve 是人的动作，机器不替人判断（红线） |
+
+## 待触发节点（本轮不执行，条件写死）
+
+| 节点 | 触发条件 | 门禁 |
+|---|---|---|
+| N1 approve 确认 | 主人回复（**不接受沉默推断**） | 回复落卷后才算落卷 |
+| N7 round-2 复检 | N1 落卷 **且** N2 三件到齐（✅ 已到齐） | 门禁六条 + 美术四条逐条核，全绿才放行 |
+| N8 v1.2 实现 | **三闸齐**：v1 基线 approve（✅ 已 approved）+ v1.2 数值冻结（✅ 链 v3 draft）+ 主人拍板（⏳） | 顺序 combo → level-stars → daily；实现后 21 条全 PASS 需 spec-data 重生成 |
+| N9 发布 + 提审 | N7 绿 **且** N4 素材就位（✅ 9 件 + 4 截图） | 机器证据随包（gate-logs + release-assets.json + shot-manifest.json） |
+
+## 红线核销（任务书原文 · 全程生效）
+
+- ① v1.2 数值冻结前不写数值实现代码 → ✅ **机判**：`ac-19/20/21` 双态裁决，draft 态下 `src/`+`build/` 零 v1.2 键名（实测零命中）
+- ② 契约测试禁止硬编码派生值，一律读 numeric → ✅ 三 check 全部读 `numeric.combo/daily/levelStars`，零手抄
+- ③ stack-tower 线上零接触 → ✅ ac-17 白名单机判 PASS（root=本 run）；一号仓库 `games/` 禁区零触碰
+- ④ 性能口径落发布就绪清单、不进 spec acceptance → ✅ `docs/release-readiness.md`；素材文案已撤未终判口径
+- ⑤ B1/B2/B3 超一轮不解决 → 升级 → ✅ 本轮内全部闭合，未触发升级
+
+## 提请主人拍板
+
+1. **N1 approve 确认**（上一轮 approve-ready-r2 包：spec v1.1 追认 + 首个可玩构建人工验收 + 部署坑位）——
+   「好不好玩」终裁归主人；本地试玩 `npx serve g2-blocks/build`，线上 `…/apps/g2-blocks-2/`。
+2. **spec v1.2（链 v3 draft）approve**：三提案 numeric（combo 倍率 / daily 周期 / level-stars 派生式）+ 第四提案第一分钟引导。
+   approve 后触发 N8（combo → level-stars → daily 顺序实现）。
+3. **Q1 / Q2 裁决**（见升级条款）。
+
+---
+
+# 上一轮（R2「spec v1 → 首个可玩构建」轮 · 收口）存档
+
+> 更新时间：2026-10-02（N1–N5 全链核销 · 主策划）；下一步：等主人拍板（approve-ready-r2 包）
+
+## 当前基线（R2 轮收口 · 2026-10-02 · 部署轮追加）
+
+- **部署轮追加（2026-10-02 · 程序线）**：首个可玩构建已上 AppHost——专属坑
+  `cmuqelj2r0046m9zr4emgdgdg` / slug `g2-blocks-2` / liveUrl
+  `https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/` / gitRef
+  `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `8d40c39`；
+  导出产物 `games/g2-blocks/export/web/`（17 文件，= 源仓 `g2-blocks@0c3aa95` build/ 逐字节相等）；
+  部署前门禁复跑全绿（contract-check 18/18 EXIT=0 · 七件套 EXIT=0 · 冒烟 PASS J1=183.8ms），
+  线上真浏览器自测 **LIVE-SMOKE: PASS**。全文见 `apphost-app.md` + `gate-logs/deploy-20261002/`。
+  numeric 锚零改动（`302e6336…`），spec 链零改动，一号工程面（games/stack-tower、games/game、根 apphost.toml）零触碰；
+  源仓守卫策略 `ci/scope-policy.json` 白名单新增 `games/g2-blocks/`（部署面新路径，ac-17 自检复跑 PASS，commit `ac47c4f`）。
+
+- **黑板路径**：`.myrd/blackboard/g2-blocks/`（levels.md / assets.md / blockers.md 三件套 + approve-ready-r2.md + gate-logs/）
+- **spec 版本号**：**v1.1 = 链 v2 · approved（唯一）**，平台 id `cmuqa2mu50023m9zr8mh60uph`；v1 `cmuovwra0004gm97tinha15zq` superseded 未覆盖
+  - 链上流转披露（N1 时点）：开工时 v1 为 draft（上轮收口态）→ 主策划按本轮任务书授权实调 approve → v1 approved → v1.1 经 `POST /revisions` version+1 入链（draft）→ 实调 approve → **v2 approved（唯一）**、v1 自动转 superseded。两步 approve 均已在提请包中显式披露供主人追认/否决。
+- **numeric 冻结锚**：sha256(sortKeys) = `302e63367f3dea63212ad689a33703d83886d145862db0d724df98e97fea2d89`（v1 ≡ v1.1 逐字节全等，QA G1/c 机判）
+- **导出件**：`.myrd/spec/g2-blocks/design-spec.json`（= 链上 v2 回读全等，QA G1/g 机判）
+- **g2-blocks 仓库**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks`
+  R2 轮提交链：`19ed02c`（N1 v1.1）→ `e6ba6fb`（M0 红态）→ `4e510b6`（N2+N3）→ `743fb77`（N4 复检器）→ `4a9cadb`（N4 收口）→ `c07ac4e` + `8249249`（复证轮）→ `a8a0c90`（R3 F1+F2）→ `b819be1`（R3 F3+F4+加固）→ `46a85b0`（R3 N4 复检归档，HEAD 树净）
+- **复证轮实录（2026-10-02 · 程序线）**：契约 18/18 EXIT=0 + 冒烟 SMOKE: PASS（J1=179.1ms）+ QA round-3 重跑 VERDICT: APPROVE-READY（24/24 gates · R1–R7 零打回）+ numeric 锚独立重算 ANCHOR MATCH——全部显式钉本 run（`G2_SPEC_PATH`/`G2_REPO_ONE_ROOT` = `run-cmuq9pz86001vm9zrmqyfm59c`），原文见 levels.md 复证轮实录与 `g2-blocks/docs/evidence/qa-round3-run.log`
+- **一号仓库**：零接触（R3 修后守卫 self-check 对本 run `git status` 机判 PASS：tracked 工程面 diff 空，黑板更新走 `allowedNewPaths` 白名单路径，不触 `games/` 等禁区；ac-17/framework 定位已根治误锚，不设 env 自动锚本 run）
+
+## 阻塞项（R2 轮 · 全部闭合 ✅）
+
+| id | 内容 | 归属线 | 解除判据 | 状态 |
+|---|---|---|---|---|
+| B3 | spec v1.1 未入链 | 策划 | revisions version+1 入链 + numeric 零 diff + 六段零 diff | ✅ 闭合（QA G1/c–g） |
+| B4 | 可玩构建未产出 | 程序 | contract-check 绿（18/18 EXIT=0）+ 冒烟绿（可开+可玩+SW+J1 达标）+ 原文落档 + 提交 | ✅ 闭合（QA G2/G3） |
+| B5 | 资产三批未交付 | 美术 | 三批 kebab-case + 映射表 + assets.md 总表 | ✅ 闭合（QA G5/a–d） |
+| B6 | QA round-3 未跑 | QA | 单一 verdict JSON | ✅ 闭合（VERDICT: APPROVE-READY，24/24 gates · R1–R7 零打回） |
+
+## R3 驳回轮（QA round-1 打回 F1–F4 · 全部闭合 ✅ 2026-10-02）
+
+| id | 内容 | 归属线 | 解除判据 | 状态 |
+|---|---|---|---|---|
+| B7 | F1+F2 炉冷双判退化单点 + trace 重排无效机判 + 披露与代码相反（拍板依据失真） | 程序 | sim.ts 判点一真实前移（重力落定后/补手前，含空洞盘）；trace 如实记录；ac-07/ac-08 改真实时点机判 | ✅ 闭合（`a8a0c90`；机判 filled=61/64 · QA G2/a 现场复跑绿） |
+| B8 | F3 renderer 7 处 rgba 盲区（辉光值漂移 rgb(210,160,40)≠token #C89C19） | 程序 | 全部接线 theme 单源；美术规格补录 tint/innerStroke/topHighlight/coolScrim；ac-11 扫描扩展 rgba/rgb 形态（红验必咬） | ✅ 闭合（`b819be1`；ac-11 17 色溯源 PASS） |
+| B9 | F4 level-2 玩家不可达 + parseGoals/goalEval/el-hint 零测试覆盖 | 程序 | level-2 三入口（键盘 1/`?level=`/`__G2_SET_LEVEL`）+ HUD spec 现读；levels.spec.mjs 入 run-all ⑦；smoke 补 level-2 面 | ✅ 闭合（`b819be1`；冒烟 level-2 入口可达可玩+切换回路） |
+| B10 | 附带：ac-17/framework 一号仓库定位字母序误锚旧 run（上轮已披露坑） | 程序 | 共享定位件 repo-one.mjs（spec 导出件 updatedAt 最新优先），两处统一接入 | ✅ 闭合（`b819be1`；不设 env 自动锚本 run） |
+
+- **R3 修后 N4 复检：VERDICT: APPROVE-READY（gates 24/24 · R1–R7 零打回 · J1=177.3ms）**，证据 `g2-blocks/docs/evidence/qa-round3-run.log`（commit `46a85b0`）。
+- 挂账注记①（炉冷判点一含空洞盘）随 B7 修复**与代码一致**，原披露不再失真；缺口通道未动用（spec 零改动，numeric 锚 `302e6336…` 全程不变）。
+
+### 挂账（非本轮动作，防丢失）
+
+- **美术线 intent 更正案**：继续挂账顺延下一轮 spec 修订（本轮「仅动 acceptance 段 + numeric 零 diff」硬约束不可随版；6 步执行序见 assets.md）。
+- ~~**美术线门禁 env 钉值登记建议**~~（✅ 2026-10-02 销账）：F4 修复轮 `tests/contract/repo-one.mjs`
+  共享定位件根治（多候选取 spec 导出件 updatedAt 最新，ac-17 与 framework.spec 统一接入）；
+  美术线复跑实证 ac-17 无钉值自动正锚本 run（`gate-logs/r3-art-ratify-20261002/03-contract-check.log` 原文）。
+- **美术线跨线认领流程提醒**（2026-10-02 复核轮新增，非阻塞）：F3 修复对美术交付件（style-card/backdrop）
+  的代改走 QA 打回通道合规且黑板有补录登记，但作者线（美术）事后认领当时缺位、本轮已补
+  （见 assets.md「美术线认领」）；建议后续打回项显式 @ 作者线复核。
+- **缺口通道 A 档口径注记（本轮实现判读，随包披露）**：
+  ① 炉冷判点一（落定结算后）在补手前的盘面上执行（含消除空洞），spec「落定结算后+补手后各判一次」的字面实现（ac-07 机判双探针在档）；
+  ② 初始盘面为 uniform_random 字面填充，不附加「开局无三连」约束（spec 未声明；若需约束走缺口通道 B/C）；
+  ③ 连击加成按 `(chain − appliesFromChain + 1) × chainBonus` 单调递增（冻结四手向量只锚 chain≤2，外推一致）。
+  三条均零新增数值、零 spec 改动；如主人裁定不同口径 → 下一轮 spec 修订闭合。
+
+## 升级条款
+
+- B3–B6 全部本轮闭合，未触发升级。主人侧待拍板见 approve-ready-r2 包。
+
+## 红线（任务书原文，全程有效）
+
+- numeric 零漂移 ✅（锚全等机判）；代码零裸 hex ✅（全仓 hex 逐一溯源 theme 单源，G4/d+ac-11）；不动 stack-tower 一号仓库 ✅（G6/a）；不开新品选型 ✅；不做 wx/dy/Steam/Roblox 移植 ✅（G6/c 无移植面 + ac-10 deferred 注记）；missions 不激活 ✅（G6/d）；scope_gate 挂起 ✅。
+
+## 提请主人拍板
+
+1. **spec v1.1（链 v2）approve 追认** + 链上 approve 动作披露的追认/否决。
+2. **首个可玩构建人工验收**（「好不好玩」终裁归主人）：本地构建 `build/`，冒烟已机判可玩；人工试玩路径 = `npx serve g2-blocks/build`（或任意静态服务器）→ 浏览器打开 → 点选相邻两块交换。
+3. ~~部署坑位（是否为 g2-blocks 建 apphost 坑并发布）~~：✅ **已建坑并发布（2026-10-02 部署轮）**——
+   专属坑 `cmuqelj2r0046m9zr4emgdgdg`（slug `g2-blocks-2` · sourceId `g2-blocks` · projectId GameAppStore），
+   liveUrl `https://leomac-studio.tail49399e.ts.net/apps/g2-blocks-2/`（玩法入口 `/gw`），
+   gitRef `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `8d40c39`；线上真浏览器自测 LIVE-SMOKE: PASS。
+   登记全文见 `apphost-app.md`，证据 `gate-logs/deploy-20261002/`。**人工「好不好玩」终裁仍归主人。**
+
+---
+
+# 上一轮（N1 修复轮 · 2026-10-01）台账存档
+
+## 当前基线（N1 修复轮 · 2026-10-01 收口态）
+
+- **黑板路径**：`.myrd/blackboard/g2-blocks/`（levels.md / assets.md / blockers.md / approve-ready-n1.md
+  / evidence-one-line-template.md + gate-logs/{n1-palette-20261001, n1-round2-20261001}）
+- **spec 版本号**：**v1 · draft（当时待主人 approve）**，平台 id `cmuovwra0004gm97tinha15zq`
+- **导出件**：`.myrd/spec/g2-blocks/design-spec.json`（wrapped 形状，回读与链上 sortKeys 全等）
+- **numeric 冻结锚**：sha256(sortKeys) = `302e63367f3dea63212ad689a33703d83886d145862db0d724df98e97fea2d89`
+- **g2-blocks 新仓库**：`/Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks`（独立 git 仓库）
+- **一号仓库**：开工至收口 `git status --porcelain` 仅 3 行且全部白名单内
+
+## N1 轮 B1/B2（✅ 已闭合，存档）
+
+| id | 内容 | 解除判据 | 状态 |
+|---|---|---|---|
+| **B1** | 色板未定稿：余烬金占位 hex `#FFC94A` 非真值；暖区缺第 6/7 色 | 7 色齐 + 21 对双门禁全绿 + 证据四要素落档 + assets.md 定稿 | ✅ 解除（`#C89C19` + `#4B2B25`/`#E3B5BF`；ALL-GREEN minΔE 26.555 / 阈值 25） |
+| **B2** | spec 未入链：五处修法 + 色板未落成 version 1 | v1 经接口入链（一次成链）+ round-2 无新红 + approve-ready 提请主人 | ✅ 解除（v1 `cmuovwra0004gm97tinha15zq`；round-2 27 断言无红） |
+
+## N1 轮遗留移交（存档）
+
+- 【移交一号线·非本轮产物】stack-tower 聚合门禁存量低频 flaky（2 项）：`m21-acc-m3-rotate-pause`、`acc-j1`——本线不代修（红线：不改一号任何文件），已留痕移交。

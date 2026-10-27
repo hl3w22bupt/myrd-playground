@@ -1,0 +1,15 @@
+# 5 · 断网核心循环（2026-09-29）
+$ node tests/contract/b1-acc-b6-telemetry-meta.spec.mjs（断网队列+补报+去重断言）
+[contract] acc-b6 · lvl-01-stack-tower/e-telemetry-meta
+  ok    事件族枚举封闭（附录 B 五事件）+ acc-e1 核心六事件不受影响
+  ok    dedupe_id 必填 + 断网入队 + 恢复按序补报 + 队首失败即停
+  ok    去重：同 dedupe_id 不重复送达（崩溃后重复入队 → flush 丢弃）
+  ok    白名单双向断言：白名单外丢弃 / 类型不符整条拒发 / 枚举外丢弃
+  ok    队列容量 200：满丢最旧（丢旧不丢新）
+RESULT: PASS (5/5)
+
+$ SMOKE_BROWSER=1 node tests/smoke.mjs（核心循环不依赖网络）
+  ok    核心循环：3 次点击落块生效，HUD "分数 45"
+  ok    重开：R 键后 HUD "分数 0"（分数/连击清零）
+  ok    零页面错误（pageerror / console.error 均无）
+RESULT: PASS (browser)

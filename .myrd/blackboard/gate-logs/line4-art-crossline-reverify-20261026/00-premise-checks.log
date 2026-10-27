@@ -1,0 +1,73 @@
+== 美术跨线重证 · 2026-10-26T02:54:54Z ==
+HEAD: 19f60ce53b32abaa81d62f7b7d27fec17060e0ee
+触发: 他线 19f60ce（驳回修复轮）落盘 → 按跨线重证纪律三件套
+
+== (a) spec 链面（是否落新 revision/新链）==
+id=undefined | status=approved | version=2
+
+== (b1) 程序勘误主张亲核：构建锚=bc3cd56 ==
+-- export/web/manifest.json 前2行 --
+{
+  "gitSha": "bc3cd5669e31613adf266f72303461def02212ad",
+-- export/web/src/main.mjs 第1行 --
+const __L4_BUILD__ = { gitSha: "bc3cd5669e31613adf266f72303461def02212ad", specAnchor: "cmvlrc0ma001tm94ialxeykjn@v2:approved" };
+
+== (b2) theme.ts 零触碰（blob hash 对 10/25 判例 739f1b20）==
+4f4053f feat(PL4,包1): 拍板B落档+spec v0入链+五件工程准备+美术三件
+739f1b20ca95e40e539ceff059b292f128dc358b
+739f1b20ca95e40e539ceff059b292f128dc358b
+
+== (b3) 美术面：main.ts 裸 hex ≡ theme.ts PALETTE token 等值机判 ==
+-- theme.ts PALETTE 定义 --
+6:export const PALETTE = {
+7:  ground: '#F2EFE6', // 地面底（米白）
+9:  ink: '#2B2D42', // UI 主字/描线（墨蓝）
+17:export const PALETTE_HEX_LIST: readonly string[] = Object.values(PALETTE);
+-- main.ts 裸 hex 命中面 --
+35:  style.textContent = `html,body{margin:0;height:100%;background:${'#F2EFE6'};overflow:hidden;touch-action:none}
+36:canvas{display:block}#l4-top{position:fixed;top:8px;left:12px;font:600 15px system-ui;color:${'#2B2D42'}}
+37:#l4-hud{position:fixed;right:8px;bottom:8px;margin:0;font:11px/1.5 ui-monospace,monospace;color:${'#2B2D42'};
+38:opacity:.85;background:${'#F2EFE6'}cc;padding:6px 8px;border-radius:6px;white-space:pre;text-align:left}`;
+-- main.ts 全文件裸 hex 总数（应=4）--
+4
+-- 白名单外裸 hex（应零）--
+(零命中)
+
+== (c) 全量 verify.sh @ 19f60ce（WX=1）==
+结果: 17 步全 PASS · exit 0 · 证据 verify/01..09+manifest.txt
+
+== 构建产物恢复（保 bc3cd56 三锚闭环）==
+-- 跑门禁后 build 重写锚（临时）--
+  "gitSha": "19f60ce53b32abaa81d62f7b7d27fec17060e0ee",
+ M games/line4-unblock-jam/export/web/manifest.json
+ M games/line4-unblock-jam/export/web/src/main.mjs
+-- 恢复后（应=bc3cd56 · 树净）--
+  "gitSha": "bc3cd5669e31613adf266f72303461def02212ad",
+(工作树净)
+-- verify 步清单 --
+01-contract-unified | node scripts/contract-check.mjs --spec .myrd/spec/line4-unblock-jam/design-spec.json --project games/line4-unblock-jam | 2026-10-26 10:56:57 | exit=0
+02-check-acc-01-seeded-determinism | node games/line4-unblock-jam/tests/contract/checks/acc-01-seeded-determinism.mjs | 2026-10-26 10:56:57 | exit=0
+02-check-acc-02-exit-feedback-latency | node games/line4-unblock-jam/tests/contract/checks/acc-02-exit-feedback-latency.mjs | 2026-10-26 10:56:57 | exit=0
+02-check-acc-03-combo-pending-invariant | node games/line4-unblock-jam/tests/contract/checks/acc-03-combo-pending-invariant.mjs | 2026-10-26 10:56:57 | exit=0
+02-check-acc-04-red-round-boundaries | node games/line4-unblock-jam/tests/contract/checks/acc-04-red-round-boundaries.mjs | 2026-10-26 10:56:57 | exit=0
+02-check-acc-05-no-external-texture | node games/line4-unblock-jam/tests/contract/checks/acc-05-no-external-texture.mjs | 2026-10-26 10:56:58 | exit=0
+02-check-acc-06-perf-caps | node games/line4-unblock-jam/tests/contract/checks/acc-06-perf-caps.mjs | 2026-10-26 10:56:58 | exit=0
+02-check-acc-07-telemetry-key-parity | node games/line4-unblock-jam/tests/contract/checks/acc-07-telemetry-key-parity.mjs | 2026-10-26 10:56:58 | exit=0
+02-check-g-01-first-60s-guide | node games/line4-unblock-jam/tests/contract/checks/g-01-first-60s-guide.mjs | 2026-10-26 10:56:58 | exit=0
+02-check-ac-template.spec | node games/line4-unblock-jam/tests/contract/ac-template.spec.mjs | 2026-10-26 10:56:58 | exit=0
+03-scaffold-smoke | node games/line4-unblock-jam/tools/smoke.mjs | 2026-10-26 10:56:58 | exit=0
+04-port-gate-web | node games/line4-unblock-jam/tools/port-gate-checklist.mjs --target web | 2026-10-26 10:56:58 | exit=0
+05-port-gate-wx | node games/line4-unblock-jam/tools/port-gate-checklist.mjs --target wx | 2026-10-26 10:56:58 | exit=0
+06-assets-gate | node games/line4-unblock-jam/tools/check-assets.mjs | 2026-10-26 10:56:58 | exit=0
+07-build | node games/line4-unblock-jam/tools/build.mjs | 2026-10-26 10:56:58 | exit=0
+08-guard-landing-shell | node games/line4-unblock-jam/ci/guard-landing-shell.mjs | 2026-10-26 10:56:58 | exit=0
+09-playable-smoke | node games/line4-unblock-jam/tools/smoke-playable.mjs | 2026-10-26 10:56:58 | exit=0
+
+== 复证判定（游戏美术署名 · 跨线重证三件套）==
+(a) spec 链面：无新 revision/新链 —— status=approved · version=2 · 构建锚 specAnchor=cmvlrc0ma001tm94ialxeykjn@v2:approved（main.mjs 实读）
+(b1) 程序勘误主张亲核：export/web/manifest.json:2 与 src/main.mjs:1 双锚同值 bc3cd5669e… ——「原记 4f8ad15 系虚记」勘误成立，认领共板 blockers.md 部署实录勘误句
+(b2) theme.ts blob @19f60ce = 739f1b20… ≡ 10/25 判例值 —— 零触碰
+(b3) 美术面裸 hex 机判：main.ts 4 处（#F2EFE6×2 ≡ PALETTE.ground · #2B2D42×2 ≡ PALETTE.ink），白名单外零取色 → 挂账项①=纯引用替换零视觉漂移（预审通过）；执行提示：'#F2EFE6}cc' 处 alpha 后缀须随 token 保留（token 给色值，alpha 属模板面）
+(c) 全量 verify.sh @ 19f60ce（WX=1）：17 步全 PASS · exit 0（verify/01..09+manifest.txt）；跑后 build 重写锚 19f60ce → git restore 恢复 → 锚回 bc3cd56 · 工作树净（沿前轮「跑门禁恢复产物」惯例）
+== 边界 ==
+本轮零素材产出、零接线变更、零 spec/theme/src 触碰（改动面=本证据目录+assets.md §八登记）。

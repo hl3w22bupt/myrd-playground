@@ -1,0 +1,120 @@
+== [verify.sh] ① 统一契约门禁（approved spec 对账） ==
+—— 契约测试输出 ——
+  PASS  spec 可解析: .myrd/spec/line3-tower-defense/design-spec.json
+  PASS  spec 为 approved 版（平台登记 v2 · cmvbqgzbl0029m9ax64foxd37）
+  PASS  六段完整: meta
+  PASS  六段完整: world
+  PASS  六段完整: entities
+  PASS  六段完整: levels
+  PASS  六段完整: numeric
+  PASS  六段完整: acceptance
+  PASS  实体 e-kernel-loop script 存在: games/line3-tower-defense/src/kernel/loop.ts
+  PASS  实体 e-kernel-loop scene 声明无场景（"-"）
+  PASS  实体 e-kernel-sim script 存在: games/line3-tower-defense/src/kernel/sim.ts
+  PASS  实体 e-kernel-sim scene 声明无场景（"-"）
+  PASS  实体 e-grid script 存在: games/line3-tower-defense/src/world/grid.ts
+  PASS  实体 e-grid scene 存在: src/scene/battlefield.ts
+  PASS  实体 e-core script 存在: games/line3-tower-defense/src/world/core.ts
+  PASS  实体 e-core scene 存在: src/scene/battlefield.ts
+  PASS  实体 e-turret script 存在: games/line3-tower-defense/src/entities/turret.ts
+  PASS  实体 e-turret scene 存在: src/scene/battlefield.ts
+  PASS  实体 e-enemy script 存在: games/line3-tower-defense/src/entities/enemy.ts
+  PASS  实体 e-enemy scene 存在: src/scene/battlefield.ts
+  PASS  实体 e-projectile script 存在: games/line3-tower-defense/src/entities/projectile.ts
+  PASS  实体 e-projectile scene 存在: src/scene/battlefield.ts
+  PASS  实体 e-wave-director script 存在: games/line3-tower-defense/src/systems/waveDirector.ts
+  PASS  实体 e-wave-director scene 声明无场景（"-"）
+  PASS  实体 e-economy script 存在: games/line3-tower-defense/src/systems/economy.ts
+  PASS  实体 e-economy scene 声明无场景（"-"）
+  PASS  实体 e-telemetry script 存在: games/line3-tower-defense/src/telemetry/emitter.ts
+  PASS  实体 e-telemetry scene 声明无场景（"-"）
+  PASS  实体 e-render script 存在: games/line3-tower-defense/src/render/renderer.ts
+  PASS  实体 e-render scene 存在: src/scene/battlefield.ts
+  PASS  实体 e-input script 存在: games/line3-tower-defense/src/input/touch.ts
+  PASS  实体 e-input scene 声明无场景（"-"）
+  PASS  关卡元素编号唯一性核对完成（7 个）
+  PASS  数值扫描源就绪（29 个脚本，三层解析）
+  PASS  数值 DEFAULT_SEED 在工程常量区有对应
+  PASS  数值 FIXED_STEP_MS 在工程常量区有对应
+  PASS  数值 _calibrationNote 为注记键（下划线前缀，非数值字段，不入机判）
+  PASS  数值 coreLives 在工程常量区有对应
+  PASS  数值 economy 在工程常量区有对应
+  PASS  数值 enemy 在工程常量区有对应
+  PASS  数值 feedback 在工程常量区有对应
+  PASS  数值 firstPlacementBudgetSec 在工程常量区有对应
+  PASS  数值 palette 在工程常量区有对应
+  PASS  数值 perf 在工程常量区有对应
+  PASS  数值 turret 在工程常量区有对应
+  PASS  数值 victoryWaves 在工程常量区有对应
+  PASS  数值 waveBand 在工程常量区有对应
+  PASS  数值 waveTable 在工程常量区有对应
+  PASS  验收项 a1-td-first-placement-feedback 依赖存在: games/line3-tower-defense/tests/contract/checks/a1-td-first-placement-feedback.mjs
+  PASS  验收项 a2-td-wave-duration-band 依赖存在: games/line3-tower-defense/tests/contract/checks/a2-td-wave-duration-band.mjs
+  PASS  验收项 a3-td-restart-willingness check 为命令型（无文件断言）
+  PASS  验收项 a4-td-feedback-channels 依赖存在: games/line3-tower-defense/tests/contract/checks/a4-td-feedback-channels.mjs
+  PASS  验收项 det-1-td-seeded-determinism 依赖存在: games/line3-tower-defense/tests/contract/checks/det-1-td-seeded-determinism.mjs
+  PASS  验收项 tex-1-td-no-external-texture 依赖存在: games/line3-tower-defense/tests/contract/checks/tex-1-td-no-external-texture.mjs
+  PASS  验收项 perf-1-td-entity-cap 依赖存在: games/line3-tower-defense/tests/contract/checks/perf-1-td-entity-cap.mjs
+  PASS  验收项 a5-td-onboarding-four-events 依赖存在: games/line3-tower-defense/tests/contract/checks/a5-td-onboarding-four-events.mjs
+  PASS  验收项 a6-td-operation-paths 依赖存在: games/line3-tower-defense/tests/contract/checks/a6-td-operation-paths.mjs
+  PASS  验收项 ac-art-1-td-palette-whitelist 依赖存在: games/line3-tower-defense/tests/contract/checks/ac-art-1-td-palette-whitelist.mjs
+  PASS  验收项 ac-art-2-td-asset-manifest-cap 依赖存在: games/line3-tower-defense/tests/contract/checks/ac-art-2-td-asset-manifest-cap.mjs
+  PASS  验收项 ac-art-3-td-stylecard-tokensource 依赖存在: games/line3-tower-defense/tests/contract/checks/ac-art-3-td-stylecard-tokensource.mjs
+  PASS  验收项 ac-art-4-td-visual-signature 依赖存在: games/line3-tower-defense/tests/contract/checks/ac-art-4-td-visual-signature.mjs
+  PASS  验收项 inv-1-td-entity-file-alignment 依赖存在: games/line3-tower-defense/tests/contract/checks/inv-1-td-entity-file-alignment.mjs
+  PASS  验收项 fnd-1-td-telemetry-fieldnames 依赖存在: games/line3-tower-defense/tests/contract/checks/fnd-1-td-telemetry-fieldnames.mjs
+—— 合计 63 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
+== [verify.sh] ① 统一契约门禁（approved spec 对账） :: PASS ==
+
+== [verify.sh] ② 自有契约套件（14 auto + a3 PEND） ==
+—— 契约 runner（line3-tower-defense · spec 链 1.0）——
+  PASS a1-td-first-placement-feedback (71ms) · PASS a1-td-first-placement-feedback 5/5 种子 [{"seed":20261016,"firstPlacementMs":0,"feedbackLatencyMs":0,"firstInteractionWallMs":0,"withinBudgetSec":true,"within30s":true,"latencyOk":true},{"seed":20261017,"firstPlacemen
+  PASS a2-td-wave-duration-band (593ms) · PASS a2-td-wave-duration-band n=20 P50=282.128s P90=335.312s min=216.176s max=348.768s 结局={"defeat":20} 链=20/20
+  PASS a4-td-feedback-channels (133ms) · PASS a4-td-feedback-channels 放置通道=[flash-place-bounce,range-circle-consumed,guidance-dismiss] 升级通道=[flash-upgrade,level-star+1] 命中通道=[flash,particles,trace,hud] 延迟采样=4(≤100ms) 帧P95=0.019ms n=3000
+  PASS det-1-td-seeded-determinism (4189ms) · PASS det-1-td-seeded-determinism 全 tick=13511 哈希逐字节等 · 四表逐值等 · src 扫描 19 文件零 Math.random/Date.now
+  PASS tex-1-td-no-external-texture (74ms) · PASS tex-1-td-no-external-texture src+tools 扫描 25 文件零位图构造 · manifest 6 件全带 hash
+  PASS perf-1-td-entity-cap (163ms) · PASS perf-1-td-entity-cap 实体峰值=35(≤220) 单步P95=0.003ms max=0.305ms(≤16) 中端档=13511/13511(≤33ms) 首交互=0.2ms(≤3000) 波覆盖=8/8
+  PASS a5-td-onboarding-four-events (83ms) · PASS a5-td-onboarding-four-events hint@0ms → first_tap@4800ms(≤5000窗) → first_loop_complete@44352ms(tick0) → restart_clicked 1→2 · 文案三方逐字同名 12/12
+  PASS a6-td-operation-paths (86ms) · PASS a6-td-operation-paths 5/5 条可达（place/up/speed/guidance/restart 锚全带）· 绘桩 smoke 5 帧零异常
+  PASS ac-art-1-td-palette-whitelist (72ms) · PASS ac-art-1-td-palette-whitelist src+tools 24 文件 hex 扫描零违例（白名单 8 色 + 派生声明面）
+  PASS ac-art-2-td-asset-manifest-cap (135ms) · PASS ac-art-2-td-asset-manifest-cap 6/13 件逐件带 生成器行号+sha256 · 重生成逐字节一致
+  PASS ac-art-3-td-stylecard-tokensource (73ms) · PASS ac-art-3-td-stylecard-tokensource 裸 hex 仅 config.ts 声明面（spec→config→theme 单源链）· PALETTE≡spec≡风格卡 8 行逐值一致
+  PASS ac-art-4-td-visual-signature (72ms) · PASS ac-art-4-td-visual-signature 映射键集合全等 8/8（a1/a4/a5 + 5 path id）
+  PASS inv-1-td-entity-file-alignment (71ms) · PASS inv-1-td-entity-file-alignment entities 12/12 落点在盘 ∧ inventory 一一对应（归一化口径）
+  PASS fnd-1-td-telemetry-fieldnames (72ms) · PASS fnd-1-td-telemetry-fieldnames 键集合全等 8/8 · 四件定名逐字符在位
+  PEND a3-td-restart-willingness（manual 真人面 · 未判定·待采 · 机器不代采）
+—— 合计 auto 14 PASS / 0 FAIL · manual PEND 1 ——
+RUN-ALL: PASS 机判面 14/14 全绿（manual 1 条真人面单列未判定）
+== [verify.sh] ② 自有契约套件（14 auto + a3 PEND） :: PASS ==
+
+== [verify.sh] ⓪ 构建面（确定性产物，冒烟前置） ==
+build: 22 文件 → build/ · gitSha=fa71074a · specAnchor=cmvbqgzbl0029m9ax64foxd37@v2:approved
+(node:40810) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+== [verify.sh] ⓪ 构建面（确定性产物，冒烟前置） :: PASS ==
+
+== [verify.sh] ⓪+B 部署壳契约（landing.html 缺失即回落 game-9 内置壳，W-3/B-5 收口） ==
+LANDING-SHELL: PASS landing.html 在产且引用走 api/public/assets/*（部署壳契约收口）
+== [verify.sh] ⓪+B 部署壳契约（landing.html 缺失即回落 game-9 内置壳，W-3/B-5 收口） :: PASS ==
+
+== [verify.sh] ③ L3-SMOKE headless 全链路 ==
+[l3-smoke] 静态服务 http://127.0.0.1:54008/（build/ 载面）
+[l3-smoke] chromium 就绪（CDP page target）
+[l3-smoke] ready ✓ __L3_READY=true
+[l3-smoke] 构建锚 ✓ {"gitSha":"fa71074adb6f53013c31af302a45264e9b5ed225","specAnchor":"cmvbqgzbl0029m9ax64foxd37@v2:approved"}
+[l3-smoke] spec 装配 ✓（cfg.victoryWaves 可读）
+[l3-smoke] 开始布防 ✓（title→running）
+[l3-smoke] 首次放置 ✓（turrets=1，含二步菜单确认）
+[l3-smoke] first_placement_at ✓ {"name":"first_placement_at","atMs":592}
+[l3-smoke] 加速 ×2 ✓（path-speed-toggle-01）
+[l3-smoke] 战局到结算 ✓（status=defeat）
+[l3-smoke] 再来一局 ✓ restart_clicked=[{"name":"restart_clicked","atMs":0,"count":1}]
+L3-SMOKE: PASS 打开→开始→放置→加速→结算→重开 全链路 · 零 console 错误 · 锚={"gitSha":"fa71074adb6f53013c31af302a45264e9b5ed225","specAnchor":"cmvbqgzbl0029m9ax64foxd37@v2:approved"}
+== [verify.sh] ③ L3-SMOKE headless 全链路 :: PASS ==
+
+== [verify.sh] ④ SCOPE-GUARD 源面纪律扫描（src+tools） ==
+SCOPE: PASS src+tools 25 文件（确定性/零位图/裸 hex 声明面）三判零违例
+== [verify.sh] ④ SCOPE-GUARD 源面纪律扫描（src+tools） :: PASS ==
+
+VERIFY: PASS line3-tower-defense 契约/冒烟/扫描全绿（exit 0）

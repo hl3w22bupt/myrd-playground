@@ -1,0 +1,8 @@
+# cmd: G2_SPEC_PATH=<链 v8 draft> node scripts/contract-check.mjs --only ac-32-settlement-ia（先红）
+# cwd: g2-blocks-v13（修复前实现）
+# utc: 2026-10-09T03:41:03Z
+# g2-blocks contract-check · spec v8 (draft) anchor=…
+RED  ac-32-settlement-ia :: 执行异常 best=0 边界：必须 edge 降级文案（e-personal-best.zeroBoundary）
+—— 合计 0 PASS / 1 FAIL / 0 PEND（显式挂起） ——
+CONTRACT: RED 契约未全绿，禁止提交
+EXIT=1

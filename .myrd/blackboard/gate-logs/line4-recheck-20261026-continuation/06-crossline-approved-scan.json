@@ -1,0 +1,383 @@
+{
+ "capturedAt": "2026-10-26T02:13:17.619Z",
+ "command": "GET /api/v1/game-design-specs?projectId=cmto0g28j0002m9sqnvjdy8o7&pageSize=200 (Bearer)",
+ "http": 200,
+ "total": 52,
+ "approvedCount": 1,
+ "approvedIds": [
+  "cmvlrc0ma001tm94ialxeykjn@v2"
+ ],
+ "keyLines": {
+  "stack-tower v6": "cmulzwv6c005km9lfo3zek574",
+  "wheat-squad v6": "cmv8xcexk0009m9dj6ev1dj0r",
+  "line3 v4": "cmvkb2d8y001fm968778whydc",
+  "line4 v2(approved 唯一)": "cmvlrc0ma001tm94ialxeykjn"
+ },
+ "note": "平台 approve 语义实测=同 projectId 全局唯一 approved：line4 v2 approve(2026-10-24T08:43:25.904Z) 前 2ms，line3 v4 被顶 superseded(08:43:25.902Z)；stack-tower v6 于 09-30、wheat-squad v6 于 10-16 同语义被顶。各线工程契约读本地导出件(锚=approve 时点快照)不受影响；受影响面=「链上 approved 唯一」口径类主张与未来平台 GET 复证场景。",
+ "specs": [
+  {
+   "id": "cmv35u0hd001qm9mxnwboe0qv",
+   "v": 10,
+   "st": "superseded",
+   "up": "2026-10-11T14:57:24.308Z",
+   "t": "g2-blocks（熔炉方块）"
+  },
+  {
+   "id": "cmv1q9k690045m94obp29ysre",
+   "v": 9,
+   "st": "superseded",
+   "up": "2026-10-11T01:44:19.423Z",
+   "t": "g2-blocks（熔炉方块）"
+  },
+  {
+   "id": "cmv0aoxtt004gm9vigjmn09bh",
+   "v": 8,
+   "st": "superseded",
+   "up": "2026-10-10T01:40:44.751Z",
+   "t": "g2-blocks（熔炉方块）"
+  },
+  {
+   "id": "cmuyvvhql0043m93eu777kop8",
+   "v": 7,
+   "st": "superseded",
+   "up": "2026-10-09T01:37:02.257Z",
+   "t": "g2-blocks（熔炉方块）"
+  },
+  {
+   "id": "cmunf6r1e014cm9lfamzllk2h",
+   "v": 7,
+   "st": "superseded",
+   "up": "2026-10-02T01:14:54.330Z",
+   "t": "Stack Tower（叠塔）"
+  },
+  {
+   "id": "cmv8xcexk0009m9dj6ev1dj0r",
+   "v": 6,
+   "st": "superseded",
+   "up": "2026-10-16T02:34:48.408Z",
+   "t": "麦浪小队（wheat-squad"
+  },
+  {
+   "id": "cmuw3gcgm01a9icryraii5dzp",
+   "v": 6,
+   "st": "superseded",
+   "up": "2026-10-08T01:54:27.584Z",
+   "t": "g2-blocks（熔炉方块）"
+  },
+  {
+   "id": "cmulzwv6c005km9lfo3zek574",
+   "v": 6,
+   "st": "superseded",
+   "up": "2026-09-30T01:21:51.440Z",
+   "t": "Stack Tower（叠塔）"
+  },
+  {
+   "id": "cmv7hekf3000mjofivl4ebhdf",
+   "v": 5,
+   "st": "superseded",
+   "up": "2026-10-15T02:33:18.483Z",
+   "t": "麦浪小队（wheat-squad"
+  },
+  {
+   "id": "cmuusk0p60040icryguvlev9j",
+   "v": 5,
+   "st": "superseded",
+   "up": "2026-10-06T03:03:19.310Z",
+   "t": "g2-blocks（熔炉方块）"
+  },
+  {
+   "id": "cmukkjc10001ym9nb3dnc5kt6",
+   "v": 5,
+   "st": "superseded",
+   "up": "2026-09-29T01:26:29.830Z",
+   "t": "Stack Tower（叠塔）"
+  },
+  {
+   "id": "cmvkb2d8y001fm968778whydc",
+   "v": 4,
+   "st": "superseded",
+   "up": "2026-10-24T08:43:25.902Z",
+   "t": "游戏策划案"
+  },
+  {
+   "id": "cmv60scie003hm9qqu91foe7v",
+   "v": 4,
+   "st": "superseded",
+   "up": "2026-10-14T02:19:18.874Z",
+   "t": "麦浪小队（wheat-squad"
+  },
+  {
+   "id": "cmut5fkyf00cbic7qudea13g6",
+   "v": 4,
+   "st": "superseded",
+   "up": "2026-10-05T05:10:28.740Z",
+   "t": "g2-blocks（熔炉方块）"
+  },
+  {
+   "id": "cmuj5f6ik00hkm9l64r5uickm",
+   "v": 4,
+   "st": "superseded",
+   "up": "2026-09-28T01:28:18.074Z",
+   "t": "Stack Tower（叠塔）"
+  },
+  {
+   "id": "cmvkb0818001dm968tzdoh0mk",
+   "v": 3,
+   "st": "superseded",
+   "up": "2026-10-23T01:42:52.301Z",
+   "t": "游戏策划案"
+  },
+  {
+   "id": "cmv4q8bng001em9qm5p78do05",
+   "v": 3,
+   "st": "superseded",
+   "up": "2026-10-13T01:46:22.161Z",
+   "t": "麦浪小队（wheat-squad"
+  },
+  {
+   "id": "cmuxmhvft001zm9oewm8ss0yk",
+   "v": 3,
+   "st": "superseded",
+   "up": "2026-10-11T01:22:15.453Z",
+   "t": "固化《线上抓娃娃机》GameDe"
+  },
+  {
+   "id": "cmurqo70l001uiccx7hjjr37e",
+   "v": 3,
+   "st": "superseded",
+   "up": "2026-10-04T01:35:24.370Z",
+   "t": "g2-blocks（熔炉方块）"
+  },
+  {
+   "id": "cmugok2uz000xm9ilx42t8pnl",
+   "v": 3,
+   "st": "superseded",
+   "up": "2026-09-27T01:37:23.893Z",
+   "t": "Stack Tower（叠塔）"
+  },
+  {
+   "id": "cmue00o2z003tm9y3159fb6xl",
+   "v": 3,
+   "st": "superseded",
+   "up": "2026-09-25T01:39:29.558Z",
+   "t": "运输船 3D · 单文件 Thr"
+  },
+  {
+   "id": "cmvlrc0ma001tm94ialxeykjn",
+   "v": 2,
+   "st": "approved",
+   "up": "2026-10-24T08:43:25.904Z",
+   "t": "游戏策划案"
+  },
+  {
+   "id": "cmvbqgzbl0029m9ax64foxd37",
+   "v": 2,
+   "st": "superseded",
+   "up": "2026-10-23T01:41:12.231Z",
+   "t": "游戏策划案"
+  },
+  {
+   "id": "cmv4pqezm0016m9qm2i2qmywe",
+   "v": 2,
+   "st": "superseded",
+   "up": "2026-10-12T04:03:05.592Z",
+   "t": "麦浪小队（wheat-squad"
+  },
+  {
+   "id": "cmv0matif000rm9aaxjtgi2ug",
+   "v": 2,
+   "st": "superseded",
+   "up": "2026-10-11T01:22:15.453Z",
+   "t": "「3D 切苹果」GameDesi"
+  },
+  {
+   "id": "cmuxieos4000rm9oeoa9p7ux0",
+   "v": 2,
+   "st": "superseded",
+   "up": "2026-10-10T13:23:57.281Z",
+   "t": "固化《线上抓娃娃机》GameDe"
+  },
+  {
+   "id": "cmuqa2mu50023m9zr8mh60uph",
+   "v": 2,
+   "st": "superseded",
+   "up": "2026-10-03T01:54:25.792Z",
+   "t": "g2-blocks（熔炉方块）"
+  },
+  {
+   "id": "cmuq5dyjb00b3m9dh7tzdkl7j",
+   "v": 2,
+   "st": "superseded",
+   "up": "2026-10-11T01:22:15.453Z",
+   "t": "《疾风忍者跑》结构化策划案 v3"
+  },
+  {
+   "id": "cmuirjku500a6m9l67mfwor9a",
+   "v": 2,
+   "st": "superseded",
+   "up": "2026-10-10T13:23:57.281Z",
+   "t": "《疾风忍者跑》结构化策划案 v2"
+  },
+  {
+   "id": "cmuirbfs8009ym9l64y4ybqw2",
+   "v": 2,
+   "st": "superseded",
+   "up": "2026-10-11T01:22:15.453Z",
+   "t": "游戏策划案"
+  },
+  {
+   "id": "cmugal9ob0013gqlok6dstuyc",
+   "v": 2,
+   "st": "superseded",
+   "up": "2026-09-25T08:09:46.614Z",
+   "t": "Stack Tower（叠塔）"
+  },
+  {
+   "id": "cmudzqzg0003pm9y32zll7j4x",
+   "v": 2,
+   "st": "superseded",
+   "up": "2026-09-23T11:07:17.865Z",
+   "t": "运输船 3D · 单文件 Thr"
+  },
+  {
+   "id": "cmvlpx0uf0019m94iyuroz578",
+   "v": 1,
+   "st": "superseded",
+   "up": "2026-10-24T02:06:02.524Z",
+   "t": "游戏策划案"
+  },
+  {
+   "id": "cmvabm4kh001jm92c4qtjy9a7",
+   "v": 1,
+   "st": "superseded",
+   "up": "2026-10-17T01:44:12.748Z",
+   "t": "游戏策划案"
+  },
+  {
+   "id": "cmv7i4txk000zjofi5vrdcrvk",
+   "v": 1,
+   "st": "superseded",
+   "up": "2026-10-15T02:35:50.260Z",
+   "t": "固化《牛牛打游戏》策划案 v3（"
+  },
+  {
+   "id": "cmv6weob6000sjotyffuhjca6",
+   "v": 1,
+   "st": "superseded",
+   "up": "2026-10-14T02:20:27.924Z",
+   "t": "固化《牛牛打游戏》策划案 v2（"
+  },
+  {
+   "id": "cmv36ewn8001sm9mxvsyvbvuc",
+   "v": 1,
+   "st": "superseded",
+   "up": "2026-10-12T03:49:10.111Z",
+   "t": "麦浪小队（wheat-squad"
+  },
+  {
+   "id": "cmuzn04d4000im9vim1akmc3h",
+   "v": 1,
+   "st": "superseded",
+   "up": "2026-10-10T13:23:57.281Z",
+   "t": "「3D 切苹果」GameDesi"
+  },
+  {
+   "id": "cmuwfezv40028m9lg07fd4zs3",
+   "v": 1,
+   "st": "superseded",
+   "up": "2026-10-10T13:23:57.281Z",
+   "t": "固化《线上抓娃娃机》GameDe"
+  },
+  {
+   "id": "cmuw32zlu019xicryseqxqrnb",
+   "v": 1,
+   "st": "superseded",
+   "up": "2026-10-11T01:22:15.453Z",
+   "t": "汽车连连看"
+  },
+  {
+   "id": "cmuq51k6o00agm9dh25zxcf72",
+   "v": 1,
+   "st": "superseded",
+   "up": "2026-10-10T13:23:57.281Z",
+   "t": "《疾风忍者跑》结构化策划案 v3"
+  },
+  {
+   "id": "cmuovwra0004gm97tinha15zq",
+   "v": 1,
+   "st": "superseded",
+   "up": "2026-10-02T01:21:59.834Z",
+   "t": "g2-blocks（熔炉方块）"
+  },
+  {
+   "id": "cmujhlkux000hm9wwsy0d5meq",
+   "v": 1,
+   "st": "superseded",
+   "up": "2026-10-11T01:22:15.453Z",
+   "t": "森林收集水果限时赛（game-5"
+  },
+  {
+   "id": "cmuj78cxu0017m9hc6fixc96i",
+   "v": 1,
+   "st": "superseded",
+   "up": "2026-10-11T01:22:15.453Z",
+   "t": "《复刻天天酷跑》玩法调研与 MV"
+  },
+  {
+   "id": "cmuinva4t002xm9l6bwjcnyy6",
+   "v": 1,
+   "st": "superseded",
+   "up": "2026-10-10T13:23:57.281Z",
+   "t": "游戏策划案"
+  },
+  {
+   "id": "cmuiiofl4004tm9gcmaz3sstp",
+   "v": 1,
+   "st": "superseded",
+   "up": "2026-10-10T13:23:57.281Z",
+   "t": "《疾风忍者跑》结构化策划案 v1"
+  },
+  {
+   "id": "cmuga6tq90011gqlo3wkh9k7a",
+   "v": 1,
+   "st": "superseded",
+   "up": "2026-09-25T01:38:47.480Z",
+   "t": "Stack Tower（叠塔）"
+  },
+  {
+   "id": "cmudznmo8003nm9y3nhblfbxo",
+   "v": 1,
+   "st": "superseded",
+   "up": "2026-09-23T10:59:46.030Z",
+   "t": "运输船 3D · 单文件 Thr"
+  },
+  {
+   "id": "cmudfdrwh0016m9y3dhquc4tf",
+   "v": 1,
+   "st": "draft",
+   "up": "2026-09-23T01:29:37.409Z",
+   "t": "pixel-fives M1 基"
+  },
+  {
+   "id": "cmudfddol0014m9y348gptoyb",
+   "v": 1,
+   "st": "draft",
+   "up": "2026-09-23T01:29:18.981Z",
+   "t": "pixel-fives M1 基"
+  },
+  {
+   "id": "cmudfc2w30012m9y37zy7djf8",
+   "v": 1,
+   "st": "superseded",
+   "up": "2026-09-25T01:39:29.558Z",
+   "t": "pixel-fives M1 基"
+  },
+  {
+   "id": "cmudf7vis0010m9y3dl905pvc",
+   "v": 1,
+   "st": "draft",
+   "up": "2026-09-23T01:25:02.164Z",
+   "t": "游戏策划案"
+  }
+ ]
+}

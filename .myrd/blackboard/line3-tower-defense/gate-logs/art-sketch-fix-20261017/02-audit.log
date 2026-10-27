@@ -1,0 +1,30 @@
+# 方向稿独立审计（style-sketch-audit.mjs · 色值/光照/画布/构成/文案五面）
+$ node games/line3-tower-defense/tools/style-sketch-audit.mjs
+  PASS manifest 3 件 sha256 实算全等
+> direction-1.svg（方向1 · 治愈绿阶（基线））
+  PASS 色值全合法（白名单 8 色 + 派生 3 色）
+  PASS 零渐变零滤镜（双层平涂口径）
+  PASS 全部元素画布内（640×424）
+  PASS 炮塔三阶 24/26/28 在位
+  PASS 敌军三型 14/16/20 在位
+  PASS 核心 64×64 在位
+  PASS HUD 样例值 ≡ numeric（核心 10/军费 120/波次 1/8）
+> direction-2.svg（方向2 · 亮阶轻快（候选））
+  PASS 色值全合法（白名单 7 色 + 派生 3 色）
+  PASS 零渐变零滤镜（双层平涂口径）
+  PASS 全部元素画布内（640×424）
+  PASS 炮塔三阶 24/26/28 在位
+  PASS 敌军三型 14/16/20 在位
+  PASS 核心 64×64 在位
+  PASS HUD 样例值 ≡ numeric（核心 10/军费 120/波次 1/8）
+> direction-3.svg（方向3 · 沉稳原阶（候选））
+  PASS 色值全合法（白名单 8 色 + 派生 3 色）
+  PASS 零渐变零滤镜（双层平涂口径）
+  PASS 全部元素画布内（640×424）
+  PASS 炮塔三阶 24/26/28 在位
+  PASS 敌军三型 14/16/20 在位
+  PASS 核心 64×64 在位
+  PASS HUD 样例值 ≡ numeric（核心 10/军费 120/波次 1/8）
+
+SKETCH-AUDIT PASS（3 张方向稿：色值/光照/画布/构成/文案五面全过）
+AUDIT_EXIT=0

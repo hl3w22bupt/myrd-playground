@@ -1,0 +1,10 @@
+# cmd: node tools/shot-v13.mjs（终摄 · 带 stateMapping+determinismNote）
+# utc: 2026-10-09T03:44:29Z
+[shot-v13] shot-v13-nm-hit-390x844.png ✓（268283 bytes）
+[shot-v13] shot-v13-settle-nm-390x844.png ✓（124124 bytes）
+[shot-v13] shot-v13-settle-nomoves-390x844.png ✓（136566 bytes）
+[shot-v13] shot-v13-nm-hit-430x932.png ✓（303827 bytes）
+[shot-v13] shot-v13-settle-nm-430x932.png ✓（139838 bytes）
+[shot-v13] shot-v13-settle-nomoves-430x932.png ✓（151737 bytes）
+SHOT-V13: PASS 六张全落（三态 × 两机型档 · 同批 e3481537db9b…）→ assets/release/v13-shots/
+EXIT=0

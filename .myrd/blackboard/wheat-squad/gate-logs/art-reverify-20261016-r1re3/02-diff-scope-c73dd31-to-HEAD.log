@@ -1,0 +1,43 @@
+触达面证明：c73dd31（r12 复证锚）→ HEAD（本轮重锚）
+时间：2026-10-16T03:04:56Z · 执行：游戏美术复证轮 r13
+
+## HEAD
+96815462e571a5003cf98588c133554dffa53466
+9681546 fix(wheat-squad): R1 收口轮 QA 驳回 F1/F2/F3 修正——先红后绿(F1 属实:链计数工具 seed 只进标签未传装配,createGame 硬绑 DEFAULT_SEED/sim void seed,20 行同种子复制·报告§一失实串):采解锁第二路径不触 src,装配后首 tick 前覆写 cfg.rng=seededRng(seed)(≡契约 helpers.driveRun 装配语义)真实重采 20 种子+新增种子敏感机判 fail-closed(kills 唯一值=4≥2 过)·ac-a2 判定值不变(P50=168.096s∈[90,180]·victory 20/20·链 20/20),时长同值=波次节拍结构性质已机判披露(F2 属实:绑定改 loadSpecRow,binding=cmv8xcexk…@v6 approved 全非 null)(F3 记账:spec README 补 wheat-squad 两行+顶层适配视图登记+stack-tower 旧口径存档注记)·红证据 00-02(exit=1)/绿 03-07(重采 exit=0·连跑二次判定面逐字节同值非 flaky)·未触 src→绿判定绑 4eccaf29 维持·重建 vs LIVE diff 仅 gitSha 单行·verify 五步复跑 VERIFY_EXIT=0 零回归·无需重部署·分流表 v2 追加待 QA 复签三件(PROG-WS-R1RE-F1FIX-20261016-01,程序不代签)·黑板三处登记
+b086c6f myrd: workflow auto-commit [skip ci]
+2bff38e docs(wheat-squad): 美术复证轮 r12 @ HEAD c73dd31——双轨收口轮任务书重发勘验定性复证而非重做(0ff651f A7 整合+15f51b3 接手复核已收口,增量仅 .myrd-platform 技能文档+黑板归档,非黑板触达面空 diff 零触碰)·当前 HEAD 全量重证 verify.sh 五步 VERIFY_EXIT=0(自有契约 16/0/1PEND 含 ac-art-1..4·WS-SMOKE headless 全链路 PASS·SCOPE-GUARD 双模式)·轨道 B 美术面亲核零漂移(调研简报 B3 成本档位五候选↔memo v1 排除法引用一致·视觉基调 D25 带出处·风格卡 v0 四要素 0 图止步 T+0)·零新素材零接线变更(冻结 13/13 维持,任务书素材落盘/接线以冻结维持+零漂移复证口径闭合)·顶层 README 组合全景索引账实校正(线2 v15 旧态→复测分流收口 v20 LIVE@3828f49·线3 零接触→选型拍板待主人审签,沿 N8 账实修复判例)·诚实口径维持:A3 待真人 0/5 不代采/提审素材止步清单 W-6 归主人/线3 未 approve 零实现·证据 gate-logs/art-reverify-20261016-r1re2/(00·01 各带 exit 码+02 diff-scope),结论仅对 c73dd31 有效
+
+## 全量 diff --stat
+ .myrd/blackboard/README.md                         |  18 +-
+ .../gate-logs/contract-gate-20261016-103630.log    | 110 ++++++++++
+ .myrd/blackboard/levels.md                         |   1 +
+ .myrd/blackboard/wheat-squad/assets.md             |   2 +
+ .myrd/blackboard/wheat-squad/blockers.md           |   4 +
+ .../00-contract-suite-16-0-1PEND.log               |  20 ++
+ .../00-contract-suite.exit                         |   1 +
+ .../01-verify-sh-5step-full.log                    | 110 ++++++++++
+ .../art-reverify-20261016-r1re2/01-verify-sh.exit  |   1 +
+ .../02-diff-scope-0ff651f-to-HEAD.log              |  31 +++
+ .../art-reverify-20261016-r1re2/README.md          |  16 ++
+ .../00-old-chain-log-backup.json                   | 229 +++++++++++++++++++++
+ .../r1re-f1-fix-20261016/01-old-tool-rerun.log     |   5 +
+ .../r1re-f1-fix-20261016/02-red-evidence-f1.log    |   8 +
+ .../03-fixed-tool-resample.log                     |   5 +
+ .../r1re-f1-fix-20261016/04-build-zero-drift.log   |  14 ++
+ .../r1re-f1-fix-20261016/05-verify-full-rerun.log  | 112 ++++++++++
+ .../r1re-f1-fix-20261016/06-fixed-tool-rerun2.log  |   5 +
+ .../r1re-f1-fix-20261016/07-run1-vs-run2.diff      |   4 +
+ .myrd/blackboard/wheat-squad/levels.md             |   2 +
+ .myrd/spec/README.md                               |   5 +-
+ .../docs/r1re-recheck-report-20261016.md           |  22 +-
+ .../wheat-squad/docs/r1re-triage-table-20261016.md |  10 +-
+ .../qa/r1re-a2-chain-log-2026-10-16.json           |  60 +++++-
+ games/wheat-squad/tools/r1re-a2-chain-count.mjs    |  63 ++++--
+ 25 files changed, 819 insertions(+), 39 deletions(-)
+
+## 美术交付件+门禁输入面（assets/ src/ ci/ .myrd/spec/ style-card-v1.md）
+(上方无输出 = 美术面+契约输入零触碰；.myrd/spec/README.md 文档行另见 03b)
+
+## spec README 变更（F3 纯索引记账·亲核认领）
+5
+(新增行数)

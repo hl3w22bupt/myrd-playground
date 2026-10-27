@@ -1,0 +1,31 @@
+# 部署轮 r6 预检证据（硬前置 + 产物三向绑定复证）
+# UTC: 2026-10-10T02:49:42Z · 执行节点: 游戏程序（部署）· run cmv1pdxwj003jm94oqbnhim2z
+
+## 硬前置三项（部署执行要求）
+1. 当前分支非 main:
+   $ git branch --show-current
+   myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d
+2. 分支已推远端（本地 HEAD ≡ 远端）:
+   $ git ls-remote origin refs/heads/myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d
+   f4de390f16d28041036a5986b5ccab07ec8c4078  (= 本地 HEAD, MATCH)
+   本地 HEAD: f4de390f16d28041036a5986b5ccab07ec8c4078
+3. 本游戏专属部署清单存在（四要素齐全）:
+   $ cat games/g2-blocks/apphost.toml
+   name = "g2-blocks（熔炉方块）" / runtime = "node20" / health = "/health"
+   assets_dir = "games/g2-blocks/export/web"
+
+## 产物三向绑定复证（部署面 ≡ 源仓 build/ · 逐字节）
+源仓: /Users/leo/.myrd/workspaces/cmto0g28j0002m9sqnvjdy8o7/g2-blocks-main
+  $ git rev-parse HEAD  → 26ba1d9a1c663edb53ad537777abf902fe6fd296 (main, 树净 git status 空)
+  $ git log --oneline -2
+    26ba1d9 chore(qa): A2+A3 收口归位——链 v9 入链器（DoD 复跑账 · 数值零漂移）+ QA 正式审查报告 + 复检器同批证据归位 + 构建重建（r5 部署面源）
+    e4c65f9 merge: v1.3 首批四件同包合回主仓（A1-2 · 主策划收口）
+$ find <源仓>/build -type f | wc -l   → 30
+$ diff -rq <源仓>/build games/g2-blocks/export/web
+  → 零输出, diff_exit=0   （30 文件 ≡ 30 文件, 逐字节全等）
+一号仓侧: git diff --stat cadb2f4..HEAD -- games/g2-blocks/export/web/  → 空
+  （自 r5 部署提交 cadb2f4 以来部署面零变更; cadb2f4..HEAD 全部变更为黑板/模板/文档路径）
+三向绑定: 一号仓 HEAD f4de390（export/web 零漂移）≡ r5 部署提交 cadb2f4 产物 ≡ 源仓 main 26ba1d9 build/
+
+## 结论
+预检 PASS——无需重新导出（产物与代码一致），直接以当前分支 f4de390 发起部署。

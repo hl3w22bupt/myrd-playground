@@ -1,0 +1,5 @@
+== 命令原文：node games/line4-unblock-jam/tools/check-assets.mjs
+== 时刻：2026-10-26 09:42:18
+== 输出：
+[check-assets] PASS=31 FAIL=0
+== exit=0 ==

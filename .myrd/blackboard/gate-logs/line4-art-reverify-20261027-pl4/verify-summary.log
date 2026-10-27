@@ -1,0 +1,52 @@
+== [verify.sh] 01-contract-unified ==
+== [verify.sh] 01-contract-unified :: PASS ==
+
+== [verify.sh] 02-check-acc-01-seeded-determinism ==
+== [verify.sh] 02-check-acc-01-seeded-determinism :: PASS ==
+
+== [verify.sh] 02-check-acc-02-exit-feedback-latency ==
+== [verify.sh] 02-check-acc-02-exit-feedback-latency :: PASS ==
+
+== [verify.sh] 02-check-acc-03-combo-pending-invariant ==
+== [verify.sh] 02-check-acc-03-combo-pending-invariant :: PASS ==
+
+== [verify.sh] 02-check-acc-04-red-round-boundaries ==
+== [verify.sh] 02-check-acc-04-red-round-boundaries :: PASS ==
+
+== [verify.sh] 02-check-acc-05-no-external-texture ==
+== [verify.sh] 02-check-acc-05-no-external-texture :: PASS ==
+
+== [verify.sh] 02-check-acc-06-perf-caps ==
+== [verify.sh] 02-check-acc-06-perf-caps :: PASS ==
+
+== [verify.sh] 02-check-acc-07-telemetry-key-parity ==
+== [verify.sh] 02-check-acc-07-telemetry-key-parity :: PASS ==
+
+== [verify.sh] 02-check-g-01-first-60s-guide ==
+== [verify.sh] 02-check-g-01-first-60s-guide :: PASS ==
+
+== [verify.sh] 02-check-ac-template.spec ==
+== [verify.sh] 02-check-ac-template.spec :: PASS ==
+
+== [verify.sh] 03-scaffold-smoke ==
+== [verify.sh] 03-scaffold-smoke :: PASS ==
+
+== [verify.sh] 04-port-gate-web ==
+== [verify.sh] 04-port-gate-web :: PASS ==
+
+== [verify.sh] 05-port-gate-wx ==
+== [verify.sh] 05-port-gate-wx :: PASS ==
+
+== [verify.sh] 06-assets-gate ==
+== [verify.sh] 06-assets-gate :: PASS ==
+
+== [verify.sh] 07-build ==
+== [verify.sh] 07-build :: PASS ==
+
+== [verify.sh] 08-guard-landing-shell ==
+== [verify.sh] 08-guard-landing-shell :: PASS ==
+
+== [verify.sh] 09-playable-smoke ==
+== [verify.sh] 09-playable-smoke :: PASS ==
+
+VERIFY: PASS line4-unblock-jam 契约/套件/冒烟/移植门禁全绿（exit 0）

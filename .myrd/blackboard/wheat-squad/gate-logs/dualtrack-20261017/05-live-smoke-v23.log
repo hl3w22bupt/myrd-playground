@@ -1,0 +1,9 @@
+# WS-LIVE-SMOKE · UTC 2026-10-17T01:53:59Z · 采集面 v23 @ c325b27（内嵌 9945257）
+[ws-live-smoke] 目标 https://leomac-studio.tail49399e.ts.net/apps/wheat-squad-2/gw
+[ws-live-smoke] chromium 就绪（CDP page target）
+[ws-live-smoke] ready ✓ __G2WS_READY=true（线上）
+[ws-live-smoke] 操作 ✓ tick 推进 + 击杀 2（线上拖动→作战链通）
+[ws-live-smoke] 结算 ✓ phase=ended reason=victory elapsed=167s
+[ws-live-smoke] console/页面 零错误 ✓
+WS-LIVE-SMOKE: PASS 线上打开→操作→结算 + console 零错误
+LIVE_SMOKE_EXIT=0

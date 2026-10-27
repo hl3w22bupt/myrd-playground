@@ -1,0 +1,18 @@
+# 03 一致性扫描（改口径后零字面漂移）
+## a) 旧四要素字面残留（期望 0 处，templates/ 全域）
+templates/next-line-scaffold/art/style-card-template.md:7:> 修订：2026-10-10 美术线 N3 亲审——四要素由初版「色板/字体/形状语言/动效」对齐为规范口径，原字体/动效降为扩展项 §5/§6（判例零删）。
+
+## b) 新四要素字面在场（期望 style-card-template.md + README 各 ≥1）
+HIT: templates/next-line-scaffold/README.md:11:| ② 美术模板 | `art/style-card-template.md`（风格卡四要素：**调色板/光照/线条/比例**〔美术线规范口径，N3 亲审对齐〕+ 扩展项 字体/动效 + 一致性门禁）· `art/visual-feedback-channel-spec-template.md`（视觉反馈通道规格：五要素 + 示例行） | 美术 | 模板就绪 · **N3 亲审 PASS（2026-10-10：风格卡四要素对齐修订 P-01，反馈通道规格只检零改动）**（填写时机 = 新线风格定稿，简报落账+选型后） |
+
+## c) 扩展项降级标记在场
+32:## 扩展项（四要素之外，需要时填写；不填须写「本轮不适用 + 理由」）
+34:### 5. 字体（Type）
+39:### 6. 动效（Motion）
+
+## d) 反馈通道模板本轮零改动（期望空 diff）
+DIFF=空（只检 PASS）
+
+## 注记
+- a) 段 1 处命中 = style-card-template.md 第 7 行「修订注记」自引旧口径（记录变更史，预期内，非字面漂移）；templates/ 其余文件 0 处。
+- c) 段行号 32/34/39 = 扩展项 §5/§6 降级结构在场。

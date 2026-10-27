@@ -1,0 +1,11 @@
+# 门禁8 裸调用契约门禁（本轮修复 v1.2 形状适配后） · 2026-09-27 11:11:27 · 命令: node scripts/contract-check-stack-tower.mjs（cwd repo root）
+[A] spec 基线：.myrd/spec/stack-tower-spec.json · platformSpecId=cmuj5f6ik00hkm9l64r5uickm v4 status=approved acceptance=32 levels=1 entities=20 assets=20
+[B] acceptance 命令化 + 实跑：31/32 PASS（not-runnable 1：acc-a7（check=npx vitest run tests/audio/events.test.ts），单列不计绿）
+[C] 双向映射：level/element 8 ↔ elements 9（折入核验 1：lvl-01-stack-tower/e09-opening-stack）；横切 acceptance 23 ↔ 契约文件 31（run-all 聚合全量核对）
+[D] entities 落盘 20/20（含锚点实体 3，契约可追溯）；kernel 纯净性 10 文件扫描完成
+[E] assets 落盘 20/20（全部 generated，零外部资源）
+
+说明：acceptance 实跑即「契约测试通过记录」（B 段逐条执行 tests/contract/*.spec.mjs）。
+RESULT: PASS（spec ↔ 工程一致）
+exit=0
+# 注：首次执行曾因机器负载尖峰出现 acc-j1 瞬时 FAIL（页内时钟 >3000ms），独立复跑 3/5+5/5 PASS 后取本记录；判据无重试、预算 3000ms 按 spec 不放松
