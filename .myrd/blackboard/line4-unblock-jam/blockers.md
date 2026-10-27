@@ -1,17 +1,50 @@
 # 阻塞项黑板 — line4-unblock-jam（第四产品线）
 
-> 更新时间：2026-10-26（**10/26 交付包轮：N0 闸门核对 → 可玩基线落地 → N5 过审 → deploy 交接**；同日续接核实轮程序侧逐包机核**全部复证成立、零缺口**——证据 `../gate-logs/line4-recheck-20261026-continuation/00-manifest.md` @ `0d40be6`：平台 GET v2 approved 200 + 契约 29/0 + verify 17 步 exit 0 + 冒烟 20/20·68 断言 + 部署单 running·err=null + 坑位三锚 + `/gw` 200 本游戏标题；跨线发现登记共板 **B-P-1**（平台 approve 全局唯一语义，不影响本线——本线恰为链上唯一 approved））｜ 负责人：主策划（整合）/ 游戏程序 / 游戏美术 / 游戏 QA ｜ 下一步：主人试玩 + a3 真人采集窗开
+> 更新时间：2026-10-27（**好玩判据验证轮：N1→N5 闭环走完 → verdict=PENDING_PLAYTEST 不计轮，止损 0/3 不动，升级主人试玩**；存量收口 PL2 刷新挂起 / PL3 定格已发布·维护态；PL5 简报+预评分落 `../next-line/`）｜ 负责人：主策划（整合）/ 游戏程序 / 游戏美术 / 游戏 QA ｜ 下一步：**主人进试玩入口 + 圈 ≥3 名真人填合并版反馈单**（`games/line4-unblock-jam/docs/qa/playtest-feedback-form-v1-20261027.md`）→ N4 复核计轮
 
-## 当前基线（2026-10-26 · 主策划整合刷新）
+## 10/27 好玩判据验证轮（N1→N5 · 主策划整合 · 唯一重心轮）
+
+| 节点 | 交付 | 状态与证据 |
+|---|---|---|
+| N1 判据↔spec 对账 | **F1–F4 采集表**（首30秒/单局时长/再来一局/反馈手感）逐条对账 acceptance 九条：**9/9 阈值数值化可核对 → revision 触发条件不成立，本轮零改案**；对账发现 **D-1**（F2 单局时长无机器锚）登记 PEND-待校准族（前置=真人数据回流，与谱系带同窗 revision） | ✅ `games/line4-unblock-jam/docs/spec/f1-f4-capture-sheet-20261027.md` |
+| N2 部署一致性自证 | 三件套齐：①spec approved v2 + 导出件 sha `8236afaa…`；②部署单 `cmvolm4s7001fm91knv2x7mci` running@`4f8ad155` + 产物锚 `bc3cd56` + specAnchor v2:approved（**部署锚→HEAD `0675dd7` 源码面零漂移机判**）；③契约 29/0 + 冒烟 4/4 + 可玩 68/0 全 exit 0（HEAD 复跑）；带版本标识试玩入口在位 | ✅ `games/line4-unblock-jam/docs/qa/n2-deploy-consistency-20261027.md` + `../gate-logs/line4-n2-consistency-20261027/01..03`；**QA 对账通过 → 放行 N3** |
+| N3 试玩采集 | 合并版反馈单 v1 落盘（版本号/试玩者/计时/F1–F4 原话/困惑点/美术视觉困惑点全字段 + a3 记录卡同源兼容 + 主持人纪律四条）；**样本实况 0/3 → 不计轮**（机器不代采，a3 终裁归主人） | ✅ `games/line4-unblock-jam/docs/qa/playtest-feedback-form-v1-20261027.md` |
+| N4 QA verdict | **verdict=PENDING_PLAYTEST · 不计轮 · 止损 0/3 不动**（spec acc-a3 原文「样本不足=未判定·待采，不烧冻结余量」）；假绿双向对账（spec↔断言 29/0）/ pending 不计绿 / acceptance↔check↔反馈三方链路四项检查全 pass；JSON 落黑板=**3 轮止损唯一证据源** | ✅ `qa-verdict-20261027.json`（本目录） |
+| N5 条件性打磨 | **不触发**（无反馈条目 → 无打磨依据；不以「生成更多」为成果）。达标路径=主人试玩回流 → N4 复核 → 不达标才 N5（先 revision 后动码） | 判定记录见 verdict JSON `n5_polish` |
+| 美术并行 | 动效槽位清单五槽对账（成功/失败/得分/连击/结算：**失败反馈空槽 D-3**、结算=最简态，拟改件全部待 revision 窗口）+ **F1 首屏层级检查 desk-check**（发现 **D-2**：红轮态出口门与目标车同色，待真人验证） | ✅ `assets.md` §九 |
+
+### 组合全景（PL1–PL5 · 2026-10-27）
+
+| 线 | slug | 状态 | 本轮动作 |
+|---|---|---|---|
+| PL1 | pixel-fives | 迭代中（M0-M1 线承载分支） | 无动作（分支承载线） |
+| PL2 | g2-blocks《熔炉方块》 | **挂起（提审就绪=否）** | HEAD 门禁实况刷新：契约 12RED exit1 + 套件 6/8（生成件锚过期 + ac-22..33 件缺）——**非回归（HEAD 零位移）**；材料清单刷时间戳；合规对照=仓内 10/23 自检仍有效（外部新规无输入源，如实披露）→ 刷新件升级主人（四缺件清单） |
+| PL3 | line3-tower-defense《敌潮将至》 | **已发布·维护态（本轮定格）** | 健康核查三件齐：入口可开 + L3-SMOKE 全链路 PASS×2（程序自证+QA 独立复核同锚 `a27ca0e`）+ 运行面零漂移（HEAD 领先=纯门禁工具面）；打磨提案维持待主人拍板 |
+| PL4 | line4-unblock-jam《挪出一条路》 | **验证轮走完 · 待主人试玩计轮** | N1→N5 闭环（本区段） |
+| PL5 | （储备，未立项） | **简报+预评分产出** | 调研简报 v1（E1–E6 全标出处+快照）+ 三轴预评分排序：**Top1=C1 射箭弹射（12分）** > C2 三消摇晃（12，同分次位）> C3 益智闯关（11）> C4 解压操作（10，边界待会签）> C5 挖宝合成（10，产线失配）；**只排序不出拍板**；Top1 风格卡 v0 草稿已出（前置=主人拍板） |
+
+### 本轮决策口径（挂起 / 收口 / 止损线）
+
+- **PL2 挂起**：维持；门禁 RED 实况如实刷新不找补，凭证（G-2）未到位前止步「提审就绪」，不投开发。
+- **PL3 收口**：定格「已发布·维护态」；线上缺陷走巡检→修复轮（从 `f9d9834` 锚续接），数值打磨必须主人拍板 W-L3-4 后走 revision。
+- **PL4 止损线**：**合格试玩（样本≥3+版本号+F3/F4 原话+verdict 齐）为计轮唯一入口**；不达标打磨轮 +1/3，连续 3 轮不达标 → 冻结转 PL5（spec 口径返工不计数）；样本缺失=待采不计轮不烧余量。
+
+### 下一步（按优先级）
+
+1. **主人**：进试玩入口 `https://leomac-studio.tail49399e.ts.net/apps/line4-unblock-jam/` + 圈 ≥3 名真人（主人优先）填反馈单 → 回流后 N4 复核计轮；
+2. **主人**：PL2 四缺件（re-approve 或拍板新链 / R3 复跑批授权 / 凭证）；PL3 W-L3-4 拍板或反馈回流；PL5 圈定候选（C1 已备 v0 风格卡）；
+3. **团队待命**：N4 复核 → 达标计轮闭环 / 不达标 N5（先 revision 后动码，数值链五处一次同步）。
+
+## 当前基线（2026-10-27 · 主策划整合刷新）
 
 | 项 | 值 |
 |---|---|
 | 黑板路径 | `.myrd/blackboard/line4-unblock-jam/`（三件套 · **黑板登记块名写死于此**，spec 缺陷⑥核销锚点） |
-| spec 版本号 | **链 v2 `cmvlrc0ma001tm94ialxeykjn` = approved（唯一现行，平台 GET 200 实测 2026-10-26 当日复证）**；链 v1 superseded；同 scope 仅 2 版，approved 唯一性成立；本地导出件 7/7 段零漂移机判 MATCH（`gate-logs/line4-n0-gate-20261026/03`）；**本轮 spec 零改动（无 revision）** |
-| 当前分支与续接 | `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `5f9972f`（可玩基线轮）；git fetch 实测远端仅 `origin/main`（孤儿快照线 merge-base=∅ → 沿 10/16 判例不并入，无 rebase，判例维持） |
-| 平台 API | `http://localhost:3111` 可达（specs GET 200 · apphost apps GET 200 实测 2026-10-26）；鉴权 = `MYRD_TOKEN` Bearer |
+| spec 版本号 | **链 v2 `cmvlrc0ma001tm94ialxeykjn` = approved（唯一现行，平台 GET 200 实测 2026-10-27 当日复证）**；链 v1 superseded；同 scope 仅 2 版，approved 唯一性成立；**本轮 spec 零改动（无 revision，触发条件不成立）** |
+| 当前分支与续接 | `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `0675dd7`（=远端分支头，同步）；git fetch 实测远端仅 `origin/main`（孤儿快照线 merge-base=∅ → 沿 10/16 判例不并入，无 rebase，判例维持） |
+| 平台 API | `http://localhost:3111` 可达（healthz 200 · specs GET 200 · apphost apps/deployments GET 200 实测 2026-10-27）；鉴权 = `MYRD_TOKEN` Bearer |
 | 产线 | ts-canvas 判例平移 · 零外部贴图 · 零 npm 依赖（构建走 node 内置 stripTypeScriptTypes） |
-| 今日主线 | **P0 PL4 实现闭环 N0→N5（本轮已走完至 deploy 交接）**；P1 PL2 终核+升级 / PL3 巡检；P2 PL5 简报 |
+| 今日主线 | **P0-1 PL4 好玩判据验证轮（N1→N5 走完，卡真人样本）**；P0-2 存量收口（PL2 刷新 / PL3 定格）✅；P1-1 PL5 储备轨 ✅ |
 
 ## 10/26 交付包轮（2026-10-26 · 主策划署名 · N0→N5 逐节点）
 

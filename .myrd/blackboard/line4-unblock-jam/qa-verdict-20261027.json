@@ -1,0 +1,51 @@
+{
+  "verdictId": "pl4-fun-criteria-round-20261027",
+  "issuedAt": "2026-10-27T01:25:00Z",
+  "issuer": "游戏QA（独立互查）",
+  "round": "PL4 好玩判据验证轮（N1→N5）",
+  "conclusion": "PENDING_PLAYTEST",
+  "countedRound": false,
+  "stopLoss": { "used": 0, "budget": 3, "note": "样本缺失=未判定·待采，不烧止损余量（spec acc-a3 原文口径「样本不足=未判定·待采，不烧冻结余量」）" },
+  "checks": {
+    "n1_criteria_spec_alignment": {
+      "pass": true,
+      "evidence": "games/line4-unblock-jam/docs/spec/f1-f4-capture-sheet-20261027.md",
+      "note": "F1-F4 逐条对账 acceptance 九条；阈值 9/9 数值化可核对，零模糊表述 → revision 触发条件不成立，本轮零改案；对账发现 D-1（F2 单局时长无机器锚）登记 PEND-待校准族，前置=真人数据回流"
+    },
+    "fake_green_bidirectional_audit": {
+      "pass": true,
+      "evidence": ".myrd/blackboard/gate-logs/line4-n2-consistency-20261027/01-contract-check.log",
+      "note": "spec↔测试断言双向逐字对账：contract-check 29 PASS / 0 FAIL exit 0（2026-10-27 @ 0675dd7 本机实跑）；9 条 acceptance 逐条有 check 件，a3 为 manual 命令型不冒充 auto"
+    },
+    "pending_not_counted_green": {
+      "pass": true,
+      "evidence": ".myrd/blackboard/line4-unblock-jam/qa-verdict-20261027.json 本文件",
+      "note": "acc-a3（好玩主条）样本 0/5：机器全绿不代采，8 条 auto 绿不构成「好玩达标」——好玩结论单列 PENDING_PLAYTEST，不计绿不阻塞已部署可玩基线"
+    },
+    "acceptance_check_feedback_tri_chain": {
+      "pass": true,
+      "evidence": "docs/qa/n2-deploy-consistency-20261027.md + docs/qa/playtest-feedback-form-v1-20261027.md",
+      "note": "三方链路：acceptance（spec v2 approved）→ check（29 断言机判）→ 反馈（F1-F4 合并版反馈单已发放，字段与 acceptance/a3 口径同源）——链路通，卡在真人样本端"
+    },
+    "deploy_consistency_trio": {
+      "pass": true,
+      "evidence": "docs/qa/n2-deploy-consistency-20261027.md",
+      "note": "三件套齐：①spec approved v2 + 导出件 sha 8236afaa…；②部署单 cmvolm4s7001fm91knv2x7mci running @ 4f8ad155（commitSha 字段接口不回，上轮 ls-remote 实证+本轮零漂移机判补链，已如实披露）+ 产物锚 bc3cd56 + specAnchor v2:approved；③契约 29/0 + 冒烟 4/4 + 可玩 68/0 全 exit 0"
+    }
+  },
+  "playtestGate": {
+    "required": ["样本≥3", "build_version 必填", "F3/F4 原话", "本 verdict 齐"],
+    "actual": { "samples": 0, "formsIssued": "docs/qa/playtest-feedback-form-v1-20261027.md（合并版 v1）", "window": "开启中（入口在位）" },
+    "verdict": "不计轮"
+  },
+  "n5_polish": {
+    "triggered": false,
+    "reason": "N5 触发前置=一轮合格试玩反馈中存在具体打磨条目；本轮样本 0 → 无反馈条目 → 无打磨依据。禁止无反馈空转打磨（不以「生成更多」为成果）"
+  },
+  "escalation": {
+    "to": "主人",
+    "item": "试玩入口已开（https://leomac-studio.tail49399e.ts.net/apps/line4-unblock-jam/），等主人进 + 圈 ≥3 名真人（主人优先）填合并版反馈单；回收后本轮链 N4 复核 → 达标计轮/不达标 N5 打磨+止损+1/3",
+    "registeredIn": ".myrd/blackboard/line4-unblock-jam/blockers.md"
+  },
+  "integrityStatement": "本 verdict 全部判据基于 2026-10-27 本机实跑命令与平台 API 实测返回，未虚构任何试玩记录、样本数或通过结论；样本 0 为如实登记。"
+}
