@@ -1,0 +1,5 @@
+== 命令原文：node games/line4-unblock-jam/tests/contract/ac-template.spec.mjs
+== 时刻：2026-10-27 09:49:26
+== 输出：
+[ac-template] PASS det=true pendingInvariant=true audit=true failClosed=true parity=true（6 键）
+== exit=0 ==

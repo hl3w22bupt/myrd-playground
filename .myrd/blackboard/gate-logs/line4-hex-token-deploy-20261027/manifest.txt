@@ -1,0 +1,23 @@
+01-contract-unified | node scripts/contract-check.mjs --spec .myrd/spec/line4-unblock-jam/design-spec.json --project games/line4-unblock-jam | 2026-10-27 09:49:26 | exit=0
+02-check-acc-01-seeded-determinism | node games/line4-unblock-jam/tests/contract/checks/acc-01-seeded-determinism.mjs | 2026-10-27 09:49:26 | exit=0
+02-check-acc-02-exit-feedback-latency | node games/line4-unblock-jam/tests/contract/checks/acc-02-exit-feedback-latency.mjs | 2026-10-27 09:49:26 | exit=0
+02-check-acc-03-combo-pending-invariant | node games/line4-unblock-jam/tests/contract/checks/acc-03-combo-pending-invariant.mjs | 2026-10-27 09:49:26 | exit=0
+02-check-acc-04-red-round-boundaries | node games/line4-unblock-jam/tests/contract/checks/acc-04-red-round-boundaries.mjs | 2026-10-27 09:49:26 | exit=0
+02-check-acc-05-no-external-texture | node games/line4-unblock-jam/tests/contract/checks/acc-05-no-external-texture.mjs | 2026-10-27 09:49:26 | exit=0
+02-check-acc-06-perf-caps | node games/line4-unblock-jam/tests/contract/checks/acc-06-perf-caps.mjs | 2026-10-27 09:49:26 | exit=0
+02-check-acc-07-telemetry-key-parity | node games/line4-unblock-jam/tests/contract/checks/acc-07-telemetry-key-parity.mjs | 2026-10-27 09:49:26 | exit=0
+02-check-g-01-first-60s-guide | node games/line4-unblock-jam/tests/contract/checks/g-01-first-60s-guide.mjs | 2026-10-27 09:49:26 | exit=0
+02-check-ac-template.spec | node games/line4-unblock-jam/tests/contract/ac-template.spec.mjs | 2026-10-27 09:49:26 | exit=0
+03-scaffold-smoke | node games/line4-unblock-jam/tools/smoke.mjs | 2026-10-27 09:49:27 | exit=0
+04-port-gate-web | node games/line4-unblock-jam/tools/port-gate-checklist.mjs --target web | 2026-10-27 09:49:27 | exit=0
+05-port-gate-wx | node games/line4-unblock-jam/tools/port-gate-checklist.mjs --target wx | 2026-10-27 09:49:27 | exit=0
+06-assets-gate | node games/line4-unblock-jam/tools/check-assets.mjs | 2026-10-27 09:49:27 | exit=0
+07-build | node games/line4-unblock-jam/tools/build.mjs | 2026-10-27 09:49:27 | exit=0
+08-guard-landing-shell | node games/line4-unblock-jam/ci/guard-landing-shell.mjs | 2026-10-27 09:49:27 | exit=0
+09-playable-smoke | node games/line4-unblock-jam/tools/smoke-playable.mjs | 2026-10-27 09:49:27 | exit=0
+10-deploy-post | POST deployments(commitHash=de5aefa) | 2026-10-27 09:54:52 | exit=0(HTTP=504 判例·代理截断) | GET 复查恰1新单
+11-deployments-recheck | GET deployments | 2026-10-27 09:54:52 | exit=0 | 2单:cmvq14lhy00 building+旧单running,零重复
+12-deployment-final | GET deployments/cmvq14lhy00j1m91krnulup8w | 2026-10-27 09:54:52 | exit=0 | running,error=null,commitHash=de5aefa,durationMs=834
+13-live-entry | GET /gw + tailscale main.mjs | 2026-10-27 09:54:52 | exit=0 | 主入口200+标题正确;线上锚=1b101a4≡仓内构建锚(挂账⑦归档)
+14-online-bytes-diff | sha256 线上vs仓内(main.mjs/manifest.json/landing.html) | 2026-10-27 09:54:52 | exit=0 | 3/3 MATCH
+15-contract-final-head | contract-check | 2026-10-27 09:57:36 | exit=0 | 29 PASS/0 FAIL @HEAD=4eabe30

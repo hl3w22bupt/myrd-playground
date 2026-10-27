@@ -1,0 +1,7 @@
+== 命令原文：node scripts/contract-check.mjs --spec .myrd/spec/line4-unblock-jam/design-spec.json --project games/line4-unblock-jam
+== 时刻：2026-10-27 09:57:36（HEAD=4eabe30 同锚终录）
+== 输出：
+  PASS  验收项 acc-a3-restart-willingness check 为命令型（无文件断言）
+—— 合计 29 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
+== exit=0 ==

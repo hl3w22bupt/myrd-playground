@@ -1,0 +1,7 @@
+== 命令原文：node games/line4-unblock-jam/tools/build.mjs
+== 时刻：2026-10-27 09:49:27
+== 输出：
+build: 21 文件 → export/web/ · gitSha=8fbd8734 · specAnchor=cmvlrc0ma001tm94ialxeykjn@v2:approved
+(node:50843) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+== exit=0 ==
