@@ -1,4 +1,4 @@
-const __L4_BUILD__ = { gitSha: "bc3cd5669e31613adf266f72303461def02212ad", specAnchor: "cmvlrc0ma001tm94ialxeykjn@v2:approved" };
+const __L4_BUILD__ = { gitSha: "1b101a45e49c02d60d67e4be11c693a0dc37ae12", specAnchor: "cmvlrc0ma001tm94ialxeykjn@v2:approved" };
 // main.ts — web 可玩面装配入口（line4-unblock-jam · 表现层，审查通过版落地 2026-10-26）
 //
 // 装配面：DOM 骨架（canvas + HUD）→ 关卡谱系链（level-1 教学 → level-2 红轮首现 → level-proc-gen
@@ -6,6 +6,7 @@ const __L4_BUILD__ = { gitSha: "bc3cd5669e31613adf266f72303461def02212ad", specA
 // 判据面：g-01 三步（首次拖动→首次驶出→通关，60s 窗口=numeric.firstGuideWindowSec）；
 // 埋点只走 telemetry hub 单一出口（acc-07）；三通道反馈预算按 assets.md §四（render.ts 执行）。
 import { NUMERIC, SPEC_ANCHOR } from './generated/spec-data.mjs';
+import { PALETTE } from './platform/theme.mjs'; // 色值单源（spec world.styleDerivation：渲染层只读 token，acc-05 断言⑤）
 import { createTelemetryHub } from './telemetry/telemetry.mjs';
 import { createHudModel, pushFrame, renderHud } from './dev/hud.mjs';
 import { createSession, start, step } from './kernel/loop.mjs';
@@ -33,10 +34,10 @@ function boot()       {
   const topEl = document.createElement('div');
   document.body.append(canvas, topEl, hudEl);
   const style = document.createElement('style');
-  style.textContent = `html,body{margin:0;height:100%;background:${'#F2EFE6'};overflow:hidden;touch-action:none}
-canvas{display:block}#l4-top{position:fixed;top:8px;left:12px;font:600 15px system-ui;color:${'#2B2D42'}}
-#l4-hud{position:fixed;right:8px;bottom:8px;margin:0;font:11px/1.5 ui-monospace,monospace;color:${'#2B2D42'};
-opacity:.85;background:${'#F2EFE6'}cc;padding:6px 8px;border-radius:6px;white-space:pre;text-align:left}`;
+  style.textContent = `html,body{margin:0;height:100%;background:${PALETTE.ground};overflow:hidden;touch-action:none}
+canvas{display:block}#l4-top{position:fixed;top:8px;left:12px;font:600 15px system-ui;color:${PALETTE.ink}}
+#l4-hud{position:fixed;right:8px;bottom:8px;margin:0;font:11px/1.5 ui-monospace,monospace;color:${PALETTE.ink};
+opacity:.85;background:${PALETTE.ground}cc;padding:6px 8px;border-radius:6px;white-space:pre;text-align:left}`;
   document.head.append(style);
   canvas.id = 'l4-stage'; topEl.id = 'l4-top'; hudEl.id = 'l4-hud';
 

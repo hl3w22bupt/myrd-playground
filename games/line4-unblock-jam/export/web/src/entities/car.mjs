@@ -1,7 +1,7 @@
 // entities/car.ts — 车辆实体（line4-unblock-jam · spec v0.2 entities[e-car]）
 //
 // spec expect（逐条对齐）：朝向（横/纵二值）+ 占格（1×2 或 1×3）+ 滑动轴（仅沿朝向轴拖动）；
-// 目标车固定红色档 #EF4444、普通车橙/绿/蓝三档（palette 单源=src/platform/theme.ts ≡ 风格卡 v1）。
+// 目标车固定红色档（PALETTE.target）、普通车橙/绿/蓝三档（palette 单源=src/platform/theme.ts ≡ 风格卡 v1）。
 // 拖动只产生「沿朝向轴」的候选位移；合法性判定与落定计数走 kernel/session.ts 控名人。
                                
                                                            
@@ -15,7 +15,7 @@
                   
  
 
-/** 目标车构造（v0 冻结：横放红色，spec palette #EF4444） */
+/** 目标车构造（v0 冻结：横放红色，色值=theme.ts PALETTE.target，零手抄） */
 export function targetCar(row        , col        , len        = 2)      {
   return { id: 'car-target', orient: 'h', row, col, len, color: 'red' };
 }
