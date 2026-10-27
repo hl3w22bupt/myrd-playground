@@ -47,5 +47,18 @@
     "item": "试玩入口已开（https://leomac-studio.tail49399e.ts.net/apps/line4-unblock-jam/），等主人进 + 圈 ≥3 名真人（主人优先）填合并版反馈单；回收后本轮链 N4 复核 → 达标计轮/不达标 N5 打磨+止损+1/3",
     "registeredIn": ".myrd/blackboard/line4-unblock-jam/blockers.md"
   },
-  "integrityStatement": "本 verdict 全部判据基于 2026-10-27 本机实跑命令与平台 API 实测返回，未虚构任何试玩记录、样本数或通过结论；样本 0 为如实登记。"
+  "addendum_20261027T0210Z_程序重部署批": {
+    "conclusionImpact": "无——conclusion=PENDING_PLAYTEST、countedRound=false、止损 0/3 全部维持不翻",
+    "trigger": "黑板挂账项⑥（驳回建议①：渲染层零裸 hex → theme token 单源 + acc-05 断言⑤）按「下一部署批一次做齐」兑现，捆同批完成挂账项⑦线上锚归档",
+    "evidence": {
+      "redeploy": "部署单 cmvq14lhy00j1m91krnulup8w running @ de5aefa（API detail 本轮直接返回 commitHash——上轮「接口不回字段」披露缺口关闭）；旧单 cmvolm4s7 保留可回滚",
+      "onlineAnchorArchived": "线上 main.mjs __L4_BUILD__ = 1b101a4 ≡ 仓内构建锚（挂账⑦关闭）；线上 vs 仓内 sha256 三文件 3/3 MATCH = 部署字节=提交字节机器级",
+      "gates": "verify.sh 17 步全 PASS exit 0 @ 1b101a4（acc-05 断言 4→5 + 扫描作用域勘误：原落在共享壳 src，改扫本游戏 src）；smoke-playable 68/0 对部署字节二次复跑",
+      "spec": "零改动零 revision（approved v2 复证不变，GET 200）",
+      "n3Samples": "0/3 维持（无新增回流，机器不代采）"
+    },
+    "playtestGateRefresh": "试玩入口版本锚刷新：1b101a4（线上构建锚，HUD 可核对）/ de5aefa（部署单锚）；旧锚 bc3cd56/4f8ad155 作废（F1–F4 采集表+反馈单已同步）",
+    "evidenceDir": ".myrd/blackboard/gate-logs/line4-hex-token-deploy-20261027/"
+  },
+  "integrityStatement": "本 verdict 全部判据基于 2026-10-27 本机实跑命令与平台 API 实测返回，未虚构任何试玩记录、样本数或通过结论；样本 0 为如实登记。增补段同口径：全部为 2026-10-27 实跑/实测，未虚构。"
 }

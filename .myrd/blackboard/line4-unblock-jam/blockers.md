@@ -1,6 +1,20 @@
 # 阻塞项黑板 — line4-unblock-jam（第四产品线）
 
-> 更新时间：2026-10-27（**好玩判据验证轮：N1→N5 闭环走完 → verdict=PENDING_PLAYTEST 不计轮，止损 0/3 不动，升级主人试玩**；存量收口 PL2 刷新挂起 / PL3 定格已发布·维护态；PL5 简报+预评分落 `../next-line/`）｜ 负责人：主策划（整合）/ 游戏程序 / 游戏美术 / 游戏 QA ｜ 下一步：**主人进试玩入口 + 圈 ≥3 名真人填合并版反馈单**（`games/line4-unblock-jam/docs/qa/playtest-feedback-form-v1-20261027.md`）→ N4 复核计轮
+> 更新时间：2026-10-27T02:10Z（**复证+重部署批：挂账项⑥关闭（渲染层零裸 hex→token 单源+acc-05 断言⑤）+ 挂账项⑦关闭（线上锚归档+部署字节 3/3 sha256 全等）+ 重部署 `cmvq14lhy00` running @ `de5aefa`；N3 样本 0/3 维持 → verdict=PENDING_PLAYTEST 不计轮、止损 0/3 不动**；PL2 刷新挂起 / PL3 定格已发布·维护态 / PL5 简报+预评分均本晨已落，本轮零触碰维持）｜ 负责人：主策划（整合）/ 游戏程序 / 游戏美术 / 游戏 QA ｜ 下一步：**主人进试玩入口 + 圈 ≥3 名真人填合并版反馈单（版本锚已刷新=1b101a4/de5aefa）**（`games/line4-unblock-jam/docs/qa/playtest-feedback-form-v1-20261027.md`）→ N4 复核计轮
+
+## 10/27 复证+重部署批（游戏程序署名 · 2026-10-27T02:10Z）
+
+| # | 动作 | 结果 | 证据 |
+|---|---|---|---|
+| 1 | 上轮全量复证（HEAD `8fbd873`） | 部署锚→HEAD 漂移机判=仅 4 份 docs（零运行面漂移，上轮结论成立）；spec approved v2 GET 200 复证 | 本轮 git diff 机判 + API 实测 |
+| 2 | **挂账项⑥ 兑现** | `src/main.ts` 裸 hex×4 → `PALETTE.ground/ink` 等值替换（美术 0675dd7 预审放行）+ `car.ts` 注释 hex 字面量×2 清零 + **acc-05 断言 4→5**（⑤渲染层零裸 hex，theme.ts 唯一落点）+ **检查件作用域勘误**（原扫描基准实指工作区根共享壳 src，改扫本游戏 src；spec 读取路径不受影响） | commit `1b101a4` · `gate-logs/line4-hex-token-deploy-20261027/02-check-acc-05…log` |
+| 3 | **挂账项⑦ 兑现（线上锚归档）** | 重部署后线上 `main.mjs __L4_BUILD__ = 1b101a4 ≡ 仓内构建锚`；**线上 vs 仓内 sha256 三文件 3/3 MATCH = 部署字节=提交字节机器级**；环境面变化如实披露：上轮 tailscale 000 不可达本轮已可达（`:3111` 网关资产路由仍 404 沿判例登记） | `13-live-entry.log` · `14-online-bytes-diff.log` |
+| 4 | 重部署（坑复用零新建） | POST 504 判例 → GET 复查**恰 1 新单** `cmvq14lhy00j1m91krnulup8w` **running** error=null @ `de5aefa`（detail 接口本轮直接返回 commitHash——上轮披露缺口关闭）；旧单 `cmvolm4s7` 保留可回滚 | `10..12` 号证据原件 |
+| 5 | 门禁（新锚） | verify.sh **17 步全 PASS exit 0** @ `1b101a4`；smoke-playable **68/0** 对部署字节二次复跑；spec 零改动零 revision | verify `01..09` 日志 |
+| 6 | N3 实况 | **样本 0/3 维持**（无新增回流；机器不代采）→ verdict PENDING_PLAYTEST 不计轮，N5 不触发；**试玩入口版本锚已刷新**（旧锚 bc3cd56/4f8ad155 作废） | verdict JSON 增补段 `addendum_20261027T0210Z_程序重部署批` |
+| 7 | PL2/PL3/PL5 | 零触碰维持：PL2 挂起（本晨刷新件+四缺件升级维持）· PL3 已发布·维护态（本晨定格件维持）· PL5 简报 v1+预评分（本晨产出，当日新鲜度足够） | 各子黑板当日件 |
+
+
 
 ## 10/27 好玩判据验证轮（N1→N5 · 主策划整合 · 唯一重心轮）
 
@@ -41,10 +55,10 @@
 |---|---|
 | 黑板路径 | `.myrd/blackboard/line4-unblock-jam/`（三件套 · **黑板登记块名写死于此**，spec 缺陷⑥核销锚点） |
 | spec 版本号 | **链 v2 `cmvlrc0ma001tm94ialxeykjn` = approved（唯一现行，平台 GET 200 实测 2026-10-27 当日复证）**；链 v1 superseded；同 scope 仅 2 版，approved 唯一性成立；**本轮 spec 零改动（无 revision，触发条件不成立）** |
-| 当前分支与续接 | `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `0675dd7`（=远端分支头，同步）；git fetch 实测远端仅 `origin/main`（孤儿快照线 merge-base=∅ → 沿 10/16 判例不并入，无 rebase，判例维持） |
+| 当前分支与续接 | `myrd/pixel-fives-m0-m1-cmtpb66pe000rm9e2ozdurf8d` @ `de5aefa`（=远端分支头，`git ls-remote` 实测同步；部署单 `cmvq14lhy00` commitHash 同值）；git fetch 实测远端仅 `origin/main`（孤儿快照线 merge-base=∅ → 沿 10/16 判例不并入，无 rebase，判例维持） |
 | 平台 API | `http://localhost:3111` 可达（healthz 200 · specs GET 200 · apphost apps/deployments GET 200 实测 2026-10-27）；鉴权 = `MYRD_TOKEN` Bearer |
 | 产线 | ts-canvas 判例平移 · 零外部贴图 · 零 npm 依赖（构建走 node 内置 stripTypeScriptTypes） |
-| 今日主线 | **P0-1 PL4 好玩判据验证轮（N1→N5 走完，卡真人样本）**；P0-2 存量收口（PL2 刷新 / PL3 定格）✅；P1-1 PL5 储备轨 ✅ |
+| 今日主线 | **P0-1 PL4 好玩判据验证轮（N1→N5 走完 + 复证/重部署批，卡真人样本 0/3）**；P0-2 存量收口（PL2 刷新 / PL3 定格）✅；P1-1 PL5 储备轨 ✅；P1-2 黑板登记 ✅ |
 
 ## 10/26 交付包轮（2026-10-26 · 主策划署名 · N0→N5 逐节点）
 
@@ -147,8 +161,8 @@
 | 3 | PL4 wx 宿主面 host-wx/（移植轮落地件 · P-06-wx 预检提示） | 游戏程序 | 移植轮开工项；web/wx port-gate 硬检已 0 FAIL |
 | 4 | PL3 试玩反馈 + 5 局真人样本（升级件①已发） | 主人（已升级） | 入口存活；回流走既定版本链，PL4 主线不受影响 |
 | 5 | **PL2 wx 门禁复跑记录 pending（独立跟踪 · P0-3 QA 结论）** | 游戏程序（R3 复跑批一次做齐） | 10/18 后 wx 侧复跑记录**不存在**（QA 核原文：dy 口径四段 + 终审件 L20「G-4 维持」+ 本仓 git 零命中）；pending 登记，解除=R3 复跑批产出 wx 口径实跑档案；凭证（G-2）未到位前止步材料清单 |
-| 6 | **驳回建议①挂账（styleDerivation 渲染层 token 断言面 · 2026-10-26 驳回反馈非阻塞项）** | 游戏程序（下一部署批一次做齐） | `src/main.ts:35-38` 裸 hex（#F2EFE6/#2B2D42）改引 `src/platform/theme.ts` token + acc-05 增「渲染层零裸 hex（theme.ts 唯一 hex 落点）」断言 + 重建；**捆同批**：重部署 + 线上 `__L4_BUILD__` 归档——本轮不做理由=触构建产物会打破 bc3cd56 三锚闭环（回执 `../gate-logs/line4-rejection-fix-20261026/00-manifest.md`） |
-| 7 | **线上锚归档 + N5 翻 pass 核签（2026-10-26 驳回缺陷1 收口）** | 具备 tailscale 通道方（归档）+ QA（核签） | 仓内/部署 manifest 双锚=bc3cd56 在案；线上锚我方沙箱不可达（000/404 在案），一键归档命令见 `gate-logs/line4-deploy-20261026/00-manifest.md` §三锚表；若线上锚∉{bc3cd56,4f8ad155} → 查部署构建输入并重部署；QA 按修复回执复核后 N5 结论翻 pass |
+| 6 | **驳回建议①挂账（styleDerivation 渲染层 token 断言面 · 2026-10-26 驳回反馈非阻塞项）** | 游戏程序 | **已解除（2026-10-27 复证+重部署批）**：`main.ts` 裸 hex×4→`PALETTE.ground/ink` 等值替换（美术 0675dd7 预审放行）+ `car.ts` 注释字面量×2 清零 + acc-05 断言⑤「渲染层零裸 hex（theme.ts 唯一落点）」+ 检查件作用域勘误（改扫本游戏 src）；verify 17 步全绿 @ `1b101a4`（commit `1b101a4`+`de5aefa`） |
+| 7 | **线上锚归档 + N5 翻 pass 核签（2026-10-26 驳回缺陷1 收口）** | ~~具备 tailscale 通道方~~（本轮已可直接归档）+ QA（核签） | **归档完成（2026-10-27 重部署批）**：新部署单 `cmvq14lhy00` running @ `de5aefa`，线上 `__L4_BUILD__=1b101a4 ≡ 仓内构建锚`，线上 vs 仓内 sha256 **3/3 MATCH**（`gate-logs/line4-hex-token-deploy-20261027/13..14`）；旧部署单 bc3cd56/4f8ad155 锚随旧单归档保留。**N5 结论翻 pass 仍待 QA 核签**（N5 本轮不触发=无反馈条目，翻 pass 前置不变） |
 
 ## PL5 预研触发器（2026-10-25 登记 · 状态：**已触发第一步**）
 

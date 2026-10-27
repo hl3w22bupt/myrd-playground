@@ -225,3 +225,9 @@
 | ⑧ | g-01 引导层 | a04 语义程序化直绘 ✓ | 最顶层 ✓ |
 
 ——游戏美术（动效槽位 + F1 层级检查）· 主策划（登记）· 2026-10-27
+
+## 十、复证+重部署批 · 资产面零改动登记（2026-10-27T02:10Z · 游戏程序代登记 · 美术口径未动）
+
+- **资产六件（a01–a06）零触碰**：本轮变更面=src 渲染层色值引用方式（main.ts 裸 hex→theme.ts token 等值替换，渲染值逐字节不变）+ acc-05 断言⑤；`tools/check-assets.mjs` 在新锚 `1b101a4` 复跑 **31 断言 PASS exit 0**（verify.sh 步 06，`../gate-logs/line4-hex-token-deploy-20261027/06-assets-gate.log`），hash 面零变化。
+- **风格卡 v1 维持冻结**；§九动效槽位五槽结论维持（D-3 失败反馈空槽待 revision 窗）；F1 首屏 D-2（红轮态出口门与目标车同色）维持待真人验证——**两发现均不被本轮触碰**（等值替换不改任何色值）。
+- 重部署后线上资产字节=仓内（sha256 3/3 MATCH，见 `../gate-logs/line4-hex-token-deploy-20261027/14-online-bytes-diff.log`）。
