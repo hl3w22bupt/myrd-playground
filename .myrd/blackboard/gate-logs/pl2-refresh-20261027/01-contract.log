@@ -1,0 +1,8 @@
+# pl2 contract @ 023e5838b5e833875fab2e37711d8d3e2d714e2e 2026-10-27T01:23:10Z
+RED  contract-missing ac-28-daily-hook-min-loop :: tests/contract/ac-28-daily-hook-min-loop.spec.mjs 缺位（spec 有而件缺，不装绿）
+RED  contract-missing ac-29-analytics-nine-events :: tests/contract/ac-29-analytics-nine-events.spec.mjs 缺位（spec 有而件缺，不装绿）
+RED  contract-missing ac-30-freeze-dod-gates :: tests/contract/ac-30-freeze-dod-gates.spec.mjs 缺位（spec 有而件缺，不装绿）
+RED  contract-missing ac-31-nearmiss-feedback :: tests/contract/ac-31-nearmiss-feedback.spec.mjs 缺位（spec 有而件缺，不装绿）
+RED  contract-missing ac-32-settlement-ia :: tests/contract/ac-32-settlement-ia.spec.mjs 缺位（spec 有而件缺，不装绿）
+RED  contract-missing ac-33-submission-bundle-zero-diff :: tests/contract/ac-33-submission-bundle-zero-diff.spec.mjs 缺位（spec 有而件缺，不装绿）
+EXIT=0

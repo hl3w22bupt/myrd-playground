@@ -10,9 +10,10 @@
 | 2 | **挂账项⑥ 兑现** | `src/main.ts` 裸 hex×4 → `PALETTE.ground/ink` 等值替换（美术 0675dd7 预审放行）+ `car.ts` 注释 hex 字面量×2 清零 + **acc-05 断言 4→5**（⑤渲染层零裸 hex，theme.ts 唯一落点）+ **检查件作用域勘误**（原扫描基准实指工作区根共享壳 src，改扫本游戏 src；spec 读取路径不受影响） | commit `1b101a4` · `gate-logs/line4-hex-token-deploy-20261027/02-check-acc-05…log` |
 | 3 | **挂账项⑦ 兑现（线上锚归档）** | 重部署后线上 `main.mjs __L4_BUILD__ = 1b101a4 ≡ 仓内构建锚`；**线上 vs 仓内 sha256 三文件 3/3 MATCH = 部署字节=提交字节机器级**；环境面变化如实披露：上轮 tailscale 000 不可达本轮已可达（`:3111` 网关资产路由仍 404 沿判例登记） | `13-live-entry.log` · `14-online-bytes-diff.log` |
 | 4 | 重部署（坑复用零新建） | POST 504 判例 → GET 复查**恰 1 新单** `cmvq14lhy00j1m91krnulup8w` **running** error=null @ `de5aefa`（detail 接口本轮直接返回 commitHash——上轮披露缺口关闭）；旧单 `cmvolm4s7` 保留可回滚 | `10..12` 号证据原件 |
-| 5 | 门禁（新锚） | verify.sh **17 步全 PASS exit 0** @ `1b101a4`；smoke-playable **68/0** 对部署字节二次复跑；spec 零改动零 revision | verify `01..09` 日志 |
+| 5 | 门禁（新锚） | verify.sh **17 步全 PASS exit 0** @ `1b101a4`；smoke-playable **68/0**＝仓内最新产物复跑（16 号落档）+ 线上字节全等间接覆盖（14 号 sha256 3/3；09 号日志对象为重锚前构建，本行已按驳回反馈⑤勘误口径）；spec 零改动零 revision | verify `01..09` + `16` 号日志 |
 | 6 | N3 实况 | **样本 0/3 维持**（无新增回流；机器不代采）→ verdict PENDING_PLAYTEST 不计轮，N5 不触发；**试玩入口版本锚已刷新**（旧锚 bc3cd56/4f8ad155 作废） | verdict JSON 增补段 `addendum_20261027T0210Z_程序重部署批` |
 | 7 | PL2/PL3/PL5 | 零触碰维持：PL2 挂起（本晨刷新件+四缺件升级维持）· PL3 已发布·维护态（本晨定格件维持）· PL5 简报 v1+预评分（本晨产出，当日新鲜度足够） | 各子黑板当日件 |
+| 8 | **驳回勘误批（2026-10-27T02:50Z · 五项处置）** | ①试玩样本=主人侧维持挂账不空转（本表头「下一步」唯一路径）；②PL2 证据三矛盾→实跑换证勘误（12 RED·exit=1 全文原件 `../gate-logs/pl2-refresh-20261027/02..03` + EXIT=0 系采集包装未透传运行器退出码，结论方向不变）；③共板 `../blockers.md` 补 10/27 组合收口段；④PL5 代证口径挂账升级主人表态（共板 §升级主人#4）；⑤可玩绿证口径勘误=「仓内最新产物复跑（16 号落档 68/0）+线上字节全等间接覆盖（14 号 3/3）」，n2 §四与本表 #5 两处同步 | `../g2-blocks/gate-refresh-20261027.md` §一·补 + `../blockers.md` + n2 §四 |
 
 
 

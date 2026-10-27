@@ -73,7 +73,7 @@
 | 门禁 | 结果 | exit | 日志 |
 |---|---|---|---|
 | `verify.sh`（WX=1 全量 17 步） | **17 步全 PASS**（含契约 29/0 + 套件 8+1 件 + smoke 4/4 + port-gate web/wx + 资产 31 断言 + 构建 + 壳契约 guard） | 0 | `01..09` 号日志 |
-| `tools/smoke-playable.mjs`（**对部署字节二次复跑**） | **20/20 局全 WIN · PASS=68 FAIL=0** | 0 | verify `09` + 本轮补跑记录 |
+| `tools/smoke-playable.mjs`（**口径勘误 2026-10-27T02:45Z**：为「仓内最新产物复跑 + 线上字节全等间接覆盖」——verify 09 号日志（09:49:27）早于部署（09:54:52），其对象为重锚前构建；对部署字节的直接绿证=16 号落档复跑（对象=仓内 export/web 最新产物，与线上字节全等由 14 号 sha256 3/3 间接闭合）） | **20/20 局全 WIN · PASS=68 FAIL=0** | 0 | verify `09` + `16-smoke-playable-repo-artifacts.log` |
 | acc-05 断言面 | **4→5 断言**（新增⑤「渲染层零裸 hex，theme.ts 唯一落点」）+ 作用域勘误（扫描基准=本游戏 src，原 5 级上级实指工作区根共享壳 src） | 0 | `02-check-acc-05-no-external-texture.log` |
 
 ### 带版本标识的试玩入口（锚值已刷新）

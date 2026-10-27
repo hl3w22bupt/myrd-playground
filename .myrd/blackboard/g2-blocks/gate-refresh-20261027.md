@@ -9,7 +9,15 @@
 |---|---|---|---|
 | 契约（默认口径） | `node scripts/contract-check.mjs` | **12 RED**（ac-22..33 spec 有而件缺，「不装绿」fail-closed 生效）· 无 PASS 行输出 | **1** |
 | 套件 | `npm run gate` | **6/8 PASS · 2 RED**：④ `harness/spec-anchor-stable` 空（spec 锚面漂移）；⑥ 根因=acmap/c 12 条件缺（与契约同源）+ **acmap/g 生成件锚过期（`302e633… ≠ 链上 6719edd…`，提示重跑 `npm run gen`）** | **1** |
-| 证据 | 本目录 `../../workspaces` 外部源仓实跑，输出全文 | `/tmp/pl2-contract-full.log`（13 行）· `/tmp/pl2-gate.log` | — |
+| 证据 | 本目录 `../../workspaces` 外部源仓实跑，输出全文 | ~~`/tmp/pl2-contract-full.log`（13 行）· `/tmp/pl2-gate.log`~~ **〔勘误 2026-10-27T02:40Z：/tmp 不持久不满足四要素，已重跑落档换证〕**→ `.myrd/blackboard/gate-logs/pl2-refresh-20261027/02-contract-full-rerun.log`（12 RED 全文 · exit=1）+ `03-gate-rerun.log`（6/8 · 2 RED · exit=1），证据同锚 `023e5838` | — |
+
+### 一·补：证据件勘误（2026-10-27T02:40Z · 游戏程序 · 驳回反馈②落办）
+
+| # | 缺陷 | 勘误 |
+|---|---|---|
+| 1 | 原件 `gate-logs/pl2-refresh-20261027/01-contract.log` 仅 6 条 RED（ac-28..33，缺 ac-22..27 六行） | 系**采集截断缺陷**：该件为 ad-hoc 包装采集（件头 `# pl2 contract @ <sha>` + 裸 `RED` 行格式，非 `contract-check.mjs` 原生输出——原生头行=`# g2-blocks contract-check · spec v9 (approved) anchor=…`，RED 态只印 RED 不印合计）。**01 号原件保留不删改**，被 `02-contract-full-rerun.log`（12 条 RED 全文 + `== exit=1 ==`）取代 |
+| 2 | 01 号尾行 `EXIT=0` 与 fail-closed 判例（exit 1）相悖 | 该 `EXIT=0` 是**采集包装自己的 echo，非运行器退出码**——未透传真实 exit。本机实跑复核：`node scripts/contract-check.mjs` 在 12 RED 下**真实 exit=1**（02 号件 `== exit=1 ==` 行）；`npm run gate` 2 RED 下亦 **exit=1**（03 号件）。fail-closed 口径成立，无矛盾 |
+| 3 | 三方口径矛盾（文档 12 RED vs 在档 6 RED vs /tmp 全文不持久） | 本机同锚重跑落档后收敛为**单一事实**：**12 RED（ac-22..33）· exit=1** + 套件 **6/8（④⑥ RED）· exit=1**，与 §一表格声称值一致——结论方向（门禁红 → 维持挂起、提审就绪=否）不变，仅证据件换证自洽 |
 
 **定性（如实）**：HEAD 零位移（上轮 10/26 实测 `023e5838` 同值）→ 本轮 RED **非本轮回归**，是挂起态既有脱节（spec v9 approved 口径 ↔ 实现面/测试件/生成件锚）的门禁实况刷新。**与 10/18 存档「contract v9 29+1PEND」口径无法在本工作区复现存档原件**（`sha-answer-rerun-20261018/` 目录工作区与全局黑板均不存在）——两口径如实双记，不找补、不回改历史记录。
 **不补救理由**：PL2 挂起线不投开发资源；补件属 R3 复跑批（任务书口径），且 G-1（链上 approved=0）未解除前补件无验收基准。

@@ -1,0 +1,17 @@
+== 命令原文：node scripts/contract-check.mjs（源仓根，默认口径）
+== 时刻：2026-10-27 10:31:12（源仓 HEAD=023e5838b5e833875fab2e37711d8d3e2d714e2e）
+== 输出全文：
+# g2-blocks contract-check · spec v9 (approved) anchor=…
+RED  contract-missing ac-22-feel-land-squash :: tests/contract/ac-22-feel-land-squash.spec.mjs 缺位（spec 有而件缺，不装绿）
+RED  contract-missing ac-23-feel-hard-drop-shake :: tests/contract/ac-23-feel-hard-drop-shake.spec.mjs 缺位（spec 有而件缺，不装绿）
+RED  contract-missing ac-24-feel-clear-particles :: tests/contract/ac-24-feel-clear-particles.spec.mjs 缺位（spec 有而件缺，不装绿）
+RED  contract-missing ac-25-feel-sfx-three-tier :: tests/contract/ac-25-feel-sfx-three-tier.spec.mjs 缺位（spec 有而件缺，不装绿）
+RED  contract-missing ac-26-feel-combo-feedback :: tests/contract/ac-26-feel-combo-feedback.spec.mjs 缺位（spec 有而件缺，不装绿）
+RED  contract-missing ac-27-feel-restart-one-click :: tests/contract/ac-27-feel-restart-one-click.spec.mjs 缺位（spec 有而件缺，不装绿）
+RED  contract-missing ac-28-daily-hook-min-loop :: tests/contract/ac-28-daily-hook-min-loop.spec.mjs 缺位（spec 有而件缺，不装绿）
+RED  contract-missing ac-29-analytics-nine-events :: tests/contract/ac-29-analytics-nine-events.spec.mjs 缺位（spec 有而件缺，不装绿）
+RED  contract-missing ac-30-freeze-dod-gates :: tests/contract/ac-30-freeze-dod-gates.spec.mjs 缺位（spec 有而件缺，不装绿）
+RED  contract-missing ac-31-nearmiss-feedback :: tests/contract/ac-31-nearmiss-feedback.spec.mjs 缺位（spec 有而件缺，不装绿）
+RED  contract-missing ac-32-settlement-ia :: tests/contract/ac-32-settlement-ia.spec.mjs 缺位（spec 有而件缺，不装绿）
+RED  contract-missing ac-33-submission-bundle-zero-diff :: tests/contract/ac-33-submission-bundle-zero-diff.spec.mjs 缺位（spec 有而件缺，不装绿）
+== exit=1 ==

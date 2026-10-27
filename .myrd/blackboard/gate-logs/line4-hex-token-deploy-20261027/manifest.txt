@@ -21,3 +21,5 @@
 13-live-entry | GET /gw + tailscale main.mjs | 2026-10-27 09:54:52 | exit=0 | 主入口200+标题正确;线上锚=1b101a4≡仓内构建锚(挂账⑦归档)
 14-online-bytes-diff | sha256 线上vs仓内(main.mjs/manifest.json/landing.html) | 2026-10-27 09:54:52 | exit=0 | 3/3 MATCH
 15-contract-final-head | contract-check | 2026-10-27 09:57:36 | exit=0 | 29 PASS/0 FAIL @HEAD=4eabe30
+16-smoke-playable-repo-artifacts | node tools/smoke-playable.mjs | 2026-10-27 10:33:50 | exit=0 | 20/20 WIN·68/0 对仓内最新产物(≡线上字节)落档复跑
+17-contract-final-after-errata | contract-check | 2026-10-27 10:35:38 | exit=0 | 29 PASS/0 FAIL @驳回勘误批 HEAD
