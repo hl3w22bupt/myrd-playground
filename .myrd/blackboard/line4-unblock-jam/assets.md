@@ -249,3 +249,22 @@
 - 证据目录：`.myrd/blackboard/gate-logs/line4-art-reverify-20261027-pl4/`（00 前置留证 · 01 快门禁 · verify/ 17 件+manifest · 02/03 锚改写留证 · 04 独立 shasum 9/9 · 05 sips 尺寸 · 06 锚恢复）。
 
 ——游戏美术（PL4 验证轮重证）
+
+---
+
+## 十二、同文任务书再重派轮 · 再生零漂移证明（2026-10-27 · `f6b1cce` 重锚 · 美术署名）
+
+> 重派协议处置：勘验 `f6b1cce`（程序驳回勘误批 PL2 换证+组合收口+PL5 挂账+口径勘误）触达面=root blockers / g2-blocks 刷新 / 证据件 / n2 两行——**美术面（本卡 / next-line / assets/ / theme.ts / render.ts / spec）空 diff 零触及** → §十一 结论平移合法。N3 样本 0/3 维持。增量动作=前轮未做过的**再生零漂移证明**（§⓪ 的「重生成 hash 全等」系 10-26 生成链自证且在 token 化前；本轮在新锚以独立 diff 工具复现，不与生成器自证互证）。
+
+| # | 证明项 | 结果 |
+|---|---|---|
+| Z1 | 生成器 `gen-assets.mjs --out <tmp>` 再生 @ `f6b1cce` → `diff -r` 对仓内 assets 树：**exit 0 · 逐字节全等**（10 文件 = 5 PNG + spec.json + 3 wav + manifest） | ✅ |
+| Z2 | 键值归一（basename）sha256 清单对账：**10/10 全等 · exit 0**（首跑 sed 路径拼接缺陷已披露换证，06 号留痕） | ✅ |
+| Z3 | 快门禁 check-assets @ `f6b1cce`：**PASS=31 FAIL=0 · exit 0** | ✅ |
+| Z4 | 仓内树零污染：regen 全程走 mktemp 临时目录，跑后 `git status` 净（0 项） | ✅ |
+
+- 含义：仓内 a01–a06 交付件 ≡ 生成器当前输出（零手改零漂移），「色值单源 = theme.ts ≡ 风格卡 v1 ≡ spec palette」链在新锚（token 化后）依旧闭合。
+- 边界：零素材产出、零接线变更、零 spec/theme 触碰；N3 样本 0/3 维持不代采（等主人）；a07/a08/a10 拟槽位件仍锁 revision 窗（真人反馈回流后）；PL5 风格卡 v0 前提链（C1=Top1 12 分）亲核维持。
+- 证据目录：`gate-logs/line4-art-regen-zerodrift-20261027/`（00 前置 · 01/03 键值清单 · 04 空 diff · 05 逐字节空 diff · 06 首跑缺陷披露 · 07 快门禁 · 02 再生 stdout）。
+
+——游戏美术（再重派轮再生证明）

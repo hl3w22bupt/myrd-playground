@@ -1,0 +1,9 @@
+[gen-assets] a01-lot-tiles.png 144x48 258B sha=c280e58157fd
+[gen-assets] a02-car-set.png 384x48 563B sha=1fa47319c7ba
+[gen-assets] a03-exit-gate.png 192x48 270B sha=bc759363500f
+[gen-assets] a04-guide-hand.png 96x96 272B sha=72db18102666
+[gen-assets] a05-ui-hud.png 48x48 162B sha=8c57d16133da
+[gen-assets] audio/drag.wav 60ms 2690B sha=5d5a437a9f44
+[gen-assets] audio/exit.wav 140ms 6218B sha=ba416dfa1fc8
+[gen-assets] audio/clear.wav 220ms 9746B sha=5362b88e0706
+[gen-assets] manifest.json：6 件 → /var/folders/6k/5kg2yg311tddgw7vn2jyky6m0000gn/T/tmp.2re2nCEArn

@@ -1,0 +1,2 @@
+HEAD=f6b1cce9a58a9d2d3c1df235d58c3ae8e58c98cd
+method: gen-assets.mjs --out temp → independent shasum/diff vs committed tree
