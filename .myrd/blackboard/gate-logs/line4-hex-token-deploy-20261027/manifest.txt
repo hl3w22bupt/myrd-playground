@@ -23,3 +23,5 @@
 15-contract-final-head | contract-check | 2026-10-27 09:57:36 | exit=0 | 29 PASS/0 FAIL @HEAD=4eabe30
 16-smoke-playable-repo-artifacts | node tools/smoke-playable.mjs | 2026-10-27 10:33:50 | exit=0 | 20/20 WIN·68/0 对仓内最新产物(≡线上字节)落档复跑
 17-contract-final-after-errata | contract-check | 2026-10-27 10:35:38 | exit=0 | 29 PASS/0 FAIL @驳回勘误批 HEAD
+18-contract-head-70a1052 | contract-check | 2026-10-27 10:49:16 | exit=0 | 29 PASS/0 FAIL
+19-smoke-head-70a1052 | node tools/smoke.mjs | 2026-10-27 10:49:16 | exit=0 | SCAFFOLD-SMOKE 4/4
