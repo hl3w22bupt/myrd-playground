@@ -1,0 +1,16 @@
+PASS  a01-lot-tiles.png  144x48 colorType=6
+   不透明色 2 组: #F2EFE6(ground)×4325 #D9D2C5(gridLine/obstacle)×1871
+   透明像素 716（圆角/间隙）· 半透明 0 组: 无
+PASS  a02-car-set.png  384x48 colorType=6
+   不透明色 4 组: #EF4444(target)×4544 #F59E0B(carWarm)×4544 #10B981(carCool)×4544 #3B82F6(carAlt)×4544
+   透明像素 164（圆角/间隙）· 半透明 1 组: #111111@12%×92
+PASS  a03-exit-gate.png  192x48 colorType=6
+   不透明色 2 组: #10B981(carCool)×436 #EF4444(target)×436
+   透明像素 8344（圆角/间隙）· 半透明 0 组: 无
+PASS  a04-guide-hand.png  96x96 colorType=6
+   不透明色 2 组: #2B2D42(ink)×612 #F2EFE6(ground)×684
+   透明像素 7920（圆角/间隙）· 半透明 0 组: 无
+PASS  a05-ui-hud.png  48x48 colorType=6
+   不透明色 0 组: 
+   透明像素 64（圆角/间隙）· 半透明 1 组: #2B2D42@90%×2240
+== 像素审计 PASS=5 FAIL=0 ==
