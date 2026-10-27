@@ -1,0 +1,6 @@
+== 命令原文：node games/line4-unblock-jam/tools/smoke.mjs
+== 时刻：2026-10-27 11:01:24（HEAD=5c920fa）
+== 输出：
+[scaffold-smoke] 构建 sha 指纹在位 ✓ sha=75653d80c0e6 dirty=true
+SCAFFOLD-SMOKE: PASS（4/4 面）
+== exit=0 ==

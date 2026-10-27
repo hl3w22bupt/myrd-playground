@@ -1,0 +1,6 @@
+== 命令原文：node scripts/contract-check.mjs --spec .myrd/spec/line4-unblock-jam/design-spec.json --project games/line4-unblock-jam
+== 时刻：2026-10-27 11:01:24（HEAD=5c920fa 第三轮维持复核）
+== 输出：
+—— 合计 29 PASS / 0 FAIL ——
+CONTRACT: PASS 实现与 approved 策划案一致
+== exit=0 ==
