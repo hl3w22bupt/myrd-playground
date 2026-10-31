@@ -1,0 +1,5 @@
+index.html(仓库产物): 6771a29ca89151f6b654530b041dd257bd2d409c388d68063f6c6c8834fa156f
+gw /apps/soho-ecom/gw: 6771a29ca89151f6b654530b041dd257bd2d409c388d68063f6c6c8834fa156f
+productSourceSha(src/) = SRC_SHA=43af06af69ec9183
+deployment: cmvvsy3w1000dm91w8266bndz @ 695a8cfcaff933f65206ecc990c33102054c558e (branch myrd/eco-loop-goal-cmvv02e7a0019m9uwy2nosbkn, mode=bundle)
+deployedAt: 2026-10-31T02:54:38Z

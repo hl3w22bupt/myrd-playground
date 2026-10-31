@@ -1,0 +1,87 @@
+{
+  "verdict": "PASS",
+  "url": "http://localhost:3111/apps/soho-ecom/",
+  "preset": {
+    "width": 390,
+    "height": 844,
+    "deviceScaleFactor": 3,
+    "mobile": true,
+    "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
+  },
+  "checkedAt": "2026-10-30T19:26:32.263Z",
+  "checks": [
+    {
+      "id": "network",
+      "label": "关键资源网络全通（无 5xx / 404 / 登录墙重定向）",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "id": "network-warn",
+      "label": "非关键资源异常（不阻断）",
+      "status": "warn",
+      "detail": "404 http://localhost:3111/favicon.ico"
+    },
+    {
+      "id": "console",
+      "label": "console 零 error + 零未捕获异常",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "id": "render",
+      "label": "首屏截图非纯色（400 点采样 ≥2 种量化色）",
+      "status": "pass",
+      "detail": "采样仅 40 种颜色——页面没渲染出来（白屏/黑屏）"
+    },
+    {
+      "id": "content",
+      "label": "DOM 有内容（文本非空或存在内容元素）",
+      "status": "pass",
+      "detail": "innerText=476 字、无 img/svg/form/button 等内容元素——结构没挂载或被壳挡住"
+    },
+    {
+      "id": "touch-pipeline",
+      "label": "触摸事件到达 DOM（tap 与滚动 swipe 均被派发）",
+      "status": "pass",
+      "detail": "tap={\"touchstart\":1,\"touchmove\":0,\"touchend\":1} swipe={\"touchstart\":2,\"touchmove\":9,\"touchend\":2}——事件没到页面=壳层挡了输入"
+    },
+    {
+      "id": "viewport",
+      "label": "无横向溢出（scrollWidth ≤ clientWidth+1）",
+      "status": "pass",
+      "detail": "scrollWidth=390 vs clientWidth=390"
+    }
+  ],
+  "metrics": {
+    "colorCount": 40,
+    "tapDiff": 15,
+    "textLength": 476,
+    "hasContentElement": true,
+    "textHead": "白手起家 · 跨境电商版\n\nM2 事件流 + 升级线 —— 一屏走完「选品 → 上架 → 出单 → T+14 回款 → ",
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "hasViewportMeta": true
+  },
+  "networkFailures": [],
+  "networkWarnings": [
+    "404 http://localhost:3111/favicon.ico"
+  ],
+  "consoleErrors": [],
+  "touchCounters": {
+    "afterTap": {
+      "touchstart": 1,
+      "touchmove": 0,
+      "touchend": 1
+    },
+    "afterSwipe": {
+      "touchstart": 2,
+      "touchmove": 9,
+      "touchend": 2
+    }
+  },
+  "evidence": [
+    "phase-load.png",
+    "phase-tap.png"
+  ]
+}

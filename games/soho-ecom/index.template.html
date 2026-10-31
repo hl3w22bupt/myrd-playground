@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>白手起家·跨境电商版 M2 —— 事件流 + 升级线</title>
+<style>
+  :root {
+    --panel: rgba(10, 16, 22, 0.84);
+    --panel-soft: rgba(16, 26, 34, 0.66);
+    --line: rgba(108, 202, 224, 0.4);
+    --line-soft: rgba(108, 202, 224, 0.16);
+    --text: #e8f4f6;
+    --text-dim: #9fb4bd;
+    --cyan: #6ccae0;
+    --orange: #ffb057;
+    --green: #7fd8a0;
+    --red: #e8746a;
+    --font-num: "DIN Alternate", "Bahnschrift", "Arial Narrow", ui-sans-serif, sans-serif;
+    --font-ui: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", ui-sans-serif, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* 触屏兜底：禁浏览器手势（滚动/双击缩放/长按菜单）—— canvas 区 touch-action:none（E-04），
+     面板区单独放开 pan-y 允许纵向滚动（横向永不滚）。 */
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0b1016;
+    touch-action: none; overscroll-behavior: none;
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  #gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  #ui { position: fixed; inset: 0; pointer-events: none; color: var(--text);
+    font-family: var(--font-ui); font-size: 14px; line-height: 1.5; }
+  .hidden { display: none !important; }
+  .num { font-family: var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: 0.3px; }
+
+  /* ————— 顶栏：日期 + 汇率 + 速度 ————— */
+  #hud { position: absolute; top: 0; left: 0; right: 376px; display: flex; justify-content: space-between;
+    align-items: center; gap: 8px; padding: 12px 16px; }
+  #hud .chip { background: var(--panel); border: 1px solid var(--line-soft); border-radius: 10px;
+    padding: 8px 14px; font-size: 15px; }
+  #speeds { display: flex; gap: 6px; pointer-events: auto; }
+  #speeds button { min-width: 44px; min-height: 44px; padding: 0 10px; background: var(--panel);
+    border: 1px solid var(--line-soft); border-radius: 10px; color: var(--text-dim);
+    font-family: var(--font-num); font-size: 15px; }
+  #speeds button.active { border-color: var(--cyan); color: var(--cyan); background: rgba(108, 202, 224, 0.12); }
+  #speeds button:active { transform: translateY(1px); }
+  #day-prog-track { width: 110px; height: 6px; background: rgba(255,255,255,0.12); border-radius: 3px; overflow: hidden; display: inline-block; vertical-align: middle; margin-left: 8px; }
+  #day-prog { height: 100%; width: 0%; background: var(--cyan); }
+
+  /* ————— 右侧主面板（一屏可玩的核心操作区） ————— */
+  #panel { position: absolute; top: 0; right: 0; bottom: 0; width: 376px; background: var(--panel);
+    border-left: 1px solid var(--line-soft); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    overflow-y: auto; overflow-x: hidden; pointer-events: auto; touch-action: pan-y; padding: 14px 14px 28px; }
+  #panel section { margin-bottom: 14px; }
+  #panel h2 { font-size: 12px; font-weight: 600; letter-spacing: 2px; color: var(--text-dim);
+    border-bottom: 1px solid var(--line-soft); padding-bottom: 5px; margin-bottom: 8px; }
+  #panel h2 .hint { float: right; letter-spacing: 0; font-weight: 400; }
+
+  /* 资源条 */
+  .res-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .res-row .label { width: 62px; color: var(--text-dim); font-size: 12px; flex: none; }
+  .res-row .track { flex: 1; height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden; }
+  .res-row .fill { height: 100%; width: 100%; border-radius: 5px; transition: width 0.25s; }
+  #res-energy .fill { background: var(--cyan); }
+  #res-health .fill { background: var(--green); }
+  #res-satiety .fill { background: var(--orange); }
+  .res-row .val { width: 44px; text-align: right; font-size: 13px; flex: none; }
+  .cash-line { display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px; }
+  .cash-line .big { font-size: 24px; color: var(--orange); }
+
+  /* 三池 */
+  .pool-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+  .pool-row .k { color: var(--text-dim); }
+  .pool-row .v { font-size: 15px; }
+  #pool-transit-batches { margin-top: 4px; display: flex; flex-direction: column; gap: 4px; }
+  .batch { display: flex; justify-content: space-between; align-items: center; font-size: 12px;
+    background: var(--panel-soft); border: 1px solid var(--line-soft); border-radius: 8px; padding: 5px 9px; }
+  .batch .due { color: var(--text-dim); }
+  .batch .remain { color: var(--orange); }
+  .batch .amount { color: var(--green); }
+
+  /* 选品卡 */
+  .product { display: flex; align-items: center; gap: 10px; background: var(--panel-soft);
+    border: 1px solid var(--line-soft); border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; }
+  .product .icon { flex: none; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+    background: rgba(108,202,224,0.1); border-radius: 8px; color: var(--cyan); }
+  .product .meta { flex: 1; min-width: 0; }
+  .product .name { font-size: 14px; }
+  .product .tag { font-size: 11px; color: var(--text-dim); }
+  .product button { flex: none; min-width: 64px; min-height: 44px; border-radius: 9px;
+    border: 1px solid var(--line); background: rgba(108,202,224,0.08); color: var(--cyan); font-size: 13px; }
+  .product button.off { border-color: rgba(232,116,106,0.5); color: var(--red); background: rgba(232,116,106,0.08); }
+  .product button:disabled { opacity: 0.35; }
+  .product button:active { transform: translateY(1px); }
+
+  /* 动作按钮组 */
+  .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .btn-grid button { min-height: 46px; border-radius: 10px; border: 1px solid var(--line-soft);
+    background: var(--panel-soft); color: var(--text); font-size: 12px; padding: 4px 2px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+  .btn-grid button .price { color: var(--orange); font-size: 11px; }
+  .btn-grid button:disabled { opacity: 0.35; }
+  .btn-grid button:active { transform: translateY(1px); }
+  .btn-grid .lifeline { border-color: rgba(255,176,87,0.4); }
+
+  /* 流水 */
+  #journal { display: flex; flex-direction: column; gap: 3px; font-size: 12px; }
+  #journal .j { display: flex; gap: 6px; padding: 3px 7px; border-radius: 6px; background: rgba(255,255,255,0.03); }
+  #journal .j .jd { color: var(--text-dim); flex: none; width: 52px; }
+  #journal .j.in .amount { color: var(--green); }
+  #journal .j.out .amount { color: var(--red); }
+  #journal .j .amount { flex: none; width: 70px; text-align: right; }
+  #journal .j .note { color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* 趴窝横幅 */
+  #broke-banner { border: 1px solid rgba(232,116,106,0.6); background: rgba(232,116,106,0.12);
+    border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; animation: blink 1.8s infinite; }
+  #broke-banner .t { color: var(--red); font-weight: 700; font-size: 14px; }
+  #broke-banner ul { margin: 6px 0 0 18px; color: var(--text-dim); font-size: 12px; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
+
+  /* 全屏幕（title / paused / over） */
+  .screen { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 10px;
+    align-items: center; justify-content: center; text-align: center; background: rgba(6, 10, 14, 0.62);
+    padding: 24px; pointer-events: auto; touch-action: pan-y; overflow-y: auto; }
+  .screen h1 { font-size: 30px; letter-spacing: 4px; text-shadow: 0 0 18px rgba(108, 202, 224, 0.7); }
+  .screen p { color: rgba(232, 244, 246, 0.78); font-size: 14px; max-width: 560px; }
+  .screen .cta { color: var(--orange); font-size: 17px; margin-top: 10px; animation: pulse 1.6s infinite; }
+  .screen .cta-btn { pointer-events: auto; margin-top: 14px; min-width: 168px; min-height: 48px;
+    border-radius: 12px; border: 1px solid var(--line); background: rgba(108,202,224,0.12);
+    color: var(--cyan); font-size: 16px; letter-spacing: 2px; }
+  .screen .cta-btn:active { transform: translateY(1px); }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+  #over-stats { display: grid; grid-template-columns: auto auto; gap: 4px 18px; font-size: 14px;
+    background: var(--panel-soft); border: 1px solid var(--line-soft); border-radius: 12px; padding: 12px 20px; }
+  #over-stats .k { color: var(--text-dim); text-align: left; }
+  #over-stats .v { font-size: 15px; text-align: right; }
+  #ts-smoke { position: absolute; left: -9999px; }
+
+  /* ————— 移动端：面板落底部 58vh，顶栏全宽 ————— */
+  @media (max-width: 719px) {
+    #hud { right: 0; padding: 10px 12px; flex-wrap: wrap; }
+    #panel { top: auto; height: 58vh; width: 100%; border-left: none; border-top: 1px solid var(--line-soft); padding: 10px 12px 24px; }
+    .screen h1 { font-size: 24px; }
+    #day-prog-track { width: 64px; }
+  }
+
+  /* ————— M2：阶段徽标 / 升级线 / 事件流水 / 事件弹窗 ————— */
+  #stage-chip { border-color: rgba(255,176,87,0.45); }
+  #stage-chip .st { font-size: 12px; letter-spacing: 1px; }
+  #stage-chip .st.p1 { color: var(--orange); }
+  #mood-chip { color: var(--text-dim); }
+  #mood-chip.up { color: var(--green); }
+  #mood-chip.down { color: var(--red); }
+
+  .up-item { display: flex; align-items: center; gap: 10px; background: var(--panel-soft);
+    border: 1px solid var(--line-soft); border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; }
+  .up-item .meta { flex: 1; min-width: 0; }
+  .up-item .name { font-size: 14px; }
+  .up-item .tag { font-size: 11px; color: var(--text-dim); }
+  .up-item button { flex: none; min-width: 88px; min-height: 44px; border-radius: 9px;
+    border: 1px solid var(--line); background: rgba(255,176,87,0.1); color: var(--orange); font-size: 13px; }
+  .up-item button.done { border-color: rgba(127,216,160,0.5); color: var(--green); background: rgba(127,216,160,0.08); }
+  .up-item button:disabled { opacity: 0.35; }
+  .up-item button:active { transform: translateY(1px); }
+  #btn-ad { border-color: rgba(108,202,224,0.4); }
+
+  #event-log { display: flex; flex-direction: column; gap: 3px; font-size: 12px; }
+  #event-log .e { display: flex; gap: 6px; padding: 3px 7px; border-radius: 6px; background: rgba(255,255,255,0.03); }
+  #event-log .e.bad { border-left: 2px solid var(--red); }
+  #event-log .e.good { border-left: 2px solid var(--green); }
+  #event-log .e .ed { color: var(--text-dim); flex: none; width: 46px; }
+  #event-log .e .name { flex: none; width: 86px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #event-log .e .fx { color: var(--text-dim); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* 事件弹窗（决策卡暂停 / 通知卡自走） */
+  #event-modal { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(6, 10, 14, 0.55); pointer-events: auto; z-index: 30; padding: 20px; }
+  #event-modal .card { width: min(420px, 92vw); max-height: 80vh; overflow-y: auto; background: var(--panel);
+    border: 1px solid var(--line); border-radius: 14px; padding: 18px 18px 14px; backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px); touch-action: pan-y; }
+  #event-modal .card.bad { border-color: rgba(232,116,106,0.6); }
+  #event-modal .card.good { border-color: rgba(127,216,160,0.6); }
+  #event-modal .kind { font-size: 11px; letter-spacing: 2px; color: var(--text-dim); }
+  #event-modal .kind.bad { color: var(--red); }
+  #event-modal .kind.good { color: var(--green); }
+  #event-modal h3 { font-size: 20px; margin: 4px 0 6px; letter-spacing: 1px; }
+  #event-modal .desc { color: rgba(232,244,246,0.8); font-size: 13px; margin-bottom: 8px; }
+  #event-modal .effects { font-size: 13px; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 8px 10px; margin-bottom: 12px; }
+  #event-modal .effects div { margin: 2px 0; }
+  #event-modal .actions { display: flex; gap: 8px; }
+  #event-modal .actions button { flex: 1; min-height: 48px; border-radius: 10px; border: 1px solid var(--line-soft);
+    background: var(--panel-soft); color: var(--text); font-size: 13px; padding: 4px 6px; }
+  #event-modal .actions button.primary { border-color: var(--line); color: var(--cyan); background: rgba(108,202,224,0.1); }
+  #event-modal .actions button:disabled { opacity: 0.35; }
+  #event-modal .actions button:active { transform: translateY(1px); }
+
+  /* 阶段提升横幅（toast） */
+  #stage-toast { position: absolute; left: 50%; top: 16%; transform: translateX(-50%);
+    background: var(--panel); border: 1px solid rgba(255,176,87,0.65); border-radius: 12px;
+    padding: 12px 22px; text-align: center; pointer-events: none; z-index: 25;
+    animation: stagepop 4s forwards; }
+  #stage-toast .t1 { color: var(--orange); font-size: 16px; font-weight: 700; letter-spacing: 2px; }
+  #stage-toast .t2 { color: var(--text-dim); font-size: 12px; margin-top: 2px; }
+  @keyframes stagepop { 0% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+    8% { opacity: 1; transform: translateX(-50%) translateY(0); } 82% { opacity: 1; } 100% { opacity: 0; } }
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="ui">
+  <div id="hud" class="hidden">
+    <span class="chip num">第 <span id="day-num">1</span>/<span id="day-total">30</span> 天<span id="day-prog-track"><span id="day-prog"></span></span></span>
+    <span class="chip num">汇率 <span id="fx-rate">7.0</span></span>
+    <span class="chip num" id="stage-chip"><span class="st" id="stage-label">P0 兼职试水</span></span>
+    <span class="chip num" id="mood-chip">心情 <span id="mood-val" class="num">0</span></span>
+    <div id="speeds">
+      <button id="btn-pause" aria-label="暂停/继续">暂停</button>
+      <button data-speed="1" aria-label="1倍速">1×</button>
+      <button data-speed="2" aria-label="2倍速">2×</button>
+      <button data-speed="4" class="active" aria-label="4倍速">4×</button>
+      <button data-speed="8" aria-label="8倍速">8×</button>
+    </div>
+  </div>
+
+  <div id="panel" class="hidden">
+    <div id="broke-banner" class="hidden">
+      <div class="t">趴窝中：可用现金低于「固定开支 + 最低补货」</div>
+      <ul>
+        <li>无法补货 · 广告停投（原作没油趴窝口径）</li>
+        <li>处置指引：等在途回款到账（最近一批 <span id="broke-next" class="num">—</span>）</li>
+        <li>省钱模式：泡面代替正经饭 · <span id="broke-sleep-hint">睡车里代替钟点房</span></li>
+      </ul>
+    </div>
+
+    <section id="res">
+      <h2>三资源 <span class="hint">MVP 三刀 · 刀1</span></h2>
+      <div class="res-row" id="res-energy"><span class="label">精力</span><span class="track"><span class="fill"></span></span><span class="val num">100</span></div>
+      <div class="res-row" id="res-health"><span class="label">店铺健康</span><span class="track"><span class="fill"></span></span><span class="val num">100</span></div>
+      <div class="res-row" id="res-satiety"><span class="label">饱腹</span><span class="track"><span class="fill"></span></span><span class="val num">100</span></div>
+      <div class="cash-line"><span class="label" style="color:var(--text-dim)">可用现金</span><span class="big num" id="cash-big">¥3500</span></div>
+    </section>
+
+    <section id="pools">
+      <h2>账本三池 <span class="hint">现金 ←T+14← 在途 ←出单← 库存</span></h2>
+      <div class="pool-row"><span class="k">库存（现金的前置形态）</span><span class="v num"><span id="pool-inventory">0</span> 件</span></div>
+      <div class="pool-row"><span class="k">在途货款（T+14 锁定）</span><span class="v num" style="color:var(--orange)">¥<span id="pool-transit">0</span></span></div>
+      <div id="pool-transit-batches"></div>
+    </section>
+
+    <section id="sourcing">
+      <h2>选品 · 上架 · 补货 <span class="hint" id="sourcing-hint">统一价 ¥40/件 · 售 ¥55 · 毛利 ¥15</span></h2>
+      <div id="product-list"></div>
+      <div class="btn-grid">
+        <button data-lot="5">补货 5 件<span class="price num">¥200</span></button>
+        <button data-lot="10">补货 10 件<span class="price num">¥400</span></button>
+        <button data-lot="25">补货 25 件<span class="price num">¥1000</span></button>
+        <button data-lot="50">补货 50 件<span class="price num">¥2000</span></button>
+      </div>
+    </section>
+
+    <section id="growth">
+      <h2>增长 · 升级线 <span class="hint">现金达 ¥5000 进 P1 解锁</span></h2>
+      <div class="up-item">
+        <span class="meta"><div class="name">广告投放</div><div class="tag">¥10 → 期望 +1.5 单（ACOS 锚 0.45）</div></span>
+        <button id="btn-ad">投广告</button>
+      </div>
+      <div class="up-item">
+        <span class="meta"><div class="name">发货方式 · <span id="up-wh-name">自发货</span></div><div class="tag">升级海外仓：补货 ¥40→¥20/件 · 毛利 ¥15→¥35</div></span>
+        <button id="btn-up-warehouse" aria-label="升级海外仓">升级 ¥3000</button>
+      </div>
+      <div class="up-item">
+        <span class="meta"><div class="name">住房 · <span id="up-hs-name">出租房（床位档 ¥30/日）</span></div><div class="tag">升级 SOHO 一人居：房租 ¥30→¥60/日 · 睡车里→睡家里 精+60</div></span>
+        <button id="btn-up-housing" aria-label="升级 SOHO 一人居">升级 ¥3000</button>
+      </div>
+    </section>
+
+    <section id="life">
+      <h2>回血 · 生活动作 <span class="hint">吃睡维持精力 · 回评养店铺</span></h2>
+      <div class="btn-grid">
+        <button id="btn-noodle">泡面<span class="price num">¥5 · 饱+30</span></button>
+        <button id="btn-meal">正经饭<span class="price num">¥20 · 饱+60</span></button>
+        <button id="btn-sleep">睡车里<span class="price num">免费 · 精+40</span></button>
+        <button id="btn-motel">钟点房<span class="price num">¥50 · 精+80</span></button>
+        <button id="btn-reply">回评<span class="price num">精-5 · 店+15</span></button>
+        <button id="btn-restart-life" aria-label="重开">重开<span class="price">R 键</span></button>
+      </div>
+    </section>
+
+    <section id="events-log">
+      <h2>事件 <span class="hint">奇葩/暖心事件 · 效果可追溯</span></h2>
+      <div id="event-log"></div>
+    </section>
+
+    <section id="ledger-log">
+      <h2>流水 <span class="hint">每笔资金变动可追溯</span></h2>
+      <div id="journal"></div>
+    </section>
+  </div>
+
+  <div id="event-modal" class="hidden">
+    <div class="card" id="event-card">
+      <div class="kind" id="event-kind">奇葩事件</div>
+      <h3 id="event-name">事件名</h3>
+      <div class="desc" id="event-desc"></div>
+      <div class="effects" id="event-effects"></div>
+      <div class="actions" id="event-actions"></div>
+    </div>
+  </div>
+
+  <div id="screen-title" class="screen">
+    <h1>白手起家 · 跨境电商版</h1>
+    <p>M2 事件流 + 升级线 —— 一屏走完「选品 → 上架 → 出单 → T+14 回款 → 回血」，
+      外加奇葩/暖心事件流与 P0→P1 升级线。</p>
+    <p>开局 ¥3500：先补首批货（¥2000 → 50 件），再选品上架。订单自动出，货款压进在途池，
+      T+14 才回款——爆单越猛，现金越紧；5 件档 ¥200 可以贴着趴窝线（¥230）细水长流地补。</p>
+    <p>现金冲到 ¥5000 触发 P1「SOHO 起量」：解锁广告（¥10 → 期望 +1.5 单）、海外仓（毛利 ¥15→¥35）与 SOHO 住房升级。
+      跟卖狗、差评师、货代延误、海关查验……奇葩事件随时上门；老客五星复购、爆款自然流量也会救你一把。</p>
+    <p>桌面：按钮点击 · 空格暂停 · R 重开 · 1/2/4/8 调速 · 拖动旋转房间。触屏：点按钮 · 拖房间 · 点画面开始。</p>
+    <p class="cta">目标：撑满 30 个游戏日，冲过 P1 解锁线，把升级线点满</p>
+    <button id="btn-start" class="cta-btn">开 始 经 营</button>
+    <p style="opacity:0.55;font-size:12px">连点画面任意处也可开始 · 趴窝演示：?case=broke · P1 起量演示：?case=rich</p>
+  </div>
+
+  <div id="screen-paused" class="screen hidden">
+    <h1>已暂停</h1>
+    <p class="cta">空格 / 点按画面 继续</p>
+  </div>
+
+  <div id="screen-over" class="screen hidden">
+    <h1 id="over-title">时间到</h1>
+    <p id="over-detail"></p>
+    <div id="over-stats"></div>
+    <button id="btn-restart" class="cta-btn">再 来 一 局</button>
+  </div>
+  <div id="ts-smoke"></div>
+</div>
+<script><!--BUNDLE--></script>
+</body>
+</html>

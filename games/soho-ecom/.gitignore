@@ -1,0 +1,5 @@
+node_modules/
+# browser-smoke 运行时证据（截图/report）不入库；部署门禁的 qa/mobile/ 例外入库
+qa/*
+!qa/mobile/
+server/node_modules/

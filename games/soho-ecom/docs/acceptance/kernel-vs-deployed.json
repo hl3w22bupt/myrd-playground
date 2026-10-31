@@ -1,0 +1,311 @@
+[
+  {
+    "case": "fresh",
+    "kernel": {
+      "day": 31,
+      "score": 3850,
+      "timeLeft": 0,
+      "cash": 0,
+      "inventory": 0,
+      "inTransit": 3850,
+      "orders": 140,
+      "missed": 754,
+      "broke": 4,
+      "journal": 610,
+      "scenario": "fresh",
+      "stage": "P0",
+      "stageUpDay": null,
+      "upgrades": {
+        "warehouse": false,
+        "housingSoho": false
+      },
+      "mood": 5,
+      "events": 53,
+      "eventKinds": [
+        "peak-stockout",
+        "five-star-rebuy",
+        "organic-hit",
+        "customs-check",
+        "bad-reviewer",
+        "freight-delay",
+        "follow-seller"
+      ],
+      "eventChoices": [
+        {
+          "id": "follow-seller",
+          "choice": "complain"
+        },
+        {
+          "id": "follow-seller",
+          "choice": "complain"
+        },
+        {
+          "id": "follow-seller",
+          "choice": "complain"
+        },
+        {
+          "id": "follow-seller",
+          "choice": "complain"
+        }
+      ],
+      "adCasts": 0
+    },
+    "deployed": {
+      "ok": true,
+      "state": "gameover",
+      "score": 3850,
+      "timeLeft": 0,
+      "day": 31,
+      "won": true,
+      "cash": 0,
+      "inventory": 0,
+      "inTransit": 3850,
+      "orders": 140,
+      "missed": 754,
+      "broke": 4,
+      "journal": 610,
+      "scenario": "fresh",
+      "stage": "P0",
+      "stageUpDay": null,
+      "upgrades": {
+        "warehouse": false,
+        "housingSoho": false
+      },
+      "mood": 5,
+      "events": 53,
+      "eventKinds": [
+        "peak-stockout",
+        "five-star-rebuy",
+        "organic-hit",
+        "customs-check",
+        "bad-reviewer",
+        "freight-delay",
+        "follow-seller"
+      ],
+      "eventChoices": [
+        {
+          "id": "follow-seller",
+          "choice": "complain"
+        },
+        {
+          "id": "follow-seller",
+          "choice": "complain"
+        },
+        {
+          "id": "follow-seller",
+          "choice": "complain"
+        },
+        {
+          "id": "follow-seller",
+          "choice": "complain"
+        }
+      ],
+      "adCasts": 0,
+      "frames": 30,
+      "fps": 13.6,
+      "exceptions": 0,
+      "viewport": {
+        "width": 1280,
+        "height": 657,
+        "dpr": 1
+      },
+      "render": {
+        "drawCalls": 62,
+        "triangles": 804,
+        "geometries": 39,
+        "textures": 18,
+        "programs": 15
+      }
+    },
+    "equal": true,
+    "diff": []
+  },
+  {
+    "case": "broke",
+    "kernel": {
+      "day": 13,
+      "score": 825,
+      "timeLeft": 17,
+      "cash": 0,
+      "inventory": 0,
+      "inTransit": 1100,
+      "orders": 20,
+      "missed": 200,
+      "broke": 2,
+      "journal": 131,
+      "scenario": "broke",
+      "stage": "P0",
+      "stageUpDay": null,
+      "upgrades": {
+        "warehouse": false,
+        "housingSoho": false
+      },
+      "mood": -5,
+      "events": 11,
+      "eventKinds": [
+        "peak-stockout",
+        "organic-hit",
+        "freight-delay",
+        "follow-seller"
+      ],
+      "eventChoices": [
+        {
+          "id": "follow-seller",
+          "choice": "complain"
+        }
+      ],
+      "adCasts": 0
+    },
+    "deployed": {
+      "ok": true,
+      "state": "playing",
+      "score": 825,
+      "timeLeft": 17,
+      "day": 13,
+      "won": false,
+      "cash": 0,
+      "inventory": 0,
+      "inTransit": 1100,
+      "orders": 20,
+      "missed": 200,
+      "broke": 2,
+      "journal": 131,
+      "scenario": "broke",
+      "stage": "P0",
+      "stageUpDay": null,
+      "upgrades": {
+        "warehouse": false,
+        "housingSoho": false
+      },
+      "mood": -5,
+      "events": 11,
+      "eventKinds": [
+        "peak-stockout",
+        "organic-hit",
+        "freight-delay",
+        "follow-seller"
+      ],
+      "eventChoices": [
+        {
+          "id": "follow-seller",
+          "choice": "complain"
+        }
+      ],
+      "adCasts": 0,
+      "frames": 30,
+      "fps": 14.5,
+      "exceptions": 0,
+      "viewport": {
+        "width": 1280,
+        "height": 657,
+        "dpr": 1
+      },
+      "render": {
+        "drawCalls": 62,
+        "triangles": 804,
+        "geometries": 39,
+        "textures": 18,
+        "programs": 15
+      }
+    },
+    "equal": true,
+    "diff": []
+  },
+  {
+    "case": "rich",
+    "kernel": {
+      "day": 16,
+      "score": 4345,
+      "timeLeft": 14,
+      "cash": 825,
+      "inventory": 0,
+      "inTransit": 10505,
+      "orders": 270,
+      "missed": 232,
+      "broke": 2,
+      "journal": 951,
+      "scenario": "rich",
+      "stage": "P1",
+      "stageUpDay": 1,
+      "upgrades": {
+        "warehouse": true,
+        "housingSoho": false
+      },
+      "mood": 15,
+      "events": 21,
+      "eventKinds": [
+        "peak-stockout",
+        "five-star-rebuy",
+        "warehouse-restock",
+        "freight-delay",
+        "bad-reviewer",
+        "organic-hit",
+        "follow-seller"
+      ],
+      "eventChoices": [
+        {
+          "id": "bad-reviewer",
+          "choice": "pr"
+        }
+      ],
+      "adCasts": 9
+    },
+    "deployed": {
+      "ok": true,
+      "state": "playing",
+      "score": 4345,
+      "timeLeft": 14,
+      "day": 16,
+      "won": false,
+      "cash": 825,
+      "inventory": 0,
+      "inTransit": 10505,
+      "orders": 270,
+      "missed": 232,
+      "broke": 2,
+      "journal": 951,
+      "scenario": "rich",
+      "stage": "P1",
+      "stageUpDay": 1,
+      "upgrades": {
+        "warehouse": true,
+        "housingSoho": false
+      },
+      "mood": 15,
+      "events": 21,
+      "eventKinds": [
+        "peak-stockout",
+        "five-star-rebuy",
+        "warehouse-restock",
+        "freight-delay",
+        "bad-reviewer",
+        "organic-hit",
+        "follow-seller"
+      ],
+      "eventChoices": [
+        {
+          "id": "bad-reviewer",
+          "choice": "pr"
+        }
+      ],
+      "adCasts": 9,
+      "frames": 30,
+      "fps": 15.1,
+      "exceptions": 0,
+      "viewport": {
+        "width": 1280,
+        "height": 657,
+        "dpr": 1
+      },
+      "render": {
+        "drawCalls": 62,
+        "triangles": 804,
+        "geometries": 39,
+        "textures": 18,
+        "programs": 15
+      }
+    },
+    "equal": true,
+    "diff": []
+  }
+]

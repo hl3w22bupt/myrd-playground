@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "kind": "deployed-smoke-report",
+  "url": "http://localhost:3111/apps/soho-ecom/gw?smoke=12&case=broke",
+  "days": 12,
+  "case": "broke",
+  "outcome": "title",
+  "crashed": false,
+  "payload": {
+    "ok": true,
+    "state": "playing",
+    "score": 825,
+    "timeLeft": 17,
+    "day": 13,
+    "won": false,
+    "cash": 0,
+    "inventory": 0,
+    "inTransit": 550,
+    "orders": 10,
+    "missed": 68,
+    "broke": 2,
+    "journal": 90,
+    "scenario": "broke",
+    "stage": "P0",
+    "stageUpDay": null,
+    "upgrades": {
+      "warehouse": false,
+      "housingSoho": false
+    },
+    "mood": 5,
+    "events": 13,
+    "eventKinds": [
+      "organic-hit",
+      "peak-stockout",
+      "freight-delay",
+      "customs-check",
+      "follow-seller",
+      "five-star-rebuy"
+    ],
+    "eventChoices": [
+      {
+        "id": "follow-seller",
+        "choice": "complain"
+      }
+    ],
+    "adCasts": 0,
+    "frames": 30,
+    "fps": 14.1,
+    "exceptions": 0,
+    "viewport": {
+      "width": 1280,
+      "height": 657,
+      "dpr": 1
+    },
+    "render": {
+      "drawCalls": 62,
+      "triangles": 804,
+      "geometries": 39,
+      "textures": 18,
+      "programs": 15
+    }
+  },
+  "capturedAt": "2026-10-30T19:17:36.925Z"
+}

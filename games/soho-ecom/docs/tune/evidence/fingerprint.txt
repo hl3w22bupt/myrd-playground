@@ -1,0 +1,4 @@
+index.html(部署网关 /apps/soho-ecom/gw): fb1c47d54de3058e7ffcf0b90a7f0ea2a62d7c11a4a6d5910d05805e4b068e6c
+index.html(仓库 export/web):              fb1c47d54de3058e7ffcf0b90a7f0ea2a62d7c11a4a6d5910d05805e4b068e6c
+productSourceSha(src/) = 418aae1675d4a519（构建复现门禁双跑一致）
+deployment: v5（cmvvcjj9g002bm9yc82q83s7m, gitRef=myrd/eco-loop-goal-cmvv02e7a0019m9uwy2nosbkn @ baedf84）

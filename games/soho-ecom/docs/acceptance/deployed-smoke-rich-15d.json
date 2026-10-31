@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "kind": "deployed-smoke-report",
+  "url": "http://localhost:3111/apps/soho-ecom/gw?smoke=15&case=rich",
+  "days": 15,
+  "case": "rich",
+  "outcome": "title",
+  "crashed": false,
+  "payload": {
+    "ok": true,
+    "state": "playing",
+    "score": 4345,
+    "timeLeft": 14,
+    "day": 16,
+    "won": false,
+    "cash": 825,
+    "inventory": 0,
+    "inTransit": 10505,
+    "orders": 270,
+    "missed": 232,
+    "broke": 2,
+    "journal": 951,
+    "scenario": "rich",
+    "stage": "P1",
+    "stageUpDay": 1,
+    "upgrades": {
+      "warehouse": true,
+      "housingSoho": false
+    },
+    "mood": 15,
+    "events": 21,
+    "eventKinds": [
+      "peak-stockout",
+      "five-star-rebuy",
+      "warehouse-restock",
+      "freight-delay",
+      "bad-reviewer",
+      "organic-hit",
+      "follow-seller"
+    ],
+    "eventChoices": [
+      {
+        "id": "bad-reviewer",
+        "choice": "pr"
+      }
+    ],
+    "adCasts": 9,
+    "frames": 30,
+    "fps": 15.1,
+    "exceptions": 0,
+    "viewport": {
+      "width": 1280,
+      "height": 657,
+      "dpr": 1
+    },
+    "render": {
+      "drawCalls": 62,
+      "triangles": 804,
+      "geometries": 39,
+      "textures": 18,
+      "programs": 15
+    }
+  },
+  "capturedAt": "2026-10-30T18:11:49.511Z"
+}

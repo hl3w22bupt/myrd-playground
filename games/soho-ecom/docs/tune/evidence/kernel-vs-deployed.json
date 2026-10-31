@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "kind": "tune-v1-deployed-kernel-equivalence",
+  "note": "调参 v1（v5 部署）部署版 vs 源码内核三场景逐字段等价核验；指纹见 fingerprint.txt",
+  "capturedAt": "2026-10-31T00:00:00Z（本地实测）",
+  "fields": [
+    "day",
+    "score",
+    "timeLeft",
+    "cash",
+    "inventory",
+    "inTransit",
+    "orders",
+    "missed",
+    "broke",
+    "journal",
+    "scenario",
+    "stage",
+    "stageUpDay",
+    "upgrades",
+    "mood",
+    "events",
+    "eventKinds",
+    "eventChoices",
+    "adCasts"
+  ],
+  "results": [
+    {
+      "scenario": "fresh-30d",
+      "verdict": "EQUAL",
+      "deployed": {
+        "day": 31,
+        "cash": 140,
+        "orders": 135,
+        "missed": 192,
+        "broke": 3,
+        "stage": "P0",
+        "events": 49
+      },
+      "kernel": {
+        "day": 31,
+        "cash": 140,
+        "orders": 135,
+        "missed": 192,
+        "broke": 3,
+        "stage": "P0",
+        "events": 49
+      }
+    },
+    {
+      "scenario": "broke-12d",
+      "verdict": "EQUAL",
+      "deployed": {
+        "day": 13,
+        "cash": 0,
+        "orders": 10,
+        "missed": 68,
+        "broke": 2,
+        "stage": "P0",
+        "events": 13
+      },
+      "kernel": {
+        "day": 13,
+        "cash": 0,
+        "orders": 10,
+        "missed": 68,
+        "broke": 2,
+        "stage": "P0",
+        "events": 13
+      }
+    },
+    {
+      "scenario": "rich-40d",
+      "verdict": "EQUAL",
+      "deployed": {
+        "day": 31,
+        "cash": 2385,
+        "orders": 217,
+        "missed": 122,
+        "broke": 2,
+        "stage": "P1",
+        "events": 41
+      },
+      "kernel": {
+        "day": 31,
+        "cash": 2385,
+        "orders": 217,
+        "missed": 122,
+        "broke": 2,
+        "stage": "P1",
+        "events": 41
+      }
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "kind": "deployed-smoke-report",
+  "url": "http://localhost:3111/apps/soho-ecom/gw?smoke=30",
+  "days": 30,
+  "case": "fresh",
+  "outcome": "title",
+  "crashed": false,
+  "payload": {
+    "ok": true,
+    "state": "gameover",
+    "score": 3850,
+    "timeLeft": 0,
+    "day": 31,
+    "won": true,
+    "cash": 0,
+    "inventory": 0,
+    "inTransit": 3850,
+    "orders": 140,
+    "missed": 754,
+    "broke": 4,
+    "journal": 610,
+    "scenario": "fresh",
+    "stage": "P0",
+    "stageUpDay": null,
+    "upgrades": {
+      "warehouse": false,
+      "housingSoho": false
+    },
+    "mood": 5,
+    "events": 53,
+    "eventKinds": [
+      "peak-stockout",
+      "five-star-rebuy",
+      "organic-hit",
+      "customs-check",
+      "bad-reviewer",
+      "freight-delay",
+      "follow-seller"
+    ],
+    "eventChoices": [
+      {
+        "id": "follow-seller",
+        "choice": "complain"
+      },
+      {
+        "id": "follow-seller",
+        "choice": "complain"
+      },
+      {
+        "id": "follow-seller",
+        "choice": "complain"
+      },
+      {
+        "id": "follow-seller",
+        "choice": "complain"
+      }
+    ],
+    "adCasts": 0,
+    "frames": 30,
+    "fps": 13.6,
+    "exceptions": 0,
+    "viewport": {
+      "width": 1280,
+      "height": 657,
+      "dpr": 1
+    },
+    "render": {
+      "drawCalls": 62,
+      "triangles": 804,
+      "geometries": 39,
+      "textures": 18,
+      "programs": 15
+    }
+  },
+  "capturedAt": "2026-10-30T18:11:21.231Z"
+}
