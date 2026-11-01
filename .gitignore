@@ -5,3 +5,7 @@ coverage
 .DS_Store
 .gstack/
 .myrd-platform/
+
+# 判定脚本运行期暂存目录（playtest.sh / input-fuzz.sh 现场生成、退出即删；入库 = 污染 pck）
+tests/.playtest/
+tests/.fuzz/
