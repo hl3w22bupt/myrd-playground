@@ -15,7 +15,7 @@ script = ExtResource("2_field")
 position = Vector2(460, 289)
 
 [node name="GameCamera" type="Camera2D" parent="."]
-position = Vector2(480, 270)
+position = Vector2(512, 320)
 
 [node name="UI" type="CanvasLayer" parent="."]
 

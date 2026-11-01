@@ -1,5 +1,5 @@
 extends Node2D
-## 主控制器：装配 战场 / 光标 / HUD / 波次导演 / 选关与结算浮层，
+## 主控制器：装配 战场 / 光标 / HUD / 波次导演 / 选关与结算浮层 / 常驻静音开关，
 ## 接线全部信号，驱动「选关 → 布防 → 抵御波次 → 结算 → 重开/下一关」完整闭环。
 ##
 ## 规范要点（见 SKILL.md「场景规范」「移动端触摸规范」「反馈完备性（Juice）」）：
@@ -16,11 +16,13 @@ var director: WaveDirector
 var level_select: LevelSelect
 var result_overlay: ResultOverlay
 var tuning_panel: TuningPanel
+var mute_button: MuteButton
 
 ## 扁平明快：氛围层压成纯色底、无粒子、无暗角（风格卡禁忌：渐变堆砌）。
+## 天空底色按章节切换（晨绿/暮橙/夜蓝 —— spec world.visualStyle 三章节配色）。
 const AMBIENCE_FLAT: Dictionary = {
-	"sky_top": Color("2ecc71"),
-	"sky_bottom": Color("2ecc71"),
+	"sky_top": Color("d5f0dd"),
+	"sky_bottom": Color("d5f0dd"),
 	"particle": "magic_01.png",
 	"particle_tint": Color(1, 1, 1, 0.0),
 	"particle_count": 0,
@@ -42,6 +44,10 @@ func _ready() -> void:
 	result_overlay = ResultOverlay.new()
 	result_overlay.name = "ResultOverlay"
 	add_child(result_overlay)
+	# 常驻静音开关（spec audio.mute：右上角、全场景可见可点、即时生效）
+	mute_button = MuteButton.new()
+	mute_button.name = "MuteButton"
+	add_child(mute_button)
 	# 调参工作台（SKILL.md §3C）：URL 带 ?tuning= 才浮出面板（?tuning=<JSON> 也算）。
 	# is_enabled() 在桌面/无头恒为 false（eval 返回 null）—— 冒烟与本地运行零成本。
 	# ⚠️ 面板类必须有人实例化：tuning_panel.gd 只定义 class_name 不自建场景，
@@ -59,6 +65,10 @@ func _ready() -> void:
 	result_overlay.primary_pressed.connect(_on_result_primary)
 	result_overlay.level_select_pressed.connect(_show_level_select)
 	hud.restart_requested.connect(_restart_level)
+	hud.back_requested.connect(_show_level_select)
+	hud.skip_wave_requested.connect(_on_skip_wave_requested)
+	director.wave_started.connect(_on_wave_started)
+	director.waiting_changed.connect(_on_waiting_changed)
 	hud.set_hint(_move_hint)
 	_show_level_select()
 
@@ -90,10 +100,25 @@ func _on_level_started(level_index: int) -> void:
 	cursor.active = true
 	cursor.position = field.cell_center(Vector2i(3, 2))
 	field.highlight_cell = cursor.current_cell()
+	_apply_chapter_tint()
+
+
+## 章节氛围（晨绿/暮橙/夜蓝）：天空底色 + 场景提示条已随 GameState.chapter_tint 切换。
+func _apply_chapter_tint() -> void:
+	var tint: Color = GameState.level().get("chapter_tint", Color("d5f0dd"))
+	Ambience.setup({
+		"sky_top": tint,
+		"sky_bottom": tint,
+		"particle": "magic_01.png",
+		"particle_tint": Color(1, 1, 1, 0.0),
+		"particle_count": 0,
+		"vignette_strength": 0.0,
+	})
 
 
 func _on_game_ended(won: bool) -> void:
 	cursor.active = false
+	hud.set_wave_wait_visible(false)
 	# 终局反馈挂结果处理函数：胜负音效 + 失败震屏（SKILL.md §3B）
 	Juice.sfx(&"victory" if won else &"defeat")
 	if not won:
@@ -115,12 +140,26 @@ func _on_result_primary() -> void:
 		_restart_level()
 
 
+func _on_skip_wave_requested() -> void:
+	director.next_wave()
+
+
+func _on_wave_started(wave: int) -> void:
+	# 波次来袭提示音（spec audio.sfxBindings：sfx-wave，含首波与最后一波）
+	Juice.sfx(&"wave")
+
+
+func _on_waiting_changed(waiting: bool) -> void:
+	hud.set_wave_wait_visible(waiting)
+
+
 ## ── 输入（键盘路径；触屏点按在 Field._unhandled_input 与 HUD 卡片按钮）──
 ## 说明：对局中不设独立「重开」按键动作 —— 重开入口收口在 HUD 重开按钮与结算浮层，
 ## 避免误触把整局进度清掉（机器人试玩实证：可乱按的重开键会让节奏指标永远起不来）。
 
 func _unhandled_input(event: InputEvent) -> void:
-	# 浏览器音频手势解锁兜底：首个按下调起 BGM（壳页面已解锁时本调用幂等）
+	# 浏览器音频手势解锁兜底：首个按下调起 BGM（壳页面已解锁时本调用幂等；
+	# spec firstInteractionPolicy：首交互前不发声，解锁后立即起播）
 	if event.is_pressed() and (event is InputEventKey or event is InputEventMouseButton or event is InputEventScreenTouch):
 		Audio.ensure_playing()
 	for i in GameState.CARDS.size():
@@ -139,4 +178,4 @@ func _unhandled_input(event: InputEvent) -> void:
 func _input_hint() -> String:
 	if GameState.touch_preferred():
 		return "点上方卡片选植物 · 点草坪布防 · 点阳光收集"
-	return "1/2/3 选卡 · WASD/方向键移动光标 · 空格放置"
+	return "1-5 选卡 · WASD/方向键移动光标 · 空格放置"

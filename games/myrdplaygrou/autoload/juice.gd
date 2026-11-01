@@ -18,8 +18,9 @@ signal feedback_fired(kind: StringName)
 ## 音效注册表：名 → AudioStream。留空时 sfx() 静默空转（不报错）。
 ## 程序化合成（tools/gen_sfx.gd + tests/sfx-recipes.json，资产治理见 SKILL.md §7B）；
 ## 游戏换自己的音效 = 改配方重跑工具，或替换文件后在注册表里改指向。
-## 契约音效：射击(shoot)/命中(hit)/僵尸倒地(zombie_die)/放置单位(place)/
-## 阳光与得分(score)/防线受击(breach)/按钮(confirm)/无效操作(fail)/胜负(victory/defeat)。
+## 契约音效（spec audio.sfxBindings 全 8 类）：射击(shoot)/命中(hit)/僵尸倒地(zombie_die)/
+## 放置单位(place)/收集阳光(score)/波次来袭(wave)/通关(victory)/失败(defeat)；
+## 工程内补充：按钮(confirm)/无效操作(fail)/防线受击(breach)/向日葵产出(produce)。
 const SFX_BANK: Dictionary = {
 	&"score": preload("res://assets/sfx/score.wav"),
 	&"confirm": preload("res://assets/sfx/confirm.wav"),
@@ -31,6 +32,8 @@ const SFX_BANK: Dictionary = {
 	&"breach": preload("res://assets/sfx/breach.wav"),
 	&"victory": preload("res://assets/sfx/victory.wav"),
 	&"defeat": preload("res://assets/sfx/defeat.wav"),
+	&"wave": preload("res://assets/sfx/wave.wav"),
+	&"produce": preload("res://assets/sfx/produce.wav"),
 }
 
 ## 本局反馈记录（"kind@ms"），冒烟断言只看是否非空；环形上限防长局内存膨胀。
