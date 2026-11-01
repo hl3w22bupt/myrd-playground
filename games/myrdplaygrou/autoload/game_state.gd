@@ -475,6 +475,23 @@ func complete_wave() -> void:
 		wave_changed.emit(wave_index, wave_count())
 
 
+## ── 试玩门禁多关轮换（Bug cmvxr1f1a004fm905ua2ua9ir 的试玩侧修复面）──
+## 机器人试玩判定器（std-skills/godot-game-dev/scripts/playtest_driver.gd，仓库预置、不可改）
+## 按 3 个种子逐局重新实例化主场景。装配根（main.gd::_ready）检测到「本场景由 PlaytestDriver
+## 实例化」时读取本游标，把该局对准下一关：默认 3 局种子 → 逐局真实游玩第 1/2/3 关，
+## 逐关难度数值（波数/血量/速度/配比）在试玩全程生效，不再只刷第 1 关。
+## 边界：正常启动（current_scene == Main）与冒烟（current_scene == Smoke）不读游标；
+## 局内重开走 GameState.reset() = 重开当前关，不重建主场景 → 游标不推进，重开语义不变。
+var playtest_level_cursor: int = 0
+
+
+## 试玩驱动上下文取「本局应对准的关」（0 起索引，循环轮换）；仅 main.gd 装配时调用。
+func next_playtest_level() -> int:
+	var index := playtest_level_cursor % LEVELS.size()
+	playtest_level_cursor += 1
+	return index
+
+
 ## 应用调参覆盖（调参面板与壳页面 __GAME_TUNING__ 桥共用的唯一入口）：
 ## 只认 TUNING_META 声明的键、按 min/max 钳制；返回实际生效的键名列表。
 func apply_tuning(overrides: Dictionary) -> PackedStringArray:

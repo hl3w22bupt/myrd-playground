@@ -20,7 +20,11 @@ extends Node
 ##   4. 音频契约（acc-audio-complete / acc-mute-instant 代理）：BGM 就绪；sfxBindings
 ##      全 8 类音效已注册；静音开关往返即时生效
 ##   5. 界面流：启动即选关界面；进入关卡 → 对战态（HUD 可见、光标激活）
-##   6. 玩家能移动：注入 move_right 后位移 ≥1px，Player.moved 信号到达订阅方
+##   6. 玩家能移动（四轴「方向」断言，Bug cmvxrs3fv005em905y4eouy35）：
+##      右/左/上/下逐轴按住注入，各校验「位移分量方向」——
+##      move_right ⇒ Δx>0、move_left ⇒ Δx<0、move_up ⇒ Δy<0、move_down ⇒ Δy>0，
+##      且本轴分量必须支配正交轴（|Δ本轴| > |Δ正交|，拦「上下反了/左右反了/轴串了」）；
+##      Player.moved 信号到达订阅方
 ##   7. 核心交互生效：confirm 布防默认卡（向日葵）→ 扣费 + 信号 + 冷却启动 + 自动取消选卡
 ##   8. 出战卡系统：选卡→布防花色/扣费跟卡走（坚果 1200 血）；阳光不足被经济门拦下；
 ##      冷却中被禁用
@@ -30,7 +34,13 @@ extends Node
 ##  11. 失败可达：僵尸越线 ×5（生命 5）→ game_ended(false) + 结算浮层可见
 ##  12. 重开可用：结算态 confirm → 对局重置（生命/清场/冷却/选卡复位）
 ##  13. 下一波（acc-touch-only「提前开波」）：等待态点按提前召唤 → 真实出怪
-##  14. 胜利可达：最后一波清场 → game_ended(true)（真实击杀路径触发）
+##  14. 三关逐关通关（Bug cmvxr1f1a004fm905ua2ua9ir）：第 1/2/3 关逐关走到胜利——
+##      14a. 关卡推进：结算浮层「下一关」→ confirm（真实输入路径，过 400ms 误触窗）→
+##           level_index 前进、波次归零、浮层关闭、首波等待态重新就绪
+##      14b. 逐关胜利判定：每关最后一波真实清场（布防→开火→击杀）→ game_ended(true)；
+##           前两关主按钮 = 下一关，末关 = 再玩一次
+##      14c. 难度数值逐关生效：逐关核对波数表/起始阳光/首波等待态切换 + 真实出生路径
+##           行为探针（种类绝对数值血量/速度接进行为）+ 击杀掉落面额（sun_drop）在场
 ##  15. 键位契约：动作已注册 + 承诺的物理键全部绑定（逐键 AND）
 ##  16. 操作说明不常驻：开局提示可见，hint_show_seconds 后自动开始淡出
 ##  17. 调参协议：TUNING_META 非空；apply_tuning 应用已声明键、拒绝未声明/非数值键、
@@ -40,25 +50,36 @@ extends Node
 ##   headless 下 `Input.parse_input_event()` 的缓冲冲刷会清掉 `Input.action_press()` 状态，
 ##   同帧混用会让「移动断言」假失败。噪声相位后统一清洗动作状态再进入正式断言。
 
-## ── 阶段帧数预算（总计 ≈ 216 帧 < verify.sh 的 240 帧兜底）──
-const NOISE_FRAMES: int = 30        # 对抗输入噪声（原始事件：悬挂手势/孤儿释放/乱键）
+## ── 阶段帧数预算（最坏情形合计 = TOTAL_FRAMES ≈ 227 帧 < 门禁 240 帧兜底）──
+const NOISE_FRAMES: int = 4         # 对抗输入噪声（原始事件：悬挂手势/孤儿释放/乱键；fuzz 门禁 6 批次全覆盖）
 const CLEANUP_FRAMES: int = 2       # 噪声后清洗：释放动作 + 重开一局拿到干净棋盘
-const MOVE_FRAMES: int = 10         # 按住 move_right 的帧数
-const PLACE_FRAMES: int = 4         # confirm 注入后等布防生效
+const AXIS_HOLD_FRAMES: int = 2     # 每根轴按住注入的帧数（520px/s × 2 帧 ≈ 17px 位移）
+const AXES_FRAMES: int = 4 * (AXIS_HOLD_FRAMES + 2)   # 四轴：按下帧 + 保持 + 测量 + 切轴
+const PLACE_FRAMES: int = 3         # confirm 注入后等布防生效
 const CARDS_FRAMES: int = 8         # 出战卡：选卡动作 → 布防/扣费/经济门/冷却断言
-const COMBAT_FRAMES: int = 55       # 等防御单位击杀行内僵尸（含提示淡出断言窗）
-const LOSE_FRAMES: int = 8          # 5 只越线僵尸 → 生命归零
-const RESULT_FRAMES: int = 30       # 结算浮层误触窗（400ms）+ 收集断言窗
-const RESTART_FRAMES: int = 8       # confirm → 再试一次 → 对战态
+const COMBAT_FRAMES: int = 55       # 等防御单位击杀行内僵尸（含提示淡出断言窗 + 向日葵产出窗）
+const LOSE_FRAMES: int = 6          # 5 只越线僵尸 → 生命归零
+const RESULT_FRAMES: int = 25       # 结算浮层误触窗（400ms=24 帧 @60fps）+ 余量
+const RESTART_FRAMES: int = 6       # confirm → 再试一次 → 对战态
 const NEXTWAVE_FRAMES: int = 4      # 下一波：等待态提前召唤 → 真实出怪
-const WIN_FRAMES: int = 55          # 最后一波清场 → 通关
-const TOTAL_FRAMES: int = NOISE_FRAMES + CLEANUP_FRAMES + MOVE_FRAMES + PLACE_FRAMES \
+const SWEEP_SETUP_FRAMES: int = 3   # 每关：关卡断言 + 难度行为探针 → 布防 + 跳末波 + 放怪
+const SWEEP_KILL_FRAMES: int = 34   # 每关：双发齐射（2×60=120 > walker 100）击杀 + 误触窗 24 帧
+const SWEEP_LAST_KILL_FRAMES: int = 16  # 末关只等通关（无「下一关」误触窗）
+const SWEEP_ADVANCE_FRAMES: int = 3 # confirm「下一关」→ level_index 前进断言
+## 三关扫描总预算（关卡推进 / 逐关胜利 / 难度数值逐关生效，逐关走一遍）
+const SWEEP_FRAMES: int = 2 * (SWEEP_SETUP_FRAMES + SWEEP_KILL_FRAMES + SWEEP_ADVANCE_FRAMES) \
+	+ SWEEP_LAST_KILL_FRAMES
+const TOTAL_FRAMES: int = NOISE_FRAMES + CLEANUP_FRAMES + AXES_FRAMES + PLACE_FRAMES \
 	+ CARDS_FRAMES + COMBAT_FRAMES + LOSE_FRAMES + RESULT_FRAMES \
-	+ RESTART_FRAMES + NEXTWAVE_FRAMES + WIN_FRAMES + 2
+	+ RESTART_FRAMES + NEXTWAVE_FRAMES + SWEEP_FRAMES + 2
 
-enum Phase { NOISE, CLEANUP, MOVE, PLACE, CARDS, COMBAT, LOSE, RESULT, RESTART, NEXTWAVE, WIN }
+enum Phase { NOISE, CLEANUP, MOVE, PLACE, CARDS, COMBAT, LOSE, RESULT, RESTART, NEXTWAVE,
+	SWEEP_SETUP, SWEEP_KILL, SWEEP_ADVANCE }
 
-const MIN_MOVE_DISTANCE: float = 1.0
+## 位移方向断言的最小分量阈值（期望 17px，8px = 容忍首帧离散的下限）。
+const MIN_AXIS_DISPLACEMENT: float = 8.0
+## 四轴扫描序（右 → 左 → 上 → 下）：构成菱形，断言后光标回到起点，不污染布防断言。
+const AXIS_SEQUENCE: Array[StringName] = [&"move_right", &"move_left", &"move_up", &"move_down"]
 ## 对局中不设独立「重开」动作（重开入口 = HUD 按钮 + 结算浮层，防误触清局），
 ## 故动作集 = 模板五动作 + 出战卡五键；键位契约与之对应。
 const REQUIRED_ACTIONS: Array[StringName] = [
@@ -125,7 +146,9 @@ var _field: Field
 var _cursor: Player
 var _director: WaveDirector
 var _hud: Hud
-var _origin := Vector2.ZERO
+## 方向断言游标（MOVE 相位：当前轴 / 轴起点）。
+var _axis_index: int = -1
+var _axis_origin := Vector2.ZERO
 var _moved_seen: bool = false
 var _placed_seen: bool = false
 var _killed_seen: bool = false
@@ -136,6 +159,8 @@ var _hint_alpha_at_start: float = -1.0
 var _shooter_cell := Vector2i(-1, -1)
 ## COMBAT 相位的收集断言阶段：0 = 等击杀，1 = 收击杀掉落，2 = 等向日葵产出
 var _collect_stage: int = 0
+## 三关扫描游标（0 起索引；SWEEP_SETUP / SWEEP_KILL / SWEEP_ADVANCE 循环消费）。
+var _sweep_level: int = 0
 var _tuning_backup: Dictionary = {}
 var _noise_rng := RandomNumberGenerator.new()
 
@@ -505,20 +530,10 @@ func _step() -> void:
 			if _phase_frames >= CLEANUP_FRAMES:
 				# 提示淡出断言的基线：开局提示必须完全可见（先浮现、后淡出）
 				_hint_alpha_at_start = _hud.hint_alpha()
-				_origin = _cursor.global_position
-				Input.action_press(&"move_right")
+				_axis_index = -1
 				_enter(Phase.MOVE)
 		Phase.MOVE:
-			if _phase_frames >= MOVE_FRAMES:
-				Input.action_release(&"move_right")
-				var travelled := _cursor.global_position.distance_to(_origin)
-				if travelled < MIN_MOVE_DISTANCE:
-					_failures.append("玩家 %d 帧内位移 %.2fpx < %.2fpx：InputMap 动作未生效或光标未驱动" % [
-						MOVE_FRAMES, travelled, MIN_MOVE_DISTANCE])
-				if not _moved_seen:
-					_failures.append("信号 Player.moved 未到达订阅方：连接断裂或从未 emit")
-				_press_action(&"confirm")
-				_enter(Phase.PLACE)
+			_step_move_axis()
 		Phase.PLACE:
 			if _phase_frames >= PLACE_FRAMES:
 				if _field.defender_count() != 1:
@@ -678,20 +693,17 @@ func _step() -> void:
 					_failures.append("下一波：提前召唤后 %d 帧内没有僵尸出生（出怪链路断裂）" % NEXTWAVE_FRAMES)
 				if _director.can_skip_wait():
 					_failures.append("下一波：召唤后仍处于等待态（状态未推进）")
-				# 胜利路径：清掉探针僵尸，跳到最后一波，用真实「布防 → 开火 → 击杀 → 清场」触发通关
-				_field.clear_all()
-				_director.debug_jump_to_final_wave()
-				GameState.select_card(1)
-				if not _field.try_place(_field.cell_center(Vector2i(1, 1))):
-					_failures.append("胜利路径：布防失败，无法验证通关可达")
-				else:
-					var win_defender := _field.defender_at(Vector2i(1, 1))
-					_field.spawn_zombie(win_defender.cell.y, win_defender.position.x + 200.0, &"walker")
-				_enter(Phase.WIN)
-		Phase.WIN:
-			if _won_seen or _phase_frames >= WIN_FRAMES:
-				if not _won_seen:
-					_failures.append("胜利不可达：最后一波清场后 %d 帧内没有 game_ended(true)" % WIN_FRAMES)
+				# 三关扫描（Bug cmvxr1f1a004fm905ua2ua9ir）：第 1 关的胜利尝试即扫描起点，
+				# 随后「下一关 → 逐关胜利」循环推进到第 2/3 关
+				_sweep_level = 0
+				_begin_level_victory_attempt()
+				_enter(Phase.SWEEP_KILL)
+		Phase.SWEEP_SETUP:
+			_step_sweep_setup()
+		Phase.SWEEP_KILL:
+			_step_sweep_kill()
+		Phase.SWEEP_ADVANCE:
+			_step_sweep_advance()
 
 
 ## 僵尸行为探针（同步、即建即清）：种类绝对数值 + 啃咬节拍 + 冻结减速可判。
@@ -708,6 +720,168 @@ func _check_zombie_behavior() -> void:
 	if not is_equal_approx(slowed, 36.0 * 0.6 * 0.5):
 		_failures.append("行为探针：寒冰冻结后速度因子 %.2f ≠ 0.6（spec combat.freeze）" % (slowed / (36.0 * 0.5)))
 	_field.clear_all()
+
+
+## ── 断言 6（Bug cmvxrs3fv005em905y4eouy35）：四轴「方向」断言 ──
+## 逐轴按住注入并测量位移分量：方向错（上下反/左右反/轴串了）在这里必红，
+## 只看位移量级的旧断言（move_right 位移 ≥1px）对这类键位缺陷完全失明。
+func _step_move_axis() -> void:
+	var hold_end := AXIS_HOLD_FRAMES + 2
+	if _phase_frames == 1:
+		_axis_index += 1
+		if _axis_index >= AXIS_SEQUENCE.size():
+			_failures.append("四轴断言：轴序越界（内部状态错）")
+			return
+		_axis_origin = _cursor.global_position
+		Input.action_press(AXIS_SEQUENCE[_axis_index])
+	elif _phase_frames >= hold_end:
+		var action: StringName = AXIS_SEQUENCE[_axis_index]
+		Input.action_release(action)
+		var delta := _cursor.global_position - _axis_origin
+		var along := delta.x if (action == &"move_right" or action == &"move_left") else delta.y
+		var across := delta.y if (action == &"move_right" or action == &"move_left") else delta.x
+		var expected_sign := 1.0
+		match action:
+			&"move_right", &"move_down":
+				expected_sign = 1.0
+			&"move_left", &"move_up":
+				expected_sign = -1.0
+		if along * expected_sign < MIN_AXIS_DISPLACEMENT:
+			_failures.append("方向断言：%s 按住 %d 帧位移分量 %.1fpx 未向期望方向（右/下应为正、左/上应为负，阈值 %.1f）—— 动作未生效或轴映射反了" % [
+				action, AXIS_HOLD_FRAMES, along, MIN_AXIS_DISPLACEMENT])
+		if absf(along) <= absf(across):
+			_failures.append("方向断言：%s 的本轴分量 |%.1f| 未支配正交轴 |%.1f| —— 按一根键动了两个轴（轴串了）" % [
+				action, along, across])
+		if not _moved_seen:
+			_failures.append("信号 Player.moved 未到达订阅方：连接断裂或从未 emit")
+		if _axis_index >= AXIS_SEQUENCE.size() - 1:
+			_press_action(&"confirm")  # 四轴走完：在光标格布防（核心交互的输入入口）
+			_enter(Phase.PLACE)
+		else:
+			_phase_frames = 0  # 切下一根轴（_axis_index 在下一段首帧推进）
+
+
+## ── 断言 14（Bug cmvxr1f1a004fm905ua2ua9ir）：三关逐关通关扫描 ──
+## 每关四件事：① 关卡推进核对（真实「下一关」到达的关 + 波次表/起始阳光/等待态切换）；
+## ② 难度数值逐关生效（真实出生路径行为探针：种类绝对数值血量/速度接进行为）；
+## ③ 布防（双发）+ 跳末波 + 放 walker；④ 真实击杀清场 → game_ended(true) →
+## 结算浮层「下一关」（过 400ms 误触窗）→ confirm 进下一关；末关主按钮 = 再玩一次。
+
+## 胜利尝试（真实路径）：清场 → 补测试弹药 → 选双发 → 布防 → 跳末波 → 本行近距放 walker
+## （双发单轮齐射 2×60=120 > walker 100，任何配比一轮击杀；近距 64px 压弹丸飞行帧数）。
+func _begin_level_victory_attempt() -> void:
+	_field.clear_all()
+	GameState.add_sun(500)  # 测试补充弹药（正式经济由收集链路断言验证）
+	GameState.select_card(3)
+	if not _field.try_place(_field.cell_center(Vector2i(1, 2))):
+		_failures.append("第 %d 关：布防失败（阳光 %d），逐关胜利无从验证" % [
+			_sweep_level + 1, GameState.sun])
+		return
+	var defender := _field.defender_at(Vector2i(1, 2))
+	if defender == null or defender.kind != &"repeater":
+		_failures.append("第 %d 关：布防花色 ≠ repeater（选卡未跟上扫关卡）" % (_sweep_level + 1))
+		return
+	_director.debug_jump_to_final_wave()
+	_field.spawn_zombie(defender.cell.y, defender.position.x + 64.0, &"walker")
+
+
+func _step_sweep_setup() -> void:
+	var level := _sweep_level
+	if _phase_frames == 1:
+		# 胜利信号是「单关一次」的观测量：上一关通关置位后不重置，本关 SWEEP_KILL 会在
+		# 开局第一帧就误判「已通关」（结算浮层早已关闭）—— 逐关进入时必须清零
+		_won_seen = false
+		return
+	if _phase_frames < SWEEP_SETUP_FRAMES:
+		return
+	var cfg: Dictionary = GameState.LEVELS[level]
+	# ① 关卡推进核对：真实「下一关」到达的确实是这一关，关卡数值切到了本关
+	if GameState.level_index != level:
+		_failures.append("关卡推进：期望在第 %d 关，实际 level_index=%d（推进断线）" % [
+			level + 1, GameState.level_index])
+	if not GameState.running:
+		_failures.append("关卡推进：第 %d 关未进入对局态（running=false）" % [level + 1])
+	if GameState.wave_count() != (cfg.get("waves", []) as Array).size():
+		_failures.append("难度数值逐关生效：第 %d 关波数 %d ≠ 表值 %d（关卡表没接进行为）" % [
+			level + 1, GameState.wave_count(), (cfg.get("waves", []) as Array).size()])
+	if GameState.sun != int(cfg.get("start_sun", -1)):
+		_failures.append("难度数值逐关生效：第 %d 关起始阳光 %d ≠ 表值 %d" % [
+			level + 1, GameState.sun, int(cfg.get("start_sun", -1))])
+	if not _director.can_skip_wait():
+		_failures.append("难度数值逐关生效：第 %d 关开局未处于首波等待态（begin_level 未随关执行）" % [
+			level + 1])
+	if GameState.wave_index != 0:
+		_failures.append("关卡推进：第 %d 关开局波次指针 %d ≠ 0" % [level + 1, GameState.wave_index])
+	# ② 难度数值逐关生效：真实出生路径行为探针（种类绝对数值表接进行为，即建即清）
+	var probe := _field.spawn_zombie(2, Field.SPAWN_X, &"walker")
+	var meta: Dictionary = GameState.ZOMBIE_KINDS.get(&"walker", {})
+	if not is_equal_approx(probe.max_hp, float(meta.get("hp", -1.0))):
+		_failures.append("难度数值逐关生效：第 %d 关出生僵尸血量 %.1f ≠ 种类表 %.1f" % [
+			level + 1, probe.max_hp, float(meta.get("hp", -1.0))])
+	if not is_equal_approx(probe.speed, float(meta.get("speed", -1.0))):
+		_failures.append("难度数值逐关生效：第 %d 关出生僵尸速度 %.1f ≠ 种类表 %.1f" % [
+			level + 1, probe.speed, float(meta.get("speed", -1.0))])
+	# ③ 胜利尝试（双发布防 + 跳末波 + 放怪）
+	_begin_level_victory_attempt()
+	_enter(Phase.SWEEP_KILL)
+
+
+func _step_sweep_kill() -> void:
+	var level := _sweep_level
+	var is_last := level >= GameState.LEVELS.size() - 1
+	var result_overlay := _main.get("result_overlay") as ResultOverlay
+	# 误触窗纪律（与 RESULT 相位同源）：结算浮层弹出后 400ms 内 press_primary 会被
+	# can_accept() 吞掉 —— 看到通关信号就立刻 confirm 是「下一关推不动」的假缺陷源，
+	# 必须等窗口期满再注入（帧预算 SWEEP_KILL_FRAMES 已含 24 帧窗口）。
+	var confirm_ready := _won_seen and (is_last
+			or (result_overlay != null and result_overlay.can_accept()))
+	if confirm_ready:
+		if result_overlay == null or not result_overlay.visible:
+			_failures.append("第 %d 关：通关后结算浮层不可见（逐关胜利出口断线）" % [level + 1])
+		var action: String = result_overlay.primary_action() if result_overlay != null else ""
+		var expected_action := "replay" if is_last else "next"
+		if action != expected_action:
+			_failures.append("第 %d 关：通关后主按钮语义 %s ≠ %s（逐关推进入口断线）" % [
+				level + 1, action, expected_action])
+		# 击杀掉落行为核对：walker 击杀必须掉落 sun_drop 面额拾取物（kind 表接进行为）
+		if _find_sun_token(GameState.kill_reward(&"walker")) == null:
+			_failures.append("第 %d 关：击杀掉落拾取物缺失（sun_drop 断线）" % [level + 1])
+		if is_last:
+			_pass_summary()
+		else:
+			_press_action(&"confirm")  # 真实输入路径：结算浮层「下一关」
+			_enter(Phase.SWEEP_ADVANCE)
+	elif _phase_frames >= (SWEEP_LAST_KILL_FRAMES if is_last else SWEEP_KILL_FRAMES):
+		if not _won_seen:
+			_failures.append("逐关胜利不可达：第 %d 关末波清场后 %d 帧内没有 game_ended(true)" % [
+				level + 1, SWEEP_KILL_FRAMES])
+		else:
+			_failures.append("第 %d 关：通关后结算浮层误触窗期满 confirm 仍未被受理 —— 下一关推进入口断线" % [
+				level + 1])
+
+
+func _step_sweep_advance() -> void:
+	if _phase_frames < SWEEP_ADVANCE_FRAMES:
+		return
+	var target := _sweep_level + 1
+	if GameState.level_index != target:
+		_failures.append("关卡推进：第 %d 关通关 confirm「下一关」后 level_index=%d ≠ %d（推进断线）" % [
+			_sweep_level + 1, GameState.level_index, target])
+	if GameState.wave_index != 0:
+		_failures.append("关卡推进：进入第 %d 关波次指针未归零（%d）" % [target + 1, GameState.wave_index])
+	if not GameState.running:
+		_failures.append("关卡推进：第 %d 关未进入对局态（running=false）" % [target + 1])
+	var overlay := _main.get("result_overlay") as ResultOverlay
+	if overlay != null and overlay.visible:
+		_failures.append("关卡推进：进入下一关后结算浮层未关闭")
+	_sweep_level = target
+	_enter(Phase.SWEEP_SETUP)
+
+
+## 全部断言走完（含末关 replay 语义核对）→ 直接收口报告。
+func _pass_summary() -> void:
+	_finished = true
+	_report()
 
 
 ## 模拟「玩家按键」：注入真实 InputEvent → _unhandled_input 收得到
@@ -762,7 +936,7 @@ func _report() -> void:
 	for key: String in _tuning_backup:
 		GameState.set(key, _tuning_backup[key])
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 选关/移动/布防/出战卡/提示淡出/射击/掉落收集/失败/重开/下一波/胜利/键位契约/内容表/难度平缓/对比度/音频契约/调参协议 全部通过")
+		print("GODOT_SMOKE: PASS 选关/四轴方向移动/布防/出战卡/提示淡出/射击/掉落收集/失败/重开/下一波/三关逐关通关/关卡推进/逐关难度生效/键位契约/内容表/难度平缓/对比度/音频契约/调参协议 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

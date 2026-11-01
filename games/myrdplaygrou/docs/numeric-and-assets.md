@@ -47,6 +47,15 @@
 - 种类数 1 → 3 → 4（逐关不减，只增）
 - 起始阳光为玩家侧增益补偿，不参与敌方难度增幅校验（spec player.note）
 
+无头可判定代理：`tests/smoke.gd::_check_level_table`（难度平缓机判）+ r3 起的**逐关通关扫描**
+（`tests/smoke.gd` SWEEP 相位）：第 1/2/3 关逐关走到胜利，逐关断言「关卡推进（结算浮层下一关
+→ level_index 前进/波次归零/浮层关闭）、逐关胜利判定（真实击杀清场 → game_ended(true)、
+主按钮 next/replay 语义）、难度数值逐关生效（波数表/起始阳光/首波等待态切换 + 真实出生路径
+行为探针 + 击杀掉落面额）」；冒烟移动断言升级为四轴方向断言（右/左/上/下逐轴校验位移分量
+方向 + 本轴支配正交轴）。机器人试玩侧由 `main.gd` 装配钩子 + `GameState.playtest_level_cursor`
+把 3 局种子逐局对准第 1/2/3 关（证据行 `[main] playtest run -> level N` 进 playtest 门禁日志）
+——契约详见 `docs/spec-acceptance-mirror.md` §3。
+
 ## 3. 阳光经济（v2：只经三途径产出，全部点按收集入账）
 
 | 途径 | 产出 | 说明 |

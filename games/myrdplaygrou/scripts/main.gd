@@ -33,6 +33,18 @@ var _move_hint: String = ""
 
 
 func _ready() -> void:
+	# 试玩门禁上下文（playtest_driver.gd 把本场景当子场景实例化，current_scene 是驱动场景）：
+	# 每局轮换到下一关，让机器人逐局真实游玩全部 3 关、逐关难度数值全程生效
+	# （Bug cmvxr1f1a004fm905ua2ua9ir：试玩不再只刷第 1 关）。
+	# 正常启动 current_scene == 本节点、冒烟 current_scene == Smoke，均不触发；
+	# 局内重开走 GameState.reset()（不重建主场景），游标不推进、重开语义不变。
+	var context_scene := get_tree().current_scene
+	if context_scene != null and context_scene.name == &"PlaytestDriver":
+		GameState.level_index = GameState.next_playtest_level()
+		# 证据行：进 playtest 门禁日志，证明 3 局种子确实逐局对准了不同关卡
+		# （GODOT_PLAYTEST 成功时包装脚本只透出 PASS/METRICS 两行，完整日志含本证据行）
+		print("[main] playtest run -> level %d「%s」（波数 %d）" % [
+			GameState.level_index + 1, GameState.level().get("name", ""), GameState.wave_count()])
 	Ambience.setup(AMBIENCE_FLAT)
 	director = WaveDirector.new()
 	director.name = "WaveDirector"
