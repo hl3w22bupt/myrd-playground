@@ -117,6 +117,30 @@ const LEVELS: Array[Dictionary] = [
 
 func _ready() -> void:
 	_apply_web_tuning()
+	_publish_input_profile()
+
+
+## 把输入画像回写页面（window.__INPUT_PROFILE__）：门禁 / 壳层 / 现场诊断都能直读
+## 「引擎侧最终判定 + 各原始信号」，触屏措辞不对时不用猜。
+func _publish_input_profile() -> void:
+	if OS.has_feature("web"):
+		var signals: Variant = JavaScriptBridge.eval(
+			"JSON.stringify({ontouchstart: ('ontouchstart' in window),"
+			+ "maxTouchPoints: navigator.maxTouchPoints,"
+			+ "coarse: !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches),"
+			+ "uaTouch: /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)})", true)
+		var parsed: Variant = JSON.parse_string(str(signals)) if signals != null else {}
+		var meta: Dictionary = parsed if parsed is Dictionary else {}
+		var profile := {
+			"touch": touch_preferred(),
+			"engine_web_feature": OS.has_feature("web"),
+			"ontouchstart": meta.get("ontouchstart", null),
+			"maxTouchPoints": meta.get("maxTouchPoints", null),
+			"coarse": meta.get("coarse", null),
+			"uaTouch": meta.get("uaTouch", null),
+		}
+		var bridge: Object = Engine.get_singleton("JavaScriptBridge")
+		bridge.call("eval", "window.__INPUT_PROFILE__ = JSON.parse('%s')" % JSON.stringify(profile))
 
 
 ## 本关配置（LEVELS 只读快照）。
@@ -195,13 +219,21 @@ func _detect_touch_preferred() -> bool:
 	if OS.has_feature("web"):
 		# 三信号之外加 UA 兜底：部分移动仿真（CDP 触摸注入但 hasTouch 关闭）探不到
 		# ontouchstart/maxTouchPoints，但手机 UA 本身就是「触屏设备」的可靠证据。
-		# 探测异常仍按触屏处理（fail-open，宁可多给触屏措辞）。
 		var touch_capable: Variant = JavaScriptBridge.eval(
 			"(function(){try{return 'ontouchstart' in window || navigator.maxTouchPoints > 0"
 			+ " || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)"
 			+ " || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)"
 			+ "}catch(e){return true}})()", true)
-		return touch_capable != false
+		# ⚠️ 教训（v4 线上实证）：eval 的 JS 布尔返回会落成 int(0/1)，GDScript 禁止
+		# int 与 bool 直接比较（Invalid operands 'int' and 'bool'）——该运行时错误在
+		# release 导出里静默成 null，曾让触屏措辞永久回退键盘文案。此处按形态归一。
+		if touch_capable is bool:
+			return touch_capable
+		if touch_capable is int or touch_capable is float:
+			return float(touch_capable) > 0.5
+		if touch_capable is String:
+			return touch_capable == "true"
+		return true  # null / 未知返回形态 → fail-open 按触屏处理
 	return DisplayServer.is_touchscreen_available()
 
 
