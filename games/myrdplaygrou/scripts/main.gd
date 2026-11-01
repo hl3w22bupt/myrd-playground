@@ -79,6 +79,7 @@ func _ready() -> void:
 	hud.restart_requested.connect(_restart_level)
 	hud.back_requested.connect(_show_level_select)
 	hud.skip_wave_requested.connect(_on_skip_wave_requested)
+	field.defender_placed.connect(_on_defender_placed)
 	director.wave_started.connect(_on_wave_started)
 	director.waiting_changed.connect(_on_waiting_changed)
 	hud.set_hint(_move_hint)
@@ -107,12 +108,53 @@ func _on_level_started(level_index: int) -> void:
 	field.clear_all()
 	director.begin_level()
 	hud.visible = true
-	_move_hint = "第%d关 %s · %s" % [level_index + 1, String(GameState.level().get("name", "")), _input_hint()]
-	hud.set_hint(_move_hint)
+	hud.rebuild_cards()
+	if GameState.endless_active:
+		_move_hint = "无尽模式 · %s" % _input_hint()
+	else:
+		_move_hint = "第%d关 %s · %s" % [level_index + 1, String(GameState.level().get("name", "")), _input_hint()]
+	# L1 教学引导（spec levelMechanics.teaching）：完成前提示常驻引导文案，完成后走常规淡出
+	if not GameState.tutorial_done:
+		hud.set_hint(_tutorial_hint(), true)
+	else:
+		hud.set_hint(_move_hint)
 	cursor.active = true
 	cursor.position = field.cell_center(Vector2i(3, 2))
 	field.highlight_cell = cursor.current_cell()
 	_apply_chapter_tint()
+
+
+## 教学引导文案（L1 首布防引导，完成前常驻 —— 完成后由 _on_defender_placed 切回常规提示淡出）。
+func _tutorial_hint() -> String:
+	var has_flower := _count_defenders(true) > 0
+	if has_flower:
+		return "引导：再放 1 座豌豆射手（首波前建成 向日葵+豌豆射手 各 1 座）"
+	return "引导：先放 1 座向日葵（点第 1 张卡片，再点草坪）· %s" % _input_hint()
+
+
+## 场上布防统计（is_flower=true 数向日葵，否则数射手；教学引导进度用）。
+func _count_defenders(flower_only: bool) -> int:
+	var n := 0
+	for cell in field.get_defender_cells():
+		var defender := field.defender_at(cell)
+		if defender == null:
+			continue
+		if flower_only and defender.produces:
+			n += 1
+		elif not flower_only and not defender.produces:
+			n += 1
+	return n
+
+
+## L1 首布防引导：每座新布防后评估完成态（向日葵 ≥1 + 射手 ≥1 且总数 ≥2），
+## 完成即把提示切回常规操作说明（随 hint_show_seconds 自动淡出）。
+func _on_defender_placed(_defender: Defender) -> void:
+	if GameState.tutorial_done or not GameState.running:
+		return
+	var done := GameState.evaluate_tutorial(_count_defenders(true), _count_defenders(false),
+		field.defender_count())
+	if done:
+		hud.set_hint(_move_hint)
 
 
 ## 章节氛围（晨绿/暮橙/夜蓝）：天空底色 + 场景提示条已随 GameState.chapter_tint 切换。
@@ -174,7 +216,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	# spec firstInteractionPolicy：首交互前不发声，解锁后立即起播）
 	if event.is_pressed() and (event is InputEventKey or event is InputEventMouseButton or event is InputEventScreenTouch):
 		Audio.ensure_playing()
-	for i in GameState.CARDS.size():
+	for i in GameState.roster().size():
 		if event.is_action_pressed(StringName("select_card_%d" % (i + 1))):
 			GameState.select_card(i)
 			return

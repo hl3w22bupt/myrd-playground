@@ -1,10 +1,12 @@
 # 《植物人大战僵尸-网页版》验收条目镜像与操控语义修订（Bug cmvxrs3fv005em905y4eouy35）
 
-> 权威基准：平台 GameDesignSpec（approved 版 **v3 = `cmvxw290c000wm9z6cec4yg92`**，14 条 acceptance；
-> v2 = `cmvxrtp2z005gm9055alqx9md` / v1 = `cmvxkdcdp002om905wneuanvw` 已 superseded）。
+> 权威基准：平台 GameDesignSpec（链 `cmvy3ccqq0010m9y06sz653gh` 最新 approved = **策划案 v3：
+> 八关机制差异化/难度曲线上调/真实出声机判**；其前序链 `cmvxw290c000wm9z6cec4yg92`（14 条，
+> 含 acc-input-semantics）已 superseded；v2 = `cmvxrtp2z005gm9055alqx9md` / v1 =
+> `cmvxkdcdp002om905wneuanvw` 已 superseded）。
 > 本文件是工程侧镜像：记录 spec.acceptance 的对齐核验结论 + 操控语义条目的入链结论。
 > 纪律：spec 修订只能走平台 `POST /api/v1/game-design-specs/:id/revisions`（产生新版本、链上旧版自动 superseded），
-> 本节点不直接改平台库、不改 approved 版 —— v3 即由该 API 产生（status=approved，版本链自动维护唯一 approved）。
+> 本节点不直接改平台库、不改 approved 版 —— 新版本均由该 API 产生（status=approved，版本链自动维护唯一 approved）。
 
 ## 1. 对齐核验结论（2026-11-01 · 对 v2 approved 版逐条核对）
 
@@ -44,15 +46,24 @@ v2 `spec.acceptance` 共 13 条：`acc-playable-loop` / `acc-level-select` / `ac
 }
 ```
 
-## 3. 门禁 ↔ 验收条目映射（本节点升级后的机判面）
+## 3. 门禁 ↔ 验收条目映射（v3 八关线，本节点升级后的机判面）
 
-| 验收口径 | 机判位置 | 本节点改动 |
+> 权威基准升级：链 `cmvy3ccqq0010m9y06sz653gh` 最新 approved = **策划案 v3（八关机制差异化 /
+> 难度曲线上调 / 真实出声机判）**；本表按 v3 验收条目对齐。
+
+| 验收口径 | 机判位置 | v3 节点改动 |
 |---|---|---|
-| 操控语义（四轴方向，spec v3 `acc-input-semantics`） | `tests/smoke.gd::_step_move_axis` | 新增（Bug cmvxrs3fv005em905y4eouy35） |
-| 三关均可通关 + 关卡推进 | `tests/smoke.gd::_step_sweep_setup/_kill/_advance` | 新增三关逐关通关扫描（Bug cmvxr1f1a004fm905ua2ua9ir） |
-| 难度数值逐关生效 | 同上（v2 口径：起始阳光 100/150/200 分档、波数 4/5/6、总僵尸 12/15/19 逐关核对 + 编制内种类真实出生路径行为探针：血量/速度 = `ZOMBIE_KINDS` 绝对值 + 击杀掉落面额） | 新增 |
-| 试玩逐关覆盖 | `playtest_driver.gd`（仓库判定器）× `main.gd` 轮换钩子 × `GameState.playtest_level_cursor` | 新增：3 局种子逐局对准第 1/2/3 关（`[main] playtest run -> level N` 证据行进门禁日志） |
-| 难度平缓（≤30%） | `tests/smoke.gd::_check_level_table` | v2 重写为编制加权口径（波数/总数/加权血量/加权速度/出怪间隔/首波延迟/波间隔，相邻增幅 ≤30%） |
+| 操控语义（四轴方向，`acc-input-semantics`） | `tests/smoke.gd::_step_move_axis` | 保持（Bug cmvxrs3fv005em905y4eouy35） |
+| 八关均可通关 + 关卡推进 + 通关第 8 关解锁无尽（`acc-playable-loop`） | `tests/smoke.gd::_step_sweep_setup/_kill/_advance/_step_endless` | 扫描扩到 8 关：第 1 关真实输入链、第 2-7 关直选推进、末关 replay 语义；星级入档 + 无尽解锁/入口可见/波次无限/1.08^波 复合/巨尸混编 全机判 |
+| 选关页 8 关名称/星级/进度 + 解锁链（`acc-level-select`） | `scripts/level_select.gd::_refresh_entries/_is_locked` | 8 关单页两行网格 + ★x n 进度 + 锁定关点按即时反馈（触屏「按了有反应」） |
+| 难度曲线上调（`acc-difficulty-curve`，替代 v2「≤30%」口径） | `tests/smoke.gd::_check_level_table` | 重写为 spec.numeric.difficulty 八关锚点 + 单调性机判：hpScale/speedScale/加权血量/加权速度/总数/平均每波严格递增、波数单调不减、节奏锚点逐关核对 |
+| 关卡机制差异化（`acc-level-mechanics`） | `_check_level_table` 机制声明 + SWEEP 逐关行为探针 | L1 教学引导（完成态机判）/ L3 波隔 12s / L4 天降节流 24s/15 + 卡槽 4 张无双发 / L5 夜幕遮罩（边界 x + 剪影↔显形）/ L6 单波 ≥3 类 / L7 巨尸第 4/9 波 + 碾压（接触即毁坚果、不进啃食循环、复用 hit+zombie_die）/ L8 巨尸第 7/10 波 + 无尽解锁 |
+| 音频真实出声机判（`acc-audio-unlock` / `acc-audio-complete` / `acc-mute-instant`） | 壳页 `__audioDebug().getOutputEnergy()`（新增）+ `tests/smoke.gd::_check_audio_contract` | 壳层 AnalyserNode 能量探针（fftSize=256，连续 2 窗 RMS>0.01 判真实出声、≤0.001 判真实静默）；游戏侧补 bus 音量核查（Master 无启动静音/增益 0dB/BGM = spec 0.4 线性 ≈ -8dB、LOOP_FORWARD）；sfxBindings 全 8 类注册机判保持 |
+| 资源闭环（`acc-resource-loop`） | `tests/smoke.gd` COMBAT/经济断言 | 掉落面额补坦克巨尸 100；L1 首布防引导完成态（向日葵+射手各 1）入机判 |
+| 全程无占位（`acc-no-placeholder`） | 冒烟「日志无 SCRIPT ERROR」+ 资产进包核查 | 坦克巨尸完整扁平绘制（含受击/倒地/碾压态）；13 音频资产 pck 字节级在包核查随导出执行 |
+| 扁平色板/对比度（`acc-flat-palette` / `acc-contrast`） | `_check_contrast` | 色对 11→12 对（+夜幕剪影对 4.39）；章节配色扩四套（+正午暖黄） |
+| 试玩逐关覆盖 | `playtest_driver.gd`（仓库判定器）× `main.gd` 轮换钩子 × `GameState.playtest_level_cursor` | 保持：3 局种子逐局对准关卡表前 3 关（`[main] playtest run -> level N` 证据行进门禁日志） |
 
-> 逐关取证行（r3）：冒烟日志逐关打印 `[smoke] 第 N 关通关（…）` 与 `[smoke] 关卡推进 → 第 N 关（…）`，
-> 试玩日志逐局打印 `[main] playtest run -> level N` —— 三类断言的执行证据随门禁日志落盘，验收节点可直接核对。
+> 逐关取证行（v3）：冒烟日志逐关打印 `[smoke] 第 N 关通关（…，★n，hpScale x.xx）` 与
+> `[smoke] 无尽模式探针通过（…）`；试玩日志逐局打印 `[main] playtest run -> level N`
+> —— 断言的执行证据随门禁日志落盘，验收节点可直接核对。

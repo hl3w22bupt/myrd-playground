@@ -49,11 +49,12 @@ func _physics_process(delta: float) -> void:
 	_tick_waves(delta)
 
 
-## 天降阳光（阳光三途径之一，须点按收集）。
+## 天降阳光（阳光三途径之一，须点按收集；L4 阳光紧缩关节流覆盖 24s/15）。
 func _tick_sky_drop(delta: float) -> void:
 	_sky_timer -= delta
 	if _sky_timer <= 0.0:
-		_sky_timer += GameState.sky_drop_interval
+		var interval: Variant = GameState.level().get("sky_drop_interval", 0.0)
+		_sky_timer += float(interval) if float(interval) > 0.0 else GameState.sky_drop_interval
 		field.spawn_sun_token()
 
 

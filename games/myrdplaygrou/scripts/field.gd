@@ -50,6 +50,41 @@ var _sun_tokens: Array[SunToken] = []
 var highlight_cell: Vector2i = Vector2i(-1, -1)
 var _last_tap_ms: int = -100000
 var _last_tap_pos := Vector2(-10000, -10000)
+## 夜幕迷雾（L5）：被遮罩的首列（0 起索引；-1 = 本关无夜幕）。由 level_started 装载。
+var fog_lit_cols: int = -1
+## 夜幕遮罩绘制层（压在僵尸之上：剪影之外的画面区域罩雾）。
+var _fog_overlay: Node2D = null
+
+
+func _ready() -> void:
+	GameState.level_started.connect(_on_level_started)
+
+
+## 关卡装载：夜幕遮罩按关卡配置开关（spec levelMechanics.nightFog，仅 L5 声明）。
+func _on_level_started(_level_index: int) -> void:
+	var fog: Dictionary = GameState.level().get("night_fog", {})
+	fog_lit_cols = int(fog.get("lit_cols", -1)) if not fog.is_empty() else -1
+	if fog_lit_cols >= 0 and _fog_overlay == null:
+		_fog_overlay = FogOverlay.new()
+		_fog_overlay.name = "NightFog"
+		_fog_overlay.z_index = 3
+		add_child(_fog_overlay)
+	if _fog_overlay != null:
+		_fog_overlay.visible = fog_lit_cols >= 0
+		if fog_lit_cols >= 0:
+			_fog_overlay.boundary_x = fog_boundary_x()
+			_fog_overlay.alpha = float(fog.get("alpha", 0.6))
+			_fog_overlay.queue_redraw()
+
+
+## 夜幕是否生效（本关声明了遮罩列数）。
+func fog_active() -> bool:
+	return fog_lit_cols >= 0
+
+
+## 点亮区右缘世界 x：该 x 之右 = 遮罩区（僵尸以剪影预显示）。
+func fog_boundary_x() -> float:
+	return GRID_ORIGIN.x + float(fog_lit_cols) * CELL_W
 
 
 ## ── 几何查询 ──
@@ -154,25 +189,27 @@ func try_place(world_pos: Vector2) -> bool:
 
 ## ── 出怪与阳光 ──
 
-## 在指定行 / x 出生一只僵尸：血量/速度 = 种类绝对基准（spec.numeric.zombies），
-## 关卡难度差异来自波次编制（见 GameState.LEVELS）。
+## 在指定行 / x 出生一只僵尸：血量/速度 = 种类基准 × 本关 hpScale/speedScale
+## （spec.numeric.difficulty：难度曲线上调，逐关严格递增；boss 血量固定不乘 hpScale）。
 func spawn_zombie(lane: int, x: float, kind: StringName = &"walker") -> Zombie:
-	var meta: Dictionary = GameState.ZOMBIE_KINDS.get(kind, GameState.ZOMBIE_KINDS[&"walker"])
 	var zombie := Zombie.new()
 	zombie.setup(
 		clampi(lane, 0, GRID_ROWS - 1), x, lane_center_y(lane),
-		float(meta.get("hp", 100.0)), float(meta.get("speed", 18.0)), kind)
+		GameState.zombie_hp_of(kind), GameState.zombie_speed_of(kind), kind)
 	add_child(zombie)
 	_zombies.append(zombie)
 	return zombie
 
 
-## 天降阳光：随机格落到格内偏下（spec.economy.skyDrop：25 / 12s，由 WaveDirector 定时调用）。
+## 天降阳光：随机格落到格内偏下（spec.economy.skyDrop 默认 25/12s；
+## L4 阳光紧缩关节流覆盖为 15/24s —— level.sky_drop_yield / sky_drop_interval）。
 func spawn_sun_token() -> void:
 	var cell := Vector2i(randi() % GRID_COLS, randi() % GRID_ROWS)
 	var target := cell_center(cell) + Vector2(0.0, 20.0)
 	var token := SunToken.new()
-	token.setup(int(GameState.sky_drop_yield), Vector2(target.x, GRID_ORIGIN.y - 36.0), target.y)
+	var yield_override: Variant = GameState.level().get("sky_drop_yield", 0)
+	var value := int(yield_override) if int(yield_override) > 0 else int(GameState.sky_drop_yield)
+	token.setup(value, Vector2(target.x, GRID_ORIGIN.y - 36.0), target.y)
 	add_child(token)
 	_sun_tokens.append(token)
 
@@ -236,14 +273,24 @@ func _advance_world(delta: float) -> void:
 				add_child(projectile)
 				_projectiles.append(projectile)
 			Juice.sfx(&"shoot")
-	# ② 僵尸推进 / 啃咬 / 突破（啃咬 = 离散节拍：tick_bite 归零咬一口）
+	# ② 僵尸推进 / 啃咬 / 碾压 / 突破（啃咬 = 离散节拍：tick_bite 归零咬一口）
+	var fog_x := fog_boundary_x() if fog_active() else -1000000.0
 	for zombie in _zombies.duplicate():
 		if zombie.dying:
 			continue
+		# 夜幕剪影回写（L5）：遮罩区内只显示剪影，进入前 lit_cols 列点亮区才显形
+		zombie.silhouetted = zombie.position.x >= fog_x
 		var target := _defender_in_reach(zombie)
-		zombie.eating = target != null
+		zombie.eating = target != null and not zombie.crushes
 		if target != null:
-			if zombie.tick_bite(delta) and target.take_damage(GameState.bite_damage):
+			if zombie.crushes:
+				# 坦克巨尸碾压（spec combat.crush）：接触即摧毁（含坚果墙），
+				# 不进入啃食循环，随后继续前进；音效复用 hit + zombie_down
+				Juice.sfx(&"hit")
+				Juice.sfx(&"zombie_die")
+				Juice.shake(6.0)
+				_crush_defender(target)
+			elif zombie.tick_bite(delta) and target.take_damage(GameState.bite_damage):
 				_remove_defender(target)
 		else:
 			zombie.advance(delta)
@@ -321,6 +368,14 @@ func _breach(zombie: Zombie) -> void:
 func _remove_defender(defender: Defender) -> void:
 	_defenders.erase(defender.cell)
 	Juice.sfx(&"fail")
+	Juice.flash(defender, Color(1, 0.5, 0.5, 0.9))
+	defender_lost.emit(defender.cell)
+	defender.queue_free()
+
+
+## 坦克巨尸碾压摧毁（无视血量，含坚果墙；不进啃食循环，spec combat.crush）。
+func _crush_defender(defender: Defender) -> void:
+	_defenders.erase(defender.cell)
 	Juice.flash(defender, Color(1, 0.5, 0.5, 0.9))
 	defender_lost.emit(defender.cell)
 	defender.queue_free()
@@ -432,3 +487,16 @@ func _draw() -> void:
 	draw_rect(Rect2(VIEW_SIZE.x - 40.0, GRID_ORIGIN.y, 40.0, field_bottom - GRID_ORIGIN.y), Color(FlatUI.INK, 0.35))
 	# 底部提示条底色（章节色，配 INK 文字 = 高对比浅底）
 	draw_rect(Rect2(0.0, field_bottom, VIEW_SIZE.x, VIEW_SIZE.y - field_bottom), tint)
+
+
+## 夜幕遮罩绘制层（L5 专属，z_index=3 压在僵尸之上）：第 fog boundary 列及以右罩雾。
+## 扁平纯色块（spec nightFog.fogColor #0d1626 / alpha 0.6），无渐变（风格卡禁忌）。
+class FogOverlay extends Node2D:
+	var boundary_x: float = 0.0
+	var alpha: float = 0.6
+
+	func _draw() -> void:
+		var top: float = Field.GRID_ORIGIN.y
+		var field_bottom: float = Field.GRID_ORIGIN.y + float(Field.GRID_ROWS) * Field.CELL_H
+		draw_rect(Rect2(boundary_x, top, Field.VIEW_SIZE.x - boundary_x, field_bottom - top),
+			Color(FlatUI.FOG, alpha))

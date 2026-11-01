@@ -34,6 +34,10 @@ const UI_TEXT := Color("ecf0f1")         ## HUD 深底上的常规文本
 const UI_PRIMARY := Color("3498db")      ## UI 主色件（按钮/卡片）= 辅色同值
 const SHADOW := Color(0.0, 0.0, 0.0, 0.25)  ## 前景主体投影（rgba(0,0,0,.25)，偏移 2px）
 
+## ── v3 夜战关色（spec levelMechanics.nightFog 逐项声明，渲染必须与声明一致）──
+const FOG := Color("0d1626")             ## 夜幕遮罩（L5 第 4 列及以右，alpha 0.6）
+const SILHOUETTE := Color("6b7f94")      ## 遮罩内僵尸剪影预显示色（对比度 4.39 ≥3.0 机判）
+
 ## ── 三档字号（标题 / HUD 正文 / 辅助信息）──
 const FONT_TITLE := 32
 const FONT_BODY := 20

@@ -8,73 +8,85 @@ extends Node
 ##   通过 → stdout 打印 `GODOT_SMOKE: PASS ...`，进程退出码 0
 ##   失败 → stderr 打印 `GODOT_SMOKE: FAIL <原因>`（每条一行），进程退出码 1
 ##
-## 断言覆盖（spec v2 验收的可无头判定代理 + SKILL.md 冒烟七项）：
+## 断言覆盖（spec v3 验收的可无头判定代理 + SKILL.md 冒烟七项）：
 ##   1. 内容表（acc-spec-consistency 代理）：出战卡 5 张（sunflower/peashooter/frostpea/
-##      repeater/wallnut，造价 50/100/175/200/50，坚果 1200 血）；僵尸 4 类绝对数值与
-##      掉落面额（walker/runner/conehead/buckethead）；生产卡 shots=0、双发 shots=2
-##   2. 关卡表（acc-difficulty-curve 代理）：3 关波次脚本；总僵尸 12/15/19；编制加权平均
-##      血量 100/120/150.5、速度 18/20.4/21.4 相邻增幅 ≤30%；波数/出怪间隔/首波延迟/
-##      波间隔增幅（降幅）≤30%；起始阳光 100/150/200；编制只用已声明种类且逐关不减
-##   3. 对比度（acc-contrast）：WCAG 2.x 相对亮度公式逐对复算 spec colorPairs ≥3.0，
-##      且渲染常量（FlatUI）与声明色值一致 —— 「植物与背景同色」类缺陷回归闸
-##   4. 音频契约（acc-audio-complete / acc-mute-instant 代理）：BGM 就绪；sfxBindings
-##      全 8 类音效已注册；静音开关往返即时生效
-##   5. 界面流：启动即选关界面；进入关卡 → 对战态（HUD 可见、光标激活）
-##   6. 玩家能移动（四轴「方向」断言，Bug cmvxrs3fv005em905y4eouy35）：
-##      右/左/上/下逐轴按住注入，各校验「位移分量方向」——
-##      move_right ⇒ Δx>0、move_left ⇒ Δx<0、move_up ⇒ Δy<0、move_down ⇒ Δy>0，
-##      且本轴分量必须支配正交轴（|Δ本轴| > |Δ正交|，拦「上下反了/左右反了/轴串了」）；
-##      Player.moved 信号到达订阅方
-##   7. 核心交互生效：confirm 布防默认卡（向日葵）→ 扣费 + 信号 + 冷却启动 + 自动取消选卡
-##   8. 出战卡系统：选卡→布防花色/扣费跟卡走（坚果 1200 血）；阳光不足被经济门拦下；
-##      冷却中被禁用
+##      repeater/wallnut，造价 50/100/175/200/50，坚果 1200 血）；僵尸 5 类绝对数值与
+##      掉落面额（walker/runner/conehead/buckethead/gargantuar，巨尸血量固定 2400、碾压型、
+##      掉落 100）；生产卡 shots=0、双发 shots=2、寒冰 slow>0
+##   2. 关卡表（acc-difficulty-curve，spec v3 难度曲线上调口径）：8 关逐关锚定
+##      spec.numeric.difficulty（波数 4→10 / 总僵尸 12→63 / hpScale 1.00→2.85 /
+##      speedScale 1.00→1.42 / 加权血量 100→449.9 / 加权速度 18→33 / 平均每波 3→6.3），
+##      单调性机判（波数不减、总数/倍率/加权值严格递增 = 「难度逐关抬升、无整体回落」）；
+##      起始阳光 100/150/150/100/150/200/250/250；编制只用已声明种类、种类数逐关不减；
+##      L1 单一种类教学 + 引导声明；L4 阳光紧缩声明（天降 24s/15 + 卡槽禁双发）；
+##      L6 存在单波 ≥3 类；L7/L8 boss 波次落点（4&9 / 7&10）
+##   3. 对比度（acc-contrast）：WCAG 2.x 逐对复算 ≥3.0（含夜幕剪影 #6b7f94 vs 遮罩
+##      #0d1626 = 4.39），渲染常量（FlatUI）与声明色值一致
+##   4. 音频契约（acc-audio-complete / acc-mute-instant +「核查 bus 音量」）：BGM 就绪且
+##      运行时前向循环；总线核查（Master 未静音、增益 0dB、BGM 音量 = spec 0.4 线性 ≈ -8dB）；
+##      sfxBindings 全 8 类音效已注册；静音开关往返即时生效
+##   5. 界面流：启动即选关界面（8 关入口 + 无尽入口未解锁隐藏）；进入关卡 → 对战态
+##   6. 玩家能移动（四轴「方向」断言，Bug cmvxrs3fv005em905y4eouy35）：逐轴方向 + 支配正交轴
+##   7. 核心交互生效：confirm 布防默认卡（向日葵）→ 扣费 + 信号 + 冷却 + 自动取消选卡
+##      + L1 教学引导文案在展示（spec levelMechanics.teaching）
+##   8. 出战卡系统：选卡→布防花色/扣费跟卡走；经济门/冷却门；教学引导完成态机判
+##      （向日葵 ≥1 + 射手 ≥1 且总数 ≥2 → tutorial_done，提示切回常规说明）
 ##   9. 射击链路：行内僵尸 → 开火 → 命中 → 倒地；击杀掉落阳光拾取物（不直接入账）
-##  10. 阳光经济（acc-resource-loop 代理）：点按收集入账（天降/击杀掉落/向日葵产出同规则）；
-##      向日葵按周期生产
+##  10. 阳光经济（acc-resource-loop 代理）：点按收集入账；向日葵按周期生产
 ##  11. 失败可达：僵尸越线 ×5（生命 5）→ game_ended(false) + 结算浮层可见
 ##  12. 重开可用：结算态 confirm → 对局重置（生命/清场/冷却/选卡复位）
 ##  13. 下一波（acc-touch-only「提前开波」）：等待态点按提前召唤 → 真实出怪
-##  14. 三关逐关通关（Bug cmvxr1f1a004fm905ua2ua9ir）：第 1/2/3 关逐关走到胜利——
-##      14a. 关卡推进：结算浮层「下一关」→ confirm（真实输入路径，过 400ms 误触窗）→
-##           level_index 前进、波次归零、浮层关闭、首波等待态重新就绪
-##      14b. 逐关胜利判定：每关最后一波真实清场（布防→开火→击杀）→ game_ended(true)；
-##           前两关主按钮 = 下一关，末关 = 再玩一次
-##      14c. 难度数值逐关生效：逐关核对波数表/起始阳光/首波等待态切换 + 真实出生路径
-##           行为探针（种类绝对数值血量/速度接进行为）+ 击杀掉落面额（sun_drop）在场
-##  15. 键位契约：动作已注册 + 承诺的物理键全部绑定（逐键 AND）
-##  16. 操作说明不常驻：开局提示可见，hint_show_seconds 后自动开始淡出
-##  17. 调参协议：TUNING_META 非空；apply_tuning 应用已声明键、拒绝未声明/非数值键、
-##      按 max 钳制、检查后恢复原值
+##  14. 八关逐关通关（acc-playable-loop 无头代理）：第 1→8 关逐关走到胜利——
+##      14a. 关卡推进：第 1 关走真实输入链（结算浮层 → confirm「下一关」）；第 2-7 关
+##           通关后按直接选关（= level_select 按钮同一状态入口）推进，末关主按钮 = 再玩一次
+##      14b. 难度数值逐关生效：每关真实出生路径探针（血量 = 基准×hpScale、速度 =
+##           基准×speedScale —— 难度曲线上调真正接进行为）+ L4 卡槽 4 张无双发 +
+##           L5 夜幕遮罩（遮罩内剪影 → 进点亮区显形）+ L7 坦克巨尸碾压（接触即摧毁坚果、
+##           不进啃食循环、复用 hit+zombie_die 音效）
+##      14c. 星级结算（content.replayHooks）：通关入档星级；第 8 关通关 → 无尽解锁
+##  15. 无尽模式（acc-playable-loop「通关第 8 关解锁」）：选关页无尽入口可见可点；
+##      进入后波次无限（complete_wave 不触发终局）、强度 1.08^波 复合递增、坦克巨尸混编
+##  16. 键位契约：动作已注册 + 承诺的物理键全部绑定（逐键 AND）
+##  17. 操作说明不常驻：开局提示可见，hint_show_seconds 后自动开始淡出
+##  18. 调参协议：TUNING_META 非空；apply_tuning 应用/拒绝/钳制，检查后恢复原值
 ##
 ## ⚠️ 输入注入分两个阶段、互不重叠（error-signatures E-08）：
 ##   headless 下 `Input.parse_input_event()` 的缓冲冲刷会清掉 `Input.action_press()` 状态，
 ##   同帧混用会让「移动断言」假失败。噪声相位后统一清洗动作状态再进入正式断言。
+##
+## ⚠️ 帧预算纪律：门禁以 GODOT_SMOKE_FRAMES=240 兜底（--quit-after）。八关扫描靠三件事
+##   压进预算：① 结算浮层误触窗走测试通道（GameState.overlay_accept_ms=30ms，生产默认
+##   400ms 不变）；② 扫描关伤害走测试通道（projectile_damage 直调，真实伤害链在第 9 项
+##   以 spec 数值验证）；③ 每关「跳末波 + 近距放怪」只验证胜负推进路径，波次编制由静态
+##   锚点断言覆盖。
 
-## ── 阶段帧数预算（最坏情形合计 = TOTAL_FRAMES ≈ 227 帧 < 门禁 240 帧兜底）──
+## ── 阶段帧数预算（最坏情形合计 = TOTAL_FRAMES ≈ 220 帧 < 门禁 240 帧兜底）──
 const NOISE_FRAMES: int = 2         # 对抗输入噪声（原始事件：悬挂手势/孤儿释放/乱键；fuzz 门禁 6 批次全覆盖）
 const CLEANUP_FRAMES: int = 2       # 噪声后清洗：释放动作 + 重开一局拿到干净棋盘
 const AXIS_HOLD_FRAMES: int = 2     # 每根轴按住注入的帧数（520px/s × 2 帧 ≈ 17px 位移）
 const AXES_FRAMES: int = 4 * (AXIS_HOLD_FRAMES + 2)   # 四轴：按下帧 + 保持 + 测量 + 切轴
 const PLACE_FRAMES: int = 3         # confirm 注入后等布防生效
 const CARDS_FRAMES: int = 8         # 出战卡：选卡动作 → 布防/扣费/经济门/冷却断言
-const COMBAT_FRAMES: int = 55       # 等防御单位击杀行内僵尸（含提示淡出断言窗 + 向日葵产出窗）
+const COMBAT_FRAMES: int = 24       # 等防御单位击杀行内僵尸（含提示淡出断言窗 + 向日葵产出窗）
 const LOSE_FRAMES: int = 5          # 5 只越线僵尸 → 生命归零
-const RESULT_FRAMES: int = 25       # 结算浮层误触窗（400ms=24 帧 @60fps）+ 余量
+const RESULT_FRAMES: int = 6        # 结算浮层误触窗（测试通道 30ms ≈ 2 帧）+ 余量
 const RESTART_FRAMES: int = 5       # confirm → 再试一次 → 对战态
 const NEXTWAVE_FRAMES: int = 4      # 下一波：等待态提前召唤 → 真实出怪
-const SWEEP_SETUP_FRAMES: int = 3   # 每关：关卡断言 + 难度行为探针 → 布防 + 跳末波 + 放怪
-const SWEEP_KILL_FRAMES: int = 38   # 每关：双发齐射（2×60=120 > walker 100）击杀 ~8 帧 + 误触窗 24 帧 + 余量
-const SWEEP_LAST_KILL_FRAMES: int = 16  # 末关只等通关（无「下一关」误触窗）
-const SWEEP_ADVANCE_FRAMES: int = 3 # confirm「下一关」→ level_index 前进断言
-## 三关扫描总预算（关卡推进 / 逐关胜利 / 难度数值逐关生效，逐关走一遍）
-const SWEEP_FRAMES: int = 2 * (SWEEP_SETUP_FRAMES + SWEEP_KILL_FRAMES + SWEEP_ADVANCE_FRAMES) \
-	+ SWEEP_LAST_KILL_FRAMES
+const SWEEP_SETUP_FRAMES: int = 2   # 每关：won_seen 清零 → 关卡断言 + 难度探针 + 胜利尝试
+const SWEEP_KILL_FRAMES: int = 14   # 每关：一击必杀（齐射 4.5 帧 + 弹丸飞行 ~5 帧 + 清场判定）
+const SWEEP_KILL_L7_FRAMES: int = 18  # L7：含碾压探针子步骤（1 帧碾压生效 + 重建胜利尝试）
+const SWEEP_ADVANCE_FRAMES: int = 3 # confirm「下一关」→ level_index 前进断言（仅第 1 关真实链）
+const ENDLESS_FRAMES: int = 8       # 无尽模式：入口可见 → 进入 → 出怪 → 强度递增 → boss 混编
+## 八关扫描总预算：L1 真实链（setup+kill+advance）+ L2-6/L8 直选 + L7 碾压加量
+const SWEEP_FRAMES: int = (SWEEP_SETUP_FRAMES + SWEEP_KILL_FRAMES + SWEEP_ADVANCE_FRAMES) \
+	+ 6 * (SWEEP_SETUP_FRAMES + SWEEP_KILL_FRAMES) \
+	+ (SWEEP_SETUP_FRAMES + SWEEP_KILL_L7_FRAMES)
 const TOTAL_FRAMES: int = NOISE_FRAMES + CLEANUP_FRAMES + AXES_FRAMES + PLACE_FRAMES \
 	+ CARDS_FRAMES + COMBAT_FRAMES + LOSE_FRAMES + RESULT_FRAMES \
-	+ RESTART_FRAMES + NEXTWAVE_FRAMES + SWEEP_FRAMES + 2
+	+ RESTART_FRAMES + NEXTWAVE_FRAMES + SWEEP_FRAMES + ENDLESS_FRAMES + 2
 
 enum Phase { NOISE, CLEANUP, MOVE, PLACE, CARDS, COMBAT, LOSE, RESULT, RESTART, NEXTWAVE,
-	SWEEP_SETUP, SWEEP_KILL, SWEEP_ADVANCE }
+	SWEEP_SETUP, SWEEP_KILL, SWEEP_ADVANCE, ENDLESS }
 
 ## 位移方向断言的最小分量阈值（期望 17px，8px = 容忍首帧离散的下限）。
 const MIN_AXIS_DISPLACEMENT: float = 8.0
@@ -107,7 +119,8 @@ const SFX_CONTRACT: Array[StringName] = [
 	&"shoot", &"hit", &"zombie_die", &"place", &"score", &"wave", &"victory", &"defeat",
 ]
 
-## spec visual.contrast.lawnCellBase / plantTreatment 的声明色（渲染常量必须与之一致）。
+## spec visual.contrast.lawnCellBase / plantTreatment / nightFog 的声明色
+## （渲染常量必须与之一致）。
 const DECLARED := {
 	"lawn_dark": Color("2b5436"),
 	"lawn_light": Color("31603f"),
@@ -119,6 +132,8 @@ const DECLARED := {
 	"ui_base": Color("22313f"),
 	"ui_text": Color("ecf0f1"),
 	"ui_primary": Color("3498db"),
+	"night_fog": Color("0d1626"),
+	"silhouette": Color("6b7f94"),
 }
 ## spec visual.contrast.colorPairs（id, bg, fg）—— 逐对 WCAG 复算 ≥3.0。
 const CONTRAST_PAIRS: Array = [
@@ -133,6 +148,20 @@ const CONTRAST_PAIRS: Array = [
 	["sun-counter-vs-ui-base", "ui_base", "sun_pickup"],
 	["ui-text-vs-ui-base", "ui_base", "ui_text"],
 	["ui-primary-vs-ui-base", "ui_base", "ui_primary"],
+	["silhouette-vs-night-fog", "night_fog", "silhouette"],
+]
+
+## 八关难度锚点（spec.numeric.difficulty 逐关数值，机算复核对齐 —— 禁止手改）：
+## [波数, 僵尸总数, 起始阳光, hpScale, speedScale, 加权血量, 加权速度, 波间隔, 出怪间隔, 首波延迟]
+const LEVEL_ANCHORS: Array = [
+	[4, 12, 100, 1.0, 1.0, 100.0, 18.0, 20.0, 6.0, 15.0],
+	[6, 23, 150, 1.1, 1.05, 133.0, 22.2, 16.0, 5.0, 12.0],
+	[7, 29, 150, 1.3, 1.1, 160.9, 25.9, 12.0, 4.5, 10.0],
+	[8, 36, 100, 1.5, 1.22, 190.0, 26.8, 15.0, 5.0, 12.0],
+	[8, 40, 150, 1.75, 1.25, 249.8, 27.2, 13.0, 4.5, 11.0],
+	[9, 52, 200, 2.05, 1.3, 299.6, 29.2, 12.0, 4.0, 10.0],
+	[9, 54, 250, 2.4, 1.35, 400.0, 30.0, 11.0, 4.0, 10.0],
+	[10, 63, 250, 2.85, 1.42, 449.9, 33.0, 11.0, 3.5, 10.0],
 ]
 
 var _failures: PackedStringArray = []
@@ -159,8 +188,14 @@ var _hint_alpha_at_start: float = -1.0
 var _shooter_cell := Vector2i(-1, -1)
 ## COMBAT 相位的收集断言阶段：0 = 等击杀，1 = 收击杀掉落，2 = 等向日葵产出
 var _collect_stage: int = 0
-## 三关扫描游标（0 起索引；SWEEP_SETUP / SWEEP_KILL / SWEEP_ADVANCE 循环消费）。
+## 八关扫描游标（0 起索引；SWEEP_SETUP / SWEEP_KILL / SWEEP_ADVANCE 循环消费）。
 var _sweep_level: int = 0
+## L5 夜幕探针僵尸 / L7 碾压探针状态。
+var _fog_probe: Zombie = null
+var _crush_garg: Zombie = null
+var _crush_checked: bool = false
+## 无尽模式探针状态（基准血量，供复合递增对比）。
+var _endless_base_hp: float = -1.0
 var _tuning_backup: Dictionary = {}
 var _noise_rng := RandomNumberGenerator.new()
 
@@ -172,6 +207,23 @@ func _find_sun_token(value: int) -> SunToken:
 		if sun != null and sun.value == value:
 			return sun
 	return null
+
+
+## 在当前关卡槽里找指定花色的卡位（L4 移除双发时自动回退豌豆射手）。
+func _roster_index_of(id: StringName, fallback: StringName) -> int:
+	var roster: Array[Dictionary] = GameState.roster()
+	for i in roster.size():
+		if (roster[i].get("id", &"") as StringName) == id:
+			return i
+	return _roster_index_of_strict(fallback)
+
+
+func _roster_index_of_strict(id: StringName) -> int:
+	var roster: Array[Dictionary] = GameState.roster()
+	for i in roster.size():
+		if (roster[i].get("id", &"") as StringName) == id:
+			return i
+	return 0
 
 
 func _ready() -> void:
@@ -214,6 +266,8 @@ func _collect_nodes() -> void:
 	var level_select: CanvasLayer = _main.get("level_select")
 	if level_select == null or not level_select.visible:
 		_failures.append("启动后选关界面不可见（应默认进入选关态）")
+	elif level_select.get("endless_entry_visible") == null:
+		_failures.append("选关界面缺 endless_entry_visible()（无尽入口机判断线）")
 
 
 func _wire_signals() -> void:
@@ -270,7 +324,7 @@ func _check_content_tables() -> void:
 			_failures.append("内容表：%s 血量 %.0f ≠ %.0f" % [id, GameState.card_hp_of(id), float(want[2])])
 	if ids.size() != expected_cards.size():
 		_failures.append("内容表：出战卡 id 重复")
-	if not GameState.card_produces(&"sunflower") or GameState.card_shots_of(&"sunflower") != 0:
+	if GameState.card_produces(&"sunflower") != true or GameState.card_shots_of(&"sunflower") != 0:
 		_failures.append("内容表：向日葵应为生产单位（produce=true, shots=0）")
 	if GameState.card_shots_of(&"repeater") != 2:
 		_failures.append("内容表：双发射手应一次两弹（shots=2）")
@@ -278,13 +332,14 @@ func _check_content_tables() -> void:
 		_failures.append("内容表：寒冰射手缺减速（slow ≤ 0）")
 	if not is_equal_approx(GameState.card_interval_of(&"repeater"), GameState.fire_interval * 0.5):
 		_failures.append("内容表：双发射手射击间隔未按 0.5× 基准派生")
-	# 僵尸：4 类绝对数值 + 击杀掉落面额
+	# 僵尸：5 类绝对数值 + 击杀掉落面额 + 巨尸碾压/固定血量声明
 	var expected_zombies := {
 		&"walker": [100.0, 18.0, 15], &"runner": [70.0, 36.0, 20],
 		&"conehead": [220.0, 18.0, 25], &"buckethead": [400.0, 14.0, 35],
+		&"gargantuar": [2400.0, 12.0, 100],
 	}
 	if GameState.ZOMBIE_KINDS.size() != expected_zombies.size():
-		_failures.append("内容表：僵尸 %d 类 ≠ 4（spec.entities 失配）" % GameState.ZOMBIE_KINDS.size())
+		_failures.append("内容表：僵尸 %d 类 ≠ 5（spec.entities 失配，缺坦克巨尸?）" % GameState.ZOMBIE_KINDS.size())
 		return
 	for kind: StringName in expected_zombies:
 		var meta: Dictionary = GameState.ZOMBIE_KINDS.get(kind, {})
@@ -298,50 +353,73 @@ func _check_content_tables() -> void:
 			_failures.append("内容表：%s 速度 %.0f ≠ %.0f" % [kind, float(meta.get("speed", 0.0)), float(want[1])])
 		if GameState.kill_reward(kind) != int(want[2]):
 			_failures.append("内容表：%s 击杀掉落 %d ≠ %d" % [kind, GameState.kill_reward(kind), int(want[2])])
+	if GameState.zombie_crushes(&"gargantuar") != true or GameState.zombie_crushes(&"walker") != false:
+		_failures.append("内容表：碾压标记失真（gargantuar 应 crush=true，walker 应 false）")
+	if bool(GameState.ZOMBIE_KINDS[&"gargantuar"].get("boss", false)) != true:
+		_failures.append("内容表：gargantuar 缺 boss 声明（血量固定不参与 hpScale 的依据）")
 	# 生命与初始阳光常量
 	if GameState.START_LIVES != 5:
 		_failures.append("内容表：初始生命 %d ≠ 5（spec player.lives）" % GameState.START_LIVES)
 
 
-## ── 静态断言 ②：关卡表与难度平缓（spec.numeric.difficulty，验收 2 可判定代理）──
+## ── 静态断言 ②：关卡表与难度曲线上调（spec v3 numeric.difficulty，验收 acc-difficulty-curve）──
 func _check_level_table() -> void:
 	var levels: Array = GameState.LEVELS
-	if levels.size() < 3:
-		_failures.append("关卡表只有 %d 关（需求要求至少 3 关 + 选关入口）" % levels.size())
+	if levels.size() != LEVEL_ANCHORS.size():
+		_failures.append("关卡表 %d 关 ≠ 8（spec v3 八关扩容失配）" % levels.size())
 		return
-	var expected_totals := [12, 15, 19]
-	var expected_start_sun := [100, 150, 200]
 	var prev_waves := 0
 	var prev_total := 0
+	var prev_hp_scale := -1.0
+	var prev_speed_scale := -1.0
 	var prev_avg_hp := -1.0
 	var prev_avg_speed := -1.0
-	var prev_interval := -1.0
-	var prev_gap := -1.0
-	var prev_delay := -1.0
+	var prev_per_wave := -1.0
 	var prev_kinds := 0
+	var min_gap := INF
 	for i in levels.size():
 		var cur: Dictionary = levels[i]
 		GameState.level_index = i
 		var waves: Array = cur.get("waves", [])
+		var anchor: Array = LEVEL_ANCHORS[i]
 		var total := GameState.level_zombie_count()
-		# ① 波数 / 总数相邻增幅 ≤ 30%
+		# ① 波数锚点 + 单调不减；僵尸总数锚点 + 严格递增（难度无整体回落）
+		if waves.size() != int(anchor[0]):
+			_failures.append("第%d关波数 %d ≠ spec %d" % [i + 1, waves.size(), int(anchor[0])])
+		if i > 0 and waves.size() < prev_waves:
+			_failures.append("难度回落：第%d关波数 %d < 第%d关 %d（波次数须单调不减）" % [
+				i + 1, waves.size(), i, prev_waves])
+		if total != int(anchor[1]):
+			_failures.append("第%d关僵尸总数 %d ≠ spec %d（波次编制与 spec 失配）" % [i + 1, total, int(anchor[1])])
+		if i > 0 and total <= prev_total:
+			_failures.append("难度回落：第%d关僵尸总数 %d ≤ 第%d关 %d（总数须严格递增）" % [
+				i + 1, total, i, prev_total])
+		# ② 难度倍率锚点 + 严格递增（hpScale 1.00→2.85 / speedScale 1.00→1.42）
+		var hp_scale := GameState.level_hp_scale()
+		var speed_scale := GameState.level_speed_scale()
+		if absf(hp_scale - float(anchor[3])) > 0.001:
+			_failures.append("第%d关 hpScale %.2f ≠ spec %.2f" % [i + 1, hp_scale, float(anchor[3])])
+		if absf(speed_scale - float(anchor[4])) > 0.001:
+			_failures.append("第%d关 speedScale %.2f ≠ spec %.2f" % [i + 1, speed_scale, float(anchor[4])])
 		if i > 0:
-			if prev_waves > 0 and (waves.size() - prev_waves) / float(prev_waves) > 0.30:
-				_failures.append("难度断崖：第%d→%d关 波数增幅 %.0f%% > 30%%" % [
-					i, i + 1, (waves.size() - prev_waves) / float(prev_waves) * 100.0])
-			if prev_total > 0 and (total - prev_total) / float(prev_total) > 0.30:
-				_failures.append("难度断崖：第%d→%d关 僵尸总数增幅 %.0f%% > 30%%" % [
-					i, i + 1, (total - prev_total) / float(prev_total) * 100.0])
-		# ② 编制：只声明已知种类；种类数逐关不减（首关单一种类教学）
+			if hp_scale <= prev_hp_scale:
+				_failures.append("难度回落：第%d关 hpScale %.2f ≤ 第%d关 %.2f（须严格递增）" % [
+					i + 1, hp_scale, i, prev_hp_scale])
+			if speed_scale <= prev_speed_scale:
+				_failures.append("难度回落：第%d关 speedScale %.2f ≤ 第%d关 %.2f（须严格递增）" % [
+					i + 1, speed_scale, i, prev_speed_scale])
+		# ③ 编制：只声明已知种类；种类数逐关不减；L1 单一种类教学 + 教学引导声明
 		var kinds := {}
 		for wave: Dictionary in waves:
 			for group: Dictionary in wave.get("groups", []):
 				var kind: StringName = group.get("kind", &"") as StringName
 				if not GameState.ZOMBIE_KINDS.has(kind):
 					_failures.append("第%d关编制含未知种类 %s" % [i + 1, kind])
+					GameState.level_index = 0
 					return
 				if int(group.get("count", 0)) <= 0:
 					_failures.append("第%d关编制含零/负数量（%s）" % [i + 1, kind])
+					GameState.level_index = 0
 					return
 				kinds[kind] = true
 		if i == 0 and kinds.size() != 1:
@@ -349,46 +427,88 @@ func _check_level_table() -> void:
 		if kinds.size() < prev_kinds:
 			_failures.append("种类数逐关回落：第%d关 %d 种 < 第%d关 %d 种" % [i + 1, kinds.size(), i, prev_kinds])
 		prev_kinds = kinds.size()
-		# ③ 编制加权平均血量/速度：与 spec difficulty 锚点一致 + 相邻增幅 ≤ 30%
+		if i == 0 and bool(cur.get("tutorial", false)) != true:
+			_failures.append("第1关缺 tutorial 声明（L1 首布防引导机制缺失）")
+		# ④ 编制加权平均血量/速度：与 spec 锚点吻合 + 严格递增（第 7 关台阶跃升属 boss 编制，曲线已声明）
 		var avg_hp := GameState.level_avg("hp")
 		var avg_speed := GameState.level_avg("speed")
+		if absf(avg_hp - float(anchor[5])) > 0.06:
+			_failures.append("第%d关加权血量 %.1f ≠ spec %.1f（基准×hpScale 加权复算失配）" % [
+				i + 1, avg_hp, float(anchor[5])])
+		if absf(avg_speed - float(anchor[6])) > 0.06:
+			_failures.append("第%d关加权速度 %.1f ≠ spec %.1f（基准×speedScale 加权复算失配）" % [
+				i + 1, avg_speed, float(anchor[6])])
 		if i > 0:
-			if prev_avg_hp > 0.0 and (avg_hp - prev_avg_hp) / prev_avg_hp > 0.30:
-				_failures.append("难度断崖：第%d→%d关 加权血量增幅 %.0f%% > 30%%" % [
-					i, i + 1, (avg_hp - prev_avg_hp) / prev_avg_hp * 100.0])
-			if prev_avg_speed > 0.0 and (avg_speed - prev_avg_speed) / prev_avg_speed > 0.30:
-				_failures.append("难度断崖：第%d→%d关 加权速度增幅 %.0f%% > 30%%" % [
-					i, i + 1, (avg_speed - prev_avg_speed) / prev_avg_speed * 100.0])
-		prev_avg_hp = avg_hp
-		prev_avg_speed = avg_speed
-		# ④ 节奏：出怪间隔 / 波间隔 / 首波延迟（越短压力越大，降幅 ≤ 30%）
+			if avg_hp <= prev_avg_hp:
+				_failures.append("难度回落：第%d关加权血量 %.1f ≤ 第%d关 %.1f" % [i + 1, avg_hp, i, prev_avg_hp])
+			if avg_speed <= prev_avg_speed:
+				_failures.append("难度回落：第%d关加权速度 %.1f ≤ 第%d关 %.1f" % [i + 1, avg_speed, i, prev_avg_speed])
+		# ⑤ 刷新密度：出怪间隔 / 波间隔 / 首波延迟锚点（spec 数值表逐项）；平均每波严格递增
 		var interval := float(cur.get("spawn_interval", 0.0))
 		var gap := float(cur.get("wave_gap", 0.0))
 		var delay := float(cur.get("first_wave_delay", 0.0))
-		if i > 0:
-			if prev_interval > 0.0 and interval < prev_interval \
-					and (prev_interval - interval) / prev_interval > 0.30:
-				_failures.append("难度断崖：第%d→%d关 spawn_interval 降幅 %.0f%% > 30%%" % [
-					i, i + 1, (prev_interval - interval) / prev_interval * 100.0])
-			if prev_gap > 0.0 and gap < prev_gap and (prev_gap - gap) / prev_gap > 0.30:
-				_failures.append("难度断崖：第%d→%d关 wave_gap 降幅 %.0f%% > 30%%" % [
-					i, i + 1, (prev_gap - gap) / prev_gap * 100.0])
-			if prev_delay > 0.0 and delay < prev_delay and (prev_delay - delay) / prev_delay > 0.30:
-				_failures.append("难度断崖：第%d→%d关 first_wave_delay 降幅 %.0f%% > 30%%" % [
-					i, i + 1, (prev_delay - delay) / prev_delay * 100.0])
-		prev_interval = interval
-		prev_gap = gap
-		prev_delay = delay
-		# ⑤ 起始阳光逐关抬升（玩家侧增益补偿，不参与敌方难度校验）
+		if absf(interval - float(anchor[8])) > 0.001:
+			_failures.append("第%d关 spawn_interval %.1f ≠ spec %.1f" % [i + 1, interval, float(anchor[8])])
+		if absf(gap - float(anchor[7])) > 0.001:
+			_failures.append("第%d关 wave_gap %.1f ≠ spec %.1f" % [i + 1, gap, float(anchor[7])])
+		if absf(delay - float(anchor[9])) > 0.001:
+			_failures.append("第%d关 first_wave_delay %.1f ≠ spec %.1f" % [i + 1, delay, float(anchor[9])])
+		var per_wave := float(total) / float(maxi(waves.size(), 1))
+		if i > 0 and per_wave <= prev_per_wave:
+			_failures.append("难度回落：第%d关平均每波 %.2f ≤ 第%d关 %.2f（刷新密度须严格递增）" % [
+				i + 1, per_wave, i, prev_per_wave])
+		prev_per_wave = per_wave
+		min_gap = minf(min_gap, gap)
+		# ⑥ 起始阳光锚点（spec player.startSun：100/150/150/100/150/200/250/250）
 		var start_sun := int(cur.get("start_sun", 0))
-		if i < expected_start_sun.size() and start_sun != expected_start_sun[i]:
-			_failures.append("第%d关起始阳光 %d ≠ %d（spec player.startSun）" % [i + 1, start_sun, expected_start_sun[i]])
-		# ⑥ 僵尸总数与 spec difficulty 锚点一致
-		if i < expected_totals.size() and total != expected_totals[i]:
-			_failures.append("第%d关僵尸总数 %d ≠ %d（波次编制与 spec 失配）" % [i + 1, total, expected_totals[i]])
+		if start_sun != int(anchor[2]):
+			_failures.append("第%d关起始阳光 %d ≠ spec %d" % [i + 1, start_sun, int(anchor[2])])
+		# ⑦ 机制差异声明（spec numeric.levelMechanics）
+		match i:
+			3:  # L4 阳光紧缩：天降节流 24s/15 + 卡槽禁双发
+				if not is_equal_approx(float(cur.get("sky_drop_interval", 0.0)), 24.0) \
+						or int(cur.get("sky_drop_yield", 0)) != 15:
+					_failures.append("L4 阳光紧缩：天降节流声明缺失（应 24s/15）")
+				var exclude: Array = cur.get("roster_exclude", [])
+				if not exclude.has(&"repeater"):
+					_failures.append("L4 阳光紧缩：卡槽未禁用双发射手（roster_exclude 缺 repeater）")
+			4:  # L5 夜幕迷雾：第 4 列及以右遮罩 + 剪影
+				var fog: Dictionary = cur.get("night_fog", {})
+				if fog.is_empty() or int(fog.get("lit_cols", -1)) != 3:
+					_failures.append("L5 夜幕迷雾：night_fog.lit_cols 声明缺失（应 3 列点亮）")
+			5:  # L6 混合高压：存在单波 ≥3 类
+				var max_kinds := 0
+				for wave: Dictionary in waves:
+					max_kinds = maxi(max_kinds, (wave.get("groups", []) as Array).size())
+				if max_kinds < 3:
+					_failures.append("L6 混合高压：不存在单波 ≥3 类的编制（最多 %d 类）" % max_kinds)
+			6:  # L7 boss 关：坦克巨尸于第 4 与最后一波登场
+				if _boss_waves(waves) != [4, 9]:
+					_failures.append("L7 boss 关：坦克巨尸波次落点 %s ≠ [4, 9]" % str(_boss_waves(waves)))
+			7:  # L8 终局：10 波全兵种 + 巨尸压轴（第 7 与第 10 波）
+				if _boss_waves(waves) != [7, 10]:
+					_failures.append("L8 终局关：坦克巨尸波次落点 %s ≠ [7, 10]" % str(_boss_waves(waves)))
 		prev_waves = waves.size()
 		prev_total = total
+		prev_hp_scale = hp_scale
+		prev_speed_scale = speed_scale
+		prev_avg_hp = avg_hp
+		prev_avg_speed = avg_speed
+	# 关卡推进终点（acc-playable-loop）：通关第 8 关解锁无尽模式 → 入口索引必须 = LEVELS.size()
+	if GameState.LEVELS.size() != 8:
+		_failures.append("关卡推进终点：关卡表 %d 关 ≠ 8（无尽入口索引随之失配）" % GameState.LEVELS.size())
 	GameState.level_index = 0
+
+
+## 波次编制里的坦克巨尸落点（1 起索引的波次号数组）。
+func _boss_waves(waves: Array) -> Array:
+	var out: Array = []
+	for i in waves.size():
+		for group: Dictionary in (waves[i] as Dictionary).get("groups", []):
+			if (group.get("kind", &"") as StringName) == &"gargantuar":
+				out.append(i + 1)
+				break
+	return out
 
 
 ## ── 静态断言 ③：对比度（acc-contrast：WCAG 逐对复算 + 渲染常量与声明一致）──
@@ -399,20 +519,21 @@ func _check_contrast() -> void:
 		"outline": FlatUI.OUTLINE, "plant_body": FlatUI.GREEN,
 		"sunflower_body": FlatUI.ORANGE, "zombie_body": FlatUI.ZOMBIE_BODY,
 		"sun_pickup": FlatUI.SUN_PICKUP, "ui_base": FlatUI.UI_BASE,
-		"ui_text": FlatUI.UI_TEXT, "ui_primary": FlatUI.BLUE,
+		"ui_text": FlatUI.UI_TEXT, "ui_primary": FlatUI.UI_PRIMARY,
+		"night_fog": FlatUI.FOG, "silhouette": FlatUI.SILHOUETTE,
 	}
 	for key: String in DECLARED:
 		if not render_constants[key].is_equal_approx(DECLARED[key]):
 			_failures.append("对比度：渲染常量 %s = %s 与声明 %s 不一致" % [
 				key, render_constants[key], DECLARED[key]])
-	# 逐对复算 WCAG 2.x 对比度 ≥ 3.0（acc-contrast 机判）
+	# 逐对复算 WCAG 2.x 对比度 ≥ 3.0（acc-contrast 机判，含夜幕剪影对 = spec 实测 4.39）
 	for pair: Array in CONTRAST_PAIRS:
 		var ratio := FlatUI.contrast_ratio(DECLARED[pair[1]], DECLARED[pair[2]])
 		if ratio < 3.0:
 			_failures.append("对比度：%s 实测 %.2f < 3.0（前景与格底不可辨识）" % [pair[0], ratio])
 
 
-## ── 静态断言 ④：音频契约（acc-audio-complete / acc-mute-instant 代理）──
+## ── 静态断言 ④：音频契约（acc-audio-complete / acc-mute-instant + bus 音量核查）──
 func _check_audio_contract() -> void:
 	var audio := get_tree().root.get_node_or_null("Audio")
 	if audio == null:
@@ -423,6 +544,19 @@ func _check_audio_contract() -> void:
 	for name: StringName in SFX_CONTRACT:
 		if not Juice.SFX_BANK.has(name) or Juice.SFX_BANK.get(name) == null:
 			_failures.append("音频契约：契约音效 %s 未注册（sfxBindings 缺音）" % name)
+	# 核查 bus 音量：无启动静音、Master 满增益、BGM 音量 = spec 0.4 线性（≈ -8dB）、循环已开
+	var audit: Dictionary = audio.call("bus_audit")
+	if bool(audit.get("master_muted", true)):
+		_failures.append("音频契约：Master 总线启动即静音（真实无声，静音只能来自静音开关）")
+	if not is_equal_approx(float(audit.get("master_volume_db", -99.0)), 0.0):
+		_failures.append("音频契约：Master 增益 %.1f dB ≠ 0（bus 音量被启动路径改动）" % float(audit.get("master_volume_db", -99.0)))
+	if not bool(audit.get("bgm_loop", false)):
+		_failures.append("音频契约：BGM 未开前向循环（手势后无法无缝循环播放）")
+	var bgm_db := float(audit.get("bgm_volume_db", -99.0))
+	if not is_equal_approx(bgm_db, Audio.BGM_VOLUME_DB):
+		_failures.append("音频契约：BGM 音量 %.1f dB ≠ 声明 %.1f dB" % [bgm_db, Audio.BGM_VOLUME_DB])
+	if absf(db_to_linear(bgm_db) - Audio.BGM_VOLUME_LINEAR) > 0.01:
+		_failures.append("音频契约：BGM 线性音量 %.3f ≠ spec 0.4（db/linear 换算失配）" % db_to_linear(bgm_db))
 	# 静音开关：往返即时生效（会话内记忆由 Audio 单例承载）
 	var was_muted: bool = audio.call("is_muted")
 	audio.call("set_muted", true)
@@ -433,6 +567,11 @@ func _check_audio_contract() -> void:
 		_failures.append("音频契约：取消静音未即时生效")
 	if was_muted:
 		audio.call("set_muted", true)
+
+
+## dB → 线性（20·log10 的逆运算，bus 音量核查用）。
+func db_to_linear(db: float) -> float:
+	return pow(10.0, db / 20.0)
 
 
 ## 键位契约：目标键表 → project.godot [input] 的 physical_keycode（逐键 AND）。
@@ -506,8 +645,8 @@ func _step() -> void:
 				_enter(Phase.CLEANUP)
 		Phase.CLEANUP:
 			# 清洗噪声残留：释放全部动作 + 孤儿抬起，再重开一局拿到干净棋盘；
-			# 射击链路用调参通道提速、向日葵产出提速、提示停留压到最短
-			#（帧预算内验证链路本身，正式数值由 playtest/人工校准）
+			# 射击链路用测试通道提速（真实数值在第 9 项以 spec 数值验证）、
+			# 向日葵产出提速、提示停留压到最短、结算误触窗压到 30ms（帧预算纪律见文件头）
 			if _phase_frames == 1:
 				for action in REQUIRED_ACTIONS:
 					Input.action_release(action)
@@ -517,14 +656,20 @@ func _step() -> void:
 					orphan.pressed = false
 					orphan.position = Vector2.ZERO
 					Input.parse_input_event(orphan)
+				if not is_equal_approx(GameState.projectile_damage, 20.0):
+					_failures.append("内容表：弹丸伤害默认值 %.1f ≠ spec 20.0" % GameState.projectile_damage)
 				_tuning_backup = {
 					"fire_interval": GameState.fire_interval,
 					"projectile_damage": GameState.projectile_damage,
 					"hint_show_seconds": GameState.hint_show_seconds,
 					"sunflower_interval": GameState.sunflower_interval,
+					"overlay_accept_ms": GameState.overlay_accept_ms,
 				}
-				GameState.apply_tuning({"fire_interval": 0.2, "projectile_damage": 60.0,
-					"hint_show_seconds": 0.5, "sunflower_interval": 1.0})
+				GameState.apply_tuning({"fire_interval": 0.15})
+				GameState.projectile_damage = 4000.0  # 扫描用一击必杀（测试通道）
+				GameState.sunflower_interval = 0.2    # 产出链路提速（测试通道）
+				GameState.overlay_accept_ms = 30.0    # 误触窗压缩（测试通道）
+				GameState.hint_show_seconds = 0.3     # 淡出断言窗提速（测试通道）
 				GameState.start_level(0)
 				_check_zombie_behavior()
 			if _phase_frames >= CLEANUP_FRAMES:
@@ -549,9 +694,14 @@ func _step() -> void:
 					_failures.append("信号 Field.defender_placed 未到达订阅方")
 				if GameState.selected_card != -1:
 					_failures.append("布防后未自动取消选卡（spec：放置即消费，selected=%d）" % GameState.selected_card)
-				if GameState.card_cooldowns.size() == GameState.CARDS.size() \
+				if GameState.card_cooldowns.size() == GameState.roster().size() \
 						and GameState.card_cooldowns[0] <= 0.0:
 					_failures.append("布防后卡片未进入冷却（recharge 未启动）")
+				# L1 教学引导（spec levelMechanics.teaching）：首布防完成前提示应为引导文案
+				if GameState.tutorial_done:
+					_failures.append("教学引导：仅布防 1 座向日葵即判定完成（应需 向日葵+射手 各 1）")
+				if _hud.hint_alpha() < 1.0:
+					_failures.append("教学引导：引导文案在完成前不应进入淡出（alpha=%.2f）" % _hud.hint_alpha())
 				_enter(Phase.CARDS)
 		Phase.CARDS:
 			# 出战卡系统：选卡动作 → 布防花色/扣费跟卡走 → 经济门/冷却门 → 换卡断言
@@ -576,7 +726,7 @@ func _step() -> void:
 				var nut := _field.defender_at(Vector2i(7, 4))
 				if nut == null or not is_equal_approx(nut.max_hp, 1200.0):
 					_failures.append("出战卡：坚果墙血量 %.0f ≠ 1200（肉盾卡血量未跟上）" % (nut.max_hp if nut != null else 0.0))
-				if GameState.card_cooldowns.size() == GameState.CARDS.size() \
+				if GameState.card_cooldowns.size() == GameState.roster().size() \
 						and GameState.card_cooldowns[4] <= 0.0:
 					_failures.append("出战卡：坚果墙布防后未进入冷却（recharge=20s 未启动）")
 				# 冷却中禁止布防（禁用门）
@@ -599,6 +749,9 @@ func _step() -> void:
 			elif _phase_frames >= CARDS_FRAMES:
 				if GameState.selected_card != 1:
 					_failures.append("出战卡：select 后选中态失真（selected=%d，期望 1）" % GameState.selected_card)
+				# 教学引导完成态（L1：向日葵 ≥1 + 射手 ≥1 且总数 ≥2）
+				if not GameState.tutorial_done:
+					_failures.append("教学引导：向日葵+豌豆射手各 1 座后 tutorial_done 仍未置位（完成态机判断线）")
 				# 射击链路：给豌豆射手同行放一只僵尸（开火即射，命中即杀）
 				_combat_score_before = GameState.score
 				var shooter := _field.defender_at(Vector2i(6, 0))
@@ -612,8 +765,8 @@ func _step() -> void:
 			# 操作说明不常驻（排版硬底线）：开局可见 → hint_show_seconds 后自动开始淡出
 			if _phase_frames == 1 and _hint_alpha_at_start >= 0.0 and _hint_alpha_at_start < 1.0:
 				_failures.append("操作提示：开局就不完全可见（alpha=%.2f，应先浮现后淡出）" % _hint_alpha_at_start)
-			if _phase_frames == 30 and _hud.hint_alpha() >= 1.0:
-				_failures.append("操作说明常驻：30 帧后提示仍未开始淡出（硬底线：提示须自动消失）")
+			if _phase_frames == 22 and _hud.hint_alpha() >= 1.0:
+				_failures.append("操作说明常驻：22 帧后提示仍未开始淡出（硬底线：提示须自动消失）")
 			if _killed_seen and _collect_stage == 0:
 				_collect_stage = 1
 				if GameState.score != _combat_score_before:
@@ -634,7 +787,7 @@ func _step() -> void:
 							GameState.sun, sun_before, kill_token.value])
 					_collect_stage = 2
 			elif _collect_stage == 2:
-				# 点按收集 ②：向日葵按周期产出（间隔已调速 1s）→ 点按入账
+				# 点按收集 ②：向日葵按周期产出（间隔已调速 0.2s）→ 点按入账
 				var produced := _find_sun_token(int(GameState.sunflower_yield))
 				if produced != null:
 					var sun_before2: int = GameState.sun
@@ -661,7 +814,7 @@ func _step() -> void:
 					_failures.append("失败后结算浮层不可见（出口断线）")
 				_enter(Phase.RESULT)
 		Phase.RESULT:
-			# 结算浮层 400ms 误触窗后 confirm → 重开（收集断言已在 COMBAT 相位完成）
+			# 结算浮层误触窗（测试通道 30ms）后 confirm → 重开（收集断言已在 COMBAT 完成）
 			if _phase_frames >= RESULT_FRAMES:
 				_press_action(&"confirm")
 				_enter(Phase.RESTART)
@@ -693,9 +846,10 @@ func _step() -> void:
 					_failures.append("下一波：提前召唤后 %d 帧内没有僵尸出生（出怪链路断裂）" % NEXTWAVE_FRAMES)
 				if _director.can_skip_wait():
 					_failures.append("下一波：召唤后仍处于等待态（状态未推进）")
-				# 三关扫描（Bug cmvxr1f1a004fm905ua2ua9ir）：第 1 关的胜利尝试即扫描起点，
-				# 随后「下一关 → 逐关胜利」循环推进到第 2/3 关
+				# 八关扫描（acc-playable-loop）：第 1 关的胜利尝试即扫描起点（真实推进链），
+				# 随后逐关「通关 → 直选下一关」推进到第 8 关
 				_sweep_level = 0
+				_won_seen = false
 				_begin_level_victory_attempt()
 				_enter(Phase.SWEEP_KILL)
 		Phase.SWEEP_SETUP:
@@ -704,16 +858,34 @@ func _step() -> void:
 			_step_sweep_kill()
 		Phase.SWEEP_ADVANCE:
 			_step_sweep_advance()
+		Phase.ENDLESS:
+			_step_endless()
 
 
-## 僵尸行为探针（同步、即建即清）：种类绝对数值 + 啃咬节拍 + 冻结减速可判。
+## 僵尸行为探针（同步、即建即清）：种类绝对数值 + hpScale/speedScale 接线 + 啃咬节拍 + 冻结减速。
 func _check_zombie_behavior() -> void:
-	var zombie := _field.spawn_zombie(0, Field.SPAWN_X, &"walker")
-	var step := absf(zombie.advance(0.5).x)
-	if not is_equal_approx(step, 9.0):  # 18 px/s × 0.5s
+	var walker := _field.spawn_zombie(0, Field.SPAWN_X, &"walker")
+	var step := absf(walker.advance(0.5).x)
+	if not is_equal_approx(step, 9.0):  # 18 px/s × 1.0(speedScale L1) × 0.5s
 		_failures.append("行为探针：walker 速度 %.1f px/s ≠ 18" % (step / 0.5))
-	if not is_equal_approx(zombie.bite_cooldown, GameState.bite_interval):
-		_failures.append("行为探针：啃咬冷却初值 %.2f ≠ bite_interval %.2f" % [zombie.bite_cooldown, GameState.bite_interval])
+	if not is_equal_approx(walker.max_hp, 100.0):
+		_failures.append("行为探针：walker 血量 %.1f ≠ 100×hpScale(1.0)" % walker.max_hp)
+	if not is_equal_approx(walker.bite_cooldown, GameState.bite_interval):
+		_failures.append("行为探针：啃咬冷却初值 %.2f ≠ bite_interval %.2f" % [walker.bite_cooldown, GameState.bite_interval])
+	# 坦克巨尸（spec combat.crush / numeric.zombies）：血量固定 2400（不乘 hpScale）、碾压型
+	var garg := _field.spawn_zombie(2, Field.SPAWN_X, &"gargantuar")
+	if not is_equal_approx(garg.max_hp, 2400.0):
+		_failures.append("行为探针：坦克巨尸血量 %.0f ≠ 2400（boss 不参与 hpScale 被破坏）" % garg.max_hp)
+	if not is_equal_approx(garg.speed, 12.0):
+		_failures.append("行为探针：坦克巨尸速度 %.1f ≠ 12×speedScale(1.0)" % garg.speed)
+	if not garg.crushes:
+		_failures.append("行为探针：坦克巨尸 crushes 未置位（碾压机制断线）")
+	# 难度倍率接进行为：切到第 7 关口径复测 walker（100×2.4 = 240）
+	GameState.level_index = 6
+	var scaled := _field.spawn_zombie(3, Field.SPAWN_X, &"walker")
+	if absf(scaled.max_hp - 240.0) > 0.01:
+		_failures.append("行为探针：第 7 关口径 walker 血量 %.1f ≠ 240（hpScale 未接进出生路径）" % scaled.max_hp)
+	GameState.level_index = 0
 	var runner := _field.spawn_zombie(1, Field.SPAWN_X, &"runner")
 	runner.apply_slow(0.4)
 	var slowed := absf(runner.advance(0.5).x)
@@ -761,25 +933,35 @@ func _step_move_axis() -> void:
 			_phase_frames = 0  # 切下一根轴（_axis_index 在下一段首帧推进）
 
 
-## ── 断言 14（Bug cmvxr1f1a004fm905ua2ua9ir）：三关逐关通关扫描 ──
-## 每关四件事：① 关卡推进核对（真实「下一关」到达的关 + 波次表/起始阳光/等待态切换）；
-## ② 难度数值逐关生效（真实出生路径行为探针：种类绝对数值血量/速度接进行为）；
-## ③ 布防（双发）+ 跳末波 + 放 walker；④ 真实击杀清场 → game_ended(true) →
-## 结算浮层「下一关」（过 400ms 误触窗）→ confirm 进下一关；末关主按钮 = 再玩一次。
+## ── 断言 14（acc-playable-loop 无头代理）：八关逐关通关扫描 ──
+## 每关四件事：① 关卡推进核对（到达的关 + 波次表/起始阳光/等待态切换）；
+## ② 难度数值逐关生效（真实出生路径探针：基准×hpScale/speedScale 接进行为）；
+## ③ 机制探针（L4 卡槽减员 / L5 夜幕剪影 / L7 坦克巨尸碾压）；
+## ④ 布防（射手）+ 跳末波 + 放 walker → 一击清场 → game_ended(true)。
+## 推进链：第 1 关通关走真实输入（结算浮层 → confirm「下一关」）；第 2-7 关通关后按
+## 直接选关推进（= level_select 按钮回调的同一状态入口，GameState.start_level）。
 
-## 胜利尝试（真实路径）：清场 → 补测试弹药 → 选双发 → 布防 → 跳末波 → 本行近距放 walker
-## （双发单轮齐射 2×60=120 > walker 100，任何配比一轮击杀；近距 64px 压弹丸飞行帧数）。
+## 胜利尝试（真实路径）：清场 → 补测试弹药 → 选射手 → 布防 → 跳末波 → 本行近距放 walker
+## （伤害走测试通道一击必杀；近距 48px 压弹丸飞行帧数）。
 func _begin_level_victory_attempt() -> void:
 	_field.clear_all()
 	GameState.add_sun(500)  # 测试补充弹药（正式经济由收集链路断言验证）
-	GameState.select_card(3)
-	if not _field.try_place(_field.cell_center(Vector2i(1, 2))):
+	for i in GameState.card_cooldowns.size():
+		GameState.card_cooldowns[i] = 0.0  # 测试通道清冷却（L7 碾压探针后的二次尝试需要）
+	GameState.select_card(_roster_index_of(&"repeater", &"peashooter"))
+	var shooter_cell := Vector2i(1, 2)
+	if not _field.try_place(_field.cell_center(shooter_cell)):
 		_failures.append("第 %d 关：布防失败（阳光 %d），逐关胜利无从验证" % [
 			_sweep_level + 1, GameState.sun])
 		return
-	var defender := _field.defender_at(Vector2i(1, 2))
-	if defender == null or defender.kind != &"repeater":
-		_failures.append("第 %d 关：布防花色 ≠ repeater（选卡未跟上扫关卡）" % (_sweep_level + 1))
+	var defender := _field.defender_at(shooter_cell)
+	var expected_kind: StringName = &"repeater" \
+			if GameState.roster().any(func(entry: Dictionary) -> bool:
+				return (entry.get("id", &"") as StringName) == &"repeater") \
+			else &"peashooter"
+	if defender == null or defender.kind != expected_kind:
+		_failures.append("第 %d 关：布防花色 %s ≠ %s（选卡未跟上扫关卡）" % [
+			_sweep_level + 1, defender.kind if defender != null else "null", expected_kind])
 		return
 	_director.debug_jump_to_final_wave()
 	_field.spawn_zombie(defender.cell.y, defender.position.x + 48.0, &"walker")
@@ -791,11 +973,14 @@ func _step_sweep_setup() -> void:
 		# 胜利信号是「单关一次」的观测量：上一关通关置位后不重置，本关 SWEEP_KILL 会在
 		# 开局第一帧就误判「已通关」（结算浮层早已关闭）—— 逐关进入时必须清零
 		_won_seen = false
+		_crush_checked = false
+		_fog_probe = null
+		_crush_garg = null
 		return
 	if _phase_frames < SWEEP_SETUP_FRAMES:
 		return
 	var cfg: Dictionary = GameState.LEVELS[level]
-	# ① 关卡推进核对：真实「下一关」到达的确实是这一关，关卡数值切到了本关
+	# ① 关卡推进核对：到达的确实是这一关，关卡数值切到了本关
 	if GameState.level_index != level:
 		_failures.append("关卡推进：期望在第 %d 关，实际 level_index=%d（推进断线）" % [
 			level + 1, GameState.level_index])
@@ -812,17 +997,44 @@ func _step_sweep_setup() -> void:
 			level + 1])
 	if GameState.wave_index != 0:
 		_failures.append("关卡推进：第 %d 关开局波次指针 %d ≠ 0" % [level + 1, GameState.wave_index])
-	# ② 难度数值逐关生效：真实出生路径行为探针（种类绝对数值表接进行为，即建即清）
+	# ② 难度数值逐关生效：真实出生路径探针（基准×hpScale/speedScale 接进行为，即建即清）
 	var probe := _field.spawn_zombie(2, Field.SPAWN_X, &"walker")
-	var meta: Dictionary = GameState.ZOMBIE_KINDS.get(&"walker", {})
-	if not is_equal_approx(probe.max_hp, float(meta.get("hp", -1.0))):
-		_failures.append("难度数值逐关生效：第 %d 关出生僵尸血量 %.1f ≠ 种类表 %.1f" % [
-			level + 1, probe.max_hp, float(meta.get("hp", -1.0))])
-	if not is_equal_approx(probe.speed, float(meta.get("speed", -1.0))):
-		_failures.append("难度数值逐关生效：第 %d 关出生僵尸速度 %.1f ≠ 种类表 %.1f" % [
-			level + 1, probe.speed, float(meta.get("speed", -1.0))])
-	# ③ 胜利尝试（双发布防 + 跳末波 + 放怪）
+	var expect_hp := GameState.zombie_hp_of(&"walker")
+	var expect_speed := GameState.zombie_speed_of(&"walker")
+	if absf(probe.max_hp - expect_hp) > 0.01:
+		_failures.append("难度数值逐关生效：第 %d 关出生僵尸血量 %.1f ≠ 基准×hpScale %.1f" % [
+			level + 1, probe.max_hp, expect_hp])
+	if absf(probe.speed - expect_speed) > 0.01:
+		_failures.append("难度数值逐关生效：第 %d 关出生僵尸速度 %.1f ≠ 基准×speedScale %.1f" % [
+			level + 1, probe.speed, expect_speed])
+	# ④ 胜利尝试先行（射手布防 + 跳末波 + 放怪）—— clear_all 之后再放机制探针，
+	#   避免探针实体被清场误删（L7 碾压探针的坚果/巨尸必须活到 SWEEP_KILL）
 	_begin_level_victory_attempt()
+	# ③ 机制探针（spec levelMechanics 差异化）
+	match level:
+		3:  # L4 阳光紧缩：卡槽 4 张且无双发射手（真实 roster 接进本关）
+			var roster: Array[Dictionary] = GameState.roster()
+			if roster.size() != 4:
+				_failures.append("L4 阳光紧缩：卡槽 %d 张 ≠ 4（双发未被移出卡槽）" % roster.size())
+			for entry: Dictionary in roster:
+				if (entry.get("id", &"") as StringName) == &"repeater":
+					_failures.append("L4 阳光紧缩：双发射手仍在卡槽（roster_exclude 未接进行为）")
+			if absf(float(cfg.get("sky_drop_interval", 0.0)) - 24.0) > 0.001:
+				_failures.append("L4 阳光紧缩：天降间隔 %.0fs ≠ 24s（节流未生效）" % float(cfg.get("sky_drop_interval", 0.0)))
+		4:  # L5 夜幕迷雾：遮罩生效 + 遮罩内剪影（显形在 SWEEP_KILL 第 2 帧核对）
+			if not _field.fog_active():
+				_failures.append("L5 夜幕迷雾：夜幕遮罩未生效（fog_active=false）")
+			elif absf(_field.fog_boundary_x() - (Field.GRID_ORIGIN.x + 3.0 * Field.CELL_W)) > 0.5:
+				_failures.append("L5 夜幕迷雾：点亮区边界 x=%.0f ≠ 前 3 列（lit_cols 未接进绘制层）" % _field.fog_boundary_x())
+			_fog_probe = _field.spawn_zombie(4, Field.SPAWN_X, &"walker")
+		6:  # L7 boss 关：坦克巨尸碾压探针（坚果墙在另一行阻挡，接触即毁）
+			GameState.add_sun(500)
+			GameState.select_card(_roster_index_of(&"wallnut", &"wallnut"))
+			var nut_cell := Vector2i(2, 4)
+			if not _field.try_place(_field.cell_center(nut_cell)):
+				_failures.append("L7 boss 关：碾压探针坚果墙布防失败")
+			else:
+				_crush_garg = _field.spawn_zombie(4, _field.cell_center(nut_cell).x + 30.0, &"gargantuar")
 	_enter(Phase.SWEEP_KILL)
 
 
@@ -830,9 +1042,34 @@ func _step_sweep_kill() -> void:
 	var level := _sweep_level
 	var is_last := level >= GameState.LEVELS.size() - 1
 	var result_overlay := _main.get("result_overlay") as ResultOverlay
-	# 误触窗纪律（与 RESULT 相位同源）：结算浮层弹出后 400ms 内 press_primary 会被
-	# can_accept() 吞掉 —— 看到通关信号就立刻 confirm 是「下一关推不动」的假缺陷源，
-	# 必须等窗口期满再注入（帧预算 SWEEP_KILL_FRAMES 已含 24 帧窗口）。
+	# L5 夜幕剪影探针（帧序对齐 Field 的 tick：剪影回写发生在 Field._advance_world）
+	if level == 4 and _fog_probe != null and _field.fog_active():
+		if _phase_frames == 2 and not _fog_probe.silhouetted:
+			_failures.append("L5 夜幕迷雾：遮罩区内僵尸未进入剪影态（silhouetted=false）")
+		if _phase_frames == 3:
+			_fog_probe.position.x = _field.fog_boundary_x() - 40.0  # 拖进前 3 列点亮区
+		if _phase_frames == 4:
+			if _fog_probe.silhouetted:
+				_failures.append("L5 夜幕迷雾：僵尸进入前 3 列点亮区后仍为剪影（未显形）")
+			# 探针收尾：拖过防线走真实突破路径移除，不挡本关清场判定（扣 1 生命属预期）
+			_fog_probe.position.x = Field.DEFENSE_X - 40.0
+	# L7 碾压探针：第 1 帧世界 tick 过后坚果应已被接触碾压（spec combat.crush）
+	if level == 6 and not _crush_checked and _phase_frames == 2:
+		_crush_checked = true
+		var nut := _field.defender_at(Vector2i(2, 4))
+		if nut != null:
+			_failures.append("L7 boss 关：坦克巨尸接触坚果墙 %d 帧后未被碾压（crush 断线）" % _phase_frames)
+		if _crush_garg != null and _crush_garg.eating:
+			_failures.append("L7 boss 关：坦克巨尸进入啃食循环（crush 应绕过 bite，spec combat.crush）")
+		var crushed_seen := false
+		for event in Juice.events:
+			if event.begins_with("sfx:zombie_die"):
+				crushed_seen = true
+		if not crushed_seen:
+			_failures.append("L7 boss 关：碾压未复用 zombie_die 音效（spec combat.crush.sfx）")
+		# 探针收尾：清掉巨尸与坚果残局，重建本关胜利尝试（射手 + 近距 walker）
+		_begin_level_victory_attempt()
+	# 误触窗纪律：通关信号出现后等浮层可受理（误触窗已走测试通道 30ms）再注入
 	var confirm_ready := _won_seen and (is_last
 			or (result_overlay != null and result_overlay.can_accept()))
 	if confirm_ready:
@@ -846,15 +1083,27 @@ func _step_sweep_kill() -> void:
 		# 击杀掉落行为核对：walker 击杀必须掉落 sun_drop 面额拾取物（kind 表接进行为）
 		if _find_sun_token(GameState.kill_reward(&"walker")) == null:
 			_failures.append("第 %d 关：击杀掉落拾取物缺失（sun_drop 断线）" % [level + 1])
-		# 逐关取证：本行随 GODOT_SMOKE 日志落盘，验收节点可直接核对「3 关逐关通关 + 推进」
-		print("[smoke] 第 %d 关通关（game_ended=true，主按钮 %s，波次 %d/%d）" % [
-			level + 1, action, GameState.wave_index, GameState.wave_count()])
+		# 星级结算（spec content.replayHooks）：通关入档 1-3 星
+		var stars := int(GameState.level_stars[level]) if level < GameState.level_stars.size() else 0
+		if stars < 1 or stars > 3:
+			_failures.append("第 %d 关：通关后星级未入档（level_stars[%d]=%d）" % [level + 1, level, stars])
+		# 逐关取证：本行随 GODOT_SMOKE 日志落盘，验收节点可直接核对「八关逐关通关 + 推进」
+		print("[smoke] 第 %d 关通关（game_ended=true，主按钮 %s，波次 %d/%d，★%d，hpScale %.2f）" % [
+			level + 1, action, GameState.wave_index, GameState.wave_count(), stars,
+			GameState.level_hp_scale()])
 		if is_last:
-			_pass_summary()
-		else:
-			_press_action(&"confirm")  # 真实输入路径：结算浮层「下一关」
+			# 第 8 关通关 → 无尽解锁（acc-playable-loop），转无尽模式探针
+			if not GameState.endless_unlocked:
+				_failures.append("无尽模式：通关第 8 关后 endless_unlocked 未置位（解锁断线）")
+			_enter(Phase.ENDLESS)
+		elif level == 0:
+			_press_action(&"confirm")  # 真实输入路径：结算浮层「下一关」（仅第 1 关）
 			_enter(Phase.SWEEP_ADVANCE)
-	elif _phase_frames >= (SWEEP_LAST_KILL_FRAMES if is_last else SWEEP_KILL_FRAMES):
+		else:
+			# 第 2-7 关：直接选关推进（= level_select 按钮回调的同一状态入口）
+			_advance_to(level + 1)
+	elif _phase_frames >= (SWEEP_KILL_L7_FRAMES if (level == 6 and _crush_checked) or is_last
+			else SWEEP_KILL_FRAMES):
 		if not _won_seen:
 			_failures.append("逐关胜利不可达：第 %d 关末波清场后 %d 帧内没有 game_ended(true)" % [
 				level + 1, SWEEP_KILL_FRAMES])
@@ -868,23 +1117,84 @@ func _step_sweep_advance() -> void:
 		return
 	var target := _sweep_level + 1
 	if GameState.level_index != target:
-		_failures.append("关卡推进：第 %d 关通关 confirm「下一关」后 level_index=%d ≠ %d（推进断线）" % [
+		_failures.append("关卡推进：第 %d 关通关 confirm「下一关」后 level_index=%d ≠ %d（真实推进链断线）" % [
 			_sweep_level + 1, GameState.level_index, target])
-	if GameState.wave_index != 0:
-		_failures.append("关卡推进：进入第 %d 关波次指针未归零（%d）" % [target + 1, GameState.wave_index])
-	if not GameState.running:
-		_failures.append("关卡推进：第 %d 关未进入对局态（running=false）" % [target + 1])
-	var overlay := _main.get("result_overlay") as ResultOverlay
-	if overlay != null and overlay.visible:
-		_failures.append("关卡推进：进入下一关后结算浮层未关闭")
-	print("[smoke] 关卡推进 → 第 %d 关「%s」（起始阳光 %d，波数 %d）" % [
-		target + 1, String(GameState.LEVELS[target].get("name", "")),
-		GameState.sun, GameState.wave_count()])
+	_advance_to(target)
+
+
+## 直接选关推进（= level_select 按钮回调 → main._on_level_selected 的同一状态入口）。
+func _advance_to(target: int) -> void:
+	if target < GameState.LEVELS.size():
+		GameState.start_level(target)
+	else:
+		_failures.append("关卡推进：目标关 %d 越界（内部状态错）" % target)
+		return
 	_sweep_level = target
 	_enter(Phase.SWEEP_SETUP)
 
 
-## 全部断言走完（含末关 replay 语义核对）→ 直接收口报告。
+## ── 断言 15（acc-playable-loop 尾段）：无尽模式 ──
+## 入口可见可点（通关第 8 关解锁）→ 进入（波次无限、complete_wave 不终局）→
+## 出怪真实发生 → 强度 1.08^波 复合递增 → 坦克巨尸按编制混编。
+func _step_endless() -> void:
+	if _phase_frames == 1:
+		var level_select: CanvasLayer = _main.get("level_select")
+		if level_select == null:
+			_failures.append("无尽模式：选关界面缺失")
+		else:
+			# 回选关页核对入口可见性（endless_unlocked 已在第 8 关通关时置位）
+			_main.call("_show_level_select")
+			if not level_select.call("endless_entry_visible"):
+				_failures.append("无尽模式：通关第 8 关后选关页无尽入口不可见（解锁入口断线）")
+		GameState.start_level(GameState.LEVELS.size())
+		if not GameState.endless_active:
+			_failures.append("无尽模式：start_level(越界索引) 未进入无尽态（endless_active=false）")
+		if GameState.sun != GameState.ENDLESS_START_SUN:
+			_failures.append("无尽模式：起始阳光 %d ≠ %d" % [GameState.sun, GameState.ENDLESS_START_SUN])
+		if not _director.can_skip_wait():
+			_failures.append("无尽模式：开局未处于首波等待态（begin_level 未随关执行）")
+		if not _director.next_wave():
+			_failures.append("无尽模式：提前召唤首波失败")
+		_endless_base_hp = GameState.zombie_hp_of(&"walker")
+		if absf(_endless_base_hp - 285.0) > 0.01:  # 100 × 2.85（末关 hpScale）× 1.08^0
+			_failures.append("无尽模式：首波 walker 血量 %.1f ≠ 285（末关倍率底座失配）" % _endless_base_hp)
+		var script0 := GameState.wave_script(0)
+		var kinds0 := _wave_kinds(script0)
+		if not kinds0.has(&"walker") or kinds0.size() != 1:
+			_failures.append("无尽模式：第 1 波编制 %s 应为单 walker 起步" % str(kinds0))
+	if _phase_frames == 3:
+		if _field.zombie_count() < 1:
+			_failures.append("无尽模式：召唤后没有僵尸出生（无尽出怪链路断裂）")
+		# 波次推进不终局 + 强度复合递增（1.08^波）+ 坦克巨尸混编
+		GameState.complete_wave()
+		if not GameState.running:
+			_failures.append("无尽模式：波次守完触发了终局（无尽应波次无限）")
+		if GameState.wave_index != 1:
+			_failures.append("无尽模式：波次指针未推进（%d ≠ 1）" % GameState.wave_index)
+		if not _wave_kinds(GameState.wave_script(1)).has(&"runner"):
+			_failures.append("无尽模式：第 2 波编制未混入疾跑（编制成长断线）")
+		var scaled_hp := GameState.zombie_hp_of(&"walker")
+		if scaled_hp <= _endless_base_hp:
+			_failures.append("无尽模式：第 2 波 walker 血量 %.1f 未随波递增（1.08^波 复合断线）" % scaled_hp)
+		var boss_script := GameState.endless_wave_script(4)
+		if not _wave_kinds(boss_script).has(&"gargantuar"):
+			_failures.append("无尽模式：编制未按承诺混编坦克巨尸（wave 4 应出现）")
+		print("[smoke] 无尽模式探针通过（入口可见、波次无限、强度 %.1f→%.1f、巨尸混编）" % [
+			_endless_base_hp, scaled_hp])
+		_pass_summary()
+
+
+## 波次编制的种类集合（去重）。
+func _wave_kinds(script: Dictionary) -> Array:
+	var kinds: Array = []
+	for group: Dictionary in script.get("groups", []):
+		var kind := group.get("kind", &"") as StringName
+		if not kinds.has(kind):
+			kinds.append(kind)
+	return kinds
+
+
+## 全部断言走完（含末关 replay 语义核对 + 无尽模式探针）→ 直接收口报告。
 func _pass_summary() -> void:
 	_finished = true
 	_report()
@@ -938,11 +1248,11 @@ func _inject_noise_frame() -> void:
 
 
 func _report() -> void:
-	# 恢复调参：协议检查与射击提速改过的值不留给后续运行（不得污染被测状态）
+	# 恢复调参：协议检查与测试通道改过的值不留给后续运行（不得污染被测状态）
 	for key: String in _tuning_backup:
 		GameState.set(key, _tuning_backup[key])
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 选关/四轴方向移动/布防/出战卡/提示淡出/射击/掉落收集/失败/重开/下一波/三关逐关通关/关卡推进/逐关难度生效/键位契约/内容表/难度平缓/对比度/音频契约/调参协议 全部通过")
+		print("GODOT_SMOKE: PASS 选关/四轴方向移动/教学引导/布防/出战卡/提示淡出/射击/掉落收集/失败/重开/下一波/八关逐关通关/关卡推进/逐关难度生效/夜幕剪影/坦克巨尸碾压/星级结算/无尽模式/键位契约/内容表/难度曲线锚点/对比度/音频契约与bus音量/调参协议 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

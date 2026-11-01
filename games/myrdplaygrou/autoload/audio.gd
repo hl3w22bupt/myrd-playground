@@ -10,8 +10,12 @@ extends Node
 ## 壳层 window.__audioDebug() 合并它返回 {unlocked, muted, bgmPlaying}
 ## （spec audio.audioContextUnlock.machineCheck：mobile-web-smoke audio-unlock 的机判依据）。
 
-## BGM 音量（dB）：压低铺底，不抢音效（spec audio.bgm.volume ≈ 0.4 线性 ≈ -8dB，取 -13dB 更铺底）。
-const BGM_VOLUME_DB: float = -13.0
+## BGM 音量（dB）：spec audio.bgm.volume = 0.4（线性）= 20·log10(0.4) ≈ -7.96 dB。
+## 取整 -8dB；真实出声机判（RMS > 0.01）的余量由此锚定：bgm.wav 整体 RMS 0.0666 × 0.398 ≈ 0.0265，
+## 对阈值约 2.6 倍余量（静音期 / 安静段不易误判缺音）。
+const BGM_VOLUME_DB: float = -8.0
+## spec audio.bgm.volume 的线性值（与 BGM_VOLUME_DB 换算一致，冒烟交叉核对）。
+const BGM_VOLUME_LINEAR: float = 0.4
 
 var _bgm_player: AudioStreamPlayer
 var _started: bool = false
@@ -30,6 +34,19 @@ func _ready() -> void:
 	_bgm_player.stream = stream
 	_bgm_player.volume_db = BGM_VOLUME_DB
 	add_child(_bgm_player)
+
+
+## 总线状态核查快照（冒烟「核查 bus 音量」断言入口；spec audio：无启动静音、Master 满增益）。
+func bus_audit() -> Dictionary:
+	var master := AudioServer.get_bus_index("Master")
+	return {
+		"master_muted": AudioServer.is_bus_mute(master),
+		"master_volume_db": AudioServer.get_bus_volume_db(master),
+		"bgm_volume_db": _bgm_player.volume_db,
+		"bgm_stream_ready": _bgm_player.stream != null,
+		"bgm_loop": (_bgm_player.stream as AudioStreamWAV).loop_mode == AudioStreamWAV.LOOP_FORWARD
+			if _bgm_player.stream is AudioStreamWAV else false,
+	}
 
 
 ## BGM 流是否就绪（冒烟音频契约断言入口）。

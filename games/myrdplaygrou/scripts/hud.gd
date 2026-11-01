@@ -21,6 +21,7 @@ signal skip_wave_requested
 var _sun_label: Label
 var _card_buttons: Array[Button] = []
 var _card_states: Array[String] = []
+var _card_row: HBoxContainer
 var _wave_label: Label
 var _lives_label: Label
 var _skip_wave_button: Button
@@ -75,8 +76,25 @@ func _build() -> void:
 	_sun_label = FlatUI.label(str(GameState.sun), FlatUI.FONT_BODY, FlatUI.SUN_PICKUP)
 	chip_row.add_child(_sun_label)
 
-	# 出战卡片 ×5（点按选卡 → 点草坪布防；再点已选卡取消；冷却/阳光不足 = 禁用态 + 原因）
-	for i in GameState.CARDS.size():
+	# 出战卡片（点按选卡 → 点草坪布防；再点已选卡取消；冷却/阳光不足 = 禁用态 + 原因）
+	_build_card_buttons(row)
+	_refresh_cards()
+
+
+## 按当前关卡槽重建卡片按钮（start_level 后由 main 调用；L4 阳光紧缩关 4 张）。
+func rebuild_cards() -> void:
+	for button in _card_buttons:
+		button.get_parent().remove_child(button)
+		button.queue_free()
+	_card_buttons.clear()
+	_card_states.clear()
+	_build_card_buttons(_card_row)
+	_refresh_cards()
+
+
+func _build_card_buttons(row: HBoxContainer) -> void:
+	_card_row = row
+	for i in GameState.roster().size():
 		var button := Button.new()
 		FlatUI.apply_button_on_dark(button, FlatUI.UI_PRIMARY, FlatUI.FONT_ASSIST)
 		button.custom_minimum_size = CARD_SIZE
@@ -86,7 +104,6 @@ func _build() -> void:
 		row.add_child(button)
 		_card_buttons.append(button)
 		_card_states.append("")
-	_refresh_cards()
 
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -140,11 +157,15 @@ func _build() -> void:
 	add_child(_hint_label)
 
 
-func set_hint(text: String) -> void:
+func set_hint(text: String, persist: bool = false) -> void:
 	_hint_label.text = text
 	_hint_label.modulate.a = 1.0
 	if _hint_tween != null:
 		_hint_tween.kill()
+		_hint_tween = null
+	if persist:
+		# 常驻提示（L1 教学引导：完成前不淡出 —— spec levelMechanics.teaching「完成后淡出」）
+		return
 	_hint_tween = create_tween()
 	_hint_tween.tween_interval(maxf(GameState.hint_show_seconds, 0.0))
 	_hint_tween.tween_property(_hint_label, "modulate:a", 0.0, HINT_FADE_TIME)
@@ -226,12 +247,18 @@ func _on_lives_changed(lives: int) -> void:
 
 
 func _on_wave_changed(wave: int, wave_count: int) -> void:
-	_wave_label.text = "第 %d/%d 波" % [wave + 1, wave_count]
+	if GameState.endless_active:
+		_wave_label.text = "无尽 第 %d 波" % [wave + 1]
+	else:
+		_wave_label.text = "第 %d/%d 波" % [wave + 1, wave_count]
 	Juice.pop(_wave_label)
 
 
 func _on_game_ended(won: bool) -> void:
-	_wave_label.text = "防守成功！" if won else "防线失守"
+	if GameState.endless_active:
+		_wave_label.text = "无尽 第 %d 波" % GameState.wave_index
+	else:
+		_wave_label.text = "防守成功！" if won else "防线失守"
 	Juice.pop(_wave_label)
 	set_wave_wait_visible(false)
 

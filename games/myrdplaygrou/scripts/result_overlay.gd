@@ -84,12 +84,15 @@ func _build() -> void:
 
 
 ## 展示结算（won=true 通关；最后一关通关后主按钮回「再玩一次」）。
+## 胜利副标题带星级（剩余生命 5/3/1 → 3/2/1 星，spec content.replayHooks 星级结算）。
 func show_result(won: bool, level_index: int, level_name: String, wave_count: int) -> void:
 	var has_next := won and level_index + 1 < GameState.LEVELS.size()
 	_title.text = "防守成功！" if won else "防线失守"
 	_title.add_theme_color_override("font_color", FlatUI.GREEN_DARK if won else FlatUI.RED)
 	if won:
-		_subtitle.text = "守住了「%s」全部 %d 波" % [level_name, wave_count]
+		var stars := int(GameState.level_stars[level_index]) \
+				if level_index < GameState.level_stars.size() else 0
+		_subtitle.text = "守住了「%s」全部 %d 波 · ★x%d" % [level_name, wave_count, stars]
 		_action = "next" if has_next else "replay"
 		_primary.text = "下一关" if has_next else "再玩一次"
 	else:
@@ -106,7 +109,9 @@ func close() -> void:
 
 
 func can_accept() -> bool:
-	return visible and Time.get_ticks_msec() - _shown_ms >= ACCEPT_DELAY_MS
+	var delay := GameState.overlay_accept_ms if GameState.overlay_accept_ms >= 0.0 \
+		else float(ACCEPT_DELAY_MS)
+	return visible and Time.get_ticks_msec() - _shown_ms >= delay
 
 
 ## 主按钮语义：retry / replay = 重开本关；next = 进下一关。

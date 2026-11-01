@@ -118,9 +118,49 @@ body { color: #2c3e50; background: #2ecc71; overflow: hidden; touch-action: none
   document.addEventListener('visibilitychange', function () {
     if (!document.hidden) unlockAudio();
   }, { passive: true });
+  // ②b 真实输出能量探针（spec audio.outputEnergyProbe，真实出声机判的数据面）：
+  //    「状态位 ≠ 真实出声」（总线静音时 bgmPlaying 仍为 true，线上取证实证）。
+  //    手法与取证工具 games/myrdplaygrou/qa/mobile/audio_energy_probe.mjs 同源：
+  //    拦截 AudioNode.connect，引擎输出节点连向 ctx.destination 时改道 analyser →
+  //    destination（AnalyserNode 直通，引擎侧零感知，不改变信号）；fftSize=256 时域 PCM。
+  var analyser = null;
+  var energyBuf = null;
+  function ensureAnalyser(ctx) {
+    if (!ctx.createAnalyser) return null;
+    if (!analyser || analyser.context !== ctx) {
+      try {
+        analyser = ctx.createAnalyser();
+        analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0;
+        energyBuf = new Float32Array(analyser.fftSize);
+      } catch (e) { return null; }
+    }
+    return analyser;
+  }
+  if (window.AudioNode && AudioNode.prototype.connect) {
+    var nativeConnect = AudioNode.prototype.connect;
+    AudioNode.prototype.connect = function (destination) {
+      var ctx = this.context;
+      var dest = ctx ? ctx.destination : null;
+      if (audioCtx && ctx === audioCtx && destination === dest) {
+        try {
+          var an = ensureAnalyser(ctx);
+          if (an && this !== an && destination !== an) {
+            nativeConnect.call(this, an);
+            nativeConnect.call(an, destination);
+            audioLog.push({ t: Date.now(), state: 'probe-tap' });
+            return an;
+          }
+        } catch (e) { /* 插桩失败退回原生直连：只损失能量观测，不影响出声 */ }
+      }
+      return nativeConnect.apply(this, arguments);
+    };
+  }
   // ③ 真机取证出口：手机上打开控制台不便，全部观测收敛到一个函数。
-  //    spec audio.audioContextUnlock.machineCheck：返回 {unlocked, muted, bgmPlaying}，
-  //    mobile-web-smoke 的 audio-unlock 项以解锁后 unlocked === true 且 BGM 起播为机判依据；
+  //    spec audio.audioContextUnlock.machineCheck：返回 {unlocked, muted, bgmPlaying}；
+  //    spec audio.outputEnergyProbe：扩展 getOutputEnergy(windowMs) → Promise<{
+  //    rms, peak, windows, running}>，RMS 连续 2 窗 > 0.01 方判真实出声（audio-unlock
+  //    升级口径），静音后 RMS ≤ 0.001 判真实静默（mute-instant 口径）。
   //    muted / bgmPlaying 由游戏侧 Audio._publish_state() 写到 window.__GAME_AUDIO_STATE__。
   window.__audioDebug = function () {
     var gameState = window.__GAME_AUDIO_STATE__ || {};
@@ -130,7 +170,37 @@ body { color: #2c3e50; background: #2ecc71; overflow: hidden; touch-action: none
       log: audioLog,
       unlocked: !!(audioCtx && audioCtx.state === 'running'),
       muted: !!gameState.muted,
-      bgmPlaying: !!gameState.bgmPlaying
+      bgmPlaying: !!gameState.bgmPlaying,
+      energyProbe: true,
+      getOutputEnergy: function (windowMs) {
+        return new Promise(function (resolve) {
+          var ms = Math.max(50, windowMs || 250);
+          if (!analyser || !energyBuf || !audioCtx || audioCtx.state !== 'running') {
+            resolve({ rms: 0, peak: 0, windows: 0, running: false, windowMs: ms });
+            return;
+          }
+          var started = performance.now();
+          var sumSq = 0, samples = 0, peak = 0, windows = 0;
+          var step = function () {
+            analyser.getFloatTimeDomainData(energyBuf);
+            for (var i = 0; i < energyBuf.length; i++) {
+              var v = energyBuf[i];
+              sumSq += v * v;
+              if (v > peak) peak = v;
+              if (-v > peak) peak = -v;
+            }
+            samples += energyBuf.length;
+            windows += 1;
+            if (performance.now() - started >= ms) {
+              resolve({ rms: Math.sqrt(sumSq / Math.max(samples, 1)), peak: peak,
+                windows: windows, running: true, windowMs: ms });
+            } else {
+              setTimeout(step, 20);
+            }
+          };
+          step();
+        });
+      }
     };
   };
 
