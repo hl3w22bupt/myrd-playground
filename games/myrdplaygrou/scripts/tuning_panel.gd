@@ -23,10 +23,17 @@ static func is_enabled() -> bool:
 	if not Engine.has_singleton("JavaScriptBridge"):
 		return false
 	var bridge: Object = Engine.get_singleton("JavaScriptBridge")
-	var flag: Variant = bridge.call("eval", "new URLSearchParams(location.search).get('tuning') !== null")
-	# 桌面/无头下桥存在但不工作（eval 恒为 null）—— 判空后才转字符串
+	var flag: Variant = bridge.call("eval", "String(new URLSearchParams(location.search).get('tuning') !== null)")
+	# 桌面/无头下桥存在但不工作（eval 恒为 null）—— 判空后才判值
 	if flag == null:
 		return false
+	# ⚠️ 教训链（v4 线上实证 → v7 接线修复后线上复证）：eval 的 JS 布尔返回会落成
+	# int(0/1)，只认 String("true") 会让面板在线上永不出现 —— JS 侧已改回 String，
+	# GDScript 侧再按形态归一（bool 直取 / 数值 >0.5 / 字符串比较），禁止只认单一形态。
+	if flag is bool:
+		return flag
+	if flag is int or flag is float:
+		return float(flag) > 0.5
 	return str(flag) == "true"
 
 
