@@ -49,6 +49,9 @@ v2 `spec.acceptance` 共 13 条：`acc-playable-loop` / `acc-level-select` / `ac
 |---|---|---|
 | 操控语义（四轴方向） | `tests/smoke.gd::_step_move_axis` | 新增（Bug cmvxrs3fv005em905y4eouy35） |
 | 三关均可通关 + 关卡推进 | `tests/smoke.gd::_step_sweep_setup/_kill/_advance` | 新增三关逐关通关扫描（Bug cmvxr1f1a004fm905ua2ua9ir） |
-| 难度数值逐关生效 | 同上（真实出生路径抽样：血量/速度/啃咬 dps = 本关基准×种类倍率） | 新增 |
+| 难度数值逐关生效 | 同上（v2 口径：起始阳光 100/150/200 分档、波数 4/5/6、总僵尸 12/15/19 逐关核对 + 编制内种类真实出生路径行为探针：血量/速度 = `ZOMBIE_KINDS` 绝对值 + 击杀掉落面额） | 新增 |
 | 试玩逐关覆盖 | `playtest_driver.gd`（仓库判定器）× `main.gd` 轮换钩子 × `GameState.playtest_level_cursor` | 新增：3 局种子逐局对准第 1/2/3 关（`[main] playtest run -> level N` 证据行进门禁日志） |
-| 难度平缓（≤30%） | `tests/smoke.gd::_check_level_table` | 既有（未改判定，仅维持） |
+| 难度平缓（≤30%） | `tests/smoke.gd::_check_level_table` | v2 重写为编制加权口径（波数/总数/加权血量/加权速度/出怪间隔/首波延迟/波间隔，相邻增幅 ≤30%） |
+
+> 逐关取证行（r3）：冒烟日志逐关打印 `[smoke] 第 N 关通关（…）` 与 `[smoke] 关卡推进 → 第 N 关（…）`，
+> 试玩日志逐局打印 `[main] playtest run -> level N` —— 三类断言的执行证据随门禁日志落盘，验收节点可直接核对。
