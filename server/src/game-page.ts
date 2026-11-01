@@ -23,38 +23,41 @@ export const GAME_PAGE_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
-<title>汽车连连看</title>
+<title>植物人大战僵尸-网页版</title>
 <style>
 html, body, #canvas { margin: 0; padding: 0; border: 0; }
-body { color: #f3f5f7; background: #14181f; overflow: hidden; touch-action: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { color: #2c3e50; background: #2ecc71; overflow: hidden; touch-action: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 #canvas { display: block; width: 100vw; height: 100vh; }
 #canvas:focus { outline: none; }
 #boot { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
-  background: radial-gradient(circle at 50% 35%, #2b3644 0%, #1a212b 55%, #10141a 100%); z-index: 10; transition: opacity .4s; }
+  background: #2ecc71; z-index: 10; transition: opacity .4s; }
 #boot.hidden { opacity: 0; pointer-events: none; }
-#boot h1 { margin: 0; font-size: 2rem; letter-spacing: .12em; color: #ffd166;
-  text-shadow: 0 2px 0 #a35d0a, 0 0 18px rgba(255,180,40,.5); }
-#boot .sub { color: #9fb0c3; font-size: .85rem; margin-top: -10px; }
-#bar-wrap { width: min(420px, 70vw); height: 14px; border-radius: 999px; background: #232b36; overflow: hidden; border: 1px solid #3d4a5c; }
-#bar { height: 100%; width: 0%; border-radius: 999px; background: repeating-linear-gradient(90deg, #ffd166 0 26px, #16191f 26px 40px); transition: width .2s; }
-#boot-msg { color: #8fa1b5; font-size: .8rem; }
+#boot .panel { display: flex; flex-direction: column; align-items: center; gap: 14px;
+  background: #ecf0f1; border: 2px solid #2c3e50; border-radius: 8px; padding: 26px 34px; }
+#boot h1 { margin: 0; font-size: 1.8rem; letter-spacing: .08em; color: #2c3e50; }
+#boot .sub { color: #707b7c; font-size: .85rem; margin-top: -8px; }
+#bar-wrap { width: min(420px, 70vw); height: 14px; border-radius: 8px; background: #dfe6e9; overflow: hidden; border: 2px solid #2c3e50; }
+#bar { height: 100%; width: 0%; border-radius: 6px; background: #3498db; transition: width .2s; }
+#boot-msg { color: #707b7c; font-size: .8rem; }
 #hint { position: fixed; left: 50%; transform: translateX(-50%); bottom: 10px; z-index: 5;
-  color: #b9c7d8; background: rgba(16,20,26,.78); border: 1px solid #38455a; border-radius: 999px;
+  color: #ecf0f1; background: rgba(44,62,80,.85); border: 2px solid #2c3e50; border-radius: 999px;
   padding: 6px 16px; font-size: 12px; letter-spacing: .05em; pointer-events: none; }
-#boot kbd { background: #26303d; border: 1px solid #48586d; border-bottom-width: 2px; border-radius: 5px; padding: 1px 7px; font-family: inherit; font-size: .92em; color: #ffd166; }
-#keys { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; color: #9fb0c3; font-size: .82rem; }
+#boot kbd { background: #dfe6e9; border: 1px solid #2c3e50; border-bottom-width: 2px; border-radius: 5px; padding: 1px 7px; font-family: inherit; font-size: .92em; color: #2c3e50; }
+#keys { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; color: #707b7c; font-size: .82rem; }
 </style>
 </head>
 <body>
 <canvas id="canvas">你的浏览器不支持 canvas。</canvas>
 <div id="boot">
-  <h1>汽车连连看</h1>
-  <div class="sub">Car Lianliankan · MyRD 小游戏工坊</div>
+  <div class="panel">
+  <h1>植物人大战僵尸</h1>
+  <div class="sub">网页版 · 射击防御 · MyRD 小游戏工坊</div>
   <div id="bar-wrap"><div id="bar"></div></div>
   <div id="boot-msg">正在点火启动…</div>
-  <div id="keys"><span><kbd>点击/触屏</kbd> 选两张相同汽车卡片</span><span><kbd>≤2 折</kbd> 连通即消除</span><span><kbd>R</kbd> 重开</span><span><kbd>空格/Enter</kbd> 确认按钮</span></div>
+  <div id="keys"><span><kbd>点按草坪</kbd> 布置豌豆射手</span><span><kbd>点按阳光</kbd> 收集资源</span><span><kbd>WASD/方向键</kbd> 移动布防光标</span><span><kbd>空格/Enter</kbd> 放置/确认</span></div>
+  </div>
 </div>
-<div id="hint" style="display:none">点选两张相同汽车卡片 · 无路可走自动洗牌 · R 重开</div>
+<div id="hint" style="display:none">点按草坪布防 · 点按阳光收集 · 抵御全部波次即通关</div>
 <noscript>你的浏览器不支持 JavaScript。</noscript>
 <!-- 引擎引导脚本由启动脚本按 BASE_PATH 动态注入（静态 src 在无尾斜杠入口下会 404） -->
 <script>
@@ -69,7 +72,7 @@ body { color: #f3f5f7; background: #14181f; overflow: hidden; touch-action: none
     try {
       var t = JSON.parse(rawTuning);
       if (t && typeof t === 'object' && !Array.isArray(t)) window.__GAME_TUNING__ = t;
-    } catch (e) { console.warn('[game9-shell] tuning 参数不是合法 JSON，忽略', rawTuning); }
+    } catch (e) { console.warn('[myrdplaygrou-shell] tuning 参数不是合法 JSON，忽略', rawTuning); }
   }
 
   // ---- 移动端音频手势解锁器（必须在引擎加载前安装，见文件尾注释）----
@@ -168,10 +171,10 @@ body { color: #f3f5f7; background: #14181f; overflow: hidden; touch-action: none
         audioAddModules += 1;
         var realUrl = BASE_PATH + 'api/public/assets/' + file;
         return origAddModule.call(self, realUrl, options).catch(function (err) {
-          console.error('[game9-shell] audio worklet 资产通道加载失败，降级原路径重试', file, err);
+          console.error('[myrdplaygrou-shell] audio worklet 资产通道加载失败，降级原路径重试', file, err);
           audioLog.push({ t: Date.now(), state: 'worklet-fallback:' + file });
           return origAddModule.call(self, url, options).catch(function (err2) {
-            console.error('[game9-shell] audio worklet 兜底加载也失败（移动端将无声）', file, err2);
+            console.error('[myrdplaygrou-shell] audio worklet 兜底加载也失败（移动端将无声）', file, err2);
             audioLog.push({ t: Date.now(), state: 'worklet-dead:' + file });
             throw err2;
           });

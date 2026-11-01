@@ -1,8 +1,9 @@
-# 《汽车连连看》(game-9) AppHost 应用清单（平台构建管线步骤 1 读取；M1 仅支持顶层字符串键值）
-# 壳位于仓库根：server/ 内是 Node20 + Hono 应用，游戏 Web 导出产物经 gzip+base64 内联进 bundle
-name = "game-9"
+# 《植物人大战僵尸-网页版》(myrdplaygrou) AppHost 应用清单（平台构建管线步骤 1 读取；M1 仅支持顶层字符串键值）
+# 壳位于仓库根：server/ 内是 Node20 + Hono 应用；游戏 Web 导出产物走资产通道
+# （assets_dir 由平台上传对象存储，server 用 asset-store 懒加载，二进制 base64 文本回传）
+name = "myrdplaygrou"
 runtime = "node20"
 health = "/health"
 
 # 底座 A：资产出 bundle（部署时平台把该目录上传对象存储，server 用 asset-store 懒加载）
-assets_dir = "games/game-9/export/web"
+assets_dir = "games/myrdplaygrou/export/web"
