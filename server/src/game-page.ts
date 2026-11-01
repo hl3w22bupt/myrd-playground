@@ -54,10 +54,10 @@ body { color: #2c3e50; background: #2ecc71; overflow: hidden; touch-action: none
   <div class="sub">网页版 · 射击防御 · MyRD 小游戏工坊</div>
   <div id="bar-wrap"><div id="bar"></div></div>
   <div id="boot-msg">正在点火启动…</div>
-  <div id="keys"><span><kbd>点按草坪</kbd> 布置豌豆射手</span><span><kbd>点按阳光</kbd> 收集资源</span><span><kbd>WASD/方向键</kbd> 移动布防光标</span><span><kbd>空格/Enter</kbd> 放置/确认</span></div>
+  <div id="keys"><span><kbd>点按卡片</kbd> 选植物</span><span><kbd>点按草坪</kbd> 布防</span><span><kbd>点按阳光</kbd> 收集资源</span><span><kbd>WASD/方向键</kbd> 移动布防光标</span><span><kbd>空格/Enter</kbd> 放置/确认</span></div>
   </div>
 </div>
-<div id="hint" style="display:none">点按草坪布防 · 点按阳光收集 · 抵御全部波次即通关</div>
+<div id="hint" style="display:none;opacity:0;transition:opacity .6s ease">首次点按开启声音 · 守住防线抵御全部波次</div>
 <noscript>你的浏览器不支持 JavaScript。</noscript>
 <!-- 引擎引导脚本由启动脚本按 BASE_PATH 动态注入（静态 src 在无尾斜杠入口下会 404） -->
 <script>
@@ -228,7 +228,13 @@ body { color: #2c3e50; background: #2ecc71; overflow: hidden; touch-action: none
       var boot = document.getElementById('boot');
       var hint = document.getElementById('hint');
       if (boot) boot.classList.add('hidden');
-      if (hint) hint.style.display = 'block';
+      // 壳层提示：只讲游戏内讲不了的两件事（声音需首按解锁 / 胜利条件），不与游戏内
+      // 操作提示重复；且 6s 后自动淡出 —— 提示条一律不常驻
+      if (hint) {
+        hint.style.display = 'block';
+        requestAnimationFrame(function () { hint.style.opacity = '1'; });
+        setTimeout(function () { hint.style.opacity = '0'; }, 6000);
+      }
     }, fail);
   }).catch(fail);
 })();

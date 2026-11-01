@@ -193,10 +193,14 @@ func touch_preferred() -> bool:
 
 func _detect_touch_preferred() -> bool:
 	if OS.has_feature("web"):
+		# 三信号之外加 UA 兜底：部分移动仿真（CDP 触摸注入但 hasTouch 关闭）探不到
+		# ontouchstart/maxTouchPoints，但手机 UA 本身就是「触屏设备」的可靠证据。
+		# 探测异常仍按触屏处理（fail-open，宁可多给触屏措辞）。
 		var touch_capable: Variant = JavaScriptBridge.eval(
 			"(function(){try{return 'ontouchstart' in window || navigator.maxTouchPoints > 0"
-			+ " || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)}"
-			+ "catch(e){return true}})()", true)
+			+ " || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)"
+			+ " || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)"
+			+ "}catch(e){return true}})()", true)
 		return touch_capable != false
 	return DisplayServer.is_touchscreen_available()
 
