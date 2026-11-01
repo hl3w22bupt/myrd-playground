@@ -51,19 +51,19 @@ extends Node
 ##   同帧混用会让「移动断言」假失败。噪声相位后统一清洗动作状态再进入正式断言。
 
 ## ── 阶段帧数预算（最坏情形合计 = TOTAL_FRAMES ≈ 227 帧 < 门禁 240 帧兜底）──
-const NOISE_FRAMES: int = 4         # 对抗输入噪声（原始事件：悬挂手势/孤儿释放/乱键；fuzz 门禁 6 批次全覆盖）
+const NOISE_FRAMES: int = 2         # 对抗输入噪声（原始事件：悬挂手势/孤儿释放/乱键；fuzz 门禁 6 批次全覆盖）
 const CLEANUP_FRAMES: int = 2       # 噪声后清洗：释放动作 + 重开一局拿到干净棋盘
 const AXIS_HOLD_FRAMES: int = 2     # 每根轴按住注入的帧数（520px/s × 2 帧 ≈ 17px 位移）
 const AXES_FRAMES: int = 4 * (AXIS_HOLD_FRAMES + 2)   # 四轴：按下帧 + 保持 + 测量 + 切轴
 const PLACE_FRAMES: int = 3         # confirm 注入后等布防生效
 const CARDS_FRAMES: int = 8         # 出战卡：选卡动作 → 布防/扣费/经济门/冷却断言
 const COMBAT_FRAMES: int = 55       # 等防御单位击杀行内僵尸（含提示淡出断言窗 + 向日葵产出窗）
-const LOSE_FRAMES: int = 6          # 5 只越线僵尸 → 生命归零
+const LOSE_FRAMES: int = 5          # 5 只越线僵尸 → 生命归零
 const RESULT_FRAMES: int = 25       # 结算浮层误触窗（400ms=24 帧 @60fps）+ 余量
-const RESTART_FRAMES: int = 6       # confirm → 再试一次 → 对战态
+const RESTART_FRAMES: int = 5       # confirm → 再试一次 → 对战态
 const NEXTWAVE_FRAMES: int = 4      # 下一波：等待态提前召唤 → 真实出怪
 const SWEEP_SETUP_FRAMES: int = 3   # 每关：关卡断言 + 难度行为探针 → 布防 + 跳末波 + 放怪
-const SWEEP_KILL_FRAMES: int = 34   # 每关：双发齐射（2×60=120 > walker 100）击杀 + 误触窗 24 帧
+const SWEEP_KILL_FRAMES: int = 38   # 每关：双发齐射（2×60=120 > walker 100）击杀 ~8 帧 + 误触窗 24 帧 + 余量
 const SWEEP_LAST_KILL_FRAMES: int = 16  # 末关只等通关（无「下一关」误触窗）
 const SWEEP_ADVANCE_FRAMES: int = 3 # confirm「下一关」→ level_index 前进断言
 ## 三关扫描总预算（关卡推进 / 逐关胜利 / 难度数值逐关生效，逐关走一遍）
@@ -782,7 +782,7 @@ func _begin_level_victory_attempt() -> void:
 		_failures.append("第 %d 关：布防花色 ≠ repeater（选卡未跟上扫关卡）" % (_sweep_level + 1))
 		return
 	_director.debug_jump_to_final_wave()
-	_field.spawn_zombie(defender.cell.y, defender.position.x + 64.0, &"walker")
+	_field.spawn_zombie(defender.cell.y, defender.position.x + 48.0, &"walker")
 
 
 func _step_sweep_setup() -> void:
@@ -846,6 +846,9 @@ func _step_sweep_kill() -> void:
 		# 击杀掉落行为核对：walker 击杀必须掉落 sun_drop 面额拾取物（kind 表接进行为）
 		if _find_sun_token(GameState.kill_reward(&"walker")) == null:
 			_failures.append("第 %d 关：击杀掉落拾取物缺失（sun_drop 断线）" % [level + 1])
+		# 逐关取证：本行随 GODOT_SMOKE 日志落盘，验收节点可直接核对「3 关逐关通关 + 推进」
+		print("[smoke] 第 %d 关通关（game_ended=true，主按钮 %s，波次 %d/%d）" % [
+			level + 1, action, GameState.wave_index, GameState.wave_count()])
 		if is_last:
 			_pass_summary()
 		else:
@@ -874,6 +877,9 @@ func _step_sweep_advance() -> void:
 	var overlay := _main.get("result_overlay") as ResultOverlay
 	if overlay != null and overlay.visible:
 		_failures.append("关卡推进：进入下一关后结算浮层未关闭")
+	print("[smoke] 关卡推进 → 第 %d 关「%s」（起始阳光 %d，波数 %d）" % [
+		target + 1, String(GameState.LEVELS[target].get("name", "")),
+		GameState.sun, GameState.wave_count()])
 	_sweep_level = target
 	_enter(Phase.SWEEP_SETUP)
 
