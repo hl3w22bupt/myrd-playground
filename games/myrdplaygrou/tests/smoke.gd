@@ -25,7 +25,9 @@ extends Node
 ##   4. 音频契约（acc-audio-complete / acc-mute-instant +「核查 bus 音量」）：BGM 就绪且
 ##      运行时前向循环；总线核查（Master 未静音、增益 0dB、BGM 音量 = spec 0.4 线性 ≈ -8dB）；
 ##      sfxBindings 全 8 类音效已注册；静音开关往返即时生效
-##   5. 界面流：启动即选关界面（8 关入口 + 无尽入口未解锁隐藏）；进入关卡 → 对战态
+##   5. 界面流：启动即选关界面（8 关入口 + 无尽入口未解锁隐藏）；进入关卡 → 对战态；
+##      空白落点（视口正中 = 4 列卡片间隙）点按有持久可见反馈（触屏优先「任何点按都有
+##      可见反馈」+ mobile-web-smoke touch-response 同源契约，Bug: 20261102 门禁实证）
 ##   6. 玩家能移动（四轴「方向」断言，Bug cmvxrs3fv005em905y4eouy35）：逐轴方向 + 支配正交轴
 ##   7. 核心交互生效：confirm 布防默认卡（向日葵）→ 扣费 + 信号 + 冷却 + 自动取消选卡
 ##      + L1 教学引导文案在展示（spec levelMechanics.teaching）
@@ -648,6 +650,7 @@ func _step() -> void:
 			# 射击链路用测试通道提速（真实数值在第 9 项以 spec 数值验证）、
 			# 向日葵产出提速、提示停留压到最短、结算误触窗压到 30ms（帧预算纪律见文件头）
 			if _phase_frames == 1:
+				_check_blank_tap_feedback()
 				for action in REQUIRED_ACTIONS:
 					Input.action_release(action)
 				for touch_id in [0, 1]:
@@ -1247,12 +1250,43 @@ func _inject_noise_frame() -> void:
 		Input.parse_input_event(k)
 
 
+## 断言：选关页空白落点（视口正中 = 4 列卡片间隙）点按有持久可见反馈。
+## 契约：spec 触屏优先「任何点按都必须有可见反馈，不允许按了没反应」+
+## mobile-web-smoke touch-response（tap 视口中心必须画面有响应，20261102 线上实证该
+## 落点曾零响应）。
+## headless 纪律：GUI 事件路由无头不可注入（本仓既定做法：冒烟直调「同一状态入口」，
+## 真实「触摸 → emulated-mouse → GUI 路由」由 mobile-web-smoke 对 liveUrl 端到端机判），
+## 这里直调 catcher 处理器锁「反馈在位 + 持久可见」契约。
+func _check_blank_tap_feedback() -> void:
+	var level_select: CanvasLayer = _main.get("level_select")
+	if level_select == null:
+		_failures.append("选关界面缺失（空白落点反馈无从判定）")
+		return
+	if not level_select.visible:
+		_failures.append("空白落点反馈判定时选关界面不可见（应默认进入选关态）")
+		return
+	if level_select.call("blank_tap_feedback_text") == null:
+		_failures.append("选关界面缺 blank_tap_feedback_text()（空白落点反馈机判断线）")
+		return
+	var before := String(level_select.call("blank_tap_feedback_text"))
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.position = get_viewport().get_visible_rect().size / 2.0
+	click.pressed = true
+	level_select.call("_on_blank_input", click)
+	var after := String(level_select.call("blank_tap_feedback_text"))
+	if after == before:
+		_failures.append("选关页空白落点点按无可见反馈——「按了没反应」（触屏优先契约失守，mobile touch-response 同源）")
+	if not (level_select.call("blank_catcher_pass_through") as bool):
+		_failures.append("选关页空白落点层非 PASS 透传（STOP 会吃掉空白落点手势，main.gd 首手势 Audio.ensure_playing 的 BGM 起播兜底依赖透传）")
+
+
 func _report() -> void:
 	# 恢复调参：协议检查与测试通道改过的值不留给后续运行（不得污染被测状态）
 	for key: String in _tuning_backup:
 		GameState.set(key, _tuning_backup[key])
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 选关/四轴方向移动/教学引导/布防/出战卡/提示淡出/射击/掉落收集/失败/重开/下一波/八关逐关通关/关卡推进/逐关难度生效/夜幕剪影/坦克巨尸碾压/星级结算/无尽模式/键位契约/内容表/难度曲线锚点/对比度/音频契约与bus音量/调参协议 全部通过")
+		print("GODOT_SMOKE: PASS 选关/选关空白落点反馈/四轴方向移动/教学引导/布防/出战卡/提示淡出/射击/掉落收集/失败/重开/下一波/八关逐关通关/关卡推进/逐关难度生效/夜幕剪影/坦克巨尸碾压/星级结算/无尽模式/键位契约/内容表/难度曲线锚点/对比度/音频契约与bus音量/调参协议 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

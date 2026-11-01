@@ -16,6 +16,7 @@ var _level_buttons: Array[Button] = []
 var _endless_button: Button
 var _grid: GridContainer
 var _status: Label
+var _blank_catcher: Control
 
 
 func _ready() -> void:
@@ -30,6 +31,21 @@ func _build() -> void:
 	cover.set_anchors_preset(Control.PRESET_FULL_RECT)
 	cover.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(cover)
+
+	# 空白落点兜底（spec 触屏优先「任何点按都必须有可见反馈，不允许按了没反应」）：
+	# 4×2 关卡网格的卡片间隙（含视口正中落点，恰在列缝/行缝内）不是交互目标，
+	# 但真机拇指可能点在那里 —— 给持久可见反馈（状态行文字 + 网格弹跳）。
+	# 契约来源：mobile-web-smoke touch-response（tap 视口中心必须画面有响应）。
+	# mouse_filter 必须用 PASS 而非 STOP：空白落点给完反馈后事件要继续传播到
+	# _unhandled_input —— main.gd 首个人类输入的 Audio.ensure_playing()（BGM 手势起播
+	# 兜底，spec firstInteractionPolicy）依赖它；STOP 会把首手势吃掉，BGM 永不起播。
+	# 关卡按钮自身是 STOP 且在更上层（后于本节点 add_child），点按钮仍只走按钮。
+	var blank_catcher := Control.new()
+	blank_catcher.set_anchors_preset(Control.PRESET_FULL_RECT)
+	blank_catcher.mouse_filter = Control.MOUSE_FILTER_PASS
+	blank_catcher.gui_input.connect(_on_blank_input)
+	add_child(blank_catcher)
+	_blank_catcher = blank_catcher
 
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -139,6 +155,26 @@ func _on_level_pressed(index: int) -> void:
 		return
 	Juice.sfx(&"confirm")
 	level_selected.emit(index)
+
+
+## 空白落点反馈（卡片间隙/标题区/提示区）：状态行文字持久可见 + 网格弹跳，
+## 不允许「按了没反应」（触屏优先契约 + mobile-web-smoke touch-response 数据面）。
+func _on_blank_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed \
+			and event.button_index == MOUSE_BUTTON_LEFT:
+		_status.text = "点按关卡卡片开始防守 · 通关解锁下一关"
+		Juice.pop(_grid)
+
+
+## 冒烟机判入口：空白落点反馈是否在位（状态行可写）。
+func blank_tap_feedback_text() -> String:
+	return _status.text
+
+
+## 冒烟机判入口：空白落点层必须 PASS 透传 —— STOP 会吃掉空白落点的手势，
+## main.gd「首个人类输入 Audio.ensure_playing()」（BGM 手势起播兜底）依赖透传。
+func blank_catcher_pass_through() -> bool:
+	return _blank_catcher != null and _blank_catcher.mouse_filter == Control.MOUSE_FILTER_PASS
 
 
 ## 第 index 关（0 起索引）是否锁定（前一关尚无通关星级）。
