@@ -1,21 +1,24 @@
 class_name Hud
 extends Control
-## 战斗 HUD：顶部资源条（阳光 / 出战卡 / 波次 / 生命 / 静音 / 重开）+ 底部操作提示。
+## 战斗 HUD：顶部资源条（阳光 / 出战卡片 / 波次 / 生命 / 静音 / 重开）+ 底部操作提示。
 ## 控件全部代码构建，样式统一走 FlatUI（风格卡 flat-bright-pvz）；
 ## 结果性事件的反馈挂在 *_changed 处理函数上（SKILL.md §3B），不挂在输入上。
+## 排版硬底线：操作提示不常驻 —— 开局浮现，停留 hint_show_seconds 后淡出（set_hint）。
 
 ## HUD 条高度。
 const BAR_H: float = 64.0
+## 操作提示淡出时长（秒）。
+const HINT_FADE_TIME: float = 0.5
 
 signal restart_requested
 
 var _sun_label: Label
-var _card_cost_label: Label
-var _card_panel: PanelContainer
+var _card_buttons: Array[Button] = []
 var _wave_label: Label
 var _lives_label: Label
 var _mute_button: Button
 var _hint_label: Label
+var _hint_tween: Tween
 var _prev_lives: int = GameState.START_LIVES
 
 
@@ -25,6 +28,7 @@ func _ready() -> void:
 	GameState.sun_changed.connect(_on_sun_changed)
 	GameState.lives_changed.connect(_on_lives_changed)
 	GameState.wave_changed.connect(_on_wave_changed)
+	GameState.card_selected.connect(_on_card_selected)
 	GameState.game_ended.connect(_on_game_ended)
 	_on_sun_changed(GameState.sun)
 	_on_wave_changed(GameState.wave_index, GameState.wave_count())
@@ -64,24 +68,18 @@ func _build() -> void:
 	_sun_label = FlatUI.label(str(GameState.sun), FlatUI.FONT_BODY)
 	chip_row.add_child(_sun_label)
 
-	# 出战卡（当前唯一防御单位；选中态 = 蓝色描边；阳光不足时降透明度提示）
-	_card_panel = PanelContainer.new()
-	_card_panel.add_theme_stylebox_override("panel", FlatUI.box(FlatUI.GREEN_LIGHT, FlatUI.BLUE, 3))
-	_card_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_card_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(_card_panel)
-	var card_row := HBoxContainer.new()
-	card_row.add_theme_constant_override("separation", 8)
-	card_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_card_panel.add_child(card_row)
-	card_row.add_child(HudPeaIcon.new())
-	var card_text := VBoxContainer.new()
-	card_text.add_theme_constant_override("separation", 0)
-	card_text.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card_row.add_child(card_text)
-	card_text.add_child(FlatUI.label("豌豆射手", FlatUI.FONT_ASSIST))
-	_card_cost_label = FlatUI.label(str(int(GameState.defender_cost)), FlatUI.FONT_ASSIST, FlatUI.ORANGE_DARK)
-	card_text.add_child(_card_cost_label)
+	# 出战卡片（点按选卡 → 点草坪布防；选中态 = 蓝描边；阳光不足整卡降透明度）
+	for i in GameState.CARDS.size():
+		var card: Dictionary = GameState.CARDS[i]
+		var button := Button.new()
+		FlatUI.apply_button(button, FlatUI.GREEN_LIGHT)
+		button.custom_minimum_size = Vector2(92, 48)
+		button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		button.focus_mode = Control.FOCUS_NONE
+		button.pressed.connect(_on_card_pressed.bind(i))
+		row.add_child(button)
+		_card_buttons.append(button)
+	_refresh_cards()
 
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -115,26 +113,62 @@ func _build() -> void:
 	restart_button.pressed.connect(_on_restart_pressed)
 	row.add_child(restart_button)
 
-	# 底部操作提示（辅助信息档）
+	# 底部操作提示（辅助信息档；开局浮现，超时自动淡出 —— 不常驻）
 	_hint_label = FlatUI.label("", FlatUI.FONT_ASSIST)
 	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint_label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	_hint_label.offset_top = -26.0
 	_hint_label.offset_bottom = -4.0
-	_hint_label.modulate.a = 0.8
 	add_child(_hint_label)
 
 
 func set_hint(text: String) -> void:
 	_hint_label.text = text
+	_hint_label.modulate.a = 1.0
+	if _hint_tween != null:
+		_hint_tween.kill()
+	_hint_tween = create_tween()
+	_hint_tween.tween_interval(maxf(GameState.hint_show_seconds, 0.0))
+	_hint_tween.tween_property(_hint_label, "modulate:a", 0.0, HINT_FADE_TIME)
+
+
+## 冒烟断言入口：操作提示当前不透明度（1 = 完全可见，0 = 已淡出）。
+func hint_alpha() -> float:
+	return _hint_label.modulate.a
+
+
+## 卡片三态刷新：选中 = 蓝描边；阳光不足 = 降透明度（纯视觉，点下去有 fail 反馈兜底）。
+func _refresh_cards() -> void:
+	for i in _card_buttons.size():
+		var card: Dictionary = GameState.CARDS[i]
+		var id: StringName = card.get("id", &"pea") as StringName
+		var selected: bool = i == GameState.selected_card
+		var affordable: bool = GameState.sun >= GameState.card_cost_of(id)
+		var border := FlatUI.BLUE if selected else FlatUI.INK
+		var border_w := 3 if selected else 2
+		var button := _card_buttons[i]
+		button.text = "%s %d" % [String(card.get("tag", "")), GameState.card_cost_of(id)]
+		button.add_theme_stylebox_override("normal", FlatUI.box(FlatUI.GREEN_LIGHT, border, border_w))
+		button.add_theme_stylebox_override("hover", FlatUI.box(FlatUI.GREEN_LIGHT.lightened(0.08), border, border_w))
+		button.add_theme_stylebox_override("focus", FlatUI.box(FlatUI.GREEN_LIGHT.lightened(0.08), border, border_w))
+		button.add_theme_stylebox_override("pressed", FlatUI.box(FlatUI.GREEN_LIGHT.darkened(0.08), border, border_w))
+		button.modulate.a = 1.0 if affordable else 0.5
 
 
 func _on_sun_changed(sun: int) -> void:
 	_sun_label.text = str(sun)
-	_card_cost_label.text = str(int(GameState.defender_cost))
-	# 出战卡可负担性提示（纯视觉，不拦截布防——点下去有 fail 反馈兜底）
-	_card_panel.modulate.a = 1.0 if sun >= int(GameState.defender_cost) else 0.55
+	_refresh_cards()
 	Juice.pop(_sun_label)
+
+
+func _on_card_pressed(index: int) -> void:
+	GameState.select_card(index)
+	Juice.sfx(&"confirm")
+	Juice.pop(_card_buttons[index])
+
+
+func _on_card_selected(_index: int) -> void:
+	_refresh_cards()
 
 
 func _on_lives_changed(lives: int) -> void:
@@ -185,16 +219,3 @@ class HudSunIcon extends Control:
 			draw_line(c + dir * 9.0, c + dir * 12.0, FlatUI.ORANGE_DARK, 2.0)
 		draw_circle(c, 8.0, FlatUI.INK)
 		draw_circle(c, 7.0, Color("f7dc8f"))
-
-
-class HudPeaIcon extends Control:
-	func _init() -> void:
-		custom_minimum_size = Vector2(34, 40)
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
-	func _draw() -> void:
-		# 迷你豌豆射手：茎 + 圆头 + 嘴管（与战场 Defender 同一形状语言）
-		draw_rect(Rect2(14, 22, 6, 14), FlatUI.GREEN_DARK)
-		draw_circle(Vector2(17, 18), 11.0, FlatUI.GREEN)
-		draw_arc(Vector2(17, 18), 11.0, 0.0, TAU, 20, FlatUI.INK, 2.0)
-		draw_rect(Rect2(26, 13, 7, 10), FlatUI.GREEN)
-		draw_rect(Rect2(20, 11, 4, 4), FlatUI.INK)

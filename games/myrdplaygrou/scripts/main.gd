@@ -26,7 +26,7 @@ const AMBIENCE_FLAT: Dictionary = {
 	"vignette_strength": 0.0,
 }
 
-var _move_hint: String = "WASD / 方向键移动光标 · 空格放置 · R 重开"
+var _move_hint: String = ""
 
 
 func _ready() -> void:
@@ -106,7 +106,7 @@ func _on_result_primary() -> void:
 		_restart_level()
 
 
-## ── 输入（键盘路径；触屏点按在 Field._unhandled_input）──
+## ── 输入（键盘路径；触屏点按在 Field._unhandled_input 与 HUD 卡片按钮）──
 ## 说明：对局中不设独立「重开」按键动作 —— 重开入口收口在 HUD 重开按钮与结算浮层，
 ## 避免误触把整局进度清掉（机器人试玩实证：可乱按的重开键会让节奏指标永远起不来）。
 
@@ -114,6 +114,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	# 浏览器音频手势解锁兜底：首个按下调起 BGM（壳页面已解锁时本调用幂等）
 	if event.is_pressed() and (event is InputEventKey or event is InputEventMouseButton or event is InputEventScreenTouch):
 		Audio.ensure_playing()
+	for i in GameState.CARDS.size():
+		if event.is_action_pressed(StringName("select_card_%d" % (i + 1))):
+			GameState.select_card(i)
+			return
 	if event.is_action_pressed("confirm"):
 		if result_overlay.visible:
 			result_overlay.press_primary()
@@ -123,20 +127,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			field.try_place(cursor.position)
 
 
-## ── 触屏判定（模板同款 fail-open：Web 不经过引擎，直接问浏览器三信号）──
-## ⚠️ 教训链（game-8 v5→v5.2 线上三连例）：引擎 is_touchscreen_available() 在 web 不可靠，
-## 一票否决式判定会把真机摇杆/提示藏掉 —— 本工程只用来切换提示文案，判定必须 fail-open。
-func _touch_ui_should_show() -> bool:
-	if OS.has_feature("web"):
-		var touch_capable: Variant = JavaScriptBridge.eval(
-			"(function(){try{return 'ontouchstart' in window || navigator.maxTouchPoints > 0"
-			+ " || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)}"
-			+ "catch(e){return true}})()", true)
-		return touch_capable != false
-	return DisplayServer.is_touchscreen_available()
-
-
 func _input_hint() -> String:
-	if _touch_ui_should_show():
-		return "点按草坪布防 · 点按阳光收集 · 顶栏按钮重开/静音"
-	return "WASD / 方向键移动光标 · 空格放置 · 顶栏按钮重开/静音"
+	if GameState.touch_preferred():
+		return "点上方卡片选植物 · 点草坪布防 · 点阳光收集"
+	return "1/2/3 选卡 · WASD/方向键移动光标 · 空格放置"

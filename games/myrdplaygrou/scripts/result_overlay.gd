@@ -75,7 +75,10 @@ func _build() -> void:
 	_select_button.pressed.connect(_on_select_pressed)
 	buttons.add_child(_select_button)
 
-	var hint := FlatUI.label("空格 / 回车 = 主按钮", FlatUI.FONT_ASSIST, FlatUI.GRAY_DARK)
+	var hint_text := "空格 / 回车 = 主按钮"
+	if GameState.touch_preferred():
+		hint_text = "点按按钮继续"
+	var hint := FlatUI.label(hint_text, FlatUI.FONT_ASSIST, FlatUI.GRAY_DARK)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(hint)
 

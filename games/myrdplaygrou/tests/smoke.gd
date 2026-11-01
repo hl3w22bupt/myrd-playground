@@ -9,8 +9,10 @@ extends Node
 ##   失败 → stderr 打印 `GODOT_SMOKE: FAIL <原因>`（每条一行），进程退出码 1
 ##
 ## 断言覆盖（对应需求验收的可无头判定代理 + SKILL.md 冒烟七项）：
-##   1. 关卡表：≥ 3 个关卡；相邻关卡波数/血量/速度/啃咬 dps 增幅 ≤ 30%、出怪间隔降幅 ≤ 30%
-##      （需求「难度平缓，无断崖」的可判定代理）
+##   1. 关卡表：≥ 3 个关卡；相邻关卡波数/每波数量/啃咬 dps 增幅 ≤ 30%、出怪间隔降幅 ≤ 30%；
+##      种类配比（mix）合法且种类数逐关不减（首关单一种类教学）；
+##      加权平均血量/速度（按 ZOMBIE_KINDS 倍率配比加权）相邻关增幅 ≤ 30%
+##      （需求「难度平缓、种类逐关小幅提升、无断崖」的可判定代理）
 ##   2. 界面流：启动即选关界面；进入关卡 → 对战态（HUD 可见、光标激活）
 ##   3. 玩家能移动：注入 move_right 后位移 ≥ 1px，Player.moved 信号到达订阅方
 ##   4. 核心交互生效：confirm 在光标格布防成功（阳光扣费 + defender_placed 信号 + 布防反馈）
@@ -22,31 +24,38 @@ extends Node
 ##   9. 键位契约：动作已注册 + 承诺的物理键全部绑定（逐键 AND）
 ##  10. 调参协议：TUNING_META 非空；apply_tuning 应用已声明键、拒绝未声明/非数值键、
 ##      按 max 钳制、检查后恢复原值（不得污染被测状态）
+##  11. 出战卡系统：选卡动作生效；换卡后布防的花色/扣费跟着卡走（寒冰 = 1.5×造价）；
+##      阳光不足的卡布防被经济门拦下（不生成单位、不扣费）；选卡可回到默认卡
+##  12. 操作说明不常驻：开局提示可见，hint_show_seconds 后自动开始淡出（排版硬底线）
 ##
 ## ⚠️ 输入注入分两个阶段、互不重叠（error-signatures E-08）：
 ##   headless 下 `Input.parse_input_event()` 的缓冲冲刷会清掉 `Input.action_press()` 状态，
 ##   同帧混用会让「移动断言」假失败。噪声相位后统一清洗动作状态再进入正式断言。
 
-## ── 阶段帧数预算（总计 ≈ 189 帧 < verify.sh 的 240 帧兜底）──
+## ── 阶段帧数预算（总计 ≈ 225 帧 < verify.sh 的 240 帧兜底）──
 const NOISE_FRAMES: int = 30        # 对抗输入噪声（原始事件：悬挂手势/孤儿释放/乱键）
 const CLEANUP_FRAMES: int = 2       # 噪声后清洗：释放动作 + 重开一局拿到干净棋盘
 const MOVE_FRAMES: int = 10         # 按住 move_right 的帧数
 const PLACE_FRAMES: int = 4         # confirm 注入后等布防生效
+const CARDS_FRAMES: int = 6         # 出战卡：选卡动作 → 布防/扣费/经济门断言
+const HINT_FRAMES: int = 30         # 操作提示淡出窗口（hint_show_seconds=0.5 + 淡出余量）
 const COMBAT_FRAMES: int = 55       # 等防御单位击杀行内僵尸
 const LOSE_FRAMES: int = 8          # 3 只越线僵尸 → 生命归零
 const RESULT_FRAMES: int = 30       # 结算浮层误触窗（400ms）+ 余量
 const RESTART_FRAMES: int = 8       # confirm → 再试一次 → 对战态
 const WIN_FRAMES: int = 40          # 最后一波清场 → 通关
 const TOTAL_FRAMES: int = NOISE_FRAMES + CLEANUP_FRAMES + MOVE_FRAMES + PLACE_FRAMES \
-	+ COMBAT_FRAMES + LOSE_FRAMES + RESULT_FRAMES + RESTART_FRAMES + WIN_FRAMES + 2
+	+ CARDS_FRAMES + HINT_FRAMES + COMBAT_FRAMES + LOSE_FRAMES + RESULT_FRAMES \
+	+ RESTART_FRAMES + WIN_FRAMES + 2
 
-enum Phase { NOISE, CLEANUP, MOVE, PLACE, COMBAT, LOSE, RESULT, RESTART, WIN }
+enum Phase { NOISE, CLEANUP, MOVE, PLACE, CARDS, HINT, COMBAT, LOSE, RESULT, RESTART, WIN }
 
 const MIN_MOVE_DISTANCE: float = 1.0
 ## 对局中不设独立「重开」动作（重开入口 = HUD 按钮 + 结算浮层，防误触清局），
-## 故动作集为模板五动作；键位契约与之对应。
+## 故动作集 = 模板五动作 + 出战卡三键；键位契约与之对应。
 const REQUIRED_ACTIONS: Array[StringName] = [
 	&"move_left", &"move_right", &"move_up", &"move_down", &"confirm",
+	&"select_card_1", &"select_card_2", &"select_card_3",
 ]
 
 ## 键位契约：动作 → 键表承诺的物理键，**必须全部绑定**（逐键 AND，不是命中一个就算过）。
@@ -57,6 +66,9 @@ const KEY_CONTRACT: Dictionary = {
 	&"move_up": [KEY_W, KEY_UP],
 	&"move_down": [KEY_S, KEY_DOWN],
 	&"confirm": [KEY_SPACE, KEY_ENTER],
+	&"select_card_1": [KEY_1],
+	&"select_card_2": [KEY_2],
+	&"select_card_3": [KEY_3],
 }
 
 var _failures: PackedStringArray = []
@@ -69,6 +81,7 @@ var _main: Node2D
 var _field: Field
 var _cursor: Player
 var _director: WaveDirector
+var _hud: Hud
 var _origin := Vector2.ZERO
 var _moved_seen: bool = false
 var _placed_seen: bool = false
@@ -78,6 +91,7 @@ var _combat_score_before: int = 0
 var _combat_sun_before: int = 0
 var _lost_seen: bool = false
 var _won_seen: bool = false
+var _hint_alpha_at_start: float = -1.0
 var _tuning_backup: Dictionary = {}
 var _noise_rng := RandomNumberGenerator.new()
 
@@ -100,14 +114,14 @@ func _collect_nodes() -> void:
 	_field = _main.get_node_or_null("Field") as Field
 	_cursor = _main.get_node_or_null("Player") as Player
 	_director = _main.get("director") as WaveDirector
+	_hud = _main.get_node_or_null("UI/Hud") as Hud
 	if _field == null:
 		_failures.append("Main 下找不到 Field（main.tscn 战场节点缺失或脚本未挂）")
 	if _cursor == null:
 		_failures.append("Main 下找不到 Player（布防光标未实例化）")
 	if _director == null:
 		_failures.append("Main.director 未装配（波次导演缺失，波次推进无从判定）")
-	var hud: Control = _main.get_node_or_null("UI/Hud")
-	if hud == null or not hud.has_method("set_hint"):
+	if _hud == null or not _hud.has_method("set_hint"):
 		_failures.append("Main/UI/Hud 缺失或未挂 hud.gd（战斗 HUD 断线）")
 	var game_state := get_tree().root.get_node_or_null("GameState")
 	if game_state == null:
@@ -149,27 +163,97 @@ func _on_game_ended(won: bool) -> void:
 		_lost_seen = true
 
 
-## ── 静态断言：关卡表与难度平缓（需求验收 2 的可判定代理）──
+## ── 静态断言：关卡表与难度平缓（需求验收 2 + 硬约束「种类逐关小幅提升」的可判定代理）──
 func _check_level_table() -> void:
 	var levels: Array = GameState.LEVELS
 	if levels.size() < 3:
 		_failures.append("关卡表只有 %d 关（需求要求至少 3 关 + 选关入口）" % levels.size())
 		return
-	for i in range(1, levels.size()):
-		var prev: Dictionary = levels[i - 1]
+	var weighted_hp_prev: float = -1.0
+	var weighted_speed_prev: float = -1.0
+	var kinds_prev: int = 0
+	for i in levels.size():
 		var cur: Dictionary = levels[i]
-		for key: String in ["waves", "zombies_per_wave", "zombie_hp", "zombie_speed", "eat_dps"]:
-			var before := float(prev.get(key, 0.0))
-			var after := float(cur.get(key, 0.0))
-			if before > 0.0 and (after - before) / before > 0.30:
-				_failures.append("难度断崖：第%d→%d关 %s 增幅 %.0f%% > 30%%" % [
-					i, i + 1, key, (after - before) / before * 100.0])
-		var spawn_before := float(prev.get("spawn_interval", 0.0))
-		var spawn_after := float(cur.get("spawn_interval", 0.0))
-		if spawn_before > 0.0 and spawn_after < spawn_before \
-				and (spawn_before - spawn_after) / spawn_before > 0.30:
-			_failures.append("难度断崖：第%d→%d关 spawn_interval 降幅 %.0f%% > 30%%" % [
-				i, i + 1, (spawn_before - spawn_after) / spawn_before * 100.0])
+		# ① 逐项基准数值增幅（波数 / 每波数量 / 啃咬 dps ≤ +30%）
+		if i > 0:
+			var prev: Dictionary = levels[i - 1]
+			for key: String in ["waves", "zombies_per_wave", "eat_dps"]:
+				var before := float(prev.get(key, 0.0))
+				var after := float(cur.get(key, 0.0))
+				if before > 0.0 and (after - before) / before > 0.30:
+					_failures.append("难度断崖：第%d→%d关 %s 增幅 %.0f%% > 30%%" % [
+						i, i + 1, key, (after - before) / before * 100.0])
+			var spawn_before := float(prev.get("spawn_interval", 0.0))
+			var spawn_after := float(cur.get("spawn_interval", 0.0))
+			if spawn_before > 0.0 and spawn_after < spawn_before \
+					and (spawn_before - spawn_after) / spawn_before > 0.30:
+				_failures.append("难度断崖：第%d→%d关 spawn_interval 降幅 %.0f%% > 30%%" % [
+					i, i + 1, (spawn_before - spawn_after) / spawn_before * 100.0])
+		# ② 种类配比：显式声明、种类已知、权重和 = 100、种类数逐关不减（首关单一种类教学）
+		var mix_v: Variant = cur.get("mix")
+		if not (mix_v is Dictionary) or (mix_v as Dictionary).is_empty():
+			_failures.append("第%d关缺 mix（僵尸种类配比必须显式声明）" % [i + 1])
+			return
+		var mix: Dictionary = mix_v
+		var weight_total: int = 0
+		for kind: StringName in mix:
+			if not GameState.ZOMBIE_KINDS.has(kind):
+				_failures.append("第%d关 mix 含未知种类 %s（ZOMBIE_KINDS 未定义）" % [i + 1, kind])
+				return
+			weight_total += int(mix[kind])
+		if weight_total != 100:
+			_failures.append("第%d关 mix 权重和 %d ≠ 100（配比口径失真）" % [i + 1, weight_total])
+		# ②b 行为抽样：走真实出生路径（spawn_zombie 读 GameState.level()）验证配比接进了
+		# 行为 —— 400 次抽样漏掉 12% 权重种类的概率 < 1e-20，断言不抖动；
+		# 抽样同帧内完成并立即清场 + 还原关卡指针，不给实体推进 / 污染后续断言的机会
+		if _field != null and weight_total == 100:
+			var original_level: int = GameState.level_index
+			GameState.level_index = i
+			var seen := {}
+			var spawned: Array[Zombie] = []
+			for roll in 400:
+				var zombie := _field.spawn_zombie(0, Field.SPAWN_X)
+				spawned.append(zombie)
+				var z_kind: StringName = zombie.kind
+				if not mix.has(z_kind):
+					_failures.append("第%d关出生越界：抽到未声明的种类 %s" % [i + 1, z_kind])
+					break
+				seen[z_kind] = true
+			GameState.level_index = original_level
+			for kind: StringName in mix:
+				if not seen.has(kind):
+					_failures.append("第%d关配比失真：种类 %s 从未被抽到（mix 没接进出生行为）" % [i + 1, kind])
+			for zombie in spawned:
+				zombie.queue_free()
+			_field.clear_all()
+		if i == 0 and mix.size() != 1:
+			_failures.append("第1关应单一种类教学（实际 %d 种）" % mix.size())
+		if mix.size() < kinds_prev:
+			_failures.append("种类数逐关回落：第%d关 %d 种 < 第%d关 %d 种" % [
+				i + 1, mix.size(), i, kinds_prev])
+		kinds_prev = mix.size()
+		# ③ 加权平均血量/速度（基准 × 种类倍率按配比加权）：相邻关增幅 ≤ 30%
+		var weighted_hp := float(cur.get("zombie_hp", 0.0)) * _weighted_kind_mul(mix, "hp_mul")
+		var weighted_speed := float(cur.get("zombie_speed", 0.0)) * _weighted_kind_mul(mix, "speed_mul")
+		if i > 0:
+			if weighted_hp_prev > 0.0 and (weighted_hp - weighted_hp_prev) / weighted_hp_prev > 0.30:
+				_failures.append("难度断崖：第%d→%d关 加权血量增幅 %.0f%% > 30%%" % [
+					i, i + 1, (weighted_hp - weighted_hp_prev) / weighted_hp_prev * 100.0])
+			if weighted_speed_prev > 0.0 \
+					and (weighted_speed - weighted_speed_prev) / weighted_speed_prev > 0.30:
+				_failures.append("难度断崖：第%d→%d关 加权速度增幅 %.0f%% > 30%%" % [
+					i, i + 1, (weighted_speed - weighted_speed_prev) / weighted_speed_prev * 100.0])
+		weighted_hp_prev = weighted_hp
+		weighted_speed_prev = weighted_speed
+
+
+## mix 配比下的种类倍率加权平均（权重和按 100 归一）。
+func _weighted_kind_mul(mix: Dictionary, key: String) -> float:
+	var acc: float = 0.0
+	for kind: StringName in mix:
+		var meta: Dictionary = GameState.ZOMBIE_KINDS.get(kind, {})
+		acc += float(mix[kind]) * float(meta.get(key, 1.0))
+	return acc / 100.0
 
 
 ## 键位契约：目标键表 → project.godot [input] 的 physical_keycode（逐键 AND）。
@@ -243,7 +327,8 @@ func _step() -> void:
 				_enter(Phase.CLEANUP)
 		Phase.CLEANUP:
 			# 清洗噪声残留：释放全部动作 + 孤儿抬起，再重开一局拿到干净棋盘；
-			# 射击链路用调参通道提速（帧预算内验证链路本身，正式数值由 playtest/人工校准）
+			# 射击链路用调参通道提速、提示停留压到最短（帧预算内验证链路本身，
+			# 正式数值由 playtest/人工校准）
 			if _phase_frames == 1:
 				for action in REQUIRED_ACTIONS:
 					Input.action_release(action)
@@ -256,10 +341,13 @@ func _step() -> void:
 				_tuning_backup = {
 					"fire_interval": GameState.fire_interval,
 					"projectile_damage": GameState.projectile_damage,
+					"hint_show_seconds": GameState.hint_show_seconds,
 				}
-				GameState.apply_tuning({"fire_interval": 0.2, "projectile_damage": 60.0})
+				GameState.apply_tuning({"fire_interval": 0.2, "projectile_damage": 60.0, "hint_show_seconds": 0.5})
 				GameState.start_level(0)
 			if _phase_frames >= CLEANUP_FRAMES:
+				# 提示淡出断言的基线：开局提示必须完全可见（先浮现、后淡出）
+				_hint_alpha_at_start = _hud.hint_alpha()
 				_origin = _cursor.global_position
 				Input.action_press(&"move_right")
 				_enter(Phase.MOVE)
@@ -278,11 +366,38 @@ func _step() -> void:
 			if _phase_frames >= PLACE_FRAMES:
 				if _field.defender_count() != 1:
 					_failures.append("核心交互：confirm 后场上防御单位 = %d（期望 1）—— 布防链路断裂" % _field.defender_count())
-				var expected_sun: int = GameState.START_SUN - int(GameState.defender_cost)
+				var expected_sun: int = GameState.START_SUN - GameState.card_cost()
 				if GameState.sun != expected_sun:
 					_failures.append("核心交互：布防未扣费（阳光 %d ≠ %d）" % [GameState.sun, expected_sun])
 				if not _placed_seen:
 					_failures.append("信号 Field.defender_placed 未到达订阅方")
+				_enter(Phase.CARDS)
+		Phase.CARDS:
+			# 出战卡系统：选卡动作 → 布防花色/扣费跟卡走 → 经济门拦下买不起的卡
+			if _phase_frames == 1:
+				_press_action(&"select_card_2")
+			elif _phase_frames == 3:
+				var sun_before: int = GameState.sun
+				if not _field.try_place(_field.cell_center(Vector2i(6, 0))):
+					_failures.append("出战卡：切到寒冰后布防失败（选卡链路断裂）")
+				var ice_cost: int = GameState.card_cost_of(&"ice")
+				if GameState.sun != sun_before - ice_cost:
+					_failures.append("出战卡：寒冰布防扣费 %d ≠ %d（卡价未跟卡走）" % [
+						GameState.sun, sun_before - ice_cost])
+				var ice := _field.defender_at(Vector2i(6, 0))
+				if ice == null or ice.kind != &"ice":
+					_failures.append("出战卡：(6,0) 防御单位花色 ≠ ice（卡片属性未跟上）")
+				_press_action(&"select_card_3")
+			elif _phase_frames == 5:
+				var sun_before2: int = GameState.sun
+				if _field.try_place(_field.cell_center(Vector2i(7, 4))):
+					_failures.append("出战卡：阳光不足仍布防成功（经济门失效）")
+				if GameState.sun != sun_before2:
+					_failures.append("出战卡：失败布防不该扣费（%d ≠ %d）" % [GameState.sun, sun_before2])
+				_press_action(&"select_card_1")
+			elif _phase_frames >= CARDS_FRAMES:
+				if GameState.selected_card != 0:
+					_failures.append("出战卡：select_card_1 后未回到默认卡（selected=%d）" % GameState.selected_card)
 				# 射击链路：在防守单位同行右侧放一只僵尸（开火即射，命中即杀）
 				_combat_score_before = GameState.score
 				_combat_sun_before = GameState.sun
@@ -292,6 +407,15 @@ func _step() -> void:
 				else:
 					var defender := _field.defender_at(cells[0])
 					_field.spawn_zombie(defender.cell.y, defender.position.x + 180.0)
+				_enter(Phase.HINT)
+		Phase.HINT:
+			# 操作说明不常驻（排版硬底线）：开局可见 → hint_show_seconds 后自动开始淡出
+			if _hint_alpha_at_start >= 0.0 and _hint_alpha_at_start < 1.0:
+				_failures.append("操作提示：开局就不完全可见（alpha=%.2f，应先浮现后淡出）" % _hint_alpha_at_start)
+				_hint_alpha_at_start = -1.0
+			if _hud.hint_alpha() < 1.0 or _phase_frames >= HINT_FRAMES:
+				if _hud.hint_alpha() >= 1.0:
+					_failures.append("操作说明常驻：%d 帧后提示仍未开始淡出（硬底线：提示须自动消失）" % HINT_FRAMES)
 				_enter(Phase.COMBAT)
 		Phase.COMBAT:
 			if _killed_seen or _phase_frames >= COMBAT_FRAMES:
@@ -397,7 +521,7 @@ func _report() -> void:
 	for key: String in _tuning_backup:
 		GameState.set(key, _tuning_backup[key])
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 选关/移动/布防/射击/失败/重开/胜利/键位契约/难度平缓/调参协议 全部通过")
+		print("GODOT_SMOKE: PASS 选关/移动/布防/出战卡/提示淡出/射击/失败/重开/胜利/键位契约/难度与种类平缓/调参协议 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

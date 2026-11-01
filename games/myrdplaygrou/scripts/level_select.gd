@@ -56,7 +56,10 @@ func _build() -> void:
 		grid.add_child(button)
 		_level_buttons.append(button)
 
-	var hint := FlatUI.label("点按关卡开始 · 单局约 1-3 分钟 · WASD / 点按布防", FlatUI.FONT_ASSIST, FlatUI.GRAY_DARK)
+	var hint_text := "点按关卡开始 · 单局约 1-3 分钟 · 点卡片选植物 · 点草坪布防"
+	if not GameState.touch_preferred():
+		hint_text = "点按关卡开始 · 单局约 1-3 分钟 · 1/2/3 选卡 · WASD 移动 · 空格布防"
+	var hint := FlatUI.label(hint_text, FlatUI.FONT_ASSIST, FlatUI.GRAY_DARK)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(hint)
 

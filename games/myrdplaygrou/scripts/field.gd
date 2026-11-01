@@ -102,7 +102,8 @@ func zombie_count() -> int:
 
 ## ── 布防 ──
 
-## 在 world_pos 所在格布防：扣费成功才生成；占位 / 出界 / 阳光不足都给失败反馈。
+## 在 world_pos 所在格布防当前选中的出战卡：扣费成功才生成；
+## 占位 / 出界 / 阳光不足都给失败反馈。
 func try_place(world_pos: Vector2) -> bool:
 	if not GameState.running:
 		return false
@@ -114,11 +115,11 @@ func try_place(world_pos: Vector2) -> bool:
 		Juice.sfx(&"fail")
 		Juice.flash(defender_at(cell), Color(1, 0.6, 0.6, 0.8))
 		return false
-	if not GameState.spend_sun(int(GameState.defender_cost)):
+	if not GameState.spend_sun(GameState.card_cost()):
 		Juice.sfx(&"fail")
 		return false
 	var defender := Defender.new()
-	defender.setup(cell, GameState.defender_hp)
+	defender.setup(cell, GameState.defender_hp, GameState.current_card_id())
 	defender.position = cell_center(cell)
 	add_child(defender)
 	_defenders[cell] = defender
@@ -130,17 +131,36 @@ func try_place(world_pos: Vector2) -> bool:
 
 ## ── 出怪与阳光 ──
 
-## 在指定行 / x 出生一只僵尸（数值取当前关卡配置）。
+## 在指定行 / x 出生一只僵尸：种类按本关配比（mix）随机，
+## 血量/速度 = 关卡基准 × GameState.ZOMBIE_KINDS 种类倍率。
 func spawn_zombie(lane: int, x: float) -> Zombie:
 	var cfg := GameState.level()
+	var kind := _pick_zombie_kind(cfg.get("mix", {}))
+	var meta: Dictionary = GameState.ZOMBIE_KINDS.get(kind, {"hp_mul": 1.0, "speed_mul": 1.0})
 	var zombie := Zombie.new()
 	zombie.setup(
 		clampi(lane, 0, GRID_ROWS - 1), x, lane_center_y(lane),
-		float(cfg.get("zombie_hp", 30.0)), float(cfg.get("zombie_speed", 26.0)),
-		float(cfg.get("eat_dps", 10.0)))
+		float(cfg.get("zombie_hp", 30.0)) * float(meta.get("hp_mul", 1.0)),
+		float(cfg.get("zombie_speed", 26.0)) * float(meta.get("speed_mul", 1.0)),
+		float(cfg.get("eat_dps", 10.0)), kind)
 	add_child(zombie)
 	_zombies.append(zombie)
 	return zombie
+
+
+## mix: {StringName 种类: int 权重} → 按累计权重随机取一种类
+## （空表回退 normal；权重和不足 100 时余量回退首个种类）。
+func _pick_zombie_kind(mix: Variant) -> StringName:
+	if mix is Dictionary and not (mix as Dictionary).is_empty():
+		var mix_dict: Dictionary = mix
+		var roll := randi() % 100
+		var acc := 0
+		for kind: StringName in mix_dict:
+			acc += int(mix_dict[kind])
+			if roll < acc:
+				return kind
+		return mix_dict.keys()[0] as StringName
+	return &"normal"
 
 
 ## 天降阳光：随机列落到随机行（行内中心偏下，贴近可点区域）。
@@ -178,13 +198,17 @@ func _physics_process(delta: float) -> void:
 
 
 func _advance_world(delta: float) -> void:
-	# ① 防御单位开火（同格唯一，按行找目标）
+	# ① 防御单位开火（同格唯一，按行找目标；双发 = 一次开火两颗弹，前后错开）
 	for defender: Defender in _defenders.values():
 		if defender.tick_fire(delta, has_lane_target(defender.cell.y, defender.position.x)):
-			var projectile := Projectile.new()
-			projectile.setup(defender.cell.y, defender.position + Vector2(26.0, -12.0))
-			add_child(projectile)
-			_projectiles.append(projectile)
+			for shot in defender.shots:
+				var projectile := Projectile.new()
+				projectile.setup(
+					defender.cell.y,
+					defender.position + Vector2(26.0 - 18.0 * float(shot), -12.0),
+					defender.damage, defender.slow, defender.tint)
+				add_child(projectile)
+				_projectiles.append(projectile)
 			Juice.sfx(&"shoot")
 	# ② 僵尸推进 / 啃咬 / 突破
 	for zombie in _zombies.duplicate():
@@ -199,14 +223,15 @@ func _advance_world(delta: float) -> void:
 			zombie.advance(delta)
 			if zombie.position.x <= DEFENSE_X:
 				_breach(zombie)
-	# ③ 弹丸飞行与命中
+	# ③ 弹丸飞行与命中（伤害/减速读弹丸快照，不读当前选中卡）
 	for projectile in _projectiles.duplicate():
 		projectile.advance(delta)
 		var victim := _zombie_hit_by(projectile)
 		if victim != null:
 			Juice.sfx(&"hit")
 			Juice.flash(victim)
-			if victim.take_damage(GameState.projectile_damage):
+			victim.apply_slow(projectile.slow)
+			if victim.take_damage(projectile.damage):
 				_kill_zombie(victim)
 			_remove_projectile(projectile)
 		elif projectile.position.x > VIEW_SIZE.x + 24.0:
