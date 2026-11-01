@@ -1,0 +1,10 @@
+energyProbe=true state=suspended
+手势前 energy={"rms":0,"peak":0,"windows":0,"running":false,"windowMs":250}
+手势后 W1={"rms":0.02489577880165781,"peak":0.08551571518182755,"windows":7,"running":true,"windowMs":250}
+手势后 W2={"rms":0.04974425574272584,"peak":0.16567058861255646,"windows":7,"running":true,"windowMs":250}
+PASS 真实出声（连续两窗 RMS > 0.01）
+静音后={"rms":0,"peak":0,"windows":14,"running":true,"windowMs":400}
+PASS 静音后真实静默（RMS ≤ 0.001）
+取消静音后={"rms":0.026836611735405785,"peak":0.1421138197183609,"windows":13,"running":true,"windowMs":400}
+PASS 取消静音后恢复出声（RMS > 0.01）
+SHELL_ENERGY: PASS
