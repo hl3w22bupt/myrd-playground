@@ -1,0 +1,246 @@
+{
+  "source": "games/myrdplaygrou/autoload/game_state.gd",
+  "kinds": {
+    "walker": {
+      "hp": 100.0,
+      "speed": 18.0,
+      "sun_drop": 15.0
+    },
+    "runner": {
+      "hp": 70.0,
+      "speed": 36.0,
+      "sun_drop": 20.0
+    },
+    "conehead": {
+      "hp": 220.0,
+      "speed": 18.0,
+      "sun_drop": 25.0
+    },
+    "buckethead": {
+      "hp": 400.0,
+      "speed": 14.0,
+      "sun_drop": 35.0
+    }
+  },
+  "cards": [],
+  "levels": [
+    {
+      "name": "第 1 关 · 前院晨光",
+      "start_sun": 100,
+      "first_wave_delay_sec": 15.0,
+      "wave_gap_sec": 20.0,
+      "spawn_interval_sec": 6.0,
+      "chapter_tint": "d5f0dd",
+      "waves": 4,
+      "wave_composition": [
+        [
+          {
+            "kind": "walker",
+            "count": 2
+          }
+        ],
+        [
+          {
+            "kind": "walker",
+            "count": 3
+          }
+        ],
+        [
+          {
+            "kind": "walker",
+            "count": 3
+          }
+        ],
+        [
+          {
+            "kind": "walker",
+            "count": 4
+          }
+        ]
+      ],
+      "zombies_total": 12,
+      "zombies_by_kind": {
+        "walker": 12
+      },
+      "avg_hp": 100.0,
+      "avg_speed": 18.0,
+      "sun_income_if_all_killed": 180
+    },
+    {
+      "name": "第 2 关 · 后院黄昏",
+      "start_sun": 150,
+      "first_wave_delay_sec": 12.0,
+      "wave_gap_sec": 18.0,
+      "spawn_interval_sec": 5.5,
+      "chapter_tint": "f7e3c8",
+      "waves": 5,
+      "wave_composition": [
+        [
+          {
+            "kind": "walker",
+            "count": 3
+          }
+        ],
+        [
+          {
+            "kind": "walker",
+            "count": 2
+          },
+          {
+            "kind": "runner",
+            "count": 1
+          }
+        ],
+        [
+          {
+            "kind": "walker",
+            "count": 3
+          },
+          {
+            "kind": "conehead",
+            "count": 1
+          }
+        ],
+        [
+          {
+            "kind": "walker",
+            "count": 1
+          },
+          {
+            "kind": "runner",
+            "count": 1
+          }
+        ],
+        [
+          {
+            "kind": "conehead",
+            "count": 2
+          },
+          {
+            "kind": "walker",
+            "count": 1
+          }
+        ]
+      ],
+      "zombies_total": 15,
+      "zombies_by_kind": {
+        "walker": 10,
+        "runner": 2,
+        "conehead": 3
+      },
+      "avg_hp": 120.0,
+      "avg_speed": 20.4,
+      "sun_income_if_all_killed": 265
+    },
+    {
+      "name": "第 3 关 · 屋顶夜袭",
+      "start_sun": 200,
+      "first_wave_delay_sec": 10.0,
+      "wave_gap_sec": 16.0,
+      "spawn_interval_sec": 5.0,
+      "chapter_tint": "cfdff2",
+      "waves": 6,
+      "wave_composition": [
+        [
+          {
+            "kind": "walker",
+            "count": 3
+          }
+        ],
+        [
+          {
+            "kind": "walker",
+            "count": 2
+          },
+          {
+            "kind": "runner",
+            "count": 1
+          }
+        ],
+        [
+          {
+            "kind": "walker",
+            "count": 2
+          },
+          {
+            "kind": "conehead",
+            "count": 1
+          }
+        ],
+        [
+          {
+            "kind": "walker",
+            "count": 1
+          },
+          {
+            "kind": "runner",
+            "count": 2
+          }
+        ],
+        [
+          {
+            "kind": "conehead",
+            "count": 2
+          },
+          {
+            "kind": "buckethead",
+            "count": 1
+          }
+        ],
+        [
+          {
+            "kind": "walker",
+            "count": 1
+          },
+          {
+            "kind": "runner",
+            "count": 1
+          },
+          {
+            "kind": "conehead",
+            "count": 1
+          },
+          {
+            "kind": "buckethead",
+            "count": 1
+          }
+        ]
+      ],
+      "zombies_total": 19,
+      "zombies_by_kind": {
+        "walker": 9,
+        "runner": 4,
+        "conehead": 4,
+        "buckethead": 2
+      },
+      "avg_hp": 150.5,
+      "avg_speed": 21.37,
+      "sun_income_if_all_killed": 385
+    }
+  ],
+  "adjacent_deltas_pct": [
+    {
+      "from": "第 1 关 · 前院晨光",
+      "to": "第 2 关 · 后院黄昏",
+      "waves": 25.0,
+      "zombies_total": 25.0,
+      "avg_hp": 20.0,
+      "avg_speed": 13.3,
+      "spawn_interval_sec": -8.3,
+      "wave_gap_sec": -10.0,
+      "first_wave_delay_sec": -20.0
+    },
+    {
+      "from": "第 2 关 · 后院黄昏",
+      "to": "第 3 关 · 屋顶夜袭",
+      "waves": 20.0,
+      "zombies_total": 26.7,
+      "avg_hp": 25.4,
+      "avg_speed": 4.8,
+      "spawn_interval_sec": -9.1,
+      "wave_gap_sec": -11.1,
+      "first_wave_delay_sec": -16.7
+    }
+  ],
+  "difficulty_curve_within_30pct": true
+}
