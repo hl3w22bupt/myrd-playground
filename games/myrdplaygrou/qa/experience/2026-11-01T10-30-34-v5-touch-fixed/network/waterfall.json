@@ -1,0 +1,46 @@
+{
+  "entries": [
+    {
+      "url": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou",
+      "status": 200,
+      "critical": false,
+      "offsetMs": 530
+    },
+    {
+      "url": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/api/public/assets/index.js",
+      "status": 200,
+      "critical": true,
+      "offsetMs": 544
+    },
+    {
+      "url": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/api/public/assets/index.wasm.gz.b64",
+      "status": 200,
+      "critical": false,
+      "offsetMs": 566
+    },
+    {
+      "url": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/api/public/assets/index.pck.gz.b64",
+      "status": 200,
+      "critical": false,
+      "offsetMs": 566
+    },
+    {
+      "url": "https://leomac-studio.tail49399e.ts.net/favicon.ico",
+      "status": 200,
+      "critical": false,
+      "offsetMs": 579
+    },
+    {
+      "url": "blob:https://leomac-studio.tail49399e.ts.net/77bb19a9-8aae-4069-a5a9-617d73a575aa",
+      "status": 200,
+      "critical": false,
+      "offsetMs": 3902
+    },
+    {
+      "url": "blob:https://leomac-studio.tail49399e.ts.net/77bb19a9-8aae-4069-a5a9-617d73a575aa",
+      "status": 200,
+      "critical": false,
+      "offsetMs": 4977
+    }
+  ]
+}
