@@ -15,6 +15,7 @@ extends Node2D
 var director: WaveDirector
 var level_select: LevelSelect
 var result_overlay: ResultOverlay
+var tuning_panel: TuningPanel
 
 ## 扁平明快：氛围层压成纯色底、无粒子、无暗角（风格卡禁忌：渐变堆砌）。
 const AMBIENCE_FLAT: Dictionary = {
@@ -41,6 +42,14 @@ func _ready() -> void:
 	result_overlay = ResultOverlay.new()
 	result_overlay.name = "ResultOverlay"
 	add_child(result_overlay)
+	# 调参工作台（SKILL.md §3C）：URL 带 ?tuning= 才浮出面板（?tuning=<JSON> 也算）。
+	# is_enabled() 在桌面/无头恒为 false（eval 返回 null）—— 冒烟与本地运行零成本。
+	# ⚠️ 面板类必须有人实例化：tuning_panel.gd 只定义 class_name 不自建场景，
+	# 缺这段接线时线上 ?tuning=1 永远不出面板（v6 部署实证的隐性缺陷）。
+	if TuningPanel.is_enabled():
+		tuning_panel = TuningPanel.new()
+		tuning_panel.name = "TuningPanel"
+		add_child(tuning_panel)
 	cursor.field = field
 
 	# 信号接线：订阅方（本场景 / HUD）写连接，发布方（GameState / 实体）只 emit。
