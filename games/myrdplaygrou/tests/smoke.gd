@@ -1277,6 +1277,8 @@ func _check_blank_tap_feedback() -> void:
 	var after := String(level_select.call("blank_tap_feedback_text"))
 	if after == before:
 		_failures.append("选关页空白落点点按无可见反馈——「按了没反应」（触屏优先契约失守，mobile touch-response 同源）")
+	if not (level_select.call("blank_toast_visible") as bool):
+		_failures.append("选关页空白落点反馈 toast 未弹出（持久可见载体缺失——细文字带在移动端门禁 400 点指纹采样下会被漏采）")
 	if not (level_select.call("blank_catcher_pass_through") as bool):
 		_failures.append("选关页空白落点层非 PASS 透传（STOP 会吃掉空白落点手势，main.gd 首手势 Audio.ensure_playing 的 BGM 起播兜底依赖透传）")
 

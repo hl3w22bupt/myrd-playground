@@ -12,11 +12,16 @@ const LEVEL_TAGS: Array[String] = [
 	"教学", "标准", "快速", "紧缩", "夜战", "高压", "boss", "终局",
 ]
 
+## 空白落点 toast 停留秒数（须 ≥ mobile-web-smoke 的 tap 后 1.5s 截图窗）。
+const BLANK_TOAST_SECONDS: float = 4.0
+
 var _level_buttons: Array[Button] = []
 var _endless_button: Button
 var _grid: GridContainer
 var _status: Label
 var _blank_catcher: Control
+var _blank_toast: PanelContainer
+var _blank_toast_left: float = 0.0
 
 
 func _ready() -> void:
@@ -105,6 +110,25 @@ func _build() -> void:
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(hint)
 
+	# 空白落点 toast（绝对定位覆盖，不参与布局回流；IGNORE 不吃任何点按）：
+	# 状态行文字面积太小（0.09% 画面），400 点指纹采样期望命中 0.35 点会被漏采 ——
+	# 带边框双行面板（约 1.7% 画面、期望命中 6.8 点）才是「可见反馈」的可靠载体。
+	_blank_toast = PanelContainer.new()
+	var toast_box := FlatUI.box(FlatUI.PAPER, FlatUI.INK, 2, FlatUI.CORNER)
+	toast_box.content_margin_left = 18
+	toast_box.content_margin_right = 18
+	toast_box.content_margin_top = 14
+	toast_box.content_margin_bottom = 14
+	_blank_toast.add_theme_stylebox_override("panel", toast_box)
+	_blank_toast.custom_minimum_size = Vector2(320, 0)
+	var toast_label := FlatUI.label("点按关卡卡片开始防守\n通关一关解锁下一关", FlatUI.FONT_BODY, FlatUI.INK)
+	toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_blank_toast.add_child(toast_label)
+	_blank_toast.visible = false
+	_blank_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_blank_toast.z_index = 5
+	add_child(_blank_toast)
+
 
 ## 刷新入口态（每次 open 调用）：星级进度 + 无尽入口可见性（acc-level-select）。
 func _refresh_entries() -> void:
@@ -124,6 +148,7 @@ func _refresh_entries() -> void:
 		_level_buttons[i].set_meta(&"locked", locked)
 	_endless_button.visible = GameState.endless_unlocked
 	_status.text = " "
+	_hide_blank_toast()
 
 
 ## 无尽入口当前是否可见可点（冒烟机判 acc-playable-loop 的解锁断言入口）。
@@ -138,6 +163,14 @@ func open() -> void:
 
 func close() -> void:
 	visible = false
+	_hide_blank_toast()
+
+
+## 收起空白落点 toast（选关/进关/关闭时立即收起）。
+func _hide_blank_toast() -> void:
+	if _blank_toast != null:
+		_blank_toast.visible = false
+	_blank_toast_left = 0.0
 
 
 ## 键盘玩家的默认入口：confirm = 进第 1 关。
@@ -152,23 +185,48 @@ func _on_level_pressed(index: int) -> void:
 		Juice.sfx(&"fail")
 		Juice.pop(_level_buttons[index])
 		_status.text = "先通过第 %d 关，即可解锁第 %d 关" % [index, index + 1]
+		_hide_blank_toast()
 		return
 	Juice.sfx(&"confirm")
+	_hide_blank_toast()
 	level_selected.emit(index)
 
 
-## 空白落点反馈（卡片间隙/标题区/提示区）：状态行文字持久可见 + 网格弹跳，
-## 不允许「按了没反应」（触屏优先契约 + mobile-web-smoke touch-response 数据面）。
+## 空白落点反馈（卡片间隙/标题区/提示区）：落点处 toast（持久可见 4s）+ 状态行文字
+## + 网格弹跳，不允许「按了没反应」（触屏优先契约 + mobile-web-smoke touch-response）。
 func _on_blank_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed \
 			and event.button_index == MOUSE_BUTTON_LEFT:
 		_status.text = "点按关卡卡片开始防守 · 通关解锁下一关"
 		Juice.pop(_grid)
+		_show_blank_toast(event.position)
+
+
+## toast 定位在落点附近（钳制在视口内），BLANK_TOAST_SECONDS 后经 _process 收起。
+func _show_blank_toast(tap_pos: Vector2) -> void:
+	_blank_toast.visible = true
+	_blank_toast_left = BLANK_TOAST_SECONDS
+	_blank_toast.reset_size()
+	var margin := Vector2(16, 16)
+	_blank_toast.position = (tap_pos - _blank_toast.size / 2.0) \
+		.clamp(margin, _blank_toast.get_viewport_rect().size - _blank_toast.size - margin)
+
+
+func _process(delta: float) -> void:
+	if _blank_toast != null and _blank_toast.visible:
+		_blank_toast_left -= delta
+		if _blank_toast_left <= 0.0:
+			_blank_toast.visible = false
 
 
 ## 冒烟机判入口：空白落点反馈是否在位（状态行可写）。
 func blank_tap_feedback_text() -> String:
 	return _status.text
+
+
+## 冒烟机判入口：空白落点 toast 面板在反馈后可见（「可见反馈」的持久载体）。
+func blank_toast_visible() -> bool:
+	return _blank_toast != null and _blank_toast.visible
 
 
 ## 冒烟机判入口：空白落点层必须 PASS 透传 —— STOP 会吃掉空白落点的手势，
