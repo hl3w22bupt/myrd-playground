@@ -217,6 +217,7 @@ curl -X POST -H "Authorization: Bearer <token>" http://localhost:3111/api/v1/aut
 | POST | `/api/v1/channels` | 创建频道 |
 | GET | `/api/v1/channels/:id/messages` | 频道消息列表 |
 | POST | `/api/v1/channels/:id/messages` | 发送消息（含 AI 对话功能） |
+| POST | `/api/v1/channels/:id/forward` | 批量转发消息到其他频道（合并转发卡片） |
 | POST | `/api/v1/channels/:id/join` | 加入频道 |
 | GET | `/api/v1/channels/:id/members` | 频道成员列表 |
 | POST | `/api/v1/channels/by-focus` | 按 focus 创建或查找频道 |
@@ -251,7 +252,15 @@ curl -X POST -H "Authorization: Bearer <token>" http://localhost:3111/api/v1/aut
 | GET | `/api/v1/explorations` | 探索会话列表 |
 | POST | `/api/v1/explorations/messages` | 发送探索消息 |
 | GET | `/api/v1/explorations/detail` | 探索详情 |
+| DELETE | `/api/v1/explorations/detail` | 删除探索会话（硬删除，会话及全部消息彻底移除，不可恢复） |
 | POST | `/api/v1/explorations/actions` | 探索动作（展开/收起） |
+| POST | `/api/v1/explorations/:sessionId/archive` | 存档探索会话（创建只读快照后从主列表移除） |
+| GET | `/api/v1/exploration-archives` | 探索会话存档列表 |
+| GET | `/api/v1/exploration-archives/:archiveId` | 存档详情（含完整只读快照） |
+| DELETE | `/api/v1/exploration-archives/:archiveId` | 彻底删除存档（不可恢复） |
+
+> 语义区分：「删除」（DELETE `/api/v1/explorations/detail`）直接删除会话及其消息，不创建快照；
+> 「存档」（POST `/api/v1/explorations/:sessionId/archive`）将当前会话冻结成快照存入存档表后再从主列表移除，可随时在存档入口只读查看。
 
 ### 5.9 原型
 
@@ -260,7 +269,7 @@ curl -X POST -H "Authorization: Bearer <token>" http://localhost:3111/api/v1/aut
 | POST | `/api/v1/prototypes` | 创建原型 |
 | GET | `/api/v1/prototypes/:id` | 原型详情 |
 | PUT | `/api/v1/prototypes/:id/content` | 更新原型内容 |
-| POST | `/api/v1/prototypes/generate` | 生成原型（调用 AI） |
+| POST | `/api/v1/prototypes/generate` | 生成原型（调用 AI；来源二选一：requirementId 需求 / ideaId 点子） |
 
 ### 5.10 目标管理
 
@@ -566,3 +575,38 @@ curl -X POST http://localhost:3111/api/v1/workflows/:workflowId/run \
 
 > **文档维护**: MyRD Team
 > **最后更新**: 2026-07-30
+
+---
+
+## 九、编排视角能力目录（供目标管理大师等编排 Agent 使用）
+
+> 当你是一个**编排型 Agent**（如目标管理大师）时，不要直接把目标拆成通用研发阶段（方案设计→开发自测→代码评审→提交 PR），
+> 而是拆成下面的「平台原生操作序列」，让平台去执行。每个操作都会在平台上留下**真实实体**（需求 / 工作流 / Workflow Run / Task），
+> 可被聚合为「目标卡片」。
+
+| 节点类型 | 动作含义 | 何时使用 | 平台产物 |
+|---------|---------|---------|---------|
+| create_requirement | 录入需求到需求池（status=backlog） | 需要把目标的一部分固化为正式需求 | Requirement |
+| run_workflow | 运行工作流（可绑定需求） | 有现成工作流可执行 | WorkflowRun + PR |
+| create_bug | 录入 Bug | 发现并记录缺陷 | BugReport |
+| run_bug_workflow | 运行 Bug 修复工作流 | 需要修复已录入的 Bug | WorkflowRun + PR |
+| express_lane | 简单任务走直通车 | 任务足够小且明确 | ExpressLaneRun |
+| write_knowledge | 沉淀知识 | 产出结论/方案需要固化 | KnowledgeDoc |
+| assign_agent | 指派其他 agent 执行（可多个） | 无合适工作流时 | 子 agent 轨迹 |
+| temp_workflow | 创建临时工作流 | 无现成工作流且需多步执行 | 临时 WorkflowRun |
+
+### 关键节点进度上报（[CHECKPOINT] 标记）
+
+每完成一个平台操作，输出一行固定格式标记，供 host 解析驱动 UI 语义化进度：
+
+```
+[CHECKPOINT] {"op":"create_requirement","artifactId":"req_abc123","title":"用户注册","status":"completed","detail":"已录入需求池"}
+```
+
+- op 取值：`create_requirement | run_workflow | create_bug | run_bug_workflow | express_lane | write_knowledge | assign_agent | temp_workflow`
+- artifactId 必须是平台实体真实 id；status 取值 `completed | failed`；detail 一句话说明结果。
+
+---
+
+> **文档维护**: MyRD Team
+> **最后更新**: 2026-08-12

@@ -82,3 +82,17 @@
 ```
 
 验收标准必须可无头判定（能翻译成冒烟断言），否则门禁只能给出「能跑」而不能给出「做对了」。
+
+## 评估记录：本门禁要不要补「截图像素断言 + 双视口」（2026-10，对齐 threejs-game-skills 借鉴项）
+
+结论：**原生无头冒烟不补，像素级视觉验收由 web 导出线承接**——分工如下，不重复建设：
+
+1. **技术上不可行**：`smoke.sh` 走 `--headless`，Godot 用 dummy rendering 驱动，
+   `viewport.get_texture().get_image()` 拿不到真实画面 —— 截图 400 点像素采样（threejs
+   `browser-smoke.mjs` / cocos `tools/smoke.mjs` 的做法）在无头模式下没有输入。
+   强行补只能 xvfb / 真窗口跑非 headless，成本高且引入窗口环境依赖，不值。
+2. **职责已有人担**：Godot 线的「canvas 非空白像素检查 + 双时点帧差 + 分阶段截图」已由
+   `scripts/mobile-web-smoke.mjs` 实现（web 导出 + 移动仿真，400 点 16 级量化采样）——
+   它测的是部署后 liveUrl，属交付期门禁；`smoke.sh` 管引擎层「能不能跑」，两者互补不重叠。
+3. **桌面视口跑测**：Godot 桌面分发跑的是真渲染，未来若需要桌面像素断言，用
+   `--write-movie`（离屏逐帧出 PNG）比窗口截图更确定；暂无场景，先不做，留观察。
