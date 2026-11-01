@@ -138,5 +138,5 @@ func _touch_ui_should_show() -> bool:
 
 func _input_hint() -> String:
 	if _touch_ui_should_show():
-		return "点按草坪布防 · 点按阳光收集 · 按钮重开/静音"
-	return "WASD / 方向键移动光标 · 空格放置 · R 重开"
+		return "点按草坪布防 · 点按阳光收集 · 顶栏按钮重开/静音"
+	return "WASD / 方向键移动光标 · 空格放置 · 顶栏按钮重开/静音"
