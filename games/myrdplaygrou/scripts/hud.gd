@@ -182,7 +182,7 @@ func _refresh_cards() -> void:
 		var border_w := 3 if selected else 2
 		var detail := "%d" % GameState.card_cost_of(id)
 		if reason == "冷却中":
-			detail = "冷却 %.0fs" % ceill(cooldown_left)
+			detail = "冷却 %.0fs" % ceili(cooldown_left)
 		elif reason == "阳光不足":
 			detail = "缺阳光"
 		elif reason == "未选卡":

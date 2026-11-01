@@ -4,7 +4,7 @@ extends SceneTree
 ## 用法（工程根运行）：
 ##   godot --headless --path . -s res://tools/gen_bgm.gd
 ##
-## 产物：assets/sfx/bgm.wav（16-bit PCM mono，22050Hz，约 18.5s 无缝循环）。
+## 产物：assets/sfx/bgm.wav（16-bit PCM mono，22050Hz，约 55.4s 无缝循环 = 8 小节曲式 × 3 轮）。
 ## 资产治理协议（SKILL.md §7B）：generated 资产，generator=procedural:tools/gen_bgm.gd；
 ## 同配方同产物（确定性音序表 + 固定噪声种子），改音序重跑本工具即再生成。
 ##
@@ -16,7 +16,10 @@ const SAMPLE_RATE: int = 22050
 const BPM: float = 104.0
 const BEAT: float = 60.0 / BPM          # 一拍秒数
 const BEATS_PER_BAR: int = 4
-const BARS: int = 8
+## 总小节数 = 8 小节曲式 × 3 轮 ≈ 55.4s（spec assets「bgm-loop 约 60s 循环」口径）；
+## 和弦/旋律表都按 8 小节取模循环，末句回落主音，循环接缝仍无缝。
+const BARS: int = 24
+const FORM_BARS: int = 8
 const NOISE_SEED: int = 20261101        # 确定种子：同配方同产物
 
 ## 和弦进行（MIDI 音高）：C / G / Am / F ×2，贝斯用根音低两个八度。
@@ -80,7 +83,8 @@ func _initialize() -> void:
 		var beat_t := fmod(t, BEAT)
 		var bar_idx := int(beat_idx / float(BEATS_PER_BAR))
 		var step_len := BEAT * 0.5
-		var step := mini(int(t / step_len), MELODY.size() - 1)
+		# 旋律按 8 小节曲式取模循环（总长 = FORM_BARS × 轮数），越界即回卷
+		var step := int(t / step_len) % MELODY.size()
 
 		# 贝斯：方波根音，每拍一枚
 		var root := _freq(CHORD_ROOTS[bar_idx % CHORD_ROOTS.size()] - 24)

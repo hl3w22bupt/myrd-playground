@@ -31,6 +31,7 @@ const SUN_PICKUP := Color("f1c40f")      ## 阳光拾取物（本体 + 计数数
 const ZOMBIE_BODY := Color("bdc3c7")     ## 僵尸四类统一浅灰基底（识别色只上头饰）
 const UI_BASE := Color("22313f")         ## HUD 深底
 const UI_TEXT := Color("ecf0f1")         ## HUD 深底上的常规文本
+const UI_PRIMARY := Color("3498db")      ## UI 主色件（按钮/卡片）= 辅色同值
 const SHADOW := Color(0.0, 0.0, 0.0, 0.25)  ## 前景主体投影（rgba(0,0,0,.25)，偏移 2px）
 
 ## ── 三档字号（标题 / HUD 正文 / 辅助信息）──

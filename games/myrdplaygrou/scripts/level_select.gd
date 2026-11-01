@@ -49,7 +49,8 @@ func _build() -> void:
 		var cfg: Dictionary = GameState.LEVELS[i]
 		var button := Button.new()
 		FlatUI.apply_button(button, FlatUI.GREEN_LIGHT)
-		button.text = "第%d关 %s\n%d 波 · %s" % [i + 1, cfg.get("name", ""), int(cfg.get("waves", 0)), LEVEL_TAGS[mini(i, LEVEL_TAGS.size() - 1)]]
+		button.text = "第%d关 %s\n%d 波 · %s" % [i + 1, cfg.get("name", ""),
+			(cfg.get("waves", []) as Array).size(), LEVEL_TAGS[mini(i, LEVEL_TAGS.size() - 1)]]
 		button.custom_minimum_size = Vector2(236, 96)
 		button.focus_mode = Control.FOCUS_NONE
 		button.pressed.connect(_on_level_pressed.bind(i))

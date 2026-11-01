@@ -167,8 +167,19 @@ window.__GAME_TUNING__ = (function () {
 		};
 	}
 	// ③ 真机取证出口：手机上打开控制台不便，全部观测收敛到一个函数。
+	//    spec audio.audioContextUnlock.machineCheck：返回 {unlocked, muted, bgmPlaying}，
+	//    mobile-web-smoke 的 audio-unlock 项以解锁后 unlocked === true 且 BGM 起播为机判依据；
+	//    muted / bgmPlaying 由游戏侧 Audio._publish_state() 写到 window.__GAME_AUDIO_STATE__。
 	window.__audioDebug = function () {
-		return { state: audioCtx ? audioCtx.state : 'no-ctx', addModules: audioAddModules, log: audioLog };
+		var gameState = window.__GAME_AUDIO_STATE__ || {};
+		return {
+			state: audioCtx ? audioCtx.state : 'no-ctx',
+			addModules: audioAddModules,
+			log: audioLog,
+			unlocked: !!(audioCtx && audioCtx.state === 'running'),
+			muted: !!gameState.muted,
+			bgmPlaying: !!gameState.bgmPlaying
+		};
 	};
 }());
 </script>

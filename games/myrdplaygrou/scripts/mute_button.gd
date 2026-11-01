@@ -11,12 +11,12 @@ func _ready() -> void:
 	layer = 40
 	visible = true
 	_button = Button.new()
-	FlatUI.apply_button_on_dark(_button, FlatUI.UI_BASE)
+	FlatUI.apply_button_on_dark(_button, FlatUI.UI_BASE, FlatUI.FONT_ASSIST)
 	_button.text = _label()
-	_button.custom_minimum_size = Vector2(56, 48)
+	_button.custom_minimum_size = Vector2(72, 48)
 	_button.focus_mode = Control.FOCUS_NONE
 	_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	_button.offset_left = -60.0
+	_button.offset_left = -76.0
 	_button.offset_top = 8.0
 	_button.offset_right = -4.0
 	_button.offset_bottom = 56.0
@@ -25,7 +25,7 @@ func _ready() -> void:
 
 
 func _label() -> String:
-	return "♪ 关" if Audio.is_muted() else "♪ 开"
+	return "音效 关" if Audio.is_muted() else "音效 开"
 
 
 func _on_pressed() -> void:
