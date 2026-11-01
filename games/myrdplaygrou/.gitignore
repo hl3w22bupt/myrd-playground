@@ -1,0 +1,10 @@
+# Godot 本机导入缓存：由 `godot --headless --path . --import` 重新生成，不进版本库
+.godot/
+
+# 导出产物
+/export/
+*.exe
+*.zip
+
+# 系统
+.DS_Store

@@ -32,7 +32,7 @@ tests/                # acceptance.check 指向的可执行检查
 .myrd/spec/design-spec.json   # approved 版导出件（契约测试输入）
 ```
 
-3. 实体/关卡/数值的命名与落点**必须**与 spec 声明一致 —— `scripts/contract-check.mjs` 会逐个断言。
+3. 实体/关卡/数值的命名与落点**必须**与 spec 声明一致 —— `std-skills/godot-game-dev/scripts/contract-check.mjs` 会逐个断言。
 
 ## 2. 游戏循环骨架（三条硬规则）
 
@@ -43,7 +43,7 @@ tests/                # acceptance.check 指向的可执行检查
 ## 3. 一致性契约（实现与 spec 的机器可判耦合）
 
 ```bash
-node scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --project .
+node std-skills/godot-game-dev/scripts/contract-check.mjs --spec .myrd/spec/design-spec.json --project .
 ```
 
 - spec 声明的实体 `script`、关卡 `scene`、验收 `check` 落点文件必须存在；
