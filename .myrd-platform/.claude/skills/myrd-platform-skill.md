@@ -241,9 +241,11 @@ curl -X POST -H "Authorization: Bearer <token>" http://localhost:3111/api/v1/aut
 | POST | `/api/v1/workflows` | 创建工作流 |
 | POST | `/api/v1/workflows/:id/run` | 执行工作流 |
 | GET | `/api/v1/workflows/:id/versions` | 版本列表 |
+| GET | `/api/v1/workflows/runs/:runId` | 运行详情（status / nodes 各节点状态） |
+| PATCH | `/api/v1/workflows/runs/:runId` | run 控制：body `{"action":"cancel"|"pause"|"resume"}`。**处置被取代/误派的在途 run 用 cancel**——中止在飞执行并标记 `cancelled`（不可恢复） |
 | POST | `/api/v1/workflows/runs/:runId/rerun` | 重新执行 |
 | POST | `/api/v1/workflows/runs/:runId/iterate` | 迭代运行 |
-| POST | `/api/v1/workflows/runs/:runId/stop-loop` | 停止循环 |
+| POST | `/api/v1/workflows/runs/:runId/stop-loop` | 强制终止回环（**中止在飞执行并标记 `failed`**）。仅用于回环失控时强停，不要用它「停掉」run——语义是判失败，不是取消 |
 
 ### 5.8 探索
 
