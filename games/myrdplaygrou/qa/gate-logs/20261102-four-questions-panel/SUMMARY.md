@@ -74,3 +74,14 @@ health      -> 200 {"ok":true,"app":"myrdplaygrou",...}（既有路由不受影�
   `https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/?tuning=1`。
 - v6（7a79216）已过全部六门禁是保底合入对象；本节点改动已在**合流后的分支头**上过本地门禁
   （preflight+smoke 必查项之外 fuzz/playtest 也绿），按节点口径随 v6 一起合入 main。
+
+## 6. 合入记录（产物要求：记录合并后 main 的 HEAD 哈希）
+
+| 项 | 值 | 取证方式 |
+|---|---|---|
+| 合入前 origin/main | `9fbc1dc`（fetch 后 0 个新提交 = 无冲突，可安全合入） | `git fetch` + `git rev-list --count HEAD..origin/main` = 0 |
+| 功能分支推送 | `739fab4`（远端已确认） | GitHub API branches/<branch> |
+| **合并后 main HEAD** | **`13838d9e5fa45a0aebdba29ab975ae311cf7af8e`** | GitHub API branches/main（merge commit `merge(pvz-web): 功能分支合入 main …`，--no-ff） |
+| 验证 | 远端 API 直查（非本地缓存口径） | `curl api.github.com/repos/hl3w22bupt/myrd-playground/branches/main` |
+
+合入后工作区已切回功能分支 `myrd/pvz-web-goal-cmvxjycvn001zm905jnwpyliv`（同一功能线后续节点继续）。
