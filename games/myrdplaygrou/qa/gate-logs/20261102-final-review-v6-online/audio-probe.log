@@ -1,0 +1,24 @@
+  画布 390x844 · 拉伸 s=0.3809 oy=0.0
+── 相位 A：首手势前静音取证（5s）──
+  选关按钮簇 ×4（最上排 4），第 1 关按钮 @(1,419) 91x57
+── 相位 B：首次触摸手势解锁 + 选关 ──
+  点按第 1 关 → css (31,433)
+  引擎渲染几何: {"camera_anchor":1,"camera_center_x":512,"camera_center_y":1108,"camera_offset_x":0,"camera_offset_y":0,"camera_x":512,"camera_y":1108,"camera_zoom":1,"field_y":788,"hud_content_height":283.569230769231,"stretch_scale":1.142578125,"visible_h":2216,"visible_w":1024,"window_h":2532,"window_w":1170}
+── 相位 C：布防音效取证 ──
+  战场让位 fieldY=788 设计px，草坪 (2,2) → css (134,419)
+── 相位 D：BGM 真实能量采样（8s）──
+── 相位 E：波次音效取证（预期 +15s ≈ 还需 5.1s）──
+── 相位 F：静音开关端到端能量验证 ──
+  音效开关（HUD 卡槽行）→ css (352,80)
+── 相位 G：部署产物一致性（线上 pck sha256 + 音频资产在包内）──
+── 机判 ──
+  PASS  AnalyserNode 已串入引擎输出链（connect 改道 >0 且采样窗 >0）
+  PASS  首手势前真实静音（能量 < -58dBFS） + ctx suspended
+  PASS  首次触摸手势解锁 AudioContext（→ running）
+  PASS  BGM 真实出声（持续能量 ≥ -48dBFS，非仅 bgmPlaying 标志）
+  PASS  音效真实出声（触发后出现能量尖峰，非仅事件日志）
+  PASS  静音点击后能量即时归零（端到端，非仅 muted 标志）
+  PASS  取消静音后能量恢复（≥ -48dBFS）
+  PASS  部署产物含音频构建（线上 pck 解压 sha256 与本地导出一致 + 18 个音频资产在包内）
+  PASS  取证全程 console 零 error + 零未捕获异常
+AUDIO_PROBE: PASS（证据：/Users/leo/.myrd/workspaces/cmvqriupu0007m9qphvokoci9/run-goal-cmvxjycvn001zm905jnwpyliv/games/myrdplaygrou/qa/gate-logs/20261102-final-review-v6-online/audio-probe）

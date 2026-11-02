@@ -1,0 +1,4 @@
+# 线上 pck 取证（2026-11-02T11:06:46Z）：GET /apps/myrdplaygrou/api/public/assets/index.pck → HTTP 200，b64 文本 10,015,428 B，gzip 解码 8,210,496 B
+sha256 76b09d9b94f369547180df1b8908f089e2c35ff57eaa5d9523aa481fcb0095bc
+≠ v14 旧包 32d79ee289bd5184cb6cc57264ffa20df7ac32bbe159b42bfd11ba1153f3562a（26c7b62）✓ 新版已上线
+= 本地 HEAD / origin/main（13838d9）export/web/index.pck 逐字节一致 ✓ 部署的就是这份代码
