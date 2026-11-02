@@ -9,3 +9,6 @@ coverage
 # 判定脚本运行期暂存目录（playtest.sh / input-fuzz.sh 现场生成、退出即删；入库 = 污染 pck）
 tests/.playtest/
 tests/.fuzz/
+# mobile-web-smoke 判定脚本的运行期输出（报告 + 分阶段截图落 scripts/qa/mobile/）；
+# 证据一律随 games/<game>/qa/ 归档入库，判定脚本自身目录不留运行产物
+std-skills/godot-game-dev/scripts/qa/

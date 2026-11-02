@@ -63,6 +63,7 @@ v2 `spec.acceptance` 共 13 条：`acc-playable-loop` / `acc-level-select` / `ac
 | 全程无占位（`acc-no-placeholder`） | 冒烟「日志无 SCRIPT ERROR」+ 资产进包核查 | 坦克巨尸完整扁平绘制（含受击/倒地/碾压态）；13 音频资产 pck 字节级在包核查随导出执行 |
 | 扁平色板/对比度（`acc-flat-palette` / `acc-contrast`） | `_check_contrast` | 色对 11→12 对（+夜幕剪影对 4.39）；章节配色扩四套（+正午暖黄） |
 | 试玩逐关覆盖 | `playtest_driver.gd`（仓库判定器）× `main.gd` 轮换钩子 × `GameState.playtest_level_cursor` | 保持：3 局种子逐局对准关卡表前 3 关（`[main] playtest run -> level N` 证据行进门禁日志） |
+| 试玩反馈四问回填（?tuning=1 面板 → spec.numeric 修订建议，owner 拍板后入链） | `tests/smoke.gd::_check_four_questions_contract` | 新增（本节点）：面板脚本工程内可编译可实例化 + 无头不创建；映射层机判——缺答拒产出（不得代填）/ 全刚好零建议 / Q1-Q3 方向与曲线严格递增 / 第 1 关教学入口不动 / Q4 用户原话逐字透传 / tuning_applied 恒 false / 默认值快照比对不变（不得直接改代码默认值）；契约详见 `docs/tuning-feedback-four-questions.md` |
 
 > 逐关取证行（v3）：冒烟日志逐关打印 `[smoke] 第 N 关通关（…，★n，hpScale x.xx）` 与
 > `[smoke] 无尽模式探针通过（…）`；试玩日志逐局打印 `[main] playtest run -> level N`

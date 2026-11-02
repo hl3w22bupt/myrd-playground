@@ -3,6 +3,11 @@
 > 对应策划案契约（spec.numeric / spec.assets，链 `cmvy3ccqq0010m9y06sz653gh` 上最新 approved 版
 > = v3 八关机制差异化/难度曲线上调/真实出声机判）的工程内镜像。改数值 = 先改策划案（产生新版本）
 > 再同步这里与 `autoload/game_state.gd`，禁止两头各改各的。
+>
+> 试玩调参的新入口：调参工作台（`?tuning=1`）内嵌「试玩反馈四问」回填面板 —— 用户亲手点选
+> 四问后生成 spec.numeric 修订建议，经目标 owner 拍板 tuning_applied 才走 revisions 入链并
+> 同步本文件与 `autoload/game_state.gd` 默认值；契约与数据流见
+> `docs/tuning-feedback-four-questions.md`（冒烟第 19 项机判，默认值不许面板/映射层直接改）。
 
 ## 1. 内容表（spec.entities / numeric.plants / numeric.zombies）
 

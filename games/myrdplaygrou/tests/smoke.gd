@@ -51,6 +51,12 @@ extends Node
 ##  16. 键位契约：动作已注册 + 承诺的物理键全部绑定（逐键 AND）
 ##  17. 操作说明不常驻：开局提示可见，hint_show_seconds 后自动开始淡出
 ##  18. 调参协议：TUNING_META 非空；apply_tuning 应用/拒绝/钳制，检查后恢复原值
+##  19. 试玩反馈四问契约（?tuning=1 回填面板）：面板脚本工程内可编译可实例化 +
+##      网页门禁（无头 is_enabled=false）；映射层机判——四问缺一不产出（不得代填）、
+##      全「刚好/3 星」零建议（不虚构诉求）、Q1/Q2/Q3 方向与单调性（curveRule）、
+##      第 1 关教学入口不动、Q4 用户原话逐字透传、tuning_applied 恒 false、
+##      derive 全程只读（默认值快照比对不变 = 不得直接改代码默认值）、
+##      revisions API 契约字段 + 壳层中继路径常量
 ##
 ## ⚠️ 输入注入分两个阶段、互不重叠（error-signatures E-08）：
 ##   headless 下 `Input.parse_input_event()` 的缓冲冲刷会清掉 `Input.action_press()` 状态，
@@ -238,6 +244,7 @@ func _ready() -> void:
 	_check_audio_contract()
 	_check_key_bindings()
 	_check_tuning_protocol()
+	_check_four_questions_contract()
 	_wire_signals()
 
 
@@ -618,6 +625,239 @@ func _check_tuning_protocol() -> void:
 	# 立即恢复：协议检查不得污染被测状态（钳制值可能被后续断言误当真实数值）
 	GameState.fire_interval = original_fire
 	GameState.cursor_move_speed = original_cursor
+
+
+## ── 19. 试玩反馈四问契约（?tuning=1 回填面板 → spec.numeric 修订建议）──
+## 机判面（映射层 = TuningFeedback，纯静态、可无头）：
+##   a. 面板脚本在本工程上下文可编译可实例化（拦「有类无实例」的编译盲区）+ 网页门禁
+##      is_enabled() 无头返回 false（桥不存在 = 面板永不创建，冒烟零成本）
+##   b. 完整性：四问缺一不可（missing_fields 四键），derive 对不完整答案拒绝产出
+##      —— 「不得代填」的机判：没有用户点选就没有建议
+##   c. 全「刚好/3 星」→ 0 条建议（不虚构调参诉求）；tuning_applied 恒 false
+##   d. Q1 方向机判：太短 → 节奏参数全部上调、太长 → 全部下调（含钳制边界）
+##   e. Q2 方向 + 曲线单调性机判：太难 → 缩短起点后逐关严格递增保持（curveRule），
+##      未附关卡号默认自第 2 关起、第 1 关教学入口不动；太容易 → 上调
+##   f. Q3：1-2 星 → 加压上调档、4-5 星 → 下调档、3 星 → 无建议
+##   g. Q4：≤2 星且附一句话 → 用户原话逐字透传（user_note + detail）；
+##      ≥4 星 → 不产生内容建议
+##   h. 每问只收用户亲手输入：derive 全程只读 —— 快照 TUNING_META 全键 + LEVELS
+##      四个可调键，跑完全部映射后逐键比对不变（「不得直接改代码默认值」机判）
+##   i. revisions API 契约字段：endpoint/method/body_shape + 壳层中继路径常量
+func _check_four_questions_contract() -> void:
+	var panel_script: GDScript = load("res://scripts/tuning_panel.gd")
+	if panel_script == null or not panel_script.can_instantiate():
+		_failures.append("四问契约：tuning_panel.gd 在工程上下文编译失败（有类无实例盲区复发）")
+		return
+	var panel: CanvasLayer = panel_script.new()
+	if panel == null:
+		_failures.append("四问契约：TuningPanel 实例化失败")
+	else:
+		if TuningPanel.is_enabled():
+			_failures.append("四问契约：无头环境 is_enabled() 应为 false（面板只随 ?tuning 网页创建）")
+		panel.free()
+
+	var defaults_before := _snapshot_tunable_defaults()
+	var all_right := {
+		TuningFeedback.Q1_DURATION: TuningFeedback.DURATION_JUST_RIGHT,
+		TuningFeedback.Q2_DIFFICULTY: TuningFeedback.DIFFICULTY_JUST_RIGHT,
+		TuningFeedback.Q3_TENSION_STARS: 3,
+		TuningFeedback.Q4_FUN_STARS: 3,
+	}
+	if TuningFeedback.missing_fields({}).size() != 4:
+		_failures.append("四问契约：空答案的缺答清单应为 4 项（四问缺一不可）")
+	if not TuningFeedback.derive({}).is_empty():
+		_failures.append("四问契约：不完整答案被 derive 接受（不得代填失守）")
+	var neutral: Dictionary = TuningFeedback.derive(all_right)
+	if neutral.is_empty() or not (neutral["suggestions"] as Array).is_empty():
+		_failures.append("四问契约：全「刚好/3 星」不应产出任何修订建议（不虚构诉求）")
+	if bool(neutral.get("tuning_applied", true)):
+		_failures.append("四问契约：tuning_applied 应恒为 false（拍板权在目标 owner）")
+	_check_basis_contract(neutral)
+
+	_check_q1_contract()
+	_check_q2_contract()
+	_check_q3_contract()
+	_check_q4_contract()
+
+	var defaults_after := _snapshot_tunable_defaults()
+	for key: String in defaults_before:
+		if not is_equal_approx(float(defaults_before[key]), float(defaults_after[key])):
+			_failures.append("四问契约：映射层改写了默认值 %s（%s → %s）—— 只许建议不许动手" % [
+				key, defaults_before[key], defaults_after[key]])
+
+	_check_suggestion_relay_contract()
+
+
+func _neutral_answers() -> Dictionary:
+	return {
+		TuningFeedback.Q1_DURATION: TuningFeedback.DURATION_JUST_RIGHT,
+		TuningFeedback.Q2_DIFFICULTY: TuningFeedback.DIFFICULTY_JUST_RIGHT,
+		TuningFeedback.Q3_TENSION_STARS: 3,
+		TuningFeedback.Q4_FUN_STARS: 3,
+	}
+
+
+## TUNING_META 全键 + LEVELS 四个可调键的快照（「映射层只读」机判的比对基线）。
+func _snapshot_tunable_defaults() -> Dictionary:
+	var snapshot: Dictionary = {}
+	for key: StringName in GameState.TUNING_META:
+		snapshot[String(key)] = float(GameState.get(String(key)))
+	for i in GameState.LEVELS.size():
+		var level: Dictionary = GameState.LEVELS[i]
+		for key: String in ["hp_scale", "speed_scale", "first_wave_delay", "wave_gap"]:
+			snapshot["levels[%d].%s" % [i, key]] = float(level.get(key, 0.0))
+	return snapshot
+
+
+## basis + revisions API 契约字段（载荷要能直接指导 POST /revisions 入链）。
+func _check_basis_contract(neutral: Dictionary) -> void:
+	var basis: Dictionary = neutral.get("basis", {})
+	if String(basis.get("revisions_method", "")) != "POST":
+		_failures.append("四问契约：basis.revisions_method 应为 POST")
+	if not String(basis.get("revisions_endpoint", "")).contains("/revisions"):
+		_failures.append("四问契约：basis.revisions_endpoint 缺 revisions API 路径")
+	var head := TuningFeedback.SPEC_CHAIN_HEAD
+	if String(basis.get("revisions_endpoint", "")) != TuningFeedback.REVISIONS_ENDPOINT_TEMPLATE % head:
+		_failures.append("四问契约：revisions_endpoint 与链头常量不一致（%s）" % head)
+	if not String(neutral.get("detail", "")).contains("tuning_applied=false"):
+		_failures.append("四问契约：detail 缺拍板语义声明（tuning_applied=false）")
+
+
+## Q1：太短全部上调 / 太长全部下调，且落在钳制边界内。
+func _check_q1_contract() -> void:
+	for case: Array in [
+		[TuningFeedback.DURATION_TOO_SHORT, 1],
+		[TuningFeedback.DURATION_TOO_LONG, -1],
+	]:
+		var answers := _neutral_answers()
+		answers[TuningFeedback.Q1_DURATION] = case[0]
+		var payload: Dictionary = TuningFeedback.derive(answers)
+		var q1: Dictionary = {}
+		for suggestion: Dictionary in payload["suggestions"]:
+			if String(suggestion["question"]) == String(TuningFeedback.Q1_DURATION):
+				q1 = suggestion
+		if q1.is_empty():
+			_failures.append("四问契约：Q1=%s 未产出节奏建议" % case[0])
+			continue
+		if String(q1["direction"]) != ("up" if case[1] > 0 else "down"):
+			_failures.append("四问契约：Q1=%s 方向应为 %s" % [case[0], case[1]])
+		for value: Dictionary in q1["values"]:
+			var from := float(value["from"])
+			var to := float(value["to"])
+			if case[1] > 0 and to <= from:
+				_failures.append("四问契约：Q1 太短的上调建议未生效（%s %s→%s）" % [value["key"], from, to])
+			if case[1] < 0 and to >= from:
+				_failures.append("四问契约：Q1 太长的下调建议未生效（%s %s→%s）" % [value["key"], from, to])
+			if to < TuningFeedback.FIRST_WAVE_DELAY_MIN - 0.01 or to > TuningFeedback.WAVE_GAP_MAX + 0.01:
+				_failures.append("四问契约：Q1 建议值越出钳制边界（%s →%s）" % [value["key"], to])
+
+
+## Q2：方向、缩放起点、曲线严格递增、第 1 关教学入口不动。
+func _check_q2_contract() -> void:
+	for case: Array in [
+		[TuningFeedback.DIFFICULTY_TOO_HARD, 3, "down"],
+		[TuningFeedback.DIFFICULTY_TOO_EASY, 0, "up"],
+		# 附第 1 关 = 起点钳制到第 2 关（教学入口不动的硬规则），且单调性须从 L1 基线续上
+		[TuningFeedback.DIFFICULTY_TOO_HARD, 1, "down"],
+	]:
+		var answers := _neutral_answers()
+		answers[TuningFeedback.Q2_DIFFICULTY] = case[0]
+		if int(case[1]) > 0:
+			answers[TuningFeedback.Q2_DIFFICULTY_LEVEL] = case[1]
+		var payload: Dictionary = TuningFeedback.derive(answers)
+		var q2: Dictionary = {}
+		for suggestion: Dictionary in payload["suggestions"]:
+			if String(suggestion["question"]) == String(TuningFeedback.Q2_DIFFICULTY):
+				q2 = suggestion
+		if q2.is_empty():
+			_failures.append("四问契约：Q2=%s 未产出曲线建议" % case[0])
+			continue
+		if String(q2["direction"]) != String(case[2]):
+			_failures.append("四问契约：Q2=%s 方向应为 %s" % [case[0], case[2]])
+		var expected_start := maxi(int(case[1]), TuningFeedback.DIFFICULTY_DEFAULT_START_LEVEL) \
+				if int(case[1]) > 0 else TuningFeedback.DIFFICULTY_DEFAULT_START_LEVEL
+		if int(q2["start_level"]) != expected_start:
+			_failures.append("四问契约：Q2 建议起点应自第 %d 关（实得 %s）" % [expected_start, q2["start_level"]])
+		var curves: Dictionary = {"hp_scale": [], "speed_scale": []}
+		for value: Dictionary in q2["values"]:
+			var level := int(value["level"])
+			if level < expected_start:
+				_failures.append("四问契约：Q2 建议越过了缩放起点（第 %d 关 < 起点 %d）" % [level, expected_start])
+			if level == 1:
+				_failures.append("四问契约：Q2 动了第 1 关教学入口（curveRule 基线）")
+			(curves[String(value["key"])] as Array).append(value)
+		for key: String in curves:
+			var entries: Array = curves[key]
+			var expected_entries := GameState.LEVELS.size() - expected_start + 1
+			if entries.size() != expected_entries:
+				_failures.append("四问契约：Q2 %s 建议应覆盖第 %d-%d 关全部 %d 关（实得 %d 条）" % [
+					key, expected_start, GameState.LEVELS.size(), expected_entries, entries.size()])
+			# 单调性从第 1 关现行值起验：缩放起点前曲线不动，起点后必须严格递增
+			# （未缩放的第 1 关也是基线 —— 拦「起点级被缩放到低于教学入口」的回落）
+			var previous := float(GameState.LEVELS[0].get(key, 1.0))
+			for value: Dictionary in entries:
+				var to := float(value["to"])
+				if previous >= 0.0 and to <= previous:
+					_failures.append("四问契约：Q2 %s 建议破坏逐关严格递增（curveRule）" % key)
+				previous = to
+
+
+## Q3：1-2 星上调加压 / 4-5 星下调 / 3 星无建议。
+func _check_q3_contract() -> void:
+	for case: Array in [[1, "up"], [5, "down"], [3, "none"]]:
+		var answers := _neutral_answers()
+		answers[TuningFeedback.Q3_TENSION_STARS] = case[0]
+		var payload: Dictionary = TuningFeedback.derive(answers)
+		var q3: Dictionary = {}
+		for suggestion: Dictionary in payload["suggestions"]:
+			if String(suggestion["question"]) == String(TuningFeedback.Q3_TENSION_STARS):
+				q3 = suggestion
+		if String(case[1]) == "none":
+			if not q3.is_empty():
+				_failures.append("四问契约：Q3=3 星不应产出建议（不虚构诉求）")
+			continue
+		if q3.is_empty():
+			_failures.append("四问契约：Q3=%d 星未产出紧张感建议" % int(case[0]))
+			continue
+		if String(q3["direction"]) != String(case[1]):
+			_failures.append("四问契约：Q3=%d 星方向应为 %s" % [int(case[0]), case[1]])
+		for value: Dictionary in q3["values"]:
+			if String(value["key"]) == "bgm_volume":
+				var up := float(value["to"]) > float(value["from"])
+				if up != (String(case[1]) == "up"):
+					_failures.append("四问契约：Q3 bgm_volume 建议档与方向不符")
+
+
+## Q4：≤2 星透传用户原话 / ≥4 星无内容建议。
+func _check_q4_contract() -> void:
+	var note := "希望多点可以减速的植物"
+	var answers := _neutral_answers()
+	answers[TuningFeedback.Q4_FUN_STARS] = 2
+	answers[TuningFeedback.Q4_SUGGESTION] = note
+	var payload: Dictionary = TuningFeedback.derive(answers)
+	var q4: Dictionary = {}
+	for suggestion: Dictionary in payload["suggestions"]:
+		if String(suggestion["question"]) == String(TuningFeedback.Q4_FUN_STARS):
+			q4 = suggestion
+	if q4.is_empty():
+		_failures.append("四问契约：Q4=2 星未产出内容建议")
+	elif String(q4.get("user_note", "")) != note:
+		_failures.append("四问契约：Q4 一句话建议未逐字透传（用户原话被加工）")
+	elif not String(payload["detail"]).contains(note):
+		_failures.append("四问契约：修订说明未带上用户原话")
+
+	var happy := _neutral_answers()
+	happy[TuningFeedback.Q4_FUN_STARS] = 5
+	var happy_payload: Dictionary = TuningFeedback.derive(happy)
+	for suggestion: Dictionary in happy_payload["suggestions"]:
+		if String(suggestion["question"]) == String(TuningFeedback.Q4_FUN_STARS):
+			_failures.append("四问契约：Q4=5 星不应产出内容建议")
+
+
+## 壳层中继路径常量（面板 POST 与 shell 路由的对接面；两端任一改名即红）。
+func _check_suggestion_relay_contract() -> void:
+	if TuningFeedback.RELAY_PATH != "api/public/feedback/spec-revision":
+		_failures.append("四问契约：壳层中继路径常量漂移（%s）——面板与 shell index.ts 需同改" % TuningFeedback.RELAY_PATH)
 
 
 ## ── 帧驱动（相位状态机）──
@@ -1288,7 +1528,7 @@ func _report() -> void:
 	for key: String in _tuning_backup:
 		GameState.set(key, _tuning_backup[key])
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 选关/选关空白落点反馈/四轴方向移动/教学引导/布防/出战卡/提示淡出/射击/掉落收集/失败/重开/下一波/八关逐关通关/关卡推进/逐关难度生效/夜幕剪影/坦克巨尸碾压/星级结算/无尽模式/键位契约/内容表/难度曲线锚点/对比度/音频契约与bus音量/调参协议 全部通过")
+		print("GODOT_SMOKE: PASS 选关/选关空白落点反馈/四轴方向移动/教学引导/布防/出战卡/提示淡出/射击/掉落收集/失败/重开/下一波/八关逐关通关/关卡推进/逐关难度生效/夜幕剪影/坦克巨尸碾压/星级结算/无尽模式/键位契约/内容表/难度曲线锚点/对比度/音频契约与bus音量/调参协议/试玩反馈四问契约 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { ctx } from "#apphost";
 import { getAsset } from "./lib/asset-store";
+import { isOverSized, latest, parseAnswers, record, totalReceived } from "./lib/feedback-store";
 import { GAME_PAGE_HTML } from "./game-page";
 
 const app = new Hono();
@@ -52,6 +53,71 @@ app.get("/api/public/assets/:name{.+}", async (c) => {
   return c.body(asset.body, 200, {
     "Content-Type": contentType,
     "Cache-Control": "public, max-age=300",
+  });
+});
+
+/**
+ * 试玩反馈四问中继（?tuning=1 面板一键提交的落点；客户端常量在
+ * games/myrdplaygrou/scripts/tuning_feedback.gd RELAY_PATH —— 两端路径必须同改）。
+ *
+ * 职责边界（docs/tuning-feedback-four-questions.md §数据流）：
+ *   - POST 收下「用户亲手点选的四问答案 + 面板生成的修订建议载荷」，服务端校验答案形态后留痕；
+ *   - GET latest 供 goal agent 取回提交（owner 拍板 tuning_applied 后由 agent 走平台
+ *     POST /api/v1/game-design-specs/:id/revisions 正式入链）；
+ *   - 本中继不连平台、不持任何凭证、不代做修订 —— revisions 会产生新 approved 版本，
+ *     拍板权在目标 owner；数值权威在 GDScript 映射层（冒烟第 19 项机判）。
+ */
+app.post("/api/public/feedback/spec-revision", async (c) => {
+  const bodyText = await c.req.text();
+  if (isOverSized(bodyText)) {
+    return c.json({ success: false, error: { code: "PAYLOAD_TOO_LARGE", message: "反馈载荷超限（>32KB）" } }, 413);
+  }
+  let body: unknown;
+  try {
+    body = JSON.parse(bodyText) as unknown;
+  } catch {
+    return c.json({ success: false, error: { code: "BAD_JSON", message: "反馈载荷不是合法 JSON" } }, 400);
+  }
+  if (typeof body !== "object" || body === null || Array.isArray(body)) {
+    return c.json({ success: false, error: { code: "BAD_SHAPE", message: "反馈载荷必须是对象" } }, 400);
+  }
+  const payload = body as Record<string, unknown>;
+  const answers = parseAnswers(payload.answers);
+  if (answers === null) {
+    return c.json({
+      success: false,
+      error: { code: "INVALID_ANSWERS", message: "四问答案缺一或形态非法（q1/q2 三选一枚举、q3/q4 星值 1-5）" },
+    }, 422);
+  }
+  // 建议载荷只透传不校验数值（形态上必须带 kind 标记，防止把别的数据当建议留痕）
+  const suggestionRaw = payload.suggestion;
+  const suggestion =
+    typeof suggestionRaw === "object" && suggestionRaw !== null && !Array.isArray(suggestionRaw)
+    && (suggestionRaw as Record<string, unknown>).kind === "playtest-four-questions"
+      ? suggestionRaw as Record<string, unknown>
+      : null;
+  const submission = record(answers, suggestion);
+  return c.json({
+    received: true,
+    receivedAt: submission.receivedAt,
+    submissions: totalReceived,
+    forwarded: false,
+    next: "goal agent 从 GET /api/public/feedback/spec-revision/latest 取回；目标 owner 拍板 tuning_applied 后由 agent 走平台 revisions API 入链",
+  });
+});
+
+// goal agent 取回最新提交（不鉴权：内容为玩法反馈，无个人敏感信息）
+app.get("/api/public/feedback/spec-revision/latest", (c) => {
+  const submission = latest();
+  if (submission === null) {
+    return c.json({ received: false, reason: "no-submission-yet" }, 404);
+  }
+  return c.json({
+    received: true,
+    receivedAt: submission.receivedAt,
+    answers: submission.answers,
+    suggestion: submission.suggestion,
+    remindder: "入链前以平台最新 approved spec 重算差异；tuning_applied 待目标 owner 拍板",
   });
 });
 
