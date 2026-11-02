@@ -65,7 +65,7 @@ app.get("/api/public/assets/:name{.+}", async (c) => {
  *   - GET latest 供 goal agent 取回提交（owner 拍板 tuning_applied 后由 agent 走平台
  *     POST /api/v1/game-design-specs/:id/revisions 正式入链）；
  *   - 本中继不连平台、不持任何凭证、不代做修订 —— revisions 会产生新 approved 版本，
- *     拍板权在目标 owner；数值权威在 GDScript 映射层（冒烟第 19 项机判）。
+ *     拍板权在目标 owner；数值权威在 GDScript 映射层（冒烟第 21 项机判）。
  */
 app.post("/api/public/feedback/spec-revision", async (c) => {
   const bodyText = await c.req.text();

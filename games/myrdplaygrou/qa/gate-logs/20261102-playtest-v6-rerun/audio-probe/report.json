@@ -1,0 +1,680 @@
+{
+  "tool": "qa/mobile/audio_energy_probe.mjs",
+  "verdict": "PASS",
+  "url": "http://localhost:8123/",
+  "checkedAt": "2026-11-02T07:08:48.142Z",
+  "preset": {
+    "width": 390,
+    "height": 844,
+    "deviceScaleFactor": 3,
+    "mobile": true,
+    "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
+  },
+  "chromeArgs": [
+    "--headless=new",
+    "--remote-debugging-port=9687",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--use-angle=swiftshader",
+    "--user-data-dir=<tmpdir>",
+    "--window-size=390,844",
+    "--disable-gpu-sandbox",
+    "--hide-scrollbars",
+    "--autoplay-policy=document-user-activation-required"
+  ],
+  "autoplayPolicy": "document-user-activation-required（对齐 iOS Safari）",
+  "engineBootMs": 3464,
+  "firstWaveDelaySec": 15,
+  "notes": "时序中约 10s 周期的能量尖峰为向日葵 produce 音效（sunflower_interval=10s，放置后第 10s 首拍），属预期背景音；天降阳光本身不发声（spawn 无音效挂点）。",
+  "stretch": {
+    "scale": 0.380859375,
+    "ox": 0,
+    "oy": 0,
+    "canvas": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 844
+    }
+  },
+  "thresholds": {
+    "SILENCE_RMS": 0.0012,
+    "AUDIBLE_RMS": 0.004,
+    "SUSTAIN_RATIO": 0.35,
+    "SFX_DELTA_DB": 1.5,
+    "SFX_MIN_RMS": 0.003,
+    "MUTE_SETTLE_SEC": 2
+  },
+  "phases": {
+    "preGesture": {
+      "window": {
+        "t0": 1793603296712,
+        "t1": 1793603301946,
+        "n": 73,
+        "maxRms": 0,
+        "maxPeak": 0,
+        "meanRms": 0,
+        "maxDbfs": null,
+        "sustainRatio": 0
+      },
+      "snapshot": {
+        "state": "suspended",
+        "addModules": 1,
+        "log": [
+          {
+            "t": 1793603292068,
+            "state": "worklet:index.audio.worklet.js"
+          },
+          {
+            "t": 1793603292069,
+            "state": "probe-tap"
+          },
+          {
+            "t": 1793603292939,
+            "state": "probe-tap"
+          }
+        ],
+        "unlocked": false,
+        "muted": false,
+        "bgmPlaying": false,
+        "energyProbe": true
+      }
+    },
+    "gesture": {
+      "snapshot": {
+        "state": "running",
+        "addModules": 1,
+        "log": [
+          {
+            "t": 1793603292068,
+            "state": "worklet:index.audio.worklet.js"
+          },
+          {
+            "t": 1793603292069,
+            "state": "probe-tap"
+          },
+          {
+            "t": 1793603292939,
+            "state": "probe-tap"
+          },
+          {
+            "t": 1793603302378,
+            "state": "running"
+          }
+        ],
+        "unlocked": true,
+        "muted": false,
+        "bgmPlaying": true,
+        "energyProbe": true
+      },
+      "screenshot": "phase-b-in-game.png"
+    },
+    "bgm": {
+      "window": {
+        "t0": 1793603306294,
+        "t1": 1793603314296,
+        "n": 216,
+        "maxRms": 0.2688425067889544,
+        "maxPeak": 0.5221469402313232,
+        "meanRms": 0.03486861112345819,
+        "maxDbfs": -11.410041274535827,
+        "sustainRatio": 1
+      }
+    },
+    "sfx": {
+      "confirm": {
+        "label": "confirm（选关，随手势触发）",
+        "present": true,
+        "baseline": {
+          "t0": 1793603299946,
+          "t1": 1793603301886,
+          "n": 28,
+          "maxRms": 0,
+          "maxPeak": 0,
+          "meanRms": 0,
+          "maxDbfs": null,
+          "sustainRatio": 0
+        },
+        "peak": {
+          "t0": 1793603301886,
+          "t1": 1793603302846,
+          "n": 13,
+          "maxRms": 0.25743924882903296,
+          "maxPeak": 0.6779811382293701,
+          "meanRms": 0.03025268523028937,
+          "maxDbfs": -11.7865048090496,
+          "sustainRatio": 0.6153846153846154
+        },
+        "deltaDb": null,
+        "audible": true
+      },
+      "place": {
+        "label": "place（布防）",
+        "present": true,
+        "baseline": {
+          "t0": 1793603302037,
+          "t1": 1793603303977,
+          "n": 42,
+          "maxRms": 0.25743924882903296,
+          "maxPeak": 0.6779811382293701,
+          "meanRms": 0.028740659145861436,
+          "maxDbfs": -11.7865048090496,
+          "sustainRatio": 0.9285714285714286
+        },
+        "peak": {
+          "t0": 1793603303977,
+          "t1": 1793603304937,
+          "n": 25,
+          "maxRms": 0.34918226127669577,
+          "maxPeak": 0.7545779347419739,
+          "meanRms": 0.06265634212178484,
+          "maxDbfs": -9.138956537893156,
+          "sustainRatio": 1
+        },
+        "deltaDb": 2.6475482711564435,
+        "audible": true
+      },
+      "wave": {
+        "label": "wave（首波自然到点）",
+        "present": true,
+        "expectedAt": "2026-11-02T07:08:36.946Z",
+        "baseline": {
+          "t0": 1793603314946,
+          "t1": 1793603316886,
+          "n": 51,
+          "maxRms": 0.08574106035178063,
+          "maxPeak": 0.18582530319690704,
+          "meanRms": 0.028836250055255766,
+          "maxDbfs": -21.33622299824794,
+          "sustainRatio": 1
+        },
+        "peak": {
+          "t0": 1793603316886,
+          "t1": 1793603317846,
+          "n": 26,
+          "maxRms": 0.6587286972510306,
+          "maxPeak": 1.0531879663467407,
+          "meanRms": 0.1616144275903707,
+          "maxDbfs": -3.625868325634873,
+          "sustainRatio": 1
+        },
+        "deltaDb": 17.710354672613068,
+        "audible": true
+      }
+    },
+    "mute": {
+      "pre": {
+        "t0": 1793603320165,
+        "t1": 1793603320905,
+        "n": 20,
+        "maxRms": 0.0802834379607462,
+        "maxPeak": 0.2207566797733307,
+        "meanRms": 0.03009980903589104,
+        "maxDbfs": -21.90748076170511,
+        "sustainRatio": 0.95
+      },
+      "tail": {
+        "t0": 1793603321765,
+        "t1": 1793603322965,
+        "n": 36,
+        "maxRms": 0,
+        "maxPeak": 0,
+        "meanRms": 0,
+        "maxDbfs": null,
+        "sustainRatio": 0
+      },
+      "snapshot": {
+        "state": "running",
+        "addModules": 1,
+        "log": [
+          {
+            "t": 1793603292068,
+            "state": "worklet:index.audio.worklet.js"
+          },
+          {
+            "t": 1793603292069,
+            "state": "probe-tap"
+          },
+          {
+            "t": 1793603292939,
+            "state": "probe-tap"
+          },
+          {
+            "t": 1793603302378,
+            "state": "running"
+          }
+        ],
+        "unlocked": true,
+        "muted": true,
+        "bgmPlaying": true,
+        "energyProbe": true
+      },
+      "screenshot": "phase-f-muted.png"
+    },
+    "unmute": {
+      "window": {
+        "t0": 1793603323954,
+        "t1": 1793603327771,
+        "n": 93,
+        "maxRms": 0.09100686253379162,
+        "maxPeak": 0.2629791796207428,
+        "meanRms": 0.028540253511726822,
+        "maxDbfs": -20.818517153977012,
+        "sustainRatio": 0.946236559139785
+      },
+      "snapshot": {
+        "state": "running",
+        "addModules": 1,
+        "log": [
+          {
+            "t": 1793603292068,
+            "state": "worklet:index.audio.worklet.js"
+          },
+          {
+            "t": 1793603292069,
+            "state": "probe-tap"
+          },
+          {
+            "t": 1793603292939,
+            "state": "probe-tap"
+          },
+          {
+            "t": 1793603302378,
+            "state": "running"
+          }
+        ],
+        "unlocked": true,
+        "muted": false,
+        "bgmPlaying": true,
+        "energyProbe": true
+      }
+    }
+  },
+  "audioGraph": {
+    "graphReady": true,
+    "connectCalls": 32,
+    "destinationRedirects": 2,
+    "otherConnects": 30,
+    "samplerErrors": 0,
+    "sampleCount": 168,
+    "ctxState": "running"
+  },
+  "deployArtifact": {
+    "pck": {
+      "ok": false,
+      "skip": true,
+      "reason": "无 AppHost 资产通道（本地直出/静态托管）——部署一致性仅线上口径"
+    },
+    "liveIndexJsSha256": null,
+    "expectIndexJsSha256": "8b649683883a8be172e229a0479503d50cd5245ebf87aa71fda70bf720824075",
+    "jsShaMatch": false
+  },
+  "marks": [
+    {
+      "t": 1793603301946,
+      "label": "gesture-level1"
+    },
+    {
+      "t": 1793603304037,
+      "label": "sfx-place"
+    },
+    {
+      "t": 1793603319453,
+      "label": "wave-natural"
+    },
+    {
+      "t": 1793603320965,
+      "label": "mute-on"
+    },
+    {
+      "t": 1793603323954,
+      "label": "mute-off"
+    }
+  ],
+  "checks": [
+    {
+      "id": "audio-graph",
+      "label": "AnalyserNode 已串入引擎输出链（connect 改道 >0 且采样窗 >0）",
+      "status": "pass",
+      "detail": "",
+      "metrics": {
+        "graphReady": true,
+        "connectCalls": 32,
+        "destinationRedirects": 2,
+        "otherConnects": 30,
+        "samplerErrors": 0,
+        "sampleCount": 168,
+        "ctxState": "running"
+      }
+    },
+    {
+      "id": "pre-gesture-silent",
+      "label": "首手势前真实静音（能量 < -58dBFS） + ctx suspended",
+      "status": "pass",
+      "detail": "ctx state=suspended bgmPlaying=false",
+      "metrics": {
+        "t0": 1793603296712,
+        "t1": 1793603301946,
+        "n": 73,
+        "maxRms": 0,
+        "maxPeak": 0,
+        "meanRms": 0,
+        "maxDbfs": null,
+        "sustainRatio": 0,
+        "snapshot": {
+          "state": "suspended",
+          "addModules": 1,
+          "log": [
+            {
+              "t": 1793603292068,
+              "state": "worklet:index.audio.worklet.js"
+            },
+            {
+              "t": 1793603292069,
+              "state": "probe-tap"
+            },
+            {
+              "t": 1793603292939,
+              "state": "probe-tap"
+            }
+          ],
+          "unlocked": false,
+          "muted": false,
+          "bgmPlaying": false,
+          "energyProbe": true
+        }
+      }
+    },
+    {
+      "id": "gesture-unlock",
+      "label": "首次触摸手势解锁 AudioContext（→ running）",
+      "status": "pass",
+      "detail": "手势后 state=running unlocked=true（解锁失败 = 移动端全部无声的第一根因）",
+      "metrics": {
+        "state": "running",
+        "addModules": 1,
+        "log": [
+          {
+            "t": 1793603292068,
+            "state": "worklet:index.audio.worklet.js"
+          },
+          {
+            "t": 1793603292069,
+            "state": "probe-tap"
+          },
+          {
+            "t": 1793603292939,
+            "state": "probe-tap"
+          },
+          {
+            "t": 1793603302378,
+            "state": "running"
+          }
+        ],
+        "unlocked": true,
+        "muted": false,
+        "bgmPlaying": true,
+        "energyProbe": true
+      }
+    },
+    {
+      "id": "bgm-real-energy",
+      "label": "BGM 真实出声（持续能量 ≥ -48dBFS，非仅 bgmPlaying 标志）",
+      "status": "pass",
+      "detail": "maxRms=0.26884（-11.4 dBFS）sustain=100% bgmPlaying=true——能量低于可闻阈值，BGM 未真实出声",
+      "metrics": {
+        "t0": 1793603306294,
+        "t1": 1793603314296,
+        "n": 216,
+        "maxRms": 0.2688425067889544,
+        "maxPeak": 0.5221469402313232,
+        "meanRms": 0.03486861112345819,
+        "maxDbfs": -11.410041274535827,
+        "sustainRatio": 1,
+        "snapshot": {
+          "state": "running",
+          "addModules": 1,
+          "log": [
+            {
+              "t": 1793603292068,
+              "state": "worklet:index.audio.worklet.js"
+            },
+            {
+              "t": 1793603292069,
+              "state": "probe-tap"
+            },
+            {
+              "t": 1793603292939,
+              "state": "probe-tap"
+            },
+            {
+              "t": 1793603302378,
+              "state": "running"
+            }
+          ],
+          "unlocked": true,
+          "muted": false,
+          "bgmPlaying": true,
+          "energyProbe": true
+        }
+      }
+    },
+    {
+      "id": "sfx-real-energy",
+      "label": "音效真实出声（触发后出现能量尖峰，非仅事件日志）",
+      "status": "pass",
+      "detail": "confirm=true place=true wave=true（至少 2 类尖峰才算音效链路真实出声）",
+      "metrics": {
+        "confirm": {
+          "label": "confirm（选关，随手势触发）",
+          "present": true,
+          "baseline": {
+            "t0": 1793603299946,
+            "t1": 1793603301886,
+            "n": 28,
+            "maxRms": 0,
+            "maxPeak": 0,
+            "meanRms": 0,
+            "maxDbfs": null,
+            "sustainRatio": 0
+          },
+          "peak": {
+            "t0": 1793603301886,
+            "t1": 1793603302846,
+            "n": 13,
+            "maxRms": 0.25743924882903296,
+            "maxPeak": 0.6779811382293701,
+            "meanRms": 0.03025268523028937,
+            "maxDbfs": -11.7865048090496,
+            "sustainRatio": 0.6153846153846154
+          },
+          "deltaDb": null,
+          "audible": true
+        },
+        "place": {
+          "label": "place（布防）",
+          "present": true,
+          "baseline": {
+            "t0": 1793603302037,
+            "t1": 1793603303977,
+            "n": 42,
+            "maxRms": 0.25743924882903296,
+            "maxPeak": 0.6779811382293701,
+            "meanRms": 0.028740659145861436,
+            "maxDbfs": -11.7865048090496,
+            "sustainRatio": 0.9285714285714286
+          },
+          "peak": {
+            "t0": 1793603303977,
+            "t1": 1793603304937,
+            "n": 25,
+            "maxRms": 0.34918226127669577,
+            "maxPeak": 0.7545779347419739,
+            "meanRms": 0.06265634212178484,
+            "maxDbfs": -9.138956537893156,
+            "sustainRatio": 1
+          },
+          "deltaDb": 2.6475482711564435,
+          "audible": true
+        },
+        "wave": {
+          "label": "wave（首波自然到点）",
+          "present": true,
+          "expectedAt": "2026-11-02T07:08:36.946Z",
+          "baseline": {
+            "t0": 1793603314946,
+            "t1": 1793603316886,
+            "n": 51,
+            "maxRms": 0.08574106035178063,
+            "maxPeak": 0.18582530319690704,
+            "meanRms": 0.028836250055255766,
+            "maxDbfs": -21.33622299824794,
+            "sustainRatio": 1
+          },
+          "peak": {
+            "t0": 1793603316886,
+            "t1": 1793603317846,
+            "n": 26,
+            "maxRms": 0.6587286972510306,
+            "maxPeak": 1.0531879663467407,
+            "meanRms": 0.1616144275903707,
+            "maxDbfs": -3.625868325634873,
+            "sustainRatio": 1
+          },
+          "deltaDb": 17.710354672613068,
+          "audible": true
+        }
+      }
+    },
+    {
+      "id": "mute-immediate",
+      "label": "静音点击后能量即时归零（端到端，非仅 muted 标志）",
+      "status": "pass",
+      "detail": "静音尾窗 maxRms=0.00000（点击前本底 0.08028）muted=true（尾窗能量未归零 = 静音没生效或没点中开关）",
+      "metrics": {
+        "pre": {
+          "t0": 1793603320165,
+          "t1": 1793603320905,
+          "n": 20,
+          "maxRms": 0.0802834379607462,
+          "maxPeak": 0.2207566797733307,
+          "meanRms": 0.03009980903589104,
+          "maxDbfs": -21.90748076170511,
+          "sustainRatio": 0.95
+        },
+        "tail": {
+          "t0": 1793603321765,
+          "t1": 1793603322965,
+          "n": 36,
+          "maxRms": 0,
+          "maxPeak": 0,
+          "meanRms": 0,
+          "maxDbfs": null,
+          "sustainRatio": 0
+        },
+        "snapshot": {
+          "state": "running",
+          "addModules": 1,
+          "log": [
+            {
+              "t": 1793603292068,
+              "state": "worklet:index.audio.worklet.js"
+            },
+            {
+              "t": 1793603292069,
+              "state": "probe-tap"
+            },
+            {
+              "t": 1793603292939,
+              "state": "probe-tap"
+            },
+            {
+              "t": 1793603302378,
+              "state": "running"
+            }
+          ],
+          "unlocked": true,
+          "muted": true,
+          "bgmPlaying": true,
+          "energyProbe": true
+        }
+      }
+    },
+    {
+      "id": "unmute-recover",
+      "label": "取消静音后能量恢复（≥ -48dBFS）",
+      "status": "pass",
+      "detail": "恢复窗 maxRms=0.09101（-20.8 dBFS）muted=false",
+      "metrics": {
+        "t0": 1793603323954,
+        "t1": 1793603327771,
+        "n": 93,
+        "maxRms": 0.09100686253379162,
+        "maxPeak": 0.2629791796207428,
+        "meanRms": 0.028540253511726822,
+        "maxDbfs": -20.818517153977012,
+        "sustainRatio": 0.946236559139785,
+        "snapshot": {
+          "state": "running",
+          "addModules": 1,
+          "log": [
+            {
+              "t": 1793603292068,
+              "state": "worklet:index.audio.worklet.js"
+            },
+            {
+              "t": 1793603292069,
+              "state": "probe-tap"
+            },
+            {
+              "t": 1793603292939,
+              "state": "probe-tap"
+            },
+            {
+              "t": 1793603302378,
+              "state": "running"
+            }
+          ],
+          "unlocked": true,
+          "muted": false,
+          "bgmPlaying": true,
+          "energyProbe": true
+        }
+      }
+    },
+    {
+      "id": "deploy-artifact",
+      "label": "部署产物含音频构建（线上 pck 解压 sha256 与本地导出一致 + 18 个音频资产在包内）",
+      "status": "pass",
+      "detail": "SKIP：无 AppHost 资产通道（本地直出/静态托管）——部署一致性仅线上口径",
+      "metrics": {
+        "ok": false,
+        "skip": true,
+        "reason": "无 AppHost 资产通道（本地直出/静态托管）——部署一致性仅线上口径",
+        "expectPckSha": "76b09d9b94f369547180df1b8908f089e2c35ff57eaa5d9523aa481fcb0095bc",
+        "expectJsSha": "8b649683883a8be172e229a0479503d50cd5245ebf87aa71fda70bf720824075"
+      }
+    },
+    {
+      "id": "console-clean",
+      "label": "取证全程 console 零 error + 零未捕获异常",
+      "status": "pass",
+      "detail": "",
+      "metrics": null
+    }
+  ],
+  "consoleErrors": [],
+  "networkFailures": [
+    {
+      "url": "http://localhost:8123/api/public/assets/index.js",
+      "status": 404,
+      "critical": true
+    }
+  ],
+  "screenshots": [
+    "phase-a-pre-gesture.png",
+    "phase-b-in-game.png",
+    "phase-f-muted.png",
+    "phase-g-final.png"
+  ]
+}

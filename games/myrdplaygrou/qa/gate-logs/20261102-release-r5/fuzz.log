@@ -1,0 +1,2 @@
+GODOT_FUZZ: PASS seed=20260913 batches=6 total_frames=239
+godot-fuzz: PASS 输入鲁棒性 fuzz 通过（退出码 0，日志无脚本错误）

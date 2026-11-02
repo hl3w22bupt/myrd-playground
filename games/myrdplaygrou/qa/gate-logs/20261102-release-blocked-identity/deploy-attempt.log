@@ -1,0 +1,28 @@
+# 发布节点部署尝试记录（2026-11-02，run cmvyp0n86006zm9y0ysizzt2t / 节点 deploy）
+
+## 请求
+POST $PLATFORM_API_URL/api/v1/apphost/apps/cmvxjyb8a001xm905cnip241e/deployments
+Authorization: Bearer $MYRD_TOKEN  （workflow-node 代行 token，userId=cmvtaqy0h000sm9sfukbpdks5「目标大师」，via=workflow-node，无 actFor，scopes 含 app:deploy）
+{"mode":"bundle","deployedBy":"workflow","triggeredById":"cmvxjycvn001zm905jnwpyliv","gitRef":"myrd/pvz-web-goal-cmvxjycvn001zm905jnwpyliv","sourceId":"cmvxjycvn001zm905jnwpyliv"}
+
+## 响应（第 1 次，也是唯一一次 —— 按纪律不再重试）
+HTTP 403
+{"error":{"code":"FORBIDDEN","message":"仅应用所有者或系统管理员可操作","requestId":"req_1793592513587"},"success":false}
+
+## 连带受堵通道（同一根因）
+- GET /api/v1/apphost/apps/cmvxjyb8a001xm905cnip241e           → 403（应用详情读也被拒）
+- GET /api/v1/apphost/apps?slug=myrdplaygrou                    → 403
+- GET /api/v1/apphost/apps/cmvxjyb8a001xm905cnip241e/status     → 403
+- GET /api/v1/goals/cmvxjycvn001zm905jnwpyliv                   → 403「无权访问」
+- GET /api/v1/projects/cmvqriupu0007m9qphvokoci9                → 403「您不是该项目的成员」
+
+## 部署前本地四门禁（HEAD aa326d2，全部独立复跑）
+- preflight.py    → PREFLIGHT: PASS（15 类，2670 个工程文件）
+- smoke.sh        → GODOT_SMOKE: PASS（240 帧）
+- input-fuzz.sh   → GODOT_FUZZ: PASS（seed=20260913 batches=6 total_frames=239）
+- playtest.sh     → GODOT_PLAYTEST: PASS（3 局 ×900 帧，fb=227/245/236）
+
+## 重导出（发布节点核心动作，已完成并推送）
+- 上一实现节点 df378c9 改了 hud.gd/result_overlay.gd/smoke.gd 但未重导出（export/web 停在 26c7b62）
+- godot 4.3.stable.official.77dcf97d8 --headless --export-release "Web" → 退出码 0
+- index.pck 5605248 → 5607360 字节，index.html 同步更新；提交 aa326d2 已推送远端同名分支

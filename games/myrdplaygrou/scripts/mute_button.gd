@@ -13,13 +13,13 @@ func _ready() -> void:
 	_button = Button.new()
 	FlatUI.apply_button_on_dark(_button, FlatUI.UI_BASE, FlatUI.FONT_ASSIST)
 	_button.text = _label()
-	_button.custom_minimum_size = Vector2(72, 48)
+	_button.custom_minimum_size = Vector2(72, 44)
 	_button.focus_mode = Control.FOCUS_NONE
 	_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	_button.offset_left = -76.0
 	_button.offset_top = 8.0
 	_button.offset_right = -4.0
-	_button.offset_bottom = 56.0
+	_button.offset_bottom = 52.0
 	_button.pressed.connect(_on_pressed)
 	add_child(_button)
 

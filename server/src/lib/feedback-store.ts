@@ -8,7 +8,7 @@
  *
  * 本模块刻意不连平台、不持任何凭证：
  *   - 修订入链必须经 owner 拍板（revisions 会产生新 approved 版本），中继不代做；
- *   - 数值权威在 GDScript 映射层（tuning_feedback.gd，冒烟第 19 项机判），中继只透传留痕。
+ *   - 数值权威在 GDScript 映射层（tuning_feedback.gd，冒烟第 21 项机判），中继只透传留痕。
  *
  * 容量：只保留最近 KEEP_SIZE 条（最新提交语义已够 agent 取回；防内存涨），单条 >32KB 拒收。
  */

@@ -39,8 +39,10 @@ const FOG := Color("0d1626")             ## 夜幕遮罩（L5 第 4 列及以右
 const SILHOUETTE := Color("6b7f94")      ## 遮罩内僵尸剪影预显示色（对比度 4.39 ≥3.0 机判）
 
 ## ── 三档字号（标题 / HUD 正文 / 辅助信息）──
+## v4 修订：正文 20→18（本轮 HUD 响应式修复：按 640 高设计视口 ≈2.8%、按 720 高口径 = 2.5%；
+## 用户拍板的修复目标值「字号 24→18」落档），标题/辅助档不变。
 const FONT_TITLE := 32
-const FONT_BODY := 20
+const FONT_BODY := 18
 const FONT_ASSIST := 14
 ## 统一圆角半径。
 const CORNER := 8

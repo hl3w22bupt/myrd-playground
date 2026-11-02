@@ -21,11 +21,14 @@ Audio="*res://autoload/audio.gd"
 
 [display]
 
-; 设计视口 1024×640（spec.numeric.grid：9×5 草坪、96px 格）；canvas_items 自适应拉伸
+; 设计视口 1024×640（spec.numeric.grid：9×5 草坪、96px 格）；canvas_items 自适应拉伸。
+; aspect=expand（v6 · spec visual.hudLayout）：宽/高按窗口比例扩出设计画布 ——
+; 宽屏不再把 HUD 与战场等比放大（「按钮和字体都太大」的根因），高瘦屏（手机竖持）
+; 扩出纵向空间容纳两行 HUD + 战场下移；HUD 尺寸走自己的 CSS 钳制带（hud.gd）。
 window/size/viewport_width=1024
 window/size/viewport_height=640
 window/stretch/mode="canvas_items"
-window/stretch/aspect="keep"
+window/stretch/aspect="expand"
 
 [gui]
 

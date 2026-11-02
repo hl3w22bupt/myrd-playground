@@ -8,7 +8,7 @@
     "mobile": true,
     "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
   },
-  "checkedAt": "2026-11-01T19:45:27.524Z",
+  "checkedAt": "2026-11-02T07:03:25.177Z",
   "checks": [
     {
       "id": "network",
@@ -74,14 +74,14 @@
       "id": "fps",
       "label": "FPS ≥ 8（swiftshader 软渲染口径）",
       "status": "pass",
-      "detail": "实测 40 fps"
+      "detail": "实测 39 fps"
     }
   ],
   "metrics": {
     "colorCount": 8,
     "idleDiff": 328,
     "tapDiff": 5,
-    "fps": 40,
+    "fps": 39,
     "joyAreaDiff": 0,
     "joyChurn": 0,
     "scrollWidth": 390,

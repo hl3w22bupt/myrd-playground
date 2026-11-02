@@ -7,7 +7,7 @@
 > 试玩调参的新入口：调参工作台（`?tuning=1`）内嵌「试玩反馈四问」回填面板 —— 用户亲手点选
 > 四问后生成 spec.numeric 修订建议，经目标 owner 拍板 tuning_applied 才走 revisions 入链并
 > 同步本文件与 `autoload/game_state.gd` 默认值；契约与数据流见
-> `docs/tuning-feedback-four-questions.md`（冒烟第 19 项机判，默认值不许面板/映射层直接改）。
+> `docs/tuning-feedback-four-questions.md`（冒烟第 21 项机判，默认值不许面板/映射层直接改）。
 
 ## 1. 内容表（spec.entities / numeric.plants / numeric.zombies）
 
@@ -136,14 +136,25 @@ speedScale）、机制探针（L4 卡槽减员 / L5 夜幕剪影显形 / L7 坦�
 
 | 资产 | 落点 | 生成器 | 备注 |
 |---|---|---|---|
-| BGM 循环 | assets/sfx/bgm.wav | procedural:tools/gen_bgm.gd | ≈55.4s 无缝循环（8 小节曲式 ×3 轮），运行时 LOOP_FORWARD |
-| score/confirm/hit/fail/shoot/place/zombie_die/breach/victory/defeat | assets/sfx/*.wav | procedural:tools/gen_sfx.gd | v1 配方保留 |
-| wave / produce | assets/sfx/*.wav | procedural:tools/gen_sfx.gd | v2 新增：波次号角 / 向日葵产出 |
+| BGM 平静层 | assets/sfx/bgm.wav | procedural:tools/gen_bgm.gd | ≈55.4s 无缝循环（8 小节曲式 ×3 轮），运行时 LOOP_FORWARD；v4 配方未动（字节不变） |
+| BGM 加压层（v4） | assets/sfx/bgm-intense.wav | procedural:tools/gen_bgm.gd | 30.0s 无缝循环 128BPM 同曲式分层加压（八分贝斯驱动 + 55Hz 心跳底鼓 + 低频锯齿持续音 + 军鼓/双倍打点）；波次过半/末波由 Audio 交叉淡入 |
+| score/confirm/fail/shoot/place/zombie_die/breach/victory/defeat/produce | assets/sfx/*.wav | procedural:tools/gen_sfx.gd | v1/v2 配方保留 |
+| hit（v4 加厚重制） | assets/sfx/hit.wav | procedural:tools/gen_sfx.gd | 0.20s 三层：噪声 + 95Hz 正弦低频垫层 + 190Hz 三角（实测 RMS 0.170 / 低频占比 0.845 / peak 0.90） |
+| wave（v4 号角化重制） | assets/sfx/wave.wav | procedural:tools/gen_sfx.gd | 0.90s 四层长号：根音 220→233 + 五度 330→349 双方波 + 110→116 锯齿低音 + 噪声起音（RMS 0.183） |
+| zombie_groan（v4 新增） | assets/sfx/zombie_groan.wav | procedural:tools/gen_sfx.gd | 1.0s 双锯齿低吼 110→62 / 55→41 Hz + 气息噪声（RMS 0.144 / 低频占比 0.85）；出怪时播放，全局节流 1.4s |
+| chomp（v4 新增） | assets/sfx/chomp.wav | procedural:tools/gen_sfx.gd | 0.16s 短促咬合：噪声 + 300→90Hz 方波下坠（RMS 0.127）；随 bite 节拍每口一记 |
+| danger（v4 新增） | assets/sfx/danger.wav | procedural:tools/gen_sfx.gd | 1.1s 双音警报 660/880Hz 方波交替 + 880→440 下坠尾（RMS 0.238）；僵尸进入警戒带（x ≤ 304）首次触发，全局节流 2.6s |
+
+导入纪律（v4 实证）：全部 .wav 的 `compress/mode` 统一 0（PCM 16-bit）—— confirm/fail/hit/score
+四件曾被早期导入写为 2（QOA 有损），PCM 能量机判读出失真值（时长 ÷5、RMS 翻倍）；
+新写 .wav 一律 PCM。字体导入参数 `oversampling` 钉 1.0（auto 在部分运行时取 3× 行高，曾致
+卡片两行文本整行被裁），全运行时行高一致可机判。
 
 音效契约（spec.audio.sfxBindings 全 8 类，机判见 `tests/smoke.gd::_check_audio_contract`）：
 射击=shoot、命中=hit、僵尸倒地=zombie_die、放置单位=place、收集阳光=score、波次来袭=wave
 （含首波与最后一波）、通关=victory、失败=defeat。工程内补充：按钮=confirm、无效操作=fail、
-防线受击=breach、向日葵产出=produce。
+防线受击=breach、向日葵产出=produce。紧张感氛围音（v4）：僵尸低吼=zombie_groan、
+啃食=chomp、危机警报=danger（注册机判同函数，能量机判见 `_check_tension_audio`）。
 
 ⚠️ 新增/变更 .wav 后必须先跑一次无头 `--import` 生成 .import 元数据，再导出与冒烟（知识文档坑①）。
 

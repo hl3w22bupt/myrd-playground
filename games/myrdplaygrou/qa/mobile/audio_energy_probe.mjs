@@ -16,7 +16,7 @@
 //      （--autoplay-policy=document-user-activation-required，对齐 iOS Safari 语义）；
 //   ④ 按相位取证：首手势前静音 → 触摸选关（手势解锁 + confirm 音效）→ 布防音效 →
 //      BGM 持续能量 → 首波自然到点的波次音效 → 静音即时归零 → 取消静音恢复；
-//   ⑤ 部署端一致性在页面内复算：资产通道取线上 pck 解压后 sha256 + 13 个音频资产在包内核对。
+//   ⑤ 部署端一致性在页面内复算：资产通道取线上 pck 解压后 sha256 + 18 个音频资产在包内核对（v6 紧张感分层新增 bgm-loop-intense / wave_urgent / zombie_groan / chomp / danger）。
 //
 // 用法：node audio_energy_probe.mjs --url <liveUrl> [--out <证据目录>] [--chrome <路径>]
 //        [--policy strict|default] [--expect-pck-sha <sha256>] [--expect-js-sha <sha256>]
@@ -250,11 +250,12 @@ window.__ENERGY_PROBE__ = (function () {
   const readyAt = Date.now();
   await sleep(4000); // 等选关页首帧渲染稳定
 
-  // ── 设计坐标 → CSS 坐标（canvas_items + keep 黑边数学，同 mobile-web-smoke 校准口径）──
+  // ── 设计坐标 → CSS 坐标（canvas_items + expand 外扩数学，v6 spec hudLayout 起的口径）──
+  // expand：无黑边，缩放 = min(cw/DW, ch/DH)，设计画布随窗口比例外扩、内容左上锚定（偏移恒 0）。
   const canvasRect = await evaluate(`(() => { const r = document.querySelector('canvas').getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; })()`);
   const S = Math.min(canvasRect.width / DESIGN.w, canvasRect.height / DESIGN.h);
-  const OX = (canvasRect.width - DESIGN.w * S) / 2;
-  const OY = (canvasRect.height - DESIGN.h * S) / 2;
+  const OX = 0;
+  const OY = 0;
   const css = (dx, dy) => ({ x: Math.round(OX + dx * S), y: Math.round(OY + dy * S) });
   const stretch = { scale: S, ox: OX, oy: OY, canvas: canvasRect };
   say(`  画布 ${canvasRect.width}x${canvasRect.height} · 拉伸 s=${S.toFixed(4)} oy=${OY.toFixed(1)}`);
@@ -335,23 +336,48 @@ window.__ENERGY_PROBE__ = (function () {
 
   // 选关按钮像素定位（FlatUI.GREEN_LIGHT #58d68d）
   const greenClusters = await findClusters(preShotData, "((r,g,b) => g > 160 && g - r > 60 && g - b > 40 && r > 40)");
-  const levelBtn = greenClusters.find((c) => c.width >= 40 && c.height >= 20);
+  // 第 1 关 = 卡片网格最上排最左那枚（唯一必解锁入口）：先取最上排簇（y 最小），再取最左簇；
+  // 点按位取簇内左缘 +40px（跨卡合并簇的中心可能落在第 2 张锁定卡上，左缘必在第 1 张内）。
+  const topY = Math.min(...greenClusters.map((c) => c.y));
+  const topRow = greenClusters.filter((c) => c.y <= topY + Math.round(c.height / 2));
+  const levelBtn = topRow.slice().sort((a, b) => a.x - b.x)[0];
   if (!levelBtn) throw new Error("选关页未渲染出关卡按钮（绿色像素聚类为空）——画面没起来");
-  say(`  选关按钮簇 ×${greenClusters.length}，第 1 关按钮 @(${levelBtn.x},${levelBtn.y}) ${levelBtn.width}x${levelBtn.height}`);
+  say(`  选关按钮簇 ×${greenClusters.length}（最上排 ${topRow.length}），第 1 关按钮 @(${levelBtn.x},${levelBtn.y}) ${levelBtn.width}x${levelBtn.height}`);
 
   // ════ 相位 B：首次触摸手势（解锁 + confirm 音效 + 选关进第 1 关 + BGM 起播）════
   say("── 相位 B：首次触摸手势解锁 + 选关 ──");
   await mark("gesture-level1");
-  await touch(levelBtn.x + Math.round(levelBtn.width / 2), levelBtn.y + Math.round(levelBtn.height / 2));
+  // 像素聚类会把上下两行卡并成一簇（行距 12px < 聚类间隙阈值）：点按位取簇左上象限
+  //（x+30, y+h/4）必落最上排第 1 张卡内，避开跨行中缝与右侧锁定卡。
+  const levelTap = {
+    x: levelBtn.x + 30,
+    y: levelBtn.y + Math.max(10, Math.round(levelBtn.height / 4)),
+  };
+  say(`  点按第 1 关 → css (${levelTap.x},${levelTap.y})`);
+  await touch(levelTap.x, levelTap.y);
   await sleep(1500);
   const inGameShotData = await shot("phase-b-in-game.png");
   const snapPost = await snapshot();
+  const viewState = await evaluate("JSON.stringify(window.__GAME_VIEW_STATE__ || null)");
+  say(`  引擎渲染几何: ${viewState}`);
 
   // ════ 相位 C：布防音效（默认已选第 1 卡向日葵 50 ≤ 起始阳光；草坪格 (2,2)）════
+  // v6 expand + HUD 让位：战场整体下移（main.gd::field_y_offset：max(HUD 高+8-72, 剩余高/2)，
+  // 钳到视口能容纳的战场全高），镜像该口径换算草坪格中心，不然点在天空/HUD 上布防必空。
   say("── 相位 C：布防音效取证 ──");
-  const cell = css(112 + 2.5 * 96, 72 + 2.5 * 96);
+  const sX = S;
+  const vhDesign = canvasRect.height / sX;
+  const btnH = Math.min(Math.max(56 * (canvasRect.width / 1024), 44), 56);
+  const sepW = Math.min(Math.max(8 * (canvasRect.width / 1024), 8), 12);
+  const hudHcss = canvasRect.width < 960 ? (2 * btnH + sepW + 12) : (btnH + 12);
+  const hudHDesign = hudHcss / sX;
+  const dMax = Math.max(0, vhDesign - 640);
+  const fieldY = Math.min(Math.max(Math.max(0, hudHDesign + 8 - 72), dMax / 2), dMax);
+  const cellX = Math.round((112 + 2.5 * 96) * sX);
+  const cellY = Math.round((fieldY + 72 + 2.5 * 96) * sX);
+  say(`  战场让位 fieldY=${fieldY.toFixed(0)} 设计px，草坪 (2,2) → css (${cellX},${cellY})`);
   await mark("sfx-place");
-  await touch(cell.x, cell.y);
+  await touch(cellX, cellY);
   await sleep(2000);
 
   // ════ 相位 D：BGM 持续真实能量（8s，避开首波时刻）════
@@ -371,9 +397,15 @@ window.__ENERGY_PROBE__ = (function () {
   await mark("wave-natural");
   await sleep(1500);
 
-  // ════ 相位 F：静音即时归零 + 取消静音恢复（设计 (984,32) = 右上角常驻开关中心）════
+  // ════ 相位 F：静音即时归零 + 取消静音恢复 ════
+  // v6（spec hudLayout.rows）：对局中音效开关由 HUD 卡槽行接管（行尾右端），右上角常驻开关
+  // 只在选关/结算态显示。按视口换算开关中心：两行 = (cw-10-28, 6+btnH+8+btnH/2)；单行 = (cw-38, 6+btnH/2)。
   say("── 相位 F：静音开关端到端能量验证 ──");
-  const muteBtn = css(984, 32);
+  const cwCss = canvasRect.width;
+  const muteBtn = cwCss < 960
+    ? { x: Math.round(cwCss - 10 - 28), y: Math.round(6 + btnH + 8 + btnH / 2) }
+    : { x: Math.round(cwCss - 38), y: Math.round(6 + btnH / 2) };
+  say(`  音效开关（HUD 卡槽行）→ css (${muteBtn.x},${muteBtn.y})`);
   await mark("mute-on");
   await touch(muteBtn.x, muteBtn.y);
   await sleep(2500);
@@ -393,6 +425,7 @@ window.__ENERGY_PROBE__ = (function () {
       var p = location.pathname.replace(/index\\.html$/, '');
       if (p.charAt(p.length - 1) !== '/') p += '/';
       var r = await fetch(p + 'api/public/assets/index.pck.gz.b64');
+      if (r.status === 404) return JSON.stringify({ ok: false, skip: true, reason: '无 AppHost 资产通道（本地直出/静态托管）——部署一致性仅线上口径' });
       if (!r.ok) return JSON.stringify({ ok: false, reason: 'HTTP ' + r.status });
       var text = await r.text();
       var b64 = text;
@@ -406,7 +439,7 @@ window.__ENERGY_PROBE__ = (function () {
       var bytes = new Uint8Array(await new Response(stream).arrayBuffer());
       var dig = await crypto.subtle.digest('SHA-256', bytes);
       var hex = Array.prototype.map.call(new Uint8Array(dig), function (b) { return b.toString(16).padStart(2, '0'); }).join('');
-      var names = ['bgm','score','confirm','hit','fail','shoot','place','produce','zombie_die','breach','victory','defeat','wave'];
+      var names = ['bgm','bgm-loop-intense','score','confirm','hit','fail','shoot','place','produce','zombie_die','breach','victory','defeat','wave','wave_urgent','zombie_groan','chomp','danger'];
       var audioAssets = {};
       names.forEach(function (n) {
         var pat = ('assets/sfx/' + n + '.wav').split('').map(function (c) { return c.charCodeAt(0); });
@@ -489,11 +522,12 @@ window.__ENERGY_PROBE__ = (function () {
 
   const audioAssetsAll = deployInfo.ok && Object.values(deployInfo.audioAssets || {}).every(Boolean);
   const shaMatch = !EXPECT_PCK_SHA || deployInfo.sha256 === EXPECT_PCK_SHA;
-  check("deploy-artifact", "部署产物含音频构建（线上 pck 解压 sha256 与本地导出一致 + 13 个音频资产在包内）",
-    deployInfo.ok && audioAssetsAll && shaMatch,
-    !deployInfo.ok ? `线上 pck 取证失败：${deployInfo.reason}` :
+  check("deploy-artifact", "部署产物含音频构建（线上 pck 解压 sha256 与本地导出一致 + 18 个音频资产在包内）",
+    deployInfo.skip ? true : (deployInfo.ok && audioAssetsAll && shaMatch),
+    deployInfo.skip ? `SKIP：${deployInfo.reason}` :
+      (!deployInfo.ok ? `线上 pck 取证失败：${deployInfo.reason}` :
       (!audioAssetsAll ? `音频资产缺失：${Object.entries(deployInfo.audioAssets || {}).filter(([, v]) => !v).map(([k]) => k).join(", ")}` :
-        (!shaMatch ? `sha256 不一致：线上 ${deployInfo.sha256} ≠ 本地 ${EXPECT_PCK_SHA}（部署的不是含修复的构建）` : "")),
+          (!shaMatch ? `sha256 不一致：线上 ${deployInfo.sha256} ≠ 本地 ${EXPECT_PCK_SHA}（部署的不是含修复的构建）` : ""))),
     { ...deployInfo, expectPckSha: EXPECT_PCK_SHA || null, expectJsSha: EXPECT_JS_SHA || null });
 
   check("console-clean", "取证全程 console 零 error + 零未捕获异常",

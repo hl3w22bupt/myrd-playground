@@ -20,6 +20,8 @@ signal feedback_fired(kind: StringName)
 ## 游戏换自己的音效 = 改配方重跑工具，或替换文件后在注册表里改指向。
 ## 契约音效（spec audio.sfxBindings 全 8 类）：射击(shoot)/命中(hit)/僵尸倒地(zombie_die)/
 ## 放置单位(place)/收集阳光(score)/波次来袭(wave)/通关(victory)/失败(defeat)；
+## 紧张感分层（spec audio.tension）：低吼(zombie_groan)/啃食(chomp)/危机警报(danger)/
+## 末波急促号角(wave_urgent)；
 ## 工程内补充：按钮(confirm)/无效操作(fail)/防线受击(breach)/向日葵产出(produce)。
 const SFX_BANK: Dictionary = {
 	&"score": preload("res://assets/sfx/score.wav"),
@@ -33,6 +35,10 @@ const SFX_BANK: Dictionary = {
 	&"victory": preload("res://assets/sfx/victory.wav"),
 	&"defeat": preload("res://assets/sfx/defeat.wav"),
 	&"wave": preload("res://assets/sfx/wave.wav"),
+	&"wave_urgent": preload("res://assets/sfx/wave_urgent.wav"),
+	&"zombie_groan": preload("res://assets/sfx/zombie_groan.wav"),
+	&"chomp": preload("res://assets/sfx/chomp.wav"),
+	&"danger": preload("res://assets/sfx/danger.wav"),
 	&"produce": preload("res://assets/sfx/produce.wav"),
 }
 

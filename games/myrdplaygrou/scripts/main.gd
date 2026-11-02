@@ -18,6 +18,9 @@ var result_overlay: ResultOverlay
 var tuning_panel: TuningPanel
 var mute_button: MuteButton
 
+## HUD 顶栏与战场首行的最小间隙（设计 px，spec hudLayout.rows「两行不遮挡草坪首行」）。
+const FIELD_CLEARANCE: float = 8.0
+
 ## 扁平明快：氛围层压成纯色底、无粒子、无暗角（风格卡禁忌：渐变堆砌）。
 ## 天空底色按章节切换（晨绿/暮橙/夜蓝 —— spec world.visualStyle 三章节配色）。
 const AMBIENCE_FLAT: Dictionary = {
@@ -33,6 +36,17 @@ var _move_hint: String = ""
 
 
 func _ready() -> void:
+	# 无头/桌面窗口尺寸钉回设计分辨率（headless 虚拟窗口默认 64×64，expand 拉伸会把
+	# 设计画布撑成 1024×1024，HUD 度量与战场布局全数失真；Web 端窗口尺寸由壳页
+	# canvas_resize_policy 接管，不在本列 —— spec hudLayout 以 CSS 视口为准）。
+	if not OS.has_feature("web") and get_window() != null:
+		# 调试口径：SMOKE_WINDOW_DEBUG="宽,高" 钉任意窗口几何（复现 Web 移动端画布），生产无副作用
+		var pinned := OS.get_environment("SMOKE_WINDOW_DEBUG")
+		if pinned.contains(","):
+			var parts := pinned.split(",")
+			get_window().size = Vector2i(int(parts[0]), int(parts[1]))
+		else:
+			get_window().size = Vector2i(int(Field.VIEW_SIZE.x), int(Field.VIEW_SIZE.y))
 	# 试玩门禁上下文（playtest_driver.gd 把本场景当子场景实例化，current_scene 是驱动场景）：
 	# 每局轮换到下一关，让机器人逐局真实游玩全部 3 关、逐关难度数值全程生效
 	# （Bug cmvxr1f1a004fm905ua2ua9ir：试玩不再只刷第 1 关）。
@@ -56,7 +70,9 @@ func _ready() -> void:
 	result_overlay = ResultOverlay.new()
 	result_overlay.name = "ResultOverlay"
 	add_child(result_overlay)
-	# 常驻静音开关（spec audio.mute：右上角、全场景可见可点、即时生效）
+	# 常驻静音开关（spec audio.mute：右上角、全场景可见可点、即时生效）。
+	# 对局中由 HUD 卡槽行的「音效」开关接管（spec hudLayout.rows 第 2 行 + 单实例守卫，
+	# 避免顶栏两颗音效按钮互相重叠 —— Bug cmvyowgtj… 修复面），选关/结算态切回本开关。
 	mute_button = MuteButton.new()
 	mute_button.name = "MuteButton"
 	add_child(mute_button)
@@ -83,6 +99,7 @@ func _ready() -> void:
 	director.wave_started.connect(_on_wave_started)
 	director.waiting_changed.connect(_on_waiting_changed)
 	hud.set_hint(_move_hint)
+	get_viewport().size_changed.connect(_layout_field)
 	_show_level_select()
 
 
@@ -90,11 +107,14 @@ func _ready() -> void:
 
 func _show_level_select() -> void:
 	GameState.running = false
+	Audio.reset_tension()
 	field.clear_all()
 	cursor.active = false
 	hud.visible = false
+	mute_button.visible = true  # 非对局态：静音开关回到右上角常驻件
 	result_overlay.close()
 	level_select.open()
+	_layout_field()
 
 
 func _on_level_selected(index: int) -> void:
@@ -108,7 +128,9 @@ func _on_level_started(level_index: int) -> void:
 	field.clear_all()
 	director.begin_level()
 	hud.visible = true
+	mute_button.visible = false  # 对局态：音效开关由 HUD 卡槽行接管（单实例）
 	hud.rebuild_cards()
+	Audio.reset_tension()  # 开局回基础版 BGM（spec tension「结算/回落切回基础版」）
 	if GameState.endless_active:
 		_move_hint = "无尽模式 · %s" % _input_hint()
 	else:
@@ -119,9 +141,64 @@ func _on_level_started(level_index: int) -> void:
 	else:
 		hud.set_hint(_move_hint)
 	cursor.active = true
-	cursor.position = field.cell_center(Vector2i(3, 2))
+	cursor.position = field.position + field.cell_center(Vector2i(3, 2))
 	field.highlight_cell = cursor.current_cell()
 	_apply_chapter_tint()
+	_layout_field()
+
+
+## 战场纵向布局（spec hudLayout.rows「折两行不遮挡草坪首行」的落地机制）：
+## 战场整体下移让出 HUD 顶栏，画布有多余高度时垂直居中（expand 拉伸下的高画布）。
+static func field_y_offset(hud_height: float, viewport_height: float) -> float:
+	var d_min := maxf(0.0, hud_height + FIELD_CLEARANCE - float(Field.GRID_ORIGIN.y))
+	var d_max := maxf(0.0, viewport_height - float(Field.VIEW_SIZE.y))
+	var d_center := d_max * 0.5
+	return clampf(maxf(d_min, d_center), 0.0, d_max)
+
+
+## 依当前 HUD 高度与视口摆放战场（光标高亮格等逻辑坐标都在 Field 局部系，随节点平移）。
+func _layout_field() -> void:
+	if hud == null or field == null:
+		return
+	var viewport_height := get_viewport().get_visible_rect().size.y if get_viewport() != null \
+		else float(Field.VIEW_SIZE.y)
+	field.position.y = field_y_offset(hud.content_height(), viewport_height)
+	# 相机对准可见画布中心（drag_center；expand 画布随窗口外扩，取景随 visible_rect 更新）：
+	# 实测 anchor=FIXED_TOP_LEFT 在 4.3 下取景仍以 position 为中心，会把世界甩出画面右下角。
+	var cam := get_node_or_null("GameCamera") as Camera2D
+	if cam != null and get_viewport() != null:
+		cam.anchor_mode = Camera2D.ANCHOR_MODE_DRAG_CENTER
+		cam.position = get_viewport().get_visible_rect().size / 2.0
+	_publish_view_state()
+
+
+## 把渲染几何快照回写页面（window.__GAME_VIEW_STATE__）：门禁取证 / 远程诊断直读真实几何，
+## 不用镜像拉伸公式（expand + HUD 让位 + 相机取景）。桌面/无头桥不工作（eval 恒 null）自动跳过。
+func _publish_view_state() -> void:
+	if not OS.has_feature("web") or not Engine.has_singleton("JavaScriptBridge"):
+		return
+	var cam: Camera2D = get_node_or_null("GameCamera")
+	var window_size := get_window().size
+	var visible_rect := get_viewport().get_visible_rect().size
+	var cam_pos := cam.global_position if cam != null else Vector2.ZERO
+	var cam_center := cam.get_screen_center_position() if cam != null else Vector2.ZERO
+	var payload := JSON.stringify({
+		"window_w": int(window_size.x), "window_h": int(window_size.y),
+		"visible_w": visible_rect.x, "visible_h": visible_rect.y,
+		"stretch_scale": get_viewport().get_final_transform().get_scale().x,
+		"field_y": field.position.y,
+		"camera_x": cam_pos.x, "camera_y": cam_pos.y,
+		"camera_center_x": cam_center.x, "camera_center_y": cam_center.y,
+		"camera_offset_x": cam.offset.x if cam != null else 0.0,
+		"camera_offset_y": cam.offset.y if cam != null else 0.0,
+		"camera_anchor": int(cam.anchor_mode) if cam != null else -1,
+		"camera_zoom": cam.zoom.x if cam != null else 1.0,
+		"hud_content_height": hud.content_height(),
+	})
+	# 直接对象字面量赋值（同 Audio._publish_state 口径 —— 实测 JSON.parse 包装会在页面侧抛
+	# "Unexpected non-whitespace character after JSON"，对象字面量直赋最稳）
+	var bridge: Object = Engine.get_singleton("JavaScriptBridge")
+	bridge.call("eval", "window.__GAME_VIEW_STATE__ = %s" % payload)
 
 
 ## 教学引导文案（L1 首布防引导，完成前常驻 —— 完成后由 _on_defender_placed 切回常规提示淡出）。
@@ -173,6 +250,7 @@ func _apply_chapter_tint() -> void:
 func _on_game_ended(won: bool) -> void:
 	cursor.active = false
 	hud.set_wave_wait_visible(false)
+	Audio.reset_tension()  # 结算切回基础版 BGM（spec tension.bgmLayering）
 	# 终局反馈挂结果处理函数：胜负音效 + 失败震屏（SKILL.md §3B）
 	Juice.sfx(&"victory" if won else &"defeat")
 	if not won:
@@ -199,8 +277,13 @@ func _on_skip_wave_requested() -> void:
 
 
 func _on_wave_started(wave: int) -> void:
-	# 波次来袭提示音（spec audio.sfxBindings：sfx-wave，含首波与最后一波）
+	# 波次来袭提示音（spec audio.sfxBindings：sfx-wave，含首波与最后一波；末波叠急促变体）
+	var wave_count := GameState.wave_count()
 	Juice.sfx(&"wave")
+	if wave_count > 0 and wave >= wave_count - 1:
+		Juice.sfx(&"wave_urgent")
+	# 紧张版 BGM 分层切换（spec audio.tension.bgmLayering：出场过半或末波 → intense）
+	Audio.update_wave_tension(wave, wave_count)
 
 
 func _on_waiting_changed(waiting: bool) -> void:

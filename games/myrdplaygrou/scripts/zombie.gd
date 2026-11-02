@@ -23,12 +23,16 @@ var speed: float = 18.0
 var kind: StringName = &"walker"
 ## 正在啃咬防御单位（Field 每帧判定后回写）。
 var eating: bool = false
+## 上一帧的啃咬态（Field 检测「进入啃食」沿触发啃食音效用）。
+var was_eating: bool = false
 ## 已倒地（等待 Field 移除，不再参与判定）。
 var dying: bool = false
 ## 啃咬冷却（Field 在啃咬距离内逐帧 tick_bite，归零 = 咬一口并重置）。
 var bite_cooldown: float = 0.0
 ## 碾压型（gargantuar）：接触植物即摧毁，不进入啃食循环（spec combat.crush）。
 var crushes: bool = false
+## 危机警报已触发（进入最左 2 列时播一次 sfx-danger，spec audio.tension.ambientSfx）。
+var danger_signaled: bool = false
 ## 处于夜幕遮罩内（L5 夜战关）：剪影预显示，不暴露种类配件与血量（spec levelMechanics.nightFog）。
 var silhouetted: bool = false
 ## 冻住：倍率 <1 移动放缓，计时归零恢复。

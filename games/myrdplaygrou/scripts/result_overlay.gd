@@ -1,7 +1,8 @@
 class_name ResultOverlay
 extends CanvasLayer
 ## 结算浮层：胜利 / 失败双出口（下一关或再试 + 返回选关）。
-## 弹出后 400ms 内不接受确认输入，防连点误触直接跳过结算。
+## 弹出后 400ms 内不接受确认输入，防连点误触直接跳过结算 ——
+## 键盘 confirm（press_primary）与主/选关按钮点按（触屏玩家的实际路径）走同一防线。
 
 signal primary_pressed
 signal level_select_pressed
@@ -62,7 +63,7 @@ func _build() -> void:
 	_primary = Button.new()
 	FlatUI.apply_button(_primary, FlatUI.GREEN)
 	_primary.text = "再试一次"
-	_primary.custom_minimum_size = Vector2(168, 56)
+	_primary.custom_minimum_size = Vector2(168, 44)
 	_primary.focus_mode = Control.FOCUS_NONE
 	_primary.pressed.connect(_on_primary_pressed)
 	buttons.add_child(_primary)
@@ -70,7 +71,7 @@ func _build() -> void:
 	_select_button = Button.new()
 	FlatUI.apply_button(_select_button, FlatUI.BLUE)
 	_select_button.text = "选关"
-	_select_button.custom_minimum_size = Vector2(120, 56)
+	_select_button.custom_minimum_size = Vector2(120, 44)
 	_select_button.focus_mode = Control.FOCUS_NONE
 	_select_button.pressed.connect(_on_select_pressed)
 	buttons.add_child(_select_button)
@@ -125,10 +126,16 @@ func press_primary() -> void:
 
 
 func _on_primary_pressed() -> void:
+	# 误触窗（防连点）：窗期内按钮点按不受理 —— 与键盘 confirm 同一防线。
+	# 触屏玩家在终局瞬间往往还在连点草坪，落入窗内的点按不许直接跳过结算。
+	if not can_accept():
+		return
 	Juice.sfx(&"confirm")
 	primary_pressed.emit()
 
 
 func _on_select_pressed() -> void:
+	if not can_accept():
+		return
 	Juice.sfx(&"confirm")
 	level_select_pressed.emit()

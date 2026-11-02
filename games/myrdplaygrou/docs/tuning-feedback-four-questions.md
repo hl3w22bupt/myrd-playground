@@ -4,7 +4,7 @@
 > （调参工作台同页第二节）。对应实现：`scripts/tuning_panel.gd`（UI/提交）+
 > `scripts/tuning_feedback.gd`（答案 → spec.numeric 修订建议的纯映射层）+
 > `server/src/index.ts` `/api/public/feedback/spec-revision`（壳层中继）+
-> 冒烟第 19 项机判（`tests/smoke.gd::_check_four_questions_contract`）。
+> 冒烟第 21 项机判（`tests/smoke.gd::_check_four_questions_contract`）。
 
 ## 1. 硬约束（本节点的红线）
 
@@ -71,7 +71,7 @@
 职责边界：
 - **中继不连平台、不持任何凭证、不代做修订** —— revisions 会产生新 approved 版本，
   拍板权在目标 owner；中继只做「留痕 + 取回」。
-- **数值权威在 GDScript 映射层**（冒烟第 19 项机判）；服务端只校验形态，不校验数值。
+- **数值权威在 GDScript 映射层**（冒烟第 21 项机判）；服务端只校验形态，不校验数值。
 - 路径常量两端同源：`tuning_feedback.gd RELAY_PATH` ↔ `server/src/index.ts` 路由；
   任一改名必须同改（冒烟机判常量不漂移）。
 
