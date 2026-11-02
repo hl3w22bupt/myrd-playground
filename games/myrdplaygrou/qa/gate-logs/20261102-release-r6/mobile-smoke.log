@@ -1,0 +1,16 @@
+
+===== mobile-web-smoke（https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/，390×844 移动仿真）=====
+  PASS  关键资源网络全通（无 5xx / 404 / 登录墙重定向）
+  PASS  console 零 error + 零未捕获异常
+  PASS  canvas 存在（引擎产物已挂载）
+  PASS  首帧截图非纯色（400 点采样 ≥2 种量化色）
+  PASS  画面在动（1.5s 双时点帧差 > 0）
+  PASS  触摸事件到达 DOM（tap/swipe 均被派发）
+  PASS  触摸后画面有响应（tap 后帧差 > 0 或产生新活动）
+  WARN  摇杆热区已校准（--project） —— 未传 --project——回退旧版固定坐标 swipe，仅取证不断言；线上门禁应带 --project <工程目录>
+  PASS  音频手势解锁器存在（window.__audioDebug）
+  PASS  无横向溢出（scrollWidth ≤ clientWidth+1）
+  PASS  FPS ≥ 8（swiftshader 软渲染口径）
+
+===== mobile-web-smoke 汇总（证据：/Users/leo/.myrd/workspaces/cmvqriupu0007m9qphvokoci9/run-cmvz7bqja0039m9w9fjbzm7sn/games/myrdplaygrou/qa/mobile）=====
+MOBILE_SMOKE: PASS 移动端模拟全绿（网络/渲染/触摸/音频契约/视口/FPS）

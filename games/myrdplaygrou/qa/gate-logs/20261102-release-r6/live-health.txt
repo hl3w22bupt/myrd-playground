@@ -1,0 +1,3 @@
+live /health HTTP 200
+live / HTTP 308 -> https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou
+live / (follow) HTTP 200
