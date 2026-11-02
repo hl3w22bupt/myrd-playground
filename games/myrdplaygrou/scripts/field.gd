@@ -39,6 +39,11 @@ const SPAWN_X: float = 1056.0
 const EAT_REACH: float = 36.0
 ## 弹丸命中判定半径。
 const HIT_RANGE: float = 14.0
+## 危险警戒带右缘 x：僵尸推进越过此线 = 距防线只剩 2 列，危机警报响一次（紧张感氛围音）。
+const DANGER_X: float = GRID_ORIGIN.x + 2.0 * CELL_W
+## 低吼 / 危机警报的全局节流窗口（毫秒）：同屏多僵尸不叠成噪声墙，长音错峰。
+const GROAN_GAP_MS: int = 1400
+const DANGER_GAP_MS: int = 2600
 ## 触摸 → 模拟鼠标双投递的去重窗口（同点位 120ms 内只算一次）。
 const TAP_DEDUPE_MS: int = 120
 
@@ -50,6 +55,9 @@ var _sun_tokens: Array[SunToken] = []
 var highlight_cell: Vector2i = Vector2i(-1, -1)
 var _last_tap_ms: int = -100000
 var _last_tap_pos := Vector2(-10000, -10000)
+## 氛围音节流游标（全局共享：同一时刻只出一只僵尸的低吼 / 一次警报）。
+var _last_groan_ms: int = -100000
+var _last_danger_ms: int = -100000
 ## 夜幕迷雾（L5）：被遮罩的首列（0 起索引；-1 = 本关无夜幕）。由 level_started 装载。
 var fog_lit_cols: int = -1
 ## 夜幕遮罩绘制层（压在僵尸之上：剪影之外的画面区域罩雾）。
@@ -198,6 +206,11 @@ func spawn_zombie(lane: int, x: float, kind: StringName = &"walker") -> Zombie:
 		GameState.zombie_hp_of(kind), GameState.zombie_speed_of(kind), kind)
 	add_child(zombie)
 	_zombies.append(zombie)
+	# 僵尸低吼（紧张感氛围音，节流：同屏多只不叠噪声墙）
+	var now := Time.get_ticks_msec()
+	if now - _last_groan_ms >= GROAN_GAP_MS:
+		_last_groan_ms = now
+		Juice.sfx(&"zombie_groan")
 	return zombie
 
 
@@ -290,10 +303,20 @@ func _advance_world(delta: float) -> void:
 				Juice.sfx(&"zombie_die")
 				Juice.shake(6.0)
 				_crush_defender(target)
-			elif zombie.tick_bite(delta) and target.take_damage(GameState.bite_damage):
-				_remove_defender(target)
+			elif zombie.tick_bite(delta):
+				# 啃食音随咬一口节拍走（紧张感氛围音：每口一记短促 chomp）
+				Juice.sfx(&"chomp")
+				if target.take_damage(GameState.bite_damage):
+					_remove_defender(target)
 		else:
 			zombie.advance(delta)
+			# 危机警报：僵尸首次推进进警戒带（距防线 2 列）响一次，全局节流
+			if not zombie.danger_warned and zombie.position.x <= DANGER_X:
+				zombie.danger_warned = true
+				var now := Time.get_ticks_msec()
+				if now - _last_danger_ms >= DANGER_GAP_MS:
+					_last_danger_ms = now
+					Juice.sfx(&"danger")
 			if zombie.position.x <= DEFENSE_X:
 				_breach(zombie)
 	# ③ 弹丸飞行与命中（伤害/减速读弹丸快照，不读当前选中卡）

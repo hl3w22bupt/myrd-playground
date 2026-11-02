@@ -31,6 +31,8 @@ var bite_cooldown: float = 0.0
 var crushes: bool = false
 ## 处于夜幕遮罩内（L5 夜战关）：剪影预显示，不暴露种类配件与血量（spec levelMechanics.nightFog）。
 var silhouetted: bool = false
+## 已进入危险警戒带（危机警报只对每只僵尸响一次，Field 全局节流；紧张感氛围音）。
+var danger_warned: bool = false
 ## 冻住：倍率 <1 移动放缓，计时归零恢复。
 var _slow_factor: float = 1.0
 var _slow_timer: float = 0.0

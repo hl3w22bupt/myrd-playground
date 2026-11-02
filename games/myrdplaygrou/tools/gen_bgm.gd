@@ -4,7 +4,10 @@ extends SceneTree
 ## 用法（工程根运行）：
 ##   godot --headless --path . -s res://tools/gen_bgm.gd
 ##
-## 产物：assets/sfx/bgm.wav（16-bit PCM mono，22050Hz，约 55.4s 无缝循环 = 8 小节曲式 × 3 轮）。
+## 产物：
+##   assets/sfx/bgm.wav          平静层（16-bit PCM mono，22050Hz，约 55.4s 无缝循环 = 8 小节曲式 × 3 轮）
+##   assets/sfx/bgm-intense.wav  加压层（同曲式分层加压：128BPM 双倍贝斯 + 低频持续音 + 军鼓 +
+##                               心跳底鼓 + 双倍打点；波次过半/末波由 Audio 交叉淡入，无缝循环）
 ## 资产治理协议（SKILL.md §7B）：generated 资产，generator=procedural:tools/gen_bgm.gd；
 ## 同配方同产物（确定性音序表 + 固定噪声种子），改音序重跑本工具即再生成。
 ##
@@ -63,6 +66,13 @@ func _env(t: float, length: float, decay: float) -> float:
 
 
 func _initialize() -> void:
+	_bake_calm()
+	_bake_intense()
+	quit(0)
+
+
+## 平静层（v1 配方原样保留：改这里会改 bgm.wav 字节，对照 diff 须为空）。
+func _bake_calm() -> void:
 	var total_beats := BARS * BEATS_PER_BAR
 	var duration := total_beats * BEAT
 	var count := int(duration * float(SAMPLE_RATE))
@@ -124,6 +134,101 @@ func _initialize() -> void:
 		printerr("GEN_BGM: FAIL 无法写出 assets/sfx/bgm.wav")
 		quit(1)
 		return
+	_write_wav_samples(f, samples)
+	print("GEN_BGM: PASS bgm.wav 已生成（%d samples @ %dHz，%.1fs 循环）" % [samples.size(), SAMPLE_RATE, duration])
+
+
+## 加压层：同曲式分层加压 —— 128 BPM、双倍（八分音符）贝斯驱动、低频锯齿持续音（慢颤音）、
+## 心跳底鼓、军鼓与双倍打点；主旋律与和弦进行与平静层同源（交叉淡化时听感是「同一首曲子绷紧了」）。
+## 总长 = 8 小节曲式 × 2 轮 ≈ 30s 无缝循环；末句回落主音，循环接缝 8ms 交叉渐变无咔哒。
+func _bake_intense() -> void:
+	var bpm := 128.0
+	var beat := 60.0 / bpm
+	var bars := FORM_BARS * 2
+	var total_beats := bars * BEATS_PER_BAR
+	var duration := total_beats * beat
+	var count := int(duration * float(SAMPLE_RATE))
+	var samples := PackedFloat32Array()
+	samples.resize(count)
+
+	var bass_phase := 0.0
+	var mel_phase := 0.0
+	var mel_top_phase := 0.0
+	var drone_phase := 0.0
+	var kick_phase := 0.0
+	var chord_phases: Array[float] = [0.0, 0.0, 0.0]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = NOISE_SEED + 1  # 确定种子（与平静层区分）
+
+	for i in count:
+		var t := float(i) / float(SAMPLE_RATE)
+		var value := 0.0
+		var beat_idx := mini(int(t / beat), total_beats - 1)
+		var beat_t := fmod(t, beat)
+		var bar_idx := int(beat_idx / float(BEATS_PER_BAR))
+		var half_t := fmod(t, beat * 0.5)
+		var step_len := beat * 0.5
+		var step := int(t / step_len) % MELODY.size()
+
+		var root_midi: int = CHORD_ROOTS[bar_idx % CHORD_ROOTS.size()]
+		# 贝斯 ×2：八分音符方波根音驱动（每半拍一枚，重拍加重）
+		var offbeat := beat_t >= beat * 0.5
+		var bass_gain := 0.15 if offbeat else 0.21
+		bass_phase += TAU * _freq(root_midi - 24) / float(SAMPLE_RATE)
+		if half_t < step_len * 0.9:
+			value += _square(bass_phase) * bass_gain * _env(half_t, step_len * 0.9, 11.0)
+		# 低频锯齿持续音（根音再低八度，5.5Hz 慢颤音）—— 压迫感底盘
+		drone_phase += TAU * _freq(root_midi - 36) / float(SAMPLE_RATE)
+		var tremolo := 0.5 + 0.5 * sin(TAU * 5.5 * t)
+		value += _saw(drone_phase) * 0.085 * tremolo
+		# 心跳底鼓：每拍一枚 55Hz 正弦重击（重拍加倍）
+		kick_phase += TAU * 55.0 / float(SAMPLE_RATE)
+		var kick_gain := 0.3 if beat_idx % 2 == 0 else 0.2
+		value += sin(kick_phase) * kick_gain * _env(beat_t, 0.14, 16.0)
+		# 主旋律：与平静层同一张音序表（识别度连续），三角波 + 高八度泛音
+		var note := MELODY[step]
+		var note_freq := _freq(note if note > 0 else 60)
+		mel_phase += TAU * note_freq / float(SAMPLE_RATE)
+		mel_top_phase += TAU * note_freq * 2.0 / float(SAMPLE_RATE)
+		if note > 0:
+			var step_t := fmod(t, step_len)
+			value += _triangle(mel_phase) * 0.2 * _env(step_t, step_len * 0.92, 5.0)
+			value += sin(mel_top_phase) * 0.055 * _env(step_t, step_len * 0.8, 6.0)
+		# 和弦铺底：正弦长音（与平静层同源）
+		var bar_len := beat * float(BEATS_PER_BAR)
+		var bar_t := fmod(t, bar_len)
+		var tones: Array = CHORD_TONES[bar_idx % CHORD_TONES.size()]
+		for k in tones.size():
+			chord_phases[k] += TAU * _freq(tones[k]) / float(SAMPLE_RATE)
+			value += sin(chord_phases[k]) * 0.035 * _env(bar_t, bar_len * 0.96, 1.2)
+		# 军鼓（2/4 拍噪声）+ 双倍打点（每半拍）
+		if beat_idx % 2 == 1:
+			value += rng.randf_range(-1.0, 1.0) * 0.11 * _env(beat_t, 0.09, 22.0)
+		value += rng.randf_range(-1.0, 1.0) * (0.05 if beat_idx % 2 == 0 else 0.032) \
+			* _env(half_t, 0.045, 34.0)
+
+		# 循环接缝：首尾 8ms 交叉渐隐/渐显，无咔哒
+		var seam_in := clampf(t / 0.008, 0.0, 1.0)
+		var seam_out := clampf((duration - t) / 0.008, 0.0, 1.0)
+		samples[i] = clampf(value * seam_in * seam_out * 0.9, -1.0, 1.0)
+
+	var f := FileAccess.open("res://assets/sfx/bgm-intense.wav", FileAccess.WRITE)
+	if f == null:
+		printerr("GEN_BGM: FAIL 无法写出 assets/sfx/bgm-intense.wav")
+		quit(1)
+		return
+	_write_wav_samples(f, samples)
+	print("GEN_BGM: PASS bgm-intense.wav 已生成（%d samples @ %dHz，%.1fs 循环，128BPM 加压层）" % [
+		samples.size(), SAMPLE_RATE, duration])
+
+
+## 锯齿波（加压层持续音）。
+func _saw(phase: float) -> float:
+	return 2.0 * (fmod(phase, TAU) / TAU) - 1.0
+
+
+## 统一 WAV 写出（16-bit PCM mono）。
+func _write_wav_samples(f: FileAccess, samples: PackedFloat32Array) -> void:
 	var data_size := samples.size() * 2
 	_write_tag(f, "RIFF")
 	_write_u32(f, 36 + data_size)
@@ -141,8 +246,6 @@ func _initialize() -> void:
 	for s in samples:
 		_write_u16(f, int(s * 32767.0) & 0xFFFF)
 	f.flush()
-	print("GEN_BGM: PASS bgm.wav 已生成（%d samples @ %dHz，%.1fs 循环）" % [samples.size(), SAMPLE_RATE, duration])
-	quit(0)
 
 
 func _write_tag(f: FileAccess, tag: String) -> void:

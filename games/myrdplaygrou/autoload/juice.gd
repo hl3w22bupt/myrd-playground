@@ -20,7 +20,8 @@ signal feedback_fired(kind: StringName)
 ## 游戏换自己的音效 = 改配方重跑工具，或替换文件后在注册表里改指向。
 ## 契约音效（spec audio.sfxBindings 全 8 类）：射击(shoot)/命中(hit)/僵尸倒地(zombie_die)/
 ## 放置单位(place)/收集阳光(score)/波次来袭(wave)/通关(victory)/失败(defeat)；
-## 工程内补充：按钮(confirm)/无效操作(fail)/防线受击(breach)/向日葵产出(produce)。
+## 工程内补充：按钮(confirm)/无效操作(fail)/防线受击(breach)/向日葵产出(produce)；
+## 紧张感氛围音（本轮升级）：僵尸低吼(zombie_groan)/啃食(chomp)/危机警报(danger)。
 const SFX_BANK: Dictionary = {
 	&"score": preload("res://assets/sfx/score.wav"),
 	&"confirm": preload("res://assets/sfx/confirm.wav"),
@@ -34,13 +35,17 @@ const SFX_BANK: Dictionary = {
 	&"defeat": preload("res://assets/sfx/defeat.wav"),
 	&"wave": preload("res://assets/sfx/wave.wav"),
 	&"produce": preload("res://assets/sfx/produce.wav"),
+	&"zombie_groan": preload("res://assets/sfx/zombie_groan.wav"),
+	&"chomp": preload("res://assets/sfx/chomp.wav"),
+	&"danger": preload("res://assets/sfx/danger.wav"),
 }
 
 ## 本局反馈记录（"kind@ms"），冒烟断言只看是否非空；环形上限防长局内存膨胀。
 var events: PackedStringArray = []
 
 const EVENTS_CAP: int = 512
-const SFX_POOL_SIZE: int = 4
+## 池深 4→8：长尾氛围音（低吼 1.0s / 警报 1.1s）入池后，4 槽轮转会切掉进行中的射击/命中音。
+const SFX_POOL_SIZE: int = 8
 
 var _sfx_pool: Array[AudioStreamPlayer] = []
 var _sfx_next: int = 0

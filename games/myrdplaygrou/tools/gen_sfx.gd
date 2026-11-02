@@ -8,6 +8,7 @@ extends SceneTree
 ## 配方（tests/sfx-recipes.json）：sample_rate + effects[]，每个 effect：
 ##   name 必填（输出 assets/sfx/<name>.wav；噪声种子 = hash(name)，确定可复现）
 ##   kind: blip（固定频振荡+包络）/ sweep（from→to 扫频）/ noise（白噪声+包络）
+##         / layers（多层叠加：layers[] 每层同上三类基元 + 可选 delay 秒，逐层独立噪声种子）
 ##   wave: sine / square / triangle / sawtooth；duration 秒；volume 0~1；decay 包络衰减
 ##
 ## 产物即资产治理协议里的 generated 资产：入库后进 spec.assets 段（source=generated，
@@ -74,37 +75,83 @@ func _bake(effect: Dictionary, rate: int) -> String:
 	if name.is_empty() or not name.is_valid_filename():
 		return "effect 缺少合法 name（用作文件名）"
 	var kind := String(effect.get("kind", "blip"))
-	if not kind in ["blip", "sweep", "noise"]:
-		return "%s: kind 必须是 blip/sweep/noise，实际 %s" % [name, kind]
+	if not kind in ["blip", "sweep", "noise", "layers"]:
+		return "%s: kind 必须是 blip/sweep/noise/layers，实际 %s" % [name, kind]
 	var duration := float(effect.get("duration", 0.2))
 	if duration <= 0.0 or duration > 3.0:
 		return "%s: duration 必须在 (0, 3] 秒，实际 %s" % [name, duration]
 	var volume := clampf(float(effect.get("volume", 0.6)), 0.0, 1.0)
-	var wave := String(effect.get("wave", "sine"))
-	var decay := absf(float(effect.get("decay", 6.0)))
 	var count := int(duration * float(rate))
 	if count <= 0:
 		return "%s: 采样数为 0" % name
 
-	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(name)  # 确定种子：同配方同产物，diff 干净
-	var from := float(effect.get("from", float(effect.get("freq", 440.0))))
-	var to := float(effect.get("to", from))
 	var samples := PackedFloat32Array()
 	samples.resize(count)
+	if kind == "layers":
+		# 多层叠加：每层独立基元（同 blip/sweep/noise 参数）+ 可选 delay；层内噪声种子 = hash(name#i)
+		var layers: Variant = effect.get("layers")
+		if not (layers is Array) or (layers as Array).is_empty():
+			return "%s: layers 配方需要非空 layers 数组" % name
+		var li := 0
+		for layer: Variant in layers:
+			if not (layer is Dictionary):
+				return "%s: layers[%d] 不是对象" % [name, li]
+			var message := _mix_layer(samples, (layer as Dictionary), rate, "%s#%d" % [name, li])
+			if message != "":
+				return "%s: layers[%d] %s" % [name, li, message]
+			li += 1
+	else:
+		var wave := String(effect.get("wave", "sine"))
+		var decay := absf(float(effect.get("decay", 6.0)))
+		var rng := RandomNumberGenerator.new()
+		rng.seed = hash(name)  # 确定种子：同配方同产物，diff 干净
+		var from := float(effect.get("from", float(effect.get("freq", 440.0))))
+		var to := float(effect.get("to", from))
+		var phase := 0.0
+		for i in count:
+			var t := float(i) / float(rate)
+			var progress := float(i) / float(max(count - 1, 1))
+			phase += TAU * lerpf(from, to, progress) / float(rate)
+			var value := rng.randf_range(-1.0, 1.0) if kind == "noise" else _oscillator(wave, phase)
+			var attack := clampf(t / 0.002, 0.0, 1.0)          # 2ms 起音防爆音
+			var fade_out := clampf((duration - t) / 0.005, 0.0, 1.0)  # 5ms 收尾防咔哒
+			samples[i] = value * exp(-decay * t) * attack * fade_out * volume
+
+	var relative := "assets/sfx/" + name + ".wav"
+	_write_wav("res://" + relative, samples, rate)
+	print("[gen_sfx] %s.wav  %d samples @ %dHz（kind=%s）" % [name, count, rate, kind])
+	return ""
+
+
+## 把一层基元混入主缓冲（delay 秒后起播；层参数同单层配方，volume 为该层自身电平）。
+func _mix_layer(samples: PackedFloat32Array, layer: Dictionary, rate: int, seed_key: String) -> String:
+	var kind := String(layer.get("kind", "blip"))
+	if not kind in ["blip", "sweep", "noise"]:
+		return "层 kind 必须是 blip/sweep/noise，实际 %s" % kind
+	var duration := float(layer.get("duration", 0.2))
+	if duration <= 0.0 or duration > 3.0:
+		return "层 duration 必须在 (0, 3] 秒，实际 %s" % duration
+	var delay := maxf(float(layer.get("delay", 0.0)), 0.0)
+	if delay >= float(samples.size()) / float(rate):
+		return "层 delay 超出主时长"
+	var volume := clampf(float(layer.get("volume", 0.6)), 0.0, 1.0)
+	var wave := String(layer.get("wave", "sine"))
+	var decay := absf(float(layer.get("decay", 6.0)))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(seed_key)  # 层级独立种子：同配方同产物
+	var from := float(layer.get("from", float(layer.get("freq", 440.0))))
+	var to := float(layer.get("to", from))
+	var offset := int(delay * float(rate))
+	var count := mini(int(duration * float(rate)), samples.size() - offset)
 	var phase := 0.0
 	for i in count:
 		var t := float(i) / float(rate)
 		var progress := float(i) / float(max(count - 1, 1))
 		phase += TAU * lerpf(from, to, progress) / float(rate)
 		var value := rng.randf_range(-1.0, 1.0) if kind == "noise" else _oscillator(wave, phase)
-		var attack := clampf(t / 0.002, 0.0, 1.0)          # 2ms 起音防爆音
-		var fade_out := clampf((duration - t) / 0.005, 0.0, 1.0)  # 5ms 收尾防咔哒
-		samples[i] = value * exp(-decay * t) * attack * fade_out * volume
-
-	var relative := "assets/sfx/" + name + ".wav"
-	_write_wav("res://" + relative, samples, rate)
-	print("[gen_sfx] %s.wav  %d samples @ %dHz（kind=%s wave=%s）" % [name, count, rate, kind, wave])
+		var attack := clampf(t / 0.002, 0.0, 1.0)
+		var fade_out := clampf((duration - t) / 0.005, 0.0, 1.0)
+		samples[offset + i] += value * exp(-decay * t) * attack * fade_out * volume
 	return ""
 
 

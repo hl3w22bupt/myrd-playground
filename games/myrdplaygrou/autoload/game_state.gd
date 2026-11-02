@@ -411,6 +411,27 @@ func endless_multiplier() -> float:
 	return pow(ENDLESS_INTENSITY, float(maxi(wave_index, 0)))
 
 
+## ── BGM 加压目标态（本轮「紧张感音画」：波次过半 / 末波 → 加压层交叉淡入）──
+## 无尽模式波次无限、无「末波」，按第 ENDLESS_INTENSE_WAVE 波（1 起第 3 波）起持续加压。
+const ENDLESS_INTENSE_WAVE: int = 2
+
+
+## 加压层 BGM 的目标态（纯函数，Audio.set_intensity 由 main.gd 按它驱动；冒烟真值表机判）：
+## - 未在对局（选关 / 结算）→ false（回平静层）；
+## - 无尽模式 → wave_index ≥ ENDLESS_INTENSE_WAVE；
+## - 普通关卡 → 当前波次过半（wave*2 > count）或已是末波。
+func intense_bgm_desired() -> bool:
+	if not running:
+		return false
+	if endless_active:
+		return wave_index >= ENDLESS_INTENSE_WAVE
+	var count := wave_count()
+	if count <= 0:
+		return false
+	var wave := wave_index + 1
+	return wave * 2 > count or wave == count
+
+
 ## ── 出战卡取值（对齐 spec.numeric.plants：造价/血量为卡片绝对值，射击间隔=基准×倍率）──
 
 ## 本关出战卡槽（CARDS 按 level().roster_exclude 过滤；L4 阳光紧缩关移除双发射手）。

@@ -73,6 +73,7 @@ func _ready() -> void:
 	# 信号接线：订阅方（本场景 / HUD）写连接，发布方（GameState / 实体）只 emit。
 	GameState.level_started.connect(_on_level_started)
 	GameState.game_ended.connect(_on_game_ended)
+	GameState.wave_changed.connect(_on_wave_changed)
 	level_select.level_selected.connect(_on_level_selected)
 	result_overlay.primary_pressed.connect(_on_result_primary)
 	result_overlay.level_select_pressed.connect(_show_level_select)
@@ -95,6 +96,7 @@ func _show_level_select() -> void:
 	hud.visible = false
 	result_overlay.close()
 	level_select.open()
+	_update_bgm_intensity()
 
 
 func _on_level_selected(index: int) -> void:
@@ -122,6 +124,7 @@ func _on_level_started(level_index: int) -> void:
 	cursor.position = field.cell_center(Vector2i(3, 2))
 	field.highlight_cell = cursor.current_cell()
 	_apply_chapter_tint()
+	_update_bgm_intensity()
 
 
 ## 教学引导文案（L1 首布防引导，完成前常驻 —— 完成后由 _on_defender_placed 切回常规提示淡出）。
@@ -170,18 +173,6 @@ func _apply_chapter_tint() -> void:
 	})
 
 
-func _on_game_ended(won: bool) -> void:
-	cursor.active = false
-	hud.set_wave_wait_visible(false)
-	# 终局反馈挂结果处理函数：胜负音效 + 失败震屏（SKILL.md §3B）
-	Juice.sfx(&"victory" if won else &"defeat")
-	if not won:
-		Juice.shake(9.0)
-	result_overlay.show_result(
-		won, GameState.level_index,
-		String(GameState.level().get("name", "")), GameState.wave_count())
-
-
 func _restart_level() -> void:
 	Audio.ensure_playing()
 	GameState.reset()
@@ -201,10 +192,35 @@ func _on_skip_wave_requested() -> void:
 func _on_wave_started(wave: int) -> void:
 	# 波次来袭提示音（spec audio.sfxBindings：sfx-wave，含首波与最后一波）
 	Juice.sfx(&"wave")
+	_update_bgm_intensity()
+
+
+func _on_wave_changed(_wave: int, _wave_count: int) -> void:
+	# 波次推进（守完一波）同样可能跨越「过半 / 末波」阈值 —— 加压目标态随之刷新
+	_update_bgm_intensity()
 
 
 func _on_waiting_changed(waiting: bool) -> void:
 	hud.set_wave_wait_visible(waiting)
+
+
+func _on_game_ended(won: bool) -> void:
+	cursor.active = false
+	hud.set_wave_wait_visible(false)
+	_update_bgm_intensity()
+	# 终局反馈挂结果处理函数：胜负音效 + 失败震屏（SKILL.md §3B）
+	Juice.sfx(&"victory" if won else &"defeat")
+	if not won:
+		Juice.shake(9.0)
+	result_overlay.show_result(
+		won, GameState.level_index,
+		String(GameState.level().get("name", "")), GameState.wave_count())
+
+
+## BGM 加压目标态刷新（紧张感音画）：波次过半 / 末波 → 加压层交叉淡入，否则回平静层。
+## Audio.set_intensity 幂等，重复同值调用零开销。
+func _update_bgm_intensity() -> void:
+	Audio.set_intensity(GameState.intense_bgm_desired())
 
 
 ## ── 输入（键盘路径；触屏点按在 Field._unhandled_input 与 HUD 卡片按钮）──

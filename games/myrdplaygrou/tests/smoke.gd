@@ -51,11 +51,16 @@ extends Node
 ##  16. 键位契约：动作已注册 + 承诺的物理键全部绑定（逐键 AND）
 ##  17. 操作说明不常驻：开局提示可见，hint_show_seconds 后自动开始淡出
 ##  18. 调参协议：TUNING_META 非空；apply_tuning 应用/拒绝/钳制，检查后恢复原值
-##  19. HUD 挂件审计：rebuild_cards 只许重建出战卡 —— 常驻挂件（下一波/波次/生命/返回/
-##      重开/操作提示）各恰好 1（整行重建会让旧挂件失联残留：文案冻结的假波次/假生命
-##      + 顶栏溢出；2026-11-02 探针实证的缺陷面）
-##  20. 结算误触窗覆盖按钮点按：窗期内主按钮不受理（不许跳过结算）—— 触屏玩家的实际
-##      路径就是 Button.pressed，防线不能只拦键盘 confirm；窗期满正常受理
+##  19. HUD 挂件审计（v15 线）：rebuild_cards 只许重建出战卡 —— 常驻挂件（下一波/波次/
+##      生命/返回/重开/操作提示）各恰好 1（整行重建会让旧挂件失联残留：文案冻结的假波次/
+##      假生命 + 顶栏溢出）
+##  20. 结算误触窗覆盖按钮点按（v15 线）：窗期内主按钮不受理（不许跳过结算）—— 触屏玩家
+##      的实际路径就是 Button.pressed，防线不能只拦键盘 confirm；窗期满正常受理
+##  21. HUD 响应式布局（本轮修复①）：五档视口（360/640/1024/1600/2560px）逐档实测布局 ——
+##      交互控件零越界（无溢出无裁切）、两两零重叠、按钮热区 ≥44、HUD 正文 = 18px 档、
+##      超宽折行（1024+ 单行 / 640 两行 / 360 折行且不溢出）+「下一波」可见形态不溢出
+##  22. 紧张感音画（本轮修复②）：BGM 加压真值表（波次过半/末波）+ 交叉淡化收敛（往返）+
+##      七件音频资产能量机判（RMS/时长/低频占比/削波，逐件覆盖）+ 低吼/啃食/警报接线探针
 ##
 ## ⚠️ 输入注入分两个阶段、互不重叠（error-signatures E-08）：
 ##   headless 下 `Input.parse_input_event()` 的缓冲冲刷会清掉 `Input.action_press()` 状态，
@@ -67,7 +72,7 @@ extends Node
 ##   以 spec 数值验证）；③ 每关「跳末波 + 近距放怪」只验证胜负推进路径，波次编制由静态
 ##   锚点断言覆盖。
 
-## ── 阶段帧数预算（最坏情形合计 = TOTAL_FRAMES ≈ 220 帧 < 门禁 240 帧兜底）──
+## ── 阶段帧数预算（最坏情形合计 = TOTAL_FRAMES ≈ 224 帧 < 门禁 240 帧兜底）──
 const NOISE_FRAMES: int = 2         # 对抗输入噪声（原始事件：悬挂手势/孤儿释放/乱键；fuzz 门禁 6 批次全覆盖）
 const CLEANUP_FRAMES: int = 2       # 噪声后清洗：释放动作 + 重开一局拿到干净棋盘
 const AXIS_HOLD_FRAMES: int = 2     # 每根轴按住注入的帧数（520px/s × 2 帧 ≈ 17px 位移）
@@ -84,15 +89,16 @@ const SWEEP_KILL_FRAMES: int = 14   # 每关：一击必杀（齐射 4.5 帧 + �
 const SWEEP_KILL_L7_FRAMES: int = 18  # L7：含碾压探针子步骤（1 帧碾压生效 + 重建胜利尝试）
 const SWEEP_ADVANCE_FRAMES: int = 3 # confirm「下一关」→ level_index 前进断言（仅第 1 关真实链）
 const ENDLESS_FRAMES: int = 8       # 无尽模式：入口可见 → 进入 → 出怪 → 强度递增 → boss 混编
+const HUD_PROBE_FRAMES: int = 5     # HUD 五档视口布局探针 + BGM 加压交叉淡化往返（本轮修复①②）
 ## 八关扫描总预算：L1 真实链（setup+kill+advance）+ L2-6/L8 直选 + L7 碾压加量
 const SWEEP_FRAMES: int = (SWEEP_SETUP_FRAMES + SWEEP_KILL_FRAMES + SWEEP_ADVANCE_FRAMES) \
 	+ 6 * (SWEEP_SETUP_FRAMES + SWEEP_KILL_FRAMES) \
 	+ (SWEEP_SETUP_FRAMES + SWEEP_KILL_L7_FRAMES)
-const TOTAL_FRAMES: int = NOISE_FRAMES + CLEANUP_FRAMES + AXES_FRAMES + PLACE_FRAMES \
+const TOTAL_FRAMES: int = HUD_PROBE_FRAMES + NOISE_FRAMES + CLEANUP_FRAMES + AXES_FRAMES + PLACE_FRAMES \
 	+ CARDS_FRAMES + COMBAT_FRAMES + LOSE_FRAMES + RESULT_FRAMES \
 	+ RESTART_FRAMES + NEXTWAVE_FRAMES + SWEEP_FRAMES + ENDLESS_FRAMES + 2
 
-enum Phase { NOISE, CLEANUP, MOVE, PLACE, CARDS, COMBAT, LOSE, RESULT, RESTART, NEXTWAVE,
+enum Phase { HUD_PROBE, NOISE, CLEANUP, MOVE, PLACE, CARDS, COMBAT, LOSE, RESULT, RESTART, NEXTWAVE,
 	SWEEP_SETUP, SWEEP_KILL, SWEEP_ADVANCE, ENDLESS }
 
 ## 位移方向断言的最小分量阈值（期望 17px，8px = 容忍首帧离散的下限）。
@@ -124,6 +130,16 @@ const KEY_CONTRACT: Dictionary = {
 ## spec audio.sfxBindings 全 8 类契约音效（SFX_BANK 必须全部注册）。
 const SFX_CONTRACT: Array[StringName] = [
 	&"shoot", &"hit", &"zombie_die", &"place", &"score", &"wave", &"victory", &"defeat",
+]
+
+## 紧张感氛围音契约（本轮修复②新增；SFX_BANK 必须全部注册）。
+const TENSION_SFX_CONTRACT: Array[StringName] = [&"zombie_groan", &"chomp", &"danger"]
+
+## HUD 五档视口（本轮修复①）：[宽, 行数下限, 行数上限]。折行策略由 hud.gd::_plan_rows 纯函数
+## 驱动（生产与机判同一实现）：单行总宽 ≈673px → 1024+ 单行；640 折两行；
+## 360 两行成排（卡片行 5×64+4×6 = 344 恰好入 348 可用宽），行数上界留 3 防度量漂移。
+const HUD_PROBE_TIERS: Array = [
+	[360.0, 2, 3], [640.0, 2, 2], [1024.0, 1, 1], [1600.0, 1, 1], [2560.0, 1, 1],
 ]
 
 ## spec visual.contrast.lawnCellBase / plantTreatment / nightFog 的声明色
@@ -172,7 +188,7 @@ const LEVEL_ANCHORS: Array = [
 ]
 
 var _failures: PackedStringArray = []
-var _phase: Phase = Phase.NOISE
+var _phase: Phase = Phase.HUD_PROBE
 var _phase_frames: int = 0
 var _total_frames: int = 0
 var _finished: bool = false
@@ -205,6 +221,10 @@ var _crush_checked: bool = false
 var _endless_base_hp: float = -1.0
 var _tuning_backup: Dictionary = {}
 var _noise_rng := RandomNumberGenerator.new()
+## HUD 五档视口探针（本轮修复①）：[{host, hud, width, min_rows, max_rows}]。
+var _hud_probes: Array = []
+## BGM 交叉淡化时长的备份（测试通道压缩后还原）。
+var _audio_crossfade_backup: float = -1.0
 
 
 ## 场上找指定面额的阳光拾取物（冒烟收集断言用）。
@@ -551,6 +571,12 @@ func _check_audio_contract() -> void:
 	for name: StringName in SFX_CONTRACT:
 		if not Juice.SFX_BANK.has(name) or Juice.SFX_BANK.get(name) == null:
 			_failures.append("音频契约：契约音效 %s 未注册（sfxBindings 缺音）" % name)
+	for name: StringName in TENSION_SFX_CONTRACT:
+		if not Juice.SFX_BANK.has(name) or Juice.SFX_BANK.get(name) == null:
+			_failures.append("音频契约：紧张感氛围音 %s 未注册（SFX_BANK 缺音）" % name)
+	# 紧张感音画：加压层 BGM 就绪且前向循环（与平静层同协议）
+	if not audio.has_method("has_intense_bgm") or not audio.call("has_intense_bgm"):
+		_failures.append("音频契约：加压层 BGM 未就绪（assets/sfx/bgm-intense.wav 缺失或未加载）")
 	# 核查 bus 音量：无启动静音、Master 满增益、BGM 音量 = spec 0.4 线性（≈ -8dB）、循环已开
 	var audit: Dictionary = audio.call("bus_audit")
 	if bool(audit.get("master_muted", true)):
@@ -559,6 +585,8 @@ func _check_audio_contract() -> void:
 		_failures.append("音频契约：Master 增益 %.1f dB ≠ 0（bus 音量被启动路径改动）" % float(audit.get("master_volume_db", -99.0)))
 	if not bool(audit.get("bgm_loop", false)):
 		_failures.append("音频契约：BGM 未开前向循环（手势后无法无缝循环播放）")
+	if not bool(audit.get("intense_loop", false)):
+		_failures.append("音频契约：加压层 BGM 未开前向循环（交叉淡化后无法无缝接管）")
 	var bgm_db := float(audit.get("bgm_volume_db", -99.0))
 	if not is_equal_approx(bgm_db, Audio.BGM_VOLUME_DB):
 		_failures.append("音频契约：BGM 音量 %.1f dB ≠ 声明 %.1f dB" % [bgm_db, Audio.BGM_VOLUME_DB])
@@ -579,6 +607,201 @@ func _check_audio_contract() -> void:
 ## dB → 线性（20·log10 的逆运算，bus 音量核查用）。
 func db_to_linear(db: float) -> float:
 	return pow(10.0, db / 20.0)
+
+
+## ── 静态断言 ④+：紧张感音画（本轮修复②的能量机判，逐件覆盖）──
+## 与壳层 AnalyserNode getOutputEnergy（mobile-web-smoke 真实出声机判）同 RMS 口径，但直接
+## 读 AudioStreamWAV 的 16-bit PCM 复算 —— 无头可判、确定性可复现。阈值按生成器实测标定
+## （tools/gen_bgm.gd / tools/gen_sfx.gd，标定值见 docs/numeric-and-assets.md §6）。
+func _check_tension_audio() -> void:
+	var calm := _wav_metrics("res://assets/sfx/bgm.wav", 4)
+	var intense := _wav_metrics("res://assets/sfx/bgm-intense.wav", 4)
+	if calm.is_empty() or intense.is_empty():
+		_failures.append("紧张感音画：BGM 双层任一缺失或不可解码（bgm.wav / bgm-intense.wav）")
+		return
+	# 分层加压：加压层能量必须显著高于平静层（实测 0.0982 vs 0.0666，1.47×）
+	if float(intense.get("rms", 0.0)) < float(calm.get("rms", 1.0)) * 1.2:
+		_failures.append("紧张感音画：加压层 RMS %.4f < 平静层 %.4f ×1.2（分层加压失真）" % [
+			float(intense.get("rms", 0.0)), float(calm.get("rms", 1.0))])
+	if float(intense.get("duration", 0.0)) < 10.0:
+		_failures.append("紧张感音画：加压层时长 %.1fs < 10s（循环层过短，淡化期间反复回卷）" % float(intense.get("duration", 0.0)))
+	if float(calm.get("rms", 0.0)) < 0.02:
+		_failures.append("紧张感音画：平静层 RMS %.4f < 0.02（BGM 缺能量）" % float(calm.get("rms", 0.0)))
+	# 号角化的波次号角：0.5s 短扫频 → 0.9s 长号（根音+五度双方波），能量更足
+	var wave := _wav_metrics("res://assets/sfx/wave.wav")
+	if wave.is_empty() or float(wave.get("duration", 0.0)) < 0.7 or float(wave.get("rms", 0.0)) < 0.1:
+		_failures.append("紧张感音画：sfx-wave 未号角化（时长 %.2fs / RMS %.4f，应 ≥0.7s / ≥0.1）" % [
+			float(wave.get("duration", 0.0)), float(wave.get("rms", 0.0))])
+	# 加厚的命中音：噪声上叠 95Hz 正弦低频垫层（低频占比 0.845）+ 尾巴加长
+	var hit := _wav_metrics("res://assets/sfx/hit.wav")
+	if hit.is_empty() or float(hit.get("duration", 0.0)) < 0.16 \
+			or float(hit.get("low_ratio", 0.0)) < 0.5 or float(hit.get("rms", 0.0)) < 0.1:
+		_failures.append("紧张感音画：sfx-hit 未加厚（时长 %.2fs / 低频占比 %.2f / RMS %.4f，应 ≥0.16s / ≥0.5 / ≥0.1）" % [
+			float(hit.get("duration", 0.0)), float(hit.get("low_ratio", 0.0)), float(hit.get("rms", 0.0))])
+	# 僵尸低吼：≥0.8s 长音且低频主导（双锯齿 110→62 / 55→41 Hz）
+	var groan := _wav_metrics("res://assets/sfx/zombie_groan.wav")
+	if groan.is_empty() or float(groan.get("duration", 0.0)) < 0.8 \
+			or float(groan.get("low_ratio", 0.0)) < 0.6 or float(groan.get("rms", 0.0)) < 0.05:
+		_failures.append("紧张感音画：sfx-zombie-groan 低吼不达标（时长 %.2fs / 低频占比 %.2f / RMS %.4f）" % [
+			float(groan.get("duration", 0.0)), float(groan.get("low_ratio", 0.0)), float(groan.get("rms", 0.0))])
+	# 啃食：一口一记的短促音（≤0.25s）
+	var chomp := _wav_metrics("res://assets/sfx/chomp.wav")
+	if chomp.is_empty() or float(chomp.get("duration", 1.0)) > 0.25 or float(chomp.get("rms", 0.0)) < 0.05:
+		_failures.append("紧张感音画：sfx-chomp 啃食音不达标（时长 %.2fs 应 ≤0.25s / RMS %.4f）" % [
+			float(chomp.get("duration", 1.0)), float(chomp.get("rms", 0.0))])
+	# 危机警报：双音交替长鸣（660/880Hz 方波）
+	var danger := _wav_metrics("res://assets/sfx/danger.wav")
+	if danger.is_empty() or float(danger.get("duration", 0.0)) < 0.8 or float(danger.get("rms", 0.0)) < 0.1:
+		_failures.append("紧张感音画：sfx-danger 危机警报不达标（时长 %.2fs / RMS %.4f）" % [
+			float(danger.get("duration", 0.0)), float(danger.get("rms", 0.0))])
+	# 削波检查：多层叠加不允许削波失真（peak 贴 1.0 = 写盘时被钳制）
+	for entry: Array in [[calm, "bgm"], [intense, "bgm-intense"], [wave, "wave"], [hit, "hit"],
+			[groan, "zombie_groan"], [chomp, "chomp"], [danger, "danger"]]:
+		if entry[0].is_empty():
+			continue
+		if float(entry[0].get("peak", 0.0)) > 0.995:
+			_failures.append("紧张感音画：%s 合成削波（peak %.4f > 0.995）" % [entry[1], float(entry[0].get("peak", 0.0))])
+
+
+## 读 wav 的 16-bit PCM 复算能量指标（能量机判共用实现）。
+## 返回 {duration, rms, peak, low_ratio}；low_ratio = 250Hz 一阶低通 RMS / 全带 RMS（低频占比）。
+## stride = 采样步长（BGM 长文件用 4 提速，指标偏差 <5%）。
+func _wav_metrics(path: String, stride: int = 1) -> Dictionary:
+	var stream: AudioStream = load(path)
+	if stream == null or not (stream is AudioStreamWAV):
+		return {}
+	var wav := stream as AudioStreamWAV
+	var data := wav.data
+	var rate := int(wav.mix_rate)
+	var frames := data.size() / 2
+	if frames < 16 or rate <= 0:
+		return {}
+	var acc := 0.0
+	var low_acc := 0.0
+	var peak := 0.0
+	var low_state := 0.0
+	var n := 0
+	var alpha := TAU * 250.0 / float(rate)
+	var i := 0
+	while i + 1 < data.size():
+		var v := float(data.decode_s16(i)) / 32768.0
+		acc += v * v
+		low_state += (v - low_state) * alpha
+		low_acc += low_state * low_state
+		peak = maxf(peak, absf(v))
+		n += 1
+		i += 2 * maxi(stride, 1)
+	var rms := sqrt(acc / float(maxi(n, 1)))
+	var low_rms := sqrt(low_acc / float(maxi(n, 1)))
+	return {
+		"duration": float(frames) / float(rate),
+		"rms": rms,
+		"peak": peak,
+		"low_ratio": low_rms / rms if rms > 0.000001 else 0.0,
+	}
+
+
+## BGM 加压目标态真值表（波次过半 / 末波口径；纯状态推演，不动场景树）：
+## 未对局 = false；无尽第 ENDLESS_INTENSE_WAVE(0 起) 波起 = true；
+## 普通关卡 = 当前波过半（wave×2 > count）或已是末波。
+func _check_intensity_table() -> void:
+	var backup_running: bool = GameState.running
+	var backup_endless: bool = GameState.endless_active
+	var backup_level: int = GameState.level_index
+	var backup_wave: int = GameState.wave_index
+	var cases: Array = [
+		# [running, endless, level_index, wave_index, expected]（波次口径 = wave_index+1 / 总波数）
+		[false, false, 0, 0, false],   # 选关页
+		[true, false, 0, 0, false],    # L1（4 波）第 1 波
+		[true, false, 0, 1, false],    # L1 第 2 波（恰半，未过半）
+		[true, false, 0, 2, true],     # L1 第 3 波（过半 → 加压）
+		[true, false, 0, 3, true],     # L1 末波
+		[true, false, 7, 3, false],    # L8（10 波）第 4 波
+		[true, false, 7, 4, false],    # L8 第 5 波（恰半）
+		[true, false, 7, 5, true],     # L8 第 6 波（过半 → 加压）
+		[true, false, 7, 9, true],     # L8 末波
+		[true, true, 0, 0, false],     # 无尽第 1 波
+		[true, true, 0, 1, false],     # 无尽第 2 波
+		[true, true, 0, 2, true],      # 无尽第 3 波起持续加压
+	]
+	for case: Array in cases:
+		GameState.running = bool(case[0])
+		GameState.endless_active = bool(case[1])
+		GameState.level_index = int(case[2])
+		GameState.wave_index = int(case[3])
+		var got: bool = GameState.intense_bgm_desired()
+		if got != bool(case[4]):
+			_failures.append("BGM 加压真值表：running=%s endless=%s 关%d 波%d 期望 %s 实际 %s（波次过半/末波口径失真）" % [
+				case[0], case[1], int(case[2]) + 1, int(case[3]) + 1, case[4], got])
+	GameState.running = backup_running
+	GameState.endless_active = backup_endless
+	GameState.level_index = backup_level
+	GameState.wave_index = backup_wave
+
+
+## HUD 五档视口探针装配：每档一个定宽宿主 Control + 全新 Hud 实例（容器布局真实排布，
+## 与生产行为同一套 _plan_rows / 容器排序；无头环境布局不需要渲染）。
+func _hud_probe_setup() -> void:
+	for tier: Array in HUD_PROBE_TIERS:
+		var host := Control.new()
+		host.name = "HudProbeHost%d" % int(tier[0])
+		host.size = Vector2(float(tier[0]), 640.0)
+		host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(host)
+		var hud := Hud.new()
+		hud.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		host.add_child(hud)
+		_hud_probes.append({
+			"host": host, "hud": hud, "width": float(tier[0]),
+			"min_rows": int(tier[1]), "max_rows": int(tier[2]),
+		})
+
+
+## HUD 五档视口逐档量测（本轮修复①机判面）：零越界（无溢出无裁切）、零重叠、
+## 触屏热区 ≥44、HUD 正文 18px 档、折行行数在预算内、「下一波」可见形态不溢出。
+func _measure_hud_probes() -> void:
+	var summary := ""
+	for probe: Dictionary in _hud_probes:
+		var hud: Hud = probe.hud
+		var metrics: Dictionary = hud.topbar_metrics()
+		var label := "HUD 布局 %dpx 档" % int(probe.width)
+		var rows := int(metrics.get("rows", -1))
+		if rows < int(probe.min_rows) or rows > int(probe.max_rows):
+			_failures.append("%s：折行 %d 行不在 [%d, %d]（超宽折行策略失真）" % [
+				label, rows, int(probe.min_rows), int(probe.max_rows)])
+		if float(metrics.get("overflow_px", 99.0)) > 0.05:
+			_failures.append("%s：交互控件越界 %.1fpx（溢出/裁切 —— 本轮修复①回潮）" % [
+				label, float(metrics.get("overflow_px", 99.0))])
+		if int(metrics.get("overlaps", 99)) != 0:
+			_failures.append("%s：%d 对交互控件矩形重叠" % [label, int(metrics.get("overlaps", 99))])
+		if float(metrics.get("min_button_h", 0.0)) < 43.5:
+			_failures.append("%s：最小按钮热区 %.1f < 44（触屏热区不达标）" % [
+				label, float(metrics.get("min_button_h", 0.0))])
+		if int(metrics.get("body_font", 0)) != 18:
+			_failures.append("%s：HUD 正文字号 %d ≠ 18（本轮拍板档位回潮）" % [
+				label, int(metrics.get("body_font", 0))])
+		# 「下一波」按钮可见形态（等待态）：纯规划面逐行核对，任何档位都不得因它入列而溢出
+		var plan: Array = hud.call("_plan_rows", float(probe.width), true)
+		var content_w: float = maxf(float(probe.width) - 12.0, 0.0)
+		for row: Array in plan:
+			var row_width: float = hud.call("_widgets_min_width", row)
+			if row_width > content_w + 0.05:
+				_failures.append("%s：「下一波」可见形态行最小宽 %.1f > 可用 %.1f（等待态折行溢出）" % [
+					label, row_width, content_w])
+		summary += "%dpx=%d行(溢出%.1f/重叠%d) " % [int(probe.width), rows,
+			float(metrics.get("overflow_px", 99.0)), int(metrics.get("overlaps", 99))]
+	# 取证行随门禁日志落盘：五档视口逐档行数与越界/重叠量
+	print("[smoke] HUD 五档视口探针：%s正文=%dpx 热区≥%.0fpx" % [summary,
+		int(_hud_probes[0].hud.topbar_metrics().get("body_font", 0)),
+		float(_hud_probes[0].hud.topbar_metrics().get("min_button_h", 0.0))])
+
+
+## 反馈记录里是否存在指定前缀的事件（sfx 接线探针共用）。
+func _events_have(prefix: String) -> bool:
+	for event in Juice.events:
+		if event.begins_with(prefix):
+			return true
+	return false
 
 
 ## 键位契约：目标键表 → project.godot [input] 的 physical_keycode（逐键 AND）。
@@ -625,6 +848,53 @@ func _check_tuning_protocol() -> void:
 	GameState.cursor_move_speed = original_cursor
 
 
+## ── 断言 19/20（本轮修复①②）：HUD 五档视口布局机判 + BGM 加压交叉淡化往返 ──
+## 五帧：① 装配 5 档探针 + 开加压（淡化时长压到测试通道 0.008s）；③ 逐档量测 + 显式推进
+## 淡化时间 + 淡入收敛断言 + 关加压；④ 显式推进；⑤ 淡出收敛断言 + 还原 + 加压真值表 +
+## 能量机判 + 清理探针。
+func _step_hud_probe() -> void:
+	if _phase_frames == 1:
+		_hud_probe_setup()
+		Audio.ensure_playing()
+		_audio_crossfade_backup = Audio.crossfade_sec
+		Audio.crossfade_sec = 0.008  # 测试通道：一帧内收敛（生产 1.2s，语义同一补间）
+		Audio.set_intensity(true)
+		var started: Dictionary = Audio.intense_state()
+		if not bool(started.get("desired", true)):
+			_failures.append("BGM 加压：set_intensity(true) 后目标态未置位")
+		if not bool(started.get("intense_playing", false)):
+			_failures.append("BGM 加压：加压层未随目标态起播（ensure_playing 双层起播断线）")
+	elif _phase_frames == 3:
+		_measure_hud_probes()
+		# 显式推进淡化时间（无头环境空闲帧步进不保证 —— 见 Audio.debug_advance_crossfade 注释；
+		# 生产帧步进机制由「提示淡出」断言同机制覆盖）
+		Audio.debug_advance_crossfade(1.0)
+		var faded_in: Dictionary = Audio.intense_state()
+		if absf(float(faded_in.get("intense_db", -99.0)) - Audio.BGM_VOLUME_DB) > 0.01 \
+				or float(faded_in.get("calm_db", 0.0)) > Audio.BGM_IDLE_DB + 1.0:
+			_failures.append("BGM 加压：交叉淡入未收敛（intense %.1f dB / calm %.1f dB，应 %.0f / ≤%.0f）" % [
+				float(faded_in.get("intense_db", -99.0)), float(faded_in.get("calm_db", 0.0)),
+				Audio.BGM_VOLUME_DB, Audio.BGM_IDLE_DB])
+		if bool(faded_in.get("crossfading", true)):
+			_failures.append("BGM 加压：淡化补间未结束（收敛判定失真）")
+		Audio.set_intensity(false)
+	elif _phase_frames == 4:
+		Audio.debug_advance_crossfade(1.0)
+	elif _phase_frames >= HUD_PROBE_FRAMES:
+		var faded_out: Dictionary = Audio.intense_state()
+		if absf(float(faded_out.get("calm_db", -99.0)) - Audio.BGM_VOLUME_DB) > 0.01 \
+				or float(faded_out.get("intense_db", 0.0)) > Audio.BGM_IDLE_DB + 1.0:
+			_failures.append("BGM 加压：交叉淡出未回平静层（calm %.1f dB / intense %.1f dB）" % [
+				float(faded_out.get("calm_db", -99.0)), float(faded_out.get("intense_db", 0.0))])
+		Audio.crossfade_sec = _audio_crossfade_backup
+		for probe: Dictionary in _hud_probes:
+			(probe.host as Node).queue_free()
+		_hud_probes.clear()
+		_check_intensity_table()
+		_check_tension_audio()
+		_enter(Phase.NOISE)
+
+
 ## ── 帧驱动（相位状态机）──
 
 func _physics_process(_delta: float) -> void:
@@ -646,6 +916,8 @@ func _enter(phase: Phase) -> void:
 
 func _step() -> void:
 	match _phase:
+		Phase.HUD_PROBE:
+			_step_hud_probe()
 		Phase.NOISE:
 			_inject_noise_frame()
 			if _phase_frames >= NOISE_FRAMES:
@@ -756,6 +1028,19 @@ func _step() -> void:
 				if GameState.sun != 10:
 					_failures.append("出战卡：失败布防不该扣费（%d ≠ 10）" % GameState.sun)
 				GameState.sun = sun_backup
+			elif _phase_frames == 7:
+				# 啃食音探针（紧张感氛围音）：坚果旁贴脸放僵尸、咬拍压到 0.02s → 两帧内咬一口必有 chomp
+				GameState.add_sun(500)
+				GameState.select_card(_roster_index_of_strict(&"wallnut"))
+				var nut_cell := Vector2i(0, 3)
+				if not _field.try_place(_field.cell_center(nut_cell)):
+					_failures.append("啃食探针：坚果墙布防失败（(0,3) 格被占或选卡断线）")
+				else:
+					var biter := _field.spawn_zombie(3, _field.cell_center(nut_cell).x + 30.0, &"walker")
+					biter.bite_cooldown = 0.02
+				# 探针布防消费了选卡（notify_placed 置 -1）—— 恢复帧 6 建立的 selected=1 前置，
+				# 不污染本相位末尾的「select 后选中态」断言
+				GameState.select_card(1)
 			elif _phase_frames >= CARDS_FRAMES:
 				if GameState.selected_card != 1:
 					_failures.append("出战卡：select 后选中态失真（selected=%d，期望 1）" % GameState.selected_card)
@@ -786,6 +1071,11 @@ func _step() -> void:
 					_failures.append("阳光经济：击杀未掉落阳光拾取物（killReward 断线）")
 				if Juice.events.is_empty():
 					_failures.append("反馈断言：布防→开火→击杀没有触发任何 Juice 反馈（玩起来是哑的）")
+				# 紧张感氛围音接线探针：出怪有低吼、咬一口有啃食音（断线 = 氛围层是哑的）
+				if not _events_have("sfx:zombie_groan"):
+					_failures.append("紧张感音画：出怪未触发僵尸低吼（sfx:zombie_groan 接线断线）")
+				if not _events_have("sfx:chomp"):
+					_failures.append("紧张感音画：啃食探针未触发 chomp（咬一口节拍音断线）")
 			elif _collect_stage == 1 and _phase_frames > 1:
 				# 点按收集 ①：击杀掉落的拾取物 → 点按入账（对局中，running=true）
 				var kill_token := _find_sun_token(GameState.kill_reward(&"walker"))
@@ -858,6 +1148,9 @@ func _step() -> void:
 					if GameState.card_cooldowns[i] > 0.0:
 						_failures.append("重开不可用：卡片冷却未重置（卡 %d = %.1fs）" % [i, GameState.card_cooldowns[i]])
 						break
+				# 危机警报接线探针：LOSE 相位 5 只僵尸直接出生在警戒带内 → 必有一声 danger
+				if not _events_have("sfx:danger"):
+					_failures.append("紧张感音画：僵尸进警戒带未触发危机警报（sfx:danger 接线断线）")
 				_enter(Phase.NEXTWAVE)
 		Phase.NEXTWAVE:
 			# 提前开波（spec input.next-wave）：等待态点按 → 立即转入出怪并真实出怪
@@ -891,7 +1184,7 @@ func _step() -> void:
 ## 缺陷面（2026-11-02 探针实证）：旧实现整行重建 → 首局开局顶栏就有两套「下一波/波次/
 ## 生命/返回/重开」+ 两个提示 Label，旧挂件失联后文案冻结（假波次/假生命）且顶栏溢出。
 ## 口径：按文案签名统计（Hud.widget_audit），签名计数是「重复挂载」唯一可靠观测面 ——
-## 只按当前引用计数会把失联残留全部漏掉。
+## 只按当前引用计数会把失联残留全部漏掉。响应式折行布局下逐行扫描（RowA/B/C）。
 func _audit_hud_widgets(when: String) -> void:
 	var audit: Dictionary = _hud.widget_audit()
 	var expected_cards: int = GameState.roster().size()
@@ -1331,7 +1624,7 @@ func _report() -> void:
 	for key: String in _tuning_backup:
 		GameState.set(key, _tuning_backup[key])
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 选关/选关空白落点反馈/四轴方向移动/教学引导/布防/出战卡/提示淡出/射击/掉落收集/失败/重开/下一波/八关逐关通关/关卡推进/逐关难度生效/夜幕剪影/坦克巨尸碾压/星级结算/无尽模式/键位契约/内容表/难度曲线锚点/对比度/音频契约与bus音量/调参协议 全部通过")
+		print("GODOT_SMOKE: PASS 选关/选关空白落点反馈/HUD挂件审计/结算误触窗按钮防线/HUD五档视口布局/BGM加压真值表与交叉淡化/紧张感音画能量机判/低吼啃食警报接线/四轴方向移动/教学引导/布防/出战卡/提示淡出/射击/掉落收集/失败/重开/下一波/八关逐关通关/关卡推进/逐关难度生效/夜幕剪影/坦克巨尸碾压/星级结算/无尽模式/键位契约/内容表/难度曲线锚点/对比度/音频契约与bus音量/调参协议 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:
