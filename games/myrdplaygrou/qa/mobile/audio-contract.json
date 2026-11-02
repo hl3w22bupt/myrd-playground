@@ -1,0 +1,33 @@
+{
+  "url": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/",
+  "checkedAt": "2026-11-01T13:04:36.395Z",
+  "beforeTap": {
+    "state": "suspended",
+    "addModules": 1,
+    "log": [],
+    "unlocked": false,
+    "muted": false,
+    "bgmPlaying": false
+  },
+  "afterTap": {
+    "state": "running",
+    "addModules": 1,
+    "log": [
+      {
+        "t": 1793538273938,
+        "state": "running"
+      }
+    ],
+    "unlocked": true,
+    "muted": false,
+    "bgmPlaying": true
+  },
+  "inputProfile": {
+    "coarse": false,
+    "engine_web_feature": true,
+    "maxTouchPoints": 0,
+    "ontouchstart": false,
+    "touch": true,
+    "uaTouch": true
+  }
+}

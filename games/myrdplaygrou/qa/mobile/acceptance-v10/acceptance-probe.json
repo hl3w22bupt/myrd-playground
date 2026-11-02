@@ -1,0 +1,42 @@
+{
+  "kind": "acceptance-live-probe",
+  "note": "试玩验收节点独立取证（非门禁判定；门禁结论见 qa/mobile/report.json 与 verify.sh 日志）",
+  "url": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/",
+  "checkedAt": "2026-11-01T15:12:38.333Z",
+  "deployedRef": "commit 5b38fb89fc16ed66bd8deb0c0e0e61cdcdc089ce / deployment cmvxwpgej000zm9z6mepcek2n (v10)",
+  "steps": [
+    "load → 点内容区中央（进第 1 关）→ 点向日葵卡（设计坐标 130,32）→ 点草坪格(1,1)（设计坐标 256,216）"
+  ],
+  "audioDebug": {
+    "state": "running",
+    "addModules": 1,
+    "log": [
+      {
+        "t": 1793545942806,
+        "state": "running"
+      }
+    ],
+    "unlocked": true,
+    "muted": false,
+    "bgmPlaying": true
+  },
+  "inputProfile": {
+    "coarse": false,
+    "engine_web_feature": true,
+    "maxTouchPoints": 0,
+    "ontouchstart": false,
+    "touch": false,
+    "uaTouch": false
+  },
+  "tuningBridgeType": "undefined",
+  "canvasOriginAndScale": "{\"x\":0,\"y\":0,\"scale\":1.25}",
+  "consoleErrors": [],
+  "pageErrors": [],
+  "failedRequests": [],
+  "screenshots": [
+    "step0-load",
+    "step1-level-start",
+    "step2-card-selected",
+    "step3-sunflower-placed"
+  ]
+}

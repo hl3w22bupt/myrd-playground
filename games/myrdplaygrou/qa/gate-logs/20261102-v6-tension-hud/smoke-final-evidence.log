@@ -1,0 +1,23 @@
+Godot Engine v4.3.stable.official.77dcf97d8 - https://godotengine.org
+
+[smoke] HUD 布局 360×740：两行 12 元素在界无重叠（按钮高 44 css，行距 8，战场让位 50 px）
+[smoke] HUD 布局 768×1024：两行 12 元素在界无重叠（按钮高 44 css，行距 8，战场让位 192 px）
+[smoke] HUD 布局 1280×800：单行 12 元素在界无重叠（按钮高 56 css，正文 24，间距 10，顶栏高 68 ≤ 草坪首行 72）
+[smoke] HUD 布局 1920×1080：单行 12 元素在界无重叠（按钮高 56 css，正文 24，间距 12，顶栏高 68 ≤ 草坪首行 72）
+[smoke] HUD 布局 2560×1440：单行 12 元素在界无重叠（按钮高 56 css，正文 24，间距 12，顶栏高 68 ≤ 草坪首行 72）
+[smoke] 音频紧张感探针通过（groan/chomp/danger 触发、双版 BGM 切换与回落、末波急促号角在册）
+[smoke] 第 1 关通关（game_ended=true，主按钮 next，波次 4/4，★3，hpScale 1.00）
+[smoke] 顶栏单实例守卫通过（第 2 关常驻控件 sun/next_wave/wave/lives/back/restart/mute 各 1，卡槽 5 张）
+[smoke] 第 2 关通关（game_ended=true，主按钮 next，波次 6/6，★3，hpScale 1.10）
+[smoke] 第 3 关通关（game_ended=true，主按钮 next，波次 7/7，★3，hpScale 1.30）
+[smoke] 第 4 关通关（game_ended=true，主按钮 next，波次 8/8，★3，hpScale 1.50）
+[smoke] 第 5 关通关（game_ended=true，主按钮 next，波次 8/8，★2，hpScale 1.75）
+[smoke] 第 6 关通关（game_ended=true，主按钮 next，波次 9/9，★3，hpScale 2.05）
+[smoke] 第 7 关通关（game_ended=true，主按钮 next，波次 9/9，★3，hpScale 2.40）
+[smoke] 第 8 关通关（game_ended=true，主按钮 replay，波次 10/10，★3，hpScale 2.85）
+[smoke] 无尽模式探针通过（入口可见、波次无限、强度 285.0→307.8、巨尸混编）
+GODOT_SMOKE: PASS 选关/选关空白落点反馈/四轴方向移动/教学引导/布防/出战卡/提示淡出/射击/掉落收集/失败/重开/下一波/八关逐关通关/关卡推进/逐关难度生效/夜幕剪影/坦克巨尸碾压/星级结算/无尽模式/键位契约/内容表/难度曲线锚点/对比度/音频契约与bus音量/调参协议/HUD五档视口布局无溢出无重叠/顶栏单实例守卫/紧张感音画（双版BGM+低吼+啃食+危机警报+号角） 全部通过
+[1;33mWARNING:[0;93m 8 RIDs of type "CanvasItem" were leaked.
+[0;90m     at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2485)[0m
+[1;33mWARNING:[0;93m ObjectDB instances leaked at exit (run with --verbose for details).
+[0;90m     at: cleanup (core/object/object.cpp:2284)[0m

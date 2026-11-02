@@ -1,0 +1,585 @@
+{
+  "tool": "qa/mobile/audio_energy_probe.mjs",
+  "verdict": "PASS",
+  "url": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/",
+  "checkedAt": "2026-11-01T16:48:37.663Z",
+  "preset": {
+    "width": 390,
+    "height": 844,
+    "deviceScaleFactor": 3,
+    "mobile": true,
+    "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
+  },
+  "chromeArgs": [
+    "--headless=new",
+    "--remote-debugging-port=9477",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--use-angle=swiftshader",
+    "--user-data-dir=<tmpdir>",
+    "--window-size=390,844",
+    "--disable-gpu-sandbox",
+    "--hide-scrollbars",
+    "--autoplay-policy=document-user-activation-required"
+  ],
+  "autoplayPolicy": "document-user-activation-required（对齐 iOS Safari）",
+  "engineBootMs": 3600,
+  "firstWaveDelaySec": 15,
+  "notes": "时序中约 10s 周期的能量尖峰为向日葵 produce 音效（sunflower_interval=10s，放置后第 10s 首拍），属预期背景音；天降阳光本身不发声（spawn 无音效挂点）。",
+  "stretch": {
+    "scale": 0.380859375,
+    "ox": 0,
+    "oy": 300.125,
+    "canvas": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 844
+    }
+  },
+  "thresholds": {
+    "SILENCE_RMS": 0.0012,
+    "AUDIBLE_RMS": 0.004,
+    "SUSTAIN_RATIO": 0.35,
+    "SFX_DELTA_DB": 1.5,
+    "SFX_MIN_RMS": 0.003,
+    "MUTE_SETTLE_SEC": 2
+  },
+  "phases": {
+    "preGesture": {
+      "window": {
+        "t0": 1793551686392,
+        "t1": 1793551691551,
+        "n": 136,
+        "maxRms": 0,
+        "maxPeak": 0,
+        "meanRms": 0,
+        "maxDbfs": null,
+        "sustainRatio": 0
+      },
+      "snapshot": {
+        "state": "suspended",
+        "addModules": 1,
+        "log": [],
+        "unlocked": false,
+        "muted": false,
+        "bgmPlaying": false
+      }
+    },
+    "gesture": {
+      "snapshot": {
+        "state": "running",
+        "addModules": 1,
+        "log": [
+          {
+            "t": 1793551691857,
+            "state": "running"
+          }
+        ],
+        "unlocked": true,
+        "muted": false,
+        "bgmPlaying": true
+      },
+      "screenshot": "phase-b-in-game.png"
+    },
+    "bgm": {
+      "window": {
+        "t0": 1793551695690,
+        "t1": 1793551703692,
+        "n": 219,
+        "maxRms": 0.2856286550151881,
+        "maxPeak": 0.5413673520088196,
+        "meanRms": 0.02079787662107083,
+        "maxDbfs": -10.883964502993528,
+        "sustainRatio": 0.9954337899543378
+      }
+    },
+    "sfx": {
+      "confirm": {
+        "label": "confirm（选关，随手势触发）",
+        "present": true,
+        "baseline": {
+          "t0": 1793551689551,
+          "t1": 1793551691491,
+          "n": 52,
+          "maxRms": 0,
+          "maxPeak": 0,
+          "meanRms": 0,
+          "maxDbfs": null,
+          "sustainRatio": 0
+        },
+        "peak": {
+          "t0": 1793551691491,
+          "t1": 1793551692451,
+          "n": 21,
+          "maxRms": 0.2515272075123587,
+          "maxPeak": 0.6785483360290527,
+          "meanRms": 0.03133969104931041,
+          "maxDbfs": -11.988300615072191,
+          "sustainRatio": 0.7619047619047619
+        },
+        "deltaDb": null,
+        "audible": true
+      },
+      "place": {
+        "label": "place（布防）",
+        "present": true,
+        "baseline": {
+          "t0": 1793551691482,
+          "t1": 1793551693422,
+          "n": 50,
+          "maxRms": 0.2515272075123587,
+          "maxPeak": 0.6785483360290527,
+          "meanRms": 0.02042713297242026,
+          "maxDbfs": -11.988300615072191,
+          "sustainRatio": 0.9
+        },
+        "peak": {
+          "t0": 1793551693422,
+          "t1": 1793551694382,
+          "n": 22,
+          "maxRms": 0.3671644099972297,
+          "maxPeak": 0.8631961941719055,
+          "meanRms": 0.046531067818417766,
+          "maxDbfs": -8.702788449792106,
+          "sustainRatio": 1
+        },
+        "deltaDb": 3.2855121652800854,
+        "audible": true
+      },
+      "wave": {
+        "label": "wave（首波自然到点）",
+        "present": true,
+        "expectedAt": "2026-11-01T16:48:26.551Z",
+        "baseline": {
+          "t0": 1793551704551,
+          "t1": 1793551706491,
+          "n": 50,
+          "maxRms": 0.051587907108342886,
+          "maxPeak": 0.12835334241390228,
+          "meanRms": 0.017340303542730747,
+          "maxDbfs": -25.749041816922308,
+          "sustainRatio": 1
+        },
+        "peak": {
+          "t0": 1793551706491,
+          "t1": 1793551707451,
+          "n": 23,
+          "maxRms": 0.27089853897634436,
+          "maxPeak": 0.5506905317306519,
+          "meanRms": 0.08168689573829517,
+          "maxDbfs": -11.343866744388137,
+          "sustainRatio": 1
+        },
+        "deltaDb": 14.40517507253417,
+        "audible": true
+      }
+    },
+    "mute": {
+      "pre": {
+        "t0": 1793551709780,
+        "t1": 1793551710520,
+        "n": 17,
+        "maxRms": 0.041567173549207324,
+        "maxPeak": 0.12414061278104782,
+        "meanRms": 0.01494962973832679,
+        "maxDbfs": -27.62499010584172,
+        "sustainRatio": 0.8823529411764706
+      },
+      "tail": {
+        "t0": 1793551711380,
+        "t1": 1793551712580,
+        "n": 27,
+        "maxRms": 0,
+        "maxPeak": 0,
+        "meanRms": 0,
+        "maxDbfs": null,
+        "sustainRatio": 0
+      },
+      "snapshot": {
+        "state": "running",
+        "addModules": 1,
+        "log": [
+          {
+            "t": 1793551691857,
+            "state": "running"
+          }
+        ],
+        "unlocked": true,
+        "muted": true,
+        "bgmPlaying": true
+      },
+      "screenshot": "phase-f-muted.png"
+    },
+    "unmute": {
+      "window": {
+        "t0": 1793551713476,
+        "t1": 1793551717207,
+        "n": 79,
+        "maxRms": 0.5008556516303189,
+        "maxPeak": 0.6594099998474121,
+        "meanRms": 0.02379143255639169,
+        "maxDbfs": -6.005748426098326,
+        "sustainRatio": 0.9493670886075949
+      },
+      "snapshot": {
+        "state": "running",
+        "addModules": 1,
+        "log": [
+          {
+            "t": 1793551691857,
+            "state": "running"
+          }
+        ],
+        "unlocked": true,
+        "muted": false,
+        "bgmPlaying": true
+      }
+    }
+  },
+  "audioGraph": {
+    "graphReady": true,
+    "connectCalls": 32,
+    "destinationRedirects": 2,
+    "otherConnects": 30,
+    "samplerErrors": 0,
+    "sampleCount": 283,
+    "ctxState": "running"
+  },
+  "deployArtifact": {
+    "pck": {
+      "ok": true,
+      "size": 5576736,
+      "sha256": "19c6ae6ef9ea2c1425bdfed1c4c8b838e715f26d06bc6f3b0ae47c5684eb1f7c",
+      "audioAssets": {
+        "assets/sfx/bgm.wav": true,
+        "assets/sfx/score.wav": true,
+        "assets/sfx/confirm.wav": true,
+        "assets/sfx/hit.wav": true,
+        "assets/sfx/fail.wav": true,
+        "assets/sfx/shoot.wav": true,
+        "assets/sfx/place.wav": true,
+        "assets/sfx/produce.wav": true,
+        "assets/sfx/zombie_die.wav": true,
+        "assets/sfx/breach.wav": true,
+        "assets/sfx/victory.wav": true,
+        "assets/sfx/defeat.wav": true,
+        "assets/sfx/wave.wav": true
+      }
+    },
+    "liveIndexJsSha256": "8b649683883a8be172e229a0479503d50cd5245ebf87aa71fda70bf720824075",
+    "expectIndexJsSha256": "8b649683883a8be172e229a0479503d50cd5245ebf87aa71fda70bf720824075",
+    "jsShaMatch": true
+  },
+  "marks": [
+    {
+      "t": 1793551691551,
+      "label": "gesture-level1"
+    },
+    {
+      "t": 1793551693482,
+      "label": "sfx-place"
+    },
+    {
+      "t": 1793551709057,
+      "label": "wave-natural"
+    },
+    {
+      "t": 1793551710580,
+      "label": "mute-on"
+    },
+    {
+      "t": 1793551713476,
+      "label": "mute-off"
+    }
+  ],
+  "checks": [
+    {
+      "id": "audio-graph",
+      "label": "AnalyserNode 已串入引擎输出链（connect 改道 >0 且采样窗 >0）",
+      "status": "pass",
+      "detail": "",
+      "metrics": {
+        "graphReady": true,
+        "connectCalls": 32,
+        "destinationRedirects": 2,
+        "otherConnects": 30,
+        "samplerErrors": 0,
+        "sampleCount": 283,
+        "ctxState": "running"
+      }
+    },
+    {
+      "id": "pre-gesture-silent",
+      "label": "首手势前真实静音（能量 < -58dBFS） + ctx suspended",
+      "status": "pass",
+      "detail": "ctx state=suspended bgmPlaying=false",
+      "metrics": {
+        "t0": 1793551686392,
+        "t1": 1793551691551,
+        "n": 136,
+        "maxRms": 0,
+        "maxPeak": 0,
+        "meanRms": 0,
+        "maxDbfs": null,
+        "sustainRatio": 0,
+        "snapshot": {
+          "state": "suspended",
+          "addModules": 1,
+          "log": [],
+          "unlocked": false,
+          "muted": false,
+          "bgmPlaying": false
+        }
+      }
+    },
+    {
+      "id": "gesture-unlock",
+      "label": "首次触摸手势解锁 AudioContext（→ running）",
+      "status": "pass",
+      "detail": "手势后 state=running unlocked=true（解锁失败 = 移动端全部无声的第一根因）",
+      "metrics": {
+        "state": "running",
+        "addModules": 1,
+        "log": [
+          {
+            "t": 1793551691857,
+            "state": "running"
+          }
+        ],
+        "unlocked": true,
+        "muted": false,
+        "bgmPlaying": true
+      }
+    },
+    {
+      "id": "bgm-real-energy",
+      "label": "BGM 真实出声（持续能量 ≥ -48dBFS，非仅 bgmPlaying 标志）",
+      "status": "pass",
+      "detail": "maxRms=0.28563（-10.9 dBFS）sustain=100% bgmPlaying=true——能量低于可闻阈值，BGM 未真实出声",
+      "metrics": {
+        "t0": 1793551695690,
+        "t1": 1793551703692,
+        "n": 219,
+        "maxRms": 0.2856286550151881,
+        "maxPeak": 0.5413673520088196,
+        "meanRms": 0.02079787662107083,
+        "maxDbfs": -10.883964502993528,
+        "sustainRatio": 0.9954337899543378,
+        "snapshot": {
+          "state": "running",
+          "addModules": 1,
+          "log": [
+            {
+              "t": 1793551691857,
+              "state": "running"
+            }
+          ],
+          "unlocked": true,
+          "muted": false,
+          "bgmPlaying": true
+        }
+      }
+    },
+    {
+      "id": "sfx-real-energy",
+      "label": "音效真实出声（触发后出现能量尖峰，非仅事件日志）",
+      "status": "pass",
+      "detail": "confirm=true place=true wave=true（至少 2 类尖峰才算音效链路真实出声）",
+      "metrics": {
+        "confirm": {
+          "label": "confirm（选关，随手势触发）",
+          "present": true,
+          "baseline": {
+            "t0": 1793551689551,
+            "t1": 1793551691491,
+            "n": 52,
+            "maxRms": 0,
+            "maxPeak": 0,
+            "meanRms": 0,
+            "maxDbfs": null,
+            "sustainRatio": 0
+          },
+          "peak": {
+            "t0": 1793551691491,
+            "t1": 1793551692451,
+            "n": 21,
+            "maxRms": 0.2515272075123587,
+            "maxPeak": 0.6785483360290527,
+            "meanRms": 0.03133969104931041,
+            "maxDbfs": -11.988300615072191,
+            "sustainRatio": 0.7619047619047619
+          },
+          "deltaDb": null,
+          "audible": true
+        },
+        "place": {
+          "label": "place（布防）",
+          "present": true,
+          "baseline": {
+            "t0": 1793551691482,
+            "t1": 1793551693422,
+            "n": 50,
+            "maxRms": 0.2515272075123587,
+            "maxPeak": 0.6785483360290527,
+            "meanRms": 0.02042713297242026,
+            "maxDbfs": -11.988300615072191,
+            "sustainRatio": 0.9
+          },
+          "peak": {
+            "t0": 1793551693422,
+            "t1": 1793551694382,
+            "n": 22,
+            "maxRms": 0.3671644099972297,
+            "maxPeak": 0.8631961941719055,
+            "meanRms": 0.046531067818417766,
+            "maxDbfs": -8.702788449792106,
+            "sustainRatio": 1
+          },
+          "deltaDb": 3.2855121652800854,
+          "audible": true
+        },
+        "wave": {
+          "label": "wave（首波自然到点）",
+          "present": true,
+          "expectedAt": "2026-11-01T16:48:26.551Z",
+          "baseline": {
+            "t0": 1793551704551,
+            "t1": 1793551706491,
+            "n": 50,
+            "maxRms": 0.051587907108342886,
+            "maxPeak": 0.12835334241390228,
+            "meanRms": 0.017340303542730747,
+            "maxDbfs": -25.749041816922308,
+            "sustainRatio": 1
+          },
+          "peak": {
+            "t0": 1793551706491,
+            "t1": 1793551707451,
+            "n": 23,
+            "maxRms": 0.27089853897634436,
+            "maxPeak": 0.5506905317306519,
+            "meanRms": 0.08168689573829517,
+            "maxDbfs": -11.343866744388137,
+            "sustainRatio": 1
+          },
+          "deltaDb": 14.40517507253417,
+          "audible": true
+        }
+      }
+    },
+    {
+      "id": "mute-immediate",
+      "label": "静音点击后能量即时归零（端到端，非仅 muted 标志）",
+      "status": "pass",
+      "detail": "静音尾窗 maxRms=0.00000（点击前本底 0.04157）muted=true（尾窗能量未归零 = 静音没生效或没点中开关）",
+      "metrics": {
+        "pre": {
+          "t0": 1793551709780,
+          "t1": 1793551710520,
+          "n": 17,
+          "maxRms": 0.041567173549207324,
+          "maxPeak": 0.12414061278104782,
+          "meanRms": 0.01494962973832679,
+          "maxDbfs": -27.62499010584172,
+          "sustainRatio": 0.8823529411764706
+        },
+        "tail": {
+          "t0": 1793551711380,
+          "t1": 1793551712580,
+          "n": 27,
+          "maxRms": 0,
+          "maxPeak": 0,
+          "meanRms": 0,
+          "maxDbfs": null,
+          "sustainRatio": 0
+        },
+        "snapshot": {
+          "state": "running",
+          "addModules": 1,
+          "log": [
+            {
+              "t": 1793551691857,
+              "state": "running"
+            }
+          ],
+          "unlocked": true,
+          "muted": true,
+          "bgmPlaying": true
+        }
+      }
+    },
+    {
+      "id": "unmute-recover",
+      "label": "取消静音后能量恢复（≥ -48dBFS）",
+      "status": "pass",
+      "detail": "恢复窗 maxRms=0.50086（-6.0 dBFS）muted=false",
+      "metrics": {
+        "t0": 1793551713476,
+        "t1": 1793551717207,
+        "n": 79,
+        "maxRms": 0.5008556516303189,
+        "maxPeak": 0.6594099998474121,
+        "meanRms": 0.02379143255639169,
+        "maxDbfs": -6.005748426098326,
+        "sustainRatio": 0.9493670886075949,
+        "snapshot": {
+          "state": "running",
+          "addModules": 1,
+          "log": [
+            {
+              "t": 1793551691857,
+              "state": "running"
+            }
+          ],
+          "unlocked": true,
+          "muted": false,
+          "bgmPlaying": true
+        }
+      }
+    },
+    {
+      "id": "deploy-artifact",
+      "label": "部署产物含音频构建（线上 pck 解压 sha256 与本地导出一致 + 13 个音频资产在包内）",
+      "status": "pass",
+      "detail": "",
+      "metrics": {
+        "ok": true,
+        "size": 5576736,
+        "sha256": "19c6ae6ef9ea2c1425bdfed1c4c8b838e715f26d06bc6f3b0ae47c5684eb1f7c",
+        "audioAssets": {
+          "assets/sfx/bgm.wav": true,
+          "assets/sfx/score.wav": true,
+          "assets/sfx/confirm.wav": true,
+          "assets/sfx/hit.wav": true,
+          "assets/sfx/fail.wav": true,
+          "assets/sfx/shoot.wav": true,
+          "assets/sfx/place.wav": true,
+          "assets/sfx/produce.wav": true,
+          "assets/sfx/zombie_die.wav": true,
+          "assets/sfx/breach.wav": true,
+          "assets/sfx/victory.wav": true,
+          "assets/sfx/defeat.wav": true,
+          "assets/sfx/wave.wav": true
+        },
+        "expectPckSha": "19c6ae6ef9ea2c1425bdfed1c4c8b838e715f26d06bc6f3b0ae47c5684eb1f7c",
+        "expectJsSha": "8b649683883a8be172e229a0479503d50cd5245ebf87aa71fda70bf720824075"
+      }
+    },
+    {
+      "id": "console-clean",
+      "label": "取证全程 console 零 error + 零未捕获异常",
+      "status": "pass",
+      "detail": "",
+      "metrics": null
+    }
+  ],
+  "consoleErrors": [],
+  "networkFailures": [],
+  "screenshots": [
+    "phase-a-pre-gesture.png",
+    "phase-b-in-game.png",
+    "phase-f-muted.png",
+    "phase-g-final.png"
+  ]
+}

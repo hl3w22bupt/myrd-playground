@@ -1,0 +1,12 @@
+Godot Engine v4.3.stable.official.77dcf97d8 - https://godotengine.org
+
+[smoke] 第 1 关通关（game_ended=true，主按钮 next，波次 4/4）
+[smoke] 关卡推进 → 第 2 关「第 2 关 · 后院黄昏」（起始阳光 150，波数 5）
+[smoke] 第 2 关通关（game_ended=true，主按钮 next，波次 5/5）
+[smoke] 关卡推进 → 第 3 关「第 3 关 · 屋顶夜袭」（起始阳光 200，波数 6）
+[smoke] 第 3 关通关（game_ended=true，主按钮 replay，波次 6/6）
+GODOT_SMOKE: PASS 选关/四轴方向移动/布防/出战卡/提示淡出/射击/掉落收集/失败/重开/下一波/三关逐关通关/关卡推进/逐关难度生效/键位契约/内容表/难度平缓/对比度/音频契约/调参协议 全部通过
+[1;33mWARNING:[0;93m ObjectDB instances leaked at exit (run with --verbose for details).
+[0;90m     at: cleanup (core/object/object.cpp:2284)[0m
+[1;31mERROR:[0;91m 5 resources still in use at exit (run with --verbose for details).
+[0;90m   at: clear (core/io/resource.cpp:604)[0m

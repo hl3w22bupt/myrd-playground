@@ -106,7 +106,7 @@ export GODOT_BIN=/path/to/Godot
    不要凭空发挥设计。
 2. **落点与命名跟 spec 走**：`entities[].script/scene`、`levels[].scene`、`acceptance[].check`
    声明的相对路径必须真实建出；实体/关卡/元素 id 用 spec 里的编号（`l1/e3` 这类），不要私改 ——
-   契约测试（`node scripts/contract-check.mjs`，routine id `game-contract`）会逐个断言。
+   契约测试（`node std-skills/godot-game-dev/scripts/contract-check.mjs`，routine id `game-contract`）会逐个断言。
 3. **数值只认 `spec.numeric`**：速度/血量/得分等调参字段集中在 `autoload/game_state.gd`（或同级）
    并与 spec.numeric 键名对应；改数值 = 改 spec（修订产生新版本）→ 同步代码，禁止两头各改各的。
 4. **修改产生新版本**：改策划案走 `POST /api/v1/game-design-specs/:id/revisions`（version+1，
@@ -188,24 +188,38 @@ export GODOT_BIN=/path/to/Godot
 
 ## 3A. 移动端触摸规范（虚拟摇杆 = 动作的生产者）
 
-模板已内置触摸支持：`TouchUI` CanvasLayer（左下虚拟摇杆 `scripts/virtual_joystick.gd`
+模板内置触摸件：`TouchUI` CanvasLayer（左下虚拟摇杆 `scripts/virtual_joystick.gd`
 + 右下确认按钮 `scripts/touch_confirm_button.gd`），由 `main.gd _ready()` 按
-`DisplayServer.is_touchscreen_available()` 决定显示 —— 桌面键盘环境完全不可见，
-从模板派生的新游戏**自动获得移动端可玩性，不得删除**。
+`DisplayServer.is_touchscreen_available()` 决定显示 —— 桌面键盘环境完全不可见。
+
+**触摸件按玩法选配，不是默认全带**：摇杆只属于「玩家在平面内移动」的玩法（收集/
+躲避/射击）；点按、消除、翻牌类游戏**必须删除** `JoystickAnchor` 节点与
+`scripts/virtual_joystick.gd`（连同 `main.tscn` 的 ext_resource 与 load_steps 一并
+清理），否则会出现「汽车连连看带摇杆」这类与玩法无关的控件。确认按钮同理按需保留。
 
 架构不变式（新加触摸控件也必须遵守）：
 
 1. **游戏逻辑仍然只读 InputMap 动作名**。触摸控件是动作的「生产者」：摇杆把手指向量
-   分解为 4 个移动动作的 `strength`，经 `InputEventAction + Input.parse_input_event()`
-   注入引擎；`Input.get_vector()` 读取 strength，玩家脚本零改动、键盘与触摸并存。
+   分解为 4 个移动动作的 `strength`，经 **`Input.action_press(action, strength)` /
+   `Input.action_release(action)`** 写入动作状态；`Input.get_vector()` 轮询读取
+   strength，玩家脚本零改动、键盘与触摸并存。**禁止用 `InputEventAction +
+   Input.parse_input_event()` 注入需要轮询的动作** —— 这种状态是瞬态的，当帧输入冲刷
+   即被清掉，`_physics_process` 里轮询到的永远是 0（实例：模板 v1 摇杆，引擎链路完好
+   但精灵零移动）。只消费单次事件的离散动作（走 `_unhandled_input` 分发）不受此限。
    **禁止**游戏逻辑脚本（player/敌人/关卡）直接监听 `InputEventScreenTouch/Drag`
    —— 那会造出第二套平行的输入路径，冒烟测试拦不住。
-2. **触摸 UI 独立成 CanvasLayer**（layer 高于游戏与 HUD），可见性只由
-   `DisplayServer.is_touchscreen_available()` 控制，不要用平台特征（`mobile`/`web`）
-   代替 —— 触屏笔记本上键盘 UI 也该在，平板浏览器上触摸 UI 也该在。
+2. **触摸 UI 独立成 CanvasLayer**（layer 高于游戏与 HUD）。可见性判定（模板
+   `_touch_ui_should_show`）：**Web 一律显示**；非 Web 用引擎
+   `is_touchscreen_available()`。教训链（game-8 线上真机 v5→v5.4）：coarse 一票否决、
+   引擎 web 判定失真、浏览器三信号、视口宽度兜底——**每一种检测都有真实设备上的
+   假阴性案例**，任何 fail-closed 隐藏逻辑最终都会把某台真机的摇杆藏掉（整局不可玩）；
+   漏显桌面只是多个控件，方向必须 fail-open 到底。
 3. **摇杆用 `_unhandled_input` 跟踪触点，不用 `_gui_input`**：拖动事件在手指滑出控件
    矩形后必须继续接收，`_gui_input` 只在指针位于控件内时投递，会丢拖动轨迹。
    初始按下必须落在摇杆矩形内才接管该触点（`touch_index` 跟踪，第二根手指不抢控）。
+   **摇杆控件的 `mouse_filter` 必须设 `MOUSE_FILTER_IGNORE`**：默认 STOP 会让 GUI 把
+   落在摇杆上的触摸当场消费掉，`_unhandled_input` 永远收不到 —— 摇杆画得出来但
+   按上去完全无响应（实例：模板 v1 摇杆，真机全灭而门禁全绿）。
 4. **`TouchScreenButton` 用于离散动作**（确认/攻击/跳跃）：桌面端自动不响应，无需手动
    屏蔽；`pressed` 信号里注入对应动作事件，走与键盘相同的 `_unhandled_input` 路径。
 5. **移动端导出注意项**：`renderer/rendering_method.mobile="gl_compatibility"` 模板已设；
@@ -442,7 +456,7 @@ AI 能造出机器，但调不出手感 —— 而在游戏里，调校本身就
 
 ```
 类型：2D 俯视收集 / 平台跳跃 / 弹幕 / 解谜 / 离散网格
-美术风格：极简几何（Polygon2D 色块）/ 像素 / 占位贴图
+美术风格：CC0 资产库 + 氛围层（模板默认）/ 极简几何（Polygon2D 色块，兜底）/ 像素 / 占位贴图
 核心玩法：一句话说清「玩家做什么、怎么赢」
 操作按键：WASD 移动 / 空格跳跃 / 回车确认（每个按键都要落到 InputMap 动作）
 验收标准：必须可无头判定（逐条可翻译成冒烟断言）
@@ -459,14 +473,19 @@ AI 能造出机器，但调不出手感 —— 而在游戏里，调校本身就
 
 | 资产类型 | 结论 | 本技能的默认动作 |
 |---|---|---|
+| **CC0 精选库（静态精灵/粒子/UI）** | **首选**：策展过的现成资产没有一致性问题，许可干净（见 assets/cc0/LICENSES.md） | **默认路线**：`asset-query.mjs` 语义查库 → 拷进工程 assets/ 着色使用；Ambience 氛围层（渐变天空+环境粒子+暗角）模板已默认开启 |
 | 音效 SFX | 真能用，含上线 | 默认程序化合成（`tools/gen_sfx.gd`，零依赖、确定可复现）；外部生成 API/模型为可选升级，入口都是 §7B 的 assets 段 |
 | 音乐 | 占位与氛围可以；有辨识度的主题曲还不行 | 占位循环先顶上，主题曲留人工 |
 | 2D 背景 / 概念图 | 能用 | 可生成 |
-| 精灵图集 | 差：帧间一致性与统一调色板恰是生成模型守不住的 | 避免；用极简几何（Polygon2D 色块，模板默认）替代 |
+| 精灵图集（生成） | 差：帧间一致性与统一调色板恰是生成模型守不住的 | 避免生成；静态精灵用 CC0 库（上面首选行），动态帧动画用极简几何变形或代码插值 |
 | 像素画 | 最差：不尊重像素网格，也不尊重固定调色板 | 避免；美术风格栏别轻易选「像素」 |
 | 3D | 静态道具几何勉强，动画拓扑不可用 | 本技能（2D）不涉及 |
 
-默认路线 = 模板的「极简几何」：不依赖任何生成资产即可成立，美术后补不阻塞可玩性。
+默认路线 = **CC0 资产库 + Ambience 氛围层**（模板 v5 起）：静态精灵/粒子/UI 从策展库选取
+（`node scripts/asset-query.mjs --need "关键词"`，用法见 references/asset-library.md），
+渐变天空/环境粒子/暗角由 `Ambience` autoload 默认开启（交互迸发用 `Ambience.burst(pos, tint)`）；
+极简几何降为兜底（库不可用或风格明确极简时）。资产入工程后跑 `scripts/asset-gate.mjs --game <dir>`
+做溯源门禁（CC0 拷贝天然合规，自备资产须在合规清单给许可证据）。
 **上架 Steam 须在内容调查表中披露 AI 生成内容**（Valve 2024-01 起；预生成资源披露后允许，
 实时生成需额外防护）——交付说明里要带上这句提醒，别到提交时才发现。
 

@@ -1,0 +1,2 @@
+live /health HTTP 200
+live / HTTP 308
