@@ -1,0 +1,16 @@
+# 试玩验收包回写记录（2026-11-02，run cmvz7bqja0039m9w9fjbzm7sn）
+
+## 步骤
+1. GET /api/v1/goals/cmvxjycvn001zm905jnwpyliv → HTTP 200（38 条 artifacts）
+   发现既有 op=playtest_kit 条目 2 条（v10 轮 artifactId=playtest-kit-…；v14 轮 artifactId=…-v14）
+   —— 仓库惯例 = 每部署轮一条、artifactId 带版本号 → 本轮对准 v18 追加新条目，不改旧条目。
+2. PATCH /api/v1/goals/cmvxjycvn001zm905jnwpyliv（全量 artifacts 合并）→ HTTP 200
+3. 复验 GET → 39 条；artifactId=playtest-kit-cmvxjycvn001zm905jnwpyliv-v18 在档；旧 38 条零丢失。
+
+## 幂等守卫
+追加前按 artifactId 精确查重；同 id 存在即跳过，防止重复追加。
+
+## 量表状态
+op=tuning_applied / spec revisions / approve 三步均未执行 —— 量表「待用户试玩」，
+四问中继探测 = {"received":false,"reason":"no-submission-yet"}（2026-11-02T12:52Z），
+未收到任何用户试玩结论，不伪造。

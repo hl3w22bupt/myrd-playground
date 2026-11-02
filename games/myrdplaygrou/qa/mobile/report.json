@@ -8,7 +8,7 @@
     "mobile": true,
     "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
   },
-  "checkedAt": "2026-11-02T12:43:21.362Z",
+  "checkedAt": "2026-11-02T12:55:49.157Z",
   "checks": [
     {
       "id": "network",
@@ -32,7 +32,7 @@
       "id": "render",
       "label": "首帧截图非纯色（400 点采样 ≥2 种量化色）",
       "status": "pass",
-      "detail": "采样仅 9 种颜色——画面没渲染出来（黑屏/白屏）"
+      "detail": "采样仅 8 种颜色——画面没渲染出来（黑屏/白屏）"
     },
     {
       "id": "animate",
@@ -53,10 +53,10 @@
       "detail": ""
     },
     {
-      "id": "joystick-target",
-      "label": "摇杆热区已校准（--project）",
-      "status": "warn",
-      "detail": "未传 --project——回退旧版固定坐标 swipe，仅取证不断言；线上门禁应带 --project <工程目录>"
+      "id": "joystick-response",
+      "label": "摇杆断言跳过（工程未配备虚拟摇杆）",
+      "status": "pass",
+      "detail": "工程无 scripts/virtual_joystick.gd（点按类玩法按 SKILL.md §3A 裁撤摇杆）"
     },
     {
       "id": "audio-unlock",
@@ -78,7 +78,7 @@
     }
   ],
   "metrics": {
-    "colorCount": 9,
+    "colorCount": 8,
     "idleDiff": 313,
     "tapDiff": 9,
     "fps": 25,
@@ -104,11 +104,16 @@
     }
   },
   "joystick": {
-    "mode": "legacy",
-    "reason": "未传 --project",
-    "project": null,
-    "designViewport": null,
-    "designRect": null,
+    "mode": "skipped",
+    "reason": "工程无 scripts/virtual_joystick.gd（点按类玩法按 SKILL.md §3A 裁撤摇杆）",
+    "project": "games/myrdplaygrou",
+    "designViewport": "1024x640",
+    "designRect": [
+      24,
+      480,
+      160,
+      616
+    ],
     "cssRect": null
   },
   "evidence": [

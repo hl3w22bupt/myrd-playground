@@ -1,0 +1,5 @@
+PATCH /api/v1/goals/cmvxjycvn001zm905jnwpyliv → HTTP 200
+（read-modify-write：GET 38 条 → 追加 1 条 op=playtest_kit / artifactType=playtest_kit /
+ artifactId=playtest-kit-cmvxjycvn001zm905jnwpyliv-v18 → PATCH 全量合并，不覆盖已有条目）
+复验 GET：artifacts 38→39 条，旧条目零丢失，本轮条目在档。
+请求载荷：/tmp/playtest_kit_v18.json（内容全文 = 本目录 SUMMARY.md 对应段）
