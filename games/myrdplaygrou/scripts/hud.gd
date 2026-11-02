@@ -6,6 +6,12 @@ extends Control
 ## 结果性事件的反馈挂在 *_changed 处理函数上（SKILL.md §3B），不挂在输入上。
 ## 排版硬底线：操作提示不常驻 —— 开局浮现，停留 hint_show_seconds 后淡出（set_hint）。
 ## 静音开关不在本层：常驻按钮见 mute_button.gd（选关 / 结算 / 对局全程可见，spec audio.mute）。
+##
+## 挂件生命周期（2026-11-02 缺陷修复，冒烟挂件审计机判 widget_audit）：
+## - 常驻挂件（下一波/波次/生命/返回/重开/操作提示）= _build() 一次性挂载，永不重建；
+## - 出战卡随关卡槽（roster）变化 = rebuild_cards() 只重建卡片按钮。
+## 旧实现 rebuild_cards 整行重建：每次开局多挂一套常驻挂件，旧挂件失联残留
+## （波次/生命文案冻结成假信息、顶栏溢出），已由冒烟挂件审计断言拦死。
 
 ## HUD 条高度。
 const BAR_H: float = 64.0
@@ -78,10 +84,14 @@ func _build() -> void:
 
 	# 出战卡片（点按选卡 → 点草坪布防；再点已选卡取消；冷却/阳光不足 = 禁用态 + 原因）
 	_build_card_buttons(row)
+	# 常驻挂件（下一波/波次/生命/返回/重开/提示）：一次性挂载，rebuild_cards 不重建
+	_build_fixed_widgets(row)
 	_refresh_cards()
 
 
 ## 按当前关卡槽重建卡片按钮（start_level 后由 main 调用；L4 阳光紧缩关 4 张）。
+## ⚠️ 只许重建卡片 —— 常驻挂件在 _build_fixed_widgets 一次性挂载；整行重建会让旧挂件
+## 失联残留（文案冻结的假信息 + 顶栏溢出），冒烟挂件审计（widget_audit）机判拦截。
 func rebuild_cards() -> void:
 	for button in _card_buttons:
 		button.get_parent().remove_child(button)
@@ -92,6 +102,7 @@ func rebuild_cards() -> void:
 	_refresh_cards()
 
 
+## 出战卡按钮（只建卡片，两行文案：短名 / 费用或原因）。
 func _build_card_buttons(row: HBoxContainer) -> void:
 	_card_row = row
 	for i in GameState.roster().size():
@@ -105,6 +116,9 @@ func _build_card_buttons(row: HBoxContainer) -> void:
 		_card_buttons.append(button)
 		_card_states.append("")
 
+
+## 顶栏常驻挂件 + 底部操作提示（_build 调用一次；文本签名见 widget_audit）。
+func _build_fixed_widgets(row: HBoxContainer) -> void:
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -174,6 +188,51 @@ func set_hint(text: String, persist: bool = false) -> void:
 ## 冒烟断言入口：操作提示当前不透明度（1 = 完全可见，0 = 已淡出）。
 func hint_alpha() -> float:
 	return _hint_label.modulate.a
+
+
+## 冒烟断言入口：顶栏挂件审计 —— 按文案签名统计各类挂件的在栏数量。
+## 期望：出战卡 = 卡槽张数；下一波/返回/重开/波次/生命/操作提示各恰好 1。
+## 旧引用失联的残留挂件（旧实现 rebuild_cards 整行重建的缺陷面）没有当前签名之外的
+## 去向，按签名计数一律现形 —— 这是「重复挂载」的唯一可靠观测口径。
+func widget_audit() -> Dictionary:
+	var cards := 0
+	var skip_wave := 0
+	var back := 0
+	var restart := 0
+	var wave := 0
+	var lives := 0
+	for child in _card_row.get_children():
+		var button := child as Button
+		if button != null:
+			var text := button.text
+			if text.contains("\n"):
+				cards += 1
+			elif text == "下一波":
+				skip_wave += 1
+			elif text == "返回":
+				back += 1
+			elif text == "重开":
+				restart += 1
+		else:
+			var label := child as Label
+			if label != null:
+				if label.text.begins_with("生命"):
+					lives += 1
+				else:
+					wave += 1
+	var hints := 0
+	for child in get_children():
+		if child is Label:
+			hints += 1
+	return {
+		"cards": cards,
+		"skip_wave": skip_wave,
+		"back": back,
+		"restart": restart,
+		"wave": wave,
+		"lives": lives,
+		"hints": hints,
+	}
 
 
 ## 波间等待态切换（「下一波」按钮可见性）。
@@ -256,7 +315,8 @@ func _on_wave_changed(wave: int, wave_count: int) -> void:
 
 func _on_game_ended(won: bool) -> void:
 	if GameState.endless_active:
-		_wave_label.text = "无尽 第 %d 波" % GameState.wave_index
+		# 无尽终局留波次战报：展示口径与对局中一致（wave_index 0 起，展示 +1）
+		_wave_label.text = "无尽 第 %d 波" % (GameState.wave_index + 1)
 	else:
 		_wave_label.text = "防守成功！" if won else "防线失守"
 	Juice.pop(_wave_label)

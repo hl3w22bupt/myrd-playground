@@ -51,6 +51,11 @@ extends Node
 ##  16. 键位契约：动作已注册 + 承诺的物理键全部绑定（逐键 AND）
 ##  17. 操作说明不常驻：开局提示可见，hint_show_seconds 后自动开始淡出
 ##  18. 调参协议：TUNING_META 非空；apply_tuning 应用/拒绝/钳制，检查后恢复原值
+##  19. HUD 挂件审计：rebuild_cards 只许重建出战卡 —— 常驻挂件（下一波/波次/生命/返回/
+##      重开/操作提示）各恰好 1（整行重建会让旧挂件失联残留：文案冻结的假波次/假生命
+##      + 顶栏溢出；2026-11-02 探针实证的缺陷面）
+##  20. 结算误触窗覆盖按钮点按：窗期内主按钮不受理（不许跳过结算）—— 触屏玩家的实际
+##      路径就是 Button.pressed，防线不能只拦键盘 confirm；窗期满正常受理
 ##
 ## ⚠️ 输入注入分两个阶段、互不重叠（error-signatures E-08）：
 ##   headless 下 `Input.parse_input_event()` 的缓冲冲刷会清掉 `Input.action_press()` 状态，
@@ -705,6 +710,8 @@ func _step() -> void:
 					_failures.append("教学引导：仅布防 1 座向日葵即判定完成（应需 向日葵+射手 各 1）")
 				if _hud.hint_alpha() < 1.0:
 					_failures.append("教学引导：引导文案在完成前不应进入淡出（alpha=%.2f）" % _hud.hint_alpha())
+				# HUD 挂件审计（第 19 项）：首局 rebuild 后常驻挂件必须各恰好 1
+				_audit_hud_widgets("第 1 关开局")
 				_enter(Phase.CARDS)
 		Phase.CARDS:
 			# 出战卡系统：选卡动作 → 布防花色/扣费跟卡走 → 经济门/冷却门 → 换卡断言
@@ -817,7 +824,22 @@ func _step() -> void:
 					_failures.append("失败后结算浮层不可见（出口断线）")
 				_enter(Phase.RESULT)
 		Phase.RESULT:
-			# 结算浮层误触窗（测试通道 30ms）后 confirm → 重开（收集断言已在 COMBAT 完成）
+			# 结算误触窗（第 20 项）：窗期内主按钮点按必须被拒收 —— 触屏玩家的实际路径
+			# 是 Button.pressed，防线不许只拦键盘 confirm（防连点误触直接跳过结算）。
+			# 窗口临时拉到 600ms 让判定与帧时序解耦，探针后立刻恢复测试通道 30ms。
+			if _phase_frames == 1:
+				var overlay := _main.get("result_overlay") as ResultOverlay
+				if overlay == null:
+					_failures.append("结算误触窗：结算浮层缺失（按钮点按防线无从判定）")
+				else:
+					GameState.overlay_accept_ms = 600.0
+					overlay.call("_on_primary_pressed")
+					GameState.overlay_accept_ms = 30.0
+					if not overlay.visible:
+						_failures.append("结算误触窗：窗期内点按主按钮直接跳过了结算（按钮路径未过防线）")
+					if GameState.running:
+						_failures.append("结算误触窗：窗期内点按主按钮触发了重开（防连点防线断线）")
+			# 窗期满（测试通道 30ms）后 confirm → 重开（收集断言已在 COMBAT 完成）
 			if _phase_frames >= RESULT_FRAMES:
 				_press_action(&"confirm")
 				_enter(Phase.RESTART)
@@ -863,6 +885,25 @@ func _step() -> void:
 			_step_sweep_advance()
 		Phase.ENDLESS:
 			_step_endless()
+
+
+## 断言 19：HUD 常驻挂件审计 —— rebuild_cards 只许重建出战卡，不许把常驻挂件重复挂进顶栏。
+## 缺陷面（2026-11-02 探针实证）：旧实现整行重建 → 首局开局顶栏就有两套「下一波/波次/
+## 生命/返回/重开」+ 两个提示 Label，旧挂件失联后文案冻结（假波次/假生命）且顶栏溢出。
+## 口径：按文案签名统计（Hud.widget_audit），签名计数是「重复挂载」唯一可靠观测面 ——
+## 只按当前引用计数会把失联残留全部漏掉。
+func _audit_hud_widgets(when: String) -> void:
+	var audit: Dictionary = _hud.widget_audit()
+	var expected_cards: int = GameState.roster().size()
+	var cards: int = int(audit.get("cards", -1))
+	if cards != expected_cards:
+		_failures.append("HUD 挂件审计（%s）：出战卡 %d 张 ≠ 卡槽 %d 张（卡槽重建断线）" % [
+			when, cards, expected_cards])
+	for key: String in ["skip_wave", "back", "restart", "wave", "lives", "hints"]:
+		var got: int = int(audit.get(key, -1))
+		if got != 1:
+			_failures.append("HUD 挂件审计（%s）：常驻挂件「%s」在栏 %d 个 ≠ 1（rebuild_cards 重复挂载/漏挂）" % [
+				when, key, got])
 
 
 ## 僵尸行为探针（同步、即建即清）：种类绝对数值 + hpScale/speedScale 接线 + 啃咬节拍 + 冻结减速。
@@ -983,6 +1024,8 @@ func _step_sweep_setup() -> void:
 	if _phase_frames < SWEEP_SETUP_FRAMES:
 		return
 	var cfg: Dictionary = GameState.LEVELS[level]
+	# ⓪ HUD 挂件审计：逐关 rebuild 只许动出战卡（多局累计后常驻挂件仍各恰好 1）
+	_audit_hud_widgets("第 %d 关进入" % (level + 1))
 	# ① 关卡推进核对：到达的确实是这一关，关卡数值切到了本关
 	if GameState.level_index != level:
 		_failures.append("关卡推进：期望在第 %d 关，实际 level_index=%d（推进断线）" % [

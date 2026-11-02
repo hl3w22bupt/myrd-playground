@@ -1,7 +1,8 @@
 class_name ResultOverlay
 extends CanvasLayer
 ## 结算浮层：胜利 / 失败双出口（下一关或再试 + 返回选关）。
-## 弹出后 400ms 内不接受确认输入，防连点误触直接跳过结算。
+## 弹出后 400ms 内不接受确认输入，防连点误触直接跳过结算 ——
+## 键盘 confirm（press_primary）与主/选关按钮点按（触屏玩家的实际路径）走同一防线。
 
 signal primary_pressed
 signal level_select_pressed
@@ -125,10 +126,16 @@ func press_primary() -> void:
 
 
 func _on_primary_pressed() -> void:
+	# 误触窗（防连点）：窗期内按钮点按不受理 —— 与键盘 confirm 同一防线。
+	# 触屏玩家在终局瞬间往往还在连点草坪，落入窗内的点按不许直接跳过结算。
+	if not can_accept():
+		return
 	Juice.sfx(&"confirm")
 	primary_pressed.emit()
 
 
 func _on_select_pressed() -> void:
+	if not can_accept():
+		return
 	Juice.sfx(&"confirm")
 	level_select_pressed.emit()
