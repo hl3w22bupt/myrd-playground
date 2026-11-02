@@ -69,3 +69,9 @@ body: {mode:bundle, deployedBy:workflow, triggeredById:cmvxjycvn001zm905jnwpyliv
 - deploymentId：cmvz8witi003sm9w9vj313cws（version=18，gitRef=myrd/pvz-web-goal-cmvxjycvn001zm905jnwpyliv）
 - 冒烟结论：本地四门禁 + 线上 MOBILE_SMOKE 全绿；产物哈希比对一致
 - 本目录全部证据文件随 git 提交留档
+
+## 7. 产物回写（目标卡片）
+
+- PATCH /api/v1/goals/cmvxjycvn001zm905jnwpyliv → HTTP 200（goal-patch-http.txt / goal-patch.json）
+- 复验 GET → artifacts 37→38 条，新条目 op=run_workflow / artifactType=hosted_app /
+  artifactId=cmvxjyb8a001xm905cnip241e / status=completed，已有 37 条零丢失
