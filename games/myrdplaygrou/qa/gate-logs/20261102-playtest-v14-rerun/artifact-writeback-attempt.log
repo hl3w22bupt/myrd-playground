@@ -1,0 +1,16 @@
+# 试玩验收节点产物回写尝试记录（2026-11-02，run cmvyp0n86006zm9y0ysizzt2t / 节点 playtest）
+
+## 请求 1：GET $PLATFORM_API_URL/api/v1/goals/cmvxjycvn001zm905jnwpyliv（读取现有 artifacts 以便 PATCH 合并）
+Authorization: Bearer $MYRD_TOKEN（workflow-node 代行 token，userId=cmvtaqy0h000sm9sfukbpdks5「目标大师」，via=workflow-node，无 actFor，scopes 含 goal:write）
+
+{"error":{"code":"FORBIDDEN","message":"无权访问","requestId":"req_1793594223318"},"success":false}
+HTTP 403
+
+## 结论
+- HTTP 403「无权访问」——读不到现有 artifacts 数组。
+- 不做盲 PATCH：产物回写要求「PATCH 合并，不覆盖已有条目」，合并前提是先读到现有数组；
+  读被拒时盲写有覆盖丢失既有条目（deploy_playable / playtest_kit / review_kit 等）的风险，按 fail-closed 停手。
+- 与同 run 发布节点（qa/gate-logs/20261102-release-blocked-identity/SUMMARY.md §3）同一根因：
+  本 run 由目标大师代触发，workflow-node token 无属主代行授权（actFor），goals 全路由
+  要求 goal.userId==effectiveAuthUserId(user) 或 admin（routes/goals.ts），目标大师既非 owner 也非 admin。
+- 平台侧修复后（triggeredByUserId 落 owner 或增发 actFor），按 qa/playtest-kit.md 的条目对象一键回写即可。

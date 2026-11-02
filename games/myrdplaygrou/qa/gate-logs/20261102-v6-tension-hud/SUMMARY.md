@@ -49,3 +49,29 @@ joystick 跳过/audio-unlock/viewport/fps）→ `mobile-smoke-local-report.json`
   apphost.toml assets_dir 指向不变）；线上 mobile 门禁与能量探针复验随 deploy/playtest 节点。
 - **spec**：v6 零改动（三条 Bug 均为实现缺陷）；`acc-hud-layout` / `acc-audio-tension` 的
   auto 机判在本仓库 smoke.gd 落地并与条目 statement 逐句对应（见 docs/spec-acceptance-mirror-v6.md）。
+
+
+## 5. 合流轮补充（并行实现 v15/v16 合并，2026-11-02 14:2x）
+
+推送时发现目标分支已由并行 implement 轮推进（71b4e5f 同两 Bug 修复 + cfd180d v16 合并留痕）。
+按「各自保留对方没有的修复」合流（merge commit，非覆盖）：
+
+| 来源 | 保留内容 |
+|---|---|
+| 并行轮（71b4e5f） | 字体 oversampling 钉 1.0（文本整行被裁的实测根因）；confirm/fail/score 等全部 wav compress/mode=0（PCM，能量机判不失真）；FlatUI.FONT_BODY 20→18；结算浮层误触窗守卫；选关页 kit 文档 |
+| 本轮（599407e） | HUD CSS 钳制带引擎（DPR 感知）+ expand 拉伸 + 战场让位 + 相机对中；五档视口 = spec 原文口径 360/768/1280/1920/2560；顶栏单实例守卫（按功能 key 命名）；紧张感音画（bgm-loop-intense.wav = spec 资产 id、55.4s 同调性无缝交叉淡入、真值表 9 组、行为探针、wave_urgent 末波急促变体）；Audio/Field/Hud 渲染几何回写桥（window.__GAME_VIEW_STATE__） |
+
+被取代的并行面（合流中移除）：bgm-intense.wav（30s，非 spec 资产 id）、
+`GameState.intense_bgm_desired()`（规则收敛进 Audio.tension_should_be_intense + 真值表）、
+`Zombie.danger_warned`（Field 侧用 danger_signaled）。
+
+**合流态门禁复跑全绿**（HEAD = merge commit）：
+- preflight 15 类 PASS（2701 文件）
+- GODOT_SMOKE: PASS（600 帧，含五档 HUD 布局 / 单实例守卫 / 紧张感探针）→ `smoke-merge.log`
+- GODOT_FUZZ: PASS / GODOT_PLAYTEST: PASS → `playtest-merge.log`
+- mobile-web-smoke（--project，本地导出）11/11 PASS → qa/mobile/report.json
+- 能量探针 AUDIO_PROBE: PASS 9/9（含静音端到端能量归零、18 资产在包）→ `audio-probe-merge-report.json`
+
+合流导出产物：
+- export/web/index.pck sha256 = `76b09d9b94f369547180df1b8908f089e2c35ff57eaa5d9523aa481fcb0095bc`
+- export/web/index.js sha256 = `8b649683883a8be172e229a0479503d50cd5245ebf87aa71fda70bf720824075`（引擎层不变）

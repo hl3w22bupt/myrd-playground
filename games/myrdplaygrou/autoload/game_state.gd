@@ -10,6 +10,7 @@ extends Node
 ## - 可调数值集中在本文件调参区：变量 + TUNING_META 成对声明，键名与 spec.numeric 对应，
 ##   消费方（defender.gd / zombie.gd 等）只读变量、禁止散落魔数。
 ##
+## 紧张版 BGM 切换规则收敛在 autoload/audio.gd::tension_should_be_intense（冒烟真值表机判）。
 ## v3（spec 版本 4，approved = cmvy3ccqq0010m9y06sz653gh 链上最新 approved）：八关扩容 +
 ## 难度曲线上调 —— hpScale/speedScale 逐关严格递增（1.00→2.85 / 1.00→1.42，spec
 ## numeric.difficulty.curveRule），新增坦克巨尸 gargantuar（血量固定 2400 不参与 hpScale、

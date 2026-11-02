@@ -1,0 +1,7 @@
+GODOT_SMOKE: FAIL HUD 挂件审计（第 1 关开局）：常驻挂件「skip_wave」在栏 2 个 ≠ 1（rebuild_cards 重复挂载/漏挂）
+GODOT_SMOKE: FAIL HUD 挂件审计（第 1 关开局）：常驻挂件「back」在栏 2 个 ≠ 1（rebuild_cards 重复挂载/漏挂）
+GODOT_SMOKE: FAIL HUD 挂件审计（第 1 关开局）：常驻挂件「restart」在栏 2 个 ≠ 1（rebuild_cards 重复挂载/漏挂）
+GODOT_SMOKE: FAIL HUD 挂件审计（第 1 关开局）：常驻挂件「wave」在栏 2 个 ≠ 1（rebuild_cards 重复挂载/漏挂）
+GODOT_SMOKE: FAIL HUD 挂件审计（第 1 关开局）：常驻挂件「lives」在栏 2 个 ≠ 1（rebuild_cards 重复挂载/漏挂）
+GODOT_SMOKE: FAIL HUD 挂件审计（第 1 关开局）：常驻挂件「hints」在栏 2 个 ≠ 1（rebuild_cards 重复挂载/漏挂）
+godot-smoke: FAIL 冒烟场景断言未通过（退出码 1）

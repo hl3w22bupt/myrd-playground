@@ -1,4 +1,4 @@
-# style-card: flat-bright-pvz（v4）
+# style-card: flat-bright-pvz（v5，合流轮）
 
 - scope: 植物人大战僵尸-网页版（games/myrdplaygrou，全局）
 - applies-to: character / ui / tileset / sfx / 全场景视觉
@@ -8,14 +8,22 @@
 - v3 修订：八关扩容 —— 章节配色扩为四套（+正午暖黄）、夜战关夜幕遮罩与剪影双色
   （spec levelMechanics.nightFog，对比度 4.39）、坦克巨尸（boss）体型 1.55× + 危险色巨锤识别件、
   星级（★）与锁定态点按反馈落选关页。
-- v4 修订（spec.numeric.visual.hudLayout · Bug cmvyowgtj…）：HUD 响应式 —— ui 三档字号随视口
-  在钳制带内缩放（正文 18~24 / 辅助 12~16，标题不进 HUD），按钮高 44~56、元素间距 8~12；
-  CSS 宽 <960 折两行（状态行/卡槽行），单行顶栏总高 ≤68 设计 px（草坪首行 y=72 之上）；
-  音效开关对局中并入卡槽行（行尾），选关/结算态回到右上角常驻件。
-  音频面（spec.numeric.audio.tension）：sfx-hit = 低频 thud(95Hz)+噪声瞬态双层、
-  sfx-zombie-down 加倒地闷响尾音、sfx-wave 号角式（铜管 swell+低鼓，末波 wave_urgent 急促变体）、
-  新增 zombie_groan（低吼，响度低于 BGM）/ chomp（啃食）/ danger（危机警报）；双版 BGM
-  （基础 + intense 同调性同曲式，紧张版八分音符贝斯脉冲 + 16 分 hat + 低鼓 + 五度伴声）。
+- v4 修订（合流轮：两条并行实现各取所长，2026-11-02）：
+  ① HUD 响应式（spec.numeric.visual.hudLayout · Bug cmvyowgtj…）：CSS 钳制带引擎 —— ui 三档字号
+  随视口在带内缩放（正文 18~24 / 辅助 12~16），按钮高 44~56、元素间距 8~12；CSS 宽 <960 折两行
+  （状态行/卡槽行，行距=间距带），单行顶栏总高 ≤68 设计 px（草坪首行 y=72 之上）；音效开关对局中
+  并入卡槽行（行尾），选关/结算态回到右上角常驻件；拉伸 aspect keep→expand（宽屏不再等比放大
+  HUD）；Web 度量除以 devicePixelRatio（窗口是设备像素）。机判 = smoke 五档视口
+  （360/768/1280/1920/2560 —— spec acc-hud-layout 原文口径）逐档实例化：在界+两两无重叠+钳制带真值。
+  **字体度量归一**：assets/fonts/NotoSansSC-Regular.otf 导入 oversampling 钉 1.0（auto 在部分运行时
+  取 3× 行高，曾致卡片两行文本整行被裁 —— 并行轮实测根因），全运行时行高一致。
+  ② 紧张感音画（spec.numeric.audio.tension · Bug cmvyowguf…）：双版 BGM —— 基础 bgm.wav +
+  紧张 bgm-loop-intense.wav（spec 资产 id 口径；55.4s 同调性同曲式，八分贝斯脉冲+16分 hat+低鼓+
+  五度伴声），0.9s 交叉淡入（≤1s），切换规则=出场波次≥ceil(总波次/2) 或末波（无尽≥第4波）；
+  sfx-hit 低频 thud(95Hz)+噪声瞬态双层；sfx-zombie-down 倒地闷响尾音；sfx-wave 号角式
+  （铜管 swell+低鼓）+ wave_urgent 末波急促变体；新增 zombie_groan（低吼，响度低于 BGM）/
+  chomp（啃食）/ danger（危机警报）；全部 wav compress/mode=0（PCM，能量机判不失真），
+  normalize_rms 0.10~0.22（-20~-13dBFS 级响度基准）。
 - 用法：后续 UI、场景绘制、素材生成、美术评审一律对照本卡逐维度核对；与本卡冲突 = 风格缺陷。
 
 ## 定义
@@ -62,7 +70,7 @@
 | 档位 | 字号 | 字重 | 用途 |
 |---|---|---|---|
 | 标题 | 32px | 700 | 选关标题、胜负结算大字 |
-| HUD 正文 | 20px | 400 | 阳光计数、波次进度、生命、按钮文字 |
+| HUD 正文 | 18px（v4：20→18） | 400 | 阳光计数、波次进度、生命、按钮文字 |
 | 辅助信息 | 14px | 400 | 操作提示、卡片费用/原因小字、结算副标题、常驻静音按钮 |
 
 - 圆角半径：面板/按钮/卡片统一 8px；小徽标 4~6px；进度条直角。
@@ -75,9 +83,14 @@
   - hover：亮度 +8%；
   - pressed：文字下沉 3px、亮度 -6%（「按进去了」）；
   - disabled：中性灰 40% 不透明度（出战卡禁用态另加原因小字：冷却 Ns / 缺阳光）。
-- 触屏优先：可点按控件最小 44×44px（含热区，spec input.minTouchTargetPx），间距 ≥ 8px；
-  出战卡 84×48 两行式（短名 / 费用或原因）；键盘（WASD/方向键 + 空格/回车 + 1-5）与鼠标完全等价可用。
-- 常驻件：右上角静音按钮（72×48，选关/对局/结算全程可见可点）。
+- 触屏优先：可点按控件最小 44×44px（含热区，spec input.minTouchTargetPx；v4 全部按钮统一 44px 高），
+  间距 ≥ 6px（v4 收紧：行距 4 / 项距 6 / 顶栏内边距 6）；
+  出战卡 64×44 两行式（v4：84×48 → 64×44，宽 64 保证 360px 视口 5 卡仍能单行成排）；
+  键盘（WASD/方向键 + 空格/回车 + 1-5）与鼠标完全等价可用。
+- **HUD 响应式折行（v4）**：顶栏按可用宽度自适应 —— 单行 [阳光+卡片+下一波+波次+生命+返回+重开] →
+  两行 [阳光+波次+生命+返回+重开 | 卡片+下一波] → 三行 [阳光+波次+生命 | 卡片 | 下一波+返回+重开]
+  （常驻 HUD ≤ 3 行硬底线）；布局规划纯函数 `hud.gd::_plan_rows`，生产重排与冒烟五档视口机判同一实现。
+- 常驻件：右上角静音按钮（72×44，v4：48→44；选关/对局/结算全程可见可点）。
 
 ### 形状语言（character / tileset / 动效）
 
