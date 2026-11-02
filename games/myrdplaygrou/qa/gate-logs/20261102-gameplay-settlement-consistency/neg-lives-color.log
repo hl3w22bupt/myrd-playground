@@ -1,0 +1,15 @@
+Godot Engine v4.3.stable.official.77dcf97d8 - https://godotengine.org
+
+[smoke] HUD 布局 360×740：两行 12 元素在界无重叠（按钮高 44 css，行距 8，战场让位 50 px）
+[smoke] HUD 布局 768×1024：两行 12 元素在界无重叠（按钮高 44 css，行距 8，战场让位 192 px）
+[smoke] HUD 布局 1280×800：单行 12 元素在界无重叠（按钮高 56 css，正文 24，间距 10，顶栏高 68 ≤ 草坪首行 72）
+[smoke] HUD 布局 1920×1080：单行 12 元素在界无重叠（按钮高 56 css，正文 24，间距 12，顶栏高 68 ≤ 草坪首行 72）
+[smoke] HUD 布局 2560×1440：单行 12 元素在界无重叠（按钮高 56 css，正文 24，间距 12，顶栏高 68 ≤ 草坪首行 72）
+[smoke] 音频紧张感探针通过（groan/chomp/danger 触发、双版 BGM 切换与回落、末波急促号角在册）
+GODOT_SMOKE: FAIL 重开不可用：生命数字残留危险红 (0.9059, 0.298, 0.2353, 1)（败局 ≤1 命的颜色未随重开复位，结算反馈跨局泄漏）
+[1;33mWARNING:[0;93m 8 RIDs of type "CanvasItem" were leaked.
+[0;90m     at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2485)[0m
+[1;33mWARNING:[0;93m ObjectDB instances leaked at exit (run with --verbose for details).
+[0;90m     at: cleanup (core/object/object.cpp:2284)[0m
+[1;31mERROR:[0;91m 4 resources still in use at exit (run with --verbose for details).
+[0;90m   at: clear (core/io/resource.cpp:604)[0m

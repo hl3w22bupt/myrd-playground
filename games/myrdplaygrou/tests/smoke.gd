@@ -69,6 +69,12 @@ extends Node
 ##      第 1 关教学入口不动、Q4 用户原话逐字透传、tuning_applied 恒 false、
 ##      derive 全程只读（默认值快照比对不变 = 不得直接改代码默认值）、
 ##      revisions API 契约字段 + 壳层中继路径常量
+##  22. 结算反馈不跨局泄漏（重开反馈复位）：上一局生命打到 ≤1 触发的危险红数字，
+##      在重开（生命回满）后必须回到常规色 —— 失败/胜利反馈只属于当局结算态，
+##      不得污染下一局 HUD（RESTART 相位机判，Lose→Restart 真实链路覆盖）
+##  23. 无尽波次文案口径：进行中（wave_changed→_refresh_texts）与终局（_on_game_ended）
+##      同源 `endless_wave_text(wave_index+1)` —— 两处漂移曾致终局波次号比进行中少 1
+##      （ENDLESS 相位机判：推进后双口径比对 + 终局回调实跑）
 ##
 ## ⚠️ 输入注入分两个阶段、互不重叠（error-signatures E-08）：
 ##   headless 下 `Input.parse_input_event()` 的缓冲冲刷会清掉 `Input.action_press()` 状态，
@@ -1095,6 +1101,11 @@ func _step() -> void:
 					_failures.append("重开不可用：结算态 confirm 后未回到对局（running=false）")
 				if GameState.lives != GameState.START_LIVES:
 					_failures.append("重开不可用：生命未重置（%d ≠ %d）" % [GameState.lives, GameState.START_LIVES])
+				# 结算反馈不跨局泄漏（断言 22）：本局 LOSE 相位把生命打到 0（危险红），
+				# 重开生命回满后生命数字必须回到常规色 —— 失败反馈只属于当局结算态
+				if _hud.lives_font_color() != FlatUI.UI_TEXT:
+					_failures.append("重开不可用：生命数字残留危险红 %s（败局 ≤1 命的颜色未随重开复位，结算反馈跨局泄漏）"
+						% _hud.lives_font_color())
 				if _field.defender_count() != 0 or _field.zombie_count() != 0:
 					_failures.append("重开不可用：战场未清场（防御 %d / 僵尸 %d）" % [
 						_field.defender_count(), _field.zombie_count()])
@@ -1701,6 +1712,16 @@ func _step_endless() -> void:
 		var scaled_hp := GameState.zombie_hp_of(&"walker")
 		if scaled_hp <= _endless_base_hp:
 			_failures.append("无尽模式：第 2 波 walker 血量 %.1f 未随波递增（1.08^波 复合断线）" % scaled_hp)
+		# 无尽波次文案口径（断言 23）：推进后状态行 = 唯一出口的进行中文案；
+		# 再实跑终局回调，进行中/终局两处必须同源同值（终局波次号曾比进行中少 1）
+		var endless_text: String = _hud.endless_wave_text(GameState.wave_index)
+		if _hud.wave_label_text() != endless_text:
+			_failures.append("无尽模式：进行中波次文案「%s」≠ 口径「%s」（wave_changed 未接唯一出口）" % [
+				_hud.wave_label_text(), endless_text])
+		_hud._on_game_ended(false)
+		if _hud.wave_label_text() != endless_text:
+			_failures.append("无尽模式：终局波次文案「%s」≠ 进行中口径「%s」（终局波次号漂移回归）" % [
+				_hud.wave_label_text(), endless_text])
 		var boss_script := GameState.endless_wave_script(4)
 		if not _wave_kinds(boss_script).has(&"gargantuar"):
 			_failures.append("无尽模式：编制未按承诺混编坦克巨尸（wave 4 应出现）")
@@ -1810,7 +1831,7 @@ func _report() -> void:
 	for key: String in _tuning_backup:
 		GameState.set(key, _tuning_backup[key])
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 选关/选关空白落点反馈/四轴方向移动/教学引导/布防/出战卡/提示淡出/射击/掉落收集/失败/重开/下一波/八关逐关通关/关卡推进/逐关难度生效/夜幕剪影/坦克巨尸碾压/星级结算/无尽模式/键位契约/内容表/难度曲线锚点/对比度/音频契约与bus音量/调参协议/HUD五档视口布局无溢出无重叠/顶栏单实例守卫/紧张感音画（双版BGM+低吼+啃食+危机警报+号角）/试玩反馈四问契约 全部通过")
+		print("GODOT_SMOKE: PASS 选关/选关空白落点反馈/四轴方向移动/教学引导/布防/出战卡/提示淡出/射击/掉落收集/失败/重开/重开反馈复位/下一波/八关逐关通关/关卡推进/逐关难度生效/夜幕剪影/坦克巨尸碾压/星级结算/无尽模式/无尽波次口径/键位契约/内容表/难度曲线锚点/对比度/音频契约与bus音量/调参协议/HUD五档视口布局无溢出无重叠/顶栏单实例守卫/紧张感音画（双版BGM+低吼+啃食+危机警报+号角）/试玩反馈四问契约 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:

@@ -408,6 +408,16 @@ func hint_alpha() -> float:
 	return _hint_label.modulate.a
 
 
+## 冒烟断言入口：生命数字当前颜色（重开复位断言用 —— 败局红色不得跨局泄漏）。
+func lives_font_color() -> Color:
+	return _lives_label.get_theme_color("font_color")
+
+
+## 冒烟断言入口：波次/终局状态行当前文案（无尽波次口径一致性断言用）。
+func wave_label_text() -> String:
+	return _wave_label.text
+
+
 ## 波间等待态切换（「下一波」按钮可见性）。
 func set_wave_wait_visible(waiting: bool) -> void:
 	_skip_wave_button.visible = waiting and GameState.running
@@ -464,11 +474,17 @@ func _refresh_texts() -> void:
 	var compact := bool(_layout.get("compact_text", false))
 	if GameState.endless_active:
 		_wave_label.text = ("∞ %d" % [GameState.wave_index + 1]) if compact \
-			else ("无尽 第 %d 波" % [GameState.wave_index + 1])
+			else endless_wave_text(GameState.wave_index)
 	else:
 		_wave_label.text = ("%d/%d" % [GameState.wave_index + 1, GameState.wave_count()]) if compact \
 			else ("第 %d/%d 波" % [GameState.wave_index + 1, GameState.wave_count()])
 	_lives_label.text = ("命 %d" % GameState.lives) if compact else ("生命 %d" % GameState.lives)
+
+
+## 无尽模式波次文案（唯一出口：进行中 `_refresh_texts` 与终局 `_on_game_ended` 共用）——
+## 波次号 = wave_index + 1（0 起索引转人类计数）；两处曾各自拼接导致终局比进行中少 1。
+func endless_wave_text(wave_index: int) -> String:
+	return "无尽 第 %d 波" % (wave_index + 1)
 
 
 func _mute_label() -> String:
@@ -546,8 +562,10 @@ func _on_lives_changed(lives: int) -> void:
 	var lost := lives < _prev_lives
 	_prev_lives = lives
 	_refresh_texts()
+	# 危险红按「当前生命值」即时判定，不只在掉命帧 —— 败局把生命打到 ≤1 置红后重开，
+	# 生命回满也必须回到常规色，否则上一局的结算态颜色跨局泄漏进新一局 HUD。
+	_lives_label.add_theme_color_override("font_color", FlatUI.RED if lives <= 1 else FlatUI.UI_TEXT)
 	if lost:
-		_lives_label.add_theme_color_override("font_color", FlatUI.RED if lives <= 1 else FlatUI.UI_TEXT)
 		Juice.flash(_lives_label, Color(1, 0.45, 0.45, 0.9))
 		Juice.pop(_lives_label)
 
@@ -559,7 +577,7 @@ func _on_wave_changed(_wave: int, _wave_count: int) -> void:
 
 func _on_game_ended(won: bool) -> void:
 	if GameState.endless_active:
-		_wave_label.text = "无尽 第 %d 波" % GameState.wave_index
+		_wave_label.text = endless_wave_text(GameState.wave_index)
 	else:
 		_wave_label.text = "防守成功！" if won else "防线失守"
 	Juice.pop(_wave_label)
