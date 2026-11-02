@@ -1,6 +1,6 @@
 {
   "verdict": "PASS",
-  "url": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/",
+  "url": "http://localhost:8123/index.html",
   "preset": {
     "width": 390,
     "height": 844,
@@ -8,7 +8,7 @@
     "mobile": true,
     "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
   },
-  "checkedAt": "2026-11-01T19:45:27.524Z",
+  "checkedAt": "2026-11-02T05:58:08.383Z",
   "checks": [
     {
       "id": "network",
@@ -32,7 +32,7 @@
       "id": "render",
       "label": "首帧截图非纯色（400 点采样 ≥2 种量化色）",
       "status": "pass",
-      "detail": "采样仅 8 种颜色——画面没渲染出来（黑屏/白屏）"
+      "detail": "采样仅 6 种颜色——画面没渲染出来（黑屏/白屏）"
     },
     {
       "id": "animate",
@@ -74,14 +74,14 @@
       "id": "fps",
       "label": "FPS ≥ 8（swiftshader 软渲染口径）",
       "status": "pass",
-      "detail": "实测 40 fps"
+      "detail": "实测 26 fps"
     }
   ],
   "metrics": {
-    "colorCount": 8,
-    "idleDiff": 328,
-    "tapDiff": 5,
-    "fps": 40,
+    "colorCount": 6,
+    "idleDiff": 2,
+    "tapDiff": 7,
+    "fps": 26,
     "joyAreaDiff": 0,
     "joyChurn": 0,
     "scrollWidth": 390,

@@ -33,6 +33,8 @@ const GRID_ORIGIN := Vector2(112.0, 72.0)
 const HOUSE_W: float = 112.0
 ## 防线 x：僵尸头部越过即突破。
 const DEFENSE_X: float = GRID_ORIGIN.x
+## 危机警报线 x（最左 2 列右缘）：僵尸越过即播 sfx-danger（spec audio.tension.ambientSfx）。
+const DANGER_X: float = GRID_ORIGIN.x + 2.0 * CELL_W
 ## 僵尸出生 x（画面右缘外）。
 const SPAWN_X: float = 1056.0
 ## 僵尸啃咬触达距离（嘴到防御单位中心的判定半径）。
@@ -255,6 +257,8 @@ func _physics_process(delta: float) -> void:
 
 
 func _advance_world(delta: float) -> void:
+	# 僵尸在场回写（Audio 低吼调度依据：场上无僵尸则静默，spec audio.tension.ambientSfx）
+	Audio.set_zombies_present(not _zombies.is_empty())
 	# ① 防御单位：生产 / 开火（同格唯一，按行找目标；双发 = 一次开火两颗弹，前后错开）
 	for defender: Defender in _defenders.values():
 		if defender.produces:
@@ -290,12 +294,23 @@ func _advance_world(delta: float) -> void:
 				Juice.sfx(&"zombie_die")
 				Juice.shake(6.0)
 				_crush_defender(target)
-			elif zombie.tick_bite(delta) and target.take_damage(GameState.bite_damage):
-				_remove_defender(target)
+			else:
+				# 啃食音效（spec audio.tension.ambientSfx：进入啃食即触发 + 啃食期间循环短音）
+				if not zombie.was_eating:
+					Juice.sfx(&"chomp")
+				if zombie.tick_bite(delta):
+					Juice.sfx(&"chomp")
+					if target.take_damage(GameState.bite_damage):
+						_remove_defender(target)
 		else:
 			zombie.advance(delta)
+			# 危机警报（spec audio.tension.ambientSfx：进入最左 2 列触发一次 sting）
+			if not zombie.danger_signaled and zombie.position.x <= DANGER_X:
+				zombie.danger_signaled = true
+				Juice.sfx(&"danger")
 			if zombie.position.x <= DEFENSE_X:
 				_breach(zombie)
+		zombie.was_eating = zombie.eating
 	# ③ 弹丸飞行与命中（伤害/减速读弹丸快照，不读当前选中卡）
 	for projectile in _projectiles.duplicate():
 		projectile.advance(delta)
@@ -359,6 +374,8 @@ func _kill_zombie(zombie: Zombie) -> void:
 func _breach(zombie: Zombie) -> void:
 	_zombies.erase(zombie)
 	Juice.sfx(&"breach")
+	# 生命被扣的危机警报（spec audio.tension.ambientSfx：sfx-danger 触发面之二）
+	Juice.sfx(&"danger")
 	Juice.shake(9.0)
 	GameState.lose_life()
 	zombie_breached.emit(zombie)
@@ -398,11 +415,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		var touch := event as InputEventScreenTouch
 		if touch.pressed:
-			tap = get_canvas_transform().affine_inverse() * touch.position
+			# 画布坐标 → 本节点局部坐标（战场可能被 HUD 清障整体下移，见 main.gd::_layout_field）
+			tap = to_local(get_canvas_transform().affine_inverse() * touch.position)
 	elif event is InputEventMouseButton:
 		var mouse := event as InputEventMouseButton
 		if mouse.pressed and mouse.button_index == MOUSE_BUTTON_LEFT:
-			tap = get_global_mouse_position()
+			tap = to_local(get_global_mouse_position())
 	if tap == Vector2.INF:
 		return
 	# 触摸会被浏览器/引擎再投递一条模拟鼠标事件：同点位短窗口内只算一次

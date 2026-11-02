@@ -1,4 +1,4 @@
-# style-card: flat-bright-pvz（v3）
+# style-card: flat-bright-pvz（v4）
 
 - scope: 植物人大战僵尸-网页版（games/myrdplaygrou，全局）
 - applies-to: character / ui / tileset / sfx / 全场景视觉
@@ -8,6 +8,14 @@
 - v3 修订：八关扩容 —— 章节配色扩为四套（+正午暖黄）、夜战关夜幕遮罩与剪影双色
   （spec levelMechanics.nightFog，对比度 4.39）、坦克巨尸（boss）体型 1.55× + 危险色巨锤识别件、
   星级（★）与锁定态点按反馈落选关页。
+- v4 修订（spec.numeric.visual.hudLayout · Bug cmvyowgtj…）：HUD 响应式 —— ui 三档字号随视口
+  在钳制带内缩放（正文 18~24 / 辅助 12~16，标题不进 HUD），按钮高 44~56、元素间距 8~12；
+  CSS 宽 <960 折两行（状态行/卡槽行），单行顶栏总高 ≤68 设计 px（草坪首行 y=72 之上）；
+  音效开关对局中并入卡槽行（行尾），选关/结算态回到右上角常驻件。
+  音频面（spec.numeric.audio.tension）：sfx-hit = 低频 thud(95Hz)+噪声瞬态双层、
+  sfx-zombie-down 加倒地闷响尾音、sfx-wave 号角式（铜管 swell+低鼓，末波 wave_urgent 急促变体）、
+  新增 zombie_groan（低吼，响度低于 BGM）/ chomp（啃食）/ danger（危机警报）；双版 BGM
+  （基础 + intense 同调性同曲式，紧张版八分音符贝斯脉冲 + 16 分 hat + 低鼓 + 五度伴声）。
 - 用法：后续 UI、场景绘制、素材生成、美术评审一律对照本卡逐维度核对；与本卡冲突 = 风格缺陷。
 
 ## 定义

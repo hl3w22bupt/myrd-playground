@@ -2,7 +2,7 @@
   "_provenance": {
     "tool": "tools/gen_sfx.gd",
     "method": "procedural-synthesis",
-    "note": "资产治理协议 SKILL.md §7B：生成资产入库（source=generated, generator=procedural:tools/gen_sfx.gd）；改配方重跑工具即再生成，同配方同产物（确定种子）。v2 音效契约（spec audio.sfxBindings 全 8 类）：射击/命中/僵尸倒地/放置单位/阳光收集(score)/波次来袭(wave)/通关(victory)/失败(defeat)；工程内补充：confirm/fail/breach/produce(向日葵产出)"
+    "note": "资产治理协议 SKILL.md §7B：生成资产入库（source=generated, generator=procedural:tools/gen_sfx.gd）；改配方重跑工具即再生成，同配方同产物（确定种子）。v2 音效契约（spec audio.sfxBindings 全 8 类）：射击/命中/僵尸倒地/放置单位/阳光收集(score)/波次来袭(wave)/通关(victory)/失败(defeat)；工程内补充：confirm/fail/breach/produce(向日葵产出)。v6 紧张感分层（spec.numeric.audio.tension）：hit 加厚（低频 thud+噪声瞬态）、zombie_die 加倒地闷响尾音、wave 号角式（铜管 swell+低鼓）+ wave_urgent 末波急促变体、新增 zombie_groan 低吼 / chomp 啃食 / danger 危机警报；全部 normalize_rms 对齐 -13dBFS 级响度基准（0.22 ≈ -13dBFS，短促 sting 取 0.16~0.22，氛围音取 0.10 不喧宾夺主）"
   },
   "sample_rate": 22050,
   "effects": [
@@ -28,9 +28,20 @@
     {
       "name": "hit",
       "kind": "noise",
-      "duration": 0.12,
+      "duration": 0.15,
       "volume": 0.5,
-      "decay": 22.0
+      "decay": 22.0,
+      "normalize_rms": 0.2,
+      "layers": [
+        {
+          "kind": "blip",
+          "wave": "sine",
+          "freq": 95.0,
+          "duration": 0.15,
+          "volume": 0.85,
+          "decay": 18.0
+        }
+      ]
     },
     {
       "name": "fail",
@@ -69,7 +80,19 @@
       "duration": 0.34,
       "volume": 0.45,
       "wave": "sawtooth",
-      "decay": 6.0
+      "decay": 6.0,
+      "normalize_rms": 0.2,
+      "layers": [
+        {
+          "kind": "blip",
+          "wave": "sine",
+          "freq": 62.0,
+          "duration": 0.34,
+          "volume": 0.8,
+          "decay": 7.0,
+          "attack": 0.012
+        }
+      ]
     },
     {
       "name": "breach",
@@ -102,11 +125,164 @@
       "name": "wave",
       "kind": "sweep",
       "from": 220.0,
-      "to": 110.0,
-      "duration": 0.5,
-      "volume": 0.4,
+      "to": 330.0,
+      "duration": 0.9,
+      "volume": 0.5,
       "wave": "sawtooth",
-      "decay": 3.5
+      "decay": 2.2,
+      "attack": 0.18,
+      "vibrato": { "rate": 5.5, "depth": 0.04 },
+      "normalize_rms": 0.18,
+      "layers": [
+        {
+          "kind": "blip",
+          "wave": "sine",
+          "freq": 62.0,
+          "duration": 0.35,
+          "volume": 0.9,
+          "decay": 9.0,
+          "attack": 0.004
+        },
+        {
+          "kind": "sweep",
+          "from": 294.0,
+          "to": 440.0,
+          "duration": 0.85,
+          "volume": 0.3,
+          "wave": "sawtooth",
+          "decay": 2.6,
+          "attack": 0.22
+        }
+      ]
+    },
+    {
+      "name": "wave_urgent",
+      "kind": "sweep",
+      "from": 247.0,
+      "to": 392.0,
+      "duration": 0.55,
+      "volume": 0.55,
+      "wave": "sawtooth",
+      "decay": 2.8,
+      "attack": 0.06,
+      "vibrato": { "rate": 7.5, "depth": 0.05 },
+      "normalize_rms": 0.2,
+      "layers": [
+        {
+          "kind": "blip",
+          "wave": "sine",
+          "freq": 58.0,
+          "duration": 0.22,
+          "volume": 0.9,
+          "decay": 11.0
+        },
+        {
+          "kind": "sweep",
+          "from": 247.0,
+          "to": 392.0,
+          "duration": 0.3,
+          "volume": 0.32,
+          "wave": "sawtooth",
+          "decay": 3.2,
+          "attack": 0.05
+        },
+        {
+          "kind": "sweep",
+          "from": 330.0,
+          "to": 494.0,
+          "duration": 0.24,
+          "volume": 0.26,
+          "wave": "sawtooth",
+          "decay": 3.4,
+          "attack": 0.04
+        }
+      ]
+    },
+    {
+      "name": "zombie_groan",
+      "kind": "sweep",
+      "from": 98.0,
+      "to": 66.0,
+      "duration": 0.95,
+      "volume": 0.5,
+      "wave": "sawtooth",
+      "decay": 2.4,
+      "attack": 0.12,
+      "vibrato": { "rate": 11.0, "depth": 0.16 },
+      "normalize_rms": 0.1,
+      "layers": [
+        {
+          "kind": "noise",
+          "duration": 0.6,
+          "volume": 0.12,
+          "decay": 4.0,
+          "attack": 0.1
+        }
+      ]
+    },
+    {
+      "name": "chomp",
+      "kind": "noise",
+      "duration": 0.22,
+      "volume": 0.55,
+      "decay": 16.0,
+      "normalize_rms": 0.16,
+      "layers": [
+        {
+          "kind": "blip",
+          "wave": "sine",
+          "freq": 130.0,
+          "duration": 0.1,
+          "volume": 0.7,
+          "decay": 20.0
+        },
+        {
+          "kind": "blip",
+          "wave": "triangle",
+          "freq": 240.0,
+          "duration": 0.08,
+          "volume": 0.3,
+          "decay": 26.0
+        }
+      ]
+    },
+    {
+      "name": "danger",
+      "kind": "sweep",
+      "from": 523.0,
+      "to": 784.0,
+      "duration": 0.28,
+      "volume": 0.5,
+      "wave": "square",
+      "decay": 4.5,
+      "attack": 0.008,
+      "normalize_rms": 0.18,
+      "layers": [
+        {
+          "kind": "sweep",
+          "from": 392.0,
+          "to": 659.0,
+          "duration": 0.26,
+          "volume": 0.42,
+          "wave": "square",
+          "decay": 5.0,
+          "attack": 0.006
+        },
+        {
+          "kind": "noise",
+          "duration": 0.1,
+          "volume": 0.25,
+          "decay": 26.0
+        },
+        {
+          "kind": "blip",
+          "wave": "sine",
+          "freq": 70.0,
+          "duration": 0.3,
+          "volume": 0.6,
+          "decay": 10.0
+        }
+      ]
     },
     {
       "name": "produce",

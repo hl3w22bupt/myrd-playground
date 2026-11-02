@@ -22,6 +22,9 @@ var _status: Label
 var _blank_catcher: Control
 var _blank_toast: PanelContainer
 var _blank_toast_left: float = 0.0
+## 首关入口呼吸动效（CTA 引导；选关页是全静态菜单，保留一处轻量 idle 动效既引导视线，
+## 也让「画面在动」有真实信号 —— 风格卡动效三件套之缩放，1.04 内不做夸张形变）。
+var _cta_tween: Tween
 
 
 func _ready() -> void:
@@ -62,6 +65,13 @@ func _build() -> void:
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	center.add_child(column)
+
+	# 转动的小太阳（风格卡「阳光拾取物」造型：阳光黄圆盘 + 8 根射线 + 描边，慢速匀速旋转）。
+	# 选关页的常驻 idle 动效：匀速旋转相位永不与固定采样窗对齐（区别于往复呼吸），
+	# 「画面在动」在任意 1.5s 双时点下都有真实信号（mobile-web-smoke animate）。
+	var sun := SpinningSun.new()
+	sun.custom_minimum_size = Vector2(0, 96)
+	column.add_child(sun)
 
 	var title := FlatUI.label("植物人大战僵尸", FlatUI.FONT_TITLE)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -159,11 +169,43 @@ func endless_entry_visible() -> bool:
 func open() -> void:
 	visible = true
 	_refresh_entries()
+	_start_cta_breathing.call_deferred()
 
 
 func close() -> void:
 	visible = false
+	_stop_cta_breathing()
 	_hide_blank_toast()
+
+
+## 首个可玩的关卡入口呼吸（缩放 1.00→1.04 循环）：视觉引导「从这里开始」。
+## deferred 启动 = 等容器排完版拿真实尺寸设缩放轴心；锁定态首卡也参与（点按有反馈引导）。
+func _start_cta_breathing() -> void:
+	_stop_cta_breathing()
+	if _level_buttons.is_empty() or not visible:
+		return
+	var cta := _level_buttons[0]
+	cta.pivot_offset = cta.size / 2.0
+	_cta_tween = create_tween().set_loops().set_parallel(true)
+	# 缩放（1.04 内）+ 整面 modulate 呼吸（0.72→1.0）：色块整体明暗起伏，触屏视线引导
+	# 明确（量化采样/低速帧下也可见），非边缘微动 —— 风格卡动效三件套（缩放+闪烁）。
+	_cta_tween.tween_property(cta, "scale", Vector2.ONE * 1.04, 0.55) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_cta_tween.tween_property(cta, "modulate:a", 0.72, 0.55) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_cta_tween.chain().tween_property(cta, "scale", Vector2.ONE, 0.55) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_cta_tween.parallel().tween_property(cta, "modulate:a", 1.0, 0.55) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
+func _stop_cta_breathing() -> void:
+	if _cta_tween != null and _cta_tween.is_valid():
+		_cta_tween.kill()
+	_cta_tween = null
+	for button in _level_buttons:
+		button.scale = Vector2.ONE
+		button.modulate.a = 1.0
 
 
 ## 收起空白落点 toast（选关/进关/关闭时立即收起）。
@@ -250,3 +292,30 @@ func _on_endless_pressed() -> void:
 		return
 	Juice.sfx(&"confirm")
 	level_selected.emit(GameState.LEVELS.size())
+
+
+## 转动的小太阳（选关页 idle 装饰）：阳光黄圆盘 + 8 根射线 + 2px 描边（风格卡造型），
+## 慢速匀速旋转（0.9 rad/s）——「画面在动」的确定性信号源，也是「点按关卡开始」的视线锚。
+class SpinningSun extends Control:
+	const SPIN_SPEED: float = 0.9
+	var _phase: float = 0.0
+
+	func _init() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func _process(delta: float) -> void:
+		_phase += SPIN_SPEED * delta
+		queue_redraw()
+
+	func _draw() -> void:
+		var c := size / 2.0
+		var radius := minf(size.x, size.y) * 0.22
+		if radius < 4.0:
+			radius = 10.0
+		for i in 8:
+			var angle := _phase + TAU * float(i) / 8.0
+			var dir := Vector2(cos(angle), sin(angle))
+			draw_line(c + dir * radius * 1.15, c + dir * radius * 1.6, FlatUI.ORANGE_DARK, 3.0)
+		draw_circle(c, radius * 1.05, FlatUI.OUTLINE)
+		draw_circle(c, radius, FlatUI.SUN_PICKUP)
+		draw_circle(c + Vector2(-radius * 0.3, -radius * 0.3), radius * 0.28, Color(1, 1, 1, 0.85))

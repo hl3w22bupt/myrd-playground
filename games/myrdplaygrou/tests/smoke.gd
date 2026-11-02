@@ -51,6 +51,18 @@ extends Node
 ##  16. 键位契约：动作已注册 + 承诺的物理键全部绑定（逐键 AND）
 ##  17. 操作说明不常驻：开局提示可见，hint_show_seconds 后自动开始淡出
 ##  18. 调参协议：TUNING_META 非空；apply_tuning 应用/拒绝/钳制，检查后恢复原值
+##  19. HUD 响应式布局（acc-hud-layout，spec visual.hudLayout）：360/768/1280/1920/2560
+##      五档视口逐档实例化 HUD —— 全部元素（阳光/下一波/波次/生命/返回/重开/5 卡/音效）
+##      包围盒完全落在画布内且两两无重叠；按钮高 44~56 / 正文字号 18~24 / 辅助字号 12~16 /
+##      间距 8~12 钳制带；窄档折两行（行间距 ≥8）且战场让位偏移不遮挡草坪首行；
+##      单行档顶栏总高 ≤68 设计 px（< 草坪首行 y=72）；
+##      过关进入下一关后每个常驻控件实例数恒为 1（Bug cmvyowgsh… 回归断言）
+##  20. 音频紧张感（acc-audio-tension，spec audio.tension）：双版 BGM 在包且循环；
+##      切换规则真值表（出场波次 ≥ 折半或末波 → intense，无尽 ≥ 第 4 波）+ 交叉淡入行为
+##      （≤1s，tween 目标音量对调）；sfx-zombie-groan（4~8s 随机间隔，可提速断言）/
+##      sfx-chomp（进入啃食 + 每口）/ sfx-danger（最左 2 列 + 生命被扣）三类氛围音
+##      绑定触发；sfx-wave 号角 + wave_urgent 末波急促变体；sfx-hit 低频 thud 分层、
+##      sfx-zombie-down 闷响尾音（配方分层机判）
 ##
 ## ⚠️ 输入注入分两个阶段、互不重叠（error-signatures E-08）：
 ##   headless 下 `Input.parse_input_event()` 的缓冲冲刷会清掉 `Input.action_press()` 状态，
@@ -74,6 +86,12 @@ const LOSE_FRAMES: int = 5          # 5 只越线僵尸 → 生命归零
 const RESULT_FRAMES: int = 6        # 结算浮层误触窗（测试通道 30ms ≈ 2 帧）+ 余量
 const RESTART_FRAMES: int = 5       # confirm → 再试一次 → 对战态
 const NEXTWAVE_FRAMES: int = 4      # 下一波：等待态提前召唤 → 真实出怪
+const HUD_TIER_FRAMES: int = 2      # HUD 布局机判：每档视口实例化 + 布局沉降各 1 帧
+const HUD_TIERS: Array = [          # 五档视口（宽, 高）——spec acc-hud-layout 机判口径
+	[360, 740], [768, 1024], [1280, 800], [1920, 1080], [2560, 1440],
+]
+const HUDLAYOUT_FRAMES: int = 5 * HUD_TIER_FRAMES  # 五档逐档实例化
+const AUDIO_FRAMES: int = 12        # 音频紧张感行为探针（低吼 0.05s + 啃食/危机触发窗）
 const SWEEP_SETUP_FRAMES: int = 2   # 每关：won_seen 清零 → 关卡断言 + 难度探针 + 胜利尝试
 const SWEEP_KILL_FRAMES: int = 14   # 每关：一击必杀（齐射 4.5 帧 + 弹丸飞行 ~5 帧 + 清场判定）
 const SWEEP_KILL_L7_FRAMES: int = 18  # L7：含碾压探针子步骤（1 帧碾压生效 + 重建胜利尝试）
@@ -83,12 +101,12 @@ const ENDLESS_FRAMES: int = 8       # 无尽模式：入口可见 → 进入 →
 const SWEEP_FRAMES: int = (SWEEP_SETUP_FRAMES + SWEEP_KILL_FRAMES + SWEEP_ADVANCE_FRAMES) \
 	+ 6 * (SWEEP_SETUP_FRAMES + SWEEP_KILL_FRAMES) \
 	+ (SWEEP_SETUP_FRAMES + SWEEP_KILL_L7_FRAMES)
-const TOTAL_FRAMES: int = NOISE_FRAMES + CLEANUP_FRAMES + AXES_FRAMES + PLACE_FRAMES \
-	+ CARDS_FRAMES + COMBAT_FRAMES + LOSE_FRAMES + RESULT_FRAMES \
+const TOTAL_FRAMES: int = NOISE_FRAMES + CLEANUP_FRAMES + HUDLAYOUT_FRAMES + AUDIO_FRAMES \
+	+ AXES_FRAMES + PLACE_FRAMES + CARDS_FRAMES + COMBAT_FRAMES + LOSE_FRAMES + RESULT_FRAMES \
 	+ RESTART_FRAMES + NEXTWAVE_FRAMES + SWEEP_FRAMES + ENDLESS_FRAMES + 2
 
-enum Phase { NOISE, CLEANUP, MOVE, PLACE, CARDS, COMBAT, LOSE, RESULT, RESTART, NEXTWAVE,
-	SWEEP_SETUP, SWEEP_KILL, SWEEP_ADVANCE, ENDLESS }
+enum Phase { NOISE, CLEANUP, HUDLAYOUT, AUDIO, MOVE, PLACE, CARDS, COMBAT, LOSE, RESULT,
+	RESTART, NEXTWAVE, SWEEP_SETUP, SWEEP_KILL, SWEEP_ADVANCE, ENDLESS }
 
 ## 位移方向断言的最小分量阈值（期望 17px，8px = 容忍首帧离散的下限）。
 const MIN_AXIS_DISPLACEMENT: float = 8.0
@@ -198,6 +216,12 @@ var _crush_garg: Zombie = null
 var _crush_checked: bool = false
 ## 无尽模式探针状态（基准血量，供复合递增对比）。
 var _endless_base_hp: float = -1.0
+## HUD 布局机判游标（当前档 / 在测的 SubViewport 与其实例）。
+var _hud_tier: int = 0
+var _hud_probe_viewport: SubViewport = null
+var _hud_probe: Hud = null
+## 音频紧张感探针阶段（0 = 布怪+起播，1 = 等触发窗，2 = 断言收口）。
+var _audio_stage: int = 0
 var _tuning_backup: Dictionary = {}
 var _noise_rng := RandomNumberGenerator.new()
 
@@ -679,7 +703,11 @@ func _step() -> void:
 				# 提示淡出断言的基线：开局提示必须完全可见（先浮现、后淡出）
 				_hint_alpha_at_start = _hud.hint_alpha()
 				_axis_index = -1
-				_enter(Phase.MOVE)
+				_enter(Phase.HUDLAYOUT)
+		Phase.HUDLAYOUT:
+			_step_hud_layout()
+		Phase.AUDIO:
+			_step_audio_tension()
 		Phase.MOVE:
 			_step_move_axis()
 		Phase.PLACE:
@@ -865,6 +893,241 @@ func _step() -> void:
 			_step_endless()
 
 
+## ── 断言 19（acc-hud-layout · spec visual.hudLayout）：五档视口逐档实例化 HUD ──
+## 每档两帧：奇数帧搭 SubViewport + HUD（容器布局次帧沉降），偶数帧断言 + 拆除。
+func _step_hud_layout() -> void:
+	if _phase_frames % HUD_TIER_FRAMES == 1:
+		if _hud_tier >= HUD_TIERS.size():
+			return
+		var tier: Array = HUD_TIERS[_hud_tier]
+		_hud_probe_viewport = SubViewport.new()
+		_hud_probe_viewport.size = Vector2(float(tier[0]), float(tier[1]))
+		add_child(_hud_probe_viewport)
+		_hud_probe = Hud.new()
+		_hud_probe_viewport.add_child(_hud_probe)
+		_hud_probe.set_wave_wait_visible(true)  # 「下一波」也在机判元素清单里（对局等待态）
+	else:
+		if _hud_probe != null:
+			_check_hud_layout_tier(_hud_tier)
+			_hud_probe_viewport.remove_child(_hud_probe)
+			_hud_probe.free()
+			_hud_probe = null
+			_hud_probe_viewport.queue_free()
+			_hud_probe_viewport = null
+			_hud_tier += 1
+		if _hud_tier >= HUD_TIERS.size():
+			_hud_tier = 0
+			_enter(Phase.AUDIO)
+
+
+func _check_hud_layout_tier(tier: int) -> void:
+	var tier_size: Array = HUD_TIERS[tier]
+	var w := float(tier_size[0])
+	var h := float(tier_size[1])
+	var label := "HUD 布局 %d×%d" % [int(w), int(h)]
+	# ① 元素齐且不多：阳光/下一波/波次/生命/返回/重开/5 张卡/音效开关
+	var expected: Array[String] = ["sun", "next_wave", "wave", "lives", "back", "restart",
+		"card_0", "card_1", "card_2", "card_3", "card_4", "mute"]
+	var rects: Dictionary = _hud_probe.element_rects()
+	if OS.get_environment("SMOKE_HUD_DEBUG") != "":
+		_dump_hud_tree(_hud_probe, 0)
+		print("[hud-debug] report=", _hud_probe.layout_report())
+	for key in expected:
+		if not rects.has(key):
+			_failures.append("%s：缺元素 %s（顶栏功能件失联）" % [label, key])
+			return
+	if rects.size() != expected.size():
+		_failures.append("%s：元素 %d 件 ≠ %d（%s）" % [label, rects.size(), expected.size(),
+			str(rects.keys())])
+		return
+	# ② 钳制带（SubViewport 拉伸比 = 1：设计 px = css px，直接对 spec 带宽断言）
+	var report: Dictionary = _hud_probe.layout_report()
+	if float(report.button_h_css) < 44.0 - 0.01 or float(report.button_h_css) > 56.0 + 0.01:
+		_failures.append("%s：按钮高 %.1f css 不在 [44,56] 钳制带" % [label, float(report.button_h_css)])
+	if float(report.font_body_css) < 18.0 - 0.01 or float(report.font_body_css) > 24.0 + 0.01:
+		_failures.append("%s：正文字号 %.1f 不在 [18,24] 钳制带" % [label, float(report.font_body_css)])
+	if float(report.font_assist_css) < 12.0 - 0.01 or float(report.font_assist_css) > 16.0 + 0.01:
+		_failures.append("%s：辅助字号 %.1f 不在 [12,16] 钳制带" % [label, float(report.font_assist_css)])
+	if float(report.sep_css) < 8.0 - 0.01 or float(report.sep_css) > 12.0 + 0.01:
+		_failures.append("%s：元素间距 %.1f 不在 [8,12] 钳制带" % [label, float(report.sep_css)])
+	# ③④ 包围盒在画布内 + 两两无重叠（与真实 HUD 共用同一机判核心）
+	_assert_hud_rects(rects, label, Rect2(0.0, 0.0, w, h))
+	# ⑤ 行为：折行档位 + 行间距 + 草坪首行不遮挡
+	var expect_two := w < 960.0
+	if bool(report.two_rows) != expect_two:
+		_failures.append("%s：折行档位 %s ≠ 预期 %s（单/两行自适应断线）" % [
+			label, report.two_rows, expect_two])
+		return
+	if not expect_two:
+		if float(report.content_height) > 72.0 + 0.01:
+			_failures.append("%s：单行顶栏总高 %.1f > 72（遮挡草坪首行 y=72）" % [
+				label, float(report.content_height)])
+		print("[smoke] %s：单行 12 元素在界无重叠（按钮高 %.0f css，正文 %.0f，间距 %.0f，顶栏高 %.0f ≤ 草坪首行 72）" % [
+			label, float(report.button_h_css), float(report.font_body_css),
+			float(report.sep_css), float(report.content_height)])
+	else:
+		var status_bottom := 0.0
+		for key: String in ["sun", "next_wave", "wave", "lives", "back", "restart"]:
+			status_bottom = maxf(status_bottom, (rects[key] as Rect2).end.y)
+		var gap: float = (rects["card_0"] as Rect2).position.y - status_bottom
+		if gap < 8.0 - 0.01:
+			_failures.append("%s：两行行间距 %.1f < 8（spec hudLayout.rows）" % [label, gap])
+		# 战场让位偏移（main.gd::field_y_offset）：顶栏下缘 + 间隙 ≤ 草坪首行顶，且战场完整可见
+		var offset: float = _main.field_y_offset(float(report.content_height), h)
+		if offset + 0.01 < float(report.content_height) + 8.0 - 72.0:
+			_failures.append("%s：战场让位偏移 %.1f 不足（顶栏 %.1f + 8 间隙 > 草坪首行 72）" % [
+				label, offset, float(report.content_height)])
+		if float(h) - (float(Field.VIEW_SIZE.y) + offset) < -0.01:
+			_failures.append("%s：战场下移 %.1f 后底部出画布（视口高 %.0f）" % [label, offset, h])
+		print("[smoke] %s：两行 12 元素在界无重叠（按钮高 %.0f css，行距 %.0f，战场让位 %.0f px）" % [
+			label, float(report.button_h_css), gap, offset])
+
+
+## ── 断言 20（acc-audio-tension · spec audio.tension）：紧张感音画 ──
+func _step_audio_tension() -> void:
+	var audio := get_tree().root.get_node_or_null("Audio")
+	if audio == null:
+		_failures.append("音频紧张感：autoload Audio 未注册")
+		_enter(Phase.MOVE)
+		return
+	if _phase_frames == 1:
+		_check_audio_tension_static(audio)
+		# 行为探针布景：向日葵 + 近距 walker（进入啃食 → chomp）、危机线 walker（→ danger）、
+		# 低吼计时提速（0.05s，等价验证 4~8s 随机间隔的调度链）
+		Audio.ensure_playing()  # 模拟首手势解锁（幂等；低吼调度与双版 BGM 起播依赖它）
+		_field.clear_all()
+		GameState.add_sun(500)
+		if GameState.selected_card != 0:  # select_card(0) 对已选卡 = 取消选择，先判再选
+			GameState.select_card(0)
+		if not _field.try_place(_field.cell_center(Vector2i(2, 2))):
+			_failures.append("音频紧张感：探针布防失败（chomp 触发链无从验证）")
+		_field.spawn_zombie(2, _field.cell_center(Vector2i(2, 2)).x + 28.0, &"walker")
+		_field.spawn_zombie(3, Field.DANGER_X - 12.0, &"walker")
+		audio.set("groan_timer", 0.05)
+		_audio_stage = 1
+	elif _audio_stage == 1 and _phase_frames >= 8:
+		_audio_stage = 2
+		var events := Juice.events
+		_assert_event(events, "sfx:chomp", "音频紧张感：僵尸进入啃食未触发 sfx-chomp（咀嚼循环链断线）")
+		_assert_event(events, "sfx:danger",
+			"音频紧张感：僵尸进入最左 2 列未触发 sfx-danger（危机警报链断线）")
+		_assert_event(events, "sfx:zombie_groan",
+			"音频紧张感：僵尸在场未触发 sfx-zombie-groan（低吼调度链断线）")
+		# 双版 BGM：中途波 → intense（≤1s 交叉淡入）；回落 → 基础版
+		audio.call("update_wave_tension", 3, 6)
+		var state: Dictionary = audio.call("tension_state")
+		if not bool(state.get("intense_active", false)):
+			_failures.append("音频紧张感：第 4/6 波（出场 ≥ 折半）未切入紧张版")
+		if not bool(state.get("intense_playing", false)):
+			_failures.append("音频紧张感：紧张版 BGM 未起播")
+		if float(state.get("base_volume_db", -8.0)) > Audio.BGM_VOLUME_DB + 0.01:
+			_failures.append("音频紧张感：交叉淡入未启动（基础版音量未离开基准值）")
+		audio.call("update_wave_tension", 0, 6)
+		state = audio.call("tension_state")
+		if bool(state.get("intense_active", true)):
+			_failures.append("音频紧张感：波次回落未切回基础版（intense 残留）")
+		# 探针收尾：重开第 1 关拿到干净棋盘（清探针布防/扣费/选卡/冷却，不污染 MOVE 轴断言）
+		_field.clear_all()
+		GameState.start_level(0)
+		print("[smoke] 音频紧张感探针通过（groan/chomp/danger 触发、双版 BGM 切换与回落、末波急促号角在册）")
+		_enter(Phase.MOVE)
+	elif _audio_stage == 1 and _phase_frames >= AUDIO_FRAMES:
+		_failures.append("音频紧张感：行为探针 %d 帧内未收口" % AUDIO_FRAMES)
+		_enter(Phase.MOVE)
+
+
+## 包围盒在画布内 + 两两无重叠（probe 五档与真实 HUD 共用的机判核心）。
+func _assert_hud_rects(rects: Dictionary, label: String, canvas: Rect2) -> void:
+	for key: String in rects:
+		var rect := rects[key] as Rect2
+		if not canvas.encloses(rect):
+			_failures.append("%s：元素 %s 包围盒 %s 超出画布 %s（右侧裁切类缺陷）" % [
+				label, key, rect, canvas])
+	var keys: Array = rects.keys()
+	for i in keys.size():
+		for j in range(i + 1, keys.size()):
+			var a := (rects[keys[i]] as Rect2).grow(-0.01)
+			var b := (rects[keys[j]] as Rect2).grow(-0.01)
+			if a.intersects(b):
+				_failures.append("%s：元素 %s 与 %s 包围盒重叠（%s ∩ %s）" % [
+					label, keys[i], keys[j], a, b])
+
+
+func _assert_event(events: PackedStringArray, prefix: String, message: String) -> void:
+	for event in events:
+		if event.begins_with(prefix):
+			return
+	_failures.append(message)
+
+
+## HUD 树转储（SMOKE_HUD_DEBUG=1 时输出；布局诊断用，不参与判定）。
+func _dump_hud_tree(node: Node, depth: int) -> void:
+	var info := ""
+	if node is Control:
+		var control := node as Control
+		info = " pos=%s size=%s visible=%s" % [control.position, control.size, control.visible]
+	print("[hud-debug]%s%s (%s)%s" % ["  ".repeat(depth), node.name, node.get_class(), info])
+	for child in node.get_children():
+		_dump_hud_tree(child, depth + 1)
+
+
+## 紧张感静态断言：资产在盘在册、切换规则真值表、配方分层（hit 加厚 / zombie_down 尾音 /
+## wave 号角+低鼓 / 末波急促变体）。
+func _check_audio_tension_static(audio: Node) -> void:
+	for name: StringName in [&"zombie_groan", &"chomp", &"danger", &"wave_urgent", &"wave", &"hit", &"zombie_die"]:
+		if not Juice.SFX_BANK.has(name) or Juice.SFX_BANK.get(name) == null:
+			_failures.append("音频紧张感：%s 未注册（spec audio.tension 资产缺位）" % name)
+	for file: String in ["bgm.wav", "bgm-loop-intense.wav", "wave_urgent.wav",
+			"zombie_groan.wav", "chomp.wav", "danger.wav"]:
+		# 路径动态拼（preflight P5 扫 res:// 字面量断言存在；目录字面量不合法）
+		if not FileAccess.file_exists("res://" + "assets/sfx".path_join(file)):
+			_failures.append("音频紧张感：assets/sfx/%s 不在盘（合成资产缺失）" % file)
+	if not bool(audio.call("has_bgm")):
+		_failures.append("音频紧张感：双版 BGM 流未就绪（bgm-loop / bgm-loop-intense）")
+	var audit: Dictionary = audio.call("bus_audit")
+	if not bool(audit.get("intense_loop", false)):
+		_failures.append("音频紧张感：紧张版 BGM 未开前向循环（无缝循环断线）")
+	# 切换规则真值表（无尽分支在 ENDLESS 相位以真实进入覆盖）
+	var truth := [[0, 4, false], [1, 4, true], [3, 4, true], [1, 6, false], [2, 6, true],
+		[5, 6, true], [3, 10, false], [4, 10, true], [9, 10, true]]
+	for row: Array in truth:
+		if bool(audio.call("tension_should_be_intense", int(row[0]), int(row[1]))) != bool(row[2]):
+			_failures.append("音频紧张感：切换规则真值表失配 wave=%d/%d 应 %s" % [
+				int(row[0]), int(row[1]), str(bool(row[2]))])
+	# 配方分层机判（spec tension.impactWeight / waveAlert）：低频 thud、倒地尾音、号角+低鼓
+	var parsed: Variant = JSON.parse_string(
+		FileAccess.open("res://tests/sfx-recipes.json", FileAccess.READ).get_as_text())
+	if not (parsed is Dictionary):
+		_failures.append("音频紧张感：sfx-recipes.json 不合法（配方分层无从机判）")
+		return
+	var recipes: Array = (parsed as Dictionary).get("effects", [])
+	var by_name: Dictionary = {}
+	for effect: Dictionary in recipes:
+		by_name[String(effect.get("name", ""))] = effect
+	_check_layers(by_name, "hit", 1, "低频 thud 分层缺失（spec impactWeight：低频 thud+噪声瞬态）",
+		func(layer: Dictionary) -> bool: return float(layer.get("freq", 440.0)) < 120.0)
+	_check_layers(by_name, "zombie_die", 1, "倒地闷响尾音分层缺失（spec impactWeight）",
+		func(_layer: Dictionary) -> bool: return true)
+	_check_layers(by_name, "wave", 2, "号角式警报分层缺失（spec waveAlert：铜管 swell+低鼓）",
+		func(_layer: Dictionary) -> bool: return true)
+	for name: String in ["wave_urgent", "zombie_groan", "chomp", "danger"]:
+		if not by_name.has(name):
+			_failures.append("音频紧张感：配方缺 %s（v6 新增音效未入配方）" % name)
+
+
+func _check_layers(by_name: Dictionary, name: String, min_layers: int, message: String,
+		predicate: Callable) -> void:
+	var effect: Dictionary = by_name.get(name, {})
+	var layers: Array = effect.get("layers", [])
+	if layers.size() < min_layers:
+		_failures.append("音频紧张感：%s（%d 层 < %d 层）—— %s" % [name, layers.size(), min_layers, message])
+		return
+	for layer: Dictionary in layers:
+		if predicate.call(layer):
+			return
+	_failures.append("音频紧张感：%s 分层不满足断言 —— %s" % [name, message])
+
+
 ## 僵尸行为探针（同步、即建即清）：种类绝对数值 + hpScale/speedScale 接线 + 啃咬节拍 + 冻结减速。
 func _check_zombie_behavior() -> void:
 	var walker := _field.spawn_zombie(0, Field.SPAWN_X, &"walker")
@@ -1000,6 +1263,19 @@ func _step_sweep_setup() -> void:
 			level + 1])
 	if GameState.wave_index != 0:
 		_failures.append("关卡推进：第 %d 关开局波次指针 %d ≠ 0" % [level + 1, GameState.wave_index])
+	# Bug cmvyowgsh…（P1 顶栏按钮重复）回归断言：过关进入下一关后，
+	# 顶栏每类常驻控件（按功能 key 归类）实例数必须恒为 1，卡槽 = 本关卡数
+	if level == 1:
+		var counts: Dictionary = _hud.debug_control_counts()
+		for key: String in ["sun", "next_wave", "wave", "lives", "back", "restart", "mute"]:
+			if int(counts.get(key, 0)) != 1:
+				_failures.append("顶栏单实例守卫：进入第 2 关后 %s 实例数 %d ≠ 1（HUD 重复挂载回归）" % [
+					key, int(counts.get(key, 0))])
+		if int(counts.get("card", 0)) != GameState.roster().size():
+			_failures.append("顶栏单实例守卫：进入第 2 关后卡槽 %d 张 ≠ 本关卡数 %d" % [
+				int(counts.get("card", 0)), GameState.roster().size()])
+		print("[smoke] 顶栏单实例守卫通过（第 2 关常驻控件 sun/next_wave/wave/lives/back/restart/mute 各 1，卡槽 %d 张）" % [
+			int(counts.get("card", 0))])
 	# ② 难度数值逐关生效：真实出生路径探针（基准×hpScale/speedScale 接进行为，即建即清）
 	var probe := _field.spawn_zombie(2, Field.SPAWN_X, &"walker")
 	var expect_hp := GameState.zombie_hp_of(&"walker")
@@ -1010,6 +1286,12 @@ func _step_sweep_setup() -> void:
 	if absf(probe.speed - expect_speed) > 0.01:
 		_failures.append("难度数值逐关生效：第 %d 关出生僵尸速度 %.1f ≠ 基准×speedScale %.1f" % [
 			level + 1, probe.speed, expect_speed])
+	# ②' 真实 HUD（运行视口 1024×640 设计分辨率，单行口径）在界 + 两两无重叠 —— 与 probe 同核心
+	if level == 0:
+		var real_rects: Dictionary = _hud.element_rects()
+		var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+		_assert_hud_rects(real_rects, "真实 HUD %d×%d" % [int(viewport_size.x), int(viewport_size.y)],
+			Rect2(Vector2.ZERO, viewport_size))
 	# ④ 胜利尝试先行（射手布防 + 跳末波 + 放怪）—— clear_all 之后再放机制探针，
 	#   避免探针实体被清场误删（L7 碾压探针的坚果/巨尸必须活到 SWEEP_KILL）
 	_begin_level_victory_attempt()
@@ -1288,7 +1570,7 @@ func _report() -> void:
 	for key: String in _tuning_backup:
 		GameState.set(key, _tuning_backup[key])
 	if _failures.is_empty():
-		print("GODOT_SMOKE: PASS 选关/选关空白落点反馈/四轴方向移动/教学引导/布防/出战卡/提示淡出/射击/掉落收集/失败/重开/下一波/八关逐关通关/关卡推进/逐关难度生效/夜幕剪影/坦克巨尸碾压/星级结算/无尽模式/键位契约/内容表/难度曲线锚点/对比度/音频契约与bus音量/调参协议 全部通过")
+		print("GODOT_SMOKE: PASS 选关/选关空白落点反馈/四轴方向移动/教学引导/布防/出战卡/提示淡出/射击/掉落收集/失败/重开/下一波/八关逐关通关/关卡推进/逐关难度生效/夜幕剪影/坦克巨尸碾压/星级结算/无尽模式/键位契约/内容表/难度曲线锚点/对比度/音频契约与bus音量/调参协议/HUD五档视口布局无溢出无重叠/顶栏单实例守卫/紧张感音画（双版BGM+低吼+啃食+危机警报+号角） 全部通过")
 		get_tree().quit(0)
 	else:
 		for failure in _failures:
