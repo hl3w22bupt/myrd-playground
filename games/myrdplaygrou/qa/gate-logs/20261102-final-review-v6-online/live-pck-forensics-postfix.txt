@@ -1,0 +1,7 @@
+# 线上 pck 取证（修复重部署后，2026-11-02T11:24:40Z）
+# goal 应用部署 cmvz65bh6002km9w9tkmci7un（main@5f8e863）；workshop 应用部署 cmvz667x4002mm9w9ilil9f2h（goal 分支@5f8e863）
+== /apps/goal-jnwpyliv/api/public/assets/index.pck ==
+sha256 cbb87355bbddb79b6d6521d83ac62416bc58c722a248f7a73c4fcb5a73bda7ab 8233792 B
+== /apps/myrdplaygrou/api/public/assets/index.pck ==
+sha256 cbb87355bbddb79b6d6521d83ac62416bc58c722a248f7a73c4fcb5a73bda7ab 8233792 B
+判定：两入口均 cbb87355…（含四问面板）≠ 修复前线上 76b09d9b… ≠ v14 32d79ee2…；= main/goal 分支@5f8e863 新鲜导出逐字节一致

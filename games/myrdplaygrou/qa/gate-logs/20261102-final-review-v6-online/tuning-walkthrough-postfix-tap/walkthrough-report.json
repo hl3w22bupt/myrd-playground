@@ -1,0 +1,36 @@
+{
+  "tool": "tuning_panel_walkthrough.mjs",
+  "url": "https://leomac-studio.tail49399e.ts.net/apps/goal-jnwpyliv/",
+  "tap": "291,203",
+  "checkedAt": "2026-11-02T11:25:50.483Z",
+  "relay": {
+    "before": {
+      "status": 404,
+      "body": "{\"received\":false,\"reason\":\"no-submission-yet\"}"
+    },
+    "after": {
+      "status": 404,
+      "body": "{\"received\":false,\"reason\":\"no-submission-yet\"}"
+    }
+  },
+  "panelVisible": null,
+  "tuningBridgeRaw": "{\"href\":\"https://leomac-studio.tail49399e.ts.net/apps/goal-jnwpyliv?tuning=1\",\"hasGameTuning\":false,\"audioDebug\":\"function\"}",
+  "tuningFeedbackWindow": "{\"hasTuningFeedback\":false,\"value\":\"undefined\"}",
+  "canvasRect": {
+    "x": 0,
+    "y": 0,
+    "width": 390,
+    "height": 844
+  },
+  "screenshots": [
+    "phase-1-panel.png",
+    "phase-2-answered.png"
+  ],
+  "notes": "取证工具：只证明面板可交互；不点提交、不代填；主观评价归用户。",
+  "tapDispatched": true,
+  "after": {
+    "status": 404,
+    "body": "{\"received\":false,\"reason\":\"no-submission-yet\"}"
+  },
+  "zeroWrite": true
+}

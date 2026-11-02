@@ -1,3 +1,0 @@
-# 线上 index.js 取证（2026-11-02T11:07Z）：/apps/myrdplaygrou/api/public/assets/index.js 以纯文本回传（331,495 B，非 gzip+b64 通道）
-sha256 8b649683883a8be172e229a0479503d50cd5245ebf87aa71fda70bf720824075
-= 本地 HEAD / origin/main 构建产物 export/web/index.js 逐字节一致（diff -q 空）
