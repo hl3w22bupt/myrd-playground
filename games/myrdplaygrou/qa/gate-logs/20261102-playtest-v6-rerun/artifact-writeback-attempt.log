@@ -1,0 +1,34 @@
+# 试玩验收节点产物回写尝试记录（2026-11-02，run cmvypf21o0076m9y0zcjjpol1 / 节点 playtest · v6 重验）
+
+## 请求 1：GET $PLATFORM_API_URL/api/v1/goals/cmvxjycvn001zm905jnwpyliv（读取现有 artifacts 以便 PATCH 合并）
+Authorization: Bearer $MYRD_TOKEN（workflow-node 代行 token，userId=cmvtaqy0h000sm9sfukbpdks5「目标大师」，via=workflow-node，无 actFor，scopes 含 goal:write）
+
+{"error":{"code":"FORBIDDEN","message":"无权访问","requestId":"req_1793603386418"},"success":false}
+HTTP 403
+
+## 结论
+- HTTP 403「无权访问」—— 读不到现有 artifacts 数组。
+- 不做盲 PATCH：回写纪律是「PATCH 合并，不覆盖已有条目」，合并前提是先读到现有数组；
+  读被拒时盲写有覆盖丢失既有条目（deploy_playable / playtest_kit / review_kit / tuning_applied 等）的风险，按 fail-closed 停手。
+- 与本 run 发布节点（qa/gate-logs/20261102-release-r5/SUMMARY.md §4）同一根因：本 run 由目标大师
+  代触发，workflow-node token 无属主代行授权（actFor），goals 全路由要求 goal.userId==effectiveAuthUserId
+  或 admin；目标大师既非 owner（owner=Admin cmvqczjbd0000m9a5ledaxbs6）也非 admin → 必然 403，非重试可解。
+- 部署通道不再重复尝试：本 run 发布节点已做过单次同构 POST deployments → 403（req_1793602423611，
+  同 token 同身份，机制性拒绝）；本节点复算确认导出产物零漂移（pck `76b09d9b…` / js `8b649683…`），
+  部署输入就绪，只等属主身份执行。
+- 本节点 GET 403 新鲜证据（req_1793603386418，2026-11-02T07:1xZ）同时证明「写通道此刻仍断」，
+  与 goals 读取共用同一鉴权链。
+
+## 通道恢复后的一键回写内容（待执行，不伪造已执行）
+PATCH /api/v1/goals/cmvxjycvn001zm905jnwpyliv（合并语义，不覆盖既有条目）追加：
+- op=playtest_kit / artifactType=playtest_kit：
+  - kitPath: games/myrdplaygrou/qa/playtest-kit.md（commit 本目录收口提交）
+  - liveUrl: https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/（固定参数；当前线上=v14）
+  - tuningWorkbench: https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou/?tuning=1
+  - scaleStatus: "待用户试玩"（四问量表未回填，未收到调参 URL，spec revisions 第 3 步按纪律跳过）
+  - machineEvidence: preHook mobile-web-smoke PASS / 完全口径 11/11 PASS / verify.sh exit=0 /
+    smoke 600 帧三 Bug 断言行 / AUDIO_PROBE 9/9（哈希绑定 76b09d9b / 8b649683）/ 线上=v14（32d79ee2）
+  - deployment: blocked（属主链 403，解除路径见 20261102-release-r5/SUMMARY.md §5；
+    新 deployment id 与 liveUrl 刷新随部署成功后回写）
+- 三条 Bug 核销状态：修复已合入 HEAD 且机判全绿（见 SUMMARY.md §2 逐条证据），
+  「核销回写到 bug 工单/产物」与上述同通道，待鉴权链解锁后一并执行。
