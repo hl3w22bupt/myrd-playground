@@ -4,10 +4,55 @@
 > 用法：根据问题用 Grep 在对应文件里搜索定位，再 Read 相关源码获取细节。
 > 本地图由 MyRD 定时增量更新（记录 commit，只重扫变更）。
 
-共 51 条导航条目。
+共 96 条导航条目。
 
-## 规范文档（51）
+## 规范文档（96）
 
+- [DOC] CLAUDE(CLAUDE.md::CLAUDE) → `CLAUDE.md`
+- [DOC] 知识库（平台注入的任务相关知识，优先遵循其中的经验与约定）(CLAUDE.md::知识库（平台注入的任务相关知识，优先遵循其中的经验与约定）) → `CLAUDE.md`
+- [DOC] 「白手起家」跨境电商版——职业模拟器复刻 × 经济内核引擎（v3 定稿 · M0 框架 v1）(CLAUDE.md::「白手起家」跨境电商版——职业模拟器复刻 × 经济内核引擎（v3 定稿 · M0 框架 v1）) → `CLAUDE.md`
+- [DOC] 核心价值(CLAUDE.md::核心价值) → `CLAUDE.md`
+- [DOC] 分层架构（复刻与引擎不冲突的原因）(CLAUDE.md::分层架构（复刻与引擎不冲突的原因）) → `CLAUDE.md`
+- [DOC] L1 皮肤层映射表（跨境电商版需求清单）(CLAUDE.md::L1 皮肤层映射表（跨境电商版需求清单）) → `CLAUDE.md`
+- [DOC] 六维指标重映射（L3 核心翻译）(CLAUDE.md::六维指标重映射（L3 核心翻译）) → `CLAUDE.md`
+- [DOC] 经济内核新心脏：回款周期(CLAUDE.md::经济内核新心脏：回款周期) → `CLAUDE.md`
+- [DOC] 技术选型（已定）：Three.js，Web 优先(CLAUDE.md::技术选型（已定）：Three.js，Web 优先) → `CLAUDE.md`
+- [DOC] 落地路径(CLAUDE.md::落地路径) → `CLAUDE.md`
+- [DOC] M0 数值兑换率表 · 框架 v1（L3 地基，可直接当 M1 开发的需求文档用）(CLAUDE.md::M0 数值兑换率表 · 框架 v1（L3 地基，可直接当 M1 开发的需求文档用）) → `CLAUDE.md`
+- [DOC] ① 资源清单（多货币体系，先分类再定值）(CLAUDE.md::① 资源清单（多货币体系，先分类再定值）) → `CLAUDE.md`
+- [DOC] ② 时间基准（一切兑换率的分母）(CLAUDE.md::② 时间基准（一切兑换率的分母）) → `CLAUDE.md`
+- [DOC] ③ 核心兑换率表（初始值全部是待调锚点）(CLAUDE.md::③ 核心兑换率表（初始值全部是待调锚点）) → `CLAUDE.md`
+- [DOC] ④ 回款三池模型（本题材的新心脏）(CLAUDE.md::④ 回款三池模型（本题材的新心脏）) → `CLAUDE.md`
+- [DOC] ⑤ 三循环闭环验证（M0 的验收标准）(CLAUDE.md::⑤ 三循环闭环验证（M0 的验收标准）) → `CLAUDE.md`
+- [DOC] ⑥ 阶段难度曲线（每阶段换一个「咬人」的资源）(CLAUDE.md::⑥ 阶段难度曲线（每阶段换一个「咬人」的资源）) → `CLAUDE.md`
+- [DOC] ⑦ 字段规范（这张表以后每一行都长这样）(CLAUDE.md::⑦ 字段规范（这张表以后每一行都长这样）) → `CLAUDE.md`
+- [DOC] ⑧ MVP 再砍三刀(CLAUDE.md::⑧ MVP 再砍三刀) → `CLAUDE.md`
+- [DOC] 验证与风险(CLAUDE.md::验证与风险) → `CLAUDE.md`
+- [DOC] 开放问题（不阻塞开工）(CLAUDE.md::开放问题（不阻塞开工）) → `CLAUDE.md`
+- [DOC] Super-agent——从「被动会话工具」到「24h 在线的数字员工」（v0 初稿）(CLAUDE.md::Super-agent——从「被动会话工具」到「24h 在线的数字员工」（v0 初稿）) → `CLAUDE.md`
+- [DOC] 目标用户(CLAUDE.md::目标用户) → `CLAUDE.md`
+- [DOC] 可能形态(CLAUDE.md::可能形态) → `CLAUDE.md`
+- [DOC] 潜在落地路径(CLAUDE.md::潜在落地路径) → `CLAUDE.md`
+- [DOC] 冷思考（大师泼的两盆冷水）(CLAUDE.md::冷思考（大师泼的两盆冷水）) → `CLAUDE.md`
+- [DOC] 开放问题(CLAUDE.md::开放问题) → `CLAUDE.md`
+- [DOC] 与《「白手起家」跨境电商版》的潜在接触点（大师未擅自接线，待用户拍板）(CLAUDE.md::与《「白手起家」跨境电商版》的潜在接触点（大师未擅自接线，待用户拍板）) → `CLAUDE.md`
+- [DOC] 当前状态(CLAUDE.md::当前状态) → `CLAUDE.md`
+- [DOC] Godot Web 导出 × 双门禁 × AppHost 部署经验（含多关卡数值调参结论）(CLAUDE.md::Godot Web 导出 × 双门禁 × AppHost 部署经验（含多关卡数值调参结论）) → `CLAUDE.md`
+- [DOC] 1. Godot Web 导出：配置、产物与三个真坑(CLAUDE.md::1. Godot Web 导出：配置、产物与三个真坑) → `CLAUDE.md`
+- [DOC] 关键配置（export_presets.cfg，preset "Web"）(CLAUDE.md::关键配置（export_presets.cfg，preset "Web"）) → `CLAUDE.md`
+- [DOC] 产物体积基线(CLAUDE.md::产物体积基线) → `CLAUDE.md`
+- [DOC] 三个真坑（全部实证踩过）(CLAUDE.md::三个真坑（全部实证踩过）) → `CLAUDE.md`
+- [DOC] 线上一致性锚定(CLAUDE.md::线上一致性锚定) → `CLAUDE.md`
+- [DOC] 2. 双门禁体系：判定脚本只来自仓库，不自写不改写(CLAUDE.md::2. 双门禁体系：判定脚本只来自仓库，不自写不改写) → `CLAUDE.md`
+- [DOC] 门禁一：godot-smoke（本地无头，判定「游戏能不能跑且玩得动」）(CLAUDE.md::门禁一：godot-smoke（本地无头，判定「游戏能不能跑且玩得动」）) → `CLAUDE.md`
+- [DOC] 门禁二：mobile-web-smoke（部署后对真实 liveUrl，判定「移动端能不能玩」）(CLAUDE.md::门禁二：mobile-web-smoke（部署后对真实 liveUrl，判定「移动端能不能玩」）) → `CLAUDE.md`
+- [DOC] 门禁纪律（流程层）(CLAUDE.md::门禁纪律（流程层）) → `CLAUDE.md`
+- [DOC] 3. AppHost 部署链路(CLAUDE.md::3. AppHost 部署链路) → `CLAUDE.md`
+- [DOC] 4. 线上实证抓出的门禁盲区（最有复用价值的部分）(CLAUDE.md::4. 线上实证抓出的门禁盲区（最有复用价值的部分）) → `CLAUDE.md`
+- [DOC] 5. 调参工作台（数值调参基建，?tuning=1 线上实证可用）(CLAUDE.md::5. 调参工作台（数值调参基建，?tuning=1 线上实证可用）) → `CLAUDE.md`
+- [DOC] 6. 多关卡数值调参结论（难度 ≤30% 断崖的正确算法）(CLAUDE.md::6. 多关卡数值调参结论（难度 ≤30% 断崖的正确算法）) → `CLAUDE.md`
+- [DOC] 7. Godot 工程纪律速查（随 minimal-2d 模板生效）(CLAUDE.md::7. Godot 工程纪律速查（随 minimal-2d 模板生效）) → `CLAUDE.md`
+- [DOC] 8. 下次同类目标复用清单(CLAUDE.md::8. 下次同类目标复用清单) → `CLAUDE.md`
 - [DOC] README(README.md::README) → `README.md`
 - [DOC] 运行(README.md::运行) → `README.md`
 - [DOC] 目录与依赖方向(README.md::目录与依赖方向) → `README.md`
