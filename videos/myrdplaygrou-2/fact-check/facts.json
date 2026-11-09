@@ -1,0 +1,294 @@
+{
+  "meta": {
+    "title": "《以柔克刚》旁白可引用事实清单 · 动量传递与气泡膜缓冲",
+    "requirement_id": "cmw8ysdbz001pm9at1m66m02a",
+    "requirement_title": "以柔克刚视频工程（diorama·60s·16:9·云健男声·巡礼叙事）",
+    "purpose": "供分镜旁白文案引用的物理事实，只含可查证论断；每条附来源、置信分级与核验方式",
+    "verified_at": "2026-11-09",
+    "verifier": "fact-check 子节点（myrd/fact-check-goal 分支）",
+    "verification_methods": {
+      "recompute": "python3 recompute.py 独立按公式重算，与声明值逐项比对（报告见 recompute-report.json）",
+      "literature": "公开权威来源检索核验（标准机构/同行评审文献/官方手册），来源 URL 见每条 source",
+      "typical": "厂商规格/零售样本典型值，只作范围引用，禁单值断言"
+    },
+    "confidence_scale": {
+      "A": "公式 + 标准常数，可机械复算（recompute 覆盖）",
+      "B": "权威规格或同行评审实测值，检索可复核",
+      "C": "典型值范围，依赖具体产品/条件，只可范围引用"
+    }
+  },
+  "facts": [
+    {
+      "id": "F-01",
+      "group": "质量与规格",
+      "claim_zh": "职业保龄球比赛用球质量上限为 16.00 磅（约 7.26 千克），且无下限要求",
+      "values": { "max_lb": 16.0, "max_kg": 7.2575 },
+      "confidence": "B",
+      "verification": { "type": "literature", "source": "USBC Equipment Specifications and Certifications Manual（bowl.com 官方 PDF）：『The weight of the ball shall not exceed 16.00 pounds. There is no minimum weight requirement.』", "source_url": "https://bowl.com/getmedia/08ef148d-c0e4-4e00-9e0d-855ba4729ad5/equipment-specs-manual.pdf" },
+      "recompute_ids": ["m_bowling_kg"],
+      "narration_safe": "『最重的比赛用保龄球，十六磅，约七公斤出头』"
+    },
+    {
+      "id": "F-02",
+      "group": "质量与规格",
+      "claim_zh": "国际乒联规定比赛用乒乓球质量 2.7 克、直径不小于 40 毫米（2000 年 10 月起由 38 毫米/2.5 克改为现行标准）",
+      "values": { "mass_g": 2.7, "min_diameter_mm": 40 },
+      "confidence": "B",
+      "verification": { "type": "literature", "source": "ITTF Law 2.3.2；ITTF Education（40mm 2.7g vs 38mm 2.5g 对照）", "source_url": "https://www.ittfeducation.com/rebound-characteristics-new-table-tennis-ball-differences-40mm-27g-38mm-25g-balls" },
+      "recompute_ids": ["mass_ratio_bowl_pp"],
+      "narration_safe": "『一颗乒乓球，二点七克』"
+    },
+    {
+      "id": "F-03",
+      "group": "质量与规格",
+      "claim_zh": "国际网联规定比赛用网球质量 56.0–59.4 克",
+      "values": { "min_g": 56.0, "max_g": 59.4, "mid_g": 57.7 },
+      "confidence": "B",
+      "verification": { "type": "literature", "source": "ITF Ball Approval Procedures 2025（itftennis.com 官方 PDF）", "source_url": "https://www.itftennis.com/media/12819/2025-itf-ball-approval-procedures.pdf" },
+      "recompute_ids": ["p_tennis_1m", "E_tennis_1m"],
+      "narration_safe": "『一只网球，五六十克』（用范围或『约 58 克』中值口径）"
+    },
+    {
+      "id": "F-04",
+      "group": "质量与规格",
+      "claim_zh": "500 毫升长颈玻璃啤酒瓶空瓶典型质量约 290–400 克，常见中段约 300–350 克",
+      "values": { "range_g": [290, 400], "typical_g": [300, 350] },
+      "confidence": "C",
+      "verification": { "type": "typical", "source": "厂商/零售规格样本：Glassrock 500ml 长颈绿瓶 290 g；NRW 托盘样本 305 g；MoreBeer 欧式琥珀瓶约 340 g；Vichy 厚壁瓶 380 g；家酿论坛实测 405 g", "source_url": "https://glassrock.com/product/500ml-long-neck-green-beer-bottle" },
+      "recompute_ids": ["p_bottle_1m", "E_bottle_1m"],
+      "narration_safe": "『一只空玻璃瓶，三四百克』（禁单值断言：清单动量/动能按 350 g 中段值计算，引用时须声明口径）",
+      "guard_note": "下游复算若改用瓶重，动量/动能随质量线性变化，比例结论不受影响"
+    },
+    {
+      "id": "F-05",
+      "group": "撞击速度",
+      "claim_zh": "忽略空气阻力时自由落体末速 v=√(2gh)：从 0.5 米落下约 3.13 米/秒，1 米约 4.43 米/秒，2 米约 6.26 米/秒（标准重力 9.80665 米/秒²）",
+      "values": { "h0.5_m_s": 3.13, "h1.0_m_s": 4.43, "h2.0_m_s": 6.26 },
+      "confidence": "A",
+      "verification": { "type": "recompute", "source": "recompute.py v_freefall_h0.5 / h1.0 / h2.0", "source_url": null },
+      "recompute_ids": ["v_freefall_h0.5", "v_freefall_h1.0", "v_freefall_h2.0"],
+      "narration_safe": "『从一米高处落地，速度约四点四米每秒』（真空口径）",
+      "guard_note": "轻物体（乒乓球/网球）实际空气阻力不可忽略，实落速度低于上值——见 F-07 口径护栏"
+    },
+    {
+      "id": "F-06",
+      "group": "撞击速度",
+      "claim_zh": "标准重力加速度 gn = 9.80665 米/秒²，由 1901 年第三届国际计量大会（CGPM）采用，现载于 ISO 80000-3:2019",
+      "values": { "g_std_m_s2": 9.80665 },
+      "confidence": "A",
+      "verification": { "type": "literature", "source": "ISO 80000-3:2019（量与单位·空间与时间）显式定义 gn；CGPM 1901", "source_url": null },
+      "recompute_ids": [],
+      "narration_safe": "『按标准重力九点八〇六六五计算』"
+    },
+    {
+      "id": "F-07",
+      "group": "撞击速度",
+      "claim_zh": "口径护栏：F-05 的落体速度为忽略空气阻力的真空口径。质量小而截面大的物体（如 2.7 克乒乓球）实际落地速度明显低于该值；玻璃瓶、保龄球则接近该值",
+      "values": {},
+      "confidence": "B",
+      "verification": { "type": "literature", "source": "空气阻力/终端速度物理常识口径（Halliday/Resnick 教材框架）；本条为防误引护栏，非独立数字论断" },
+      "recompute_ids": [],
+      "narration_safe": "旁白引用速度数字时用『最多』『不超过』或显式声明『忽略空气阻力』",
+      "guard_note": "禁止把 4.43 m/s 说成任何实拍测速结果"
+    },
+    {
+      "id": "F-08",
+      "group": "动量与动能",
+      "claim_zh": "乒乓球（2.7 g）从 0.5 米自由落体：动量约 0.0085 千克·米/秒，动能约 0.013 焦耳",
+      "values": { "momentum_kg_m_s": 0.0085, "energy_J": 0.0132 },
+      "confidence": "A",
+      "verification": { "type": "recompute", "source": "recompute.py p_pingpong_0p5m / E_pingpong_0p5m（p=mv，E=½mv²）" },
+      "recompute_ids": ["p_pingpong_0p5m", "E_pingpong_0p5m"],
+      "narration_safe": "『一只乒乓球砸下来，动能不到零点零二焦耳』"
+    },
+    {
+      "id": "F-09",
+      "group": "动量与动能",
+      "claim_zh": "网球（按 ITF 范围中值 57.7 克）从 1 米自由落体：动量约 0.256 千克·米/秒，动能约 0.57 焦耳",
+      "values": { "momentum_kg_m_s": 0.2556, "energy_J": 0.566 },
+      "confidence": "A",
+      "verification": { "type": "recompute", "source": "recompute.py p_tennis_1m / E_tennis_1m（质量取 56.0–59.4 g 中值）" },
+      "recompute_ids": ["p_tennis_1m", "E_tennis_1m"],
+      "narration_safe": "『网球落到地上，半焦耳上下』"
+    },
+    {
+      "id": "F-10",
+      "group": "动量与动能",
+      "claim_zh": "空玻璃瓶（按典型中段 350 克）从 1 米自由落体：动量约 1.55 千克·米/秒，动能约 3.43 焦耳",
+      "values": { "momentum_kg_m_s": 1.550, "energy_J": 3.432 },
+      "confidence": "A",
+      "verification": { "type": "recompute", "source": "recompute.py p_bottle_1m / E_bottle_1m（质量口径见 F-04）" },
+      "recompute_ids": ["p_bottle_1m", "E_bottle_1m"],
+      "narration_safe": "『玻璃瓶砸下来，三点四焦耳』（须带质量口径 350 克）"
+    },
+    {
+      "id": "F-11",
+      "group": "动量与动能",
+      "claim_zh": "满规格保龄球（16 磅 = 7.2575 千克）从 1 米自由落体：动量约 32.1 千克·米/秒，动能约 71.2 焦耳",
+      "values": { "momentum_kg_m_s": 32.14, "energy_J": 71.17 },
+      "confidence": "A",
+      "verification": { "type": "recompute", "source": "recompute.py p_bowling_1m / E_bowling_1m（首版预填 32.15/71.19 被复算否决后修正为 32.14/71.17）" },
+      "recompute_ids": ["p_bowling_1m", "E_bowling_1m"],
+      "narration_safe": "『保龄球砸下来，七十多焦耳』"
+    },
+    {
+      "id": "F-12",
+      "group": "动量与动能",
+      "claim_zh": "一颗满规格保龄球的质量约等于 2688 颗比赛用乒乓球",
+      "values": { "ratio": 2688 },
+      "confidence": "A",
+      "verification": { "type": "recompute", "source": "recompute.py mass_ratio_bowl_pp（7.2575 kg ÷ 0.0027 kg）" },
+      "recompute_ids": ["mass_ratio_bowl_pp"],
+      "narration_safe": "『差不多两千七百颗乒乓球，才顶一颗保龄球』"
+    },
+    {
+      "id": "F-13",
+      "group": "冲量定理与缓冲",
+      "claim_zh": "冲量-动量定理：平均冲击力等于动量变化除以作用时间（F̄ = Δp/Δt）。动量变化一定时，作用时间越长，平均力越小",
+      "values": {},
+      "confidence": "A",
+      "verification": { "type": "literature", "source": "标准力学内容（Halliday/Resnick《Fundamentals of Physics》冲量定理章节）；Exploratorium 物理学家 Paul Doherty 对缓冲机理的同口径表述『increasing the time of the collision decreases the force』" },
+      "recompute_ids": ["F_hard_5ms", "F_soft_50ms", "ratio_force_reduction"],
+      "narration_safe": "『同样的动量，接触时间长十倍，冲击力就小十倍』"
+    },
+    {
+      "id": "F-14",
+      "group": "冲量定理与缓冲",
+      "claim_zh": "比例结论（可机械证明，与绝对值无关）：接触时间拉长 10 倍，平均冲击力降为 1/10；拉长 100 倍，降为 1/100",
+      "values": { "time_factor": 10, "force_factor": 0.1 },
+      "confidence": "A",
+      "verification": { "type": "recompute", "source": "recompute.py ratio_force_reduction（F1/F2 = t2/t1，纯代数推论）" },
+      "recompute_ids": ["ratio_force_reduction"],
+      "narration_safe": "『缓冲的原理就一句话：把硬碰硬的一瞬间，拉长成一小段时间』"
+    },
+    {
+      "id": "F-15",
+      "group": "冲量定理与缓冲",
+      "claim_zh": "演示示例（前提须声明）：350 克玻璃瓶从 1 米落下（动量 1.55 千克·米/秒），若作用时间为 5 毫秒，平均力约 310 牛；拉长到 50 毫秒，平均力约 31 牛。作用时间为演示参数，非实测",
+      "values": { "dt_hard_s": 0.005, "F_hard_N": 310.0, "dt_soft_s": 0.050, "F_soft_N": 31.0 },
+      "confidence": "A",
+      "verification": { "type": "recompute", "source": "recompute.py F_hard_5ms / F_soft_50ms（F̄=p/Δt）" },
+      "recompute_ids": ["F_hard_5ms", "F_soft_50ms"],
+      "narration_safe": "『假设接触时间从千分之五秒拉长到百分之五秒，平均冲击力就从约三百牛掉到约三十一牛』（必须带『假设』）",
+      "guard_note": "5 ms / 50 ms 是教学演示常用量级，非任何实测数据；旁白禁写成『实测』『实验测得』"
+    },
+    {
+      "id": "F-16",
+      "group": "冲量定理与缓冲",
+      "claim_zh": "同口径比较：上述 310 牛的平均冲击力，约为鸡蛋壳准静态压缩破裂上限（50 牛）的 6.2 倍",
+      "values": { "multiple": 6.2 },
+      "confidence": "A",
+      "verification": { "type": "recompute", "source": "recompute.py F_hard_vs_egg_max（310 ÷ 50）；比较口径见 F-17" },
+      "recompute_ids": ["F_hard_vs_egg_max"],
+      "narration_safe": "『三段力的上限，是鸡蛋壳能扛住的六倍』（比较口径：F-15 假设值 vs F-17 准静态阈值）",
+      "guard_note": "两侧口径不同（动态假设 vs 准静态阈值），只能作量级对比表述，禁写『鸡蛋必碎于 310 牛』"
+    },
+    {
+      "id": "F-17",
+      "group": "冲量定理与缓冲",
+      "claim_zh": "母鸡蛋壳在准静态压缩下可承受 30–50 牛，壳厚仅 350–450 微米；动态冲击下的破裂阈值另依落点、姿态与接触面而变，不与准静态阈值混用",
+      "values": { "range_N": [30, 50], "shell_thickness_um": [350, 450] },
+      "confidence": "B",
+      "verification": { "type": "literature", "source": "『Relationship between egg shell breakage and laying hen housing systems』（ResearchGate，30–50 N 与 350–450 µm）；Hahn et al. 2017『Nature's technical ceramic: the avian eggshell』（局部冲击易碎、分布/拱形承载强的口径）；Solomon 2010（准静态平行板压缩为标准测法）", "source_url": "https://www.researchgate.net/publication/352165630" },
+      "recompute_ids": [],
+      "narration_safe": "『鸡蛋壳能扛住三五十牛的均匀压力，却扛不住集中的冲击』",
+      "guard_note": "30–50 N 是力（约相当于 3–5 千克物体压在秤上），禁止换算成『只能承受 50 克』的质量误述"
+    },
+    {
+      "id": "F-18",
+      "group": "冲量定理与缓冲",
+      "claim_zh": "实测参照（文献口径）：200 克钢球从 50 厘米落下，落在泡沫上峰值压强约 10.1 兆帕；垫 2–3 层气泡膜后约 2.1 兆帕，降幅约 79%（复算 79.2%）",
+      "values": { "mass_g": 200, "drop_m": 0.5, "P_foam_MPa": 10.1, "P_bubble_MPa": 2.1, "reduction_pct": 79.2 },
+      "confidence": "B",
+      "verification": { "type": "literature", "source": "Zheng et al. 2022（山西大学，气泡膜缓冲实验）；降幅已入机械复算", "source_url": null },
+      "recompute_ids": ["pressure_reduction_pct"],
+      "narration_safe": "『文献里有一组实测：同样的钢球同样的高度，垫上气泡膜，峰值压强降到不到四分之一』"
+    },
+    {
+      "id": "F-19",
+      "group": "冲量定理与缓冲",
+      "claim_zh": "层数收益递减（文献口径）：气泡膜 1 层约把冲击加速度降到 1/2.85，3 层约 1/3.5，4 层约 1/3.6——层数加倍不再等比例增益",
+      "values": { "layer1_factor": 2.85, "layer3_factor": 3.5, "layer4_factor": 3.6 },
+      "confidence": "B",
+      "verification": { "type": "literature", "source": "气泡膜缓冲层实验综述（与 F-18 同族文献口径）；acceleration transmissibility 表述" },
+      "recompute_ids": [],
+      "narration_safe": "『垫一层已经挡掉大半，多垫几层收益越来越小』",
+      "guard_note": "『加速度衰减倍数』与『压强降幅』（F-18）是两种口径，旁白不可互相换算"
+    },
+    {
+      "id": "F-20",
+      "group": "冲量定理与缓冲",
+      "claim_zh": "气泡膜的缓冲机理：密闭气泡是一排微型气垫弹簧——受压时气泡内气体压缩吸能、把冲击分散到更大面积与更长时间；剧烈冲击下气泡破裂，属于塑性耗散（能量不弹回）",
+      "values": {},
+      "confidence": "B",
+      "verification": { "type": "literature", "source": "缓冲机理综述（air-filled springs / energy absorption by gas compression / plastic deformation on burst）；ASTM D1596 压缩四阶段（线弹性→平台吸能→压实→卸载）" },
+      "recompute_ids": [],
+      "narration_safe": "『气泡膜不是把球弹回去，是把那一瞬间的能量摊到时间和面积里，再在新地方碎掉几个泡，把能量彻底吃掉』"
+    },
+    {
+      "id": "F-21",
+      "group": "冲量定理与缓冲",
+      "claim_zh": "缓冲材料的动态冲击性能由 ASTM D1596 标准测试（落标冲击法，产出缓冲曲线 cushioning curve）",
+      "values": {},
+      "confidence": "B",
+      "verification": { "type": "literature", "source": "ASTM D1596 Standard Test Method for Dynamic Cushioning Properties of Packaging Materials" },
+      "recompute_ids": [],
+      "narration_safe": "『这套性能不是拍脑袋说的，有专门的测试标准 ASTM D1596』"
+    },
+    {
+      "id": "F-22",
+      "group": "气泡膜史",
+      "claim_zh": "气泡膜由 Alfred Fielding 与 Marc Chavannes 于 1957 年在美国新泽西州 Hawthorne 发明：两人把两块塑料浴帘压合，意外封入成片气泡，最初当立体纹理壁纸卖，失败",
+      "values": { "year": 1957, "place": "Hawthorne, New Jersey" },
+      "confidence": "B",
+      "verification": { "type": "literature", "source": "Smithsonian Magazine『The Accidental Invention of Bubble Wrap』；Wikipedia Bubble Wrap (brand)；Sealed Air 官方新闻稿", "source_url": "https://www.smithsonianmag.com/innovation/accidental-invention-bubble-wrap-180971325" },
+      "recompute_ids": [],
+      "narration_safe": "『一九五七年，两个工程师想造立体壁纸，压出来的却是一纸气泡』",
+      "guard_note": "发明人不是 Paul Hogan（那是澳大利亚演员）；此前草稿若有此名必须替换"
+    },
+    {
+      "id": "F-23",
+      "group": "气泡膜史",
+      "claim_zh": "1960 年两人获得专利并创立 Sealed Air 公司；后来销售员 Frederick W. Bowers 说服 IBM 用气泡膜包装运输 IBM 1401 计算机，气泡膜由此定型为防护包装",
+      "values": { "patent_year": 1960, "company": "Sealed Air Corp.", "computer": "IBM 1401" },
+      "confidence": "B",
+      "verification": { "type": "literature", "source": "Investor's Business Daily『Alfred Fielding Packaged His Invention Just Right』；H.W. Fielding『The birth of Bubble Wrap』；Sealed Air 官方史料", "source_url": "https://www.investors.com/news/management/leaders-and-success/alfred-fielding-packaged-his-invention-just-right" },
+      "recompute_ids": [],
+      "narration_safe": "『一款失败的壁纸，最后成了替计算机挡灾的软甲』"
+    },
+    {
+      "id": "F-24",
+      "group": "回弹",
+      "claim_zh": "国际乒联弹性测试：乒乓球从 305 毫米高落到标准钢块上，须回弹 240–260 毫米（回弹比 78.7%–85.2%）",
+      "values": { "drop_mm": 305, "rebound_mm": [240, 260], "ratio_pct": [78.7, 85.2] },
+      "confidence": "B",
+      "verification": { "type": "literature", "source": "ITTF 设备规定（ball bounce test）；回弹比已入机械复算", "source_url": null },
+      "recompute_ids": ["ittf_rebound_ratio_min", "ittf_rebound_ratio_max"],
+      "narration_safe": "『一颗合格的乒乓球，掉在钢板上要弹回八成上下』"
+    }
+  ],
+  "guardrails": {
+    "banned_phrasings": [
+      "『气泡膜能挡住/承受任何冲击』——无文献支持，F-19 还说明层数收益递减、F-20 说明气泡破裂即失效路径",
+      "『实测/实验测得接触时间为 5 毫秒（或 50 毫秒）』——这两个值是演示参数（F-15），只能以『假设』引入",
+      "『鸡蛋只能承受 50 克』——30–50 N 是力不是质量（F-17），换算错误是物理硬伤",
+      "『落地速度 4.43 m/s 为实拍测速』——该值是真空口径公式值（F-05/F-07）",
+      "『气泡膜是 Paul Hogan 发明的』——发明人为 Alfred Fielding 与 Marc Chavannes（F-22）",
+      "把 F-18 的『压强降幅』与 F-19 的『加速度衰减倍数』混为一个数字或互相换算"
+    ],
+    "caliber_notes": [
+      "所有『从 1 米/0.5 米落下』均为自由落体假设，非任何实拍镜头的实测速度",
+      "玻璃瓶动量/动能按 350 克中段口径计算（F-04），改瓶重需线性重算",
+      "动量单位 kg·m/s 与动能单位 J 是两个不同量，旁白不可混称『力量』",
+      "『平均冲击力』（F̄=Δp/Δt）是时间平均，非峰值力；文献峰值压强（F-18）是另一口径"
+    ]
+  },
+  "recompute": {
+    "script": "recompute.py",
+    "report": "recompute-report.json",
+    "passed": 20,
+    "total": 20,
+    "failed": 0,
+    "note": "首版预填的保龄球动量/动能（32.15/71.19）被复算否决，已修正为计算值（32.14/71.17）后 20/20 通过"
+  }
+}

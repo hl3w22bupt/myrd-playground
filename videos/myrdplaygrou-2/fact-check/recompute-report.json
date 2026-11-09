@@ -1,0 +1,192 @@
+{
+  "script": "recompute.py",
+  "constants": {
+    "g_std_m_s2": 9.80665,
+    "lb_to_kg": 0.45359237
+  },
+  "total": 20,
+  "passed": 20,
+  "failed": 0,
+  "checks": [
+    {
+      "claim": "v_freefall_h0.5",
+      "formula": "v=sqrt(2*g*h), g=9.80665",
+      "declared": 3.13,
+      "computed": 3.131557,
+      "tolerance": 0.005,
+      "pass": true,
+      "note": "h=0.5 m 落体末速，清单按两位小数声明"
+    },
+    {
+      "claim": "v_freefall_h1.0",
+      "formula": "v=sqrt(2*g*h), g=9.80665",
+      "declared": 4.43,
+      "computed": 4.428691,
+      "tolerance": 0.005,
+      "pass": true,
+      "note": "h=1.0 m 落体末速，清单按两位小数声明"
+    },
+    {
+      "claim": "v_freefall_h2.0",
+      "formula": "v=sqrt(2*g*h), g=9.80665",
+      "declared": 6.26,
+      "computed": 6.263114,
+      "tolerance": 0.005,
+      "pass": true,
+      "note": "h=2.0 m 落体末速，清单按两位小数声明"
+    },
+    {
+      "claim": "p_pingpong_0p5m",
+      "formula": "p=m*v",
+      "declared": 0.0085,
+      "computed": 0.008455,
+      "tolerance": 5e-05,
+      "pass": true,
+      "note": "乒乓球动量 kg·m/s，两位有效位"
+    },
+    {
+      "claim": "E_pingpong_0p5m",
+      "formula": "E=0.5*m*v^2",
+      "declared": 0.0132,
+      "computed": 0.013239,
+      "tolerance": 5e-05,
+      "pass": true,
+      "note": "乒乓球动能 J，三位有效位"
+    },
+    {
+      "claim": "E_tennis_1m",
+      "formula": "E=0.5*m*v^2",
+      "declared": 0.566,
+      "computed": 0.565844,
+      "tolerance": 0.0005,
+      "pass": true,
+      "note": "网球动能 J（用范围中值 57.7 g）"
+    },
+    {
+      "claim": "p_tennis_1m",
+      "formula": "p=m*v",
+      "declared": 0.2556,
+      "computed": 0.255535,
+      "tolerance": 0.0005,
+      "pass": true,
+      "note": "网球动量 kg·m/s"
+    },
+    {
+      "claim": "m_bowling_kg",
+      "formula": "kg = lb*0.45359237",
+      "declared": 7.2575,
+      "computed": 7.257478,
+      "tolerance": 5e-05,
+      "pass": true,
+      "note": "16 lb→kg 精确换算"
+    },
+    {
+      "claim": "p_bowling_1m",
+      "formula": "p=m*v",
+      "declared": 32.14,
+      "computed": 32.141124,
+      "tolerance": 0.005,
+      "pass": true,
+      "note": "保龄球动量 kg·m/s（首版预填 32.15 被复算否决，已修正）"
+    },
+    {
+      "claim": "E_bowling_1m",
+      "formula": "E=0.5*m*v^2",
+      "declared": 71.17,
+      "computed": 71.171546,
+      "tolerance": 0.005,
+      "pass": true,
+      "note": "保龄球动能 J（首版预填 71.19 被复算否决，已修正）"
+    },
+    {
+      "claim": "p_bottle_1m",
+      "formula": "p=m*v",
+      "declared": 1.55,
+      "computed": 1.550042,
+      "tolerance": 0.0005,
+      "pass": true,
+      "note": "玻璃瓶动量 kg·m/s"
+    },
+    {
+      "claim": "E_bottle_1m",
+      "formula": "E=0.5*m*v^2",
+      "declared": 3.432,
+      "computed": 3.432327,
+      "tolerance": 0.0005,
+      "pass": true,
+      "note": "玻璃瓶动能 J"
+    },
+    {
+      "claim": "F_hard_5ms",
+      "formula": "F_avg=p/dt",
+      "declared": 310.0,
+      "computed": 310.008339,
+      "tolerance": 0.5,
+      "pass": true,
+      "note": "平均力 N（接触时间 5ms 为演示参数，非实测）"
+    },
+    {
+      "claim": "F_soft_50ms",
+      "formula": "F_avg=p/dt",
+      "declared": 31.0,
+      "computed": 31.000834,
+      "tolerance": 0.05,
+      "pass": true,
+      "note": "平均力 N（接触时间 50ms 为演示参数）"
+    },
+    {
+      "claim": "ratio_force_reduction",
+      "formula": "F1/F2=(p/t1)/(p/t2)=t2/t1",
+      "declared": 10.0,
+      "computed": 10.0,
+      "tolerance": 0.001,
+      "pass": true,
+      "note": "缓冲把接触时间拉长 10 倍→平均力降为 1/10（比例结论可机械证明）"
+    },
+    {
+      "claim": "F_hard_vs_egg_max",
+      "formula": "F/E_max",
+      "declared": 6.2,
+      "computed": 6.200167,
+      "tolerance": 0.05,
+      "pass": true,
+      "note": "310 N 为鸡蛋壳上限 50 N 的 6.2 倍（仅按准静态阈值口径比较）"
+    },
+    {
+      "claim": "pressure_reduction_pct",
+      "formula": "(1-P2/P1)*100",
+      "declared": 79.2,
+      "computed": 79.207921,
+      "tolerance": 0.05,
+      "pass": true,
+      "note": "10.1 MPa→2.1 MPa 降幅 79.2%（文献称 79%，声明一致）"
+    },
+    {
+      "claim": "mass_ratio_bowl_pp",
+      "formula": "m1/m2",
+      "declared": 2688.0,
+      "computed": 2687.954785,
+      "tolerance": 2.0,
+      "pass": true,
+      "note": "16 lb 保龄球是 2.7 g 乒乓球的约 2688 倍"
+    },
+    {
+      "claim": "ittf_rebound_ratio_min",
+      "formula": "h2/h1*100",
+      "declared": 78.7,
+      "computed": 78.688525,
+      "tolerance": 0.05,
+      "pass": true,
+      "note": "回弹比下限 %"
+    },
+    {
+      "claim": "ittf_rebound_ratio_max",
+      "formula": "h2/h1*100",
+      "declared": 85.2,
+      "computed": 85.245902,
+      "tolerance": 0.05,
+      "pass": true,
+      "note": "回弹比上限 %"
+    }
+  ]
+}
