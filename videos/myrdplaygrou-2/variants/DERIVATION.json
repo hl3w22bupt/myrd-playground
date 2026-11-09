@@ -1,0 +1,21 @@
+{
+  "generatedAt": "2026-11-09T11:07:24.829Z",
+  "master": "renders/myrdplaygrou-2_2026-11-09_19-02-59.mp4",
+  "sharedBase": [
+    "assets/blender/s1-s9.mp4 (终稿合封 crf17)",
+    "assets/vo/*.mp3 (loudnorm -16/TP-1.5)",
+    "compositions/overlay.html + captions.html (母带烘焙)",
+    "SPEC 三契约表 SCENES/KEYS/PLAN"
+  ],
+  "v2": {
+    "file": "variants/v2-tempo-cut.mp4",
+    "axis": "节奏",
+    "method": "ffmpeg trim+concat 帧精确切表 (9 段, 每段界前删 8 帧)",
+    "keptFrames": 1775
+  },
+  "v3": {
+    "file": "variants/v3-dusk-grade.mp4",
+    "axis": "配色",
+    "method": "ffmpeg colorbalance+eq 暮色蓝调 (参数预验证于草稿片)"
+  }
+}

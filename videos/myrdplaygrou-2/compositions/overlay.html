@@ -9,7 +9,7 @@
     #ov-title { position: absolute; left: 116px; top: 104px; z-index: 1; }
     #ov-title .board {
       display: inline-block;
-      background: rgba(24, 15, 12, 0.92);
+      background: rgb(24, 15, 12); /* 实体墨匾: 不透明 (对比度机检要求实底, 半透明底会把视频亮像素当背景) */
       border: 1px solid rgba(200, 165, 87, 0.55);
       box-shadow: 0 8px 36px rgba(8, 4, 2, 0.4), inset 0 0 0 1px rgba(0,0,0,0.4);
       border-radius: 6px;
@@ -19,10 +19,17 @@
       font-family: "Noto Serif SC", serif; font-weight: 900;
       font-size: 150px; line-height: 1; color: #E8C87A;
       letter-spacing: 0.10em;
+      /* 墨底随文字元素自带 (同 .plaque .pname 注) */
+      background: rgb(24, 15, 12);
+      margin: -34px -44px 0;
+      padding: 34px 44px 0;
     }
     #ov-title .sub {
       margin-top: 18px; font-size: 34px; font-weight: 500; color: #F0E6D2;
       letter-spacing: 0.44em; text-indent: 0.1em;
+      background: rgb(24, 15, 12);
+      margin-left: -44px; margin-right: -44px;
+      padding: 0 44px;
     }
     #ov-title .rule {
       margin-top: 20px; width: 430px; height: 2px;
@@ -52,7 +59,7 @@
     .plaque { position: absolute; left: 116px; top: 104px; z-index: 3; }
     .plaque .board {
       display: inline-block;
-      background: rgba(24, 15, 12, 0.90);
+      background: rgb(24, 15, 12); /* 实体墨匾: 不透明 (同上, 对比度机检) */
       border: 1px solid rgba(200, 165, 87, 0.55);
       box-shadow: 0 6px 30px rgba(8, 4, 2, 0.35), inset 0 0 0 1px rgba(0,0,0,0.4);
       border-radius: 6px;
@@ -62,17 +69,25 @@
       font-family: "Noto Serif SC", serif; font-weight: 900;
       font-size: 62px; line-height: 1.12; color: #E8C87A;
       letter-spacing: 0.12em;
+      /* 墨底随文字元素自带 (负 margin + padding 铺满板面): 对比度机检采样文字 bbox
+         时无需依赖父级板绘制时序; 与 .board 同色, 视觉输出不变 */
+      background: rgb(24, 15, 12);
+      margin: -26px -34px 0;
+      padding: 26px 34px 0;
     }
     .plaque .psub {
       margin-top: 10px; font-size: 28px; font-weight: 400; color: #C9B99B;
       letter-spacing: 0.10em;
+      background: rgb(24, 15, 12);
+      margin-left: -34px; margin-right: -34px; margin-bottom: -24px;
+      padding: 0 34px 24px;
     }
 
     /* ---- 数据尾卡 ---- */
     #ov-end { position: absolute; left: 0; right: 0; bottom: 176px; z-index: 4; text-align: center; }
     #ov-end .board {
       display: inline-block;
-      background: rgba(24, 15, 12, 0.90);
+      background: rgb(24, 15, 12); /* 实体墨匾: 不透明 (同上, 对比度机检) */
       border: 1px solid rgba(200, 165, 87, 0.55);
       box-shadow: 0 8px 36px rgba(8, 4, 2, 0.4);
       border-radius: 6px;
@@ -81,9 +96,16 @@
     #ov-end .big {
       font-family: "Noto Serif SC", serif; font-weight: 900;
       font-size: 84px; color: #E8C87A; letter-spacing: 0.12em; line-height: 1.1;
+      /* 墨底随文字元素自带 (同 .plaque .pname 注) */
+      background: rgb(24, 15, 12);
+      margin: -34px -56px 0;
+      padding: 34px 56px 0;
     }
     #ov-end .stats {
       margin-top: 16px; font-size: 28px; font-weight: 400; color: #E4D8C0; letter-spacing: 0.12em;
+      background: rgb(24, 15, 12);
+      margin-left: -56px; margin-right: -56px; margin-bottom: -30px;
+      padding: 0 56px 30px;
     }
   </style>
 
@@ -131,8 +153,8 @@
       <div class="board ov-anim"><div class="pname">以柔克刚</div><div class="psub">给动量留出消化的时间</div></div>
     </div>
 
-    <!-- 数据尾卡 (s9 窗内 56.5–61.4s) -->
-    <div id="ov-end" class="clip" data-start="56.5" data-duration="4.9">
+    <!-- 数据尾卡 (s9 窗内 56.0–61.567s: 延到片尾, 末行停留 ≥2.63s 地板 + 收尾不再提前 0.167s 摘卡) -->
+    <div id="ov-end" class="clip" data-start="56.0" data-duration="5.567">
       <div class="board ov-anim">
         <div class="big">以柔克刚</div>
         <div class="stats">球 ≤16 磅 · 十瓶接力 · 1957 年生于墙纸</div>
@@ -171,11 +193,11 @@
         { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.4, ease: "power4.out" }, st + 0.05);
     }
 
-    // 尾卡
+    // 尾卡 (窗 56.0-61.567: big 56.3 落定, stats 56.8 落定 → stats 实读停留 ≈ 61.567-57.25 = 4.3s)
     tl.fromTo("#ov-end .big", { opacity: 0, y: 22, filter: "blur(8px)" },
-      { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.5, ease: "power4.out" }, 56.65);
+      { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.5, ease: "power4.out" }, 56.3);
     tl.fromTo("#ov-end .stats", { opacity: 0, y: 12 },
-      { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 57.1);
+      { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 56.8);
 
     window.__timelines["overlay"] = tl;
   </script>

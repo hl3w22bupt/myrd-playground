@@ -103,7 +103,7 @@ const out = `<!-- 由 scripts/build-captions.mjs 生成; 改时间表后重新�
       line-height: 1.25;
       color: #FFF8EC;
       letter-spacing: 0.04em;
-      background: rgba(14, 8, 6, 0.62);
+      background: rgb(24, 16, 12); /* 实体墨条: 不透明 (对比度机检要求实底; 与匾额/尾卡同一墨底语言) */
       padding: 10px 26px 12px;
       border-radius: 4px;
     }

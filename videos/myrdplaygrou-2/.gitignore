@@ -2,6 +2,7 @@
 blender/renders/*/
 # HyperFrames 运行期缓存
 .hyperframes/
+.thumbnails/
 node_modules/
 # 全片草稿预览 (评审用中间产物, 不入库; 分段合封 mp4 走 assets/blender/)
 blender/renders/*.mp4
