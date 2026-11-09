@@ -10,7 +10,8 @@
   · 视频不直链 mp4：M1 资产通道/公网网关仅透传文本，mp4 以 base64 文本资产出库并按 2MB 分片
     （*.partNN.b64，超大单体响应会被平台 invocation_stopped 拒绝，34MB/22MB 实测复现），
     浏览器端按序拉全分片拼接后 atob → Blob(video/mp4) → objectURL 喂 <video> 与下载链接。
-  · 资产引用一律走 api/public/assets/* 相对路径（wheat-squad 判例，适配 /apps/<slug>/ 反代前缀）。
+  · 资产引用走 api/public/assets/*（按 location.pathname 构造 <slug> 前缀绝对路径：
+    wheat-squad 判例 + 无尾斜杠落地修正，webapp-smoke 实证 404 后收口）。
   · 本页自包含：无 CDN、无外部字体、无构建步骤。
 -->
 <style>
@@ -187,8 +188,14 @@
     el.className = 'status' + (cls ? ' ' + cls : '');
   }
   function fmtMB(b) { return (b / 1048576).toFixed(1) + ' MB'; }
+  // 资产基路径：不依赖页面 URL 是否带尾斜杠（/apps/<slug> 无斜杠落地时，相对路径会解析到
+  // /apps/api/... → 404，webapp-smoke 实证抓到）。改为按 location.pathname 构造绝对路径。
+  var BASE = (function () {
+    var p = window.location.pathname.replace(/index\.html$/, '');
+    return p.endsWith('/') ? p : p + '/';
+  })();
   function partName(asset, i) {
-    return asset.stem + '.part' + (i < 10 ? '0' + i : '' + i) + '.b64';
+    return BASE + 'api/public/assets/' + asset.stem + '.part' + (i < 10 ? '0' + i : '' + i) + '.b64';
   }
 
   function b64ToBytes(b64) {
@@ -208,7 +215,7 @@
     for (var i = 0; i < asset.parts; i++) {
       (function (idx) {
         chain = chain.then(function () {
-          var url = 'api/public/assets/' + partName(asset, idx);
+          var url = partName(asset, idx);
           return fetch(url, { cache: 'force-cache' }).then(function (res) {
             if (!res.ok) throw new Error('资产分片 HTTP ' + res.status + '（' + partName(asset, idx) + '）');
             return res.text();
