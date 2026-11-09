@@ -34,6 +34,15 @@
         command: "python3 std-skills/godot-game-dev/scripts/preflight.py {{gamePath}}"
         target: host
         timeout: 120
+      # 资产三核对（量产闭环 R1/M1-A）：spec 资产清单 ↔ 仓库文件 ↔ 运行时引用（覆盖 .tscn/.tres
+      # 场景资源引用）↔ 台账，外加资产预算与 firstColorCount 抽样（口径固化在 src/lib/workshop-assets.ts）。
+      # spec 无 assets 段的存量工程宽容 SKIP（exit 0）；极简风格卡在 <gamePath>/.myrd/style-card.md
+      # 写 `asset-gate-exempt: <理由>` 行显式豁免。判定器只能来自 std-skills/godot-game-dev/scripts/，
+      # 被检方不得自造/改写（门禁独立性红线）。
+      - name: asset-triple-check
+        command: "node std-skills/godot-game-dev/scripts/asset-triple-check.mjs --game {{gamePath}} --spec .myrd/spec/design-spec.json"
+        target: host
+        timeout: 120
       # 无头导入 + 冒烟场景运行，断言退出码 0 且日志含 GODOT_SMOKE: PASS
       # GODOT_SMOKE_FRAMES 必须带：冒烟场景要跑完「移动 + 探测 + 交互 + 胜负 + 重开」全部协程，
       # smoke.sh 默认 120 帧兜底会在协程跑完前杀进程 → 既无 PASS 也无 FAIL → 健康游戏被误判失败

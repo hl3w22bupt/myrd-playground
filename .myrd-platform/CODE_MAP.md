@@ -4,10 +4,59 @@
 > 用法：根据问题用 Grep 在对应文件里搜索定位，再 Read 相关源码获取细节。
 > 本地图由 MyRD 定时增量更新（记录 commit，只重扫变更）。
 
-共 51 条导航条目。
+共 100 条导航条目。
 
-## 规范文档（51）
+## 规范文档（100）
 
+- [DOC] CLAUDE(CLAUDE.md::CLAUDE) → `CLAUDE.md`
+- [DOC] 背景(CLAUDE.md::背景) → `CLAUDE.md`
+- [DOC] 适用对象(CLAUDE.md::适用对象) → `CLAUDE.md`
+- [DOC] 具体要求（红线）(CLAUDE.md::具体要求（红线）) → `CLAUDE.md`
+- [DOC] 违反后果(CLAUDE.md::违反后果) → `CLAUDE.md`
+- [DOC] 示例(CLAUDE.md::示例) → `CLAUDE.md`
+- [DOC] 知识库（平台注入的任务相关知识，优先遵循其中的经验与约定）(CLAUDE.md::知识库（平台注入的任务相关知识，优先遵循其中的经验与约定）) → `CLAUDE.md`
+- [DOC] 养成系 AI 陪伴——「她的成长，有你的一半」(CLAUDE.md::养成系 AI 陪伴——「她的成长，有你的一半」) → `CLAUDE.md`
+- [DOC] 产品定位(CLAUDE.md::产品定位) → `CLAUDE.md`
+- [DOC] S1（第一版）做什么(CLAUDE.md::S1（第一版）做什么) → `CLAUDE.md`
+- [DOC] 技术方案(CLAUDE.md::技术方案) → `CLAUDE.md`
+- [DOC] M0：零成本跑通(CLAUDE.md::M0：零成本跑通) → `CLAUDE.md`
+- [DOC] 角色：双角色概念设定(CLAUDE.md::角色：双角色概念设定) → `CLAUDE.md`
+- [DOC] 当前状态与待拍板(CLAUDE.md::当前状态与待拍板) → `CLAUDE.md`
+- [DOC] 相关资料(CLAUDE.md::相关资料) → `CLAUDE.md`
+- [DOC] Super-agent——从「被动会话工具」到「24h 在线的数字员工」（v0 初稿）(CLAUDE.md::Super-agent——从「被动会话工具」到「24h 在线的数字员工」（v0 初稿）) → `CLAUDE.md`
+- [DOC] 核心价值(CLAUDE.md::核心价值) → `CLAUDE.md`
+- [DOC] 目标用户(CLAUDE.md::目标用户) → `CLAUDE.md`
+- [DOC] 可能形态(CLAUDE.md::可能形态) → `CLAUDE.md`
+- [DOC] 潜在落地路径(CLAUDE.md::潜在落地路径) → `CLAUDE.md`
+- [DOC] 冷思考（大师泼的两盆冷水）(CLAUDE.md::冷思考（大师泼的两盆冷水）) → `CLAUDE.md`
+- [DOC] 开放问题(CLAUDE.md::开放问题) → `CLAUDE.md`
+- [DOC] 与《「白手起家」跨境电商版》的潜在接触点（大师未擅自接线，待用户拍板）(CLAUDE.md::与《「白手起家」跨境电商版》的潜在接触点（大师未擅自接线，待用户拍板）) → `CLAUDE.md`
+- [DOC] 当前状态(CLAUDE.md::当前状态) → `CLAUDE.md`
+- [DOC] NariYume——AI 动漫笔友陪伴游戏（点子档案 · v0 初稿）(CLAUDE.md::NariYume——AI 动漫笔友陪伴游戏（点子档案 · v0 初稿）) → `CLAUDE.md`
+- [DOC] 核心价值（它做对的事）(CLAUDE.md::核心价值（它做对的事）) → `CLAUDE.md`
+- [DOC] 最有价值的两个信号(CLAUDE.md::最有价值的两个信号) → `CLAUDE.md`
+- [DOC] 大师建议的最小验证闭环（若做同类）(CLAUDE.md::大师建议的最小验证闭环（若做同类）) → `CLAUDE.md`
+- [DOC] 竞品参照：白艾莉 Alice——另一条路线（本次对话新增）(CLAUDE.md::竞品参照：白艾莉 Alice——另一条路线（本次对话新增）) → `CLAUDE.md`
+- [DOC] 「白手起家」跨境电商版——职业模拟器复刻 × 经济内核引擎（v3 定稿 · M0 框架 v1）(CLAUDE.md::「白手起家」跨境电商版——职业模拟器复刻 × 经济内核引擎（v3 定稿 · M0 框架 v1）) → `CLAUDE.md`
+- [DOC] 分层架构（复刻与引擎不冲突的原因）(CLAUDE.md::分层架构（复刻与引擎不冲突的原因）) → `CLAUDE.md`
+- [DOC] L1 皮肤层映射表（跨境电商版需求清单）(CLAUDE.md::L1 皮肤层映射表（跨境电商版需求清单）) → `CLAUDE.md`
+- [DOC] 六维指标重映射（L3 核心翻译）(CLAUDE.md::六维指标重映射（L3 核心翻译）) → `CLAUDE.md`
+- [DOC] 经济内核新心脏：回款周期(CLAUDE.md::经济内核新心脏：回款周期) → `CLAUDE.md`
+- [DOC] 技术选型（已定）：Three.js，Web 优先(CLAUDE.md::技术选型（已定）：Three.js，Web 优先) → `CLAUDE.md`
+- [DOC] 落地路径(CLAUDE.md::落地路径) → `CLAUDE.md`
+- [DOC] M0 数值兑换率表 · 框架 v1（L3 地基，可直接当 M1 开发的需求文档用）(CLAUDE.md::M0 数值兑换率表 · 框架 v1（L3 地基，可直接当 M1 开发的需求文档用）) → `CLAUDE.md`
+- [DOC] ① 资源清单（多货币体系，先分类再定值）(CLAUDE.md::① 资源清单（多货币体系，先分类再定值）) → `CLAUDE.md`
+- [DOC] ② 时间基准（一切兑换率的分母）(CLAUDE.md::② 时间基准（一切兑换率的分母）) → `CLAUDE.md`
+- [DOC] ③ 核心兑换率表（初始值全部是待调锚点）(CLAUDE.md::③ 核心兑换率表（初始值全部是待调锚点）) → `CLAUDE.md`
+- [DOC] ④ 回款三池模型（本题材的新心脏）(CLAUDE.md::④ 回款三池模型（本题材的新心脏）) → `CLAUDE.md`
+- [DOC] ⑤ 三循环闭环验证（M0 的验收标准）(CLAUDE.md::⑤ 三循环闭环验证（M0 的验收标准）) → `CLAUDE.md`
+- [DOC] ⑥ 阶段难度曲线（每阶段换一个「咬人」的资源）(CLAUDE.md::⑥ 阶段难度曲线（每阶段换一个「咬人」的资源）) → `CLAUDE.md`
+- [DOC] ⑦ 字段规范（这张表以后每一行都长这样）(CLAUDE.md::⑦ 字段规范（这张表以后每一行都长这样）) → `CLAUDE.md`
+- [DOC] ⑧ MVP 再砍三刀(CLAUDE.md::⑧ MVP 再砍三刀) → `CLAUDE.md`
+- [DOC] 验证与风险(CLAUDE.md::验证与风险) → `CLAUDE.md`
+- [DOC] 开放问题（不阻塞开工）(CLAUDE.md::开放问题（不阻塞开工）) → `CLAUDE.md`
+- [DOC] 审批提醒与提案统计的读数口径备忘(CLAUDE.md::审批提醒与提案统计的读数口径备忘) → `CLAUDE.md`
+- [DOC] 健康度失败与成功率口径备忘(CLAUDE.md::健康度失败与成功率口径备忘) → `CLAUDE.md`
 - [DOC] README(README.md::README) → `README.md`
 - [DOC] 运行(README.md::运行) → `README.md`
 - [DOC] 目录与依赖方向(README.md::目录与依赖方向) → `README.md`
