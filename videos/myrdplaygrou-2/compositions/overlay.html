@@ -1,0 +1,182 @@
+<!-- overlay: 标题牌 + 巡礼进度轴 + 段落牌匾 × 7 + 数据尾卡 (graphics 轨)
+     牌匾窗口与 SCENES 段界对齐 (SPEC §3); 出场=硬切(挂上/摘下), 入场 ≤0.4s 淡入 (gotchas H3/H5) -->
+<template>
+  <link rel="stylesheet" href="assets/fonts/noto-sc.css">
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Noto Sans SC", sans-serif; }
+
+    /* ---- 标题牌 (墨底金字实体匾) ---- */
+    #ov-title { position: absolute; left: 116px; top: 104px; z-index: 1; }
+    #ov-title .board {
+      display: inline-block;
+      background: rgba(24, 15, 12, 0.92);
+      border: 1px solid rgba(200, 165, 87, 0.55);
+      box-shadow: 0 8px 36px rgba(8, 4, 2, 0.4), inset 0 0 0 1px rgba(0,0,0,0.4);
+      border-radius: 6px;
+      padding: 34px 44px 30px;
+    }
+    #ov-title .name {
+      font-family: "Noto Serif SC", serif; font-weight: 900;
+      font-size: 150px; line-height: 1; color: #E8C87A;
+      letter-spacing: 0.10em;
+    }
+    #ov-title .sub {
+      margin-top: 18px; font-size: 34px; font-weight: 500; color: #F0E6D2;
+      letter-spacing: 0.44em; text-indent: 0.1em;
+    }
+    #ov-title .rule {
+      margin-top: 20px; width: 430px; height: 2px;
+      background: linear-gradient(90deg, #C8A557, rgba(200, 165, 87, 0));
+    }
+    #ov-title .note {
+      margin-top: 12px; font-size: 20px; font-weight: 400;
+      color: rgba(235, 224, 204, 0.72); letter-spacing: 0.14em;
+    }
+
+    /* ---- 巡礼进度轴 (四站: 启程/途经/抵达/回望) ---- */
+    #ov-progress { position: absolute; right: 64px; top: 24%; bottom: 24%; width: 14px; z-index: 2; }
+    #ov-progress .line {
+      position: absolute; left: 6px; top: 0; bottom: 0; width: 2px;
+      background: rgba(220, 196, 148, 0.34);
+    }
+    #ov-progress .fill {
+      position: absolute; left: 6px; top: 0; bottom: 0; width: 2px;
+      background: #E8C87A; transform-origin: top;
+    }
+    #ov-progress .dot {
+      position: absolute; left: 3px; width: 8px; height: 8px;
+      border-radius: 50%; background: rgba(220, 196, 148, 0.45);
+    }
+
+    /* ---- 段落牌匾 ---- */
+    .plaque { position: absolute; left: 116px; top: 104px; z-index: 3; }
+    .plaque .board {
+      display: inline-block;
+      background: rgba(24, 15, 12, 0.90);
+      border: 1px solid rgba(200, 165, 87, 0.55);
+      box-shadow: 0 6px 30px rgba(8, 4, 2, 0.35), inset 0 0 0 1px rgba(0,0,0,0.4);
+      border-radius: 6px;
+      padding: 26px 34px 24px;
+    }
+    .plaque .pname {
+      font-family: "Noto Serif SC", serif; font-weight: 900;
+      font-size: 62px; line-height: 1.12; color: #E8C87A;
+      letter-spacing: 0.12em;
+    }
+    .plaque .psub {
+      margin-top: 10px; font-size: 28px; font-weight: 400; color: #C9B99B;
+      letter-spacing: 0.10em;
+    }
+
+    /* ---- 数据尾卡 ---- */
+    #ov-end { position: absolute; left: 0; right: 0; bottom: 176px; z-index: 4; text-align: center; }
+    #ov-end .board {
+      display: inline-block;
+      background: rgba(24, 15, 12, 0.90);
+      border: 1px solid rgba(200, 165, 87, 0.55);
+      box-shadow: 0 8px 36px rgba(8, 4, 2, 0.4);
+      border-radius: 6px;
+      padding: 34px 56px 30px;
+    }
+    #ov-end .big {
+      font-family: "Noto Serif SC", serif; font-weight: 900;
+      font-size: 84px; color: #E8C87A; letter-spacing: 0.12em; line-height: 1.1;
+    }
+    #ov-end .stats {
+      margin-top: 16px; font-size: 28px; font-weight: 400; color: #E4D8C0; letter-spacing: 0.12em;
+    }
+  </style>
+
+  <div id="root" data-composition-id="overlay" data-width="1920" data-height="1080">
+    <!-- 标题 (0.35–7.05s, s1 窗内) -->
+    <div id="ov-title" class="clip" data-start="0.35" data-duration="6.7">
+      <div class="board ov-anim">
+        <div id="ov-title-name" class="name" data-var-text="headline">以柔克刚</div>
+        <div id="ov-title-sub" class="sub" data-var-text="subtitle">动量与缓冲 · 球道巡礼</div>
+        <div class="rule"></div>
+        <div class="note" data-layout-ignore>微缩示意模型 · 非真实影像</div>
+      </div>
+    </div>
+
+    <!-- 进度轴: 四站 -->
+    <div id="ov-progress" class="clip" data-start="0" data-duration="61.567" data-layout-ignore>
+      <div class="line"></div>
+      <div class="fill" id="ov-progress-fill"></div>
+      <div class="dot" id="ov-d1" style="top: 2%"></div>
+      <div class="dot" id="ov-d2" style="top: 26%"></div>
+      <div class="dot" id="ov-d3" style="top: 52%"></div>
+      <div class="dot" id="ov-d4" style="top: 82%"></div>
+    </div>
+
+    <!-- 段落牌匾 × 7 (窗口=SCENES 段界内收 ±0.2s) -->
+    <div id="ov-p1" class="plaque clip" data-start="7.63" data-duration="5.97">
+      <div class="board ov-anim"><div class="pname">动 量</div><div class="psub">质量 × 速度 · 越重越快越难停</div></div>
+    </div>
+    <div id="ov-p2" class="plaque clip" data-start="14.2" data-duration="5.6">
+      <div class="board ov-anim"><div class="pname">撞击瞬间</div><div class="psub">动量从球传向瓶群</div></div>
+    </div>
+    <div id="ov-p3" class="plaque clip" data-start="20.667" data-duration="6.1">
+      <div class="board ov-anim"><div class="pname">动量接力</div><div class="psub">十瓶依次倒下 · 力量的路线</div></div>
+    </div>
+    <div id="ov-p4" class="plaque clip" data-start="27.4" data-duration="6.4">
+      <div class="board ov-anim"><div class="pname">对照组</div><div class="psub">同样的球 · 裹上气泡膜</div></div>
+    </div>
+    <div id="ov-p5" class="plaque clip" data-start="34.967" data-duration="6.3">
+      <div class="board ov-anim"><div class="pname">缓冲机制</div><div class="psub">空气压缩 · 碰撞时间拉长</div></div>
+    </div>
+    <div id="ov-p6" class="plaque clip" data-start="42.467" data-duration="6.5">
+      <div class="board ov-anim"><div class="pname">冲量定理</div><div class="psub">F·Δt = Δp · 时间越长力越温和</div></div>
+    </div>
+    <div id="ov-p7" class="plaque clip" data-start="50.2" data-duration="4.8">
+      <div class="board ov-anim"><div class="pname">以柔克刚</div><div class="psub">给动量留出消化的时间</div></div>
+    </div>
+
+    <!-- 数据尾卡 (s9 窗内 56.5–61.4s) -->
+    <div id="ov-end" class="clip" data-start="56.5" data-duration="4.9">
+      <div class="board ov-anim">
+        <div class="big">以柔克刚</div>
+        <div class="stats">球 ≤16 磅 · 十瓶接力 · 1957 年生于墙纸</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const tl = gsap.timeline({ paused: true });
+
+    // 标题: 逐行落定
+    tl.fromTo("#ov-title .name", { opacity: 0, y: 26, filter: "blur(10px)" },
+      { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.5, ease: "power4.out" }, 0.45);
+    tl.fromTo("#ov-title .sub", { opacity: 0, y: 14 },
+      { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 0.85);
+    tl.fromTo("#ov-title .rule", { scaleX: 0, transformOrigin: "left center" },
+      { scaleX: 1, duration: 0.5, ease: "power3.inOut" }, 1.0);
+    tl.fromTo("#ov-title .note", { opacity: 0 },
+      { opacity: 1, duration: 0.35, ease: "power2.out" }, 1.3);
+    // 标题离场: 窗口结束由运行时隐藏 (「摘下」硬切)
+
+    // 进度轴: 金线随全片匀速生长, 四站依次点亮 (站时 = 各巡礼段 voAt)
+    tl.fromTo("#ov-progress-fill", { scaleY: 0 }, { scaleY: 1, duration: 61.1, ease: "none" }, 0.4);
+    const stationAt = { "ov-d1": 7.633, "ov-d2": 14.2, "ov-d3": 27.4, "ov-d4": 50.2 };
+    for (const [id, at] of Object.entries(stationAt)) {
+      tl.to(`#${id}`, { backgroundColor: "#E8C87A", scale: 1.5, duration: 0.3, ease: "power2.out" }, at);
+    }
+
+    // 牌匾: 落定 → 离场硬切 (运行时按窗口隐藏)
+    const plaques = [
+      ["ov-p1", 7.63], ["ov-p2", 14.2], ["ov-p3", 20.667], ["ov-p4", 27.4],
+      ["ov-p5", 34.967], ["ov-p6", 42.467], ["ov-p7", 50.2],
+    ];
+    for (const [id, st] of plaques) {
+      tl.fromTo(`#${id} .board`, { opacity: 0, scale: 0.92, filter: "blur(6px)" },
+        { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.4, ease: "power4.out" }, st + 0.05);
+    }
+
+    // 尾卡
+    tl.fromTo("#ov-end .big", { opacity: 0, y: 22, filter: "blur(8px)" },
+      { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.5, ease: "power4.out" }, 56.65);
+    tl.fromTo("#ov-end .stats", { opacity: 0, y: 12 },
+      { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 57.1);
+
+    window.__timelines["overlay"] = tl;
+  </script>
+</template>

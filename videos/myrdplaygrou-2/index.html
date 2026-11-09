@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-composition-variables="[
+    {&quot;id&quot;:&quot;headline&quot;,&quot;type&quot;:&quot;string&quot;,&quot;label&quot;:&quot;标题&quot;,&quot;default&quot;:&quot;以柔克刚&quot;},
+    {&quot;id&quot;:&quot;subtitle&quot;,&quot;type&quot;:&quot;string&quot;,&quot;label&quot;:&quot;副题&quot;,&quot;default&quot;:&quot;动量与缓冲 · 球道巡礼&quot;}
+  ]">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="assets/fonts/noto-sc.css">
+    <style>
+      :root {
+        --ground: #17110e;
+        --ink: #f5efe4;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        margin: 0; width: 1920px; height: 1080px;
+        overflow: hidden; background: var(--ground);
+        font-family: "Noto Sans SC", sans-serif;
+      }
+      #root { width: 100%; height: 100%; }
+    </style>
+  </head>
+  <body>
+    <!-- 场景边界 = assets/vo 实测反推 (SPEC.md §3); 全片 1847f @30fps = 61.5667s, data-duration 取 61.567 -->
+    <div data-hf-id="hf-yiroukegang" id="root" data-composition-id="main" data-start="0" data-duration="61.567" data-width="1920" data-height="1080">
+      <!-- 3D 素材: Blender 微缩球道 一镜到底 × 9 段 (assets/blender/sN.mp4 由 --final 渲染合封) -->
+      <video data-hf-id="hf-s1" id="footage-s1" class="clip" muted playsinline src="assets/blender/s1.mp4" data-start="0" data-duration="7.233" data-track-index="1" style="z-index:1; position:absolute; left:0; top:0; width:1920px; height:1080px; object-fit:contain"></video>
+      <video data-hf-id="hf-s2" id="footage-s2" class="clip" muted playsinline src="assets/blender/s2.mp4" data-start="7.233" data-duration="6.567" data-track-index="2" style="z-index:2; position:absolute; left:0; top:0; width:1920px; height:1080px; object-fit:contain"></video>
+      <video data-hf-id="hf-s3" id="footage-s3" class="clip" muted playsinline src="assets/blender/s3.mp4" data-start="13.8" data-duration="6.467" data-track-index="3" style="z-index:3; position:absolute; left:0; top:0; width:1920px; height:1080px; object-fit:contain"></video>
+      <video data-hf-id="hf-s4" id="footage-s4" class="clip" muted playsinline src="assets/blender/s4.mp4" data-start="20.267" data-duration="6.733" data-track-index="4" style="z-index:4; position:absolute; left:0; top:0; width:1920px; height:1080px; object-fit:contain"></video>
+      <video data-hf-id="hf-s5" id="footage-s5" class="clip" muted playsinline src="assets/blender/s5.mp4" data-start="27" data-duration="7.567" data-track-index="5" style="z-index:5; position:absolute; left:0; top:0; width:1920px; height:1080px; object-fit:contain"></video>
+      <video data-hf-id="hf-s6" id="footage-s6" class="clip" muted playsinline src="assets/blender/s6.mp4" data-start="34.567" data-duration="7.5" data-track-index="6" style="z-index:6; position:absolute; left:0; top:0; width:1920px; height:1080px; object-fit:contain"></video>
+      <video data-hf-id="hf-s7" id="footage-s7" class="clip" muted playsinline src="assets/blender/s7.mp4" data-start="42.067" data-duration="7.733" data-track-index="7" style="z-index:7; position:absolute; left:0; top:0; width:1920px; height:1080px; object-fit:contain"></video>
+      <video data-hf-id="hf-s8" id="footage-s8" class="clip" muted playsinline src="assets/blender/s8.mp4" data-start="49.8" data-duration="5.967" data-track-index="8" style="z-index:8; position:absolute; left:0; top:0; width:1920px; height:1080px; object-fit:contain"></video>
+      <video data-hf-id="hf-s9" id="footage-s9" class="clip" muted playsinline src="assets/blender/s9.mp4" data-start="55.767" data-duration="5.8" data-track-index="9" style="z-index:9; position:absolute; left:0; top:0; width:1920px; height:1080px; object-fit:contain"></video>
+
+      <!-- 图形层: 标题牌 + 巡礼进度轴 + 段落牌匾 + 尾卡 -->
+      <div data-hf-id="hf-overlay" id="overlay" data-composition-id="overlay" data-composition-src="compositions/overlay.html" data-start="0" data-duration="61.567" data-track-index="10" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index:10"></div>
+
+      <!-- 字幕层 -->
+      <div data-hf-id="hf-captions" id="captions" data-composition-id="captions" data-composition-src="compositions/captions.html" data-start="0" data-duration="61.567" data-track-index="11" data-track-kind="captions" data-width="1920" data-height="1080" style="z-index:11"></div>
+
+      <!-- 旁白 × 9: data-start = voAt (SPEC §4); data-volume 基线 1.0, 响度归一由下游 normalize-audio 落值 -->
+      <audio data-hf-id="hf-vo1" id="vo-s1" src="assets/vo/s1.mp3" data-start="0.4" data-volume="1.0" data-track-index="12"></audio>
+      <audio data-hf-id="hf-vo2" id="vo-s2" src="assets/vo/s2.mp3" data-start="7.633" data-volume="1.0" data-track-index="13"></audio>
+      <audio data-hf-id="hf-vo3" id="vo-s3" src="assets/vo/s3.mp3" data-start="14.2" data-volume="1.0" data-track-index="14"></audio>
+      <audio data-hf-id="hf-vo4" id="vo-s4" src="assets/vo/s4.mp3" data-start="20.667" data-volume="1.0" data-track-index="15"></audio>
+      <audio data-hf-id="hf-vo5" id="vo-s5" src="assets/vo/s5.mp3" data-start="27.4" data-volume="1.0" data-track-index="16"></audio>
+      <audio data-hf-id="hf-vo6" id="vo-s6" src="assets/vo/s6.mp3" data-start="34.967" data-volume="1.0" data-track-index="17"></audio>
+      <audio data-hf-id="hf-vo7" id="vo-s7" src="assets/vo/s7.mp3" data-start="42.467" data-volume="1.0" data-track-index="18"></audio>
+      <audio data-hf-id="hf-vo8" id="vo-s8" src="assets/vo/s8.mp3" data-start="50.2" data-volume="1.0" data-track-index="19"></audio>
+      <audio data-hf-id="hf-vo9" id="vo-s9" src="assets/vo/s9.mp3" data-start="56.167" data-volume="1.0" data-track-index="20"></audio>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

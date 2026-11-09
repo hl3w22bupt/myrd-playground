@@ -1,0 +1,116 @@
+<!-- 由 scripts/build-captions.mjs 生成; 改时间表后重新生成 -->
+<template>
+  <link rel="stylesheet" href="assets/fonts/noto-sc.css">
+  <style>
+    #root { position: absolute; inset: 0; }
+    .cap-group-host { position: absolute; inset: 0; }
+    .clip {
+      position: absolute; left: 18%; right: 18%; bottom: 84px;
+      text-align: center; overflow: visible;
+    }
+    .cap-text {
+      display: inline-block;
+      font-family: "Noto Sans SC", sans-serif;
+      font-weight: 500;
+      font-size: 46px;
+      line-height: 1.25;
+      color: #FFF8EC;
+      letter-spacing: 0.04em;
+      background: rgba(14, 8, 6, 0.62);
+      padding: 10px 26px 12px;
+      border-radius: 4px;
+    }
+  </style>
+  <div id="root" data-composition-id="captions" data-width="1920" data-height="1080">
+    <div class="cap-group-host" data-layout-allow-caption-zone>
+    <div id="cap-g1" class="clip" data-start="0.38" data-duration="4.24"><span class="cap-text">一颗按规则最重十六磅的保龄球起步，</span></div>
+    <div id="cap-g2" class="clip" data-start="4.66" data-duration="2.54"><span class="cap-text">把动量带向十只瓶。</span></div>
+    <div id="cap-g3" class="clip" data-start="7.61" data-duration="4.27"><span class="cap-text">动量等于质量乘速度；球越重越快，</span></div>
+    <div id="cap-g4" class="clip" data-start="11.92" data-duration="1.84"><span class="cap-text">就越难停下。</span></div>
+    <div id="cap-g5" class="clip" data-start="14.18" data-duration="1.16"><span class="cap-text">撞击瞬间，</span></div>
+    <div id="cap-g6" class="clip" data-start="15.38" data-duration="2.35"><span class="cap-text">动量从球传向瓶群，</span></div>
+    <div id="cap-g7" class="clip" data-start="17.77" data-duration="2.49"><span class="cap-text">十只瓶依次倒下。</span></div>
+    <div id="cap-g8" class="clip" data-start="20.65" data-duration="3.99"><span class="cap-text">瓶与瓶继续传递动量；倒下的次序，</span></div>
+    <div id="cap-g9" class="clip" data-start="24.67" data-duration="2.28"><span class="cap-text">就是力量的路线。</span></div>
+    <div id="cap-g10" class="clip" data-start="27.38" data-duration="4.20"><span class="cap-text">另一组瓶子裹上气泡膜；同样的球，</span></div>
+    <div id="cap-g11" class="clip" data-start="31.62" data-duration="2.94"><span class="cap-text">同样的速度，再来一次。</span></div>
+    <div id="cap-g12" class="clip" data-start="34.95" data-duration="3.03"><span class="cap-text">气泡膜的空气被缓缓压缩，</span></div>
+    <div id="cap-g13" class="clip" data-start="38.01" data-duration="1.63"><span class="cap-text">碰撞时间拉长，</span></div>
+    <div id="cap-g14" class="clip" data-start="39.69" data-duration="2.35"><span class="cap-text">峰值作用力变小。</span></div>
+    <div id="cap-g15" class="clip" data-start="42.45" data-duration="3.13"><span class="cap-text">冲量定理：动量变化相同，</span></div>
+    <div id="cap-g16" class="clip" data-start="45.62" data-duration="1.69"><span class="cap-text">作用时间越长，</span></div>
+    <div id="cap-g17" class="clip" data-start="47.35" data-duration="2.42"><span class="cap-text">受到的力越温和。</span></div>
+    <div id="cap-g18" class="clip" data-start="50.18" data-duration="1.04"><span class="cap-text">以柔克刚，</span></div>
+    <div id="cap-g19" class="clip" data-start="51.26" data-duration="1.58"><span class="cap-text">不是挡住动量，</span></div>
+    <div id="cap-g20" class="clip" data-start="52.88" data-duration="2.83"><span class="cap-text">而是留出消化的时间。</span></div>
+    <div id="cap-g21" class="clip" data-start="56.15" data-duration="5.40"><span class="cap-text">一九五七年它本是墙纸；如今是易碎品的铠甲。</span></div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+  tl.fromTo("#cap-g1 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 0.38);
+  tl.to("#cap-g1 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 4.50);
+  tl.set("#cap-g1 .cap-text", { visibility: "hidden" }, 4.62);
+  tl.fromTo("#cap-g2 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 4.66);
+  tl.to("#cap-g2 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 7.09);
+  tl.set("#cap-g2 .cap-text", { visibility: "hidden" }, 7.21);
+  tl.fromTo("#cap-g3 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 7.61);
+  tl.to("#cap-g3 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 11.76);
+  tl.set("#cap-g3 .cap-text", { visibility: "hidden" }, 11.88);
+  tl.fromTo("#cap-g4 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 11.92);
+  tl.to("#cap-g4 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 13.64);
+  tl.set("#cap-g4 .cap-text", { visibility: "hidden" }, 13.76);
+  tl.fromTo("#cap-g5 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 14.18);
+  tl.to("#cap-g5 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 15.22);
+  tl.set("#cap-g5 .cap-text", { visibility: "hidden" }, 15.34);
+  tl.fromTo("#cap-g6 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 15.38);
+  tl.to("#cap-g6 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 17.61);
+  tl.set("#cap-g6 .cap-text", { visibility: "hidden" }, 17.73);
+  tl.fromTo("#cap-g7 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 17.77);
+  tl.to("#cap-g7 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 20.14);
+  tl.set("#cap-g7 .cap-text", { visibility: "hidden" }, 20.26);
+  tl.fromTo("#cap-g8 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 20.65);
+  tl.to("#cap-g8 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 24.51);
+  tl.set("#cap-g8 .cap-text", { visibility: "hidden" }, 24.63);
+  tl.fromTo("#cap-g9 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 24.67);
+  tl.to("#cap-g9 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 26.83);
+  tl.set("#cap-g9 .cap-text", { visibility: "hidden" }, 26.95);
+  tl.fromTo("#cap-g10 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 27.38);
+  tl.to("#cap-g10 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 31.46);
+  tl.set("#cap-g10 .cap-text", { visibility: "hidden" }, 31.58);
+  tl.fromTo("#cap-g11 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 31.62);
+  tl.to("#cap-g11 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 34.45);
+  tl.set("#cap-g11 .cap-text", { visibility: "hidden" }, 34.56);
+  tl.fromTo("#cap-g12 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 34.95);
+  tl.to("#cap-g12 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 37.85);
+  tl.set("#cap-g12 .cap-text", { visibility: "hidden" }, 37.97);
+  tl.fromTo("#cap-g13 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 38.01);
+  tl.to("#cap-g13 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 39.53);
+  tl.set("#cap-g13 .cap-text", { visibility: "hidden" }, 39.65);
+  tl.fromTo("#cap-g14 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 39.69);
+  tl.to("#cap-g14 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 41.92);
+  tl.set("#cap-g14 .cap-text", { visibility: "hidden" }, 42.04);
+  tl.fromTo("#cap-g15 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 42.45);
+  tl.to("#cap-g15 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 45.46);
+  tl.set("#cap-g15 .cap-text", { visibility: "hidden" }, 45.58);
+  tl.fromTo("#cap-g16 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 45.62);
+  tl.to("#cap-g16 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 47.19);
+  tl.set("#cap-g16 .cap-text", { visibility: "hidden" }, 47.31);
+  tl.fromTo("#cap-g17 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 47.35);
+  tl.to("#cap-g17 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 49.65);
+  tl.set("#cap-g17 .cap-text", { visibility: "hidden" }, 49.77);
+  tl.fromTo("#cap-g18 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 50.18);
+  tl.to("#cap-g18 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 51.10);
+  tl.set("#cap-g18 .cap-text", { visibility: "hidden" }, 51.22);
+  tl.fromTo("#cap-g19 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 51.26);
+  tl.to("#cap-g19 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 52.72);
+  tl.set("#cap-g19 .cap-text", { visibility: "hidden" }, 52.84);
+  tl.fromTo("#cap-g20 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 52.88);
+  tl.to("#cap-g20 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 55.60);
+  tl.set("#cap-g20 .cap-text", { visibility: "hidden" }, 55.72);
+  tl.fromTo("#cap-g21 .cap-text", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.16, ease: "power2.out" }, 56.15);
+  tl.to("#cap-g21 .cap-text", { opacity: 0, duration: 0.1, ease: "power2.in" }, 61.43);
+  tl.set("#cap-g21 .cap-text", { visibility: "hidden" }, 61.55);
+    window.__timelines["captions"] = tl;
+  </script>
+</template>

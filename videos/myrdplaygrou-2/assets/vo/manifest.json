@@ -1,0 +1,177 @@
+{
+  "generatedAt": "2026-11-09",
+  "fps": 30,
+  "totalFrames": 1847,
+  "filmDurationSec": 61.5667,
+  "voTotalSec": 55.272,
+  "bufferRule": "head 0.4s / tail 0.3s (pipeline.md Step2, gotchas H6)",
+  "derivation": "场景时长 = VO实测 + 0.7s; 边界帧 = round(累计秒×30)",
+  "scenes": [
+    {
+      "id": "s1",
+      "act": "启程",
+      "text": "一颗按规则最重十六磅的保龄球起步，把动量带向十只瓶。",
+      "chars": 24,
+      "durationSec": 6.528,
+      "sceneFrames": [
+        0,
+        217
+      ],
+      "sceneStartSec": 0.0,
+      "sceneEndSec": 7.233,
+      "voAtSec": 0.4,
+      "voice": "zh-CN-YunjianNeural",
+      "rate": "-6%",
+      "mp3": "assets/vo/s1.mp3",
+      "srt": "assets/vo/s1.srt"
+    },
+    {
+      "id": "s2",
+      "act": "启程",
+      "text": "动量等于质量乘速度；球越重越快，就越难停下。",
+      "chars": 19,
+      "durationSec": 5.856,
+      "sceneFrames": [
+        217,
+        414
+      ],
+      "sceneStartSec": 7.233,
+      "sceneEndSec": 13.8,
+      "voAtSec": 7.633,
+      "voice": "zh-CN-YunjianNeural",
+      "rate": "-6%",
+      "mp3": "assets/vo/s2.mp3",
+      "srt": "assets/vo/s2.srt"
+    },
+    {
+      "id": "s3",
+      "act": "途经",
+      "text": "撞击瞬间，动量从球传向瓶群，十只瓶依次倒下。",
+      "chars": 19,
+      "durationSec": 5.784,
+      "sceneFrames": [
+        414,
+        608
+      ],
+      "sceneStartSec": 13.8,
+      "sceneEndSec": 20.267,
+      "voAtSec": 14.2,
+      "voice": "zh-CN-YunjianNeural",
+      "rate": "-6%",
+      "mp3": "assets/vo/s3.mp3",
+      "srt": "assets/vo/s3.srt"
+    },
+    {
+      "id": "s4",
+      "act": "途经",
+      "text": "瓶与瓶继续传递动量；倒下的次序，就是力量的路线。",
+      "chars": 21,
+      "durationSec": 6.024,
+      "sceneFrames": [
+        608,
+        810
+      ],
+      "sceneStartSec": 20.267,
+      "sceneEndSec": 27.0,
+      "voAtSec": 20.667,
+      "voice": "zh-CN-YunjianNeural",
+      "rate": "-6%",
+      "mp3": "assets/vo/s4.mp3",
+      "srt": "assets/vo/s4.srt"
+    },
+    {
+      "id": "s5",
+      "act": "抵达",
+      "text": "另一组瓶子裹上气泡膜；同样的球，同样的速度，再来一次。",
+      "chars": 23,
+      "durationSec": 6.888,
+      "sceneFrames": [
+        810,
+        1037
+      ],
+      "sceneStartSec": 27.0,
+      "sceneEndSec": 34.567,
+      "voAtSec": 27.4,
+      "voice": "zh-CN-YunjianNeural",
+      "rate": "-6%",
+      "mp3": "assets/vo/s5.mp3",
+      "srt": "assets/vo/s5.srt"
+    },
+    {
+      "id": "s6",
+      "act": "抵达",
+      "text": "气泡膜的空气被缓缓压缩，碰撞时间拉长，峰值作用力变小。",
+      "chars": 24,
+      "durationSec": 6.792,
+      "sceneFrames": [
+        1037,
+        1262
+      ],
+      "sceneStartSec": 34.567,
+      "sceneEndSec": 42.067,
+      "voAtSec": 34.967,
+      "voice": "zh-CN-YunjianNeural",
+      "rate": "-6%",
+      "mp3": "assets/vo/s6.mp3",
+      "srt": "assets/vo/s6.srt"
+    },
+    {
+      "id": "s7",
+      "act": "抵达",
+      "text": "冲量定理：动量变化相同，作用时间越长，受到的力越温和。",
+      "chars": 23,
+      "durationSec": 7.032,
+      "sceneFrames": [
+        1262,
+        1494
+      ],
+      "sceneStartSec": 42.067,
+      "sceneEndSec": 49.8,
+      "voAtSec": 42.467,
+      "voice": "zh-CN-YunjianNeural",
+      "rate": "-6%",
+      "mp3": "assets/vo/s7.mp3",
+      "srt": "assets/vo/s7.srt"
+    },
+    {
+      "id": "s8",
+      "act": "回望",
+      "text": "以柔克刚，不是挡住动量，而是留出消化的时间。",
+      "chars": 19,
+      "durationSec": 5.256,
+      "sceneFrames": [
+        1494,
+        1673
+      ],
+      "sceneStartSec": 49.8,
+      "sceneEndSec": 55.767,
+      "voAtSec": 50.2,
+      "voice": "zh-CN-YunjianNeural",
+      "rate": "-6%",
+      "mp3": "assets/vo/s8.mp3",
+      "srt": "assets/vo/s8.srt"
+    },
+    {
+      "id": "s9",
+      "act": "回望",
+      "text": "一九五七年它本是墙纸；如今是易碎品的铠甲。",
+      "chars": 19,
+      "durationSec": 5.112,
+      "sceneFrames": [
+        1673,
+        1847
+      ],
+      "sceneStartSec": 55.767,
+      "sceneEndSec": 61.567,
+      "voAtSec": 56.167,
+      "voice": "zh-CN-YunjianNeural",
+      "rate": "-6%",
+      "mp3": "assets/vo/s9.mp3",
+      "srt": "assets/vo/s9.srt"
+    }
+  ],
+  "verification": {
+    "tool": "ffprobe -show_entries format=duration",
+    "preflightStage1": "22 ok / 1 warn / 0 fail (warn=FOOTAGE 终稿素材待下游渲染)"
+  }
+}
