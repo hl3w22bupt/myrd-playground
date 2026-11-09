@@ -7,8 +7,9 @@
 <!--
   《以柔克刚》AppHost 放映页（slug: myrdplaygrou-2）
   · 由共享壳 server/ 的 GET / 优先伺服本资产（assets_dir 内 landing.html，平台契约）。
-  · 视频不直链 mp4：M1 资产通道/公网网关仅透传文本，mp4 以 base64 文本资产（.b64）出库，
-    浏览器端 atob → Blob(video/mp4) → objectURL 喂 <video> 与下载链接（与本目录 README/apphost.toml 注记同口径）。
+  · 视频不直链 mp4：M1 资产通道/公网网关仅透传文本，mp4 以 base64 文本资产出库并按 2MB 分片
+    （*.partNN.b64，超大单体响应会被平台 invocation_stopped 拒绝，34MB/22MB 实测复现），
+    浏览器端按序拉全分片拼接后 atob → Blob(video/mp4) → objectURL 喂 <video> 与下载链接。
   · 资产引用一律走 api/public/assets/* 相对路径（wheat-squad 判例，适配 /apps/<slug>/ 反代前缀）。
   · 本页自包含：无 CDN、无外部字体、无构建步骤。
 -->
@@ -148,7 +149,7 @@
       <tr><td class="k">变体文件</td><td class="v"><code>variants/v2-tempo-cut.mp4</code> · <code>variants/v3-dusk-grade.mp4</code>（派生记录 <code>variants/DERIVATION.json</code>）</td></tr>
       <tr><td class="k">代码分支</td><td class="v"><a href="https://github.com/hl3w22bupt/myrd-playground/tree/myrd/video-yiroukegang-goal-cmw8yl0gs000xm9atm3ev9bzc/videos/myrdplaygrou-2" target="_blank" rel="noopener">myrd/video-yiroukegang-goal-cmw8yl0gs000xm9atm3ev9bzc</a>（线上产物与该分支一一对应）</td></tr>
       <tr><td class="k">渲染管线</td><td class="v">Blender Eevee Next（taa_render_samples=64 · AgX Medium High Contrast）1847 帧终稿渲染 → HyperFrames 合成（标题牌/匾额/进度轴/字幕烘焙）→ ffmpeg 合封（crf17）+ 响度归一（−15.8 LUFS / TP −3.9 dBTP / 0 削波）</td></tr>
-      <tr><td class="k">托管信息</td><td class="v">AppHost 应用 <code>cmw8yl0gn000vm9at4fwrzu3z</code>（slug myrdplaygrou-2）· 部署清单 <code>videos/myrdplaygrou-2/apphost.toml</code> · 成片经 base64 文本资产通道出库（M1 网关仅透传文本）</td></tr>
+      <tr><td class="k">托管信息</td><td class="v">AppHost 应用 <code>cmw8yl0gn000vm9at4fwrzu3z</code>（slug myrdplaygrou-2）· 部署清单 <code>videos/myrdplaygrou-2/apphost.toml</code> · 成片/变体经 base64 文本资产通道出库并按 2MB 分片（M1 网关仅透传文本，超大响应被拒），浏览器端装配校验字节数后播放</td></tr>
     </table>
   </section>
 
@@ -161,11 +162,15 @@
 <script>
 (function () {
   'use strict';
-  // 资产清单：name = assets_dir 内的 base64 文本资产；bytes = 解码后 mp4 字节数（与仓库 mp4 逐字节一致）
+  // 资产清单：每个 mp4 = 一组 base64 文本分片（*.partNN.b64，单片 2MB）。
+  // 分片原因：M1 平台文本代理对超大响应会以 invocation_stopped 拒绝（34MB/22MB 实测复现，
+  // 17KB 正常），单片收敛到 2MB（距失败样本 16 倍裕度）；parts 拼接后解码字节数与仓库
+  // mp4 逐字节一致（部署前 sha256 机判）。bytes = 解码后 mp4 字节数（硬校验值）。
+  var PART_SIZE = 2097152;
   var ASSETS = {
-    final: { name: 'yiroukegang-final-1080p.mp4.b64', bytes: 25684079, st: 'st-final', dl: 'dl-final' },
-    v2:    { name: 'yiroukegang-v2-tempo-cut-1080p.mp4.b64', bytes: 16533630, st: 'st-v2', dl: 'dl-v2' },
-    v3:    { name: 'yiroukegang-v3-dusk-grade-1080p.mp4.b64', bytes: 18791678, st: 'st-v3', dl: 'dl-v3' }
+    final: { stem: 'yiroukegang-final-1080p.mp4', b64Bytes: 34245441, parts: 17, bytes: 25684079, st: 'st-final', dl: 'dl-final' },
+    v2:    { stem: 'yiroukegang-v2-tempo-cut-1080p.mp4', b64Bytes: 22044841, parts: 11, bytes: 16533630, st: 'st-v2', dl: 'dl-v2' },
+    v3:    { stem: 'yiroukegang-v3-dusk-grade-1080p.mp4', b64Bytes: 25055573, parts: 12, bytes: 18791678, st: 'st-v3', dl: 'dl-v3' }
   };
   var player = document.getElementById('player');
   var cover = document.getElementById('cover');
@@ -182,6 +187,9 @@
     el.className = 'status' + (cls ? ' ' + cls : '');
   }
   function fmtMB(b) { return (b / 1048576).toFixed(1) + ' MB'; }
+  function partName(asset, i) {
+    return asset.stem + '.part' + (i < 10 ? '0' + i : '' + i) + '.b64';
+  }
 
   function b64ToBytes(b64) {
     var clean = b64.replace(/\s+/g, '');
@@ -192,41 +200,42 @@
     return out;
   }
 
-  // 拉取 base64 文本资产（流式读，按字节报进度），解码为 mp4 Blob
+  // 按序拉全部分片（顺序请求 + 进度回传），拼接为完整 base64 文本
+  function fetchParts(asset, onProgress) {
+    var texts = new Array(asset.parts);
+    var got = 0;
+    var chain = Promise.resolve();
+    for (var i = 0; i < asset.parts; i++) {
+      (function (idx) {
+        chain = chain.then(function () {
+          var url = 'api/public/assets/' + partName(asset, idx);
+          return fetch(url, { cache: 'force-cache' }).then(function (res) {
+            if (!res.ok) throw new Error('资产分片 HTTP ' + res.status + '（' + partName(asset, idx) + '）');
+            return res.text();
+          }).then(function (text) {
+            texts[idx] = text;
+            got += text.length;
+            if (onProgress) onProgress(got);
+          });
+        });
+      })(i);
+    }
+    return chain.then(function () { return texts.join(''); });
+  }
+
+  // 装载 = 分片拉取 → 拼接 → base64 解码 → mp4 Blob（objectURL 供播放与下载共用）
   function loadAsset(key, onProgress) {
     if (blobs[key]) return Promise.resolve(blobs[key]);
     if (inflight[key]) return inflight[key];
-    var url = 'api/public/assets/' + ASSETS[key].name;
-    inflight[key] = fetch(url, { cache: 'force-cache' }).then(function (res) {
-      if (!res.ok) throw new Error('资产通道 HTTP ' + res.status + '（' + url + '）');
-      if (!res.body || !res.body.getReader) return res.text().then(decode);
-      var reader = res.body.getReader();
-      var chunks = [], got = 0;
-      function pump() {
-        return reader.read().then(function (r) {
-          if (r.done) {
-            var parts = chunks.map(function (c) {
-              // 文本通道：逐段 UTF-8 解码后拼接（base64 全 ASCII，分段解码无损）
-              return new TextDecoder('utf-8').decode(c);
-            });
-            return decode(parts.join(''));
-          }
-          chunks.push(r.value);
-          got += r.value.byteLength;
-          if (onProgress) onProgress(got);
-          return pump();
-        });
+    var asset = ASSETS[key];
+    inflight[key] = fetchParts(asset, onProgress).then(function (text) {
+      var bytes = b64ToBytes(text);
+      if (bytes.byteLength !== asset.bytes) {
+        throw new Error('解码后字节数不符：期望 ' + asset.bytes + '，实得 ' + bytes.byteLength);
       }
-      function decode(text) {
-        var bytes = b64ToBytes(text);
-        if (bytes.byteLength !== ASSETS[key].bytes) {
-          throw new Error('解码后字节数不符：期望 ' + ASSETS[key].bytes + '，实得 ' + bytes.byteLength);
-        }
-        var objUrl = URL.createObjectURL(new Blob([bytes], { type: 'video/mp4' }));
-        blobs[key] = objUrl;
-        return objUrl;
-      }
-      return pump();
+      var objUrl = URL.createObjectURL(new Blob([bytes], { type: 'video/mp4' }));
+      blobs[key] = objUrl;
+      return objUrl;
     });
     return inflight[key];
   }

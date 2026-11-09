@@ -8,9 +8,11 @@
 #   为什么不是整个 videos/myrdplaygrou-2：平台护栏 assetsMaxFiles=200（builder.ts uploadAssets），
 #   工程整目录已提交 519 个文件（assets/fonts 407 为主），超护栏必被 BuildError 拒绝；
 #   4 文件 / ~81MB 在 ≤200 文件 / ≤200MB 双护栏内。
-#   为什么 mp4 转成 .b64 文本：M1 资产通道对非 gzip 二进制做 UTF-8 解码（有损）、公网网关拦
-#   video/* 与 application/octet-stream（502 UNSUPPORTED_BINARY）——视频唯一无损通道是文本资产，
-#   浏览器端 atob → Blob(video/mp4) → objectURL 喂 <video> 与下载链接。
+#   为什么 mp4 转成 .b64 文本且按 2MB 分片：M1 资产通道对非 gzip 二进制做 UTF-8 解码（有损）、
+#   公网网关拦 video/* 与 application/octet-stream（502 UNSUPPORTED_BINARY）——视频唯一无损通道
+#   是文本资产（浏览器端 atob → Blob(video/mp4) 还原）；而超大单体文本响应（34MB/22MB 实测）会被
+#   平台传输层以 invocation_stopped 拒绝（17KB 正常），故按 2MB 分片（*.partNN.b64）出库，
+#   页面按序装配并硬校验解码字节数（三片拼接 sha256 与仓库 mp4 逐字节一致，部署前已机判）。
 name = "以柔克刚"
 runtime = "node20"
 health = "/health"
