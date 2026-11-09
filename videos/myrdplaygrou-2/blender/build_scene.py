@@ -13,6 +13,7 @@
 """以柔克刚 — Blender 5.x 程序化微缩保龄球道 + 一镜到底相机
 用法:
   blender -b -P build_scene.py -- --test 30            # 单帧测试 PNG
+  blender -b -P build_scene.py -- --test 30,110,217    # 批量逐机位测试 (一次启动)
   blender -b -P build_scene.py -- --draft              # 草稿全片 (50% res, 16 samples)
   blender -b -P build_scene.py -- --final              # 终稿全片 (100% res, 64 samples, PNG per scene)
   blender -b -P build_scene.py -- --final --scene s4   # 只渲某一段
@@ -23,7 +24,8 @@ from math import radians
 # ---------------------------------------------------------------- args
 argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 ap = argparse.ArgumentParser()
-ap.add_argument("--test", type=int, default=0, help="渲染单帧并退出 (PNG)")
+ap.add_argument("--test", type=str, default="",
+                help="渲染测试 PNG 并退出: 单帧 '30' 或逗号列表 '30,110,217' (逐机位验收用)")
 ap.add_argument("--draft", action="store_true")
 ap.add_argument("--final", action="store_true")
 ap.add_argument("--scene", type=str, default="all")
@@ -220,7 +222,8 @@ for i in range(6):
          s=random.uniform(0.8, 1.2))
 
 # ---------------------------------------------------------------- 物体动画 (关键帧; 慢动作 = 拉长碰撞窗)
-# 球 1 (球道): f217 起步 → f458 触瓶 (s3「撞击瞬间」, 旁白 voAt=14.20s=f426 起) → f600 停
+# 球 1 (球道): f217 起步 → f458 触瓶 (s3「撞击瞬间」, 旁白 voAt=14.20s=f426 起) → f600 停于前两排之间
+# (终点 y=0.88: 与倒向修正后的倒瓶瓶腹 y≥1.15 净空 >0.18, 原终点 1.15 会与倒瓶相交)
 BALL_R, BALL_Z = 0.17, LANE_TOP + 0.17
 ball1 = sphere("ball1", BALL_R, (0, -8.5, BALL_Z), M["ball"])
 def roll_key(obj, f, x, y, y0, r=BALL_R):
@@ -231,7 +234,7 @@ def roll_key(obj, f, x, y, y0, r=BALL_R):
     obj.keyframe_insert("rotation_euler", frame=f)
 
 ROLL1 = [(217, 0, -8.5), (316, 0, -7.3), (414, 0, -5.4), (458, 0, 0.345),
-         (520, 0, 0.85), (600, 0, 1.15)]
+         (520, 0, 0.85), (600, 0, 0.88)]
 for f, x, y in ROLL1:
     roll_key(ball1, f, x, y, y0=-8.5)
 
@@ -242,15 +245,24 @@ for f, x, y in ROLL2:
     roll_key(ball2, f, x, y, y0=-1.5)
 
 # 裸瓶散倒: 触瓶帧 f458 起, 依次错峰 —— 前排骨 s3 内倒完, 后排延续到 s4 (「动量接力」可视化)
+def surface_top(x, y):
+    """落点承力面顶高: 瓶区台面 0.16 / 球沟 0.12 / 展厅地面 0.06 (散瓶按落点着地, 不悬浮)"""
+    if abs(x) <= 0.75 and y <= 2.55:
+        return 0.16   # deck (含球道段)
+    if abs(x) <= 0.79:
+        return 0.12   # gutter
+    return 0.06       # ground
+
 def scatter(pin, f_hit, dir_x, dir_y, dist, tilt_deg):
-    """f_hit 时刻从站立 → dist 位移 + tilt 倾倒; SINE 缓动 (全局偏好)"""
+    """f_hit 时刻从站立 → dist 位移 + tilt 倾倒; 倒向 = 动量去向 (+y 远离来球, gotchas: 球推瓶不是瓶迎球)"""
     stand = tuple(pin.location)
-    fallen = (stand[0] + dir_x * dist, stand[1] + dir_y * dist, max(stand[2] - 0.10, 0.20))
+    fx, fy = stand[0] + dir_x * dist, stand[1] + dir_y * dist
+    fallen = (fx, fy, surface_top(fx, fy) + 0.085)  # 躺平后瓶腹球心 = 面顶 + 腹半径
     pin.rotation_euler = (0, 0, 0)
     pin.keyframe_insert("location", frame=f_hit)
     pin.keyframe_insert("rotation_euler", frame=f_hit)
     pin.location = fallen
-    pin.rotation_euler = (radians(tilt_deg), 0, 0)
+    pin.rotation_euler = (-radians(tilt_deg), 0, 0)  # 负号 = 瓶头倒向 +y; 正号会倒回球侧 (实测翻过车)
     pin.keyframe_insert("location", frame=f_hit + 26)
     pin.keyframe_insert("rotation_euler", frame=f_hit + 26)
 
@@ -398,7 +410,9 @@ def render_still(frame):
     bpy.ops.render.render(write_still=True)
 
 if args.test:
-    render_still(args.test)
+    for f in [int(x) for x in str(args.test).split(",") if x.strip()]:
+        print(f"[test] rendering frame {f}", flush=True)
+        render_still(f)
 elif args.draft:
     for tag, f0, f1 in SCENES:
         if args.scene == "all" or args.scene == tag:
