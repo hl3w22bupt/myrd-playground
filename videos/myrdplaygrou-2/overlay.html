@@ -1,0 +1,197 @@
+<!-- overlay: 标题牌 + 进度轴 + 七块殿名牌匾 + 数据尾卡 (graphics 轨) -->
+<template>
+  <link rel="stylesheet" href="assets/fonts/noto-sc.css">
+  <style>
+    #root { position: absolute; inset: 0; font-family: "Noto Sans SC", sans-serif; }
+
+    /* ---- 标题牌 (墨底金字实体匾) ---- */
+    #ov-title {
+      position: absolute; left: 116px; top: 104px; z-index: 1;
+    }
+    #ov-title .board {
+      display: inline-block;
+      background: rgba(24, 15, 12, 0.92);
+      border: 1px solid rgba(200, 165, 87, 0.55);
+      box-shadow: 0 8px 36px rgba(8, 4, 2, 0.4), inset 0 0 0 1px rgba(0,0,0,0.4);
+      border-radius: 6px;
+      padding: 34px 44px 30px;
+    }
+    #ov-title .name {
+      font-family: "Noto Serif SC", serif; font-weight: 900;
+      font-size: 150px; line-height: 1; color: #E8C87A;
+      letter-spacing: 0.10em;
+    }
+    #ov-title .sub {
+      margin-top: 18px;
+      font-size: 34px; font-weight: 500; color: #F0E6D2;
+      letter-spacing: 0.44em; text-indent: 0.1em;
+    }
+    #ov-title .rule {
+      margin-top: 20px; width: 430px; height: 2px;
+      background: linear-gradient(90deg, #C8A557, rgba(200, 165, 87, 0));
+    }
+    #ov-title .note {
+      margin-top: 12px; font-size: 20px; font-weight: 400;
+      color: rgba(235, 224, 204, 0.72); letter-spacing: 0.14em;
+    }
+
+    /* ---- 中轴进度轴 ---- */
+    #ov-progress {
+      position: absolute; right: 64px; top: 24%; bottom: 24%; width: 14px; z-index: 2;
+    }
+    #ov-progress .line {
+      position: absolute; left: 6px; top: 0; bottom: 0; width: 2px;
+      background: rgba(220, 196, 148, 0.34);
+    }
+    #ov-progress .fill {
+      position: absolute; left: 6px; top: 0; bottom: 0; width: 2px;
+      background: #E8C87A; transform-origin: top;
+    }
+    #ov-progress .dot {
+      position: absolute; left: 3px; width: 8px; height: 8px;
+      border-radius: 50%; background: rgba(220, 196, 148, 0.45);
+    }
+
+    /* ---- 殿名牌匾 ---- */
+    .plaque {
+      position: absolute; left: 116px; top: 104px; z-index: 3;
+    }
+    .plaque .board {
+      display: inline-block;
+      background: rgba(24, 15, 12, 0.90);
+      border: 1px solid rgba(200, 165, 87, 0.55);
+      box-shadow: 0 6px 30px rgba(8, 4, 2, 0.35), inset 0 0 0 1px rgba(0,0,0,0.4);
+      border-radius: 6px;
+      padding: 26px 34px 24px;
+    }
+    .plaque .pname {
+      font-family: "Noto Serif SC", serif; font-weight: 900;
+      font-size: 62px; line-height: 1.12; color: #E8C87A;
+      letter-spacing: 0.12em;
+    }
+    .plaque .psub {
+      margin-top: 10px;
+      font-size: 28px; font-weight: 400; color: #C9B99B;
+      letter-spacing: 0.10em;
+    }
+
+    /* ---- 数据尾卡 ---- */
+    #ov-end {
+      position: absolute; left: 0; right: 0; bottom: 176px; z-index: 4;
+      text-align: center;
+    }
+    #ov-end .board {
+      display: inline-block;
+      background: rgba(24, 15, 12, 0.90);
+      border: 1px solid rgba(200, 165, 87, 0.55);
+      box-shadow: 0 8px 36px rgba(8, 4, 2, 0.4);
+      border-radius: 6px;
+      padding: 34px 56px 30px;
+    }
+    #ov-end .big {
+      font-family: "Noto Serif SC", serif; font-weight: 900;
+      font-size: 84px; color: #E8C87A; letter-spacing: 0.12em; line-height: 1.1;
+    }
+    #ov-end .stats {
+      margin-top: 16px;
+      font-size: 28px; font-weight: 400; color: #E4D8C0; letter-spacing: 0.12em;
+    }
+  </style>
+
+  <div id="root" data-composition-id="overlay" data-width="1920" data-height="1080">
+    <!-- 标题 -->
+    <div id="ov-title" class="clip" data-start="0.35" data-duration="6.7">
+      <div class="board ov-anim">
+        <div id="ov-title-name" class="name" data-var-text="headline">故宫</div>
+        <div id="ov-title-sub" class="sub" data-var-text="subtitle">中轴线巡礼</div>
+        <div class="rule"></div>
+        <div class="note" data-layout-ignore>微缩示意模型 · 非真实影像</div>
+      </div>
+    </div>
+
+    <!-- 进度轴: 七站 -->
+    <div id="ov-progress" class="clip" data-start="0" data-duration="61.5" data-layout-ignore>
+      <div class="line"></div>
+      <div class="fill" id="ov-progress-fill"></div>
+      <div class="dot" id="ov-d1" style="top: 2%"></div>
+      <div class="dot" id="ov-d2" style="top: 18.5%"></div>
+      <div class="dot" id="ov-d3" style="top: 35%"></div>
+      <div class="dot" id="ov-d4" style="top: 51.5%"></div>
+      <div class="dot" id="ov-d5" style="top: 68%"></div>
+      <div class="dot" id="ov-d6" style="top: 84.5%"></div>
+      <div class="dot" id="ov-d7" style="top: 98%"></div>
+    </div>
+
+    <!-- 殿名牌匾 × 7 -->
+    <div id="ov-p1" class="plaque clip" data-start="7.6" data-duration="6.5">
+      <div class="board ov-anim"><div class="pname">午 门</div><div class="psub">紫禁城正门 · 明三暗五门洞</div></div>
+    </div>
+    <div id="ov-p2" class="plaque clip" data-start="15.0" data-duration="4.8">
+      <div class="board ov-anim"><div class="pname">太和门</div><div class="psub">御门听政之所</div></div>
+    </div>
+    <div id="ov-p3" class="plaque clip" data-start="20.8" data-duration="10.8">
+      <div class="board ov-anim"><div class="pname">太和殿</div><div class="psub">俗称金銮殿 · 现存最大木结构大殿</div></div>
+    </div>
+    <div id="ov-p4" class="plaque clip" data-start="32.6" data-duration="5.2">
+      <div class="board ov-anim"><div class="pname">中和殿 · 保和殿</div><div class="psub">科举殿试就在保和殿举行</div></div>
+    </div>
+    <div id="ov-p5" class="plaque clip" data-start="38.8" data-duration="5.8">
+      <div class="board ov-anim"><div class="pname">乾清门 · 乾清宫</div><div class="psub">内廷由此始 · 明代皇帝寝宫</div></div>
+    </div>
+    <div id="ov-p6" class="plaque clip" data-start="45.3" data-duration="3.7">
+      <div class="board ov-anim"><div class="pname">交泰殿 · 坤宁宫</div><div class="psub">皇后居所</div></div>
+    </div>
+    <div id="ov-p7" class="plaque clip" data-start="50.0" data-duration="4.5">
+      <div class="board ov-anim"><div class="pname">御花园</div><div class="psub">宫城中的园林</div></div>
+    </div>
+
+    <!-- 数据尾卡 -->
+    <div id="ov-end" class="clip" data-start="56.3" data-duration="5.2">
+      <div class="board ov-anim">
+        <div class="big">这就是故宫</div>
+        <div class="stats">七十二万平方米 · 八千七百余间殿宇 · 六百年</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const tl = gsap.timeline({ paused: true });
+
+    // 标题: 逐行落定
+    tl.fromTo("#ov-title .name", { opacity: 0, y: 26, filter: "blur(10px)" },
+      { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.5, ease: "power4.out" }, 0.45);
+    tl.fromTo("#ov-title .sub", { opacity: 0, y: 14 },
+      { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 0.85);
+    tl.fromTo("#ov-title .rule", { scaleX: 0, transformOrigin: "left center" },
+      { scaleX: 1, duration: 0.5, ease: "power3.inOut" }, 1.0);
+    tl.fromTo("#ov-title .note", { opacity: 0 },
+      { opacity: 1, duration: 0.35, ease: "power2.out" }, 1.3);
+    // 标题离场: 窗口结束由运行时隐藏 (匾额「摘下」硬切)
+
+    // 进度轴: 金线随全片匀速生长, 站点依次点亮
+    tl.fromTo("#ov-progress-fill", { scaleY: 0 }, { scaleY: 1, duration: 60.6, ease: "none" }, 0.4);
+    const stationAt = { "ov-d1": 7.6, "ov-d2": 15.0, "ov-d3": 20.8, "ov-d4": 32.6, "ov-d5": 38.8, "ov-d6": 45.3, "ov-d7": 50.0 };
+    for (const [id, at] of Object.entries(stationAt)) {
+      tl.to(`#${id}`, { backgroundColor: "#E8C87A", scale: 1.5, duration: 0.3, ease: "power2.out" }, at);
+    }
+
+    // 牌匾: 落定 → 离场
+    const plaques = [
+      ["ov-p1", 7.6, 14.1], ["ov-p2", 15.0, 19.8], ["ov-p3", 20.8, 31.6],
+      ["ov-p4", 32.6, 37.8], ["ov-p5", 38.8, 44.6], ["ov-p6", 45.3, 49.0], ["ov-p7", 50.0, 54.5],
+    ];
+    for (const [id, st] of plaques) {
+      tl.fromTo(`#${id} .board`, { opacity: 0, scale: 0.92, filter: "blur(6px)" },
+        { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.4, ease: "power4.out" }, st + 0.05);
+      // 离场为硬切 (运行时按窗口隐藏)
+    }
+
+    // 尾卡
+    tl.fromTo("#ov-end .big", { opacity: 0, y: 22, filter: "blur(8px)" },
+      { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.5, ease: "power4.out" }, 56.45);
+    tl.fromTo("#ov-end .stats", { opacity: 0, y: 12 },
+      { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 56.9);
+
+    window.__timelines["overlay"] = tl;
+  </script>
+</template>
