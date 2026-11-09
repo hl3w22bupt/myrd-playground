@@ -205,3 +205,25 @@ zoom 复核（缩略图存疑处一律全分辨率/源码复核，不以缩略�
   `cmw8yl0gn000vm9at4fwrzu3z`（slug myrdplaygrou-2）。
 - 本节点未触碰：Blender 契约表（SCENES/KEYS）、assets/vo 时长契约（仅响度域）、五道门禁阈值、
   审批门禁与人工在环。
+
+---
+
+# 阶段5 · 放映页部署与线上自查（DEPLOY · 2026-11-09）
+
+> 完整档案见 `qa/stage5-deploy.md`；此处只留收口结论。
+> liveUrl **https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou-2/** · 当前有效部署
+> **v4 `cmw97x12n0023m9p0jnzktgq8`（running，commit 663d77f = 分支 HEAD）**。
+
+## 16. 部署收口（S1–S5）
+
+| 项 | 结论 |
+| --- | --- |
+| S1 前置检查 | 分支/成片/可推送/应用绑定全绿后才发起部署（缺一即停口径未触发） |
+| S2 部署姿势 | manifestPath 按应用分置 `videos/myrdplaygrou-2/apphost.toml` + 显式 gitRef 绑分支（不缺省 main）；宿主代行（项目知识《部署身份链》标准答案） |
+| S3 资产通道 | mp4 → base64 文本资产按 2MB 分片（17/11/12 片），重拼 sha256 与仓库 mp4 逐字节一致；assets_dir 收敛到 `apphost/`（41 文件 78MB）——整工程目录 519 文件超平台 assetsMaxFiles=200 护栏，偏离已申报 |
+| S4 线上实证 | 三轮缺陷均由线上自查抓出并当轮收口：单体大响应 invocation_stopped（v2 分片化）、无尾斜杠落地资产 404（v3 路径归一）、同步解码饿死触摸管线（v4 异步解码） |
+| S5 自查 | /health 200 身份正确 · webapp-smoke（仓库判定脚本）6/6 PASS · video-probe PASS（1920×1080 首帧解出、duration=61.6s、currentTime 前进、下载=完整 mp4 Blob、17 分片全 200、console 零错误）· `probe-playing.png` 为真实浏览器播放中帧证据 |
+
+产物回写：goal 卡片 10 条在账（4 条 deploy_playable 历史 + `deploy_screening_page` +
+`video_render_mp4`，均回读验证）。本节点未触碰：分镜契约表、VO 时长契约、五道门禁阈值、
+审批门禁与人工在环、仓库根 apphost.toml（PvZ 应用）。

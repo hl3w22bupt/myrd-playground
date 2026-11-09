@@ -1,5 +1,5 @@
 {
-  "verdict": "FAIL",
+  "verdict": "PASS",
   "url": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou-2/",
   "preset": {
     "width": 390,
@@ -8,7 +8,7 @@
     "mobile": true,
     "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
   },
-  "checkedAt": "2026-11-09T12:06:09.807Z",
+  "checkedAt": "2026-11-09T12:10:10.232Z",
   "checks": [
     {
       "id": "network",
@@ -37,8 +37,8 @@
     {
       "id": "touch-pipeline",
       "label": "触摸事件到达 DOM（tap 与滚动 swipe 均被派发）",
-      "status": "fail",
-      "detail": "tap={\"touchstart\":1,\"touchmove\":0,\"touchend\":1} swipe={\"touchstart\":1,\"touchmove\":0,\"touchend\":1}——事件没到页面=壳层挡了输入"
+      "status": "pass",
+      "detail": "tap={\"touchstart\":1,\"touchmove\":0,\"touchend\":1} swipe={\"touchstart\":2,\"touchmove\":9,\"touchend\":2}——事件没到页面=壳层挡了输入"
     },
     {
       "id": "viewport",
@@ -67,9 +67,9 @@
       "touchend": 1
     },
     "afterSwipe": {
-      "touchstart": 1,
-      "touchmove": 0,
-      "touchend": 1
+      "touchstart": 2,
+      "touchmove": 9,
+      "touchend": 2
     }
   },
   "evidence": [

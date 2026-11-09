@@ -1,0 +1,110 @@
+{
+  "url": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou-2/",
+  "checkedAt": "2026-11-09T12:11:11.800Z",
+  "verdict": "PASS",
+  "video": {
+    "status": "就绪 · 24.5 MB 已可播放/下载",
+    "ready": 4,
+    "vw": 1920,
+    "vh": 1080,
+    "dur": 61.6,
+    "cur": 0.649859,
+    "paused": false,
+    "src": "blob:https://leomac-",
+    "err": null
+  },
+  "download": {
+    "blob": true,
+    "name": "以柔克刚_1080p_61.6s.mp4",
+    "sz": 81
+  },
+  "assetRequests": [
+    {
+      "url": "yiroukegang-final-1080p.mp4.part00.b64",
+      "status": 200,
+      "bytes": 0
+    },
+    {
+      "url": "yiroukegang-final-1080p.mp4.part01.b64",
+      "status": 200,
+      "bytes": 0
+    },
+    {
+      "url": "yiroukegang-final-1080p.mp4.part02.b64",
+      "status": 200,
+      "bytes": 0
+    },
+    {
+      "url": "yiroukegang-final-1080p.mp4.part03.b64",
+      "status": 200,
+      "bytes": 0
+    },
+    {
+      "url": "yiroukegang-final-1080p.mp4.part04.b64",
+      "status": 200,
+      "bytes": 0
+    },
+    {
+      "url": "yiroukegang-final-1080p.mp4.part05.b64",
+      "status": 200,
+      "bytes": 0
+    },
+    {
+      "url": "yiroukegang-final-1080p.mp4.part06.b64",
+      "status": 200,
+      "bytes": 0
+    },
+    {
+      "url": "yiroukegang-final-1080p.mp4.part07.b64",
+      "status": 200,
+      "bytes": 0
+    },
+    {
+      "url": "yiroukegang-final-1080p.mp4.part08.b64",
+      "status": 200,
+      "bytes": 0
+    },
+    {
+      "url": "yiroukegang-final-1080p.mp4.part09.b64",
+      "status": 200,
+      "bytes": 0
+    },
+    {
+      "url": "yiroukegang-final-1080p.mp4.part10.b64",
+      "status": 200,
+      "bytes": 0
+    },
+    {
+      "url": "yiroukegang-final-1080p.mp4.part11.b64",
+      "status": 200,
+      "bytes": 0
+    },
+    {
+      "url": "yiroukegang-final-1080p.mp4.part12.b64",
+      "status": 200,
+      "bytes": 0
+    },
+    {
+      "url": "yiroukegang-final-1080p.mp4.part13.b64",
+      "status": 200,
+      "bytes": 0
+    },
+    {
+      "url": "yiroukegang-final-1080p.mp4.part14.b64",
+      "status": 200,
+      "bytes": 0
+    },
+    {
+      "url": "yiroukegang-final-1080p.mp4.part15.b64",
+      "status": 200,
+      "bytes": 0
+    },
+    {
+      "url": "yiroukegang-final-1080p.mp4.part16.b64",
+      "status": 200,
+      "bytes": 0
+    }
+  ],
+  "consoleErrors": [],
+  "fails": []
+}
