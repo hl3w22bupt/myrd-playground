@@ -151,4 +151,8 @@ data-volume 路径的不可行性证明（为何必须先做 VO 母带响度归�
 
 ## 9. 提交
 
-- 待回填（commit sha / 分支 / push 结果）
+- 主提交：`b944c41`「feat(videos/myrdplaygrou-2): 阶段4 终稿渲染 + 五道门禁全绿 + 变体派生」
+  （51 files：终稿成片 mp4 + 变体 2 mp4 + 合封素材 s1–s9 + VO 母带 + 合成层 + qa/final-frames 18 张
+  + stage4-gates.md + REVIEW.md 阶段4 续章 + 派生/抽帧/回写脚本）
+- 留痕回填提交：本条所在 commit（sha 见 `git log -- qa/stage4-gates.md`）
+- 分支：`myrd/video-yiroukegang-goal-cmw8yl0gs000xm9atm3ev9bzc` → push 结果见本节末行（提交后回填）
