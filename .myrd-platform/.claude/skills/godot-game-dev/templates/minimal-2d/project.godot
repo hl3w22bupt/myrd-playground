@@ -17,6 +17,7 @@ config/icon="res://icon.svg"
 GameState="*res://autoload/game_state.gd"
 Juice="*res://autoload/juice.gd"
 Ambience="*res://autoload/ambience.gd"
+PlaytestBridge="*res://autoload/playtest_bridge.gd"
 
 [display]
 
