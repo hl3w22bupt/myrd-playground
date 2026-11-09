@@ -198,12 +198,27 @@
     return BASE + 'api/public/assets/' + asset.stem + '.part' + (i < 10 ? '0' + i : '' + i) + '.b64';
   }
 
-  function b64ToBytes(b64) {
+  function sleep0() { return new Promise(function (r) { setTimeout(r, 0); }); }
+
+  // base64 → 字节：分片异步解码，每片让出事件循环（34MB 同步解码会把主线程占死，
+  // webapp-smoke 触摸管线实测被饿 → FAIL；分片后 UI 保持可交互、进度可走动）。
+  // 分片按 4 字符对齐切（base64 流位置无关，仅末片带 padding）；expectBytes 为硬校验值。
+  async function b64ToBytesAsync(b64, expectBytes, onProgress) {
     var clean = b64.replace(/\s+/g, '');
-    var bin = atob(clean);
-    var len = bin.length;
-    var out = new Uint8Array(len);
-    for (var i = 0; i < len; i++) out[i] = bin.charCodeAt(i);
+    if (clean.length % 4 !== 0) throw new Error('base64 长度非法：' + clean.length);
+    var out = new Uint8Array(expectBytes);
+    var SLICE = 1048576; // 4 的倍数
+    var written = 0;
+    for (var i = 0; i < clean.length; i += SLICE) {
+      var seg = clean.slice(i, Math.min(i + SLICE, clean.length));
+      var bin = atob(seg);
+      var n = Math.min(bin.length, expectBytes - written);
+      for (var j = 0; j < n; j++) out[written + j] = bin.charCodeAt(j);
+      written += n;
+      if (onProgress) onProgress(Math.min(i + seg.length, clean.length), clean.length);
+      await sleep0();
+    }
+    if (written !== expectBytes) throw new Error('解码后字节数不符：期望 ' + expectBytes + '，实得 ' + written);
     return out;
   }
 
@@ -230,16 +245,16 @@
     return chain.then(function () { return texts.join(''); });
   }
 
-  // 装载 = 分片拉取 → 拼接 → base64 解码 → mp4 Blob（objectURL 供播放与下载共用）
-  function loadAsset(key, onProgress) {
+  // 装载 = 分片拉取（进度分母 = b64 总字节）→ 异步分片解码（进度独立报）→ mp4 Blob
+  function loadAsset(key, onLoadProgress, onDecodeProgress) {
     if (blobs[key]) return Promise.resolve(blobs[key]);
     if (inflight[key]) return inflight[key];
     var asset = ASSETS[key];
-    inflight[key] = fetchParts(asset, onProgress).then(function (text) {
-      var bytes = b64ToBytes(text);
-      if (bytes.byteLength !== asset.bytes) {
-        throw new Error('解码后字节数不符：期望 ' + asset.bytes + '，实得 ' + bytes.byteLength);
-      }
+    inflight[key] = fetchParts(asset, onLoadProgress).then(function (text) {
+      return b64ToBytesAsync(text, asset.bytes, function (done, total) {
+        if (onDecodeProgress) onDecodeProgress(done, total);
+      });
+    }).then(function (bytes) {
       var objUrl = URL.createObjectURL(new Blob([bytes], { type: 'video/mp4' }));
       blobs[key] = objUrl;
       return objUrl;
@@ -248,13 +263,23 @@
   }
 
   function playKey(key) {
+    var asset = ASSETS[key];
     setStatus(key, '装载中…（文本通道 → 本地解码）');
     return loadAsset(key, function (got) {
-      var pct = Math.min(100, Math.round(got * 100 / ASSETS[key].bytes));
-      setStatus(key, '装载中 ' + pct + '% · ' + fmtMB(got) + ' / ' + fmtMB(ASSETS[key].bytes));
+      // 拉取阶段：分母 = b64 分片总字节
+      var pct = Math.min(99, Math.round(got * 100 / asset.b64Bytes));
+      setStatus(key, '装载中 ' + pct + '% · ' + fmtMB(got) + ' / ' + fmtMB(asset.b64Bytes));
       if (key === 'final') {
         barFill.style.width = pct + '%';
-        ptext.textContent = '装载中 ' + pct + '%（' + fmtMB(got) + ' / ' + fmtMB(ASSETS[key].bytes) + '）';
+        ptext.textContent = '装载中 ' + pct + '%（' + fmtMB(got) + ' / ' + fmtMB(asset.b64Bytes) + '）';
+      }
+    }, function (done, total) {
+      // 解码阶段：拉取已满格，这里独立报「解码中」
+      var pct = Math.round(done * 100 / total);
+      setStatus(key, '解码中 ' + pct + '%');
+      if (key === 'final') {
+        barFill.style.width = '100%';
+        ptext.textContent = '解码中 ' + pct + '%（' + fmtMB(asset.bytes) + ' 视频字节装配）';
       }
     }).then(function (objUrl) {
       if (player.src !== objUrl) {
@@ -307,7 +332,9 @@
         setStatus(key, '准备下载：先装载…');
         playBtn.disabled = true;
         loadAsset(key, function (got) {
-          setStatus(key, '装载中 ' + Math.min(100, Math.round(got * 100 / ASSETS[key].bytes)) + '%');
+          setStatus(key, '装载中 ' + Math.min(99, Math.round(got * 100 / ASSETS[key].b64Bytes)) + '%');
+        }, function (done, total) {
+          setStatus(key, '解码中 ' + Math.round(done * 100 / total) + '%');
         }).then(function (objUrl) {
           $(ASSETS[key].dl).href = objUrl;
           setStatus(key, '就绪 · 已触发下载', 'ok');
