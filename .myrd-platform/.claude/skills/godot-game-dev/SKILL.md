@@ -501,18 +501,46 @@ AI 能造出机器，但调不出手感 —— 而在游戏里，调校本身就
 > 声明（落点/品类/来源/生成器/许可），契约测试机判「存在且被引用」。生成器是可替换插件
 > ——今天的程序化合成、明天的生图 API 技能脚本、后天的 MCP 人在环挑图，都往同一协议里插。
 
-**assets 段条目**（GameDesignSpec 第八段）：
+**assets 段条目（v2 图像清单形状，量产闭环 R1/M1-A 起 scaffold 默认产出）**：
 
 ```json
-{ "id": "sfx-score", "kind": "sfx", "file": "assets/sfx/score.wav",
-  "source": "generated", "generator": "procedural:tools/gen_sfx.gd", "license": "工程内生成，随工程分发" }
+{ "assetKey": "bg-meadow", "role": "background", "spec": "草地远景；使用风格卡 palette 主色；遵守禁忌段",
+  "source": "generated", "runtimeUse": "主场景背景层", "reason": null }
 ```
 
-- `kind`：sfx / music / image / sprite / font / model …（开放字符串）；
-- `source`：generated / manual / licensed —— 溯源必填；非 generated 缺 `license` 只告警
-  （外购/CC 素材必须记录许可；Steam AI 内容披露口径见 §7A 末尾提醒）；
-- 契约测试（`game-contract` routine）机判两条：`asset.file` 落点存在（**硬失败**）、
-  `asset.referenced` 被工程引用（res:// 路径扫描，未命中 = warning，动态路径加载可豁免）。
+- `assetKey` 全局唯一（kebab-case）= 仓库文件基名（`assets/<assetKey>.<ext>`）与台账主键；
+- `role`：background / sprite / ui / icon / other（可按垂类扩展）；
+- `source`：generated（本 run 生成）/ curated（有许可的现成素材）/ programmatic（程序化绘制，**必填 reason** —— 禁止静默兜底）；
+- `runtimeUse` 必填：写明被哪个场景/节点引用（三核对按 assetKey/路径扫运行时引用，覆盖 .tscn/.tres）；
+- 同段 `assetBudget`：`{ maxImages, maxTotalBytes, maxRetries, degraded, degradeReason }`
+  （默认 8 / 0=待定标 / 2；超限必须 degraded=true + degradeReason，禁止静默裁剪）；
+- 台账：generated 资产由媒体通道自动写入 `<gamePath>/asset-ledger.md`（**v2 机器表**：
+  assetKey | repoPath | prompt | provider | license | bytes | size | generatedAt | runId | status；
+  assetKey 主键幂等，重试覆写同一路径只更新原行）。curated 项 license 必填，缺失不得入包。
+
+**兼容（存量 spec 不破坏）**：旧形状条目（`id`/`kind`/`file`/`source: generated|manual|licensed`）
+仍可解析（id→assetKey、kind→role、manual/licensed→curated）；整段没有 assets 段的存量工程，
+三核对宽容 SKIP（exit 0）—— 但 assets/ 里出现清单外的图像文件会 FAIL（无清单资产不得入包）。
+
+**资产三核对门禁**（preflight 阶段新 step，量产闭环 R1 判定器）：
+
+```bash
+node std-skills/godot-game-dev/scripts/asset-triple-check.mjs --game <gamePath> --spec .myrd/spec/design-spec.json
+```
+
+四向核对（任一不一致 → FAIL 并输出差异明细）：清单→文件（generated/curated 项必须找到 >0 字节
+文件）、文件→清单（assets/ 下图像扩展名白名单内的文件必须被清单覆盖；模板/引擎自有目录
+fonts/sfx/music/audio/particles/cc0 豁免，工程自有例外写 `.myrd/asset-exemptions.json`
+= 路径前缀数组，口径为工程目录相对路径）、清单→运行时引用（显式静态扫描 .gd/.tscn/.tres/.scn/
+.gdshader/.cs/.cfg，零引用 FAIL；动态拼接路径首版不覆盖，需清单备注人工确认）、台账→文件
+（generated 项台账行齐全且 repoPath/bytes 与仓库实际一致）。外加：预算核对（超限未显式降级
+FAIL）与 firstColorCount 抽样（口径固化在 src/lib/workshop-assets.ts：每张 generated PNG
+10×10 网格采样 100 像素与风格卡 palette 最近邻距离 ≤60 记命中，run 级取最小值，阈值 60）。
+
+**极简风格豁免**：风格卡写一行机器可读声明 `asset-gate-exempt: <理由>`（约定见
+style-card-library SKILL.md）→ 三核对整段跳过（EXEMPT）并留痕，防止几何风格被误判。
+
+旧形状条目的两条契约机判不变：`asset.file` 落点存在（硬失败）、被工程引用（res:// 路径扫描）。
 
 **内置生成器：程序化 SFX（`tools/gen_sfx.gd`，随模板复制到每个工程）**：
 
@@ -531,6 +559,44 @@ API 的技能脚本（第二批，接入时锁版本、prompt 进 spec 溯源）
 （评审/playtest 环节用）。**禁止**绕过 assets 段直接往工程里塞不声明的生成资产。
 
 ---
+
+## 7C. 试玩证据链与视觉棘轮（量产闭环 R3 · M2-M4）
+
+> 「好不好玩 / 有没有变好」从口头声明变成机器可校验证据。summary 是**聚合派生产物** ——
+> 由独立判定脚本从既有证据产物装配，agent 不手写、不双份记账（v3 评审订正红线）。
+
+**轮次记录协议（qa/playtest/round-N.md 的机器可解析段）**：`## 观察`（非空）/ `## 动作`（≥1 条
+确定性动作）/ `## 截图`（≥1 条，文件必须真实存在 —— **截图持久化到 qa/playtest/steps/**，
+sessiond 的 tmp steps 会随会话回收删除）/ `## 改进点` / `## 改动` / `## 复玩对比`。
+
+**证据摘要装配 + 完整性校验**（polish 收尾前的硬门禁，缺证据不得判 PASS）：
+
+```bash
+node std-skills/godot-game-dev/scripts/playtest-summary.mjs --game <gamePath> --version-sha "$(git rev-parse HEAD)"
+```
+
+从 qa/mobile/report.json + qa/playtest/round-N.md + 截图装配 `qa/playtest-summary.json`
+（schema 入仓：`schemas/playtest-summary.schema.json`），校验：≥3 轮 / 每轮动作+观察+真实截图 /
+console 归零或附结构化解释（qa/playtest/console-explanations.json）/ 关键交互可达（移动端报告的
+touch/input 类检查）/ 截图数=轮次匹配 / 时间窗 / versionSha。退出码 1 = 按问题清单补证据重跑，
+**绝不手改 summary**。
+
+**视觉棘轮（advisory，绝不拦截 verdict —— 审美官 ENFORCE_ELIGIBLE 前不得当放行条件）**：
+
+```bash
+node std-skills/godot-game-dev/scripts/visual-ratchet.mjs --game <gamePath> \
+  --scenario polish-<runId> --before <上一 run 的 qa/playtest/steps> --after qa/playtest/steps
+```
+
+pHash 整体相似度 diff（D5 定案：首版只做整体 pHash；分区像素 diff 因分区来源未定义推迟）。
+仅同分辨率可比，不可比输出「无法对比」不误报；相似度 < T1=0.70 记「疑似退化」并给建议动作
+（刻意重设计要在轮次记录里解释，非刻意回滚改动复跑取证）。报告落 `qa/visual-ratchet/report.json`
+（scenario / 前后证据路径 / diff 结论 / 建议动作四字段必填）。
+
+**自动放行（ADVISORY 第一阶段）**：playtest / polish 收尾回写 `op=playtest_summary` 产物
+（detail=单行 JSON：autoPassSuggested / reason / rounds / screenshots / consoleErrors /
+versionSha / evidence）；平台按 GET /api/v1/app-creation/auto-pass-stats 统计放行比例。
+ENFORCE 切换受金标校准与人工拍板门控（M5，另立需求跟踪），本技能不提供任何 enforce 开关。
 
 ## 8. 交付物回写
 
