@@ -1,0 +1,17 @@
+# 《以柔克刚》放映页（AppHost 应用 myrdplaygrou-2 / slug）部署清单。
+# 部署姿势（一仓多应用，清单按应用分置）：POST /api/v1/apphost/apps/cmw8yl0gn000vm9at4fwrzu3z/deployments
+#   body: { gitRef: "myrd/video-yiroukegang-goal-cmw8yl0gs000xm9atm3ev9bzc",
+#           manifestPath: "videos/myrdplaygrou-2/apphost.toml" }
+#   —— 线上产物与 goal 功能分支一一对应（分叉期显式绑分支，绝不缺省部署 main）。
+# 与仓库根 apphost.toml（games/myrdplaygrou PvZ 应用、部署自 main）互不干扰。
+# 资产通道：assets_dir 收敛到 apphost/ 子目录（landing.html + 成片/变体 ×3 的 base64 文本资产）。
+#   为什么不是整个 videos/myrdplaygrou-2：平台护栏 assetsMaxFiles=200（builder.ts uploadAssets），
+#   工程整目录已提交 519 个文件（assets/fonts 407 为主），超护栏必被 BuildError 拒绝；
+#   4 文件 / ~81MB 在 ≤200 文件 / ≤200MB 双护栏内。
+#   为什么 mp4 转成 .b64 文本：M1 资产通道对非 gzip 二进制做 UTF-8 解码（有损）、公网网关拦
+#   video/* 与 application/octet-stream（502 UNSUPPORTED_BINARY）——视频唯一无损通道是文本资产，
+#   浏览器端 atob → Blob(video/mp4) → objectURL 喂 <video> 与下载链接。
+name = "以柔克刚"
+runtime = "node20"
+health = "/health"
+assets_dir = "videos/myrdplaygrou-2/apphost"

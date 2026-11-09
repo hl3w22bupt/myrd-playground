@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>以柔克刚 · 放映页（diorama · 61.6s · 16:9）</title>
+<!--
+  《以柔克刚》AppHost 放映页（slug: myrdplaygrou-2）
+  · 由共享壳 server/ 的 GET / 优先伺服本资产（assets_dir 内 landing.html，平台契约）。
+  · 视频不直链 mp4：M1 资产通道/公网网关仅透传文本，mp4 以 base64 文本资产（.b64）出库，
+    浏览器端 atob → Blob(video/mp4) → objectURL 喂 <video> 与下载链接（与本目录 README/apphost.toml 注记同口径）。
+  · 资产引用一律走 api/public/assets/* 相对路径（wheat-squad 判例，适配 /apps/<slug>/ 反代前缀）。
+  · 本页自包含：无 CDN、无外部字体、无构建步骤。
+-->
+<style>
+  :root {
+    --ground: #17110e;        /* 与成片场景同源的墨色地面 */
+    --panel: #221a15;
+    --ink: #f5efe4;
+    --ink-dim: #b9ac97;
+    --gold: #d8b45a;          /* 匾额金字 */
+    --line: #3a2e24;
+    --ok: #7fb069;
+    --err: #e0704a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: var(--ground); color: var(--ink); font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif; }
+  body { min-height: 100vh; padding: 32px 16px 48px; }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  header { margin-bottom: 18px; }
+  h1 { font-size: 34px; letter-spacing: 6px; font-weight: 700; }
+  h1 .en { font-size: 13px; letter-spacing: 2px; color: var(--ink-dim); font-weight: 400; margin-left: 10px; }
+  .subtitle { margin-top: 6px; color: var(--gold); font-size: 15px; letter-spacing: 3px; }
+  .badges { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .badge { border: 1px solid var(--line); background: var(--panel); color: var(--ink-dim); border-radius: 999px; padding: 4px 12px; font-size: 12.5px; letter-spacing: 1px; }
+  .badge b { color: var(--ink); font-weight: 600; }
+  .stage { margin-top: 18px; position: relative; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #000; }
+  .ratio { position: relative; width: 100%; aspect-ratio: 16 / 9; }
+  video { position: absolute; inset: 0; width: 100%; height: 100%; display: block; background: #000; }
+  .cover { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: radial-gradient(ellipse at center, #241b14 0%, #120d0a 75%); z-index: 2; }
+  .cover.hidden { display: none; }
+  .cover .mark { color: var(--ink-dim); font-size: 13px; letter-spacing: 2px; }
+  .cover .title { color: var(--gold); font-size: 26px; letter-spacing: 10px; }
+  #playBtn { cursor: pointer; border: 1px solid var(--gold); color: var(--gold); background: transparent; font-size: 15px; letter-spacing: 4px; padding: 12px 34px; border-radius: 999px; transition: all .2s; }
+  #playBtn:hover:not(:disabled) { background: rgba(216,180,90,.12); }
+  #playBtn:disabled { opacity: .5; cursor: wait; }
+  .progress { width: min(420px, 80%); }
+  .bar { height: 4px; background: #33271d; border-radius: 2px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0%; background: var(--gold); transition: width .2s; }
+  .ptext { margin-top: 8px; font-size: 12px; color: var(--ink-dim); text-align: center; letter-spacing: 1px; }
+  .banner { margin-top: 10px; border: 1px dashed var(--line); border-radius: 10px; padding: 10px 14px; font-size: 12.5px; color: var(--ink-dim); letter-spacing: .5px; line-height: 1.7; }
+  .banner b { color: var(--gold); font-weight: 600; }
+  .grid { margin-top: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+  .card { border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 14px 16px; }
+  .card h3 { font-size: 14.5px; letter-spacing: 1px; color: var(--ink); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tag { font-size: 11px; color: var(--gold); border: 1px solid rgba(216,180,90,.45); border-radius: 4px; padding: 1px 7px; letter-spacing: 1px; white-space: nowrap; }
+  .card p { margin-top: 8px; font-size: 12.5px; color: var(--ink-dim); line-height: 1.75; }
+  .card p code { color: var(--ink); font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11.5px; word-break: break-all; }
+  .actions { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn { cursor: pointer; font-size: 12.5px; letter-spacing: 1px; border-radius: 8px; padding: 8px 14px; border: 1px solid var(--line); color: var(--ink); background: #2b211a; text-decoration: none; display: inline-block; }
+  .btn.primary { border-color: var(--gold); color: var(--gold); }
+  .btn:disabled, .btn.waiting { opacity: .5; cursor: wait; }
+  .status { margin-top: 10px; font-size: 12px; color: var(--ink-dim); min-height: 16px; letter-spacing: .5px; }
+  .status.ok { color: var(--ok); }
+  .status.err { color: var(--err); }
+  section.meta { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 16px; }
+  section.meta h2 { font-size: 15px; letter-spacing: 2px; color: var(--gold); margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  td { padding: 7px 8px; border-bottom: 1px solid #2a211a; vertical-align: top; }
+  td.k { color: var(--ink-dim); white-space: nowrap; width: 118px; letter-spacing: 1px; }
+  td.v { line-height: 1.75; }
+  td.v code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11.5px; color: var(--ink); word-break: break-all; }
+  td.v a { color: var(--gold); }
+  footer { margin-top: 26px; text-align: center; color: var(--ink-dim); font-size: 12px; letter-spacing: 2px; line-height: 1.9; }
+  footer .warn { color: var(--gold); border: 1px solid rgba(216,180,90,.4); display: inline-block; padding: 6px 18px; border-radius: 999px; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>以柔克刚<span class="en">YIRoUKeGANG · diorama short</span></h1>
+    <div class="subtitle">动量与缓冲 · 球道巡礼 —— 一颗球的旅程，一次柔软的胜利</div>
+    <div class="badges">
+      <span class="badge">时长 <b>61.6 秒</b></span>
+      <span class="badge">画幅 <b>16:9 · 1920×1080</b></span>
+      <span class="badge">编码 <b>h264 + AAC</b></span>
+      <span class="badge">视觉 <b>diorama 微缩质感</b></span>
+      <span class="badge">配音 <b>云健男声（TTS）</b></span>
+      <span class="badge">叙事 <b>巡礼四段式</b></span>
+    </div>
+  </header>
+
+  <div class="stage">
+    <div class="ratio">
+      <video id="player" controls playsinline preload="none"></video>
+      <div class="cover" id="cover">
+        <div class="title">以柔克刚</div>
+        <div class="mark">十只保龄球瓶 · 一颗球 · 一条气泡膜的对照实验</div>
+        <button id="playBtn">加 载 并 播 放</button>
+        <div class="progress">
+          <div class="bar"><i id="barFill"></i></div>
+          <div class="ptext" id="ptext">首次播放需从资产通道装载约 34.2 MB（文本通道 → 本地解码），约数秒</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="banner" id="banner">
+    <b>示意渲染 · 非真实影像</b> —— 本片为 Blender（Eevee Next）程序化渲染的立体微缩模型（diorama）示意动画，
+    旁白为 TTS 合成男声，非实拍、非真人配音；片中数据（球 ≤16 磅、气泡膜 1957 年源于墙纸）均经事实核验。
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>正式成片 <span class="tag">MASTER</span></h3>
+      <p>61.600s（1848 帧 @30fps）· 1920×1080 · h264 + AAC 48kHz · 24.5 MB<br>
+         巡礼四段式：启程（0–13.8s）→ 途经（13.8–27.0s）→ 抵达（27.0–49.8s）→ 回望（49.8–61.6s）</p>
+      <div class="actions">
+        <button class="btn primary" data-key="final">▶ 播放成片</button>
+        <a class="btn" id="dl-final" download="以柔克刚_1080p_61.6s.mp4" href="#">⬇ 下载成片 MP4</a>
+      </div>
+      <div class="status" id="st-final">未装载</div>
+    </div>
+    <div class="card">
+      <h3>变体 v2 · 节奏紧凑 <span class="tag">V2</span></h3>
+      <p>59.167s · 1920×1080 · 差异化轴＝节奏：9 段帧精确 trim+concat，每段界前删 8 帧，音画同步按构造保持 · 15.8 MB</p>
+      <div class="actions">
+        <button class="btn" data-key="v2">▶ 播放 v2</button>
+        <a class="btn" id="dl-v2" download="以柔克刚_变体v2_节奏紧凑_59.2s.mp4" href="#">⬇ 下载 v2</a>
+      </div>
+      <div class="status" id="st-v2">未装载</div>
+    </div>
+    <div class="card">
+      <h3>变体 v3 · 暮色蓝调 <span class="tag">V3</span></h3>
+      <p>61.600s · 1920×1080 · 差异化轴＝配色：colorbalance+eq 冷阴影/冷中间调 + 微暖高光，音频与母带逐位一致 · 17.9 MB</p>
+      <div class="actions">
+        <button class="btn" data-key="v3">▶ 播放 v3</button>
+        <a class="btn" id="dl-v3" download="以柔克刚_变体v3_暮色蓝调_61.6s.mp4" href="#">⬇ 下载 v3</a>
+      </div>
+      <div class="status" id="st-v3">未装载</div>
+    </div>
+  </div>
+
+  <section class="meta">
+    <h2>工程与出处</h2>
+    <table>
+      <tr><td class="k">工程目录</td><td class="v"><code>videos/myrdplaygrou-2/</code>（分镜脚本 SPEC/STORYLINES、旁白与配音 assets/vo、素材 assets/blender、成片 renders/、变体 variants/）</td></tr>
+      <tr><td class="k">成片文件</td><td class="v"><code>videos/myrdplaygrou-2/renders/myrdplaygrou-2_2026-11-09_19-02-59.mp4</code>（25,684,079 字节 · sha256 95aed34b…aae9e7a）</td></tr>
+      <tr><td class="k">变体文件</td><td class="v"><code>variants/v2-tempo-cut.mp4</code> · <code>variants/v3-dusk-grade.mp4</code>（派生记录 <code>variants/DERIVATION.json</code>）</td></tr>
+      <tr><td class="k">代码分支</td><td class="v"><a href="https://github.com/hl3w22bupt/myrd-playground/tree/myrd/video-yiroukegang-goal-cmw8yl0gs000xm9atm3ev9bzc/videos/myrdplaygrou-2" target="_blank" rel="noopener">myrd/video-yiroukegang-goal-cmw8yl0gs000xm9atm3ev9bzc</a>（线上产物与该分支一一对应）</td></tr>
+      <tr><td class="k">渲染管线</td><td class="v">Blender Eevee Next（taa_render_samples=64 · AgX Medium High Contrast）1847 帧终稿渲染 → HyperFrames 合成（标题牌/匾额/进度轴/字幕烘焙）→ ffmpeg 合封（crf17）+ 响度归一（−15.8 LUFS / TP −3.9 dBTP / 0 削波）</td></tr>
+      <tr><td class="k">托管信息</td><td class="v">AppHost 应用 <code>cmw8yl0gn000vm9at4fwrzu3z</code>（slug myrdplaygrou-2）· 部署清单 <code>videos/myrdplaygrou-2/apphost.toml</code> · 成片经 base64 文本资产通道出库（M1 网关仅透传文本）</td></tr>
+    </table>
+  </section>
+
+  <footer>
+    <div class="warn">示意渲染 · 非真实影像</div>
+    <div>视频工坊 · 《以柔克刚》目标（cmw8yl0gs000xm9atm3ev9bzc）交付放映页</div>
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  // 资产清单：name = assets_dir 内的 base64 文本资产；bytes = 解码后 mp4 字节数（与仓库 mp4 逐字节一致）
+  var ASSETS = {
+    final: { name: 'yiroukegang-final-1080p.mp4.b64', bytes: 25684079, st: 'st-final', dl: 'dl-final' },
+    v2:    { name: 'yiroukegang-v2-tempo-cut-1080p.mp4.b64', bytes: 16533630, st: 'st-v2', dl: 'dl-v2' },
+    v3:    { name: 'yiroukegang-v3-dusk-grade-1080p.mp4.b64', bytes: 18791678, st: 'st-v3', dl: 'dl-v3' }
+  };
+  var player = document.getElementById('player');
+  var cover = document.getElementById('cover');
+  var playBtn = document.getElementById('playBtn');
+  var barFill = document.getElementById('barFill');
+  var ptext = document.getElementById('ptext');
+  var blobs = {};   // key -> objectURL（装载一次全片共用：播放 + 下载同源）
+  var inflight = {}; // key -> Promise（并发去重）
+
+  function $(id) { return document.getElementById(id); }
+  function setStatus(key, text, cls) {
+    var el = $(ASSETS[key].st);
+    el.textContent = text;
+    el.className = 'status' + (cls ? ' ' + cls : '');
+  }
+  function fmtMB(b) { return (b / 1048576).toFixed(1) + ' MB'; }
+
+  function b64ToBytes(b64) {
+    var clean = b64.replace(/\s+/g, '');
+    var bin = atob(clean);
+    var len = bin.length;
+    var out = new Uint8Array(len);
+    for (var i = 0; i < len; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+
+  // 拉取 base64 文本资产（流式读，按字节报进度），解码为 mp4 Blob
+  function loadAsset(key, onProgress) {
+    if (blobs[key]) return Promise.resolve(blobs[key]);
+    if (inflight[key]) return inflight[key];
+    var url = 'api/public/assets/' + ASSETS[key].name;
+    inflight[key] = fetch(url, { cache: 'force-cache' }).then(function (res) {
+      if (!res.ok) throw new Error('资产通道 HTTP ' + res.status + '（' + url + '）');
+      if (!res.body || !res.body.getReader) return res.text().then(decode);
+      var reader = res.body.getReader();
+      var chunks = [], got = 0;
+      function pump() {
+        return reader.read().then(function (r) {
+          if (r.done) {
+            var parts = chunks.map(function (c) {
+              // 文本通道：逐段 UTF-8 解码后拼接（base64 全 ASCII，分段解码无损）
+              return new TextDecoder('utf-8').decode(c);
+            });
+            return decode(parts.join(''));
+          }
+          chunks.push(r.value);
+          got += r.value.byteLength;
+          if (onProgress) onProgress(got);
+          return pump();
+        });
+      }
+      function decode(text) {
+        var bytes = b64ToBytes(text);
+        if (bytes.byteLength !== ASSETS[key].bytes) {
+          throw new Error('解码后字节数不符：期望 ' + ASSETS[key].bytes + '，实得 ' + bytes.byteLength);
+        }
+        var objUrl = URL.createObjectURL(new Blob([bytes], { type: 'video/mp4' }));
+        blobs[key] = objUrl;
+        return objUrl;
+      }
+      return pump();
+    });
+    return inflight[key];
+  }
+
+  function playKey(key) {
+    setStatus(key, '装载中…（文本通道 → 本地解码）');
+    return loadAsset(key, function (got) {
+      var pct = Math.min(100, Math.round(got * 100 / ASSETS[key].bytes));
+      setStatus(key, '装载中 ' + pct + '% · ' + fmtMB(got) + ' / ' + fmtMB(ASSETS[key].bytes));
+      if (key === 'final') {
+        barFill.style.width = pct + '%';
+        ptext.textContent = '装载中 ' + pct + '%（' + fmtMB(got) + ' / ' + fmtMB(ASSETS[key].bytes) + '）';
+      }
+    }).then(function (objUrl) {
+      if (player.src !== objUrl) {
+        player.src = objUrl;
+        player.load();
+      }
+      $(ASSETS[key].dl).href = objUrl;   // 下载与播放同源（同一 objectURL）
+      setStatus(key, '就绪 · ' + fmtMB(ASSETS[key].bytes) + ' 已可播放/下载', 'ok');
+      if (key === 'final') {
+        cover.classList.add('hidden');
+        playBtn.disabled = false;
+        playBtn.textContent = '重 播';
+        var p = player.play();
+        if (p && p.catch) p.catch(function () { /* 自动播放被策略拦下：让用户手动点播放器 */ });
+      }
+      return objUrl;
+    }).catch(function (e) {
+      setStatus(key, '装载失败：' + (e && e.message ? e.message : e), 'err');
+      if (key === 'final') {
+        ptext.textContent = '装载失败：' + (e && e.message ? e.message : e) + ' —— 可刷新重试';
+        playBtn.disabled = false;
+      }
+      throw e;
+    });
+  }
+
+  playBtn.addEventListener('click', function () {
+    playBtn.disabled = true;
+    ptext.textContent = '开始装载…';
+    playKey('final').catch(function () {});
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll('button[data-key]'), function (b) {
+    b.addEventListener('click', function () {
+      b.disabled = true;
+      b.classList.add('waiting');
+      playKey(b.getAttribute('data-key')).catch(function () {}).then(function () {
+        b.disabled = false;
+        b.classList.remove('waiting');
+      });
+    });
+  });
+
+  // 下载链接：未装载时先装载再触发下载（同一 objectURL，避免二次拉取 34MB）
+  ['final', 'v2', 'v3'].forEach(function (key) {
+    var a = $(ASSETS[key].dl);
+    a.addEventListener('click', function (ev) {
+      if (!blobs[key]) {
+        ev.preventDefault();
+        setStatus(key, '准备下载：先装载…');
+        playBtn.disabled = true;
+        loadAsset(key, function (got) {
+          setStatus(key, '装载中 ' + Math.min(100, Math.round(got * 100 / ASSETS[key].bytes)) + '%');
+        }).then(function (objUrl) {
+          $(ASSETS[key].dl).href = objUrl;
+          setStatus(key, '就绪 · 已触发下载', 'ok');
+          a.click();
+        }).catch(function (e) {
+          setStatus(key, '下载失败：' + (e && e.message ? e.message : e), 'err');
+        }).then(function () { playBtn.disabled = false; });
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

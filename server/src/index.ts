@@ -8,11 +8,15 @@ const app = new Hono();
 
 // 平台契约：健康检查（编排健康探针依据，部署后 30s 内必须 200）。
 // 资产走懒加载（首请求才拉取），/health 不等待资产就绪。
+// 身份常量按分支归属：本分支（myrd/video-yiroukegang-goal-*）只承载视频工坊应用
+// myrdplaygrou-2 的部署（manifestPath=videos/myrdplaygrou-2/apphost.toml）；
+// PvZ 应用（myrdplaygrou）部署自 main，其壳身份在 main 上不受本分支改动影响。
 app.get("/health", (c) =>
   c.json({
     ok: true,
-    app: "myrdplaygrou",
-    title: "植物人大战僵尸-网页版",
+    app: "myrdplaygrou-2",
+    title: "以柔克刚",
+    kind: "video-screening",
     env: ctx.environment,
     assets: "lazy/object-storage",
   }),
@@ -49,7 +53,13 @@ app.get("/api/public/assets/:name{.+}", async (c) => {
   if (!asset) {
     return c.text(`asset not found: ${name}`, 404);
   }
-  const contentType = asset.encoding === "raw" ? asset.contentType : "text/plain; charset=utf-8";
+  // `.b64` = 视频通道：mp4 预编码的 base64 文本资产（videos/myrdplaygrou-2/apphost/*.mp4.b64）。
+  // 平台按扩展名给它的 contentType 是 application/octet-stream，会撞 M1 网关二进制拦截
+  // （502 UNSUPPORTED_BINARY）——必须以 text/plain 出站；浏览器端 atob → Blob(video/mp4)
+  // 还原后喂 <video> 与下载链接（landing.html 同口径）。
+  const isB64TextAsset = name.endsWith(".b64") && !name.endsWith(".gz.b64");
+  const contentType =
+    asset.encoding === "raw" && !isB64TextAsset ? asset.contentType : "text/plain; charset=utf-8";
   return c.body(asset.body, 200, {
     "Content-Type": contentType,
     "Cache-Control": "public, max-age=300",
