@@ -38,8 +38,11 @@
 
 ## 本工程的固定接线（破坏 = 黑屏）
 
-`project.godot` 的 `run/main_scene`、`[autoload] GameState`、`[autoload] Juice`、`[input]` 动作映射，
+`project.godot` 的 `run/main_scene`、`[autoload] GameState`、`[autoload] Juice`、`[autoload] PlaytestBridge`、`[input]` 动作映射，
 以及 `tests/smoke.tscn|gd` 冒烟场景 —— 移植新玩法时逐项保留。
+`PlaytestBridge`（`autoload/playtest_bridge.gd`）是确定性试玩桥（snapshot/reset/setSeed/step，
+契约见 `references/playtest-bridge.md`）：打磨轮「改 → 玩 → 看」循环靠它做跨轮可比 ——
+保留注册、不改四原语契约；游戏专属状态用 `register_provider` 钩子接入快照。
 
 ## 反馈完备性（Juice，见 SKILL.md §3B）
 
