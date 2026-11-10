@@ -1,0 +1,159 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "myrd://std-skills/godot-game-dev/schemas/playtest-summary.schema.json",
+  "title": "qa/playtest-summary.json",
+  "description": "试玩证据聚合视图（量产闭环 R3 · §2.3）。定位红线：本 schema 描述的是【聚合派生产物】——由独立校验脚本 playtest-summary.mjs 从既有证据产物（qa/mobile/report.json、qa/playtest/round-N.md、session.json、截图）装配生成，不是新的并行采集通道；Agent 只按既有协议落盘原始证据，不做双份记账。顶层字段即需求 R3-1 的机器可读要求：rounds / actions / observations / screenshots / consoleErrors / fpsSamples / inputReachability / versionSha / startedAt / endedAt。",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "generatedBy",
+    "valid",
+    "gamePath",
+    "versionSha",
+    "startedAt",
+    "endedAt",
+    "rounds",
+    "actions",
+    "observations",
+    "screenshots",
+    "consoleErrors",
+    "fpsSamples",
+    "inputReachability",
+    "checks"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "generatedBy": { "const": "playtest-summary.mjs", "description": "聚合装配脚本身份（证明是派生产物而非 agent 手写）" },
+    "valid": { "type": "boolean", "description": "完整性校验结论；false 时节点不得判 PASS" },
+    "gamePath": { "type": "string" },
+    "versionSha": { "type": "string", "minLength": 1, "description": "本次 run 构建产物 sha（脚本取当前 HEAD；跨 run 一致性由消费方比对）" },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "endedAt": { "type": "string", "format": "date-time" },
+    "rounds": {
+      "type": "array",
+      "minItems": 3,
+      "description": "每 run ≥3 轮「改→玩→看」（C1）",
+      "items": {
+        "type": "object",
+        "required": ["round", "file", "observation", "actions", "screenshots"],
+        "properties": {
+          "round": { "type": "integer" },
+          "file": { "type": "string", "description": "round-N.md 路径（既有协议产物）" },
+          "observation": { "type": "string", "minLength": 1 },
+          "actions": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "screenshots": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["path", "bytes", "mtime"],
+              "properties": {
+                "path": { "type": "string" },
+                "bytes": { "type": "integer", "minimum": 1 },
+                "mtime": { "type": "string", "format": "date-time" }
+              }
+            }
+          },
+          "improvements": { "type": ["string", "null"] },
+          "changes": { "type": ["string", "null"] },
+          "replayConclusion": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "minItems": 3,
+      "description": "全轮动作汇总（带轮次与时间戳；试玩桥动作序列的索引）",
+      "items": {
+        "type": "object",
+        "required": ["round", "action", "timestamp"],
+        "properties": {
+          "round": { "type": "integer" },
+          "action": { "type": "string" },
+          "timestamp": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "observations": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["round", "observation"],
+        "properties": {
+          "round": { "type": "integer" },
+          "observation": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "screenshots": {
+      "type": "array",
+      "minItems": 3,
+      "description": "顶层截图索引；数量必须等于各轮 screenshots 之和（C5，验收「截图数量与轮次匹配」）",
+      "items": {
+        "type": "object",
+        "required": ["path", "bytes", "mtime"],
+        "properties": {
+          "path": { "type": "string" },
+          "bytes": { "type": "integer", "minimum": 1 },
+          "mtime": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "consoleErrors": {
+      "type": "array",
+      "description": "来自 qa/mobile/report.json；为空或每条附结构化解释 { cause, impact, fix }（C3）",
+      "items": {
+        "type": "object",
+        "required": ["message"],
+        "properties": {
+          "message": { "type": "string" },
+          "explanation": {
+            "type": ["object", "null"],
+            "required": ["cause", "impact", "fix"],
+            "properties": {
+              "cause": { "type": "string" },
+              "impact": { "type": "string" },
+              "fix": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "fpsSamples": { "type": "array", "minItems": 1, "items": { "type": "number", "exclusiveMinimum": 0 } },
+    "inputReachability": {
+      "type": "array",
+      "minItems": 1,
+      "description": "关键交互可达性（从 qa/mobile/report.json 的 touch/input 类检查派生）；必须全部 reachable=true（C4）",
+      "items": {
+        "type": "object",
+        "required": ["name", "reachable"],
+        "properties": {
+          "name": { "type": "string" },
+          "reachable": { "const": true },
+          "detail": { "type": "string" }
+        }
+      }
+    },
+    "checks": {
+      "type": "object",
+      "required": [
+        "roundsAtLeastThree",
+        "eachRoundComplete",
+        "consoleCleanOrExplained",
+        "interactionsReachable",
+        "screenshotsMatchRounds",
+        "evidenceWithinWindow"
+      ],
+      "properties": {
+        "roundsAtLeastThree": { "const": true },
+        "eachRoundComplete": { "const": true },
+        "consoleCleanOrExplained": { "const": true },
+        "interactionsReachable": { "const": true },
+        "screenshotsMatchRounds": { "const": true },
+        "evidenceWithinWindow": { "const": true }
+      }
+    },
+    "mobileReport": { "type": ["string", "null"] }
+  }
+}
