@@ -8,86 +8,110 @@
     "mobile": true,
     "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
   },
-  "checkedAt": "2026-11-10T17:47:37.490Z",
+  "checkedAt": "2026-11-10T18:24:42.618Z",
   "checks": [
     {
       "id": "network",
       "label": "关键资源网络全通（无 5xx / 404 / 登录墙重定向）",
       "status": "pass",
-      "detail": ""
+      "detail": "",
+      "name": "network",
+      "pass": true
     },
     {
       "id": "network-warn",
       "label": "非关键资源异常（不阻断）",
       "status": "warn",
-      "detail": "404 http://127.0.0.1:8137/favicon.ico；404 http://127.0.0.1:8137/favicon.ico"
+      "detail": "404 http://127.0.0.1:8137/favicon.ico；404 http://127.0.0.1:8137/favicon.ico",
+      "name": "network-warn",
+      "pass": true
     },
     {
       "id": "console",
       "label": "console 零 error + 零未捕获异常",
       "status": "pass",
-      "detail": ""
+      "detail": "",
+      "name": "console",
+      "pass": true
     },
     {
       "id": "canvas",
       "label": "canvas 存在（引擎产物已挂载）",
       "status": "pass",
-      "detail": ""
+      "detail": "",
+      "name": "canvas",
+      "pass": true
     },
     {
       "id": "render",
       "label": "首帧截图非纯色（400 点采样 ≥2 种量化色）",
       "status": "pass",
-      "detail": "采样仅 22 种颜色——画面没渲染出来（黑屏/白屏）"
+      "detail": "采样仅 23 种颜色——画面没渲染出来（黑屏/白屏）",
+      "name": "render",
+      "pass": true
     },
     {
       "id": "animate",
       "label": "画面在动（1.5s 双时点帧差 > 0）",
       "status": "pass",
-      "detail": "400 采样点零变化——主循环挂死或渲染冻结"
+      "detail": "400 采样点零变化——主循环挂死或渲染冻结",
+      "name": "animate",
+      "pass": true
     },
     {
       "id": "touch-pipeline",
       "label": "触摸事件到达 DOM（tap/swipe 均被派发）",
       "status": "pass",
-      "detail": "tap={\"touchstart\":1,\"touchmove\":0,\"touchend\":1} swipe={\"touchstart\":2,\"touchmove\":8,\"touchend\":2}——事件没到页面=壳层挡了输入"
+      "detail": "tap={\"touchstart\":1,\"touchmove\":0,\"touchend\":1} swipe={\"touchstart\":2,\"touchmove\":8,\"touchend\":2}——事件没到页面=壳层挡了输入",
+      "name": "touch-pipeline",
+      "pass": true
     },
     {
       "id": "touch-response",
       "label": "触摸后画面有响应（tap 后帧差 > 0 或产生新活动）",
       "status": "pass",
-      "detail": ""
+      "detail": "",
+      "name": "touch-response",
+      "pass": true
     },
     {
       "id": "joystick-target",
       "label": "摇杆热区已校准（--project）",
       "status": "warn",
-      "detail": "未传 --project——回退旧版固定坐标 swipe，仅取证不断言；线上门禁应带 --project <工程目录>"
+      "detail": "未传 --project——回退旧版固定坐标 swipe，仅取证不断言；线上门禁应带 --project <工程目录>",
+      "name": "joystick-target",
+      "pass": true
     },
     {
       "id": "audio-unlock",
       "label": "音频手势解锁器存在（window.__audioDebug）",
       "status": "pass",
-      "detail": "typeof __audioDebug === \"function\"——缺解锁层 = 移动端全部音效静默且控制台零报错（取证：games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md）"
+      "detail": "typeof __audioDebug === \"function\"——缺解锁层 = 移动端全部音效静默且控制台零报错（取证：games/soccer/qa/MOBILE_AUDIO_ROOT_CAUSE.md）",
+      "name": "audio-unlock",
+      "pass": true
     },
     {
       "id": "viewport",
       "label": "无横向溢出（scrollWidth ≤ clientWidth+1）",
       "status": "pass",
-      "detail": "scrollWidth=390 vs clientWidth=390"
+      "detail": "scrollWidth=390 vs clientWidth=390",
+      "name": "viewport",
+      "pass": true
     },
     {
       "id": "fps",
       "label": "FPS ≥ 8（swiftshader 软渲染口径）",
       "status": "pass",
-      "detail": "实测 10 fps"
+      "detail": "实测 11 fps",
+      "name": "fps",
+      "pass": true
     }
   ],
   "metrics": {
-    "colorCount": 22,
-    "idleDiff": 129,
+    "colorCount": 23,
+    "idleDiff": 102,
     "tapDiff": 400,
-    "fps": 10,
+    "fps": 11,
     "joyAreaDiff": 0,
     "joyChurn": 0,
     "scrollWidth": 390,

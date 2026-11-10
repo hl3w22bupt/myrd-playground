@@ -1,0 +1,26 @@
+
+===== preflight：myrdplaygrou-3 =====
+  PASS  P1 package.json private=true
+  PASS  P1 devDependencies.three=0.185.1 精确钉版
+  PASS  P1 devDependencies.esbuild=0.28.2 精确钉版
+  PASS  P1 scripts.build = node tools/build.mjs
+  PASS  P1 package-lock.json 已提交（新检出可复现）
+  PASS  P2 src/numeric.js 存在（数值唯一来源）
+  PASS  P2 内核引用 numeric.js
+  PASS  P3 内核纯度：4 个文件零 three/零 DOM/零系统随机时钟
+  PASS  P4 四态状态机声明齐全（title/playing/paused/gameover）
+  PASS  P4 状态机含 restart/reset（重开必须整 world 重建，见 E-10）
+  PASS  P5 键鼠与触摸输入并存
+  PASS  P5 index.template.html 声明 touch-action:none（手势冲突兜底）
+  PASS  P5 viewport 禁缩放（maximum-scale=1）
+  PASS  P6 画质四件套齐全
+  PASS  P7 产物零外链（单文件契约）
+  PASS  P7 产物无 importmap（依赖全内联，见 E-02）
+  PASS  P8 tools/build.mjs 存在
+  PASS  P8 tools/src-sha.mjs 存在
+  PASS  P8 tools/verify-reproducible.mjs 存在
+  PASS  P8 tests/run-all.mjs 存在
+  PASS  P8 index.template.html 存在
+
+===== preflight 汇总 =====
+PREFLIGHT: PASS（0 项 WARN）

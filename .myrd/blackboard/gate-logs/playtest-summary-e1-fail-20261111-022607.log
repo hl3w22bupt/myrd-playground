@@ -1,0 +1,5 @@
+playtest-summary: 发现 1 处证据缺口（FAIL）：
+  - [C4] 关键交互不可达: joystick-target（）
+playtest-summary: rounds=4 screenshots=34 actions=13 consoleErrors=0 fps=11 reachability=2/3 versionSha=ef9654f27197
+playtest-summary: 已写 games/myrdplaygrou-3/qa/playtest-summary.json
+PLAYTEST_SUMMARY: FAIL

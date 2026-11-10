@@ -429,7 +429,14 @@ try {
   const report = {
     verdict: failed.length === 0 ? "PASS" : "FAIL",
     url: URL_ARG, preset: { ...VIEWPORT, ua: UA }, checkedAt: new Date().toISOString(),
-    checks: results, metrics: { colorCount, idleDiff, tapDiff, fps, joyAreaDiff, joyChurn, ...viewportInfo },
+    // checks 镜像字段（schema 对齐）：读数器 playtest-summary.mjs C4 读 name/pass 形状，
+    // 产出器本体是 id/label/status——此处追加镜像字段，原 id/label/status 保留不动（向后兼容）。
+    // pass 镜像「该项是否阻断」= status !== "fail"：warn 是产出器自定的 advisory 级
+    // （joystick-target / network-warn 等，verdict 计算只看 fail，见上 failed 过滤器），
+    // 若镜像成 status === "pass" 会把 advisory 项伪造成「关键交互不可达」——正是本补丁
+    // 要消除的 schema 漂移假阴性（实测：strict 镜像 → C4 误报 joystick-target）。
+    checks: results.map((r) => ({ ...r, name: String(r.id), pass: r.status !== "fail" })),
+    metrics: { colorCount, idleDiff, tapDiff, fps, joyAreaDiff, joyChurn, ...viewportInfo },
     networkFailures: failures, networkWarnings: warnings,
     consoleErrors: consoleErrors.slice(0, 20),
     touchCounters: { afterTap: tapCounters, afterSwipe: joyCounters },

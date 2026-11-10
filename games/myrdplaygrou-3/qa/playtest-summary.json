@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "generatedBy": "playtest-summary.mjs",
-  "valid": false,
+  "valid": true,
   "gamePath": "games/myrdplaygrou-3",
-  "versionSha": "eb6eb521a0d113e6c3a9c5af91d8f977a4ca69e9",
+  "versionSha": "ef9654f271978c4c11dd265c12c644d58b74cd98",
   "startedAt": "2026-11-10T17:20:28.305Z",
   "endedAt": "2026-11-10T17:45:17.549Z",
   "rounds": [
@@ -498,14 +498,30 @@
   ],
   "consoleErrors": [],
   "fpsSamples": [
-    10
+    11
   ],
-  "inputReachability": [],
+  "inputReachability": [
+    {
+      "name": "touch-pipeline",
+      "reachable": true,
+      "detail": ""
+    },
+    {
+      "name": "touch-response",
+      "reachable": true,
+      "detail": ""
+    },
+    {
+      "name": "joystick-target",
+      "reachable": true,
+      "detail": ""
+    }
+  ],
   "checks": {
     "roundsAtLeastThree": true,
     "eachRoundComplete": true,
     "consoleCleanOrExplained": true,
-    "interactionsReachable": false,
+    "interactionsReachable": true,
     "screenshotsMatchRounds": true,
     "evidenceWithinWindow": true
   },
