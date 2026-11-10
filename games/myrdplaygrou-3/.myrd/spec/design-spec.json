@@ -12,8 +12,8 @@
     "input": "触屏优先（兼容键盘）",
     "orientation": "竖屏（手机优先）",
     "roundMinutes": "1-3 分钟一局（ROUND_SECONDS=90）",
-    "difficulty": "平缓大众（守门员横移峰值 ≈5.4m/s、射门自动瞄准辅助、打偏无惩罚）",
-    "audio": "BGM 与音效齐备（WebAudio 程序化合成：16 步琶音+鼓组循环 BGM，哨声/射门/收集/扑救/结算音效）"
+    "difficulty": "平缓大众（守门员横移峰值 5.4→7.6m/s 随进球梯度上调并封顶、射门自动瞄准辅助、打偏无惩罚、失败线仅『整场未破门』）",
+    "audio": "BGM 与音效齐备（WebAudio 程序化合成：16 步琶音+鼓组循环 BGM，哨声/射门/收集/扑救/结算/倒计时滴答音效）"
   },
   "numeric": {
     "FIXED_STEP": 0.016666666666666666,
@@ -39,37 +39,48 @@
     "KEEPER_RANGE": 3.0,
     "KEEPER_SPEED": 0.45,
     "KEEPER_Z": 14.6,
+    "KEEPER_RAMP_PER_GOAL": 0.15,
+    "KEEPER_RAMP_MAX": 1.4,
     "COIN_COUNT": 10,
     "COIN_RADIUS": 0.9,
     "COIN_SCORE": 5,
     "GOAL_SCORE": 100,
     "GOALS_TO_WIN": 3,
+    "COIN_RESPAWN_MIN_PLAYER_DIST": 3,
+    "COIN_RESPAWN_GUARD": 600,
+    "CAM_HEIGHT": 24,
+    "CAM_BACK": 6,
+    "CAM_AHEAD": 2.7,
+    "CAM_LATERAL": 0.5,
+    "CAM_FRONT_LIMIT": 12,
     "ROUND_SECONDS": 90,
     "SEED_DEFAULT": 20261110,
-    "note": "代码唯一镜像 = games/myrdplaygrou-3/src/numeric.js；手感类参数（PLAYER_SPEED/AIM_GAIN/KEEPER_SPEED 等）集中此处，需人工试玩校准"
+    "note": "代码唯一镜像 = games/myrdplaygrou-3/src/numeric.js；手感类参数（PLAYER_SPEED/AIM_GAIN/KEEPER_SPEED/KEEPER_RAMP_*/CAM_* 等）集中此处，需人工试玩校准"
   },
   "entities": [
     { "id": "player", "desc": "蓝衣球员（主色 #3498db），带球跑动 + 射门", "code": "src/kernel/world.js stepWorld" },
     { "id": "ball", "desc": "足球：dribble（吸附球员朝向前方）/ shot（直飞+指数摩擦+反弹）两态", "code": "src/kernel/world.js" },
-    { "id": "keeper", "desc": "橙衣守门员（强调色 #f39c12），三角波相位巡逻，圆碰撞扑救", "code": "src/kernel/world.js triangleWave" },
-    { "id": "coin", "desc": "金币 ×10，种子驱动拒绝采样散布，跑过即收（休闲收集主循环）", "code": "src/levels/level-01.js coinLayout" },
-    { "id": "goal", "desc": "+Z 端球门（宽 6m），过门线且在柱间 = 进球 +100 分", "code": "src/kernel/world.js" }
+    { "id": "keeper", "desc": "橙衣守门员（强调色 #f39c12），三角波相位巡逻，圆碰撞扑救；相位速度随进球数梯度上调 ×(1+0.15·进球) 封顶 ×1.4（难度梯度：成功驱动爬坡，峰值横移始终 < 玩家速度）", "code": "src/kernel/world.js keeperSpeedFor/triangleWave" },
+    { "id": "coin", "desc": "金币场上恒 10 枚：开局种子驱动拒绝采样散布，收集当步即补位（补位点同源约束确定性采样，避开玩家 3m/同伴 2.5m/守门员带/训练桩），跑过即收（休闲收集主循环不枯竭）", "code": "src/levels/level-01.js coinLayout/coinRespawnSpot" },
+    { "id": "goal", "desc": "+Z 端球门（宽 6m），过门线且在柱间 = 进球 +100 分；z=SHOOT_MIN_Z 处场地白虚线为射程触发线的空间语义提示", "code": "src/kernel/world.js + src/render/textures.js fieldTexture" }
   ],
   "acceptance": [
     { "id": "ac-state-machine", "mode": "auto", "check": "node games/myrdplaygrou-3/tests/state-machine.spec.mjs", "statement": "四态状态机（title/playing/paused/gameover）守卫转移、边界对抗（连按/结算瞬间/重开全复位/零 NaN）全绿" },
-    { "id": "ac-determinism", "mode": "auto", "check": "node games/myrdplaygrou-3/tests/kernel-determinism.spec.mjs", "statement": "同 seed 同意图序列 → 最终状态逐字段一致；异 seed 金币布局不同；贪心 90s 必射门必进球并终局" },
-    { "id": "ac-football-loop", "mode": "auto", "check": "node games/myrdplaygrou-3/tests/football-contract.spec.mjs", "statement": "射门事件守恒（kick 数 = world.shots，goal+save ≤ kicks）；3 球提前获胜且时间未耗尽；进球后开球重置；金币计数守恒；守门员确定性；射门冷却防抖振" },
+    { "id": "ac-determinism", "mode": "auto", "check": "node games/myrdplaygrou-3/tests/kernel-determinism.spec.mjs", "statement": "同 seed 同意图序列 → 最终状态逐字段一致（含补位后金币全表）；异 seed 金币布局不同；贪心 90s 必射门必进球并终局" },
+    { "id": "ac-football-loop", "mode": "auto", "check": "node games/myrdplaygrou-3/tests/football-contract.spec.mjs", "statement": "射门事件守恒（kick 数 = world.shots，goal+save ≤ kicks）；3 球提前获胜且时间未耗尽；进球当步开球重置（步级精断）；收集当步补位（场上恒 COIN_COUNT、collect 事件数 = coinsCollected、落点约束）；金币补位确定性；守门员确定性；射门冷却防抖振" },
+    { "id": "ac-difficulty-ramp", "mode": "auto", "check": "node games/myrdplaygrou-3/tests/football-contract.spec.mjs", "statement": "难度梯度（平缓大众）：keeperSpeedFor 随进球单调上调、公式 = KEEPER_SPEED×(1+KEEPER_RAMP_PER_GOAL×进球)、封顶 KEEPER_RAMP_MAX、负数/NaN 回退基准；stepWorld 实测位移随进球上升；封顶峰值横移 < PLAYER_SPEED（守门员永远追不上人）；重开后梯度归零" },
+    { "id": "ac-coin-respawn", "mode": "auto", "check": "node games/myrdplaygrou-3/tests/football-contract.spec.mjs", "statement": "休闲收集循环不枯竭：对局全程场上恒 COIN_COUNT 枚（存活数不下降）、金币槽位 id 稳定（渲染映射不漂移）、补位落点在采样带内且避开守门员带、同伴间距不塌缩、数值健康无 NaN" },
     { "id": "ac-build-reproducible", "mode": "auto", "check": "node games/myrdplaygrou-3/tests/run-all.mjs", "statement": "两次构建逐字节一致 + 磁盘产物一致 + 单文件零外链 + 内核/状态机/玩法契约聚合全绿（GAME-GATES: PASS）" },
     { "id": "ac-browser-smoke", "mode": "auto", "check": "node std-skills/threejs-game-dev/scripts/browser-smoke.mjs games/myrdplaygrou-3", "statement": "CDP 桌面 1280×720 + 移动 720×1280 双视口：零异常、渲染开始、fps≥10、状态推进、截图非纯色（BROWSER-SMOKE: PASS）" },
     { "id": "ac-round-length", "mode": "auto", "check": "node games/myrdplaygrou-3/tests/kernel-determinism.spec.mjs", "statement": "单局时长带：ROUND_SECONDS=90s 落在 1-3 分钟设计带；3 球提前获胜在带内缩短单局（试玩轮再校准）" },
-    { "id": "ac-human-playtest", "mode": "manual", "check": "试玩量表（playtest 节点回填）", "statement": "手感与难度人工试玩校准（PLAYER_SPEED / AIM_GAIN / KEEPER_SPEED / GOALS_TO_WIN 均在 src/numeric.js 集中可调）；未回填前本条不判达" }
+    { "id": "ac-human-playtest", "mode": "manual", "check": "试玩量表（playtest 节点回填）", "statement": "手感与难度人工试玩校准（PLAYER_SPEED / AIM_GAIN / KEEPER_SPEED / KEEPER_RAMP_* / GOALS_TO_WIN / CAM_* 均在 src/numeric.js 集中可调）；未回填前本条不判达" }
   ],
   "assets": [
     {
       "assetKey": "field-texture",
       "role": "tileset",
       "source": "programmatic",
-      "spec": "1024×1638 单张草地贴图：扁平明快条纹草绿 #2ecc71/#27b463 + 白线（边线/中线/中圈/禁区/点球点），风格卡 palette 段",
+      "spec": "1024×1638 单张草地贴图：扁平明快条纹草绿 #2ecc71/#27b463 + 白线（边线/中线/中圈/禁区/点球点/射程白虚线 z=SHOOT_MIN_Z），风格卡 palette 段",
       "reason": "程序化更优：单文件契约要求零外部资源，canvas 绘制条纹+白线是纯几何图案，程序化零体积成本且与 numeric 场地尺寸同源缩放；外部生成位图反而破坏单文件零外链门禁",
       "runtimeUse": "src/render/textures.js fieldTexture() → src/render/scene.js buildArena() 场地 Plane"
     },

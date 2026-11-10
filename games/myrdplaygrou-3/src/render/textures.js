@@ -2,7 +2,7 @@
 // 配色收口到本文件的调色板（风格卡 palette 镜像：#3498db / #2ecc71 / #f39c12 扁平明快），
 // HUD（index.template.html CSS 变量）与场景同源。
 import * as THREE from "three";
-import { FIELD_HALF_W, FIELD_HALF_L, GOAL_WIDTH } from "../numeric.js";
+import { FIELD_HALF_W, FIELD_HALF_L, GOAL_WIDTH, SHOOT_MIN_Z } from "../numeric.js";
 
 export const PALETTE = Object.freeze({
   // 全部 CSS 字符串：canvas 2D fillStyle/strokeStyle 只认字符串（数字会被静默忽略 → 透明黑贴图）；
@@ -55,6 +55,15 @@ export function fieldTexture() {
     g.arc(w / 2, top ? 8 / W : h - 8 / W, 4, 0, Math.PI * 2);
     g.fill();
   }
+  // 射程白虚线（z = SHOOT_MIN_Z，射门触发线）：空间语义提示 —— 压线才能起脚，操作说明不常驻
+  // 画布纵向映射：v=1（画布顶）= 世界 -Z（球员半场），故 z=+8 在中线（h/2）下方 8/W 像素处
+  const shootY = h / 2 + SHOOT_MIN_Z / W;
+  g.setLineDash([26, 18]);
+  g.beginPath();
+  g.moveTo(lw * 2, shootY);
+  g.lineTo(w - lw * 2, shootY);
+  g.stroke();
+  g.setLineDash([]);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace; // 忘了这行贴图会发白
   t.anisotropy = 4;

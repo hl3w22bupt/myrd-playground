@@ -3,7 +3,7 @@
   "kind": "browser-smoke-report",
   "product": "/Users/leo/.myrd/workspaces/cmvqriupu0007m9qphvokoci9/run-cmwar74im003km9m2cwb92xkq/games/myrdplaygrou-3/index.html",
   "seconds": 62,
-  "checkedAt": "2026-11-10T15:46:39.654Z",
+  "checkedAt": "2026-11-10T16:35:03.752Z",
   "note": "render 性能快照为证据记录，非硬门禁（headless SwiftShader 软渲染，阈值待采集基线）",
   "viewports": [
     {
@@ -15,29 +15,35 @@
       "payload": {
         "ok": true,
         "state": "gameover",
-        "score": 315,
+        "score": 340,
         "goals": 3,
         "shots": 4,
-        "collected": 3,
+        "collected": 8,
         "total": 10,
-        "timeLeft": 83.10000000000039,
+        "timeLeft": 81.1000000000005,
         "frames": 30,
-        "fps": 12.6,
+        "fps": 16.4,
         "exceptions": 0,
         "viewport": {
           "width": 1280,
           "height": 577,
           "dpr": 1
         },
+        "layout": {
+          "scrollWidth": 1280,
+          "scrollHeight": 577,
+          "overflowX": false,
+          "overflowY": false
+        },
         "render": {
-          "drawCalls": 60,
-          "triangles": 6244,
+          "drawCalls": 66,
+          "triangles": 6724,
           "geometries": 33,
           "textures": 20,
           "programs": 15
         }
       },
-      "pixelColors": 17,
+      "pixelColors": 15,
       "consoleErrors": 0,
       "screenshot": "smoke-desktop.png"
     },
@@ -50,29 +56,35 @@
       "payload": {
         "ok": true,
         "state": "gameover",
-        "score": 315,
+        "score": 340,
         "goals": 3,
         "shots": 4,
-        "collected": 3,
+        "collected": 8,
         "total": 10,
-        "timeLeft": 83.10000000000039,
+        "timeLeft": 81.1000000000005,
         "frames": 30,
-        "fps": 10.7,
+        "fps": 14.2,
         "exceptions": 0,
         "viewport": {
           "width": 720,
           "height": 1137,
           "dpr": 1
         },
+        "layout": {
+          "scrollWidth": 720,
+          "scrollHeight": 1137,
+          "overflowX": false,
+          "overflowY": false
+        },
         "render": {
-          "drawCalls": 61,
-          "triangles": 6324,
+          "drawCalls": 70,
+          "triangles": 6908,
           "geometries": 33,
           "textures": 20,
           "programs": 15
         }
       },
-      "pixelColors": 24,
+      "pixelColors": 19,
       "consoleErrors": 0,
       "screenshot": "smoke-mobile.png"
     }

@@ -54,7 +54,11 @@ export function createTouchControls(canvas, { onConfirm }) {
   return {
     /** 当前摇杆意图（未摇动 = 零向量）；键盘 intent 与其合并后喂内核 */
     intent: () => ({ ...intent }),
-    /** 摇杆可视化数据（调试面板/展示用）：锚点 + 当前位移 */
-    joystickState: () => ({ active: joystick.activeId !== null, dx: joystick.dx, dy: joystick.dy, max: MAX_RADIUS }),
+    /** 摇杆可视化数据（HUD 渲染消费）：锚点（屏幕坐标）+ 当前位移 */
+    joystickState: () => ({
+      active: joystick.activeId !== null,
+      sx: joystick.startX, sy: joystick.startY,
+      dx: joystick.dx, dy: joystick.dy, max: MAX_RADIUS,
+    }),
   };
 }

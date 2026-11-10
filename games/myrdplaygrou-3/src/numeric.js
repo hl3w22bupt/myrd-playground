@@ -30,15 +30,32 @@ export const SHOT_LIVE_SECONDS = 2.5;    // 射出后最长存活（秒），超
 // —— 守门员（三角波巡逻，平缓）——
 export const KEEPER_RADIUS = 0.8;
 export const KEEPER_RANGE = 3.0;         // 横移半幅（米）：覆盖 ±3 = 门宽
-export const KEEPER_SPEED = 0.45;        // 相位速度：横移峰值 = 4×R×S ≈ 5.4m/s，单程 ≈1.2s（平缓但有扑救）
+export const KEEPER_SPEED = 0.45;        // 基准相位速度：横移峰值 = 4×R×S ≈ 5.4m/s，单程 ≈1.1s
 export const KEEPER_Z = 14.6;            // 站位（门线前 1.4m）
 
+// —— 难度梯度（平缓大众：成功驱动的缓爬坡，不惩罚挣扎玩家）——
+export const KEEPER_RAMP_PER_GOAL = 0.15; // 每进 1 球守门员相位速度增幅：×(1 + 0.15·进球数)
+export const KEEPER_RAMP_MAX = 1.4;       // 提速倍率封顶：峰值横移 ≈7.6m/s，仍低于玩家 9m/s（守门员永远追不上人）
+
 // —— 收集与得分 ——
-export const COIN_COUNT = 10;            // 场上金币数量
+export const COIN_COUNT = 10;            // 场上恒持金币数量（收集当步即补位，休闲收集循环不枯竭）
 export const COIN_RADIUS = 0.9;          // 收集判定半径（玩家中心到金币中心，另加 PLAYER_RADIUS）
 export const COIN_SCORE = 5;             // 每枚金币得分
 export const GOAL_SCORE = 100;           // 每球得分
 export const GOALS_TO_WIN = 3;           // 进 3 球提前终局获胜
+
+// —— 金币补位（收集即补：补位点确定性采样，同 seed 同输入 → 同补位序列）——
+export const COIN_RESPAWN_MIN_PLAYER_DIST = 3; // 补位点与玩家最小距离（米）：不白给，要跑动拿
+export const COIN_RESPAWN_GUARD = 600;         // 补位拒绝采样上限（次）：后 1/3 逐步放宽阈值，兜底确定性环带
+
+// —— 相机（竖屏高机位跟随机位：手感类，需试玩校准；render 层只读消费）——
+// 竖屏口径：俯仰 ≈70°（h/back+ahead 几何解）时 FOV72 的画幅纵向恰好被整场充满，
+// 上缘落在门后环带（消死天空）、球员恒居画幅中部偏下 —— 手机优先构图。
+export const CAM_HEIGHT = 24;            // 机位高度（米）
+export const CAM_BACK = 6;               // 机位在玩家身后（-Z 方向）的偏移（米）
+export const CAM_AHEAD = 2.7;            // 视线落点在玩家前方（+Z 方向）的偏移（米）：决定俯仰角
+export const CAM_LATERAL = 0.5;          // 机位横向跟随系数（0=纯中轴，1=全跟随；机位与视线同 x → 零偏航）
+export const CAM_FRONT_LIMIT = 12;       // 机位最前位：门线前 12m 处停止前压（门前构图锁定，门后环带不入画）
 
 // —— 单局 ——
 export const ROUND_SECONDS = 90;         // 单局时长（秒）：落在 1-3 分钟设计带

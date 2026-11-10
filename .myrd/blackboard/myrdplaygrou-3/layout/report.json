@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "kind": "layout-probe-report",
+  "mode": "playing",
+  "note": "QA 取证工具，非门禁（判定器 = std-skills/threejs-game-dev/scripts/ 三脚本）",
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "dpr": 3
+  },
+  "checkedAt": "2026-11-10T16:34:23.875Z",
+  "payload": {
+    "ok": true,
+    "state": "playing",
+    "score": 110,
+    "goals": 1,
+    "shots": 1,
+    "collected": 2,
+    "total": 10,
+    "timeLeft": 87.00000000000017,
+    "frames": 30,
+    "fps": 32.2,
+    "exceptions": 0,
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "dpr": 3
+    },
+    "layout": {
+      "scrollWidth": 390,
+      "scrollHeight": 844,
+      "overflowX": false,
+      "overflowY": false
+    },
+    "render": {
+      "drawCalls": 62,
+      "triangles": 6068,
+      "geometries": 31,
+      "textures": 20,
+      "programs": 13
+    }
+  },
+  "hudGeometry": {
+    "rows": 2,
+    "chipCount": 4,
+    "hudRect": {
+      "x": 0,
+      "y": 0,
+      "width": 326,
+      "height": 102,
+      "top": 0,
+      "right": 326,
+      "bottom": 102,
+      "left": 0
+    }
+  },
+  "controls": [
+    {
+      "id": "btn-pause",
+      "w": 44,
+      "h": 44,
+      "ok": true
+    }
+  ],
+  "titleParagraphs": null,
+  "failures": []
+}

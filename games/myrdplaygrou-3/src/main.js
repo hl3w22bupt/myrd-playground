@@ -3,10 +3,10 @@
 // 表现层每帧只读内核渲染。?smoke=<秒> 无头冒烟协议见文件尾部。
 import { createGame } from "./kernel/loop.js";
 import { greedyIntent } from "./kernel/autopilot.js";
-import { SEED_DEFAULT } from "./numeric.js";
+import { SEED_DEFAULT, KEEPER_Z, GOAL_SCORE, GOALS_TO_WIN, SHOOT_MIN_Z } from "./numeric.js";
 import {
   buildRenderer, buildScene, buildComposer, buildCamera, buildArena,
-  buildPlayer, buildKeeper, buildBall, buildCoins, followCamera, onResize,
+  buildPlayer, buildKeeper, buildBall, buildCoins, followCamera, snapCamera, onResize,
 } from "./render/scene.js";
 import { createHud } from "./render/hud.js";
 import { unlockAudio, sfx, bgm } from "./render/audio.js";
@@ -91,24 +91,39 @@ document.addEventListener("keydown", (e) => {
   }
 });
 document.addEventListener("keyup", (e) => keys.delete(e.code));
-document.getElementById("btn-pause").addEventListener("click", () => {
+
+/** 暂停/恢复（暂停按钮 + P/Esc 共用；暂停屏「继续」按钮也走这里） */
+function togglePause() {
   unlockAudio();
   if (game.state === "playing") { game.pause(); sfx.pause(); bgm.stop(); }
   else if (game.state === "paused") { game.resume(); sfx.resume(); bgm.start(); }
+}
+document.getElementById("btn-pause").addEventListener("click", togglePause);
+document.getElementById("btn-start").addEventListener("click", () => primary());
+document.getElementById("btn-resume").addEventListener("click", () => {
+  unlockAudio();
+  if (game.state === "paused") { game.resume(); sfx.resume(); bgm.start(); }
 });
+document.getElementById("btn-restart").addEventListener("click", () => primary());
 
-// —— 事件（内核结果）→ 反馈（音效/横幅）。结果性事件必须挂反馈 ——
+// —— 事件（内核结果）→ 反馈（音效/横幅/提示）。结果性事件必须挂反馈 ——
 function handleEvents(events) {
   for (const ev of events) {
     if (ev.type === "collect") sfx.collect();
     else if (ev.type === "kick") sfx.kick();
     else if (ev.type === "save") { sfx.save(); hud.flash("被扑出！", "flash-orange"); }
-    else if (ev.type === "goal") { sfx.goal(); hud.flash(`进球！ +${100}`, "flash-orange"); }
+    else if (ev.type === "goal") {
+      sfx.goal();
+      hud.flash(`进球！ +${GOAL_SCORE}`, "flash-orange");
+      // 难度梯度反馈：守门员随进球提速 —— 梯度必须可感知，不能只发生在内核里
+      if (ev.goals < GOALS_TO_WIN) hud.hint("守门员提速了，抓紧空当！");
+    }
     else if (ev.type === "gameover") {
       bgm.stop();
       sfx.gameover(ev.won);
       hud.setOver(ev.won, game.world.score, game.world.goals, game.world.coinsCollected);
     }
+    // respawn：补位无音效（避免收集音被稀释），表现层只同步金币位置（syncVisuals）
   }
 }
 
@@ -117,16 +132,18 @@ function syncVisuals(dt) {
   const w = game.world;
   playerMesh.position.set(w.player.x, 0, w.player.z);
   playerMesh.rotation.y = w.player.angle;
-  keeperMesh.position.set(w.keeper.x, 0, 14.6); // KEEPER_Z 镜像：只读驱动，数值真源在 numeric
+  keeperMesh.position.set(w.keeper.x, 0, KEEPER_Z); // 只读驱动，数值真源在 numeric
   ballMesh.position.set(w.ball.x, 0.45, w.ball.z);
   ballMesh.rotation.x += (w.ball.state === "shot" ? 10 : 2) * dt; // 滚动自转：纯装饰，不回写内核
   for (const m of coinMeshes) {
     const c = w.coins[m.userData.id];
     m.visible = c.alive;
-    m.rotation.z += dt * 2.4; // 金币立转：纯装饰
+    m.position.set(c.x, 0.8, c.z);   // 收集即补位：补位点每帧跟随内核（纯装饰自转见下）
+    m.rotation.z += dt * 2.4;
   }
   followCamera(camera, w.player, dt);
   hud.setHud(w.score, w.timeLeft, w.goals, w.coinsCollected);
+  hud.setJoystick(touch.joystickState());
 }
 
 // —— 主循环 ——
@@ -134,8 +151,17 @@ let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
-  const r = game.tick(dt, mergeIntent());
+  const secondBefore = Math.ceil(game.world.timeLeft);
+  const intent = mergeIntent();
+  // 射门出界外反馈：白虚线（SHOOT_MIN_Z）前起脚无效 —— 静默失败必须给一句提示（节流在 hud.hint）
+  if (game.state === "playing" && intent.shoot && game.world.player.z < SHOOT_MIN_Z) {
+    hud.hint("带球压过白虚线才能射门");
+  }
+  const r = game.tick(dt, intent);
   handleEvents(r.events);
+  // 终局紧迫感：最后 10 秒每秒滴答（视觉侧时间徽章同步转橙）
+  const secondAfter = Math.ceil(game.world.timeLeft);
+  if (game.state === "playing" && secondAfter !== secondBefore && secondAfter <= 10 && secondAfter >= 1) sfx.tick();
   syncVisuals(dt);
   // 状态机 → 屏幕（放在事件后兜底：restart/start/pause 均会在此收敛到正确屏幕）
   hud.showScreen(game.state === "playing" ? null : game.state);
@@ -165,12 +191,18 @@ if (smokeParam !== null) {
     game.fastForward(1, greedyIntent(game.world));
   }
   syncVisuals(0);
-  // HUD 屏幕态与内核终态同步：截图必须反映真实画面（终局屏/对局 HUD），不留 title 蒙层假象
-  hud.setHud(game.world.score, game.world.timeLeft, game.world.goals, game.world.coinsCollected);
+  // 相机快照：冒烟截图必须反映真实对局机位（dt=0 时 lerp 不会推进，需显式落位防假象构图）
+  snapCamera(camera, game.world.player);
+  // HUD 屏幕态与内核终态同步：截图必须反映真实画面（终局屏/对局 HUD），不留 title 蒙层假象。
+  // 冒烟路径丢弃事件流（无音效），终局文案由内核终态直接装配（胜负分色与真实对局一致）。
+  const sw = game.world;
+  if (game.state === "gameover") hud.setOver(sw.won, sw.score, sw.goals, sw.coinsCollected);
+  hud.setHud(sw.score, sw.timeLeft, sw.goals, sw.coinsCollected);
   hud.showScreen(game.state === "playing" ? null : game.state);
-  // 帧率采样：渲染 30 帧取均值（headless SwiftShader 下限口径 ≥10fps）
+  // 帧率采样：先渲染 6 帧预热（着色器编译/JIT 尖峰不进样本），再采样 30 帧取稳态均值
+  // （headless SwiftShader 下限口径 ≥10fps —— 门禁意图是稳态可玩帧率，不是冷启动峰值）
   let frames = 0;
-  const t0 = performance.now();
+  let t0 = 0;
   // 性能快照前置：EffectComposer 多 pass 下 info 默认 autoReset，读到的是链尾 OutputPass
   // （全屏三角形，drawCalls=1）的统计而非整帧 —— 关 autoReset + 每帧手动 reset，
   // render() 后读到的才是整帧全 pass 总和。
@@ -188,12 +220,19 @@ if (smokeParam !== null) {
       // 触发纪律：画面/资产/shader/后处理变更时必跑 smoke —— 但只记录不做硬门禁
       // （headless SwiftShader 软渲染测不出真实性能，阈值待采集基线后另行设定）。
       const info = renderer.info;
+      // 排版硬底线证据：横向溢出机判读数（scrollW ≤ innerW = 无溢出；只记录，判定在 QA 复核）
+      const doc = document.documentElement;
       const payload = {
         ok: true, state: game.state, score: game.world.score,
         goals: game.world.goals, shots: game.world.shots,
         collected: game.world.coinsCollected, total: game.world.coins.length,
         timeLeft: game.world.timeLeft, frames, fps, exceptions,
         viewport: { width: window.innerWidth, height: window.innerHeight, dpr: window.devicePixelRatio },
+        layout: {
+          scrollWidth: doc.scrollWidth, scrollHeight: doc.scrollHeight,
+          overflowX: doc.scrollWidth > window.innerWidth,
+          overflowY: doc.scrollHeight > window.innerHeight,
+        },
         render: {
           drawCalls: frameStats.drawCalls,
           triangles: frameStats.triangles,
@@ -210,5 +249,12 @@ if (smokeParam !== null) {
       console.log("[smoke]", JSON.stringify(payload));
     }
   };
-  requestAnimationFrame(sampleFps);
+  let warm = 0;
+  const warmup = () => {
+    renderer.info.reset();
+    composer.render();
+    if (++warm < 6) requestAnimationFrame(warmup);
+    else { t0 = performance.now(); frames = 0; requestAnimationFrame(sampleFps); }
+  };
+  requestAnimationFrame(warmup);
 }

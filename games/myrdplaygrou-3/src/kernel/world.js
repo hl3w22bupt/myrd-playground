@@ -1,13 +1,14 @@
 // world.js — 纯内核世界：球员/足球/金币/守门员/计时/比分。
 // 零 three / 零 DOM / 零系统随机 / 零系统时钟 —— Node 可直接 import 跑（preflight P3 口径）。
 import { createRng } from "./rng.js";
-import { OBSTACLES, coinLayout } from "../levels/level-01.js";
+import { OBSTACLES, coinLayout, coinRespawnSpot } from "../levels/level-01.js";
 import {
   FIELD_HALF_W, FIELD_HALF_L, GOAL_WIDTH, GOAL_LINE,
   PLAYER_RADIUS, PLAYER_SPEED, KICKOFF_X, KICKOFF_Z,
   BALL_RADIUS, BALL_LEAD, BALL_FRICTION, SHOT_SPEED, AIM_GAIN, AIM_MAX,
   SHOOT_MIN_Z, AUTO_SHOOT_Z, SHOT_LIVE_SECONDS,
   KEEPER_RADIUS, KEEPER_RANGE, KEEPER_SPEED, KEEPER_Z,
+  KEEPER_RAMP_PER_GOAL, KEEPER_RAMP_MAX,
   COIN_RADIUS, COIN_SCORE, GOAL_SCORE, GOALS_TO_WIN, ROUND_SECONDS, SHOOT_COOLDOWN,
 } from "../numeric.js";
 
@@ -20,13 +21,21 @@ export function triangleWave(phase) {
   return 4 * Math.abs(p - 0.5) - 1;
 }
 
+/** 难度梯度：守门员相位速度随进球数线性上调、封顶 KEEPER_RAMP_MAX（平缓大众的成功驱动爬坡）。
+ *  峰值横移 = 4×KEEPER_RANGE×本值 —— 基准 ≈5.4m/s，封顶 ≈7.6m/s，始终低于玩家 PLAYER_SPEED。 */
+export function keeperSpeedFor(goals) {
+  const g = finiteOr(goals, 0);
+  return KEEPER_SPEED * Math.min(KEEPER_RAMP_MAX, 1 + KEEPER_RAMP_PER_GOAL * Math.max(0, g));
+}
+
 export function createWorld(seed) {
   const rng = createRng(seed >>> 0);
   return {
     seed: seed >>> 0,
+    rng,                                       // 内核唯一随机源（JSON 序列化自动略过函数，不影响状态比对）
     player: { x: KICKOFF_X, z: KICKOFF_Z, angle: 0 },
     ball: { x: KICKOFF_X, z: KICKOFF_Z, vx: 0, vz: 0, state: "dribble", live: 0 },
-    keeper: { x: 0, phase: 0 },
+    keeper: { x: KEEPER_RANGE * triangleWave(0), phase: 0 },  // x 与相位自洽（tri(0)=1 → x=+R），首帧渲染不失真
     shootCooldown: 0,
     coins: coinLayout(rng).map((p, i) => ({ id: i, x: p.x, z: p.z, alive: true })),
     obstacles: OBSTACLES,
@@ -93,8 +102,8 @@ export function stepWorld(w, intent, dt) {
   if (mag > 1) { mx /= mag; mz /= mag; }
   const shootRequested = intent?.shoot === true;
 
-  // —— 守门员巡逻（确定性相位推进）+ 射门冷却计时 ——
-  w.keeper.phase += KEEPER_SPEED * dt;
+  // —— 守门员巡逻（确定性相位推进，速度随进球数梯度上调）+ 射门冷却计时 ——
+  w.keeper.phase += keeperSpeedFor(w.goals) * dt;
   w.keeper.x = KEEPER_RANGE * triangleWave(w.keeper.phase);
   w.shootCooldown = Math.max(0, w.shootCooldown - dt);
 
@@ -159,7 +168,7 @@ export function stepWorld(w, intent, dt) {
     }
   }
 
-  // —— 金币收集判定 ——
+  // —— 金币收集判定 + 收集即补位（场上恒 COIN_COUNT 枚，休闲收集循环不枯竭）——
   for (const c of w.coins) {
     if (!c.alive) continue;
     if (Math.hypot(p.x - c.x, p.z - c.z) < COIN_RADIUS + PLAYER_RADIUS) {
@@ -168,6 +177,14 @@ export function stepWorld(w, intent, dt) {
       w.score += COIN_SCORE;
       events.push({ type: "collect", id: c.id, score: w.score });
     }
+  }
+  for (const c of w.coins) {
+    if (c.alive) continue;
+    const spot = coinRespawnSpot(w.rng, { playerX: p.x, playerZ: p.z, coins: w.coins });
+    c.x = spot.x;
+    c.z = spot.z;
+    c.alive = true;
+    events.push({ type: "respawn", id: c.id });
   }
 
   // —— 计时与终局（1e-9 容差：浮点步进累加后恰好 90s 时不得因残差漏判）——

@@ -40,6 +40,7 @@ for (let s = 0; s < ROUND_SECONDS && g.state === "playing"; s++) {
 }
 ok(g.world.shots >= 1, "贪心 90s 至少射门 1 次（射门触发闭环）");
 ok(g.world.goals >= 1, "贪心 90s 至少进 1 球（进球判定闭环）");
+ok(g.world.coinsCollected >= 3, `贪心对局反复触发收集+补位（collected=${g.world.coinsCollected} ≥3，补位 rng 流被真实消费）`);
 ok(g.state === "gameover", "贪心 90s 后终局（3 球提前获胜或时间到）");
 ok(Number.isFinite(g.world.score) && Number.isFinite(g.world.timeLeft), "终局数值健康（无 NaN）");
 

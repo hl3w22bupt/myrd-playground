@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "kind": "layout-probe-report",
+  "mode": "title",
+  "note": "QA 取证工具，非门禁（判定器 = std-skills/threejs-game-dev/scripts/ 三脚本）",
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "dpr": 3
+  },
+  "checkedAt": "2026-11-10T16:34:34.351Z",
+  "payload": null,
+  "hudGeometry": {
+    "rows": 1,
+    "chipCount": 4,
+    "hudRect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    }
+  },
+  "controls": [
+    {
+      "id": "btn-start",
+      "w": 168,
+      "h": 49,
+      "ok": true
+    }
+  ],
+  "titleParagraphs": {
+    "viewport": 390,
+    "paras": [
+      {
+        "tag": "H1",
+        "text": "实况足球",
+        "left": 107,
+        "right": 283,
+        "inViewport": true
+      },
+      {
+        "tag": "P",
+        "text": "GOAL RUSH · 休闲收集",
+        "left": 97,
+        "right": 293,
+        "inViewport": true
+      },
+      {
+        "tag": "P",
+        "text": "带球压过白虚线射门 · 进 3 ",
+        "left": 25,
+        "right": 365,
+        "inViewport": true
+      },
+      {
+        "tag": "P",
+        "text": "WASD / 方向键带球 · 空",
+        "left": 42,
+        "right": 348,
+        "inViewport": true
+      },
+      {
+        "tag": "P",
+        "text": "触屏：左半屏摇杆带球 · 右半屏",
+        "left": 62,
+        "right": 328,
+        "inViewport": true
+      },
+      {
+        "tag": "BUTTON",
+        "text": "开 球",
+        "left": 111,
+        "right": 279,
+        "inViewport": true
+      },
+      {
+        "tag": "P",
+        "text": "或按 回车 / 点按右侧",
+        "left": 114,
+        "right": 276,
+        "inViewport": true
+      }
+    ]
+  },
+  "failures": []
+}

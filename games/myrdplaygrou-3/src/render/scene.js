@@ -7,9 +7,9 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { fieldTexture, postTexture, ballTexture, glowTexture, PALETTE } from "./textures.js";
 import { OBSTACLES } from "../levels/level-01.js";
-import { FIELD_HALF_W, FIELD_HALF_L, GOAL_WIDTH, GOAL_LINE } from "../numeric.js";
+import { FIELD_HALF_W, FIELD_HALF_L, GOAL_WIDTH, GOAL_LINE, CAM_HEIGHT, CAM_BACK, CAM_AHEAD, CAM_LATERAL, CAM_FRONT_LIMIT } from "../numeric.js";
 
-const PORTRAIT_FOV = 72;   // 竖屏（aspect < 0.8）：加宽纵向视野保住整场可见
+const PORTRAIT_FOV = 66;   // 竖屏（aspect < 0.8）：与 CAM_* 俯仰配合让整场充满画幅，畸变可控
 const LANDSCAPE_FOV = 55;
 
 /** 渲染器：ACES 色调映射 + 软阴影 + pixelRatio 上限 2（E-08） */
@@ -24,18 +24,19 @@ export function buildRenderer(canvas) {
   return renderer;
 }
 
-/** 场景与灯光：雾 + 半球天光 + 主方向光（软阴影）+ 2 盏彩色点缀光 */
+/** 场景与灯光：雾 + 半球天光 + 主方向光（软阴影）+ 2 盏彩色点缀光
+ *  扁平明快口径：主光强度收敛（ACES 下高光会把饱和色洗灰），饱和度靠色块本身。 */
 export function buildScene() {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(PALETTE.bg);
-  scene.fog = new THREE.FogExp2(PALETTE.fog, 0.007);
+  scene.fog = new THREE.FogExp2(PALETTE.fog, 0.012);
 
-  scene.add(new THREE.HemisphereLight(0xcfe9f7, 0x2ecc71, 0.6));
+  scene.add(new THREE.HemisphereLight(0xcfe9f7, 0x2ecc71, 0.5));
 
-  const key = new THREE.DirectionalLight(0xffffff, 1.8);
+  const key = new THREE.DirectionalLight(0xffffff, 1.15);
   key.position.set(10, 26, 6);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.mapSize.set(1024, 1024); // 软阴影贴图下限（技能规范 ≥1024）：SwiftShader/低端机每帧开销减半
   key.shadow.camera.left = -FIELD_HALF_W - 6;
   key.shadow.camera.right = FIELD_HALF_W + 6;
   key.shadow.camera.top = FIELD_HALF_L + 8;
@@ -52,22 +53,24 @@ export function buildScene() {
   return scene;
 }
 
-/** 后期链：RenderPass → UnrealBloom → OutputPass（链尾必须有，否则画面发灰，E-01） */
+/** 后期链：RenderPass → UnrealBloom → OutputPass（链尾必须有，否则画面发灰，E-01）。
+ *  Bloom 半分辨率：辉光是低频信息，半分辨率视觉无损、低端机/SwiftShader 每帧模糊开销减半。 */
 export function buildComposer(renderer, scene, camera) {
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
   composer.addPass(new UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight),
-    0.3, 0.6, 0.9,
+    new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2),
+    0.22, 0.6, 0.9,
   ));
   composer.addPass(new OutputPass());
   return composer;
 }
 
 export function buildCamera() {
-  const camera = new THREE.PerspectiveCamera(LANDSCAPE_FOV, window.innerWidth / window.innerHeight, 0.1, 200);
-  camera.position.set(0, 22, -13);
-  camera.lookAt(0, 0, 4);
+  const camera = new THREE.PerspectiveCamera(LANDSCAPE_FOV, window.innerWidth / window.innerHeight, 0.1, 400);
+  const pose = cameraPose({ x: 0, z: 0 });
+  camera.position.copy(pose.pos);
+  camera.lookAt(pose.target);
   return camera;
 }
 
@@ -81,9 +84,9 @@ export function buildArena(scene) {
   floor.receiveShadow = true;
   scene.add(floor);
 
-  // 场外环带（深绿，暗示边界外区域）
+  // 场外环带（深绿，大平面延伸到雾里 —— 竖屏高机位下视野远端是场外而不是天色，消死天空）
   const apron = new THREE.Mesh(
-    new THREE.PlaneGeometry(FIELD_HALF_W * 2 + 14, FIELD_HALF_L * 2 + 14),
+    new THREE.PlaneGeometry(FIELD_HALF_W * 2 + 120, FIELD_HALF_L * 2 + 140),
     new THREE.MeshStandardMaterial({ color: 0x1d5c38, roughness: 0.95 }),
   );
   apron.rotation.x = -Math.PI / 2;
@@ -230,11 +233,30 @@ export function buildCoins(scene, world) {
   return meshes;
 }
 
-/** 相机跟随：竖屏高机位平滑逼近球员（X 半跟随保住场地横向），表现层手感不影响内核 */
+/** 相机目标位姿（位置 + 视线落点）：机位与视线同 x（零偏航）→ 场地纵轴恒直；
+ *  机位 z 前限钳制（门线前 CAM_FRONT_LIMIT）：门前不跟着过线，进攻三区构图锁定。
+ *  机位参数（高度/后偏/前视/横向系数/前限）真源 = numeric.js CAM_*（手感类，需试玩校准）。 */
+function cameraPose(player) {
+  const camZ = Math.min(player.z - CAM_BACK, GOAL_LINE - CAM_FRONT_LIMIT);
+  return {
+    pos: new THREE.Vector3(player.x * CAM_LATERAL, CAM_HEIGHT, camZ),
+    target: new THREE.Vector3(player.x * CAM_LATERAL, 0, camZ + CAM_AHEAD),
+  };
+}
+
+/** 逐帧跟随：位置平滑逼近、视线锁定目标位姿（dt>0 时位置与视线同步收敛，永不分叉） */
 export function followCamera(camera, player, dt) {
-  const wanted = new THREE.Vector3(player.x * 0.5, 22, player.z - 13);
-  camera.position.lerp(wanted, Math.min(1, 5 * dt));
-  camera.lookAt(player.x * 0.55, 0, player.z + 7);
+  const pose = cameraPose(player);
+  camera.position.lerp(pose.pos, Math.min(1, 5 * dt));
+  camera.lookAt(pose.target);
+}
+
+/** 相机快照：跳过平滑直接落到目标位姿（冒烟协议截图用 —— 截图必须反映真实对局机位，
+ *  否则位置冻结在初始点而视线跟走，会产生对角线构图的假象） */
+export function snapCamera(camera, player) {
+  const pose = cameraPose(player);
+  camera.position.copy(pose.pos);
+  camera.lookAt(pose.target);
 }
 
 export function onResize(renderer, composer, camera) {

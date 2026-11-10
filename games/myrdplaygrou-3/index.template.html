@@ -24,13 +24,22 @@
   #ui { position: fixed; inset: 0; pointer-events: none; color: var(--text); font-family: var(--font-num); }
   .hidden { display: none !important; }
 
-  #hud { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between;
-    align-items: center; padding: 12px 14px; font-size: 20px; letter-spacing: 1px; gap: 8px; }
+  /* HUD：徽章流（窄屏 <430px 自动换行为两行，排版硬底线 ≤3 行）+ 右上角独立暂停按钮
+     （按钮挂 #ui 定位，不占徽章流区 —— 窄屏下与徽章零重叠）；标签 15px（正文档）/
+     数字 20px（HUD 数字档），字号三档按风格卡 */
+  #hud { position: absolute; top: 0; left: 0; right: 64px; display: flex; flex-wrap: wrap;
+    align-items: center; padding: 12px 6px 12px 14px; font-size: 20px; letter-spacing: 1px;
+    column-gap: 8px; row-gap: 6px; }
   #hud .chip { background: var(--panel); border: 2px solid var(--line); border-radius: 12px;
-    padding: 5px 12px; white-space: nowrap; }
+    padding: 4px 11px; white-space: nowrap; font-size: 20px; }
+  #hud .chip .lbl { font-size: 15px; color: var(--text); }
   #hud .chip b { color: var(--primary); }
   #hud .chip.goals b { color: var(--accent); }
-  #btn-pause { pointer-events: auto; width: 44px; height: 44px; min-width: 44px; min-height: 44px; /* 热区 ≥44px */
+  #hud .chip .lbl + b { margin-left: 4px; }
+  #chip-time.urgent { border-color: var(--accent); color: var(--accent); }
+  #chip-time.urgent b { color: var(--accent); }
+  #btn-pause { position: absolute; top: 12px; right: 12px; pointer-events: auto;
+    width: 44px; height: 44px; min-width: 44px; min-height: 44px; /* 热区 ≥44px */
     background: var(--panel); border: 2px solid var(--line); border-radius: 12px; color: var(--text);
     font-size: 18px; font-family: inherit; }
 
@@ -40,13 +49,34 @@
   #banner.flash-blue { border-color: var(--primary); color: var(--primary); }
   #banner.flash-orange { border-color: var(--accent); color: var(--accent); }
 
+  /* 底部操作提示：不常驻（事件驱动 1.6s 自隐），正文 15px 档 */
+  #hint { position: absolute; bottom: 11%; left: 50%; transform: translateX(-50%);
+    background: var(--panel); border: 2px solid var(--line); border-radius: 12px;
+    padding: 6px 16px; font-size: 15px; color: var(--text); white-space: nowrap; }
+
+  /* 虚拟摇杆可视化：落指处锚环 + 旋钮（兄弟节点各自定位，纯装饰不截事件） */
+  #joy { position: absolute; inset: 0; pointer-events: none; }
+  #joy-base { position: absolute; left: 0; top: 0; width: 96px; height: 96px; border-radius: 50%;
+    border: 2px solid var(--line); background: rgba(255, 255, 255, 0.28); }
+  #joy-knob { position: absolute; left: 0; top: 0; width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(52, 152, 219, 0.45); border: 2px solid var(--primary); }
+
   .screen { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 12px;
-    align-items: center; justify-content: center; text-align: center; background: rgba(223, 242, 251, 0.55); }
+    align-items: center; justify-content: center; text-align: center; background: rgba(223, 242, 251, 0.62);
+    padding: 0 20px; }
   .screen h1 { font-size: 38px; letter-spacing: 6px; color: var(--primary);
     text-shadow: 0 2px 0 rgba(255, 255, 255, 0.9); }
-  .screen p { color: var(--text); font-size: 15px; }
+  /* 胜负分色：胜利=强调橙（CTA 同源），失利=主色蓝 —— 失败与胜利反馈一眼可辨 */
+  .screen.win h1 { color: var(--accent); }
+  /* max-width 约束：flex 子项默认 min-width:auto 不换行 —— 无此行说明文字会横向溢出窄屏 */
+  .screen p { color: var(--text); font-size: 15px; max-width: 340px; }
   .screen .cta { color: var(--accent); font-size: 18px; margin-top: 8px; animation: pulse 1.6s infinite; }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+  /* 实体操作按钮：触屏优先主操作，热区 ≥44px，风格卡按钮三态（白底面板+主色描边，无 hover 态） */
+  .screen button { pointer-events: auto; min-width: 168px; min-height: 48px; padding: 10px 30px;
+    background: var(--panel); border: 2px solid var(--primary); border-radius: 12px;
+    color: var(--accent); font-size: 18px; letter-spacing: 4px; font-family: inherit;
+    animation: pulse 1.6s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
   .screen .tagline { color: var(--grass); font-weight: bold; letter-spacing: 3px; }
   #ts-smoke { position: absolute; left: -9999px; }
 </style>
@@ -55,29 +85,34 @@
 <canvas id="gl"></canvas>
 <div id="ui">
   <div id="hud" class="hidden">
-    <span class="chip goals">进球 <b id="goals">0/3</b></span>
-    <span class="chip">金币 <b id="coins">0/10</b></span>
-    <span class="chip">得分 <b id="score">0</b></span>
-    <span class="chip">时间 <b id="time">90</b>s</span>
-    <button id="btn-pause" aria-label="暂停">Ⅱ</button>
+    <span class="chip goals"><span class="lbl">进球</span> <b id="goals">0/3</b></span>
+    <span class="chip"><span class="lbl">金币</span> <b id="coins">×0</b></span>
+    <span class="chip"><span class="lbl">得分</span> <b id="score">0</b></span>
+    <span class="chip" id="chip-time"><span class="lbl">时间</span> <b id="time">90</b><span class="lbl">s</span></span>
   </div>
+  <button id="btn-pause" class="hidden" aria-label="暂停">Ⅱ</button>
   <div id="banner" class="hidden"></div>
+  <div id="hint" class="hidden"></div>
+  <div id="joy" class="hidden"><div id="joy-base"></div><div id="joy-knob"></div></div>
   <div id="screen-title" class="screen">
     <h1>实况足球</h1>
     <p class="tagline">GOAL RUSH · 休闲收集</p>
-    <p>带球推进 · 进 3 球提前获胜 · 顺路捡金币</p>
+    <p>带球压过白虚线射门 · 进 3 球提前获胜 · 金币捡到即补</p>
     <p>WASD / 方向键带球 · 空格射门 · P 暂停 · R 重开</p>
     <p>触屏：左半屏摇杆带球 · 右半屏点按射门</p>
-    <p class="cta">按 回车 / 点按右侧 开球</p>
+    <button id="btn-start">开 球</button>
+    <p class="cta">或按 回车 / 点按右侧</p>
   </div>
   <div id="screen-paused" class="screen hidden">
     <h1>已暂停</h1>
-    <p class="cta">按 空格 / 点按右侧 继续</p>
+    <button id="btn-resume">继 续</button>
+    <p class="cta">或按 空格 / 点按右侧</p>
   </div>
   <div id="screen-over" class="screen hidden">
     <h1 id="over-title">终场哨响</h1>
     <p id="over-detail"></p>
-    <p class="cta">按 回车 / 点按右侧 再来一局</p>
+    <button id="btn-restart">再来一局</button>
+    <p class="cta">或按 回车 / 点按右侧</p>
   </div>
   <div id="ts-smoke"></div>
 </div>

@@ -122,6 +122,8 @@ export const sfx = {
   },
   pause() { if (!ctx) return; blip(ctx.currentTime, 440, 440, 0.08, 0.15, "sine"); },
   resume() { if (!ctx) return; blip(ctx.currentTime, 550, 550, 0.08, 0.15, "sine"); },
+  /** 终局前 10 秒每秒滴答（倒计时紧迫感；视觉侧时间徽章同步变橙） */
+  tick() { if (!ctx) return; blip(ctx.currentTime, 880, 660, 0.07, 0.1, "sine"); },
   gameover(won) {
     if (!ctx) return;
     const t = ctx.currentTime;

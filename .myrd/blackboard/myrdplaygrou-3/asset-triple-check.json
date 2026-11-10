@@ -1,7 +1,2 @@
-{
-  "verdict": "PASS",
-  "gamePath": "games/myrdplaygrou-3",
-  "problems": [],
-  "notes": [],
-  "firstColor": []
-}
+asset-triple-check: 清单 7 项（generated 0 / 入包 0），仓库文件 0 张（豁免 0），台账行 0，引用扫描文件 0
+ASSET_TRIPLE_CHECK: PASS

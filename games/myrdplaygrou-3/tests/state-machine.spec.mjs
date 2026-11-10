@@ -41,10 +41,11 @@ const ok = (cond, m) => { console.log(`  ${cond ? "PASS" : "FAIL"}  ${m}`); if (
   ok(JSON.stringify(g.world) === before && r.stepped === 0, "gameover 后 tick 零推进（结算瞬间输入被冻结）");
 }
 
-// —— 重开连点 ≥5：每次都全复位（E-10：整 world 重建）——
+// —— 重开连点 ≥5：每次都全复位（E-10：整 world 重建），且金币布局与首局一致（rng 重置）——
 {
   const g = createGame({ seed: SEED_DEFAULT });
   g.start();
+  const fresh = createGame({ seed: SEED_DEFAULT });
   g.fastForward(20, { moveX: 1, shoot: true });
   const dirtyState = g.world.coinsCollected > 0 || g.world.score > 0 || g.world.timeLeft < ROUND_SECONDS;
   for (let i = 0; i < 5; i++) ok(g.restart() === true, `重开 #${i + 1} 成功`);
@@ -53,6 +54,8 @@ const ok = (cond, m) => { console.log(`  ${cond ? "PASS" : "FAIL"}  ${m}`); if (
     && g.world.timeLeft === ROUND_SECONDS && g.world.coins.every((x) => x.alive) && g.world.over === false
     && g.world.player.x === KICKOFF_X && g.world.player.z === KICKOFF_Z && g.world.ball.state === "dribble",
     `重开后全复位（score/goals/shots/coins/timeLeft/player/ball${dirtyState ? "，此前确实有脏状态被清掉" : ""}）`);
+  ok(JSON.stringify(g.world.coins) === JSON.stringify(fresh.world.coins),
+    "重开后金币布局与新开局逐位一致（补位消耗的 rng 流已随 world 重建归零）");
   ok(g.warnings.length === 0, "重开连点零 warning（每次都是合法转移）");
 }
 
