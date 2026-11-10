@@ -76,3 +76,6 @@ after=round-3，8 对同名配对，T1=0.7）。**SUSPECTED_REGRESSION(ADVISORY)
 - 部署边界：线上仍为 @88b7469 旧版；打磨新版部署按知识库「部署身份链 403」纪律归宿主
   deploy_playable 执行（gitRef=myrd/game-3-goal-cmwaqvrng002lm9m2nftdd20h），节点不碰部署 API。
 - 会话回收：sessiond 显式 stop（steps=130，Chrome/临时目录清理完成）；本地静态伺服收尾即停。
+- session.json 生命周期注记：守护进程 stop 时按协议自清会话文件（首跑装配曾因此回退最早 mtime 口径），
+  已从基线提交 99dbe77 恢复原文件（同一 startedAt=2026-11-10T17:20:28.305Z，非重构），重跑装配后
+  playtest-summary.json 的 startedAt 即真实会话起点，C6 窗口核验通过。
