@@ -4,9 +4,9 @@
 任务涉及对应领域时，**优先通过 Skill 工具按名调用**；若当前 CLI 没有技能调用工具（或工具被白名单移除），再用 Read 完整读取该技能的入口文件，并遵循其中的规范与验证协议。
 
 - **快速全栈交付SOP：先勘察复用，基线对照后再申报完成** — `.myrd-platform/.claude/skills/快速全栈交付SOP-先勘察复用-基线对照后再申报完成.md`
-- **myrd-platform-skill** — `.myrd-platform/.claude/skills/myrd-platform-skill.md`
 - **外部依赖阻塞处置 SOP：单次取证、标注阻塞、止损退出** — `.myrd-platform/.claude/skills/外部依赖阻塞处置-SOP-单次取证-标注阻塞-止损退出.md`
 - **限时验收节点韧性交付与 goal.artifacts 回写完整性技能（myrd-acceptance-resilient-delivery）** — `.myrd-platform/.claude/skills/限时验收节点韧性交付与-goal-artifacts-回写完整性技能-myrd-acceptance-resilient-delivery.md`
+- **myrd-platform-skill** — `.myrd-platform/.claude/skills/myrd-platform-skill.md`
 - **验收探针自研先复用现成工具并设硬时间盒** — `.myrd-platform/.claude/skills/验收探针自研先复用现成工具并设硬时间盒.md`
 - **平台接口落账 SOP：临时文件构造 JSON+幂等检查先行** — `.myrd-platform/.claude/skills/平台接口落账-SOP-临时文件构造-JSON-幂等检查先行.md`
 - **myrd-standard-code-review** — `.myrd-platform/.claude/skills/myrd-standard-code-review.md`
