@@ -1,9 +1,11 @@
-# 《植物人大战僵尸-网页版》(myrdplaygrou) AppHost 应用清单（平台构建管线步骤 1 读取；M1 仅支持顶层字符串键值）
-# 壳位于仓库根：server/ 内是 Node20 + Hono 应用；游戏 Web 导出产物走资产通道
-# （assets_dir 由平台上传对象存储，server 用 asset-store 懒加载，二进制 base64 文本回传）
-name = "myrdplaygrou"
+# 《实况足球 · GOAL RUSH》(myrdplaygrou-3) AppHost 应用清单（平台构建管线步骤 1 读取；M1 仅支持顶层字符串键值）
+# 壳位于仓库根：server/ 内是 Node20 + Hono 应用；游戏单文件产物走资产通道
+# （assets_dir 由平台上传对象存储，server 用 asset-store 懒加载；
+#  landing.html = 游戏本体单文件，server / 路由优先伺服 —— W-3 收口形态）
+name = "myrdplaygrou-3"
 runtime = "node20"
 health = "/health"
 
 # 底座 A：资产出 bundle（部署时平台把该目录上传对象存储，server 用 asset-store 懒加载）
-assets_dir = "games/myrdplaygrou/export/web"
+# 产物由 games/myrdplaygrou-3/tools/build.mjs 写出（index.html / landing.html 字节级同源）
+assets_dir = "games/myrdplaygrou-3/dist/web"

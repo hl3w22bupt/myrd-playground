@@ -1,0 +1,15 @@
+{
+  "name": "myrdplaygrou-3",
+  "private": true,
+  "type": "module",
+  "description": "实况足球 · GOAL RUSH（threejs-game-dev 工坊线：休闲收集 × 3D 足球，kernel/render 分离 + 画质配方 + 单文件构建复现 + 门禁）",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "verify": "node tools/verify-reproducible.mjs",
+    "test": "node tests/run-all.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "three": "0.185.1"
+  }
+}

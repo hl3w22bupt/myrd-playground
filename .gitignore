@@ -1,5 +1,8 @@
 node_modules
 dist
+# 例外：games/myrdplaygrou-3/dist 是 AppHost 部署产物（threejs 线构建落位，任务指定路径），
+# 必须入库供平台资产通道上传 —— 其余层级 dist（vite 等构建中间物）仍照旧忽略
+!games/myrdplaygrou-3/dist
 coverage
 *.local
 .DS_Store

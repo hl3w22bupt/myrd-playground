@@ -11,8 +11,8 @@ const app = new Hono();
 app.get("/health", (c) =>
   c.json({
     ok: true,
-    app: "myrdplaygrou",
-    title: "植物人大战僵尸-网页版",
+    app: "myrdplaygrou-3",
+    title: "实况足球-GOAL-RUSH",
     env: ctx.environment,
     assets: "lazy/object-storage",
   }),
