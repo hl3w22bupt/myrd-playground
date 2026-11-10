@@ -3,10 +3,11 @@
 // 表现层每帧只读内核渲染。?smoke=<秒> 无头冒烟协议见文件尾部。
 import { createGame } from "./kernel/loop.js";
 import { greedyIntent } from "./kernel/autopilot.js";
-import { SEED_DEFAULT, KEEPER_Z, GOAL_SCORE, GOALS_TO_WIN, SHOOT_MIN_Z } from "./numeric.js";
+import { SEED_DEFAULT, KEEPER_Z, GOAL_LINE, GOAL_SCORE, GOALS_TO_WIN, SHOOT_MIN_Z } from "./numeric.js";
 import {
   buildRenderer, buildScene, buildComposer, buildCamera, buildArena,
   buildPlayer, buildKeeper, buildBall, buildCoins, followCamera, snapCamera, onResize,
+  buildStands, buildParticles, emitBurst, updateParticles,
 } from "./render/scene.js";
 import { createHud } from "./render/hud.js";
 import { unlockAudio, sfx, bgm } from "./render/audio.js";
@@ -39,6 +40,8 @@ const scene = buildScene();
 const camera = buildCamera();
 const composer = buildComposer(renderer, scene, camera);
 buildArena(scene);
+buildStands(scene);      // 看台色带（轮 3：填门后死区）
+buildParticles(scene);   // 事件粒子池（IP5：进球/扑救/收集爆点）
 const playerMesh = buildPlayer(scene);
 const keeperMesh = buildKeeper(scene);
 const ballMesh = buildBall(scene);
@@ -126,12 +129,23 @@ document.getElementById("btn-restart").addEventListener("click", () => primary()
 // —— 事件（内核结果）→ 反馈（音效/横幅/提示）。结果性事件必须挂反馈 ——
 function handleEvents(events) {
   for (const ev of events) {
-    if (ev.type === "collect") sfx.collect();
+    if (ev.type === "collect") {
+      sfx.collect();
+      // IP5：收集小爆点（球员脚下蓝白屑）—— 收集瞬间补画面反馈（金币当步已补位，原点位不再可取）
+      emitBurst(game.world.player.x, 0.7, game.world.player.z, "#bde6ff", 5, 2.6, 0.45);
+    }
     else if (ev.type === "kick") sfx.kick();
-    else if (ev.type === "save") { sfx.save(); hud.flash("被扑出！", "flash-orange"); }
+    else if (ev.type === "save") {
+      sfx.save();
+      hud.flash("被扑出！", "flash-orange");
+      emitBurst(game.world.keeper.x, 1.3, KEEPER_Z, "#ffffff", 8, 4, 0.6); // IP5：扑救白闪爆点
+    }
     else if (ev.type === "goal") {
       sfx.goal();
       hud.flash(`进球！ +${GOAL_SCORE}`, "flash-orange");
+      // IP5：进球门区爆点（强调橙 + 主色蓝双色两连爆，喂 Bloom）
+      emitBurst(0, 1.3, GOAL_LINE - 0.8, "#f39c12", 12, 5.5, 0.8);
+      emitBurst(0, 1.6, GOAL_LINE - 0.8, "#3498db", 8, 4, 0.9);
       // 难度梯度反馈：守门员随进球提速 —— 梯度必须可感知，不能只发生在内核里
       if (ev.goals < GOALS_TO_WIN) hud.hint("守门员提速了，抓紧空当！");
     }
@@ -161,6 +175,7 @@ function syncVisuals(dt) {
     g.rotation.y = coinClock * 2.6 + g.userData.id * 0.9;                                // 绕世界 Y 扫盘自转（IP4）
   }
   followCamera(camera, w.player, dt);
+  updateParticles(dt);   // IP5：粒子步进（表现层时钟，与内核无关）
   hud.setHud(w.score, w.timeLeft, w.goals, w.coinsCollected);
   hud.setJoystick(touch.joystickState());
 }

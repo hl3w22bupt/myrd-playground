@@ -277,3 +277,81 @@ export function onResize(renderer, composer, camera) {
   camera.fov = camera.aspect < 0.8 ? PORTRAIT_FOV : LANDSCAPE_FOV;
   camera.updateProjectionMatrix();
 }
+
+// —— 看台色带（轮 3）：门后与两侧场外的低矮看台块，填充高机位画面上部的「门后死区」
+// （round-1 取证：进攻三区画幅上部 ~25% 是灰绿 apron 空带）。扁平色块语言与广告挡板同源
+//（主色蓝体 + 白帽线），雾距下自然柔和。纯表现层，零内核交互。 ——
+export function buildStands(scene) {
+  const standMat = new THREE.MeshStandardMaterial({ color: PALETTE.primary, roughness: 0.95 });
+  const standTopMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 });
+  for (const [w, d, x, z] of [
+    [FIELD_HALF_W * 2 + 30, 7, 0, FIELD_HALF_L + 9],
+    [FIELD_HALF_W * 2 + 30, 7, 0, -FIELD_HALF_L - 9],
+    [7, FIELD_HALF_L * 2 + 30, FIELD_HALF_W + 9, 0],
+    [7, FIELD_HALF_L * 2 + 30, -(FIELD_HALF_W + 9), 0],
+  ]) {
+    const stand = new THREE.Mesh(new THREE.BoxGeometry(w, 2.8, d), standMat);
+    stand.position.set(x, 1.4, z);
+    stand.receiveShadow = true;
+    scene.add(stand);
+    // 白帽线只做窄檐（深 2.2m）：宽檐的白色顶面在门前构图里会变成大片白板（round-3 取证 live-08）
+    const cap = new THREE.Mesh(
+      new THREE.BoxGeometry(w === 7 ? 7.4 : w, 0.22, d === 7 ? 7.4 : 2.2), standTopMat,
+    );
+    cap.position.set(x, 2.92, z);
+    scene.add(cap);
+  }
+}
+
+// —— 事件粒子池（IP5）：进球/扑救/收集的画面爆点。位置/速度/寿命全在 render 侧，
+// 不回写内核；Math.random 抖动属配方允许的表现层非确定性装饰（内核随机源只有 rng.js）。 ——
+const PARTICLE_MAX = 48;
+const particlePool = [];
+
+export function buildParticles(scene) {
+  const map = glowTexture("rgba(255, 255, 255, 1)");
+  for (let i = 0; i < PARTICLE_MAX; i += 1) {
+    const mat = new THREE.SpriteMaterial({
+      map, color: 0xffffff, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0,
+    });
+    const sprite = new THREE.Sprite(mat);
+    sprite.visible = false;
+    scene.add(sprite);
+    particlePool.push({ sprite, life: 0, ttl: 1, vx: 0, vy: 0, vz: 0 });
+  }
+}
+
+const tmpColor = new THREE.Color();
+export function emitBurst(x, y, z, hex, count = 10, speed = 4, ttl = 0.7) {
+  tmpColor.set(hex);
+  let emitted = 0;
+  for (const p of particlePool) {
+    if (p.life > 0) continue;
+    const a = Math.random() * Math.PI * 2;
+    const v = speed * (0.4 + Math.random() * 0.6);
+    p.sprite.material.color.copy(tmpColor);
+    p.sprite.position.set(x, y, z);
+    p.sprite.scale.set(0.42, 0.42, 1);
+    p.vx = Math.cos(a) * v;
+    p.vz = Math.sin(a) * v;
+    p.vy = 2 + Math.random() * 3;
+    p.ttl = ttl * (0.7 + Math.random() * 0.6);
+    p.life = p.ttl;
+    p.sprite.visible = true;
+    if (++emitted >= count) break;
+  }
+}
+
+export function updateParticles(dt) {
+  for (const p of particlePool) {
+    if (p.life <= 0) continue;
+    p.life -= dt;
+    if (p.life <= 0) { p.sprite.visible = false; p.sprite.material.opacity = 0; continue; }
+    p.sprite.position.x += p.vx * dt;
+    p.sprite.position.y += p.vy * dt;
+    p.sprite.position.z += p.vz * dt;
+    p.vy -= 7 * dt;                       // 轻重力：抛物线散落
+    const k = p.life / p.ttl;
+    p.sprite.material.opacity = Math.min(1, k * 1.6);
+  }
+}

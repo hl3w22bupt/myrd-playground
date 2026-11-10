@@ -99,6 +99,18 @@ export const bgm = {
   },
 };
 
+// —— 音频诊断契约（IP7，轮 3）：mobile-web-smoke 的 audio-unlock 硬检查（判定器
+// mobile-web-smoke.mjs:416）要求 window.__audioDebug 为 function —— 缺失 = 移动端音频静默类
+// 故障（AudioContext suspended）无法从控制台之外诊断。模块级挂载（不依赖 unlock 先行），
+// 只读状态，零副作用。 ——
+if (typeof window !== "undefined") {
+  window.__audioDebug = () => ({
+    created: ctx !== null,
+    state: ctx ? ctx.state : "none",
+    bgmOn,
+  });
+}
+
 export const sfx = {
   collect() { if (!ctx) return; const t = ctx.currentTime; blip(t, 660, 990, 0.1); blip(t + 0.08, 990, 1320, 0.12); },
   kick() { if (!ctx) return; const t = ctx.currentTime; noiseHit(t, 0.12, 0.32, 700); blip(t, 180, 60, 0.12, 0.2, "sine"); },
