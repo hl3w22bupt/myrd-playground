@@ -1,0 +1,370 @@
+{
+  "schemaVersion": 1,
+  "kind": "experience-pack-index",
+  "evidenceOnly": true,
+  "generator": {
+    "name": "experience-harness",
+    "version": "0.1.0",
+    "entry": "scripts/pack.mjs",
+    "invocation": "两个子包分别由 pack.mjs --viewport desktop / mobile 对新线上 URL 采集，本文件仅作双视口索引"
+  },
+  "url": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou-3/",
+  "label": "redeploy-live",
+  "archivedAtUtc": "2026-11-10T18-34-03Z",
+  "gitHeadAtCapture": "5fc23a9aad8a0e16db841c504ea5b7622b4987c2",
+  "viewports": {
+    "desktop": {
+      "pack": "desktop/pack.json",
+      "url": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou-3/",
+      "startedAt": "2026-11-10T18:34:03.257Z",
+      "finishedAt": "2026-11-10T18:35:01.419Z",
+      "durationMs": 58161,
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 1,
+        "mobile": false,
+        "ua": "(default)"
+      },
+      "stepsTotal": 28,
+      "stepsActed": 13,
+      "probeSteps": 6,
+      "consoleErrorCount": 0,
+      "networkRequestCount": 3,
+      "framesSaved": 386,
+      "framesDropped": 0,
+      "fpsSeriesPoints": 49,
+      "firstColorCount": 28,
+      "animatedSomewhere": true,
+      "hasRespondedStep": true,
+      "canvasPresent": true,
+      "probeExcerpts": [
+        {
+          "id": "probe0",
+          "probeResult": {
+            "state": "playing",
+            "score": 0,
+            "goals": 0,
+            "coinsCollected": 0,
+            "coinTotal": 10,
+            "shots": 0,
+            "saves": 0,
+            "timeLeft": 88.00000000000011,
+            "player": {
+              "x": 0,
+              "z": -4,
+              "angle": 0
+            },
+            "ball": {
+              "x": 0,
+              "z": -2.7,
+              "state": "dribble"
+            },
+            "keeperX": 1.7999999999999736
+          }
+        },
+        {
+          "id": "probe1",
+          "probeResult": {
+            "state": "playing",
+            "score": 0,
+            "goals": 0,
+            "coinsCollected": 0,
+            "coinTotal": 10,
+            "shots": 0,
+            "saves": 0,
+            "timeLeft": 82.01666666666712,
+            "player": {
+              "x": 0,
+              "z": -4,
+              "angle": 0
+            },
+            "ball": {
+              "x": 0,
+              "z": -2.7,
+              "state": "dribble"
+            },
+            "keeperX": -1.8900000000003434
+          }
+        },
+        {
+          "id": "probe2",
+          "probeResult": {
+            "state": "playing",
+            "score": 0,
+            "goals": 0,
+            "coinsCollected": 0,
+            "coinTotal": 10,
+            "shots": 0,
+            "saves": 0,
+            "timeLeft": 78.10000000000068,
+            "player": {
+              "x": 0,
+              "z": -4,
+              "angle": 0
+            },
+            "ball": {
+              "x": 0,
+              "z": -2.7,
+              "state": "dribble"
+            },
+            "keeperX": -1.260000000000165
+          }
+        },
+        {
+          "id": "probe3",
+          "probeResult": {
+            "state": "playing",
+            "score": 0,
+            "goals": 0,
+            "coinsCollected": 0,
+            "coinTotal": 10,
+            "shots": 0,
+            "saves": 0,
+            "timeLeft": 74.00000000000091,
+            "player": {
+              "x": 0,
+              "z": -4,
+              "angle": 0
+            },
+            "ball": {
+              "x": 0,
+              "z": -2.7,
+              "state": "dribble"
+            },
+            "keeperX": 0.599999999998996
+          }
+        },
+        {
+          "id": "probe4",
+          "probeResult": {
+            "state": "playing",
+            "score": 0,
+            "goals": 0,
+            "coinsCollected": 0,
+            "coinTotal": 10,
+            "shots": 0,
+            "saves": 0,
+            "timeLeft": 67.1000000000013,
+            "player": {
+              "x": 0,
+              "z": -4,
+              "angle": 0
+            },
+            "ball": {
+              "x": 0,
+              "z": -2.7,
+              "state": "dribble"
+            },
+            "keeperX": -0.6600000000024053
+          }
+        },
+        {
+          "id": "probe-final",
+          "probeResult": {
+            "state": "playing",
+            "score": 0,
+            "goals": 0,
+            "coinsCollected": 0,
+            "coinTotal": 10,
+            "shots": 0,
+            "saves": 0,
+            "timeLeft": 60.50000000000168,
+            "player": {
+              "x": 0,
+              "z": -4,
+              "angle": 0
+            },
+            "ball": {
+              "x": 0,
+              "z": -2.7,
+              "state": "dribble"
+            },
+            "keeperX": -0.30000000000375593
+          }
+        }
+      ],
+      "consoleErrors": []
+    },
+    "mobile": {
+      "pack": "mobile/pack.json",
+      "url": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou-3/",
+      "startedAt": "2026-11-10T18:34:03.257Z",
+      "finishedAt": "2026-11-10T18:35:26.699Z",
+      "durationMs": 83441,
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "deviceScaleFactor": 1.8,
+        "mobile": true,
+        "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
+      },
+      "stepsTotal": 28,
+      "stepsActed": 13,
+      "probeSteps": 6,
+      "consoleErrorCount": 0,
+      "networkRequestCount": 3,
+      "framesSaved": 400,
+      "framesDropped": 169,
+      "fpsSeriesPoints": 73,
+      "firstColorCount": 25,
+      "animatedSomewhere": true,
+      "hasRespondedStep": true,
+      "canvasPresent": true,
+      "probeExcerpts": [
+        {
+          "id": "probe0",
+          "probeResult": {
+            "state": "playing",
+            "score": 0,
+            "goals": 0,
+            "coinsCollected": 0,
+            "coinTotal": 10,
+            "shots": 0,
+            "saves": 0,
+            "timeLeft": 87.48333333333348,
+            "player": {
+              "x": 0,
+              "z": -4,
+              "angle": 0
+            },
+            "ball": {
+              "x": 0,
+              "z": -2.7,
+              "state": "dribble"
+            },
+            "keeperX": 1.4100000000000206
+          }
+        },
+        {
+          "id": "probe1",
+          "probeResult": {
+            "state": "playing",
+            "score": 220,
+            "goals": 2,
+            "coinsCollected": 4,
+            "coinTotal": 10,
+            "shots": 3,
+            "saves": 1,
+            "timeLeft": 73.23333333333429,
+            "player": {
+              "x": 9.3,
+              "z": -3.2500000000000004,
+              "angle": 1.5707963267948966
+            },
+            "ball": {
+              "x": 9.55,
+              "z": -3.2500000000000004,
+              "state": "dribble"
+            },
+            "keeperX": -1.2029999999982834
+          }
+        },
+        {
+          "id": "probe2",
+          "probeResult": {
+            "state": "playing",
+            "score": 225,
+            "goals": 2,
+            "coinsCollected": 5,
+            "coinTotal": 10,
+            "shots": 11,
+            "saves": 1,
+            "timeLeft": 63.28333333333485,
+            "player": {
+              "x": 9.3,
+              "z": 15.3,
+              "angle": 0
+            },
+            "ball": {
+              "x": 9.3,
+              "z": 15.55,
+              "state": "dribble"
+            },
+            "keeperX": -2.6460000000043635
+          }
+        },
+        {
+          "id": "probe3",
+          "probeResult": {
+            "state": "playing",
+            "score": 225,
+            "goals": 2,
+            "coinsCollected": 5,
+            "coinTotal": 10,
+            "shots": 21,
+            "saves": 1,
+            "timeLeft": 54.25000000000203,
+            "player": {
+              "x": 9.3,
+              "z": 15.3,
+              "angle": 1.5707963267948966
+            },
+            "ball": {
+              "x": 9.55,
+              "z": 15.3,
+              "state": "dribble"
+            },
+            "keeperX": 0.06000000000676664
+          }
+        },
+        {
+          "id": "probe4",
+          "probeResult": {
+            "state": "playing",
+            "score": 225,
+            "goals": 2,
+            "coinsCollected": 5,
+            "coinTotal": 10,
+            "shots": 30,
+            "saves": 1,
+            "timeLeft": 46.08333333333583,
+            "player": {
+              "x": 9.3,
+              "z": 15.3,
+              "angle": 1.5707963267948966
+            },
+            "ball": {
+              "x": 9.55,
+              "z": 15.3,
+              "state": "dribble"
+            },
+            "keeperX": -2.609999999991061
+          }
+        },
+        {
+          "id": "probe-final",
+          "probeResult": {
+            "state": "playing",
+            "score": 225,
+            "goals": 2,
+            "coinsCollected": 5,
+            "coinTotal": 10,
+            "shots": 39,
+            "saves": 1,
+            "timeLeft": 38.116666666669616,
+            "player": {
+              "x": 9.3,
+              "z": 15.3,
+              "angle": 1.5707963267948966
+            },
+            "ball": {
+              "x": 9.55,
+              "z": 15.3,
+              "state": "dribble"
+            },
+            "keeperX": 0.6839999999889415
+          }
+        }
+      ],
+      "consoleErrors": []
+    }
+  },
+  "notes": [
+    "桌面视口为 harness 内置 DESKTOP_VIEWPORT 1280x800 DPR1（无 1280x720 档位，如实记录差异）",
+    "移动视口 390x844 DPR1.8 + iPhone Safari UA（harness MOBILE_UA）",
+    "90 秒对局设计，取证窗约 45-55 秒，未到终局屏；轨迹含 开始→触屏/键盘移动→三次射门→金币/进球探针读数→暂停尝试→收尾，终局/回放退出路径未在窗内到达，如实记录不判定",
+    "桌面视口：Enter 开始成功（state=playing），但 pressKey 为单次按下抬起、位移有限，三次空格射门均未形成 shots 读数（shots=0，score=0）——画面有响应（responded=true）但玩法读数未推进，如实记录不判定",
+    "移动视口完整玩法读数：coinsCollected 0→5、goals 0→2、shots 0→39、score 0→225，金币收集与进球链路实证；对局 90s 设计、取证窗收尾于 timeLeft≈38s，终局/回放退出屏未在窗内到达"
+  ]
+}

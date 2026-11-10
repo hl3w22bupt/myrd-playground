@@ -1,0 +1,22 @@
+{
+  "entries": [
+    {
+      "url": "http://127.0.0.1:8137/index.html",
+      "status": 200,
+      "critical": true,
+      "offsetMs": 1503
+    },
+    {
+      "url": "http://127.0.0.1:8137/favicon.ico",
+      "status": 404,
+      "critical": false,
+      "offsetMs": 5721
+    },
+    {
+      "url": "http://127.0.0.1:8137/favicon.ico",
+      "status": 404,
+      "critical": false,
+      "offsetMs": 16947
+    }
+  ]
+}
