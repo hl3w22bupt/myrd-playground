@@ -1,0 +1,20 @@
+{
+  "name": "final-review-touch-audio",
+  "steps": [
+    { "id": "load",    "label": "加载后",               "action": "wait",       "params": { "ms": 3500 } },
+    { "id": "title",   "label": "标题画面",             "action": "screenshot", "params": {} },
+    { "id": "probe0",  "label": "触前音频钩子探测",     "action": "probe",      "params": { "expr": "JSON.stringify({audioDebug: typeof window.__audioDebug, footballProbe: typeof window.__footballProbe, title: document.title, canvases: document.querySelectorAll('canvas').length, bodyText: document.body.innerText.slice(0,80)})" } },
+    { "id": "start",   "label": "首触开球（音频解锁手势）", "action": "tap",    "params": { "x": 195, "y": 508, "settleMs": 1200 } },
+    { "id": "kickoff", "label": "开球后画面",           "action": "screenshot", "params": {} },
+    { "id": "joy1",    "label": "左区摇杆推球",         "action": "swipe",      "params": { "from": { "x": 90, "y": 700 }, "to": { "x": 150, "y": 600 }, "moveSteps": 12, "settleMs": 600 } },
+    { "id": "shoot",   "label": "右区点按射门",         "action": "tap",        "params": { "x": 300, "y": 420, "settleMs": 900 } },
+    { "id": "joy2",    "label": "摇杆反向推（方向核验）", "action": "swipe",    "params": { "from": { "x": 90, "y": 600 }, "to": { "x": 90, "y": 720 }, "moveSteps": 12, "settleMs": 600 } },
+    { "id": "probe1",  "label": "游玩中钩子探测",       "action": "probe",      "params": { "expr": "JSON.stringify({audioDebug: typeof window.__audioDebug, footballProbe: typeof window.__footballProbe, hint: (document.body.innerText.match(/带球[^\n]{0,20}/)||[])[0]||null})" } },
+    { "id": "play1",   "label": "持续游玩画面",         "action": "screenshot", "params": {} },
+    { "id": "pause",   "label": "点按右上暂停",         "action": "tap",        "params": { "x": 356, "y": 34, "settleMs": 900 } },
+    { "id": "paused",  "label": "暂停态画面",           "action": "screenshot", "params": {} },
+    { "id": "resume",  "label": "点按恢复",             "action": "tap",        "params": { "x": 195, "y": 508, "settleMs": 900 } },
+    { "id": "play2",   "label": "恢复后画面",           "action": "screenshot", "params": {} },
+    { "id": "probe2",  "label": "收尾钩子探测",         "action": "probe",      "params": { "expr": "JSON.stringify({audioDebug: typeof window.__audioDebug, footballProbe: typeof window.__footballProbe, readyState: document.readyState})" } }
+  ]
+}
