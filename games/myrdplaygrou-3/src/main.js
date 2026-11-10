@@ -17,6 +17,22 @@ const canvas = document.getElementById("gl");
 const hud = createHud();
 const game = createGame({ seed: SEED_DEFAULT });
 
+// —— 试玩桥（IP8）：只读内核快照，供无头会话 probe（session-step --probe 'window.__footballProbe()'）
+// 与后续调参桥取数。render 装配层钩子，零回写；?smoke 协议不受影响。
+window.__footballProbe = () => ({
+  state: game.state,
+  score: game.world.score,
+  goals: game.world.goals,
+  coinsCollected: game.world.coinsCollected,
+  coinTotal: game.world.coins.length,
+  shots: game.world.shots,
+  saves: game.world.saves,
+  timeLeft: game.world.timeLeft,
+  player: { x: game.world.player.x, z: game.world.player.z, angle: game.world.player.angle },
+  ball: { x: game.world.ball.x, z: game.world.ball.z, state: game.world.ball.state },
+  keeperX: game.world.keeper.x,
+});
+
 // —— 场景装配 ——
 const renderer = buildRenderer(canvas);
 const scene = buildScene();
@@ -129,18 +145,20 @@ function handleEvents(events) {
 }
 
 // —— 表现层同步：只读内核，驱动 mesh/相机/HUD ——
+let coinClock = 0;                     // 金币自转/浮动的表现层时钟（纯装饰，允许非确定性，不回写内核）
 function syncVisuals(dt) {
   const w = game.world;
+  coinClock += dt;
   playerMesh.position.set(w.player.x, 0, w.player.z);
   playerMesh.rotation.y = w.player.angle;
   keeperMesh.position.set(w.keeper.x, 0, KEEPER_Z); // 只读驱动，数值真源在 numeric
   ballMesh.position.set(w.ball.x, 0.45, w.ball.z);
   ballMesh.rotation.x += (w.ball.state === "shot" ? 10 : 2) * dt; // 滚动自转：纯装饰，不回写内核
-  for (const m of coinMeshes) {
-    const c = w.coins[m.userData.id];
-    m.visible = c.alive;
-    m.position.set(c.x, 0.8, c.z);   // 收集即补位：补位点每帧跟随内核（纯装饰自转见下）
-    m.rotation.z += dt * 2.4;
+  for (const g of coinMeshes) {
+    const c = w.coins[g.userData.id];
+    g.visible = c.alive;
+    g.position.set(c.x, 0.9 + Math.sin(coinClock * 3 + g.userData.id * 1.7) * 0.12, c.z); // x/z 跟内核（收集即补位），y 浮动纯装饰
+    g.rotation.y = coinClock * 2.6 + g.userData.id * 0.9;                                // 绕世界 Y 扫盘自转（IP4）
   }
   followCamera(camera, w.player, dt);
   hud.setHud(w.score, w.timeLeft, w.goals, w.coinsCollected);

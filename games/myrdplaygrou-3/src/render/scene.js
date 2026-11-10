@@ -216,19 +216,30 @@ export function buildBall(scene) {
   return m;
 }
 
-/** 金币组：金色薄圆柱 + 自发光（Bloom 点亮），按 id 索引；同帧只读内核 alive 驱动可见性 */
+/** 金币组（IP4，round-1 取证：躺倒薄圆柱在部分机位呈细橙条、不像金币）：
+ *  竖立硬币（盘面朝 ±X）+ 落点光斑喂 Bloom —— 组节点每帧自转（绕世界 Y 扫盘）+ 上下浮动
+ *  （纯表现层装饰，position.x/z 每帧只读内核回写、不回写内核状态），按 id 索引。 */
 export function buildCoins(scene, world) {
   const mat = new THREE.MeshStandardMaterial({
     color: PALETTE.accent, emissive: PALETTE.accent, emissiveIntensity: 0.55, roughness: 0.25, metalness: 0.6,
   });
+  const spotMat = new THREE.SpriteMaterial({
+    map: glowTexture("rgba(243, 156, 18, 1)"), blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.8,
+  });
   const meshes = world.coins.map((c) => {
-    const m = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.1, 20), mat);
-    m.position.set(c.x, 0.8, c.z);
-    m.rotation.x = Math.PI / 2;
-    m.castShadow = true;
-    m.userData.id = c.id;
-    scene.add(m);
-    return m;
+    const group = new THREE.Group();
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.1, 20), mat);
+    disc.rotation.z = Math.PI / 2;   // 盘面朝 ±X：高机位斜视下读出完整圆盘（原 rotation.x=π/2 是细条观感的根因）
+    disc.castShadow = true;
+    group.add(disc);
+    const spot = new THREE.Sprite(spotMat);
+    spot.scale.set(1.3, 1.3, 1);
+    spot.position.y = -0.75;         // 地面光斑（组内 y：浮动时贴地不动）
+    group.add(spot);
+    group.position.set(c.x, 0.9, c.z);
+    group.userData.id = c.id;
+    scene.add(group);
+    return group;
   });
   return meshes;
 }
