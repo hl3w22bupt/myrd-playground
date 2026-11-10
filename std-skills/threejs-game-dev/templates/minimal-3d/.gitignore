@@ -1,0 +1,3 @@
+node_modules/
+# browser-smoke.mjs 证据落盘目录（smoke-*.png + report.json），运行时产物不入库
+qa/

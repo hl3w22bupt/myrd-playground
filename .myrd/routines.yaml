@@ -100,3 +100,30 @@ routines:
     command: node std-skills/experience-harness/scripts/pack.mjs --url {{liveUrl}} --out {{gamePath}}/qa/experience --label routine
     target: host
     timeout: 240
+
+# Three.js 垂类门禁（threejs-game-dev 技能包配套）—— 判定器本体在 std-skills/threejs-game-dev/scripts/，
+# routine 只引用不携带（门禁独立性红线）。两条均 gate:false：只挂 Three.js 目标工作流的 preHook
+# 显式引用（threejs-preflight / threejs-browser-smoke），不参与默认门禁。
+# gamePath 默认对齐当前活跃 threejs 线；工作流 preHook 执行时 run 级参数 gamePath 覆盖此默认值。
+- id: threejs-preflight
+  name: Three.js 静态前置检查
+  description: 零依赖 Node 静态机判 three.js 工程 —— 依赖钉版 / 内核纯度 / 状态机 / 输入双端 / 单文件产物契约
+  gate: false
+  params:
+    gamePath: games/myrdplaygrou-3
+  steps:
+  - name: preflight
+    command: "node std-skills/threejs-game-dev/scripts/preflight.mjs {{gamePath}}"
+    target: host
+    timeout: 120
+- id: threejs-browser-smoke
+  name: Three.js 浏览器冒烟
+  description: headless Chrome 双视口（桌面+移动仿真）打开构建产物 ?smoke=，机判零异常/循环推进/像素采样/性能快照
+  gate: false
+  params:
+    gamePath: games/myrdplaygrou-3
+  steps:
+  - name: browser-smoke
+    command: "node std-skills/threejs-game-dev/scripts/browser-smoke.mjs {{gamePath}}"
+    target: host
+    timeout: 240
