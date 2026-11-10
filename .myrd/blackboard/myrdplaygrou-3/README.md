@@ -28,3 +28,8 @@
 - 部署后 liveUrl：https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou-3/
 - 线上复证清单：/health 返回 app=myrdplaygrou-3；落地页即游戏本体（title 屏可点开球）；
   移动端触摸摇杆+射门全链路；音频手势解锁后 BGM/哨声可闻
+
+## deploy 节点补记（2026-11-11）
+
+- 部署单 `cmwax345r002km97avs9jgvxa`（mode=bundle，gitRef=@88b7469）→ running；线上 sha256 `b04c4378…` 与本地构建逐字节一致（SRC_SHA=e3df74b489a5f153）。线上取证包：`games/myrdplaygrou-3/qa/experience/2026-11-10T16-52-47-deploy/`（consoleErrors=0、网络零失败、8 步全响应），入库摘要 `deploy-experience/`。
+- **平台事实（重要）**：`PATCH /api/v1/goals/:id` 的 `artifacts` 是**整体替换**语义，不是合并 —— 传 `{artifacts:[新条目]}` 会把原有条目全部覆盖丢失。合并必须在客户端做：先 GET 全量数组、拼接新条目、整体 PATCH 回写。本节点已实际踩中并当场从轨迹 lookup 恢复 4 条（#3/#4 尾段因轨迹详情端点鉴权（仅管理员或本人）不可恢复，已注记）。与知识库「PATCH /bugs/status 的 id 只认 query」同族：平台 PATCH/参数位置语义先探测再写。
