@@ -37,3 +37,8 @@
 ## playtest 节点补记（2026-11-11）
 
 - 试玩验收包 + 打分卡已发（requestKey=playtest_cmwaqvrng002lm9m2nftdd20h，messageId=cmwaxyy11002ym97agrrhqrn9）+ ADVISORY 自动放行摘要已回写（autoPassSuggested=true，rounds=0）。详见 `playtest-node.md`。状态：**待用户试玩**（不轮询，回填后走 spec.numeric revisions → tuning_applied）。
+
+## polish 节点补记（2026-11-11）
+
+- 四轮「改→玩→看」收口（round-0 基线 + IP9/方向倒置、IP1-3 相机与光晕、IP4/6/8 金币文案探针、IP5/7 粒子与音频契约 + 看台色带），内核 ?smoke 快照四轮逐位一致（零玩法回归）。详见 `polish-node.md`。
+- 门禁全绿，唯 PLAYTEST_SUMMARY FAIL 挂模板级 schema 漂移（playtest-summary C4 读 name/pass vs mobile-web-smoke 产 id/label/status，判定器双方禁改）——op=playtest_summary 如实 autoPassSuggested=false；待运维修模板仓后重跑即 PASS。

@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "thresholdT1": 0.7,
+  "entries": [
+    {
+      "scenario": "polish-cmwaqvrng002lm9m2nftdd20h",
+      "beforeSource": "qa/playtest/steps/round-0",
+      "afterSource": "qa/playtest/steps/round-3",
+      "comparedAt": "2026-11-10T17:48:29.869Z",
+      "pairsCompared": 8,
+      "suspectedRegressions": 4,
+      "notComparable": 0,
+      "unmatchedFiles": [
+        "after 独有: live-04-shot-moment.png",
+        "after 独有: live-05-aftermath.png",
+        "after 独有: live-07-burst-a.png",
+        "after 独有: live-08-burst-b.png",
+        "after 独有: live-09-burst-c.png"
+      ],
+      "comparisons": [
+        {
+          "before": "qa/playtest/steps/round-0/det-smoke28.png",
+          "after": "qa/playtest/steps/round-3/det-smoke28.png",
+          "resolution": "702x1519",
+          "pHashBefore": "d87070d0daf4f0ce",
+          "pHashAfter": "d8eee0c8de70265a",
+          "similarity": 0.6875,
+          "verdict": "suspected-regression",
+          "reason": "pHash 相似度 0.6875 < T1=0.7（整体画面明显变化 —— 可能是退化，也可能是大幅重设计）",
+          "suggestedAction": "对照 round-N.md 的改动清单逐条复核：若属刻意重设计，在打磨记录里写明并把本条标记为已解释；若非刻意，回滚该改动并复跑同动作序列取证"
+        },
+        {
+          "before": "qa/playtest/steps/round-0/det-smoke8.png",
+          "after": "qa/playtest/steps/round-3/det-smoke8.png",
+          "resolution": "702x1519",
+          "pHashBefore": "f07070f0f8f4e2a6",
+          "pHashAfter": "e1fcd0f0e4f31c50",
+          "similarity": 0.5938,
+          "verdict": "suspected-regression",
+          "reason": "pHash 相似度 0.5938 < T1=0.7（整体画面明显变化 —— 可能是退化，也可能是大幅重设计）",
+          "suggestedAction": "对照 round-N.md 的改动清单逐条复核：若属刻意重设计，在打磨记录里写明并把本条标记为已解释；若非刻意，回滚该改动并复跑同动作序列取证"
+        },
+        {
+          "before": "qa/playtest/steps/round-0/live-01-title.png",
+          "after": "qa/playtest/steps/round-3/live-01-title.png",
+          "resolution": "702x1519",
+          "pHashBefore": "baf051cb6b64849b",
+          "pHashAfter": "b9f1c48e3b3084cf",
+          "similarity": 0.7188,
+          "verdict": "comparable-pass",
+          "reason": "pHash 相似度 0.7188 ≥ T1=0.7",
+          "suggestedAction": "无需动作"
+        },
+        {
+          "before": "qa/playtest/steps/round-0/live-02-kickoff.png",
+          "after": "qa/playtest/steps/round-3/live-02-kickoff.png",
+          "resolution": "702x1519",
+          "pHashBefore": "f0f060e062eade9e",
+          "pHashAfter": "f0e0e0e0fad88bcb",
+          "similarity": 0.75,
+          "verdict": "comparable-pass",
+          "reason": "pHash 相似度 0.7500 ≥ T1=0.7",
+          "suggestedAction": "无需动作"
+        },
+        {
+          "before": "qa/playtest/steps/round-0/live-03-run-mid.png",
+          "after": "qa/playtest/steps/round-3/live-03-run-mid.png",
+          "resolution": "702x1519",
+          "pHashBefore": "e0e0e86aeaeacaca",
+          "pHashAfter": "f0e1b0f0e394e9a6",
+          "similarity": 0.625,
+          "verdict": "suspected-regression",
+          "reason": "pHash 相似度 0.6250 < T1=0.7（整体画面明显变化 —— 可能是退化，也可能是大幅重设计）",
+          "suggestedAction": "对照 round-N.md 的改动清单逐条复核：若属刻意重设计，在打磨记录里写明并把本条标记为已解释；若非刻意，回滚该改动并复跑同动作序列取证"
+        },
+        {
+          "before": "qa/playtest/steps/round-0/live-04-run-attack.png",
+          "after": "qa/playtest/steps/round-3/live-04-run-attack.png",
+          "resolution": "702x1519",
+          "pHashBefore": "e0e0e86aeaeacaca",
+          "pHashAfter": "d8e7f0c0de60275a",
+          "similarity": 0.5938,
+          "verdict": "suspected-regression",
+          "reason": "pHash 相似度 0.5938 < T1=0.7（整体画面明显变化 —— 可能是退化，也可能是大幅重设计）",
+          "suggestedAction": "对照 round-N.md 的改动清单逐条复核：若属刻意重设计，在打磨记录里写明并把本条标记为已解释；若非刻意，回滚该改动并复跑同动作序列取证"
+        },
+        {
+          "before": "qa/playtest/steps/round-0/live-05-shot.png",
+          "after": "qa/playtest/steps/round-3/live-05-shot.png",
+          "resolution": "702x1519",
+          "pHashBefore": "c2e8ca68eacae8da",
+          "pHashAfter": "f0e0e0e0fad8cbca",
+          "similarity": 0.75,
+          "verdict": "comparable-pass",
+          "reason": "pHash 相似度 0.7500 ≥ T1=0.7",
+          "suggestedAction": "无需动作"
+        },
+        {
+          "before": "qa/playtest/steps/round-0/live-06-final.png",
+          "after": "qa/playtest/steps/round-3/live-06-final.png",
+          "resolution": "702x1519",
+          "pHashBefore": "e0e0e86aeaeacaca",
+          "pHashAfter": "e0e0e0e2fad8cbca",
+          "similarity": 0.875,
+          "verdict": "comparable-pass",
+          "reason": "pHash 相似度 0.8750 ≥ T1=0.7",
+          "suggestedAction": "无需动作"
+        }
+      ],
+      "diffConclusion": "SUSPECTED_REGRESSION(ADVISORY)",
+      "suggestedAction": "逐条复核 suspected-regression 对：刻意重设计需在打磨记录解释；非刻意则回滚改动并复跑取证（advisory，不拦截 verdict）"
+    }
+  ],
+  "updatedAt": "2026-11-10T17:48:29.868Z"
+}

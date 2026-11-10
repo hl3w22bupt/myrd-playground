@@ -1,0 +1,513 @@
+{
+  "schemaVersion": 1,
+  "generatedBy": "playtest-summary.mjs",
+  "valid": false,
+  "gamePath": "games/myrdplaygrou-3",
+  "versionSha": "eb6eb521a0d113e6c3a9c5af91d8f977a4ca69e9",
+  "startedAt": "2026-11-10T17:21:23.115Z",
+  "endedAt": "2026-11-10T17:45:17.549Z",
+  "rounds": [
+    {
+      "round": 0,
+      "file": "qa/playtest/round-0.md",
+      "observation": "- 确定性回放路：?smoke=8 内核快照 state=playing score=240 goals=2 shots=3 collected=8\n  timeLeft=82.0；?smoke=28 终局 state=gameover score=340 goals=3 shots=4 collected=8\n  timeLeft=81.1 —— 与 qa/smoke/report.json 终局读数逐位一致（同 seed 同 autopilot → 复现成立）。\n- **发现高优先级操控缺陷（IP9，新立改进点）**：上推摇杆（swipe 60,650→60,430）×4 后球员跑到\n  画面下方尽头的本方底线（live-04：贴白线、身下即场外），离对方球门更远 —— 触屏映射\n  「屏幕上推 = -Z」（touch.js:13 注释自述）与相机几何（机位在玩家 -Z 侧、视线朝 +Z，\n  画面上方 = +Z = 进攻方向）**倒置**；键盘 W/ArrowUp 同样映射 -Z，同病。\n- IP1/IP2 画面信号复核：live-04/live-05 里射门白虚线（z=8）完全不在画内，射门提示\n  「带球压过白虚线才能射门」引用了一条玩家看不见的线（live-05 底部提示可见、所指线不可见）；\n  画面底部约 45% 为场外深绿（球员在本方底线时构图为全场最差）。\n- IP3 复核：live-04/live-05 球员脚下蓝色光晕把带球球染进光斑，球体不可辨。\n- 射门出界外反馈链路工作正常（live-05 hint 弹出）；HUD 徽章/暂停按钮布局正常，无横向溢出。",
+      "actions": [
+        "navigate liveUrl → wait 1500 → screenshot（live-01-title）",
+        "tap 320,650（右半屏开球）→ wait 600（live-02-kickoff）",
+        "swipe 60,650:60,430（上推摇杆）×2 → screenshot（live-03-run-mid）",
+        "swipe 60,650:60,430 ×2 → screenshot（live-04-run-attack）",
+        "tap 320,650（射门尝试）→ wait 800 → screenshot（live-05-shot / live-06-final）",
+        "probe #hud innerText：进球 0/3 | 金币 ×1 | 得分 5 | 时间 69s",
+        "确定性回放：navigate ?smoke=8 → wait 5000 → probe document.title → screenshot（det-smoke8）；"
+      ],
+      "screenshots": [
+        {
+          "path": "qa/playtest/steps/round-0/live-01-title.png",
+          "bytes": 129112,
+          "mtime": "2026-11-10T17:22:41.924Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-0/live-02-kickoff.png",
+          "bytes": 125347,
+          "mtime": "2026-11-10T17:22:43.716Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-0/live-03-run-mid.png",
+          "bytes": 76145,
+          "mtime": "2026-11-10T17:22:53.430Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-0/live-04-run-attack.png",
+          "bytes": 67156,
+          "mtime": "2026-11-10T17:23:00.411Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-0/live-05-shot.png",
+          "bytes": 77765,
+          "mtime": "2026-11-10T17:23:01.923Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-0/live-06-final.png",
+          "bytes": 68437,
+          "mtime": "2026-11-10T17:23:04.351Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-0/det-smoke8.png",
+          "bytes": 121694,
+          "mtime": "2026-11-10T17:21:23.115Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-0/det-smoke28.png",
+          "bytes": 109382,
+          "mtime": "2026-11-10T17:21:43.679Z"
+        }
+      ],
+      "improvements": "- 本轮为基线取证轮：新立 IP9（移动/键盘方向与相机倒置，高优先级）；IP1/IP2/IP3 画面信号在\n  交互路径下复核成立（见 improvements.md）。",
+      "changes": "- 无（基线取证，零代码改动；HEAD=收口时点记录于 summary）。",
+      "replayConclusion": "- 不适用（本轮为基线；后续轮 1/2/3 以本轮 det-smoke8/det-smoke28 与 live 序列截图为对照基准）。"
+    },
+    {
+      "round": 1,
+      "file": "qa/playtest/round-1.md",
+      "observation": "- **内核确定性绊线零漂移**：?smoke=8 快照 state=playing score=240 goals=2 shots=3 collected=8\n  timeLeft=82.0、?smoke=28 终局 score=340 goals=3 shots=4 collected=8 timeLeft=81.1 —— 与\n  round-0 逐位一致（本轮只改表现层：touch.js 输入映射 / main.js 键盘映射 / numeric.js CAM_AHEAD\n  / scene.js 光晕，均不进内核）。\n- **IP9 修复见效（交互战果质变）**：同一手势序列（右半屏开球 + 上推摇杆×4 + 右半屏点按），\n  round-0 终态 0 球 1 币 5 分（球员缩在本方底线），round-1 同刻 2 球 3 币 215 分 —— 上推即向\n  画面上方（球门）推进，手势语义与画面方向一致。\n- **IP1/IP2 修复见效（构图）**：开球位（live-02）球门+门柱+守门员即入画上缘、射门白虚线\n  居画幅中部、底部场外空带消失（画面底缘即本方禁区线）；det-smoke8 同内核状态下（round-0：\n  空旷中场、虚线贴上缘、门不可见）→ 本轮门前特写构图，门/网/守门员/球全部清晰。\n- **IP3 修复见效**：live-03 带球帧中球体（白底黑斑）在球员身前清晰可辨，不再被蓝色光晕吞没。\n- 遗留观察（转后续轮）：金币躺倒薄圆柱在部分机位呈细橙条（IP4 → 轮 2）；门后场外环带在进攻\n  三区占画幅上部 ~25% 灰绿死区（scene.js buildArena 注释里的「看台色带」从未实现 → 轮 3 候选）。",
+      "actions": [
+        "与 round-0 完全一致（跨轮可比）：navigate ?smoke=8 → wait 5000 → screenshot+probe；"
+      ],
+      "screenshots": [
+        {
+          "path": "qa/playtest/steps/round-1/det-smoke8.png",
+          "bytes": 115080,
+          "mtime": "2026-11-10T17:28:07.454Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-1/det-smoke28.png",
+          "bytes": 104002,
+          "mtime": "2026-11-10T17:28:15.676Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-1/live-01-title.png",
+          "bytes": 142335,
+          "mtime": "2026-11-10T17:28:33.067Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-1/live-02-kickoff.png",
+          "bytes": 139826,
+          "mtime": "2026-11-10T17:28:34.698Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-1/live-03-run-mid.png",
+          "bytes": 115198,
+          "mtime": "2026-11-10T17:28:43.666Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-1/live-04-run-attack.png",
+          "bytes": 109042,
+          "mtime": "2026-11-10T17:28:50.204Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-1/live-05-shot.png",
+          "bytes": 112256,
+          "mtime": "2026-11-10T17:28:51.703Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-1/live-06-final.png",
+          "bytes": 110037,
+          "mtime": "2026-11-10T17:28:54.310Z"
+        }
+      ],
+      "improvements": "- IP9 触屏/键盘方向与相机倒置（round-0 新立，高优先级）\n- IP1 纵深感缺失/球门不可见；IP2 底部场外空带；IP3 带球球被光晕吞没",
+      "changes": "- src/render/touch.js：setIntent moveZ 取反（屏幕上推 = +Z = 进攻方向），注释写明相机几何依据\n- src/main.js：keyboardIntent moveZ 翻转（W/↑ = +Z，与触屏同相）\n- src/numeric.js：CAM_AHEAD 2.7 → 8（俯角 ≈84°→≈72°，纵向覆盖 [camZ-6.2, camZ+30.1]，\n  开球位门线入画；spec.numeric 未登记 CAM_*，走 numeric.js 手感参数通道，见 improvements.md 声明）\n- src/render/scene.js：球员底部光斑 scale 2.2 → 1.6（球不再被加性混色吞没）\n- 验证：GAME-GATES 5/5 PASS（内核确定性/玩法契约零回归）；构建复现 PASS（SRC_SHA=e74ce6d5）",
+      "replayConclusion": "- 比 round-0 更好，保留：①交互战果 5 分→215 分（方向可用性修复的直接证据）；②开球位球门\n  入画（原全程不可见）；③带球球可辨（原被光晕吞没）；④内核快照逐位一致（零玩法回归）。\n- 无回滚项。"
+    },
+    {
+      "round": 2,
+      "file": "qa/playtest/round-2.md",
+      "observation": "- **内核确定性绊线零漂移（第三轮验证）**：?smoke=8 score=240 goals=2 shots=3 collected=8\n  timeLeft=82.0、?smoke=28 终局 score=340 goals=3/3 shots=4 collected=8 timeLeft=81.1 —— 与\n  round-0/round-1 逐位一致（本轮改 scene.js 金币装配 / main.js 同步与探针钩子 /\n  index.template.html 文案，零内核触碰）。\n- **IP4 修复见效**：金币由「细橙条」变为带落点光斑的竖立圆盘（live-02 开球位全景：10 枚金币\n  全部可辨、光斑锚定地面位置；自转+浮动在 live-02→live-03 帧差中可见）。\n- **IP6 修复见效**：title 说明拆两行短句（live-01：带球压过白虚线射门 · 进 3 球提前获胜 /\n  金币捡到即补 · 永不枯竭），孤字换行消失；title 屏背景即整场构图（球门在上、金币散布），\n  目标可读性比 round-0 的空场背景显著更好。\n- **IP8 修复见效**：window.__footballProbe() 返回只读内核快照（live probe 实测：\n  {\"state\":\"playing\",\"score\":0,...,\"player\":{\"x\":0,\"z\":-4,...},\"ball\":{\"state\":\"dribble\"},\"keeperX\":0.96}），\n  sessiond probe 通道从「只能读 ?smoke 载荷」升级为「任意时刻可取内核快照」。\n- **交互序列打满终局**：同一手势序列本轮在 live-04 即触发「胜利！提前破关 · 进球 3/3 · 金币 3 ·\n  得分 315」（剩 77s）—— 直线推进 + 自动射门（AUTO_SHOOT_Z 兜底）即可破关，休闲收集定位下\n  难度偏易；**平衡数值不动**（无用户试玩回填依据，见 improvements.md 数值通道声明），\n  记为下一轮带数据调参的候选输入。\n- 序列语义注记（如实）：live-05 的右半屏点按落在终局屏「再来一局」上触发重开（live-05/live-06\n  为重开后 kickoff 帧，probe score=0 timeLeft=89s 佐证）—— 固定动作序列与对局时序存在 CDP\n  抖动，跨轮对比以 ?smoke 确定性快照为准、live 序列看手感，两路分工在 round-0 已声明。",
+      "actions": [
+        "与 round-0/1 完全一致：navigate ?smoke=8 → wait 5000 → screenshot+probe；"
+      ],
+      "screenshots": [
+        {
+          "path": "qa/playtest/steps/round-2/det-smoke8.png",
+          "bytes": 122048,
+          "mtime": "2026-11-10T17:32:46.665Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-2/det-smoke28.png",
+          "bytes": 109190,
+          "mtime": "2026-11-10T17:32:55.239Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-2/live-01-title.png",
+          "bytes": 156041,
+          "mtime": "2026-11-10T17:33:20.996Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-2/live-02-kickoff.png",
+          "bytes": 156965,
+          "mtime": "2026-11-10T17:33:25.247Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-2/live-03-run-mid.png",
+          "bytes": 137183,
+          "mtime": "2026-11-10T17:33:34.259Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-2/live-04-run-attack.png",
+          "bytes": 106916,
+          "mtime": "2026-11-10T17:33:41.946Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-2/live-05-shot.png",
+          "bytes": 157775,
+          "mtime": "2026-11-10T17:33:43.740Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-2/live-06-final.png",
+          "bytes": 157039,
+          "mtime": "2026-11-10T17:33:46.473Z"
+        }
+      ],
+      "improvements": "- IP4 金币辨识度弱/收集无视觉反馈（细条→竖立圆盘+落点光斑+自转浮动）\n- IP6 title 说明行孤字换行（拆两行短句）\n- IP8 内核状态不可观测（__footballProbe 只读探针）",
+      "changes": "- src/render/scene.js：buildCoins 重构 —— 组节点（竖立盘面 rotation.z=π/2 + 落点光斑 sprite），\n  userData.id 迁到组节点\n- src/main.js：syncVisuals 金币段改组节点驱动（x/z 跟内核、y 浮动与自转用表现层 coinClock，\n  纯装饰不回写内核）；新增 window.__footballProbe 只读快照钩子（IP8）\n- index.template.html：title 说明行拆两行（IP6）\n- 验证：GAME-GATES 5/5 PASS；?smoke 快照与轮 0/1 逐位一致（零玩法回归）",
+      "replayConclusion": "- 比 round-1 更好，保留：金币可辨度（细条→圆盘+光斑，live-02 全景对照 round-1 同机位）、\n  title 排版（孤字消失）、内核可观测（probe 通道可用）。\n- 无回滚项。"
+    },
+    {
+      "round": 3,
+      "file": "qa/playtest/round-3.md",
+      "observation": "- **内核确定性绊线零漂移（第四轮验证）**：?smoke=8 score=240 goals=2 shots=3 collected=8\n  timeLeft=82.0、?smoke=28 终局 score=340 goals=3/3 shots=4 collected=8 timeLeft=81.1 —— 与\n  round-0/1/2 逐位一致（本轮改 scene.js 粒子池与看台 / main.js 事件挂钩 / audio.js 钩子，\n  零内核触碰）。\n- **IP7 修复见效（audio-unlock 契约）**：window.__audioDebug 实测两个状态 —— 解锁前\n  {\"created\":false,\"state\":\"none\",\"bgmOn\":false}、开球手势解锁后\n  {\"created\":true,\"state\":\"suspended\",\"bgmOn\":true}（headless 无音频设备，suspended 为该环境\n  正常态；真机应报 running）。mobile-web-smoke 判定器要求的 function 契约满足。\n- **IP5 部分取证（如实）**：粒子爆点已实现并在事件瞬间触发——经验包帧序列捕到收集爆点痕迹\n  （burst-trace-0056.jpg：球员脚下淡蓝爆屑；burst-trace-0059.jpg：摇杆推进帧）；\n  sessiond 单帧竞拍（live-07/08/09）未捕到爆点全貌 —— CDP 截图延迟 ~0.7-1s vs 粒子寿命\n  0.45-0.9s，静态全貌捕获受限，如实记录（视频帧序列是完整证据通道）。\n- **看台色带（新增，门后死区）**：scene.js buildArena 注释里的「看台色带」此前从未实现 ——\n  本轮补上（四面低矮看台块，主色蓝体+白帽檐）。first-版宽檐白顶面在门前构图形成 ~18% 大片\n  白板（live-08-burst-b.png 取证）→ 当轮微调为窄檐（深 2.2m）+ 降身高 3.2→2.8，复拍\n  live-02-kickoff.png 顶部死区变干净。\n- **手感读数（交互）**：固定序列终局于 live-04（胜利！3/3 · 315 分 · 剩 76s）；守门员对\n  直线中路推进有真实拦截（live-09 前 kernel 实测 shots=15 saves=1 —— 自动射门每 0.9s 一发的\n  连射被守门员相位拦截，进球需要横向空当或时机）——「难度偏易」的轮 2 结论修正为：\n  「贪心横瞄的 autopilot 易、人类直线推进被扑救机制制衡」，仍不动平衡数值（无用户回填）。\n- live-05 点按再次落在重开（终局后 gesture 语义），如实注记（同 round-2）。",
+      "actions": [
+        "确定路段：navigate ?smoke=8 → wait 5000 → screenshot+probe；navigate ?smoke=28 → wait 5000",
+        "交互段：navigate 直连页 → wait 1500 → screenshot → tap 320,650 → wait 600 → screenshot →",
+        "补充段（看台微调后重跑确定路段+live-01/02，终版 f530de90）；粒子竞拍段：3 swipes → tap →",
+        "经验包：pack.mjs --url 本地构建 --label polish-round3（8 步截图 + 185 帧 + consoleErrors=0）"
+      ],
+      "screenshots": [
+        {
+          "path": "qa/playtest/steps/round-3/det-smoke8.png",
+          "bytes": 124315,
+          "mtime": "2026-11-10T17:43:46.243Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-3/det-smoke28.png",
+          "bytes": 110146,
+          "mtime": "2026-11-10T17:43:54.539Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-3/live-01-title.png",
+          "bytes": 154765,
+          "mtime": "2026-11-10T17:44:13.328Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-3/live-02-kickoff.png",
+          "bytes": 158690,
+          "mtime": "2026-11-10T17:44:17.671Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-3/live-03-run-mid.png",
+          "bytes": 133926,
+          "mtime": "2026-11-10T17:44:27.683Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-3/live-04-run-attack.png",
+          "bytes": 107647,
+          "mtime": "2026-11-10T17:44:37.082Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-3/live-05-shot.png",
+          "bytes": 158771,
+          "mtime": "2026-11-10T17:44:41.298Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-3/live-06-final.png",
+          "bytes": 155583,
+          "mtime": "2026-11-10T17:44:43.564Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-3/live-08-burst-b.png",
+          "bytes": 117361,
+          "mtime": "2026-11-10T17:39:54.702Z"
+        },
+        {
+          "path": "qa/playtest/steps/round-3/burst-trace-0056.jpg",
+          "bytes": 18521,
+          "mtime": "2026-11-10T17:45:17.549Z"
+        }
+      ],
+      "improvements": "- IP5 进球/扑救/收集无画面爆点（粒子池：进球门区橙蓝双爆 / 扑救白闪 / 收集淡蓝屑）\n- IP7 音频诊断契约缺位（window.__audioDebug）\n- 新增：门后死区看台色带（buildArena 注释计划未实现项）+ 看台宽檐白板当轮自纠",
+      "changes": "- src/render/scene.js：buildStands（四面看台块，窄檐白帽线）+ buildParticles/emitBurst/\n  updateParticles 粒子池（48 sprite，加性混合，轻重力抛物线，render 侧时钟零内核回写）\n- src/main.js：handleEvents 挂 emitBurst（goal 门区双色双爆 / save 白闪 / collect 球员脚下屑）；\n  syncVisuals 步进 updateParticles；import GOAL_LINE\n- src/render/audio.js：window.__audioDebug 只读诊断钩子（IP7，模块级挂载不依赖 unlock 先行）\n- 当轮微调：看台白檐 7m 宽顶面 → 2.2m 窄檐、身高 3.2→2.8（live-08 白板取证驱动）\n- 验证：GAME-GATES 5/5 PASS（两次重建均过）；?smoke 快照四轮逐位一致（零玩法回归）",
+      "replayConclusion": "- 比 round-2 更好，保留：正反馈三事件均有画面爆点；audio 契约可用；门后死区有看台结构\n  （kickoff/门前构图对照 round-1 live-03）；粒子实现不触碰内核（快照绊线四轮零漂移）。\n- 无回滚项。"
+    }
+  ],
+  "actions": [
+    {
+      "round": 0,
+      "action": "navigate liveUrl → wait 1500 → screenshot（live-01-title）",
+      "timestamp": "2026-11-10T17:24:43.525Z"
+    },
+    {
+      "round": 0,
+      "action": "tap 320,650（右半屏开球）→ wait 600（live-02-kickoff）",
+      "timestamp": "2026-11-10T17:24:43.525Z"
+    },
+    {
+      "round": 0,
+      "action": "swipe 60,650:60,430（上推摇杆）×2 → screenshot（live-03-run-mid）",
+      "timestamp": "2026-11-10T17:24:43.525Z"
+    },
+    {
+      "round": 0,
+      "action": "swipe 60,650:60,430 ×2 → screenshot（live-04-run-attack）",
+      "timestamp": "2026-11-10T17:24:43.525Z"
+    },
+    {
+      "round": 0,
+      "action": "tap 320,650（射门尝试）→ wait 800 → screenshot（live-05-shot / live-06-final）",
+      "timestamp": "2026-11-10T17:24:43.525Z"
+    },
+    {
+      "round": 0,
+      "action": "probe #hud innerText：进球 0/3 | 金币 ×1 | 得分 5 | 时间 69s",
+      "timestamp": "2026-11-10T17:24:43.525Z"
+    },
+    {
+      "round": 0,
+      "action": "确定性回放：navigate ?smoke=8 → wait 5000 → probe document.title → screenshot（det-smoke8）；",
+      "timestamp": "2026-11-10T17:24:43.525Z"
+    },
+    {
+      "round": 1,
+      "action": "与 round-0 完全一致（跨轮可比）：navigate ?smoke=8 → wait 5000 → screenshot+probe；",
+      "timestamp": "2026-11-10T17:30:10.043Z"
+    },
+    {
+      "round": 2,
+      "action": "与 round-0/1 完全一致：navigate ?smoke=8 → wait 5000 → screenshot+probe；",
+      "timestamp": "2026-11-10T17:34:59.373Z"
+    },
+    {
+      "round": 3,
+      "action": "确定路段：navigate ?smoke=8 → wait 5000 → screenshot+probe；navigate ?smoke=28 → wait 5000",
+      "timestamp": "2026-11-10T17:45:47.289Z"
+    },
+    {
+      "round": 3,
+      "action": "交互段：navigate 直连页 → wait 1500 → screenshot → tap 320,650 → wait 600 → screenshot →",
+      "timestamp": "2026-11-10T17:45:47.289Z"
+    },
+    {
+      "round": 3,
+      "action": "补充段（看台微调后重跑确定路段+live-01/02，终版 f530de90）；粒子竞拍段：3 swipes → tap →",
+      "timestamp": "2026-11-10T17:45:47.289Z"
+    },
+    {
+      "round": 3,
+      "action": "经验包：pack.mjs --url 本地构建 --label polish-round3（8 步截图 + 185 帧 + consoleErrors=0）",
+      "timestamp": "2026-11-10T17:45:47.289Z"
+    }
+  ],
+  "observations": [
+    {
+      "round": 0,
+      "observation": "- 确定性回放路：?smoke=8 内核快照 state=playing score=240 goals=2 shots=3 collected=8\n  timeLeft=82.0；?smoke=28 终局 state=gameover score=340 goals=3 shots=4 collected=8\n  timeLeft=81.1 —— 与 qa/smoke/report.json 终局读数逐位一致（同 seed 同 autopilot → 复现成立）。\n- **发现高优先级操控缺陷（IP9，新立改进点）**：上推摇杆（swipe 60,650→60,430）×4 后球员跑到\n  画面下方尽头的本方底线（live-04：贴白线、身下即场外），离对方球门更远 —— 触屏映射\n  「屏幕上推 = -Z」（touch.js:13 注释自述）与相机几何（机位在玩家 -Z 侧、视线朝 +Z，\n  画面上方 = +Z = 进攻方向）**倒置**；键盘 W/ArrowUp 同样映射 -Z，同病。\n- IP1/IP2 画面信号复核：live-04/live-05 里射门白虚线（z=8）完全不在画内，射门提示\n  「带球压过白虚线才能射门」引用了一条玩家看不见的线（live-05 底部提示可见、所指线不可见）；\n  画面底部约 45% 为场外深绿（球员在本方底线时构图为全场最差）。\n- IP3 复核：live-04/live-05 球员脚下蓝色光晕把带球球染进光斑，球体不可辨。\n- 射门出界外反馈链路工作正常（live-05 hint 弹出）；HUD 徽章/暂停按钮布局正常，无横向溢出。"
+    },
+    {
+      "round": 1,
+      "observation": "- **内核确定性绊线零漂移**：?smoke=8 快照 state=playing score=240 goals=2 shots=3 collected=8\n  timeLeft=82.0、?smoke=28 终局 score=340 goals=3 shots=4 collected=8 timeLeft=81.1 —— 与\n  round-0 逐位一致（本轮只改表现层：touch.js 输入映射 / main.js 键盘映射 / numeric.js CAM_AHEAD\n  / scene.js 光晕，均不进内核）。\n- **IP9 修复见效（交互战果质变）**：同一手势序列（右半屏开球 + 上推摇杆×4 + 右半屏点按），\n  round-0 终态 0 球 1 币 5 分（球员缩在本方底线），round-1 同刻 2 球 3 币 215 分 —— 上推即向\n  画面上方（球门）推进，手势语义与画面方向一致。\n- **IP1/IP2 修复见效（构图）**：开球位（live-02）球门+门柱+守门员即入画上缘、射门白虚线\n  居画幅中部、底部场外空带消失（画面底缘即本方禁区线）；det-smoke8 同内核状态下（round-0：\n  空旷中场、虚线贴上缘、门不可见）→ 本轮门前特写构图，门/网/守门员/球全部清晰。\n- **IP3 修复见效**：live-03 带球帧中球体（白底黑斑）在球员身前清晰可辨，不再被蓝色光晕吞没。\n- 遗留观察（转后续轮）：金币躺倒薄圆柱在部分机位呈细橙条（IP4 → 轮 2）；门后场外环带在进攻\n  三区占画幅上部 ~25% 灰绿死区（scene.js buildArena 注释里的「看台色带」从未实现 → 轮 3 候选）。"
+    },
+    {
+      "round": 2,
+      "observation": "- **内核确定性绊线零漂移（第三轮验证）**：?smoke=8 score=240 goals=2 shots=3 collected=8\n  timeLeft=82.0、?smoke=28 终局 score=340 goals=3/3 shots=4 collected=8 timeLeft=81.1 —— 与\n  round-0/round-1 逐位一致（本轮改 scene.js 金币装配 / main.js 同步与探针钩子 /\n  index.template.html 文案，零内核触碰）。\n- **IP4 修复见效**：金币由「细橙条」变为带落点光斑的竖立圆盘（live-02 开球位全景：10 枚金币\n  全部可辨、光斑锚定地面位置；自转+浮动在 live-02→live-03 帧差中可见）。\n- **IP6 修复见效**：title 说明拆两行短句（live-01：带球压过白虚线射门 · 进 3 球提前获胜 /\n  金币捡到即补 · 永不枯竭），孤字换行消失；title 屏背景即整场构图（球门在上、金币散布），\n  目标可读性比 round-0 的空场背景显著更好。\n- **IP8 修复见效**：window.__footballProbe() 返回只读内核快照（live probe 实测：\n  {\"state\":\"playing\",\"score\":0,...,\"player\":{\"x\":0,\"z\":-4,...},\"ball\":{\"state\":\"dribble\"},\"keeperX\":0.96}），\n  sessiond probe 通道从「只能读 ?smoke 载荷」升级为「任意时刻可取内核快照」。\n- **交互序列打满终局**：同一手势序列本轮在 live-04 即触发「胜利！提前破关 · 进球 3/3 · 金币 3 ·\n  得分 315」（剩 77s）—— 直线推进 + 自动射门（AUTO_SHOOT_Z 兜底）即可破关，休闲收集定位下\n  难度偏易；**平衡数值不动**（无用户试玩回填依据，见 improvements.md 数值通道声明），\n  记为下一轮带数据调参的候选输入。\n- 序列语义注记（如实）：live-05 的右半屏点按落在终局屏「再来一局」上触发重开（live-05/live-06\n  为重开后 kickoff 帧，probe score=0 timeLeft=89s 佐证）—— 固定动作序列与对局时序存在 CDP\n  抖动，跨轮对比以 ?smoke 确定性快照为准、live 序列看手感，两路分工在 round-0 已声明。"
+    },
+    {
+      "round": 3,
+      "observation": "- **内核确定性绊线零漂移（第四轮验证）**：?smoke=8 score=240 goals=2 shots=3 collected=8\n  timeLeft=82.0、?smoke=28 终局 score=340 goals=3/3 shots=4 collected=8 timeLeft=81.1 —— 与\n  round-0/1/2 逐位一致（本轮改 scene.js 粒子池与看台 / main.js 事件挂钩 / audio.js 钩子，\n  零内核触碰）。\n- **IP7 修复见效（audio-unlock 契约）**：window.__audioDebug 实测两个状态 —— 解锁前\n  {\"created\":false,\"state\":\"none\",\"bgmOn\":false}、开球手势解锁后\n  {\"created\":true,\"state\":\"suspended\",\"bgmOn\":true}（headless 无音频设备，suspended 为该环境\n  正常态；真机应报 running）。mobile-web-smoke 判定器要求的 function 契约满足。\n- **IP5 部分取证（如实）**：粒子爆点已实现并在事件瞬间触发——经验包帧序列捕到收集爆点痕迹\n  （burst-trace-0056.jpg：球员脚下淡蓝爆屑；burst-trace-0059.jpg：摇杆推进帧）；\n  sessiond 单帧竞拍（live-07/08/09）未捕到爆点全貌 —— CDP 截图延迟 ~0.7-1s vs 粒子寿命\n  0.45-0.9s，静态全貌捕获受限，如实记录（视频帧序列是完整证据通道）。\n- **看台色带（新增，门后死区）**：scene.js buildArena 注释里的「看台色带」此前从未实现 ——\n  本轮补上（四面低矮看台块，主色蓝体+白帽檐）。first-版宽檐白顶面在门前构图形成 ~18% 大片\n  白板（live-08-burst-b.png 取证）→ 当轮微调为窄檐（深 2.2m）+ 降身高 3.2→2.8，复拍\n  live-02-kickoff.png 顶部死区变干净。\n- **手感读数（交互）**：固定序列终局于 live-04（胜利！3/3 · 315 分 · 剩 76s）；守门员对\n  直线中路推进有真实拦截（live-09 前 kernel 实测 shots=15 saves=1 —— 自动射门每 0.9s 一发的\n  连射被守门员相位拦截，进球需要横向空当或时机）——「难度偏易」的轮 2 结论修正为：\n  「贪心横瞄的 autopilot 易、人类直线推进被扑救机制制衡」，仍不动平衡数值（无用户回填）。\n- live-05 点按再次落在重开（终局后 gesture 语义），如实注记（同 round-2）。"
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "qa/playtest/steps/round-0/live-01-title.png",
+      "bytes": 129112,
+      "mtime": "2026-11-10T17:22:41.924Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-0/live-02-kickoff.png",
+      "bytes": 125347,
+      "mtime": "2026-11-10T17:22:43.716Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-0/live-03-run-mid.png",
+      "bytes": 76145,
+      "mtime": "2026-11-10T17:22:53.430Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-0/live-04-run-attack.png",
+      "bytes": 67156,
+      "mtime": "2026-11-10T17:23:00.411Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-0/live-05-shot.png",
+      "bytes": 77765,
+      "mtime": "2026-11-10T17:23:01.923Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-0/live-06-final.png",
+      "bytes": 68437,
+      "mtime": "2026-11-10T17:23:04.351Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-0/det-smoke8.png",
+      "bytes": 121694,
+      "mtime": "2026-11-10T17:21:23.115Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-0/det-smoke28.png",
+      "bytes": 109382,
+      "mtime": "2026-11-10T17:21:43.679Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-1/det-smoke8.png",
+      "bytes": 115080,
+      "mtime": "2026-11-10T17:28:07.454Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-1/det-smoke28.png",
+      "bytes": 104002,
+      "mtime": "2026-11-10T17:28:15.676Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-1/live-01-title.png",
+      "bytes": 142335,
+      "mtime": "2026-11-10T17:28:33.067Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-1/live-02-kickoff.png",
+      "bytes": 139826,
+      "mtime": "2026-11-10T17:28:34.698Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-1/live-03-run-mid.png",
+      "bytes": 115198,
+      "mtime": "2026-11-10T17:28:43.666Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-1/live-04-run-attack.png",
+      "bytes": 109042,
+      "mtime": "2026-11-10T17:28:50.204Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-1/live-05-shot.png",
+      "bytes": 112256,
+      "mtime": "2026-11-10T17:28:51.703Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-1/live-06-final.png",
+      "bytes": 110037,
+      "mtime": "2026-11-10T17:28:54.310Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-2/det-smoke8.png",
+      "bytes": 122048,
+      "mtime": "2026-11-10T17:32:46.665Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-2/det-smoke28.png",
+      "bytes": 109190,
+      "mtime": "2026-11-10T17:32:55.239Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-2/live-01-title.png",
+      "bytes": 156041,
+      "mtime": "2026-11-10T17:33:20.996Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-2/live-02-kickoff.png",
+      "bytes": 156965,
+      "mtime": "2026-11-10T17:33:25.247Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-2/live-03-run-mid.png",
+      "bytes": 137183,
+      "mtime": "2026-11-10T17:33:34.259Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-2/live-04-run-attack.png",
+      "bytes": 106916,
+      "mtime": "2026-11-10T17:33:41.946Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-2/live-05-shot.png",
+      "bytes": 157775,
+      "mtime": "2026-11-10T17:33:43.740Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-2/live-06-final.png",
+      "bytes": 157039,
+      "mtime": "2026-11-10T17:33:46.473Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-3/det-smoke8.png",
+      "bytes": 124315,
+      "mtime": "2026-11-10T17:43:46.243Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-3/det-smoke28.png",
+      "bytes": 110146,
+      "mtime": "2026-11-10T17:43:54.539Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-3/live-01-title.png",
+      "bytes": 154765,
+      "mtime": "2026-11-10T17:44:13.328Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-3/live-02-kickoff.png",
+      "bytes": 158690,
+      "mtime": "2026-11-10T17:44:17.671Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-3/live-03-run-mid.png",
+      "bytes": 133926,
+      "mtime": "2026-11-10T17:44:27.683Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-3/live-04-run-attack.png",
+      "bytes": 107647,
+      "mtime": "2026-11-10T17:44:37.082Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-3/live-05-shot.png",
+      "bytes": 158771,
+      "mtime": "2026-11-10T17:44:41.298Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-3/live-06-final.png",
+      "bytes": 155583,
+      "mtime": "2026-11-10T17:44:43.564Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-3/live-08-burst-b.png",
+      "bytes": 117361,
+      "mtime": "2026-11-10T17:39:54.702Z"
+    },
+    {
+      "path": "qa/playtest/steps/round-3/burst-trace-0056.jpg",
+      "bytes": 18521,
+      "mtime": "2026-11-10T17:45:17.549Z"
+    }
+  ],
+  "consoleErrors": [],
+  "fpsSamples": [
+    10
+  ],
+  "inputReachability": [],
+  "checks": {
+    "roundsAtLeastThree": true,
+    "eachRoundComplete": true,
+    "consoleCleanOrExplained": true,
+    "interactionsReachable": false,
+    "screenshotsMatchRounds": true,
+    "evidenceWithinWindow": true
+  },
+  "mobileReport": "qa/mobile/report.json"
+}
