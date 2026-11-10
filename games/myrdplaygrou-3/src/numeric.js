@@ -49,11 +49,13 @@ export const COIN_RESPAWN_MIN_PLAYER_DIST = 3; // 补位点与玩家最小距离
 export const COIN_RESPAWN_GUARD = 600;         // 补位拒绝采样上限（次）：后 1/3 逐步放宽阈值，兜底确定性环带
 
 // —— 相机（竖屏高机位跟随机位：手感类，需试玩校准；render 层只读消费）——
-// 竖屏口径：俯仰 ≈70°（h/back+ahead 几何解）时 FOV72 的画幅纵向恰好被整场充满，
-// 上缘落在门后环带（消死天空）、球员恒居画幅中部偏下 —— 手机优先构图。
+// 竖屏口径：FOV66 + 机位俯角（从垂直）≈18°（h=24 / ahead=8 几何解）时，画幅纵向覆盖
+// [camZ-6.2, camZ+30.1]：开球位（z=-4）门线 z=16 即入画上缘 6% 处、球门/守门员全程可见
+//（IP1 纵深感 + IP2 消底部场外空带，round-0 取证：原 ahead=2.7 近垂直俯视门线不入画）；
+// 球员恒居画幅中部偏下（d=6 → 偏下 13%）—— 手机优先构图。
 export const CAM_HEIGHT = 24;            // 机位高度（米）
 export const CAM_BACK = 6;               // 机位在玩家身后（-Z 方向）的偏移（米）
-export const CAM_AHEAD = 2.7;            // 视线落点在玩家前方（+Z 方向）的偏移（米）：决定俯仰角
+export const CAM_AHEAD = 8;              // 视线落点在玩家前方（+Z 方向）的偏移（米）：决定俯仰角（8 → 俯角≈72°，斜视出纵深）
 export const CAM_LATERAL = 0.5;          // 机位横向跟随系数（0=纯中轴，1=全跟随；机位与视线同 x → 零偏航）
 export const CAM_FRONT_LIMIT = 12;       // 机位最前位：门线前 12m 处停止前压（门前构图锁定，门后环带不入画）
 

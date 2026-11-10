@@ -39,9 +39,10 @@ window.addEventListener("unhandledrejection", () => exceptions++);
 const keys = new Set();
 let shootQueued = false;
 function keyboardIntent() {
+  // moveZ：W/↑ = +Z = 画面上方 = 进攻方向（与触屏上推同相，IP9；相机视线朝 +Z）
   return {
     moveX: (keys.has("KeyD") || keys.has("ArrowRight") ? 1 : 0) - (keys.has("KeyA") || keys.has("ArrowLeft") ? 1 : 0),
-    moveZ: (keys.has("KeyS") || keys.has("ArrowDown") ? 1 : 0) - (keys.has("KeyW") || keys.has("ArrowUp") ? 1 : 0),
+    moveZ: (keys.has("KeyW") || keys.has("ArrowUp") ? 1 : 0) - (keys.has("KeyS") || keys.has("ArrowDown") ? 1 : 0),
   };
 }
 const touch = createTouchControls(canvas, { onConfirm: () => confirmTouch() });

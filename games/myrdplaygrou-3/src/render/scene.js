@@ -175,7 +175,7 @@ export function buildPlayer(scene) {
   const glow = new THREE.Sprite(new THREE.SpriteMaterial({
     map: glowTexture("rgba(52, 152, 219, 1)"), blending: THREE.AdditiveBlending, depthWrite: false,
   }));
-  glow.scale.set(2.2, 2.2, 1);
+  glow.scale.set(1.6, 1.6, 1); // IP3（round-0 取证：2.2 光斑把带球球染进光晕，球体不可辨）—— 收口让球读得见
   glow.position.y = 0.05;
   group.add(glow);
   scene.add(group);

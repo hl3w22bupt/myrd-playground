@@ -10,9 +10,10 @@ export function createTouchControls(canvas, { onConfirm }) {
   function setIntent(dx, dy) {
     const mag = Math.hypot(dx, dy);
     const k = mag > MAX_RADIUS ? MAX_RADIUS / mag : 1;
-    // 屏幕向量 → 世界意图：屏幕上推 = -Z（远离相机），左推 = -X
+    // 屏幕向量 → 世界意图：机位在玩家 -Z 侧、视线朝 +Z（scene.js cameraPose），
+    // 画面上方 = +Z = 进攻方向 → 上推 = +Z（IP9：原 -Z 映射与相机倒置，round-0 取证 live-04）
     intent.moveX = (dx * k) / MAX_RADIUS;
-    intent.moveZ = (dy * k) / MAX_RADIUS;
+    intent.moveZ = -(dy * k) / MAX_RADIUS;
   }
 
   canvas.addEventListener("touchstart", (e) => {
