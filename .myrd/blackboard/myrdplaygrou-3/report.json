@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "kind": "browser-smoke-report",
+  "product": "/Users/leo/.myrd/workspaces/cmvqriupu0007m9qphvokoci9/run-cmwar74im003km9m2cwb92xkq/games/myrdplaygrou-3/index.html",
+  "seconds": 62,
+  "checkedAt": "2026-11-10T15:46:39.654Z",
+  "note": "render 性能快照为证据记录，非硬门禁（headless SwiftShader 软渲染，阈值待采集基线）",
+  "viewports": [
+    {
+      "id": "desktop",
+      "width": 1280,
+      "height": 720,
+      "mobile": false,
+      "outcome": "title",
+      "payload": {
+        "ok": true,
+        "state": "gameover",
+        "score": 315,
+        "goals": 3,
+        "shots": 4,
+        "collected": 3,
+        "total": 10,
+        "timeLeft": 83.10000000000039,
+        "frames": 30,
+        "fps": 12.6,
+        "exceptions": 0,
+        "viewport": {
+          "width": 1280,
+          "height": 577,
+          "dpr": 1
+        },
+        "render": {
+          "drawCalls": 60,
+          "triangles": 6244,
+          "geometries": 33,
+          "textures": 20,
+          "programs": 15
+        }
+      },
+      "pixelColors": 17,
+      "consoleErrors": 0,
+      "screenshot": "smoke-desktop.png"
+    },
+    {
+      "id": "mobile",
+      "width": 720,
+      "height": 1280,
+      "mobile": true,
+      "outcome": "title",
+      "payload": {
+        "ok": true,
+        "state": "gameover",
+        "score": 315,
+        "goals": 3,
+        "shots": 4,
+        "collected": 3,
+        "total": 10,
+        "timeLeft": 83.10000000000039,
+        "frames": 30,
+        "fps": 10.7,
+        "exceptions": 0,
+        "viewport": {
+          "width": 720,
+          "height": 1137,
+          "dpr": 1
+        },
+        "render": {
+          "drawCalls": 61,
+          "triangles": 6324,
+          "geometries": 33,
+          "textures": 20,
+          "programs": 15
+        }
+      },
+      "pixelColors": 24,
+      "consoleErrors": 0,
+      "screenshot": "smoke-mobile.png"
+    }
+  ],
+  "evidence": [
+    "smoke-desktop.png",
+    "smoke-mobile.png"
+  ]
+}
