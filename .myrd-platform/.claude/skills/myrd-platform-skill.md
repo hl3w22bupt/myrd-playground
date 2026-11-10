@@ -246,6 +246,9 @@ curl -X POST -H "Authorization: Bearer <token>" http://localhost:3111/api/v1/aut
 | POST | `/api/v1/workflows/runs/:runId/rerun` | 重新执行 |
 | POST | `/api/v1/workflows/runs/:runId/iterate` | 迭代运行 |
 | POST | `/api/v1/workflows/runs/:runId/stop-loop` | 强制终止回环（**中止在飞执行并标记 `failed`**）。仅用于回环失控时强停，不要用它「停掉」run——语义是判失败，不是取消 |
+| GET | `/api/v1/workflows/runs/:runId/checkpoint` | run 的 checkpoint 与断点续跑计划预览（韧性层，`WORKFLOW_RESILIENCE` 门控；返回跳过/重跑步骤、降级标注、预算余量） |
+| GET | `/api/v1/workflows/runs/by-task/:taskId/checkpoint` | 按关联 task 反查最近 run 的 checkpoint（需求详情页入口） |
+| POST | `/api/v1/workflows/runs/:runId/resume` | 断点续跑（**人工显式触发**，首期唯一方式；基于最近 checkpoint 跳过已完成步骤，只继续剩余交付；可续跑状态 failed/cancelled/paused，flag 关闭或不可续跑返回 409） |
 
 ### 5.8 探索
 

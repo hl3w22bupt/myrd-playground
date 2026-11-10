@@ -4,10 +4,17 @@
 > 用法：根据问题用 Grep 在对应文件里搜索定位，再 Read 相关源码获取细节。
 > 本地图由 MyRD 定时增量更新（记录 commit，只重扫变更）。
 
-共 51 条导航条目。
+共 58 条导航条目。
 
-## 规范文档（51）
+## 规范文档（58）
 
+- [DOC] CLAUDE(CLAUDE.md::CLAUDE) → `CLAUDE.md`
+- [DOC] 背景(CLAUDE.md::背景) → `CLAUDE.md`
+- [DOC] 适用对象(CLAUDE.md::适用对象) → `CLAUDE.md`
+- [DOC] 具体要求（红线）(CLAUDE.md::具体要求（红线）) → `CLAUDE.md`
+- [DOC] 违反后果(CLAUDE.md::违反后果) → `CLAUDE.md`
+- [DOC] 示例(CLAUDE.md::示例) → `CLAUDE.md`
+- [DOC] 知识库索引（平台沉淀的经验与口径，动手前先扫一遍）(CLAUDE.md::知识库索引（平台沉淀的经验与口径，动手前先扫一遍）) → `CLAUDE.md`
 - [DOC] README(README.md::README) → `README.md`
 - [DOC] 运行(README.md::运行) → `README.md`
 - [DOC] 目录与依赖方向(README.md::目录与依赖方向) → `README.md`
