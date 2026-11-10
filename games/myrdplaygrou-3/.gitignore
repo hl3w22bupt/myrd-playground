@@ -1,3 +1,12 @@
 node_modules/
-# browser-smoke.mjs 证据落盘目录（smoke-*.png + report.json），运行时产物不入库
-qa/
+# 浏览器冒烟/部署取证包等大体量运行时产物不入库（blackboard 已归档摘要）；
+# 打磨轮证据链（playtest 轮次留痕/截图/快照 + 移动门禁报告 + 视觉棘轮报告 + 聚合摘要）
+# 是验收 #8 的硬门禁材料，白名单入库（先例：deploy 节点 05d6a1b 强制入库）
+qa/*
+!qa/playtest
+!qa/playtest/**
+!qa/playtest-summary.json
+!qa/mobile
+!qa/mobile/**
+!qa/visual-ratchet
+!qa/visual-ratchet/**
