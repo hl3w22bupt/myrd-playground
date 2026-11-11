@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>实况足球 · GOAL RUSH</title>
+<style>
+  :root {
+    --panel: rgba(8, 16, 20, 0.62);
+    --line: rgba(127, 223, 255, 0.55);
+    --text: #eef6fa;
+    --home: #3498db;   /* 主队蓝（风格卡主色） */
+    --away: #f39c12;   /* 客队橙（风格卡强调色） */
+    --pitch: #2ecc71;  /* 草绿 */
+    --font-num: "DIN Alternate", "Bahnschrift", "Arial Narrow", ui-sans-serif, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* 触屏兜底：禁浏览器手势（滚动/双击缩放/长按菜单）—— touchstart 立即可交互，消除 300ms 延迟（E-04） */
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #cfe8f2;
+    touch-action: none; overscroll-behavior: none;
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  #gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  #ui { position: fixed; inset: 0; pointer-events: none; color: var(--text); font-family: var(--font-num); }
+  .hidden { display: none !important; }
+
+  #hud { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between;
+    align-items: center; padding: 12px 14px; font-size: 20px; letter-spacing: 1px; }
+  #hud .chip { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 6px 14px; }
+  #hud .score-chip { font-size: 24px; font-variant-numeric: tabular-nums; }
+  #hud .score-chip .home { color: #7db9ea; }
+  #hud .score-chip .away { color: #ffc46b; }
+  #btn-pause { pointer-events: auto; width: 44px; height: 44px; min-width: 44px; min-height: 44px; /* 热区 ≥44px */
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px; color: var(--text);
+    font-size: 18px; font-family: inherit; }
+
+  /* 触屏动作按钮（右下；热区 88/64px） */
+  #actions { position: absolute; right: 18px; bottom: 26px; display: flex; flex-direction: column;
+    gap: 14px; align-items: center; }
+  #btn-shoot, #btn-pass { pointer-events: auto; border-radius: 50%; color: var(--text);
+    font-family: inherit; font-weight: 700; letter-spacing: 2px;
+    border: 2px solid rgba(255,255,255,0.55); box-shadow: none; }
+  #btn-shoot { width: 88px; height: 88px; font-size: 20px; background: rgba(243, 156, 18, 0.82); }
+  #btn-pass { width: 64px; height: 64px; font-size: 16px; background: rgba(52, 152, 219, 0.82); }
+  #btn-shoot:active, #btn-pass:active { filter: brightness(0.88); }
+
+  /* 虚拟摇杆可视化（左下） */
+  #joy-base { position: absolute; width: 112px; height: 112px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.5); background: rgba(8,16,20,0.25); }
+  #joy-stick { position: absolute; width: 52px; height: 52px; border-radius: 50%;
+    background: rgba(255,255,255,0.65); }
+
+  /* 进球横幅 */
+  #banner { position: absolute; top: 22%; left: 0; right: 0; text-align: center; }
+  #banner-text { display: inline-block; font-size: 40px; letter-spacing: 6px; padding: 10px 30px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    text-shadow: 0 0 18px rgba(243, 156, 18, 0.9); }
+
+  .screen { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 12px;
+    align-items: center; justify-content: center; text-align: center; background: rgba(6, 14, 18, 0.5); }
+  .screen h1 { font-size: 38px; letter-spacing: 6px; text-shadow: 0 0 18px rgba(52, 152, 219, 0.9); }
+  .screen p { color: rgba(238, 246, 250, 0.82); font-size: 15px; line-height: 1.7; }
+  .screen .cta { color: var(--away); font-size: 18px; margin-top: 8px; animation: pulse 1.6s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+  #ts-smoke { position: absolute; left: -9999px; }
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="ui">
+  <div id="hud" class="hidden">
+    <span class="chip score-chip"><span class="home">主</span> <span id="home-score">0</span> : <span id="away-score">0</span> <span class="away">客</span></span>
+    <span class="chip">⏱ <span id="time">90</span>s</span>
+    <button id="btn-pause" aria-label="暂停">Ⅱ</button>
+  </div>
+  <div id="actions" class="hidden">
+    <button id="btn-pass" aria-label="传球">传球</button>
+    <button id="btn-shoot" aria-label="射门">射门</button>
+  </div>
+  <div id="joy-base" class="hidden"></div>
+  <div id="joy-stick" class="hidden"></div>
+  <div id="banner" class="hidden"><span id="banner-text"></span></div>
+
+  <div id="screen-title" class="screen">
+    <h1>实况足球 · GOAL RUSH</h1>
+    <p>5v5 小场实况 —— 带球、传球、射门，90 秒一局</p>
+    <p>键盘：WASD / 方向键移动 · 空格 射门 · X 传球 · P 暂停 · R 重开</p>
+    <p>触屏：左半屏摇杆移动 · 右下 传球/射门 按钮 · 右半屏点按确认</p>
+    <p class="cta">按 回车 / 点按右侧 开球</p>
+  </div>
+  <div id="screen-paused" class="screen hidden">
+    <h1>已暂停</h1>
+    <p class="cta">按 P / 空格 / 点按右侧 继续</p>
+  </div>
+  <div id="screen-over" class="screen hidden">
+    <h1 id="over-title">终场</h1>
+    <p id="over-detail"></p>
+    <p class="cta">按 回车 / 点按右侧 再来一局</p>
+  </div>
+  <div id="ts-smoke"></div>
+</div>
+<script><!--BUNDLE--></script>
+</body>
+</html>

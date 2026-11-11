@@ -1,0 +1,10 @@
+# 《实况足球 · GOAL RUSH》(myrdplaygrou-3) 专属部署清单 —— 平台构建管线步骤 1 读取
+# 共享仓库根壳 server/；manifestPath=games/myrdplaygrou-3/apphost.toml；勿改仓库根 apphost.toml。
+# three.js 单文件路线：产物 = dist/web/index.html（tools/build.mjs 构建后 tools/stage-dist.mjs 同步入此），
+# 资产通道整目录上传，壳端 / 与 /gw 直接回单文件 HTML。
+name = "myrdplaygrou-3（实况足球）"
+runtime = "node20"
+health = "/health"
+
+# 底座 A：资产出 bundle（部署时平台把该目录上传对象存储）
+assets_dir = "games/myrdplaygrou-3/dist/web"

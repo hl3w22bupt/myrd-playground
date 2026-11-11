@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "kind": "browser-smoke-report",
+  "product": "/Users/leo/.myrd/workspaces/cmvqriupu0007m9qphvokoci9/run-cmwbl6h6e008am97aetlijmmv/games/myrdplaygrou-3/index.html",
+  "seconds": 62,
+  "checkedAt": "2026-11-11T04:54:12.629Z",
+  "note": "render 性能快照为证据记录，非硬门禁（headless SwiftShader 软渲染，阈值待采集基线）",
+  "viewports": [
+    {
+      "id": "desktop",
+      "width": 1280,
+      "height": 720,
+      "mobile": false,
+      "outcome": "title",
+      "payload": {
+        "ok": true,
+        "state": "playing",
+        "score": 1,
+        "scoreHome": 1,
+        "scoreAway": 0,
+        "timeLeft": 28.000000000003524,
+        "frames": 30,
+        "fps": 18.3,
+        "exceptions": 0,
+        "playersOnField": 10,
+        "teams": 2,
+        "inputProbe": {
+          "leftDx": -1.8000000000000007,
+          "rightDx": 1.8000000000000007,
+          "upDz": -1.3912398416631624,
+          "downDz": 1.5571944180543946,
+          "ok": true
+        },
+        "goals": 1,
+        "shots": 8,
+        "possessionChanges": 73,
+        "viewport": {
+          "width": 1280,
+          "height": 577,
+          "dpr": 1
+        },
+        "render": {
+          "drawCalls": 201,
+          "triangles": 6954,
+          "geometries": 26,
+          "textures": 30,
+          "programs": 15,
+          "playerSegments": 160
+        }
+      },
+      "pixelColors": 35,
+      "consoleErrors": 0,
+      "screenshot": "smoke-desktop.png"
+    },
+    {
+      "id": "mobile",
+      "width": 720,
+      "height": 1280,
+      "mobile": true,
+      "outcome": "title",
+      "payload": {
+        "ok": true,
+        "state": "playing",
+        "score": 1,
+        "scoreHome": 1,
+        "scoreAway": 0,
+        "timeLeft": 28.000000000003524,
+        "frames": 30,
+        "fps": 15.2,
+        "exceptions": 0,
+        "playersOnField": 10,
+        "teams": 2,
+        "inputProbe": {
+          "leftDx": -1.8000000000000007,
+          "rightDx": 1.8000000000000007,
+          "upDz": -1.3912398416631624,
+          "downDz": 1.5571944180543946,
+          "ok": true
+        },
+        "goals": 1,
+        "shots": 8,
+        "possessionChanges": 73,
+        "viewport": {
+          "width": 720,
+          "height": 1137,
+          "dpr": 1
+        },
+        "render": {
+          "drawCalls": 201,
+          "triangles": 6954,
+          "geometries": 26,
+          "textures": 30,
+          "programs": 15,
+          "playerSegments": 160
+        }
+      },
+      "pixelColors": 46,
+      "consoleErrors": 0,
+      "screenshot": "smoke-mobile.png"
+    }
+  ],
+  "evidence": [
+    "smoke-desktop.png",
+    "smoke-mobile.png"
+  ]
+}

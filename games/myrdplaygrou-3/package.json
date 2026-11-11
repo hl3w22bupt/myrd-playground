@@ -1,0 +1,16 @@
+{
+  "name": "myrdplaygrou-3",
+  "private": true,
+  "type": "module",
+  "description": "《实况足球 · GOAL RUSH》—— 3D 小场实况足球（kernel/render 分离 + 5v5 两队多球员 + 程序化关节人形 + 单文件构建复现 + 门禁）",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "stage": "node tools/stage-dist.mjs",
+    "verify": "node tools/verify-reproducible.mjs",
+    "test": "node tests/run-all.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "three": "0.185.1"
+  }
+}

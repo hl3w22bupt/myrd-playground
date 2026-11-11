@@ -1,0 +1,297 @@
+{
+  "schemaVersion": "v0",
+  "spec": {
+    "meta": {
+      "gameName": "实况足球 · GOAL RUSH",
+      "slug": "myrdplaygrou-3",
+      "genre": "休闲收集（3D 实况足球）",
+      "oneLiner": "3D 实况足球：5v5 小场，带球、传球、射门，90 秒一局",
+      "version": "v2",
+      "v2Delta": [
+        "方向键验收标准（缺陷单 sf-bug-controls：左右反向 → 语义钉死 + 双端机判）",
+        "多球员两队实况机制（5v5、队友接应传球、对方逼抢、全员盯人防守）",
+        "球员建模规格（简单几何体 → 程序化关节人形：分段四肢/跑动动画/队服色+号码）"
+      ],
+      "artStyle": "扁平明快（#3498db / #2ecc71 / #f39c12）",
+      "inputStyle": "触屏优先（兼容键盘）",
+      "orientation": "竖屏（手机优先）",
+      "roundLength": "1-3 分钟一局（90 秒）",
+      "difficulty": "平缓大众",
+      "audio": "BGM 与音效齐备（WebAudio 程序化合成，零音频文件）",
+      "styleReference": "无（用户未提供，跳过下载）"
+    },
+    "world": {
+      "theme": "白昼笼式小场（街球氛围）：草绿场地 + 白色标线 + 深蓝黑挡板，主队蓝 / 客队橙 / 门将深绿",
+      "uxCommitments": [
+        "竖屏长轴 = 进攻方向（-Z），镜头球后上方跟随",
+        "触屏：左半屏摇杆移动、右下 传球/射门 按钮、右半屏点按确认；热区 ≥44px",
+        "键盘：WASD/方向键移动、空格射门、X 传球、P 暂停、R 重开",
+        "结果性事件全部挂反馈：踢球/射门（音效+踢腿动画）、进球（横幅+欢呼）、终场（哨音+结算屏）"
+      ]
+    },
+    "numeric": {
+      "FIXED_STEP": 0.016666666666666666,
+      "MAX_DT": 0.1,
+      "SEED_DEFAULT": 333,
+      "ROUND_SECONDS": 90,
+      "PITCH_HALF_X": 13,
+      "PITCH_HALF_Z": 20,
+      "GOAL_HALF_WIDTH": 3.2,
+      "BALL_RADIUS": 0.32,
+      "PLAYER_RADIUS": 0.45,
+      "PLAYER_SPEED": 7.2,
+      "AI_SPEED": 6.4,
+      "GK_SPEED": 5.2,
+      "ANIM_PHASE_PER_M": 2.4,
+      "CONTROL_RADIUS": 0.95,
+      "DRIBBLE_LEAD": 0.8,
+      "PASS_SPEED": 12.5,
+      "SHOT_SPEED": 17,
+      "SHOT_SCATTER": 0.06,
+      "SHOT_SCATTER_AWAY": 0.11,
+      "KICK_COOLDOWN": 0.4,
+      "GK_HOLD_SECONDS": 0.6,
+      "GK_TRACK": 0.65,
+      "AIM_CORNER_INSET": 0.9,
+      "TACKLE_RADIUS": 0.95,
+      "TACKLE_RATE": 0.8,
+      "DRIBBLE_PENALTY": 0.9,
+      "SHOT_RANGE_Z": 9,
+      "AWAY_SHOT_RANGE_Z": 8,
+      "SUPPORT_OFFSET": 4.5,
+      "SUPPORT_FW_WEIGHT": 0.8,
+      "SUPPORT_OTHER_WEIGHT": 0.3,
+      "PRESS_MARGIN": 0.4,
+      "COVER_LANE_MIX": 0.5,
+      "TEAM_SIZE": 5,
+      "FORMATION_SPREAD_X": 8,
+      "palette": {
+        "home": "#3498db",
+        "away": "#f39c12",
+        "pitch": "#2ecc71",
+        "gk": "#1e8449",
+        "accentLight": "#7fdfff"
+      },
+      "balanceNote": "AI-vs-AI 10 种子基线：主 10 球 / 客 2 球，5 胜 5 平 0 负 —— 平缓大众（玩家速度 7.2 > AI 6.4，玩家是胜负手）；手感类参数需人工试玩校准"
+    },
+    "entities": [
+      {
+        "id": "e-kernel-loop",
+        "kind": "kernel",
+        "script": "games/myrdplaygrou-3/src/kernel/loop.js",
+        "expect": "mulberry32 种子随机 + 固定步长累加器 + title/playing/paused/gameover 四态守卫转移 + fastForward 无头钩子；零 Math.random/Date.now"
+      },
+      {
+        "id": "e-kernel-world",
+        "kind": "kernel",
+        "script": "games/myrdplaygrou-3/src/kernel/world.js",
+        "expect": "5v5 球员/球/抢断(泊松)/传球评分/远角射门/门将扑救/进球判定/开球重置；rng 唯一随机源；有限值加固"
+      },
+      {
+        "id": "e-kernel-autopilot",
+        "kind": "kernel",
+        "script": "games/myrdplaygrou-3/src/kernel/autopilot.js",
+        "expect": "足球自动驾驶（追球/摆脱/射程起脚/开阔才传）—— 冒烟与确定性测试共用纯函数"
+      },
+      {
+        "id": "e-levels-pitch",
+        "kind": "level",
+        "script": "games/myrdplaygrou-3/src/levels/pitch.js",
+        "expect": "5v5 开球阵型（GK/DF/MF/FW×2，号码 1-5，主客镜像）+ 球门几何 —— 内核与渲染同源"
+      },
+      {
+        "id": "e-input-keyboard",
+        "kind": "input",
+        "script": "games/myrdplaygrou-3/src/render/keyboard.js",
+        "expect": "方向键语义唯一真源：ArrowLeft/A→moveX=-1（屏幕左）、ArrowUp/W→moveZ=-1（屏幕上）—— sf-bug-controls 修复锚点"
+      },
+      {
+        "id": "e-input-touch",
+        "kind": "input",
+        "script": "games/myrdplaygrou-3/src/render/touch.js",
+        "expect": "左半屏虚拟摇杆（stickToIntent 纯函数）+ 传球/射门按钮 + 右半屏点按确认；触摸只产意图不改状态"
+      },
+      {
+        "id": "e-render-humanoid",
+        "kind": "render",
+        "script": "games/myrdplaygrou-3/src/render/player.js",
+        "expect": "程序化关节人形：骨盆/躯干/头 + 双臂肩肘两段 + 双腿髋膝两段 + 球鞋（8 关节）；跑动相位动画由内核 phase 驱动；队服色+背号贴图；受控指示环"
+      },
+      {
+        "id": "e-render-scene",
+        "kind": "render",
+        "script": "games/myrdplaygrou-3/src/render/scene.js",
+        "expect": "画质四件套（Bloom/ACES/雾/PCFSoft 阴影）+ 球场标线/球门/挡板 + 球滚动 + 跟随镜头"
+      },
+      {
+        "id": "e-render-audio",
+        "kind": "render",
+        "script": "games/myrdplaygrou-3/src/render/audio.js",
+        "expect": "WebAudio 程序化：踢球/射门/哨音/进球欢呼/抢断 + 128BPM BGM 循环 + 观众氛围；首手势解锁；window.__audioDebug 契约"
+      },
+      {
+        "id": "e-render-hud",
+        "kind": "render",
+        "script": "games/myrdplaygrou-3/src/render/hud.js",
+        "expect": "比分/计时 chips + 进球横幅 + 三态屏幕（title/paused/over）+ 摇杆可视化"
+      },
+      {
+        "id": "e-main",
+        "kind": "app",
+        "script": "games/myrdplaygrou-3/src/main.js",
+        "expect": "装配根：输入双端合并 intent（动作沿）→ 内核 tick → 事件反馈 → 只读渲染；?smoke= 协议（payload 含 inputProbe/playersOnField/teams/render 快照）"
+      },
+      {
+        "id": "e-numeric",
+        "kind": "kernel",
+        "script": "games/myrdplaygrou-3/src/numeric.js",
+        "expect": "数值唯一来源（本 spec.numeric 的代码镜像，禁止散落魔数）"
+      }
+    ],
+    "levels": [
+      {
+        "id": "lvl-01-small-pitch",
+        "name": "笼式小场（唯一关卡）",
+        "file": "games/myrdplaygrou-3/src/levels/pitch.js",
+        "elements": [
+          { "id": "pitch-60x40", "kind": "field", "detail": "26×40 米（PITCH_HALF 13/20），笼式挡板反弹无出界" },
+          { "id": "goal-north", "kind": "goal", "detail": "z=-20 门（主队进攻目标），半宽 3.2" },
+          { "id": "goal-south", "kind": "goal", "detail": "z=+20 门（客队进攻目标），半宽 3.2" },
+          { "id": "kickoff-5v5", "kind": "formation", "detail": "主客镜像开球阵型（GK/DF/MF/FW×2，号码 1-5）" }
+        ]
+      }
+    ],
+    "acceptance": [
+      {
+        "id": "ac-controls-direction",
+        "mode": "auto",
+        "check": "node games/myrdplaygrou-3/tests/controls-direction.spec.mjs",
+        "statement": "方向键语义（缺陷单 sf-bug-controls 核销锚点）：键盘 ArrowLeft/A → moveX=-1 且球员向屏幕左位移（dx<0），ArrowRight/D → 屏幕右（dx>0），ArrowUp/W → 屏幕上（dz<0），ArrowDown/S → 屏幕下（dz>0）；触屏摇杆同向（双端一致）；斜向组合两轴同时生效；NaN/1e9 注入不污染。"
+      },
+      {
+        "id": "ac-teams-5v5",
+        "mode": "auto",
+        "check": "node games/myrdplaygrou-3/tests/football-contract.spec.mjs",
+        "statement": "多球员两队实况：场上 10 人（2×5），双方各含门将，号码 1-5 不重复，客队开球位与主队镜像对称。"
+      },
+      {
+        "id": "ac-teammate-support-and-press",
+        "mode": "auto",
+        "check": "node games/myrdplaygrou-3/tests/football-contract.spec.mjs",
+        "statement": "实况机制：主队持球时无球队友前压接应 ≥2 人；客队持球时主队防守者 2s 内显著逼近持球人（距离 <60% 初值）；90s 对局传球 ≥5、抢断 ≥2、射门 ≥2、球权易手 ≥20。"
+      },
+      {
+        "id": "ac-humanoid-model",
+        "mode": "auto",
+        "check": "node games/myrdplaygrou-3/tests/smoke-payload.contract.mjs",
+        "statement": "球员建模：程序化关节人形（分段四肢），双视口冒烟 payload.render.playerSegments ≥120（10 人 × ≥12 段件）且 drawCalls 留痕；队服色（主蓝/客橙/门将绿）+ 背号贴图在 render/player.js 与 textures.js 落点。"
+      },
+      {
+        "id": "ac-input-smoke-probe",
+        "mode": "auto",
+        "check": "node games/myrdplaygrou-3/tests/smoke-payload.contract.mjs",
+        "statement": "线上构建方向机判（sf-bug-controls）：双视口 smoke payload.inputProbe.ok=true（leftDx<0 / rightDx>0 / upDz<0 / downDz>0），playersOnField=10、teams=2。"
+      },
+      {
+        "id": "ac-round-duration",
+        "mode": "auto",
+        "check": "node games/myrdplaygrou-3/tests/kernel-determinism.spec.mjs",
+        "statement": "单局 90 秒（∈[60,180] 创作决策带）：自动驾驶跑满 90s 终局（gameover，timeLeft 归零）。"
+      },
+      {
+        "id": "ac-seeded-determinism",
+        "mode": "auto",
+        "check": "node games/myrdplaygrou-3/tests/kernel-determinism.spec.mjs",
+        "statement": "同 seed 同意图序列 → 终局逐字段一致；异 seed → 轨迹互异。"
+      },
+      {
+        "id": "ac-state-machine",
+        "mode": "auto",
+        "check": "node games/myrdplaygrou-3/tests/state-machine.spec.mjs",
+        "statement": "状态机边界：非法转移 no-op+warning、暂停连按 ≥5、结算瞬间输入冻结、重开连点 ≥5 全复位、零 NaN 污染。"
+      },
+      {
+        "id": "ac-singlefile",
+        "mode": "auto",
+        "check": "node games/myrdplaygrou-3/tests/singlefile.contract.mjs",
+        "statement": "单文件零外链：产物 ≥100KB（three 内联）、带 SRC_SHA、无 src/href 外链/importmap/CDN。"
+      },
+      {
+        "id": "ac-browser-smoke",
+        "mode": "auto",
+        "check": "node std-skills/threejs-game-dev/scripts/browser-smoke.mjs games/myrdplaygrou-3",
+        "statement": "双视口真浏览器冒烟：桌面 1280×720 + 移动 720×1280（触摸仿真+移动 UA）逐视口零异常/循环推进/像素采样非纯色/fps≥10；证据落 qa/smoke/。"
+      },
+      {
+        "id": "ac-audio-contract",
+        "mode": "auto",
+        "check": "node std-skills/godot-game-dev/scripts/mobile-web-smoke.mjs --url <liveUrl> --out games/myrdplaygrou-3/qa/mobile",
+        "statement": "音频契约：window.__audioDebug 为 function（首手势解锁器存在）；BGM+音效全程序化零音频文件；移动端 viewport/触摸管线/console 零错误（部署后复跑）。"
+      },
+      {
+        "id": "ac-human-playtest",
+        "mode": "manual",
+        "check": "qa/playtest-summary.json",
+        "statement": "人工试玩（手感/难度/音频听感）由用户回填打分卡；机判面只证明「可玩闭环+证据链完整」，不替代人的结论。"
+      }
+    ]
+  },
+  "assets": [
+    {
+      "assetKey": "pitch-turf-lines",
+      "role": "tileset",
+      "source": "programmatic",
+      "reason": "草纹条带+白色标线是纯几何线条画（离屏 canvas → CanvasTexture）；生图反而引入噪点污渍，违反风格卡 tileset 反例",
+      "runtimeUse": "src/render/textures.js pitchTexture() → scene.js buildArena 地板",
+      "spec": "草绿 #2ecc71 底 + 8 条深一档条带 + 6px 白标线（中圈/禁区/门线），1024 级 canvas"
+    },
+    {
+      "assetKey": "player-number-decal",
+      "role": "character",
+      "source": "programmatic",
+      "reason": "背号=白字 canvas 文字贴图（每号一张 128px）；程序化文字清晰可控，生图字体不可控且违单文件零外链",
+      "runtimeUse": "src/render/textures.js numberTexture() → player.js backNum 平面",
+      "spec": "Arial Black 92px 白字 + 透明底，号码 1-5（两队）+ 门将"
+    },
+    {
+      "assetKey": "ball-texture",
+      "role": "prop",
+      "source": "programmatic",
+      "reason": "白底黑斑足球纹理是 5 圆斑的参数化绘制，程序化精确且零体积；生图无增益",
+      "runtimeUse": "src/render/textures.js ballTexture() → scene.js buildBall",
+      "spec": "256px canvas：#f5f7fa 底 + #233240 五圆斑"
+    },
+    {
+      "assetKey": "controlled-ring-glow",
+      "role": "ui",
+      "source": "programmatic",
+      "reason": "径向渐变光斑（喂 Bloom 的受控指示环伴随光）—— 径向渐变是 canvas 配方库标准件",
+      "runtimeUse": "src/render/textures.js glowTexture() → player.js glow sprite",
+      "spec": "128px 径向渐变 rgba(243,156,18,1)→透明"
+    },
+    {
+      "assetKey": "sfx-bgm-synth",
+      "role": "sfx",
+      "source": "programmatic",
+      "reason": "音效+BGM+观众氛围全 WebAudio 合成（oscillator+gain 包络+噪声+压缩器总线）：零音频文件、单文件契约零外链、headless 静默安全（E-07）",
+      "runtimeUse": "src/render/audio.js sfx.* + startBgm/startCrowd → main.js 事件反馈",
+      "spec": "踢球低频冲击/射门重击/哨音双颤/进球上行琶音+欢呼/BGM 128BPM 四和弦循环/观众带通噪声垫"
+    },
+    {
+      "assetKey": "humanoid-meshes",
+      "role": "character",
+      "source": "programmatic",
+      "reason": "球员建模 = 基本几何体拼装的关节人形（Box/Sphere + Group 关节树）—— v2 重建模主资产；生图/GLTF 违反 100% 程序化路线且无法做分段动画",
+      "runtimeUse": "src/render/player.js buildHumanoid（GEO 共享几何 + 队色共享材质）",
+      "spec": "头身比 1:3.2；躯干/骨盆/头/双臂两段/双腿两段/球鞋；主蓝客橙门将深绿；背号贴图"
+    }
+  ],
+  "assetBudget": {
+    "maxImages": 3,
+    "maxTotalBytes": 0,
+    "maxRetries": 2,
+    "degraded": false,
+    "degradeReason": null,
+    "note": "three.js 单文件全程序化路线：0 张外部位图入包（all programmatic），maxImages 仅约束 generated/curated；totalBytes 不设限（无位图资产）"
+  }
+}

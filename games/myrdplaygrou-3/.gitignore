@@ -1,0 +1,11 @@
+node_modules/
+# browser-smoke 运行时证据默认不入库；qa/playtest 与 qa/mobile 是 R3 试玩证据链与
+# mobile-web-smoke 报告（playtest-summary 的 C3/C4 派生源），必须随仓归档。
+qa/*
+!qa/playtest
+!qa/mobile
+!qa/smoke
+
+# dist/web/index.html 是 AppHost assets_dir 的部署产物（平台按 gitRef 构建时从仓库取），
+# 仓库根 .gitignore 的 `dist` 规则在此显式反豁免（勿删，否则部署断粮）。
+!dist/
