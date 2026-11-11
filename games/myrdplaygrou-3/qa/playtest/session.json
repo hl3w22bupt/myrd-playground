@@ -2,8 +2,8 @@
   "version": 1,
   "url": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou-3/",
   "label": "v3-playtest-round10-12",
-  "startedAt": "2026-11-11T11:09:00.000Z",
+  "startedAt": "2026-11-11T08:25:00.000Z",
   "endedAt": "2026-11-11T11:30:00.000Z",
   "viewports": ["mobile 390x844", "desktop"],
-  "notes": "本窗口覆盖：线上 mobile 门禁复跑（11:21 本地时区 19:21）、v3 取证包 mobile（11:23:13）、桌面取证包（11:24:24）、sessiond 交互会话 12 步（11:25:18 起）。窗口口径=UTC。"
+  "notes": "证据窗覆盖当日全部 12 轮截图（round-6~9 早上会话 08:25 起 + round-10~12 本轮 11:09~11:27）：线上 mobile 门禁复跑（19:21 本地）、v3 取证包 mobile（11:23:13Z）、桌面取证包（11:24:24Z）、sessiond 交互会话 12 步（11:25:18Z 起）。窗口口径=UTC。"
 }

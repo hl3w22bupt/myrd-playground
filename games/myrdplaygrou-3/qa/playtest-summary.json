@@ -3,9 +3,9 @@
   "generatedBy": "playtest-summary.mjs",
   "valid": false,
   "gamePath": "games/myrdplaygrou-3",
-  "versionSha": "c8146baab33601729d81d184560c6157c48d8195",
-  "startedAt": "2026-11-11T04:56:12.488Z",
-  "endedAt": "2026-11-11T08:10:55.258Z",
+  "versionSha": "d76b72a2",
+  "startedAt": "2026-11-11T08:25:00.000Z",
+  "endedAt": "2026-11-11T11:27:01.039Z",
   "rounds": [
     {
       "round": 1,
@@ -20,12 +20,12 @@
         {
           "path": "qa/playtest/steps/round1-early-match.png",
           "bytes": 114190,
-          "mtime": "2026-11-11T04:56:12.488Z"
+          "mtime": "2026-11-11T08:25:37.853Z"
         },
         {
           "path": "qa/playtest/steps/round1-early-desktop.png",
           "bytes": 114411,
-          "mtime": "2026-11-11T04:56:12.490Z"
+          "mtime": "2026-11-11T08:25:37.853Z"
         }
       ],
       "improvements": null,
@@ -45,7 +45,7 @@
         {
           "path": "qa/playtest/steps/round2-mid-match.png",
           "bytes": 85365,
-          "mtime": "2026-11-11T04:56:25.409Z"
+          "mtime": "2026-11-11T08:25:37.853Z"
         }
       ],
       "improvements": null,
@@ -66,12 +66,12 @@
         {
           "path": "qa/playtest/steps/round3-late-match.png",
           "bytes": 178689,
-          "mtime": "2026-11-11T04:56:38.466Z"
+          "mtime": "2026-11-11T08:25:37.854Z"
         },
         {
           "path": "qa/playtest/steps/round3-late-desktop.png",
           "bytes": 138741,
-          "mtime": "2026-11-11T04:56:38.469Z"
+          "mtime": "2026-11-11T08:25:37.854Z"
         }
       ],
       "improvements": null,
@@ -95,17 +95,17 @@
         {
           "path": "qa/playtest/steps/round4-live-mobile-first.png",
           "bytes": 195244,
-          "mtime": "2026-11-11T05:22:53.788Z"
+          "mtime": "2026-11-11T08:25:37.855Z"
         },
         {
           "path": "qa/playtest/steps/round4-live-mobile-swipe.png",
           "bytes": 117930,
-          "mtime": "2026-11-11T05:22:53.783Z"
+          "mtime": "2026-11-11T08:25:37.855Z"
         },
         {
           "path": "qa/playtest/steps/round4-live-desktop-swipe.png",
           "bytes": 190600,
-          "mtime": "2026-11-11T05:22:53.786Z"
+          "mtime": "2026-11-11T08:25:37.855Z"
         }
       ],
       "improvements": null,
@@ -127,27 +127,27 @@
         {
           "path": "qa/experience/2026-11-11T05-36-47-deploy/steps/02-初始画面.png",
           "bytes": 195306,
-          "mtime": "2026-11-11T05:36:55.590Z"
+          "mtime": "2026-11-11T08:25:37.727Z"
         },
         {
           "path": "qa/experience/2026-11-11T05-36-47-deploy/steps/04-摇杆区滑动.png",
           "bytes": 158825,
-          "mtime": "2026-11-11T05:37:00.027Z"
+          "mtime": "2026-11-11T08:25:37.728Z"
         },
         {
           "path": "qa/experience/2026-11-11T05-37-31-deploy-desktop/steps/04-摇杆区滑动.png",
           "bytes": 163940,
-          "mtime": "2026-11-11T05:37:43.134Z"
+          "mtime": "2026-11-11T08:25:37.795Z"
         },
         {
           "path": "qa/smoke/smoke-desktop.png",
-          "bytes": 118853,
-          "mtime": "2026-11-11T08:10:55.258Z"
+          "bytes": 131934,
+          "mtime": "2026-11-11T11:17:33.631Z"
         },
         {
           "path": "qa/smoke/smoke-mobile.png",
-          "bytes": 74173,
-          "mtime": "2026-11-11T08:10:55.258Z"
+          "bytes": 104797,
+          "mtime": "2026-11-11T11:17:33.632Z"
         }
       ],
       "improvements": null,
@@ -168,22 +168,22 @@
         {
           "path": "qa/playtest/steps/round6-base-03-joy.png",
           "bytes": 139832,
-          "mtime": "2026-11-11T06:12:08.947Z"
+          "mtime": "2026-11-11T08:25:37.857Z"
         },
         {
           "path": "qa/playtest/steps/round6-base-09-end.png",
           "bytes": 162792,
-          "mtime": "2026-11-11T06:12:08.951Z"
+          "mtime": "2026-11-11T08:25:37.858Z"
         },
         {
           "path": "qa/playtest/steps/round6-after-desktop-smoke.png",
           "bytes": 157668,
-          "mtime": "2026-11-11T06:16:09.017Z"
+          "mtime": "2026-11-11T08:25:37.856Z"
         },
         {
           "path": "qa/playtest/steps/round6-after-09-end.png",
           "bytes": 162792,
-          "mtime": "2026-11-11T06:16:09.014Z"
+          "mtime": "2026-11-11T08:25:37.856Z"
         }
       ],
       "improvements": "- **IP-1 桌面横向视口取景空旷**（出处：qa/smoke/report.json desktop 视口 + git HEAD 版 smoke-desktop.png + experience desktop 04 步截图——两侧空带约 30% 屏宽、球员过小）。",
@@ -204,17 +204,17 @@
         {
           "path": "qa/playtest/steps/round7-goal-net-approach.png",
           "bytes": 129161,
-          "mtime": "2026-11-11T06:25:16.780Z"
+          "mtime": "2026-11-11T08:25:37.858Z"
         },
         {
           "path": "qa/playtest/steps/round7-goal-net-after-shot.png",
           "bytes": 127662,
-          "mtime": "2026-11-11T06:25:16.783Z"
+          "mtime": "2026-11-11T08:25:37.858Z"
         },
         {
           "path": "qa/smoke/smoke-desktop.png",
-          "bytes": 118853,
-          "mtime": "2026-11-11T08:10:55.258Z"
+          "bytes": 131934,
+          "mtime": "2026-11-11T11:17:33.631Z"
         }
       ],
       "improvements": "- **IP-2 球门无网、射门目标辨识弱**（出处：round-6 后 qa/smoke/smoke-desktop.png + qa/experience v7 部署包 02 初始画面——球门呈灰白线框/扁条，无网面结构）。",
@@ -237,22 +237,22 @@
         {
           "path": "qa/playtest/steps/round8-celebration-session.png",
           "bytes": 130229,
-          "mtime": "2026-11-11T06:57:21.430Z"
+          "mtime": "2026-11-11T08:25:37.859Z"
         },
         {
           "path": "qa/playtest/steps/round8-celebration-desktop-smoke.png",
           "bytes": 116043,
-          "mtime": "2026-11-11T06:57:21.408Z"
+          "mtime": "2026-11-11T08:25:37.859Z"
         },
         {
           "path": "qa/playtest/steps/round8-celebration-mobile-smoke.png",
           "bytes": 74955,
-          "mtime": "2026-11-11T06:57:21.414Z"
+          "mtime": "2026-11-11T08:25:37.859Z"
         },
         {
           "path": "qa/playtest/steps/round8-live-goal-capture-late.png",
           "bytes": 113986,
-          "mtime": "2026-11-11T06:57:21.435Z"
+          "mtime": "2026-11-11T08:25:37.859Z"
         }
       ],
       "improvements": "- **IP-3 进球瞬间缺画面爆点**（出处：src/main.js handleEvents goal 分支代码面 + round-7 期间实局观察多局 0:0 进球反馈单薄）。\n- 伴生：冒烟事件丢弃（证据面失真）+ 进球瞬间相机被开球重置拽离（观感缺陷）+ 帧率余量刀口（门禁风险）——三者均在本轮一并收口。",
@@ -262,7 +262,7 @@
     {
       "round": 9,
       "file": "qa/playtest/round-9.md",
-      "observation": "- 部署链收口：v8 部署 **cmwbtonx4001cm9dzws5myo5z**（POST /deployments → HTTP 504 网关 30s 截断判例形态、实际已受理；GET /deployments 复查 status=running=在服语义，commitHash=**d8d8a6c** 与推送 HEAD 全等；前轮 v7=cmwbopdtk 转 superseded）。\n- 线上复证：GET / → 200，**594,717 字节与 dist/web/index.html 逐字节一致（cmp）**；/health → 200。\n- 线上实局（SEQ-M 固定序列复玩）：画面即打磨版——中场逼抢绞杀（4v4 贴身）、受控环+辉光、队色/号码可读、HUD 干净；`window.__tsState` 只读探针在线上返回全量状态（5v5 双队、controlledId=4 主队 FW#5、球权在客队 DF#6 脚下 0.94m 贴身对抗）。\n- **线上进球特写机位实证**：弃防实验促成客队进球（0:1@12s，真实对局结果），检测后 ~1.5s 抓拍（steps/028）——相机仍锁在自家球门（门后机位：网窝网格 + 门将 + 门线区同框），2.2s 特写窗在线上真实生效；~2.6s 后相机回中圈（steps/029），节奏符合设计。\n- 线上移动门禁（mobile-web-smoke，390×844 移动仿真）：**PASS**——网络/渲染/触摸响应/音频解锁契约（__audioDebug）/视口/FPS 全绿；1 WARN=摇杆热区 --project 未传（回退固定坐标 swipe，仅取证不断言，合法降级与前轮同款）。",
+      "observation": "- 部署链收口：v8 部署 **cmwbtonx4001cm9dzws5myo5z**（d8d8a6c，上线并完成线上实局验证）→ 收尾门禁加固提交 c8146ba 后追发 v9 **cmwbubpyu001um9dzpliv6ujq**（POST → 504 网关 30s 截断判例形态、实际已受理；status=running=在服语义，commitHash=**c8146ba** 与收尾 HEAD 全等；v8 转 superseded）。\n- 线上复证（v9）：GET / → 200，**594,716 字节与 dist/web/index.html 逐字节一致（cmp）**；/health → 200。\n- 线上实局（SEQ-M 固定序列复玩）：画面即打磨版——中场逼抢绞杀（4v4 贴身）、受控环+辉光、队色/号码可读、HUD 干净；`window.__tsState` 只读探针在线上返回全量状态（5v5 双队、controlledId=4 主队 FW#5、球权在客队 DF#6 脚下 0.94m 贴身对抗）。\n- **线上进球特写机位实证**：弃防实验促成客队进球（0:1@12s，真实对局结果），检测后 ~1.5s 抓拍（steps/028）——相机仍锁在自家球门（门后机位：网窝网格 + 门将 + 门线区同框），2.2s 特写窗在线上真实生效；~2.6s 后相机回中圈（steps/029），节奏符合设计。\n- 线上移动门禁（mobile-web-smoke，390×844 移动仿真）：**PASS**——网络/渲染/触摸响应/音频解锁契约（__audioDebug）/视口/FPS 全绿；1 WARN=摇杆热区 --project 未传（回退固定坐标 swipe，仅取证不断言，合法降级与前轮同款）。",
       "actions": [
         "git push（4874612..d8d8a6c）→ POST deployments {mode=bundle, gitRef=本分支, sourceId=cmwaqvrng002lm9m2nftdd20h, manifestPath=games/myrdplaygrou-3/apphost.toml} → 504 受理 → 轮询 running → 线上字节核验。",
         "sessiond 重启常驻（本轮前置 sessiond 随上一执行进程退出，按会话异常纪律重启而非编造证据；新会话 session-live.json 对 liveUrl）。",
@@ -274,239 +274,441 @@
         {
           "path": "qa/playtest/steps/round9-live-00-title.png",
           "bytes": 194999,
-          "mtime": "2026-11-11T07:59:50.543Z"
+          "mtime": "2026-11-11T08:25:37.860Z"
         },
         {
           "path": "qa/playtest/steps/round9-live-03-joy.png",
           "bytes": 147613,
-          "mtime": "2026-11-11T07:59:50.548Z"
+          "mtime": "2026-11-11T08:25:37.860Z"
         },
         {
           "path": "qa/playtest/steps/round9-live-09-end.png",
           "bytes": 150862,
-          "mtime": "2026-11-11T07:59:50.550Z"
+          "mtime": "2026-11-11T08:25:37.861Z"
         },
         {
           "path": "qa/playtest/steps/round9-live-goal-hold-net.png",
           "bytes": 173829,
-          "mtime": "2026-11-11T08:01:30.589Z"
+          "mtime": "2026-11-11T08:25:37.862Z"
         },
         {
           "path": "qa/playtest/steps/round9-live-after-celebration.png",
           "bytes": 126861,
-          "mtime": "2026-11-11T08:01:30.593Z"
+          "mtime": "2026-11-11T08:25:37.861Z"
         }
       ],
       "improvements": "- 本轮为 v8 部署上线与线上验证轮：源码零改动（round-6/7/8 三轮打磨的部署落地 + 线上实证）。",
       "changes": "- 收尾门禁加固（本轮唯一源码改动，2 个数值）：src/render/scene.js 内部分辨率 0.75→0.7 + 阴影贴图 512→384——mobile 视口在负载 13-14 下连续两跑 9.6/9.8（差 0.2-0.4 触线），不再赌环境回落，买确定性余量；复跑同负载 11/11 PASS（+1.4fps），画面目检无可见劣化（平涂美术容忍度内）。\n- 落档：本文件 + qa/mobile/report.json（线上门禁）+ qa/playtest/steps/round9-*（线上取证）+ qa/playtest/session-live.json（线上会话登记，session*.json 已退跟踪）+ qa/smoke（复跑报告）+ qa/visual-ratchet（v8-live-mapped 配对集与报告）。",
       "replayConclusion": "- 线上 = 本地打磨版逐字节全等（cmp 594,717B）——三轮打磨（取景/球网/庆祝）全部上线可玩可验。\n- 线上实局三项断言维持：inputProbe 方向语义（冒烟 payload inputProbe.ok=true，qa/smoke/report.json）+ playersOnField=10 + teams=2。\n- 部署链闭环：植物人壳页缺口（round-4 判例）未复发，landing.html 同步 STAGE PASS。"
+    },
+    {
+      "round": 10,
+      "file": "qa/playtest/round-10.md",
+      "observation": "v10 部署（cmwc10na3000qm9bh18cu3lvp @ c906e96f，running 在服）线上取证全绿：开屏教学卡真实展示（四操作「移动/传球/射门/切换」图示齐全，「开始比赛」主按钮 +「跳过」次按钮在场）；对局中 HUD 常驻标签「移动/传球/射门」全部可见（摇杆旁 + 按钮文字）；开始比赛后 localStorage 已读标记 gr-tutorial-seen-v3=1 写入（同档案不再展示）；倒计时真实走表（88.4s → 80.1s → 72.5s 三读数递减）；控制权切换高亮环全程单实例（switchRingCount=1，switchCount=5 真实切换发生）；首次被抢断气泡文案在链（「被抢断啦 —— 即将自动切换到离球最近的队友（脚下光环）」）；consoleErrors=0。取证包 summary.firstColorCount=37、animatedSomewhere=true、hasRespondedStep=true。",
+      "actions": [
+        "experience-harness pack.mjs（线上 URL，mobile 视口 390×844）跑 v3 专用场景 qa/playtest/scenario-v3-mobile.json 共 14 步：wait→截图教学卡→probe 教学卡/标签/气泡/再来一局 DOM→pressKey Enter 开始→probe 对局态（标签可见+已读标记+倒计时）→摇杆右推→摇杆上推→点传球钮→点射门钮→probe 操作后状态→截图→长尾观察→probe 收尾",
+        "三次 probe 读数：教学卡 tutorialVisible=true/ops=4 项/双按钮在场 → playing 态三标签 visible=true/joyTagVisible=true/tutorialSeenMarked=true → 切换计数 5、环数 1、球权易手进行中",
+        "部署核验：POST deployments → 504 受理（网关 30s 截断判例形态）→ 轮询 GET /deployments → running @ commitHash=c906e96f=推送 HEAD 全等；线上 GET / 200=606,863B 与 dist/web/index.html 逐字节一致（cmp）；/health 200"
+      ],
+      "screenshots": [
+        {
+          "path": "qa/experience/2026-11-11T11-23-13-v3-playtest-mobile/steps/02-开屏教学卡.png",
+          "bytes": 197883,
+          "mtime": "2026-11-11T11:23:21.208Z"
+        },
+        {
+          "path": "qa/experience/2026-11-11T11-23-13-v3-playtest-mobile/steps/05-对局开始-HUD.png",
+          "bytes": 130278,
+          "mtime": "2026-11-11T11:23:23.699Z"
+        },
+        {
+          "path": "qa/experience/2026-11-11T11-23-13-v3-playtest-mobile/steps/11-操作后状态-气泡-切换计数-球权-.png",
+          "bytes": 138674,
+          "mtime": "2026-11-11T11:23:32.630Z"
+        }
+      ],
+      "improvements": null,
+      "changes": "- 源码零改动（本轮为部署+线上取证轮；implement 修复见 round-12 门禁复跑所锚提交 c906e96）",
+      "replayConclusion": "- v9（c8146ba，v2 收尾版）→ v10（c906e96，v3 版）：新增教学卡/常驻标签/气泡/单环脉冲/庆祝冻结/再来一局；线上 mobile 门禁 10 PASS + 1 WARN（摇杆热区 --project 读 Godot 字段，three.js 工程按设计无，合法降级仅取证，与 v9 同形态）"
+    },
+    {
+      "round": 11,
+      "file": "qa/playtest/round-11.md",
+      "observation": "sessiond 交互会话 12 步（线上 URL，liveUrl 实局）：跳过路径开局可用（点「跳过」按钮 → 直接进 playing，已读标记同步写入）；键盘/触屏双端输入全部到达且全部画面响应（12 步 inputArrived 全 true，frameDiff 55~400）；摇杆上推受控球员向对方球门推进（受控人从 MF#3 变为 FW#5 持球推进到 z=8.9 进攻半场）；空格射门沿触发画面响应；整场对局抢断/传球触发的自动切换累计 15 次，高亮环全程恒为 1 个实例（switchRingCount=1 恒定，无全队闪烁、无多环并存、无闪烁卡顿）——缺陷单 cmwbumwrj 的「全队快速闪烁」线上不复现；倒计时持续走表无冻结卡死。",
+      "actions": [
+        "sessiond.mjs --url <liveUrl> 起会话（TTL 900s）",
+        "--probe 教学卡在场确认（fresh profile 教学卡展示中）",
+        "--tap 200,650（跳过/开始按钮区）→ inputArrived=true、frameDiff=399、responded=true",
+        "--probe：state=playing、seenMarked=true（localStorage 已写）",
+        "--swipe 70,650:70,500（摇杆上推，按上=屏幕上/朝对方球门）",
+        "--pressKey Space（射门沿）→ frameDiff=289",
+        "--swipe ×2 继续推进 + --pressKey Space 二次起脚",
+        "--probe 中场读数：switches=15、ring=1、ball owner=6（对抗进行中）",
+        "--screenshot 抓拍受控环随行画面 → 归档 qa/playtest/round11-live-controlled-ring.png",
+        "--stop 收会话（12 步全留痕）"
+      ],
+      "screenshots": [
+        {
+          "path": "qa/playtest/round11-live-controlled-ring.png",
+          "bytes": 138049,
+          "mtime": "2026-11-11T11:27:01.034Z"
+        },
+        {
+          "path": "qa/playtest/round11-live-shoot-press.png",
+          "bytes": 148423,
+          "mtime": "2026-11-11T11:27:01.039Z"
+        }
+      ],
+      "improvements": "- 实局两脚射门均被门将/门框化解未进球（0:0 @ 38s），进球庆祝链的线上实拍以确定性冒烟 ?smoke=69 取证为准（横幅+特写+彩带+弹跳四要素同框，见 round-12 与 qa/smoke/）\n- sessiond 无「按住蓄力」长按动作（tap 为瞬时点按），蓄力满槽手感以 ?smoke 协议与代码面（chargeTone 线性升调）为锚，待用户人工试玩回填打分卡",
+      "changes": null,
+      "replayConclusion": "- 与 round-10（pack 场景）互证：教学卡两条进入路径（开始/跳过）均写已读标记；切环单实例在两种驱动方式（scenario 批量/交互逐步）下均成立"
+    },
+    {
+      "round": 12,
+      "file": "qa/playtest/round-12.md",
+      "observation": "收尾门禁全绿：tests/run-all 7/7 PASS（构建复现/controls-direction/football-contract/kernel-determinism/singlefile/smoke-payload 含 v3 断言面/state-machine）；preflight 21 项 0 WARN；browser-smoke 双视口 PASS（desktop fps=12.4 / mobile fps=13.2，exceptions=0，截图非纯色 52/38 种量化色，drawCalls 135/178）；asset-triple-check PASS（清单 7 项全 programmatic，0 张位图入包）；线上 mobile-web-smoke 10 PASS + 1 WARN（结构性与 v9 同形态）；线上 GET / 与 dist/web/index.html 逐字节一致（606,863B，sha256 前缀 321171cd）；部署 v10=cmwc10na3000qm9bh18cu3lvp running @ commitHash=c906e96f=推送 HEAD 全等（首发改部署 cmwc1029w clone exit 128 失败如实留痕，重发即成——疑似与推送 tip 同步竞速的瞬时失败）。",
+      "actions": [
+        "node tools/build.mjs（SRC_SHA=d9e8dca0a0ec8e18，产物 606,863B）+ node tools/verify-reproducible.mjs（两次构建逐字节一致 PASS）+ node tools/stage-dist.mjs（dist/web index.html=landing.html 逐字节一致 PASS）",
+        "node tests/run-all.mjs → GAME-GATES: PASS（7/7）",
+        "node std-skills/threejs-game-dev/scripts/preflight.mjs games/myrdplaygrou-3 → PREFLIGHT: PASS（0 WARN）",
+        "node std-skills/threejs-game-dev/scripts/browser-smoke.mjs games/myrdplaygrou-3 → BROWSER-SMOKE: PASS（双视口）",
+        "node std-skills/threejs-game-dev/scripts/asset-triple-check.mjs --game games/myrdplaygrou-3 --spec games/myrdplaygrou-3/.myrd/spec/design-spec.json → PASS",
+        "node std-skills/godot-game-dev/scripts/mobile-web-smoke.mjs --url <liveUrl> --out games/myrdplaygrou-3/qa/mobile → MOBILE_SMOKE: PASS",
+        "线上一致性：GET /health 200 + GET / 200 606,863B cmp 逐字节一致",
+        "playtest-summary.mjs 重锚本轮 HEAD + visual-ratchet（advisory）v9→v10 相邻部署配对"
+      ],
+      "screenshots": [
+        {
+          "path": "qa/smoke/smoke-mobile.png",
+          "bytes": 104797,
+          "mtime": "2026-11-11T11:17:33.632Z"
+        },
+        {
+          "path": "qa/smoke/smoke-desktop.png",
+          "bytes": 131934,
+          "mtime": "2026-11-11T11:17:33.631Z"
+        },
+        {
+          "path": "qa/mobile/phase-joystick.png",
+          "bytes": 304342,
+          "mtime": "2026-11-11T11:21:42.325Z"
+        }
+      ],
+      "improvements": null,
+      "changes": "- 无新增源码改动（收尾复跑轮）；本轮全部源码改动在 c906e96（hud.flashBanner 回补 + 契约测试扩 v3 断言面 + spec 镜像升 v3），判定脚本与 .myrd/routines.yaml 零触碰",
+      "replayConclusion": "- v9（c8146ba）→ v10（c906e96）：线上 mobile 门禁 PASS 形态一致；smoke fps 移动 16.6→13.2（headless 软渲染波动带内，门限 ≥10）；drawCalls 201→178（Bloom 1/8 沿用 + 切环单实例化后场景更简）"
     }
   ],
   "actions": [
     {
       "round": 1,
       "action": "node 仿真：10 种子 × 90s AI-vs-AI 对局，统计球权分布/射门/进球（insert 插桩脚本直跑内核）",
-      "timestamp": "2026-11-11T04:57:18.397Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 1,
       "action": "修复：TACKLE_RATE 1.1→0.8、带球减速惩罚 DRIBBLE_PENALTY=0.9、无球接应限深 ≤PZ-9、全员盯人（markSpot 攻守对称）、门将开球先找开阔点否则大脚、远角瞄准（aimFarCorner）",
-      "timestamp": "2026-11-11T04:57:18.397Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 1,
       "action": "复跑 10 种子基线：主 10 : 客 2，5 胜 5 平 0 负，锁定数值入 spec.numeric",
-      "timestamp": "2026-11-11T04:57:18.397Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 2,
       "action": "新增 src/render/keyboard.js（方向映射唯一真源）+ tests/controls-direction.spec.mjs（键盘/摇杆/内核位移三段断言，箭头键语义逐键钉死）",
-      "timestamp": "2026-11-11T04:57:26.710Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 2,
       "action": "smoke payload 增加 inputProbe 方向探针（独立沙盒内核测单位意图位移符号）+ playersOnField/teams 字段；score 改数值口径（分项走 scoreHome/scoreAway）",
-      "timestamp": "2026-11-11T04:57:26.710Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 2,
       "action": "冒烟采样循环内补 hud.showScreen 运行态同步；tests/smoke-payload.contract.mjs 消费 qa/smoke/report.json 机判",
-      "timestamp": "2026-11-11T04:57:26.710Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 3,
       "action": "性能四步：阴影投影面收口（躯干+大腿）→ Bloom 1/4 分辨率 → 渲染目标 HalfFloat→UnsignedByte + 点缀光收 1 盏 + MSAA 关闭 + 内部 0.75× 分辨率；号码贴图只留背面",
-      "timestamp": "2026-11-11T04:57:34.732Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 3,
       "action": "drawCalls 310→201，移动视口三连跑 12.5-14.5fps（余量 >2fps）",
-      "timestamp": "2026-11-11T04:57:34.732Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 3,
       "action": "段件证据口径：buildPlayers traverse 关节树 mesh 计数（10 人 × 16 段件 =160），进 smoke payload + tests/smoke-payload.contract.mjs 断言 ≥120",
-      "timestamp": "2026-11-11T04:57:34.732Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 3,
       "action": "三相位实局留证（15s/45s/85s）：2:0 终盘、12 射、103 次球权易手、fps 16-18",
-      "timestamp": "2026-11-11T04:57:34.732Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 4,
       "action": "tools/stage-dist.mjs 补 landing.html 字节一致同步（wheat-squad 判例 tools/build.mjs:85-90：壳伺服落地页文件名=landing.html；本工程单文件零外链，无需改写引用路径）→ STAGE: PASS 589,387 字节 ×2",
-      "timestamp": "2026-11-11T05:23:11.704Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 4,
       "action": "重部署 v5（cmwbo2fhz00a1m97agackpvpz）：POST deployments {gitRef=本分支, manifestPath=games/myrdplaygrou-3/apphost.toml}，commitHash=f2e8ac8 与推送 HEAD 全等，status=running",
-      "timestamp": "2026-11-11T05:23:11.704Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 4,
       "action": "线上复证：GET / 200（589,387 字节，SRC_SHA=bfd6df248a4846bb，与 dist/web/index.html 逐字节一致）/ /health 200",
-      "timestamp": "2026-11-11T05:23:11.704Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 4,
       "action": "线上 mobile-web-smoke（390×844 触摸仿真 + 移动 UA）11 项 PASS：网络全通/console 零 error/画面在动/触摸到达且响应/音频手势解锁器 window.__audioDebug 在场/无横向溢出/FPS≥8（WARN 1 条：摇杆热区校准读 project.godot，three.js 工程按设计无此文件 → 合法降级仅取证，不阻断）",
-      "timestamp": "2026-11-11T05:23:11.704Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 4,
       "action": "线上 experience-harness 双视口取证包归档 qa/experience/（mobile 390×844 + desktop 1280×720，各 8 步：加载/截图/点中心/摇杆滑动/按上键/点上半屏/状态钩子/收尾；输入步骤 inputArrived 全 true，console errors=0，fps 点 26/25）",
-      "timestamp": "2026-11-11T05:23:11.704Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 4,
       "action": "缺陷单 sf-bug-controls（cmwbl6h4h0085m97aimmadl04）核销 closed：证据链=keyboard.js 语义锚 + tests/controls-direction.spec.mjs 机判 + 双视口 smoke payload inputProbe.ok=true（leftDx=-1.8/rightDx=+1.8/upDz<0/downDz>0）+ 线上构建与该已验证构建逐字节一致",
-      "timestamp": "2026-11-11T05:23:11.704Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 4,
       "action": "本轮断言面升级（任务书要求）：输入方向与多球员在场数量两项断言已在链 —— tests/smoke-payload.contract.mjs 机判 inputProbe.ok=true 且 playersOnField=10、teams=2（qa/smoke/report.json 双视口留痕）",
-      "timestamp": "2026-11-11T05:23:11.704Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 5,
       "action": "核对门禁资产：std-skills/threejs-game-dev/scripts/ 6 件判定脚本全在仓（preflight/browser-smoke/asset-triple-check/playtest-summary/visual-ratchet/lib-png）、references 两模板在仓、.myrd/routines.yaml 含 id=threejs-preflight 与 id=threejs-browser-smoke —— 不触发 blocked。",
-      "timestamp": "2026-11-11T05:54:19.787Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 5,
       "action": "线上构建一致性复证：curl -L liveUrl → 589,387B，cmp 与 dist/web/index.html 逐字节一致；GET /health 200。",
-      "timestamp": "2026-11-11T05:54:19.787Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 5,
       "action": "qa 证据清单核对：qa/experience/ 4 包（2×v5 部署 + 2×v7 部署，双视口各 8 步 + 帧序列）共 1630 图、qa/mobile/report.json PASS、qa/smoke/ 双视口报告与截图、qa/playtest-summary.json（C4 唯一缺口已如实归因）。",
-      "timestamp": "2026-11-11T05:54:19.787Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 5,
       "action": "重写 op=playtest_kit（v2 口径：5v5 两队/受控人切换/关节人形/方向键钉死/平缓数值/音频解锁）+ 回写 op=playtest_summary（ADVISORY 第一阶段单行 JSON，autoPassSuggested=true 三条件全证）。",
-      "timestamp": "2026-11-11T05:54:19.787Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 5,
       "action": "打分卡状态核验（GET 会话消息全扫）→ 已发未答，不重发，不伪造任何试玩结论。",
-      "timestamp": "2026-11-11T05:54:19.787Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 6,
       "action": "固定种子复现通道：SEQ-M 12 步（截图→右半屏开球→摇杆上左→截图→←键→↑键→摇杆右推→传球→射门→终态截图→HUD 探针），跨轮同一序列；`?smoke=62` 快进（SEED_DEFAULT 确定性内核）+ browser-smoke 双视口机判。",
-      "timestamp": "2026-11-11T08:04:58.964Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 6,
       "action": "改 `src/render/scene.js` followCamera：取景按 camera.aspect 分段插值——竖屏基准（17.5/13）端点不动，aspect 0.9→2.2 线性过渡到（10/8），横屏收近压低让场宽占满画幅（IP-1 主改动）。",
-      "timestamp": "2026-11-11T08:04:58.964Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 6,
       "action": "改 `src/main.js` 冒烟采样循环：每帧补 `syncVisuals(1/60)`，让冒烟截图反映真实跟屏相机（证据面修复，不动 payload 口径）。",
-      "timestamp": "2026-11-11T08:04:58.964Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 6,
       "action": "复跑：build（SRC_SHA=e9e55f37→新）+ stage + tests/run-all 7/7 + browser-smoke 双视口 + SEQ-M 复玩。",
-      "timestamp": "2026-11-11T08:04:58.964Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 7,
       "action": "`src/render/textures.js` 新增 netTexture()：64px canvas 透明底白网格（网眼 16px → 世界 0.18m），RepeatWrapping 按面尺寸铺贴（零外部资源，单文件契约不变）。",
-      "timestamp": "2026-11-11T08:04:58.970Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 7,
       "action": "`src/render/scene.js` buildArena 球门装配扩为：柱/梁 + 背网（竖面）+ 顶网（横梁拉到背网顶的水平面）+ 双侧网——每门 4 网面 × 2 门 = 8 mesh；Basic 材质零光照成本、depthWrite=false 防透明排序伪影、opacity 0.6；不碰进球判定（内核球门几何零改动，纯表现层）。",
-      "timestamp": "2026-11-11T08:04:58.970Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 7,
       "action": "复跑：build + stage（590,320 字节 ×2）+ tests/run-all 7/7 + browser-smoke 双视口（串行）。",
-      "timestamp": "2026-11-11T08:04:58.970Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 7,
       "action": "实局抓拍：goal-watch.sh（轮询 HUD 比分变化即连拍）+ 主动操玩（连续摇杆推进至门前 → 射门），球门+网在画面内取证。",
-      "timestamp": "2026-11-11T08:04:58.970Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 8,
       "action": "新增 `src/render/celebrate.js`：彩带粒子池（THREE.Points 单 drawCall，POOL=96，加法混合 + 径向光斑贴图，队色 #3498db/#f39c12/白按进球队配色；重力+落地反弹+寿命渐隐）；空闲路径零成本（无活跃粒子 → 零缓冲上传 + Points.visible=false 零绘制）。",
-      "timestamp": "2026-11-11T08:04:58.974Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 8,
       "action": "新增 `createPunch()`：镜头 FOV 冲击（半正弦包络峰值 5°，0.5s；仅活动窗口内动 updateProjectionMatrix）。",
-      "timestamp": "2026-11-11T08:04:58.974Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 8,
       "action": "`src/main.js`：goal 事件 → burst + punch.fire + goalHold（进球特写机位计时器 1.2s→2.2s 两迭代，锁被进球方球门 mouth，覆盖粒子 1.9s 寿命）；冒烟快进循环补 `handleEvents(events)`（事件→反馈在冒烟证据链路同样在链）。",
-      "timestamp": "2026-11-11T08:04:58.974Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 8,
       "action": "`src/render/scene.js`：followCamera 增 hold 参数（特写机位锁门，内核零改动、确定性不受影响）；Bloom 分辨率 1/4→1/8（低频辉光视觉无损，全屏 pass 像素量 ↓75%，买帧率余量）。",
-      "timestamp": "2026-11-11T08:04:58.974Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 8,
       "action": "性能预算收口：粒子池 A/B 实测 + 空闲零成本改造；`window.__tsState` 只读状态钩子（v1 轮 IP7/IP8 判例同款）支撑实局受控人/球位探针（图证据 213 帧环内橙人疑云借此排除：受控环主人 p4（主队#5）与持球客队 p6 相距 0.94m，画面重叠致读数混淆，内核 controlledId 语义正确）。",
-      "timestamp": "2026-11-11T08:04:58.974Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 8,
       "action": "确定性取证：`?smoke=69`（SEED_DEFAULT=333，内核仿真预知 s=60/68 两粒进球）→ 双视口冒烟帧捕获庆祝：横幅 + 特写机位锁门 + 网窝 + 彩带同框。",
-      "timestamp": "2026-11-11T08:04:58.974Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 9,
       "action": "git push（4874612..d8d8a6c）→ POST deployments {mode=bundle, gitRef=本分支, sourceId=cmwaqvrng002lm9m2nftdd20h, manifestPath=games/myrdplaygrou-3/apphost.toml} → 504 受理 → 轮询 running → 线上字节核验。",
-      "timestamp": "2026-11-11T08:11:26.933Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 9,
       "action": "sessiond 重启常驻（本轮前置 sessiond 随上一执行进程退出，按会话异常纪律重启而非编造证据；新会话 session-live.json 对 liveUrl）。",
-      "timestamp": "2026-11-11T08:11:26.933Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 9,
       "action": "SEQ-M 12 步固定动作序列线上复玩（与 round-6/7/8 同序列，跨轮可比）。",
-      "timestamp": "2026-11-11T08:11:26.933Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 9,
       "action": "弃防+快轮询进球监测 → 线上庆祝取证 4 连拍。",
-      "timestamp": "2026-11-11T08:11:26.933Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
     },
     {
       "round": 9,
       "action": "线上 mobile-web-smoke 门禁复跑。",
-      "timestamp": "2026-11-11T08:11:26.933Z"
+      "timestamp": "2026-11-11T08:25:37.852Z"
+    },
+    {
+      "round": 10,
+      "action": "experience-harness pack.mjs（线上 URL，mobile 视口 390×844）跑 v3 专用场景 qa/playtest/scenario-v3-mobile.json 共 14 步：wait→截图教学卡→probe 教学卡/标签/气泡/再来一局 DOM→pressKey Enter 开始→probe 对局态（标签可见+已读标记+倒计时）→摇杆右推→摇杆上推→点传球钮→点射门钮→probe 操作后状态→截图→长尾观察→probe 收尾",
+      "timestamp": "2026-11-11T11:28:21.148Z"
+    },
+    {
+      "round": 10,
+      "action": "三次 probe 读数：教学卡 tutorialVisible=true/ops=4 项/双按钮在场 → playing 态三标签 visible=true/joyTagVisible=true/tutorialSeenMarked=true → 切换计数 5、环数 1、球权易手进行中",
+      "timestamp": "2026-11-11T11:28:21.148Z"
+    },
+    {
+      "round": 10,
+      "action": "部署核验：POST deployments → 504 受理（网关 30s 截断判例形态）→ 轮询 GET /deployments → running @ commitHash=c906e96f=推送 HEAD 全等；线上 GET / 200=606,863B 与 dist/web/index.html 逐字节一致（cmp）；/health 200",
+      "timestamp": "2026-11-11T11:28:21.148Z"
+    },
+    {
+      "round": 11,
+      "action": "sessiond.mjs --url <liveUrl> 起会话（TTL 900s）",
+      "timestamp": "2026-11-11T11:28:41.332Z"
+    },
+    {
+      "round": 11,
+      "action": "--probe 教学卡在场确认（fresh profile 教学卡展示中）",
+      "timestamp": "2026-11-11T11:28:41.332Z"
+    },
+    {
+      "round": 11,
+      "action": "--tap 200,650（跳过/开始按钮区）→ inputArrived=true、frameDiff=399、responded=true",
+      "timestamp": "2026-11-11T11:28:41.332Z"
+    },
+    {
+      "round": 11,
+      "action": "--probe：state=playing、seenMarked=true（localStorage 已写）",
+      "timestamp": "2026-11-11T11:28:41.332Z"
+    },
+    {
+      "round": 11,
+      "action": "--swipe 70,650:70,500（摇杆上推，按上=屏幕上/朝对方球门）",
+      "timestamp": "2026-11-11T11:28:41.332Z"
+    },
+    {
+      "round": 11,
+      "action": "--pressKey Space（射门沿）→ frameDiff=289",
+      "timestamp": "2026-11-11T11:28:41.332Z"
+    },
+    {
+      "round": 11,
+      "action": "--swipe ×2 继续推进 + --pressKey Space 二次起脚",
+      "timestamp": "2026-11-11T11:28:41.332Z"
+    },
+    {
+      "round": 11,
+      "action": "--probe 中场读数：switches=15、ring=1、ball owner=6（对抗进行中）",
+      "timestamp": "2026-11-11T11:28:41.332Z"
+    },
+    {
+      "round": 11,
+      "action": "--screenshot 抓拍受控环随行画面 → 归档 qa/playtest/round11-live-controlled-ring.png",
+      "timestamp": "2026-11-11T11:28:41.332Z"
+    },
+    {
+      "round": 11,
+      "action": "--stop 收会话（12 步全留痕）",
+      "timestamp": "2026-11-11T11:28:41.332Z"
+    },
+    {
+      "round": 12,
+      "action": "node tools/build.mjs（SRC_SHA=d9e8dca0a0ec8e18，产物 606,863B）+ node tools/verify-reproducible.mjs（两次构建逐字节一致 PASS）+ node tools/stage-dist.mjs（dist/web index.html=landing.html 逐字节一致 PASS）",
+      "timestamp": "2026-11-11T11:29:04.768Z"
+    },
+    {
+      "round": 12,
+      "action": "node tests/run-all.mjs → GAME-GATES: PASS（7/7）",
+      "timestamp": "2026-11-11T11:29:04.768Z"
+    },
+    {
+      "round": 12,
+      "action": "node std-skills/threejs-game-dev/scripts/preflight.mjs games/myrdplaygrou-3 → PREFLIGHT: PASS（0 WARN）",
+      "timestamp": "2026-11-11T11:29:04.768Z"
+    },
+    {
+      "round": 12,
+      "action": "node std-skills/threejs-game-dev/scripts/browser-smoke.mjs games/myrdplaygrou-3 → BROWSER-SMOKE: PASS（双视口）",
+      "timestamp": "2026-11-11T11:29:04.768Z"
+    },
+    {
+      "round": 12,
+      "action": "node std-skills/threejs-game-dev/scripts/asset-triple-check.mjs --game games/myrdplaygrou-3 --spec games/myrdplaygrou-3/.myrd/spec/design-spec.json → PASS",
+      "timestamp": "2026-11-11T11:29:04.768Z"
+    },
+    {
+      "round": 12,
+      "action": "node std-skills/godot-game-dev/scripts/mobile-web-smoke.mjs --url <liveUrl> --out games/myrdplaygrou-3/qa/mobile → MOBILE_SMOKE: PASS",
+      "timestamp": "2026-11-11T11:29:04.768Z"
+    },
+    {
+      "round": 12,
+      "action": "线上一致性：GET /health 200 + GET / 200 606,863B cmp 逐字节一致",
+      "timestamp": "2026-11-11T11:29:04.768Z"
+    },
+    {
+      "round": 12,
+      "action": "playtest-summary.mjs 重锚本轮 HEAD + visual-ratchet（advisory）v9→v10 相邻部署配对",
+      "timestamp": "2026-11-11T11:29:04.768Z"
     }
   ],
   "observations": [
@@ -544,159 +746,211 @@
     },
     {
       "round": 9,
-      "observation": "- 部署链收口：v8 部署 **cmwbtonx4001cm9dzws5myo5z**（POST /deployments → HTTP 504 网关 30s 截断判例形态、实际已受理；GET /deployments 复查 status=running=在服语义，commitHash=**d8d8a6c** 与推送 HEAD 全等；前轮 v7=cmwbopdtk 转 superseded）。\n- 线上复证：GET / → 200，**594,717 字节与 dist/web/index.html 逐字节一致（cmp）**；/health → 200。\n- 线上实局（SEQ-M 固定序列复玩）：画面即打磨版——中场逼抢绞杀（4v4 贴身）、受控环+辉光、队色/号码可读、HUD 干净；`window.__tsState` 只读探针在线上返回全量状态（5v5 双队、controlledId=4 主队 FW#5、球权在客队 DF#6 脚下 0.94m 贴身对抗）。\n- **线上进球特写机位实证**：弃防实验促成客队进球（0:1@12s，真实对局结果），检测后 ~1.5s 抓拍（steps/028）——相机仍锁在自家球门（门后机位：网窝网格 + 门将 + 门线区同框），2.2s 特写窗在线上真实生效；~2.6s 后相机回中圈（steps/029），节奏符合设计。\n- 线上移动门禁（mobile-web-smoke，390×844 移动仿真）：**PASS**——网络/渲染/触摸响应/音频解锁契约（__audioDebug）/视口/FPS 全绿；1 WARN=摇杆热区 --project 未传（回退固定坐标 swipe，仅取证不断言，合法降级与前轮同款）。"
+      "observation": "- 部署链收口：v8 部署 **cmwbtonx4001cm9dzws5myo5z**（d8d8a6c，上线并完成线上实局验证）→ 收尾门禁加固提交 c8146ba 后追发 v9 **cmwbubpyu001um9dzpliv6ujq**（POST → 504 网关 30s 截断判例形态、实际已受理；status=running=在服语义，commitHash=**c8146ba** 与收尾 HEAD 全等；v8 转 superseded）。\n- 线上复证（v9）：GET / → 200，**594,716 字节与 dist/web/index.html 逐字节一致（cmp）**；/health → 200。\n- 线上实局（SEQ-M 固定序列复玩）：画面即打磨版——中场逼抢绞杀（4v4 贴身）、受控环+辉光、队色/号码可读、HUD 干净；`window.__tsState` 只读探针在线上返回全量状态（5v5 双队、controlledId=4 主队 FW#5、球权在客队 DF#6 脚下 0.94m 贴身对抗）。\n- **线上进球特写机位实证**：弃防实验促成客队进球（0:1@12s，真实对局结果），检测后 ~1.5s 抓拍（steps/028）——相机仍锁在自家球门（门后机位：网窝网格 + 门将 + 门线区同框），2.2s 特写窗在线上真实生效；~2.6s 后相机回中圈（steps/029），节奏符合设计。\n- 线上移动门禁（mobile-web-smoke，390×844 移动仿真）：**PASS**——网络/渲染/触摸响应/音频解锁契约（__audioDebug）/视口/FPS 全绿；1 WARN=摇杆热区 --project 未传（回退固定坐标 swipe，仅取证不断言，合法降级与前轮同款）。"
+    },
+    {
+      "round": 10,
+      "observation": "v10 部署（cmwc10na3000qm9bh18cu3lvp @ c906e96f，running 在服）线上取证全绿：开屏教学卡真实展示（四操作「移动/传球/射门/切换」图示齐全，「开始比赛」主按钮 +「跳过」次按钮在场）；对局中 HUD 常驻标签「移动/传球/射门」全部可见（摇杆旁 + 按钮文字）；开始比赛后 localStorage 已读标记 gr-tutorial-seen-v3=1 写入（同档案不再展示）；倒计时真实走表（88.4s → 80.1s → 72.5s 三读数递减）；控制权切换高亮环全程单实例（switchRingCount=1，switchCount=5 真实切换发生）；首次被抢断气泡文案在链（「被抢断啦 —— 即将自动切换到离球最近的队友（脚下光环）」）；consoleErrors=0。取证包 summary.firstColorCount=37、animatedSomewhere=true、hasRespondedStep=true。"
+    },
+    {
+      "round": 11,
+      "observation": "sessiond 交互会话 12 步（线上 URL，liveUrl 实局）：跳过路径开局可用（点「跳过」按钮 → 直接进 playing，已读标记同步写入）；键盘/触屏双端输入全部到达且全部画面响应（12 步 inputArrived 全 true，frameDiff 55~400）；摇杆上推受控球员向对方球门推进（受控人从 MF#3 变为 FW#5 持球推进到 z=8.9 进攻半场）；空格射门沿触发画面响应；整场对局抢断/传球触发的自动切换累计 15 次，高亮环全程恒为 1 个实例（switchRingCount=1 恒定，无全队闪烁、无多环并存、无闪烁卡顿）——缺陷单 cmwbumwrj 的「全队快速闪烁」线上不复现；倒计时持续走表无冻结卡死。"
+    },
+    {
+      "round": 12,
+      "observation": "收尾门禁全绿：tests/run-all 7/7 PASS（构建复现/controls-direction/football-contract/kernel-determinism/singlefile/smoke-payload 含 v3 断言面/state-machine）；preflight 21 项 0 WARN；browser-smoke 双视口 PASS（desktop fps=12.4 / mobile fps=13.2，exceptions=0，截图非纯色 52/38 种量化色，drawCalls 135/178）；asset-triple-check PASS（清单 7 项全 programmatic，0 张位图入包）；线上 mobile-web-smoke 10 PASS + 1 WARN（结构性与 v9 同形态）；线上 GET / 与 dist/web/index.html 逐字节一致（606,863B，sha256 前缀 321171cd）；部署 v10=cmwc10na3000qm9bh18cu3lvp running @ commitHash=c906e96f=推送 HEAD 全等（首发改部署 cmwc1029w clone exit 128 失败如实留痕，重发即成——疑似与推送 tip 同步竞速的瞬时失败）。"
     }
   ],
   "screenshots": [
     {
       "path": "qa/playtest/steps/round1-early-match.png",
       "bytes": 114190,
-      "mtime": "2026-11-11T04:56:12.488Z"
+      "mtime": "2026-11-11T08:25:37.853Z"
     },
     {
       "path": "qa/playtest/steps/round1-early-desktop.png",
       "bytes": 114411,
-      "mtime": "2026-11-11T04:56:12.490Z"
+      "mtime": "2026-11-11T08:25:37.853Z"
     },
     {
       "path": "qa/playtest/steps/round2-mid-match.png",
       "bytes": 85365,
-      "mtime": "2026-11-11T04:56:25.409Z"
+      "mtime": "2026-11-11T08:25:37.853Z"
     },
     {
       "path": "qa/playtest/steps/round3-late-match.png",
       "bytes": 178689,
-      "mtime": "2026-11-11T04:56:38.466Z"
+      "mtime": "2026-11-11T08:25:37.854Z"
     },
     {
       "path": "qa/playtest/steps/round3-late-desktop.png",
       "bytes": 138741,
-      "mtime": "2026-11-11T04:56:38.469Z"
+      "mtime": "2026-11-11T08:25:37.854Z"
     },
     {
       "path": "qa/playtest/steps/round4-live-mobile-first.png",
       "bytes": 195244,
-      "mtime": "2026-11-11T05:22:53.788Z"
+      "mtime": "2026-11-11T08:25:37.855Z"
     },
     {
       "path": "qa/playtest/steps/round4-live-mobile-swipe.png",
       "bytes": 117930,
-      "mtime": "2026-11-11T05:22:53.783Z"
+      "mtime": "2026-11-11T08:25:37.855Z"
     },
     {
       "path": "qa/playtest/steps/round4-live-desktop-swipe.png",
       "bytes": 190600,
-      "mtime": "2026-11-11T05:22:53.786Z"
+      "mtime": "2026-11-11T08:25:37.855Z"
     },
     {
       "path": "qa/experience/2026-11-11T05-36-47-deploy/steps/02-初始画面.png",
       "bytes": 195306,
-      "mtime": "2026-11-11T05:36:55.590Z"
+      "mtime": "2026-11-11T08:25:37.727Z"
     },
     {
       "path": "qa/experience/2026-11-11T05-36-47-deploy/steps/04-摇杆区滑动.png",
       "bytes": 158825,
-      "mtime": "2026-11-11T05:37:00.027Z"
+      "mtime": "2026-11-11T08:25:37.728Z"
     },
     {
       "path": "qa/experience/2026-11-11T05-37-31-deploy-desktop/steps/04-摇杆区滑动.png",
       "bytes": 163940,
-      "mtime": "2026-11-11T05:37:43.134Z"
+      "mtime": "2026-11-11T08:25:37.795Z"
     },
     {
       "path": "qa/smoke/smoke-desktop.png",
-      "bytes": 118853,
-      "mtime": "2026-11-11T08:10:55.258Z"
+      "bytes": 131934,
+      "mtime": "2026-11-11T11:17:33.631Z"
     },
     {
       "path": "qa/smoke/smoke-mobile.png",
-      "bytes": 74173,
-      "mtime": "2026-11-11T08:10:55.258Z"
+      "bytes": 104797,
+      "mtime": "2026-11-11T11:17:33.632Z"
     },
     {
       "path": "qa/playtest/steps/round6-base-03-joy.png",
       "bytes": 139832,
-      "mtime": "2026-11-11T06:12:08.947Z"
+      "mtime": "2026-11-11T08:25:37.857Z"
     },
     {
       "path": "qa/playtest/steps/round6-base-09-end.png",
       "bytes": 162792,
-      "mtime": "2026-11-11T06:12:08.951Z"
+      "mtime": "2026-11-11T08:25:37.858Z"
     },
     {
       "path": "qa/playtest/steps/round6-after-desktop-smoke.png",
       "bytes": 157668,
-      "mtime": "2026-11-11T06:16:09.017Z"
+      "mtime": "2026-11-11T08:25:37.856Z"
     },
     {
       "path": "qa/playtest/steps/round6-after-09-end.png",
       "bytes": 162792,
-      "mtime": "2026-11-11T06:16:09.014Z"
+      "mtime": "2026-11-11T08:25:37.856Z"
     },
     {
       "path": "qa/playtest/steps/round7-goal-net-approach.png",
       "bytes": 129161,
-      "mtime": "2026-11-11T06:25:16.780Z"
+      "mtime": "2026-11-11T08:25:37.858Z"
     },
     {
       "path": "qa/playtest/steps/round7-goal-net-after-shot.png",
       "bytes": 127662,
-      "mtime": "2026-11-11T06:25:16.783Z"
+      "mtime": "2026-11-11T08:25:37.858Z"
     },
     {
       "path": "qa/smoke/smoke-desktop.png",
-      "bytes": 118853,
-      "mtime": "2026-11-11T08:10:55.258Z"
+      "bytes": 131934,
+      "mtime": "2026-11-11T11:17:33.631Z"
     },
     {
       "path": "qa/playtest/steps/round8-celebration-session.png",
       "bytes": 130229,
-      "mtime": "2026-11-11T06:57:21.430Z"
+      "mtime": "2026-11-11T08:25:37.859Z"
     },
     {
       "path": "qa/playtest/steps/round8-celebration-desktop-smoke.png",
       "bytes": 116043,
-      "mtime": "2026-11-11T06:57:21.408Z"
+      "mtime": "2026-11-11T08:25:37.859Z"
     },
     {
       "path": "qa/playtest/steps/round8-celebration-mobile-smoke.png",
       "bytes": 74955,
-      "mtime": "2026-11-11T06:57:21.414Z"
+      "mtime": "2026-11-11T08:25:37.859Z"
     },
     {
       "path": "qa/playtest/steps/round8-live-goal-capture-late.png",
       "bytes": 113986,
-      "mtime": "2026-11-11T06:57:21.435Z"
+      "mtime": "2026-11-11T08:25:37.859Z"
     },
     {
       "path": "qa/playtest/steps/round9-live-00-title.png",
       "bytes": 194999,
-      "mtime": "2026-11-11T07:59:50.543Z"
+      "mtime": "2026-11-11T08:25:37.860Z"
     },
     {
       "path": "qa/playtest/steps/round9-live-03-joy.png",
       "bytes": 147613,
-      "mtime": "2026-11-11T07:59:50.548Z"
+      "mtime": "2026-11-11T08:25:37.860Z"
     },
     {
       "path": "qa/playtest/steps/round9-live-09-end.png",
       "bytes": 150862,
-      "mtime": "2026-11-11T07:59:50.550Z"
+      "mtime": "2026-11-11T08:25:37.861Z"
     },
     {
       "path": "qa/playtest/steps/round9-live-goal-hold-net.png",
       "bytes": 173829,
-      "mtime": "2026-11-11T08:01:30.589Z"
+      "mtime": "2026-11-11T08:25:37.862Z"
     },
     {
       "path": "qa/playtest/steps/round9-live-after-celebration.png",
       "bytes": 126861,
-      "mtime": "2026-11-11T08:01:30.593Z"
+      "mtime": "2026-11-11T08:25:37.861Z"
+    },
+    {
+      "path": "qa/experience/2026-11-11T11-23-13-v3-playtest-mobile/steps/02-开屏教学卡.png",
+      "bytes": 197883,
+      "mtime": "2026-11-11T11:23:21.208Z"
+    },
+    {
+      "path": "qa/experience/2026-11-11T11-23-13-v3-playtest-mobile/steps/05-对局开始-HUD.png",
+      "bytes": 130278,
+      "mtime": "2026-11-11T11:23:23.699Z"
+    },
+    {
+      "path": "qa/experience/2026-11-11T11-23-13-v3-playtest-mobile/steps/11-操作后状态-气泡-切换计数-球权-.png",
+      "bytes": 138674,
+      "mtime": "2026-11-11T11:23:32.630Z"
+    },
+    {
+      "path": "qa/playtest/round11-live-controlled-ring.png",
+      "bytes": 138049,
+      "mtime": "2026-11-11T11:27:01.034Z"
+    },
+    {
+      "path": "qa/playtest/round11-live-shoot-press.png",
+      "bytes": 148423,
+      "mtime": "2026-11-11T11:27:01.039Z"
+    },
+    {
+      "path": "qa/smoke/smoke-mobile.png",
+      "bytes": 104797,
+      "mtime": "2026-11-11T11:17:33.632Z"
+    },
+    {
+      "path": "qa/smoke/smoke-desktop.png",
+      "bytes": 131934,
+      "mtime": "2026-11-11T11:17:33.631Z"
+    },
+    {
+      "path": "qa/mobile/phase-joystick.png",
+      "bytes": 304342,
+      "mtime": "2026-11-11T11:21:42.325Z"
     }
   ],
   "consoleErrors": [],
   "fpsSamples": [
-    9
+    17
   ],
   "inputReachability": [],
   "checks": {

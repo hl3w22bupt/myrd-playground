@@ -229,7 +229,35 @@
       ],
       "diffConclusion": "OK",
       "suggestedAction": "无需动作"
+    },
+    {
+      "scenario": "v9-to-v10-live-mobile-paired",
+      "beforeSource": "qa/visual-ratchet/v8-live-mapped",
+      "afterSource": "qa/visual-ratchet/v10-live-mapped",
+      "comparedAt": "2026-11-11T11:31:22.567Z",
+      "pairsCompared": 1,
+      "suspectedRegressions": 0,
+      "notComparable": 0,
+      "unmatchedFiles": [
+        "before 独有: 02-初始画面.png",
+        "after 独有: 01-加载后.png"
+      ],
+      "comparisons": [
+        {
+          "before": "qa/visual-ratchet/v8-live-mapped/04-摇杆区滑动.png",
+          "after": "qa/visual-ratchet/v10-live-mapped/04-摇杆区滑动.png",
+          "resolution": "702x1519",
+          "pHashBefore": "b5ce1c5e241e1cb5",
+          "pHashAfter": "add81e7c0d4c1eac",
+          "similarity": 0.7188,
+          "verdict": "comparable-pass",
+          "reason": "pHash 相似度 0.7188 ≥ T1=0.7",
+          "suggestedAction": "无需动作"
+        }
+      ],
+      "diffConclusion": "OK",
+      "suggestedAction": "无需动作"
     }
   ],
-  "updatedAt": "2026-11-11T08:07:16.244Z"
+  "updatedAt": "2026-11-11T11:31:22.567Z"
 }

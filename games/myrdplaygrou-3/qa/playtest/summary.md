@@ -1,38 +1,40 @@
-# 打磨收尾摘要：《实况足球》GOAL RUSH v2 重跑 · 打磨轮（round-6/7/8/9，2026-11-11）
+# 试玩收尾摘要：《实况足球》GOAL RUSH v3（缺陷修复 + 新手引导 + 打磨项，round-10/11/12，2026-11-11）
 
-- 分支：`myrd/myrdplaygrou-3-goal-cmwaqvrng002lm9m2nftdd20h`；收尾 HEAD=d8d8a6c（v8 部署 commitHash 全等）
-- 上游事实源：策划案 v2（cmwbl64r10082m97atgikgm0o）；仓内镜像 `games/myrdplaygrou-3/.myrd/spec/design-spec.json`（v2Delta 三项 + 12 条验收）
-- 改进点清单出处：qa/ 既有证据（playtest-summary.json rounds 1-5 / qa/smoke / qa/experience 双视口取证包 / qa/mobile 门禁）逐条整理为 IP-1/2/3
+- 分支：`myrd/myrdplaygrou-3-goal-cmwaqvrng002lm9m2nftdd20h`；收尾 HEAD=**d76b72a**（v10 部署 commitHash=c906e96f 全等；取证提交与代码提交分离）
+- 上游事实源：策划案 v3（**cmwburjse0011m9bb8t1mjuqn**，approved，parent=v2）+ 两张缺陷单（cmwbumwrj000qm9bb4s5v0lm6 抢断闪烁卡顿 / cmwbumwtv000sm9bbmm3zs0kc 传球切换无可发现性）；仓内镜像 `games/myrdplaygrou-3/.myrd/spec/design-spec.json`（v3Delta 三项 + 19 条验收）
+- 历史链：round-1~9（v2 周期）摘要见 git 历史（8b37984/c8146ba 两轮收口）；本轮为 v3 周期三轮「改→玩→看」
 
-## 改进点 → 改动 → 结论对照表
+## v3 改进点 → 改动 → 结论对照表
 
-| IP | 玩家可感问题（证据出处） | 改动（轮次/提交） | 结论 |
+| 项 | 玩家可感问题（缺陷单/打磨项出处） | 改动（提交） | 结论（线上机判/取证） |
 |---|---|---|---|
-| IP-1 桌面横向视口取景空旷 | 桌面 1280×720 球场只占中段 ~40% 屏宽、两侧大片空带、球员过小（qa/smoke/smoke-desktop.png 改前版 + qa/experience desktop 04 步） | followCamera 按 aspect 分段插值（竖屏端点不动/横屏收近压低，round-6/bdb31c3） | 桌面取景占满画幅、球员读数 ~2.2×；drawCalls 201→182（视锥剔除）；**移动端逐字节零漂移**（139,832B=139,832B，ratchet title 1.0 实证竖屏端点不变） |
-| IP-2 球门无网、射门目标辨识弱 | 球门只有两柱一梁灰白线框，远看像场地标线（round-6 后 smoke-desktop + experience 02 初始画面） | netTexture 程序化网格贴图 + 三面网装配（背/顶/双侧 ×2 门，round-7/6c9aa39） | 实局帧球门「白柱+横梁+半透明网格」完整结构可辨（round7-goal-net-approach.png）；drawCalls 182→208 预算内；进球判定零触碰 |
-| IP-3 进球瞬间缺画面爆点 | 进球=横幅+音效两项反馈，画面无爆点（main.js handleEvents 代码面 + 实局观察）；进球瞬间相机被开球重置立即拽离门区（观感缺陷） | celebrate.js 彩带粒子池（Points 单 drawCall/空闲零绘制）+ FOV 冲击 + 进球特写机位（goalHold 2.2s 锁门）+ 冒烟快进补 handleEvents（round-8/d8d8a6c） | `?smoke=69` 确定性取证：横幅+特写门+网窝+彩带四要素同框（双视口，2:0@22s 与内核仿真 s=60/68 全等）；线上实局实证特写机位生效（round9-live-goal-hold-net.png 门后机位看网窝）；庆祝画面从 2 通道 → 5 通道 |
-| 伴生：帧率余量刀口 | mobile fps 在门禁线（≥10）附近抖动；受控 A/B 锚定环境负载为主因（无新改动同负载 9.4 FAIL） | Bloom 1/4→1/8（低频辉光视觉无损，全屏 pass 像素 ↓75%，round-8） | 负载 17.1 下双视口 10.3/10.5 PASS；后段复跑 16/14.7（负载回落） |
+| BUG-1 抢断切换全队闪烁+卡顿 | cmwbumwrj000qm9bb4s5v0lm6（high）：抢断自动切换时全队高亮逐个闪 + 掉帧 | 上轮 checkpoint 立骨架（selection-ring.js 全场唯一池化环：构建期一次性建 mesh/材质，单次脉冲 0.15s+0.35s、失权 0.25s 渐出、easeOutCubic），本轮 c906e96 修复 checkpoint 遗留缺口并过门禁 | 线上实局切换 15 次环数恒 1（sessiond 探针）；smoke 双视口 instanceCount=1（acc-switch-single-highlight）；补回的 hud.flashBanner 消除了 goal 事件 TypeError（冒烟 timeout 根因） |
+| BUG-2 传球/切换无可发现性 | cmwbumwtv000sm9bbmm3zs0kc（high）：开局一分钟看不懂怎么玩 | 教学卡（四操作图示+开始/跳过+localStorage 已读标记）+ HUD 常驻标签（移动/传球/射门+键位角标）+ 首次持球/被抢断一次性气泡（每档案 1 次） | 线上取证包 probe：tutorialVisible=true/ops=4/双按钮在场 → playing 三标签 visible=true/tutorialSeenMarked=true；气泡文案在链（「被抢断啦——即将自动切换…」） |
+| 打磨-进球反馈 | v3 gameFeel：庆祝 ≥1s+倒计时暂停+比分弹跳+特写机位 | 内核 celebrationLeft 冻结窗（1.2s，球/人/倒计时全停）+ 彩带慢动作 0.3× + FOV 冲击 + 特写机位 2.2s + score-pop 1.6×/0.4s 队色高亮 | 冒烟截图四要素同框（qa/smoke/smoke-mobile.png）；契约断言终局 celebrationLeft 归零（football-contract） |
+| 打磨-再来一局动机 | v3 replayHooks：主按钮一键重赛 ≤2s + 追赶目标 | 结算屏「再来一局」主按钮 + restart 捕获 lastScore 作追赶目标 + 败局针对性改进提示 | 线上 DOM 在场（rematchBtn=true）；重开契约 5 连点全复位（state-machine） |
+| 打磨-手感音效 | v3 gameFeel：蓄力升调/60ms hit-stop/切换确认音/BGM duck 30% | chargeTone 220→880Hz 线性、shoot 后 60ms 表现层冻结、switchConfirm 高频正弦与抢断低通噪声异频段、duckBgm 只压 BGM 增益 | 数值镜像 numeric.js v3 块 + smoke payload 正常（exceptions=0）；听感待用户人工试玩打分卡 |
 
 ## 轮次索引（qa/playtest/round-N.md，机器可解析段协议齐全）
 
-- round-6（bdb31c3）：IP-1 相机宽高比自适应 + 冒烟截图补真实跟屏相机 · 截图 4
-- round-7（6c9aa39）：IP-2 球门三面网 · 截图 3
-- round-8（d8d8a6c）：IP-3 粒子/FOV/特写机位 + Bloom 余量 · 截图 4
-- round-9（本轮）：v8 部署上线 + 线上实局验证（源码零改动）· 截图 5
+- round-10（c906e96→d76b72a 证据）：v10 部署上线 + 线上引导/切环取证（pack 14 步三 probe）· 截图 3
+- round-11（d76b72a 证据）：sessiond 实局交互 12 步（跳过开局/摇杆/射门/切换 15 次单环恒定）· 截图 2
+- round-12（d76b72a 证据）：收尾门禁复跑 + 线上一致性 + 部署核验 · 截图 3
 
 ## 收尾门禁与证据
 
-- 构建：SRC_SHA 单文件 594,717 字节 ×2（index.html = landing.html，STAGE PASS 逐字节一致）
-- tests/run-all：7/7 PASS（方向语义/实况契约/确定性/状态机/单文件/冒烟payload/构建复现）
+- 构建：SRC_SHA=d9e8dca0a0ec8e18 单文件 606,863B ×2（index.html = landing.html，STAGE PASS 逐字节一致）
+- tests/run-all：7/7 PASS（含 smoke-payload 新增 v3 断言面：切换单环/教学卡/常驻标签/庆祝冻结/再来一局）
 - preflight：PASS（21 项 0 WARN）
-- browser-smoke（本地构建，双视口 62s 快进）：PASS——inputProbe.ok=true（leftDx=-1.8/rightDx=+1.8/upDz<0/downDz>0，**sf-bug-controls 方向断言**）+ playersOnField=10/teams=2（**多球员断言**）+ exceptions=0/consoleErrors=0
-- 部署：v8=cmwbtonx4001cm9dzws5myo5z（504 受理→running 在服，commitHash=d8d8a6c）；线上 GET / 200=594,717B 与 dist/web/index.html 逐字节一致（cmp）；/health 200
-- 线上 mobile-web-smoke：PASS（触摸管线/响应 pass、音频解锁契约 pass、FPS≥8 pass；1 WARN=摇杆热区 --project 未传，合法降级仅取证）
-- playtest-summary：**valid=false，唯一缺口 C4**（平台级判定器间 schema 漂移：mobile-web-smoke.mjs:87-92 写 checks={id,label,status,detail}、playtest-summary.mjs:211-214 读 c.name/c.pass——两判定器红线禁改；原始证据在档：qa/mobile/report.json touch-pipeline=pass/touch-response=pass，交互可达性另证=线上 __tsState 探针全量状态 + 冒烟 inputProbe.ok=true）。其余 C1/C2/C3/C5/C6 全绿：rounds=9、screenshots=29、consoleErrors=0
-- visual-ratchet（advisory）：**OK**——v7→v8 线上移动配对 2 对 0 回归（title 1.0 / 摇杆 0.75 ≥0.7）；桌面取景重构为 round-6 刻意重设计（报告历史条目在档）
+- browser-smoke（双视口）：PASS——desktop fps=12.4 / mobile fps=13.2（headless 软渲染口径 ≥10），exceptions=0，非纯色 52/38 色，drawCalls 135/178
+- asset-triple-check：PASS（清单 7 项全 programmatic，0 位图入包；goal-net-texture 回补登记）
+- 部署：v10=cmwc10na3000qm9bh18cu3lvp（POST → 504 受理 → running，commitHash=c906e96f=推送 HEAD 全等；首发 cmwc1029w clone exit 128 失败如实留痕，重发即成）；线上 GET / 200=606,863B 与 dist/web/index.html 逐字节一致（cmp）；/health 200
+- 线上 mobile-web-smoke：PASS（10 PASS + 1 WARN=摇杆热区 --project 读 Godot 字段，three.js 工程按设计无 → 合法降级仅取证，与 v9 同形态）
+- playtest-summary：rounds=12 screenshots=37 consoleErrors=0 fps=17 versionSha=d76b72a2；**valid=false 唯一缺口 C4**（平台级判定器间 schema 漂移：mobile-web-smoke.mjs 写 checks={id,label,status,detail}、playtest-summary.mjs 读 c.name/c.pass → touch/input 过滤落空；两判定器红线禁改，原始证据在档 qa/mobile/report.json touch-pipeline=pass/touch-response=pass + 取证包 probe inputArrived 全 true）
+- visual-ratchet（advisory）：**OK**——v9→v10 线上移动配对 1 对 0 回归（摇杆态相似度 0.7188 ≥ T1=0.7）；初始画面未配对 = v3 教学卡首屏刻意重设计（MAPPING.md 在档）
 
 ## 如实透出的缺口
 
-1. playtest-summary C4 恒 FAIL（平台级 schema 漂移，两判定器红线禁改）——op=playtest_summary 按「缺口无法补齐」纪律回写 autoPassSuggested=false + 完整归因。
-2. 实局进球庆祝抓拍 3 次因轮询延迟错过特写窗（round8-live-goal-capture-late.png 留痕）；特写窗已延至 2.2s 且线上实证机位生效，粒子瞬间的实局帧以确定性冒烟取证（?smoke=69）为准。
-3. 平台 spec v2 levels 2~5 关卡递进未实现（round-5 既有披露，维持：本轮可玩面=90s 5v5 单局 level-1 语义）；用户四问试玩量表仍未回填（requestKey=playtest_cmwaqvrng002lm9m2nftdd20h 已发未答，不重发不代答）。
+1. playtest-summary C4 恒 FAIL（平台级 schema 漂移，两判定器红线禁改）——op=playtest_summary 回写 autoPassSuggested=false + 完整归因（与 round-9 收口同源）。
+2. 实局进球庆祝线上实拍未捕获（sessiond 两脚射门未进球）；庆祝链以确定性冒烟 ?smoke 双视口取证（四要素同框）+ 内核契约断言（celebrationLeft 冻结/归零）为准。
+3. 手感音效（蓄力升调音高曲线、hit-stop 力度感、BGM 压低听感）属人工试玩量表，机判面只锚数值与代码位，待用户打分卡回填（requestKey=playtest_cmwaqvrng002lm9m2nftdd20h 已发未答，不重发不代答）。
+4. 平台 spec v3 levels 2~5 关卡递进维持 round-5 既有披露：本轮可玩面=90s 5v5 单局 level-1 语义 + v3 引导/切环/打磨层；关卡递进属后续迭代面。
