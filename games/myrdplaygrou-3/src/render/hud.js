@@ -28,12 +28,15 @@ export function createHud() {
   let popTimer = 0;
 
   return {
-    /** 屏幕切换：null = 只留 HUD（playing 态）；"tutorial" = 教学卡（盖过 title） */
+    /** 屏幕切换：null = 只留 HUD（playing 态）；"tutorial" = 教学卡（盖过 title）；
+     *  内核终态名 gameover 归一到结算屏节点 over（v16 线上终审缺陷修复：此前 showScreen
+     *  收到 "gameover" 时四个屏键全不匹配 → 结算屏/再来一局按钮终局后永不显示） */
     showScreen(name) {
+      const screenName = name === "gameover" ? "over" : name;
       for (const [key, node] of [["title", el.title], ["tutorial", el.tutorial], ["paused", el.paused], ["over", el.over]]) {
-        node.classList.toggle("hidden", key !== name);
+        node.classList.toggle("hidden", key !== screenName);
       }
-      el.hud.classList.toggle("hidden", name === "title" || name === "tutorial");
+      el.hud.classList.toggle("hidden", screenName === "title" || screenName === "tutorial");
     },
     /** 教学卡是否需要展示（本地档案首次进入） */
     shouldShowTutorial() { return !isTutorialSeen(); },

@@ -16,3 +16,6 @@ std-skills/godot-game-dev/scripts/qa/
 # 平台运行期本地配置（含 provider apiKey 等敏感值）—— 留磁盘不进仓（GH push protection 判例 2026-11-11）
 .myrd-platform/.claude/mcp.json
 qa/playtest/session*.json
+
+# 多节点工作树/临时目录不入库
+.wt-*/

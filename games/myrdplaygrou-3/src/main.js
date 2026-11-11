@@ -331,6 +331,8 @@ if (smokeParam !== null) {
   const inputProbe = directionProbe();
 
   // 足球自动驾驶快进：真对局（抢断/传递/射门/进球/庆祝冻结），意图 0.1s 重算一次。
+  let smokeControlledChanges = 0;
+  let lastSmokeControlledId = game.world.controlledId;
   // IP-P5（polish v16）：粒度 1s → 0.1s —— v15 控制权稳定化后，1Hz 意图下 autopilot
   // 攻击效力塌陷（同 seed 同语义整场 2 射门 0 进球；旧内核同语义 10 射门 1 球；
   // 归因见 qa/playtest/round-16.md：旧内核逐帧抢切换 = 1Hz 意图的「免费外挂」，
@@ -338,6 +340,12 @@ if (smokeParam !== null) {
   // 游戏侧协议参数（零内核改动、零门禁改动），冒烟证据面恢复进球/庆祝等对局活力。
   for (let s = 0; s < seconds * 10 && game.state === "playing"; s++) {
     handleEvents(game.fastForward(0.1, footballIntent(game.world)).events); // 事件→反馈在冒烟下同样在链（彩带/特写机位/横幅），快进不再丢事件
+    // 控制权切换计数（内核只读口径，与 selection-ring.switchCount 同语义但与渲染采样解耦 ——
+    // 快进打满全场时采样发生在 gameover 态、环已失权停更，渲染侧计数会漏计全程切换）
+    if (game.world.controlledId !== lastSmokeControlledId) {
+      smokeControlledChanges += 1;
+      lastSmokeControlledId = game.world.controlledId;
+    }
   }
   syncVisuals(0);
 
@@ -374,6 +382,7 @@ if (smokeParam !== null) {
         teams: 2,
         inputProbe,
         goals: w.goals, shots: w.shots, possessionChanges: w.possessionChanges,
+        controlledChanges: smokeControlledChanges,
         // —— v3 断言面：切换单环 + 引导 DOM + 庆祝冻结 ——
         switchRing: {
           instanceCount: playersBundle.selectionRing.instanceCount,
@@ -387,6 +396,11 @@ if (smokeParam !== null) {
           hudLabels: [...document.querySelectorAll("[data-hud-label]")].map((n) => n.getAttribute("data-hud-label")),
           bubblePresent: !!document.getElementById("bubble"),
           rematchButtonPresent: !!document.getElementById("btn-rematch"),
+          // 终局结算屏可见性自检（v16 线上终审缺陷回归锚点）：终局态结算屏必须解除隐藏，
+          // 否则「再来一局」主按钮与追赶目标文案对玩家不可达（smoke 快进打满全场时为 true）。
+          overScreenVisibleAtGameover: game.state === "gameover"
+            ? !document.getElementById("screen-over").classList.contains("hidden")
+            : null,
         },
         celebration: { celebrationLeft: Math.round(w.celebrationLeft * 100) / 100 },
         viewport: { width: window.innerWidth, height: window.innerHeight, dpr: window.devicePixelRatio },

@@ -56,7 +56,10 @@ for (const vp of viewports) {
   // instanceCount 是常量口径（池化声明），switchCount>0 证明快进期间切换真实发生且环随行。
   const sr = p.switchRing || {};
   ok(sr.instanceCount === 1, `${tag} 切换高亮实例数 ≤1（acc-switch-single-highlight，实测 ${sr.instanceCount}）`);
-  ok((sr.switchCount || 0) >= 1, `${tag} 快进期间控制权切换 ≥1 次（switchCount=${sr.switchCount}，环随行非摆设）`);
+  // 切换真实发生：渲染侧 switchCount 与快进内核侧 controlledChanges 任一 ≥1（后者与渲染采样
+  // 解耦 —— 快进打满全场时采样落在 gameover 态，环已失权停更，渲染侧计数天然漏计全程）。
+  ok((sr.switchCount || 0) >= 1 || (p.controlledChanges || 0) >= 1,
+    `${tag} 快进期间控制权切换 ≥1 次（switchCount=${sr.switchCount}，controlledChanges=${p.controlledChanges}，环随行非摆设）`);
 
   // —— v3 断言面 ②：新手引导三层 DOM（acc-onboarding-card / acc-hud-key-labels / 缺陷单 cmwbumwtv）——
   const ob = p.onboarding || {};
@@ -72,6 +75,13 @@ for (const vp of viewports) {
   const cel = p.celebration || {};
   ok(Number.isFinite(cel.celebrationLeft), `${tag} 庆祝冻结计时在 payload（celebrationLeft=${cel.celebrationLeft}）`);
   ok(ob.rematchButtonPresent === true, `${tag} 结算屏「再来一局」主按钮存在（一键重赛同局）`);
+  // —— 终局结算屏可见性（v16 线上终审缺陷回归锚点）：快进打满全场（state=gameover）时，
+  //    结算屏必须解除隐藏（含「再来一局」按钮与追赶目标文案）；短快进（未终局）= null 跳过。
+  ok(ob.overScreenVisibleAtGameover !== undefined,
+    `${tag} overScreenVisibleAtGameover 自检字段在 payload（${JSON.stringify(ob.overScreenVisibleAtGameover)}）`);
+  if (p.state === "gameover") {
+    ok(ob.overScreenVisibleAtGameover === true, `${tag} 终局态结算屏已显示（再来一局动机可达）`);
+  }
   if (p.goals >= 1) {
     // 进球发生后 celebrationLeft>0 表示冻结窗生效（快进 62s 内进球 → 庆祝窗口还在或已耗尽均合法，只断字段语义）
     ok(cel.celebrationLeft >= 0, `${tag} 进球 ${p.goals} 球 → 庆祝窗非负（${cel.celebrationLeft}s，庆祝期间倒计时暂停）`);
