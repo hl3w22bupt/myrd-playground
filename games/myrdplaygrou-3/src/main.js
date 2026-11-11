@@ -330,9 +330,14 @@ if (smokeParam !== null) {
   }
   const inputProbe = directionProbe();
 
-  // 足球自动驾驶快进：真对局（抢断/传递/射门/进球/庆祝冻结），每秒重算意图
-  for (let s = 0; s < seconds && game.state === "playing"; s++) {
-    handleEvents(game.fastForward(1, footballIntent(game.world)).events); // 事件→反馈在冒烟下同样在链（彩带/特写机位/横幅），快进不再丢事件
+  // 足球自动驾驶快进：真对局（抢断/传递/射门/进球/庆祝冻结），意图 0.1s 重算一次。
+  // IP-P5（polish v16）：粒度 1s → 0.1s —— v15 控制权稳定化后，1Hz 意图下 autopilot
+  // 攻击效力塌陷（同 seed 同语义整场 2 射门 0 进球；旧内核同语义 10 射门 1 球；
+  // 归因见 qa/playtest/round-16.md：旧内核逐帧抢切换 = 1Hz 意图的「免费外挂」，
+  // 稳定化后意图陈旧代价显形）。真人输入为 ~60Hz 意图，10Hz 更接近真实对局代表性；
+  // 游戏侧协议参数（零内核改动、零门禁改动），冒烟证据面恢复进球/庆祝等对局活力。
+  for (let s = 0; s < seconds * 10 && game.state === "playing"; s++) {
+    handleEvents(game.fastForward(0.1, footballIntent(game.world)).events); // 事件→反馈在冒烟下同样在链（彩带/特写机位/横幅），快进不再丢事件
   }
   syncVisuals(0);
 
