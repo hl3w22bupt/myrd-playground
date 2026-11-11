@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "kind": "browser-smoke-report",
-  "product": "/Users/leo/.myrd/workspaces/cmvqriupu0007m9qphvokoci9/run-goal-cmwaqvrng002lm9m2nftdd20h/games/myrdplaygrou-3/index.html",
-  "seconds": 105,
-  "checkedAt": "2026-11-11T14:32:36.182Z",
+  "product": "/Users/leo/.myrd/workspaces/cmvqriupu0007m9qphvokoci9/run-cmwc952b60019m9b2n09it6sd/games/myrdplaygrou-3/index.html",
+  "seconds": 62,
+  "checkedAt": "2026-11-11T15:19:58.394Z",
   "note": "render 性能快照为证据记录，非硬门禁（headless SwiftShader 软渲染，阈值待采集基线）",
   "viewports": [
     {
@@ -14,13 +14,13 @@
       "outcome": "title",
       "payload": {
         "ok": true,
-        "state": "gameover",
-        "score": 3,
-        "scoreHome": 3,
+        "state": "playing",
+        "score": 1,
+        "scoreHome": 1,
         "scoreAway": 0,
-        "timeLeft": 3.831927830599824e-12,
+        "timeLeft": 29.200000000003456,
         "frames": 30,
-        "fps": 11.5,
+        "fps": 13.3,
         "exceptions": 0,
         "playersOnField": 10,
         "teams": 2,
@@ -31,14 +31,14 @@
           "downDz": 1.5571944180543946,
           "ok": true
         },
-        "goals": 3,
-        "shots": 6,
-        "possessionChanges": 139,
-        "controlledChanges": 15,
+        "goals": 1,
+        "shots": 2,
+        "possessionChanges": 94,
+        "controlledChanges": 10,
         "switchRing": {
           "instanceCount": 1,
-          "switchCount": 0,
-          "visible": false
+          "switchCount": 1,
+          "visible": true
         },
         "onboarding": {
           "tutorialCardPresent": true,
@@ -51,7 +51,7 @@
           ],
           "bubblePresent": true,
           "rematchButtonPresent": true,
-          "overScreenVisibleAtGameover": true
+          "overScreenVisibleAtGameover": null
         },
         "celebration": {
           "celebrationLeft": 0
@@ -64,13 +64,13 @@
         "render": {
           "drawCalls": 85,
           "triangles": 1708,
-          "geometries": 28,
-          "textures": 29,
-          "programs": 15,
+          "geometries": 30,
+          "textures": 30,
+          "programs": 17,
           "playerSegments": 150
         }
       },
-      "pixelColors": 31,
+      "pixelColors": 50,
       "consoleErrors": 0,
       "screenshot": "smoke-desktop.png"
     },
@@ -82,13 +82,13 @@
       "outcome": "title",
       "payload": {
         "ok": true,
-        "state": "gameover",
-        "score": 3,
-        "scoreHome": 3,
+        "state": "playing",
+        "score": 1,
+        "scoreHome": 1,
         "scoreAway": 0,
-        "timeLeft": 3.831927830599824e-12,
+        "timeLeft": 29.200000000003456,
         "frames": 30,
-        "fps": 12.9,
+        "fps": 13,
         "exceptions": 0,
         "playersOnField": 10,
         "teams": 2,
@@ -99,14 +99,14 @@
           "downDz": 1.5571944180543946,
           "ok": true
         },
-        "goals": 3,
-        "shots": 6,
-        "possessionChanges": 139,
-        "controlledChanges": 15,
+        "goals": 1,
+        "shots": 2,
+        "possessionChanges": 94,
+        "controlledChanges": 10,
         "switchRing": {
           "instanceCount": 1,
-          "switchCount": 0,
-          "visible": false
+          "switchCount": 1,
+          "visible": true
         },
         "onboarding": {
           "tutorialCardPresent": true,
@@ -119,7 +119,7 @@
           ],
           "bubblePresent": true,
           "rematchButtonPresent": true,
-          "overScreenVisibleAtGameover": true
+          "overScreenVisibleAtGameover": null
         },
         "celebration": {
           "celebrationLeft": 0
@@ -132,13 +132,13 @@
         "render": {
           "drawCalls": 85,
           "triangles": 1708,
-          "geometries": 28,
-          "textures": 29,
-          "programs": 15,
+          "geometries": 30,
+          "textures": 30,
+          "programs": 17,
           "playerSegments": 150
         }
       },
-      "pixelColors": 27,
+      "pixelColors": 37,
       "consoleErrors": 0,
       "screenshot": "smoke-mobile.png"
     }
