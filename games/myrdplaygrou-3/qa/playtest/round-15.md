@@ -22,9 +22,10 @@
 
 ## 截图
 
-- qa/playtest/steps/r16-016-after-ip3.png（IP-P1+IP-P3 后本地实局：两处小组对抗、球与控制环清晰可读，较基线人堆松散）
-- qa/playtest/steps/r16-028-final.png（同窗终态：受控 MF#3 环随行，客队持球但推进受组挡）
-- （r15 轮截图 0 张留存——tmp 回收失误，见「观察」末条；读数以探针 JSON 文本留存于本记录）
+- qa/playtest/steps/r16-016-after-ip3.png IP-P1+IP-P3 后本地实局：两处小组对抗、球与控制环清晰可读，较基线人堆松散
+- qa/playtest/steps/r16-028-final.png 同窗终态：受控 MF#3 环随行，客队持球但推进受组挡
+
+（r15 轮截图 0 张留存——tmp 回收失误，见「观察」末条；读数以探针 JSON 文本留存于本记录）
 
 ## 改进点
 

@@ -20,9 +20,9 @@
 
 ## 截图
 
-- qa/playtest/steps/r14b-000-live-baseline-title.png（教学卡四操作+开始/跳过，改前基线首屏）
-- qa/playtest/steps/r14b-016-live-baseline.png（中场人堆：7+ 球员塌向球，控制环可读）
-- qa/playtest/steps/r14b-028-live-baseline-final.png（同窗终态 0:0，客队持球压至主队半场）
+- qa/playtest/steps/r14b-000-live-baseline-title.png 教学卡四操作+开始/跳过，改前基线首屏
+- qa/playtest/steps/r14b-016-live-baseline.png 中场人堆：7+ 球员塌向球，控制环可读
+- qa/playtest/steps/r14b-028-live-baseline-final.png 同窗终态 0:0，客队持球压至主队半场
 
 ## 改进点
 

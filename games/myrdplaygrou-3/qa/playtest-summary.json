@@ -3,9 +3,9 @@
   "generatedBy": "playtest-summary.mjs",
   "valid": false,
   "gamePath": "games/myrdplaygrou-3",
-  "versionSha": "c7a5b8768a2bda87eb3da96d1a5b4a3266531ba9",
-  "startedAt": "2026-11-11T08:25:00.000Z",
-  "endedAt": "2026-11-11T12:20:19.675Z",
+  "versionSha": "94a664872ad074f6ab167f5308fd3bea6ab7756d",
+  "startedAt": "2026-11-11T13:27:22.932Z",
+  "endedAt": "2026-11-11T13:28:17.104Z",
   "rounds": [
     {
       "round": 1,
@@ -141,13 +141,13 @@
         },
         {
           "path": "qa/smoke/smoke-desktop.png",
-          "bytes": 132410,
-          "mtime": "2026-11-11T12:20:19.672Z"
+          "bytes": 121923,
+          "mtime": "2026-11-11T13:19:32.105Z"
         },
         {
           "path": "qa/smoke/smoke-mobile.png",
-          "bytes": 105273,
-          "mtime": "2026-11-11T12:20:19.675Z"
+          "bytes": 78032,
+          "mtime": "2026-11-11T13:19:32.107Z"
         }
       ],
       "improvements": null,
@@ -213,8 +213,8 @@
         },
         {
           "path": "qa/smoke/smoke-desktop.png",
-          "bytes": 132410,
-          "mtime": "2026-11-11T12:20:19.672Z"
+          "bytes": 121923,
+          "mtime": "2026-11-11T13:19:32.105Z"
         }
       ],
       "improvements": "- **IP-2 球门无网、射门目标辨识弱**（出处：round-6 后 qa/smoke/smoke-desktop.png + qa/experience v7 部署包 02 初始画面——球门呈灰白线框/扁条，无网面结构）。",
@@ -380,23 +380,172 @@
       "screenshots": [
         {
           "path": "qa/smoke/smoke-mobile.png",
-          "bytes": 105273,
-          "mtime": "2026-11-11T12:20:19.675Z"
+          "bytes": 78032,
+          "mtime": "2026-11-11T13:19:32.107Z"
         },
         {
           "path": "qa/smoke/smoke-desktop.png",
-          "bytes": 132410,
-          "mtime": "2026-11-11T12:20:19.672Z"
+          "bytes": 121923,
+          "mtime": "2026-11-11T13:19:32.105Z"
         },
         {
           "path": "qa/mobile/phase-joystick.png",
-          "bytes": 304342,
-          "mtime": "2026-11-11T11:21:42.325Z"
+          "bytes": 317479,
+          "mtime": "2026-11-11T13:27:01.564Z"
         }
       ],
       "improvements": null,
       "changes": "- 无新增源码改动（收尾复跑轮）；本轮全部源码改动在 c906e96（hud.flashBanner 回补 + 契约测试扩 v3 断言面 + spec 镜像升 v3），判定脚本与 .myrd/routines.yaml 零触碰",
       "replayConclusion": "- v9（c8146ba）→ v10（c906e96）：线上 mobile 门禁 PASS 形态一致；smoke fps 移动 16.6→13.2（headless 软渲染波动带内，门限 ≥10）；drawCalls 201→178（Bloom 1/8 沿用 + 切环单实例化后场景更简）"
+    },
+    {
+      "round": 13,
+      "file": "qa/playtest/round-13.md",
+      "observation": "（原 ① 前置核验，先核对后动手，全部本节点实跑）\n\n- 门禁资产：std-skills/threejs-game-dev/scripts/ 六件判定脚本在仓；.myrd/routines.yaml 含 id=threejs-preflight 与 id=threejs-browser-smoke（gamePath=games/myrdplaygrou-3）→ 不触发 blocked。\n- **stalled run 处置**：上轮 stalled run cmwbl6h6e008am97aetlijmmv 经 GET /api/v1/workflows/runs/ 实查 status=completed（2026-11-11T08:16:52Z 终态）→ 免 cancel，无双 run 并飞（deploy-v3-rerun-blackboard 同轮留痕）。\n- **preHook threejs-browser-smoke 亲跑**（node std-skills/threejs-game-dev/scripts/browser-smoke.mjs games/myrdplaygrou-3）：**BROWSER-SMOKE: PASS，exit 0**——desktop 1280×720 fps=12.7 / mobile 720×1280 fps=11.7（headless SwiftShader ≥10 达标），双视口零未捕获异常（exceptions=0，CDP 侧=0）、状态机推进 playing、截图非纯色（52/38 种量化色）。v3 断言面在链：`switchRing.instanceCount=1`（单环，缺陷 cmwbumwrj 修复可见）、`onboarding.hudLabels=[\"移动\",\"传球\",\"射门\"]`（常驻标签，缺陷 cmwbumwtv 修复可见）、tutorialCard/rematchButton present、inputProbe.ok=true、playersOnField=10 / teams=2。证据刷新 qa/smoke/（report.json + 双视口截图）。\n- **线上复证**：liveUrl GET → 200，606,863B，sha256 16 位前缀 321171cd97bc65d8 与 `dist/web/index.html` 及工程根 index.html **逐字节一致**；/health 200（注：响应 title 字段「植物人大战僵尸-网页版」为共享壳 server/src/index.ts:15 硬编码标签，多游戏共用，非页面串线——线上页面即本构建）。\n- **部署核验**：v14 = cmwc2lz7f001im9bhquvnkgv5（version=14，commitHash=c8ed7aad… 与推送 HEAD 全等，manifestPath=games/myrdplaygrou-3/apphost.toml）；v12/v13 串线事故已 superseded（deploy 节点留痕）。\n- **取证包**：qa/experience/ 现役部署轮双包——mobile=2026-11-11T12-05-40-deploy（8 截图）/ desktop=2026-11-11T12-07-12-deploy-desktop（8 截图），console/errors.json 双包 errors=[]（consoleErrors=0），输入步 inputArrived 全 true。\n- **playtest-summary 判定器亲跑**（node std-skills/threejs-game-dev/scripts/playtest-summary.mjs --game … --version-sha $(git rev-parse HEAD)）：rounds=12 / screenshots=37 / actions=62 / consoleErrors=0 / fps=17 / versionSha=c7a5b8768a2b；**PLAYTEST_SUMMARY: FAIL 唯一缺口=C4**——qa/mobile/report.json 无 touch/input 类检查：mobile-web-smoke.mjs 写 checks={id,label,status,detail}、playtest-summary.mjs 读 c.name/c.pass → 过滤落空（两判定器红线禁改，平台级 schema 漂移，与 round-9/12 收口同源亲验）。原始可达性证据在档：qa/mobile/report.json touch-pipeline=pass / touch-response=pass + 取证包 inputArrived 全 true。",
+      "actions": [
+        "**playtest_kit 重写（v3 语义）并回写 artifacts**：旧 kit（05:55:56）为 v2「GOAL RUSH」单人守门员语义（金币收集/进 3 球获胜），与线上 5v5 实况不符已过时；新 kit 对照 v3 spec（meta/levels/content）+ numeric.js 声明键写就（教学卡四操作 / 摇杆+X 传球+蓄力射门 / 自动切环+脚下光环 / 90 秒一局 / 进球演出+再来一局 / 音频解锁），量表四问与打分卡同构，调参通道如实披露（构建无 ?tuning=1 调参桥，仅 ?smoke= 协议，src/main.js:22 实证）。",
+        "**打分卡重发**：requestKey=playtest_cmwaqvrng002lm9m2nftdd20h 上一张卡已于 2026-11-10T23:51Z 被用户回答（其反馈已闭环为 v3 两缺陷单 + spec v3，本次打分对象即修复后的 v3）；POST /api/v1/goals/:id/ask-user → **HTTP 201 created=true**，messageId=**cmwc3b24p001nm9bh0sxv783u**（平台题库 mini_game_playtest 出题，本节点未自编题）。",
+        "**playtest_summary 回写**（ADVISORY 第一阶段单行 JSON）：autoPassSuggested=true（冒烟 PASS + 部署成功线上逐字节一致 + qa/ 证据齐全三条件全证）；rounds=0（本节点无新增打磨轮，游戏源码零漂移）；screenshots=70（qa/experience/ 8 包 PNG 全量，其中现役部署轮 2 包 16 张）；consoleErrors=0；versionSha=c7a5b8768a2bda87eb3da96d1a5b4a3266531ba9。",
+        "**spec 修订：未写**——本轮打分卡未回填（等待用户试玩 v3），严禁编造数值；用户回答到达后按 numeric.js/spec.numeric 声明键 POST /api/v1/game-design-specs/:id/revisions（带 sourceTrajectoryId 溯源）→ 回写 op=tuning_applied。**当前状态 = 待用户试玩。**"
+      ],
+      "screenshots": [
+        {
+          "path": "qa/smoke/smoke-mobile.png",
+          "bytes": 78032,
+          "mtime": "2026-11-11T13:19:32.107Z"
+        },
+        {
+          "path": "qa/playtest/round11-live-controlled-ring.png",
+          "bytes": 138049,
+          "mtime": "2026-11-11T11:27:01.034Z"
+        },
+        {
+          "path": "qa/playtest/round11-live-shoot-press.png",
+          "bytes": 148423,
+          "mtime": "2026-11-11T11:27:01.039Z"
+        }
+      ],
+      "improvements": "（原 ③ 如实透出的缺口）\n\n1. C4 判定器间 schema 漂移（平台级，见 ①）：交互可达性以原始 checks + 取证包 inputArrived 为证，不伪造 PASS。\n2. 构建无 ?tuning=1 调参桥（kit 内如实声明；?tuning=1 打开即正常游戏，URL 未声明键按纪律忽略）。\n3. spec levels=1：可玩面 = 90 秒 5v5 单局；spec v2 曾提的 level-2~5 关卡递进未实现（策划案 v3 未列为验收项，单关语义在 spec levels 声明）。\n4. /health title 为共享壳硬编码标签（PvZ 名称残留），仅标签不影响页面与资产通道，留平台侧知悉。",
+      "changes": "- 游戏源码零改动（本节点为验收记录轮）；qa/smoke 三件证据刷新 + playtest_kit/playtest_summary artifacts 回写",
+      "replayConclusion": "- 与 round-10~12 互证：v14 在服（commitHash=c8ed7aad=推送 HEAD），切环单实例/教学卡/常驻标签断言面在链；试玩打分待用户（打分卡 cmwc3b24p 已发未答）"
+    },
+    {
+      "round": 14,
+      "file": "qa/playtest/round-14.md",
+      "observation": "- **IP-P1 切换抖振（实锤）**：线上实局 SEQ-P 探针，timeLeft=45.6（已踢 44.4s）时 `switchCount=82`（≈1.85 次/秒）——挤抢/球在飞时控制权逐帧易主，环脉冲+确认音连发。根因 = `world.js:426` 每 tick 无条件重算「最近主队非门将」，无迟滞无飞行窗冻结。缺陷单 cmwbumwrj 修掉的是「全队闪烁」（池化单环 v10 已闭环），切换单实例化后残留的**频率抖振**是同诉症状的后半段。\n- **IP-P3 客队零射门（结构性）**：确定性内核 5 种子全集对局逐队事件统计（qa/playtest/switch-sim-before.json + 事件流归账）——客队 5 场 **0 射门 0 进球**，总比分 46:0。根因 = 客队起脚门槛 `distPress>1.8`（远射）/`>1.2`（小禁区）结构性不可达：home chaser 以 PRESS_MARGIN=0.4m 粘人，distPress 恒 ≈0.4-0.9m → `AWAY_SHOT_RANGE_Z=8` 声明的出手通道形同虚设，防守与 GK 半场沦为摆设。\n- 首轮实跑（tmp 已回收）与复跑（r14b）同窗探针一致（70~82 次），读数稳健。\n- 过程失误如实记录：首轮 SEQ-P（tmp xh-session-VJk5mh）截图未在会话回收前拷贝入 qa/playtest/steps/，已用**同构建同序列线上复跑（r14b）**重建证据，非伪造补拍。",
+      "actions": [
+        "阅读既有证据：qa/playtest/round-11.md（线上 0:0@38s、切环单实例）、summary.md 缺口②、round-12/13 门禁记录",
+        "sessiond 起会话（线上 URL）→ SEQ-P 全序列（截图×3 + 中途探针 + 终局全量探针）",
+        "新建机判仪器 qa/playtest/switch-sim.mjs（5 种子 × 90s 全集对局：switches/maxHold/shots/goals/possChg）→ switch-sim-before.json",
+        "内核事件流逐队归账脚本（客队射门=0 实证）",
+        "SEQ-P 线上复跑（r14b，截图即时拷贝 qa/playtest/steps/r14b-*.png）"
+      ],
+      "screenshots": [
+        {
+          "path": "qa/playtest/steps/r14b-000-live-baseline-title.png",
+          "bytes": 198046,
+          "mtime": "2026-11-11T13:08:10.898Z"
+        },
+        {
+          "path": "qa/playtest/steps/r14b-016-live-baseline.png",
+          "bytes": 164083,
+          "mtime": "2026-11-11T13:08:10.903Z"
+        },
+        {
+          "path": "qa/playtest/steps/r14b-028-live-baseline-final.png",
+          "bytes": 136556,
+          "mtime": "2026-11-11T13:08:10.908Z"
+        }
+      ],
+      "improvements": "- **IP-P1 切换抖振稳定化**（出处：本轮线上探针 switchCount=82/44.4s；缺陷单 cmwbumwrj 同诉残留症状）\n- **IP-P3 客队出手通道**（出处：5 种子逐队事件统计客队 0 射门；live 观察客队持球 40s 钉在 z≈11.3 不起脚）\n- IP-P4 中场胶水僵局（双方全队塌向球）——归因 SUPPORT_OFFSET/盯人间距，属 spec.numeric 域，本节点不动，登记为 spec 修订通道候选（待用户打分卡回填一并裁决）",
+      "changes": "- 无源码改动（基线发现轮）；新增机判仪器 switch-sim.mjs + SEQ-P 固定序列脚本",
+      "replayConclusion": "- 基线锚点：switches=82（live 44.4s）/ 模拟 switchesMean=26.6、maxHoldSecMean=11.2s、客队射门 0 —— 供 round-15 改后对比"
+    },
+    {
+      "round": 15,
+      "file": "qa/playtest/round-15.md",
+      "observation": "- **IP-P1 生效（线上基线 -59%）**：同序列 SEQ-P 同窗探针 switchCount：基线 82/44.4s（r14b，v14 在服）→ 本地新构建 34/42.5s（r16）——抖振减半以上；单次控制权持有时长（内核模拟）maxHoldSecMean 11.2s → 15.8s（+37%）；攻门数据不降反升：shotsMean 22.2→23.2、firstShotSecMean 13.6→9.8（推进更连贯的旁证）。\n- **IP-P3 生效（通道打开）**：契约场景断言——客队前锋小禁区未贴脸（distPress≈0.8）即转身起脚（修前必不触发）；贴脸远射（distPress≈0.35 且非小禁区）仍不起脚（平缓难度门槛保留）。全集模拟客队射门 0→1（autopilot 掌控球权下客队进禁区次数本就少，线上长持球场景才会显影；见 round-16 线上复测）。\n- **内核行为零回归**：tests/run-all 7/7 PASS（controls-direction/football-contract/kernel-determinism/singlefile/smoke-payload/state-machine/构建复现）；preflight 21 项 0 WARN；browser-smoke 双视口 PASS；asset-triple-check PASS。\n- 契约用例脚手架两轮返工如实记录：①首版把候选摆进抢断半径（1.4m）→ 泊松抢断+捡球走了「切持球人」合法路径；②次版把对手摆进传球门槛（distPress<1.6）→ 持球人出球触发飞行窗冻结（IP-P1 ②的正确行为）。终版几何避开三道门槛，纯测切换分支。\n- 过程失误如实记录：本地复玩 r15 步骤截图（tmp xh-session-CGm8iz）在拷贝前被会话回收，0 张留存；r16 同序列复跑截图即时拷贝（r16-016/r16-028），观察与探针读数以两轮记录文本留存。",
+      "actions": [
+        "改 src/kernel/world.js 受控人切换：①我方非门将持球→立即切持球人（离散事件不变）；②ball.cooldown>0 飞行窗→冻结不重算；③其余→最近重算加迟滞（候选须近出 1 个 CONTROL_RADIUS 才接管）。零新增数值（复用 CONTROL_RADIUS 与既有 ball.cooldown），不触碰 spec.numeric 定稿值",
+        "改 src/kernel/world.js 客队出手门槛：小禁区（closeRange）起脚条件 distPress>1.2 → >0.5（远射 1.8 门槛不变；AWAY_SHOT_RANGE_Z=8 语义不变；AI 决策阈值属实现层）",
+        "改 tests/football-contract.spec.mjs：+8 用例（飞行窗冻结/接球切换契约/迟滞保持/迟滞正向对照/前置守卫/小禁区起脚/贴脸远射不起脚）",
+        "新建 switch-sim.mjs 逐队射门/进球归账 → switch-sim-after-ip1-ip3.json；seq-p.sh 固定序列脚本",
+        "本地 serve dist/web → sessiond 起会话 ×2（r15/r16）→ SEQ-P 全序列复玩 + 探针",
+        "门禁全量复跑：build/verify-reproducible/stage-dist/tests 7-7/preflight/asset-triple-check/browser-smoke"
+      ],
+      "screenshots": [
+        {
+          "path": "qa/playtest/steps/r16-016-after-ip3.png",
+          "bytes": 156359,
+          "mtime": "2026-11-11T13:06:49.467Z"
+        },
+        {
+          "path": "qa/playtest/steps/r16-028-final.png",
+          "bytes": 137531,
+          "mtime": "2026-11-11T13:06:49.470Z"
+        }
+      ],
+      "improvements": "- IP-P1 切换抖振稳定化（round-14 实锤，本轮修复）\n- IP-P3 客队出手通道（round-14 实锤，本轮修复）",
+      "changes": "- src/kernel/world.js：切换三分支（持球事件/飞行窗冻结/迟滞重算）+ 客队小禁区起脚通道\n- tests/football-contract.spec.mjs：+8 契约用例\n- qa/playtest/switch-sim.mjs / seq-p.sh / switch-sim-{before,after-ip1-ip3}.json：机判仪器",
+      "replayConclusion": "- 比上一版更好（保留）：同窗 switchCount 82→34（-59%，live vs 新构建同序列）；内核 maxHold +37%；射门/首射时间不劣化；契约 8 用例 + 全门禁绿\n- 客队威胁仍待线上长持球场景复测（round-16 部署后线上复玩验证）"
+    },
+    {
+      "round": 16,
+      "file": "qa/playtest/round-16.md",
+      "observation": "- **IP-P1 线上终验**：v15 线上 SEQ-P 同窗探针 `switchCount=19/40.6s`（r16b）——对比 v14 线上基线 `82/44.4s`（r14b），同序列同窗 **-75%**；终局探针 ballOwner=2=受控人自己拿球（传球接收→控制权跟人，新离散切换路径在线上在链）。\n- **回归发现（如实暴露）**：v15 线上 `?smoke=69` payload = **score 0:0 / goals 0 / shots 2**——旧版同参数有进球横幅取证面（v14 qa/smoke-mobile.png）。归因：冒烟协议意图重算粒度 1s（块首一次），IP-P1 控制权稳定化后「逐帧抢切换」不再是 1Hz autopilot 的免费外挂——同 seed 同语义对照实验：旧内核 10 射门 1 球（1:0，58~66s 窗口）vs 新内核 2 射门 0 球。真人通道不受影响：60Hz 意图模拟下新内核 9 球/22 射门（旧内核 60Hz 口径 9.2 球/22.2 射门，持平）；内核契约 8 用例 + 全门禁绿。定性 = **仪器面回归**（冒烟证据面的对局活力代表性），非玩家可感回归。\n- v15 线上 /health 200；页内教学卡/常驻标签/单环在链（browser-smoke payload onboarding/switchRing 断言全过）。",
+      "actions": [
+        "POST deployments（manifestPath=games/myrdplaygrou-3/apphost.toml，v14 判例姿势）→ 504 受理 → 轮询 v15=cmwc4zm8z002tm9bhray3nnyo running @ c27629b（单笔受理核对）",
+        "线上逐字节复证：GET / 200 = 607,060B，cmp dist/web/index.html 逐字节一致",
+        "SEQ-P 线上复玩（r16b：截图×2 即时拷贝 + 中途/终局探针）",
+        "线上 ?smoke=69 取证 → 发现 score 0:0 → 内核对照实验定位回归 → IP-P5 修复（main.js 冒烟意图粒度 1s→0.1s，游戏侧协议参数）→ 全门禁复跑绿 → 提交 799d06e（+94a6648 清理归因用临时文件 world-old-tmp.js）"
+      ],
+      "screenshots": [
+        {
+          "path": "qa/playtest/steps/r16b-016-live-v15.png",
+          "bytes": 151112,
+          "mtime": "2026-11-11T13:14:20.189Z"
+        },
+        {
+          "path": "qa/playtest/steps/r16b-028-live-v15-final.png",
+          "bytes": 139766,
+          "mtime": "2026-11-11T13:14:20.192Z"
+        }
+      ],
+      "improvements": "- IP-P5 冒烟证据面代表性（本轮发现并归因，round-17 修复）：冒烟协议是 qa/smoke 取证与 celebration 视觉证据的确定性来源，1Hz 意图下进球/庆祝事件近乎消失 = 证据面失真",
+      "changes": "- src/main.js 冒烟快进循环：0.1s 块 ×10 意图重算（零内核/零门禁改动）；归因实验临时文件已清理",
+      "replayConclusion": "- 线上 switchCount：v14 82/44.4s → v15 19/40.6s（-75%，IP-P1 保持成立）\n- 冒烟证据面：v15 0:0/2 射门 → IP-P5 后见 round-17（恢复进球/庆祝在链）"
+    },
+    {
+      "round": 17,
+      "file": "qa/playtest/round-17.md",
+      "observation": "- **线上进球庆祝实拍达成**（收口 round-11 遗留缺口「实局进球庆祝线上实拍未捕获」）：v16 线上 `?smoke=69` 实拍四要素同框——横幅「进球！主队」发光 + 进球特写机位（门后机位读网窝、客队 GK 在网口）+ 彩带粒子飘散 + 比分 2:0 弹跳；payload ok=true/state=playing/goals=2/timeLeft≈23/exceptions=0。seed=333 在 0.1s 意图粒度下进球时刻 12/68.1/76.5s，smoke=69 块末恰落第二球庆祝窗（内核直算 celebrationLeft=0.38s 可见）。\n- **IP-P1 在 v16 保持**：线上 SEQ-P 复玩 switchCount=36/42.9s（0.84/s；r16b v15 为 19/40.6s，同序列突发驱动时序方差带内），对 v14 基线 82/44.4s（1.85/s）仍 -55%~-75% 带。\n- **线上门禁**：mobile-web-smoke PASS（网络/渲染/触摸/音频契约/视口/FPS 全绿，fps≥8 软渲染口径）；GET / 200 = 607,064B 与 dist/web/index.html 逐字节一致（sha16=97adfc85）；/health 200（title 为共享壳硬编码标签，已知平台形态非串线）。\n- 本地门禁（IP-P5 后全量复跑）：tests/run-all 7/7 PASS、preflight PASS 0 WARN、browser-smoke 双视口 PASS（desktop 14.4 / mobile 13.3）、asset-triple-check PASS（清单 7 项全 programmatic）。",
+      "actions": [
+        "部署 POST（manifestPath 判例姿势）→ 504 受理 → 轮询 v16=cmwc5dhrd0031m9bh58t9v2s1 running @ 94a6648（单笔受理核对，无双受理）",
+        "线上逐字节复证 + ?smoke=69 会话（navigate→60s 等待→title/payload 探针→截图即时拷贝）",
+        "SEQ-P 线上复玩（r17b：截图×2 + 终局探针）",
+        "线上 mobile-web-smoke 门禁复跑 → PASS",
+        "收尾仪器：visual-ratchet（advisory）+ playtest-summary.mjs + summary.md 重写"
+      ],
+      "screenshots": [
+        {
+          "path": "qa/playtest/steps/r17-002-live-v16-goal-celebration.png",
+          "bytes": 140150,
+          "mtime": "2026-11-11T13:26:46.877Z"
+        },
+        {
+          "path": "qa/playtest/steps/r17b-016-live-v16.png",
+          "bytes": 159413,
+          "mtime": "2026-11-11T13:28:17.099Z"
+        },
+        {
+          "path": "qa/playtest/steps/r17b-028-live-v16-final.png",
+          "bytes": 160224,
+          "mtime": "2026-11-11T13:28:17.104Z"
+        }
+      ],
+      "improvements": "- IP-P5 冒烟证据面代表性（round-16 发现）——本轮修复并部署，进球庆祝视觉证据恢复在链\n- round-11 遗留缺口②（实局进球庆祝线上实拍未捕获）——本轮收口（线上实拍达成）",
+      "changes": "- 无新增源码改动（IP-P5 已随 round-16 提交 799d06e；本轮为部署与证据收口轮）",
+      "replayConclusion": "- 比上一版更好（保留）：冒烟证据面 0:0/2 射门（v15）→ 2:0 进球庆祝在链（v16）；线上交互面 switchCount 保持基线 1/4~1/2 水平；门禁全绿\n- 本打磨周期三轮读数链：switchCount 82/44.4s（v14 基线）→ 34/42.5s（r16 本地 IP-P1+IP-P3）→ 19/40.6s（v15 线上）→ 36/42.9s（v16 线上复测，方差带内稳定）；内核 maxHoldSecMean 11.2→15.8s（+37%）"
     }
   ],
   "actions": [
@@ -709,6 +858,126 @@
       "round": 12,
       "action": "playtest-summary.mjs 重锚本轮 HEAD + visual-ratchet（advisory）v9→v10 相邻部署配对",
       "timestamp": "2026-11-11T11:29:04.768Z"
+    },
+    {
+      "round": 13,
+      "action": "**playtest_kit 重写（v3 语义）并回写 artifacts**：旧 kit（05:55:56）为 v2「GOAL RUSH」单人守门员语义（金币收集/进 3 球获胜），与线上 5v5 实况不符已过时；新 kit 对照 v3 spec（meta/levels/content）+ numeric.js 声明键写就（教学卡四操作 / 摇杆+X 传球+蓄力射门 / 自动切环+脚下光环 / 90 秒一局 / 进球演出+再来一局 / 音频解锁），量表四问与打分卡同构，调参通道如实披露（构建无 ?tuning=1 调参桥，仅 ?smoke= 协议，src/main.js:22 实证）。",
+      "timestamp": "2026-11-11T13:33:44.050Z"
+    },
+    {
+      "round": 13,
+      "action": "**打分卡重发**：requestKey=playtest_cmwaqvrng002lm9m2nftdd20h 上一张卡已于 2026-11-10T23:51Z 被用户回答（其反馈已闭环为 v3 两缺陷单 + spec v3，本次打分对象即修复后的 v3）；POST /api/v1/goals/:id/ask-user → **HTTP 201 created=true**，messageId=**cmwc3b24p001nm9bh0sxv783u**（平台题库 mini_game_playtest 出题，本节点未自编题）。",
+      "timestamp": "2026-11-11T13:33:44.050Z"
+    },
+    {
+      "round": 13,
+      "action": "**playtest_summary 回写**（ADVISORY 第一阶段单行 JSON）：autoPassSuggested=true（冒烟 PASS + 部署成功线上逐字节一致 + qa/ 证据齐全三条件全证）；rounds=0（本节点无新增打磨轮，游戏源码零漂移）；screenshots=70（qa/experience/ 8 包 PNG 全量，其中现役部署轮 2 包 16 张）；consoleErrors=0；versionSha=c7a5b8768a2bda87eb3da96d1a5b4a3266531ba9。",
+      "timestamp": "2026-11-11T13:33:44.050Z"
+    },
+    {
+      "round": 13,
+      "action": "**spec 修订：未写**——本轮打分卡未回填（等待用户试玩 v3），严禁编造数值；用户回答到达后按 numeric.js/spec.numeric 声明键 POST /api/v1/game-design-specs/:id/revisions（带 sourceTrajectoryId 溯源）→ 回写 op=tuning_applied。**当前状态 = 待用户试玩。**",
+      "timestamp": "2026-11-11T13:33:44.050Z"
+    },
+    {
+      "round": 14,
+      "action": "阅读既有证据：qa/playtest/round-11.md（线上 0:0@38s、切环单实例）、summary.md 缺口②、round-12/13 门禁记录",
+      "timestamp": "2026-11-11T13:32:53.367Z"
+    },
+    {
+      "round": 14,
+      "action": "sessiond 起会话（线上 URL）→ SEQ-P 全序列（截图×3 + 中途探针 + 终局全量探针）",
+      "timestamp": "2026-11-11T13:32:53.367Z"
+    },
+    {
+      "round": 14,
+      "action": "新建机判仪器 qa/playtest/switch-sim.mjs（5 种子 × 90s 全集对局：switches/maxHold/shots/goals/possChg）→ switch-sim-before.json",
+      "timestamp": "2026-11-11T13:32:53.367Z"
+    },
+    {
+      "round": 14,
+      "action": "内核事件流逐队归账脚本（客队射门=0 实证）",
+      "timestamp": "2026-11-11T13:32:53.367Z"
+    },
+    {
+      "round": 14,
+      "action": "SEQ-P 线上复跑（r14b，截图即时拷贝 qa/playtest/steps/r14b-*.png）",
+      "timestamp": "2026-11-11T13:32:53.367Z"
+    },
+    {
+      "round": 15,
+      "action": "改 src/kernel/world.js 受控人切换：①我方非门将持球→立即切持球人（离散事件不变）；②ball.cooldown>0 飞行窗→冻结不重算；③其余→最近重算加迟滞（候选须近出 1 个 CONTROL_RADIUS 才接管）。零新增数值（复用 CONTROL_RADIUS 与既有 ball.cooldown），不触碰 spec.numeric 定稿值",
+      "timestamp": "2026-11-11T13:33:00.338Z"
+    },
+    {
+      "round": 15,
+      "action": "改 src/kernel/world.js 客队出手门槛：小禁区（closeRange）起脚条件 distPress>1.2 → >0.5（远射 1.8 门槛不变；AWAY_SHOT_RANGE_Z=8 语义不变；AI 决策阈值属实现层）",
+      "timestamp": "2026-11-11T13:33:00.338Z"
+    },
+    {
+      "round": 15,
+      "action": "改 tests/football-contract.spec.mjs：+8 用例（飞行窗冻结/接球切换契约/迟滞保持/迟滞正向对照/前置守卫/小禁区起脚/贴脸远射不起脚）",
+      "timestamp": "2026-11-11T13:33:00.338Z"
+    },
+    {
+      "round": 15,
+      "action": "新建 switch-sim.mjs 逐队射门/进球归账 → switch-sim-after-ip1-ip3.json；seq-p.sh 固定序列脚本",
+      "timestamp": "2026-11-11T13:33:00.338Z"
+    },
+    {
+      "round": 15,
+      "action": "本地 serve dist/web → sessiond 起会话 ×2（r15/r16）→ SEQ-P 全序列复玩 + 探针",
+      "timestamp": "2026-11-11T13:33:00.338Z"
+    },
+    {
+      "round": 15,
+      "action": "门禁全量复跑：build/verify-reproducible/stage-dist/tests 7-7/preflight/asset-triple-check/browser-smoke",
+      "timestamp": "2026-11-11T13:33:00.338Z"
+    },
+    {
+      "round": 16,
+      "action": "POST deployments（manifestPath=games/myrdplaygrou-3/apphost.toml，v14 判例姿势）→ 504 受理 → 轮询 v15=cmwc4zm8z002tm9bhray3nnyo running @ c27629b（单笔受理核对）",
+      "timestamp": "2026-11-11T13:33:07.079Z"
+    },
+    {
+      "round": 16,
+      "action": "线上逐字节复证：GET / 200 = 607,060B，cmp dist/web/index.html 逐字节一致",
+      "timestamp": "2026-11-11T13:33:07.079Z"
+    },
+    {
+      "round": 16,
+      "action": "SEQ-P 线上复玩（r16b：截图×2 即时拷贝 + 中途/终局探针）",
+      "timestamp": "2026-11-11T13:33:07.079Z"
+    },
+    {
+      "round": 16,
+      "action": "线上 ?smoke=69 取证 → 发现 score 0:0 → 内核对照实验定位回归 → IP-P5 修复（main.js 冒烟意图粒度 1s→0.1s，游戏侧协议参数）→ 全门禁复跑绿 → 提交 799d06e（+94a6648 清理归因用临时文件 world-old-tmp.js）",
+      "timestamp": "2026-11-11T13:33:07.079Z"
+    },
+    {
+      "round": 17,
+      "action": "部署 POST（manifestPath 判例姿势）→ 504 受理 → 轮询 v16=cmwc5dhrd0031m9bh58t9v2s1 running @ 94a6648（单笔受理核对，无双受理）",
+      "timestamp": "2026-11-11T13:33:16.227Z"
+    },
+    {
+      "round": 17,
+      "action": "线上逐字节复证 + ?smoke=69 会话（navigate→60s 等待→title/payload 探针→截图即时拷贝）",
+      "timestamp": "2026-11-11T13:33:16.227Z"
+    },
+    {
+      "round": 17,
+      "action": "SEQ-P 线上复玩（r17b：截图×2 + 终局探针）",
+      "timestamp": "2026-11-11T13:33:16.227Z"
+    },
+    {
+      "round": 17,
+      "action": "线上 mobile-web-smoke 门禁复跑 → PASS",
+      "timestamp": "2026-11-11T13:33:16.227Z"
+    },
+    {
+      "round": 17,
+      "action": "收尾仪器：visual-ratchet（advisory）+ playtest-summary.mjs + summary.md 重写",
+      "timestamp": "2026-11-11T13:33:16.227Z"
     }
   ],
   "observations": [
@@ -759,6 +1028,26 @@
     {
       "round": 12,
       "observation": "收尾门禁全绿：tests/run-all 7/7 PASS（构建复现/controls-direction/football-contract/kernel-determinism/singlefile/smoke-payload 含 v3 断言面/state-machine）；preflight 21 项 0 WARN；browser-smoke 双视口 PASS（desktop fps=12.4 / mobile fps=13.2，exceptions=0，截图非纯色 52/38 种量化色，drawCalls 135/178）；asset-triple-check PASS（清单 7 项全 programmatic，0 张位图入包）；线上 mobile-web-smoke 10 PASS + 1 WARN（结构性与 v9 同形态）；线上 GET / 与 dist/web/index.html 逐字节一致（606,863B，sha256 前缀 321171cd）；部署 v10=cmwc10na3000qm9bh18cu3lvp running @ commitHash=c906e96f=推送 HEAD 全等（首发改部署 cmwc1029w clone exit 128 失败如实留痕，重发即成——疑似与推送 tip 同步竞速的瞬时失败）。"
+    },
+    {
+      "round": 13,
+      "observation": "（原 ① 前置核验，先核对后动手，全部本节点实跑）\n\n- 门禁资产：std-skills/threejs-game-dev/scripts/ 六件判定脚本在仓；.myrd/routines.yaml 含 id=threejs-preflight 与 id=threejs-browser-smoke（gamePath=games/myrdplaygrou-3）→ 不触发 blocked。\n- **stalled run 处置**：上轮 stalled run cmwbl6h6e008am97aetlijmmv 经 GET /api/v1/workflows/runs/ 实查 status=completed（2026-11-11T08:16:52Z 终态）→ 免 cancel，无双 run 并飞（deploy-v3-rerun-blackboard 同轮留痕）。\n- **preHook threejs-browser-smoke 亲跑**（node std-skills/threejs-game-dev/scripts/browser-smoke.mjs games/myrdplaygrou-3）：**BROWSER-SMOKE: PASS，exit 0**——desktop 1280×720 fps=12.7 / mobile 720×1280 fps=11.7（headless SwiftShader ≥10 达标），双视口零未捕获异常（exceptions=0，CDP 侧=0）、状态机推进 playing、截图非纯色（52/38 种量化色）。v3 断言面在链：`switchRing.instanceCount=1`（单环，缺陷 cmwbumwrj 修复可见）、`onboarding.hudLabels=[\"移动\",\"传球\",\"射门\"]`（常驻标签，缺陷 cmwbumwtv 修复可见）、tutorialCard/rematchButton present、inputProbe.ok=true、playersOnField=10 / teams=2。证据刷新 qa/smoke/（report.json + 双视口截图）。\n- **线上复证**：liveUrl GET → 200，606,863B，sha256 16 位前缀 321171cd97bc65d8 与 `dist/web/index.html` 及工程根 index.html **逐字节一致**；/health 200（注：响应 title 字段「植物人大战僵尸-网页版」为共享壳 server/src/index.ts:15 硬编码标签，多游戏共用，非页面串线——线上页面即本构建）。\n- **部署核验**：v14 = cmwc2lz7f001im9bhquvnkgv5（version=14，commitHash=c8ed7aad… 与推送 HEAD 全等，manifestPath=games/myrdplaygrou-3/apphost.toml）；v12/v13 串线事故已 superseded（deploy 节点留痕）。\n- **取证包**：qa/experience/ 现役部署轮双包——mobile=2026-11-11T12-05-40-deploy（8 截图）/ desktop=2026-11-11T12-07-12-deploy-desktop（8 截图），console/errors.json 双包 errors=[]（consoleErrors=0），输入步 inputArrived 全 true。\n- **playtest-summary 判定器亲跑**（node std-skills/threejs-game-dev/scripts/playtest-summary.mjs --game … --version-sha $(git rev-parse HEAD)）：rounds=12 / screenshots=37 / actions=62 / consoleErrors=0 / fps=17 / versionSha=c7a5b8768a2b；**PLAYTEST_SUMMARY: FAIL 唯一缺口=C4**——qa/mobile/report.json 无 touch/input 类检查：mobile-web-smoke.mjs 写 checks={id,label,status,detail}、playtest-summary.mjs 读 c.name/c.pass → 过滤落空（两判定器红线禁改，平台级 schema 漂移，与 round-9/12 收口同源亲验）。原始可达性证据在档：qa/mobile/report.json touch-pipeline=pass / touch-response=pass + 取证包 inputArrived 全 true。"
+    },
+    {
+      "round": 14,
+      "observation": "- **IP-P1 切换抖振（实锤）**：线上实局 SEQ-P 探针，timeLeft=45.6（已踢 44.4s）时 `switchCount=82`（≈1.85 次/秒）——挤抢/球在飞时控制权逐帧易主，环脉冲+确认音连发。根因 = `world.js:426` 每 tick 无条件重算「最近主队非门将」，无迟滞无飞行窗冻结。缺陷单 cmwbumwrj 修掉的是「全队闪烁」（池化单环 v10 已闭环），切换单实例化后残留的**频率抖振**是同诉症状的后半段。\n- **IP-P3 客队零射门（结构性）**：确定性内核 5 种子全集对局逐队事件统计（qa/playtest/switch-sim-before.json + 事件流归账）——客队 5 场 **0 射门 0 进球**，总比分 46:0。根因 = 客队起脚门槛 `distPress>1.8`（远射）/`>1.2`（小禁区）结构性不可达：home chaser 以 PRESS_MARGIN=0.4m 粘人，distPress 恒 ≈0.4-0.9m → `AWAY_SHOT_RANGE_Z=8` 声明的出手通道形同虚设，防守与 GK 半场沦为摆设。\n- 首轮实跑（tmp 已回收）与复跑（r14b）同窗探针一致（70~82 次），读数稳健。\n- 过程失误如实记录：首轮 SEQ-P（tmp xh-session-VJk5mh）截图未在会话回收前拷贝入 qa/playtest/steps/，已用**同构建同序列线上复跑（r14b）**重建证据，非伪造补拍。"
+    },
+    {
+      "round": 15,
+      "observation": "- **IP-P1 生效（线上基线 -59%）**：同序列 SEQ-P 同窗探针 switchCount：基线 82/44.4s（r14b，v14 在服）→ 本地新构建 34/42.5s（r16）——抖振减半以上；单次控制权持有时长（内核模拟）maxHoldSecMean 11.2s → 15.8s（+37%）；攻门数据不降反升：shotsMean 22.2→23.2、firstShotSecMean 13.6→9.8（推进更连贯的旁证）。\n- **IP-P3 生效（通道打开）**：契约场景断言——客队前锋小禁区未贴脸（distPress≈0.8）即转身起脚（修前必不触发）；贴脸远射（distPress≈0.35 且非小禁区）仍不起脚（平缓难度门槛保留）。全集模拟客队射门 0→1（autopilot 掌控球权下客队进禁区次数本就少，线上长持球场景才会显影；见 round-16 线上复测）。\n- **内核行为零回归**：tests/run-all 7/7 PASS（controls-direction/football-contract/kernel-determinism/singlefile/smoke-payload/state-machine/构建复现）；preflight 21 项 0 WARN；browser-smoke 双视口 PASS；asset-triple-check PASS。\n- 契约用例脚手架两轮返工如实记录：①首版把候选摆进抢断半径（1.4m）→ 泊松抢断+捡球走了「切持球人」合法路径；②次版把对手摆进传球门槛（distPress<1.6）→ 持球人出球触发飞行窗冻结（IP-P1 ②的正确行为）。终版几何避开三道门槛，纯测切换分支。\n- 过程失误如实记录：本地复玩 r15 步骤截图（tmp xh-session-CGm8iz）在拷贝前被会话回收，0 张留存；r16 同序列复跑截图即时拷贝（r16-016/r16-028），观察与探针读数以两轮记录文本留存。"
+    },
+    {
+      "round": 16,
+      "observation": "- **IP-P1 线上终验**：v15 线上 SEQ-P 同窗探针 `switchCount=19/40.6s`（r16b）——对比 v14 线上基线 `82/44.4s`（r14b），同序列同窗 **-75%**；终局探针 ballOwner=2=受控人自己拿球（传球接收→控制权跟人，新离散切换路径在线上在链）。\n- **回归发现（如实暴露）**：v15 线上 `?smoke=69` payload = **score 0:0 / goals 0 / shots 2**——旧版同参数有进球横幅取证面（v14 qa/smoke-mobile.png）。归因：冒烟协议意图重算粒度 1s（块首一次），IP-P1 控制权稳定化后「逐帧抢切换」不再是 1Hz autopilot 的免费外挂——同 seed 同语义对照实验：旧内核 10 射门 1 球（1:0，58~66s 窗口）vs 新内核 2 射门 0 球。真人通道不受影响：60Hz 意图模拟下新内核 9 球/22 射门（旧内核 60Hz 口径 9.2 球/22.2 射门，持平）；内核契约 8 用例 + 全门禁绿。定性 = **仪器面回归**（冒烟证据面的对局活力代表性），非玩家可感回归。\n- v15 线上 /health 200；页内教学卡/常驻标签/单环在链（browser-smoke payload onboarding/switchRing 断言全过）。"
+    },
+    {
+      "round": 17,
+      "observation": "- **线上进球庆祝实拍达成**（收口 round-11 遗留缺口「实局进球庆祝线上实拍未捕获」）：v16 线上 `?smoke=69` 实拍四要素同框——横幅「进球！主队」发光 + 进球特写机位（门后机位读网窝、客队 GK 在网口）+ 彩带粒子飘散 + 比分 2:0 弹跳；payload ok=true/state=playing/goals=2/timeLeft≈23/exceptions=0。seed=333 在 0.1s 意图粒度下进球时刻 12/68.1/76.5s，smoke=69 块末恰落第二球庆祝窗（内核直算 celebrationLeft=0.38s 可见）。\n- **IP-P1 在 v16 保持**：线上 SEQ-P 复玩 switchCount=36/42.9s（0.84/s；r16b v15 为 19/40.6s，同序列突发驱动时序方差带内），对 v14 基线 82/44.4s（1.85/s）仍 -55%~-75% 带。\n- **线上门禁**：mobile-web-smoke PASS（网络/渲染/触摸/音频契约/视口/FPS 全绿，fps≥8 软渲染口径）；GET / 200 = 607,064B 与 dist/web/index.html 逐字节一致（sha16=97adfc85）；/health 200（title 为共享壳硬编码标签，已知平台形态非串线）。\n- 本地门禁（IP-P5 后全量复跑）：tests/run-all 7/7 PASS、preflight PASS 0 WARN、browser-smoke 双视口 PASS（desktop 14.4 / mobile 13.3）、asset-triple-check PASS（清单 7 项全 programmatic）。"
     }
   ],
   "screenshots": [
@@ -819,13 +1108,13 @@
     },
     {
       "path": "qa/smoke/smoke-desktop.png",
-      "bytes": 132410,
-      "mtime": "2026-11-11T12:20:19.672Z"
+      "bytes": 121923,
+      "mtime": "2026-11-11T13:19:32.105Z"
     },
     {
       "path": "qa/smoke/smoke-mobile.png",
-      "bytes": 105273,
-      "mtime": "2026-11-11T12:20:19.675Z"
+      "bytes": 78032,
+      "mtime": "2026-11-11T13:19:32.107Z"
     },
     {
       "path": "qa/playtest/steps/round6-base-03-joy.png",
@@ -859,8 +1148,8 @@
     },
     {
       "path": "qa/smoke/smoke-desktop.png",
-      "bytes": 132410,
-      "mtime": "2026-11-11T12:20:19.672Z"
+      "bytes": 121923,
+      "mtime": "2026-11-11T13:19:32.105Z"
     },
     {
       "path": "qa/playtest/steps/round8-celebration-session.png",
@@ -934,23 +1223,88 @@
     },
     {
       "path": "qa/smoke/smoke-mobile.png",
-      "bytes": 105273,
-      "mtime": "2026-11-11T12:20:19.675Z"
+      "bytes": 78032,
+      "mtime": "2026-11-11T13:19:32.107Z"
     },
     {
       "path": "qa/smoke/smoke-desktop.png",
-      "bytes": 132410,
-      "mtime": "2026-11-11T12:20:19.672Z"
+      "bytes": 121923,
+      "mtime": "2026-11-11T13:19:32.105Z"
     },
     {
       "path": "qa/mobile/phase-joystick.png",
-      "bytes": 304342,
-      "mtime": "2026-11-11T11:21:42.325Z"
+      "bytes": 317479,
+      "mtime": "2026-11-11T13:27:01.564Z"
+    },
+    {
+      "path": "qa/smoke/smoke-mobile.png",
+      "bytes": 78032,
+      "mtime": "2026-11-11T13:19:32.107Z"
+    },
+    {
+      "path": "qa/playtest/round11-live-controlled-ring.png",
+      "bytes": 138049,
+      "mtime": "2026-11-11T11:27:01.034Z"
+    },
+    {
+      "path": "qa/playtest/round11-live-shoot-press.png",
+      "bytes": 148423,
+      "mtime": "2026-11-11T11:27:01.039Z"
+    },
+    {
+      "path": "qa/playtest/steps/r14b-000-live-baseline-title.png",
+      "bytes": 198046,
+      "mtime": "2026-11-11T13:08:10.898Z"
+    },
+    {
+      "path": "qa/playtest/steps/r14b-016-live-baseline.png",
+      "bytes": 164083,
+      "mtime": "2026-11-11T13:08:10.903Z"
+    },
+    {
+      "path": "qa/playtest/steps/r14b-028-live-baseline-final.png",
+      "bytes": 136556,
+      "mtime": "2026-11-11T13:08:10.908Z"
+    },
+    {
+      "path": "qa/playtest/steps/r16-016-after-ip3.png",
+      "bytes": 156359,
+      "mtime": "2026-11-11T13:06:49.467Z"
+    },
+    {
+      "path": "qa/playtest/steps/r16-028-final.png",
+      "bytes": 137531,
+      "mtime": "2026-11-11T13:06:49.470Z"
+    },
+    {
+      "path": "qa/playtest/steps/r16b-016-live-v15.png",
+      "bytes": 151112,
+      "mtime": "2026-11-11T13:14:20.189Z"
+    },
+    {
+      "path": "qa/playtest/steps/r16b-028-live-v15-final.png",
+      "bytes": 139766,
+      "mtime": "2026-11-11T13:14:20.192Z"
+    },
+    {
+      "path": "qa/playtest/steps/r17-002-live-v16-goal-celebration.png",
+      "bytes": 140150,
+      "mtime": "2026-11-11T13:26:46.877Z"
+    },
+    {
+      "path": "qa/playtest/steps/r17b-016-live-v16.png",
+      "bytes": 159413,
+      "mtime": "2026-11-11T13:28:17.099Z"
+    },
+    {
+      "path": "qa/playtest/steps/r17b-028-live-v16-final.png",
+      "bytes": 160224,
+      "mtime": "2026-11-11T13:28:17.104Z"
     }
   ],
   "consoleErrors": [],
   "fpsSamples": [
-    17
+    16
   ],
   "inputReachability": [],
   "checks": {
