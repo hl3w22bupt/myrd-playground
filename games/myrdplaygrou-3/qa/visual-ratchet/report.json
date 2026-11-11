@@ -62,7 +62,109 @@
       ],
       "diffConclusion": "SUSPECTED_REGRESSION(ADVISORY)",
       "suggestedAction": "逐条复核 suspected-regression 对：刻意重设计需在打磨记录解释；非刻意则回滚改动并复跑取证（advisory，不拦截 verdict）"
+    },
+    {
+      "scenario": "deploy-v5-vs-v7-live-mobile",
+      "beforeSource": "qa/experience/2026-11-11T05-19-28-deploy-v5-rerun/steps",
+      "afterSource": "qa/experience/2026-11-11T05-36-47-deploy/steps",
+      "comparedAt": "2026-11-11T05:42:33.388Z",
+      "pairsCompared": 8,
+      "suspectedRegressions": 0,
+      "notComparable": 0,
+      "unmatchedFiles": [],
+      "comparisons": [
+        {
+          "before": "qa/experience/2026-11-11T05-19-28-deploy-v5-rerun/steps/01-加载后.png",
+          "after": "qa/experience/2026-11-11T05-36-47-deploy/steps/01-加载后.png",
+          "resolution": "702x1519",
+          "pHashBefore": "c4c43b3b9dccc4e4",
+          "pHashAfter": "c4c43b3b9dccc4e4",
+          "similarity": 1,
+          "verdict": "comparable-pass",
+          "reason": "pHash 相似度 1.0000 ≥ T1=0.7",
+          "suggestedAction": "无需动作"
+        },
+        {
+          "before": "qa/experience/2026-11-11T05-19-28-deploy-v5-rerun/steps/02-初始画面.png",
+          "after": "qa/experience/2026-11-11T05-36-47-deploy/steps/02-初始画面.png",
+          "resolution": "702x1519",
+          "pHashBefore": "c4c43b3b9dccc4e4",
+          "pHashAfter": "c4c43b3b9dccc4e4",
+          "similarity": 1,
+          "verdict": "comparable-pass",
+          "reason": "pHash 相似度 1.0000 ≥ T1=0.7",
+          "suggestedAction": "无需动作"
+        },
+        {
+          "before": "qa/experience/2026-11-11T05-19-28-deploy-v5-rerun/steps/03-点击屏幕中心.png",
+          "after": "qa/experience/2026-11-11T05-36-47-deploy/steps/03-点击屏幕中心.png",
+          "resolution": "702x1519",
+          "pHashBefore": "b5de1c1e340c1e37",
+          "pHashAfter": "a5dc1c1e341c1f37",
+          "similarity": 0.9375,
+          "verdict": "comparable-pass",
+          "reason": "pHash 相似度 0.9375 ≥ T1=0.7",
+          "suggestedAction": "无需动作"
+        },
+        {
+          "before": "qa/experience/2026-11-11T05-19-28-deploy-v5-rerun/steps/04-摇杆区滑动.png",
+          "after": "qa/experience/2026-11-11T05-36-47-deploy/steps/04-摇杆区滑动.png",
+          "resolution": "702x1519",
+          "pHashBefore": "bdde2d5c5c0c3c14",
+          "pHashAfter": "bd9e350c3c1c0d3d",
+          "similarity": 0.7813,
+          "verdict": "comparable-pass",
+          "reason": "pHash 相似度 0.7813 ≥ T1=0.7",
+          "suggestedAction": "无需动作"
+        },
+        {
+          "before": "qa/experience/2026-11-11T05-19-28-deploy-v5-rerun/steps/05-按上键.png",
+          "after": "qa/experience/2026-11-11T05-36-47-deploy/steps/05-按上键.png",
+          "resolution": "702x1519",
+          "pHashBefore": "bcde355a3c045c2d",
+          "pHashAfter": "bdce1d4e2d1c1c34",
+          "similarity": 0.7813,
+          "verdict": "comparable-pass",
+          "reason": "pHash 相似度 0.7813 ≥ T1=0.7",
+          "suggestedAction": "无需动作"
+        },
+        {
+          "before": "qa/experience/2026-11-11T05-19-28-deploy-v5-rerun/steps/06-点击上半屏.png",
+          "after": "qa/experience/2026-11-11T05-36-47-deploy/steps/06-点击上半屏.png",
+          "resolution": "702x1519",
+          "pHashBefore": "a5de1c6e3c1c2c2d",
+          "pHashAfter": "bd8e3d1c3c0d0e3c",
+          "similarity": 0.75,
+          "verdict": "comparable-pass",
+          "reason": "pHash 相似度 0.7500 ≥ T1=0.7",
+          "suggestedAction": "无需动作"
+        },
+        {
+          "before": "qa/experience/2026-11-11T05-19-28-deploy-v5-rerun/steps/07-状态钩子.png",
+          "after": "qa/experience/2026-11-11T05-36-47-deploy/steps/07-状态钩子.png",
+          "resolution": "702x1519",
+          "pHashBefore": "b5de1c3e341c1c27",
+          "pHashAfter": "bd9e355c4c1c1c2d",
+          "similarity": 0.7813,
+          "verdict": "comparable-pass",
+          "reason": "pHash 相似度 0.7813 ≥ T1=0.7",
+          "suggestedAction": "无需动作"
+        },
+        {
+          "before": "qa/experience/2026-11-11T05-19-28-deploy-v5-rerun/steps/08-收尾观察.png",
+          "after": "qa/experience/2026-11-11T05-36-47-deploy/steps/08-收尾观察.png",
+          "resolution": "702x1519",
+          "pHashBefore": "bdce371c3c0c172c",
+          "pHashAfter": "b5de1c5e2c0c1ea6",
+          "similarity": 0.7813,
+          "verdict": "comparable-pass",
+          "reason": "pHash 相似度 0.7813 ≥ T1=0.7",
+          "suggestedAction": "无需动作"
+        }
+      ],
+      "diffConclusion": "OK",
+      "suggestedAction": "无需动作"
     }
   ],
-  "updatedAt": "2026-11-11T05:23:41.359Z"
+  "updatedAt": "2026-11-11T05:42:33.387Z"
 }
