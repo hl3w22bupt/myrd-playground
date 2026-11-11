@@ -1,0 +1,19 @@
+{
+  "name": "v3-onboarding-switch-gamefeel-mobile",
+  "steps": [
+    { "id": "load", "label": "加载后", "action": "wait", "params": { "ms": 3000 } },
+    { "id": "shot-tutorial", "label": "开屏教学卡", "action": "screenshot", "params": {} },
+    { "id": "probe-onboarding", "label": "教学卡与常驻标签断言", "action": "probe", "params": { "expr": "(() => { const t = document.getElementById('screen-tutorial'); const labels = [...document.querySelectorAll('[data-hud-label]')].map(n => n.getAttribute('data-hud-label')); return { tutorialVisible: !!t && !t.classList.contains('hidden'), tutorialOps: [...t.querySelectorAll('.op .name')].map(n => n.textContent), startBtn: !!document.getElementById('btn-tutorial-start'), skipBtn: !!document.getElementById('btn-tutorial-skip'), hudLabels: labels, bubblePresent: !!document.getElementById('bubble'), rematchBtn: !!document.getElementById('btn-rematch'), chargeWrap: !!document.getElementById('charge-wrap') }; })()" } },
+    { "id": "start-match", "label": "回车开始比赛（教学卡开始同语义）", "action": "pressKey", "params": { "key": "Enter", "settleMs": 1200 } },
+    { "id": "shot-playing", "label": "对局开始 HUD", "action": "screenshot", "params": {} },
+    { "id": "probe-playing", "label": "对局态断言（标签常驻/倒计时走）", "action": "probe", "params": { "expr": "(() => { const s = window.__tsState ? window.__tsState() : null; const labels = [...document.querySelectorAll('[data-hud-label]')].map(n => ({ k: n.getAttribute('data-hud-label'), visible: !n.classList.contains('hidden') })); const joy = document.getElementById('joy-tag'); return { state: s && s.state, timeLeft: s && s.timeLeft, playersOnField: s && s.players.length, switchRingCount: s && s.switchRingCount, hudLabelsVisible: labels, joyTagVisible: !!joy && !joy.classList.contains('hidden'), tutorialGone: document.getElementById('screen-tutorial').classList.contains('hidden'), tutorialSeenMarked: (() => { try { return localStorage.getItem('gr-tutorial-seen-v3') === '1'; } catch { return 'unknown'; } })() }; })()" } },
+    { "id": "joy-right", "label": "摇杆右推（按右=屏幕右）", "action": "swipe", "params": { "from": { "x": 70, "y": 650 }, "to": { "x": 150, "y": 650 }, "moveSteps": 8, "settleMs": 600 } },
+    { "id": "joy-up", "label": "摇杆上推（按上=屏幕上/朝对方球门）", "action": "swipe", "params": { "from": { "x": 70, "y": 700 }, "to": { "x": 70, "y": 600 }, "moveSteps": 8, "settleMs": 600 } },
+    { "id": "tap-pass", "label": "点传球钮", "action": "tap", "params": { "x": 345, "y": 731, "settleMs": 800 } },
+    { "id": "tap-shoot", "label": "点射门钮（蓄力沿）", "action": "tap", "params": { "x": 345, "y": 620, "settleMs": 800 } },
+    { "id": "probe-after-actions", "label": "操作后状态（气泡/切换计数/球权）", "action": "probe", "params": { "expr": "(() => { const s = window.__tsState ? window.__tsState() : null; const bubble = document.getElementById('bubble'); return { state: s && s.state, score: s && s.score, timeLeft: s && s.timeLeft, controlled: s && s.controlled, switchRingCount: s && s.switchRingCount, switchCount: s && s.switchCount, ball: s && s.ball, bubbleVisible: !!bubble && !bubble.classList.contains('hidden'), bubbleText: (document.getElementById('bubble-text') || {}).textContent || null }; })()" } },
+    { "id": "shot-mid", "label": "对局中段画面", "action": "screenshot", "params": {} },
+    { "id": "settle", "label": "长尾观察", "action": "wait", "params": { "ms": 6000 } },
+    { "id": "probe-final", "label": "收尾读数（时间推进/无异常）", "action": "probe", "params": { "expr": "(() => { const s = window.__tsState ? window.__tsState() : null; return { state: s && s.state, score: s && s.score, timeLeft: s && s.timeLeft, possessionChanges: s && s.possessionChanges, goals: s && s.goals !== undefined ? s.goals : (s && s.score ? s.score.home + s.score.away : null), switchRingCount: s && s.switchRingCount }; })()" } }
+  ]
+}
