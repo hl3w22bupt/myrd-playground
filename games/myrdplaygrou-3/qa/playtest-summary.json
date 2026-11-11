@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "generatedBy": "playtest-summary.mjs",
+  "valid": false,
+  "gamePath": "games/myrdplaygrou-3",
+  "versionSha": "81626e5",
+  "startedAt": "2026-11-11T04:11:00Z",
+  "endedAt": "2026-11-11T04:56:38.469Z",
+  "rounds": [
+    {
+      "round": 1,
+      "file": "qa/playtest/round-1.md",
+      "observation": "- 自动跑 90s 对局（kernel footballIntent）：客队 AI 单场 15-19 球血洗、主队 0 射门 —— 「平缓大众」创作决策被打破；插桩定位三个根因：①抢断后攻方无减速惩罚（守方永远追不上）②客队无球人可贴门线等饼（tap-in 位）③门将开大脚传给被盯防的人（中场白送）。跑测试门禁与多种子对局全程零异常、确定性 PASS。",
+      "actions": [
+        "node 仿真：10 种子 × 90s AI-vs-AI 对局，统计球权分布/射门/进球（insert 插桩脚本直跑内核）",
+        "修复：TACKLE_RATE 1.1→0.8、带球减速惩罚 DRIBBLE_PENALTY=0.9、无球接应限深 ≤PZ-9、全员盯人（markSpot 攻守对称）、门将开球先找开阔点否则大脚、远角瞄准（aimFarCorner）",
+        "复跑 10 种子基线：主 10 : 客 2，5 胜 5 平 0 负，锁定数值入 spec.numeric"
+      ],
+      "screenshots": [
+        {
+          "path": "qa/playtest/steps/round1-early-match.png",
+          "bytes": 114190,
+          "mtime": "2026-11-11T04:56:12.488Z"
+        },
+        {
+          "path": "qa/playtest/steps/round1-early-desktop.png",
+          "bytes": 114411,
+          "mtime": "2026-11-11T04:56:12.490Z"
+        }
+      ],
+      "improvements": null,
+      "changes": "- src/numeric.js / src/kernel/world.js / src/kernel/autopilot.js（平衡参数与盯人/限深/开球逻辑）",
+      "replayConclusion": "- 修复前：0:15（单向碾压）；修复后 10 种子基线 10:2 且主队 13 射/场 —— 5v5 争抢真实发生，客队保有有限反击通道"
+    },
+    {
+      "round": 2,
+      "file": "qa/playtest/round-2.md",
+      "observation": "- 双视口 browser-smoke 首跑：桌面/移动全 PASS 但截图停在 title 遮罩（快进后未刷 showScreen），且判定器要求 payload.score 为有限数值而实现给的是对象 —— 两条都属「证据面失真」；另发现旧缺陷单 sf-bug-controls（左右反向）需要线上可机判的语义锚点。",
+      "actions": [
+        "新增 src/render/keyboard.js（方向映射唯一真源）+ tests/controls-direction.spec.mjs（键盘/摇杆/内核位移三段断言，箭头键语义逐键钉死）",
+        "smoke payload 增加 inputProbe 方向探针（独立沙盒内核测单位意图位移符号）+ playersOnField/teams 字段；score 改数值口径（分项走 scoreHome/scoreAway）",
+        "冒烟采样循环内补 hud.showScreen 运行态同步；tests/smoke-payload.contract.mjs 消费 qa/smoke/report.json 机判"
+      ],
+      "screenshots": [
+        {
+          "path": "qa/playtest/steps/round2-mid-match.png",
+          "bytes": 85365,
+          "mtime": "2026-11-11T04:56:25.409Z"
+        }
+      ],
+      "improvements": null,
+      "changes": "- src/main.js / src/render/keyboard.js / src/render/touch.js（stickToIntent 提纯）/ tests/*（方向与 payload 契约）",
+      "replayConclusion": "- 修复前：截图带遮罩、score 断言 FAIL；修复后双视口 inputProbe.ok=true（leftDx=-1.8/rightDx=+1.8），按左向左机判通过 —— 缺陷单 sf-bug-controls 修复有了可复验证据"
+    },
+    {
+      "round": 3,
+      "file": "qa/playtest/round-3.md",
+      "observation": "- 62s 双视口冒烟：桌面 11-12fps 但移动视口在 8.5-10.2 间贴着 ≥10fps 地板抖动（判定风险）；drawCalls 310（阴影 pass 全量投影翻倍）。人形建模（关节人形）需要可机判的段件证据。",
+      "actions": [
+        "性能四步：阴影投影面收口（躯干+大腿）→ Bloom 1/4 分辨率 → 渲染目标 HalfFloat→UnsignedByte + 点缀光收 1 盏 + MSAA 关闭 + 内部 0.75× 分辨率；号码贴图只留背面",
+        "drawCalls 310→201，移动视口三连跑 12.5-14.5fps（余量 >2fps）",
+        "段件证据口径：buildPlayers traverse 关节树 mesh 计数（10 人 × 16 段件 =160），进 smoke payload + tests/smoke-payload.contract.mjs 断言 ≥120",
+        "三相位实局留证（15s/45s/85s）：2:0 终盘、12 射、103 次球权易手、fps 16-18"
+      ],
+      "screenshots": [
+        {
+          "path": "qa/playtest/steps/round3-late-match.png",
+          "bytes": 178689,
+          "mtime": "2026-11-11T04:56:38.466Z"
+        },
+        {
+          "path": "qa/playtest/steps/round3-late-desktop.png",
+          "bytes": 138741,
+          "mtime": "2026-11-11T04:56:38.469Z"
+        }
+      ],
+      "improvements": null,
+      "changes": "- src/render/scene.js / src/render/player.js / src/main.js（payload 段件口径）",
+      "replayConclusion": "- 修复前：mobile 8.5-10.2fps（FAIL 风险）+ 段件证据缺失；修复后三连跑 BROWSER-SMOKE PASS 且人形段件 160 机判达标 —— 关节人形从「代码存在」升级为「证据在链」"
+    }
+  ],
+  "actions": [
+    {
+      "round": 1,
+      "action": "node 仿真：10 种子 × 90s AI-vs-AI 对局，统计球权分布/射门/进球（insert 插桩脚本直跑内核）",
+      "timestamp": "2026-11-11T04:57:18.397Z"
+    },
+    {
+      "round": 1,
+      "action": "修复：TACKLE_RATE 1.1→0.8、带球减速惩罚 DRIBBLE_PENALTY=0.9、无球接应限深 ≤PZ-9、全员盯人（markSpot 攻守对称）、门将开球先找开阔点否则大脚、远角瞄准（aimFarCorner）",
+      "timestamp": "2026-11-11T04:57:18.397Z"
+    },
+    {
+      "round": 1,
+      "action": "复跑 10 种子基线：主 10 : 客 2，5 胜 5 平 0 负，锁定数值入 spec.numeric",
+      "timestamp": "2026-11-11T04:57:18.397Z"
+    },
+    {
+      "round": 2,
+      "action": "新增 src/render/keyboard.js（方向映射唯一真源）+ tests/controls-direction.spec.mjs（键盘/摇杆/内核位移三段断言，箭头键语义逐键钉死）",
+      "timestamp": "2026-11-11T04:57:26.710Z"
+    },
+    {
+      "round": 2,
+      "action": "smoke payload 增加 inputProbe 方向探针（独立沙盒内核测单位意图位移符号）+ playersOnField/teams 字段；score 改数值口径（分项走 scoreHome/scoreAway）",
+      "timestamp": "2026-11-11T04:57:26.710Z"
+    },
+    {
+      "round": 2,
+      "action": "冒烟采样循环内补 hud.showScreen 运行态同步；tests/smoke-payload.contract.mjs 消费 qa/smoke/report.json 机判",
+      "timestamp": "2026-11-11T04:57:26.710Z"
+    },
+    {
+      "round": 3,
+      "action": "性能四步：阴影投影面收口（躯干+大腿）→ Bloom 1/4 分辨率 → 渲染目标 HalfFloat→UnsignedByte + 点缀光收 1 盏 + MSAA 关闭 + 内部 0.75× 分辨率；号码贴图只留背面",
+      "timestamp": "2026-11-11T04:57:34.732Z"
+    },
+    {
+      "round": 3,
+      "action": "drawCalls 310→201，移动视口三连跑 12.5-14.5fps（余量 >2fps）",
+      "timestamp": "2026-11-11T04:57:34.732Z"
+    },
+    {
+      "round": 3,
+      "action": "段件证据口径：buildPlayers traverse 关节树 mesh 计数（10 人 × 16 段件 =160），进 smoke payload + tests/smoke-payload.contract.mjs 断言 ≥120",
+      "timestamp": "2026-11-11T04:57:34.732Z"
+    },
+    {
+      "round": 3,
+      "action": "三相位实局留证（15s/45s/85s）：2:0 终盘、12 射、103 次球权易手、fps 16-18",
+      "timestamp": "2026-11-11T04:57:34.732Z"
+    }
+  ],
+  "observations": [
+    {
+      "round": 1,
+      "observation": "- 自动跑 90s 对局（kernel footballIntent）：客队 AI 单场 15-19 球血洗、主队 0 射门 —— 「平缓大众」创作决策被打破；插桩定位三个根因：①抢断后攻方无减速惩罚（守方永远追不上）②客队无球人可贴门线等饼（tap-in 位）③门将开大脚传给被盯防的人（中场白送）。跑测试门禁与多种子对局全程零异常、确定性 PASS。"
+    },
+    {
+      "round": 2,
+      "observation": "- 双视口 browser-smoke 首跑：桌面/移动全 PASS 但截图停在 title 遮罩（快进后未刷 showScreen），且判定器要求 payload.score 为有限数值而实现给的是对象 —— 两条都属「证据面失真」；另发现旧缺陷单 sf-bug-controls（左右反向）需要线上可机判的语义锚点。"
+    },
+    {
+      "round": 3,
+      "observation": "- 62s 双视口冒烟：桌面 11-12fps 但移动视口在 8.5-10.2 间贴着 ≥10fps 地板抖动（判定风险）；drawCalls 310（阴影 pass 全量投影翻倍）。人形建模（关节人形）需要可机判的段件证据。"
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "qa/playtest/steps/round1-early-match.png",
+      "bytes": 114190,
+      "mtime": "2026-11-11T04:56:12.488Z"
+    },
+    {
+      "path": "qa/playtest/steps/round1-early-desktop.png",
+      "bytes": 114411,
+      "mtime": "2026-11-11T04:56:12.490Z"
+    },
+    {
+      "path": "qa/playtest/steps/round2-mid-match.png",
+      "bytes": 85365,
+      "mtime": "2026-11-11T04:56:25.409Z"
+    },
+    {
+      "path": "qa/playtest/steps/round3-late-match.png",
+      "bytes": 178689,
+      "mtime": "2026-11-11T04:56:38.466Z"
+    },
+    {
+      "path": "qa/playtest/steps/round3-late-desktop.png",
+      "bytes": 138741,
+      "mtime": "2026-11-11T04:56:38.469Z"
+    }
+  ],
+  "consoleErrors": [],
+  "fpsSamples": [
+    13
+  ],
+  "inputReachability": [],
+  "checks": {
+    "roundsAtLeastThree": true,
+    "eachRoundComplete": true,
+    "consoleCleanOrExplained": true,
+    "interactionsReachable": false,
+    "screenshotsMatchRounds": true,
+    "evidenceWithinWindow": true
+  },
+  "mobileReport": "qa/mobile/report.json"
+}

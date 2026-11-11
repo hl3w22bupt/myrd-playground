@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "thresholdT1": 0.7,
+  "entries": [
+    {
+      "scenario": "polish-cmwaqvrng002lm9m2nftdd20h",
+      "beforeSource": "qa/smoke-t1/smoke-mobile.png",
+      "afterSource": "qa/smoke-t3/smoke-mobile.png",
+      "comparedAt": "2026-11-11T05:00:12.003Z",
+      "pairsCompared": 1,
+      "suspectedRegressions": 1,
+      "notComparable": 0,
+      "unmatchedFiles": [],
+      "comparisons": [
+        {
+          "before": "qa/smoke-t1/smoke-mobile.png",
+          "after": "qa/smoke-t3/smoke-mobile.png",
+          "resolution": "720x1137",
+          "pHashBefore": "e5d7170727070e2e",
+          "pHashAfter": "87871f7e1ec404c7",
+          "similarity": 0.5938,
+          "verdict": "suspected-regression",
+          "reason": "pHash 相似度 0.5938 < T1=0.7（整体画面明显变化 —— 可能是退化，也可能是大幅重设计）",
+          "suggestedAction": "对照 round-N.md 的改动清单逐条复核：若属刻意重设计，在打磨记录里写明并把本条标记为已解释；若非刻意，回滚该改动并复跑同动作序列取证"
+        }
+      ],
+      "diffConclusion": "SUSPECTED_REGRESSION(ADVISORY)",
+      "suggestedAction": "逐条复核 suspected-regression 对：刻意重设计需在打磨记录解释；非刻意则回滚改动并复跑取证（advisory，不拦截 verdict）"
+    }
+  ],
+  "updatedAt": "2026-11-11T05:00:12.002Z"
+}
