@@ -8,7 +8,7 @@
     "mobile": true,
     "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
   },
-  "checkedAt": "2026-11-11T05:19:06.949Z",
+  "checkedAt": "2026-11-11T05:39:13.556Z",
   "checks": [
     {
       "id": "network",
@@ -32,7 +32,7 @@
       "id": "render",
       "label": "首帧截图非纯色（400 点采样 ≥2 种量化色）",
       "status": "pass",
-      "detail": "采样仅 26 种颜色——画面没渲染出来（黑屏/白屏）"
+      "detail": "采样仅 23 种颜色——画面没渲染出来（黑屏/白屏）"
     },
     {
       "id": "animate",
@@ -78,8 +78,8 @@
     }
   ],
   "metrics": {
-    "colorCount": 26,
-    "idleDiff": 387,
+    "colorCount": 23,
+    "idleDiff": 392,
     "tapDiff": 399,
     "fps": 14,
     "joyAreaDiff": 0,
@@ -106,7 +106,7 @@
   "joystick": {
     "mode": "legacy",
     "reason": "未传 --project",
-    "project": "games/myrdplaygrou-3",
+    "project": null,
     "designViewport": null,
     "designRect": null,
     "cssRect": null
