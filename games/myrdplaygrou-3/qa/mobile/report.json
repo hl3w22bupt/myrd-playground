@@ -1,6 +1,6 @@
 {
   "verdict": "PASS",
-  "url": "http://127.0.0.1:18923/index.html",
+  "url": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou-3/",
   "preset": {
     "width": 390,
     "height": 844,
@@ -8,19 +8,13 @@
     "mobile": true,
     "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
   },
-  "checkedAt": "2026-11-11T04:55:28.952Z",
+  "checkedAt": "2026-11-11T05:19:06.949Z",
   "checks": [
     {
       "id": "network",
       "label": "关键资源网络全通（无 5xx / 404 / 登录墙重定向）",
       "status": "pass",
       "detail": ""
-    },
-    {
-      "id": "network-warn",
-      "label": "非关键资源异常（不阻断）",
-      "status": "warn",
-      "detail": "404 http://127.0.0.1:18923/favicon.ico；404 http://127.0.0.1:18923/favicon.ico"
     },
     {
       "id": "console",
@@ -38,7 +32,7 @@
       "id": "render",
       "label": "首帧截图非纯色（400 点采样 ≥2 种量化色）",
       "status": "pass",
-      "detail": "采样仅 31 种颜色——画面没渲染出来（黑屏/白屏）"
+      "detail": "采样仅 26 种颜色——画面没渲染出来（黑屏/白屏）"
     },
     {
       "id": "animate",
@@ -80,14 +74,14 @@
       "id": "fps",
       "label": "FPS ≥ 8（swiftshader 软渲染口径）",
       "status": "pass",
-      "detail": "实测 13 fps"
+      "detail": "实测 14 fps"
     }
   ],
   "metrics": {
-    "colorCount": 31,
-    "idleDiff": 161,
-    "tapDiff": 400,
-    "fps": 13,
+    "colorCount": 26,
+    "idleDiff": 387,
+    "tapDiff": 399,
+    "fps": 14,
     "joyAreaDiff": 0,
     "joyChurn": 0,
     "scrollWidth": 390,
@@ -95,10 +89,7 @@
     "hasViewportMeta": true
   },
   "networkFailures": [],
-  "networkWarnings": [
-    "404 http://127.0.0.1:18923/favicon.ico",
-    "404 http://127.0.0.1:18923/favicon.ico"
-  ],
+  "networkWarnings": [],
   "consoleErrors": [],
   "touchCounters": {
     "afterTap": {
@@ -115,7 +106,7 @@
   "joystick": {
     "mode": "legacy",
     "reason": "未传 --project",
-    "project": null,
+    "project": "games/myrdplaygrou-3",
     "designViewport": null,
     "designRect": null,
     "cssRect": null

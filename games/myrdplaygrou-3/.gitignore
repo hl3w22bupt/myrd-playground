@@ -7,6 +7,8 @@ qa/*
 !qa/smoke
 !qa/playtest-summary.json
 !qa/visual-ratchet
+# 2026-11-11 v2 重跑：部署后取证包（experience-harness 双视口）随仓归档 = goal 验收第 5 条硬要求
+!qa/experience
 
 # dist/web/index.html 是 AppHost assets_dir 的部署产物（平台按 gitRef 构建时从仓库取），
 # 仓库根 .gitignore 的 `dist` 规则在此显式反豁免（勿删，否则部署断粮）。
