@@ -10,7 +10,7 @@ import {
   KICK_COOLDOWN, GK_HOLD_SECONDS, TACKLE_RADIUS, TACKLE_RATE, SHOT_RANGE_Z, AWAY_SHOT_RANGE_Z,
   GK_TRACK, AIM_CORNER_INSET, DRIBBLE_PENALTY,
   SUPPORT_OFFSET, SUPPORT_FW_WEIGHT, SUPPORT_OTHER_WEIGHT, PRESS_MARGIN,
-  COVER_LANE_MIX, ROUND_SECONDS,
+  COVER_LANE_MIX, ROUND_SECONDS, GOAL_CELEBRATION_SEC,
 } from "../numeric.js";
 
 /** 边界加固（E-09）：非有限数值一律回退默认 —— 注入值不得进内核 */
@@ -39,6 +39,7 @@ export function createWorld(seed) {
     shots: 0,
     goals: 0,
     timeLeft: ROUND_SECONDS,
+    celebrationLeft: 0, // 进球庆祝冻结剩余秒数（>0 = 庆祝演出窗口：全员/球/倒计时全停）
     over: false,
     won: null, // "home" | "away" | "draw"
   };
@@ -158,6 +159,13 @@ function supportSpot(p, ball) {
 export function stepWorld(w, intent, dt) {
   const events = [];
   if (w.over || !(dt > 0)) return events;
+
+  // —— 进球庆祝冻结（v3 打磨项：庆祝演出 ≥1s 且倒计时暂停）——
+  // 冻结期间球/人/计时全部停止（确定性：冻结不消费 rng、不改任何状态位），只递减庆祝计时。
+  if (w.celebrationLeft > 0) {
+    w.celebrationLeft = Math.max(0, w.celebrationLeft - dt);
+    return events;
+  }
 
   // —— 意图归一（E-09）：非有限回退 0；模长 >1 归一（对角线不加速）——
   let mx = finiteOr(intent?.moveX);
@@ -385,6 +393,7 @@ export function stepWorld(w, intent, dt) {
         if (Math.abs(ball.x) < GOAL_HALF_WIDTH - BALL_RADIUS * 0.5) {
           if (g.scoringTeam === 0) w.score.home += 1; else w.score.away += 1;
           w.goals += 1;
+          w.celebrationLeft = GOAL_CELEBRATION_SEC; // 庆祝窗口（冻结在下一步生效；倒计时暂停）
           events.push({ type: "goal", team: g.scoringTeam, score: { ...w.score } });
           kickoffReset(w);
           events.push({ type: "kickoff" });

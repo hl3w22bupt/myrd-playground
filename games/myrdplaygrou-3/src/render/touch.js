@@ -59,10 +59,11 @@ export function createTouchControls(canvas, { onConfirm, onPass, onShoot }) {
   canvas.addEventListener("touchend", release);
   canvas.addEventListener("touchcancel", release);
 
-  // —— 动作按钮（DOM，main.js 装配 DOM 时把 touchstart/click 接到 onPass/onShoot）——
+  // —— 动作按钮（DOM，main.js 装配 DOM 时把 touchstart/click 接到 onPass/onShoot；
+  //  cb 为空 = 该按钮由 main.js 自行接管（如 v3 射门钮的按住蓄力 pointer 协议），此处不绑 ——
   const bindButton = (id, cb) => {
     const el = document.getElementById(id);
-    if (!el) return;
+    if (!el || typeof cb !== "function") return;
     const fire = (e) => { e.preventDefault(); e.stopPropagation(); unlockAnd(cb); };
     el.addEventListener("touchstart", fire, { passive: false });
     el.addEventListener("click", fire);

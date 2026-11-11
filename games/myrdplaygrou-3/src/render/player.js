@@ -2,8 +2,10 @@
 // 分段四肢：骨盆→躯干→头，双臂（肩/肘两段），双腿（髋/膝两段+球鞋）—— 8 个可见关节。
 // 跑动动画由内核 phase 驱动（表现层只读，不回写内核状态）；踢球/铲球动作为表现层本地计时装饰。
 // 头身比 ≈1:3.2，圆润色块分面（风格卡 football-flat-bright · character 维度）。
+// v3：受控指示环不再随人形装配（每球员自带环 = 10 套环对象 + 可见性硬切换，是抢断切换
+// 「全队闪烁观感 + 对象翻倍」的根因之一）—— 收口到 selection-ring.js 全场唯一池化环。
 import * as THREE from "three";
-import { PALETTE, numberTexture, glowTexture } from "./textures.js";
+import { PALETTE, numberTexture } from "./textures.js";
 
 /** 共享几何（全部工程只建一份；不同球员复用，材质按队色共享 —— draw call 收口） */
 const GEO = {
@@ -17,7 +19,6 @@ const GEO = {
   lowerLeg: new THREE.BoxGeometry(0.1, 0.28, 0.1),
   shoe: new THREE.BoxGeometry(0.12, 0.09, 0.22),
   numberPlane: new THREE.PlaneGeometry(0.3, 0.3),
-  ring: new THREE.TorusGeometry(0.55, 0.05, 8, 32),
 };
 
 /** 共享材质（按 队色/部位 收口；主客门将共 5 套） */
@@ -101,19 +102,7 @@ export function buildHumanoid(scene, { team, num, isGK = false }) {
   shoeR.position.set(0, -0.28, 0.04);
   sockR.add(shoeR);
 
-  // —— 受控指示环（挂在脚边，默认隐藏；由 scene.syncPlayer 开关）——
-  const ring = new THREE.Mesh(GEO.ring, new THREE.MeshBasicMaterial({ color: PALETTE.accent, transparent: true, opacity: 0.85 }));
-  ring.rotation.x = -Math.PI / 2;
-  ring.position.y = 0.06;
-  ring.visible = false;
-  group.add(ring);
-  const glow = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: glowTexture(), blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.5,
-  }));
-  glow.scale.set(1.6, 1.6, 1);
-  glow.position.y = 0.05;
-  glow.visible = false;
-  group.add(glow);
+  // 受控指示环已收口至 selection-ring.js（全场唯一池化实例）—— 人形只装配身体段件。
 
   scene.add(group);
   return {
@@ -122,7 +111,6 @@ export function buildHumanoid(scene, { team, num, isGK = false }) {
       torsoPivot, head,
       armL, armR, elbowL, elbowR,
       legL, legR, sockL, sockR,
-      ring, glow,
     },
     /** 表现层本地装饰计时（踢腿动作）：由事件驱动，不回写内核 */
     kickTimer: 0,
@@ -135,9 +123,8 @@ export function buildHumanoid(scene, { team, num, isGK = false }) {
  * @param vis    buildHumanoid 返回值
  * @param dt     渲染 dt（仅用于踢腿装饰计时衰减）
  * @param moving 速度模长（驱动摆幅渐入渐出）
- * @param controlled 是否受控（指示环显隐）
  */
-export function syncHumanoid(player, vis, dt, moving, controlled) {
+export function syncHumanoid(player, vis, dt, moving) {
   const { group, joints } = vis;
   group.position.set(player.x, 0, player.z);
   group.rotation.y = player.angle; // 模型正面 = 局部 +Z；内核 angle=atan2(dirX,dirZ) → 直接对齐
@@ -165,8 +152,4 @@ export function syncHumanoid(player, vis, dt, moving, controlled) {
     joints.legR.rotation.x = -1.4 * k;
     joints.sockR.rotation.x = 0.5 * k;
   }
-
-  joints.ring.visible = controlled;
-  joints.glow.visible = controlled;
-  if (controlled) joints.ring.rotation.z += dt * 1.5; // 指示环慢转（纯装饰）
 }

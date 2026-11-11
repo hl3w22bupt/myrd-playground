@@ -20,6 +20,7 @@ export function createGame({ seed = SEED_DEFAULT } = {}) {
   let world = createWorld(seed);
   let state = "title";
   let acc = 0;
+  let lastScore = null; // 上一局比分（再来一局追赶目标，v3 replayHooks；重开时捕获）
   const warnings = [];
 
   /** 守卫转移：合法 true；非法 no-op 并记 warning */
@@ -82,17 +83,21 @@ export function createGame({ seed = SEED_DEFAULT } = {}) {
     get world() { return world; },
     get state() { return state; },
     get warnings() { return warnings; },
+    /** 上一局比分（再来一局追赶目标；null = 本会话第一局） */
+    get lastScore() { return lastScore; },
 
     start() { return transition("playing"); },
     pause() { return transition("paused"); },
     resume() { return transition("playing"); },
 
-    /** 重开：整 world 重建（E-10：重开必须全复位）；title 态无可重开 */
+    /** 重开：整 world 重建（E-10：重开必须全复位）；title 态无可重开。
+     *  v3 打磨：重开前捕获终局比分作 lastScore（结算屏「追上上一局」目标，零内核语义影响） */
     restart() {
       if (state === "title") {
         warnings.push({ from: state, to: "playing", reason: "restart-from-title" });
         return false;
       }
+      lastScore = { home: world.score.home, away: world.score.away };
       world = createWorld(world.seed);
       state = "playing";
       acc = 0;

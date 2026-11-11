@@ -55,6 +55,52 @@
     background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
     text-shadow: 0 0 18px rgba(243, 156, 18, 0.9); }
 
+  /* 进球比分弹跳（v3 gameFeel：scorePop 1.6x / 0.4s，按得分方基色高亮） */
+  .score-pop { animation: score-pop 0.4s ease-out; }
+  @keyframes score-pop { 0% { transform: scale(1); } 40% { transform: scale(1.6); } 100% { transform: scale(1); } }
+  .score-pop-home { color: var(--home) !important; text-shadow: 0 0 14px rgba(52, 152, 219, 0.95); }
+  .score-pop-away { color: var(--away) !important; text-shadow: 0 0 14px rgba(243, 156, 18, 0.95); }
+
+  /* HUD 常驻按键标签（v3 onboarding：移动/传球/射门文字标签 + 桌面键位角标，常驻非一次性） */
+  .key-tag { display: flex; flex-direction: column; align-items: center; gap: 2px;
+    font-size: 12px; letter-spacing: 1px; color: rgba(238, 246, 250, 0.92);
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 4px 10px; }
+  .key-tag .kbd { font-size: 10px; color: rgba(127, 223, 255, 0.85); font-weight: 700; }
+  #joy-tag { position: absolute; left: 18px; bottom: 26px; pointer-events: none; }
+  #actions { gap: 6px; }
+  #btn-shoot, #btn-pass { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+  #btn-shoot .kbd, #btn-pass .kbd { font-size: 10px; font-weight: 400; opacity: 0.85; letter-spacing: 0; }
+
+  /* 射门蓄力条（按住射门钮/空格期间线性填充） */
+  #charge-wrap { position: absolute; right: 18px; bottom: 200px; width: 88px; height: 10px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  #charge-bar { width: 0%; height: 100%; background: var(--away); transition: none; }
+
+  /* 首次操作气泡提示（首持球/被抢断各 1 次；3s 或任一操作后淡出） */
+  #bubble { position: absolute; left: 0; right: 0; top: 34%; text-align: center; pointer-events: none;
+    transition: opacity 0.3s ease; }
+  #bubble-text { display: inline-block; font-size: 16px; letter-spacing: 1px; padding: 8px 18px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px; color: var(--text); }
+  #bubble.fade { opacity: 0; }
+
+  /* 操作按钮行（教学卡/结算屏的实体按钮） */
+  .btn-row { display: flex; gap: 14px; margin-top: 10px; pointer-events: auto; }
+  .btn-primary, .btn-ghost { min-width: 132px; min-height: 48px; border-radius: 14px; font-family: inherit;
+    font-size: 17px; font-weight: 700; letter-spacing: 3px; }
+  .btn-primary { background: var(--away); color: #14100a; border: 2px solid rgba(255,255,255,0.6);
+    box-shadow: 0 0 18px rgba(243, 156, 18, 0.55); }
+  .btn-ghost { background: rgba(8,16,20,0.5); color: var(--text); border: 1px solid var(--line); }
+  .btn-primary:active, .btn-ghost:active { filter: brightness(0.85); }
+
+  /* 开屏教学卡（v3 onboarding：首次进入对局前展示，图示+文案讲清 4 个核心操作） */
+  #screen-tutorial .ops { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; max-width: 420px;
+    margin-top: 6px; text-align: left; }
+  #screen-tutorial .op { display: flex; align-items: center; gap: 10px; background: var(--panel);
+    border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+  #screen-tutorial .op .icon { font-size: 26px; width: 40px; text-align: center; }
+  #screen-tutorial .op .name { font-size: 15px; font-weight: 700; letter-spacing: 1px; }
+  #screen-tutorial .op .how { font-size: 12px; color: rgba(238, 246, 250, 0.78); line-height: 1.5; }
+
   .screen { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 12px;
     align-items: center; justify-content: center; text-align: center; background: rgba(6, 14, 18, 0.5); }
   .screen h1 { font-size: 38px; letter-spacing: 6px; text-shadow: 0 0 18px rgba(52, 152, 219, 0.9); }
@@ -72,18 +118,34 @@
     <span class="chip">⏱ <span id="time">90</span>s</span>
     <button id="btn-pause" aria-label="暂停">Ⅱ</button>
   </div>
+  <div id="joy-tag" class="key-tag hidden" data-hud-label="移动"><span>移动</span><span class="kbd">WASD / 摇杆</span></div>
   <div id="actions" class="hidden">
-    <button id="btn-pass" aria-label="传球">传球</button>
-    <button id="btn-shoot" aria-label="射门">射门</button>
+    <button id="btn-pass" aria-label="传球" data-hud-label="传球">传球<span class="kbd">X</span></button>
+    <button id="btn-shoot" aria-label="射门" data-hud-label="射门">射门<span class="kbd">空格 蓄力</span></button>
   </div>
+  <div id="charge-wrap" class="hidden"><div id="charge-bar"></div></div>
   <div id="joy-base" class="hidden"></div>
   <div id="joy-stick" class="hidden"></div>
   <div id="banner" class="hidden"><span id="banner-text"></span></div>
+  <div id="bubble" class="hidden"><span id="bubble-text"></span></div>
 
+  <div id="screen-tutorial" class="screen hidden">
+    <h1>怎么玩 · 30 秒上手</h1>
+    <div class="ops">
+      <div class="op" data-op="move"><span class="icon">🕹️</span><span><span class="name">移动</span><br><span class="how">左半屏摇杆 / WASD·方向键</span></span></div>
+      <div class="op" data-op="pass"><span class="icon">🅿️</span><span><span class="name">传球</span><br><span class="how">右下「传球」钮 / X 键 —— 传给最合适的队友</span></span></div>
+      <div class="op" data-op="shoot"><span class="icon">🎯</span><span><span class="name">射门</span><br><span class="how">按住「射门」蓄力松开 / 空格 —— 蓄力越久音调越高</span></span></div>
+      <div class="op" data-op="switch"><span class="icon">🔄</span><span><span class="name">切换</span><br><span class="how">无球时自动切到离球最近的队友（脚下光环）</span></span></div>
+    </div>
+    <div class="btn-row">
+      <button id="btn-tutorial-start" class="btn-primary">开始比赛</button>
+      <button id="btn-tutorial-skip" class="btn-ghost">跳过</button>
+    </div>
+  </div>
   <div id="screen-title" class="screen">
     <h1>实况足球 · GOAL RUSH</h1>
     <p>5v5 小场实况 —— 带球、传球、射门，90 秒一局</p>
-    <p>键盘：WASD / 方向键移动 · 空格 射门 · X 传球 · P 暂停 · R 重开</p>
+    <p>键盘：WASD / 方向键移动 · 空格按住蓄力射门 · X 传球 · P 暂停 · R 重开</p>
     <p>触屏：左半屏摇杆移动 · 右下 传球/射门 按钮 · 右半屏点按确认</p>
     <p class="cta">按 回车 / 点按右侧 开球</p>
   </div>
@@ -94,7 +156,11 @@
   <div id="screen-over" class="screen hidden">
     <h1 id="over-title">终场</h1>
     <p id="over-detail"></p>
-    <p class="cta">按 回车 / 点按右侧 再来一局</p>
+    <p id="over-hint"></p>
+    <p id="over-chase" class="cta"></p>
+    <div class="btn-row">
+      <button id="btn-rematch" class="btn-primary">再来一局</button>
+    </div>
   </div>
   <div id="ts-smoke"></div>
 </div>

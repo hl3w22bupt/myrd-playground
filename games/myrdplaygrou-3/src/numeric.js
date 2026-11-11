@@ -52,3 +52,31 @@ export const COVER_LANE_MIX = 0.5;       // 协防点 = 球位与本方第二近
 // —— 阵型 / 队伍 ——
 export const TEAM_SIZE = 5;              // 每队人数（5v5 量级：含门将 GK + DF + MF + FW + FW）
 export const FORMATION_SPREAD_X = 8;     // 阵型横向散布（米）
+
+// —— 新手引导（spec v3 numeric.onboarding 镜像：缺陷单 cmwbumwtv 可发现性） ——
+export const TUTORIAL_CARD_SHOW_PER_PROFILE = 1; // 教学卡每档案展示次数上限（localStorage 已读标记）
+export const TUTORIAL_CARD_SKIPPABLE = true;     // 教学卡可跳过（跳过 = 写已读标记）
+export const TUTORIAL_CARD_PAUSE_COUNTDOWN = true; // 教学卡展示期间比赛倒计时暂停（教学卡在 title 态，title 零推进）
+export const HUD_LABEL_PERSISTENT = true;        // HUD 操作标签常驻（移动/传球/射门，非一次性提示）
+export const FIRST_TOUCH_PROMPT_SEC = 3;         // 首次持球气泡持续秒数（或任一操作后淡出）
+export const FIRST_TOUCH_PROMPT_PER_PROFILE = 1; // 同一提示每档案最多出现次数（首次持球/首次被抢断各 1 次）
+
+// —— 控制权切换视觉规范（spec v3 numeric.switchFx 镜像：缺陷单 cmwbumwrj 闪烁卡顿修复锚点） ——
+export const SWITCH_RING_MAX_CONCURRENT = 1;     // 全场同时渲染的高亮环实例数上限（仅新选中球员）
+export const SWITCH_RING_MESH_POOLED = true;     // 高亮环对象池化复用（切换瞬间零新建 mesh/材质）
+export const SWITCH_PULSE_FADE_IN_SEC = 0.15;    // 切换脉冲：0.15s 渐入
+export const SWITCH_PULSE_STEADY_SEC = 0.35;     // 切换脉冲：0.35s 回稳常亮（此后不循环闪烁）
+export const SWITCH_FADE_OUT_SEC = 0.25;         // 失去控制权：高亮 0.25s 渐出移除
+export const SWITCH_SCALE_FROM = 0.6;            // 切换脉冲起始缩放（easeOutCubic → 1.0）
+export const SWITCH_FULL_TEAM_FLASH_ALLOWED = false; // 红线：禁止整队闪烁/批量材质切换作切换反馈
+
+// —— 可玩性打磨（spec v3 numeric.gameFeel 镜像：进球反馈/再来一局/手感音效） ——
+export const GOAL_CELEBRATION_SEC = 1.2;         // 进球庆祝演出时长（≥1s；庆祝期间比赛倒计时冻结）
+export const CELEBRATION_TIME_SCALE = 0.3;       // 庆祝窗口表现层时间流速（彩带慢动作，内核零影响）
+export const SHOOT_HIT_STOP_MS = 60;             // 射门瞬间打击停顿（ms，≤100；表现层冻结窗口）
+export const TACKLE_RUMBLE_MS = 80;              // 抢断触觉震动时长（ms；navigator.vibrate）
+export const BGM_DUCK_PERCENT_DURING_CELEBRATION = 30; // 庆祝期间 BGM 压低百分比（结束恢复）
+export const SCORE_POP_SCALE = 1.6;              // 进球方比分数字弹跳峰值缩放
+export const SCORE_POP_SEC = 0.4;                // 比分弹跳时长（秒）
+export const PASS_TARGET_SNAP_ANGLE_DEG = 25;    // 传球目标吸附角（度）：夹角内候选加成（手感助攻）
+export const REMATCH_LOAD_SECONDS_MAX = 2;       // 「再来一局」载入上限（同步重建 world，实测远低于此）

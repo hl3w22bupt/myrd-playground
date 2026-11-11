@@ -7,6 +7,7 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { PALETTE, pitchTexture, ballTexture, netTexture } from "./textures.js";
 import { buildHumanoid, syncHumanoid } from "./player.js";
+import { createSelectionRing } from "./selection-ring.js";
 import { GOALS } from "../levels/pitch.js";
 import { PITCH_HALF_X, PITCH_HALF_Z, BALL_RADIUS, GOAL_HALF_WIDTH } from "../numeric.js";
 
@@ -168,26 +169,30 @@ export function buildBall(scene) {
   return ball;
 }
 
-/** 10 名关节人形（按内核 players 队色/号码装配） */
+/** 10 名关节人形（按内核 players 队色/号码装配）+ 全场唯一池化高亮环（v3 切换规范） */
 export function buildPlayers(scene, world) {
-  return world.players.map((p) => {
+  const visList = world.players.map((p) => {
     const vis = buildHumanoid(scene, { team: p.team, num: p.num, isGK: p.role === "GK" });
     let meshCount = 0;
-    vis.group.traverse((o) => { if (o.isMesh) meshCount++; }); // 段件口径 = 关节树全部 mesh（躯干/头/四肢段/鞋/号/环）
+    vis.group.traverse((o) => { if (o.isMesh) meshCount++; }); // 段件口径 = 关节树全部 mesh（躯干/头/四肢段/鞋/号）
     return { ...vis, id: p.id, meshCount };
   });
+  const selectionRing = createSelectionRing(scene); // 单实例对象池：全场最多 1 个高亮环
+  return { visList, selectionRing };
 }
 
-/** 逐帧同步全部人形（只读内核：位置/朝向/相位/受控显隐；事件驱动的踢腿在 main 侧置位） */
-export function syncPlayers(scene, playerVis, world, dt) {
+/** 逐帧同步全部人形 + 高亮环（只读内核；事件驱动的踢腿在 main 侧置位） */
+export function syncPlayers(scene, playersBundle, world, dt, highlightActive = true) {
+  const { visList, selectionRing } = playersBundle;
   let segments = 0;
-  for (const vis of playerVis) {
+  for (const vis of visList) {
     const p = world.players[vis.id];
     const moving = Math.hypot(p.vx, p.vz);
-    const controlled = vis.id === world.controlledId;
-    syncHumanoid(p, vis, dt, moving, controlled);
+    syncHumanoid(p, vis, dt, moving);
     segments += vis.meshCount;
   }
+  const target = highlightActive ? (world.players[world.controlledId] ?? null) : null;
+  selectionRing.update(target, dt, highlightActive);
   return segments;
 }
 
