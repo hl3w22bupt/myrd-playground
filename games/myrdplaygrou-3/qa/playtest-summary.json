@@ -3,9 +3,9 @@
   "generatedBy": "playtest-summary.mjs",
   "valid": false,
   "gamePath": "games/myrdplaygrou-3",
-  "versionSha": "d76b72a2",
+  "versionSha": "c7a5b8768a2bda87eb3da96d1a5b4a3266531ba9",
   "startedAt": "2026-11-11T08:25:00.000Z",
-  "endedAt": "2026-11-11T11:27:01.039Z",
+  "endedAt": "2026-11-11T12:20:19.675Z",
   "rounds": [
     {
       "round": 1,
@@ -141,13 +141,13 @@
         },
         {
           "path": "qa/smoke/smoke-desktop.png",
-          "bytes": 131934,
-          "mtime": "2026-11-11T11:17:33.631Z"
+          "bytes": 132410,
+          "mtime": "2026-11-11T12:20:19.672Z"
         },
         {
           "path": "qa/smoke/smoke-mobile.png",
-          "bytes": 104797,
-          "mtime": "2026-11-11T11:17:33.632Z"
+          "bytes": 105273,
+          "mtime": "2026-11-11T12:20:19.675Z"
         }
       ],
       "improvements": null,
@@ -213,8 +213,8 @@
         },
         {
           "path": "qa/smoke/smoke-desktop.png",
-          "bytes": 131934,
-          "mtime": "2026-11-11T11:17:33.631Z"
+          "bytes": 132410,
+          "mtime": "2026-11-11T12:20:19.672Z"
         }
       ],
       "improvements": "- **IP-2 球门无网、射门目标辨识弱**（出处：round-6 后 qa/smoke/smoke-desktop.png + qa/experience v7 部署包 02 初始画面——球门呈灰白线框/扁条，无网面结构）。",
@@ -380,13 +380,13 @@
       "screenshots": [
         {
           "path": "qa/smoke/smoke-mobile.png",
-          "bytes": 104797,
-          "mtime": "2026-11-11T11:17:33.632Z"
+          "bytes": 105273,
+          "mtime": "2026-11-11T12:20:19.675Z"
         },
         {
           "path": "qa/smoke/smoke-desktop.png",
-          "bytes": 131934,
-          "mtime": "2026-11-11T11:17:33.631Z"
+          "bytes": 132410,
+          "mtime": "2026-11-11T12:20:19.672Z"
         },
         {
           "path": "qa/mobile/phase-joystick.png",
@@ -819,13 +819,13 @@
     },
     {
       "path": "qa/smoke/smoke-desktop.png",
-      "bytes": 131934,
-      "mtime": "2026-11-11T11:17:33.631Z"
+      "bytes": 132410,
+      "mtime": "2026-11-11T12:20:19.672Z"
     },
     {
       "path": "qa/smoke/smoke-mobile.png",
-      "bytes": 104797,
-      "mtime": "2026-11-11T11:17:33.632Z"
+      "bytes": 105273,
+      "mtime": "2026-11-11T12:20:19.675Z"
     },
     {
       "path": "qa/playtest/steps/round6-base-03-joy.png",
@@ -859,8 +859,8 @@
     },
     {
       "path": "qa/smoke/smoke-desktop.png",
-      "bytes": 131934,
-      "mtime": "2026-11-11T11:17:33.631Z"
+      "bytes": 132410,
+      "mtime": "2026-11-11T12:20:19.672Z"
     },
     {
       "path": "qa/playtest/steps/round8-celebration-session.png",
@@ -934,13 +934,13 @@
     },
     {
       "path": "qa/smoke/smoke-mobile.png",
-      "bytes": 104797,
-      "mtime": "2026-11-11T11:17:33.632Z"
+      "bytes": 105273,
+      "mtime": "2026-11-11T12:20:19.675Z"
     },
     {
       "path": "qa/smoke/smoke-desktop.png",
-      "bytes": 131934,
-      "mtime": "2026-11-11T11:17:33.631Z"
+      "bytes": 132410,
+      "mtime": "2026-11-11T12:20:19.672Z"
     },
     {
       "path": "qa/mobile/phase-joystick.png",
