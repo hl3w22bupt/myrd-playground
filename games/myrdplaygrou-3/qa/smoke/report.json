@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "kind": "browser-smoke-report",
-  "product": "/Users/leo/.myrd/workspaces/cmvqriupu0007m9qphvokoci9/run-cmwbl6h6e008am97aetlijmmv/games/myrdplaygrou-3/index.html",
+  "product": "/Users/leo/.myrd/workspaces/cmvqriupu0007m9qphvokoci9/run-cmwbusk2s0019m9bbvj1h07sq/games/myrdplaygrou-3/index.html",
   "seconds": 62,
-  "checkedAt": "2026-11-11T08:10:55.261Z",
+  "checkedAt": "2026-11-11T11:17:33.632Z",
   "note": "render 性能快照为证据记录，非硬门禁（headless SwiftShader 软渲染，阈值待采集基线）",
   "viewports": [
     {
@@ -18,9 +18,9 @@
         "score": 1,
         "scoreHome": 1,
         "scoreAway": 0,
-        "timeLeft": 28.000000000003524,
+        "timeLeft": 29.200000000003456,
         "frames": 30,
-        "fps": 11,
+        "fps": 12.4,
         "exceptions": 0,
         "playersOnField": 10,
         "teams": 2,
@@ -32,23 +32,43 @@
           "ok": true
         },
         "goals": 1,
-        "shots": 8,
-        "possessionChanges": 73,
+        "shots": 7,
+        "possessionChanges": 70,
+        "switchRing": {
+          "instanceCount": 1,
+          "switchCount": 1,
+          "visible": true
+        },
+        "onboarding": {
+          "tutorialCardPresent": true,
+          "tutorialSkipPresent": true,
+          "tutorialStartPresent": true,
+          "hudLabels": [
+            "移动",
+            "传球",
+            "射门"
+          ],
+          "bubblePresent": true,
+          "rematchButtonPresent": true
+        },
+        "celebration": {
+          "celebrationLeft": 0
+        },
         "viewport": {
           "width": 1280,
           "height": 577,
           "dpr": 1
         },
         "render": {
-          "drawCalls": 85,
-          "triangles": 1708,
+          "drawCalls": 135,
+          "triangles": 4096,
           "geometries": 30,
           "textures": 30,
           "programs": 17,
-          "playerSegments": 160
+          "playerSegments": 150
         }
       },
-      "pixelColors": 49,
+      "pixelColors": 52,
       "consoleErrors": 0,
       "screenshot": "smoke-desktop.png"
     },
@@ -64,9 +84,9 @@
         "score": 1,
         "scoreHome": 1,
         "scoreAway": 0,
-        "timeLeft": 28.000000000003524,
+        "timeLeft": 29.200000000003456,
         "frames": 30,
-        "fps": 11,
+        "fps": 13.2,
         "exceptions": 0,
         "playersOnField": 10,
         "teams": 2,
@@ -78,23 +98,43 @@
           "ok": true
         },
         "goals": 1,
-        "shots": 8,
-        "possessionChanges": 73,
+        "shots": 7,
+        "possessionChanges": 70,
+        "switchRing": {
+          "instanceCount": 1,
+          "switchCount": 1,
+          "visible": true
+        },
+        "onboarding": {
+          "tutorialCardPresent": true,
+          "tutorialSkipPresent": true,
+          "tutorialStartPresent": true,
+          "hudLabels": [
+            "移动",
+            "传球",
+            "射门"
+          ],
+          "bubblePresent": true,
+          "rematchButtonPresent": true
+        },
+        "celebration": {
+          "celebrationLeft": 0
+        },
         "viewport": {
           "width": 720,
           "height": 1137,
           "dpr": 1
         },
         "render": {
-          "drawCalls": 85,
-          "triangles": 1708,
+          "drawCalls": 178,
+          "triangles": 5826,
           "geometries": 30,
           "textures": 30,
           "programs": 17,
-          "playerSegments": 160
+          "playerSegments": 150
         }
       },
-      "pixelColors": 37,
+      "pixelColors": 38,
       "consoleErrors": 0,
       "screenshot": "smoke-mobile.png"
     }

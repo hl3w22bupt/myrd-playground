@@ -6,16 +6,24 @@
       "slug": "myrdplaygrou-3",
       "genre": "休闲收集（3D 实况足球）",
       "oneLiner": "3D 实况足球：5v5 小场，带球、传球、射门，90 秒一局",
-      "version": "v2",
+      "version": "v3",
+      "upstreamSpecId": "cmwburjse0011m9bb8t1mjuqn",
+      "upstreamVersion": 3,
+      "upstreamStatus": "approved（parent = v2 cmwbl64r10082m97atgikgm0o）",
       "v2Delta": [
         "方向键验收标准（缺陷单 sf-bug-controls：左右反向 → 语义钉死 + 双端机判）",
         "多球员两队实况机制（5v5、队友接应传球、对方逼抢、全员盯人防守）",
         "球员建模规格（简单几何体 → 程序化关节人形：分段四肢/跑动动画/队服色+号码）"
       ],
+      "v3Delta": [
+        "新手引导与操作可发现性（缺陷单 cmwbumwtv000sm9bbmm3zs0kc：开屏教学卡 + HUD 常驻标签 + 首次触球/被抢断气泡三层递进）",
+        "控制权切换视觉规范（缺陷单 cmwbumwrj000qm9bb4s5v0lm6：全场唯一池化高亮环、单次脉冲平滑过渡、禁止整队闪烁、切换零帧尖峰）",
+        "可玩性打磨项（进球庆祝 1.2s 冻结 + 比分弹跳 + 再来一局主按钮追赶目标 + 手感音效：蓄力升调/60ms hit-stop/庆祝 BGM 压低 30%）"
+      ],
       "artStyle": "扁平明快（#3498db / #2ecc71 / #f39c12）",
       "inputStyle": "触屏优先（兼容键盘）",
       "orientation": "竖屏（手机优先）",
-      "roundLength": "1-3 分钟一局（90 秒）",
+      "roundLength": "1-3 分钟一局（90 秒净比赛 + 庆祝冻结不计时）",
       "difficulty": "平缓大众",
       "audio": "BGM 与音效齐备（WebAudio 程序化合成，零音频文件）",
       "styleReference": "无（用户未提供，跳过下载）"
@@ -25,9 +33,30 @@
       "uxCommitments": [
         "竖屏长轴 = 进攻方向（-Z），镜头球后上方跟随",
         "触屏：左半屏摇杆移动、右下 传球/射门 按钮、右半屏点按确认；热区 ≥44px",
-        "键盘：WASD/方向键移动、空格射门、X 传球、P 暂停、R 重开",
-        "结果性事件全部挂反馈：踢球/射门（音效+踢腿动画）、进球（横幅+欢呼）、终场（哨音+结算屏）"
-      ]
+        "键盘：WASD/方向键移动、空格蓄力射门、X 传球、P 暂停、R 重开",
+        "结果性事件全部挂反馈：踢球/射门（音效+踢腿动画）、进球（横幅+欢呼+彩带+特写机位）、终场（哨音+结算屏）",
+        "控制权切换只以「单球员脚下高亮环 + 确认音」作反馈，全场最多 1 个环（v3 selectionHighlight）",
+        "新手引导三层递进：开屏教学卡（仅首次可跳过）→ HUD 常驻标签 → 首次持球/被抢断气泡（v3 onboarding）"
+      ],
+      "onboarding": {
+        "discoverabilityPrinciple": "教学卡（学一次）→ HUD 常驻标签（记一直）→ 首次触球/被抢断气泡（即时救场）；教学卡文案与 HUD 标签共用同一术语表",
+        "tutorialCard": "首次进入对局前展示：图示+文案讲清移动/传球/射门/切换 4 个核心操作；主按钮「开始比赛」、次按钮「跳过」；展示期间比赛未开始 = 倒计时天然暂停；已读标记写 localStorage（gr-tutorial-seen-v3），同档案不再展示",
+        "hudKeyLabels": "常驻标签：摇杆旁「移动」、传球钮「传球」、射门钮「射门」，桌面端叠加键位角标（WASD·方向键 / X / 空格蓄力）；只在 playing 态展示，不遮挡比分/球门/蓄力条",
+        "firstTouchPrompt": "首次持球气泡「带球啦——传球/蓄力射门」（3 秒或任一操作后淡出）；首次被抢断气泡「即将自动切换到离球最近的队友」；各提示每档案最多 1 次"
+      },
+      "selectionHighlight": {
+        "singleHighlightOnly": "全场同时最多 1 个高亮环实例（对象池单实例），仅新选中球员持有；严禁全队闪烁/批量描边/多球员同时高亮",
+        "singlePulse": "单次脉冲：0.15s 渐入 + 0.35s 回稳常亮（不循环闪烁）；失去控制权 0.25s 渐出移除",
+        "smoothTransition": "缩放 0.6→1.0（easeOutCubic）+ 不透明度逐帧连续插值；位置平滑跟随（帧率无关 lerp）；切换不引起相机/HUD 跳动",
+        "pooled": "mesh/材质/光斑纹理构建期一次性创建，切换瞬间零新建 mesh/材质、零全场景遍历（帧尖峰根因消除）；隐藏时 group.visible=false 零绘制",
+        "noFullTeamFlash": "红线：禁止任何形式的整队闪烁、全屏闪白或批量材质切换作切换反馈（SWITCH_FULL_TEAM_FLASH_ALLOWED=false）"
+      },
+      "gameFeel": {
+        "goalCelebration": "进球后 1.2s 庆祝演出：内核 celebrationLeft 冻结（球/人/倒计时全停）+ 表现层彩带慢动作（0.3 倍速）+ FOV 冲击 + 进球特写机位 2.2s 锁门",
+        "scoreFeedback": "HUD 比分数字弹跳放大 1.6 倍并按得分方基色高亮（蓝/橙）0.4s，同时播放进球欢呼；失球方不做全屏遮罩不打断操作",
+        "rematchMotivation": "结算屏「再来一局」为视觉主按钮：一键同步重建 world（载入远低于 2s 上限），保留上局比分作追赶目标；败局结算附一句针对性改进提示",
+        "feelTuning": "射门蓄力音调线性升高（220→880Hz）+ 松手瞬间 60ms 打击停顿（hit-stop）；抢断 80ms 微震 + 低频噪声；切换确认音（880→1320Hz 正弦）与抢断噪声（低通 500Hz）异频段互不打断；庆祝期间 BGM 增益压低 30% 后恢复"
+      }
     },
     "numeric": {
       "FIXED_STEP": 0.016666666666666666,
@@ -72,20 +101,60 @@
         "gk": "#1e8449",
         "accentLight": "#7fdfff"
       },
-      "balanceNote": "AI-vs-AI 10 种子基线：主 10 球 / 客 2 球，5 胜 5 平 0 负 —— 平缓大众（玩家速度 7.2 > AI 6.4，玩家是胜负手）；手感类参数需人工试玩校准"
+      "balanceNote": "AI-vs-AI 10 种子基线：主 10 球 / 客 2 球，5 胜 5 平 0 负 —— 平缓大众（玩家速度 7.2 > AI 6.4，玩家是胜负手）；手感类参数需人工试玩校准",
+      "onboarding": {
+        "v3Source": "spec v3 numeric.onboarding（缺陷单 cmwbumwtv）；numeric.js 镜像键 = TUTORIAL_*/HUD_LABEL_PERSISTENT/FIRST_TOUCH_*",
+        "tutorialCardShowPerProfile": 1,
+        "tutorialCardSkippable": true,
+        "tutorialCardPauseCountdown": true,
+        "hudLabelPersistent": true,
+        "firstTouchPromptDurationSec": 3,
+        "firstTouchPromptPerProfile": 1
+      },
+      "switchFx": {
+        "v3Source": "spec v3 numeric.switchFx（缺陷单 cmwbumwrj）；numeric.js 镜像键 = SWITCH_*",
+        "highlightRingMaxConcurrent": 1,
+        "ringMeshPooled": true,
+        "pulseFadeInSec": 0.15,
+        "pulseSteadySec": 0.35,
+        "fadeOutSec": 0.25,
+        "scaleFromTo": [0.6, 1],
+        "easing": "easeOutCubic",
+        "fullTeamFlashAllowed": false
+      },
+      "gameFeel": {
+        "v3Source": "spec v3 numeric.gameFeel（打磨项）；numeric.js 镜像键 = GOAL_CELEBRATION_SEC/CELEBRATION_TIME_SCALE/SHOOT_HIT_STOP_MS/TACKLE_RUMBLE_MS/BGM_DUCK_PERCENT_DURING_CELEBRATION/SCORE_POP_*/PASS_TARGET_SNAP_ANGLE_DEG/REMATCH_LOAD_SECONDS_MAX",
+        "goalCelebrationSec": 1.2,
+        "celebrationTimeScale": 0.3,
+        "shootHitStopMs": 60,
+        "tackleRumbleMs": 80,
+        "bgmDuckPercentDuringCelebration": 30,
+        "scorePopScale": 1.6,
+        "scorePopSec": 0.4,
+        "passTargetSnapAngleDeg": 25,
+        "rematchLoadSecondsMax": 2
+      },
+      "performance": {
+        "v3Source": "spec v3 numeric.performance（acc-tackle-switch-perf 机判口径）",
+        "targetFps": 60,
+        "frameBudgetMs": 16.7,
+        "tackleSwitchWindowSec": 1,
+        "tackleSwitchMaxFrameMs": 33,
+        "tackleSwitchMinAvgFps": 50
+      }
     },
     "entities": [
       {
         "id": "e-kernel-loop",
         "kind": "kernel",
         "script": "games/myrdplaygrou-3/src/kernel/loop.js",
-        "expect": "mulberry32 种子随机 + 固定步长累加器 + title/playing/paused/gameover 四态守卫转移 + fastForward 无头钩子；零 Math.random/Date.now"
+        "expect": "mulberry32 种子随机 + 固定步长累加器 + title/playing/paused/gameover 四态守卫转移 + fastForward 无头钩子 + restart 捕获 lastScore（再来一局追赶目标）；零 Math.random/Date.now"
       },
       {
         "id": "e-kernel-world",
         "kind": "kernel",
         "script": "games/myrdplaygrou-3/src/kernel/world.js",
-        "expect": "5v5 球员/球/抢断(泊松)/传球评分/远角射门/门将扑救/进球判定/开球重置；rng 唯一随机源；有限值加固"
+        "expect": "5v5 球员/球/抢断(泊松)/传球评分/远角射门/门将扑救/进球判定/开球重置 + v3 庆祝冻结窗（celebrationLeft>0 时球/人/倒计时全停，冻结不消费 rng）；rng 唯一随机源；有限值加固"
       },
       {
         "id": "e-kernel-autopilot",
@@ -109,43 +178,67 @@
         "id": "e-input-touch",
         "kind": "input",
         "script": "games/myrdplaygrou-3/src/render/touch.js",
-        "expect": "左半屏虚拟摇杆（stickToIntent 纯函数）+ 传球/射门按钮 + 右半屏点按确认；触摸只产意图不改状态"
+        "expect": "左半屏虚拟摇杆（stickToIntent 纯函数）+ 传球按钮 + 右半屏点按确认；射门改为按住蓄力/松手起脚（main.js pointer 沿）"
       },
       {
         "id": "e-render-humanoid",
         "kind": "render",
         "script": "games/myrdplaygrou-3/src/render/player.js",
-        "expect": "程序化关节人形：骨盆/躯干/头 + 双臂肩肘两段 + 双腿髋膝两段 + 球鞋（8 关节）；跑动相位动画由内核 phase 驱动；队服色+背号贴图；受控指示环"
+        "expect": "程序化关节人形：骨盆/躯干/头 + 双臂肩肘两段 + 双腿髋膝两段 + 球鞋（8 关节）；跑动相位动画由内核 phase 驱动；队服色+背号贴图；受控指示环由 e-render-selection-ring 统一承担"
+      },
+      {
+        "id": "e-render-selection-ring",
+        "kind": "render",
+        "script": "games/myrdplaygrou-3/src/render/selection-ring.js",
+        "expect": "控制权切换高亮环（v3 / 缺陷单 cmwbumwrj 修复本体）：对象池单实例（instanceCount 恒 1）、单次脉冲 0.15s+0.35s、失权 0.25s 渐出、easeOutCubic 缩放 0.6→1.0、位置平滑跟随、零逐帧分配、隐藏零绘制"
+      },
+      {
+        "id": "e-render-celebrate",
+        "kind": "render",
+        "script": "games/myrdplaygrou-3/src/render/celebrate.js",
+        "expect": "进球彩带粒子池（Points 单 drawCall，队色三色，空闲零绘制）+ 镜头 FOV 冲击（IP-3）"
       },
       {
         "id": "e-render-scene",
         "kind": "render",
         "script": "games/myrdplaygrou-3/src/render/scene.js",
-        "expect": "画质四件套（Bloom/ACES/雾/PCFSoft 阴影）+ 球场标线/球门/挡板 + 球滚动 + 跟随镜头"
+        "expect": "画质四件套（Bloom/ACES/雾/PCFSoft 阴影）+ 球场标线/球门三面网/挡板 + 球滚动 + 宽高比自适应跟随镜头 + 进球特写机位（goalHold）"
       },
       {
         "id": "e-render-audio",
         "kind": "render",
         "script": "games/myrdplaygrou-3/src/render/audio.js",
-        "expect": "WebAudio 程序化：踢球/射门/哨音/进球欢呼/抢断 + 128BPM BGM 循环 + 观众氛围；首手势解锁；window.__audioDebug 契约"
+        "expect": "WebAudio 程序化：踢球/射门/哨音/进球欢呼/抢断 + 128BPM BGM 循环 + 观众氛围 + v3 手感（chargeTone 蓄力线性升调 220→880Hz、switchConfirm 切换确认音与抢断异频段、duckBgm 庆祝压低 30%）；首手势解锁；window.__audioDebug 契约"
       },
       {
         "id": "e-render-hud",
         "kind": "render",
         "script": "games/myrdplaygrou-3/src/render/hud.js",
-        "expect": "比分/计时 chips + 进球横幅 + 三态屏幕（title/paused/over）+ 摇杆可视化"
+        "expect": "比分/计时 chips + 进球横幅 + 四态屏幕（title/tutorial/paused/over）+ 摇杆可视化 + v3（教学卡已读标记 localStorage、常驻标签显隐、一次性气泡、比分弹跳 score-pop、蓄力条、再来一局追赶目标）"
+      },
+      {
+        "id": "e-ui-tutorial-card",
+        "kind": "ui",
+        "script": "games/myrdplaygrou-3/index.template.html#screen-tutorial",
+        "expect": "开屏教学卡（v3 / 缺陷单 cmwbumwtv）：一屏图示+文案讲清 移动/传球/射门/切换 四操作（触屏+键盘双说明）；「开始比赛」主按钮 +「跳过」次按钮；展示期间倒计时天然暂停（比赛未开始）"
+      },
+      {
+        "id": "e-ui-hud-hints",
+        "kind": "ui",
+        "script": "games/myrdplaygrou-3/index.template.html#hud 标签/bubble",
+        "expect": "HUD 常驻按键标签（data-hud-label = 移动/传球/射门，桌面键位角标叠加）+ 首次触球/被抢断一次性气泡（3s 或操作后淡出，每档案 1 次）"
       },
       {
         "id": "e-main",
         "kind": "app",
         "script": "games/myrdplaygrou-3/src/main.js",
-        "expect": "装配根：输入双端合并 intent（动作沿）→ 内核 tick → 事件反馈 → 只读渲染；?smoke= 协议（payload 含 inputProbe/playersOnField/teams/render 快照）"
+        "expect": "装配根：输入双端合并 intent（动作沿）→ 内核 tick → 事件反馈 → 只读渲染；v3 蓄力沿（按住蓄力/松手起脚 + 60ms hit-stop）；教学卡/再来一局入口；?smoke= 协议（payload 含 inputProbe/playersOnField/teams/switchRing/onboarding/celebration/render 快照）"
       },
       {
         "id": "e-numeric",
         "kind": "kernel",
         "script": "games/myrdplaygrou-3/src/numeric.js",
-        "expect": "数值唯一来源（本 spec.numeric 的代码镜像，禁止散落魔数）"
+        "expect": "数值唯一来源（本 spec.numeric 的代码镜像，禁止散落魔数；v3 新增 TUTORIAL_*/SWITCH_*/GOAL_CELEBRATION_SEC 等镜像键）"
       }
     ],
     "levels": [
@@ -155,9 +248,13 @@
         "file": "games/myrdplaygrou-3/src/levels/pitch.js",
         "elements": [
           { "id": "pitch-60x40", "kind": "field", "detail": "26×40 米（PITCH_HALF 13/20），笼式挡板反弹无出界" },
-          { "id": "goal-north", "kind": "goal", "detail": "z=-20 门（主队进攻目标），半宽 3.2" },
-          { "id": "goal-south", "kind": "goal", "detail": "z=+20 门（客队进攻目标），半宽 3.2" },
-          { "id": "kickoff-5v5", "kind": "formation", "detail": "主客镜像开球阵型（GK/DF/MF/FW×2，号码 1-5）" }
+          { "id": "goal-north", "kind": "goal", "detail": "z=-20 门（主队进攻目标），半宽 3.2，三面网" },
+          { "id": "goal-south", "kind": "goal", "detail": "z=+20 门（客队进攻目标），半宽 3.2，三面网" },
+          { "id": "kickoff-5v5", "kind": "formation", "detail": "主客镜像开球阵型（GK/DF/MF/FW×2，号码 1-5）" },
+          { "id": "tutorial-card-overlay", "kind": "ui", "detail": "开屏教学卡（仅档案首次，可跳过；展示期间倒计时暂停）—— v3 onboarding" },
+          { "id": "hud-hint-layer", "kind": "ui", "detail": "HUD 常驻按键标签 + 首次持球/被抢断一次性气泡 —— v3 onboarding" },
+          { "id": "selection-ring", "kind": "fx", "detail": "控制权切换高亮环（单实例池化，单次脉冲平滑过渡）—— v3 selectionHighlight" },
+          { "id": "goal-celebration-fx", "kind": "fx", "detail": "进球庆祝演出（内核冻结 1.2s + 彩带慢动作 + 比分弹跳 + 特写机位）—— v3 gameFeel" }
         ]
       }
     ],
@@ -178,7 +275,7 @@
         "id": "ac-teammate-support-and-press",
         "mode": "auto",
         "check": "node games/myrdplaygrou-3/tests/football-contract.spec.mjs",
-        "statement": "实况机制：主队持球时无球队友前压接应 ≥2 人；客队持球时主队防守者 2s 内显著逼近持球人（距离 <60% 初值）；90s 对局传球 ≥5、抢断 ≥2、射门 ≥2、球权易手 ≥20。"
+        "statement": "实况机制：主队持球时无球队友前压接应 ≥2 人；客队持球时主队防守者 2s 内显著逼近持球人（距离 <60% 初值）；完整对局传球 ≥5、抢断 ≥2、射门 ≥2、球权易手 ≥20。"
       },
       {
         "id": "ac-humanoid-model",
@@ -196,7 +293,49 @@
         "id": "ac-round-duration",
         "mode": "auto",
         "check": "node games/myrdplaygrou-3/tests/kernel-determinism.spec.mjs",
-        "statement": "单局 90 秒（∈[60,180] 创作决策带）：自动驾驶跑满 90s 终局（gameover，timeLeft 归零）。"
+        "statement": "单局 90 秒净比赛（∈[60,180] 创作决策带）：自动驾驶跑满后终局（gameover，timeLeft 归零）；进球庆祝冻结秒数不消耗比赛时间（快进预算含庆祝头顶）。"
+      },
+      {
+        "id": "ac-onboarding-card",
+        "mode": "auto",
+        "check": "node games/myrdplaygrou-3/tests/smoke-payload.contract.mjs",
+        "statement": "开屏教学卡（缺陷单 cmwbumwtv / acc-onboarding-card）：教学卡 DOM + 「开始比赛/跳过」双按钮存在；首次进入对局前展示（localStorage 已读标记 gr-tutorial-seen-v3，二次进入不再出现）；展示期间比赛未开始 = 倒计时天然暂停（kernel-determinism 状态机 title 态零推进同源）。"
+      },
+      {
+        "id": "ac-hud-key-labels",
+        "mode": "auto",
+        "check": "node games/myrdplaygrou-3/tests/smoke-payload.contract.mjs",
+        "statement": "HUD 常驻操作标签（acc-hud-key-labels）：smoke payload.onboarding.hudLabels 含 移动/传球/射门 三标签（触屏文字标签 + 桌面键位角标 WASD·方向键/X/空格蓄力），只在 playing 态展示且不遮挡比分/蓄力条；首次持球气泡容器在场（3s 或任一操作后淡出）。"
+      },
+      {
+        "id": "ac-switch-single-highlight",
+        "mode": "auto",
+        "check": "node games/myrdplaygrou-3/tests/smoke-payload.contract.mjs",
+        "statement": "控制权切换单环（缺陷单 cmwbumwrj / acc-switch-single-highlight）：全场同时渲染高亮实例数 ≤1（payload.switchRing.instanceCount===1，对象池单实例）；快进期间 switchCount ≥1 证明切换真实发生且环随行；仅新选中球员有环，其余 9 人无任何闪烁/描边（selection-ring.js 是唯一高亮载体，红线 SWITCH_FULL_TEAM_FLASH_ALLOWED=false）。"
+      },
+      {
+        "id": "ac-switch-smooth-transition",
+        "mode": "auto",
+        "check": "node games/myrdplaygrou-3/src/render/selection-ring.js + numeric.js SWITCH_* 镜像",
+        "statement": "切换过渡平滑（acc-switch-smooth-transition）：0.15s 渐入 + 0.35s 回稳常亮（单次脉冲不循环）、失权 0.25s 渐出；缩放 0.6→1.0 easeOutCubic；不透明度与位置逐帧连续插值（lerp 系数按 dt 归一，帧率无关）；无单帧跳变。"
+      },
+      {
+        "id": "ac-tackle-switch-perf",
+        "mode": "auto",
+        "check": "node games/myrdplaygrou-3/tests/smoke-payload.contract.mjs",
+        "statement": "抢断切换性能（acc-tackle-switch-perf）：高亮环对象池化（mesh/材质/纹理构建期一次性创建，切换瞬间零新建/零全场景遍历）；移动视口冒烟 fps ≥ 判定器下限（10）且 drawCalls 留痕预算内（≤220）；切换沿只触发音效与环脉冲（无逐帧分配）。"
+      },
+      {
+        "id": "ac-goal-celebration-feedback",
+        "mode": "auto",
+        "check": "node games/myrdplaygrou-3/tests/football-contract.spec.mjs + smoke-payload.contract.mjs",
+        "statement": "进球反馈链（acc-goal-celebration-feedback）：内核庆祝冻结 1.2s（celebrationLeft>0 期间球/人/倒计时全停，契约断言终局时 celebrationLeft 归零）；表现层彩带+FOV+特写机位+比分弹跳 1.6x/0.4s 按得分方基色；结算屏「再来一局」主按钮在场（payload.onboarding.rematchButtonPresent）+ lastScore 追赶目标。"
+      },
+      {
+        "id": "ac-game-feel-audio",
+        "mode": "auto",
+        "check": "node games/myrdplaygrou-3/src/render/audio.js + numeric.js gameFeel 镜像",
+        "statement": "手感与音效调优（acc-game-feel-audio）：蓄力音调随蓄力线性升高（chargeTone 220→880Hz）；松手瞬间 60ms 打击停顿（hit-stop，表现层冻结窗口内核步数不减）；抢断音（低通 500Hz）与切换确认音（880→1320Hz 正弦）异频段互不打断；庆祝期间 BGM 增益压低 30% 边沿恢复（duckBgm）。"
       },
       {
         "id": "ac-seeded-determinism",
@@ -262,11 +401,19 @@
       "spec": "256px canvas：#f5f7fa 底 + #233240 五圆斑"
     },
     {
+      "assetKey": "goal-net-texture",
+      "role": "prop",
+      "source": "programmatic",
+      "reason": "球门网=参数化网格线绘制（斜线网格 + 透明底）；IP-2 打磨轮新增程序化资产（round-7/6c9aa39），本轮回补清单登记",
+      "runtimeUse": "src/render/textures.js netTexture() → scene.js 球门三面网（背网/顶网/双侧网 ×2 门）",
+      "spec": "64px 平铺：白 rgba(255,255,255,0.85) 斜网格线 + 透明底；Basic 材质 depthWrite=false 防排序伪影"
+    },
+    {
       "assetKey": "controlled-ring-glow",
       "role": "ui",
       "source": "programmatic",
-      "reason": "径向渐变光斑（喂 Bloom 的受控指示环伴随光）—— 径向渐变是 canvas 配方库标准件",
-      "runtimeUse": "src/render/textures.js glowTexture() → player.js glow sprite",
+      "reason": "径向渐变光斑（喂 Bloom 的受控指示环伴随光 + v3 彩带粒子贴图复用）—— 径向渐变是 canvas 配方库标准件",
+      "runtimeUse": "src/render/textures.js glowTexture() → selection-ring.js 伴随光斑 + celebrate.js 粒子 PointsMaterial.map",
       "spec": "128px 径向渐变 rgba(243,156,18,1)→透明"
     },
     {
@@ -274,8 +421,8 @@
       "role": "sfx",
       "source": "programmatic",
       "reason": "音效+BGM+观众氛围全 WebAudio 合成（oscillator+gain 包络+噪声+压缩器总线）：零音频文件、单文件契约零外链、headless 静默安全（E-07）",
-      "runtimeUse": "src/render/audio.js sfx.* + startBgm/startCrowd → main.js 事件反馈",
-      "spec": "踢球低频冲击/射门重击/哨音双颤/进球上行琶音+欢呼/BGM 128BPM 四和弦循环/观众带通噪声垫"
+      "runtimeUse": "src/render/audio.js sfx.* + startBgm/startCrowd + v3 chargeTone/switchConfirm/duckBgm → main.js 事件反馈",
+      "spec": "踢球低频冲击/射门重击/哨音双颤/进球上行琶音+欢呼/抢断低通噪声/切换确认高频正弦/蓄力持续音线性升调/BGM 128BPM 四和弦循环/观众带通噪声垫/庆祝 BGM 压低 30%"
     },
     {
       "assetKey": "humanoid-meshes",
@@ -292,6 +439,6 @@
     "maxRetries": 2,
     "degraded": false,
     "degradeReason": null,
-    "note": "three.js 单文件全程序化路线：0 张外部位图入包（all programmatic），maxImages 仅约束 generated/curated；totalBytes 不设限（无位图资产）"
+    "note": "three.js 单文件全程序化路线：0 张外部位图入包（all programmatic），maxImages 仅约束 generated/curated；totalBytes 不设限（无位图资产）。全程序化理由：①单文件契约要求零外链零位图；②风格卡形状语言=纯几何扁平色块，canvas 程序化比生图更精确可控；③确定性冒烟与逐字节复现要求资产可由代码重建。"
   }
 }

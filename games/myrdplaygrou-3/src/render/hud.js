@@ -75,6 +75,13 @@ export function createHud() {
       bubbleTimer = 3;
       return true;
     },
+    /** 进球横幅（表现层计时器，1.4s 自动消隐；v3 缺口修复：goal 事件反馈链必需，
+     *  缺失会在 handleEvents 抛 TypeError 掐断冒烟快进 —— browser-smoke timeout 根因） */
+    flashBanner(text) {
+      el.bannerText.textContent = text;
+      el.banner.classList.remove("hidden");
+      bannerTimer = 1.4;
+    },
     /** 任一操作后气泡立即淡出（v3 onboarding 语义） */
     fadeBubble() {
       if (bubbleTimer > 0) { bubbleTimer = Math.min(bubbleTimer, 0.3); el.bubble.classList.add("fade"); }

@@ -28,12 +28,15 @@ const ok = (cond, m) => { console.log(`  ${cond ? "PASS" : "FAIL"}  ${m}`); if (
   ok(mirrored, "客队开球位与主队镜像对称（中圈公平开球）");
 }
 
-// —— 对局活力（自动跑 90s）：抢断/传球/射门事件真实发生，球权易手频繁 ——
+// —— 对局活力（自动跑完整场）：抢断/传球/射门事件真实发生，球权易手频繁 ——
+// 循环上限 = 90s 净比赛 + 30s 余量（spec v3 打磨项：进球庆祝 1.2s 窗口冻结倒计时，
+// 庆祝秒数消耗固定步预算但不消耗比赛时间 —— gameover 以 timeLeft 归零为准；
+// 30s 余量取 spec「含加时总时长不超过 120 秒」产品窗，防理论无终局死循环）
 function playMatch(seed) {
   const g = createGame({ seed });
   g.start();
   const tally = { pass: 0, shot: 0, tackle: 0, goal: 0, clear: 0, kickoff: 0 };
-  for (let s = 0; s < ROUND_SECONDS && g.state === "playing"; s++) {
+  for (let s = 0; s < ROUND_SECONDS + 30 && g.state === "playing"; s++) {
     for (const ev of g.fastForward(1, footballIntent(g.world)).events) {
       if (tally[ev.type] !== undefined) tally[ev.type]++;
     }
@@ -43,8 +46,9 @@ function playMatch(seed) {
 {
   const { g, tally } = playMatch(SEED_DEFAULT);
   const w = g.world;
-  ok(g.state === "gameover", "自动驾驶 90s 跑完整场（gameover 终局）");
-  ok(w.timeLeft <= 1e-9, "计时光走完（timeLeft 归零）");
+  ok(g.state === "gameover", "自动驾驶跑完整场（gameover 终局；90s 净比赛 + 庆祝冻结余量）");
+  ok(w.timeLeft <= 1e-9, "计时光走完（timeLeft 归零；庆祝冻结不计入比赛时间）");
+  ok(tally.goal === 0 || w.celebrationLeft === 0, "终局时庆祝窗已耗尽（celebrationLeft 归零）");
   ok(tally.pass >= 5, `传球事件 ≥5（实测 ${tally.pass}，队友接应出球在发生）`);
   ok(tally.tackle >= 2, `抢断事件 ≥2（实测 ${tally.tackle}，贴身对抗在发生）`);
   ok(tally.shot >= 2, `射门事件 ≥2（实测 ${tally.shot}，进攻推进在发生）`);
