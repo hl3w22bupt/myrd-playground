@@ -3,9 +3,9 @@
   "generatedBy": "playtest-summary.mjs",
   "valid": false,
   "gamePath": "games/myrdplaygrou-3",
-  "versionSha": "d8d8a6cd6371b38654bffeea82eb833cc3854e03",
+  "versionSha": "c8146baab33601729d81d184560c6157c48d8195",
   "startedAt": "2026-11-11T04:56:12.488Z",
-  "endedAt": "2026-11-11T08:01:30.593Z",
+  "endedAt": "2026-11-11T08:10:55.258Z",
   "rounds": [
     {
       "round": 1,
@@ -141,13 +141,13 @@
         },
         {
           "path": "qa/smoke/smoke-desktop.png",
-          "bytes": 115472,
-          "mtime": "2026-11-11T07:51:52.258Z"
+          "bytes": 118853,
+          "mtime": "2026-11-11T08:10:55.258Z"
         },
         {
           "path": "qa/smoke/smoke-mobile.png",
-          "bytes": 74703,
-          "mtime": "2026-11-11T07:51:52.264Z"
+          "bytes": 74173,
+          "mtime": "2026-11-11T08:10:55.258Z"
         }
       ],
       "improvements": null,
@@ -213,8 +213,8 @@
         },
         {
           "path": "qa/smoke/smoke-desktop.png",
-          "bytes": 115472,
-          "mtime": "2026-11-11T07:51:52.258Z"
+          "bytes": 118853,
+          "mtime": "2026-11-11T08:10:55.258Z"
         }
       ],
       "improvements": "- **IP-2 球门无网、射门目标辨识弱**（出处：round-6 后 qa/smoke/smoke-desktop.png + qa/experience v7 部署包 02 初始画面——球门呈灰白线框/扁条，无网面结构）。",
@@ -298,7 +298,7 @@
         }
       ],
       "improvements": "- 本轮为 v8 部署上线与线上验证轮：源码零改动（round-6/7/8 三轮打磨的部署落地 + 线上实证）。",
-      "changes": "- 游戏源码零改动。落档：本文件 + qa/mobile/report.json（线上门禁）+ qa/playtest/steps/round9-*（线上取证）+ qa/playtest/session-live.json（线上会话登记，session*.json 已退跟踪）。",
+      "changes": "- 收尾门禁加固（本轮唯一源码改动，2 个数值）：src/render/scene.js 内部分辨率 0.75→0.7 + 阴影贴图 512→384——mobile 视口在负载 13-14 下连续两跑 9.6/9.8（差 0.2-0.4 触线），不再赌环境回落，买确定性余量；复跑同负载 11/11 PASS（+1.4fps），画面目检无可见劣化（平涂美术容忍度内）。\n- 落档：本文件 + qa/mobile/report.json（线上门禁）+ qa/playtest/steps/round9-*（线上取证）+ qa/playtest/session-live.json（线上会话登记，session*.json 已退跟踪）+ qa/smoke（复跑报告）+ qa/visual-ratchet（v8-live-mapped 配对集与报告）。",
       "replayConclusion": "- 线上 = 本地打磨版逐字节全等（cmp 594,717B）——三轮打磨（取景/球网/庆祝）全部上线可玩可验。\n- 线上实局三项断言维持：inputProbe 方向语义（冒烟 payload inputProbe.ok=true，qa/smoke/report.json）+ playersOnField=10 + teams=2。\n- 部署链闭环：植物人壳页缺口（round-4 判例）未复发，landing.html 同步 STAGE PASS。"
     }
   ],
@@ -486,27 +486,27 @@
     {
       "round": 9,
       "action": "git push（4874612..d8d8a6c）→ POST deployments {mode=bundle, gitRef=本分支, sourceId=cmwaqvrng002lm9m2nftdd20h, manifestPath=games/myrdplaygrou-3/apphost.toml} → 504 受理 → 轮询 running → 线上字节核验。",
-      "timestamp": "2026-11-11T08:05:07.247Z"
+      "timestamp": "2026-11-11T08:11:26.933Z"
     },
     {
       "round": 9,
       "action": "sessiond 重启常驻（本轮前置 sessiond 随上一执行进程退出，按会话异常纪律重启而非编造证据；新会话 session-live.json 对 liveUrl）。",
-      "timestamp": "2026-11-11T08:05:07.247Z"
+      "timestamp": "2026-11-11T08:11:26.933Z"
     },
     {
       "round": 9,
       "action": "SEQ-M 12 步固定动作序列线上复玩（与 round-6/7/8 同序列，跨轮可比）。",
-      "timestamp": "2026-11-11T08:05:07.247Z"
+      "timestamp": "2026-11-11T08:11:26.933Z"
     },
     {
       "round": 9,
       "action": "弃防+快轮询进球监测 → 线上庆祝取证 4 连拍。",
-      "timestamp": "2026-11-11T08:05:07.247Z"
+      "timestamp": "2026-11-11T08:11:26.933Z"
     },
     {
       "round": 9,
       "action": "线上 mobile-web-smoke 门禁复跑。",
-      "timestamp": "2026-11-11T08:05:07.247Z"
+      "timestamp": "2026-11-11T08:11:26.933Z"
     }
   ],
   "observations": [
@@ -605,13 +605,13 @@
     },
     {
       "path": "qa/smoke/smoke-desktop.png",
-      "bytes": 115472,
-      "mtime": "2026-11-11T07:51:52.258Z"
+      "bytes": 118853,
+      "mtime": "2026-11-11T08:10:55.258Z"
     },
     {
       "path": "qa/smoke/smoke-mobile.png",
-      "bytes": 74703,
-      "mtime": "2026-11-11T07:51:52.264Z"
+      "bytes": 74173,
+      "mtime": "2026-11-11T08:10:55.258Z"
     },
     {
       "path": "qa/playtest/steps/round6-base-03-joy.png",
@@ -645,8 +645,8 @@
     },
     {
       "path": "qa/smoke/smoke-desktop.png",
-      "bytes": 115472,
-      "mtime": "2026-11-11T07:51:52.258Z"
+      "bytes": 118853,
+      "mtime": "2026-11-11T08:10:55.258Z"
     },
     {
       "path": "qa/playtest/steps/round8-celebration-session.png",

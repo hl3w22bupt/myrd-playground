@@ -2,8 +2,8 @@
 
 ## 观察
 
-- 部署链收口：v8 部署 **cmwbtonx4001cm9dzws5myo5z**（POST /deployments → HTTP 504 网关 30s 截断判例形态、实际已受理；GET /deployments 复查 status=running=在服语义，commitHash=**d8d8a6c** 与推送 HEAD 全等；前轮 v7=cmwbopdtk 转 superseded）。
-- 线上复证：GET / → 200，**594,717 字节与 dist/web/index.html 逐字节一致（cmp）**；/health → 200。
+- 部署链收口：v8 部署 **cmwbtonx4001cm9dzws5myo5z**（d8d8a6c，上线并完成线上实局验证）→ 收尾门禁加固提交 c8146ba 后追发 v9 **cmwbubpyu001um9dzpliv6ujq**（POST → 504 网关 30s 截断判例形态、实际已受理；status=running=在服语义，commitHash=**c8146ba** 与收尾 HEAD 全等；v8 转 superseded）。
+- 线上复证（v9）：GET / → 200，**594,716 字节与 dist/web/index.html 逐字节一致（cmp）**；/health → 200。
 - 线上实局（SEQ-M 固定序列复玩）：画面即打磨版——中场逼抢绞杀（4v4 贴身）、受控环+辉光、队色/号码可读、HUD 干净；`window.__tsState` 只读探针在线上返回全量状态（5v5 双队、controlledId=4 主队 FW#5、球权在客队 DF#6 脚下 0.94m 贴身对抗）。
 - **线上进球特写机位实证**：弃防实验促成客队进球（0:1@12s，真实对局结果），检测后 ~1.5s 抓拍（steps/028）——相机仍锁在自家球门（门后机位：网窝网格 + 门将 + 门线区同框），2.2s 特写窗在线上真实生效；~2.6s 后相机回中圈（steps/029），节奏符合设计。
 - 线上移动门禁（mobile-web-smoke，390×844 移动仿真）：**PASS**——网络/渲染/触摸响应/音频解锁契约（__audioDebug）/视口/FPS 全绿；1 WARN=摇杆热区 --project 未传（回退固定坐标 swipe，仅取证不断言，合法降级与前轮同款）。
