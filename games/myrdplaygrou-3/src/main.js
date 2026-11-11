@@ -199,6 +199,7 @@ if (smokeParam !== null) {
   const sampleFps = (now) => {
     frames++;
     hud.showScreen(game.state === "playing" ? null : game.state); // 冒烟截图对齐运行态（勿停在 title 遮罩）
+    syncVisuals(1 / 60); // 跟屏相机逐帧逼近目标机位（IP-1：此前快进后相机停在 buildCamera 初始位，截图不反映真实取景）
     renderer.info.reset();
     composer.render();
     frameStats = { drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles };

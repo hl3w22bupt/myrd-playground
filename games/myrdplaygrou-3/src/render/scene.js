@@ -170,11 +170,18 @@ export function syncBall(ballMesh, world, dt) {
   }
 }
 
-/** 相机跟随：竖屏长轴 = 进攻方向（-Z），镜头在球后上方平滑逼近（表现层手感） */
+/** 相机跟随：竖屏长轴 = 进攻方向（-Z），镜头在球后上方平滑逼近（表现层手感）。
+ *  取景按视口宽高比自适应（IP-1 · qa/smoke/desktop 截图证据）：竖屏基准
+ *  （高 17.5 / 后偏移 13）不动；宽屏（aspect>0.9）按比例收近压低——竖屏参数直接搬横屏时
+ *  26m 场宽只占画面中段（水平视场角随 aspect 放大 → 两侧大片空带），收近后场宽占满画幅、
+ *  球员读数变大。插值区间 0.9→2.2 线性，竖屏与桌面端点值恒定（跨轮回归可比）。 */
 export function followCamera(camera, world, dt) {
   const b = world.ball;
+  const t = Math.max(0, Math.min(1, ((camera.aspect || 1) - 0.9) / (2.2 - 0.9)));
+  const height = 17.5 + (10 - 17.5) * t;
+  const back = 13 + (8 - 13) * t;
   const target = new THREE.Vector3(b.x * 0.8, 0, b.z * 0.8 - 2);
-  const wanted = new THREE.Vector3(b.x * 0.55, 17.5, b.z * 0.62 + 13);
+  const wanted = new THREE.Vector3(b.x * 0.55, height, b.z * 0.62 + back);
   camera.position.lerp(wanted, Math.min(1, 3.2 * dt));
   camera.lookAt(target);
 }

@@ -3,7 +3,7 @@
   "kind": "browser-smoke-report",
   "product": "/Users/leo/.myrd/workspaces/cmvqriupu0007m9qphvokoci9/run-cmwbl6h6e008am97aetlijmmv/games/myrdplaygrou-3/index.html",
   "seconds": 62,
-  "checkedAt": "2026-11-11T05:43:38.966Z",
+  "checkedAt": "2026-11-11T06:15:42.501Z",
   "note": "render 性能快照为证据记录，非硬门禁（headless SwiftShader 软渲染，阈值待采集基线）",
   "viewports": [
     {
@@ -20,7 +20,7 @@
         "scoreAway": 0,
         "timeLeft": 28.000000000003524,
         "frames": 30,
-        "fps": 19.1,
+        "fps": 12,
         "exceptions": 0,
         "playersOnField": 10,
         "teams": 2,
@@ -40,15 +40,15 @@
           "dpr": 1
         },
         "render": {
-          "drawCalls": 201,
-          "triangles": 6954,
+          "drawCalls": 182,
+          "triangles": 6220,
           "geometries": 26,
           "textures": 30,
           "programs": 15,
           "playerSegments": 160
         }
       },
-      "pixelColors": 35,
+      "pixelColors": 45,
       "consoleErrors": 0,
       "screenshot": "smoke-desktop.png"
     },
@@ -66,7 +66,7 @@
         "scoreAway": 0,
         "timeLeft": 28.000000000003524,
         "frames": 30,
-        "fps": 16.4,
+        "fps": 10.8,
         "exceptions": 0,
         "playersOnField": 10,
         "teams": 2,
@@ -86,15 +86,15 @@
           "dpr": 1
         },
         "render": {
-          "drawCalls": 201,
-          "triangles": 6954,
+          "drawCalls": 200,
+          "triangles": 6906,
           "geometries": 26,
           "textures": 30,
           "programs": 15,
           "playerSegments": 160
         }
       },
-      "pixelColors": 46,
+      "pixelColors": 40,
       "consoleErrors": 0,
       "screenshot": "smoke-mobile.png"
     }
