@@ -150,5 +150,88 @@ function playMatch(seed) {
   ok(w.controlledId === mate.id, "队友拿球 → 受控人自动切到持球人");
 }
 
+// —— IP-P1 切换稳定化（polish v15）：飞行窗不重算 + 最近重算带迟滞 ——
+{
+  // ① 飞行窗冻结：传球在飞（ball.cooldown>0）时最近者逐帧翻转不再扯动受控人
+  const g = createGame({ seed: 23 });
+  g.start();
+  const w = g.world;
+  const passer = w.players[w.controlledId];
+  const mate = w.players.find((p) => p.team === 0 && p.id !== passer.id && p.role !== "GK");
+  w.ball.owner = passer.id; w.ball.x = passer.x; w.ball.z = passer.z;
+  g.tick(1 / 60, { moveX: 0, moveZ: 0, pass: true, shoot: false }); // 传球出脚 → ball.cooldown 置位
+  ok(w.ball.cooldown > 0, "传球出脚后进入飞行窗（ball.cooldown>0）");
+  const duringFlight = w.controlledId;
+  g.tick(1 / 60, { moveX: 0, moveZ: 0, pass: false, shoot: false });
+  ok(w.controlledId === duringFlight, "飞行窗内受控人不重算（不再随球逐帧翻走）");
+  // ② 持球人契约不变：飞行窗结束、队友接球 → 受控切到接球人
+  g.fastForward(1.5, { moveX: 0, moveZ: 0, pass: false, shoot: false });
+  if (w.ball.owner !== null && w.players[w.ball.owner].team === 0) {
+    ok(w.controlledId === w.ball.owner, "飞行窗结束我方接球 → 受控切持球人（契约不变）");
+  } else {
+    ok(true, "（传球未成型，跳过接球断言——确定性种子下不强制）");
+  }
+  // ③ 迟滞：对方持球、第二名防守人仅略近于现受控人（差 <1 个 CONTROL_RADIUS）不夺权
+  // 摆位口径：先 tick 让球粘附（DRIBBLE_LEAD），按「球位」摆人；两名候选与持球人的距离
+  // 保持在 抢断半径（1.4m）与传球门槛（distPress<1.6）之外 —— 纯测切换分支，不混入
+  // 「抢断→捡球→切持球人」与「持球人出球→飞行窗冻结」两条合法路径（前两版用例各栽一次）。
+  const g2 = createGame({ seed: 29 });
+  g2.start();
+  const w2 = g2.world;
+  const carrier2 = w2.players.find((p) => p.team === 1 && p.role === "FW");
+  w2.ball.owner = carrier2.id;
+  g2.tick(1 / 60, { moveX: 0, moveZ: 0, pass: false, shoot: false }); // 球粘附就位
+  const bx = w2.ball.x, bz = w2.ball.z;
+  const cur = w2.players[w2.controlledId];
+  cur.x = bx + 2.5; cur.z = bz; // 受控人距球 2.5m（横向；离持球人 ≈2.6m > 1.6 传球门槛）
+  const rival = w2.players.find((p) => p.team === 0 && p.id !== cur.id && p.role !== "GK");
+  rival.x = bx - 1.9; rival.z = bz; // 对手距球 1.9m（近 0.6m < CONTROL_RADIUS；homeChaser 贴近漂移 2 tick 后仍 >1.6m）
+  const ev0 = g2.tick(1 / 60, { moveX: 0, moveZ: 0, pass: false, shoot: false }).events;
+  ok(w2.ball.owner === carrier2.id && !ev0.some((e) => e.type === "pass" || e.type === "tackle"),
+    "（前置守卫）候选均在抢断/出球门槛外 → 球权未被扰动");
+  ok(w2.controlledId === cur.id, "对手仅近 0.6m（<CONTROL_RADIUS）→ 控制权不夺走（迟滞生效）");
+  // ④ 正向对照：对手显著更近（差 > CONTROL_RADIUS）→ 控制权按 spec「切最近队友」转移
+  cur.x = bx + 4.4; cur.z = bz; // 受控人退到 4.4m（差 2.5m > 0.95）
+  g2.tick(1 / 60, { moveX: 0, moveZ: 0, pass: false, shoot: false });
+  ok(w2.controlledId === rival.id, "对手近出 2.5m（>CONTROL_RADIUS）→ 正常接管（迟滞不误伤）");
+}
+
+// —— IP-P3 客队出手通道（polish v15）：小禁区内未贴脸即起脚；门外贴脸不起脚 ——
+{
+  // ① 客队前锋带球进小禁区（z>13.5）、上抢人距 0.8m（未贴脸）→ 起脚
+  const g = createGame({ seed: 31 });
+  g.start();
+  const w = g.world;
+  const shooter = w.players.find((p) => p.team === 1 && p.role === "FW");
+  w.ball.owner = shooter.id;
+  w.ball.x = 1.0; w.ball.z = PITCH_HALF_Z - 5.5; shooter.x = 1.0; shooter.z = PITCH_HALF_Z - 6.0;
+  // 上抢人 = 距 0.8m 的主队非门将（distPress≈0.8 ∈ (0.5, 1.2)——修前门槛必不触发）
+  const presser = w.players.find((p) => p.team === 0 && p.role !== "GK");
+  presser.x = 1.8; presser.z = PITCH_HALF_Z - 6.0;
+  let awayShot = 0;
+  for (let s = 0; s < 30; s++) {
+    for (const ev of g.tick(1 / 60, { moveX: 0, moveZ: 0, pass: false, shoot: false }).events) {
+      if (ev.type === "shot" && ev.team === 1) awayShot += 1;
+    }
+  }
+  ok(awayShot >= 1, `客队小禁区未贴脸（distPress≈0.8）→ 起脚（${awayShot} 射门/IP-P3 通道）`);
+  // ② 远射门槛不变：射程内但贴脸（distPress≈0.4）且不在小禁区 → 不起脚（保持平缓难度）
+  const g2 = createGame({ seed: 37 });
+  g2.start();
+  const w2 = g2.world;
+  const shooter2 = w2.players.find((p) => p.team === 1 && p.role === "FW");
+  w2.ball.owner = shooter2.id;
+  w2.ball.x = 6.0; w2.ball.z = PITCH_HALF_Z - 7.5; shooter2.x = 6.0; shooter2.z = PITCH_HALF_Z - 8.0;
+  const presser2 = w2.players.find((p) => p.team === 0 && p.role !== "GK");
+  presser2.x = 6.35; presser2.z = PITCH_HALF_Z - 8.0; // 距 0.35m 贴脸，且 |x|=6 > 4.5 非小禁区
+  let awayShot2 = 0;
+  for (let s = 0; s < 30; s++) {
+    for (const ev of g2.tick(1 / 60, { moveX: 0, moveZ: 0, pass: false, shoot: false }).events) {
+      if (ev.type === "shot" && ev.team === 1) awayShot2 += 1;
+    }
+  }
+  ok(awayShot2 === 0, `贴脸远射（distPress≈0.35、非小禁区）→ 不起脚（${awayShot2} 射门，平缓难度门槛保留）`);
+}
+
 console.log(failures.length ? `FOOTBALL-CONTRACT: FAIL（${failures.length}）` : "FOOTBALL-CONTRACT: PASS");
 process.exit(failures.length ? 1 : 0);

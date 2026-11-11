@@ -1,0 +1,120 @@
+{
+ "label": "after-ip1-ip3",
+ "simulatedAt": "2026-11-11T13:02:43.560Z",
+ "seeds": [
+  333,
+  7,
+  42,
+  2026,
+  11
+ ],
+ "rows": [
+  {
+   "seed": 333,
+   "steps": 6048,
+   "gameOver": true,
+   "score": {
+    "home": 9,
+    "away": 0
+   },
+   "shots": 22,
+   "goals": 9,
+   "homeShots": 22,
+   "awayShots": 0,
+   "possessionChanges": 129,
+   "switches": 17,
+   "switchesPer10s": 1.7,
+   "maxHoldSec": 18.9,
+   "firstShotSec": 12.9,
+   "firstGoalSec": 14.5
+  },
+  {
+   "seed": 7,
+   "steps": 5976,
+   "gameOver": true,
+   "score": {
+    "home": 8,
+    "away": 0
+   },
+   "shots": 18,
+   "goals": 8,
+   "homeShots": 18,
+   "awayShots": 0,
+   "possessionChanges": 165,
+   "switches": 27,
+   "switchesPer10s": 2.7,
+   "maxHoldSec": 11.6,
+   "firstShotSec": 8.7,
+   "firstGoalSec": 10.3
+  },
+  {
+   "seed": 42,
+   "steps": 6336,
+   "gameOver": true,
+   "score": {
+    "home": 13,
+    "away": 0
+   },
+   "shots": 36,
+   "goals": 13,
+   "homeShots": 36,
+   "awayShots": 0,
+   "possessionChanges": 124,
+   "switches": 28,
+   "switchesPer10s": 2.7,
+   "maxHoldSec": 12.5,
+   "firstShotSec": 6.3,
+   "firstGoalSec": 8
+  },
+  {
+   "seed": 2026,
+   "steps": 5904,
+   "gameOver": true,
+   "score": {
+    "home": 7,
+    "away": 0
+   },
+   "shots": 18,
+   "goals": 7,
+   "homeShots": 17,
+   "awayShots": 1,
+   "possessionChanges": 147,
+   "switches": 17,
+   "switchesPer10s": 1.7,
+   "maxHoldSec": 15.7,
+   "firstShotSec": 7,
+   "firstGoalSec": 8.5
+  },
+  {
+   "seed": 11,
+   "steps": 6048,
+   "gameOver": true,
+   "score": {
+    "home": 9,
+    "away": 0
+   },
+   "shots": 22,
+   "goals": 9,
+   "homeShots": 22,
+   "awayShots": 0,
+   "possessionChanges": 144,
+   "switches": 23,
+   "switchesPer10s": 2.3,
+   "maxHoldSec": 20.5,
+   "firstShotSec": 14.1,
+   "firstGoalSec": 15.7
+  }
+ ],
+ "aggregate": {
+  "switchesMean": 22.4,
+  "switchesPer10sMean": 2.2,
+  "maxHoldSecMean": 15.8,
+  "shotsMean": 23.2,
+  "goalsMean": 9.2,
+  "homeGoals": 46,
+  "awayGoals": 0,
+  "awayShots": 1,
+  "homeShots": 115,
+  "firstShotSecMean": 9.8
+ }
+}

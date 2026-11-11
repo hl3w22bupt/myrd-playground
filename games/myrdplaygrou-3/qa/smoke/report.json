@@ -3,7 +3,7 @@
   "kind": "browser-smoke-report",
   "product": "/Users/leo/.myrd/workspaces/cmvqriupu0007m9qphvokoci9/run-cmwbusk2s0019m9bbvj1h07sq/games/myrdplaygrou-3/index.html",
   "seconds": 62,
-  "checkedAt": "2026-11-11T12:20:19.675Z",
+  "checkedAt": "2026-11-11T13:03:15.128Z",
   "note": "render 性能快照为证据记录，非硬门禁（headless SwiftShader 软渲染，阈值待采集基线）",
   "viewports": [
     {
@@ -15,12 +15,12 @@
       "payload": {
         "ok": true,
         "state": "playing",
-        "score": 1,
-        "scoreHome": 1,
+        "score": 0,
+        "scoreHome": 0,
         "scoreAway": 0,
-        "timeLeft": 29.200000000003456,
+        "timeLeft": 28.000000000003524,
         "frames": 30,
-        "fps": 12.7,
+        "fps": 11.9,
         "exceptions": 0,
         "playersOnField": 10,
         "teams": 2,
@@ -31,9 +31,9 @@
           "downDz": 1.5571944180543946,
           "ok": true
         },
-        "goals": 1,
-        "shots": 7,
-        "possessionChanges": 70,
+        "goals": 0,
+        "shots": 1,
+        "possessionChanges": 86,
         "switchRing": {
           "instanceCount": 1,
           "switchCount": 1,
@@ -60,15 +60,15 @@
           "dpr": 1
         },
         "render": {
-          "drawCalls": 135,
-          "triangles": 4096,
-          "geometries": 30,
-          "textures": 30,
-          "programs": 17,
+          "drawCalls": 162,
+          "triangles": 5284,
+          "geometries": 29,
+          "textures": 29,
+          "programs": 16,
           "playerSegments": 150
         }
       },
-      "pixelColors": 52,
+      "pixelColors": 42,
       "consoleErrors": 0,
       "screenshot": "smoke-desktop.png"
     },
@@ -81,12 +81,12 @@
       "payload": {
         "ok": true,
         "state": "playing",
-        "score": 1,
-        "scoreHome": 1,
+        "score": 0,
+        "scoreHome": 0,
         "scoreAway": 0,
-        "timeLeft": 29.200000000003456,
+        "timeLeft": 28.000000000003524,
         "frames": 30,
-        "fps": 11.7,
+        "fps": 10.9,
         "exceptions": 0,
         "playersOnField": 10,
         "teams": 2,
@@ -97,9 +97,9 @@
           "downDz": 1.5571944180543946,
           "ok": true
         },
-        "goals": 1,
-        "shots": 7,
-        "possessionChanges": 70,
+        "goals": 0,
+        "shots": 1,
+        "possessionChanges": 86,
         "switchRing": {
           "instanceCount": 1,
           "switchCount": 1,
@@ -126,15 +126,15 @@
           "dpr": 1
         },
         "render": {
-          "drawCalls": 178,
-          "triangles": 5826,
-          "geometries": 30,
-          "textures": 30,
-          "programs": 17,
+          "drawCalls": 192,
+          "triangles": 6368,
+          "geometries": 29,
+          "textures": 29,
+          "programs": 16,
           "playerSegments": 150
         }
       },
-      "pixelColors": 38,
+      "pixelColors": 28,
       "consoleErrors": 0,
       "screenshot": "smoke-mobile.png"
     }

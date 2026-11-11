@@ -331,8 +331,12 @@ export function stepWorld(w, intent, dt) {
       const distPress = homeChaser ? Math.hypot(homeChaser.x - owner.x, homeChaser.z - owner.z) : 99;
       const inShotRange = owner.z > PITCH_HALF_Z - AWAY_SHOT_RANGE_Z && Math.abs(owner.x) < 5.5;
       const closeRange = owner.z > PITCH_HALF_Z - 6.5 && Math.abs(owner.x) < 4.5;
-      if (inShotRange && (distPress > 1.8 || (closeRange && distPress > 1.2))) {
-        // 起脚门槛：甩开上抢人 1.8m，或小禁区内的近身抢点（平缓难度下的有限出手通道）
+      if (inShotRange && (distPress > 1.8 || (closeRange && distPress > 0.5))) {
+        // 起脚门槛（IP-P3 客队出手通道修复，polish 周期 v15）：甩开上抢人 1.8m 可远射；
+        // 或小禁区内（closeRange）只要上抢人未贴到脚下（distPress>0.5）即转身起脚——
+        // 修前 distPress 恒 ≈PRESS_MARGIN(0.4)+物理抖动 <1.2，门槛结构性不可达：
+        // 5 种子全集对局客队 0 射门 0 进球（防守/GK 半场沦为摆设；switch-sim 逐队事件统计实证）。
+        // AI 决策阈值属实现层（非 spec.numeric 定稿值）；AWAY_SHOT_RANGE_Z=8 出手距离语义不变。
         const [ax, az] = aimFarCorner(w, owner, PITCH_HALF_Z);
         events.push(kickBall(w, owner, ax, az, SHOT_SPEED, "shot", SHOT_SCATTER_AWAY));
         w.shots += 1;
@@ -422,10 +426,33 @@ export function stepWorld(w, intent, dt) {
     }
   }
 
-  // —— 受控人切换：主队持球 → 持球人；否则最近主队非门将 ——
-  w.controlledId = (ball.owner !== null && w.players[ball.owner].team === 0 && w.players[ball.owner].role !== "GK")
-    ? ball.owner
-    : nearestHomeFielder(w.players, ball.x, ball.z);
+  // —— 受控人切换（IP-P1 切换抖振稳定化，polish 周期 v15）——
+  // 症状（试玩证据）：线上实局 40s 内 switchCount=70（≈1.8 次/秒，qa/playtest/round-14）——
+  // 每帧无条件重算「最近主队非门将」，挤抢/球在飞时受控人逐帧翻走，环脉冲+确认音连发。
+  // 规范不变（spec v3 world.selectionHighlight / 教学卡「无球时自动切到离球最近的队友」），
+  // 只把「最近」重算工程化成稳定语义，零新增数值（迟滞半径复用 CONTROL_RADIUS，冻结窗复用
+  // 既有 ball.cooldown 飞行窗），不触碰 spec.numeric 定稿值：
+  //   ① 我方非门将持球 → 立即切持球人（离散事件，契约测试「队友拿球 → 受控切持球人」不变）；
+  //   ② 球在飞行窗（ball.cooldown>0，传球/射门/解围/抢断捅出后）→ 保持现受控人不重算
+  //      （球速快时最近者逐帧翻转的根因窗口）；
+  //   ③ 其余（球滚地无归属 / 对方持球）→ 最近重算加距离迟滞：候选须比现受控人近出
+  //      一个 CONTROL_RADIUS 才接管（两名防守人并拢逼近不再乒乓）。
+  {
+    const owner = ball.owner !== null ? w.players[ball.owner] : null;
+    if (owner && owner.team === 0 && owner.role !== "GK") {
+      w.controlledId = owner.id;
+    } else if (ball.cooldown > 0) {
+      // 飞行窗：保持现受控人（离散事件沿才会改变控制权）
+    } else {
+      const cand = nearestHomeFielder(w.players, ball.x, ball.z);
+      if (cand !== w.controlledId) {
+        const cur = w.players[w.controlledId];
+        const dCur = cur ? Math.hypot(cur.x - ball.x, cur.z - ball.z) : Infinity;
+        const dCand = Math.hypot(w.players[cand].x - ball.x, w.players[cand].z - ball.z);
+        if (dCand + CONTROL_RADIUS < dCur) w.controlledId = cand;
+      }
+    }
+  }
 
   // —— 计时与终局（1e-9 容差：浮点步进累加后恰好 90s 不得漏判）——
   w.timeLeft = Math.max(0, w.timeLeft - dt);

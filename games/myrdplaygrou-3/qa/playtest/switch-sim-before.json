@@ -1,0 +1,108 @@
+{
+ "label": "before",
+ "simulatedAt": "2026-11-11T12:46:58.835Z",
+ "seeds": [
+  333,
+  7,
+  42,
+  2026,
+  11
+ ],
+ "rows": [
+  {
+   "seed": 333,
+   "steps": 5976,
+   "gameOver": true,
+   "score": {
+    "home": 8,
+    "away": 0
+   },
+   "shots": 18,
+   "goals": 8,
+   "possessionChanges": 125,
+   "switches": 18,
+   "switchesPer10s": 1.8,
+   "maxHoldSec": 18.3,
+   "firstShotSec": 12.9,
+   "firstGoalSec": 14.5
+  },
+  {
+   "seed": 7,
+   "steps": 6120,
+   "gameOver": true,
+   "score": {
+    "home": 10,
+    "away": 0
+   },
+   "shots": 22,
+   "goals": 10,
+   "possessionChanges": 161,
+   "switches": 29,
+   "switchesPer10s": 2.8,
+   "maxHoldSec": 8.4,
+   "firstShotSec": 8.3,
+   "firstGoalSec": 9.8
+  },
+  {
+   "seed": 42,
+   "steps": 6192,
+   "gameOver": true,
+   "score": {
+    "home": 11,
+    "away": 0
+   },
+   "shots": 30,
+   "goals": 11,
+   "possessionChanges": 126,
+   "switches": 32,
+   "switchesPer10s": 3.1,
+   "maxHoldSec": 10.1,
+   "firstShotSec": 6.3,
+   "firstGoalSec": 8
+  },
+  {
+   "seed": 2026,
+   "steps": 5904,
+   "gameOver": true,
+   "score": {
+    "home": 7,
+    "away": 0
+   },
+   "shots": 17,
+   "goals": 7,
+   "possessionChanges": 153,
+   "switches": 26,
+   "switchesPer10s": 2.6,
+   "maxHoldSec": 10,
+   "firstShotSec": 30.7,
+   "firstGoalSec": 32.1
+  },
+  {
+   "seed": 11,
+   "steps": 6120,
+   "gameOver": true,
+   "score": {
+    "home": 10,
+    "away": 0
+   },
+   "shots": 24,
+   "goals": 10,
+   "possessionChanges": 156,
+   "switches": 28,
+   "switchesPer10s": 2.7,
+   "maxHoldSec": 9.4,
+   "firstShotSec": 9.9,
+   "firstGoalSec": 11.4
+  }
+ ],
+ "aggregate": {
+  "switchesMean": 26.6,
+  "switchesPer10sMean": 2.6,
+  "maxHoldSecMean": 11.2,
+  "shotsMean": 22.2,
+  "goalsMean": 9.2,
+  "homeGoals": 46,
+  "awayGoals": 0,
+  "firstShotSecMean": 13.6
+ }
+}

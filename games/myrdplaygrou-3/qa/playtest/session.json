@@ -1,9 +1,11 @@
 {
   "version": 1,
   "url": "https://leomac-studio.tail49399e.ts.net/apps/myrdplaygrou-3/",
-  "label": "v3-playtest-round10-12",
-  "startedAt": "2026-11-11T08:25:00.000Z",
-  "endedAt": "2026-11-11T11:30:00.000Z",
-  "viewports": ["mobile 390x844", "desktop"],
-  "notes": "证据窗覆盖当日全部 12 轮截图（round-6~9 早上会话 08:25 起 + round-10~12 本轮 11:09~11:27）：线上 mobile 门禁复跑（19:21 本地）、v3 取证包 mobile（11:23:13Z）、桌面取证包（11:24:24Z）、sessiond 交互会话 12 步（11:25:18Z 起）。窗口口径=UTC。"
+  "port": 63936,
+  "token": "38c83a552a668efb09044d7c140a29eca5fb709127058384",
+  "pid": 42904,
+  "startedAt": "2026-11-11T13:07:15.661Z",
+  "ttlSec": 900,
+  "stepsDir": "/var/folders/6k/5kg2yg311tddgw7vn2jyky6m0000gn/T/xh-session-0X1B6F/steps",
+  "sessionFile": "/Users/leo/.myrd/workspaces/cmvqriupu0007m9qphvokoci9/run-cmwbusk2s0019m9bbvj1h07sq/games/myrdplaygrou-3/qa/playtest/session.json"
 }
