@@ -58,8 +58,8 @@ export function buildComposer(renderer, scene, camera) {
   const composer = new EffectComposer(renderer, rt);
   composer.addPass(new RenderPass(scene, camera));
   composer.addPass(new UnrealBloomPass(
-    // 1/4 分辨率：辉光是纯低频效果，1/4 分辨率肉眼无差（链内 mips 更是低频），全屏成本 ↓
-    new THREE.Vector2(Math.max(1, window.innerWidth >> 2), Math.max(1, window.innerHeight >> 2)),
+    // 1/8 分辨率（round-8 帧率余量收口）：辉光是纯低频效果，1/4→1/8 在平涂色块画面肉眼无差，全屏 pass 像素量 ↓75%
+    new THREE.Vector2(Math.max(1, window.innerWidth >> 3), Math.max(1, window.innerHeight >> 3)),
     0.45, 0.5, 0.86,
   ));
   composer.addPass(new OutputPass());
@@ -208,13 +208,16 @@ export function syncBall(ballMesh, world, dt) {
  *  （高 17.5 / 后偏移 13）不动；宽屏（aspect>0.9）按比例收近压低——竖屏参数直接搬横屏时
  *  26m 场宽只占画面中段（水平视场角随 aspect 放大 → 两侧大片空带），收近后场宽占满画幅、
  *  球员读数变大。插值区间 0.9→2.2 线性，竖屏与桌面端点值恒定（跨轮回归可比）。 */
-export function followCamera(camera, world, dt) {
-  const b = world.ball;
+export function followCamera(camera, world, dt, hold = null) {
+  // hold（IP-3 进球特写机位）：进球后短暂锁定球门 mouth，让彩带粒子/网窝/横幅同框读完再回中圈；
+  // 由 main 持计时器传入（表现层表现节奏，内核零改动）。
+  const fx = hold ? hold.x : world.ball.x;
+  const fz = hold ? hold.z : world.ball.z;
   const t = Math.max(0, Math.min(1, ((camera.aspect || 1) - 0.9) / (2.2 - 0.9)));
   const height = 17.5 + (10 - 17.5) * t;
   const back = 13 + (8 - 13) * t;
-  const target = new THREE.Vector3(b.x * 0.8, 0, b.z * 0.8 - 2);
-  const wanted = new THREE.Vector3(b.x * 0.55, height, b.z * 0.62 + back);
+  const target = new THREE.Vector3(fx * 0.8, 0, fz * 0.8 - 2);
+  const wanted = new THREE.Vector3(fx * 0.55, height, fz * 0.62 + back);
   camera.position.lerp(wanted, Math.min(1, 3.2 * dt));
   camera.lookAt(target);
 }

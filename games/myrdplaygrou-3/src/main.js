@@ -3,11 +3,12 @@
 // 表现层每帧只读内核渲染。?smoke=<秒> 无头冒烟协议见文件尾部。
 import { createGame } from "./kernel/loop.js";
 import { footballIntent } from "./kernel/autopilot.js";
-import { SEED_DEFAULT } from "./numeric.js";
+import { SEED_DEFAULT, PITCH_HALF_Z } from "./numeric.js";
 import { buildRenderer, buildScene, buildComposer, buildCamera, buildArena, buildBall, buildPlayers, syncPlayers, syncBall, followCamera, onResize } from "./render/scene.js";
 import { createHud } from "./render/hud.js";
 import { unlockAudio, installAudioDebug, sfx } from "./render/audio.js";
 import { createTouchControls } from "./render/touch.js";
+import { createCelebration, createPunch } from "./render/celebrate.js";
 import { keyboardIntent, MOVE_KEYS } from "./render/keyboard.js";
 
 installAudioDebug();
@@ -25,6 +26,10 @@ const composer = buildComposer(renderer, scene, camera);
 buildArena(scene);
 const ballMesh = buildBall(scene);
 const playerVis = buildPlayers(scene, game.world);
+const celebration = createCelebration(scene); // IP-3：进球彩带粒子（单 drawCall 池）
+const punch = createPunch();                  // IP-3：镜头 FOV 冲击
+let punchActive = false;
+let goalHold = null; // IP-3 进球特写机位计时器：{ x, z, t }（进球后镜头锁球门 1.2s 再回中圈）
 window.addEventListener("resize", () => onResize(renderer, composer, camera));
 
 // —— 未捕获异常计数（冒烟 payload 断言口径之一）——
@@ -95,6 +100,9 @@ function handleEvents(events) {
     if (ev.type === "goal") {
       sfx.goal();
       hud.flashBanner(ev.team === 0 ? "进球！主队" : "进球！客队");
+      celebration.burst(ev.team); // IP-3：球门mouth彩带爆发（纯表现层，内核零改动）
+      punch.fire();               // IP-3：镜头 FOV 冲击
+      goalHold = { x: 0, z: ev.team === 0 ? -PITCH_HALF_Z : PITCH_HALF_Z, t: 2.2 }; // 特写机位锁被进球方球门（覆盖粒子 1.9s 寿命，读完再回中圈）
     }
     if (ev.type === "kickoff") { /* 开球：横幅已由 goal 播报，无重复音 */ }
     if (ev.type === "gameover") { sfx.gameover(ev.won); hud.setOver(ev.won, ev.score); }
@@ -107,12 +115,39 @@ function kickAnim(playerId) {
   if (vis) vis.kickTimer = 0.22;
 }
 
+// —— 只读状态钩子（试玩/取证消费；v1 轮 IP7/IP8 判例同款，零写副作用）——
+window.__tsState = () => {
+  const w = game.world;
+  return {
+    state: game.state,
+    score: { ...w.score },
+    timeLeft: Math.round(w.timeLeft * 10) / 10,
+    controlledId: w.controlledId,
+    controlled: (({ team, role, num, x, z }) => ({ team, role, num, x: Math.round(x * 10) / 10, z: Math.round(z * 10) / 10 }))(w.players[w.controlledId] ?? {}),
+    ball: { x: Math.round(w.ball.x * 10) / 10, z: Math.round(w.ball.z * 10) / 10, owner: w.ball.owner },
+    players: w.players.map(({ id, team, role, num, x, z }) => ({ id, team, role, num, x: Math.round(x * 10) / 10, z: Math.round(z * 10) / 10 })),
+  };
+};
+
 // —— 表现层同步：只读内核，驱动 mesh/相机/HUD ——
 function syncVisuals(dt) {
   const w = game.world;
   syncPlayers(scene, playerVis, w, dt);
   syncBall(ballMesh, w, dt);
-  followCamera(camera, w, dt);
+  if (goalHold) { // IP-3：进球特写机位——锁球门 1.2s（粒子/网窝/横幅同框），到时回跟球
+    goalHold.t -= dt;
+    followCamera(camera, w, dt, goalHold);
+    if (goalHold.t <= 0) goalHold = null;
+  } else {
+    followCamera(camera, w, dt);
+  }
+  celebration.points.visible = celebration.update(dt); // IP-3：粒子积分（空闲 = 隐藏 Points 零绘制 + 零缓冲上传）
+  const punchAdd = punch.step(dt);
+  if (punchAdd !== 0 || punchActive) {
+    camera.fov = 58 + punchAdd; // FOV 冲击仅活动窗口内动投影矩阵
+    camera.updateProjectionMatrix();
+    punchActive = punchAdd !== 0;
+  }
   hud.setHud(w.score.home, w.score.away, w.timeLeft);
   hud.tickBanner(dt);
   const js = touch.joystickState();
@@ -184,7 +219,7 @@ if (smokeParam !== null) {
 
   // 足球自动驾驶快进：真对局（抢断/传递/射门/进球），每秒重算意图
   for (let s = 0; s < seconds && game.state === "playing"; s++) {
-    game.fastForward(1, footballIntent(game.world));
+    handleEvents(game.fastForward(1, footballIntent(game.world)).events); // 事件→反馈在冒烟下同样在链（彩带/特写机位/横幅），快进不再丢事件
   }
   syncVisuals(0);
 
