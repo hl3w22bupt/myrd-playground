@@ -5,7 +5,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
-import { PALETTE, pitchTexture, ballTexture } from "./textures.js";
+import { PALETTE, pitchTexture, ballTexture, netTexture } from "./textures.js";
 import { buildHumanoid, syncHumanoid } from "./player.js";
 import { GOALS } from "../levels/pitch.js";
 import { PITCH_HALF_X, PITCH_HALF_Z, BALL_RADIUS, GOAL_HALF_WIDTH } from "../numeric.js";
@@ -84,9 +84,17 @@ export function buildArena(scene) {
 
   // —— 球门（两侧；内核 GOALS 同源）——
   const frameMat = new THREE.MeshStandardMaterial({ color: PALETTE.goalFrame, roughness: 0.35, metalness: 0.4 });
+  // 球网（IP-2 · qa/smoke 截图证据：只有柱/梁的球门远看像场地标线，射门目标辨识弱）：
+  // 背网/顶网/双侧网三面装配，共享一张程序化网格贴图（网眼 0.18m）；Basic 材质零光照成本 +
+  // depthWrite=false 防透明排序伪影，球穿网而过的「网感」成立且不挡进球判定（纯表现层）。
+  const netMat = new THREE.MeshBasicMaterial({
+    map: netTexture(), transparent: true, side: THREE.DoubleSide, depthWrite: false, opacity: 0.6,
+  });
+  const GOAL_H = 1.7;
+  const NET_D = 1.1; // 网深（米，向场外延伸）
   for (const goal of GOALS) {
     const gz = goal.z;
-    const postH = 1.7;
+    const postH = GOAL_H;
     for (const px of [-GOAL_HALF_WIDTH, GOAL_HALF_WIDTH]) {
       const post = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, postH, 12), frameMat);
       post.position.set(px, postH / 2, gz);
@@ -97,6 +105,31 @@ export function buildArena(scene) {
     bar.rotation.z = Math.PI / 2;
     bar.position.set(0, postH, gz);
     scene.add(bar);
+
+    const dir = Math.sign(gz); // 网向场外（|z| 增大方向）
+    const out = gz + dir * NET_D;
+    const mkNet = (w, h, mapRepeat) => {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), netMat.clone());
+      m.material.map = netMat.map.clone();
+      m.material.map.repeat.set(...mapRepeat);
+      return m;
+    };
+    // 背网（竖面）
+    const back = mkNet(GOAL_HALF_WIDTH * 2, GOAL_H, [GOAL_HALF_WIDTH * 2 / 0.18, GOAL_H / 0.18]);
+    back.position.set(0, GOAL_H / 2, out);
+    scene.add(back);
+    // 顶网（水平面，从横梁拉到背网顶）
+    const top = mkNet(GOAL_HALF_WIDTH * 2, NET_D, [GOAL_HALF_WIDTH * 2 / 0.18, NET_D / 0.18]);
+    top.rotation.x = -Math.PI / 2;
+    top.position.set(0, GOAL_H, gz + (dir * NET_D) / 2);
+    scene.add(top);
+    // 双侧网（三角 visually 简化为矩形窄面）
+    for (const px of [-GOAL_HALF_WIDTH, GOAL_HALF_WIDTH]) {
+      const side = mkNet(NET_D, GOAL_H, [NET_D / 0.18, GOAL_H / 0.18]);
+      side.rotation.y = Math.PI / 2;
+      side.position.set(px, GOAL_H / 2, gz + (dir * NET_D) / 2);
+      scene.add(side);
+    }
   }
 
   // —— 笼式边界挡板（内核挡板反弹的同源视觉；矮墙不挡视线）——

@@ -105,6 +105,28 @@ export function ballTexture() {
   return t;
 }
 
+/** 球网贴图：透明底 + 白色方格网眼（IP-2 · 球门无网证据），RepeatWrapping 按面尺寸铺 */
+export function netTexture() {
+  const c = document.createElement("canvas");
+  c.width = c.height = 64;
+  const g = c.getContext("2d");
+  g.clearRect(0, 0, 64, 64);
+  g.strokeStyle = "rgba(255,255,255,0.85)";
+  g.lineWidth = 3;
+  const cell = 16;
+  g.beginPath();
+  for (let i = 0; i <= 64; i += cell) {
+    g.moveTo(i, 0); g.lineTo(i, 64);
+    g.moveTo(0, i); g.lineTo(64, i);
+  }
+  g.stroke();
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = THREE.RepeatWrapping;
+  t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+
 /** 径向光斑：受控球员指示环发光贴图（喂 Bloom） */
 export function glowTexture(color = "rgba(243, 156, 18, 1)") {
   const c = document.createElement("canvas");

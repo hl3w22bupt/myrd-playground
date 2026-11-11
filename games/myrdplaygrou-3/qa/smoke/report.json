@@ -3,7 +3,7 @@
   "kind": "browser-smoke-report",
   "product": "/Users/leo/.myrd/workspaces/cmvqriupu0007m9qphvokoci9/run-cmwbl6h6e008am97aetlijmmv/games/myrdplaygrou-3/index.html",
   "seconds": 62,
-  "checkedAt": "2026-11-11T06:15:42.501Z",
+  "checkedAt": "2026-11-11T06:19:21.077Z",
   "note": "render 性能快照为证据记录，非硬门禁（headless SwiftShader 软渲染，阈值待采集基线）",
   "viewports": [
     {
@@ -42,9 +42,9 @@
         "render": {
           "drawCalls": 182,
           "triangles": 6220,
-          "geometries": 26,
-          "textures": 30,
-          "programs": 15,
+          "geometries": 34,
+          "textures": 31,
+          "programs": 16,
           "playerSegments": 160
         }
       },
@@ -66,7 +66,7 @@
         "scoreAway": 0,
         "timeLeft": 28.000000000003524,
         "frames": 30,
-        "fps": 10.8,
+        "fps": 10.7,
         "exceptions": 0,
         "playersOnField": 10,
         "teams": 2,
@@ -86,11 +86,11 @@
           "dpr": 1
         },
         "render": {
-          "drawCalls": 200,
-          "triangles": 6906,
-          "geometries": 26,
-          "textures": 30,
-          "programs": 15,
+          "drawCalls": 208,
+          "triangles": 6922,
+          "geometries": 34,
+          "textures": 31,
+          "programs": 16,
           "playerSegments": 160
         }
       },
