@@ -16,9 +16,9 @@
 
 ## 截图
 
-- qa/playtest/steps/round7-goal-net-approach.png（带球推进至北门前：白柱+横梁+半透明网格背网/顶网+门将驻守）
-- qa/playtest/steps/round7-goal-net-after-shot.png（射门后同视角：网面结构保持，球门辨识度显著高于改前灰条形态）
-- games/myrdplaygrou-3/qa/smoke/smoke-desktop.png（改后双视口冒烟桌面帧，门禁证据）
+- qa/playtest/steps/round7-goal-net-approach.png （带球推进至北门前：白柱+横梁+半透明网格背网/顶网+门将驻守）
+- qa/playtest/steps/round7-goal-net-after-shot.png （射门后同视角：网面结构保持，球门辨识度显著高于改前灰条形态）
+- games/myrdplaygrou-3/qa/smoke/smoke-desktop.png （改后双视口冒烟桌面帧，门禁证据）
 
 ## 改进点
 

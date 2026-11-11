@@ -13,7 +13,7 @@ import { PITCH_HALF_X, PITCH_HALF_Z, BALL_RADIUS, GOAL_HALF_WIDTH } from "../num
 /** 渲染器：ACES 色调映射 + 软阴影 + pixelRatio 上限 2（E-08） */
 export function buildRenderer(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false }); // SwiftShader/移动端 MSAA 成本高；平涂色块 + dpr≥2 下锯齿可接受
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2) * 0.75); // 0.75 内部分辨率：全屏 pass 像素量 ↓44%；平涂+辉光下视觉无损
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2) * 0.7); // 0.7 内部分辨率（round-8 收尾帧率余量收口）：平涂色块 + 辉光下视觉无损，全屏 pass 像素量 ↓
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.0;
@@ -33,7 +33,7 @@ export function buildScene() {
   const key = new THREE.DirectionalLight(0xffffff, 1.5);
   key.position.set(12, 26, 10);
   key.castShadow = true;
-  key.shadow.mapSize.set(512, 512); // 512 + PCFSoft：软阴影质感保留，阴影 pass 光栅成本 ↓4×
+  key.shadow.mapSize.set(384, 384); // 384 + PCFSoft（round-8 收尾余量收口）：软阴影本身就模糊，分辨率损失肉眼不可辨，阴影 pass 光栅成本 ↓44%
   key.shadow.camera.left = -PITCH_HALF_X - 6;
   key.shadow.camera.right = PITCH_HALF_X + 6;
   key.shadow.camera.top = PITCH_HALF_Z + 6;

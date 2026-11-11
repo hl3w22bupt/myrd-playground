@@ -19,10 +19,10 @@
 
 ## 截图
 
-- qa/playtest/steps/round8-celebration-session.png（?smoke=69 会话帧：「进球！主队」横幅 + 特写门 + 网窝 + 彩带粒子 + 门将）
-- qa/playtest/steps/round8-celebration-desktop-smoke.png（桌面视口 1280×720 冒烟帧，同上全要素）
-- qa/playtest/steps/round8-celebration-mobile-smoke.png（移动视口冒烟帧）
-- qa/playtest/steps/round8-live-goal-capture-late.png（实局抓拍诚实留痕：检测延迟晚于特写窗，横幅已消——该缺口由 2.2s 特写窗延长收口）
+- qa/playtest/steps/round8-celebration-session.png （?smoke=69 会话帧：「进球！主队」横幅 + 特写门 + 网窝 + 彩带粒子 + 门将）
+- qa/playtest/steps/round8-celebration-desktop-smoke.png （桌面视口 1280×720 冒烟帧，同上全要素）
+- qa/playtest/steps/round8-celebration-mobile-smoke.png （移动视口冒烟帧）
+- qa/playtest/steps/round8-live-goal-capture-late.png （实局抓拍诚实留痕：检测延迟晚于特写窗，横幅已消——该缺口由 2.2s 特写窗延长收口）
 
 ## 改进点
 

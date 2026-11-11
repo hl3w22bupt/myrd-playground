@@ -1,9 +1,0 @@
-{
-  "startedAt": "2026-11-11T04:11:00Z",
-  "endedAt": "2026-11-11T04:57:00Z",
-  "scenario": "实况足球 v2 重跑主通道（scaffold 沿用+implement 三项+双视口冒烟+打磨）：内核平衡迭代 → 冒烟协议修正 → 性能预算收口 → 三相位实局留证",
-  "seed": 333,
-  "buildSha": "current-HEAD",
-  "rounds": 3,
-  "note": "截图为真实 headless 构建截图（browser-smoke 协议产出，复制归档 qa/playtest/steps/）；机判面证据，人工试玩结论归用户"
-}

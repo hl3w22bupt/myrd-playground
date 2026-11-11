@@ -3,31 +3,6 @@
   "thresholdT1": 0.7,
   "entries": [
     {
-      "scenario": "polish-cmwaqvrng002lm9m2nftdd20h",
-      "beforeSource": "qa/smoke-t1/smoke-mobile.png",
-      "afterSource": "qa/smoke-t3/smoke-mobile.png",
-      "comparedAt": "2026-11-11T05:00:12.003Z",
-      "pairsCompared": 1,
-      "suspectedRegressions": 1,
-      "notComparable": 0,
-      "unmatchedFiles": [],
-      "comparisons": [
-        {
-          "before": "qa/smoke-t1/smoke-mobile.png",
-          "after": "qa/smoke-t3/smoke-mobile.png",
-          "resolution": "720x1137",
-          "pHashBefore": "e5d7170727070e2e",
-          "pHashAfter": "87871f7e1ec404c7",
-          "similarity": 0.5938,
-          "verdict": "suspected-regression",
-          "reason": "pHash 相似度 0.5938 < T1=0.7（整体画面明显变化 —— 可能是退化，也可能是大幅重设计）",
-          "suggestedAction": "对照 round-N.md 的改动清单逐条复核：若属刻意重设计，在打磨记录里写明并把本条标记为已解释；若非刻意，回滚该改动并复跑同动作序列取证"
-        }
-      ],
-      "diffConclusion": "SUSPECTED_REGRESSION(ADVISORY)",
-      "suggestedAction": "逐条复核 suspected-regression 对：刻意重设计需在打磨记录解释；非刻意则回滚改动并复跑取证（advisory，不拦截 verdict）"
-    },
-    {
       "scenario": "polish-cmwaqvrng002lm9m2nftdd20h-rerun",
       "beforeSource": "qa/smoke-t3",
       "afterSource": "qa/smoke",
@@ -164,7 +139,97 @@
       ],
       "diffConclusion": "OK",
       "suggestedAction": "无需动作"
+    },
+    {
+      "scenario": "polish-cmwaqvrng002lm9m2nftdd20h",
+      "beforeSource": "qa/experience/2026-11-11T05-37-31-deploy-desktop/steps",
+      "afterSource": "qa/playtest/steps",
+      "comparedAt": "2026-11-11T08:06:07.808Z",
+      "pairsCompared": 0,
+      "suspectedRegressions": 0,
+      "notComparable": 0,
+      "unmatchedFiles": [
+        "before 独有: 01-加载后.png",
+        "before 独有: 02-初始画面.png",
+        "before 独有: 03-点击屏幕中心.png",
+        "before 独有: 04-摇杆区滑动.png",
+        "before 独有: 05-按上键.png",
+        "before 独有: 06-点击上半屏.png",
+        "before 独有: 07-状态钩子.png",
+        "before 独有: 08-收尾观察.png",
+        "after 独有: round1-early-desktop.png",
+        "after 独有: round1-early-match.png",
+        "after 独有: round2-mid-match.png",
+        "after 独有: round3-late-desktop.png",
+        "after 独有: round3-late-match.png",
+        "after 独有: round4-live-desktop-swipe.png",
+        "after 独有: round4-live-mobile-first.png",
+        "after 独有: round4-live-mobile-swipe.png",
+        "after 独有: round6-after-03-joy.png",
+        "after 独有: round6-after-09-end.png",
+        "after 独有: round6-after-desktop-smoke.png",
+        "after 独有: round6-base-00-title.png",
+        "after 独有: round6-base-03-joy.png",
+        "after 独有: round6-base-09-end.png",
+        "after 独有: round7-goal-net-after-shot.png",
+        "after 独有: round7-goal-net-approach.png",
+        "after 独有: round8-celebration-desktop-smoke.png",
+        "after 独有: round8-celebration-mobile-smoke.png",
+        "after 独有: round8-celebration-session.png",
+        "after 独有: round8-live-goal-capture-late.png",
+        "after 独有: round9-live-00-title.png",
+        "after 独有: round9-live-03-joy.png",
+        "after 独有: round9-live-09-end.png",
+        "after 独有: round9-live-after-celebration.png",
+        "after 独有: round9-live-goal-hold-net.png"
+      ],
+      "comparisons": [],
+      "diffConclusion": "NOT_COMPARABLE",
+      "suggestedAction": "证据不可比（分辨率/解析失败）—— 统一采集口径后重采，不要据此下「无退化」结论"
+    },
+    {
+      "scenario": "polish-v8-live-mobile",
+      "beforeSource": "qa/experience/2026-11-11T05-36-47-deploy/steps",
+      "afterSource": "qa/visual-ratchet/v8-live-mapped",
+      "comparedAt": "2026-11-11T08:07:16.245Z",
+      "pairsCompared": 2,
+      "suspectedRegressions": 0,
+      "notComparable": 0,
+      "unmatchedFiles": [
+        "before 独有: 01-加载后.png",
+        "before 独有: 03-点击屏幕中心.png",
+        "before 独有: 05-按上键.png",
+        "before 独有: 06-点击上半屏.png",
+        "before 独有: 07-状态钩子.png",
+        "before 独有: 08-收尾观察.png"
+      ],
+      "comparisons": [
+        {
+          "before": "qa/experience/2026-11-11T05-36-47-deploy/steps/02-初始画面.png",
+          "after": "qa/visual-ratchet/v8-live-mapped/02-初始画面.png",
+          "resolution": "702x1519",
+          "pHashBefore": "c4c43b3b9dccc4e4",
+          "pHashAfter": "c4c43b3b9dccc4e4",
+          "similarity": 1,
+          "verdict": "comparable-pass",
+          "reason": "pHash 相似度 1.0000 ≥ T1=0.7",
+          "suggestedAction": "无需动作"
+        },
+        {
+          "before": "qa/experience/2026-11-11T05-36-47-deploy/steps/04-摇杆区滑动.png",
+          "after": "qa/visual-ratchet/v8-live-mapped/04-摇杆区滑动.png",
+          "resolution": "702x1519",
+          "pHashBefore": "bd9e350c3c1c0d3d",
+          "pHashAfter": "b5ce1c5e241e1cb5",
+          "similarity": 0.75,
+          "verdict": "comparable-pass",
+          "reason": "pHash 相似度 0.7500 ≥ T1=0.7",
+          "suggestedAction": "无需动作"
+        }
+      ],
+      "diffConclusion": "OK",
+      "suggestedAction": "无需动作"
     }
   ],
-  "updatedAt": "2026-11-11T05:42:33.387Z"
+  "updatedAt": "2026-11-11T08:07:16.244Z"
 }

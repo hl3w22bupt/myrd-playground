@@ -16,10 +16,10 @@
 
 ## 截图
 
-- qa/playtest/steps/round6-base-03-joy.png（改前移动端摇杆态，基线）
-- qa/playtest/steps/round6-base-09-end.png（改前移动端终态）
-- qa/playtest/steps/round6-after-desktop-smoke.png（改后桌面视口冒烟截图：场宽占满画幅）
-- qa/playtest/steps/round6-after-09-end.png（改后移动端终态，与改前逐字节一致）
+- qa/playtest/steps/round6-base-03-joy.png （改前移动端摇杆态，基线）
+- qa/playtest/steps/round6-base-09-end.png （改前移动端终态）
+- qa/playtest/steps/round6-after-desktop-smoke.png （改后桌面视口冒烟截图：场宽占满画幅）
+- qa/playtest/steps/round6-after-09-end.png （改后移动端终态，与改前逐字节一致）
 
 ## 改进点
 
